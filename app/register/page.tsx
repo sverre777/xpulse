@@ -5,6 +5,7 @@ import { useActionState } from 'react'
 import { register, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
+import { SPORTS } from '@/lib/types'
 
 const initialState: AuthState = {}
 
@@ -42,6 +43,22 @@ export default function RegisterPage() {
             required
             autoComplete="new-password"
           />
+
+          {/* Primary sport */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Primærsport
+            </label>
+            <select name="primary_sport" required
+              style={{
+                backgroundColor: '#1C1C21', border: '1px solid #222228',
+                color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: '15px', padding: '12px 16px', outline: 'none',
+              }}>
+              {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
 
           {/* Role selector */}
           <div className="flex flex-col gap-2">

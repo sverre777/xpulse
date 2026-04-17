@@ -1,106 +1,168 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { NavBar } from '@/components/dashboard/NavBar'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { PlaceholderPanel } from '@/components/dashboard/PlaceholderPanel'
+import { WorkoutCard } from '@/components/workout/WorkoutCard'
+import { Workout } from '@/lib/types'
 
 export default async function AthleteDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  if (!user) {
-    redirect('/login')
-  }
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  if (profile?.role === 'coach') redirect('/coach')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  // Last 7 days
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const from = sevenDaysAgo.toISOString().split('T')[0]
+  const today = new Date().toISOString().split('T')[0]
 
-  if (profile?.role === 'coach') {
-    redirect('/coach')
-  }
+  const { data: recentWorkouts } = await supabase
+    .from('workouts')
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
+    .eq('user_id', user.id)
+    .eq('is_planned', false)
+    .gte('date', from)
+    .lte('date', today)
+    .order('date', { ascending: false })
+    .limit(10)
+
+  // This week stats
+  const now = new Date()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+  const weekStart = monday.toISOString().split('T')[0]
+
+  const { data: weekWorkouts } = await supabase
+    .from('workouts')
+    .select('duration_minutes, distance_km, workout_type, workout_movements(*)')
+    .eq('user_id', user.id)
+    .eq('is_planned', false)
+    .gte('date', weekStart)
+    .lte('date', today)
+
+  const weekMinutes = (weekWorkouts ?? []).reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
+  const weekKm = (weekWorkouts ?? []).reduce((s, w) => s + (Number(w.distance_km) || 0), 0)
+  const weekSessions = weekWorkouts?.length ?? 0
+  const weekHours = Math.floor(weekMinutes / 60)
+  const weekMins = weekMinutes % 60
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Utøver'
+  const dayHour = new Date().getHours()
+  const greeting = dayHour < 10 ? 'God morgen' : dayHour < 12 ? 'Formiddag' : dayHour < 17 ? 'God dag' : dayHour < 21 ? 'God kveld' : 'God natt'
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
-      <NavBar role="athlete" userName={profile?.full_name} />
+    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+      <div className="max-w-5xl mx-auto px-4 py-8">
 
-      <main className="flex-1 px-4 py-8 max-w-6xl mx-auto w-full">
-
-        {/* Header */}
+        {/* Greeting */}
         <div className="mb-8">
-          <h1
-            className="text-5xl md:text-6xl"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.05em' }}
-          >
-            Hei, {firstName}
-          </h1>
-          <p
-            className="text-base tracking-wide mt-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
-          >
-            Her er din treningsoversikt
+          <p className="text-sm tracking-widest uppercase mb-1"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            {greeting}
           </p>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '52px', letterSpacing: '0.05em', lineHeight: 1 }}>
+            {firstName}
+          </h1>
         </div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <StatCard label="Treninger denne uka" value="0" unit="økter" />
-          <StatCard label="Distanse denne uka" value="0" unit="km" />
-          <StatCard label="Timer trent" value="0" unit="t" />
-          <StatCard label="Snitt puls" value="—" unit="bpm" />
+        {/* This week stats */}
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+            <p className="text-xs tracking-widest uppercase mb-2"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Denne uken
+            </p>
+            <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '32px', lineHeight: 1 }}>
+              {weekHours > 0 ? `${weekHours}t ` : ''}{weekMins > 0 ? `${weekMins}min` : weekHours === 0 ? '—' : ''}
+            </p>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Total tid
+            </p>
+          </div>
+          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+            <p className="text-xs tracking-widest uppercase mb-2"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Km denne uken
+            </p>
+            <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', lineHeight: 1 }}>
+              {weekKm > 0 ? weekKm.toFixed(0) : '—'}
+            </p>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              kilometer
+            </p>
+          </div>
+          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+            <p className="text-xs tracking-widest uppercase mb-2"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Økter denne uken
+            </p>
+            <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', lineHeight: 1 }}>
+              {weekSessions}
+            </p>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              gjennomført
+            </p>
+          </div>
         </div>
 
-        {/* Main panels */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <PlaceholderPanel
-            title="Treningsdagbok"
-            description="Logg og se gjennom alle dine treningsøkter med detaljer, puls og notater."
-            comingSoon={['Logg ny økt', 'Oversikt over siste 30 dager', 'Eksport til CSV']}
-          />
-          <PlaceholderPanel
-            title="Treningsplanlegger"
-            description="Se treningsplanen din fremover, planlagt av deg selv eller treneren din."
-            comingSoon={['Ukentlig oversikt', 'Periodisering', 'Trenerintegrasjon']}
-          />
-          <PlaceholderPanel
-            title="Analyse & Puls"
-            description="Dybdeanalyse av treningsdata med pulsgrafer, HRV og belastningsstyring."
-            comingSoon={['Pulsgrafer', 'HRV-trending', 'Treningsbelastning']}
-          />
-          <PlaceholderPanel
-            title="Klokkesynk"
-            description="Synkroniser data direkte fra Garmin-klokke eller Apple Health."
-            comingSoon={['Garmin Connect', 'Apple Health', 'Auto-import']}
-          />
-          <PlaceholderPanel
-            title="AI-Coach"
-            description="Intelligente anbefalinger basert på din treningshistorikk og mål."
-            comingSoon={['Personlig AI-coach', 'Øktforslag', 'Restitusjonsvurdering']}
-          />
-          <PlaceholderPanel
-            title="Din trener"
-            description="Kommuniser med treneren din og motta tilbakemeldinger direkte i appen."
-            comingSoon={['Meldinger', 'Treningsfeedback', 'Målsetting']}
-          />
+        {/* Quick actions */}
+        <div className="flex gap-3 mb-8">
+          <Link href="/athlete/log"
+            className="px-6 py-3 text-base tracking-widest uppercase font-semibold transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: '#FF4500', color: '#F0F0F2', textDecoration: 'none',
+            }}>
+            + Logg økt
+          </Link>
+          <Link href="/athlete/week"
+            className="px-6 py-3 text-base tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none',
+            }}>
+            Ukesoversikt
+          </Link>
         </div>
 
-      </main>
+        {/* Recent workouts */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <span style={{ width: '20px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+                Siste 7 dager
+              </h2>
+            </div>
+            <Link href="/athlete/history"
+              className="text-sm tracking-widest uppercase transition-opacity hover:opacity-70"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', textDecoration: 'none' }}>
+              Se alle →
+            </Link>
+          </div>
 
-      <footer
-        className="px-6 py-4 text-center"
-        style={{ borderTop: '1px solid #111113' }}
-      >
-        <p
-          className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
-        >
-          X-PULSE Fase 1 — Fundament
-        </p>
-      </footer>
+          {(recentWorkouts ?? []).length === 0 ? (
+            <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Ingen økter logget ennå
+              </p>
+              <Link href="/athlete/log" className="inline-block mt-3 text-sm"
+                style={{ color: '#FF4500', fontFamily: "'Barlow Condensed', sans-serif", textDecoration: 'none' }}>
+                Logg din første økt →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {(recentWorkouts as Workout[]).map(w => (
+                <WorkoutCard key={w.id} workout={w} />
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
   )
 }

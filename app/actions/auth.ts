@@ -44,6 +44,7 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   const password = formData.get('password') as string
   const fullName = formData.get('full_name') as string
   const role = formData.get('role') as Role
+  const primarySport = formData.get('primary_sport') as string
 
   if (!['athlete', 'coach'].includes(role)) {
     return { error: 'Ugyldig rolle valgt' }
@@ -56,6 +57,7 @@ export async function register(prevState: AuthState, formData: FormData): Promis
       data: {
         full_name: fullName,
         role,
+        primary_sport: primarySport,
       },
     },
   })
@@ -70,6 +72,7 @@ export async function register(prevState: AuthState, formData: FormData): Promis
       email,
       full_name: fullName,
       role,
+      primary_sport: primarySport || 'running',
     })
 
     if (profileError) {

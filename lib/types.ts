@@ -4,7 +4,7 @@ export type Sport =
   | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
 
 export type WorkoutType =
-  | 'endurance' | 'strength' | 'technical' | 'competition' | 'recovery'
+  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'recovery' | 'technical' | 'other'
   | 'hard_combo' | 'easy_combo' | 'basis_shooting' | 'warmup_shooting'
 
 // ── Lookup arrays ──────────────────────────────────────────
@@ -20,11 +20,14 @@ export const SPORTS: { value: Sport; label: string }[] = [
 ]
 
 export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [
-  { value: 'endurance',   label: 'Utholdenhet' },
-  { value: 'strength',    label: 'Styrke' },
-  { value: 'technical',   label: 'Teknisk' },
+  { value: 'long_run',    label: 'Langtur' },
+  { value: 'interval',    label: 'Intervall' },
+  { value: 'threshold',   label: 'Terskel' },
+  { value: 'easy',        label: 'Rolig' },
   { value: 'competition', label: 'Konkurranse' },
   { value: 'recovery',    label: 'Restitusjon' },
+  { value: 'technical',   label: 'Teknisk' },
+  { value: 'other',       label: 'Annet' },
 ]
 
 export const WORKOUT_TYPES_BIATHLON: { value: WorkoutType; label: string }[] = [
@@ -102,6 +105,9 @@ export interface MovementRow {
   minutes: string
   distance_km: string
   elevation_meters: string
+  avg_heart_rate: string
+  zones: ZoneRow[]           // inline zones for this movement
+  exercises: ExerciseRow[]   // inline exercises for this movement (strength)
 }
 
 export interface ZoneRow {
@@ -179,6 +185,9 @@ export interface WorkoutMovement {
   minutes: number | null
   distance_km: number | null
   elevation_meters: number | null
+  avg_heart_rate: number | null
+  inline_zones: { zone_name: string; minutes: number }[] | null
+  inline_exercises: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }[] | null
   sort_order: number
 }
 
@@ -301,15 +310,21 @@ export interface CalendarWorkoutSummary {
 }
 
 export const TYPE_COLORS: Record<string, string> = {
-  endurance:       '#1A5A8A',
-  strength:        '#5A2A8A',
-  technical:       '#2A7A4A',
+  long_run:        '#1A5A8A',
+  interval:        '#8A2A00',
+  threshold:       '#8A6000',
+  easy:            '#1A6A3A',
   competition:     '#8A2A2A',
   recovery:        '#3A3A6A',
+  technical:       '#2A6A5A',
+  other:           '#4A4A4A',
   hard_combo:      '#7A3A1A',
   easy_combo:      '#3A6A4A',
   basis_shooting:  '#4A4A8A',
   warmup_shooting: '#2A4A5A',
+  // legacy fallbacks
+  endurance:       '#1A5A8A',
+  strength:        '#4A4A4A',
 }
 
 export const ZONE_COLORS: Record<string, string> = {

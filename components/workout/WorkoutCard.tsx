@@ -1,17 +1,9 @@
 import Link from 'next/link'
-import { Workout, SPORTS, WORKOUT_TYPES_BIATHLON as WORKOUT_TYPES } from '@/lib/types'
+import { Workout, SPORTS, WORKOUT_TYPES_BIATHLON as WORKOUT_TYPES, TYPE_COLORS } from '@/lib/types'
 
 interface WorkoutCardProps {
   workout: Workout
   compact?: boolean
-}
-
-const TYPE_COLORS: Record<string, string> = {
-  endurance:   '#2A5A8A',
-  strength:    '#5A2A8A',
-  technical:   '#2A7A4A',
-  competition: '#8A2A2A',
-  recovery:    '#3A3A6A',
 }
 
 export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {

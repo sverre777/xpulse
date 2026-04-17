@@ -74,38 +74,49 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
         minutes: parseInt(m.minutes) || null,
         distance_km: parseFloat(m.distance_km) || null,
         elevation_meters: parseInt(m.elevation_meters) || null,
+        avg_heart_rate: parseInt(m.avg_heart_rate) || null,
+        inline_zones: (m.zones ?? []).filter(z => parseInt(z.minutes) > 0).map(z => ({
+          zone_name: z.zone_name, minutes: parseInt(z.minutes),
+        })),
+        inline_exercises: (m.exercises ?? []).filter(e => e.exercise_name).map(e => ({
+          exercise_name: e.exercise_name,
+          sets: parseInt(e.sets) || null,
+          reps: parseInt(e.reps) || null,
+          weight_kg: parseFloat(e.weight_kg) || null,
+        })),
         sort_order: i,
       }))
     )
   }
 
-  const zones = data.zones.filter(z => z.minutes && parseInt(z.minutes) > 0)
-  if (zones.length > 0) {
+  // Flatten all movement zones into workout_zones for calendar/summary views
+  const allZones: { zone_name: string; minutes: number; sort_order: number }[] = []
+  const zoneTotals: Record<string, number> = {}
+  for (const m of data.movements) {
+    for (const z of m.zones ?? []) {
+      if (parseInt(z.minutes) > 0) {
+        zoneTotals[z.zone_name] = (zoneTotals[z.zone_name] ?? 0) + parseInt(z.minutes)
+      }
+    }
+  }
+  // Also include top-level zones (legacy support)
+  for (const z of data.zones ?? []) {
+    if (parseInt(z.minutes) > 0) {
+      zoneTotals[z.zone_name] = (zoneTotals[z.zone_name] ?? 0) + parseInt(z.minutes)
+    }
+  }
+  let zIdx = 0
+  for (const [zone_name, minutes] of Object.entries(zoneTotals)) {
+    allZones.push({ zone_name, minutes, sort_order: zIdx++ })
+  }
+  if (allZones.length > 0) {
     await supabase.from('workout_zones').insert(
-      zones.map((z, i) => ({
-        workout_id: savedId, zone_name: z.zone_name, minutes: parseInt(z.minutes), sort_order: i,
-      }))
+      allZones.map(z => ({ workout_id: savedId, ...z }))
     )
   }
 
   if (data.tags.length > 0) {
     await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
-  }
-
-  if (data.workout_type === 'strength') {
-    const exercises = data.exercises.filter(e => e.exercise_name)
-    if (exercises.length > 0) {
-      await supabase.from('workout_exercises').insert(
-        exercises.map((e, i) => ({
-          workout_id: savedId,
-          exercise_name: e.exercise_name,
-          sets: parseInt(e.sets) || null,
-          reps: parseInt(e.reps) || null,
-          weight_kg: parseFloat(e.weight_kg) || null,
-          sort_order: i,
-        }))
-      )
-    }
   }
 
   const lactate = data.lactate.filter(l => l.mmol && parseFloat(l.mmol) > 0)

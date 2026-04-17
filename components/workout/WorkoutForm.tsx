@@ -5,13 +5,11 @@ import { useRouter } from 'next/navigation'
 import { saveWorkout } from '@/app/actions/workouts'
 import { saveTemplate } from '@/app/actions/health'
 import {
-  WorkoutFormData, MovementRow, ZoneRow, ExerciseRow, LactateRow,
-  Sport, WorkoutType, SPORTS, INTENSITY_ZONES, DEFAULT_MOVEMENTS_BY_SPORT,
+  WorkoutFormData, MovementRow, LactateRow,
+  Sport, WorkoutType, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutTemplate,
 } from '@/lib/types'
-import { MovementTable } from './MovementTable'
-import { ZoneTable } from './ZoneTable'
-import { ExercisesSection } from './ExercisesSection'
+import { MovementTable, ZoneAggregateSummary } from './MovementTable'
 import { LactateTable } from './LactateTable'
 
 interface WorkoutFormProps {
@@ -24,16 +22,12 @@ interface WorkoutFormProps {
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
   return DEFAULT_MOVEMENTS_BY_SPORT[sport].map(name => ({
-    id: crypto.randomUUID(), movement_name: name, minutes: '', distance_km: '', elevation_meters: ''
+    id: crypto.randomUUID(), movement_name: name, minutes: '', distance_km: '',
+    elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [],
   }))
 }
 
-function makeDefaultZones(): ZoneRow[] {
-  return INTENSITY_ZONES.slice(0, 5).map(z => ({ zone_name: z, minutes: '' }))
-}
-
 const SHOOTING_TYPES: WorkoutType[] = ['hard_combo','easy_combo','basis_shooting','warmup_shooting']
-const ENDURANCE_TYPES: WorkoutType[] = ['endurance','technical','competition','hard_combo','easy_combo']
 
 export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [] }: WorkoutFormProps) {
   const router = useRouter()
@@ -50,12 +44,17 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     date:        defaultValues?.date ?? today,
     time_of_day: defaultValues?.time_of_day ?? '',
     sport:       defaultValues?.sport ?? initialSport,
-    workout_type: defaultValues?.workout_type ?? 'endurance',
+    workout_type: defaultValues?.workout_type ?? 'long_run',
     is_planned:  defaultValues?.is_planned ?? false,
     is_important: defaultValues?.is_important ?? false,
-    movements:   defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport),
-    zones:       defaultValues?.zones ?? makeDefaultZones(),
-    exercises:   defaultValues?.exercises ?? [],
+    movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
+      ...m,
+      avg_heart_rate: m.avg_heart_rate ?? '',
+      zones: m.zones ?? [],
+      exercises: m.exercises ?? [],
+    })),
+    zones:       [],
+    exercises:   [],
     strength_type: defaultValues?.strength_type ?? 'basis',
     lactate:     defaultValues?.lactate ?? [],
     day_form_physical: defaultValues?.day_form_physical ?? null,
@@ -83,9 +82,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       ...f,
       sport: d.sport ?? f.sport,
       workout_type: d.workout_type ?? f.workout_type,
-      movements: (d.movements ?? []).map((m: MovementRow) => ({ ...m, id: crypto.randomUUID() })),
-      zones: d.zones ?? makeDefaultZones(),
-      exercises: (d.exercises ?? []).map((e: ExerciseRow) => ({ ...e, id: crypto.randomUUID() })),
+      movements: (d.movements ?? []).map((m: MovementRow) => ({
+        ...m,
+        id: crypto.randomUUID(),
+        avg_heart_rate: m.avg_heart_rate ?? '',
+        zones: m.zones ?? [],
+        exercises: m.exercises ?? [],
+      })),
+      zones: [],
+      exercises: [],
       strength_type: d.strength_type ?? 'basis',
       notes: d.notes ?? '',
       tags: d.tags ?? [],
@@ -97,8 +102,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     setSavingTemplate(true)
     const templateData = {
       sport: form.sport, workout_type: form.workout_type,
-      movements: form.movements, zones: form.zones,
-      exercises: form.exercises, strength_type: form.strength_type,
+      movements: form.movements,
       notes: form.notes, tags: form.tags,
     }
     await saveTemplate(templateName.trim(), templateData as Record<string, unknown>)
@@ -131,11 +135,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     }
   }
 
-  const isStrength  = form.workout_type === 'strength'
   const isBiathlon  = form.sport === 'biathlon'
   const isShooting  = SHOOTING_TYPES.includes(form.workout_type)
-  const isEndurance = ENDURANCE_TYPES.includes(form.workout_type)
-  const showZones   = isEndurance && !isStrength
   const workoutTypeOptions = getWorkoutTypes(form.sport)
 
   // Shooting stats
@@ -228,30 +229,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       {/* ── BEVEGELSESFORMER ── */}
       {form.workout_type !== 'warmup_shooting' && (
         <Section label="Bevegelsesformer">
+          <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Trykk ▶ på en rad for å legge til intensitetssoner eller øvelser
+          </p>
           <MovementTable
             rows={form.movements}
             onChange={rows => set('movements', rows)}
             defaultMovements={DEFAULT_MOVEMENTS_BY_SPORT[form.sport]}
           />
-        </Section>
-      )}
-
-      {/* ── INTENSITETSSONER ── */}
-      {showZones && (
-        <Section label="Intensitetssoner">
-          <ZoneTable rows={form.zones} onChange={rows => set('zones', rows)} />
-        </Section>
-      )}
-
-      {/* ── STYRKEØVELSER ── */}
-      {isStrength && (
-        <Section label="Styrkeøvelser">
-          <ExercisesSection
-            rows={form.exercises}
-            strengthType={form.strength_type}
-            onChange={rows => set('exercises', rows)}
-            onStrengthTypeChange={t => set('strength_type', t)}
-          />
+          <ZoneAggregateSummary rows={form.movements} />
         </Section>
       )}
 

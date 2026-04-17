@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MovementRow, MOVEMENT_CATEGORIES, getSubcategories } from '@/lib/types'
+import { MovementRow, ZoneRow, ExerciseRow, MOVEMENT_CATEGORIES, INTENSITY_ZONES, getSubcategories } from '@/lib/types'
 
 interface MovementTableProps {
   rows: MovementRow[]
@@ -9,16 +9,188 @@ interface MovementTableProps {
   defaultMovements?: string[]
 }
 
+const STRENGTH_MOVEMENTS = ['Styrke', 'Crossfit', 'Kampsport']
+const isStrengthMovement = (name: string) => STRENGTH_MOVEMENTS.some(s => name.startsWith(s))
+
+function formatPace(minutes: string, km: string): string | null {
+  const m = parseFloat(minutes)
+  const k = parseFloat(km)
+  if (!m || !k || k === 0) return null
+  const secPerKm = (m * 60) / k
+  const min = Math.floor(secPerKm / 60)
+  const sec = Math.round(secPerKm % 60)
+  return `${min}:${String(sec).padStart(2, '0')}/km`
+}
+
+function formatSpeed(minutes: string, km: string): string | null {
+  const m = parseFloat(minutes)
+  const k = parseFloat(km)
+  if (!m || !k || m === 0) return null
+  const kmh = (k / m) * 60
+  return `${kmh.toFixed(1)} km/t`
+}
+
+const RUNNING_MOVEMENTS = ['Løping', 'Orientering']
+const CYCLING_MOVEMENTS = ['Sykling', 'Rulleski', 'Langrenn']
+
+function AutoPace({ movement, minutes, km }: { movement: string; minutes: string; km: string }) {
+  const isRunning = RUNNING_MOVEMENTS.some(r => movement.startsWith(r))
+  const isCycling = CYCLING_MOVEMENTS.some(c => movement.startsWith(c))
+  if (isRunning) {
+    const pace = formatPace(minutes, km)
+    if (!pace) return null
+    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px' }}>{pace}</span>
+  }
+  if (isCycling) {
+    const spd = formatSpeed(minutes, km)
+    if (!spd) return null
+    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px' }}>{spd}</span>
+  }
+  return null
+}
+
+function ZoneExpandSection({ zones, onChange }: { zones: ZoneRow[]; onChange: (z: ZoneRow[]) => void }) {
+  const activeZones = INTENSITY_ZONES.slice(0, 5).map(zn => {
+    const existing = zones.find(z => z.zone_name === zn)
+    return existing ?? { zone_name: zn, minutes: '' }
+  })
+
+  const update = (zn: string, val: string) => {
+    const next = activeZones.map(z => z.zone_name === zn ? { ...z, minutes: val } : z)
+    onChange(next.filter(z => z.minutes))
+  }
+
+  const iSt: React.CSSProperties = {
+    background: 'transparent', border: 'none', outline: 'none',
+    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+    fontSize: '13px', width: '100%', padding: 0, textAlign: 'right' as const,
+  }
+
+  return (
+    <div className="px-3 py-2" style={{ backgroundColor: '#0D0D11', borderTop: '1px solid #1A1A1E' }}>
+      <div className="flex gap-3 items-center flex-wrap">
+        <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', minWidth: '90px' }}>
+          Intensitetssoner
+        </span>
+        {activeZones.map(z => {
+          const zoneColors: Record<string, string> = {
+            I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10', I4: '#8A5A00', I5: '#8A1A00',
+          }
+          const col = zoneColors[z.zone_name] ?? '#555560'
+          return (
+            <div key={z.zone_name} className="flex items-center gap-1">
+              <span style={{
+                fontFamily: "'Bebas Neue', sans-serif", fontSize: '13px',
+                color: col, minWidth: '22px',
+              }}>{z.zone_name}</span>
+              <div style={{ width: '48px', borderBottom: `1px solid ${col}44` }}>
+                <input
+                  type="number" value={z.minutes} min="0"
+                  onChange={e => update(z.zone_name, e.target.value)}
+                  placeholder="—"
+                  style={iSt}
+                />
+              </div>
+              <span style={{ color: '#333340', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>min</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ExerciseExpandSection({ exercises, onChange }: {
+  exercises: ExerciseRow[]
+  onChange: (e: ExerciseRow[]) => void
+}) {
+  const addRow = () => onChange([...exercises, { id: crypto.randomUUID(), exercise_name: '', sets: '', reps: '', weight_kg: '' }])
+  const removeRow = (id: string) => onChange(exercises.filter(e => e.id !== id))
+  const update = (id: string, field: keyof ExerciseRow, val: string) =>
+    onChange(exercises.map(e => e.id === id ? { ...e, [field]: val } : e))
+
+  const iSt: React.CSSProperties = {
+    background: 'transparent', border: 'none', outline: 'none',
+    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', width: '100%', padding: 0,
+  }
+
+  return (
+    <div className="px-3 py-2" style={{ backgroundColor: '#0D0D11', borderTop: '1px solid #1A1A1E' }}>
+      <span className="text-xs tracking-widest uppercase block mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Øvelser
+      </span>
+      {exercises.length > 0 && (
+        <table className="w-full mb-2" style={{ borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              {['Øvelse', 'Sett', 'Reps', 'Kg', ''].map(h => (
+                <th key={h} className="py-1 text-left text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontWeight: 400 }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {exercises.map(e => (
+              <tr key={e.id} className="group">
+                <td className="py-0.5 pr-2">
+                  <input value={e.exercise_name} onChange={ev => update(e.id, 'exercise_name', ev.target.value)}
+                    placeholder="Navn..." style={{ ...iSt, minWidth: '100px' }} />
+                </td>
+                <td className="py-0.5 pr-2" style={{ width: '40px' }}>
+                  <input type="number" value={e.sets} onChange={ev => update(e.id, 'sets', ev.target.value)}
+                    placeholder="—" min="0" style={iSt} />
+                </td>
+                <td className="py-0.5 pr-2" style={{ width: '40px' }}>
+                  <input type="number" value={e.reps} onChange={ev => update(e.id, 'reps', ev.target.value)}
+                    placeholder="—" min="0" style={iSt} />
+                </td>
+                <td className="py-0.5 pr-2" style={{ width: '50px' }}>
+                  <input type="number" step="0.5" value={e.weight_kg} onChange={ev => update(e.id, 'weight_kg', ev.target.value)}
+                    placeholder="—" min="0" style={iSt} />
+                </td>
+                <td className="py-0.5 w-6">
+                  <button type="button" onClick={() => removeRow(e.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                    ×
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <button type="button" onClick={addRow}
+        className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        + Legg til øvelse
+      </button>
+    </div>
+  )
+}
+
 export function MovementTable({ rows, onChange, defaultMovements = [] }: MovementTableProps) {
-  const [customInput, setCustomInput] = useState('')
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const allCategories = MOVEMENT_CATEGORIES.map(m => m.name)
 
-  const update = (i: number, field: keyof MovementRow, value: string) => {
+  const toggle = (id: string) => setExpanded(prev => {
+    const next = new Set(prev)
+    if (next.has(id)) next.delete(id); else next.add(id)
+    return next
+  })
+
+  const update = (i: number, field: keyof MovementRow, value: unknown) => {
     onChange(rows.map((r, idx) => idx === i ? { ...r, [field]: value } : r))
   }
 
   const addRow = (name?: string) => {
-    onChange([...rows, { id: crypto.randomUUID(), movement_name: name ?? '', minutes: '', distance_km: '', elevation_meters: '' }])
+    onChange([...rows, {
+      id: crypto.randomUUID(),
+      movement_name: name ?? '',
+      minutes: '', distance_km: '', elevation_meters: '',
+      avg_heart_rate: '', zones: [], exercises: [],
+    }])
   }
 
   const removeRow = (i: number) => onChange(rows.filter((_, idx) => idx !== i))
@@ -48,7 +220,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
       <table className="w-full" style={{ borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #1E1E22' }}>
-            {['Bevegelsesform', 'Underkategori', 'Min', 'Km', 'Hm', ''].map(h => (
+            {['Bevegelsesform', 'Underkategori', 'Min', 'Km', 'Hm', 'Puls', ''].map(h => (
               <th key={h} className="py-2 px-2 text-left text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontWeight: 400 }}>
                 {h}
@@ -60,56 +232,101 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
           {rows.map((row, i) => {
             const { parent, sub } = parseDisplayName(row.movement_name)
             const subs = getSubcategories(parent)
+            const isExp = expanded.has(row.id)
+            const isStrength = isStrengthMovement(parent)
+
             return (
-              <tr key={row.id} className="group" style={{ borderBottom: '1px solid #1A1A1E' }}>
-                {/* Parent movement */}
-                <td className="px-2 py-1.5" style={{ minWidth: '120px' }}>
-                  <select value={parent}
-                    onChange={e => {
-                      const newSubs = getSubcategories(e.target.value)
-                      update(i, 'movement_name', buildName(e.target.value, newSubs.length > 0 ? newSubs[0] : ''))
-                    }}
-                    style={selSt}>
-                    <option value="">Velg...</option>
-                    {allCategories.map(m => <option key={m} value={m}>{m}</option>)}
-                    {/* Custom from prev sessions */}
-                    {row.movement_name && !allCategories.includes(parent) && (
-                      <option value={parent}>{parent}</option>
+              <>
+                <tr key={row.id} className="group" style={{ borderBottom: isExp ? 'none' : '1px solid #1A1A1E' }}>
+                  {/* Expand toggle */}
+                  <td className="px-2 py-1.5" style={{ minWidth: '130px' }}>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => toggle(row.id)}
+                        style={{
+                          color: isExp ? '#FF4500' : '#333340',
+                          background: 'none', border: 'none', cursor: 'pointer',
+                          fontSize: '10px', padding: 0, lineHeight: 1, flexShrink: 0,
+                        }}
+                        title={isExp ? 'Skjul detaljer' : 'Vis detaljer'}
+                      >
+                        {isExp ? '▼' : '▶'}
+                      </button>
+                      <select value={parent}
+                        onChange={e => {
+                          const newSubs = getSubcategories(e.target.value)
+                          update(i, 'movement_name', buildName(e.target.value, newSubs.length > 0 ? newSubs[0] : ''))
+                        }}
+                        style={selSt}>
+                        <option value="">Velg...</option>
+                        {allCategories.map(m => <option key={m} value={m}>{m}</option>)}
+                        {row.movement_name && !allCategories.includes(parent) && (
+                          <option value={parent}>{parent}</option>
+                        )}
+                      </select>
+                    </div>
+                  </td>
+                  {/* Subcategory */}
+                  <td className="px-2 py-1.5" style={{ minWidth: '100px' }}>
+                    {subs.length > 0 ? (
+                      <select value={sub} onChange={e => update(i, 'movement_name', buildName(parent, e.target.value))}
+                        style={selSt}>
+                        <option value="">Alle</option>
+                        {subs.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    ) : (
+                      <span style={{ color: '#333340', fontSize: '12px', fontFamily: "'Barlow Condensed', sans-serif" }}>—</span>
                     )}
-                  </select>
-                </td>
-                {/* Subcategory */}
-                <td className="px-2 py-1.5" style={{ minWidth: '110px' }}>
-                  {subs.length > 0 ? (
-                    <select value={sub} onChange={e => update(i, 'movement_name', buildName(parent, e.target.value))}
-                      style={selSt}>
-                      <option value="">Alle</option>
-                      {subs.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  ) : (
-                    <span style={{ color: '#333340', fontSize: '12px', fontFamily: "'Barlow Condensed', sans-serif" }}>—</span>
-                  )}
-                </td>
-                <td className="px-2 py-1.5" style={{ width: '60px' }}>
-                  <input type="number" value={row.minutes} onChange={e => update(i, 'minutes', e.target.value)}
-                    placeholder="—" min="0" style={iSt} />
-                </td>
-                <td className="px-2 py-1.5" style={{ width: '60px' }}>
-                  <input type="number" step="0.1" value={row.distance_km} onChange={e => update(i, 'distance_km', e.target.value)}
-                    placeholder="—" min="0" style={iSt} />
-                </td>
-                <td className="px-2 py-1.5" style={{ width: '60px' }}>
-                  <input type="number" value={row.elevation_meters} onChange={e => update(i, 'elevation_meters', e.target.value)}
-                    placeholder="—" min="0" style={iSt} />
-                </td>
-                <td className="px-2 py-1.5 w-8">
-                  <button type="button" onClick={() => removeRow(i)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-                    ×
-                  </button>
-                </td>
-              </tr>
+                  </td>
+                  <td className="px-2 py-1.5" style={{ width: '60px' }}>
+                    <div>
+                      <input type="number" value={row.minutes} onChange={e => update(i, 'minutes', e.target.value)}
+                        placeholder="—" min="0" style={iSt} />
+                      <AutoPace movement={parent} minutes={row.minutes} km={row.distance_km} />
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5" style={{ width: '60px' }}>
+                    <input type="number" step="0.1" value={row.distance_km} onChange={e => update(i, 'distance_km', e.target.value)}
+                      placeholder="—" min="0" style={iSt} />
+                  </td>
+                  <td className="px-2 py-1.5" style={{ width: '60px' }}>
+                    <input type="number" value={row.elevation_meters} onChange={e => update(i, 'elevation_meters', e.target.value)}
+                      placeholder="—" min="0" style={iSt} />
+                  </td>
+                  <td className="px-2 py-1.5" style={{ width: '55px' }}>
+                    <div className="flex items-center gap-0.5">
+                      <input type="number" value={row.avg_heart_rate} onChange={e => update(i, 'avg_heart_rate', e.target.value)}
+                        placeholder="—" min="0" max="250" style={iSt} />
+                      {row.avg_heart_rate && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif", flexShrink: 0 }}>bpm</span>}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5 w-8">
+                    <button type="button" onClick={() => removeRow(i)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+                      ×
+                    </button>
+                  </td>
+                </tr>
+                {isExp && (
+                  <tr key={`${row.id}-expand`} style={{ borderBottom: '1px solid #1A1A1E' }}>
+                    <td colSpan={7} style={{ padding: 0 }}>
+                      {isStrength ? (
+                        <ExerciseExpandSection
+                          exercises={row.exercises ?? []}
+                          onChange={ex => update(i, 'exercises', ex)}
+                        />
+                      ) : (
+                        <ZoneExpandSection
+                          zones={row.zones ?? []}
+                          onChange={z => update(i, 'zones', z)}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </>
             )
           })}
         </tbody>
@@ -127,7 +344,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
               <td className="px-2 py-1.5 text-sm" style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {totalElev > 0 ? totalElev : '—'}
               </td>
-              <td />
+              <td colSpan={2} />
             </tr>
           </tfoot>
         )}
@@ -153,6 +370,53 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
           }}>
           + Annet
         </button>
+      </div>
+    </div>
+  )
+}
+
+// Zone aggregation summary shown below all movements
+export function ZoneAggregateSummary({ rows }: { rows: MovementRow[] }) {
+  const totals: Record<string, number> = {}
+  for (const row of rows) {
+    for (const z of row.zones ?? []) {
+      if (z.minutes && parseInt(z.minutes) > 0) {
+        totals[z.zone_name] = (totals[z.zone_name] ?? 0) + parseInt(z.minutes)
+      }
+    }
+  }
+  const entries = INTENSITY_ZONES.slice(0, 5).map(zn => ({ zone: zn, minutes: totals[zn] ?? 0 }))
+  const hasData = entries.some(e => e.minutes > 0)
+  if (!hasData) return null
+
+  const totalMins = entries.reduce((s, e) => s + e.minutes, 0)
+  const zoneColors: Record<string, string> = {
+    I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10', I4: '#8A5A00', I5: '#8A1A00',
+  }
+
+  return (
+    <div className="mt-4 p-3" style={{ backgroundColor: '#0D0D11', border: '1px solid #1A1A1E' }}>
+      <p className="text-xs tracking-widest uppercase mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Sonefordeling totalt
+      </p>
+      {/* Bar */}
+      <div className="flex h-2 w-full mb-2 overflow-hidden">
+        {entries.filter(e => e.minutes > 0).map(e => (
+          <div
+            key={e.zone}
+            style={{ width: `${(e.minutes / totalMins) * 100}%`, backgroundColor: zoneColors[e.zone] ?? '#333' }}
+          />
+        ))}
+      </div>
+      {/* Labels */}
+      <div className="flex gap-4 flex-wrap">
+        {entries.filter(e => e.minutes > 0).map(e => (
+          <div key={e.zone} className="flex items-center gap-1.5">
+            <div style={{ width: '8px', height: '8px', backgroundColor: zoneColors[e.zone] ?? '#333', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: zoneColors[e.zone], fontSize: '14px' }}>{e.zone}</span>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>{e.minutes}min</span>
+          </div>
+        ))}
       </div>
     </div>
   )

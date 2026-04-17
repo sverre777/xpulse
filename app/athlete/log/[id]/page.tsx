@@ -29,25 +29,29 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-      .map((m: { movement_name: string; minutes: number | null; distance_km: number | null; elevation_meters: number | null }) => ({
+      .map((m: {
+        movement_name: string; minutes: number | null; distance_km: number | null
+        elevation_meters: number | null; avg_heart_rate?: number | null
+        inline_zones?: { zone_name: string; minutes: number }[] | null
+        inline_exercises?: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }[] | null
+      }) => ({
         id: crypto.randomUUID(),
         movement_name: m.movement_name,
         minutes: m.minutes?.toString() ?? '',
         distance_km: m.distance_km?.toString() ?? '',
         elevation_meters: m.elevation_meters?.toString() ?? '',
+        avg_heart_rate: m.avg_heart_rate?.toString() ?? '',
+        zones: (m.inline_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes.toString() })),
+        exercises: (m.inline_exercises ?? []).map(e => ({
+          id: crypto.randomUUID(),
+          exercise_name: e.exercise_name,
+          sets: e.sets?.toString() ?? '',
+          reps: e.reps?.toString() ?? '',
+          weight_kg: e.weight_kg?.toString() ?? '',
+        })),
       })),
-    zones: (workout.workout_zones ?? [])
-      .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-      .map((z: { zone_name: string; minutes: number }) => ({ zone_name: z.zone_name, minutes: z.minutes?.toString() ?? '' })),
-    exercises: (workout.workout_exercises ?? [])
-      .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-      .map((e: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }) => ({
-        id: crypto.randomUUID(),
-        exercise_name: e.exercise_name,
-        sets: e.sets?.toString() ?? '',
-        reps: e.reps?.toString() ?? '',
-        weight_kg: e.weight_kg?.toString() ?? '',
-      })),
+    zones: [],
+    exercises: [],
     lactate: (workout.workout_lactate_measurements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
       .map((l: { measured_at_time: string | null; mmol: number; heart_rate: number | null; feeling: number | null }): LactateRow => ({

@@ -94,6 +94,20 @@ create table if not exists public.workouts (
   updated_at          timestamptz not null default now()
 );
 
+-- Legg til alle kolonner som kan mangle (trygt hvis de allerede finnes)
+alter table public.workouts add column if not exists workout_type       text        not null default 'long_run';
+alter table public.workouts add column if not exists time_of_day        time;
+alter table public.workouts add column if not exists is_planned         boolean     not null default false;
+alter table public.workouts add column if not exists is_completed       boolean     not null default true;
+alter table public.workouts add column if not exists is_important       boolean     not null default false;
+alter table public.workouts add column if not exists planned_workout_id uuid        references public.workouts(id);
+alter table public.workouts add column if not exists day_form_physical  integer     check (day_form_physical between 1 and 5);
+alter table public.workouts add column if not exists day_form_mental    integer     check (day_form_mental between 1 and 5);
+alter table public.workouts add column if not exists rpe                integer     check (rpe between 1 and 10);
+alter table public.workouts add column if not exists coach_comment      text;
+alter table public.workouts add column if not exists elevation_meters   integer;
+alter table public.workouts add column if not exists shooting_data      jsonb;
+
 -- Fjern alle eksisterende workout_type constraints og sett ny
 do $$
 declare r record;

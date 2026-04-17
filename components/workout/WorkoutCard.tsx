@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Workout, SPORTS, WORKOUT_TYPES } from '@/lib/types'
+import { Workout, SPORTS, WORKOUT_TYPES_BIATHLON as WORKOUT_TYPES } from '@/lib/types'
 
 interface WorkoutCardProps {
   workout: Workout

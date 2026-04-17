@@ -9,17 +9,19 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  const totalMinutes = data.movements.reduce((sum, m) => sum + (parseInt(m.minutes) || 0), 0)
-  const totalKm = data.movements.reduce((sum, m) => sum + (parseFloat(m.distance_km) || 0), 0)
-  const totalElevation = data.movements.reduce((sum, m) => sum + (parseInt(m.elevation_meters) || 0), 0)
+  const totalMinutes = data.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
+  const totalKm      = data.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
+  const totalElev    = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
 
-  const shootingData = data.sport === 'biathlon' ? {
-    basis_rounds: parseInt(data.shooting_basis_rounds) || null,
-    basis_hits: parseInt(data.shooting_basis_hits) || null,
-    easy_combo_rounds: parseInt(data.shooting_easy_combo_rounds) || null,
-    hard_combo_rounds: parseInt(data.shooting_hard_combo_rounds) || null,
-    prone_pct: parseInt(data.shooting_prone_pct) || null,
-    standing_pct: parseInt(data.shooting_standing_pct) || null,
+  const isShooting = ['hard_combo','easy_combo','basis_shooting','warmup_shooting'].includes(data.workout_type)
+  const shootingData = (data.sport === 'biathlon' || isShooting) ? {
+    prone_shots:   parseInt(data.shooting_prone_shots) || null,
+    prone_hits:    parseInt(data.shooting_prone_hits) || null,
+    prone_pct:     data.shooting_prone_shots ? Math.round(((parseInt(data.shooting_prone_hits)||0) / (parseInt(data.shooting_prone_shots)||1)) * 100) : null,
+    standing_shots: parseInt(data.shooting_standing_shots) || null,
+    standing_hits:  parseInt(data.shooting_standing_hits) || null,
+    standing_pct:   data.shooting_standing_shots ? Math.round(((parseInt(data.shooting_standing_hits)||0) / (parseInt(data.shooting_standing_shots)||1)) * 100) : null,
+    warmup_shots:  parseInt(data.shooting_warmup_shots) || null,
   } : null
 
   const workoutPayload = {
@@ -31,20 +33,14 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     time_of_day: data.time_of_day || null,
     duration_minutes: totalMinutes || null,
     distance_km: totalKm || null,
-    elevation_meters: totalElevation || null,
+    elevation_meters: totalElev || null,
     notes: data.notes || null,
     is_planned: data.is_planned,
     is_completed: !data.is_planned,
     is_important: data.is_important,
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
-    sleep_hours: parseFloat(data.sleep_hours) || null,
-    sleep_quality: data.sleep_quality,
-    resting_hr: parseInt(data.resting_hr) || null,
     rpe: data.rpe,
-    lactate_warmup: parseFloat(data.lactate_warmup) || null,
-    lactate_during: parseFloat(data.lactate_during) || null,
-    lactate_after: parseFloat(data.lactate_after) || null,
     shooting_data: shootingData,
     updated_at: new Date().toISOString(),
   }
@@ -54,10 +50,13 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   if (workoutId) {
     const { error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', user.id)
     if (error) return { error: error.message }
-    await supabase.from('workout_movements').delete().eq('workout_id', workoutId)
-    await supabase.from('workout_zones').delete().eq('workout_id', workoutId)
-    await supabase.from('workout_tags').delete().eq('workout_id', workoutId)
-    await supabase.from('workout_exercises').delete().eq('workout_id', workoutId)
+    await Promise.all([
+      supabase.from('workout_movements').delete().eq('workout_id', workoutId),
+      supabase.from('workout_zones').delete().eq('workout_id', workoutId),
+      supabase.from('workout_tags').delete().eq('workout_id', workoutId),
+      supabase.from('workout_exercises').delete().eq('workout_id', workoutId),
+      supabase.from('workout_lactate_measurements').delete().eq('workout_id', workoutId),
+    ])
   } else {
     const { data: inserted, error } = await supabase.from('workouts').insert(workoutPayload).select('id').single()
     if (error) return { error: error.message }
@@ -84,18 +83,13 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   if (zones.length > 0) {
     await supabase.from('workout_zones').insert(
       zones.map((z, i) => ({
-        workout_id: savedId,
-        zone_name: z.zone_name,
-        minutes: parseInt(z.minutes),
-        sort_order: i,
+        workout_id: savedId, zone_name: z.zone_name, minutes: parseInt(z.minutes), sort_order: i,
       }))
     )
   }
 
   if (data.tags.length > 0) {
-    await supabase.from('workout_tags').insert(
-      data.tags.map(tag => ({ workout_id: savedId, tag }))
-    )
+    await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
   }
 
   if (data.workout_type === 'strength') {
@@ -114,10 +108,37 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     }
   }
 
+  const lactate = data.lactate.filter(l => l.mmol && parseFloat(l.mmol) > 0)
+  if (lactate.length > 0) {
+    await supabase.from('workout_lactate_measurements').insert(
+      lactate.map((l, i) => ({
+        workout_id: savedId,
+        measured_at_time: l.measured_at_time || null,
+        mmol: parseFloat(l.mmol),
+        heart_rate: parseInt(l.heart_rate) || null,
+        feeling: l.feeling,
+        sort_order: i,
+      }))
+    )
+  }
+
   revalidatePath('/athlete')
+  revalidatePath('/athlete/calendar')
   revalidatePath('/athlete/week')
-  revalidatePath('/athlete/history')
   return { id: savedId }
+}
+
+export async function markCompleted(workoutId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { error } = await supabase.from('workouts')
+    .update({ is_completed: true, is_planned: false, updated_at: new Date().toISOString() })
+    .eq('id', workoutId).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/athlete/calendar')
+  revalidatePath('/athlete/week')
+  return {}
 }
 
 export async function deleteWorkout(id: string): Promise<{ error?: string }> {
@@ -126,56 +147,67 @@ export async function deleteWorkout(id: string): Promise<{ error?: string }> {
   if (!user) return { error: 'Ikke innlogget' }
   const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', user.id)
   if (error) return { error: error.message }
-  revalidatePath('/athlete')
+  revalidatePath('/athlete/calendar')
   revalidatePath('/athlete/week')
   return {}
 }
 
+export async function getWorkoutsForMonth(userId: string, year: number, month: number) {
+  const supabase = await createClient()
+  const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
+  const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
+  const { data } = await supabase
+    .from('workouts')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,workout_zones(*)')
+    .eq('user_id', userId)
+    .gte('date', startDate).lte('date', endDate)
+    .order('date').order('time_of_day')
+  return data ?? []
+}
+
 export async function getWorkoutsForWeek(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('workouts')
-    .select(`*, workout_movements(*), workout_zones(*), workout_tags(*)`)
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', userId)
-    .gte('date', startDate)
-    .lte('date', endDate)
-    .order('date', { ascending: true })
-    .order('time_of_day', { ascending: true })
-  if (error) return []
+    .gte('date', startDate).lte('date', endDate)
+    .order('date').order('time_of_day')
   return data ?? []
 }
 
 export async function getWorkout(id: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from('workouts')
-    .select(`*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*)`)
-    .eq('id', id)
-    .single()
-  if (error) return null
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*)')
+    .eq('id', id).single()
   return data
 }
 
+export async function getWorkoutsForDay(userId: string, date: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('workouts')
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
+    .eq('user_id', userId).eq('date', date)
+    .order('time_of_day')
+  return data ?? []
+}
+
 export async function searchWorkouts(userId: string, query: string, filters: {
-  sport?: string
-  workout_type?: string
-  from?: string
-  to?: string
+  sport?: string; workout_type?: string; from?: string; to?: string
 }) {
   const supabase = await createClient()
   let req = supabase
     .from('workouts')
-    .select(`*, workout_movements(*), workout_zones(*), workout_tags(*)`)
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
-    .limit(50)
-
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
+    .eq('user_id', userId).order('date', { ascending: false }).limit(50)
   if (query) req = req.ilike('title', `%${query}%`)
   if (filters.sport) req = req.eq('sport', filters.sport)
   if (filters.workout_type) req = req.eq('workout_type', filters.workout_type)
   if (filters.from) req = req.gte('date', filters.from)
   if (filters.to) req = req.lte('date', filters.to)
-
   const { data } = await req
   return data ?? []
 }

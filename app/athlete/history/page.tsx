@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { searchWorkouts } from '@/app/actions/workouts'
 import { WorkoutCard } from '@/components/workout/WorkoutCard'
-import { Workout, SPORTS, WORKOUT_TYPES } from '@/lib/types'
+import { Workout, SPORTS, WORKOUT_TYPES_BASE as WORKOUT_TYPES } from '@/lib/types'
 
 export default async function HistoryPage({
   searchParams,

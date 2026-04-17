@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getTemplates } from '@/app/actions/health'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
-import { Sport } from '@/lib/types'
+import { Sport, WorkoutTemplate } from '@/lib/types'
 
 export default async function NewWorkoutPage({
   searchParams,
@@ -12,9 +13,12 @@ export default async function NewWorkoutPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('profiles').select('primary_sport').eq('id', user.id).single()
+  const [{ data: profile }, templates] = await Promise.all([
+    supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
+    getTemplates(),
+  ])
+
   const params = await searchParams
-  const initialDate = params.date
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -26,10 +30,10 @@ export default async function NewWorkoutPage({
           </h1>
         </div>
       </div>
-
       <WorkoutForm
         initialSport={(profile?.primary_sport as Sport) ?? 'running'}
-        initialDate={initialDate}
+        initialDate={params.date}
+        templates={templates as WorkoutTemplate[]}
       />
     </div>
   )

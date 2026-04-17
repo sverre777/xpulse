@@ -9,10 +9,11 @@ interface AthleteNavProps {
 }
 
 const NAV_LINKS = [
-  { href: '/athlete',         label: 'Oversikt' },
-  { href: '/athlete/week',    label: 'Uke' },
-  { href: '/athlete/plan',    label: 'Årsplan' },
-  { href: '/athlete/history', label: 'Historikk' },
+  { href: '/athlete',          label: 'Oversikt' },
+  { href: '/athlete/calendar', label: 'Kalender' },
+  { href: '/athlete/week',     label: 'Uke' },
+  { href: '/athlete/plan',     label: 'Årsplan' },
+  { href: '/athlete/history',  label: 'Historikk' },
 ]
 
 export function AthleteNav({ userName }: AthleteNavProps) {

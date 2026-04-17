@@ -1,18 +1,25 @@
 export type Role = 'athlete' | 'coach'
-export type Sport = 'running' | 'cross_country_skiing' | 'biathlon' | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
-export type WorkoutType = 'endurance' | 'strength' | 'technical' | 'competition' | 'recovery'
+export type Sport =
+  | 'running' | 'cross_country_skiing' | 'biathlon'
+  | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
+
+export type WorkoutType =
+  | 'endurance' | 'strength' | 'technical' | 'competition' | 'recovery'
+  | 'hard_combo' | 'easy_combo' | 'basis_shooting' | 'warmup_shooting'
+
+// ── Lookup arrays ──────────────────────────────────────────
 
 export const SPORTS: { value: Sport; label: string }[] = [
-  { value: 'running',               label: 'Løping' },
-  { value: 'cross_country_skiing',  label: 'Langrenn' },
-  { value: 'biathlon',              label: 'Skiskyting' },
-  { value: 'triathlon',             label: 'Triatlon' },
-  { value: 'cycling',               label: 'Sykling' },
-  { value: 'long_distance_skiing',  label: 'Langløp' },
-  { value: 'endurance',             label: 'Utholdenhet (generelt)' },
+  { value: 'running',              label: 'Løping' },
+  { value: 'cross_country_skiing', label: 'Langrenn' },
+  { value: 'biathlon',             label: 'Skiskyting' },
+  { value: 'triathlon',            label: 'Triatlon' },
+  { value: 'cycling',              label: 'Sykling' },
+  { value: 'long_distance_skiing', label: 'Langløp' },
+  { value: 'endurance',            label: 'Utholdenhet (generelt)' },
 ]
 
-export const WORKOUT_TYPES: { value: WorkoutType; label: string }[] = [
+export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [
   { value: 'endurance',   label: 'Utholdenhet' },
   { value: 'strength',    label: 'Styrke' },
   { value: 'technical',   label: 'Teknisk' },
@@ -20,42 +27,78 @@ export const WORKOUT_TYPES: { value: WorkoutType; label: string }[] = [
   { value: 'recovery',    label: 'Restitusjon' },
 ]
 
+export const WORKOUT_TYPES_BIATHLON: { value: WorkoutType; label: string }[] = [
+  ...WORKOUT_TYPES_BASE,
+  { value: 'hard_combo',      label: 'Hard kombinasjon' },
+  { value: 'easy_combo',      label: 'Rolig kombinasjon' },
+  { value: 'basis_shooting',  label: 'Basisskyting' },
+  { value: 'warmup_shooting', label: 'Innskyting' },
+]
+
+export function getWorkoutTypes(sport: Sport) {
+  return sport === 'biathlon' ? WORKOUT_TYPES_BIATHLON : WORKOUT_TYPES_BASE
+}
+
 export const INTENSITY_ZONES = ['I1','I2','I3','I4','I5','I6','I7','I8']
 
+export const SHOOTING_WORKOUT_TYPES: WorkoutType[] = [
+  'hard_combo','easy_combo','basis_shooting','warmup_shooting'
+]
+
+export const ENDURANCE_MOVEMENT_NAMES = [
+  'Løping','Langrenn','Rulleski','Sykling','Svømming',
+  'Fjellsport','Roing','Kajak/Padling','Orientering','Skøyter',
+]
+
+// ── Movement categories with subcategories ─────────────────
+
+export interface MovementCategory {
+  name: string
+  subcategories?: string[]
+}
+
+export const MOVEMENT_CATEGORIES: MovementCategory[] = [
+  { name: 'Løping',       subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
+  { name: 'Langrenn',     subcategories: ['Skøyting','Klassisk'] },
+  { name: 'Rulleski',     subcategories: ['Skøyting','Klassisk'] },
+  { name: 'Sykling',      subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
+  { name: 'Svømming',     subcategories: ['Basseng','Åpent vann'] },
+  { name: 'Fjellsport',   subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
+  { name: 'Styrke',       subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
+  { name: 'Roing' },
+  { name: 'Kajak/Padling' },
+  { name: 'Klatring' },
+  { name: 'Yoga' },
+  { name: 'Orientering' },
+  { name: 'Skøyter' },
+  { name: 'Alpint' },
+  { name: 'Telemark' },
+  { name: 'Crossfit' },
+  { name: 'Dans' },
+  { name: 'Kampsport' },
+  { name: 'Triathlon' },
+  { name: 'Snowboard' },
+]
+
+export function getSubcategories(name: string): string[] {
+  return MOVEMENT_CATEGORIES.find(m => m.name === name)?.subcategories ?? []
+}
+
 export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
-  running:              ['Løping', 'Gange / Turgåing', 'Styrke'],
-  cross_country_skiing: ['Klassisk ski', 'Skøyting', 'Rulleski klassisk', 'Rulleski skøyting', 'Løping', 'Styrke'],
-  biathlon:             ['Klassisk ski', 'Skøyting', 'Løping', 'Rulleski klassisk', 'Styrke'],
-  triathlon:            ['Svømming', 'Sykling', 'Løping'],
-  cycling:              ['Sykling', 'Rulleskøyter', 'Styrke'],
-  long_distance_skiing: ['Klassisk ski', 'Skøyting', 'Rulleski klassisk', 'Rulleski skøyting', 'Løping'],
-  endurance:            ['Løping', 'Sykling', 'Svømming', 'Gange / Turgåing', 'Styrke'],
+  running:              ['Løping', 'Sykling', 'Styrke'],
+  cross_country_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
+  biathlon:             ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
+  triathlon:            ['Svømming', 'Sykling', 'Løping', 'Styrke'],
+  cycling:              ['Sykling', 'Løping', 'Styrke'],
+  long_distance_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
+  endurance:            ['Løping', 'Sykling', 'Svømming', 'Styrke'],
 }
 
-export const SURFACE_TAGS = ['Asfalt', 'Grus', 'Skog', 'Løype', 'Preparert', 'Indoors', 'Terreng', 'Bane']
-
-export interface Profile {
-  id: string
-  email: string
-  full_name: string | null
-  role: Role
-  primary_sport: Sport | null
-  avatar_url: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface CoachAthleteRelation {
-  id: string
-  coach_id: string
-  athlete_id: string
-  status: 'pending' | 'active' | 'inactive'
-  created_at: string
-}
+// ── Form data types ────────────────────────────────────────
 
 export interface MovementRow {
   id: string
-  movement_name: string
+  movement_name: string      // e.g. "Løping" or "Løping — Terreng"
   minutes: string
   distance_km: string
   elevation_meters: string
@@ -74,6 +117,14 @@ export interface ExerciseRow {
   weight_kg: string
 }
 
+export interface LactateRow {
+  id: string
+  measured_at_time: string
+  mmol: string
+  heart_rate: string
+  feeling: number | null
+}
+
 export interface WorkoutFormData {
   title: string
   date: string
@@ -86,62 +137,39 @@ export interface WorkoutFormData {
   zones: ZoneRow[]
   exercises: ExerciseRow[]
   strength_type: string
+  lactate: LactateRow[]
   day_form_physical: number | null
   day_form_mental: number | null
-  sleep_hours: string
-  sleep_quality: number | null
-  resting_hr: string
   rpe: number | null
-  lactate_warmup: string
-  lactate_during: string
-  lactate_after: string
   notes: string
   tags: string[]
-  // biathlon
-  shooting_basis_rounds: string
-  shooting_basis_hits: string
-  shooting_easy_combo_rounds: string
-  shooting_hard_combo_rounds: string
-  shooting_prone_pct: string
-  shooting_standing_pct: string
+  // biathlon shooting
+  shooting_prone_shots: string
+  shooting_prone_hits: string
+  shooting_standing_shots: string
+  shooting_standing_hits: string
+  shooting_warmup_shots: string
 }
 
-export interface Workout {
+// ── DB entity types ────────────────────────────────────────
+
+export interface Profile {
   id: string
-  user_id: string
-  title: string
-  description: string | null
-  sport: Sport
-  workout_type: WorkoutType
-  date: string
-  time_of_day: string | null
-  duration_minutes: number | null
-  distance_km: number | null
-  avg_heart_rate: number | null
-  max_heart_rate: number | null
-  elevation_meters: number | null
-  notes: string | null
-  is_planned: boolean
-  is_completed: boolean
-  is_important: boolean
-  day_form_physical: number | null
-  day_form_mental: number | null
-  sleep_hours: number | null
-  sleep_quality: number | null
-  resting_hr: number | null
-  rpe: number | null
-  lactate_warmup: number | null
-  lactate_during: number | null
-  lactate_after: number | null
-  coach_comment: string | null
-  shooting_data: Record<string, unknown> | null
+  email: string
+  full_name: string | null
+  role: Role
+  primary_sport: Sport | null
+  avatar_url: string | null
   created_at: string
   updated_at: string
-  // joined
-  workout_movements?: WorkoutMovement[]
-  workout_zones?: WorkoutZone[]
-  workout_tags?: WorkoutTag[]
-  workout_exercises?: WorkoutExercise[]
+}
+
+export interface CoachAthleteRelation {
+  id: string
+  coach_id: string
+  athlete_id: string
+  status: 'pending' | 'active' | 'inactive'
+  created_at: string
 }
 
 export interface WorkoutMovement {
@@ -179,32 +207,113 @@ export interface WorkoutExercise {
   sort_order: number
 }
 
-export interface Season {
+export interface WorkoutLactate {
   id: string
-  user_id: string
-  name: string
-  start_date: string
-  end_date: string
+  workout_id: string
+  measured_at_time: string | null
+  mmol: number
+  heart_rate: number | null
+  feeling: number | null
+  sort_order: number
 }
 
-export interface TrainingGoal {
+export interface Workout {
   id: string
   user_id: string
   title: string
+  description: string | null
+  sport: Sport
+  workout_type: WorkoutType
   date: string
-  goal_type: 'competition' | 'milestone' | 'target'
-  priority: 'a' | 'b' | 'c'
+  time_of_day: string | null
+  duration_minutes: number | null
+  distance_km: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  elevation_meters: number | null
+  notes: string | null
+  is_planned: boolean
+  is_completed: boolean
+  is_important: boolean
+  planned_workout_id: string | null
+  day_form_physical: number | null
+  day_form_mental: number | null
+  rpe: number | null
+  coach_comment: string | null
+  shooting_data: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
+  workout_movements?: WorkoutMovement[]
+  workout_zones?: WorkoutZone[]
+  workout_tags?: WorkoutTag[]
+  workout_exercises?: WorkoutExercise[]
+  workout_lactate_measurements?: WorkoutLactate[]
+}
+
+export interface DailyHealth {
+  id: string
+  user_id: string
+  date: string
+  resting_hr: number | null
+  hrv_ms: number | null
+  sleep_hours: number | null
+  sleep_quality: number | null
+  body_weight_kg: number | null
   notes: string | null
 }
 
-export interface TrainingPhase {
+export interface WorkoutTemplate {
   id: string
   user_id: string
-  season_id: string | null
   name: string
+  template_data: WorkoutFormData
+  last_used_at: string | null
+  use_count: number
+  created_at: string
+}
+
+export interface Season {
+  id: string; user_id: string; name: string; start_date: string; end_date: string
+}
+export interface TrainingGoal {
+  id: string; user_id: string; title: string; date: string
+  goal_type: 'competition' | 'milestone' | 'target'
+  priority: 'a' | 'b' | 'c'; notes: string | null
+}
+export interface TrainingPhase {
+  id: string; user_id: string; season_id: string | null; name: string
   phase_type: 'base' | 'specific' | 'competition' | 'recovery' | null
-  start_date: string
-  end_date: string
-  target_hours_per_week: number | null
-  color: string | null
+  start_date: string; end_date: string
+  target_hours_per_week: number | null; color: string | null
+}
+
+// ── Calendar helpers ────────────────────────────────────────
+
+export interface CalendarWorkoutSummary {
+  id: string
+  title: string
+  is_planned: boolean
+  is_completed: boolean
+  is_important: boolean
+  workout_type: WorkoutType
+  duration_minutes: number | null
+  zones: { zone_name: string; minutes: number }[]
+}
+
+export const TYPE_COLORS: Record<string, string> = {
+  endurance:       '#1A5A8A',
+  strength:        '#5A2A8A',
+  technical:       '#2A7A4A',
+  competition:     '#8A2A2A',
+  recovery:        '#3A3A6A',
+  hard_combo:      '#7A3A1A',
+  easy_combo:      '#3A6A4A',
+  basis_shooting:  '#4A4A8A',
+  warmup_shooting: '#2A4A5A',
+}
+
+export const ZONE_COLORS: Record<string, string> = {
+  I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10',
+  I4: '#8A5A00', I5: '#8A1A00', I6: '#6A008A',
+  I7: '#4A004A', I8: '#2A002A',
 }

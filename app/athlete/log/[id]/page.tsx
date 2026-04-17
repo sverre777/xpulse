@@ -1,9 +1,9 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkout } from '@/app/actions/workouts'
+import { getWorkout, deleteWorkout } from '@/app/actions/workouts'
+import { getTemplates } from '@/app/actions/health'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
-import { deleteWorkout } from '@/app/actions/workouts'
-import { WorkoutFormData, Sport, WorkoutType } from '@/lib/types'
+import { WorkoutFormData, Sport, WorkoutType, WorkoutTemplate, LactateRow } from '@/lib/types'
 
 export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -11,7 +11,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
   if (!user) redirect('/login')
 
   const { id } = await params
-  const workout = await getWorkout(id)
+  const [workout, templates] = await Promise.all([getWorkout(id), getTemplates()])
   if (!workout || workout.user_id !== user.id) notFound()
 
   const defaultValues: Partial<WorkoutFormData> = {
@@ -25,13 +25,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
     notes:        workout.notes ?? '',
     day_form_physical: workout.day_form_physical,
     day_form_mental:   workout.day_form_mental,
-    sleep_hours:  workout.sleep_hours?.toString() ?? '',
-    sleep_quality: workout.sleep_quality,
-    resting_hr:   workout.resting_hr?.toString() ?? '',
     rpe:          workout.rpe,
-    lactate_warmup:  workout.lactate_warmup?.toString() ?? '',
-    lactate_during:  workout.lactate_during?.toString() ?? '',
-    lactate_after:   workout.lactate_after?.toString() ?? '',
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
@@ -44,10 +38,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
       })),
     zones: (workout.workout_zones ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-      .map((z: { zone_name: string; minutes: number }) => ({
-        zone_name: z.zone_name,
-        minutes: z.minutes?.toString() ?? '',
-      })),
+      .map((z: { zone_name: string; minutes: number }) => ({ zone_name: z.zone_name, minutes: z.minutes?.toString() ?? '' })),
     exercises: (workout.workout_exercises ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
       .map((e: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }) => ({
@@ -57,6 +48,20 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
         reps: e.reps?.toString() ?? '',
         weight_kg: e.weight_kg?.toString() ?? '',
       })),
+    lactate: (workout.workout_lactate_measurements ?? [])
+      .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
+      .map((l: { measured_at_time: string | null; mmol: number; heart_rate: number | null; feeling: number | null }): LactateRow => ({
+        id: crypto.randomUUID(),
+        measured_at_time: l.measured_at_time ?? '',
+        mmol: l.mmol?.toString() ?? '',
+        heart_rate: l.heart_rate?.toString() ?? '',
+        feeling: l.feeling,
+      })),
+    shooting_prone_shots:    workout.shooting_data?.prone_shots?.toString() ?? '',
+    shooting_prone_hits:     workout.shooting_data?.prone_hits?.toString() ?? '',
+    shooting_standing_shots: workout.shooting_data?.standing_shots?.toString() ?? '',
+    shooting_standing_hits:  workout.shooting_data?.standing_hits?.toString() ?? '',
+    shooting_warmup_shots:   workout.shooting_data?.warmup_shots?.toString() ?? '',
   }
 
   const dateFormatted = new Date(workout.date).toLocaleDateString('nb-NO', {
@@ -70,7 +75,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           <div className="flex items-center gap-3">
             <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <div>
-              <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em', lineHeight: 1 }}>
+              <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '28px', letterSpacing: '0.08em', lineHeight: 1 }}>
                 {workout.title}
               </h1>
               <p className="text-sm capitalize mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -81,22 +86,17 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           <form action={async () => {
             'use server'
             await deleteWorkout(id)
-            redirect('/athlete/week')
+            redirect('/athlete/calendar')
           }}>
             <button type="submit"
               className="px-4 py-2 text-sm tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A2A2A', background: 'none',
-                border: '1px solid #8A2A2A', cursor: 'pointer',
-              }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A2A2A', background: 'none', border: '1px solid #8A2A2A', cursor: 'pointer' }}>
               Slett
             </button>
           </form>
         </div>
       </div>
-
-      <WorkoutForm workoutId={id} defaultValues={defaultValues} />
+      <WorkoutForm workoutId={id} defaultValues={defaultValues} templates={templates as WorkoutTemplate[]} />
     </div>
   )
 }

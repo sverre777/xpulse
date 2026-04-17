@@ -135,9 +135,10 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     }
   }
 
-  const isBiathlon  = form.sport === 'biathlon'
-  const isShooting  = SHOOTING_TYPES.includes(form.workout_type)
+  const isBiathlon         = form.sport === 'biathlon'
   const workoutTypeOptions = getWorkoutTypes(form.sport)
+  const isPlanned   = form.is_planned
+  const showExecutionFields = !isPlanned
 
   // Shooting stats
   const pronePct    = form.shooting_prone_shots ? Math.round((parseInt(form.shooting_prone_hits)||0) / parseInt(form.shooting_prone_shots) * 100) : null
@@ -199,7 +200,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           <div>
             <Label>Økttype</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
-              {workoutTypeOptions.map(t => (
+              {workoutTypeOptions.filter(t => t.value !== 'warmup_shooting').map(t => (
                 <button key={t.value} type="button" onClick={() => set('workout_type', t.value)}
                   className="px-3 py-1.5 text-sm tracking-widest uppercase transition-colors"
                   style={{
@@ -244,63 +245,78 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       {/* ── SKISKYTING ── */}
       {isBiathlon && (
         <Section label="Skyting">
-          {form.workout_type === 'warmup_shooting' ? (
-            <SmallField label="Antall innskytingsskudd" value={form.shooting_warmup_shots}
-              onChange={v => set('shooting_warmup_shots', v)} />
-          ) : form.workout_type === 'basis_shooting' ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="md:col-span-3">
-                <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Liggende</span>
-              </div>
-              <SmallField label="Skudd" value={form.shooting_prone_shots} onChange={v => set('shooting_prone_shots', v)} />
-              <SmallField label="Treff" value={form.shooting_prone_hits} onChange={v => set('shooting_prone_hits', v)} />
-              {pronePct !== null && <StatBadge label="Treff%" value={`${pronePct}%`} />}
-              <div className="md:col-span-3">
-                <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Stående</span>
-              </div>
-              <SmallField label="Skudd" value={form.shooting_standing_shots} onChange={v => set('shooting_standing_shots', v)} />
-              <SmallField label="Treff" value={form.shooting_standing_hits} onChange={v => set('shooting_standing_hits', v)} />
-              {standingPct !== null && <StatBadge label="Treff%" value={`${standingPct}%`} />}
-              <SmallField label="Innskyting (skudd)" value={form.shooting_warmup_shots} onChange={v => set('shooting_warmup_shots', v)} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="col-span-2 md:col-span-4">
+              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Liggende</span>
             </div>
-          ) : (isShooting || isBiathlon) ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <SmallField label="Liggende — skudd" value={form.shooting_prone_shots} onChange={v => set('shooting_prone_shots', v)} />
-              <SmallField label="Liggende — treff" value={form.shooting_prone_hits} onChange={v => set('shooting_prone_hits', v)} />
-              {pronePct !== null && <StatBadge label="Liggende %" value={`${pronePct}%`} />}
-              <div />
-              <SmallField label="Stående — skudd" value={form.shooting_standing_shots} onChange={v => set('shooting_standing_shots', v)} />
-              <SmallField label="Stående — treff" value={form.shooting_standing_hits} onChange={v => set('shooting_standing_hits', v)} />
-              {standingPct !== null && <StatBadge label="Stående %" value={`${standingPct}%`} />}
-              <div />
-              <SmallField label="Innskyting" value={form.shooting_warmup_shots} onChange={v => set('shooting_warmup_shots', v)} />
+            <SmallField label="Skudd" value={form.shooting_prone_shots} onChange={v => set('shooting_prone_shots', v)} />
+            <SmallField label="Treff" value={form.shooting_prone_hits} onChange={v => set('shooting_prone_hits', v)} />
+            {pronePct !== null ? <StatBadge label="Treff %" value={`${pronePct}%`} /> : <div />}
+            <div />
+            <div className="col-span-2 md:col-span-4">
+              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Stående</span>
             </div>
-          ) : null}
+            <SmallField label="Skudd" value={form.shooting_standing_shots} onChange={v => set('shooting_standing_shots', v)} />
+            <SmallField label="Treff" value={form.shooting_standing_hits} onChange={v => set('shooting_standing_hits', v)} />
+            {standingPct !== null ? <StatBadge label="Treff %" value={`${standingPct}%`} /> : <div />}
+            <div />
+            <div className="col-span-2 md:col-span-4" style={{ borderTop: '1px solid #1A1A1E', paddingTop: '12px' }}>
+              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Innskyting</span>
+            </div>
+            <SmallField label="Antall skudd" value={form.shooting_warmup_shots} onChange={v => set('shooting_warmup_shots', v)} />
+          </div>
         </Section>
       )}
 
-      {/* ── DAGSFORM ── */}
-      <Section label="Dagsform og belastning">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Fysisk form</Label>
-            <StarRating value={form.day_form_physical} onChange={v => set('day_form_physical', v)} />
-          </div>
-          <div>
-            <Label>Mental form</Label>
-            <StarRating value={form.day_form_mental} onChange={v => set('day_form_mental', v)} />
-          </div>
-          <div>
-            <Label>RPE (1–10)</Label>
-            <RPESelector value={form.rpe} onChange={v => set('rpe', v)} />
-          </div>
+      {/* ── MERK GJENNOMFØRT (kun for planlagte økter) ── */}
+      {isPlanned && (
+        <div className="py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
+          <button
+            type="button"
+            onClick={() => set('is_planned', false)}
+            className="px-5 py-2.5 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: 'transparent',
+              color: '#28A86E',
+              border: '1px solid #28A86E',
+              cursor: 'pointer',
+            }}
+          >
+            ✓ Merk gjennomført
+          </button>
+          <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Dagsform, RPE og laktat fylles inn etter gjennomføring
+          </p>
         </div>
-      </Section>
+      )}
+
+      {/* ── DAGSFORM ── */}
+      {showExecutionFields && (
+        <Section label="Dagsform og belastning">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Fysisk form</Label>
+              <StarRating value={form.day_form_physical} onChange={v => set('day_form_physical', v)} />
+            </div>
+            <div>
+              <Label>Mental form</Label>
+              <StarRating value={form.day_form_mental} onChange={v => set('day_form_mental', v)} />
+            </div>
+            <div>
+              <Label>RPE (1–10)</Label>
+              <RPESelector value={form.rpe} onChange={v => set('rpe', v)} />
+            </div>
+          </div>
+        </Section>
+      )}
 
       {/* ── LAKTAT ── */}
-      <Section label="Laktat (valgfritt)">
-        <LactateTable rows={form.lactate} onChange={rows => set('lactate', rows)} />
-      </Section>
+      {showExecutionFields && (
+        <Section label="Laktat (valgfritt)">
+          <LactateTable rows={form.lactate} onChange={rows => set('lactate', rows)} />
+        </Section>
+      )}
 
       {/* ── NOTATER ── */}
       <Section label="Notater og tagger">

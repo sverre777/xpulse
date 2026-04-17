@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { MovementRow, ZoneRow, ExerciseRow, MOVEMENT_CATEGORIES, INTENSITY_ZONES, getSubcategories } from '@/lib/types'
 
 interface MovementTableProps {
@@ -236,8 +236,8 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
             const isStrength = isStrengthMovement(parent)
 
             return (
-              <>
-                <tr key={row.id} className="group" style={{ borderBottom: isExp ? 'none' : '1px solid #1A1A1E' }}>
+              <Fragment key={row.id}>
+                <tr className="group" style={{ borderBottom: isExp ? 'none' : '1px solid #1A1A1E' }}>
                   {/* Expand toggle */}
                   <td className="px-2 py-1.5" style={{ minWidth: '130px' }}>
                     <div className="flex items-center gap-1.5">
@@ -310,7 +310,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                   </td>
                 </tr>
                 {isExp && (
-                  <tr key={`${row.id}-expand`} style={{ borderBottom: '1px solid #1A1A1E' }}>
+                  <tr style={{ borderBottom: '1px solid #1A1A1E' }}>
                     <td colSpan={7} style={{ padding: 0 }}>
                       {isStrength ? (
                         <ExerciseExpandSection
@@ -326,7 +326,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </tbody>

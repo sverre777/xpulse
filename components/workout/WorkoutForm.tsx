@@ -23,7 +23,7 @@ interface WorkoutFormProps {
 function makeDefaultMovements(sport: Sport): MovementRow[] {
   return DEFAULT_MOVEMENTS_BY_SPORT[sport].map(name => ({
     id: crypto.randomUUID(), movement_name: name, minutes: '', distance_km: '',
-    elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [],
+    elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [], shooting_blocks: [],
   }))
 }
 
@@ -52,6 +52,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       avg_heart_rate: m.avg_heart_rate ?? '',
       zones: m.zones ?? [],
       exercises: m.exercises ?? [],
+      shooting_blocks: m.shooting_blocks ?? [],
     })),
     zones:       [],
     exercises:   [],
@@ -88,6 +89,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         avg_heart_rate: m.avg_heart_rate ?? '',
         zones: m.zones ?? [],
         exercises: m.exercises ?? [],
+        shooting_blocks: m.shooting_blocks ?? [],
       })),
       zones: [],
       exercises: [],

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getWorkout, deleteWorkout } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
-import { WorkoutFormData, Sport, WorkoutType, WorkoutTemplate, LactateRow } from '@/lib/types'
+import { WorkoutFormData, Sport, WorkoutType, WorkoutTemplate, LactateRow, ShootingBlock, ShootingBlockType } from '@/lib/types'
 
 export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -34,7 +34,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
         elevation_meters: number | null; avg_heart_rate?: number | null
         inline_zones?: { zone_name: string; minutes: number }[] | null
         inline_exercises?: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }[] | null
-      }) => ({
+      }, mi: number) => ({
         id: crypto.randomUUID(),
         movement_name: m.movement_name,
         minutes: m.minutes?.toString() ?? '',
@@ -49,6 +49,17 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           reps: e.reps?.toString() ?? '',
           weight_kg: e.weight_kg?.toString() ?? '',
         })),
+        shooting_blocks: (workout.workout_shooting_blocks ?? [])
+          .filter((b: { movement_order: number }) => b.movement_order === mi)
+          .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
+          .map((b: { shooting_type: string; prone_shots: number | null; prone_hits: number | null; standing_shots: number | null; standing_hits: number | null }): ShootingBlock => ({
+            id: crypto.randomUUID(),
+            shooting_type: (b.shooting_type as ShootingBlockType) || '',
+            prone_shots: b.prone_shots?.toString() ?? '',
+            prone_hits: b.prone_hits?.toString() ?? '',
+            standing_shots: b.standing_shots?.toString() ?? '',
+            standing_hits: b.standing_hits?.toString() ?? '',
+          })),
       })),
     zones: [],
     exercises: [],

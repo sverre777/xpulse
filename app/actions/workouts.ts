@@ -56,6 +56,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
       supabase.from('workout_tags').delete().eq('workout_id', workoutId),
       supabase.from('workout_exercises').delete().eq('workout_id', workoutId),
       supabase.from('workout_lactate_measurements').delete().eq('workout_id', workoutId),
+      supabase.from('workout_shooting_blocks').delete().eq('workout_id', workoutId),
     ])
   } else {
     const { data: inserted, error } = await supabase.from('workouts').insert(workoutPayload).select('id').single()
@@ -113,6 +114,31 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     await supabase.from('workout_zones').insert(
       allZones.map(z => ({ workout_id: savedId, ...z }))
     )
+  }
+
+  // Shooting blocks (per Skiskyting movement)
+  const shootingBlocks: {
+    workout_id: string; movement_order: number; shooting_type: string
+    prone_shots: number | null; prone_hits: number | null
+    standing_shots: number | null; standing_hits: number | null; sort_order: number
+  }[] = []
+  data.movements.forEach((m, mi) => {
+    for (const [bi, b] of (m.shooting_blocks ?? []).entries()) {
+      if (!b.shooting_type) continue
+      shootingBlocks.push({
+        workout_id: savedId!,
+        movement_order: mi,
+        shooting_type: b.shooting_type,
+        prone_shots: parseInt(b.prone_shots) || null,
+        prone_hits: parseInt(b.prone_hits) || null,
+        standing_shots: parseInt(b.standing_shots) || null,
+        standing_hits: parseInt(b.standing_hits) || null,
+        sort_order: bi,
+      })
+    }
+  })
+  if (shootingBlocks.length > 0) {
+    await supabase.from('workout_shooting_blocks').insert(shootingBlocks)
   }
 
   if (data.tags.length > 0) {
@@ -202,7 +228,7 @@ export async function getWorkout(id: string) {
   const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
-    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*)')
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*)')
     .eq('id', id).single()
   return data
 }

@@ -68,6 +68,7 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Svømming',     subcategories: ['Basseng','Åpent vann'] },
   { name: 'Fjellsport',   subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
   { name: 'Styrke',       subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
+  { name: 'Skiskyting' },
   { name: 'Roing' },
   { name: 'Kajak/Padling' },
   { name: 'Klatring' },
@@ -90,11 +91,32 @@ export function getSubcategories(name: string): string[] {
 export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
   running:              ['Løping', 'Sykling', 'Styrke'],
   cross_country_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
-  biathlon:             ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
+  biathlon:             ['Langrenn', 'Rulleski', 'Løping', 'Styrke', 'Skiskyting'],
   triathlon:            ['Svømming', 'Sykling', 'Løping', 'Styrke'],
   cycling:              ['Sykling', 'Løping', 'Styrke'],
   long_distance_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
   endurance:            ['Løping', 'Sykling', 'Svømming', 'Styrke'],
+}
+
+// ── Shooting types ─────────────────────────────────────────
+
+export type ShootingBlockType = 'rolig_komb' | 'hurtighet_komb' | 'hard_komb' | 'innskyting' | 'basisskyting'
+
+export const SHOOTING_BLOCK_TYPES: { value: ShootingBlockType; label: string }[] = [
+  { value: 'rolig_komb',      label: 'Rolig komb' },
+  { value: 'hurtighet_komb',  label: 'Hurtighet komb' },
+  { value: 'hard_komb',       label: 'Hard komb' },
+  { value: 'innskyting',      label: 'Innskyting' },
+  { value: 'basisskyting',    label: 'Basisskyting' },
+]
+
+export interface ShootingBlock {
+  id: string
+  shooting_type: ShootingBlockType | ''
+  prone_shots: string
+  prone_hits: string
+  standing_shots: string
+  standing_hits: string
 }
 
 // ── Form data types ────────────────────────────────────────
@@ -108,6 +130,7 @@ export interface MovementRow {
   avg_heart_rate: string
   zones: ZoneRow[]           // inline zones for this movement
   exercises: ExerciseRow[]   // inline exercises for this movement (strength)
+  shooting_blocks: ShootingBlock[]  // per-movement shooting series (Skiskyting)
 }
 
 export interface ZoneRow {

@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useState } from 'react'
-import { MovementRow, ZoneRow, ExerciseRow, MOVEMENT_CATEGORIES, INTENSITY_ZONES, getSubcategories } from '@/lib/types'
+import { MovementRow, ZoneRow, ExerciseRow, ShootingBlock, MOVEMENT_CATEGORIES, INTENSITY_ZONES, SHOOTING_BLOCK_TYPES, getSubcategories } from '@/lib/types'
 
 interface MovementTableProps {
   rows: MovementRow[]
@@ -11,6 +11,7 @@ interface MovementTableProps {
 
 const STRENGTH_MOVEMENTS = ['Styrke', 'Crossfit', 'Kampsport']
 const isStrengthMovement = (name: string) => STRENGTH_MOVEMENTS.some(s => name.startsWith(s))
+const isShootingMovement = (name: string) => name === 'Skiskyting'
 
 function formatPace(minutes: string, km: string): string | null {
   const m = parseFloat(minutes)
@@ -170,6 +171,169 @@ function ExerciseExpandSection({ exercises, onChange }: {
   )
 }
 
+const numSt: React.CSSProperties = {
+  background: '#111115', border: '1px solid #1E1E22', outline: 'none',
+  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: '14px', padding: '4px 8px', width: '60px', textAlign: 'center' as const,
+}
+
+function pct(hits: string, shots: string): number | null {
+  const s = parseInt(shots), h = parseInt(hits)
+  if (!s || s === 0) return null
+  return Math.round((h / s) * 100)
+}
+
+function PctBadge({ value }: { value: number | null }) {
+  if (value === null) return null
+  const color = value >= 90 ? '#28A86E' : value >= 70 ? '#FF8C00' : '#FF4500'
+  return (
+    <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '16px', color, minWidth: '40px' }}>
+      {value}%
+    </span>
+  )
+}
+
+function ShootingExpandSection({ blocks, onChange }: {
+  blocks: ShootingBlock[]
+  onChange: (b: ShootingBlock[]) => void
+}) {
+  const makeBlock = (): ShootingBlock => ({
+    id: crypto.randomUUID(), shooting_type: '',
+    prone_shots: '', prone_hits: '', standing_shots: '', standing_hits: '',
+  })
+
+  const addBlock = () => onChange([...blocks, makeBlock()])
+  const removeBlock = (id: string) => onChange(blocks.filter(b => b.id !== id))
+  const upd = (id: string, field: keyof ShootingBlock, val: string) =>
+    onChange(blocks.map(b => b.id === id ? { ...b, [field]: val } : b))
+
+  const totalShots = blocks.reduce((s, b) => s + (parseInt(b.prone_shots) || 0) + (parseInt(b.standing_shots) || 0), 0)
+  const totalHits  = blocks.reduce((s, b) => s + (parseInt(b.prone_hits)  || 0) + (parseInt(b.standing_hits)  || 0), 0)
+  const overallPct = totalShots > 0 ? Math.round((totalHits / totalShots) * 100) : null
+
+  return (
+    <div style={{ backgroundColor: '#0D0D11', borderTop: '1px solid #1A1A1E' }}>
+      <div className="px-3 py-3">
+        <span className="text-xs tracking-widest uppercase block mb-3"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Skyting
+        </span>
+
+        {blocks.length === 0 && (
+          <p className="mb-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
+            Ingen skyteserier lagt til ennå
+          </p>
+        )}
+
+        {blocks.map((b, bi) => {
+          const pronePct    = pct(b.prone_hits, b.prone_shots)
+          const standingPct = pct(b.standing_hits, b.standing_shots)
+          const blockShots  = (parseInt(b.prone_shots) || 0) + (parseInt(b.standing_shots) || 0)
+          const blockHits   = (parseInt(b.prone_hits)  || 0) + (parseInt(b.standing_hits)  || 0)
+          const blockPct    = blockShots > 0 ? Math.round((blockHits / blockShots) * 100) : null
+
+          return (
+            <div key={b.id} className="mb-4 pb-4" style={{ borderBottom: '1px solid #1A1A1E' }}>
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-2">
+                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#8A8A96', fontSize: '13px', letterSpacing: '0.12em' }}>
+                  SERIE {bi + 1}
+                </span>
+                {blocks.length > 1 && (
+                  <button type="button" onClick={() => removeBlock(b.id)}
+                    style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* Type buttons */}
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {SHOOTING_BLOCK_TYPES.map(t => (
+                  <button key={t.value} type="button" onClick={() => upd(b.id, 'shooting_type', t.value)}
+                    className="px-2 py-1 text-xs tracking-widest uppercase"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      backgroundColor: b.shooting_type === t.value ? '#FF4500' : 'transparent',
+                      color: b.shooting_type === t.value ? '#F0F0F2' : '#555560',
+                      border: `1px solid ${b.shooting_type === t.value ? '#FF4500' : '#222228'}`,
+                      cursor: 'pointer',
+                    }}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Results: Liggende + Stående side by side */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs tracking-widest uppercase block mb-1.5"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Liggende</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={b.prone_shots} onChange={e => upd(b.id, 'prone_shots', e.target.value)}
+                      placeholder="skudd" min="0" max="100" style={numSt} />
+                    <span style={{ color: '#333340', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                      treff
+                    </span>
+                    <input type="number" value={b.prone_hits} onChange={e => upd(b.id, 'prone_hits', e.target.value)}
+                      placeholder="treff" min="0" max="100" style={numSt} />
+                    <PctBadge value={pronePct} />
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs tracking-widest uppercase block mb-1.5"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Stående</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={b.standing_shots} onChange={e => upd(b.id, 'standing_shots', e.target.value)}
+                      placeholder="skudd" min="0" max="100" style={numSt} />
+                    <span style={{ color: '#333340', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                      treff
+                    </span>
+                    <input type="number" value={b.standing_hits} onChange={e => upd(b.id, 'standing_hits', e.target.value)}
+                      placeholder="treff" min="0" max="100" style={numSt} />
+                    <PctBadge value={standingPct} />
+                  </div>
+                </div>
+              </div>
+
+              {blockPct !== null && (
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                    Total serie:
+                  </span>
+                  <PctBadge value={blockPct} />
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '12px' }}>
+                    ({blockHits}/{blockShots})
+                  </span>
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        <button type="button" onClick={addBlock}
+          className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          + Legg til ny skyteserie
+        </button>
+
+        {overallPct !== null && blocks.length > 1 && (
+          <div className="mt-4 pt-3 flex items-baseline gap-2" style={{ borderTop: '1px solid #1A1A1E' }}>
+            <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Samlet total:
+            </span>
+            <PctBadge value={overallPct} />
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px' }}>
+              ({totalHits}/{totalShots} treff)
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function MovementTable({ rows, onChange, defaultMovements = [] }: MovementTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const allCategories = MOVEMENT_CATEGORIES.map(m => m.name)
@@ -189,7 +353,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
       id: crypto.randomUUID(),
       movement_name: name ?? '',
       minutes: '', distance_km: '', elevation_meters: '',
-      avg_heart_rate: '', zones: [], exercises: [],
+      avg_heart_rate: '', zones: [], exercises: [], shooting_blocks: [],
     }])
   }
 
@@ -234,6 +398,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
             const subs = getSubcategories(parent)
             const isExp = expanded.has(row.id)
             const isStrength = isStrengthMovement(parent)
+            const isShooting = isShootingMovement(parent)
 
             return (
               <Fragment key={row.id}>
@@ -312,7 +477,12 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                 {isExp && (
                   <tr style={{ borderBottom: '1px solid #1A1A1E' }}>
                     <td colSpan={7} style={{ padding: 0 }}>
-                      {isStrength ? (
+                      {isShooting ? (
+                        <ShootingExpandSection
+                          blocks={row.shooting_blocks ?? []}
+                          onChange={bl => update(i, 'shooting_blocks', bl)}
+                        />
+                      ) : isStrength ? (
                         <ExerciseExpandSection
                           exercises={row.exercises ?? []}
                           onChange={ex => update(i, 'exercises', ex)}

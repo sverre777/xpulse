@@ -1,103 +1,69 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForWeek } from '@/app/actions/workouts'
-import { WeekCalendar } from '@/components/week/WeekCalendar'
-import { Workout } from '@/lib/types'
+import { Calendar } from '@/components/calendar/Calendar'
+import { CalendarWorkoutSummary } from '@/lib/types'
 
-function getWeekDates(weekId: string): Date[] {
-  // Parse YYYY-WXX
-  const [yearStr, weekStr] = weekId.split('-W')
-  const year = parseInt(yearStr)
-  const week = parseInt(weekStr)
-  // Get Monday of that ISO week
-  const jan4 = new Date(year, 0, 4) // Jan 4 is always in week 1
-  const dayOfWeek = jan4.getDay() || 7
-  const weekOneMonday = new Date(jan4)
-  weekOneMonday.setDate(jan4.getDate() - dayOfWeek + 1)
-  const monday = new Date(weekOneMonday)
-  monday.setDate(weekOneMonday.getDate() + (week - 1) * 7)
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday)
-    d.setDate(monday.getDate() + i)
-    return d
-  })
+type RawWorkout = {
+  id: string; title: string; date: string; workout_type: string
+  is_planned: boolean; is_completed: boolean; is_important: boolean
+  duration_minutes: number | null
+  workout_zones?: { zone_name: string; minutes: number }[]
 }
 
-function currentWeekId(): string {
+function currentMonday(): Date {
   const now = new Date()
-  const jan4 = new Date(now.getFullYear(), 0, 4)
-  const dayOfWeek = jan4.getDay() || 7
-  const weekOneMonday = new Date(jan4)
-  weekOneMonday.setDate(jan4.getDate() - dayOfWeek + 1)
-  const diff = now.getTime() - weekOneMonday.getTime()
-  const week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1
-  return `${now.getFullYear()}-W${String(week).padStart(2, '0')}`
-}
-
-function offsetWeekId(weekId: string, offset: number): string {
-  const [yearStr, weekStr] = weekId.split('-W')
-  let year = parseInt(yearStr)
-  let week = parseInt(weekStr) + offset
-  const weeksInYear = (y: number) => {
-    const d = new Date(y, 11, 28)
-    const jan4 = new Date(y, 0, 4)
-    const doy = jan4.getDay() || 7
-    const monday = new Date(jan4); monday.setDate(jan4.getDate() - doy + 1)
-    return Math.ceil((d.getTime() - monday.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
-  }
-  if (week < 1) { year -= 1; week = weeksInYear(year) }
-  if (week > weeksInYear(year)) { week = 1; year += 1 }
-  return `${year}-W${String(week).padStart(2, '0')}`
+  const dow = (now.getDay() + 6) % 7
+  const mon = new Date(now)
+  mon.setDate(now.getDate() - dow)
+  return mon
 }
 
 export default async function WeekPage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string }>
+  searchParams: Promise<{ date?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const params = await searchParams
-  const weekId = params.week ?? currentWeekId()
-  const weekDates = getWeekDates(weekId)
-  const startDate = weekDates[0].toISOString().split('T')[0]
-  const endDate = weekDates[6].toISOString().split('T')[0]
+  const refDate = params.date ? new Date(params.date + 'T12:00:00') : currentMonday()
+  const dow = (refDate.getDay() + 6) % 7
+  const mon = new Date(refDate); mon.setDate(refDate.getDate() - dow)
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
 
-  const workouts = (await getWorkoutsForWeek(user.id, startDate, endDate)) as Workout[]
+  const startDate = mon.toISOString().split('T')[0]
+  const endDate = sun.toISOString().split('T')[0]
 
-  // Group by date
-  const workoutsByDate: Record<string, Workout[]> = {}
-  for (const w of workouts) {
-    const d = w.date
-    workoutsByDate[d] = [...(workoutsByDate[d] ?? []), w]
-  }
+  const rawWorkouts = await getWorkoutsForWeek(user.id, startDate, endDate)
 
-  // Week stats
-  const totalMinutes = workouts
-    .filter(w => !w.is_planned || w.is_completed)
-    .reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
-
-  const byType: Record<string, number> = {}
-  const byMovement: Record<string, number> = {}
-  for (const w of workouts.filter(w => !w.is_planned || w.is_completed)) {
-    byType[w.workout_type] = (byType[w.workout_type] ?? 0) + (w.duration_minutes ?? 0)
-    for (const m of w.workout_movements ?? []) {
-      byMovement[m.movement_name] = (byMovement[m.movement_name] ?? 0) + (m.minutes ?? 0)
-    }
+  const workoutsByDate: Record<string, CalendarWorkoutSummary[]> = {}
+  for (const w of rawWorkouts as unknown as RawWorkout[]) {
+    if (!workoutsByDate[w.date]) workoutsByDate[w.date] = []
+    workoutsByDate[w.date].push({
+      id: w.id, title: w.title,
+      is_planned: w.is_planned, is_completed: w.is_completed, is_important: w.is_important,
+      workout_type: w.workout_type as CalendarWorkoutSummary['workout_type'],
+      duration_minutes: w.duration_minutes,
+      zones: (w.workout_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes })),
+    })
   }
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-      <WeekCalendar
-        weekDates={weekDates}
-        workoutsByDate={workoutsByDate}
-        weekId={weekId}
-        prevWeekId={offsetWeekId(weekId, -1)}
-        nextWeekId={offsetWeekId(weekId, 1)}
-        weekStats={{ totalMinutes, byType, byMovement }}
-      />
+      <div className="max-w-5xl mx-auto">
+        <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11', margin: '24px 16px' }}>
+          <Calendar
+            mode="dagbok"
+            userId={user.id}
+            initialView="uke"
+            initialDate={startDate}
+            initialWorkoutsByDate={workoutsByDate}
+          />
+        </div>
+      </div>
     </div>
   )
 }

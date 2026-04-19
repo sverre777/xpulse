@@ -163,6 +163,17 @@ export async function deleteWorkout(id: string): Promise<{ error?: string }> {
   return {}
 }
 
+export async function getCalendarWorkouts(userId: string, startDate: string, endDate: string) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('workouts')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,workout_zones(*)')
+    .eq('user_id', userId)
+    .gte('date', startDate).lte('date', endDate)
+    .order('date').order('time_of_day')
+  return data ?? []
+}
+
 export async function getWorkoutsForMonth(userId: string, year: number, month: number) {
   const supabase = await createClient()
   const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]

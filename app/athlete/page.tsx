@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
-import { InlineCalendar } from '@/components/calendar/InlineCalendar'
+import { Calendar } from '@/components/calendar/Calendar'
 import { CalendarWorkoutSummary } from '@/lib/types'
 
 type RawWorkout = {
@@ -124,10 +124,11 @@ export default async function AthleteDashboard() {
         </div>
 
         <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
-          <InlineCalendar
+          <Calendar
+            mode="dagbok"
             userId={user.id}
-            initialYear={year}
-            initialMonth={month}
+            initialView="måned"
+            initialDate={today}
             initialWorkoutsByDate={workoutsByDate}
             initialHealthDates={healthDates}
           />

@@ -35,7 +35,7 @@ export default async function AthleteDashboard() {
       .select('duration_minutes, distance_km')
       .eq('user_id', user.id).eq('is_planned', false)
       .gte('date', weekStart).lte('date', today),
-    supabase.from('daily_health').select('date')
+    supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', user.id)
       .gte('date', new Date(year, month - 1, 1).toISOString().split('T')[0])
       .lte('date', new Date(year, month, 0).toISOString().split('T')[0]),
@@ -53,7 +53,11 @@ export default async function AthleteDashboard() {
     })
   }
 
-  const healthDates = (healthRows.data ?? []).map((r: { date: string }) => r.date)
+  type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; body_weight_kg: number | null }
+  const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}
+  for (const r of (healthRows.data ?? []) as HealthRow[]) {
+    healthData[r.date] = { hrv_ms: r.hrv_ms, resting_hr: r.resting_hr, sleep_hours: r.sleep_hours, body_weight_kg: r.body_weight_kg }
+  }
 
   const weekWorkouts = weekData.data ?? []
   const weekMinutes = weekWorkouts.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
@@ -130,7 +134,7 @@ export default async function AthleteDashboard() {
             initialView="måned"
             initialDate={today}
             initialWorkoutsByDate={workoutsByDate}
-            initialHealthDates={healthDates}
+            initialHealthData={healthData}
           />
         </div>
 

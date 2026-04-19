@@ -19,13 +19,20 @@ interface TrainingPhase {
   color: string | null
 }
 
+export interface HealthSummary {
+  hrv_ms?: number | null
+  resting_hr?: number | null
+  sleep_hours?: number | null
+  body_weight_kg?: number | null
+}
+
 export interface CalendarProps {
   mode: CalendarMode
   userId: string
   initialView?: CalendarView
   initialDate?: string
   initialWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
-  initialHealthDates?: string[]
+  initialHealthData?: Record<string, HealthSummary>
   trainingPhases?: TrainingPhase[]
 }
 
@@ -270,10 +277,11 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, mode, phases }: {
+function MonthView({ year, month, byDate, healthDates, healthData, mode, phases }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
+  healthData: Record<string, HealthSummary>
   mode: CalendarMode
   phases: TrainingPhase[]
 }) {
@@ -399,15 +407,37 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
                         })}
                       </div>
                     )}
+                    {/* Health summary row */}
+                    {mode !== 'plan' && healthData[ds] && (() => {
+                      const h = healthData[ds]
+                      const parts: string[] = []
+                      if (h.hrv_ms != null) parts.push(`HRV ${h.hrv_ms}`)
+                      if (h.resting_hr != null) parts.push(`Hvilepuls ${h.resting_hr}`)
+                      if (h.sleep_hours != null) parts.push(`Søvn ${h.sleep_hours}t`)
+                      if (h.body_weight_kg != null) parts.push(`Vekt ${h.body_weight_kg}kg`)
+                      return parts.length > 0 ? (
+                        <div className="flex items-center gap-2 mb-3">
+                          <span style={{ color: '#28A86E', fontSize: '9px' }}>●</span>
+                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+                            {parts.join(' · ')}
+                          </span>
+                          <Link href={`/athlete/health/${ds}`}
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', textDecoration: 'none', borderBottom: '1px solid #333340', marginLeft: '4px' }}>
+                            Rediger
+                          </Link>
+                        </div>
+                      ) : null
+                    })()}
+
                     <div className="flex gap-3 flex-wrap">
                       <Link href={`/athlete/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                         {mode === 'plan' ? '+ Planlegg økt' : '+ Logg økt'}
                       </Link>
-                      {mode !== 'plan' && !isFuture && (
+                      {mode !== 'plan' && !isFuture && !healthData[ds] && (
                         <Link href={`/athlete/health/${ds}`}
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                          Helse
+                          + Helse
                         </Link>
                       )}
                       {mode !== 'plan' && isFuture && (
@@ -429,10 +459,11 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
 
 // ── Week view ──────────────────────────────────────────────
 
-function WeekView({ weekDates, byDate, healthDates, mode, phases }: {
+function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: {
   weekDates: Date[]
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
+  healthData: Record<string, HealthSummary>
   mode: CalendarMode
   phases: TrainingPhase[]
 }) {
@@ -491,7 +522,23 @@ function WeekView({ weekDates, byDate, healthDates, mode, phases }: {
                   const arr = Object.entries(t).map(([zone_name, minutes]) => ({ zone_name, minutes }))
                   return arr.length > 0 ? <ZoneBar zones={arr} /> : null
                 })()}
-                {healthDates.has(ds) && (
+                {healthData[ds] && mode !== 'plan' && (() => {
+                  const h = healthData[ds]
+                  const parts: string[] = []
+                  if (h.hrv_ms != null) parts.push(`HRV ${h.hrv_ms}`)
+                  if (h.resting_hr != null) parts.push(`Hvile ${h.resting_hr}`)
+                  if (h.sleep_hours != null) parts.push(`${h.sleep_hours}t søvn`)
+                  if (h.body_weight_kg != null) parts.push(`${h.body_weight_kg}kg`)
+                  return (
+                    <div className="mt-1 flex items-center gap-1 flex-wrap">
+                      <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
+                      <Link href={`/athlete/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '11px', textDecoration: 'none' }}>
+                        {parts.length > 0 ? parts.join(' · ') : 'Helse'}
+                      </Link>
+                    </div>
+                  )
+                })()}
+                {!healthData[ds] && healthDates.has(ds) && mode !== 'plan' && (
                   <div className="mt-1 flex items-center gap-1">
                     <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
                     <Link href={`/athlete/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '11px', textDecoration: 'none' }}>Helse</Link>
@@ -551,13 +598,14 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
 
 export function Calendar({
   mode, userId, initialView = 'måned', initialDate,
-  initialWorkoutsByDate = {}, initialHealthDates = [],
+  initialWorkoutsByDate = {}, initialHealthData = {},
   trainingPhases = [],
 }: CalendarProps) {
   const [view, setView] = useState<CalendarView>(initialView)
   const [refDate, setRefDate] = useState<Date>(() => initialDate ? new Date(initialDate + 'T12:00:00') : new Date())
   const [byDate, setByDate] = useState(initialWorkoutsByDate)
-  const [healthDates] = useState(new Set(initialHealthDates))
+  const healthData = initialHealthData
+  const healthDates = new Set(Object.keys(healthData))
   const [loading, setLoading] = useState(false)
   const [showPicker, setShowPicker] = useState(false)
 
@@ -669,10 +717,10 @@ export function Calendar({
 
       {/* ── Content ── */}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} mode={mode} phases={trainingPhases} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
       )}
       {view === 'uke' && (
-        <WeekView weekDates={weekDates} byDate={byDate} healthDates={healthDates} mode={mode} phases={trainingPhases} />
+        <WeekView weekDates={weekDates} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
       )}
       {view === 'år' && (
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />

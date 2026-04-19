@@ -116,6 +116,19 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
   return workouts
 }
 
+// Routing when clicking an existing workout. Semantics:
+//   • Plan mode → always open plan-edit form
+//   • Dagbok + planned + future date → open plan-edit (change/move/delete — no complete flow yet)
+//   • Dagbok + planned + today/past → dagbok edit with "Merk gjennomført" flow
+//   • Dagbok + completed/non-planned → plain dagbok edit
+function workoutEditHref(w: CalendarWorkoutSummary, dateStr: string, mode: CalendarMode, today: string): string {
+  const isPlanned = w.is_planned && !w.is_completed
+  const isFuture = dateStr > today
+  if (mode === 'plan') return `/athlete/log/${w.id}?mode=plan`
+  if (isPlanned && isFuture) return `/athlete/log/${w.id}?mode=plan`
+  return `/athlete/log/${w.id}`
+}
+
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
   let mins = 0, sessions = 0
   for (const d of week) {
@@ -143,11 +156,12 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
   )
 }
 
-function WorkoutChip({ w, mode }: { w: CalendarWorkoutSummary; mode: CalendarMode }) {
+function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const color = TYPE_COLORS[w.workout_type] ?? '#555'
   const isPlanned = w.is_planned && !w.is_completed
+  const today = toISO(new Date())
   return (
-    <Link href={`/athlete/log/${w.id}${mode === 'plan' ? '?mode=plan' : ''}`} style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+    <Link href={workoutEditHref(w, dateStr, mode, today)} style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
       <div style={{
         borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
         backgroundColor: isPlanned ? 'transparent' : `${color}33`,
@@ -260,7 +274,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       </div>
 
       {/* Workouts (mode-filtered) */}
-      {filterByMode(workouts, mode).map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
+      {filterByMode(workouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
 
       {/* Zone bar for dagbok/analyse (aggregated from completed only) */}
       {(mode === 'dagbok' || mode === 'analyse') && (() => {
@@ -383,7 +397,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                           const color = TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = w.is_planned && !w.is_completed
                           return (
-                            <Link key={w.id} href={`/athlete/log/${w.id}${mode === 'plan' ? '?mode=plan' : ''}`} style={{ textDecoration: 'none', display: 'block' }}>
+                            <Link key={w.id} href={workoutEditHref(w, ds, mode, today)} style={{ textDecoration: 'none', display: 'block' }}>
                               <div className="p-2" style={{
                                 backgroundColor: '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
@@ -513,7 +527,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
               </div>
 
               <div className="p-1.5 flex flex-col gap-1">
-                {filterByMode(dayWorkouts, mode).map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
+                {filterByMode(dayWorkouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={ds} mode={mode} />)}
                 {(mode === 'dagbok' || mode === 'analyse') && (() => {
                   const completed = dayWorkouts.filter(w => !w.is_planned || w.is_completed)
                   const zones = completed.flatMap(w => w.zones ?? [])

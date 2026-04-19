@@ -161,7 +161,11 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   const isPlanned = w.is_planned && !w.is_completed
   const today = toISO(new Date())
   return (
-    <Link href={workoutEditHref(w, dateStr, mode, today)} style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+    <Link
+      href={workoutEditHref(w, dateStr, mode, today)}
+      onClick={e => e.stopPropagation()}
+      style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}
+    >
       <div style={{
         borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
         backgroundColor: isPlanned ? 'transparent' : `${color}33`,
@@ -233,9 +237,11 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const phaseColor = activePhase ? (PHASE_COLORS[activePhase.phase_type ?? ''] ?? activePhase.color ?? '#333') : null
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onToggle}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
       className="text-left border-l w-full"
       style={{
         borderColor: '#1A1A1E',
@@ -285,7 +291,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         const arr = Object.entries(totals).map(([zone_name, minutes]) => ({ zone_name, minutes }))
         return arr.length > 0 ? <ZoneBar zones={arr} /> : null
       })()}
-    </button>
+    </div>
   )
 }
 

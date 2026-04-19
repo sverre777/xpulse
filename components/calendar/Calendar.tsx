@@ -103,11 +103,18 @@ function parseWorkouts(raw: RawW[]): Record<string, CalendarWorkoutSummary[]> {
   return byDate
 }
 
-function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>) {
-  let mins = 0, km = 0, sessions = 0
+function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
+  if (mode === 'plan') return workouts.filter(w => w.is_planned && !w.is_completed)
+  // dagbok/analyse: show all; count only completed for stats
+  return workouts
+}
+
+function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
+  let mins = 0, sessions = 0
   for (const d of week) {
-    for (const w of byDate[toISO(d)] ?? []) {
-      if (!w.is_planned || w.is_completed) {
+    const ws = filterByMode(byDate[toISO(d)] ?? [], mode)
+    for (const w of ws) {
+      if (mode === 'plan' || !w.is_planned || w.is_completed) {
         mins += w.duration_minutes ?? 0; sessions++
       }
     }
@@ -245,12 +252,13 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       </div>
 
-      {/* Workouts */}
-      {workouts.map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
+      {/* Workouts (mode-filtered) */}
+      {filterByMode(workouts, mode).map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
 
-      {/* Zone bar for dagbok/analyse (aggregated) */}
+      {/* Zone bar for dagbok/analyse (aggregated from completed only) */}
       {(mode === 'dagbok' || mode === 'analyse') && (() => {
-        const allZones = workouts.flatMap(w => w.zones ?? [])
+        const completed = workouts.filter(w => !w.is_planned || w.is_completed)
+        const allZones = completed.flatMap(w => w.zones ?? [])
         const totals: Record<string, number> = {}
         for (const z of allZones) totals[z.zone_name] = (totals[z.zone_name] ?? 0) + z.minutes
         const arr = Object.entries(totals).map(([zone_name, minutes]) => ({ zone_name, minutes }))
@@ -288,7 +296,7 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
 
       {weeks.map((week, wi) => {
         const wn = isoWeek(week[0])
-        const { mins, sessions } = weekStats(week, byDate)
+        const { mins, sessions } = weekStats(week, byDate, mode)
         const expandedInWeek = week.some(d => toISO(d) === expandedDay)
         const expandedDate = week.find(d => toISO(d) === expandedDay)
 
@@ -339,8 +347,11 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
             {/* Inline day expansion */}
             {expandedInWeek && expandedDate && (() => {
               const ds = toISO(expandedDate)
-              const dayWorkouts = byDate[ds] ?? []
+              const allDayWorkouts = byDate[ds] ?? []
+              const dayWorkouts = filterByMode(allDayWorkouts, mode)
               const fmt = expandedDate.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
+              const today = toISO(new Date())
+              const isFuture = ds > today
               return (
                 <div style={{ backgroundColor: '#0F0F16', borderTop: '2px solid #FF4500', borderBottom: '1px solid #1E1E22' }}>
                   <div className="px-4 md:px-6 py-4">
@@ -355,7 +366,9 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
                         style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>×</button>
                     </div>
                     {dayWorkouts.length === 0 ? (
-                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>Ingen økter</p>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                        {mode === 'plan' ? 'Ingen planlagte økter' : 'Ingen økter'}
+                      </p>
                     ) : (
                       <div className="space-y-1 mb-3">
                         {dayWorkouts.map(w => {
@@ -364,7 +377,8 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
                           return (
                             <Link key={w.id} href={`/athlete/log/${w.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                               <div className="p-2" style={{
-                                backgroundColor: '#16161A', borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
+                                backgroundColor: '#16161A',
+                                borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 border: isPlanned ? `1px dashed #444` : `1px solid #1E1E22`,
                               }}>
                                 <div className="flex items-center justify-between">
@@ -386,14 +400,21 @@ function MonthView({ year, month, byDate, healthDates, mode, phases }: {
                       </div>
                     )}
                     <div className="flex gap-3 flex-wrap">
-                      <Link href={`/athlete/log?date=${ds}${mode === 'plan' ? '&planned=true' : ''}`}
+                      <Link href={`/athlete/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                        + Logg økt
+                        {mode === 'plan' ? '+ Planlegg økt' : '+ Logg økt'}
                       </Link>
-                      <Link href={`/athlete/health/${ds}`}
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                        Helse
-                      </Link>
+                      {mode !== 'plan' && !isFuture && (
+                        <Link href={`/athlete/health/${ds}`}
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                          Helse
+                        </Link>
+                      )}
+                      {mode !== 'plan' && isFuture && (
+                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '12px', padding: '6px 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          🔒 Helse tilgjengelig fra {fmt.split(' ').slice(1).join(' ')}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -416,7 +437,8 @@ function WeekView({ weekDates, byDate, healthDates, mode, phases }: {
   phases: TrainingPhase[]
 }) {
   const today = toISO(new Date())
-  const allWorkouts = weekDates.flatMap(d => byDate[toISO(d)] ?? []).filter(w => !w.is_planned || w.is_completed)
+  const allWorkouts = weekDates.flatMap(d => filterByMode(byDate[toISO(d)] ?? [], mode))
+    .filter(w => mode === 'plan' || !w.is_planned || w.is_completed)
   const totalMins = allWorkouts.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
   const totalSessions = allWorkouts.length
 
@@ -454,15 +476,16 @@ function WeekView({ weekDates, byDate, healthDates, mode, phases }: {
                     {date.getDate()}
                   </div>
                 </div>
-                <Link href={`/athlete/log?date=${ds}${mode === 'plan' ? '&planned=true' : ''}`}
+                <Link href={`/athlete/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
                   style={{ color: '#FF4500', fontSize: '16px', fontWeight: 700, textDecoration: 'none', opacity: 0.4, lineHeight: 1 }}
-                  title="Logg økt">+</Link>
+                  title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</Link>
               </div>
 
               <div className="p-1.5 flex flex-col gap-1">
-                {dayWorkouts.map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
+                {filterByMode(dayWorkouts, mode).map(w => <WorkoutChip key={w.id} w={w} mode={mode} />)}
                 {(mode === 'dagbok' || mode === 'analyse') && (() => {
-                  const zones = dayWorkouts.flatMap(w => w.zones ?? [])
+                  const completed = dayWorkouts.filter(w => !w.is_planned || w.is_completed)
+                  const zones = completed.flatMap(w => w.zones ?? [])
                   const t: Record<string, number> = {}
                   for (const z of zones) t[z.zone_name] = (t[z.zone_name] ?? 0) + z.minutes
                   const arr = Object.entries(t).map(([zone_name, minutes]) => ({ zone_name, minutes }))
@@ -485,9 +508,10 @@ function WeekView({ weekDates, byDate, healthDates, mode, phases }: {
 
 // ── Year view ──────────────────────────────────────────────
 
-function YearView({ year, byDate, onSelectMonth }: {
+function YearView({ year, byDate, mode, onSelectMonth }: {
   year: number
   byDate: Record<string, CalendarWorkoutSummary[]>
+  mode: CalendarMode
   onSelectMonth: (m: number) => void
 }) {
   return (
@@ -497,8 +521,9 @@ function YearView({ year, byDate, onSelectMonth }: {
         const end = new Date(year, mi + 1, 0)
         let mins = 0, sessions = 0
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          for (const w of byDate[toISO(new Date(d))] ?? []) {
-            if (!w.is_planned || w.is_completed) { mins += w.duration_minutes ?? 0; sessions++ }
+          const ws = filterByMode(byDate[toISO(new Date(d))] ?? [], mode)
+          for (const w of ws) {
+            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += w.duration_minutes ?? 0; sessions++ }
           }
         }
         return (
@@ -650,7 +675,7 @@ export function Calendar({
         <WeekView weekDates={weekDates} byDate={byDate} healthDates={healthDates} mode={mode} phases={trainingPhases} />
       )}
       {view === 'år' && (
-        <YearView year={year} byDate={byDate} onSelectMonth={m => goToMonth(year, m)} />
+        <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />
       )}
     </div>
   )

@@ -15,6 +15,10 @@ export function HealthForm({ date, existing }: HealthFormProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()
+  const isFuture = date > todayStr
+  const dateLabel = new Date(date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
+
   const [form, setForm] = useState({
     resting_hr:     existing?.resting_hr?.toString() ?? '',
     hrv_ms:         existing?.hrv_ms?.toString() ?? '',
@@ -45,6 +49,35 @@ export function HealthForm({ date, existing }: HealthFormProps) {
     backgroundColor: '#16161A', border: '1px solid #1E1E22',
     color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: '16px', padding: '10px 14px', outline: 'none', width: '100%',
+  }
+
+  if (isFuture) {
+    return (
+      <div className="space-y-6">
+        <div className="p-6 text-center" style={{ border: '1px dashed #222228', backgroundColor: '#111115' }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔒</div>
+          <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em', marginBottom: '8px' }}>
+            Ikke tilgjengelig ennå
+          </p>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+            Helsedata kan registreres fra {dateLabel}
+          </p>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '12px', marginTop: '4px' }}>
+            Du kan registrere dette når dagen har startet
+          </p>
+        </div>
+        <div className="flex gap-3 pb-8">
+          <button type="button" onClick={() => router.back()}
+            className="px-6 py-4 text-lg tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',
+            }}>
+            ← Tilbake
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

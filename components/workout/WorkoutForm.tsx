@@ -138,7 +138,11 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const isBiathlon         = form.sport === 'biathlon'
   const workoutTypeOptions = getWorkoutTypes(form.sport)
   const isPlanned   = form.is_planned
-  const showExecutionFields = !isPlanned
+
+  // Date-based locking: execution fields only available today or in the past
+  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()
+  const isFutureDate = form.date > todayStr
+  const showExecutionFields = !isPlanned && !isFutureDate
 
   // Shooting stats
   const pronePct    = form.shooting_prone_shots ? Math.round((parseInt(form.shooting_prone_hits)||0) / parseInt(form.shooting_prone_shots) * 100) : null
@@ -273,20 +277,24 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         <div className="py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
           <button
             type="button"
-            onClick={() => set('is_planned', false)}
-            className="px-5 py-2.5 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+            onClick={() => !isFutureDate && set('is_planned', false)}
+            disabled={isFutureDate}
+            title={isFutureDate ? `Tilgjengelig fra ${new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}` : undefined}
+            className="px-5 py-2.5 text-sm tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'transparent',
-              color: '#28A86E',
-              border: '1px solid #28A86E',
-              cursor: 'pointer',
+              color: isFutureDate ? '#2A2A30' : '#28A86E',
+              border: `1px solid ${isFutureDate ? '#222228' : '#28A86E'}`,
+              cursor: isFutureDate ? 'not-allowed' : 'pointer',
             }}
           >
-            ✓ Merk gjennomført
+            {isFutureDate ? '🔒 Merk gjennomført' : '✓ Merk gjennomført'}
           </button>
           <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Dagsform, RPE og laktat fylles inn etter gjennomføring
+            {isFutureDate
+              ? `Tilgjengelig fra ${new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}`
+              : 'Dagsform, RPE og laktat fylles inn etter gjennomføring'}
           </p>
         </div>
       )}
@@ -309,6 +317,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             </div>
           </div>
         </Section>
+      )}
+      {!isPlanned && isFutureDate && (
+        <FutureLock date={form.date} label="Dagsform, RPE og laktat" />
       )}
 
       {/* ── LAKTAT ── */}
@@ -423,6 +434,26 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 }
 
 // ── Shared helpers ──
+
+function FutureLock({ date, label }: { date: string; label: string }) {
+  const formatted = new Date(date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
+  return (
+    <div className="py-4 px-0" style={{ borderBottom: '1px solid #1E1E22' }}>
+      <div className="flex items-center gap-3 py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
+        <span style={{ width: '24px', height: '2px', backgroundColor: '#222228', display: 'inline-block' }} />
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#2A2A30', fontSize: '18px', letterSpacing: '0.1em' }}>
+          {label}
+        </span>
+      </div>
+      <div className="py-5 flex items-center gap-2">
+        <span style={{ color: '#333340', fontSize: '16px' }}>🔒</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '13px' }}>
+          Tilgjengelig fra {formatted}
+        </span>
+      </div>
+    </div>
+  )
+}
 
 const iSt: React.CSSProperties = {
   backgroundColor: '#16161A', border: '1px solid #1E1E22',

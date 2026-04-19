@@ -40,7 +40,7 @@ export function HealthForm({ date, existing }: HealthFormProps) {
       setError(result.error)
       setSaving(false)
     } else {
-      router.push(`/athlete/calendar/${date}`)
+      router.push('/app/dagbok')
       router.refresh()
     }
   }

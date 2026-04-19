@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/athlete'
+  const next = searchParams.get('next') ?? '/app/dagbok'
 
   if (code) {
     const supabase = await createClient()
@@ -17,12 +17,12 @@ export async function GET(request: Request) {
           .select('role')
           .eq('id', user.id)
           .single()
-        const destination = profile?.role === 'coach' ? '/coach' : '/athlete'
+        const destination = profile?.role === 'coach' ? '/app/trener' : '/app/dagbok'
         return NextResponse.redirect(`${origin}${destination}`)
       }
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
+  return NextResponse.redirect(`${origin}/app?error=auth_callback_failed`)
 }

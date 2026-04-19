@@ -34,7 +34,7 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
     .single()
 
   revalidatePath('/', 'layout')
-  redirect(profile?.role === 'coach' ? '/coach' : '/dagbok')
+  redirect(profile?.role === 'coach' ? '/app/trener' : '/app/dagbok')
 }
 
 export async function register(prevState: AuthState, formData: FormData): Promise<AuthState> {
@@ -81,12 +81,12 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   }
 
   revalidatePath('/', 'layout')
-  redirect(role === 'coach' ? '/coach' : '/dagbok')
+  redirect(role === 'coach' ? '/app/trener' : '/app/dagbok')
 }
 
 export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/login')
+  redirect('/app')
 }

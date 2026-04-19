@@ -159,9 +159,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     )
   }
 
-  revalidatePath('/athlete')
-  revalidatePath('/athlete/calendar')
-  revalidatePath('/athlete/week')
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
   return { id: savedId }
 }
 
@@ -173,8 +172,8 @@ export async function markCompleted(workoutId: string): Promise<{ error?: string
     .update({ is_completed: true, is_planned: false, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', user.id)
   if (error) return { error: error.message }
-  revalidatePath('/athlete/calendar')
-  revalidatePath('/athlete/week')
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
   return {}
 }
 
@@ -184,8 +183,8 @@ export async function deleteWorkout(id: string): Promise<{ error?: string }> {
   if (!user) return { error: 'Ikke innlogget' }
   const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', user.id)
   if (error) return { error: error.message }
-  revalidatePath('/athlete/calendar')
-  revalidatePath('/athlete/week')
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
   return {}
 }
 

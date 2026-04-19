@@ -124,9 +124,9 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
 function workoutEditHref(w: CalendarWorkoutSummary, dateStr: string, mode: CalendarMode, today: string): string {
   const isPlanned = w.is_planned && !w.is_completed
   const isFuture = dateStr > today
-  if (mode === 'plan') return `/athlete/log/${w.id}?mode=plan`
-  if (isPlanned && isFuture) return `/athlete/log/${w.id}?mode=plan`
-  return `/athlete/log/${w.id}`
+  if (mode === 'plan') return `/app/log/${w.id}?mode=plan`
+  if (isPlanned && isFuture) return `/app/log/${w.id}?mode=plan`
+  return `/app/log/${w.id}`
 }
 
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
@@ -265,7 +265,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         <div className="flex items-center gap-1">
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
           {mode === 'plan' && (
-            <Link href={`/athlete/log?date=${dateStr}&planned=true`}
+            <Link href={`/app/log?date=${dateStr}&planned=true`}
               onClick={e => e.stopPropagation()}
               style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, textDecoration: 'none', opacity: 0.5, lineHeight: 1 }}
               title="Legg til planlagt økt">+</Link>
@@ -435,7 +435,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
                             {parts.join(' · ')}
                           </span>
-                          <Link href={`/athlete/health/${ds}`}
+                          <Link href={`/app/health/${ds}`}
                             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', textDecoration: 'none', borderBottom: '1px solid #333340', marginLeft: '4px' }}>
                             Rediger
                           </Link>
@@ -444,12 +444,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                     })()}
 
                     <div className="flex gap-3 flex-wrap">
-                      <Link href={`/athlete/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
+                      <Link href={`/app/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                         {mode === 'plan' ? '+ Planlegg økt' : '+ Logg økt'}
                       </Link>
                       {mode !== 'plan' && !isFuture && !healthData[ds] && (
-                        <Link href={`/athlete/health/${ds}`}
+                        <Link href={`/app/health/${ds}`}
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                           + Helse
                         </Link>
@@ -521,7 +521,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
                     {date.getDate()}
                   </div>
                 </div>
-                <Link href={`/athlete/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
+                <Link href={`/app/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
                   style={{ color: '#FF4500', fontSize: '16px', fontWeight: 700, textDecoration: 'none', opacity: 0.4, lineHeight: 1 }}
                   title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</Link>
               </div>
@@ -546,7 +546,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
                   return (
                     <div className="mt-1 flex items-center gap-1 flex-wrap">
                       <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
-                      <Link href={`/athlete/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '11px', textDecoration: 'none' }}>
+                      <Link href={`/app/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '11px', textDecoration: 'none' }}>
                         {parts.length > 0 ? parts.join(' · ') : 'Helse'}
                       </Link>
                     </div>
@@ -555,7 +555,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
                 {!healthData[ds] && healthDates.has(ds) && mode !== 'plan' && (
                   <div className="mt-1 flex items-center gap-1">
                     <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
-                    <Link href={`/athlete/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '11px', textDecoration: 'none' }}>Helse</Link>
+                    <Link href={`/app/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '11px', textDecoration: 'none' }}>Helse</Link>
                   </div>
                 )}
               </div>

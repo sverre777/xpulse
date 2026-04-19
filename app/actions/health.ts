@@ -31,8 +31,8 @@ export async function saveDailyHealth(data: {
   const { error } = await supabase.from('daily_health').upsert(payload, { onConflict: 'user_id,date' })
   if (error) return { error: error.message }
 
-  revalidatePath('/athlete/calendar')
-  revalidatePath(`/athlete/calendar/${data.date}`)
+  revalidatePath('/app/dagbok')
+  revalidatePath(`/app/health/${data.date}`)
   return {}
 }
 

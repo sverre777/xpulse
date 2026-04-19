@@ -20,7 +20,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
 
   return (
     <Link
-      href={`/athlete/log/${workout.id}`}
+      href={`/app/log/${workout.id}`}
       className="block group transition-colors"
       style={{ textDecoration: 'none' }}
     >

@@ -9,19 +9,19 @@ interface MainNavProps {
 }
 
 const NAV_LINKS = [
-  { href: '/dagbok',        label: 'Dagbok' },
-  { href: '/plan',          label: 'Plan' },
-  { href: '/periodisering', label: 'Periodisering' },
-  { href: '/analyse',       label: 'Analyse' },
-  { href: '/ai-coach',      label: 'AI Coach' },
-  { href: '/historikk',     label: 'Historikk' },
+  { href: '/app/dagbok',        label: 'Dagbok' },
+  { href: '/app/plan',          label: 'Plan' },
+  { href: '/app/periodisering', label: 'Periodisering' },
+  { href: '/app/analyse',       label: 'Analyse' },
+  { href: '/app/ai-coach',      label: 'AI Coach' },
+  { href: '/app/historikk',     label: 'Historikk' },
 ]
 
 export function MainNav({ userName }: MainNavProps) {
   const pathname = usePathname()
-  const onPlan = pathname === '/plan' || pathname.startsWith('/plan/')
+  const onPlan = pathname === '/app/plan' || pathname.startsWith('/app/plan/')
   const logLabel = onPlan ? '+ Planlegg økt' : '+ Logg økt'
-  const logHref = onPlan ? '/athlete/log?planned=true' : '/athlete/log'
+  const logHref = onPlan ? '/app/log?planned=true' : '/app/log'
 
   return (
     <nav
@@ -31,7 +31,7 @@ export function MainNav({ userName }: MainNavProps) {
       {/* Left: logo + nav */}
       <div className="flex items-center gap-6">
         <Link
-          href="/dagbok"
+          href="/app/dagbok"
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >
@@ -86,7 +86,7 @@ export function MainNav({ userName }: MainNavProps) {
         </span>
 
         <Link
-          href="/innstillinger"
+          href="/app/innstillinger"
           className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",

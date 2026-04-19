@@ -133,7 +133,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     const result = await saveWorkout(form, workoutId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
-      router.push(isPlanMode ? '/plan' : '/dagbok')
+      router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
       router.refresh()
     }
   }

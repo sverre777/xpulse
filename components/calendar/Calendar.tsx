@@ -78,7 +78,9 @@ function buildWeekDates(ref: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d })
 }
 
-function toISO(d: Date) { return d.toISOString().split('T')[0] }
+function toISO(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 function fmtDuration(mins: number | null) {
   if (!mins) return null

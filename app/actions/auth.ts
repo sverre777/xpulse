@@ -34,7 +34,7 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
     .single()
 
   revalidatePath('/', 'layout')
-  redirect(profile?.role === 'coach' ? '/coach' : '/athlete')
+  redirect(profile?.role === 'coach' ? '/coach' : '/dagbok')
 }
 
 export async function register(prevState: AuthState, formData: FormData): Promise<AuthState> {
@@ -81,7 +81,7 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   }
 
   revalidatePath('/', 'layout')
-  redirect(role === 'coach' ? '/coach' : '/athlete')
+  redirect(role === 'coach' ? '/coach' : '/dagbok')
 }
 
 export async function logout() {

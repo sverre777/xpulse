@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
       .single()
 
     const url = request.nextUrl.clone()
-    url.pathname = profile?.role === 'coach' ? '/coach' : '/athlete'
+    url.pathname = profile?.role === 'coach' ? '/coach' : '/dagbok'
     return NextResponse.redirect(url)
   }
 

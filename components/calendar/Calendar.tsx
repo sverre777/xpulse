@@ -147,7 +147,7 @@ function WorkoutChip({ w, mode }: { w: CalendarWorkoutSummary; mode: CalendarMod
   const color = TYPE_COLORS[w.workout_type] ?? '#555'
   const isPlanned = w.is_planned && !w.is_completed
   return (
-    <Link href={`/athlete/log/${w.id}`} style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
+    <Link href={`/athlete/log/${w.id}${mode === 'plan' ? '?mode=plan' : ''}`} style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}>
       <div style={{
         borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
         backgroundColor: isPlanned ? 'transparent' : `${color}33`,
@@ -383,7 +383,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                           const color = TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = w.is_planned && !w.is_completed
                           return (
-                            <Link key={w.id} href={`/athlete/log/${w.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                            <Link key={w.id} href={`/athlete/log/${w.id}${mode === 'plan' ? '?mode=plan' : ''}`} style={{ textDecoration: 'none', display: 'block' }}>
                               <div className="p-2" style={{
                                 backgroundColor: '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,

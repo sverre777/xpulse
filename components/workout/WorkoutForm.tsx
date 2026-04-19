@@ -18,6 +18,7 @@ interface WorkoutFormProps {
   workoutId?: string
   defaultValues?: Partial<WorkoutFormData>
   templates?: WorkoutTemplate[]
+  formMode?: 'plan' | 'dagbok'
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -29,8 +30,9 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
 
 const SHOOTING_TYPES: WorkoutType[] = ['hard_combo','easy_combo','basis_shooting','warmup_shooting']
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [] }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok' }: WorkoutFormProps) {
   const router = useRouter()
+  const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +47,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     time_of_day: defaultValues?.time_of_day ?? '',
     sport:       defaultValues?.sport ?? initialSport,
     workout_type: defaultValues?.workout_type ?? 'long_run',
-    is_planned:  defaultValues?.is_planned ?? false,
+    is_planned:  formMode === 'plan' ? true : (defaultValues?.is_planned ?? false),
     is_important: defaultValues?.is_important ?? false,
     movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
       ...m,
@@ -131,8 +133,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     const result = await saveWorkout(form, workoutId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
-      const dateForCalendar = form.date
-      router.push(`/athlete/calendar/${dateForCalendar}`)
+      router.push(isPlanMode ? '/plan' : '/dagbok')
       router.refresh()
     }
   }
@@ -224,9 +225,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
 
         <div className="flex gap-3 mt-4">
-          <Chip active={form.is_planned} onClick={() => set('is_planned', !form.is_planned)}>
-            Planlagt økt
-          </Chip>
           <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
             ★ Viktig økt
           </Chip>
@@ -274,8 +272,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </Section>
       )}
 
-      {/* ── MERK GJENNOMFØRT (kun for planlagte økter) ── */}
-      {isPlanned && (
+      {/* ── MERK GJENNOMFØRT (kun for planlagte økter i dagbok-modus) ── */}
+      {isPlanned && !isPlanMode && (
         <div className="py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
           <button
             type="button"
@@ -302,7 +300,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       )}
 
       {/* ── DAGSFORM ── */}
-      {showExecutionFields && (
+      {showExecutionFields && !isPlanMode && (
         <Section label="Dagsform og belastning">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
@@ -320,54 +318,58 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </div>
         </Section>
       )}
-      {!isPlanned && isFutureDate && (
+      {!isPlanned && isFutureDate && !isPlanMode && (
         <FutureLock date={form.date} label="Dagsform, RPE og laktat" />
       )}
 
       {/* ── LAKTAT ── */}
-      {showExecutionFields && (
+      {showExecutionFields && !isPlanMode && (
         <Section label="Laktat (valgfritt)">
           <LactateTable rows={form.lactate} onChange={rows => set('lactate', rows)} />
         </Section>
       )}
 
       {/* ── NOTATER ── */}
-      <Section label="Notater og tagger">
+      <Section label={isPlanMode ? 'Notater' : 'Notater og tagger'}>
         <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
-          placeholder="Kommentar, observasjoner, følelse..."
+          placeholder={isPlanMode ? 'Beskrivelse av planlagt økt, intensjon, fokuspunkter...' : 'Kommentar, observasjoner, følelse...'}
           rows={3} style={{ ...iSt, resize: 'vertical' }} className="w-full px-4 py-3"
           onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
           onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
 
-        {/* Active tags */}
-        {form.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {form.tags.map(tag => (
-              <Chip key={tag} active onClick={() => toggleTag(tag)}>
-                {tag} ×
-              </Chip>
-            ))}
-          </div>
-        )}
+        {!isPlanMode && (
+          <>
+            {/* Active tags */}
+            {form.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {form.tags.map(tag => (
+                  <Chip key={tag} active onClick={() => toggleTag(tag)}>
+                    {tag} ×
+                  </Chip>
+                ))}
+              </div>
+            )}
 
-        {/* Add custom tag */}
-        <div className="flex gap-2 mt-3">
-          <input value={newTag} onChange={e => setNewTag(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag() }}}
-            placeholder="Legg til tagg..."
-            className="flex-1 px-3 py-2 text-sm"
-            style={{ ...iSt, fontSize: '13px', padding: '8px 12px' }}
-            onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
-            onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
-          <button type="button" onClick={addCustomTag}
-            className="px-4 py-2 text-sm tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #222228', cursor: 'pointer',
-            }}>
-            + Legg til
-          </button>
-        </div>
+            {/* Add custom tag */}
+            <div className="flex gap-2 mt-3">
+              <input value={newTag} onChange={e => setNewTag(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag() }}}
+                placeholder="Legg til tagg..."
+                className="flex-1 px-3 py-2 text-sm"
+                style={{ ...iSt, fontSize: '13px', padding: '8px 12px' }}
+                onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
+              <button type="button" onClick={addCustomTag}
+                className="px-4 py-2 text-sm tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+                  background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                }}>
+                + Legg til
+              </button>
+            </div>
+          </>
+        )}
       </Section>
 
       {/* ── SUBMIT ── */}
@@ -388,7 +390,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               color: '#F0F0F2', border: 'none',
               cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
             }}>
-            {saving ? 'Lagrer...' : workoutId ? 'Lagre endringer' : form.is_planned ? 'Lagre plan' : 'Lagre økt'}
+            {saving ? 'Lagrer...' : workoutId ? 'Lagre endringer' : isPlanMode ? 'Lagre plan' : 'Lagre økt'}
           </button>
           <button type="button" onClick={() => router.back()}
             className="px-6 py-4 text-lg tracking-widest uppercase"

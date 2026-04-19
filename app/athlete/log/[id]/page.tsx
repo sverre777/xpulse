@@ -5,12 +5,20 @@ import { getTemplates } from '@/app/actions/health'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
 import { WorkoutFormData, Sport, WorkoutType, WorkoutTemplate, LactateRow, ShootingBlock, ShootingBlockType } from '@/lib/types'
 
-export default async function WorkoutDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WorkoutDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ mode?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { id } = await params
+  const { mode } = await searchParams
+  const formMode: 'plan' | 'dagbok' = mode === 'plan' ? 'plan' : 'dagbok'
   const [workout, templates] = await Promise.all([getWorkout(id), getTemplates()])
   if (!workout || workout.user_id !== user.id) notFound()
 
@@ -101,7 +109,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           <form action={async () => {
             'use server'
             await deleteWorkout(id)
-            redirect('/athlete/calendar')
+            redirect(formMode === 'plan' ? '/plan' : '/dagbok')
           }}>
             <button type="submit"
               className="px-4 py-2 text-sm tracking-widest uppercase"
@@ -111,7 +119,7 @@ export default async function WorkoutDetailPage({ params }: { params: Promise<{ 
           </form>
         </div>
       </div>
-      <WorkoutForm workoutId={id} defaultValues={defaultValues} templates={templates as WorkoutTemplate[]} />
+      <WorkoutForm workoutId={id} defaultValues={defaultValues} templates={templates as WorkoutTemplate[]} formMode={formMode} />
     </div>
   )
 }

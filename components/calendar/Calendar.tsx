@@ -4,7 +4,7 @@ import { Fragment, createContext, useContext, useState, useCallback, useEffect }
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
-import { HeartZone, ZONE_NAMES, ZoneName } from '@/lib/heart-zones'
+import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
@@ -139,8 +139,8 @@ function zonesFor(w: CalendarWorkoutSummary, mode: CalendarMode): { zone_name: s
   return mode === 'plan' ? w.planned_zones : w.zones
 }
 
-function emptyZoneSec(): Record<ZoneName, number> {
-  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
+function emptyZoneSec(): Record<ExtendedZoneName, number> {
+  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
 }
 
 // Aggregerte verdier for én økt (plan eller faktisk, basert på modus).
@@ -150,7 +150,7 @@ function secondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
 function metersFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_total_meters : w.total_meters
 }
-function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<ZoneName, number> {
+function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<ExtendedZoneName, number> {
   return mode === 'plan' ? w.planned_zone_seconds : w.zone_seconds
 }
 
@@ -164,7 +164,7 @@ interface AggregateTotals {
   sessions: number
   seconds: number
   meters: number
-  zoneSeconds: Record<ZoneName, number>
+  zoneSeconds: Record<ExtendedZoneName, number>
 }
 
 function aggregate(workouts: CalendarWorkoutSummary[], mode: CalendarMode): AggregateTotals {
@@ -175,7 +175,7 @@ function aggregate(workouts: CalendarWorkoutSummary[], mode: CalendarMode): Aggr
     out.seconds += secondsFor(w, mode)
     out.meters += metersFor(w, mode)
     const zs = zoneSecondsFor(w, mode)
-    for (const k of ZONE_NAMES) out.zoneSeconds[k] += zs[k] ?? 0
+    for (const k of ALL_ZONE_NAMES) out.zoneSeconds[k] += zs[k] ?? 0
   }
   return out
 }
@@ -191,7 +191,7 @@ function aggregateRange(
     out.sessions += part.sessions
     out.seconds += part.seconds
     out.meters += part.meters
-    for (const k of ZONE_NAMES) out.zoneSeconds[k] += part.zoneSeconds[k]
+    for (const k of ALL_ZONE_NAMES) out.zoneSeconds[k] += part.zoneSeconds[k]
   }
   return out
 }
@@ -223,26 +223,26 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
         <div key={z.zone_name}
           style={{
             width: `${(z.minutes / total) * 100}%`,
-            backgroundColor: ZONE_COLORS_V2[z.zone_name as ZoneName] ?? '#333',
+            backgroundColor: ZONE_COLORS_V2[z.zone_name as ExtendedZoneName] ?? '#333',
           }} />
       ))}
     </div>
   )
 }
 
-// Kompakt sonebar basert på aggregerte sekunder per sone.
+// Kompakt sonebar basert på aggregerte sekunder per sone (6 segmenter inkl. Hurtighet).
 function AggZoneBar({
   zoneSeconds, height = 3,
 }: {
-  zoneSeconds: Record<ZoneName, number>
+  zoneSeconds: Record<ExtendedZoneName, number>
   height?: number
 }) {
-  const total = ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
+  const total = ALL_ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
   if (total <= 0) return null
   return (
     <div className="flex w-full overflow-hidden"
       style={{ height: `${height}px`, backgroundColor: '#1A1A1E', borderRadius: '1px' }}>
-      {ZONE_NAMES.map(k => {
+      {ALL_ZONE_NAMES.map(k => {
         const w = (zoneSeconds[k] / total) * 100
         if (w <= 0) return null
         return (
@@ -258,14 +258,14 @@ function AggZoneBar({
 function ZoneLegend({
   zoneSeconds, size = 'md',
 }: {
-  zoneSeconds: Record<ZoneName, number>
+  zoneSeconds: Record<ExtendedZoneName, number>
   size?: 'sm' | 'md'
 }) {
   const fontSize = size === 'sm' ? '11px' : '12px'
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-0.5"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize }}>
-      {ZONE_NAMES.map(k => {
+      {ALL_ZONE_NAMES.map(k => {
         const mins = Math.round((zoneSeconds[k] ?? 0) / 60)
         if (mins <= 0) return null
         return (

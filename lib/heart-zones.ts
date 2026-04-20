@@ -3,6 +3,14 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export type ZoneName = 'I1' | 'I2' | 'I3' | 'I4' | 'I5'
 export const ZONE_NAMES: ZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5']
 
+// "Hurtighet" er en 6. sone for kortvarige eksplosive drag. Den beregnes IKKE
+// fra puls — brukeren fører minutter manuelt. Derfor er den holdt utenfor
+// ZoneName/ZONE_NAMES (som brukes av zoneForHeartRate og user_heart_zones).
+export const SPEED_ZONE = 'Hurtighet' as const
+export type SpeedZone = typeof SPEED_ZONE
+export type ExtendedZoneName = ZoneName | SpeedZone
+export const ALL_ZONE_NAMES: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', SPEED_ZONE]
+
 export interface HeartZone {
   zone_name: ZoneName
   min_bpm: number

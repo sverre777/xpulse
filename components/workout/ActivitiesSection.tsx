@@ -76,13 +76,15 @@ function emptySet(n: number): StrengthSetRow {
   }
 }
 
+const ZONE_KEYS: (keyof ActivityZoneMinutes)[] = ['I1','I2','I3','I4','I5','Hurtighet']
+
 function sumZoneMinutes(z: ActivityZoneMinutes): number {
-  return (['I1','I2','I3','I4','I5'] as const)
-    .reduce((s, k) => s + (parseInt(z[k]) || 0), 0)
+  return ZONE_KEYS.reduce((s, k) => s + (parseInt(z[k]) || 0), 0)
 }
 
 const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   I1: '#28A86E', I2: '#2A7AB8', I3: '#D4B500', I4: '#FF9500', I5: '#FF4500',
+  Hurtighet: '#8B5CF6',
 }
 
 export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Props) {
@@ -426,7 +428,7 @@ function ZoneEditor({
   zones: ActivityZoneMinutes
   onChange: (z: ActivityZoneMinutes) => void
 }) {
-  const keys: (keyof ActivityZoneMinutes)[] = ['I1','I2','I3','I4','I5']
+  const keys = ZONE_KEYS
   const total = sumZoneMinutes(zones)
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -440,7 +442,7 @@ function ZoneEditor({
         </span>
       </div>
 
-      {/* Color bar */}
+      {/* Color bar — 6 segmenter når Hurtighet > 0, ellers 5 */}
       <div className="flex mb-2" style={{ height: '6px', border: '1px solid #1E1E22' }}>
         {keys.map(k => {
           const m = parseInt(zones[k]) || 0
@@ -452,12 +454,12 @@ function ZoneEditor({
         {total === 0 && <div style={{ flex: 1, backgroundColor: '#1A1A1E' }} />}
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-6 gap-2">
         {keys.map(k => (
           <div key={k}>
             <label className="block text-center mb-1 text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ZONE_COLORS_BAR[k] }}>
-              {k}
+              {k === 'Hurtighet' ? 'Hurt.' : k}
             </label>
             <input value={zones[k]}
               onChange={e => onChange({ ...zones, [k]: e.target.value })}
@@ -466,6 +468,11 @@ function ZoneEditor({
           </div>
         ))}
       </div>
+
+      <p className="mt-2 text-xs"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Hurtighet føres manuelt — beregnes ikke fra puls.
+      </p>
     </div>
   )
 }

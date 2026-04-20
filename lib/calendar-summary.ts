@@ -1,5 +1,5 @@
 import { CalendarWorkoutSummary } from './types'
-import { HeartZone, ZONE_NAMES } from './heart-zones'
+import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
 import {
   ActivityLike,
   ActivityTotals,
@@ -78,7 +78,7 @@ function snapshotActivityToLike(raw: unknown): ActivityLike | null {
   const zonesRaw = (r.zones ?? null) as Record<string, unknown> | null
   const zones: Record<string, number> = {}
   if (zonesRaw) {
-    for (const k of ZONE_NAMES) {
+    for (const k of ALL_ZONE_NAMES) {
       const v = zonesRaw[k]
       const n = typeof v === 'string' ? parseInt(v) : Number(v)
       if (Number.isFinite(n) && n > 0) zones[k] = n
@@ -123,16 +123,17 @@ function totalsFromSnapshot(
   return computeActivityTotals(mapped, heartZones)
 }
 
-// Konverter { zone_name, minutes }[] → Record<ZoneName, sekunder>. Ukjente soner
-// droppes.
+// Konverter { zone_name, minutes }[] → Record<ExtendedZoneName, sekunder>.
+// Ukjente soner droppes.
 function legacyZonesToSeconds(
   zones: { zone_name: string; minutes: number }[],
-): Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number> {
-  const out: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
+): Record<ExtendedZoneName, number> {
+  const out: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  const valid = new Set<string>(ALL_ZONE_NAMES)
   for (const z of zones) {
-    if (z.zone_name === 'I1' || z.zone_name === 'I2' || z.zone_name === 'I3' || z.zone_name === 'I4' || z.zone_name === 'I5') {
+    if (valid.has(z.zone_name)) {
       const m = Number(z.minutes) || 0
-      if (m > 0) out[z.zone_name] += m * 60
+      if (m > 0) out[z.zone_name as ExtendedZoneName] += m * 60
     }
   }
   return out

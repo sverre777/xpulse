@@ -37,11 +37,11 @@ function describeActivity(a: ActivityRow): string {
 
 function extras(a: ActivityRow): string[] {
   const out: string[] = []
-  const zones = (['I1','I2','I3','I4','I5'] as const)
+  const zones = (['I1','I2','I3','I4','I5','Hurtighet'] as const)
     .map(k => ({ k, m: parseInt(a.zones?.[k] ?? '') || 0 }))
     .filter(z => z.m > 0)
   if (zones.length > 0) {
-    out.push(zones.map(z => `${z.k} ${z.m}min`).join(' · '))
+    out.push(zones.map(z => `${z.k === 'Hurtighet' ? 'Hurt.' : z.k} ${z.m}min`).join(' · '))
   }
   if (a.avg_heart_rate) out.push(`${a.avg_heart_rate} bpm`)
   if (a.distance_km) out.push(`${a.distance_km} km`)

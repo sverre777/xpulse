@@ -13,10 +13,13 @@ import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shootin
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 
 // Serialiser sone-minutter til jsonb-format. Returnerer null hvis ingen soner har verdi.
+// Inkluderer Hurtighet — en 6. sone som føres manuelt (ikke fra puls).
+const ZONE_KEYS_ALL = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+
 function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<string, number> | null {
   if (!z) return null
   const out: Record<string, number> = {}
-  for (const k of ['I1','I2','I3','I4','I5'] as const) {
+  for (const k of ZONE_KEYS_ALL) {
     const n = parseInt(z[k])
     if (Number.isFinite(n) && n > 0) out[k] = n
   }
@@ -27,7 +30,7 @@ function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<strin
 function deserializeZones(z: Record<string, number> | null | undefined): ActivityZoneMinutes {
   const base = emptyActivityZones()
   if (!z) return base
-  for (const k of ['I1','I2','I3','I4','I5'] as const) {
+  for (const k of ZONE_KEYS_ALL) {
     const n = z[k]
     if (typeof n === 'number' && n > 0) base[k] = String(n)
   }

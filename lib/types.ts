@@ -261,16 +261,19 @@ export function isStrengthMovement(name: string | null | undefined): boolean {
 }
 
 // Sonefordeling for én aktivitet: minutter per sone (string for input-binding).
+// Hurtighet er en 6. sone for eksplosive drag — føres manuelt, beregnes ikke
+// fra puls.
 export interface ActivityZoneMinutes {
   I1: string
   I2: string
   I3: string
   I4: string
   I5: string
+  Hurtighet: string
 }
 
 export function emptyActivityZones(): ActivityZoneMinutes {
-  return { I1: '', I2: '', I3: '', I4: '', I5: '' }
+  return { I1: '', I2: '', I3: '', I4: '', I5: '', Hurtighet: '' }
 }
 
 // Laktatmåling i en aktivitet (én av flere).
@@ -543,12 +546,12 @@ export interface CalendarWorkoutSummary {
   // hvis aktivitetsdata mangler. Zone-seconds bruker zoneForHeartRate-fallback.
   total_seconds: number
   total_meters: number
-  zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number>
+  zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
   // Aggregert fra planned_snapshot.activities (planlagt) — faller tilbake til
   // planned_duration_minutes*60 hvis snapshot-activities mangler.
   planned_total_seconds: number
   planned_total_meters: number
-  planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number>
+  planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
 }
 
 export const TYPE_COLORS: Record<string, string> = {

@@ -2,7 +2,14 @@
 
 import { useMemo } from 'react'
 import { ActivityRow, Sport, findActivityType } from '@/lib/types'
-import { HeartZone, ZONE_NAMES, ZoneName, zoneForHeartRate } from '@/lib/heart-zones'
+import {
+  ALL_ZONE_NAMES,
+  ExtendedZoneName,
+  HeartZone,
+  SPEED_ZONE,
+  ZONE_NAMES,
+  zoneForHeartRate,
+} from '@/lib/heart-zones'
 import { parseActivityDuration } from '@/lib/activity-duration'
 
 interface Props {
@@ -11,12 +18,13 @@ interface Props {
   sport: Sport
 }
 
-const ZONE_COLORS: Record<ZoneName, string> = {
+const ZONE_COLORS: Record<ExtendedZoneName, string> = {
   I1: '#28A86E',
   I2: '#1A6FD4',
   I3: '#D4A017',
   I4: '#FF4500',
   I5: '#E11D48',
+  Hurtighet: '#8B5CF6',
 }
 
 function formatTotalTime(totalSeconds: number): string {
@@ -33,7 +41,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
     let totalSeconds = 0
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
-    const zoneSeconds: Record<ZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
+    const zoneSeconds: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
     let missingHrCount = 0
 
     const shooting = {
@@ -88,14 +96,16 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
         movementSeconds[label] = (movementSeconds[label] ?? 0) + durSec
       }
 
-      // Sonefordeling — eksplisitte zones først, ellers puls → sone
-      const explicitZones = (['I1','I2','I3','I4','I5'] as const)
+      // Sonefordeling — eksplisitte zones først (inkl. Hurtighet), ellers puls → sone.
+      // Hurtighet regnes ikke fra puls og "blokkerer" heller ikke HR-fallback.
+      const explicitZones = ALL_ZONE_NAMES
         .map(k => ({ k, m: parseInt(a.zones?.[k] ?? '') || 0 }))
         .filter(z => z.m > 0)
+      const hasExplicitHr = explicitZones.some(z => z.k !== SPEED_ZONE)
 
-      if (explicitZones.length > 0) {
-        for (const z of explicitZones) zoneSeconds[z.k] += z.m * 60
-      } else if (durSec > 0 && !meta?.isShooting) {
+      for (const z of explicitZones) zoneSeconds[z.k] += z.m * 60
+
+      if (!hasExplicitHr && durSec > 0 && !meta?.isShooting) {
         const hr = parseInt(a.avg_heart_rate)
         if (Number.isFinite(hr) && hr > 0 && heartZones.length === ZONE_NAMES.length) {
           const zone = zoneForHeartRate(hr, heartZones)
@@ -107,7 +117,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
       }
     }
 
-    const zoneTotalSec = ZONE_NAMES.reduce((s, k) => s + zoneSeconds[k], 0)
+    const zoneTotalSec = ALL_ZONE_NAMES.reduce((s, k) => s + zoneSeconds[k], 0)
 
     const movementList = Object.entries(movementSeconds)
       .sort((a, b) => b[1] - a[1])
@@ -177,7 +187,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
           <Label>Sonefordeling</Label>
           <ZoneBar zoneSeconds={summary.zoneSeconds} total={summary.zoneTotalSec} />
           <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }}>
-            {ZONE_NAMES.map(k => {
+            {ALL_ZONE_NAMES.map(k => {
               const mins = Math.round(summary.zoneSeconds[k] / 60)
               if (mins <= 0) return null
               return (
@@ -232,7 +242,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
 function ZoneBar({
   zoneSeconds, total,
 }: {
-  zoneSeconds: Record<ZoneName, number>
+  zoneSeconds: Record<ExtendedZoneName, number>
   total: number
 }) {
   return (
@@ -243,7 +253,7 @@ function ZoneBar({
         backgroundColor: '#1A1A1E',
       }}
     >
-      {ZONE_NAMES.map(k => {
+      {ALL_ZONE_NAMES.map(k => {
         const w = total > 0 ? (zoneSeconds[k] / total) * 100 : 0
         if (w <= 0) return null
         return (

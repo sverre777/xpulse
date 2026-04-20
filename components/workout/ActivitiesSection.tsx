@@ -386,9 +386,10 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Skyting-felt — kun i dagbok-modus (faktiske skudd/treff) */}
-          {meta?.isShooting && !isPlanMode && (
-            <ShootingFields row={row} onUpdate={onUpdate} />
+          {/* Skyting-felt — dagbok viser skudd + treff + %, plan viser kun
+              planlagt antall skudd. Treff er alltid valgfritt. */}
+          {meta?.isShooting && (
+            <ShootingFields row={row} onUpdate={onUpdate} planMode={isPlanMode} />
           )}
 
           {/* Styrke-felt */}
@@ -671,28 +672,39 @@ function LactateMeasurementsEditor({
   )
 }
 
-// ── Skyting (Liggende/Stående/Kombinert/Innskyting) ────────
+// ── Skyting (Liggende/Stående/Kombinert/Innskyting/Basisskyting) ────────
+// Treff er alltid valgfritt — brukeren kan registrere kun antall skudd for
+// øvelser der treff ikke telles. Treff%-statistikk beregnes kun der treff er
+// fylt inn.
+// I plan-modus vises kun "Antall skudd planlagt" (ingen treff, ingen %).
 
 function ShootingFields({
-  row, onUpdate,
+  row, onUpdate, planMode,
 }: {
   row: ActivityRow
   onUpdate: (patch: Partial<ActivityRow>) => void
+  planMode: boolean
 }) {
   const isInnskyting = row.activity_type === 'skyting_innskyting'
-  const isKomb = row.activity_type === 'skyting_kombinert'
-  const showProne    = row.activity_type === 'skyting_liggende' || isKomb || isInnskyting
-  const showStanding = row.activity_type === 'skyting_staaende' || isKomb || isInnskyting
+  const isBasis = row.activity_type === 'skyting_basis'
+  const isKombOrBasis = row.activity_type === 'skyting_kombinert' || isBasis
+  const showProne    = row.activity_type === 'skyting_liggende' || isKombOrBasis || isInnskyting
+  const showStanding = row.activity_type === 'skyting_staaende' || isKombOrBasis || isInnskyting
 
-  const pronePct = computePct(row.prone_shots, row.prone_hits)
-  const standingPct = computePct(row.standing_shots, row.standing_hits)
+  const pronePct = planMode ? null : computePct(row.prone_shots, row.prone_hits)
+  const standingPct = planMode ? null : computePct(row.standing_shots, row.standing_hits)
+
+  const heading =
+    isInnskyting ? 'Innskyting' :
+    isBasis      ? 'Basisskyting' :
+                   'Skyting'
 
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        {isInnskyting ? 'Innskyting' : 'Skyting'}
-        {isInnskyting && (
+        {heading}
+        {!planMode && (
           <span style={{ marginLeft: 8, color: '#8A8A96', textTransform: 'none', letterSpacing: 0 }}>
             · Treff er valgfritt
           </span>
@@ -706,7 +718,7 @@ function ShootingFields({
             onShots={v => onUpdate({ prone_shots: v })}
             onHits={v => onUpdate({ prone_hits: v })}
             pct={pronePct}
-            hitsOptional={isInnskyting}
+            planMode={planMode}
           />
         )}
         {showStanding && (
@@ -716,7 +728,7 @@ function ShootingFields({
             onShots={v => onUpdate({ standing_shots: v })}
             onHits={v => onUpdate({ standing_hits: v })}
             pct={standingPct}
-            hitsOptional={isInnskyting}
+            planMode={planMode}
           />
         )}
       </div>
@@ -725,12 +737,12 @@ function ShootingFields({
 }
 
 function ShootingBlock({
-  label, shots, hits, onShots, onHits, pct, hitsOptional,
+  label, shots, hits, onShots, onHits, pct, planMode,
 }: {
   label: string; shots: string; hits: string
   onShots: (v: string) => void; onHits: (v: string) => void
   pct: number | null
-  hitsOptional?: boolean
+  planMode: boolean
 }) {
   return (
     <div>
@@ -749,14 +761,20 @@ function ShootingBlock({
           </span>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      {planMode ? (
         <input value={shots} onChange={e => onShots(e.target.value)}
-          inputMode="numeric" placeholder="Skudd"
+          inputMode="numeric" placeholder="Antall skudd planlagt"
           style={iSt} />
-        <input value={hits} onChange={e => onHits(e.target.value)}
-          inputMode="numeric" placeholder={hitsOptional ? 'Treff (valgfritt)' : 'Treff'}
-          style={iSt} />
-      </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          <input value={shots} onChange={e => onShots(e.target.value)}
+            inputMode="numeric" placeholder="Skudd"
+            style={iSt} />
+          <input value={hits} onChange={e => onHits(e.target.value)}
+            inputMode="numeric" placeholder="Treff (valgfritt)"
+            style={iSt} />
+        </div>
+      )}
     </div>
   )
 }

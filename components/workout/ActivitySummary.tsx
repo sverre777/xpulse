@@ -44,10 +44,13 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
     const zoneSeconds: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
     let missingHrCount = 0
 
+    // Fleksibel skyting: skudd telles alltid, treff og nevner i %-regnestykket
+    // telles kun der treff er fylt inn. *_shots_scored er altså "skudd hvor treff
+    // er satt" — nevneren i treff%.
     const shooting = {
-      prone_shots: 0, prone_hits: 0,
-      standing_shots: 0, standing_hits: 0,
-      total_shots: 0, total_hits: 0,
+      prone_shots: 0, prone_shots_scored: 0, prone_hits: 0,
+      standing_shots: 0, standing_shots_scored: 0, standing_hits: 0,
+      total_shots: 0, total_shots_scored: 0, total_hits: 0,
     }
 
     let lactateCount = 0
@@ -58,18 +61,30 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
       const isPause = a.activity_type === 'pause' || a.activity_type === 'aktiv_pause'
       const durSec = parseActivityDuration(a.duration) ?? 0
 
-      // Skytestatistikk
+      // Skytestatistikk — summer skudd alltid; summer treff (og "scored"-nevner)
+      // kun der treff er eksplisitt fylt inn.
       if (meta?.isShooting) {
-        const ps = parseInt(a.prone_shots) || 0
-        const ph = parseInt(a.prone_hits) || 0
-        const ss = parseInt(a.standing_shots) || 0
-        const sh = parseInt(a.standing_hits) || 0
+        const psRaw = parseInt(a.prone_shots)
+        const phRaw = parseInt(a.prone_hits)
+        const ssRaw = parseInt(a.standing_shots)
+        const shRaw = parseInt(a.standing_hits)
+        const ps = Number.isFinite(psRaw) ? psRaw : 0
+        const ss = Number.isFinite(ssRaw) ? ssRaw : 0
         shooting.prone_shots += ps
-        shooting.prone_hits += ph
         shooting.standing_shots += ss
-        shooting.standing_hits += sh
         shooting.total_shots += ps + ss
-        shooting.total_hits += ph + sh
+        if (Number.isFinite(phRaw) && ps > 0) {
+          shooting.prone_shots_scored += ps
+          shooting.prone_hits += phRaw
+          shooting.total_shots_scored += ps
+          shooting.total_hits += phRaw
+        }
+        if (Number.isFinite(shRaw) && ss > 0) {
+          shooting.standing_shots_scored += ss
+          shooting.standing_hits += shRaw
+          shooting.total_shots_scored += ss
+          shooting.total_hits += shRaw
+        }
       }
 
       // Laktat — samle alle målinger
@@ -209,7 +224,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
         </p>
       )}
 
-      {/* Skytestatistikk */}
+      {/* Skytestatistikk — treff% bruker kun aktiviteter der treff er fylt inn. */}
       {hasShooting && (
         <div className="mt-3 pt-3" style={{ borderTop: '1px solid #1E1E22' }}>
           <Label>Skyting</Label>
@@ -218,19 +233,22 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
               label="Liggende"
               shots={summary.shooting.prone_shots}
               hits={summary.shooting.prone_hits}
-              pct={pct(summary.shooting.prone_hits, summary.shooting.prone_shots)}
+              shotsScored={summary.shooting.prone_shots_scored}
+              pct={pct(summary.shooting.prone_hits, summary.shooting.prone_shots_scored)}
             />
             <ShootingMetric
               label="Stående"
               shots={summary.shooting.standing_shots}
               hits={summary.shooting.standing_hits}
-              pct={pct(summary.shooting.standing_hits, summary.shooting.standing_shots)}
+              shotsScored={summary.shooting.standing_shots_scored}
+              pct={pct(summary.shooting.standing_hits, summary.shooting.standing_shots_scored)}
             />
             <ShootingMetric
               label="Totalt"
               shots={summary.shooting.total_shots}
               hits={summary.shooting.total_hits}
-              pct={pct(summary.shooting.total_hits, summary.shooting.total_shots)}
+              shotsScored={summary.shooting.total_shots_scored}
+              pct={pct(summary.shooting.total_hits, summary.shooting.total_shots_scored)}
             />
           </div>
         </div>
@@ -280,21 +298,29 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function ShootingMetric({
-  label, shots, hits, pct,
+  label, shots, hits, shotsScored, pct,
 }: {
-  label: string; shots: number; hits: number; pct: number | null
+  label: string; shots: number; hits: number; shotsScored: number; pct: number | null
 }) {
   const pctColor = pct == null ? '#555560' : pct >= 80 ? '#28A86E' : pct >= 60 ? '#FF9500' : '#FF4500'
+  // Primær-visning: totalt antall skudd. Når treff er registrert på minst én
+  // serie, vis også treff/nevner + %. Nevneren er kun skudd der treff var satt.
+  const hasScored = shotsScored > 0
   return (
     <div>
       <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </span>
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-2 flex-wrap">
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.05em' }}>
-          {hits}/{shots}
+          {shots} skudd
         </span>
+        {hasScored && (
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#C0C0CC', fontSize: '14px', letterSpacing: '0.05em' }}>
+            · {hits}/{shotsScored}
+          </span>
+        )}
         {pct != null && (
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: pctColor, fontSize: '15px' }}>
             {pct}%

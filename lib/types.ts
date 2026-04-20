@@ -197,7 +197,8 @@ export interface WorkoutFormData {
 
 export type ActivityType =
   | 'oppvarming' | 'aktivitet' | 'pause' | 'aktiv_pause'
-  | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert' | 'skyting_innskyting'
+  | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert'
+  | 'skyting_innskyting' | 'skyting_basis'
   | 'nedjogg' | 'annet'
 
 export interface ActivityTypeOption {
@@ -218,6 +219,7 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_kombinert', label: 'Skyting — Kombinert',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_basis',     label: 'Skyting — Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]

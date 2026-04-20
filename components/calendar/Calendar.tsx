@@ -3,8 +3,9 @@
 import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate, ZONE_COLORS } from '@/lib/types'
-import { HeartZone } from '@/lib/heart-zones'
+import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
+import { HeartZone, ZONE_NAMES, ZoneName } from '@/lib/heart-zones'
+import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
@@ -137,62 +138,143 @@ function durationFor(w: CalendarWorkoutSummary, mode: CalendarMode): number | nu
 function zonesFor(w: CalendarWorkoutSummary, mode: CalendarMode): { zone_name: string; minutes: number }[] {
   return mode === 'plan' ? w.planned_zones : w.zones
 }
-// Totalt antall minutter basert på workout_activities. Faller tilbake til duration_minutes
-// hvis aktivitetsdata mangler. Pauser er allerede ekskludert i activity_seconds.
-function totalMinutesFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
-  if (mode === 'plan') return w.planned_duration_minutes ?? 0
-  if (w.activity_seconds > 0) return Math.round(w.activity_seconds / 60)
-  return w.duration_minutes ?? 0
+
+function emptyZoneSec(): Record<ZoneName, number> {
+  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
 }
 
-function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
-  let mins = 0, sessions = 0
-  for (const d of week) {
-    const ws = filterByMode(byDate[toISO(d)] ?? [], mode)
-    for (const w of ws) {
-      if (mode === 'plan' || !w.is_planned || w.is_completed) {
-        mins += totalMinutesFor(w, mode); sessions++
-      }
-    }
+// Aggregerte verdier for én økt (plan eller faktisk, basert på modus).
+function secondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+  return mode === 'plan' ? w.planned_total_seconds : w.total_seconds
+}
+function metersFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+  return mode === 'plan' ? w.planned_total_meters : w.total_meters
+}
+function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<ZoneName, number> {
+  return mode === 'plan' ? w.planned_zone_seconds : w.zone_seconds
+}
+
+function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
+  // Plan-kalender: alle planlagte teller. Dagbok/analyse: tell økter som enten
+  // er logget direkte (!is_planned) eller markert som gjennomført.
+  return mode === 'plan' || !w.is_planned || w.is_completed
+}
+
+interface AggregateTotals {
+  sessions: number
+  seconds: number
+  meters: number
+  zoneSeconds: Record<ZoneName, number>
+}
+
+function aggregate(workouts: CalendarWorkoutSummary[], mode: CalendarMode): AggregateTotals {
+  const out: AggregateTotals = { sessions: 0, seconds: 0, meters: 0, zoneSeconds: emptyZoneSec() }
+  for (const w of filterByMode(workouts, mode)) {
+    if (!includeInSum(w, mode)) continue
+    out.sessions += 1
+    out.seconds += secondsFor(w, mode)
+    out.meters += metersFor(w, mode)
+    const zs = zoneSecondsFor(w, mode)
+    for (const k of ZONE_NAMES) out.zoneSeconds[k] += zs[k] ?? 0
   }
-  return { mins, sessions }
+  return out
 }
 
-function dayTotalMinutes(ws: CalendarWorkoutSummary[], mode: CalendarMode): number {
-  let m = 0
-  for (const w of filterByMode(ws, mode)) {
-    if (mode === 'plan' || !w.is_planned || w.is_completed) m += totalMinutesFor(w, mode)
+function aggregateRange(
+  byDate: Record<string, CalendarWorkoutSummary[]>,
+  dates: Iterable<string>,
+  mode: CalendarMode,
+): AggregateTotals {
+  const out: AggregateTotals = { sessions: 0, seconds: 0, meters: 0, zoneSeconds: emptyZoneSec() }
+  for (const key of dates) {
+    const part = aggregate(byDate[key] ?? [], mode)
+    out.sessions += part.sessions
+    out.seconds += part.seconds
+    out.meters += part.meters
+    for (const k of ZONE_NAMES) out.zoneSeconds[k] += part.zoneSeconds[k]
   }
-  return m
+  return out
 }
 
-function monthTotalMinutes(
-  year: number, month: number,
-  byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode,
-): { mins: number; sessions: number } {
+function iterMonthDates(year: number, month: number): string[] {
   const last = new Date(year, month, 0).getDate()
-  let mins = 0, sessions = 0
+  const out: string[] = []
   for (let d = 1; d <= last; d++) {
-    const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    for (const w of filterByMode(byDate[key] ?? [], mode)) {
-      if (mode === 'plan' || !w.is_planned || w.is_completed) {
-        mins += totalMinutesFor(w, mode); sessions++
-      }
-    }
+    out.push(`${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`)
   }
-  return { mins, sessions }
+  return out
+}
+
+function fmtKm(meters: number): string | null {
+  if (meters <= 0) return null
+  const km = meters / 1000
+  return km >= 10 ? `${km.toFixed(0)} km` : `${km.toFixed(1)} km`
 }
 
 // ── Sub-components ─────────────────────────────────────────
 
+// Legacy zone-bar (minutter per navngitt sone) — brukes fortsatt for workout-kort.
 function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] }) {
   const total = zones.reduce((s, z) => s + z.minutes, 0)
   if (!total) return null
   return (
     <div className="flex h-1 w-full overflow-hidden mt-0.5">
       {zones.map(z => (
-        <div key={z.zone_name} style={{ width: `${(z.minutes / total) * 100}%`, backgroundColor: ZONE_COLORS[z.zone_name] ?? '#333' }} />
+        <div key={z.zone_name}
+          style={{
+            width: `${(z.minutes / total) * 100}%`,
+            backgroundColor: ZONE_COLORS_V2[z.zone_name as ZoneName] ?? '#333',
+          }} />
       ))}
+    </div>
+  )
+}
+
+// Kompakt sonebar basert på aggregerte sekunder per sone.
+function AggZoneBar({
+  zoneSeconds, height = 3,
+}: {
+  zoneSeconds: Record<ZoneName, number>
+  height?: number
+}) {
+  const total = ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
+  if (total <= 0) return null
+  return (
+    <div className="flex w-full overflow-hidden"
+      style={{ height: `${height}px`, backgroundColor: '#1A1A1E', borderRadius: '1px' }}>
+      {ZONE_NAMES.map(k => {
+        const w = (zoneSeconds[k] / total) * 100
+        if (w <= 0) return null
+        return (
+          <div key={k}
+            title={`${k}: ${Math.round(zoneSeconds[k] / 60)}min`}
+            style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+        )
+      })}
+    </div>
+  )
+}
+
+function ZoneLegend({
+  zoneSeconds, size = 'md',
+}: {
+  zoneSeconds: Record<ZoneName, number>
+  size?: 'sm' | 'md'
+}) {
+  const fontSize = size === 'sm' ? '11px' : '12px'
+  return (
+    <div className="flex flex-wrap gap-x-3 gap-y-0.5"
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize }}>
+      {ZONE_NAMES.map(k => {
+        const mins = Math.round((zoneSeconds[k] ?? 0) / 60)
+        if (mins <= 0) return null
+        return (
+          <span key={k}>
+            <span style={{ color: ZONE_COLORS_V2[k], letterSpacing: '0.08em' }}>{k}</span>
+            <span style={{ color: '#C0C0CC' }}> {mins}min</span>
+          </span>
+        )
+      })}
     </div>
   )
 }
@@ -328,28 +410,25 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       {/* Workouts (mode-filtered) */}
       {filterByMode(workouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
 
-      {/* Zone bar for dagbok/analyse (aggregated from completed only) */}
-      {(mode === 'dagbok' || mode === 'analyse') && (() => {
-        const completed = workouts.filter(w => !w.is_planned || w.is_completed)
-        const allZones = completed.flatMap(w => w.zones ?? [])
-        const totals: Record<string, number> = {}
-        for (const z of allZones) totals[z.zone_name] = (totals[z.zone_name] ?? 0) + z.minutes
-        const arr = Object.entries(totals).map(([zone_name, minutes]) => ({ zone_name, minutes }))
-        return arr.length > 0 ? <ZoneBar zones={arr} /> : null
-      })()}
-
-      {/* Day total — sum fra workout_activities (dempet, nederst) */}
+      {/* Dag-oppsummering: kompakt sonebar + tid + km (dempet, nederst) */}
       {(() => {
-        const total = dayTotalMinutes(workouts, mode)
-        return total > 0 ? (
-          <div style={{
-            position: 'absolute', bottom: 2, right: 4,
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#555560', fontSize: '10px', letterSpacing: '0.04em',
-          }}>
-            {fmtDuration(total)}
+        const agg = aggregate(workouts, mode)
+        if (agg.seconds <= 0) return null
+        const timeLabel = formatDurationShort(agg.seconds)
+        const kmLabel = fmtKm(agg.meters)
+        return (
+          <div className="mt-1">
+            <AggZoneBar zoneSeconds={agg.zoneSeconds} height={3} />
+            <div className="flex items-baseline justify-between mt-0.5"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#555560', fontSize: '10px', letterSpacing: '0.04em',
+              }}>
+              <span>{kmLabel ?? ''}</span>
+              <span>{timeLabel ?? ''}</span>
+            </div>
           </div>
-        ) : null
+        )
       })()}
     </div>
   )
@@ -371,31 +450,47 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
-  const monthTotal = monthTotalMinutes(year, month, byDate, mode)
+  const monthTotal = aggregateRange(byDate, iterMonthDates(year, month), mode)
+  const monthMins = Math.round(monthTotal.seconds / 60)
+  const monthKm = fmtKm(monthTotal.meters)
 
   return (
     <div>
       {/* Month total banner */}
-      {monthTotal.mins > 0 && (
-        <div className="px-4 md:px-6 py-3 flex items-center gap-4 flex-wrap"
+      {monthTotal.seconds > 0 && (
+        <div className="px-4 md:px-6 py-3"
           style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <span style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-            fontSize: '22px', letterSpacing: '0.06em',
-          }}>
-            {MONTHS_NO[month - 1]}:
-          </span>
-          <span style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
-            fontSize: '24px', letterSpacing: '0.06em',
-          }}>
-            {fmtDuration(monthTotal.mins)}
-          </span>
-          <span style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
-          }}>
-            {monthTotal.sessions} økt{monthTotal.sessions !== 1 ? 'er' : ''}
-          </span>
+          <div className="flex items-baseline gap-4 flex-wrap mb-2">
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontSize: '22px', letterSpacing: '0.06em',
+            }}>
+              {MONTHS_NO[month - 1]}:
+            </span>
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
+              fontSize: '24px', letterSpacing: '0.06em',
+            }}>
+              {fmtDuration(monthMins)}
+            </span>
+            {monthKm && (
+              <span style={{
+                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+                fontSize: '20px', letterSpacing: '0.06em',
+              }}>
+                {monthKm}
+              </span>
+            )}
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
+            }}>
+              {monthTotal.sessions} økt{monthTotal.sessions !== 1 ? 'er' : ''}
+            </span>
+          </div>
+          <AggZoneBar zoneSeconds={monthTotal.zoneSeconds} height={8} />
+          <div className="mt-1.5">
+            <ZoneLegend zoneSeconds={monthTotal.zoneSeconds} size="md" />
+          </div>
         </div>
       )}
 
@@ -412,7 +507,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
       {weeks.map((week, wi) => {
         const wn = isoWeek(week[0])
-        const { mins, sessions } = weekStats(week, byDate, mode)
+        const weekAgg = aggregateRange(byDate, week.map(toISO), mode)
+        const weekMins = Math.round(weekAgg.seconds / 60)
+        const weekKm = fmtKm(weekAgg.meters)
         const expandedInWeek = week.some(d => toISO(d) === expandedDay)
         const expandedDate = week.find(d => toISO(d) === expandedDay)
 
@@ -445,16 +542,24 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 )
               })}
 
-              {/* Week totals */}
-              <div className="flex flex-col items-end justify-start pt-2 pr-2">
-                {mins > 0 && (
+              {/* Week totals: tid + km + sessions + mini sonebar */}
+              <div className="flex flex-col items-end justify-start pt-2 pr-2" style={{ gap: '2px' }}>
+                {weekMins > 0 && (
                   <>
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '13px', lineHeight: 1 }}>
-                      {fmtDuration(mins)}
+                      {fmtDuration(weekMins)}
                     </span>
+                    {weekKm && (
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px' }}>
+                        {weekKm}
+                      </span>
+                    )}
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '11px' }}>
-                      {sessions} økt{sessions !== 1 ? 'er' : ''}
+                      {weekAgg.sessions} økt{weekAgg.sessions !== 1 ? 'er' : ''}
                     </span>
+                    <div style={{ width: '56px', marginTop: '2px' }}>
+                      <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={3} />
+                    </div>
                   </>
                 )}
               </div>
@@ -620,18 +725,34 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
 }) {
   const { onCreateWorkout } = useCalendarActions()
   const today = toISO(new Date())
-  const allWorkouts = weekDates.flatMap(d => filterByMode(byDate[toISO(d)] ?? [], mode))
-    .filter(w => mode === 'plan' || !w.is_planned || w.is_completed)
-  const totalMins = allWorkouts.reduce((s, w) => s + totalMinutesFor(w, mode), 0)
-  const totalSessions = allWorkouts.length
+  const weekAgg = aggregateRange(byDate, weekDates.map(toISO), mode)
+  const totalMins = Math.round(weekAgg.seconds / 60)
+  const totalSessions = weekAgg.sessions
+  const weekKm = fmtKm(weekAgg.meters)
 
   return (
     <div>
-      {/* Week stats */}
-      {totalMins > 0 && (
-        <div className="px-4 md:px-6 py-3 flex items-center gap-6 flex-wrap" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px' }}>{fmtDuration(totalMins)}</span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>{totalSessions} økt{totalSessions !== 1 ? 'er' : ''}</span>
+      {/* Week stats: tid + km + økter + sonebar + legend */}
+      {weekAgg.seconds > 0 && (
+        <div className="px-4 md:px-6 py-3"
+          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
+          <div className="flex items-baseline gap-6 flex-wrap mb-2">
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px' }}>
+              {fmtDuration(totalMins)}
+            </span>
+            {weekKm && (
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px' }}>
+                {weekKm}
+              </span>
+            )}
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+              {totalSessions} økt{totalSessions !== 1 ? 'er' : ''}
+            </span>
+          </div>
+          <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={6} />
+          <div className="mt-1.5">
+            <ZoneLegend zoneSeconds={weekAgg.zoneSeconds} size="md" />
+          </div>
         </div>
       )}
 
@@ -668,13 +789,24 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
 
               <div className="p-1.5 flex flex-col gap-1">
                 {filterByMode(dayWorkouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={ds} mode={mode} />)}
-                {(mode === 'dagbok' || mode === 'analyse') && (() => {
-                  const completed = dayWorkouts.filter(w => !w.is_planned || w.is_completed)
-                  const zones = completed.flatMap(w => w.zones ?? [])
-                  const t: Record<string, number> = {}
-                  for (const z of zones) t[z.zone_name] = (t[z.zone_name] ?? 0) + z.minutes
-                  const arr = Object.entries(t).map(([zone_name, minutes]) => ({ zone_name, minutes }))
-                  return arr.length > 0 ? <ZoneBar zones={arr} /> : null
+                {(() => {
+                  const dayAgg = aggregate(dayWorkouts, mode)
+                  if (dayAgg.seconds <= 0) return null
+                  const t = formatDurationShort(dayAgg.seconds)
+                  const km = fmtKm(dayAgg.meters)
+                  return (
+                    <div className="mt-1">
+                      <AggZoneBar zoneSeconds={dayAgg.zoneSeconds} height={3} />
+                      <div className="flex items-baseline justify-between mt-0.5"
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          color: '#8A8A96', fontSize: '10px', letterSpacing: '0.04em',
+                        }}>
+                        <span>{km ?? ''}</span>
+                        <span>{t ?? ''}</span>
+                      </div>
+                    </div>
+                  )
                 })()}
                 {healthData[ds] && mode !== 'plan' && (() => {
                   const h = healthData[ds]
@@ -718,15 +850,9 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
   return (
     <div className="grid grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
       {MONTHS_NO.map((name, mi) => {
-        const start = new Date(year, mi, 1)
-        const end = new Date(year, mi + 1, 0)
-        let mins = 0, sessions = 0
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const ws = filterByMode(byDate[toISO(new Date(d))] ?? [], mode)
-          for (const w of ws) {
-            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += totalMinutesFor(w, mode); sessions++ }
-          }
-        }
+        const agg = aggregateRange(byDate, iterMonthDates(year, mi + 1), mode)
+        const mins = Math.round(agg.seconds / 60)
+        const km = fmtKm(agg.meters)
         return (
           <button key={name} type="button" onClick={() => onSelectMonth(mi + 1)}
             className="text-left p-3 transition-colors hover:opacity-80"
@@ -736,7 +862,13 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
             {mins > 0 ? (
               <>
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px', lineHeight: 1 }}>{fmtDuration(mins)}</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px' }}>{sessions} økt{sessions !== 1 ? 'er' : ''}</div>
+                {km && (
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>{km}</div>
+                )}
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px' }}>{agg.sessions} økt{agg.sessions !== 1 ? 'er' : ''}</div>
+                <div className="mt-1.5">
+                  <AggZoneBar zoneSeconds={agg.zoneSeconds} height={4} />
+                </div>
               </>
             ) : (
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#2A2A30', fontSize: '13px' }}>—</div>
@@ -844,9 +976,9 @@ export function Calendar({
   const fetchData = useCallback(async (start: Date, end: Date) => {
     setLoading(true)
     const raw = await getCalendarWorkouts(userId, toISO(start), toISO(end))
-    setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[]))
+    setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[], heartZones))
     setLoading(false)
-  }, [userId])
+  }, [userId, heartZones])
 
   // Fetch when view/refDate changes (skip initial load — data is passed in)
   const [mounted, setMounted] = useState(false)

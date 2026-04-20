@@ -42,7 +42,7 @@ export default async function DagbokPage() {
     getHeartZonesForUser(supabase, user.id),
   ])
 
-  const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[])
+  const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
   type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; body_weight_kg: number | null }
   const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}

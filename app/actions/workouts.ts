@@ -498,7 +498,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -511,7 +511,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')

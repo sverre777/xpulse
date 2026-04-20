@@ -539,6 +539,16 @@ export interface CalendarWorkoutSummary {
   // Sum av duration_seconds over workout_activities — ekskluderer pause/aktiv_pause.
   activity_seconds: number
   activity_pause_seconds: number
+  // Aggregert fra workout_activities (faktisk) — faller tilbake til duration_minutes*60
+  // hvis aktivitetsdata mangler. Zone-seconds bruker zoneForHeartRate-fallback.
+  total_seconds: number
+  total_meters: number
+  zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number>
+  // Aggregert fra planned_snapshot.activities (planlagt) — faller tilbake til
+  // planned_duration_minutes*60 hvis snapshot-activities mangler.
+  planned_total_seconds: number
+  planned_total_meters: number
+  planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5', number>
 }
 
 export const TYPE_COLORS: Record<string, string> = {

@@ -32,7 +32,7 @@ export default async function PlanPage() {
   ])
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
-  const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[])
+  const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
   const trainingPhases = (phases ?? []).map(p => ({
     id: p.id as string,

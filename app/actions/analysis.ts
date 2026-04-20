@@ -127,6 +127,7 @@ export async function getWorkoutStats(
   fromDate: string,
   toDate: string,
 ): Promise<WorkoutStats | { error: string }> {
+  try {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
@@ -207,6 +208,10 @@ export async function getWorkoutStats(
     totalSeconds,
     hasData: totalSessions > 0,
   }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getWorkoutStats: ${msg}` }
+  }
 }
 
 // ── Konkurranse-stats ───────────────────────────────
@@ -247,6 +252,7 @@ export async function getCompetitionStats(
   toDate: string,
   sportFilter?: Sport | null,
 ): Promise<CompetitionStats | { error: string }> {
+  try {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
@@ -327,5 +333,9 @@ export async function getCompetitionStats(
     rows,
     hasData: rows.length > 0,
     sportsPresent: Array.from(sportsPresent),
+  }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getCompetitionStats: ${msg}` }
   }
 }

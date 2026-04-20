@@ -773,8 +773,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
 // ── Week view ──────────────────────────────────────────────
 
-function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: {
+function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, phases }: {
   weekDates: Date[]
+  weekNum: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
   healthData: Record<string, HealthSummary>
@@ -790,24 +791,38 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
 
   return (
     <div>
-      {/* Week stats: tid + km + økter + sonebar + legend */}
+      {/* Week stats: label + tid + km + økter + sonebar + legend (matcher måned) */}
       {weekAgg.seconds > 0 && (
         <div className="px-4 md:px-6 py-3"
           style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <div className="flex items-baseline gap-6 flex-wrap mb-2">
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px' }}>
+          <div className="flex items-baseline gap-4 flex-wrap mb-2">
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontSize: '22px', letterSpacing: '0.06em',
+            }}>
+              UKE {weekNum}:
+            </span>
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
+              fontSize: '24px', letterSpacing: '0.06em',
+            }}>
               {fmtDuration(totalMins)}
             </span>
             {weekKm && (
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px' }}>
+              <span style={{
+                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+                fontSize: '20px', letterSpacing: '0.06em',
+              }}>
                 {weekKm}
               </span>
             )}
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
+            }}>
               {totalSessions} økt{totalSessions !== 1 ? 'er' : ''}
             </span>
           </div>
-          <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={6} />
+          <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={8} />
           <div className="mt-1.5">
             <ZoneLegend zoneSeconds={weekAgg.zoneSeconds} size="md" />
           </div>
@@ -905,8 +920,58 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
   mode: CalendarMode
   onSelectMonth: (m: number) => void
 }) {
+  // Årstotal — samme banner-stil som måned/uke.
+  const yearAgg = aggregateRange(
+    byDate,
+    (function* () {
+      for (let mi = 1; mi <= 12; mi++) yield* iterMonthDates(year, mi)
+    })(),
+    mode,
+  )
+  const yearMins = Math.round(yearAgg.seconds / 60)
+  const yearKm = fmtKm(yearAgg.meters)
+
   return (
-    <div className="grid grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
+    <div>
+      {/* Year total banner (matcher måned/uke) */}
+      {yearAgg.seconds > 0 && (
+        <div className="px-4 md:px-6 py-3"
+          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
+          <div className="flex items-baseline gap-4 flex-wrap mb-2">
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontSize: '22px', letterSpacing: '0.06em',
+            }}>
+              {year}:
+            </span>
+            <span style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
+              fontSize: '24px', letterSpacing: '0.06em',
+            }}>
+              {fmtDuration(yearMins)}
+            </span>
+            {yearKm && (
+              <span style={{
+                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+                fontSize: '20px', letterSpacing: '0.06em',
+              }}>
+                {yearKm}
+              </span>
+            )}
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
+            }}>
+              {yearAgg.sessions} økt{yearAgg.sessions !== 1 ? 'er' : ''}
+            </span>
+          </div>
+          <AggZoneBar zoneSeconds={yearAgg.zoneSeconds} height={8} />
+          <div className="mt-1.5">
+            <ZoneLegend zoneSeconds={yearAgg.zoneSeconds} size="md" />
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
       {MONTHS_NO.map((name, mi) => {
         const agg = aggregateRange(byDate, iterMonthDates(year, mi + 1), mode)
         const mins = Math.round(agg.seconds / 60)
@@ -934,6 +999,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
           </button>
         )
       })}
+      </div>
     </div>
   )
 }
@@ -1187,7 +1253,7 @@ export function Calendar({
         <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} />
       )}
       {view === 'uke' && (
-        <WeekView weekDates={weekDates} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
+        <WeekView weekDates={weekDates} weekNum={weekNum} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
       )}
       {view === 'år' && (
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />

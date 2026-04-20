@@ -10,7 +10,6 @@ import {
   getWorkoutTypes, WorkoutTemplate,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
 } from '@/lib/types'
-import { LactateTable } from './LactateTable'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
@@ -374,13 +373,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </div>
         </Section>
       )}
-      {/* ── LAKTAT ── */}
-      {showExecutionFields && !isPlanMode && (
-        <Section label="Laktat (valgfritt)">
-          <LactateTable rows={form.lactate} onChange={rows => set('lactate', rows)} />
-        </Section>
-      )}
-
       {/* ── NOTATER ── */}
       <Section label={isPlanMode ? 'Notater' : 'Notater og tagger'}>
         <textarea value={form.notes} onChange={e => set('notes', e.target.value)}

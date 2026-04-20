@@ -9,6 +9,7 @@ import { Sport, WorkoutTemplate } from '@/lib/types'
 import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
+import { getPeriodNotes } from '@/app/actions/period-notes'
 
 export default async function DagbokPage() {
   const supabase = await createClient()
@@ -27,7 +28,15 @@ export default async function DagbokPage() {
   const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
 
-  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones] = await Promise.all([
+  // ISO-ukenøkkel for inneværende uke (for initial note-fetch).
+  const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))
+  const isoYearStart = new Date(Date.UTC(isoTmp.getUTCFullYear(), 0, 1))
+  const isoWeekNum = Math.ceil((((isoTmp.getTime() - isoYearStart.getTime()) / 86400000) + 1) / 7)
+  const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
+  const monthKey = `${year}-${String(month).padStart(2, '0')}`
+
+  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
       .select('duration_minutes, distance_km')
@@ -40,6 +49,8 @@ export default async function DagbokPage() {
     getRecoveryEntriesForRange(user.id, monthStart, monthEnd),
     getTemplates(),
     getHeartZonesForUser(supabase, user.id),
+    getPeriodNotes('week', [weekKey], 'dagbok'),
+    getPeriodNotes('month', [monthKey], 'dagbok'),
   ])
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
@@ -139,6 +150,8 @@ export default async function DagbokPage() {
               initialWorkoutsByDate={workoutsByDate}
               initialHealthData={healthData}
               initialRecoveryData={recoveryByDate}
+              initialWeekNote={weekNotes[weekKey] ?? ''}
+              initialMonthNote={monthNotes[monthKey] ?? ''}
             />
           </Suspense>
         </div>

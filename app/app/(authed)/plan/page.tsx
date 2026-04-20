@@ -7,6 +7,7 @@ import { Calendar } from '@/components/calendar/Calendar'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
+import { getPeriodNotes } from '@/app/actions/period-notes'
 
 const PHASE_COLORS: Record<string, string> = {
   base: '#1A3A6A', specific: '#1A5A3A', competition: '#6A1A1A', recovery: '#3A3A6A',
@@ -22,13 +23,23 @@ export default async function PlanPage() {
   const month = now.getMonth() + 1
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones] = await Promise.all([
+  // ISO-ukenøkkel for inneværende uke (for initial note-fetch).
+  const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))
+  const isoYearStart = new Date(Date.UTC(isoTmp.getUTCFullYear(), 0, 1))
+  const isoWeekNum = Math.ceil((((isoTmp.getTime() - isoYearStart.getTime()) / 86400000) + 1) / 7)
+  const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
+  const monthKey = `${year}-${String(month).padStart(2, '0')}`
+
+  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('training_goals').select('*').eq('user_id', user.id).order('date'),
     supabase.from('training_phases').select('*').eq('user_id', user.id).order('start_date'),
     supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
     getTemplates(),
     getHeartZonesForUser(supabase, user.id),
+    getPeriodNotes('week', [weekKey], 'plan'),
+    getPeriodNotes('month', [monthKey], 'plan'),
   ])
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
@@ -68,6 +79,8 @@ export default async function PlanPage() {
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}
               trainingPhases={trainingPhases}
+              initialWeekNote={weekNotes[weekKey] ?? ''}
+              initialMonthNote={monthNotes[monthKey] ?? ''}
             />
           </Suspense>
         </div>

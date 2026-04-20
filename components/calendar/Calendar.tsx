@@ -12,6 +12,8 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { RecoveryEntry, displayRecoveryLabel } from '@/lib/recovery-types'
 import { deleteRecoveryEntry } from '@/app/actions/recovery'
 import { RecoveryModal } from '@/components/recovery/RecoveryModal'
+import { getPeriodNotes } from '@/app/actions/period-notes'
+import { PeriodNote } from './PeriodNote'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -46,6 +48,9 @@ export interface CalendarProps {
   initialRecoveryData?: Record<string, RecoveryEntry[]>
   trainingPhases?: TrainingPhase[]
   heartZones?: HeartZone[]
+  // Valgfrie initial-kommentarer (nøklet på periodeID) for å unngå roundtrip ved mount.
+  initialWeekNote?: string
+  initialMonthNote?: string
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -79,6 +84,19 @@ function isoWeek(date: Date): number {
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
   const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
   return Math.ceil((((d.getTime() - y.getTime()) / 86400000) + 1) / 7)
+}
+
+// ISO-ukenøkkel: 'YYYY-WNN' — bruker ISO-årstallet (torsdag bestemmer år).
+function isoWeekKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
+  const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  const wk = Math.ceil((((d.getTime() - y.getTime()) / 86400000) + 1) / 7)
+  return `${d.getUTCFullYear()}-W${String(wk).padStart(2, '0')}`
+}
+
+function monthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
 function buildMonthGrid(year: number, month: number): Date[][] {
@@ -929,6 +947,8 @@ export function Calendar({
   initialRecoveryData = {},
   trainingPhases = [],
   heartZones = [],
+  initialWeekNote = '',
+  initialMonthNote = '',
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1020,13 +1040,38 @@ export function Calendar({
     setLoading(false)
   }, [userId, heartZones])
 
-  // Fetch when view/refDate changes (skip initial load — data is passed in)
+  // Fetch when view/refDate changes (skip initial load — data is passed in).
+  // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
+  // trigger nytt fetch (ellers beholder state kun forrige uke).
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     if (!mounted) { setMounted(true); return }
     const { start, end } = getDateRange(view, refDate)
     fetchData(start, end)
-  }, [view, refDate.getFullYear(), refDate.getMonth()]) // eslint-disable-line
+  }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
+
+  // Kommentar per periode — egen tekst for uke og måned, per Plan/Dagbok.
+  const weekPeriodKey = isoWeekKey(refDate)
+  const monthPeriodKey = monthKey(refDate)
+  const noteContext = mode === 'plan' ? 'plan' : 'dagbok'
+  const showNotes = mode === 'plan' || mode === 'dagbok'
+  const [weekNote, setWeekNote] = useState(initialWeekNote)
+  const [monthNote, setMonthNote] = useState(initialMonthNote)
+
+  useEffect(() => {
+    if (!mounted || !showNotes) return
+    let cancelled = false
+    ;(async () => {
+      if (view === 'uke') {
+        const map = await getPeriodNotes('week', [weekPeriodKey], noteContext)
+        if (!cancelled) setWeekNote(map[weekPeriodKey] ?? '')
+      } else if (view === 'måned') {
+        const map = await getPeriodNotes('month', [monthPeriodKey], noteContext)
+        if (!cancelled) setMonthNote(map[monthPeriodKey] ?? '')
+      }
+    })()
+    return () => { cancelled = true }
+  }, [mounted, showNotes, view, weekPeriodKey, monthPeriodKey, noteContext])
 
   function getDateRange(v: CalendarView, ref: Date) {
     if (v === 'uke') {
@@ -1118,6 +1163,26 @@ export function Calendar({
       </div>
 
       {/* ── Content ── */}
+      {showNotes && view === 'måned' && (
+        <PeriodNote
+          key={`month-${monthPeriodKey}-${noteContext}`}
+          scope="month"
+          periodKey={monthPeriodKey}
+          context={noteContext}
+          initialNote={monthNote}
+          label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
+        />
+      )}
+      {showNotes && view === 'uke' && (
+        <PeriodNote
+          key={`week-${weekPeriodKey}-${noteContext}`}
+          scope="week"
+          periodKey={weekPeriodKey}
+          context={noteContext}
+          initialNote={weekNote}
+          label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
+        />
+      )}
       {view === 'måned' && (
         <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} />
       )}

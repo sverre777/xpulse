@@ -135,6 +135,13 @@ function durationFor(w: CalendarWorkoutSummary, mode: CalendarMode): number | nu
 function zonesFor(w: CalendarWorkoutSummary, mode: CalendarMode): { zone_name: string; minutes: number }[] {
   return mode === 'plan' ? w.planned_zones : w.zones
 }
+// Totalt antall minutter basert på workout_activities. Faller tilbake til duration_minutes
+// hvis aktivitetsdata mangler. Pauser er allerede ekskludert i activity_seconds.
+function totalMinutesFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+  if (mode === 'plan') return w.planned_duration_minutes ?? 0
+  if (w.activity_seconds > 0) return Math.round(w.activity_seconds / 60)
+  return w.duration_minutes ?? 0
+}
 
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
   let mins = 0, sessions = 0
@@ -142,7 +149,32 @@ function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]
     const ws = filterByMode(byDate[toISO(d)] ?? [], mode)
     for (const w of ws) {
       if (mode === 'plan' || !w.is_planned || w.is_completed) {
-        mins += durationFor(w, mode) ?? 0; sessions++
+        mins += totalMinutesFor(w, mode); sessions++
+      }
+    }
+  }
+  return { mins, sessions }
+}
+
+function dayTotalMinutes(ws: CalendarWorkoutSummary[], mode: CalendarMode): number {
+  let m = 0
+  for (const w of filterByMode(ws, mode)) {
+    if (mode === 'plan' || !w.is_planned || w.is_completed) m += totalMinutesFor(w, mode)
+  }
+  return m
+}
+
+function monthTotalMinutes(
+  year: number, month: number,
+  byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode,
+): { mins: number; sessions: number } {
+  const last = new Date(year, month, 0).getDate()
+  let mins = 0, sessions = 0
+  for (let d = 1; d <= last; d++) {
+    const key = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    for (const w of filterByMode(byDate[key] ?? [], mode)) {
+      if (mode === 'plan' || !w.is_planned || w.is_completed) {
+        mins += totalMinutesFor(w, mode); sessions++
       }
     }
   }
@@ -303,6 +335,20 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         const arr = Object.entries(totals).map(([zone_name, minutes]) => ({ zone_name, minutes }))
         return arr.length > 0 ? <ZoneBar zones={arr} /> : null
       })()}
+
+      {/* Day total — sum fra workout_activities (dempet, nederst) */}
+      {(() => {
+        const total = dayTotalMinutes(workouts, mode)
+        return total > 0 ? (
+          <div style={{
+            position: 'absolute', bottom: 2, right: 4,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: '#555560', fontSize: '10px', letterSpacing: '0.04em',
+          }}>
+            {fmtDuration(total)}
+          </div>
+        ) : null
+      })()}
     </div>
   )
 }
@@ -323,9 +369,34 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
+  const monthTotal = monthTotalMinutes(year, month, byDate, mode)
 
   return (
     <div>
+      {/* Month total banner */}
+      {monthTotal.mins > 0 && (
+        <div className="px-4 md:px-6 py-3 flex items-center gap-4 flex-wrap"
+          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
+          <span style={{
+            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontSize: '22px', letterSpacing: '0.06em',
+          }}>
+            {MONTHS_NO[month - 1]}:
+          </span>
+          <span style={{
+            fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
+            fontSize: '24px', letterSpacing: '0.06em',
+          }}>
+            {fmtDuration(monthTotal.mins)}
+          </span>
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
+          }}>
+            {monthTotal.sessions} økt{monthTotal.sessions !== 1 ? 'er' : ''}
+          </span>
+        </div>
+      )}
+
       {/* Column headers: week# + 7 days + totals */}
       <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 72px', borderBottom: '1px solid #1A1A1E' }}>
         <div />
@@ -549,7 +620,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
   const today = toISO(new Date())
   const allWorkouts = weekDates.flatMap(d => filterByMode(byDate[toISO(d)] ?? [], mode))
     .filter(w => mode === 'plan' || !w.is_planned || w.is_completed)
-  const totalMins = allWorkouts.reduce((s, w) => s + (durationFor(w, mode) ?? 0), 0)
+  const totalMins = allWorkouts.reduce((s, w) => s + totalMinutesFor(w, mode), 0)
   const totalSessions = allWorkouts.length
 
   return (
@@ -651,7 +722,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
           const ws = filterByMode(byDate[toISO(new Date(d))] ?? [], mode)
           for (const w of ws) {
-            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += durationFor(w, mode) ?? 0; sessions++ }
+            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += totalMinutesFor(w, mode); sessions++ }
           }
         }
         return (

@@ -2,9 +2,36 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType, WorkoutActivity, ActivityRow, ActivityType } from '@/lib/types'
+import {
+  WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType,
+  WorkoutActivity, ActivityRow, ActivityType,
+  ActivityZoneMinutes, emptyActivityZones,
+  StrengthExerciseRow, StrengthSetRow,
+} from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+
+// Serialiser sone-minutter til jsonb-format. Returnerer null hvis ingen soner har verdi.
+function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<string, number> | null {
+  if (!z) return null
+  const out: Record<string, number> = {}
+  for (const k of ['I1','I2','I3','I4','I5'] as const) {
+    const n = parseInt(z[k])
+    if (Number.isFinite(n) && n > 0) out[k] = n
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
+
+// Les jsonb → string-form for input-binding.
+function deserializeZones(z: Record<string, number> | null | undefined): ActivityZoneMinutes {
+  const base = emptyActivityZones()
+  if (!z) return base
+  for (const k of ['I1','I2','I3','I4','I5'] as const) {
+    const n = z[k]
+    if (typeof n === 'number' && n > 0) base[k] = String(n)
+  }
+  return base
+}
 
 // Fase 7 — Les aktiviteter for én økt. UI-ene som bruker dette er ikke bygget enda;
 // funksjonen er her slik at Runde 2 kan wire den inn uten ny server-roundtrip.
@@ -212,21 +239,25 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   // Fase 7: kronologisk aktivitetsliste — ny primær datamodell.
   // Gamle workout_movements/zones/shooting_blocks beholdes midlertidig for bakoverkomp.
   const activityRows: {
-    workout_id: string; activity_type: string; movement_name: string | null
+    workout_id: string; activity_type: string
+    movement_name: string | null; movement_subcategory: string | null
     sort_order: number; start_time: string | null; duration_seconds: number
     distance_meters: number | null; avg_heart_rate: number | null; max_heart_rate: number | null
     avg_watts: number | null; lactate_mmol: number | null; lactate_measured_at: string | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
+    zones: Record<string, number> | null
     notes: string | null
   }[] = []
   for (const [ai, a] of (data.activities ?? []).entries()) {
     const durSec = parseActivityDuration(a.duration) ?? 0
     const km = parseFloat(a.distance_km)
+    const zoneObj = serializeZones(a.zones)
     activityRows.push({
       workout_id: savedId!,
       activity_type: a.activity_type,
       movement_name: a.movement_name || null,
+      movement_subcategory: a.movement_subcategory || null,
       sort_order: ai,
       start_time: a.start_time || null,
       duration_seconds: durSec,
@@ -240,11 +271,77 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
       prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null,
       standing_hits: parseInt(a.standing_hits) || null,
+      zones: zoneObj,
       notes: a.notes || null,
     })
   }
+
   if (activityRows.length > 0) {
-    await supabase.from('workout_activities').insert(activityRows)
+    const { data: insertedActivities, error: actErr } = await supabase
+      .from('workout_activities')
+      .insert(activityRows)
+      .select('id, sort_order')
+    if (actErr) return { error: actErr.message }
+
+    // Map sort_order → DB activity id for å koble øvelser/sett riktig.
+    const idBySortOrder = new Map<number, string>()
+    for (const r of (insertedActivities ?? []) as { id: string; sort_order: number }[]) {
+      idBySortOrder.set(r.sort_order, r.id)
+    }
+
+    // Skriv øvelser + sett for styrke-aktiviteter.
+    for (const [ai, a] of (data.activities ?? []).entries()) {
+      const activityId = idBySortOrder.get(ai)
+      if (!activityId) continue
+      const exercises = (a.exercises ?? []).filter(ex => ex.exercise_name.trim())
+      if (exercises.length === 0) continue
+      const exerciseRows = exercises.map((ex, i) => ({
+        activity_id: activityId,
+        exercise_name: ex.exercise_name.trim(),
+        sort_order: i,
+        notes: ex.notes || null,
+      }))
+      const { data: insertedEx, error: exErr } = await supabase
+        .from('workout_activity_exercises')
+        .insert(exerciseRows)
+        .select('id, sort_order')
+      if (exErr) return { error: exErr.message }
+      const exIdBySortOrder = new Map<number, string>()
+      for (const r of (insertedEx ?? []) as { id: string; sort_order: number }[]) {
+        exIdBySortOrder.set(r.sort_order, r.id)
+      }
+
+      const setRows: {
+        exercise_id: string; set_number: number
+        reps: number | null; weight_kg: number | null
+        rpe: number | null; notes: string | null
+      }[] = []
+      for (const [i, ex] of exercises.entries()) {
+        const exerciseId = exIdBySortOrder.get(i)
+        if (!exerciseId) continue
+        for (const [si, s] of ex.sets.entries()) {
+          const reps = parseInt(s.reps)
+          const weight = parseFloat(s.weight_kg)
+          const rpe = parseInt(s.rpe)
+          // Hopp over helt tomme sett (intet rep, vekt, rpe eller notat).
+          if (!Number.isFinite(reps) && !Number.isFinite(weight) && !Number.isFinite(rpe) && !s.notes) continue
+          setRows.push({
+            exercise_id: exerciseId,
+            set_number: parseInt(s.set_number) || (si + 1),
+            reps: Number.isFinite(reps) ? reps : null,
+            weight_kg: Number.isFinite(weight) ? weight : null,
+            rpe: Number.isFinite(rpe) ? rpe : null,
+            notes: s.notes || null,
+          })
+        }
+      }
+      if (setRows.length > 0) {
+        const { error: setErr } = await supabase
+          .from('workout_activity_exercise_sets')
+          .insert(setRows)
+        if (setErr) return { error: setErr.message }
+      }
+    }
   }
 
   if (data.tags.length > 0) {
@@ -300,7 +397,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -313,7 +410,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -346,40 +443,88 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   if (!user) return null
   const { data: workout, error } = await supabase
     .from('workouts')
-    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*), workout_activities(*)')
+    .select(`
+      *,
+      workout_movements(*), workout_zones(*), workout_tags(*),
+      workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
+      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)))
+    `)
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== user.id) return null
 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
+  type DbSet = {
+    id: string; set_number: number; reps: number | null; weight_kg: number | null
+    rpe: number | null; notes: string | null
+  }
+  type DbExercise = {
+    id: string; exercise_name: string; sort_order: number; notes: string | null
+    workout_activity_exercise_sets?: DbSet[] | null
+  }
   type DbActivity = {
-    id: string; activity_type: string; movement_name: string | null; sort_order: number
+    id: string; activity_type: string
+    movement_name: string | null; movement_subcategory: string | null
+    sort_order: number
     start_time: string | null; duration_seconds: number; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
     lactate_mmol: number | null; lactate_measured_at: string | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null; notes: string | null
+    zones: Record<string, number> | null
+    workout_activity_exercises?: DbExercise[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
     .sort((a, b) => a.sort_order - b.sort_order)
-    .map(a => ({
-      id: crypto.randomUUID(),
-      db_id: a.id,
-      activity_type: a.activity_type as ActivityType,
-      movement_name: a.movement_name ?? '',
-      start_time: a.start_time ?? '',
-      duration: a.duration_seconds ? formatActivityDuration(a.duration_seconds) : '',
-      distance_km: a.distance_meters != null ? (a.distance_meters / 1000).toString() : '',
-      avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
-      max_heart_rate: a.max_heart_rate?.toString() ?? '',
-      avg_watts: a.avg_watts?.toString() ?? '',
-      lactate_mmol: a.lactate_mmol?.toString() ?? '',
-      lactate_measured_at: a.lactate_measured_at ?? '',
-      prone_shots: a.prone_shots?.toString() ?? '',
-      prone_hits: a.prone_hits?.toString() ?? '',
-      standing_shots: a.standing_shots?.toString() ?? '',
-      standing_hits: a.standing_hits?.toString() ?? '',
-      notes: a.notes ?? '',
-    }))
+    .map(a => {
+      const exercises: StrengthExerciseRow[] = (a.workout_activity_exercises ?? [])
+        .slice()
+        .sort((x, y) => x.sort_order - y.sort_order)
+        .map(ex => {
+          const sets: StrengthSetRow[] = (ex.workout_activity_exercise_sets ?? [])
+            .slice()
+            .sort((x, y) => x.set_number - y.set_number)
+            .map(s => ({
+              id: crypto.randomUUID(),
+              db_id: s.id,
+              set_number: String(s.set_number),
+              reps: s.reps?.toString() ?? '',
+              weight_kg: s.weight_kg?.toString() ?? '',
+              rpe: s.rpe?.toString() ?? '',
+              notes: s.notes ?? '',
+            }))
+          return {
+            id: crypto.randomUUID(),
+            db_id: ex.id,
+            exercise_name: ex.exercise_name,
+            notes: ex.notes ?? '',
+            sets: sets.length > 0 ? sets : [{
+              id: crypto.randomUUID(), set_number: '1', reps: '', weight_kg: '', rpe: '', notes: '',
+            }],
+          }
+        })
+      return {
+        id: crypto.randomUUID(),
+        db_id: a.id,
+        activity_type: a.activity_type as ActivityType,
+        movement_name: a.movement_name ?? '',
+        movement_subcategory: a.movement_subcategory ?? '',
+        start_time: a.start_time ?? '',
+        duration: a.duration_seconds ? formatActivityDuration(a.duration_seconds) : '',
+        distance_km: a.distance_meters != null ? (a.distance_meters / 1000).toString() : '',
+        avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
+        max_heart_rate: a.max_heart_rate?.toString() ?? '',
+        avg_watts: a.avg_watts?.toString() ?? '',
+        lactate_mmol: a.lactate_mmol?.toString() ?? '',
+        lactate_measured_at: a.lactate_measured_at ?? '',
+        prone_shots: a.prone_shots?.toString() ?? '',
+        prone_hits: a.prone_hits?.toString() ?? '',
+        standing_shots: a.standing_shots?.toString() ?? '',
+        standing_hits: a.standing_hits?.toString() ?? '',
+        notes: a.notes ?? '',
+        zones: deserializeZones(a.zones),
+        exercises,
+      }
+    })
 
   // Plan-modus hydrerer alltid fra planned_snapshot når tilgjengelig, uavhengig
   // av gjennomføring. Da vises planen som frosset referanse, selv etter at

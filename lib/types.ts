@@ -190,7 +190,7 @@ export interface WorkoutFormData {
 
 export type ActivityType =
   | 'oppvarming' | 'aktivitet' | 'pause' | 'aktiv_pause'
-  | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert'
+  | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert' | 'skyting_innskyting'
   | 'nedjogg' | 'annet'
 
 export interface ActivityTypeOption {
@@ -210,12 +210,74 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_kombinert', label: 'Skyting — Kombinert',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]
 
 export function findActivityType(v: ActivityType): ActivityTypeOption | null {
   return ACTIVITY_TYPES.find(t => t.value === v) ?? null
+}
+
+// Sub-kategorier per bevegelsesform (valgfri). Brukes i ActivitiesSection-dropdown.
+// Styrke har egen struktur og håndteres ikke her (se STRENGTH_SUBCATEGORIES).
+export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = {
+  Langrenn:  ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
+  Rulleski:  ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
+  Løping:    ['Terreng', 'Vei', 'Bane', 'Motbakke', 'Tredemølle'],
+  Sykling:   ['Landevei', 'Terreng', 'Gravel', 'Innendørs/rulle', 'Bane'],
+  Svømming:  ['Crawl', 'Bryst', 'Rygg', 'Butterfly', 'Variert'],
+  Roing:     ['Ergometer', 'Vann'],
+  Padling:   ['Kajakk', 'Kano', 'SUP'],
+}
+
+export const STRENGTH_SUBCATEGORIES = ['Helkropp', 'Overkropp', 'Underkropp', 'Mage/core', 'Sirkel']
+
+// Utholdenhetsformer som får sone-fordeling inline.
+export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([
+  'Løping', 'Langrenn', 'Rulleski', 'Sykling', 'Svømming',
+  'Roing', 'Padling', 'Kajak/Padling', 'Fjellsport', 'Skøyter',
+  'Orientering', 'Turgåing',
+])
+
+export function isEnduranceMovement(name: string | null | undefined): boolean {
+  return !!name && ENDURANCE_ACTIVITY_MOVEMENTS.has(name)
+}
+
+export function isStrengthMovement(name: string | null | undefined): boolean {
+  return name === 'Styrke'
+}
+
+// Sonefordeling for én aktivitet: minutter per sone (string for input-binding).
+export interface ActivityZoneMinutes {
+  I1: string
+  I2: string
+  I3: string
+  I4: string
+  I5: string
+}
+
+export function emptyActivityZones(): ActivityZoneMinutes {
+  return { I1: '', I2: '', I3: '', I4: '', I5: '' }
+}
+
+// Styrke-øvelse med sett.
+export interface StrengthSetRow {
+  id: string
+  db_id?: string
+  set_number: string
+  reps: string
+  weight_kg: string
+  rpe: string
+  notes: string
+}
+
+export interface StrengthExerciseRow {
+  id: string
+  db_id?: string
+  exercise_name: string
+  notes: string
+  sets: StrengthSetRow[]
 }
 
 // Form-row — alle tall-felt som string for input-binding.
@@ -225,6 +287,7 @@ export interface ActivityRow {
   db_id?: string               // DB-id hvis lastet fra DB
   activity_type: ActivityType
   movement_name: string
+  movement_subcategory: string // Valgfri underkategori (f.eks. "Terreng", "Skøyting"). For Styrke: kategori (Helkropp osv).
   start_time: string           // HH:MM
   duration: string             // MM:SS eller HH:MM:SS
   distance_km: string
@@ -238,6 +301,10 @@ export interface ActivityRow {
   standing_shots: string
   standing_hits: string
   notes: string
+  // Sone-fordeling i minutter (I1..I5). Brukes kun for utholdenhetsbevegelser.
+  zones: ActivityZoneMinutes
+  // Styrke-øvelser. Brukes kun når movement_name='Styrke'.
+  exercises: StrengthExerciseRow[]
 }
 
 // DB-entity
@@ -246,6 +313,7 @@ export interface WorkoutActivity {
   workout_id: string
   activity_type: ActivityType
   movement_name: string | null
+  movement_subcategory: string | null
   sort_order: number
   start_time: string | null
   duration_seconds: number
@@ -259,6 +327,27 @@ export interface WorkoutActivity {
   prone_hits: number | null
   standing_shots: number | null
   standing_hits: number | null
+  notes: string | null
+  zones: Record<string, number> | null
+  created_at: string
+}
+
+export interface WorkoutActivityExercise {
+  id: string
+  activity_id: string
+  exercise_name: string
+  sort_order: number
+  notes: string | null
+  created_at: string
+}
+
+export interface WorkoutActivityExerciseSet {
+  id: string
+  exercise_id: string
+  set_number: number
+  reps: number | null
+  weight_kg: number | null
+  rpe: number | null
   notes: string | null
   created_at: string
 }
@@ -418,6 +507,9 @@ export interface CalendarWorkoutSummary {
   // inneholder actual-verdier).
   planned_duration_minutes: number | null
   planned_zones: { zone_name: string; minutes: number }[]
+  // Sum av duration_seconds over workout_activities — ekskluderer pause/aktiv_pause.
+  activity_seconds: number
+  activity_pause_seconds: number
 }
 
 export const TYPE_COLORS: Record<string, string> = {

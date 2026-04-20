@@ -5,11 +5,23 @@ export type RawCalendarWorkout = {
   is_planned: boolean; is_completed: boolean; is_important: boolean
   duration_minutes: number | null
   workout_zones?: { zone_name: string; minutes: number }[] | null
+  workout_activities?: { activity_type: string; duration_seconds: number | null }[] | null
   planned_snapshot?: {
     duration_minutes?: number | null
     zones?: { zone_name: string; minutes: number | string }[] | null
     movements?: { zones?: { zone_name: string; minutes: number | string }[] | null }[] | null
   } | null
+}
+
+function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): { total: number; pause: number } {
+  if (!acts || acts.length === 0) return { total: 0, pause: 0 }
+  let total = 0, pause = 0
+  for (const a of acts) {
+    const s = Number(a.duration_seconds) || 0
+    if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') pause += s
+    else total += s
+  }
+  return { total, pause }
 }
 
 function snapshotZones(snap: RawCalendarWorkout['planned_snapshot']): { zone_name: string; minutes: number }[] {
@@ -33,6 +45,7 @@ export function toCalendarSummary(w: RawCalendarWorkout): CalendarWorkoutSummary
   const snap = w.planned_snapshot ?? null
   const plannedZones = snapshotZones(snap)
   const actualZones = (w.workout_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes }))
+  const act = sumActivityTime(w.workout_activities)
   return {
     id: w.id,
     title: w.title,
@@ -46,6 +59,8 @@ export function toCalendarSummary(w: RawCalendarWorkout): CalendarWorkoutSummary
     // verdier for planlagte økter (gjelder rader laget før snapshot ble innført).
     planned_duration_minutes: snap?.duration_minutes ?? (w.is_planned ? w.duration_minutes : null),
     planned_zones: plannedZones.length > 0 ? plannedZones : (w.is_planned && !w.is_completed ? actualZones : []),
+    activity_seconds: act.total,
+    activity_pause_seconds: act.pause,
   }
 }
 

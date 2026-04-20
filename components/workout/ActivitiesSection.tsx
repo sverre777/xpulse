@@ -97,10 +97,14 @@ export function ActivitiesSection({ rows, onChange, sport }: Props) {
 
   const addRow = () => {
     const last = rows[rows.length - 1]
-    const type: ActivityType = last ? last.activity_type : 'oppvarming'
+    // Default: hovedaktivitet med sport-ens hovedbevegelsesform. Subsequent rader
+    // kopierer type + bevegelsesform fra forrige (så serier av like økter blir raske).
+    const type: ActivityType = last ? last.activity_type : 'aktivitet'
     const movement = last ? last.movement_name : defaultMovementForSport(sport)
-    onChange([...rows, emptyRow(type, movement)])
-    setExpandedId(null)
+    const newRow = emptyRow(type, movement)
+    onChange([...rows, newRow])
+    // Nye rader åpnes ekspandert så brukeren kan fylle inn umiddelbart.
+    setExpandedId(newRow.id)
   }
 
   const isBiathlon = sport === 'biathlon'

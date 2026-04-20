@@ -17,12 +17,15 @@ export interface HeartZone {
   max_bpm: number
 }
 
+// Olympiatoppens I-skala — prosent av maksimal puls (HFmax).
+// Dette er den norske standarden for utholdenhets-trening og matcher hva
+// utøvere/trenere kjenner fra før.
 const ZONE_PERCENTS: Record<ZoneName, [number, number]> = {
-  I1: [0.50, 0.60],
-  I2: [0.60, 0.70],
-  I3: [0.70, 0.80],
-  I4: [0.80, 0.90],
-  I5: [0.90, 1.00],
+  I1: [0.55, 0.72],  // Rolig langkjøring / Restitusjon
+  I2: [0.72, 0.82],  // Moderat langkjøring / Langkjøring 2
+  I3: [0.82, 0.87],  // Terskel / Moderat intensiv
+  I4: [0.87, 0.92],  // Intensiv terskel / VO2max-forberedelse
+  I5: [0.92, 0.97],  // VO2max / Høy intensitet
 }
 
 const FALLBACK_AGE = 30

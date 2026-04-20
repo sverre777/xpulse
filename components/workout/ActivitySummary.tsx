@@ -213,6 +213,12 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
               )
             })}
           </div>
+          <p className="mt-1" style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: '#555560', fontSize: '11px',
+          }}>
+            OLT I-skala — basert på % av maksimal puls
+          </p>
         </div>
       )}
 

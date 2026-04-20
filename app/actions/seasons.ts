@@ -1,7 +1,8 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { Sport } from '@/lib/types'
+import type { Sport, WorkoutType } from '@/lib/types'
 
 // ── Typer ───────────────────────────────────────────────────
 
@@ -191,6 +192,509 @@ export async function getPeriodizationForDateRange(
       periods: (periodsRes.data ?? []) as SeasonPeriod[],
       keyDates: (keyDatesRes.data ?? []) as SeasonKeyDate[],
     }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// ── Write actions: seasons ──────────────────────────────────
+
+export interface SeasonInput {
+  name: string
+  start_date: string
+  end_date: string
+  goal_main?: string | null
+  goal_details?: string | null
+  kpi_notes?: string | null
+}
+
+function validateSeasonInput(input: SeasonInput): string | null {
+  if (!input.name.trim()) return 'Navn er påkrevd'
+  if (!input.start_date) return 'Startdato er påkrevd'
+  if (!input.end_date) return 'Sluttdato er påkrevd'
+  if (input.end_date <= input.start_date) return 'Sluttdato må være etter startdato'
+  return null
+}
+
+export async function createSeason(
+  input: SeasonInput,
+): Promise<{ id?: string; error?: string }> {
+  try {
+    const err = validateSeasonInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { data, error } = await supabase
+      .from('seasons')
+      .insert({
+        user_id: user.id,
+        name: input.name.trim(),
+        start_date: input.start_date,
+        end_date: input.end_date,
+        goal_main: input.goal_main?.trim() || null,
+        goal_details: input.goal_details?.trim() || null,
+        kpi_notes: input.kpi_notes?.trim() || null,
+      })
+      .select('id')
+      .single()
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return { id: data.id as string }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function updateSeason(
+  id: string,
+  input: SeasonInput,
+): Promise<{ error?: string }> {
+  try {
+    const err = validateSeasonInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { error } = await supabase
+      .from('seasons')
+      .update({
+        name: input.name.trim(),
+        start_date: input.start_date,
+        end_date: input.end_date,
+        goal_main: input.goal_main?.trim() || null,
+        goal_details: input.goal_details?.trim() || null,
+        kpi_notes: input.kpi_notes?.trim() || null,
+      })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function deleteSeason(id: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { error } = await supabase
+      .from('seasons')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// ── Write actions: season_periods ──────────────────────────
+
+export interface PeriodInput {
+  season_id: string
+  name: string
+  focus?: string | null
+  start_date: string
+  end_date: string
+  intensity: Intensity
+  notes?: string | null
+  sort_order?: number
+}
+
+function validatePeriodInput(input: PeriodInput): string | null {
+  if (!input.name.trim()) return 'Navn er påkrevd'
+  if (!input.start_date) return 'Startdato er påkrevd'
+  if (!input.end_date) return 'Sluttdato er påkrevd'
+  if (input.end_date < input.start_date) return 'Sluttdato må være lik eller etter startdato'
+  if (!['rolig', 'medium', 'hard'].includes(input.intensity)) return 'Ugyldig belastning'
+  return null
+}
+
+// Sjekk at en periode er innenfor sesongen og ikke overlapper andre perioder.
+async function checkPeriodConstraints(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  input: PeriodInput,
+  excludePeriodId?: string,
+): Promise<string | null> {
+  const { data: season, error: sErr } = await supabase
+    .from('seasons')
+    .select('start_date,end_date')
+    .eq('id', input.season_id)
+    .single()
+  if (sErr) return `Fant ikke sesongen: ${sErr.message}`
+  if (!season) return 'Fant ikke sesongen'
+
+  if (input.start_date < (season.start_date as string) || input.end_date > (season.end_date as string)) {
+    return 'Perioden må være innenfor sesongen'
+  }
+
+  let q = supabase
+    .from('season_periods')
+    .select('id,start_date,end_date,name')
+    .eq('season_id', input.season_id)
+  if (excludePeriodId) q = q.neq('id', excludePeriodId)
+  const { data: others, error: oErr } = await q
+  if (oErr) return oErr.message
+
+  for (const o of (others ?? []) as { id: string; start_date: string; end_date: string; name: string }[]) {
+    const overlaps = !(input.end_date < o.start_date || input.start_date > o.end_date)
+    if (overlaps) return `Perioden overlapper med "${o.name}" (${o.start_date} → ${o.end_date})`
+  }
+  return null
+}
+
+export async function createPeriod(
+  input: PeriodInput,
+): Promise<{ id?: string; error?: string }> {
+  try {
+    const err = validatePeriodInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const constraintErr = await checkPeriodConstraints(supabase, input)
+    if (constraintErr) return { error: constraintErr }
+
+    const { data, error } = await supabase
+      .from('season_periods')
+      .insert({
+        season_id: input.season_id,
+        name: input.name.trim(),
+        focus: input.focus?.trim() || null,
+        start_date: input.start_date,
+        end_date: input.end_date,
+        intensity: input.intensity,
+        notes: input.notes?.trim() || null,
+        sort_order: input.sort_order ?? 0,
+      })
+      .select('id')
+      .single()
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return { id: data.id as string }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function updatePeriod(
+  id: string,
+  input: PeriodInput,
+): Promise<{ error?: string }> {
+  try {
+    const err = validatePeriodInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const constraintErr = await checkPeriodConstraints(supabase, input, id)
+    if (constraintErr) return { error: constraintErr }
+
+    const { error } = await supabase
+      .from('season_periods')
+      .update({
+        name: input.name.trim(),
+        focus: input.focus?.trim() || null,
+        start_date: input.start_date,
+        end_date: input.end_date,
+        intensity: input.intensity,
+        notes: input.notes?.trim() || null,
+        sort_order: input.sort_order ?? 0,
+      })
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function deletePeriod(id: string): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { error } = await supabase
+      .from('season_periods')
+      .delete()
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// ── Write actions: season_key_dates (med auto-workout) ─────
+
+export interface KeyDateInput {
+  season_id: string
+  event_type: KeyEventType
+  event_date: string
+  name: string
+  sport?: Sport | null
+  location?: string | null
+  distance_format?: string | null
+  notes?: string | null
+}
+
+// Mappe event_type → workout_type. Returnerer null hvis vi IKKE skal
+// opprette en workout (f.eks. camp/other).
+function workoutTypeFor(eventType: KeyEventType): WorkoutType | null {
+  switch (eventType) {
+    case 'competition_a':
+    case 'competition_b': return 'competition'
+    case 'competition_c':
+    case 'test':          return 'testlop'
+    case 'camp':
+    case 'other':         return null
+  }
+}
+
+function validateKeyDateInput(input: KeyDateInput): string | null {
+  if (!input.name.trim()) return 'Navn er påkrevd'
+  if (!input.event_date) return 'Dato er påkrevd'
+  return null
+}
+
+async function checkKeyDateInSeason(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  input: KeyDateInput,
+): Promise<{ error?: string; season?: { user_id: string; start_date: string; end_date: string } }> {
+  const { data: season, error } = await supabase
+    .from('seasons')
+    .select('user_id,start_date,end_date')
+    .eq('id', input.season_id)
+    .single()
+  if (error) return { error: `Fant ikke sesongen: ${error.message}` }
+  if (!season) return { error: 'Fant ikke sesongen' }
+  if (input.event_date < (season.start_date as string) || input.event_date > (season.end_date as string)) {
+    return { error: 'Hendelsen må ligge innenfor sesongen' }
+  }
+  return { season: season as { user_id: string; start_date: string; end_date: string } }
+}
+
+export async function createKeyDate(
+  input: KeyDateInput,
+): Promise<{ id?: string; workoutId?: string | null; error?: string }> {
+  try {
+    const err = validateKeyDateInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const seasonCheck = await checkKeyDateInSeason(supabase, input)
+    if (seasonCheck.error || !seasonCheck.season) return { error: seasonCheck.error ?? 'Ukjent feil' }
+
+    // Auto-opprett workout hvis event_type krever det.
+    let linkedWorkoutId: string | null = null
+    const wType = workoutTypeFor(input.event_type)
+    if (wType) {
+      const { data: workout, error: wErr } = await supabase
+        .from('workouts')
+        .insert({
+          user_id: seasonCheck.season.user_id,
+          title: input.name.trim(),
+          sport: input.sport ?? 'running',
+          date: input.event_date,
+          workout_type: wType,
+          is_planned: true,
+          notes: input.notes?.trim() || null,
+        })
+        .select('id')
+        .single()
+
+      if (wErr) return { error: `Kunne ikke opprette koblet workout: ${wErr.message}` }
+      linkedWorkoutId = workout.id as string
+    }
+
+    const { data, error } = await supabase
+      .from('season_key_dates')
+      .insert({
+        season_id: input.season_id,
+        event_type: input.event_type,
+        event_date: input.event_date,
+        name: input.name.trim(),
+        sport: input.sport ?? null,
+        location: input.location?.trim() || null,
+        distance_format: input.distance_format?.trim() || null,
+        notes: input.notes?.trim() || null,
+        linked_workout_id: linkedWorkoutId,
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      // Rull tilbake workout hvis den ble opprettet.
+      if (linkedWorkoutId) {
+        await supabase.from('workouts').delete().eq('id', linkedWorkoutId)
+      }
+      return { error: error.message }
+    }
+
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return { id: data.id as string, workoutId: linkedWorkoutId }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function updateKeyDate(
+  id: string,
+  input: KeyDateInput,
+): Promise<{ error?: string }> {
+  try {
+    const err = validateKeyDateInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const seasonCheck = await checkKeyDateInSeason(supabase, input)
+    if (seasonCheck.error || !seasonCheck.season) return { error: seasonCheck.error ?? 'Ukjent feil' }
+
+    const { data: existing, error: exErr } = await supabase
+      .from('season_key_dates')
+      .select('linked_workout_id,event_type')
+      .eq('id', id)
+      .single()
+    if (exErr) return { error: exErr.message }
+
+    const oldWorkoutId = existing?.linked_workout_id as string | null
+    let linkedWorkoutId: string | null = oldWorkoutId
+    const wType = workoutTypeFor(input.event_type)
+
+    if (wType && oldWorkoutId) {
+      // Synkroniser koblet workout.
+      const { error: wErr } = await supabase
+        .from('workouts')
+        .update({
+          title: input.name.trim(),
+          sport: input.sport ?? 'running',
+          date: input.event_date,
+          workout_type: wType,
+          notes: input.notes?.trim() || null,
+        })
+        .eq('id', oldWorkoutId)
+        .eq('user_id', seasonCheck.season.user_id)
+      if (wErr) return { error: `Kunne ikke oppdatere koblet workout: ${wErr.message}` }
+    } else if (wType && !oldWorkoutId) {
+      // Event_type ble endret til en som krever workout — opprett ny.
+      const { data: workout, error: wErr } = await supabase
+        .from('workouts')
+        .insert({
+          user_id: seasonCheck.season.user_id,
+          title: input.name.trim(),
+          sport: input.sport ?? 'running',
+          date: input.event_date,
+          workout_type: wType,
+          is_planned: true,
+          notes: input.notes?.trim() || null,
+        })
+        .select('id')
+        .single()
+      if (wErr) return { error: `Kunne ikke opprette koblet workout: ${wErr.message}` }
+      linkedWorkoutId = workout.id as string
+    } else if (!wType && oldWorkoutId) {
+      // Event_type ble endret til en som IKKE krever workout — slett den gamle.
+      await supabase.from('workouts').delete().eq('id', oldWorkoutId)
+      linkedWorkoutId = null
+    }
+
+    const { error } = await supabase
+      .from('season_key_dates')
+      .update({
+        event_type: input.event_type,
+        event_date: input.event_date,
+        name: input.name.trim(),
+        sport: input.sport ?? null,
+        location: input.location?.trim() || null,
+        distance_format: input.distance_format?.trim() || null,
+        notes: input.notes?.trim() || null,
+        linked_workout_id: linkedWorkoutId,
+      })
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// deleteKeyDate: hvis cascadeWorkout=true, slettes også koblet workout.
+// Ellers slettes kun key_date; workouten beholdes som standalone.
+export async function deleteKeyDate(
+  id: string,
+  cascadeWorkout: boolean,
+): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { data: existing, error: exErr } = await supabase
+      .from('season_key_dates')
+      .select('linked_workout_id, seasons!inner(user_id)')
+      .eq('id', id)
+      .single()
+    if (exErr) return { error: exErr.message }
+
+    const linkedWorkoutId = existing?.linked_workout_id as string | null
+
+    const { error } = await supabase
+      .from('season_key_dates')
+      .delete()
+      .eq('id', id)
+    if (error) return { error: error.message }
+
+    if (cascadeWorkout && linkedWorkoutId) {
+      await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', linkedWorkoutId)
+        .eq('user_id', user.id)
+    }
+
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }
   }

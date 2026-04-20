@@ -242,7 +242,7 @@ export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = {
 
 export const STRENGTH_SUBCATEGORIES = [
   'Helkropp', 'Overkropp', 'Underkropp', 'Mage/core', 'Sirkel',
-  'Maksstyrke', 'Eksplosiv/Plyometri', 'Stabilitet',
+  'Maksstyrke', 'Eksplosiv/Plyometri', 'Spenst', 'Spesifikk', 'Stabilitet',
 ]
 
 // Utholdenhetsformer som får sone-fordeling inline.

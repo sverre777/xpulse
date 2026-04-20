@@ -311,7 +311,7 @@ function ActivityRowItem({
                 <select value={row.movement_subcategory}
                   onChange={e => onUpdate({ movement_subcategory: e.target.value })}
                   style={iSt}>
-                  <option value="">—</option>
+                  <option value="">Velg underkategori</option>
                   {subcatOptions.map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}

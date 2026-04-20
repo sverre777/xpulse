@@ -225,16 +225,25 @@ export function findActivityType(v: ActivityType): ActivityTypeOption | null {
 // Sub-kategorier per bevegelsesform (valgfri). Brukes i ActivitiesSection-dropdown.
 // Styrke har egen struktur og håndteres ikke her (se STRENGTH_SUBCATEGORIES).
 export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = {
-  Langrenn:  ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
-  Rulleski:  ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
-  Løping:    ['Terreng', 'Vei', 'Bane', 'Motbakke', 'Tredemølle'],
-  Sykling:   ['Landevei', 'Terreng', 'Gravel', 'Innendørs/rulle', 'Bane'],
-  Svømming:  ['Crawl', 'Bryst', 'Rygg', 'Butterfly', 'Variert'],
-  Roing:     ['Ergometer', 'Vann'],
-  Padling:   ['Kajakk', 'Kano', 'SUP'],
+  Langrenn:         ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
+  Rulleski:         ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
+  Løping:           ['Terreng', 'Vei', 'Bane', 'Motbakke', 'Tredemølle'],
+  Sykling:          ['Landevei', 'Terreng', 'Gravel', 'Innendørs/rulle', 'Bane', 'Tempo'],
+  Svømming:         ['Basseng', 'Åpent vann', 'Crawl', 'Bryst', 'Rygg', 'Butterfly', 'Variert'],
+  Roing:            ['Ergometer', 'Vann', 'Singelsculler', 'Dobbelsculler', 'Firer', 'Åtter'],
+  Padling:          ['Kajakk', 'Kano', 'SUP', 'Havkajakk', 'Sprintkajakk'],
+  'Kajak/Padling':  ['Kajakk', 'Kano', 'SUP', 'Havkajakk', 'Sprintkajakk'],
+  Fjellsport:       ['Topptur', 'Fjellvandring', 'Randonee', 'Brevandring', 'Klatring', 'Isklatring', 'Via ferrata', 'Fjellløp'],
+  Skøyter:          ['Sprint', 'Allround', 'Langdistanse'],
+  Orientering:      ['Skog', 'Sprint', 'Nattorientering', 'Ski-O', 'MTB-O'],
+  Turgåing:         ['Rolig tur', 'Rask gange', 'Rulleski-tur'],
+  Yoga:             ['Hatha', 'Vinyasa', 'Yin', 'Restorativ', 'Mobility'],
 }
 
-export const STRENGTH_SUBCATEGORIES = ['Helkropp', 'Overkropp', 'Underkropp', 'Mage/core', 'Sirkel']
+export const STRENGTH_SUBCATEGORIES = [
+  'Helkropp', 'Overkropp', 'Underkropp', 'Mage/core', 'Sirkel',
+  'Maksstyrke', 'Eksplosiv/Plyometri', 'Stabilitet',
+]
 
 // Utholdenhetsformer som får sone-fordeling inline.
 export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([

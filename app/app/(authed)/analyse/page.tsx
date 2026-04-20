@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutStats, getCompetitionStats } from '@/app/actions/analysis'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
-import { rangeFromPreset } from '@/components/analysis/DateRangePicker'
+import { rangeFromPreset } from '@/components/analysis/date-range'
 
 function ErrorPanel({ title, message, stack }: { title: string; message: string; stack?: string }) {
   return (

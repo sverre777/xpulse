@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 
 interface MainNavProps {
@@ -17,8 +18,34 @@ const NAV_LINKS = [
   { href: '/app/historikk',     label: 'Historikk' },
 ]
 
+const MOBILE_LINKS = [
+  ...NAV_LINKS,
+  { href: '/app/innstillinger', label: 'Innstillinger' },
+]
+
+const BREAKPOINT = 900
+
 export function MainNav({ userName }: MainNavProps) {
   const pathname = usePathname()
+  const [isMobile, setIsMobile] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < BREAKPOINT)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [menuOpen])
+
+  useEffect(() => { setMenuOpen(false) }, [pathname])
+
   const onPlan = pathname === '/app/plan' || pathname.startsWith('/app/plan/')
   const logLabel = onPlan ? '+ Planlegg økt' : '+ Logg økt'
   const today = (() => {
@@ -27,12 +54,70 @@ export function MainNav({ userName }: MainNavProps) {
   })()
   const logHref = onPlan ? `/app/plan?new=${today}` : `/app/dagbok?new=${today}`
 
+  if (isMobile) {
+    return (
+      <>
+        <nav
+          className="flex items-center justify-between px-4 sticky top-0 z-40"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            height: '52px',
+          }}
+        >
+          <Link href="/app/dagbok" style={{ textDecoration: 'none' }}>
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              color: '#FF4500',
+              fontSize: '18px',
+              letterSpacing: '0.4em',
+            }}>
+              X-PULSE
+            </span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
+            aria-expanded={menuOpen}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              width: '44px', height: '44px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            <HamburgerIcon open={menuOpen} />
+          </button>
+        </nav>
+
+        {menuOpen && (
+          <MobileOverlay
+            pathname={pathname}
+            userName={userName}
+            logHref={logHref}
+            logLabel={logLabel}
+            onClose={() => setMenuOpen(false)}
+          />
+        )}
+
+        <style>{`
+          @keyframes xp-overlay-in {
+            from { opacity: 0; transform: translateX(6%); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+        `}</style>
+      </>
+    )
+  }
+
   return (
     <nav
       className="flex items-center justify-between px-4 md:px-6 py-0"
       style={{ backgroundColor: '#111113', borderBottom: '1px solid #1E1E22', height: '52px' }}
     >
-      {/* Left: logo + nav */}
       <div className="flex items-center gap-6">
         <Link
           href="/app/dagbok"
@@ -44,7 +129,7 @@ export function MainNav({ userName }: MainNavProps) {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-0">
+        <div className="flex items-center gap-0">
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (
@@ -67,7 +152,6 @@ export function MainNav({ userName }: MainNavProps) {
         </div>
       </div>
 
-      {/* Right: log button + user + settings + logout */}
       <div className="flex items-center gap-3">
         <Link
           href={logHref}
@@ -119,5 +203,159 @@ export function MainNav({ userName }: MainNavProps) {
         </form>
       </div>
     </nav>
+  )
+}
+
+function MobileOverlay({ pathname, userName, logHref, logLabel, onClose }: {
+  pathname: string
+  userName: string | null
+  logHref: string
+  logLabel: string
+  onClose: () => void
+}) {
+  const [touchStartY, setTouchStartY] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartY(e.touches[0].clientY)
+  }
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY === null) return
+    const dy = e.touches[0].clientY - touchStartY
+    if (dy > 60) { onClose(); setTouchStartY(null) }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        backgroundColor: '#0A0A0B',
+        animation: 'xp-overlay-in 200ms ease-out',
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      {/* Header row (X close) */}
+      <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 600,
+          color: '#FF4500',
+          fontSize: '18px',
+          letterSpacing: '0.4em',
+        }}>
+          X-PULSE
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Lukk meny"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            width: '44px', height: '44px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 0,
+          }}
+        >
+          <HamburgerIcon open={true} />
+        </button>
+      </div>
+
+      {/* Log-økt CTA */}
+      <div className="flex justify-center px-6 mt-2">
+        <Link
+          href={logHref}
+          onClick={onClose}
+          className="text-sm font-semibold tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: '#FF4500',
+            color: '#F0F0F2',
+            textDecoration: 'none',
+            padding: '10px 24px',
+          }}
+        >
+          {logLabel}
+        </Link>
+      </div>
+
+      {/* Centered link list */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
+        {MOBILE_LINKS.map(({ href, label }) => {
+          const active = pathname === href || pathname.startsWith(href + '/')
+          return (
+            <Link
+              key={href}
+              href={href}
+              onClick={onClose}
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: '24px',
+                letterSpacing: '0.1em',
+                color: active ? '#FF4500' : 'rgba(242,240,236,0.6)',
+                textDecoration: 'none',
+                borderBottom: active ? '1px solid #FF4500' : '1px solid transparent',
+                paddingBottom: '3px',
+                transition: 'color 150ms',
+              }}
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#F0F0F2' }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(242,240,236,0.6)' }}
+            >
+              {label}
+            </Link>
+          )
+        })}
+      </div>
+
+      {/* Bottom: username + logout */}
+      <div className="flex flex-col items-center gap-3 pb-10">
+        {userName && (
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: '#55555F',
+            fontSize: '13px',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+          }}>
+            {userName}
+          </span>
+        )}
+        <form action={logout} onClick={e => e.stopPropagation()}>
+          <button
+            type="submit"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: '24px',
+              letterSpacing: '0.1em',
+              color: 'rgba(242,240,236,0.6)',
+              background: 'none', border: 'none', cursor: 'pointer',
+            }}
+          >
+            Logg ut
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function HamburgerIcon({ open }: { open: boolean }) {
+  const bar: React.CSSProperties = {
+    position: 'absolute',
+    left: 0,
+    width: '100%',
+    height: '2px',
+    backgroundColor: '#F0F0F2',
+    transition: 'transform 200ms ease, opacity 150ms ease, top 200ms ease',
+  }
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', width: '22px', height: '16px' }}>
+      <span style={{ ...bar, top: open ? '7px' : '2px',  transform: open ? 'rotate(45deg)'  : 'none' }} />
+      <span style={{ ...bar, top: '7px',                 opacity:   open ? 0 : 1 }} />
+      <span style={{ ...bar, top: open ? '7px' : '12px', transform: open ? 'rotate(-45deg)' : 'none' }} />
+    </span>
   )
 }

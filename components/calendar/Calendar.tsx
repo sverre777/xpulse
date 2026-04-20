@@ -279,11 +279,35 @@ function ZoneLegend({
   )
 }
 
+// Konkurranse/testløp får egen visuell markering:
+//  - Konkurranse: gull-ramme + 🏆. Gjennomført → solid gull-fyll.
+//  - Testløp:    blå-ramme + 📊. Gjennomført → solid blå-fyll.
+// Plasseringen vises direkte på chip-en når tilgjengelig.
+function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
+  { color: string; icon: string; thickBorder: boolean } | null {
+  if (w.workout_type === 'competition') return { color: '#D4A017', icon: '🏆', thickBorder: true }
+  if (w.workout_type === 'testlop')     return { color: '#1A6FD4', icon: '📊', thickBorder: false }
+  return null
+}
+
 function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
-  const color = TYPE_COLORS[w.workout_type] ?? '#555'
+  const comp = competitionChipStyle(w, mode)
+  const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+  const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const duration = durationFor(w, mode)
   const { onEditWorkout } = useCalendarActions()
+
+  // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
+  const border = comp
+    ? (isPlanned
+        ? `${comp.thickBorder ? 2 : 1}px ${comp.thickBorder ? 'solid' : 'solid'} ${color}`
+        : `${comp.thickBorder ? 2 : 1}px solid ${color}`)
+    : (isPlanned ? `1px dashed ${color}` : `1px solid ${color}55`)
+  const bg = comp
+    ? (isPlanned ? 'transparent' : `${color}55`)
+    : (isPlanned ? 'transparent' : `${color}33`)
+
   return (
     <button
       type="button"
@@ -295,14 +319,18 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
     >
       <div style={{
         borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
-        backgroundColor: isPlanned ? 'transparent' : `${color}33`,
-        border: isPlanned ? `1px dashed ${color}` : `1px solid ${color}55`,
+        backgroundColor: bg,
+        border,
         padding: '1px 4px',
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '10px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+          {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.title}
+          {w.position_overall != null && mode !== 'plan' && (
+            <span style={{ color, marginLeft: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
+          )}
           {duration ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{fmtDuration(duration)}</span> : null}
         </span>
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
@@ -593,20 +621,27 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     ) : (
                       <div className="space-y-1 mb-3">
                         {dayWorkouts.map(w => {
-                          const color = TYPE_COLORS[w.workout_type] ?? '#555'
+                          const comp = competitionChipStyle(w, mode)
+                          const color = comp?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = planVisual(w, mode)
                           return (
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-2" style={{
-                                backgroundColor: '#16161A',
+                                backgroundColor: comp && !isPlanned ? `${color}22` : '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
-                                border: isPlanned ? `1px dashed #444` : `1px solid #1E1E22`,
+                                border: comp
+                                  ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
+                                  : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`),
                               }}>
                                 <div className="flex items-center justify-between">
                                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
                                     {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
+                                    {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
                                     {w.title}
+                                    {w.position_overall != null && mode !== 'plan' && (
+                                      <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
+                                    )}
                                   </span>
                                   <div className="flex items-center gap-2">
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}

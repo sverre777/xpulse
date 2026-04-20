@@ -8,10 +8,12 @@ import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutTemplate,
+  CompetitionData, emptyCompetitionData, generateCompetitionActivities,
 } from '@/lib/types'
 import { LactateTable } from './LactateTable'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
+import { CompetitionModule } from './CompetitionModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { HeartZone } from '@/lib/heart-zones'
 
@@ -77,6 +79,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
     activities:  defaultValues?.activities ?? [],
     planned_activities: defaultValues?.planned_activities,
+    competition_data: defaultValues?.competition_data,
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -278,6 +281,27 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               />
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── KONKURRANSE (kontekst + resultat — kun for competition/testlop) ── */}
+      {(form.workout_type === 'competition' || form.workout_type === 'testlop') && (
+        <div className="mt-4">
+          <CompetitionModule
+            data={form.competition_data ?? emptyCompetitionData(form.workout_type === 'testlop' ? 'testlop' : 'konkurranse')}
+            onChange={d => set('competition_data', d)}
+            sport={form.sport}
+            activityCount={form.activities.length}
+            onRequestGenerate={(format, replaceExisting) => {
+              const generated = generateCompetitionActivities(form.sport, format)
+              if (generated.length === 0) return
+              const confirmMsg = replaceExisting
+                ? `Erstatt eksisterende aktiviteter med auto-generert struktur for ${format}?`
+                : `Auto-generer aktivitets-struktur for ${format}?`
+              if (!window.confirm(confirmMsg)) return
+              set('activities', generated)
+            }}
+          />
         </div>
       )}
 

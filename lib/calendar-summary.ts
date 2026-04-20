@@ -1,4 +1,4 @@
-import { CalendarWorkoutSummary } from './types'
+import { CalendarWorkoutSummary, CompetitionType } from './types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
 import {
   ActivityLike,
@@ -23,6 +23,12 @@ export type RawCalendarWorkout = {
   duration_minutes: number | null
   workout_zones?: { zone_name: string; minutes: number }[] | null
   workout_activities?: RawCalendarActivity[] | null
+  workout_competition_data?: {
+    competition_type: string | null
+    position_overall: number | null
+    distance_format?: string | null
+    name?: string | null
+  }[] | { competition_type: string | null; position_overall: number | null; distance_format?: string | null; name?: string | null } | null
   planned_snapshot?: {
     duration_minutes?: number | null
     zones?: { zone_name: string; minutes: number | string }[] | null
@@ -139,6 +145,18 @@ function legacyZonesToSeconds(
   return out
 }
 
+const VALID_COMPETITION_TYPES = new Set<string>(['konkurranse','testlop','stafett','tempo'])
+
+function extractCompetition(raw: RawCalendarWorkout['workout_competition_data']):
+  { competition_type: CompetitionType | null; position_overall: number | null } {
+  const row = Array.isArray(raw) ? raw[0] ?? null : raw ?? null
+  if (!row) return { competition_type: null, position_overall: null }
+  const t = row.competition_type && VALID_COMPETITION_TYPES.has(row.competition_type)
+    ? (row.competition_type as CompetitionType)
+    : null
+  return { competition_type: t, position_overall: row.position_overall ?? null }
+}
+
 export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[] = []): CalendarWorkoutSummary {
   const snap = w.planned_snapshot ?? null
   const plannedZones = snapshotZones(snap)
@@ -184,6 +202,7 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_total_seconds,
     planned_total_meters: planTotals.totalMeters,
     planned_zone_seconds,
+    ...extractCompetition(w.workout_competition_data),
   }
 }
 

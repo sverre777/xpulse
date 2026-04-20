@@ -8,6 +8,7 @@ import {
   ActivityZoneMinutes, emptyActivityZones,
   StrengthExerciseRow, StrengthSetRow,
   ActivityLactateMeasurement,
+  CompetitionData, CompetitionType,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -24,6 +25,66 @@ function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<strin
     if (Number.isFinite(n) && n > 0) out[k] = n
   }
   return Object.keys(out).length > 0 ? out : null
+}
+
+// Fase 8 — parse heltall fra string-input, returner null hvis tom/ugyldig.
+function parseIntOrNull(s: string): number | null {
+  const n = parseInt(s)
+  return Number.isFinite(n) ? n : null
+}
+
+// Sjekk om konkurranse-modulen faktisk har innhold å lagre.
+function hasCompetitionContent(d: CompetitionData): boolean {
+  return !!(
+    d.competition_type || d.name || d.location || d.distance_format ||
+    d.bib_number || d.position_overall || d.position_class ||
+    d.position_gender || d.participant_count || d.comment
+  )
+}
+
+function competitionRowFor(workoutId: string, d: CompetitionData) {
+  return {
+    workout_id: workoutId,
+    competition_type: d.competition_type || null,
+    name: d.name || null,
+    location: d.location || null,
+    distance_format: d.distance_format || null,
+    bib_number: d.bib_number || null,
+    position_overall: parseIntOrNull(d.position_overall),
+    position_class: parseIntOrNull(d.position_class),
+    position_gender: parseIntOrNull(d.position_gender),
+    participant_count: parseIntOrNull(d.participant_count),
+    comment: d.comment || null,
+    updated_at: new Date().toISOString(),
+  }
+}
+
+function competitionRowToForm(row: {
+  id: string
+  competition_type: string | null
+  name: string | null
+  location: string | null
+  distance_format: string | null
+  bib_number: string | null
+  position_overall: number | null
+  position_class: number | null
+  position_gender: number | null
+  participant_count: number | null
+  comment: string | null
+}): CompetitionData {
+  return {
+    db_id: row.id,
+    competition_type: (row.competition_type as CompetitionType | null) ?? '',
+    name: row.name ?? '',
+    location: row.location ?? '',
+    distance_format: row.distance_format ?? '',
+    bib_number: row.bib_number ?? '',
+    position_overall: row.position_overall?.toString() ?? '',
+    position_class: row.position_class?.toString() ?? '',
+    position_gender: row.position_gender?.toString() ?? '',
+    participant_count: row.participant_count?.toString() ?? '',
+    comment: row.comment ?? '',
+  }
 }
 
 // Les jsonb → string-form for input-binding.
@@ -422,6 +483,21 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   const activityErr = await insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [])
   if (activityErr) return { error: activityErr }
 
+  // Fase 8: konkurranse-data — egen tabell, upsert per workout_id.
+  // Skrives kun når økttype er competition/testlop OG det finnes faktisk data.
+  const isCompetitionWorkout = data.workout_type === 'competition' || data.workout_type === 'testlop'
+  if (isCompetitionWorkout && data.competition_data && hasCompetitionContent(data.competition_data)) {
+    const row = competitionRowFor(savedId!, data.competition_data)
+    const { error: cErr } = await supabase
+      .from('workout_competition_data')
+      .upsert(row, { onConflict: 'workout_id' })
+    if (cErr) return { error: cErr.message }
+  } else {
+    // Rens ut gammel konkurranse-data hvis brukeren har byttet bort fra competition/testlop
+    // eller tømt modulen. Trygt å kalle også når det ikke finnes noen rad.
+    await supabase.from('workout_competition_data').delete().eq('workout_id', savedId!)
+  }
+
   if (data.tags.length > 0) {
     await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
   }
@@ -501,7 +577,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -514,7 +590,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -551,10 +627,17 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       *,
       workout_movements(*), workout_zones(*), workout_tags(*),
       workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
-      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*))
+      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
+      workout_competition_data(*)
     `)
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== user.id) return null
+
+  // workout_competition_data lastes som array (0..1 rad pga unique workout_id).
+  const compRaw = Array.isArray(workout.workout_competition_data)
+    ? workout.workout_competition_data[0] ?? null
+    : workout.workout_competition_data ?? null
+  const competition_data = compRaw ? competitionRowToForm(compRaw) : undefined
 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
   type DbSet = {
@@ -677,6 +760,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       lactate:      [],
       shooting_blocks: snap.shooting_blocks ?? [],
       activities:   planActivities,
+      competition_data,
     }
   }
 
@@ -750,6 +834,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     // Plan-referanse — kun satt når økten har et snapshot; brukes til
     // "Sammenlign med plan"-visning i Dagbok-modalen.
     planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
+    competition_data,
   }
 }
 

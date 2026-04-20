@@ -4,7 +4,7 @@ export type Sport =
   | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
 
 export type WorkoutType =
-  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'recovery' | 'technical' | 'other'
+  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'testlop' | 'recovery' | 'technical' | 'other'
   | 'hard_combo' | 'easy_combo' | 'basis_shooting' | 'warmup_shooting'
 
 // ── Lookup arrays ──────────────────────────────────────────
@@ -25,6 +25,7 @@ export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [
   { value: 'threshold',   label: 'Terskel' },
   { value: 'easy',        label: 'Rolig' },
   { value: 'competition', label: 'Konkurranse' },
+  { value: 'testlop',     label: 'Testløp' },
   { value: 'recovery',    label: 'Restitusjon' },
   { value: 'technical',   label: 'Teknisk' },
   { value: 'other',       label: 'Annet' },
@@ -187,6 +188,9 @@ export interface WorkoutFormData {
   // Plan-referanse i Dagbok-modus: frosset snapshot av planlagte aktiviteter.
   // Ikke persistert via saveWorkout; kun lest for sammenligning plan vs faktisk.
   planned_activities?: ActivityRow[]
+  // Fase 8: kontekst + resultat for konkurranse/testløp (egen tabell).
+  // Kun relevant når workout_type='competition' eller 'testlop'.
+  competition_data?: CompetitionData
 }
 
 // ── Activities (Fase 7) ────────────────────────────────────
@@ -552,6 +556,10 @@ export interface CalendarWorkoutSummary {
   planned_total_seconds: number
   planned_total_meters: number
   planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
+  // Fase 8: konkurranse-markør for kalender-chips.
+  // Kun satt når workout_type='competition'|'testlop' OG rad finnes i workout_competition_data.
+  competition_type: CompetitionType | null
+  position_overall: number | null
 }
 
 export const TYPE_COLORS: Record<string, string> = {
@@ -559,7 +567,8 @@ export const TYPE_COLORS: Record<string, string> = {
   interval:        '#8A2A00',
   threshold:       '#8A6000',
   easy:            '#1A6A3A',
-  competition:     '#8A2A2A',
+  competition:     '#D4A017',
+  testlop:         '#1A6FD4',
   recovery:        '#3A3A6A',
   technical:       '#2A6A5A',
   other:           '#4A4A4A',
@@ -576,4 +585,176 @@ export const ZONE_COLORS: Record<string, string> = {
   I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10',
   I4: '#8A5A00', I5: '#8A1A00', I6: '#6A008A',
   I7: '#4A004A', I8: '#2A002A',
+}
+
+// ── Fase 8: Konkurranse ────────────────────────────────────
+
+export type CompetitionType = 'konkurranse' | 'testlop' | 'stafett' | 'tempo'
+
+export const COMPETITION_TYPES: { value: CompetitionType; label: string }[] = [
+  { value: 'konkurranse', label: 'Konkurranse' },
+  { value: 'testlop',     label: 'Testløp' },
+  { value: 'stafett',     label: 'Stafett' },
+  { value: 'tempo',       label: 'Tempo/tidsprøve' },
+]
+
+// Sport-spesifikke distanse-alternativer. Styrer auto-generering av aktivitets-struktur.
+export const DISTANCE_FORMATS: Record<Sport, string[]> = {
+  running:              ['5 km', '10 km', 'Halvmaraton', 'Maraton', 'Ultra', 'Terrengløp', 'Motbakkeløp', 'Bane'],
+  cross_country_skiing: ['Sprint', 'Kort distanse', 'Lang distanse', 'Langløp', 'Stafett'],
+  long_distance_skiing: ['Kort', 'Lang', 'Ultra'],
+  biathlon:             ['Sprint', 'Jaktstart', 'Normal', 'Fellesstart', 'Stafett', 'Mix-stafett', 'Supersprint'],
+  cycling:              ['Tempo', 'Fellesstart', 'Etapperitt', 'Gran fondo', 'Terrengsykling', 'Bakkeløp'],
+  triathlon:            ['Sprint', 'Olympisk', '70.3', 'Ironman', 'Aquathlon', 'Duathlon'],
+  endurance:            [],
+}
+
+// Form-row — alle nummer-felt som string for input-binding.
+export interface CompetitionData {
+  db_id?: string
+  competition_type: CompetitionType | ''
+  name: string
+  location: string
+  distance_format: string
+  bib_number: string
+  position_overall: string
+  position_class: string
+  position_gender: string
+  participant_count: string
+  comment: string
+}
+
+export function emptyCompetitionData(defaultType: CompetitionType = 'konkurranse'): CompetitionData {
+  return {
+    competition_type: defaultType,
+    name: '',
+    location: '',
+    distance_format: '',
+    bib_number: '',
+    position_overall: '',
+    position_class: '',
+    position_gender: '',
+    participant_count: '',
+    comment: '',
+  }
+}
+
+// DB entity
+export interface WorkoutCompetitionData {
+  id: string
+  workout_id: string
+  competition_type: CompetitionType | null
+  name: string | null
+  location: string | null
+  distance_format: string | null
+  bib_number: string | null
+  position_overall: number | null
+  position_class: number | null
+  position_gender: number | null
+  participant_count: number | null
+  comment: string | null
+  created_at: string
+  updated_at: string
+}
+
+// ── Auto-genererte aktiviteter for konkurranser ────────────
+
+function makeActivity(overrides: Partial<ActivityRow> & { activity_type: ActivityType }): ActivityRow {
+  return {
+    id: crypto.randomUUID(),
+    activity_type: overrides.activity_type,
+    movement_name: overrides.movement_name ?? '',
+    movement_subcategory: overrides.movement_subcategory ?? '',
+    start_time: '',
+    duration: '',
+    distance_km: overrides.distance_km ?? '',
+    avg_heart_rate: '',
+    max_heart_rate: '',
+    avg_watts: '',
+    prone_shots: '',
+    prone_hits: '',
+    standing_shots: '',
+    standing_hits: '',
+    notes: overrides.notes ?? '',
+    zones: emptyActivityZones(),
+    exercises: [],
+    lactate_measurements: [],
+  }
+}
+
+// Skiskyting: antall skytinger (L=liggende, S=stående) per format.
+// Rekkefølge-bevaring: skytingene får sort_order = posisjon i rekkefølgen,
+// og vekslingene genereres som "Aktivitet Langrenn — Runde N".
+function biathlonShootingSequence(format: string): ('L' | 'S')[] {
+  switch (format) {
+    case 'Sprint':       return ['L', 'S']
+    case 'Jaktstart':    return ['L', 'S', 'L', 'S']
+    case 'Normal':       return ['L', 'S', 'L', 'S']
+    case 'Fellesstart':  return ['L', 'S', 'L', 'S']
+    case 'Stafett':      return ['L', 'S']
+    case 'Mix-stafett':  return ['L', 'S']
+    case 'Supersprint':  return ['L', 'S']
+    default:             return []
+  }
+}
+
+function generateBiathlonActivities(format: string): ActivityRow[] {
+  const seq = biathlonShootingSequence(format)
+  if (seq.length === 0) return []
+  const rows: ActivityRow[] = []
+  // Oppvarming → Runde 1 → Skyting L → Runde 2 → Skyting S → …
+  rows.push(makeActivity({ activity_type: 'oppvarming', movement_name: 'Langrenn' }))
+  seq.forEach((mark, i) => {
+    rows.push(makeActivity({
+      activity_type: 'aktivitet',
+      movement_name: 'Langrenn',
+      notes: `Runde ${i + 1}`,
+    }))
+    rows.push(makeActivity({
+      activity_type: mark === 'L' ? 'skyting_liggende' : 'skyting_staaende',
+    }))
+  })
+  // Siste runde inn mot mål
+  rows.push(makeActivity({
+    activity_type: 'aktivitet',
+    movement_name: 'Langrenn',
+    notes: `Runde ${seq.length + 1} (inn)`,
+  }))
+  return rows
+}
+
+// Triathlon: svøm → T1 → sykkel → T2 → løp, med distanseforslag per format.
+const TRIATHLON_DISTANCES: Record<string, { swim_km: string; bike_km: string; run_km: string } | null> = {
+  'Sprint':    { swim_km: '0.75', bike_km: '20',  run_km: '5' },
+  'Olympisk':  { swim_km: '1.5',  bike_km: '40',  run_km: '10' },
+  '70.3':      { swim_km: '1.9',  bike_km: '90',  run_km: '21.1' },
+  'Ironman':   { swim_km: '3.8',  bike_km: '180', run_km: '42.2' },
+  'Aquathlon': null,
+  'Duathlon':  null,
+}
+
+function generateTriathlonActivities(format: string): ActivityRow[] {
+  const d = TRIATHLON_DISTANCES[format]
+  if (d === undefined) return []
+  if (d === null) return []
+  return [
+    makeActivity({ activity_type: 'aktivitet',   movement_name: 'Svømming', distance_km: d.swim_km }),
+    makeActivity({ activity_type: 'aktiv_pause', movement_name: 'T1',       notes: 'Transisjon 1' }),
+    makeActivity({ activity_type: 'aktivitet',   movement_name: 'Sykling',  distance_km: d.bike_km }),
+    makeActivity({ activity_type: 'aktiv_pause', movement_name: 'T2',       notes: 'Transisjon 2' }),
+    makeActivity({ activity_type: 'aktivitet',   movement_name: 'Løping',   distance_km: d.run_km }),
+  ]
+}
+
+// Returnerer tom-aktivitets-struktur for gitt sport + format. Tom liste betyr
+// at vi ikke har en mal for formatet (brukeren fører alt manuelt).
+export function generateCompetitionActivities(sport: Sport, format: string): ActivityRow[] {
+  if (!format) return []
+  if (sport === 'biathlon')  return generateBiathlonActivities(format)
+  if (sport === 'triathlon') return generateTriathlonActivities(format)
+  return []
+}
+
+export function hasAutoGenerateTemplate(sport: Sport, format: string): boolean {
+  return generateCompetitionActivities(sport, format).length > 0
 }

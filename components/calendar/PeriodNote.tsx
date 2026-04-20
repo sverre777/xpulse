@@ -17,6 +17,7 @@ export function PeriodNote({
   const [note, setNote] = useState(initialNote)
   const [open, setOpen] = useState(initialNote.trim().length > 0)
   const [saved, setSaved] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const lastSavedRef = useRef(initialNote)
   const timerRef = useRef<number | null>(null)
@@ -24,12 +25,18 @@ export function PeriodNote({
   const flush = (value: string) => {
     if (value === lastSavedRef.current) return
     setSaved('saving')
+    setErrorMsg(null)
     startTransition(async () => {
-      const res = await savePeriodNote({ scope, period_key: periodKey, context, note: value })
-      if (res.error) { setSaved('error'); return }
-      lastSavedRef.current = value
-      setSaved('ok')
-      window.setTimeout(() => setSaved(s => (s === 'ok' ? 'idle' : s)), 1200)
+      try {
+        const res = await savePeriodNote({ scope, period_key: periodKey, context, note: value })
+        if (res.error) { setSaved('error'); setErrorMsg(res.error); return }
+        lastSavedRef.current = value
+        setSaved('ok')
+        window.setTimeout(() => setSaved(s => (s === 'ok' ? 'idle' : s)), 1200)
+      } catch (e) {
+        setSaved('error')
+        setErrorMsg(e instanceof Error ? e.message : String(e))
+      }
     })
   }
 
@@ -85,6 +92,12 @@ export function PeriodNote({
           outline: 'none',
         }}
       />
+      {errorMsg && (
+        <p className="text-xs mt-1"
+          style={{ fontFamily: 'ui-monospace, monospace', color: '#E11D48' }}>
+          {errorMsg}
+        </p>
+      )}
     </div>
   )
 }

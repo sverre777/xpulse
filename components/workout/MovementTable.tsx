@@ -10,8 +10,14 @@ interface MovementTableProps {
 }
 
 const STRENGTH_MOVEMENTS = ['Styrke', 'Crossfit', 'Kampsport']
+const ENDURANCE_MOVEMENTS = ['Løping', 'Langrenn', 'Rulleski', 'Sykling', 'Svømming']
 const isStrengthMovement = (name: string) => STRENGTH_MOVEMENTS.some(s => name.startsWith(s))
+const isEnduranceMovement = (name: string) => ENDURANCE_MOVEMENTS.some(e => name.startsWith(e))
 const isShootingMovement = (name: string) => name === 'Skiskyting'
+
+function zoneTotalMinutes(zones: { minutes: string }[] | undefined): number {
+  return (zones ?? []).reduce((s, z) => s + (parseInt(z.minutes) || 0), 0)
+}
 
 function formatPace(minutes: string, km: string): string | null {
   const m = parseFloat(minutes)
@@ -398,7 +404,26 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
             const subs = getSubcategories(parent)
             const isExp = expanded.has(row.id)
             const isStrength = isStrengthMovement(parent)
+            const isEndurance = isEnduranceMovement(parent)
             const isShooting = isShootingMovement(parent)
+            const hasExpandContent = isEndurance || isStrength || isShooting
+            // Endurance: minutter auto-summeres fra inline soner når zones har data.
+            const zoneTotal = zoneTotalMinutes(row.zones)
+            const hasZoneData = isEndurance && zoneTotal > 0
+            const displayMinutes = hasZoneData ? zoneTotal.toString() : row.minutes
+
+            const openMinutesExpand = () => {
+              if (!isEndurance) return
+              if (!isExp) toggle(row.id)
+            }
+
+            const onZonesChange = (z: typeof row.zones) => {
+              const newTotal = zoneTotalMinutes(z)
+              onChange(rows.map((r, idx) => idx === i ? {
+                ...r, zones: z,
+                minutes: newTotal > 0 ? newTotal.toString() : r.minutes,
+              } : r))
+            }
 
             return (
               <Fragment key={row.id}>
@@ -406,18 +431,22 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                   {/* Expand toggle */}
                   <td className="px-2 py-1.5" style={{ minWidth: '130px' }}>
                     <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => toggle(row.id)}
-                        style={{
-                          color: isExp ? '#FF4500' : '#333340',
-                          background: 'none', border: 'none', cursor: 'pointer',
-                          fontSize: '10px', padding: 0, lineHeight: 1, flexShrink: 0,
-                        }}
-                        title={isExp ? 'Skjul detaljer' : 'Vis detaljer'}
-                      >
-                        {isExp ? '▼' : '▶'}
-                      </button>
+                      {hasExpandContent ? (
+                        <button
+                          type="button"
+                          onClick={() => toggle(row.id)}
+                          style={{
+                            color: isExp ? '#FF4500' : '#333340',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            fontSize: '10px', padding: 0, lineHeight: 1, flexShrink: 0,
+                          }}
+                          title={isExp ? 'Skjul detaljer' : 'Vis detaljer'}
+                        >
+                          {isExp ? '▼' : '▶'}
+                        </button>
+                      ) : (
+                        <span style={{ width: '10px', flexShrink: 0 }} />
+                      )}
                       <select value={parent}
                         onChange={e => {
                           const newSubs = getSubcategories(e.target.value)
@@ -446,9 +475,23 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                   </td>
                   <td className="px-2 py-1.5" style={{ width: '60px' }}>
                     <div>
-                      <input type="number" value={row.minutes} onChange={e => update(i, 'minutes', e.target.value)}
-                        placeholder="—" min="0" style={iSt} />
-                      <AutoPace movement={parent} minutes={row.minutes} km={row.distance_km} />
+                      <input
+                        type="number"
+                        value={displayMinutes}
+                        readOnly={hasZoneData}
+                        onFocus={openMinutesExpand}
+                        onClick={openMinutesExpand}
+                        onChange={e => !hasZoneData && update(i, 'minutes', e.target.value)}
+                        placeholder={isEndurance ? 'soner' : '—'}
+                        min="0"
+                        style={{
+                          ...iSt,
+                          color: hasZoneData ? '#FF4500' : '#F0F0F2',
+                          cursor: isEndurance ? 'pointer' : 'text',
+                        }}
+                        title={isEndurance ? 'Klikk for å fordele på soner' : undefined}
+                      />
+                      <AutoPace movement={parent} minutes={displayMinutes} km={row.distance_km} />
                     </div>
                   </td>
                   <td className="px-2 py-1.5" style={{ width: '60px' }}>
@@ -474,7 +517,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                     </button>
                   </td>
                 </tr>
-                {isExp && (
+                {isExp && hasExpandContent && (
                   <tr style={{ borderBottom: '1px solid #1A1A1E' }}>
                     <td colSpan={7} style={{ padding: 0 }}>
                       {isShooting ? (
@@ -490,7 +533,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                       ) : (
                         <ZoneExpandSection
                           zones={row.zones ?? []}
-                          onChange={z => update(i, 'zones', z)}
+                          onChange={onZonesChange}
                         />
                       )}
                     </td>

@@ -8,6 +8,7 @@ import { Calendar } from '@/components/calendar/Calendar'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
+import { getHeartZonesForUser } from '@/lib/heart-zones'
 
 export default async function DagbokPage() {
   const supabase = await createClient()
@@ -26,7 +27,7 @@ export default async function DagbokPage() {
   const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
 
-  const [rawWorkouts, weekData, healthRows, recoveryRows, templates] = await Promise.all([
+  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
       .select('duration_minutes, distance_km')
@@ -38,6 +39,7 @@ export default async function DagbokPage() {
       .lte('date', monthEnd),
     getRecoveryEntriesForRange(user.id, monthStart, monthEnd),
     getTemplates(),
+    getHeartZonesForUser(supabase, user.id),
   ])
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[])
@@ -131,6 +133,7 @@ export default async function DagbokPage() {
               userId={user.id}
               primarySport={primarySport}
               templates={templates as WorkoutTemplate[]}
+              heartZones={heartZones}
               initialView="måned"
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}

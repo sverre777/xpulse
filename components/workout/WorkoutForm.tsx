@@ -11,6 +11,8 @@ import {
 } from '@/lib/types'
 import { LactateTable } from './LactateTable'
 import { ActivitiesSection } from './ActivitiesSection'
+import { ActivitySummary } from './ActivitySummary'
+import { HeartZone } from '@/lib/heart-zones'
 
 interface WorkoutFormProps {
   initialSport?: Sport
@@ -19,6 +21,7 @@ interface WorkoutFormProps {
   defaultValues?: Partial<WorkoutFormData>
   templates?: WorkoutTemplate[]
   formMode?: 'plan' | 'dagbok'
+  heartZones?: HeartZone[]
   onSaved?: () => void
   onCancel?: () => void
 }
@@ -30,7 +33,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', onSaved, onCancel }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -237,6 +240,17 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </Chip>
         </div>
       </Section>
+
+      {/* ── OPPSUMMERING (auto — read-only) ── */}
+      {form.activities.length > 0 && (
+        <div className="mt-4">
+          <ActivitySummary
+            activities={form.activities}
+            heartZones={heartZones}
+            sport={form.sport}
+          />
+        </div>
+      )}
 
       {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ── */}
       <Section label="Aktiviteter">

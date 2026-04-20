@@ -4,6 +4,7 @@ import { Fragment, createContext, useContext, useState, useCallback, useEffect }
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate, ZONE_COLORS } from '@/lib/types'
+import { HeartZone } from '@/lib/heart-zones'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
@@ -43,6 +44,7 @@ export interface CalendarProps {
   initialHealthData?: Record<string, HealthSummary>
   initialRecoveryData?: Record<string, RecoveryEntry[]>
   trainingPhases?: TrainingPhase[]
+  heartZones?: HeartZone[]
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -754,6 +756,7 @@ export function Calendar({
   initialWorkoutsByDate = {}, initialHealthData = {},
   initialRecoveryData = {},
   trainingPhases = [],
+  heartZones = [],
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -958,6 +961,7 @@ export function Calendar({
       onClose={closeModal}
       primarySport={primarySport}
       templates={templates}
+      heartZones={heartZones}
     />
     <RecoveryModal
       date={recoveryDate ?? ''}

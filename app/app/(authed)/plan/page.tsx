@@ -6,6 +6,7 @@ import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
+import { getHeartZonesForUser } from '@/lib/heart-zones'
 
 const PHASE_COLORS: Record<string, string> = {
   base: '#1A3A6A', specific: '#1A5A3A', competition: '#6A1A1A', recovery: '#3A3A6A',
@@ -21,12 +22,13 @@ export default async function PlanPage() {
   const month = now.getMonth() + 1
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates] = await Promise.all([
+  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('training_goals').select('*').eq('user_id', user.id).order('date'),
     supabase.from('training_phases').select('*').eq('user_id', user.id).order('start_date'),
     supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
     getTemplates(),
+    getHeartZonesForUser(supabase, user.id),
   ])
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
@@ -61,6 +63,7 @@ export default async function PlanPage() {
               userId={user.id}
               primarySport={primarySport}
               templates={templates as WorkoutTemplate[]}
+              heartZones={heartZones}
               initialView="måned"
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}

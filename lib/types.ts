@@ -184,6 +184,9 @@ export interface WorkoutFormData {
   shooting_blocks: ShootingBlock[]
   // Fase 7: kronologisk aktivitets-liste — erstatter movements + zones + shooting_blocks i UI.
   activities: ActivityRow[]
+  // Plan-referanse i Dagbok-modus: frosset snapshot av planlagte aktiviteter.
+  // Ikke persistert via saveWorkout; kun lest for sammenligning plan vs faktisk.
+  planned_activities?: ActivityRow[]
 }
 
 // ── Activities (Fase 7) ────────────────────────────────────

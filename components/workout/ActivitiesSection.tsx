@@ -16,6 +16,9 @@ interface Props {
   rows: ActivityRow[]
   onChange: (rows: ActivityRow[]) => void
   sport: Sport
+  // I plan-modus skjules rene måleverdier (puls, laktat, treff) — plan fokuserer
+  // på intensjon (type, bevegelsesform, varighet, soner/målpuls).
+  mode?: 'plan' | 'dagbok'
 }
 
 function defaultMovementForSport(sport: Sport): string {
@@ -82,7 +85,8 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   I1: '#28A86E', I2: '#2A7AB8', I3: '#D4B500', I4: '#FF9500', I5: '#FF4500',
 }
 
-export function ActivitiesSection({ rows, onChange, sport }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Props) {
+  const isPlanMode = mode === 'plan'
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const updateRow = (id: string, patch: Partial<ActivityRow>) => {
@@ -138,6 +142,7 @@ export function ActivitiesSection({ rows, onChange, sport }: Props) {
           onMoveDown={idx < rows.length - 1 ? () => moveRow(row.id, 1) : undefined}
           typeOptions={typeOptions}
           sport={sport}
+          isPlanMode={isPlanMode}
         />
       ))}
 
@@ -162,7 +167,7 @@ export function ActivitiesSection({ rows, onChange, sport }: Props) {
 
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
-  typeOptions, sport,
+  typeOptions, sport, isPlanMode,
 }: {
   row: ActivityRow
   expanded: boolean
@@ -173,6 +178,7 @@ function ActivityRowItem({
   onMoveDown?: () => void
   typeOptions: typeof ACTIVITY_TYPES
   sport: Sport
+  isPlanMode: boolean
 }) {
   const meta = findActivityType(row.activity_type)
   const durSec = parseActivityDuration(row.duration)
@@ -336,27 +342,31 @@ function ActivityRowItem({
               </Field>
             )}
 
-            <Field label="Snittpuls (bpm)">
-              <input value={row.avg_heart_rate}
-                onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
-                inputMode="numeric" placeholder="—"
-                style={iSt} />
-            </Field>
+            {!isPlanMode && (
+              <>
+                <Field label="Snittpuls (bpm)">
+                  <input value={row.avg_heart_rate}
+                    onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
+                    inputMode="numeric" placeholder="—"
+                    style={iSt} />
+                </Field>
 
-            <Field label="Maks puls (bpm)">
-              <input value={row.max_heart_rate}
-                onChange={e => onUpdate({ max_heart_rate: e.target.value })}
-                inputMode="numeric" placeholder="—"
-                style={iSt} />
-            </Field>
+                <Field label="Maks puls (bpm)">
+                  <input value={row.max_heart_rate}
+                    onChange={e => onUpdate({ max_heart_rate: e.target.value })}
+                    inputMode="numeric" placeholder="—"
+                    style={iSt} />
+                </Field>
 
-            {isCycling && !meta?.isShooting && !isStrength && (
-              <Field label="Snittwatt">
-                <input value={row.avg_watts}
-                  onChange={e => onUpdate({ avg_watts: e.target.value })}
-                  inputMode="numeric" placeholder="—"
-                  style={iSt} />
-              </Field>
+                {isCycling && !meta?.isShooting && !isStrength && (
+                  <Field label="Snittwatt">
+                    <input value={row.avg_watts}
+                      onChange={e => onUpdate({ avg_watts: e.target.value })}
+                      inputMode="numeric" placeholder="—"
+                      style={iSt} />
+                  </Field>
+                )}
+              </>
             )}
           </div>
 
@@ -374,8 +384,8 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Skyting-felt */}
-          {meta?.isShooting && (
+          {/* Skyting-felt — kun i dagbok-modus (faktiske skudd/treff) */}
+          {meta?.isShooting && !isPlanMode && (
             <ShootingFields row={row} onUpdate={onUpdate} />
           )}
 
@@ -387,11 +397,13 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Laktat — én eller flere målinger */}
-          <LactateMeasurementsEditor
-            measurements={row.lactate_measurements}
-            onChange={m => onUpdate({ lactate_measurements: m })}
-          />
+          {/* Laktat — én eller flere målinger (kun dagbok, ikke plan) */}
+          {!isPlanMode && (
+            <LactateMeasurementsEditor
+              measurements={row.lactate_measurements}
+              onChange={m => onUpdate({ lactate_measurements: m })}
+            />
+          )}
 
           <div className="mt-3">
             <Label>Notat</Label>

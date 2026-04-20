@@ -34,6 +34,180 @@ function deserializeZones(z: Record<string, number> | null | undefined): Activit
   return base
 }
 
+// 2-pass insert av hele aktivitet-treet (aktiviteter → øvelser+sett → laktatmålinger).
+// Brukes av både saveWorkout og markCompleted (hydrering fra planned_snapshot).
+// Returnerer feilmelding hvis noe gikk galt, null ved suksess.
+async function insertActivitiesWithChildren(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  workoutId: string,
+  activities: ActivityRow[],
+): Promise<string | null> {
+  if (activities.length === 0) return null
+
+  const activityRows = activities.map((a, ai) => {
+    const durSec = parseActivityDuration(a.duration) ?? 0
+    const km = parseFloat(a.distance_km)
+    return {
+      workout_id: workoutId,
+      activity_type: a.activity_type,
+      movement_name: a.movement_name || null,
+      movement_subcategory: a.movement_subcategory || null,
+      sort_order: ai,
+      start_time: a.start_time || null,
+      duration_seconds: durSec,
+      distance_meters: Number.isFinite(km) ? Math.round(km * 1000) : null,
+      avg_heart_rate: parseInt(a.avg_heart_rate) || null,
+      max_heart_rate: parseInt(a.max_heart_rate) || null,
+      avg_watts: parseInt(a.avg_watts) || null,
+      prone_shots: parseInt(a.prone_shots) || null,
+      prone_hits: parseInt(a.prone_hits) || null,
+      standing_shots: parseInt(a.standing_shots) || null,
+      standing_hits: parseInt(a.standing_hits) || null,
+      zones: serializeZones(a.zones),
+      notes: a.notes || null,
+    }
+  })
+
+  const { data: insertedActivities, error: actErr } = await supabase
+    .from('workout_activities')
+    .insert(activityRows)
+    .select('id, sort_order')
+  if (actErr) return actErr.message
+
+  const idBySortOrder = new Map<number, string>()
+  for (const r of (insertedActivities ?? []) as { id: string; sort_order: number }[]) {
+    idBySortOrder.set(r.sort_order, r.id)
+  }
+
+  for (const [ai, a] of activities.entries()) {
+    const activityId = idBySortOrder.get(ai)
+    if (!activityId) continue
+    const exercises = (a.exercises ?? []).filter(ex => ex.exercise_name.trim())
+    if (exercises.length === 0) continue
+    const exerciseRows = exercises.map((ex, i) => ({
+      activity_id: activityId,
+      exercise_name: ex.exercise_name.trim(),
+      sort_order: i,
+      notes: ex.notes || null,
+    }))
+    const { data: insertedEx, error: exErr } = await supabase
+      .from('workout_activity_exercises')
+      .insert(exerciseRows)
+      .select('id, sort_order')
+    if (exErr) return exErr.message
+    const exIdBySortOrder = new Map<number, string>()
+    for (const r of (insertedEx ?? []) as { id: string; sort_order: number }[]) {
+      exIdBySortOrder.set(r.sort_order, r.id)
+    }
+
+    const setRows: {
+      exercise_id: string; set_number: number
+      reps: number | null; weight_kg: number | null
+      rpe: number | null; notes: string | null
+    }[] = []
+    for (const [i, ex] of exercises.entries()) {
+      const exerciseId = exIdBySortOrder.get(i)
+      if (!exerciseId) continue
+      for (const [si, s] of ex.sets.entries()) {
+        const reps = parseInt(s.reps)
+        const weight = parseFloat(s.weight_kg)
+        const rpe = parseInt(s.rpe)
+        if (!Number.isFinite(reps) && !Number.isFinite(weight) && !Number.isFinite(rpe) && !s.notes) continue
+        setRows.push({
+          exercise_id: exerciseId,
+          set_number: parseInt(s.set_number) || (si + 1),
+          reps: Number.isFinite(reps) ? reps : null,
+          weight_kg: Number.isFinite(weight) ? weight : null,
+          rpe: Number.isFinite(rpe) ? rpe : null,
+          notes: s.notes || null,
+        })
+      }
+    }
+    if (setRows.length > 0) {
+      const { error: setErr } = await supabase
+        .from('workout_activity_exercise_sets')
+        .insert(setRows)
+      if (setErr) return setErr.message
+    }
+  }
+
+  const lactateRows: {
+    activity_id: string; value_mmol: number
+    measured_at: string | null; sort_order: number
+  }[] = []
+  for (const [ai, a] of activities.entries()) {
+    const activityId = idBySortOrder.get(ai)
+    if (!activityId) continue
+    const measurements = (a.lactate_measurements ?? [])
+      .map(m => ({ ...m, parsed: parseFloat(m.value_mmol) }))
+      .filter(m => Number.isFinite(m.parsed) && m.parsed > 0)
+    for (const [mi, m] of measurements.entries()) {
+      lactateRows.push({
+        activity_id: activityId,
+        value_mmol: m.parsed,
+        measured_at: m.measured_at || null,
+        sort_order: mi,
+      })
+    }
+  }
+  if (lactateRows.length > 0) {
+    const { error: lactErr } = await supabase
+      .from('workout_activity_lactate_measurements')
+      .insert(lactateRows)
+    if (lactErr) return lactErr.message
+  }
+
+  return null
+}
+
+// Normaliser ActivityRow-snapshot fra planned_snapshot.activities (jsonb) tilbake til ActivityRow.
+// Gjenoppretter klient-id-er (fresh uuid så de ikke kolliderer med evt. aktive rader),
+// sikrer at alle array/objekt-felter finnes selv om snapshot er eldre.
+function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map(r => {
+    const a = (r ?? {}) as Partial<ActivityRow>
+    return {
+      id: crypto.randomUUID(),
+      activity_type: (a.activity_type ?? 'aktivitet') as ActivityType,
+      movement_name: a.movement_name ?? '',
+      movement_subcategory: a.movement_subcategory ?? '',
+      start_time: a.start_time ?? '',
+      duration: a.duration ?? '',
+      distance_km: a.distance_km ?? '',
+      avg_heart_rate: a.avg_heart_rate ?? '',
+      max_heart_rate: a.max_heart_rate ?? '',
+      avg_watts: a.avg_watts ?? '',
+      prone_shots: a.prone_shots ?? '',
+      prone_hits: a.prone_hits ?? '',
+      standing_shots: a.standing_shots ?? '',
+      standing_hits: a.standing_hits ?? '',
+      notes: a.notes ?? '',
+      zones: a.zones ?? emptyActivityZones(),
+      exercises: Array.isArray(a.exercises) ? a.exercises.map(ex => ({
+        id: crypto.randomUUID(),
+        exercise_name: ex.exercise_name ?? '',
+        notes: ex.notes ?? '',
+        sets: Array.isArray(ex.sets) && ex.sets.length > 0
+          ? ex.sets.map((s, i) => ({
+              id: crypto.randomUUID(),
+              set_number: s.set_number ?? String(i + 1),
+              reps: s.reps ?? '',
+              weight_kg: s.weight_kg ?? '',
+              rpe: s.rpe ?? '',
+              notes: s.notes ?? '',
+            }))
+          : [{ id: crypto.randomUUID(), set_number: '1', reps: '', weight_kg: '', rpe: '', notes: '' }],
+      })) : [],
+      lactate_measurements: Array.isArray(a.lactate_measurements) ? a.lactate_measurements.map(m => ({
+        id: crypto.randomUUID(),
+        value_mmol: m.value_mmol ?? '',
+        measured_at: m.measured_at ?? '',
+      })) : [],
+    }
+  })
+}
+
 // Fase 7 — Les aktiviteter for én økt. UI-ene som bruker dette er ikke bygget enda;
 // funksjonen er her slik at Runde 2 kan wire den inn uten ny server-roundtrip.
 export async function getActivitiesForWorkout(workoutId: string): Promise<WorkoutActivity[]> {
@@ -110,6 +284,9 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     movements: data.movements,
     zones: zoneAggregate,
     shooting_blocks: data.shooting_blocks ?? [],
+    // Aktivitets-listen i hele sin form (ActivityRow[]): JSON-safe strings + sub-objekter.
+    // Brukes i Plan-modal, i "Merk som gjennomført"-flyten og i PlanVsActualComparison.
+    activities: data.activities ?? [],
   } : undefined
 
   const basePayload: Record<string, unknown> = {
@@ -239,136 +416,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
 
   // Fase 7: kronologisk aktivitetsliste — ny primær datamodell.
   // Gamle workout_movements/zones/shooting_blocks beholdes midlertidig for bakoverkomp.
-  const activityRows: {
-    workout_id: string; activity_type: string
-    movement_name: string | null; movement_subcategory: string | null
-    sort_order: number; start_time: string | null; duration_seconds: number
-    distance_meters: number | null; avg_heart_rate: number | null; max_heart_rate: number | null
-    avg_watts: number | null
-    prone_shots: number | null; prone_hits: number | null
-    standing_shots: number | null; standing_hits: number | null
-    zones: Record<string, number> | null
-    notes: string | null
-  }[] = []
-  for (const [ai, a] of (data.activities ?? []).entries()) {
-    const durSec = parseActivityDuration(a.duration) ?? 0
-    const km = parseFloat(a.distance_km)
-    const zoneObj = serializeZones(a.zones)
-    activityRows.push({
-      workout_id: savedId!,
-      activity_type: a.activity_type,
-      movement_name: a.movement_name || null,
-      movement_subcategory: a.movement_subcategory || null,
-      sort_order: ai,
-      start_time: a.start_time || null,
-      duration_seconds: durSec,
-      distance_meters: Number.isFinite(km) ? Math.round(km * 1000) : null,
-      avg_heart_rate: parseInt(a.avg_heart_rate) || null,
-      max_heart_rate: parseInt(a.max_heart_rate) || null,
-      avg_watts: parseInt(a.avg_watts) || null,
-      prone_shots: parseInt(a.prone_shots) || null,
-      prone_hits: parseInt(a.prone_hits) || null,
-      standing_shots: parseInt(a.standing_shots) || null,
-      standing_hits: parseInt(a.standing_hits) || null,
-      zones: zoneObj,
-      notes: a.notes || null,
-    })
-  }
-
-  if (activityRows.length > 0) {
-    const { data: insertedActivities, error: actErr } = await supabase
-      .from('workout_activities')
-      .insert(activityRows)
-      .select('id, sort_order')
-    if (actErr) return { error: actErr.message }
-
-    // Map sort_order → DB activity id for å koble øvelser/sett riktig.
-    const idBySortOrder = new Map<number, string>()
-    for (const r of (insertedActivities ?? []) as { id: string; sort_order: number }[]) {
-      idBySortOrder.set(r.sort_order, r.id)
-    }
-
-    // Skriv øvelser + sett for styrke-aktiviteter.
-    for (const [ai, a] of (data.activities ?? []).entries()) {
-      const activityId = idBySortOrder.get(ai)
-      if (!activityId) continue
-      const exercises = (a.exercises ?? []).filter(ex => ex.exercise_name.trim())
-      if (exercises.length === 0) continue
-      const exerciseRows = exercises.map((ex, i) => ({
-        activity_id: activityId,
-        exercise_name: ex.exercise_name.trim(),
-        sort_order: i,
-        notes: ex.notes || null,
-      }))
-      const { data: insertedEx, error: exErr } = await supabase
-        .from('workout_activity_exercises')
-        .insert(exerciseRows)
-        .select('id, sort_order')
-      if (exErr) return { error: exErr.message }
-      const exIdBySortOrder = new Map<number, string>()
-      for (const r of (insertedEx ?? []) as { id: string; sort_order: number }[]) {
-        exIdBySortOrder.set(r.sort_order, r.id)
-      }
-
-      const setRows: {
-        exercise_id: string; set_number: number
-        reps: number | null; weight_kg: number | null
-        rpe: number | null; notes: string | null
-      }[] = []
-      for (const [i, ex] of exercises.entries()) {
-        const exerciseId = exIdBySortOrder.get(i)
-        if (!exerciseId) continue
-        for (const [si, s] of ex.sets.entries()) {
-          const reps = parseInt(s.reps)
-          const weight = parseFloat(s.weight_kg)
-          const rpe = parseInt(s.rpe)
-          // Hopp over helt tomme sett (intet rep, vekt, rpe eller notat).
-          if (!Number.isFinite(reps) && !Number.isFinite(weight) && !Number.isFinite(rpe) && !s.notes) continue
-          setRows.push({
-            exercise_id: exerciseId,
-            set_number: parseInt(s.set_number) || (si + 1),
-            reps: Number.isFinite(reps) ? reps : null,
-            weight_kg: Number.isFinite(weight) ? weight : null,
-            rpe: Number.isFinite(rpe) ? rpe : null,
-            notes: s.notes || null,
-          })
-        }
-      }
-      if (setRows.length > 0) {
-        const { error: setErr } = await supabase
-          .from('workout_activity_exercise_sets')
-          .insert(setRows)
-        if (setErr) return { error: setErr.message }
-      }
-    }
-
-    // Laktatmålinger — én eller flere per aktivitet.
-    const lactateRows: {
-      activity_id: string; value_mmol: number
-      measured_at: string | null; sort_order: number
-    }[] = []
-    for (const [ai, a] of (data.activities ?? []).entries()) {
-      const activityId = idBySortOrder.get(ai)
-      if (!activityId) continue
-      const measurements = (a.lactate_measurements ?? [])
-        .map(m => ({ ...m, parsed: parseFloat(m.value_mmol) }))
-        .filter(m => Number.isFinite(m.parsed) && m.parsed > 0)
-      for (const [mi, m] of measurements.entries()) {
-        lactateRows.push({
-          activity_id: activityId,
-          value_mmol: m.parsed,
-          measured_at: m.measured_at || null,
-          sort_order: mi,
-        })
-      }
-    }
-    if (lactateRows.length > 0) {
-      const { error: lactErr } = await supabase
-        .from('workout_activity_lactate_measurements')
-        .insert(lactateRows)
-      if (lactErr) return { error: lactErr.message }
-    }
-  }
+  const activityErr = await insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [])
+  if (activityErr) return { error: activityErr }
 
   if (data.tags.length > 0) {
     await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
@@ -396,9 +445,35 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
 export async function markCompleted(workoutId: string): Promise<{ error?: string }> {
   // NB: is_planned bevares — planen skal fortsatt være synlig i Plan-kalenderen
   // etter gjennomføring. Gjennomføring signaliseres med is_completed=true.
+  //
+  // Idempotent kopi fra planned_snapshot.activities → workout_activities:
+  // Hvis det ikke finnes aktiviteter enda (bruker har ikke åpnet økten og justert),
+  // kopieres de planlagte aktivitetene inn som startpunkt. planned_snapshot bevares.
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
+
+  const { data: workout, error: wErr } = await supabase
+    .from('workouts')
+    .select('id, user_id, planned_snapshot')
+    .eq('id', workoutId).eq('user_id', user.id)
+    .single()
+  if (wErr || !workout) return { error: wErr?.message ?? 'Fant ikke økten' }
+
+  const { count } = await supabase
+    .from('workout_activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('workout_id', workoutId)
+
+  if ((count ?? 0) === 0) {
+    const snap = workout.planned_snapshot as { activities?: unknown } | null
+    const snapActivities = normalizeSnapshotActivities(snap?.activities)
+    if (snapActivities.length > 0) {
+      const err = await insertActivitiesWithChildren(supabase, workoutId, snapActivities)
+      if (err) return { error: err }
+    }
+  }
+
   const { error } = await supabase.from('workouts')
     .update({ is_completed: true, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', user.id)
@@ -571,10 +646,15 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     duration_minutes?: number | null; distance_km?: number | null; elevation_meters?: number | null
     notes?: string | null; tags?: string[]; movements?: unknown[]; zones?: unknown[]
     shooting_blocks?: ShootingBlock[]
+    activities?: unknown
   } | null
+  const snapshotActivities = normalizeSnapshotActivities(snap?.activities)
   const usePlanSnapshot = formMode === 'plan' && !!snap
 
   if (usePlanSnapshot) {
+    // Hydrér aktiviteter fra snapshot når tilgjengelig; ellers fall tilbake
+    // til DB-hydrerte aktiviteter (for eldre økter uten snapshot-aktiviteter).
+    const planActivities = snapshotActivities.length > 0 ? snapshotActivities : activities
     return {
       title:        snap.title ?? workout.title,
       date:         workout.date,
@@ -593,7 +673,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
       lactate:      [],
       shooting_blocks: snap.shooting_blocks ?? [],
-      activities,
+      activities:   planActivities,
     }
   }
 
@@ -664,6 +744,9 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_heart_rate: b.avg_heart_rate?.toString() ?? '',
       })),
     activities,
+    // Plan-referanse — kun satt når økten har et snapshot; brukes til
+    // "Sammenlign med plan"-visning i Dagbok-modalen.
+    planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
   }
 }
 

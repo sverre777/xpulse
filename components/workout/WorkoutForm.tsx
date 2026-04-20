@@ -12,6 +12,7 @@ import {
 import { LactateTable } from './LactateTable'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
+import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { HeartZone } from '@/lib/heart-zones'
 
 interface WorkoutFormProps {
@@ -75,7 +76,11 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     tags:        defaultValues?.tags ?? [],
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
     activities:  defaultValues?.activities ?? [],
+    planned_activities: defaultValues?.planned_activities,
   }))
+
+  // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
+  const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
 
   const set = <K extends keyof WorkoutFormData>(key: K, val: WorkoutFormData[K]) =>
     setForm(f => ({ ...f, [key]: val }))
@@ -252,6 +257,30 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
       )}
 
+      {/* ── SAMMENLIGN MED PLAN — togglable ── */}
+      {!isPlanMode && (form.planned_activities?.length ?? 0) > 0 && form.activities.length > 0 && (
+        <div className="mt-3">
+          <button type="button"
+            onClick={() => setShowComparison(v => !v)}
+            className="px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: '#FF4500', background: 'none',
+              border: '1px solid #FF4500', cursor: 'pointer',
+            }}>
+            {showComparison ? 'Skjul sammenligning' : 'Sammenlign med plan'}
+          </button>
+          {showComparison && (
+            <div className="mt-3">
+              <PlanVsActualComparison
+                plan={form.planned_activities ?? []}
+                actual={form.activities}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ── */}
       <Section label="Aktiviteter">
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -261,6 +290,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           rows={form.activities}
           onChange={a => set('activities', a)}
           sport={form.sport}
+          mode={isPlanMode ? 'plan' : 'dagbok'}
         />
       </Section>
 

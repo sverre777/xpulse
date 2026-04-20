@@ -3,8 +3,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
+import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
 import { Sport, WorkoutTemplate } from '@/lib/types'
+import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 
 export default async function DagbokPage() {
@@ -21,7 +23,10 @@ export default async function DagbokPage() {
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
   const weekStart = monday.toISOString().split('T')[0]
 
-  const [rawWorkouts, weekData, healthRows, templates] = await Promise.all([
+  const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
+  const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
+
+  const [rawWorkouts, weekData, healthRows, recoveryRows, templates] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
       .select('duration_minutes, distance_km')
@@ -29,8 +34,9 @@ export default async function DagbokPage() {
       .gte('date', weekStart).lte('date', today),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', user.id)
-      .gte('date', new Date(year, month - 1, 1).toISOString().split('T')[0])
-      .lte('date', new Date(year, month, 0).toISOString().split('T')[0]),
+      .gte('date', monthStart)
+      .lte('date', monthEnd),
+    getRecoveryEntriesForRange(user.id, monthStart, monthEnd),
     getTemplates(),
   ])
 
@@ -40,6 +46,12 @@ export default async function DagbokPage() {
   const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}
   for (const r of (healthRows.data ?? []) as HealthRow[]) {
     healthData[r.date] = { hrv_ms: r.hrv_ms, resting_hr: r.resting_hr, sleep_hours: r.sleep_hours, body_weight_kg: r.body_weight_kg }
+  }
+
+  const recoveryByDate: Record<string, RecoveryEntry[]> = {}
+  for (const r of recoveryRows) {
+    if (!recoveryByDate[r.date]) recoveryByDate[r.date] = []
+    recoveryByDate[r.date].push(r)
   }
 
   const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport').eq('id', user.id).single()
@@ -123,6 +135,7 @@ export default async function DagbokPage() {
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}
               initialHealthData={healthData}
+              initialRecoveryData={recoveryByDate}
             />
           </Suspense>
         </div>

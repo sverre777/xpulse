@@ -7,6 +7,9 @@ import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate, ZONE_COLOR
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
+import { RecoveryEntry, displayRecoveryLabel } from '@/lib/recovery-types'
+import { deleteRecoveryEntry } from '@/app/actions/recovery'
+import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -38,6 +41,7 @@ export interface CalendarProps {
   initialDate?: string
   initialWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
   initialHealthData?: Record<string, HealthSummary>
+  initialRecoveryData?: Record<string, RecoveryEntry[]>
   trainingPhases?: TrainingPhase[]
 }
 
@@ -45,6 +49,7 @@ export interface CalendarProps {
 interface CalendarActions {
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string) => void
+  onAddRecovery: (dateStr: string) => void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -304,15 +309,17 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, mode, phases }: {
+function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, phases }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
   healthData: Record<string, HealthSummary>
+  recoveryData: Record<string, RecoveryEntry[]>
   mode: CalendarMode
   phases: TrainingPhase[]
 }) {
-  const { onEditWorkout, onCreateWorkout } = useCalendarActions()
+  const router = useRouter()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
@@ -458,6 +465,47 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                       ) : null
                     })()}
 
+                    {/* Recovery list */}
+                    {mode !== 'plan' && (recoveryData[ds] ?? []).length > 0 && (
+                      <div className="mb-3 space-y-1">
+                        {(recoveryData[ds] ?? []).map(r => {
+                          const { icon, label } = displayRecoveryLabel(r.type)
+                          const meta: string[] = []
+                          if (r.start_time) meta.push(r.start_time.slice(0, 5))
+                          if (r.duration_minutes != null) meta.push(`${r.duration_minutes} min`)
+                          return (
+                            <div key={r.id}
+                              className="flex items-center justify-between p-2"
+                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E' }}>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span style={{ fontSize: '14px' }}>{icon}</span>
+                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
+                                  {label}
+                                </span>
+                                {meta.length > 0 && (
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+                                    {meta.join(' · ')}
+                                  </span>
+                                )}
+                                {r.notes && (
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', fontStyle: 'italic' }}>
+                                    — {r.notes}
+                                  </span>
+                                )}
+                              </div>
+                              <button type="button"
+                                onClick={async () => {
+                                  const res = await deleteRecoveryEntry(r.id)
+                                  if (!res.error) router.refresh()
+                                }}
+                                style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
+                                title="Slett">×</button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
                     <div className="flex gap-3 flex-wrap">
                       <button type="button" onClick={() => onCreateWorkout(ds)}
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
@@ -468,6 +516,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                           + Helse
                         </Link>
+                      )}
+                      {mode !== 'plan' && !isFuture && (
+                        <button type="button" onClick={() => onAddRecovery(ds)}
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                          + Legg til recovery
+                        </button>
                       )}
                     </div>
                   </div>
@@ -627,6 +681,7 @@ export function Calendar({
   mode, userId, primarySport, templates,
   initialView = 'måned', initialDate,
   initialWorkoutsByDate = {}, initialHealthData = {},
+  initialRecoveryData = {},
   trainingPhases = [],
 }: CalendarProps) {
   const router = useRouter()
@@ -636,9 +691,11 @@ export function Calendar({
   const [byDate, setByDate] = useState(initialWorkoutsByDate)
   const healthData = initialHealthData
   const healthDates = new Set(Object.keys(healthData))
+  const recoveryData = initialRecoveryData
   const [loading, setLoading] = useState(false)
   const [showPicker, setShowPicker] = useState(false)
   const [modalState, setModalState] = useState<WorkoutModalState | null>(null)
+  const [recoveryDate, setRecoveryDate] = useState<string | null>(null)
 
   const year = refDate.getFullYear()
   const month = refDate.getMonth() + 1
@@ -682,6 +739,10 @@ export function Calendar({
     // Dagbok + past/today → logg-modal
     setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok' })
   }, [mode, router])
+
+  const handleAddRecovery = useCallback((dateStr: string) => {
+    setRecoveryDate(dateStr)
+  }, [])
 
   const closeModal = useCallback(() => {
     setModalState(null)
@@ -766,7 +827,7 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
-    <CalendarActionsContext.Provider value={{ onEditWorkout: handleEditWorkout, onCreateWorkout: handleCreateWorkout }}>
+    <CalendarActionsContext.Provider value={{ onEditWorkout: handleEditWorkout, onCreateWorkout: handleCreateWorkout, onAddRecovery: handleAddRecovery }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -812,7 +873,7 @@ export function Calendar({
 
       {/* ── Content ── */}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} />
       )}
       {view === 'uke' && (
         <WeekView weekDates={weekDates} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
@@ -826,6 +887,11 @@ export function Calendar({
       onClose={closeModal}
       primarySport={primarySport}
       templates={templates}
+    />
+    <RecoveryModal
+      date={recoveryDate ?? ''}
+      open={recoveryDate !== null}
+      onClose={() => setRecoveryDate(null)}
     />
     </CalendarActionsContext.Provider>
   )

@@ -20,7 +20,7 @@ export interface HeartZone {
 // Olympiatoppens I-skala — prosent av maksimal puls (HFmax).
 // Dette er den norske standarden for utholdenhets-trening og matcher hva
 // utøvere/trenere kjenner fra før.
-const ZONE_PERCENTS: Record<ZoneName, [number, number]> = {
+export const ZONE_PERCENTS: Record<ZoneName, [number, number]> = {
   I1: [0.55, 0.72],  // Rolig langkjøring / Restitusjon
   I2: [0.72, 0.82],  // Moderat langkjøring / Langkjøring 2
   I3: [0.82, 0.87],  // Terskel / Moderat intensiv
@@ -28,24 +28,40 @@ const ZONE_PERCENTS: Record<ZoneName, [number, number]> = {
   I5: [0.92, 0.97],  // VO2max / Høy intensitet
 }
 
-const FALLBACK_AGE = 30
+export const FALLBACK_AGE = 30
+export const FALLBACK_MAX_HR = 220 - FALLBACK_AGE
 
-export function computeDefaultHeartZones(birthYear: number | null | undefined): HeartZone[] {
-  const age = birthYear && birthYear > 1900
-    ? new Date().getFullYear() - birthYear
-    : FALLBACK_AGE
-  const maxHr = 220 - age
+// HFmax fra (manuelt) felt, ellers fra fødselsår (220 - alder), ellers fallback.
+export function resolveMaxHr(
+  maxHeartRate: number | null | undefined,
+  birthYear: number | null | undefined,
+): number {
+  if (maxHeartRate && maxHeartRate > 0) return maxHeartRate
+  if (birthYear && birthYear > 1900) return 220 - (new Date().getFullYear() - birthYear)
+  return FALLBACK_MAX_HR
+}
+
+// OLT-ranges for en gitt HFmax.
+export function computeZonesFromMaxHr(maxHr: number): HeartZone[] {
   return ZONE_NAMES.map(zone => {
     const [lo, hi] = ZONE_PERCENTS[zone]
     return {
       zone_name: zone,
-      min_bpm: Math.round(maxHr * lo),
-      max_bpm: Math.round(maxHr * hi),
+      min_bpm: Math.floor(maxHr * lo),
+      max_bpm: Math.floor(maxHr * hi),
     }
   })
 }
 
-// Fetch custom zones or return age-based defaults. Used server-side.
+export function computeDefaultHeartZones(birthYear: number | null | undefined): HeartZone[] {
+  return computeZonesFromMaxHr(resolveMaxHr(null, birthYear))
+}
+
+// Prioritering:
+//   1) Egne rader i user_heart_zones → bruk dem.
+//   2) profiles.max_heart_rate → beregn OLT-ranges fra den.
+//   3) profiles.birth_year     → HFmax = 220 - alder → OLT-ranges.
+//   4) Fallback (30 år, HFmax 190).
 export async function getHeartZonesForUser(
   supabase: SupabaseClient,
   userId: string,
@@ -64,11 +80,12 @@ export async function getHeartZonesForUser(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('birth_year')
+    .select('birth_year, max_heart_rate')
     .eq('id', userId)
     .maybeSingle()
 
-  return computeDefaultHeartZones(profile?.birth_year ?? null)
+  const maxHr = resolveMaxHr(profile?.max_heart_rate ?? null, profile?.birth_year ?? null)
+  return computeZonesFromMaxHr(maxHr)
 }
 
 // Given a heart rate, return the zone it falls in, or null if below I1.

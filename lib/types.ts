@@ -399,6 +399,10 @@ export interface Profile {
   role: Role
   primary_sport: Sport | null
   avatar_url: string | null
+  birth_year: number | null
+  max_heart_rate: number | null
+  lactate_threshold_hr: number | null
+  resting_heart_rate: number | null
   created_at: string
   updated_at: string
 }

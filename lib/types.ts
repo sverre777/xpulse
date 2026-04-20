@@ -331,6 +331,11 @@ export interface CalendarWorkoutSummary {
   workout_type: WorkoutType
   duration_minutes: number | null
   zones: { zone_name: string; minutes: number }[]
+  // Planlagte verdier fra planned_snapshot — brukes i Plan-visninger slik at
+  // planen vises uendret også etter gjennomføring (da hovedradens kolonner
+  // inneholder actual-verdier).
+  planned_duration_minutes: number | null
+  planned_zones: { zone_name: string; minutes: number }[]
 }
 
 export const TYPE_COLORS: Record<string, string> = {

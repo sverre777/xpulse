@@ -4,14 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
-import { CalendarWorkoutSummary, Sport, WorkoutTemplate } from '@/lib/types'
-
-type RawWorkout = {
-  id: string; title: string; date: string; workout_type: string
-  is_planned: boolean; is_completed: boolean; is_important: boolean
-  duration_minutes: number | null
-  workout_zones?: { zone_name: string; minutes: number }[]
-}
+import { Sport, WorkoutTemplate } from '@/lib/types'
+import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 
 export default async function DagbokPage() {
   const supabase = await createClient()
@@ -40,17 +34,7 @@ export default async function DagbokPage() {
     getTemplates(),
   ])
 
-  const workoutsByDate: Record<string, CalendarWorkoutSummary[]> = {}
-  for (const w of rawWorkouts as unknown as RawWorkout[]) {
-    if (!workoutsByDate[w.date]) workoutsByDate[w.date] = []
-    workoutsByDate[w.date].push({
-      id: w.id, title: w.title,
-      is_planned: w.is_planned, is_completed: w.is_completed, is_important: w.is_important,
-      workout_type: w.workout_type as CalendarWorkoutSummary['workout_type'],
-      duration_minutes: w.duration_minutes,
-      zones: (w.workout_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes })),
-    })
-  }
+  const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[])
 
   type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; body_weight_kg: number | null }
   const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}

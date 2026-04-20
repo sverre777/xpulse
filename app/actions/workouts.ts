@@ -24,9 +24,33 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     warmup_shots:  parseInt(data.shooting_warmup_shots) || null,
   } : null
 
-  // Plan-snapshot: bevares uendret når planlagt økt blir markert gjennomført.
-  // Settes bare når is_planned=true OG workouten ikke er gjennomført ennå.
-  const plannedSnapshot = data.is_planned && !data.is_completed ? {
+  // Aggregate zones/movements from inline movement data (used av både plan- og actual-felt).
+  const zoneTotalsMap: Record<string, number> = {}
+  for (const m of data.movements) {
+    for (const z of m.zones ?? []) {
+      const n = parseInt(z.minutes) || 0
+      if (n > 0) zoneTotalsMap[z.zone_name] = (zoneTotalsMap[z.zone_name] ?? 0) + n
+    }
+  }
+  for (const z of data.zones ?? []) {
+    const n = parseInt(z.minutes) || 0
+    if (n > 0) zoneTotalsMap[z.zone_name] = (zoneTotalsMap[z.zone_name] ?? 0) + n
+  }
+  const zoneAggregate = Object.entries(zoneTotalsMap).map(([zone_name, minutes]) => ({ zone_name, minutes }))
+  const movementAggregate = data.movements
+    .filter(m => m.movement_name && (m.minutes || m.distance_km))
+    .map(m => ({
+      movement_name: m.movement_name,
+      minutes: parseInt(m.minutes) || null,
+      distance_km: parseFloat(m.distance_km) || null,
+    }))
+
+  // Plan-save: brukeren redigerer planen (Plan-modal, ikke gjennomført ennå).
+  // I dette tilfellet skal vi skrive til planned_* + planned_snapshot.
+  // Ved "Merk som gjennomført" (is_completed=true) skal planned_*/snapshot IKKE røres.
+  const isPlanSave = data.is_planned && !data.is_completed
+
+  const plannedSnapshot = isPlanSave ? {
     title: data.title,
     sport: data.sport,
     workout_type: data.workout_type,
@@ -36,7 +60,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     notes: data.notes || null,
     tags: data.tags,
     movements: data.movements,
-    zones: data.zones ?? [],
+    zones: zoneAggregate,
     shooting_data: shootingData,
   } : undefined
 
@@ -60,10 +84,24 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     shooting_data: shootingData,
     updated_at: new Date().toISOString(),
   }
-  // Kun inkluder planned_snapshot i payload når vi skal sette/oppdatere planen.
-  // Ved mark-gjennomført (is_completed=true) utelates feltet, så eksisterende
-  // snapshot bevares uendret.
-  if (plannedSnapshot) basePayload.planned_snapshot = plannedSnapshot
+
+  // Plan-save: populer planned_* og frys snapshot.
+  if (isPlanSave && plannedSnapshot) {
+    basePayload.planned_snapshot = plannedSnapshot
+    basePayload.planned_minutes = totalMinutes || null
+    basePayload.planned_km = totalKm || null
+    basePayload.planned_zones = zoneAggregate
+    basePayload.planned_movement_types = movementAggregate
+  }
+  // Actual-save: ved gjennomføring (mark-completed eller rå Dagbok-logg) skrives
+  // kun actual_*-feltene. planned_*/snapshot utelates helt fra payload slik at
+  // eksisterende plan-referanse forblir uendret.
+  if (data.is_completed) {
+    basePayload.actual_minutes = totalMinutes || null
+    basePayload.actual_km = totalKm || null
+    basePayload.actual_zones = zoneAggregate
+    basePayload.actual_movement_types = movementAggregate
+  }
   const workoutPayload = basePayload
 
   let savedId = workoutId
@@ -111,29 +149,14 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     )
   }
 
-  // Flatten all movement zones into workout_zones for calendar/summary views
-  const allZones: { zone_name: string; minutes: number; sort_order: number }[] = []
-  const zoneTotals: Record<string, number> = {}
-  for (const m of data.movements) {
-    for (const z of m.zones ?? []) {
-      if (parseInt(z.minutes) > 0) {
-        zoneTotals[z.zone_name] = (zoneTotals[z.zone_name] ?? 0) + parseInt(z.minutes)
-      }
-    }
-  }
-  // Also include top-level zones (legacy support)
-  for (const z of data.zones ?? []) {
-    if (parseInt(z.minutes) > 0) {
-      zoneTotals[z.zone_name] = (zoneTotals[z.zone_name] ?? 0) + parseInt(z.minutes)
-    }
-  }
-  let zIdx = 0
-  for (const [zone_name, minutes] of Object.entries(zoneTotals)) {
-    allZones.push({ zone_name, minutes, sort_order: zIdx++ })
-  }
-  if (allZones.length > 0) {
+  // Flatten all movement zones into workout_zones for calendar/summary views.
+  // Child-raden workout_zones reflekterer hovedradens semantikk:
+  //  - Plan-save → plan-soner
+  //  - Completion/Dagbok → actual-soner
+  // Plan-visning leser planned_snapshot.zones i stedet for denne tabellen.
+  if (zoneAggregate.length > 0) {
     await supabase.from('workout_zones').insert(
-      allZones.map(z => ({ workout_id: savedId, ...z }))
+      zoneAggregate.map((z, i) => ({ workout_id: savedId, ...z, sort_order: i }))
     )
   }
 
@@ -215,7 +238,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,workout_zones(*)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -228,7 +251,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,workout_zones(*)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,planned_snapshot,workout_zones(*)')
     .eq('user_id', userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -265,15 +288,16 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== user.id) return null
 
-  // Plan-modus + gjennomført: hydrer fra planned_snapshot så planen vises
-  // uendret (ikke overskrivet av actual-verdiene i hovedkolonnene).
+  // Plan-modus hydrerer alltid fra planned_snapshot når tilgjengelig, uavhengig
+  // av gjennomføring. Da vises planen som frosset referanse, selv etter at
+  // actual-verdiene er skrevet til hovedradens kolonner + child-tabellene.
   const snap = workout.planned_snapshot as {
     title?: string; sport?: Sport; workout_type?: WorkoutType
     duration_minutes?: number | null; distance_km?: number | null; elevation_meters?: number | null
     notes?: string | null; tags?: string[]; movements?: unknown[]; zones?: unknown[]
     shooting_data?: { prone_shots?: number | null; prone_hits?: number | null; standing_shots?: number | null; standing_hits?: number | null; warmup_shots?: number | null } | null
   } | null
-  const usePlanSnapshot = formMode === 'plan' && workout.is_completed && snap
+  const usePlanSnapshot = formMode === 'plan' && !!snap
 
   if (usePlanSnapshot) {
     return {

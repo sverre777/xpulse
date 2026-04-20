@@ -42,7 +42,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const [showTemplateInput, setShowTemplateInput] = useState(false)
   // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
   // Viser full dagbok-utfylling med plan-verdier forhåndsutfylt. Ved lagring settes is_completed=true.
+  // planReference: frosset kopi av planen som vises read-only øverst mens bruker redigerer actuals.
   const [markingCompleted, setMarkingCompleted] = useState(false)
+  const [planReference, setPlanReference] = useState<WorkoutFormData | null>(null)
 
   const today = initialDate ?? new Date().toISOString().split('T')[0]
 
@@ -289,6 +291,11 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </Section>
       )}
 
+      {/* ── PLAN-REFERANSE (read-only) — vises mens bruker registrerer actuals ── */}
+      {markingCompleted && planReference && (
+        <PlanReferenceCard plan={planReference} />
+      )}
+
       {/* ── MERK SOM GJENNOMFØRT — CTA for planlagt økt åpnet i Dagbok (i dag / tidligere) ── */}
       {showMarkCompletedCTA && (
         <div className="my-4 p-5" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', border: '1px solid #28A86E' }}>
@@ -297,7 +304,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             Planlagt økt
           </p>
           <button type="button"
-            onClick={() => setMarkingCompleted(true)}
+            onClick={() => { setPlanReference(form); setMarkingCompleted(true) }}
             className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
@@ -464,6 +471,77 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 }
 
 // ── Shared helpers ──
+
+function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
+  const totalMinutes = plan.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
+  const totalKm = plan.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
+  const zoneTotals: Record<string, number> = {}
+  for (const m of plan.movements) {
+    for (const z of m.zones ?? []) {
+      const n = parseInt(z.minutes) || 0
+      if (n > 0) zoneTotals[z.zone_name] = (zoneTotals[z.zone_name] ?? 0) + n
+    }
+  }
+  const zones = Object.entries(zoneTotals)
+  const movements = plan.movements.filter(m => m.movement_name && (m.minutes || m.distance_km))
+  return (
+    <div className="my-4 p-4" style={{ border: '1px solid #222228', backgroundColor: '#0D0D11' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <span style={{ width: '12px', height: '2px', backgroundColor: '#555560', display: 'inline-block' }} />
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Plan (referanse)
+        </span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+        <div>
+          <div className="text-xs" style={{ color: '#555560' }}>Varighet</div>
+          <div>{totalMinutes > 0 ? `${totalMinutes} min` : '—'}</div>
+        </div>
+        <div>
+          <div className="text-xs" style={{ color: '#555560' }}>Distanse</div>
+          <div>{totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'}</div>
+        </div>
+        <div>
+          <div className="text-xs" style={{ color: '#555560' }}>Type</div>
+          <div>{plan.workout_type}</div>
+        </div>
+      </div>
+      {movements.length > 0 && (
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: '#555560' }}>Bevegelsesformer</div>
+          <div className="flex flex-wrap gap-2">
+            {movements.map((m, i) => (
+              <span key={i} style={{ border: '1px solid #222228', padding: '2px 8px' }}>
+                {m.movement_name}
+                {m.minutes ? ` · ${m.minutes} min` : ''}
+                {m.distance_km ? ` · ${m.distance_km} km` : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {zones.length > 0 && (
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: '#555560' }}>Soner</div>
+          <div className="flex flex-wrap gap-2">
+            {zones.map(([name, mins]) => (
+              <span key={name} style={{ border: '1px solid #222228', padding: '2px 8px' }}>
+                {name} · {mins} min
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {plan.notes && (
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: '#555560' }}>Notater</div>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{plan.notes}</div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const iSt: React.CSSProperties = {
   backgroundColor: '#16161A', border: '1px solid #1E1E22',

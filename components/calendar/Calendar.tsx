@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate, ZONE_COLORS } from '@/lib/types'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
+import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -62,12 +63,6 @@ const PHASE_COLORS: Record<string, string> = {
   base: '#1A3A6A', specific: '#1A5A3A', competition: '#6A1A1A', recovery: '#3A3A6A',
 }
 
-type RawW = {
-  id: string; title: string; date: string; workout_type: string
-  is_planned: boolean; is_completed: boolean; is_important: boolean
-  duration_minutes: number | null
-  workout_zones?: { zone_name: string; minutes: number }[]
-}
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -111,20 +106,6 @@ function fmtDuration(mins: number | null) {
   return h > 0 ? `${h}t${m > 0 ? ` ${m}m` : ''}` : `${m}m`
 }
 
-function parseWorkouts(raw: RawW[]): Record<string, CalendarWorkoutSummary[]> {
-  const byDate: Record<string, CalendarWorkoutSummary[]> = {}
-  for (const w of raw) {
-    if (!byDate[w.date]) byDate[w.date] = []
-    byDate[w.date].push({
-      id: w.id, title: w.title, is_planned: w.is_planned,
-      is_completed: w.is_completed, is_important: w.is_important,
-      workout_type: w.workout_type as CalendarWorkoutSummary['workout_type'],
-      duration_minutes: w.duration_minutes,
-      zones: (w.workout_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes })),
-    })
-  }
-  return byDate
-}
 
 function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
   // Plan: vis alle planlagte — også de som er markert gjennomført
@@ -141,13 +122,22 @@ function planVisual(w: CalendarWorkoutSummary, mode: CalendarMode) {
   return w.is_planned && !w.is_completed
 }
 
+// Plan-modus leser planlagte verdier fra snapshot — de vises uendret også etter
+// gjennomføring. Dagbok-modus leser hovedradens actual-verdier som normalt.
+function durationFor(w: CalendarWorkoutSummary, mode: CalendarMode): number | null {
+  return mode === 'plan' ? w.planned_duration_minutes : w.duration_minutes
+}
+function zonesFor(w: CalendarWorkoutSummary, mode: CalendarMode): { zone_name: string; minutes: number }[] {
+  return mode === 'plan' ? w.planned_zones : w.zones
+}
+
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
   let mins = 0, sessions = 0
   for (const d of week) {
     const ws = filterByMode(byDate[toISO(d)] ?? [], mode)
     for (const w of ws) {
       if (mode === 'plan' || !w.is_planned || w.is_completed) {
-        mins += w.duration_minutes ?? 0; sessions++
+        mins += durationFor(w, mode) ?? 0; sessions++
       }
     }
   }
@@ -171,6 +161,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const color = TYPE_COLORS[w.workout_type] ?? '#555'
   const isPlanned = planVisual(w, mode)
+  const duration = durationFor(w, mode)
   const { onEditWorkout } = useCalendarActions()
   return (
     <button
@@ -189,11 +180,11 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '10px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
-          {w.is_completed && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
+          {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.title}
-          {w.duration_minutes ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{fmtDuration(w.duration_minutes)}</span> : null}
+          {duration ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{fmtDuration(duration)}</span> : null}
         </span>
-        {mode === 'analyse' && <ZoneBar zones={w.zones ?? []} />}
+        {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>
     </button>
   )
@@ -433,12 +424,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                                     {w.title}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    {w.is_completed && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
+                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
                                     {isPlanned && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
-                                    {w.duration_minutes && <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{fmtDuration(w.duration_minutes)}</span>}
+                                    {durationFor(w, mode) && <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{fmtDuration(durationFor(w, mode))}</span>}
                                   </div>
                                 </div>
-                                {(w.zones ?? []).length > 0 && <ZoneBar zones={w.zones!} />}
+                                {(zonesFor(w, mode) ?? []).length > 0 && <ZoneBar zones={zonesFor(w, mode)} />}
                               </div>
                             </button>
                           )
@@ -504,7 +495,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
   const today = toISO(new Date())
   const allWorkouts = weekDates.flatMap(d => filterByMode(byDate[toISO(d)] ?? [], mode))
     .filter(w => mode === 'plan' || !w.is_planned || w.is_completed)
-  const totalMins = allWorkouts.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
+  const totalMins = allWorkouts.reduce((s, w) => s + (durationFor(w, mode) ?? 0), 0)
   const totalSessions = allWorkouts.length
 
   return (
@@ -606,7 +597,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
           const ws = filterByMode(byDate[toISO(new Date(d))] ?? [], mode)
           for (const w of ws) {
-            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += w.duration_minutes ?? 0; sessions++ }
+            if (mode === 'plan' || !w.is_planned || w.is_completed) { mins += durationFor(w, mode) ?? 0; sessions++ }
           }
         }
         return (
@@ -718,7 +709,7 @@ export function Calendar({
   const fetchData = useCallback(async (start: Date, end: Date) => {
     setLoading(true)
     const raw = await getCalendarWorkouts(userId, toISO(start), toISO(end))
-    setByDate(parseWorkouts(raw as unknown as RawW[]))
+    setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[]))
     setLoading(false)
   }, [userId])
 

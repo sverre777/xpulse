@@ -5,6 +5,7 @@ import {
 import { SeasonSelector } from '@/components/periodization/SeasonSelector'
 import { PeriodsSection } from '@/components/periodization/PeriodsSection'
 import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
+import { SeasonWeeksStrip } from '@/components/periodization/SeasonWeeksStrip'
 
 function ErrorBox({ message }: { message: string }) {
   return (
@@ -147,6 +148,7 @@ export default async function PeriodiseringPage({
         ) : (
           <>
             <GoalsCard season={activeSeason} />
+            <SeasonWeeksStrip season={activeSeason} periods={periods} keyDates={keyDates} />
             <PeriodsSection season={activeSeason} periods={periods} />
             <KeyDatesSection season={activeSeason} keyDates={keyDates} />
           </>

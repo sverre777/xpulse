@@ -14,6 +14,11 @@ import { deleteRecoveryEntry } from '@/app/actions/recovery'
 import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
+import {
+  INTENSITY_TINT, INTENSITY_COLOR, INTENSITY_LABEL,
+  KEY_EVENT_VISUALS,
+  keyDatesForDate, weekOverlayFor,
+} from '@/lib/periodization-overlay'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -51,6 +56,9 @@ export interface CalendarProps {
   // Valgfrie initial-kommentarer (nøklet på periodeID) for å unngå roundtrip ved mount.
   initialWeekNote?: string
   initialMonthNote?: string
+  // Periodiseringsoverlay (valgfritt — tom array = ingen overlay).
+  seasonPeriods?: import('@/app/actions/seasons').SeasonPeriod[]
+  seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -395,7 +403,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
 
 // ── Day cell ────────────────────────────────────────────────
 
-function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, phases }: {
+function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, phases, keyDatesOnDay }: {
   date: Date
   workouts: CalendarWorkoutSummary[]
   healthDate: boolean
@@ -404,6 +412,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   isExpanded: boolean
   onToggle: () => void
   phases: TrainingPhase[]
+  keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const { onCreateWorkout } = useCalendarActions()
   const dateStr = toISO(date)
@@ -411,6 +420,9 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const isToday = dateStr === today
   const activePhase = phases.find(p => dateStr >= p.start_date && dateStr <= p.end_date)
   const phaseColor = activePhase ? (PHASE_COLORS[activePhase.phase_type ?? ''] ?? activePhase.color ?? '#333') : null
+  // Bruk den viktigste hendelsen på dagen til å velge rammefarge/tykkelse.
+  const topKey = keyDatesOnDay[0] ?? null
+  const keyVisual = topKey ? KEY_EVENT_VISUALS[topKey.event_type] : null
 
   return (
     <div
@@ -426,17 +438,19 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         minHeight: '96px',
         padding: '4px',
         cursor: 'pointer',
-        outline: 'none',
+        outline: keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none',
+        outlineOffset: keyVisual ? `-${keyVisual.borderWidth}px` : 0,
         position: 'relative',
         display: 'block',
       }}
+      title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
     >
       {/* Phase background bar */}
       {phaseColor && (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', backgroundColor: phaseColor, opacity: 0.6 }} />
       )}
 
-      {/* Date number + health dot */}
+      {/* Date number + key-date icons + health dot */}
       <div className="flex items-center justify-between mb-1" style={{ marginTop: phaseColor ? '4px' : 0 }}>
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', lineHeight: 1,
@@ -445,6 +459,12 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
+          {keyDatesOnDay.slice(0, 2).map(k => (
+            <span key={k.id} aria-hidden
+              style={{ fontSize: '11px', lineHeight: 1 }}>
+              {KEY_EVENT_VISUALS[k.event_type].icon}
+            </span>
+          ))}
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
           {mode === 'plan' && (
             <button type="button"
@@ -484,7 +504,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, phases }: {
+function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, phases, seasonPeriods, seasonKeyDates }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
@@ -492,6 +512,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   recoveryData: Record<string, RecoveryEntry[]>
   mode: CalendarMode
   phases: TrainingPhase[]
+  seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
+  seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
   const { onEditWorkout, onCreateWorkout, onAddRecovery } = useCalendarActions()
@@ -560,16 +582,28 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const weekKm = fmtKm(weekAgg.meters)
         const expandedInWeek = week.some(d => toISO(d) === expandedDay)
         const expandedDate = week.find(d => toISO(d) === expandedDay)
+        const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
+        const rowTint = weekOverlay.period ? INTENSITY_TINT[weekOverlay.period.intensity] : undefined
+        const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
 
         return (
           <Fragment key={wi}>
             <div className="grid" style={{
               gridTemplateColumns: '36px repeat(7, 1fr) 72px',
               borderBottom: expandedInWeek ? 'none' : '1px solid #1A1A1E',
+              backgroundColor: rowTint,
             }}>
-              {/* Week number */}
-              <div className="flex flex-col items-center justify-start pt-2">
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#2A2A30', fontSize: '13px' }}>{wn}</span>
+              {/* Week number + period badge */}
+              <div className="flex flex-col items-center justify-start pt-2" style={{
+                borderLeft: weekOverlay.period ? `2px solid ${rowAccent}` : 'none',
+              }}>
+                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: weekOverlay.period ? rowAccent : '#2A2A30', fontSize: '13px' }}>{wn}</span>
+                {weekOverlay.weekIndex && weekOverlay.weekCount && (
+                  <span title={`${weekOverlay.period?.name} · ${INTENSITY_LABEL[weekOverlay.period!.intensity]}`}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '9px', marginTop: '2px', letterSpacing: '0.04em' }}>
+                    {weekOverlay.weekIndex}/{weekOverlay.weekCount}
+                  </span>
+                )}
               </div>
 
               {/* Days */}
@@ -586,6 +620,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     isExpanded={expandedDay === ds}
                     onToggle={() => setExpandedDay(prev => prev === ds ? null : ds)}
                     phases={phases}
+                    keyDatesOnDay={keyDatesForDate(seasonKeyDates, ds)}
                   />
                 )
               })}
@@ -773,7 +808,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
 // ── Week view ──────────────────────────────────────────────
 
-function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, phases }: {
+function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, phases, seasonPeriods, seasonKeyDates }: {
   weekDates: Date[]
   weekNum: number
   byDate: Record<string, CalendarWorkoutSummary[]>
@@ -781,6 +816,8 @@ function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, p
   healthData: Record<string, HealthSummary>
   mode: CalendarMode
   phases: TrainingPhase[]
+  seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
+  seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const { onCreateWorkout } = useCalendarActions()
   const today = toISO(new Date())
@@ -788,9 +825,71 @@ function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, p
   const totalMins = Math.round(weekAgg.seconds / 60)
   const totalSessions = weekAgg.sessions
   const weekKm = fmtKm(weekAgg.meters)
+  const weekOverlay = weekOverlayFor(seasonPeriods, toISO(weekDates[0]))
+  const weekKeyDates = seasonKeyDates.filter(k => {
+    const s = toISO(weekDates[0]); const e = toISO(weekDates[6])
+    return k.event_date >= s && k.event_date <= e
+  })
 
   return (
     <div>
+      {/* Periodestripe: periode-navn + intensitet + uke-index + nøkkeldatoer */}
+      {(weekOverlay.period || weekKeyDates.length > 0) && (
+        <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
+          style={{
+            borderBottom: '1px solid #1A1A1E',
+            backgroundColor: weekOverlay.period ? INTENSITY_TINT[weekOverlay.period.intensity] : '#111113',
+            borderLeft: weekOverlay.period ? `3px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}` : 'none',
+          }}>
+          {weekOverlay.period && (
+            <>
+              <span className="text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Periode
+              </span>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.06em' }}>
+                {weekOverlay.period.name}
+              </span>
+              <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  color: INTENSITY_COLOR[weekOverlay.period.intensity],
+                  border: `1px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}`,
+                }}>
+                {INTENSITY_LABEL[weekOverlay.period.intensity]}
+              </span>
+              {weekOverlay.weekIndex && weekOverlay.weekCount && (
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+                  Uke {weekOverlay.weekIndex} av {weekOverlay.weekCount}
+                </span>
+              )}
+              {weekOverlay.period.focus && (
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+                  · {weekOverlay.period.focus}
+                </span>
+              )}
+            </>
+          )}
+          {weekKeyDates.length > 0 && (
+            <div className="flex items-center gap-2 ml-auto flex-wrap">
+              {weekKeyDates.map(k => {
+                const v = KEY_EVENT_VISUALS[k.event_type]
+                return (
+                  <span key={k.id} className="px-2 py-0.5 text-xs"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      color: v.color,
+                      border: `1px solid ${v.color}`,
+                    }}>
+                    <span aria-hidden>{v.icon}</span> {k.name}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Week stats: label + tid + km + økter + sonebar + legend (matcher måned) */}
       {weekAgg.seconds > 0 && (
         <div className="px-4 md:px-6 py-3"
@@ -1015,6 +1114,8 @@ export function Calendar({
   heartZones = [],
   initialWeekNote = '',
   initialMonthNote = '',
+  seasonPeriods = [],
+  seasonKeyDates = [],
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1250,10 +1351,10 @@ export function Calendar({
         />
       )}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
       )}
       {view === 'uke' && (
-        <WeekView weekDates={weekDates} weekNum={weekNum} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} />
+        <WeekView weekDates={weekDates} weekNum={weekNum} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
       )}
       {view === 'år' && (
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />

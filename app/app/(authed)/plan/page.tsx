@@ -8,6 +8,8 @@ import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
 import { getPeriodNotes } from '@/app/actions/period-notes'
+import { getPeriodizationForDateRange } from '@/app/actions/seasons'
+import { SeasonContextStrip } from '@/components/periodization/SeasonContextStrip'
 
 const PHASE_COLORS: Record<string, string> = {
   base: '#1A3A6A', specific: '#1A5A3A', competition: '#6A1A1A', recovery: '#3A3A6A',
@@ -31,7 +33,14 @@ export default async function PlanPage() {
   const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
   const monthKey = `${year}-${String(month).padStart(2, '0')}`
 
-  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
+  // For periodiseringsoverlay: dekker 12 mnd rundt i dag, så overlay også
+  // er tilgjengelig når bruker navigerer fram og tilbake i kalenderen.
+  const overlayFrom = new Date(now); overlayFrom.setMonth(overlayFrom.getMonth() - 6)
+  const overlayTo = new Date(now); overlayTo.setMonth(overlayTo.getMonth() + 6)
+  const overlayFromISO = overlayFrom.toISOString().split('T')[0]
+  const overlayToISO = overlayTo.toISOString().split('T')[0]
+
+  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('training_goals').select('*').eq('user_id', user.id).order('date'),
     supabase.from('training_phases').select('*').eq('user_id', user.id).order('start_date'),
@@ -40,7 +49,11 @@ export default async function PlanPage() {
     getHeartZonesForUser(supabase, user.id),
     getPeriodNotes('week', [weekKey], 'plan'),
     getPeriodNotes('month', [monthKey], 'plan'),
+    getPeriodizationForDateRange(overlayFromISO, overlayToISO),
   ])
+
+  const seasonPeriods = !('error' in periodization) ? periodization.periods : []
+  const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
@@ -66,6 +79,8 @@ export default async function PlanPage() {
           </h1>
         </div>
 
+        <SeasonContextStrip periods={seasonPeriods} keyDates={seasonKeyDates} todayISO={today} />
+
         {/* Calendar */}
         <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11', marginBottom: '32px' }}>
           <Suspense fallback={null}>
@@ -79,6 +94,8 @@ export default async function PlanPage() {
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}
               trainingPhases={trainingPhases}
+              seasonPeriods={seasonPeriods}
+              seasonKeyDates={seasonKeyDates}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
             />

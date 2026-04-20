@@ -30,7 +30,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates }: Workou
       return
     }
     setLoading(true)
-    getWorkoutForEdit(state.workoutId).then(d => {
+    getWorkoutForEdit(state.workoutId, state.formMode).then(d => {
       setDefaults(d)
       setLoading(false)
     })

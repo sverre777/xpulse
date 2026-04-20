@@ -24,7 +24,23 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     warmup_shots:  parseInt(data.shooting_warmup_shots) || null,
   } : null
 
-  const workoutPayload = {
+  // Plan-snapshot: bevares uendret når planlagt økt blir markert gjennomført.
+  // Settes bare når is_planned=true OG workouten ikke er gjennomført ennå.
+  const plannedSnapshot = data.is_planned && !data.is_completed ? {
+    title: data.title,
+    sport: data.sport,
+    workout_type: data.workout_type,
+    duration_minutes: totalMinutes || null,
+    distance_km: totalKm || null,
+    elevation_meters: totalElev || null,
+    notes: data.notes || null,
+    tags: data.tags,
+    movements: data.movements,
+    zones: data.zones ?? [],
+    shooting_data: shootingData,
+  } : undefined
+
+  const basePayload: Record<string, unknown> = {
     user_id: user.id,
     title: data.title,
     sport: data.sport,
@@ -36,7 +52,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     elevation_meters: totalElev || null,
     notes: data.notes || null,
     is_planned: data.is_planned,
-    is_completed: !data.is_planned,
+    is_completed: data.is_completed,
     is_important: data.is_important,
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
@@ -44,6 +60,11 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     shooting_data: shootingData,
     updated_at: new Date().toISOString(),
   }
+  // Kun inkluder planned_snapshot i payload når vi skal sette/oppdatere planen.
+  // Ved mark-gjennomført (is_completed=true) utelates feltet, så eksisterende
+  // snapshot bevares uendret.
+  if (plannedSnapshot) basePayload.planned_snapshot = plannedSnapshot
+  const workoutPayload = basePayload
 
   let savedId = workoutId
 
@@ -165,11 +186,13 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
 }
 
 export async function markCompleted(workoutId: string): Promise<{ error?: string }> {
+  // NB: is_planned bevares — planen skal fortsatt være synlig i Plan-kalenderen
+  // etter gjennomføring. Gjennomføring signaliseres med is_completed=true.
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
   const { error } = await supabase.from('workouts')
-    .update({ is_completed: true, is_planned: false, updated_at: new Date().toISOString() })
+    .update({ is_completed: true, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', user.id)
   if (error) return { error: error.message }
   revalidatePath('/app/dagbok')
@@ -232,15 +255,51 @@ export async function getWorkout(id: string) {
   return data
 }
 
-export async function getWorkoutForEdit(id: string): Promise<Partial<WorkoutFormData> | null> {
+export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' = 'dagbok'): Promise<Partial<WorkoutFormData> | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  const { data: workout } = await supabase
+  const { data: workout, error } = await supabase
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*)')
     .eq('id', id).single()
-  if (!workout || workout.user_id !== user.id) return null
+  if (error || !workout || workout.user_id !== user.id) return null
+
+  // Plan-modus + gjennomført: hydrer fra planned_snapshot så planen vises
+  // uendret (ikke overskrivet av actual-verdiene i hovedkolonnene).
+  const snap = workout.planned_snapshot as {
+    title?: string; sport?: Sport; workout_type?: WorkoutType
+    duration_minutes?: number | null; distance_km?: number | null; elevation_meters?: number | null
+    notes?: string | null; tags?: string[]; movements?: unknown[]; zones?: unknown[]
+    shooting_data?: { prone_shots?: number | null; prone_hits?: number | null; standing_shots?: number | null; standing_hits?: number | null; warmup_shots?: number | null } | null
+  } | null
+  const usePlanSnapshot = formMode === 'plan' && workout.is_completed && snap
+
+  if (usePlanSnapshot) {
+    return {
+      title:        snap.title ?? workout.title,
+      date:         workout.date,
+      time_of_day:  workout.time_of_day ?? '',
+      sport:        (snap.sport ?? workout.sport) as Sport,
+      workout_type: (snap.workout_type ?? workout.workout_type) as WorkoutType,
+      is_planned:   true,
+      is_completed: workout.is_completed,
+      is_important: workout.is_important,
+      notes:        snap.notes ?? '',
+      day_form_physical: null,
+      day_form_mental:   null,
+      rpe:          null,
+      tags:         snap.tags ?? [],
+      movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
+      zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
+      lactate:      [],
+      shooting_prone_shots:    snap.shooting_data?.prone_shots?.toString() ?? '',
+      shooting_prone_hits:     snap.shooting_data?.prone_hits?.toString() ?? '',
+      shooting_standing_shots: snap.shooting_data?.standing_shots?.toString() ?? '',
+      shooting_standing_hits:  snap.shooting_data?.standing_hits?.toString() ?? '',
+      shooting_warmup_shots:   snap.shooting_data?.warmup_shots?.toString() ?? '',
+    }
+  }
 
   return {
     title:        workout.title,
@@ -249,6 +308,7 @@ export async function getWorkoutForEdit(id: string): Promise<Partial<WorkoutForm
     sport:        workout.sport as Sport,
     workout_type: workout.workout_type as WorkoutType,
     is_planned:   workout.is_planned,
+    is_completed: workout.is_completed,
     is_important: workout.is_important,
     notes:        workout.notes ?? '',
     day_form_physical: workout.day_form_physical,

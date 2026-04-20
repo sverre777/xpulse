@@ -40,6 +40,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const [error, setError] = useState<string | null>(null)
   const [templateName, setTemplateName] = useState('')
   const [showTemplateInput, setShowTemplateInput] = useState(false)
+  // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
+  // Viser full dagbok-utfylling med plan-verdier forhåndsutfylt. Ved lagring settes is_completed=true.
+  const [markingCompleted, setMarkingCompleted] = useState(false)
 
   const today = initialDate ?? new Date().toISOString().split('T')[0]
 
@@ -50,6 +53,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     sport:       defaultValues?.sport ?? initialSport,
     workout_type: defaultValues?.workout_type ?? 'long_run',
     is_planned:  formMode === 'plan' ? true : (defaultValues?.is_planned ?? false),
+    is_completed: defaultValues?.is_completed ?? false,
     is_important: defaultValues?.is_important ?? false,
     movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
       ...m,
@@ -132,7 +136,13 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     e.preventDefault()
     if (!form.title.trim()) { setError('Tittel er påkrevd'); return }
     setSaving(true); setError(null)
-    const result = await saveWorkout(form, workoutId)
+    // Payload: is_planned bevares (så planen forblir synlig i Plan). Gjennomføring signaleres
+    // med is_completed=true. Ved rene dagbok-økter (ikke fra plan) er is_planned=false.
+    const payload: WorkoutFormData = {
+      ...form,
+      is_completed: markingCompleted ? true : (isPlanMode ? false : (form.is_planned ? form.is_completed : true)),
+    }
+    const result = await saveWorkout(payload, workoutId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
       if (onSaved) onSaved()
@@ -144,11 +154,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const isBiathlon         = form.sport === 'biathlon'
   const workoutTypeOptions = getWorkoutTypes(form.sport)
   const isPlanned   = form.is_planned
+  const isCompleted = form.is_completed
 
   // Date-based locking: execution fields only available today or in the past
   const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` })()
   const isFutureDate = form.date > todayStr
-  const showExecutionFields = !isPlanned && !isFutureDate
+  // Vis dagbok-spesifikke felt når: økt er gjennomført, eller vi er i markingCompleted-flyten, eller det er en ren dagbok-økt (ikke plan)
+  const showExecutionFields = !isPlanMode && !isFutureDate && (isCompleted || markingCompleted || !isPlanned)
+  // "Merk som gjennomført"-CTA vises når en planlagt økt åpnes i Dagbok, i dag eller tidligere, og ikke allerede gjennomført
+  const showMarkCompletedCTA = !isPlanMode && isPlanned && !isCompleted && !isFutureDate && !markingCompleted
 
   // Shooting stats
   const pronePct    = form.shooting_prone_shots ? Math.round((parseInt(form.shooting_prone_hits)||0) / parseInt(form.shooting_prone_shots) * 100) : null
@@ -275,30 +289,44 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </Section>
       )}
 
-      {/* ── MERK GJENNOMFØRT (kun for planlagte økter i dagbok-modus) ── */}
-      {isPlanned && !isPlanMode && (
-        <div className="py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
-          <button
-            type="button"
-            onClick={() => !isFutureDate && set('is_planned', false)}
-            disabled={isFutureDate}
-            title={isFutureDate ? `Tilgjengelig fra ${new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}` : undefined}
-            className="px-5 py-2.5 text-sm tracking-widest uppercase"
+      {/* ── MERK SOM GJENNOMFØRT — CTA for planlagt økt åpnet i Dagbok (i dag / tidligere) ── */}
+      {showMarkCompletedCTA && (
+        <div className="my-4 p-5" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', border: '1px solid #28A86E' }}>
+          <p className="text-xs tracking-widest uppercase mb-3"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E' }}>
+            Planlagt økt
+          </p>
+          <button type="button"
+            onClick={() => setMarkingCompleted(true)}
+            className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: 'transparent',
-              color: isFutureDate ? '#2A2A30' : '#28A86E',
-              border: `1px solid ${isFutureDate ? '#222228' : '#28A86E'}`,
-              cursor: isFutureDate ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {isFutureDate ? '🔒 Merk gjennomført' : '✓ Merk gjennomført'}
+              backgroundColor: '#FF4500', color: '#F0F0F2',
+              border: 'none', cursor: 'pointer',
+            }}>
+            ✓ Merk som gjennomført
           </button>
-          <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            {isFutureDate
-              ? `Tilgjengelig fra ${new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}`
-              : 'Dagsform, RPE og laktat fylles inn etter gjennomføring'}
+          <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            Planinnholdet nedenfor forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
           </p>
+        </div>
+      )}
+
+      {/* Låst for framtidige planlagte økter */}
+      {isPlanned && !isCompleted && !isPlanMode && isFutureDate && (
+        <div className="my-4 p-4" style={{ border: '1px solid #222228' }}>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            🔒 Merking som gjennomført tilgjengelig fra {new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
+      )}
+
+      {/* Allerede gjennomført — vis status */}
+      {isPlanned && isCompleted && !isPlanMode && (
+        <div className="my-4 p-3" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', borderLeft: '3px solid #28A86E' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', letterSpacing: '0.1em' }}>
+            ✓ GJENNOMFØRT — endringer oppdaterer faktiske verdier (planen bevares i Plan-kalenderen)
+          </span>
         </div>
       )}
 
@@ -321,7 +349,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </div>
         </Section>
       )}
-      {!isPlanned && isFutureDate && !isPlanMode && (
+      {!isPlanMode && isFutureDate && !isPlanned && (
         <FutureLock date={form.date} label="Dagsform, RPE og laktat" />
       )}
 
@@ -393,7 +421,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               color: '#F0F0F2', border: 'none',
               cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
             }}>
-            {saving ? 'Lagrer...' : workoutId ? 'Lagre endringer' : isPlanMode ? 'Lagre plan' : 'Lagre økt'}
+            {saving
+              ? 'Lagrer...'
+              : markingCompleted
+              ? '✓ Lagre som gjennomført'
+              : workoutId
+              ? 'Lagre endringer'
+              : isPlanMode
+              ? 'Lagre plan'
+              : 'Lagre økt'}
           </button>
           <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
             className="px-6 py-4 text-lg tracking-widest uppercase"

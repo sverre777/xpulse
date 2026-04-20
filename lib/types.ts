@@ -161,6 +161,7 @@ export interface WorkoutFormData {
   sport: Sport
   workout_type: WorkoutType
   is_planned: boolean
+  is_completed: boolean
   is_important: boolean
   movements: MovementRow[]
   zones: ZoneRow[]

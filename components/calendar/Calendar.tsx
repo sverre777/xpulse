@@ -127,9 +127,18 @@ function parseWorkouts(raw: RawW[]): Record<string, CalendarWorkoutSummary[]> {
 }
 
 function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
-  if (mode === 'plan') return workouts.filter(w => w.is_planned && !w.is_completed)
-  // dagbok/analyse: show all; count only completed for stats
+  // Plan: vis alle planlagte — også de som er markert gjennomført
+  //        (planen beholdes uendret i Plan, gjennomføring vises i Dagbok).
+  if (mode === 'plan') return workouts.filter(w => w.is_planned)
   return workouts
+}
+
+// Visuell tilstand: dashed (plan-look) eller solid (gjennomført-look).
+// Plan-kalenderen: alltid dashed for planlagte, uansett om de er gjennomført.
+// Dagbok: dashed til den er gjennomført — deretter solid med grønn check.
+function planVisual(w: CalendarWorkoutSummary, mode: CalendarMode) {
+  if (mode === 'plan') return w.is_planned
+  return w.is_planned && !w.is_completed
 }
 
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
@@ -161,7 +170,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 
 function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const color = TYPE_COLORS[w.workout_type] ?? '#555'
-  const isPlanned = w.is_planned && !w.is_completed
+  const isPlanned = planVisual(w, mode)
   const { onEditWorkout } = useCalendarActions()
   return (
     <button
@@ -409,7 +418,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                       <div className="space-y-1 mb-3">
                         {dayWorkouts.map(w => {
                           const color = TYPE_COLORS[w.workout_type] ?? '#555'
-                          const isPlanned = w.is_planned && !w.is_completed
+                          const isPlanned = planVisual(w, mode)
                           return (
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>

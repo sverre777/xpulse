@@ -19,6 +19,8 @@ interface WorkoutFormProps {
   defaultValues?: Partial<WorkoutFormData>
   templates?: WorkoutTemplate[]
   formMode?: 'plan' | 'dagbok'
+  onSaved?: () => void
+  onCancel?: () => void
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -30,7 +32,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
 
 const SHOOTING_TYPES: WorkoutType[] = ['hard_combo','easy_combo','basis_shooting','warmup_shooting']
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok' }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', onSaved, onCancel }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -133,7 +135,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     const result = await saveWorkout(form, workoutId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
-      router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
+      if (onSaved) onSaved()
+      else router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
       router.refresh()
     }
   }
@@ -392,7 +395,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             }}>
             {saving ? 'Lagrer...' : workoutId ? 'Lagre endringer' : isPlanMode ? 'Lagre plan' : 'Lagre økt'}
           </button>
-          <button type="button" onClick={() => router.back()}
+          <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
             className="px-6 py-4 text-lg tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',

@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
+import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
-import { CalendarWorkoutSummary } from '@/lib/types'
+import { CalendarWorkoutSummary, Sport, WorkoutTemplate } from '@/lib/types'
 
 type RawWorkout = {
   id: string; title: string; date: string; workout_type: string
@@ -25,11 +27,14 @@ export default async function PlanPage() {
   const month = now.getMonth() + 1
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-  const [rawWorkouts, { data: goals }, { data: phases }] = await Promise.all([
+  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('training_goals').select('*').eq('user_id', user.id).order('date'),
     supabase.from('training_phases').select('*').eq('user_id', user.id).order('start_date'),
+    supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
+    getTemplates(),
   ])
+  const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
   const workoutsByDate: Record<string, CalendarWorkoutSummary[]> = {}
   for (const w of rawWorkouts as unknown as RawWorkout[]) {
@@ -66,14 +71,18 @@ export default async function PlanPage() {
 
         {/* Calendar */}
         <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11', marginBottom: '32px' }}>
-          <Calendar
-            mode="plan"
-            userId={user.id}
-            initialView="måned"
-            initialDate={today}
-            initialWorkoutsByDate={workoutsByDate}
-            trainingPhases={trainingPhases}
-          />
+          <Suspense fallback={null}>
+            <Calendar
+              mode="plan"
+              userId={user.id}
+              primarySport={primarySport}
+              templates={templates as WorkoutTemplate[]}
+              initialView="måned"
+              initialDate={today}
+              initialWorkoutsByDate={workoutsByDate}
+              trainingPhases={trainingPhases}
+            />
+          </Suspense>
         </div>
 
         {/* Goals + Phases below */}

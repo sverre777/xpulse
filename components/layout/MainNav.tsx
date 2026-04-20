@@ -21,7 +21,11 @@ export function MainNav({ userName }: MainNavProps) {
   const pathname = usePathname()
   const onPlan = pathname === '/app/plan' || pathname.startsWith('/app/plan/')
   const logLabel = onPlan ? '+ Planlegg økt' : '+ Logg økt'
-  const logHref = onPlan ? '/app/log?planned=true' : '/app/log'
+  const today = (() => {
+    const n = new Date()
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
+  })()
+  const logHref = onPlan ? `/app/plan?new=${today}` : `/app/dagbok?new=${today}`
 
   return (
     <nav

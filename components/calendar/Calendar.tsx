@@ -1,9 +1,11 @@
 'use client'
 
-import { Fragment, useState, useCallback, useEffect } from 'react'
+import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import { CalendarWorkoutSummary, TYPE_COLORS, ZONE_COLORS } from '@/lib/types'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate, ZONE_COLORS } from '@/lib/types'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
+import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -29,11 +31,25 @@ export interface HealthSummary {
 export interface CalendarProps {
   mode: CalendarMode
   userId: string
+  primarySport: Sport
+  templates: WorkoutTemplate[]
   initialView?: CalendarView
   initialDate?: string
   initialWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
   initialHealthData?: Record<string, HealthSummary>
   trainingPhases?: TrainingPhase[]
+}
+
+// Click actions are passed down via context to avoid prop-drilling
+interface CalendarActions {
+  onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
+  onCreateWorkout: (dateStr: string) => void
+}
+const CalendarActionsContext = createContext<CalendarActions | null>(null)
+function useCalendarActions(): CalendarActions {
+  const ctx = useContext(CalendarActionsContext)
+  if (!ctx) throw new Error('Calendar actions context missing')
+  return ctx
 }
 
 // ── Constants ──────────────────────────────────────────────
@@ -116,19 +132,6 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
   return workouts
 }
 
-// Routing when clicking an existing workout. Semantics:
-//   • Plan mode → always open plan-edit form
-//   • Dagbok + planned + future date → open plan-edit (change/move/delete — no complete flow yet)
-//   • Dagbok + planned + today/past → dagbok edit with "Merk gjennomført" flow
-//   • Dagbok + completed/non-planned → plain dagbok edit
-function workoutEditHref(w: CalendarWorkoutSummary, dateStr: string, mode: CalendarMode, today: string): string {
-  const isPlanned = w.is_planned && !w.is_completed
-  const isFuture = dateStr > today
-  if (mode === 'plan') return `/app/log/${w.id}?mode=plan`
-  if (isPlanned && isFuture) return `/app/log/${w.id}?mode=plan`
-  return `/app/log/${w.id}`
-}
-
 function weekStats(week: Date[], byDate: Record<string, CalendarWorkoutSummary[]>, mode: CalendarMode) {
   let mins = 0, sessions = 0
   for (const d of week) {
@@ -159,12 +162,15 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const color = TYPE_COLORS[w.workout_type] ?? '#555'
   const isPlanned = w.is_planned && !w.is_completed
-  const today = toISO(new Date())
+  const { onEditWorkout } = useCalendarActions()
   return (
-    <Link
-      href={workoutEditHref(w, dateStr, mode, today)}
-      onClick={e => e.stopPropagation()}
-      style={{ textDecoration: 'none', display: 'block', marginBottom: '2px' }}
+    <button
+      type="button"
+      onClick={e => { e.stopPropagation(); onEditWorkout(w, dateStr) }}
+      style={{
+        display: 'block', width: '100%', textAlign: 'left', marginBottom: '2px',
+        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+      }}
     >
       <div style={{
         borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
@@ -180,7 +186,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
         </span>
         {mode === 'analyse' && <ZoneBar zones={w.zones ?? []} />}
       </div>
-    </Link>
+    </button>
   )
 }
 
@@ -230,6 +236,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   onToggle: () => void
   phases: TrainingPhase[]
 }) {
+  const { onCreateWorkout } = useCalendarActions()
   const dateStr = toISO(date)
   const today = toISO(new Date())
   const isToday = dateStr === today
@@ -271,10 +278,10 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         <div className="flex items-center gap-1">
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
           {mode === 'plan' && (
-            <Link href={`/app/log?date=${dateStr}&planned=true`}
-              onClick={e => e.stopPropagation()}
-              style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, textDecoration: 'none', opacity: 0.5, lineHeight: 1 }}
-              title="Legg til planlagt økt">+</Link>
+            <button type="button"
+              onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
+              style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
+              title="Legg til planlagt økt">+</button>
           )}
         </div>
       </div>
@@ -305,6 +312,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
   mode: CalendarMode
   phases: TrainingPhase[]
 }) {
+  const { onEditWorkout, onCreateWorkout } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
@@ -403,7 +411,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                           const color = TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = w.is_planned && !w.is_completed
                           return (
-                            <Link key={w.id} href={workoutEditHref(w, ds, mode, today)} style={{ textDecoration: 'none', display: 'block' }}>
+                            <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-2" style={{
                                 backgroundColor: '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
@@ -422,7 +431,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                                 </div>
                                 {(w.zones ?? []).length > 0 && <ZoneBar zones={w.zones!} />}
                               </div>
-                            </Link>
+                            </button>
                           )
                         })}
                       </div>
@@ -450,10 +459,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                     })()}
 
                     <div className="flex gap-3 flex-wrap">
-                      <Link href={`/app/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                        {mode === 'plan' ? '+ Planlegg økt' : '+ Logg økt'}
-                      </Link>
+                      <button type="button" onClick={() => onCreateWorkout(ds)}
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                        {mode === 'plan' || isFuture ? '+ Planlegg økt' : '+ Logg økt'}
+                      </button>
                       {mode !== 'plan' && !isFuture && !healthData[ds] && (
                         <Link href={`/app/health/${ds}`}
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
@@ -487,6 +496,7 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
   mode: CalendarMode
   phases: TrainingPhase[]
 }) {
+  const { onCreateWorkout } = useCalendarActions()
   const today = toISO(new Date())
   const allWorkouts = weekDates.flatMap(d => filterByMode(byDate[toISO(d)] ?? [], mode))
     .filter(w => mode === 'plan' || !w.is_planned || w.is_completed)
@@ -527,9 +537,11 @@ function WeekView({ weekDates, byDate, healthDates, healthData, mode, phases }: 
                     {date.getDate()}
                   </div>
                 </div>
-                <Link href={`/app/log?date=${ds}&planned=${mode === 'plan' ? 'true' : 'false'}`}
-                  style={{ color: '#FF4500', fontSize: '16px', fontWeight: 700, textDecoration: 'none', opacity: 0.4, lineHeight: 1 }}
-                  title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</Link>
+                {!(mode === 'dagbok' && ds > today) && (
+                  <button type="button" onClick={() => onCreateWorkout(ds)}
+                    style={{ color: '#FF4500', fontSize: '16px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, lineHeight: 1, padding: 0 }}
+                    title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</button>
+                )}
               </div>
 
               <div className="p-1.5 flex flex-col gap-1">
@@ -617,10 +629,13 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
 // ── Main Calendar component ────────────────────────────────
 
 export function Calendar({
-  mode, userId, initialView = 'måned', initialDate,
+  mode, userId, primarySport, templates,
+  initialView = 'måned', initialDate,
   initialWorkoutsByDate = {}, initialHealthData = {},
   trainingPhases = [],
 }: CalendarProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [view, setView] = useState<CalendarView>(initialView)
   const [refDate, setRefDate] = useState<Date>(() => initialDate ? new Date(initialDate + 'T12:00:00') : new Date())
   const [byDate, setByDate] = useState(initialWorkoutsByDate)
@@ -628,9 +643,73 @@ export function Calendar({
   const healthDates = new Set(Object.keys(healthData))
   const [loading, setLoading] = useState(false)
   const [showPicker, setShowPicker] = useState(false)
+  const [modalState, setModalState] = useState<WorkoutModalState | null>(null)
 
   const year = refDate.getFullYear()
   const month = refDate.getMonth() + 1
+
+  // Cross-page route depending on mode
+  const planRoute = '/app/plan'
+
+  const handleEditWorkout = useCallback((w: CalendarWorkoutSummary, dateStr: string) => {
+    const today = toISO(new Date())
+    const isFuture = dateStr > today
+    const isPlanned = w.is_planned && !w.is_completed
+
+    // Dagbok + planlagt + framtid → naviger til /app/plan og åpne edit-modal der
+    if (mode === 'dagbok' && isPlanned && isFuture) {
+      router.push(`${planRoute}?edit=${w.id}`)
+      return
+    }
+    // Plan-modus → alltid plan-form
+    if (mode === 'plan') {
+      setModalState({ kind: 'edit', workoutId: w.id, formMode: 'plan' })
+      return
+    }
+    // Dagbok: planlagt past/today → "Merk gjennomført" (dagbok-form med plan-felt synlig)
+    // Dagbok: gjennomført → detalj-/redigeringsmodal
+    setModalState({ kind: 'edit', workoutId: w.id, formMode: 'dagbok' })
+  }, [mode, router])
+
+  const handleCreateWorkout = useCallback((dateStr: string) => {
+    const today = toISO(new Date())
+    const isFuture = dateStr > today
+
+    if (mode === 'plan') {
+      setModalState({ kind: 'create', date: dateStr, formMode: 'plan' })
+      return
+    }
+    // Dagbok + framtid → naviger til /app/plan
+    if (isFuture) {
+      router.push(`${planRoute}?new=${dateStr}`)
+      return
+    }
+    // Dagbok + past/today → logg-modal
+    setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok' })
+  }, [mode, router])
+
+  const closeModal = useCallback(() => {
+    setModalState(null)
+    // Fjern eventuelle ?edit / ?new query-parametere uten ny navigasjon
+    if (searchParams.get('edit') || searchParams.get('new')) {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('edit')
+      params.delete('new')
+      const qs = params.toString()
+      router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false })
+    }
+  }, [router, searchParams])
+
+  // Auto-åpne modal fra URL (?edit=<id> eller ?new=<date>)
+  useEffect(() => {
+    const editId = searchParams.get('edit')
+    const newDate = searchParams.get('new')
+    if (editId) {
+      setModalState({ kind: 'edit', workoutId: editId, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
+    } else if (newDate) {
+      setModalState({ kind: 'create', date: newDate, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
+    }
+  }, [searchParams, mode])
 
   const fetchData = useCallback(async (start: Date, end: Date) => {
     setLoading(true)
@@ -692,6 +771,7 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
+    <CalendarActionsContext.Provider value={{ onEditWorkout: handleEditWorkout, onCreateWorkout: handleCreateWorkout }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -746,5 +826,12 @@ export function Calendar({
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />
       )}
     </div>
+    <WorkoutModal
+      state={modalState}
+      onClose={closeModal}
+      primarySport={primarySport}
+      templates={templates}
+    />
+    </CalendarActionsContext.Provider>
   )
 }

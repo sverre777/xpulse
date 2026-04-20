@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
+import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
-import { CalendarWorkoutSummary } from '@/lib/types'
+import { CalendarWorkoutSummary, Sport, WorkoutTemplate } from '@/lib/types'
 
 type RawWorkout = {
   id: string; title: string; date: string; workout_type: string
@@ -25,7 +27,7 @@ export default async function DagbokPage() {
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
   const weekStart = monday.toISOString().split('T')[0]
 
-  const [rawWorkouts, weekData, healthRows] = await Promise.all([
+  const [rawWorkouts, weekData, healthRows, templates] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
       .select('duration_minutes, distance_km')
@@ -35,6 +37,7 @@ export default async function DagbokPage() {
       .eq('user_id', user.id)
       .gte('date', new Date(year, month - 1, 1).toISOString().split('T')[0])
       .lte('date', new Date(year, month, 0).toISOString().split('T')[0]),
+    getTemplates(),
   ])
 
   const workoutsByDate: Record<string, CalendarWorkoutSummary[]> = {}
@@ -55,7 +58,8 @@ export default async function DagbokPage() {
     healthData[r.date] = { hrv_ms: r.hrv_ms, resting_hr: r.resting_hr, sleep_hours: r.sleep_hours, body_weight_kg: r.body_weight_kg }
   }
 
-  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+  const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport').eq('id', user.id).single()
+  const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const weekWorkouts = weekData.data ?? []
   const weekMinutes = weekWorkouts.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
   const weekKm = weekWorkouts.reduce((s, w) => s + (Number(w.distance_km) || 0), 0)
@@ -125,14 +129,18 @@ export default async function DagbokPage() {
         </div>
 
         <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
-          <Calendar
-            mode="dagbok"
-            userId={user.id}
-            initialView="måned"
-            initialDate={today}
-            initialWorkoutsByDate={workoutsByDate}
-            initialHealthData={healthData}
-          />
+          <Suspense fallback={null}>
+            <Calendar
+              mode="dagbok"
+              userId={user.id}
+              primarySport={primarySport}
+              templates={templates as WorkoutTemplate[]}
+              initialView="måned"
+              initialDate={today}
+              initialWorkoutsByDate={workoutsByDate}
+              initialHealthData={healthData}
+            />
+          </Suspense>
         </div>
 
       </div>

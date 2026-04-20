@@ -7,6 +7,7 @@ import {
   ACTIVITY_SUBCATEGORIES, STRENGTH_SUBCATEGORIES,
   ActivityZoneMinutes, emptyActivityZones,
   StrengthExerciseRow, StrengthSetRow,
+  ActivityLactateMeasurement,
   isEnduranceMovement, isStrengthMovement,
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -33,8 +34,6 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
-    lactate_mmol: '',
-    lactate_measured_at: '',
     prone_shots: '',
     prone_hits: '',
     standing_shots: '',
@@ -42,6 +41,15 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     notes: '',
     zones: emptyActivityZones(),
     exercises: [],
+    lactate_measurements: [],
+  }
+}
+
+function emptyLactateMeasurement(): ActivityLactateMeasurement {
+  return {
+    id: crypto.randomUUID(),
+    value_mmol: '',
+    measured_at: '',
   }
 }
 
@@ -379,20 +387,11 @@ function ActivityRowItem({
             />
           )}
 
-          {/* Laktat */}
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <Field label="Laktat (mmol/L)">
-              <input value={row.lactate_mmol}
-                onChange={e => onUpdate({ lactate_mmol: e.target.value })}
-                inputMode="decimal" placeholder="—"
-                style={iSt} />
-            </Field>
-            <Field label="Laktat målt kl.">
-              <input type="time" value={row.lactate_measured_at}
-                onChange={e => onUpdate({ lactate_measured_at: e.target.value })}
-                style={iSt} />
-            </Field>
-          </div>
+          {/* Laktat — én eller flere målinger */}
+          <LactateMeasurementsEditor
+            measurements={row.lactate_measurements}
+            onChange={m => onUpdate({ lactate_measurements: m })}
+          />
 
           <div className="mt-3">
             <Label>Notat</Label>
@@ -585,6 +584,69 @@ function ExerciseBlock({
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         }}>
         + Legg til sett
+      </button>
+    </div>
+  )
+}
+
+// ── Laktatmålinger ─────────────────────────────────────────
+
+function LactateMeasurementsEditor({
+  measurements, onChange,
+}: {
+  measurements: ActivityLactateMeasurement[]
+  onChange: (m: ActivityLactateMeasurement[]) => void
+}) {
+  const addMeasurement = () => onChange([...measurements, emptyLactateMeasurement()])
+  const updateMeasurement = (id: string, patch: Partial<ActivityLactateMeasurement>) =>
+    onChange(measurements.map(m => m.id === id ? { ...m, ...patch } : m))
+  const deleteMeasurement = (id: string) =>
+    onChange(measurements.filter(m => m.id !== id))
+
+  return (
+    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="text-xs tracking-widest uppercase mb-2"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Laktat
+      </div>
+
+      {measurements.length > 0 && (
+        <div className="grid gap-2 px-1 mb-1 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            gridTemplateColumns: '1fr 1fr 24px',
+          }}>
+          <span>mmol/L</span>
+          <span>Klokkeslett</span>
+          <span></span>
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        {measurements.map(m => (
+          <div key={m.id} className="grid gap-2 items-center"
+            style={{ gridTemplateColumns: '1fr 1fr 24px' }}>
+            <input value={m.value_mmol}
+              onChange={e => updateMeasurement(m.id, { value_mmol: e.target.value })}
+              inputMode="decimal" placeholder="—"
+              style={{ ...iSt, color: '#FF4500', textAlign: 'center' }} />
+            <input type="time" value={m.measured_at}
+              onChange={e => updateMeasurement(m.id, { measured_at: e.target.value })}
+              style={{ ...iSt, textAlign: 'center' }} />
+            <button type="button" onClick={() => deleteMeasurement(m.id)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '14px' }}
+              title="Slett måling">×</button>
+          </div>
+        ))}
+      </div>
+
+      <button type="button" onClick={addMeasurement}
+        className="mt-2 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+          background: 'none', border: '1px dashed #FF4500', cursor: 'pointer', width: '100%',
+        }}>
+        + Legg til laktat
       </button>
     </div>
   )

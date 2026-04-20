@@ -7,6 +7,7 @@ import {
   WorkoutActivity, ActivityRow, ActivityType,
   ActivityZoneMinutes, emptyActivityZones,
   StrengthExerciseRow, StrengthSetRow,
+  ActivityLactateMeasurement,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -243,7 +244,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     movement_name: string | null; movement_subcategory: string | null
     sort_order: number; start_time: string | null; duration_seconds: number
     distance_meters: number | null; avg_heart_rate: number | null; max_heart_rate: number | null
-    avg_watts: number | null; lactate_mmol: number | null; lactate_measured_at: string | null
+    avg_watts: number | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
     zones: Record<string, number> | null
@@ -265,8 +266,6 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
       avg_heart_rate: parseInt(a.avg_heart_rate) || null,
       max_heart_rate: parseInt(a.max_heart_rate) || null,
       avg_watts: parseInt(a.avg_watts) || null,
-      lactate_mmol: parseFloat(a.lactate_mmol) || null,
-      lactate_measured_at: a.lactate_measured_at || null,
       prone_shots: parseInt(a.prone_shots) || null,
       prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null,
@@ -341,6 +340,33 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
           .insert(setRows)
         if (setErr) return { error: setErr.message }
       }
+    }
+
+    // Laktatmålinger — én eller flere per aktivitet.
+    const lactateRows: {
+      activity_id: string; value_mmol: number
+      measured_at: string | null; sort_order: number
+    }[] = []
+    for (const [ai, a] of (data.activities ?? []).entries()) {
+      const activityId = idBySortOrder.get(ai)
+      if (!activityId) continue
+      const measurements = (a.lactate_measurements ?? [])
+        .map(m => ({ ...m, parsed: parseFloat(m.value_mmol) }))
+        .filter(m => Number.isFinite(m.parsed) && m.parsed > 0)
+      for (const [mi, m] of measurements.entries()) {
+        lactateRows.push({
+          activity_id: activityId,
+          value_mmol: m.parsed,
+          measured_at: m.measured_at || null,
+          sort_order: mi,
+        })
+      }
+    }
+    if (lactateRows.length > 0) {
+      const { error: lactErr } = await supabase
+        .from('workout_activity_lactate_measurements')
+        .insert(lactateRows)
+      if (lactErr) return { error: lactErr.message }
     }
   }
 
@@ -447,7 +473,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       *,
       workout_movements(*), workout_zones(*), workout_tags(*),
       workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
-      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)))
+      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*))
     `)
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== user.id) return null
@@ -461,17 +487,20 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     id: string; exercise_name: string; sort_order: number; notes: string | null
     workout_activity_exercise_sets?: DbSet[] | null
   }
+  type DbLactate = {
+    id: string; value_mmol: number; measured_at: string | null; sort_order: number
+  }
   type DbActivity = {
     id: string; activity_type: string
     movement_name: string | null; movement_subcategory: string | null
     sort_order: number
     start_time: string | null; duration_seconds: number; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
-    lactate_mmol: number | null; lactate_measured_at: string | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null; notes: string | null
     zones: Record<string, number> | null
     workout_activity_exercises?: DbExercise[] | null
+    workout_activity_lactate_measurements?: DbLactate[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -502,6 +531,15 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
             }],
           }
         })
+      const lactate_measurements: ActivityLactateMeasurement[] = (a.workout_activity_lactate_measurements ?? [])
+        .slice()
+        .sort((x, y) => x.sort_order - y.sort_order)
+        .map(m => ({
+          id: crypto.randomUUID(),
+          db_id: m.id,
+          value_mmol: m.value_mmol?.toString() ?? '',
+          measured_at: m.measured_at ?? '',
+        }))
       return {
         id: crypto.randomUUID(),
         db_id: a.id,
@@ -514,8 +552,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
         max_heart_rate: a.max_heart_rate?.toString() ?? '',
         avg_watts: a.avg_watts?.toString() ?? '',
-        lactate_mmol: a.lactate_mmol?.toString() ?? '',
-        lactate_measured_at: a.lactate_measured_at ?? '',
         prone_shots: a.prone_shots?.toString() ?? '',
         prone_hits: a.prone_hits?.toString() ?? '',
         standing_shots: a.standing_shots?.toString() ?? '',
@@ -523,6 +559,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         notes: a.notes ?? '',
         zones: deserializeZones(a.zones),
         exercises,
+        lactate_measurements,
       }
     })
 

@@ -261,6 +261,14 @@ export function emptyActivityZones(): ActivityZoneMinutes {
   return { I1: '', I2: '', I3: '', I4: '', I5: '' }
 }
 
+// Laktatmåling i en aktivitet (én av flere).
+export interface ActivityLactateMeasurement {
+  id: string
+  db_id?: string
+  value_mmol: string
+  measured_at: string  // HH:MM — valgfritt
+}
+
 // Styrke-øvelse med sett.
 export interface StrengthSetRow {
   id: string
@@ -294,8 +302,6 @@ export interface ActivityRow {
   avg_heart_rate: string
   max_heart_rate: string
   avg_watts: string
-  lactate_mmol: string
-  lactate_measured_at: string  // HH:MM
   prone_shots: string
   prone_hits: string
   standing_shots: string
@@ -305,6 +311,8 @@ export interface ActivityRow {
   zones: ActivityZoneMinutes
   // Styrke-øvelser. Brukes kun når movement_name='Styrke'.
   exercises: StrengthExerciseRow[]
+  // Laktatmålinger (én eller flere per aktivitet).
+  lactate_measurements: ActivityLactateMeasurement[]
 }
 
 // DB-entity
@@ -338,6 +346,15 @@ export interface WorkoutActivityExercise {
   exercise_name: string
   sort_order: number
   notes: string | null
+  created_at: string
+}
+
+export interface WorkoutActivityLactateMeasurement {
+  id: string
+  activity_id: string
+  value_mmol: number
+  measured_at: string | null
+  sort_order: number
   created_at: string
 }
 

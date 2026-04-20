@@ -9,9 +9,8 @@ import {
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutTemplate,
 } from '@/lib/types'
-import { MovementTable, ZoneAggregateSummary } from './MovementTable'
 import { LactateTable } from './LactateTable'
-import { ShootingSection } from './ShootingSection'
+import { ActivitiesSection } from './ActivitiesSection'
 
 interface WorkoutFormProps {
   initialSport?: Sport
@@ -72,6 +71,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     notes:       defaultValues?.notes ?? '',
     tags:        defaultValues?.tags ?? [],
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
+    activities:  defaultValues?.activities ?? [],
   }))
 
   const set = <K extends keyof WorkoutFormData>(key: K, val: WorkoutFormData[K]) =>
@@ -146,7 +146,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     }
   }
 
-  const isBiathlon         = form.sport === 'biathlon'
   const workoutTypeOptions = getWorkoutTypes(form.sport)
   const isPlanned   = form.is_planned
   const isCompleted = form.is_completed
@@ -239,33 +238,17 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
       </Section>
 
-      {/* ── BEVEGELSESFORMER ── */}
-      {form.workout_type !== 'warmup_shooting' && (
-        <Section label="Bevegelsesformer">
-          <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Trykk ▶ på en rad for å legge til intensitetssoner eller øvelser
-          </p>
-          <MovementTable
-            rows={form.movements}
-            onChange={rows => set('movements', rows)}
-            defaultMovements={DEFAULT_MOVEMENTS_BY_SPORT[form.sport]}
-          />
-          <ZoneAggregateSummary rows={form.movements} />
-        </Section>
-      )}
-
-      {/* ── SKYTING (kun når sport=Skiskyting) ── */}
-      {isBiathlon && (
-        <Section label="Skyting">
-          <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Registrer hver skyteserie separat. Klokkeslett brukes til fremtidig pulssync.
-          </p>
-          <ShootingSection
-            blocks={form.shooting_blocks}
-            onChange={bl => set('shooting_blocks', bl)}
-          />
-        </Section>
-      )}
+      {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ── */}
+      <Section label="Aktiviteter">
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
+        </p>
+        <ActivitiesSection
+          rows={form.activities}
+          onChange={a => set('activities', a)}
+          sport={form.sport}
+        />
+      </Section>
 
       {/* ── PLAN-REFERANSE (read-only) — vises mens bruker registrerer actuals ── */}
       {markingCompleted && planReference && (

@@ -1,0 +1,427 @@
+'use client'
+
+import { useState } from 'react'
+import {
+  ActivityRow, ActivityType, ACTIVITY_TYPES, findActivityType,
+  Sport, DEFAULT_MOVEMENTS_BY_SPORT, MOVEMENT_CATEGORIES,
+} from '@/lib/types'
+import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+
+interface Props {
+  rows: ActivityRow[]
+  onChange: (rows: ActivityRow[]) => void
+  sport: Sport
+}
+
+function defaultMovementForSport(sport: Sport): string {
+  return DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping'
+}
+
+function emptyRow(type: ActivityType, movement: string): ActivityRow {
+  return {
+    id: crypto.randomUUID(),
+    activity_type: type,
+    movement_name: movement,
+    start_time: '',
+    duration: '',
+    distance_km: '',
+    avg_heart_rate: '',
+    max_heart_rate: '',
+    avg_watts: '',
+    lactate_mmol: '',
+    lactate_measured_at: '',
+    prone_shots: '',
+    prone_hits: '',
+    standing_shots: '',
+    standing_hits: '',
+    notes: '',
+  }
+}
+
+export function ActivitiesSection({ rows, onChange, sport }: Props) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const updateRow = (id: string, patch: Partial<ActivityRow>) => {
+    onChange(rows.map(r => r.id === id ? { ...r, ...patch } : r))
+  }
+
+  const deleteRow = (id: string) => {
+    onChange(rows.filter(r => r.id !== id))
+    if (expandedId === id) setExpandedId(null)
+  }
+
+  const moveRow = (id: string, dir: -1 | 1) => {
+    const i = rows.findIndex(r => r.id === id)
+    const j = i + dir
+    if (i < 0 || j < 0 || j >= rows.length) return
+    const next = [...rows]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    onChange(next)
+  }
+
+  const addRow = () => {
+    const last = rows[rows.length - 1]
+    const type: ActivityType = last ? last.activity_type : 'oppvarming'
+    const movement = last ? last.movement_name : defaultMovementForSport(sport)
+    onChange([...rows, emptyRow(type, movement)])
+    setExpandedId(null)
+  }
+
+  const isBiathlon = sport === 'biathlon'
+  const typeOptions = ACTIVITY_TYPES.filter(t => !t.biathlonOnly || isBiathlon)
+
+  return (
+    <div className="space-y-2">
+      {rows.length === 0 && (
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Ingen aktiviteter ennå. Legg til en for å logge bevegelse, pause eller skyting.
+        </p>
+      )}
+
+      {rows.map((row, idx) => (
+        <ActivityRowItem
+          key={row.id}
+          row={row}
+          expanded={expandedId === row.id}
+          onToggle={() => setExpandedId(expandedId === row.id ? null : row.id)}
+          onUpdate={patch => updateRow(row.id, patch)}
+          onDelete={() => deleteRow(row.id)}
+          onMoveUp={idx > 0 ? () => moveRow(row.id, -1) : undefined}
+          onMoveDown={idx < rows.length - 1 ? () => moveRow(row.id, 1) : undefined}
+          typeOptions={typeOptions}
+          sport={sport}
+        />
+      ))}
+
+      <button
+        type="button"
+        onClick={addRow}
+        className="mt-3 px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          color: '#FF4500',
+          background: 'none',
+          border: '1px dashed #FF4500',
+          cursor: 'pointer',
+          width: '100%',
+        }}
+      >
+        + Legg til aktivitet
+      </button>
+    </div>
+  )
+}
+
+function ActivityRowItem({
+  row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
+  typeOptions, sport,
+}: {
+  row: ActivityRow
+  expanded: boolean
+  onToggle: () => void
+  onUpdate: (patch: Partial<ActivityRow>) => void
+  onDelete: () => void
+  onMoveUp?: () => void
+  onMoveDown?: () => void
+  typeOptions: typeof ACTIVITY_TYPES
+  sport: Sport
+}) {
+  const meta = findActivityType(row.activity_type)
+  const durSec = parseActivityDuration(row.duration)
+  const durDisplay = durSec != null ? formatActivityDuration(durSec) : row.duration || '—'
+  const isCycling = sport === 'cycling' || row.movement_name === 'Sykling'
+
+  return (
+    <div style={{ border: '1px solid #262629', backgroundColor: '#1A1A1E' }}>
+      {/* Compact row */}
+      <div
+        className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        onClick={onToggle}
+        style={{ userSelect: 'none' }}
+      >
+        {/* Up/down */}
+        <div className="flex flex-col" style={{ width: '18px' }} onClick={e => e.stopPropagation()}>
+          <button type="button" onClick={onMoveUp} disabled={!onMoveUp}
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: onMoveUp ? 'pointer' : 'default',
+              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '10px', lineHeight: 1,
+            }}>▲</button>
+          <button type="button" onClick={onMoveDown} disabled={!onMoveDown}
+            style={{
+              background: 'none', border: 'none', padding: 0, cursor: onMoveDown ? 'pointer' : 'default',
+              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '10px', lineHeight: 1,
+            }}>▼</button>
+        </div>
+
+        {/* Type icon + label */}
+        <span style={{ fontSize: '14px' }}>{meta?.icon ?? '•'}</span>
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          color: '#F0F0F2',
+          fontSize: '14px',
+          fontWeight: 600,
+          minWidth: '120px',
+        }}>
+          {meta?.label ?? row.activity_type}
+        </span>
+
+        {/* Movement name */}
+        {meta?.usesMovement && row.movement_name && (
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+            · {row.movement_name}
+          </span>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Duration */}
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em' }}>
+          {durDisplay}
+        </span>
+
+        {/* HR */}
+        {row.avg_heart_rate && (
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '12px' }}>
+            · {row.avg_heart_rate} bpm
+          </span>
+        )}
+
+        {/* Expand */}
+        <span style={{
+          color: '#555560', fontSize: '11px',
+          transform: expanded ? 'rotate(90deg)' : 'none',
+          transition: 'transform 150ms',
+          marginLeft: '6px',
+        }}>
+          ▶
+        </span>
+
+        {/* Delete */}
+        <button type="button" onClick={e => { e.stopPropagation(); onDelete() }}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#555560', fontSize: '16px', lineHeight: 1, padding: '0 4px',
+          }}
+          title="Slett aktivitet">×</button>
+      </div>
+
+      {/* Expanded body */}
+      {expanded && (
+        <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid #262629' }}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+            <Field label="Aktivitetstype">
+              <select value={row.activity_type}
+                onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })}
+                style={iSt}>
+                {typeOptions.map(t => (
+                  <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
+                ))}
+              </select>
+            </Field>
+
+            {meta?.usesMovement && (
+              <Field label="Bevegelsesform">
+                <select value={row.movement_name}
+                  onChange={e => onUpdate({ movement_name: e.target.value })}
+                  style={iSt}>
+                  <option value="">—</option>
+                  {MOVEMENT_CATEGORIES.map(m => (
+                    <option key={m.name} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
+            <Field label="Klokkeslett start">
+              <input type="time" value={row.start_time}
+                onChange={e => onUpdate({ start_time: e.target.value })}
+                style={iSt} />
+            </Field>
+
+            <Field label="Varighet (MM:SS)">
+              <input value={row.duration}
+                onChange={e => onUpdate({ duration: e.target.value })}
+                placeholder="45:30"
+                style={iSt} />
+            </Field>
+
+            {!meta?.isShooting && (
+              <Field label="Distanse (km)">
+                <input value={row.distance_km}
+                  onChange={e => onUpdate({ distance_km: e.target.value })}
+                  placeholder="10.5"
+                  inputMode="decimal"
+                  style={iSt} />
+              </Field>
+            )}
+
+            <Field label="Snittpuls (bpm)">
+              <input value={row.avg_heart_rate}
+                onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
+                inputMode="numeric" placeholder="—"
+                style={iSt} />
+            </Field>
+
+            <Field label="Maks puls (bpm)">
+              <input value={row.max_heart_rate}
+                onChange={e => onUpdate({ max_heart_rate: e.target.value })}
+                inputMode="numeric" placeholder="—"
+                style={iSt} />
+            </Field>
+
+            {isCycling && !meta?.isShooting && (
+              <Field label="Snittwatt">
+                <input value={row.avg_watts}
+                  onChange={e => onUpdate({ avg_watts: e.target.value })}
+                  inputMode="numeric" placeholder="—"
+                  style={iSt} />
+              </Field>
+            )}
+          </div>
+
+          {/* Skyting-felt */}
+          {meta?.isShooting && (
+            <ShootingFields row={row} onUpdate={onUpdate} />
+          )}
+
+          {/* Laktat */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <Field label="Laktat (mmol/L)">
+              <input value={row.lactate_mmol}
+                onChange={e => onUpdate({ lactate_mmol: e.target.value })}
+                inputMode="decimal" placeholder="—"
+                style={iSt} />
+            </Field>
+            <Field label="Laktat målt kl.">
+              <input type="time" value={row.lactate_measured_at}
+                onChange={e => onUpdate({ lactate_measured_at: e.target.value })}
+                style={iSt} />
+            </Field>
+          </div>
+
+          <div className="mt-3">
+            <Label>Notat</Label>
+            <textarea value={row.notes}
+              onChange={e => onUpdate({ notes: e.target.value })}
+              rows={2} placeholder="Kort kommentar..."
+              style={{ ...iSt, resize: 'vertical' }} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ShootingFields({
+  row, onUpdate,
+}: {
+  row: ActivityRow
+  onUpdate: (patch: Partial<ActivityRow>) => void
+}) {
+  const showProne = row.activity_type === 'skyting_liggende' || row.activity_type === 'skyting_kombinert'
+  const showStanding = row.activity_type === 'skyting_staaende' || row.activity_type === 'skyting_kombinert'
+
+  const pronePct = computePct(row.prone_shots, row.prone_hits)
+  const standingPct = computePct(row.standing_shots, row.standing_hits)
+
+  return (
+    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="text-xs tracking-widest uppercase mb-2"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Skyting
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {showProne && (
+          <ShootingBlock
+            label="Liggende"
+            shots={row.prone_shots} hits={row.prone_hits}
+            onShots={v => onUpdate({ prone_shots: v })}
+            onHits={v => onUpdate({ prone_hits: v })}
+            pct={pronePct}
+          />
+        )}
+        {showStanding && (
+          <ShootingBlock
+            label="Stående"
+            shots={row.standing_shots} hits={row.standing_hits}
+            onShots={v => onUpdate({ standing_shots: v })}
+            onHits={v => onUpdate({ standing_hits: v })}
+            pct={standingPct}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ShootingBlock({
+  label, shots, hits, onShots, onHits, pct,
+}: {
+  label: string; shots: string; hits: string
+  onShots: (v: string) => void; onHits: (v: string) => void
+  pct: number | null
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          {label}
+        </span>
+        {pct != null && (
+          <span style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            color: pct >= 80 ? '#28A86E' : pct >= 60 ? '#FF9500' : '#FF4500',
+            fontSize: '15px', letterSpacing: '0.05em',
+          }}>
+            {pct}%
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <input value={shots} onChange={e => onShots(e.target.value)}
+          inputMode="numeric" placeholder="Skudd"
+          style={iSt} />
+        <input value={hits} onChange={e => onHits(e.target.value)}
+          inputMode="numeric" placeholder="Treff"
+          style={iSt} />
+      </div>
+    </div>
+  )
+}
+
+function computePct(shots: string, hits: string): number | null {
+  const s = parseInt(shots)
+  const h = parseInt(hits)
+  if (!Number.isFinite(s) || !Number.isFinite(h) || s <= 0) return null
+  return Math.round((h / s) * 100)
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      {children}
+    </div>
+  )
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block mb-1 text-xs tracking-widest uppercase"
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      {children}
+    </label>
+  )
+}
+
+const iSt: React.CSSProperties = {
+  backgroundColor: '#16161A',
+  border: '1px solid #1E1E22',
+  color: '#F0F0F2',
+  fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: '14px',
+  padding: '6px 10px',
+  outline: 'none',
+  width: '100%',
+}

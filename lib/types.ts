@@ -182,6 +182,85 @@ export interface WorkoutFormData {
   tags: string[]
   // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')
   shooting_blocks: ShootingBlock[]
+  // Fase 7: kronologisk aktivitets-liste — erstatter movements + zones + shooting_blocks i UI.
+  activities: ActivityRow[]
+}
+
+// ── Activities (Fase 7) ────────────────────────────────────
+
+export type ActivityType =
+  | 'oppvarming' | 'aktivitet' | 'pause' | 'aktiv_pause'
+  | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert'
+  | 'nedjogg' | 'annet'
+
+export interface ActivityTypeOption {
+  value: ActivityType
+  label: string
+  icon: string
+  usesMovement: boolean      // om bevegelsesform-dropdown skal vises
+  isShooting: boolean
+  biathlonOnly: boolean
+}
+
+export const ACTIVITY_TYPES: ActivityTypeOption[] = [
+  { value: 'oppvarming',        label: 'Oppvarming',         icon: '🔥', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'aktivitet',         label: 'Aktivitet',          icon: '⚡', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'pause',             label: 'Pause',              icon: '⏸',  usesMovement: false, isShooting: false, biathlonOnly: false },
+  { value: 'aktiv_pause',       label: 'Aktiv pause',        icon: '🚶', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_kombinert', label: 'Skyting — Kombinert',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
+]
+
+export function findActivityType(v: ActivityType): ActivityTypeOption | null {
+  return ACTIVITY_TYPES.find(t => t.value === v) ?? null
+}
+
+// Form-row — alle tall-felt som string for input-binding.
+// distance_km holdes som km i skjemaet; konverteres til meter ved lagring.
+export interface ActivityRow {
+  id: string                   // client-side key (uuid)
+  db_id?: string               // DB-id hvis lastet fra DB
+  activity_type: ActivityType
+  movement_name: string
+  start_time: string           // HH:MM
+  duration: string             // MM:SS eller HH:MM:SS
+  distance_km: string
+  avg_heart_rate: string
+  max_heart_rate: string
+  avg_watts: string
+  lactate_mmol: string
+  lactate_measured_at: string  // HH:MM
+  prone_shots: string
+  prone_hits: string
+  standing_shots: string
+  standing_hits: string
+  notes: string
+}
+
+// DB-entity
+export interface WorkoutActivity {
+  id: string
+  workout_id: string
+  activity_type: ActivityType
+  movement_name: string | null
+  sort_order: number
+  start_time: string | null
+  duration_seconds: number
+  distance_meters: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  avg_watts: number | null
+  lactate_mmol: number | null
+  lactate_measured_at: string | null
+  prone_shots: number | null
+  prone_hits: number | null
+  standing_shots: number | null
+  standing_hits: number | null
+  notes: string | null
+  created_at: string
 }
 
 // ── DB entity types ────────────────────────────────────────

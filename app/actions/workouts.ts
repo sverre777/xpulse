@@ -2,8 +2,22 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType } from '@/lib/types'
+import { WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType, WorkoutActivity, ActivityRow, ActivityType } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
+import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+
+// Fase 7 — Les aktiviteter for én økt. UI-ene som bruker dette er ikke bygget enda;
+// funksjonen er her slik at Runde 2 kan wire den inn uten ny server-roundtrip.
+export async function getActivitiesForWorkout(workoutId: string): Promise<WorkoutActivity[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('workout_activities')
+    .select('*')
+    .eq('workout_id', workoutId)
+    .order('sort_order', { ascending: true })
+  if (error) return []
+  return (data ?? []) as WorkoutActivity[]
+}
 
 export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
@@ -122,6 +136,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
       supabase.from('workout_exercises').delete().eq('workout_id', workoutId),
       supabase.from('workout_lactate_measurements').delete().eq('workout_id', workoutId),
       supabase.from('workout_shooting_blocks').delete().eq('workout_id', workoutId),
+      supabase.from('workout_activities').delete().eq('workout_id', workoutId),
     ])
   } else {
     const { data: inserted, error } = await supabase.from('workouts').insert(workoutPayload).select('id').single()
@@ -192,6 +207,44 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   }
   if (shootingRows.length > 0) {
     await supabase.from('workout_shooting_blocks').insert(shootingRows)
+  }
+
+  // Fase 7: kronologisk aktivitetsliste — ny primær datamodell.
+  // Gamle workout_movements/zones/shooting_blocks beholdes midlertidig for bakoverkomp.
+  const activityRows: {
+    workout_id: string; activity_type: string; movement_name: string | null
+    sort_order: number; start_time: string | null; duration_seconds: number
+    distance_meters: number | null; avg_heart_rate: number | null; max_heart_rate: number | null
+    avg_watts: number | null; lactate_mmol: number | null; lactate_measured_at: string | null
+    prone_shots: number | null; prone_hits: number | null
+    standing_shots: number | null; standing_hits: number | null
+    notes: string | null
+  }[] = []
+  for (const [ai, a] of (data.activities ?? []).entries()) {
+    const durSec = parseActivityDuration(a.duration) ?? 0
+    const km = parseFloat(a.distance_km)
+    activityRows.push({
+      workout_id: savedId!,
+      activity_type: a.activity_type,
+      movement_name: a.movement_name || null,
+      sort_order: ai,
+      start_time: a.start_time || null,
+      duration_seconds: durSec,
+      distance_meters: Number.isFinite(km) ? Math.round(km * 1000) : null,
+      avg_heart_rate: parseInt(a.avg_heart_rate) || null,
+      max_heart_rate: parseInt(a.max_heart_rate) || null,
+      avg_watts: parseInt(a.avg_watts) || null,
+      lactate_mmol: parseFloat(a.lactate_mmol) || null,
+      lactate_measured_at: a.lactate_measured_at || null,
+      prone_shots: parseInt(a.prone_shots) || null,
+      prone_hits: parseInt(a.prone_hits) || null,
+      standing_shots: parseInt(a.standing_shots) || null,
+      standing_hits: parseInt(a.standing_hits) || null,
+      notes: a.notes || null,
+    })
+  }
+  if (activityRows.length > 0) {
+    await supabase.from('workout_activities').insert(activityRows)
   }
 
   if (data.tags.length > 0) {
@@ -293,9 +346,40 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   if (!user) return null
   const { data: workout, error } = await supabase
     .from('workouts')
-    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*)')
+    .select('*, workout_movements(*), workout_zones(*), workout_tags(*), workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*), workout_activities(*)')
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== user.id) return null
+
+  // Map DB workout_activities → ActivityRow-format (strings for form-binding)
+  type DbActivity = {
+    id: string; activity_type: string; movement_name: string | null; sort_order: number
+    start_time: string | null; duration_seconds: number; distance_meters: number | null
+    avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    lactate_mmol: number | null; lactate_measured_at: string | null
+    prone_shots: number | null; prone_hits: number | null
+    standing_shots: number | null; standing_hits: number | null; notes: string | null
+  }
+  const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(a => ({
+      id: crypto.randomUUID(),
+      db_id: a.id,
+      activity_type: a.activity_type as ActivityType,
+      movement_name: a.movement_name ?? '',
+      start_time: a.start_time ?? '',
+      duration: a.duration_seconds ? formatActivityDuration(a.duration_seconds) : '',
+      distance_km: a.distance_meters != null ? (a.distance_meters / 1000).toString() : '',
+      avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
+      max_heart_rate: a.max_heart_rate?.toString() ?? '',
+      avg_watts: a.avg_watts?.toString() ?? '',
+      lactate_mmol: a.lactate_mmol?.toString() ?? '',
+      lactate_measured_at: a.lactate_measured_at ?? '',
+      prone_shots: a.prone_shots?.toString() ?? '',
+      prone_hits: a.prone_hits?.toString() ?? '',
+      standing_shots: a.standing_shots?.toString() ?? '',
+      standing_hits: a.standing_hits?.toString() ?? '',
+      notes: a.notes ?? '',
+    }))
 
   // Plan-modus hydrerer alltid fra planned_snapshot når tilgjengelig, uavhengig
   // av gjennomføring. Da vises planen som frosset referanse, selv etter at
@@ -327,6 +411,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
       lactate:      [],
       shooting_blocks: snap.shooting_blocks ?? [],
+      activities,
     }
   }
 
@@ -396,6 +481,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         duration_seconds: formatDurationFromSeconds(b.duration_seconds),
         avg_heart_rate: b.avg_heart_rate?.toString() ?? '',
       })),
+    activities,
   }
 }
 

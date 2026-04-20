@@ -295,7 +295,9 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
-  const duration = durationFor(w, mode)
+  // Vis aktivitets-aggregert tid på chip-en. secondsFor faller tilbake til
+  // duration_minutes hvis økten ikke har aktiviteter.
+  const durationLabel = formatDurationShort(secondsFor(w, mode))
   const { onEditWorkout } = useCalendarActions()
 
   // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
@@ -331,7 +333,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
           {w.position_overall != null && mode !== 'plan' && (
             <span style={{ color, marginLeft: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
           )}
-          {duration ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{fmtDuration(duration)}</span> : null}
+          {durationLabel ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{durationLabel}</span> : null}
         </span>
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>
@@ -646,7 +648,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   <div className="flex items-center gap-2">
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
                                     {isPlanned && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
-                                    {durationFor(w, mode) && <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{fmtDuration(durationFor(w, mode))}</span>}
+                                    {(() => {
+                                      const lbl = formatDurationShort(secondsFor(w, mode))
+                                      return lbl ? <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
+                                    })()}
                                   </div>
                                 </div>
                                 {(zonesFor(w, mode) ?? []).length > 0 && <ZoneBar zones={zonesFor(w, mode)} />}

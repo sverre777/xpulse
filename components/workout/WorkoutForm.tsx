@@ -6,11 +6,12 @@ import { saveWorkout } from '@/app/actions/workouts'
 import { saveTemplate } from '@/app/actions/health'
 import {
   WorkoutFormData, MovementRow, LactateRow,
-  Sport, WorkoutType, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
+  Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutTemplate,
 } from '@/lib/types'
 import { MovementTable, ZoneAggregateSummary } from './MovementTable'
 import { LactateTable } from './LactateTable'
+import { ShootingSection } from './ShootingSection'
 
 interface WorkoutFormProps {
   initialSport?: Sport
@@ -26,11 +27,9 @@ interface WorkoutFormProps {
 function makeDefaultMovements(sport: Sport): MovementRow[] {
   return DEFAULT_MOVEMENTS_BY_SPORT[sport].map(name => ({
     id: crypto.randomUUID(), movement_name: name, minutes: '', distance_km: '',
-    elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [], shooting_blocks: [],
+    elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [],
   }))
 }
-
-const SHOOTING_TYPES: WorkoutType[] = ['hard_combo','easy_combo','basis_shooting','warmup_shooting']
 
 export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', onSaved, onCancel }: WorkoutFormProps) {
   const router = useRouter()
@@ -62,7 +61,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       avg_heart_rate: m.avg_heart_rate ?? '',
       zones: m.zones ?? [],
       exercises: m.exercises ?? [],
-      shooting_blocks: m.shooting_blocks ?? [],
     })),
     zones:       [],
     exercises:   [],
@@ -73,11 +71,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     rpe:         defaultValues?.rpe ?? null,
     notes:       defaultValues?.notes ?? '',
     tags:        defaultValues?.tags ?? [],
-    shooting_prone_shots:   defaultValues?.shooting_prone_shots ?? '',
-    shooting_prone_hits:    defaultValues?.shooting_prone_hits ?? '',
-    shooting_standing_shots: defaultValues?.shooting_standing_shots ?? '',
-    shooting_standing_hits:  defaultValues?.shooting_standing_hits ?? '',
-    shooting_warmup_shots:  defaultValues?.shooting_warmup_shots ?? '',
+    shooting_blocks: defaultValues?.shooting_blocks ?? [],
   }))
 
   const set = <K extends keyof WorkoutFormData>(key: K, val: WorkoutFormData[K]) =>
@@ -99,7 +93,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         avg_heart_rate: m.avg_heart_rate ?? '',
         zones: m.zones ?? [],
         exercises: m.exercises ?? [],
-        shooting_blocks: m.shooting_blocks ?? [],
       })),
       zones: [],
       exercises: [],
@@ -165,10 +158,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const showExecutionFields = !isPlanMode && !isFutureDate && (isCompleted || markingCompleted || !isPlanned)
   // "Merk som gjennomført"-CTA vises når en planlagt økt åpnes i Dagbok, i dag eller tidligere, og ikke allerede gjennomført
   const showMarkCompletedCTA = !isPlanMode && isPlanned && !isCompleted && !isFutureDate && !markingCompleted
-
-  // Shooting stats
-  const pronePct    = form.shooting_prone_shots ? Math.round((parseInt(form.shooting_prone_hits)||0) / parseInt(form.shooting_prone_shots) * 100) : null
-  const standingPct = form.shooting_standing_shots ? Math.round((parseInt(form.shooting_standing_hits)||0) / parseInt(form.shooting_standing_shots) * 100) : null
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 py-4 space-y-0">
@@ -265,29 +254,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </Section>
       )}
 
-      {/* ── SKISKYTING ── */}
+      {/* ── SKYTING (kun når sport=Skiskyting) ── */}
       {isBiathlon && (
         <Section label="Skyting">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="col-span-2 md:col-span-4">
-              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Liggende</span>
-            </div>
-            <SmallField label="Skudd" value={form.shooting_prone_shots} onChange={v => set('shooting_prone_shots', v)} />
-            <SmallField label="Treff" value={form.shooting_prone_hits} onChange={v => set('shooting_prone_hits', v)} />
-            {pronePct !== null ? <StatBadge label="Treff %" value={`${pronePct}%`} /> : <div />}
-            <div />
-            <div className="col-span-2 md:col-span-4">
-              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Stående</span>
-            </div>
-            <SmallField label="Skudd" value={form.shooting_standing_shots} onChange={v => set('shooting_standing_shots', v)} />
-            <SmallField label="Treff" value={form.shooting_standing_hits} onChange={v => set('shooting_standing_hits', v)} />
-            {standingPct !== null ? <StatBadge label="Treff %" value={`${standingPct}%`} /> : <div />}
-            <div />
-            <div className="col-span-2 md:col-span-4" style={{ borderTop: '1px solid #1A1A1E', paddingTop: '12px' }}>
-              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>Innskyting</span>
-            </div>
-            <SmallField label="Antall skudd" value={form.shooting_warmup_shots} onChange={v => set('shooting_warmup_shots', v)} />
-          </div>
+          <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Registrer hver skyteserie separat. Klokkeslett brukes til fremtidig pulssync.
+          </p>
+          <ShootingSection
+            blocks={form.shooting_blocks}
+            onChange={bl => set('shooting_blocks', bl)}
+          />
         </Section>
       )}
 
@@ -620,26 +596,3 @@ function Chip({ active, onClick, children, color = '#555560' }: {
   )
 }
 
-function SmallField({ label, value, onChange, type = 'number', step }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; step?: string
-}) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <input type={type} step={step} value={value} onChange={e => onChange(e.target.value)}
-        placeholder="—" min="0"
-        style={{ ...iSt, width: '100%', padding: '8px 12px', fontSize: '14px' }}
-        onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
-        onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
-    </div>
-  )
-}
-
-function StatBadge({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col justify-end">
-      <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{label}</span>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '22px', lineHeight: 1 }}>{value}</span>
-    </div>
-  )
-}

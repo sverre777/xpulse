@@ -53,6 +53,10 @@ export const ENDURANCE_MOVEMENT_NAMES = [
   'Fjellsport','Roing','Kajak/Padling','Orientering','Skøyter',
 ]
 
+const SKI_SUBCATEGORIES = [
+  'Skøyting','Klassisk','Skøyting uten staver','Klassisk uten staver','Staking',
+]
+
 // ── Movement categories with subcategories ─────────────────
 
 export interface MovementCategory {
@@ -62,13 +66,12 @@ export interface MovementCategory {
 
 export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Løping',       subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
-  { name: 'Langrenn',     subcategories: ['Skøyting','Klassisk'] },
-  { name: 'Rulleski',     subcategories: ['Skøyting','Klassisk'] },
+  { name: 'Langrenn',     subcategories: SKI_SUBCATEGORIES },
+  { name: 'Rulleski',     subcategories: SKI_SUBCATEGORIES },
   { name: 'Sykling',      subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
   { name: 'Svømming',     subcategories: ['Basseng','Åpent vann'] },
   { name: 'Fjellsport',   subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
   { name: 'Styrke',       subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
-  { name: 'Skiskyting' },
   { name: 'Roing' },
   { name: 'Kajak/Padling' },
   { name: 'Klatring' },
@@ -91,7 +94,7 @@ export function getSubcategories(name: string): string[] {
 export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
   running:              ['Løping', 'Sykling', 'Styrke'],
   cross_country_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
-  biathlon:             ['Langrenn', 'Rulleski', 'Løping', 'Styrke', 'Skiskyting'],
+  biathlon:             ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
   triathlon:            ['Svømming', 'Sykling', 'Løping', 'Styrke'],
   cycling:              ['Sykling', 'Løping', 'Styrke'],
   long_distance_skiing: ['Langrenn', 'Rulleski', 'Løping', 'Styrke'],
@@ -100,7 +103,7 @@ export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
 
 // ── Shooting types ─────────────────────────────────────────
 
-export type ShootingBlockType = 'rolig_komb' | 'hurtighet_komb' | 'hard_komb' | 'innskyting' | 'basisskyting'
+export type ShootingBlockType = 'rolig_komb' | 'hurtighet_komb' | 'hard_komb' | 'innskyting' | 'basisskyting' | 'konkurranse'
 
 export const SHOOTING_BLOCK_TYPES: { value: ShootingBlockType; label: string }[] = [
   { value: 'rolig_komb',      label: 'Rolig komb' },
@@ -108,6 +111,7 @@ export const SHOOTING_BLOCK_TYPES: { value: ShootingBlockType; label: string }[]
   { value: 'hard_komb',       label: 'Hard komb' },
   { value: 'innskyting',      label: 'Innskyting' },
   { value: 'basisskyting',    label: 'Basisskyting' },
+  { value: 'konkurranse',     label: 'Konkurranse' },
 ]
 
 export interface ShootingBlock {
@@ -117,6 +121,10 @@ export interface ShootingBlock {
   prone_hits: string
   standing_shots: string
   standing_hits: string
+  // Nye felt (alle valgfrie):
+  start_time: string       // HH:MM – når serien ble skutt (for pulssync)
+  duration_seconds: string // MM:SS parses til total sekunder
+  avg_heart_rate: string   // bpm
 }
 
 // ── Form data types ────────────────────────────────────────
@@ -130,7 +138,6 @@ export interface MovementRow {
   avg_heart_rate: string
   zones: ZoneRow[]           // inline zones for this movement
   exercises: ExerciseRow[]   // inline exercises for this movement (strength)
-  shooting_blocks: ShootingBlock[]  // per-movement shooting series (Skiskyting)
 }
 
 export interface ZoneRow {
@@ -173,12 +180,8 @@ export interface WorkoutFormData {
   rpe: number | null
   notes: string
   tags: string[]
-  // biathlon shooting
-  shooting_prone_shots: string
-  shooting_prone_hits: string
-  shooting_standing_shots: string
-  shooting_standing_hits: string
-  shooting_warmup_shots: string
+  // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')
+  shooting_blocks: ShootingBlock[]
 }
 
 // ── DB entity types ────────────────────────────────────────

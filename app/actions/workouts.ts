@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType } from '@/lib/types'
+import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 
 export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
@@ -13,15 +14,20 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   const totalKm      = data.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
   const totalElev    = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
 
-  const isShooting = ['hard_combo','easy_combo','basis_shooting','warmup_shooting'].includes(data.workout_type)
-  const shootingData = (data.sport === 'biathlon' || isShooting) ? {
-    prone_shots:   parseInt(data.shooting_prone_shots) || null,
-    prone_hits:    parseInt(data.shooting_prone_hits) || null,
-    prone_pct:     data.shooting_prone_shots ? Math.round(((parseInt(data.shooting_prone_hits)||0) / (parseInt(data.shooting_prone_shots)||1)) * 100) : null,
-    standing_shots: parseInt(data.shooting_standing_shots) || null,
-    standing_hits:  parseInt(data.shooting_standing_hits) || null,
-    standing_pct:   data.shooting_standing_shots ? Math.round(((parseInt(data.shooting_standing_hits)||0) / (parseInt(data.shooting_standing_shots)||1)) * 100) : null,
-    warmup_shots:  parseInt(data.shooting_warmup_shots) || null,
+  // Aggreger samlet skytestatistikk fra shooting_blocks (kun Skiskyting/biathlon).
+  // Brukes til bakover-kompatibel workouts.shooting_data-kolonne.
+  const blocks = data.shooting_blocks ?? []
+  const aggProneShots    = blocks.reduce((s, b) => s + (parseInt(b.prone_shots) || 0), 0)
+  const aggProneHits     = blocks.reduce((s, b) => s + (parseInt(b.prone_hits) || 0), 0)
+  const aggStandingShots = blocks.reduce((s, b) => s + (parseInt(b.standing_shots) || 0), 0)
+  const aggStandingHits  = blocks.reduce((s, b) => s + (parseInt(b.standing_hits) || 0), 0)
+  const shootingData = (data.sport === 'biathlon' && blocks.length > 0) ? {
+    prone_shots:    aggProneShots || null,
+    prone_hits:     aggProneHits || null,
+    prone_pct:      aggProneShots > 0 ? Math.round((aggProneHits / aggProneShots) * 100) : null,
+    standing_shots: aggStandingShots || null,
+    standing_hits:  aggStandingHits || null,
+    standing_pct:   aggStandingShots > 0 ? Math.round((aggStandingHits / aggStandingShots) * 100) : null,
   } : null
 
   // Aggregate zones/movements from inline movement data (used av både plan- og actual-felt).
@@ -61,7 +67,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     tags: data.tags,
     movements: data.movements,
     zones: zoneAggregate,
-    shooting_data: shootingData,
+    shooting_blocks: data.shooting_blocks ?? [],
   } : undefined
 
   const basePayload: Record<string, unknown> = {
@@ -160,29 +166,32 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     )
   }
 
-  // Shooting blocks (per Skiskyting movement)
-  const shootingBlocks: {
+  // Shooting series (top-level, kun for Skiskyting)
+  const shootingRows: {
     workout_id: string; movement_order: number; shooting_type: string
     prone_shots: number | null; prone_hits: number | null
-    standing_shots: number | null; standing_hits: number | null; sort_order: number
+    standing_shots: number | null; standing_hits: number | null
+    start_time: string | null; duration_seconds: number | null
+    avg_heart_rate: number | null; sort_order: number
   }[] = []
-  data.movements.forEach((m, mi) => {
-    for (const [bi, b] of (m.shooting_blocks ?? []).entries()) {
-      if (!b.shooting_type) continue
-      shootingBlocks.push({
-        workout_id: savedId!,
-        movement_order: mi,
-        shooting_type: b.shooting_type,
-        prone_shots: parseInt(b.prone_shots) || null,
-        prone_hits: parseInt(b.prone_hits) || null,
-        standing_shots: parseInt(b.standing_shots) || null,
-        standing_hits: parseInt(b.standing_hits) || null,
-        sort_order: bi,
-      })
-    }
-  })
-  if (shootingBlocks.length > 0) {
-    await supabase.from('workout_shooting_blocks').insert(shootingBlocks)
+  for (const [bi, b] of (data.shooting_blocks ?? []).entries()) {
+    if (!b.shooting_type) continue
+    shootingRows.push({
+      workout_id: savedId!,
+      movement_order: 0,
+      shooting_type: b.shooting_type,
+      prone_shots: parseInt(b.prone_shots) || null,
+      prone_hits: parseInt(b.prone_hits) || null,
+      standing_shots: parseInt(b.standing_shots) || null,
+      standing_hits: parseInt(b.standing_hits) || null,
+      start_time: b.start_time || null,
+      duration_seconds: parseDurationToSeconds(b.duration_seconds),
+      avg_heart_rate: parseInt(b.avg_heart_rate) || null,
+      sort_order: bi,
+    })
+  }
+  if (shootingRows.length > 0) {
+    await supabase.from('workout_shooting_blocks').insert(shootingRows)
   }
 
   if (data.tags.length > 0) {
@@ -295,7 +304,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     title?: string; sport?: Sport; workout_type?: WorkoutType
     duration_minutes?: number | null; distance_km?: number | null; elevation_meters?: number | null
     notes?: string | null; tags?: string[]; movements?: unknown[]; zones?: unknown[]
-    shooting_data?: { prone_shots?: number | null; prone_hits?: number | null; standing_shots?: number | null; standing_hits?: number | null; warmup_shots?: number | null } | null
+    shooting_blocks?: ShootingBlock[]
   } | null
   const usePlanSnapshot = formMode === 'plan' && !!snap
 
@@ -317,11 +326,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
       lactate:      [],
-      shooting_prone_shots:    snap.shooting_data?.prone_shots?.toString() ?? '',
-      shooting_prone_hits:     snap.shooting_data?.prone_hits?.toString() ?? '',
-      shooting_standing_shots: snap.shooting_data?.standing_shots?.toString() ?? '',
-      shooting_standing_hits:  snap.shooting_data?.standing_hits?.toString() ?? '',
-      shooting_warmup_shots:   snap.shooting_data?.warmup_shots?.toString() ?? '',
+      shooting_blocks: snap.shooting_blocks ?? [],
     }
   }
 
@@ -346,7 +351,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         elevation_meters: number | null; avg_heart_rate?: number | null
         inline_zones?: { zone_name: string; minutes: number }[] | null
         inline_exercises?: { exercise_name: string; sets: number | null; reps: number | null; weight_kg: number | null }[] | null
-      }, mi: number) => ({
+      }) => ({
         id: crypto.randomUUID(),
         movement_name: m.movement_name,
         minutes: m.minutes?.toString() ?? '',
@@ -361,17 +366,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
           reps: e.reps?.toString() ?? '',
           weight_kg: e.weight_kg?.toString() ?? '',
         })),
-        shooting_blocks: (workout.workout_shooting_blocks ?? [])
-          .filter((b: { movement_order: number }) => b.movement_order === mi)
-          .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-          .map((b: { shooting_type: string; prone_shots: number | null; prone_hits: number | null; standing_shots: number | null; standing_hits: number | null }): ShootingBlock => ({
-            id: crypto.randomUUID(),
-            shooting_type: (b.shooting_type as ShootingBlockType) || '',
-            prone_shots: b.prone_shots?.toString() ?? '',
-            prone_hits: b.prone_hits?.toString() ?? '',
-            standing_shots: b.standing_shots?.toString() ?? '',
-            standing_hits: b.standing_hits?.toString() ?? '',
-          })),
       })),
     zones: [],
     exercises: [],
@@ -384,11 +378,24 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         heart_rate: l.heart_rate?.toString() ?? '',
         feeling: l.feeling,
       })),
-    shooting_prone_shots:    workout.shooting_data?.prone_shots?.toString() ?? '',
-    shooting_prone_hits:     workout.shooting_data?.prone_hits?.toString() ?? '',
-    shooting_standing_shots: workout.shooting_data?.standing_shots?.toString() ?? '',
-    shooting_standing_hits:  workout.shooting_data?.standing_hits?.toString() ?? '',
-    shooting_warmup_shots:   workout.shooting_data?.warmup_shots?.toString() ?? '',
+    shooting_blocks: (workout.workout_shooting_blocks ?? [])
+      .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
+      .map((b: {
+        shooting_type: string
+        prone_shots: number | null; prone_hits: number | null
+        standing_shots: number | null; standing_hits: number | null
+        start_time: string | null; duration_seconds: number | null; avg_heart_rate: number | null
+      }): ShootingBlock => ({
+        id: crypto.randomUUID(),
+        shooting_type: (b.shooting_type as ShootingBlockType) || '',
+        prone_shots: b.prone_shots?.toString() ?? '',
+        prone_hits: b.prone_hits?.toString() ?? '',
+        standing_shots: b.standing_shots?.toString() ?? '',
+        standing_hits: b.standing_hits?.toString() ?? '',
+        start_time: b.start_time ?? '',
+        duration_seconds: formatDurationFromSeconds(b.duration_seconds),
+        avg_heart_rate: b.avg_heart_rate?.toString() ?? '',
+      })),
   }
 }
 

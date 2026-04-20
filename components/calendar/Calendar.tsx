@@ -472,16 +472,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, mode, phases 
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                         {mode === 'plan' || isFuture ? '+ Planlegg økt' : '+ Logg økt'}
                       </button>
-                      {mode !== 'plan' && !isFuture && !healthData[ds] && (
+                      {mode !== 'plan' && !healthData[ds] && (
                         <Link href={`/app/health/${ds}`}
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
                           + Helse
                         </Link>
-                      )}
-                      {mode !== 'plan' && isFuture && (
-                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '12px', padding: '6px 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          🔒 Helse tilgjengelig fra {fmt.split(' ').slice(1).join(' ')}
-                        </span>
                       )}
                     </div>
                   </div>

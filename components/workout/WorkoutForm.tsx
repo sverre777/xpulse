@@ -312,15 +312,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
       )}
 
-      {/* Låst for framtidige planlagte økter */}
-      {isPlanned && !isCompleted && !isPlanMode && isFutureDate && (
-        <div className="my-4 p-4" style={{ border: '1px solid #222228' }}>
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            🔒 Merking som gjennomført tilgjengelig fra {new Date(form.date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-        </div>
-      )}
-
       {/* Allerede gjennomført — vis status */}
       {isPlanned && isCompleted && !isPlanMode && (
         <div className="my-4 p-3" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', borderLeft: '3px solid #28A86E' }}>
@@ -349,10 +340,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </div>
         </Section>
       )}
-      {!isPlanMode && isFutureDate && !isPlanned && (
-        <FutureLock date={form.date} label="Dagsform, RPE og laktat" />
-      )}
-
       {/* ── LAKTAT ── */}
       {showExecutionFields && !isPlanMode && (
         <Section label="Laktat (valgfritt)">
@@ -477,26 +464,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 }
 
 // ── Shared helpers ──
-
-function FutureLock({ date, label }: { date: string; label: string }) {
-  const formatted = new Date(date + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
-  return (
-    <div className="py-4 px-0" style={{ borderBottom: '1px solid #1E1E22' }}>
-      <div className="flex items-center gap-3 py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
-        <span style={{ width: '24px', height: '2px', backgroundColor: '#222228', display: 'inline-block' }} />
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#2A2A30', fontSize: '18px', letterSpacing: '0.1em' }}>
-          {label}
-        </span>
-      </div>
-      <div className="py-5 flex items-center gap-2">
-        <span style={{ color: '#333340', fontSize: '16px' }}>🔒</span>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '13px' }}>
-          Tilgjengelig fra {formatted}
-        </span>
-      </div>
-    </div>
-  )
-}
 
 const iSt: React.CSSProperties = {
   backgroundColor: '#16161A', border: '1px solid #1E1E22',

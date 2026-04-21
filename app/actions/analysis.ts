@@ -2183,3 +2183,179 @@ export async function getIntensityDistribution(
     return { error: `getIntensityDistribution: ${msg}` }
   }
 }
+
+// ── Fase D: Belastning (ATL/CTL/TSB) ────────────────────
+//
+// Vår egen enkle TSS-variant — ikke TrainingPeaks-formel. For hver aktivitet
+// summeres (minutter_i_sone × sone-vekting). Aktivitetens tid uten soner (HR-
+// fallback håndteres i computeActivityTotals) får vekting fra den sonen HR
+// faller innenfor. Totalen per dag = daily TSS.
+//
+// ATL (fatigue, 7d) og CTL (fitness, 42d) = eksponensielt vektet glidende snitt.
+// α = 1 - exp(-1/n) der n er tidskonstant i dager.
+// TSB (form) = CTL - ATL.
+
+export type FormStatus = 'detrained' | 'optimal' | 'neutral' | 'hoy_belastning' | 'overtrent'
+
+export interface BelastningDay {
+  date: string            // YYYY-MM-DD
+  tss: number             // daily TSS
+  atl: number             // 7-day EMA
+  ctl: number             // 42-day EMA
+  tsb: number             // CTL - ATL
+  tssRolling7: number     // glidende 7-dagers snitt av TSS (for bar-chart-linje)
+}
+
+export interface BelastningAnalysis {
+  daily: BelastningDay[]          // kun innenfor [from, to]
+  current: {
+    atl: number
+    ctl: number
+    tsb: number
+    formStatus: FormStatus
+  }
+  hasData: boolean
+}
+
+const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'Hurtighet', number> = {
+  I1: 1, I2: 2, I3: 3, I4: 4, I5: 5, Hurtighet: 5,
+}
+
+function classifyForm(tsb: number): FormStatus {
+  if (tsb > 20) return 'detrained'
+  if (tsb >= 10) return 'optimal'
+  if (tsb >= -10) return 'neutral'
+  if (tsb >= -30) return 'hoy_belastning'
+  return 'overtrent'
+}
+
+function addDaysISO(iso: string, days: number): string {
+  const d = new Date(iso + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+function daysBetweenISO(fromIso: string, toIso: string): number {
+  const a = new Date(fromIso + 'T00:00:00Z').getTime()
+  const b = new Date(toIso + 'T00:00:00Z').getTime()
+  return Math.round((b - a) / 86400000)
+}
+
+type RawBelastningRow = {
+  id: string
+  date: string
+  workout_activities: {
+    activity_type: string
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+export async function getBelastningAnalysis(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<BelastningAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+
+    // 42-dagers warm-up før fromDate slik at CTL er stabil ved periodens start.
+    const warmupStart = addDaysISO(fromDate, -42)
+
+    let q = supabase
+      .from('workouts')
+      .select('id,date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', warmupStart)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) q = q.eq('sport', sportFilter)
+
+    const { data, error } = await q
+    if (error) return { error: error.message }
+
+    // Aggreger daglig TSS over hele warm-up-rangen.
+    const tssByDate = new Map<string, number>()
+    for (const w of (data ?? []) as RawBelastningRow[]) {
+      const acts: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = computeActivityTotals(acts, heartZones)
+      let tss = 0
+      tss += (totals.zoneSeconds.I1 / 60) * ZONE_WEIGHTS.I1
+      tss += (totals.zoneSeconds.I2 / 60) * ZONE_WEIGHTS.I2
+      tss += (totals.zoneSeconds.I3 / 60) * ZONE_WEIGHTS.I3
+      tss += (totals.zoneSeconds.I4 / 60) * ZONE_WEIGHTS.I4
+      tss += (totals.zoneSeconds.I5 / 60) * ZONE_WEIGHTS.I5
+      tss += (totals.zoneSeconds.Hurtighet / 60) * ZONE_WEIGHTS.Hurtighet
+      if (tss > 0) tssByDate.set(w.date, (tssByDate.get(w.date) ?? 0) + tss)
+    }
+
+    // EMA over alle dager i warm-up + periode. Tomme dager = TSS 0.
+    const totalDays = daysBetweenISO(warmupStart, toDate) + 1
+    const alphaAtl = 1 - Math.exp(-1 / 7)
+    const alphaCtl = 1 - Math.exp(-1 / 42)
+
+    type DailyPoint = { date: string; tss: number; atl: number; ctl: number; tsb: number }
+    const allPoints: DailyPoint[] = []
+    let atl = 0, ctl = 0
+    for (let i = 0; i < totalDays; i++) {
+      const d = addDaysISO(warmupStart, i)
+      const tss = tssByDate.get(d) ?? 0
+      atl = atl + (tss - atl) * alphaAtl
+      ctl = ctl + (tss - ctl) * alphaCtl
+      allPoints.push({ date: d, tss, atl, ctl, tsb: ctl - atl })
+    }
+
+    // Klipp til [fromDate, toDate] for retur.
+    const visible = allPoints.filter(p => p.date >= fromDate && p.date <= toDate)
+
+    // Rullerende 7-dagers TSS-snitt — beregnet på hele warm-up-serien.
+    const rolling7: Record<string, number> = {}
+    for (let i = 0; i < allPoints.length; i++) {
+      const windowStart = Math.max(0, i - 6)
+      let sum = 0, count = 0
+      for (let j = windowStart; j <= i; j++) { sum += allPoints[j].tss; count += 1 }
+      rolling7[allPoints[i].date] = count > 0 ? sum / count : 0
+    }
+
+    const daily: BelastningDay[] = visible.map(p => ({
+      date: p.date,
+      tss: Math.round(p.tss * 10) / 10,
+      atl: Math.round(p.atl * 10) / 10,
+      ctl: Math.round(p.ctl * 10) / 10,
+      tsb: Math.round(p.tsb * 10) / 10,
+      tssRolling7: Math.round(rolling7[p.date] * 10) / 10,
+    }))
+
+    const last = daily[daily.length - 1]
+    const currentAtl = last ? last.atl : 0
+    const currentCtl = last ? last.ctl : 0
+    const currentTsb = last ? last.tsb : 0
+
+    return {
+      daily,
+      current: {
+        atl: currentAtl,
+        ctl: currentCtl,
+        tsb: currentTsb,
+        formStatus: classifyForm(currentTsb),
+      },
+      hasData: daily.some(d => d.tss > 0) || currentCtl > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getBelastningAnalysis: ${msg}` }
+  }
+}

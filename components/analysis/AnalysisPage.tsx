@@ -5,9 +5,11 @@ import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
+  getBelastningAnalysis,
   type WorkoutStats, type AnalysisOverview,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
+  type BelastningAnalysis,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -18,6 +20,7 @@ import { HealthTab } from './HealthTab'
 import { TemplateAnalysisTab } from './TemplateAnalysisTab'
 import { CompareWorkoutsTab } from './CompareWorkoutsTab'
 import { IntensityTab } from './IntensityTab'
+import { BelastningTab } from './BelastningTab'
 
 // 8 faner totalt — kun Belastning og Periodisering er igjen som plassholdere etter Fase C.
 // Se AGENTS.md for fase-plan.
@@ -99,6 +102,7 @@ export function AnalysisPage({
   const [templateAnalysis, setTemplateAnalysis] = useState<TemplateAnalysis | null>(null)
   const [compareWorkouts, setCompareWorkouts] = useState<WorkoutsForComparison | null>(null)
   const [intensityDist, setIntensityDist] = useState<IntensityDistribution | null>(null)
+  const [belastning, setBelastning] = useState<BelastningAnalysis | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -107,6 +111,7 @@ export function AnalysisPage({
     setTemplateAnalysis(null)
     setCompareWorkouts(null)
     setIntensityDist(null)
+    setBelastning(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -181,8 +186,16 @@ export function AnalysisPage({
         setIntensityDist(res)
       })
     }
+    if (tab === 'belastning' && belastning === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getBelastningAnalysis(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setBelastning(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning])
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -292,7 +305,11 @@ export function AnalysisPage({
             ? <IntensityTab data={intensityDist} />
             : <LoadingStub label="Laster intensitetsfordeling…" />
         )}
-        {tab === 'belastning' && STUB('Belastning')}
+        {tab === 'belastning' && (
+          belastning
+            ? <BelastningTab data={belastning} />
+            : <LoadingStub label="Laster belastning…" />
+        )}
         {tab === 'periodisering' && STUB('Periodisering')}
       </div>
     </div>

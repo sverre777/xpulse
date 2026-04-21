@@ -9,6 +9,7 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getPeriodizationForDateRange } from '@/app/actions/seasons'
+import { getDayStatesForRange, type DayState } from '@/app/actions/day-states'
 import { SeasonContextStrip } from '@/components/periodization/SeasonContextStrip'
 
 const PHASE_COLORS: Record<string, string> = {
@@ -40,7 +41,10 @@ export default async function PlanPage() {
   const overlayFromISO = overlayFrom.toISOString().split('T')[0]
   const overlayToISO = overlayTo.toISOString().split('T')[0]
 
-  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization] = await Promise.all([
+  const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
+  const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
+
+  const [rawWorkouts, { data: goals }, { data: phases }, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization, dayStatesRes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('training_goals').select('*').eq('user_id', user.id).order('date'),
     supabase.from('training_phases').select('*').eq('user_id', user.id).order('start_date'),
@@ -50,11 +54,20 @@ export default async function PlanPage() {
     getPeriodNotes('week', [weekKey], 'plan'),
     getPeriodNotes('month', [monthKey], 'plan'),
     getPeriodizationForDateRange(overlayFromISO, overlayToISO),
+    getDayStatesForRange(monthStart, monthEnd),
   ])
 
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
+
+  const dayStatesByDate: Record<string, DayState[]> = {}
+  if (!('error' in dayStatesRes)) {
+    for (const s of dayStatesRes) {
+      if (!dayStatesByDate[s.date]) dayStatesByDate[s.date] = []
+      dayStatesByDate[s.date].push(s)
+    }
+  }
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
@@ -96,6 +109,7 @@ export default async function PlanPage() {
               trainingPhases={trainingPhases}
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
+              initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
             />

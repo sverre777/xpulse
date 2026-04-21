@@ -10,6 +10,7 @@ import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
 import { getPeriodNotes } from '@/app/actions/period-notes'
+import { getDayStatesForRange, type DayState } from '@/app/actions/day-states'
 
 export default async function DagbokPage() {
   const supabase = await createClient()
@@ -42,7 +43,7 @@ export default async function DagbokPage() {
   // "Denne uken"-kortet skal regne samme metrikk som resten (aktivitets-basert),
   // ikke workouts.duration_minutes direkte — ellers kan tall divergere fra
   // kalender-grid og Analyse-overlay.
-  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
+  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes, dayStatesRes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
       .select('duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters)')
@@ -57,7 +58,16 @@ export default async function DagbokPage() {
     getHeartZonesForUser(supabase, user.id),
     getPeriodNotes('week', [weekKey], 'dagbok'),
     getPeriodNotes('month', [monthKey], 'dagbok'),
+    getDayStatesForRange(monthStart, monthEnd),
   ])
+
+  const dayStatesByDate: Record<string, DayState[]> = {}
+  if (!('error' in dayStatesRes)) {
+    for (const s of dayStatesRes) {
+      if (!dayStatesByDate[s.date]) dayStatesByDate[s.date] = []
+      dayStatesByDate[s.date].push(s)
+    }
+  }
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
@@ -176,6 +186,7 @@ export default async function DagbokPage() {
               initialWorkoutsByDate={workoutsByDate}
               initialHealthData={healthData}
               initialRecoveryData={recoveryByDate}
+              initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
             />

@@ -16,6 +16,15 @@ import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
 import { WeekCalendarView } from './WeekCalendarView'
 import { AnalysisOverlay } from '@/components/analysis/AnalysisOverlay'
+import type { DayState, DayStateType } from '@/app/actions/day-states'
+import { getDayStatesForRange } from '@/app/actions/day-states'
+import { DayStateModal } from '@/components/day-state/DayStateModal'
+import {
+  CreateChoiceModal, type CreateChoice,
+} from '@/components/day-state/CreateChoiceModal'
+import {
+  DayStateIndicator, stateBgFor, stateBorderFor,
+} from '@/components/day-state/DayStateIndicator'
 import {
   INTENSITY_TINT, INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -61,6 +70,8 @@ export interface CalendarProps {
   // Periodiseringsoverlay (valgfritt — tom array = ingen overlay).
   seasonPeriods?: import('@/app/actions/seasons').SeasonPeriod[]
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
+  // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
+  initialDayStates?: Record<string, DayState[]>
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -68,6 +79,8 @@ interface CalendarActions {
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
   onAddRecovery: (dateStr: string) => void
+  onEditDayState: (state: DayState) => void
+  dayStatesByDate: Record<string, DayState[]>
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -418,7 +431,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   phases: TrainingPhase[]
   keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
-  const { onCreateWorkout } = useCalendarActions()
+  const { onCreateWorkout, dayStatesByDate } = useCalendarActions()
   const dateStr = toISO(date)
   const today = toISO(new Date())
   const isToday = dateStr === today
@@ -428,6 +441,10 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const topKey = keyDatesOnDay[0] ?? null
   const keyVisual = topKey ? KEY_EVENT_VISUALS[topKey.event_type] : null
   const isPeakTarget = keyDatesOnDay.some(k => k.is_peak_target)
+  const states = dayStatesByDate[dateStr] ?? []
+  const stateBg = stateBgFor(states)
+  const borderStyle = stateBorderFor(states)
+  const baseBg = isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : 'transparent'
 
   return (
     <div
@@ -438,7 +455,8 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       className="text-left border-l w-full"
       style={{
         borderColor: '#1A1A1E',
-        backgroundColor: isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : 'transparent',
+        borderLeftStyle: borderStyle ?? 'solid',
+        background: stateBg ?? baseBg,
         opacity: isCurrentMonth ? 1 : 0.3,
         minHeight: '96px',
         padding: '4px',
@@ -465,6 +483,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
+          <DayStateIndicator states={states} size={11} />
           {keyDatesOnDay.slice(0, 2).map(k => (
             <span key={k.id} aria-hidden
               style={{ fontSize: '11px', lineHeight: 1 }}>
@@ -472,11 +491,11 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             </span>
           ))}
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
-          {mode === 'plan' && (
+          {(mode === 'plan' || mode === 'dagbok') && (
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
               style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
-              title="Legg til planlagt økt">+</button>
+              title={mode === 'plan' ? 'Legg til planlagt økt eller hviledag' : 'Logg økt eller marker dag'}>+</button>
           )}
         </div>
       </div>
@@ -522,7 +541,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
@@ -745,10 +764,51 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       </div>
                     )}
 
+                    {/* Dag-tilstander (hviledag/sykdom) — egne rader; teller ikke som økter. */}
+                    {(dayStatesByDate[ds] ?? []).length > 0 && (
+                      <div className="mb-3 space-y-1">
+                        {(dayStatesByDate[ds] ?? []).map(s => {
+                          const isRest = s.state_type === 'hviledag'
+                          const color = isRest ? '#28A86E' : '#E11D48'
+                          const icon = isRest ? '🛌' : '🤒'
+                          const label = isRest
+                            ? (s.is_planned ? 'Planlagt hviledag' : 'Hviledag')
+                            : 'Sykdom'
+                          const meta: string[] = []
+                          if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))
+                          if (s.feeling != null) meta.push(`Følelse ${s.feeling}/5`)
+                          if (s.expected_days_off != null) meta.push(`${s.expected_days_off} dager utenfor`)
+                          return (
+                            <button key={s.id} type="button" onClick={() => onEditDayState(s)}
+                              className="w-full flex items-center justify-between p-2 text-left"
+                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
+                              <span className="flex items-center gap-2 flex-wrap">
+                                <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
+                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
+                                  {label}
+                                </span>
+                                {meta.length > 0 && (
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+                                    {meta.join(' · ')}
+                                  </span>
+                                )}
+                                {s.notes && (
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', fontStyle: 'italic' }}>
+                                    — {s.notes}
+                                  </span>
+                                )}
+                              </span>
+                              <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
                     <div className="flex gap-3 flex-wrap">
                       <button type="button" onClick={() => onCreateWorkout(ds)}
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                        {mode === 'plan' || isFuture ? '+ Planlegg økt' : '+ Logg økt'}
+                        {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
                       </button>
                       {mode !== 'plan' && !healthData[ds] && (
                         <Link href={`/app/health/${ds}`}
@@ -880,6 +940,7 @@ export function Calendar({
   initialMonthNote = '',
   seasonPeriods = [],
   seasonKeyDates = [],
+  initialDayStates = {},
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -893,6 +954,11 @@ export function Calendar({
   const [showPicker, setShowPicker] = useState(false)
   const [modalState, setModalState] = useState<WorkoutModalState | null>(null)
   const [recoveryDate, setRecoveryDate] = useState<string | null>(null)
+  const [dayStatesByDate, setDayStatesByDate] = useState<Record<string, DayState[]>>(initialDayStates)
+  const [choiceModal, setChoiceModal] = useState<{ date: string; time?: string } | null>(null)
+  const [dayStateModal, setDayStateModal] = useState<
+    { date: string; stateType: DayStateType; editing: DayState | null } | null
+  >(null)
 
   const year = refDate.getFullYear()
   const month = refDate.getMonth() + 1
@@ -920,7 +986,7 @@ export function Calendar({
     setModalState({ kind: 'edit', workoutId: w.id, formMode: 'dagbok' })
   }, [mode, router])
 
-  const handleCreateWorkout = useCallback((dateStr: string, time?: string) => {
+  const openWorkoutCreate = useCallback((dateStr: string, time?: string) => {
     const today = toISO(new Date())
     const isFuture = dateStr > today
 
@@ -937,6 +1003,34 @@ export function Calendar({
     // Dagbok + past/today → logg-modal
     setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok', initialStartTime: time })
   }, [mode, router])
+
+  const handleCreateWorkout = useCallback((dateStr: string, time?: string) => {
+    // Vis valg-modal i plan/dagbok: trening eller dag-tilstand.
+    if (mode === 'plan' || mode === 'dagbok') {
+      setChoiceModal({ date: dateStr, time })
+      return
+    }
+    openWorkoutCreate(dateStr, time)
+  }, [mode, openWorkoutCreate])
+
+  const handleEditDayState = useCallback((state: DayState) => {
+    setDayStateModal({
+      date: state.date, stateType: state.state_type, editing: state,
+    })
+  }, [])
+
+  const handleChoicePick = useCallback((choice: CreateChoice) => {
+    const c = choiceModal
+    if (!c) return
+    setChoiceModal(null)
+    if (choice === 'workout') {
+      openWorkoutCreate(c.date, c.time)
+      return
+    }
+    // Åpne eksisterende tilstand hvis den finnes, ellers opprett ny.
+    const existing = (dayStatesByDate[c.date] ?? []).find(s => s.state_type === choice) ?? null
+    setDayStateModal({ date: c.date, stateType: choice, editing: existing })
+  }, [choiceModal, openWorkoutCreate, dayStatesByDate])
 
   const handleAddRecovery = useCallback((dateStr: string) => {
     setRecoveryDate(dateStr)
@@ -972,10 +1066,33 @@ export function Calendar({
 
   const fetchData = useCallback(async (start: Date, end: Date) => {
     setLoading(true)
-    const raw = await getCalendarWorkouts(userId, toISO(start), toISO(end))
+    const [raw, statesRes] = await Promise.all([
+      getCalendarWorkouts(userId, toISO(start), toISO(end)),
+      getDayStatesForRange(toISO(start), toISO(end)),
+    ])
     setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[], heartZones))
+    if (!('error' in statesRes)) {
+      const map: Record<string, DayState[]> = {}
+      for (const s of statesRes) {
+        if (!map[s.date]) map[s.date] = []
+        map[s.date].push(s)
+      }
+      setDayStatesByDate(map)
+    }
     setLoading(false)
   }, [userId, heartZones])
+
+  const refreshDayStates = useCallback(async () => {
+    const { start, end } = getDateRange(view, refDate)
+    const statesRes = await getDayStatesForRange(toISO(start), toISO(end))
+    if ('error' in statesRes) return
+    const map: Record<string, DayState[]> = {}
+    for (const s of statesRes) {
+      if (!map[s.date]) map[s.date] = []
+      map[s.date].push(s)
+    }
+    setDayStatesByDate(map)
+  }, [view, refDate])
 
   // Fetch when view/refDate changes (skip initial load — data is passed in).
   // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
@@ -1055,7 +1172,13 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
-    <CalendarActionsContext.Provider value={{ onEditWorkout: handleEditWorkout, onCreateWorkout: handleCreateWorkout, onAddRecovery: handleAddRecovery }}>
+    <CalendarActionsContext.Provider value={{
+      onEditWorkout: handleEditWorkout,
+      onCreateWorkout: handleCreateWorkout,
+      onAddRecovery: handleAddRecovery,
+      onEditDayState: handleEditDayState,
+      dayStatesByDate,
+    }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
       {/* Mobil: stablet kolonne med sentrert nav. Desktop: view-switcher + nav side om side. */}
@@ -1172,6 +1295,23 @@ export function Calendar({
       open={recoveryDate !== null}
       onClose={() => setRecoveryDate(null)}
     />
+    <CreateChoiceModal
+      open={choiceModal !== null}
+      onClose={() => setChoiceModal(null)}
+      date={choiceModal?.date ?? ''}
+      mode={mode === 'plan' ? 'plan' : 'dagbok'}
+      onPick={handleChoicePick}
+    />
+    {dayStateModal && (
+      <DayStateModal
+        open
+        onClose={() => setDayStateModal(null)}
+        date={dayStateModal.date}
+        stateType={dayStateModal.stateType}
+        editing={dayStateModal.editing}
+        onSaved={() => { refreshDayStates() }}
+      />
+    )}
     </CalendarActionsContext.Provider>
   )
 }

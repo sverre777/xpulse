@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   LineChart, Line, Legend,
 } from 'recharts'
-import type { WorkoutStats, AnalysisOverview, OverviewZoneSeconds, MovementBreakdownRow } from '@/app/actions/analysis'
+import type { WorkoutStats, AnalysisOverview, OverviewZoneSeconds, MovementBreakdownRow, OverviewWeekDistribution } from '@/app/actions/analysis'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
@@ -238,6 +238,47 @@ export function OverviewTab({ stats, overview }: OverviewTabProps) {
             </div>
           )}
 
+          {/* Tilstand + subjektiv belastning — hviledager, sykdom, overskudd, stress. */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <MetricCard
+              chartKey="overview_rest_days"
+              label="Hviledager 🛌"
+              value={String(overview.current.rest_days)}
+              sublabel={prev ? `Forrige periode: ${prev.rest_days}` : null}
+              deltaPercent={overview.percent_changes.rest_days}
+              positiveIsGood={true}
+              accent="#28A86E"
+            />
+            <MetricCard
+              chartKey="overview_sickness_days"
+              label="Sykdomsdager 🤒"
+              value={String(overview.current.sickness_days)}
+              sublabel={prev ? `Forrige periode: ${prev.sickness_days}` : null}
+              deltaPercent={overview.percent_changes.sickness_days}
+              positiveIsGood={false}
+              accent="#E11D48"
+            />
+            <MetricCard
+              chartKey="overview_average_energy"
+              label="Snitt overskudd 🙂"
+              value={overview.current.avg_energy != null ? `${overview.current.avg_energy}` : '—'}
+              sublabel={overview.current.avg_energy != null
+                ? (prev?.avg_energy != null ? `Forrige: ${prev.avg_energy} · skala 1–10` : 'Skala 1–10 · fra ukesrefleksjon')
+                : 'Logg ukesrefleksjon for å se trend'}
+              accent="#28A86E"
+            />
+            <MetricCard
+              chartKey="overview_average_stress"
+              label="Snitt stress 😰"
+              value={overview.current.avg_stress != null ? `${overview.current.avg_stress}` : '—'}
+              sublabel={overview.current.avg_stress != null
+                ? (prev?.avg_stress != null ? `Forrige: ${prev.avg_stress} · skala 1–10` : 'Skala 1–10 · fra ukesrefleksjon')
+                : 'Logg ukesrefleksjon for å se trend'}
+              positiveIsGood={false}
+              accent="#E11D48"
+            />
+          </div>
+
           {/* Helse-snitt — skjul hele seksjonen hvis ingen dager har data. */}
           {overview.current.health_averages.days_with_data > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -318,7 +359,44 @@ export function OverviewTab({ stats, overview }: OverviewTabProps) {
           <OverviewIntensiveSessions stats={stats} />
         </>
       )}
+
+      {/* Treningsdager vs hviledager vs sykdomsdager per uke. Vises også
+          uten workout-data så lenge det finnes dag-tilstander i perioden. */}
+      {overview && overview.weekly_distribution.some(w => w.training_days + w.rest_days + w.sickness_days > 0) && (
+        <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} />
+      )}
     </div>
+  )
+}
+
+export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewWeekDistribution[] }) {
+  const hasAny = weekly.some(w => w.training_days + w.rest_days + w.sickness_days > 0)
+  return (
+    <ChartWrapper chartKey="overview_training_vs_rest_vs_sickness"
+      title="Trening vs hvile vs sykdom per uke"
+      subtitle="Dager per uke — oransje=trening, grønn=hvile, rød=sykdom"
+      height={280}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg hviledager eller sykdom i kalenderen for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={weekly}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} allowDecimals={false} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+            <Bar dataKey="training_days" stackId="days" fill="#FF4500" name="Trening" />
+            <Bar dataKey="rest_days" stackId="days" fill="#28A86E" name="Hvile" />
+            <Bar dataKey="sickness_days" stackId="days" fill="#E11D48" name="Sykdom" />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </ChartWrapper>
   )
 }
 

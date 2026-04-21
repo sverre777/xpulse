@@ -2,7 +2,7 @@
 
 import {
   ResponsiveContainer, LineChart, Line, ScatterChart, Scatter,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ComposedChart,
 } from 'recharts'
 import type { HealthCorrelations, HealthDailyPoint, CorrelationPoint } from '@/app/actions/analysis'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
@@ -129,7 +129,7 @@ function TrendChart({
 }
 
 function CorrelationScatter({
-  title, subtitle, points, xLabel, yLabel, color,
+  title, subtitle, points, xLabel, yLabel, color, chartKey, emptyMessage,
 }: {
   title: string
   subtitle: string
@@ -137,65 +137,49 @@ function CorrelationScatter({
   xLabel: string
   yLabel: string
   color: string
+  chartKey?: string
+  emptyMessage?: string
 }) {
   if (points.length < 3) {
     return (
-      <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-        <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>{title}</p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Trenger minst 3 datapunkter for korrelasjon.
-        </p>
-      </div>
+      <ChartWrapper chartKey={chartKey} title={title} subtitle={subtitle} height={100}>
+        <div className="flex items-center justify-center h-full">
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            {emptyMessage ?? 'Trenger minst 3 datapunkter for korrelasjon.'}
+          </p>
+        </div>
+      </ChartWrapper>
     )
   }
   const trend = linearTrend(points)
   const r = pearson(points)
   return (
-    <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-            {title}
-          </p>
-          <p className="text-xs mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            {subtitle}
-          </p>
-        </div>
-        <p className="text-xs whitespace-nowrap"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {formatR(r)}
-        </p>
-      </div>
-      <div style={{ width: '100%', height: 280 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart>
-            <CartesianGrid stroke={GRID_COLOR} />
-            <XAxis type="number" dataKey="x" name={xLabel}
-              tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-              label={{ value: xLabel, position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
-            <YAxis type="number" dataKey="y" name={yLabel}
-              tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
-              label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
-              cursor={{ stroke: '#1E1E22', strokeDasharray: '3 3' }}
-              formatter={(value, key) => {
-                if (key === 'x') return [String(value), xLabel]
-                if (key === 'y') return [String(value), yLabel]
-                return [String(value), String(key)]
-              }} />
-            <Scatter data={points} fill={color} />
-            {trend && (
-              <Scatter data={trend} fill="transparent"
-                line={{ stroke: '#F0F0F2', strokeWidth: 1.5, strokeDasharray: '4 4' }}
-                shape={() => <g />} />
-            )}
-          </ScatterChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    <ChartWrapper chartKey={chartKey} title={title} subtitle={`${subtitle} · ${formatR(r)}`} height={280}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart>
+          <CartesianGrid stroke={GRID_COLOR} />
+          <XAxis type="number" dataKey="x" name={xLabel}
+            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            label={{ value: xLabel, position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
+          <YAxis type="number" dataKey="y" name={yLabel}
+            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE}
+            cursor={{ stroke: '#1E1E22', strokeDasharray: '3 3' }}
+            formatter={(value, key) => {
+              if (key === 'x') return [String(value), xLabel]
+              if (key === 'y') return [String(value), yLabel]
+              return [String(value), String(key)]
+            }} />
+          <Scatter data={points} fill={color} />
+          {trend && (
+            <Scatter data={trend} fill="transparent"
+              line={{ stroke: '#F0F0F2', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+              shape={() => <g />} />
+          )}
+        </ScatterChart>
+      </ResponsiveContainer>
+    </ChartWrapper>
   )
 }
 
@@ -270,7 +254,49 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           yLabel="Intervall-HR"
           color="#1A6FD4"
         />
+        <CorrelationScatter
+          chartKey="helse_stress_vs_load"
+          title="Stress 😰 vs belastning (7d)"
+          subtitle="X: sum timer siste 7 dager i uken · Y: opplevd stress (1–10)"
+          points={data.correlations.stressVs7dLoad}
+          xLabel="Timer (7d)"
+          yLabel="Stress"
+          color="#E11D48"
+          emptyMessage="Logg ukesrefleksjon for å se denne grafen."
+        />
+        <CorrelationScatter
+          chartKey="helse_energy_vs_load"
+          title="Overskudd 🙂 vs belastning (7d)"
+          subtitle="X: sum timer siste 7 dager i uken · Y: opplevd overskudd (1–10)"
+          points={data.correlations.energyVs7dLoad}
+          xLabel="Timer (7d)"
+          yLabel="Overskudd"
+          color="#28A86E"
+          emptyMessage="Logg ukesrefleksjon for å se denne grafen."
+        />
+        <CorrelationScatter
+          chartKey="helse_rest_vs_perceived"
+          title="Hviledager 🛌 vs opplevd belastning"
+          subtitle="X: antall hviledager i uken · Y: perceived load (1–10)"
+          points={data.correlations.restVsPerceivedLoad}
+          xLabel="Hviledager"
+          yLabel="Opplevd belastning"
+          color="#28A86E"
+          emptyMessage="Logg ukesrefleksjon og hviledag for å se denne grafen."
+        />
+        <HealthSicknessVsLoad data={data} />
       </div>
+
+      {/* Ukesrefleksjon over tid + skade-tidslinje */}
+      <div className="flex items-center gap-3 mt-4">
+        <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+        <p className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          Ukesrefleksjon
+        </p>
+      </div>
+      <HealthReflectionsTrend data={data} />
+      <HealthInjuriesTimeline data={data} />
 
       {/* Laktat-respons per mal */}
       {data.templateLactate.length > 0 && (
@@ -348,6 +374,252 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           </div>
         </>
       )}
+
+      <HealthCsvExport data={data} />
     </div>
+  )
+}
+
+function downloadCsv(filename: string, rows: string[][]) {
+  const csv = rows.map(r => r.map(c => {
+    if (c === '' || c == null) return ''
+    const s = String(c)
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`
+    return s
+  }).join(',')).join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function HealthCsvExport({ data }: { data: HealthCorrelations }) {
+  const handleDaily = () => {
+    const header = ['dato', 'hrv_ms', 'resting_hr', 'sleep_hours', 'sleep_quality', 'body_weight_kg', 'day_form', 'workload_sekunder']
+    const rows: string[][] = [header]
+    for (const d of data.daily) {
+      rows.push([
+        d.date,
+        d.hrv_ms != null ? String(d.hrv_ms) : '',
+        d.resting_hr != null ? String(d.resting_hr) : '',
+        d.sleep_hours != null ? String(d.sleep_hours) : '',
+        d.sleep_quality != null ? String(d.sleep_quality) : '',
+        d.body_weight_kg != null ? String(d.body_weight_kg) : '',
+        d.day_form != null ? String(d.day_form) : '',
+        String(d.workload_seconds),
+      ])
+    }
+    const first = data.daily[0]?.date ?? 'start'
+    const last = data.daily[data.daily.length - 1]?.date ?? 'slutt'
+    downloadCsv(`helse_daglig_${first}_${last}.csv`, rows)
+  }
+
+  const handleReflections = () => {
+    const header = ['uke_start', 'uke', 'perceived_load', 'energy', 'stress']
+    const rows: string[][] = [header]
+    for (const r of data.reflectionsTrend) {
+      rows.push([
+        r.startDate,
+        r.label,
+        r.perceived_load != null ? String(r.perceived_load) : '',
+        r.energy != null ? String(r.energy) : '',
+        r.stress != null ? String(r.stress) : '',
+      ])
+    }
+    const first = data.reflectionsTrend[0]?.startDate ?? 'start'
+    const last = data.reflectionsTrend[data.reflectionsTrend.length - 1]?.startDate ?? 'slutt'
+    downloadCsv(`helse_ukesrefleksjoner_${first}_${last}.csv`, rows)
+  }
+
+  const handleSickness = () => {
+    const header = ['maaned', 'sykdomsdager', 'snitt_timer_per_treningsdag']
+    const rows: string[][] = [header]
+    for (const s of data.sicknessVsLoad) {
+      rows.push([s.month, String(s.sickness_days), String(s.avg_load_hours)])
+    }
+    downloadCsv(`helse_sykdom_maaned.csv`, rows)
+  }
+
+  return (
+    <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
+      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div>
+        <p className="text-xs tracking-widest uppercase mb-1"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Eksport
+        </p>
+        <p className="text-sm"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          Last ned helse-tall, ukesrefleksjoner og sykdomsmåneder som CSV.
+        </p>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        <button type="button" onClick={handleDaily}
+          className="px-4 py-2 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: '#FF4500', color: '#0A0A0B',
+            border: 'none', minHeight: '40px', cursor: 'pointer',
+          }}>
+          Daglig CSV
+        </button>
+        <button type="button" onClick={handleReflections}
+          disabled={data.reflectionsTrend.length === 0}
+          className="px-4 py-2 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: 'transparent',
+            border: '1px solid #FF4500',
+            color: data.reflectionsTrend.length === 0 ? '#555560' : '#FF4500',
+            minHeight: '40px',
+            cursor: data.reflectionsTrend.length === 0 ? 'not-allowed' : 'pointer',
+          }}>
+          Ukesrefleksjoner CSV
+        </button>
+        <button type="button" onClick={handleSickness}
+          disabled={data.sicknessVsLoad.length === 0}
+          className="px-4 py-2 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: 'transparent',
+            border: '1px solid #FF4500',
+            color: data.sicknessVsLoad.length === 0 ? '#555560' : '#FF4500',
+            minHeight: '40px',
+            cursor: data.sicknessVsLoad.length === 0 ? 'not-allowed' : 'pointer',
+          }}>
+          Sykdom/måned CSV
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
+  const rows = data.reflectionsTrend.map(r => ({
+    label: r.label,
+    startDate: r.startDate,
+    perceived_load: r.perceived_load,
+    energy: r.energy,
+    stress: r.stress,
+  }))
+  const hasAny = rows.some(r => r.perceived_load != null || r.energy != null || r.stress != null)
+
+  return (
+    <ChartWrapper chartKey="helse_reflections_trend"
+      title="Overskudd, stress og opplevd belastning over tid"
+      subtitle="Ukentlig refleksjon — skala 1–10"
+      height={280}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg ukesrefleksjon for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip contentStyle={TOOLTIP_STYLE}
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
+            <Line type="monotone" dataKey="stress" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
+            <Line type="monotone" dataKey="perceived_load" stroke="#D4A017" strokeWidth={2} dot={{ r: 3 }} name="Opplevd belastning" connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </ChartWrapper>
+  )
+}
+
+export function HealthInjuriesTimeline({ data }: { data: HealthCorrelations }) {
+  if (data.injuries.length === 0) {
+    return (
+      <ChartWrapper chartKey="helse_injuries_timeline"
+        title="Skade-tidslinje"
+        subtitle="Markeringer for uker med skade-notater i ukesrefleksjon"
+        height={140}>
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Ingen skade-notater registrert i perioden.
+          </p>
+        </div>
+      </ChartWrapper>
+    )
+  }
+
+  // Tegn tidslinje via scatter langs en vannrett akse. Hvert punkt = én skade-uke.
+  const points = data.injuries.map(i => ({
+    x: new Date(i.startDate).getTime(),
+    y: 1,
+    label: `U${i.week_number}`,
+    notes: i.notes,
+    startDate: i.startDate,
+  }))
+
+  return (
+    <ChartWrapper chartKey="helse_injuries_timeline"
+      title="Skade-tidslinje"
+      subtitle={`${data.injuries.length} skade-uke${data.injuries.length === 1 ? '' : 'r'} i perioden`}
+      height={160}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
+          <CartesianGrid stroke={GRID_COLOR} vertical={false} horizontal={false} />
+          <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
+            tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
+            axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+          <YAxis type="number" dataKey="y" hide domain={[0, 2]} />
+          <Tooltip contentStyle={TOOLTIP_STYLE}
+            cursor={false}
+            formatter={(_v, _k, entry) => {
+              const p = entry?.payload as { label?: string; notes?: string }
+              return [p?.notes ?? '', p?.label ?? '']
+            }} />
+          <Scatter data={points} shape="diamond" fill="#E11D48" />
+        </ScatterChart>
+      </ResponsiveContainer>
+    </ChartWrapper>
+  )
+}
+
+export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
+  const rows = data.sicknessVsLoad
+  const hasAny = rows.some(r => r.sickness_days > 0 || r.avg_load_hours > 0)
+
+  return (
+    <ChartWrapper chartKey="helse_sickness_vs_load"
+      title="Sykdom 🤒 vs månedlig belastning"
+      subtitle="Stolper = sykdomsdager i måneden · linje = snitt treningstimer per treningsdag"
+      height={280}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg sykdomsdager for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <XAxis dataKey="monthLabel" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            <YAxis yAxisId="sick" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32}
+              allowDecimals={false} />
+            <YAxis yAxisId="load" orientation="right" tick={AXIS_STYLE}
+              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Bar yAxisId="sick" dataKey="sickness_days" fill="#E11D48" name="Sykdomsdager" />
+            <Line yAxisId="load" type="monotone" dataKey="avg_load_hours" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} name="Snitt timer/treningsdag" />
+          </ComposedChart>
+        </ResponsiveContainer>
+      )}
+    </ChartWrapper>
   )
 }

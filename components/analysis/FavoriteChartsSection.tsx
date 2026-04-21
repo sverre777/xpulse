@@ -7,10 +7,19 @@ import type {
 } from '@/app/actions/analysis'
 import { useFavorites } from './FavoritesContext'
 import { StarButton } from './StarButton'
+import type { AnalysisOverview, HealthCorrelations } from '@/app/actions/analysis'
 import {
   OverviewHoursPerWeek, OverviewZonesPerWeek, OverviewKmPerMovement, OverviewIntensiveSessions,
+  OverviewTrainingVsRestVsSickness,
 } from './OverviewTab'
-import { FitnessFatigueChart, DailyTssChart } from './BelastningTab'
+import { MetricCard } from './MetricCard'
+import {
+  FitnessFatigueChart, DailyTssChart,
+  PerceivedVsCalculatedChart, EnergyStressOverTimeChart, RestDayStats,
+} from './BelastningTab'
+import {
+  HealthReflectionsTrend, HealthInjuriesTimeline, HealthSicknessVsLoad,
+} from './HealthTab'
 import { LactateProfile, LactateTrend } from './TerskelTab'
 import { AccuracyTrend, HrZoneAccuracy, TimeTrend, TrainingVsComp } from './SkytingTab'
 import { LoadPerPeriod, CompetitionsPerPeriod } from './PeriodiseringTab'
@@ -31,10 +40,18 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   overview_zones_per_week: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Sonefordeling per uke' },
   overview_km_per_movement: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Kilometer per bevegelsesform' },
   overview_intensive_sessions: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Intensive økter per uke' },
+  overview_rest_days: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Hviledager 🛌' },
+  overview_sickness_days: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Sykdomsdager 🤒' },
+  overview_average_energy: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Snitt overskudd 🙂' },
+  overview_average_stress: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Snitt stress 😰' },
+  overview_training_vs_rest_vs_sickness: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Trening vs hvile vs sykdom per uke' },
 
   // Belastning
   belastning_fitness_fatigue_form: { tab: 'belastning', tabLabel: 'Belastning', title: 'Belastningskurver (CTL/ATL/TSB)' },
   belastning_daily_tss: { tab: 'belastning', tabLabel: 'Belastning', title: 'Daglig treningsbelastning (TSS)' },
+  belastning_perceived_vs_calculated: { tab: 'belastning', tabLabel: 'Belastning', title: 'Opplevd vs. beregnet belastning' },
+  belastning_energy_stress_over_time: { tab: 'belastning', tabLabel: 'Belastning', title: 'Overskudd og stress over tid' },
+  belastning_rest_day_stats: { tab: 'belastning', tabLabel: 'Belastning', title: 'Hviledag-statistikk' },
 
   // Terskel
   terskel_lactate_profile: { tab: 'terskel', tabLabel: 'Terskel', title: 'Laktatprofil (mmol vs puls)' },
@@ -65,6 +82,12 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   // Helse (fallback)
   health_lactate_per_template: { tab: 'helse', tabLabel: 'Helse', title: 'Laktat ved samme mal' },
   health_recovery_distribution: { tab: 'helse', tabLabel: 'Helse', title: 'Recovery-fordeling' },
+  helse_stress_vs_load: { tab: 'helse', tabLabel: 'Helse', title: 'Stress 😰 vs belastning (7d)' },
+  helse_energy_vs_load: { tab: 'helse', tabLabel: 'Helse', title: 'Overskudd 🙂 vs belastning (7d)' },
+  helse_sickness_vs_load: { tab: 'helse', tabLabel: 'Helse', title: 'Sykdom 🤒 vs månedlig belastning' },
+  helse_rest_vs_perceived: { tab: 'helse', tabLabel: 'Helse', title: 'Hviledager 🛌 vs opplevd belastning' },
+  helse_reflections_trend: { tab: 'helse', tabLabel: 'Helse', title: 'Overskudd, stress og opplevd belastning over tid' },
+  helse_injuries_timeline: { tab: 'helse', tabLabel: 'Helse', title: 'Skade-tidslinje' },
 }
 
 // Hjelper for AnalysisPage: hvilken fane-kilde må lazy-fetches for å rendre
@@ -80,6 +103,8 @@ interface Props {
   skyting: ShootingDepthAnalysis | null
   periodisering: PeriodizationOverview | null
   intensity: IntensityDistribution | null
+  overview: AnalysisOverview | null
+  health: HealthCorrelations | null
   onNavigate: (tab: TabKey) => void
 }
 
@@ -124,6 +149,8 @@ export function FavoriteChartsSection(props: Props) {
             skyting={props.skyting}
             periodisering={props.periodisering}
             intensity={props.intensity}
+            overview={props.overview}
+            health={props.health}
             onNavigate={props.onNavigate}
           />
         ))}
@@ -133,14 +160,14 @@ export function FavoriteChartsSection(props: Props) {
 }
 
 function FavoriteChartSlot({
-  chartKey, stats, belastning, terskel, skyting, periodisering, intensity, onNavigate,
+  chartKey, stats, belastning, terskel, skyting, periodisering, intensity, overview, health, onNavigate,
 }: Props & { chartKey: string }) {
   const meta = CHART_META[chartKey]
   if (!meta) {
     return <UnknownChart chartKey={chartKey} />
   }
 
-  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity })
+  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity, overview, health })
   if (rendered) return <div>{rendered}</div>
 
   // Kjent chart_key, men data-kilden er ikke lastet enda (eller grafen er ikke
@@ -159,18 +186,71 @@ function renderKnownChart(
     skyting: ShootingDepthAnalysis | null
     periodisering: PeriodizationOverview | null
     intensity: IntensityDistribution | null
+    overview: AnalysisOverview | null
+    health: HealthCorrelations | null
   },
 ): ReactNode | null {
-  const { stats, belastning, terskel, skyting, periodisering, intensity } = data
+  const { stats, belastning, terskel, skyting, periodisering, intensity, overview, health } = data
   switch (chartKey) {
     case 'overview_hours_per_week': return <OverviewHoursPerWeek stats={stats} />
     case 'overview_zones_per_week': return <OverviewZonesPerWeek stats={stats} />
     case 'overview_km_per_movement': return <OverviewKmPerMovement stats={stats} />
     case 'overview_intensive_sessions': return <OverviewIntensiveSessions stats={stats} />
+    case 'overview_training_vs_rest_vs_sickness':
+      return overview ? <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} /> : null
+    case 'overview_rest_days':
+      return overview ? (
+        <MetricCard chartKey="overview_rest_days" label="Hviledager 🛌"
+          value={String(overview.current.rest_days)}
+          sublabel={`Forrige periode: ${overview.previous.rest_days}`}
+          deltaPercent={overview.percent_changes.rest_days}
+          positiveIsGood={true} accent="#28A86E" />
+      ) : null
+    case 'overview_sickness_days':
+      return overview ? (
+        <MetricCard chartKey="overview_sickness_days" label="Sykdomsdager 🤒"
+          value={String(overview.current.sickness_days)}
+          sublabel={`Forrige periode: ${overview.previous.sickness_days}`}
+          deltaPercent={overview.percent_changes.sickness_days}
+          positiveIsGood={false} accent="#E11D48" />
+      ) : null
+    case 'overview_average_energy':
+      return overview ? (
+        <MetricCard chartKey="overview_average_energy" label="Snitt overskudd 🙂"
+          value={overview.current.avg_energy != null ? `${overview.current.avg_energy}` : '—'}
+          sublabel={overview.previous.avg_energy != null ? `Forrige: ${overview.previous.avg_energy}` : 'Skala 1–10'}
+          accent="#28A86E" />
+      ) : null
+    case 'overview_average_stress':
+      return overview ? (
+        <MetricCard chartKey="overview_average_stress" label="Snitt stress 😰"
+          value={overview.current.avg_stress != null ? `${overview.current.avg_stress}` : '—'}
+          sublabel={overview.previous.avg_stress != null ? `Forrige: ${overview.previous.avg_stress}` : 'Skala 1–10'}
+          positiveIsGood={false} accent="#E11D48" />
+      ) : null
     case 'belastning_fitness_fatigue_form':
       return belastning ? <FitnessFatigueChart data={belastning} /> : null
     case 'belastning_daily_tss':
       return belastning ? <DailyTssChart data={belastning} /> : null
+    case 'belastning_perceived_vs_calculated':
+      return belastning ? <PerceivedVsCalculatedChart data={belastning} /> : null
+    case 'belastning_energy_stress_over_time':
+      return belastning ? <EnergyStressOverTimeChart data={belastning} /> : null
+    case 'belastning_rest_day_stats':
+      return belastning ? <RestDayStats data={belastning} /> : null
+    case 'helse_stress_vs_load':
+    case 'helse_energy_vs_load':
+    case 'helse_rest_vs_perceived':
+    case 'helse_sickness_vs_load':
+    case 'helse_reflections_trend':
+    case 'helse_injuries_timeline':
+      if (!health) return null
+      if (chartKey === 'helse_sickness_vs_load') return <HealthSicknessVsLoad data={health} />
+      if (chartKey === 'helse_reflections_trend') return <HealthReflectionsTrend data={health} />
+      if (chartKey === 'helse_injuries_timeline') return <HealthInjuriesTimeline data={health} />
+      // Resten er scatter-plott — la dem falle tilbake til kildefanen siden
+      // CorrelationScatter ikke eksporteres individuelt.
+      return null
     case 'terskel_lactate_profile':
       return terskel ? <LactateProfile data={terskel} /> : null
     case 'terskel_lactate_trend':

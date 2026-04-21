@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { StarButton } from './StarButton'
 
 // Gjenbrukbart kort for Oversikt-fanen. Stort Bebas Neue-tall, liten delta (forrige
 // periode) og uppercase-etikett. Delta fargelegges positivt/negativt avhengig av
@@ -14,6 +15,7 @@ export interface MetricCardProps {
   positiveIsGood?: boolean        // styrer farge på delta. Default true.
   accent?: string                 // venstre-kant aksent-farge
   children?: ReactNode            // plass for micro-charts (sone-bar, chips)
+  chartKey?: string               // gjør kortet stjerne-bart (Mine grafer)
 }
 
 function formatDelta(n: number | null | undefined): string | null {
@@ -25,7 +27,7 @@ function formatDelta(n: number | null | undefined): string | null {
 }
 
 export function MetricCard({
-  label, value, sublabel, deltaPercent, positiveIsGood = true, accent = '#FF4500', children,
+  label, value, sublabel, deltaPercent, positiveIsGood = true, accent = '#FF4500', children, chartKey,
 }: MetricCardProps) {
   const delta = formatDelta(deltaPercent)
   const isPositive = deltaPercent !== null && deltaPercent !== undefined && deltaPercent > 0
@@ -36,7 +38,7 @@ export function MetricCard({
 
   return (
     <div
-      className="p-4 flex flex-col gap-1"
+      className="p-4 flex flex-col gap-1 relative"
       style={{
         backgroundColor: '#111113',
         border: '1px solid #1E1E22',
@@ -44,9 +46,14 @@ export function MetricCard({
         minHeight: '110px',
       }}
     >
+      {chartKey && (
+        <div className="absolute top-2 right-2">
+          <StarButton chartKey={chartKey} />
+        </div>
+      )}
       <p
         className="text-[11px] tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', paddingRight: chartKey ? '24px' : undefined }}
       >
         {label}
       </p>

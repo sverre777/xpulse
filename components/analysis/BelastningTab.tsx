@@ -2,11 +2,12 @@
 
 import { useMemo } from 'react'
 import {
-  ResponsiveContainer, LineChart, Line, ComposedChart, Bar,
+  ResponsiveContainer, LineChart, Line, ComposedChart, Bar, BarChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ReferenceLine,
 } from 'recharts'
 import type { BelastningAnalysis, FormStatus } from '@/app/actions/analysis'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { REST_SUBTYPE_LABELS } from '@/lib/day-state-types'
 
 // Farger for CTL / ATL / TSB-linjene.
 const COLOR_CTL = '#38BDF8'  // Fitness (blå)
@@ -74,6 +75,9 @@ export function BelastningTab({ data }: { data: BelastningAnalysis }) {
       <CurrentStatus data={data} />
       <FitnessFatigueChart data={data} />
       <DailyTssChart data={data} />
+      <PerceivedVsCalculatedChart data={data} />
+      <EnergyStressOverTimeChart data={data} />
+      <RestDayStats data={data} />
       <CsvExport data={data} />
       <MethodNote />
     </div>
@@ -224,6 +228,143 @@ export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
   )
 }
 
+export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis }) {
+  const rows = useMemo(() => data.weeklyReflections.map(w => ({
+    label: w.label,
+    startDate: w.startDate,
+    perceived: w.perceived_load,
+    atl: w.atl_avg,
+  })), [data.weeklyReflections])
+  const hasAny = rows.some(r => r.perceived != null)
+
+  return (
+    <ChartWrapper chartKey="belastning_perceived_vs_calculated"
+      title="Opplevd vs. beregnet belastning"
+      subtitle="Perceived load (1–10, høyre akse) opp mot gjennomsnittlig ATL per uke (venstre akse)"
+      height={260}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg ukesrefleksjon for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            <YAxis yAxisId="atl" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
+            <YAxis yAxisId="perceived" orientation="right" tick={AXIS_STYLE}
+              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip contentStyle={TOOLTIP_STYLE}
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Line yAxisId="atl" type="monotone" dataKey="atl" stroke={COLOR_ATL} strokeWidth={2} dot={{ r: 3 }} name="ATL (snitt)" connectNulls />
+            <Line yAxisId="perceived" type="monotone" dataKey="perceived" stroke="#D4A017" strokeWidth={2.5} dot={{ r: 3 }} name="Opplevd (1–10)" connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </ChartWrapper>
+  )
+}
+
+export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }) {
+  const rows = useMemo(() => data.weeklyReflections.map(w => ({
+    label: w.label,
+    startDate: w.startDate,
+    energy: w.energy,
+    stress: w.stress,
+  })), [data.weeklyReflections])
+  const hasAny = rows.some(r => r.energy != null || r.stress != null)
+
+  return (
+    <ChartWrapper chartKey="belastning_energy_stress_over_time"
+      title="Overskudd og stress over tid"
+      subtitle="Ukentlig refleksjon · grønn = overskudd 🙂, rød = stress 😰 (skala 1–10)"
+      height={260}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg ukesrefleksjon for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip contentStyle={TOOLTIP_STYLE}
+              formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
+            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
+            <Line type="monotone" dataKey="stress" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </ChartWrapper>
+  )
+}
+
+export function RestDayStats({ data }: { data: BelastningAnalysis }) {
+  const r = data.restStats
+  const hasAny = r.total_rest_days > 0
+  const subLabel = (key: string): string => {
+    if (key in REST_SUBTYPE_LABELS) return REST_SUBTYPE_LABELS[key as keyof typeof REST_SUBTYPE_LABELS]
+    if (key === 'ukjent') return 'Uspesifisert'
+    return key
+  }
+
+  return (
+    <ChartWrapper chartKey="belastning_rest_day_stats"
+      title="Hviledag-statistikk"
+      subtitle="Totalt antall, snitt dager mellom hvile og fordeling per type"
+      height={220}>
+      {!hasAny ? (
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+            Logg hviledag i kalenderen for å se denne grafen.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr] gap-4 items-stretch h-full">
+          <div className="p-3 flex flex-col gap-1"
+            style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E', minWidth: '140px' }}>
+            <p className="text-[11px] tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Totalt hviledager 🛌</p>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
+              {r.total_rest_days}
+            </span>
+          </div>
+          <div className="p-3 flex flex-col gap-1"
+            style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #8B5CF6', minWidth: '140px' }}>
+            <p className="text-[11px] tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Snitt dager mellom</p>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
+              {r.avg_days_between_rest != null ? r.avg_days_between_rest : '—'}
+            </span>
+            <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              {r.avg_days_between_rest != null ? 'dager' : 'Trenger ≥ 2 hviledager'}
+            </p>
+          </div>
+          <div style={{ width: '100%', minHeight: 160 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={r.by_subtype.map(s => ({ label: subLabel(s.sub_type), count: s.count }))} layout="vertical"
+                margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+                <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
+                <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={150} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+                <Bar dataKey="count" fill="#28A86E" name="Antall" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+    </ChartWrapper>
+  )
+}
+
 function CsvExport({ data }: { data: BelastningAnalysis }) {
   const handleExport = () => {
     const header = ['dato', 'tss', 'atl', 'ctl', 'tsb', 'tss_rolling7']
@@ -243,6 +384,25 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
     downloadCsv(`belastning_${first}_${last}.csv`, rows)
   }
 
+  const handleExportWeekly = () => {
+    const header = ['uke_start', 'uke', 'perceived_load', 'energy', 'stress', 'atl_snitt', 'ctl_snitt']
+    const rows: string[][] = [header]
+    for (const w of data.weeklyReflections) {
+      rows.push([
+        w.startDate,
+        w.label,
+        w.perceived_load != null ? String(w.perceived_load) : '',
+        w.energy != null ? String(w.energy) : '',
+        w.stress != null ? String(w.stress) : '',
+        w.atl_avg != null ? String(w.atl_avg) : '',
+        w.ctl_avg != null ? String(w.ctl_avg) : '',
+      ])
+    }
+    const first = data.weeklyReflections[0]?.startDate ?? 'start'
+    const last = data.weeklyReflections[data.weeklyReflections.length - 1]?.startDate ?? 'slutt'
+    downloadCsv(`belastning_ukesrefleksjoner_${first}_${last}.csv`, rows)
+  }
+
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -253,18 +413,33 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
         </p>
         <p className="text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-          Last ned daglige tall for perioden som CSV — for videre analyse i Excel eller egne verktøy.
+          Last ned daglige tall eller ukesrefleksjoner som CSV — for videre analyse i Excel eller egne verktøy.
         </p>
       </div>
-      <button type="button" onClick={handleExport}
-        className="px-4 py-2 text-xs tracking-widest uppercase"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#FF4500', color: '#0A0A0B',
-          border: 'none', minHeight: '40px', cursor: 'pointer',
-        }}>
-        Last ned CSV
-      </button>
+      <div className="flex gap-2 flex-wrap">
+        <button type="button" onClick={handleExport}
+          className="px-4 py-2 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: '#FF4500', color: '#0A0A0B',
+            border: 'none', minHeight: '40px', cursor: 'pointer',
+          }}>
+          Daglig CSV
+        </button>
+        <button type="button" onClick={handleExportWeekly}
+          disabled={data.weeklyReflections.length === 0}
+          className="px-4 py-2 text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: 'transparent',
+            border: '1px solid #FF4500',
+            color: data.weeklyReflections.length === 0 ? '#555560' : '#FF4500',
+            minHeight: '40px',
+            cursor: data.weeklyReflections.length === 0 ? 'not-allowed' : 'pointer',
+          }}>
+          Ukesrefleksjoner CSV
+        </button>
+      </div>
     </div>
   )
 }

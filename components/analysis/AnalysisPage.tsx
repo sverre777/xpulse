@@ -383,6 +383,8 @@ function AnalysisPageInner({
               skyting={skyting}
               periodisering={periodisering}
               intensity={intensityDist}
+              overview={overview}
+              health={healthCorrelations}
               onNavigate={(t) => setTab(t)}
             />
             <OverviewTab stats={stats} overview={overview} />

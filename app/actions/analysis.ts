@@ -274,6 +274,21 @@ export interface OverviewMetrics {
   competitions: OverviewCompetitionRow[]
   health_averages: HealthAverages
   sport_specific: SportSpecific
+  // Subjektive/tilstand-data (fase 22/23):
+  rest_days: number
+  sickness_days: number
+  avg_energy: number | null       // snitt fra weekly_reflections.energy (1–10)
+  avg_stress: number | null       // snitt fra weekly_reflections.stress (1–10)
+  avg_perceived_load: number | null // snitt fra weekly_reflections.perceived_load
+}
+
+export interface OverviewWeekDistribution {
+  weekKey: string         // '2026-W12'
+  label: string           // 'U12'
+  startDate: string       // mandag i uken, ISO
+  training_days: number   // unike dager med minst én økt (is_planned=false)
+  rest_days: number       // day_states.state_type='hviledag' antall dager
+  sickness_days: number   // day_states.state_type='sykdom' antall dager
 }
 
 export interface AnalysisOverview {
@@ -283,10 +298,14 @@ export interface AnalysisOverview {
     total_seconds: number | null
     total_meters: number | null
     workout_count: number | null
+    rest_days: number | null
+    sickness_days: number | null
   }
   primarySport: Sport
   rangeDays: number
   previousRange: { from: string; to: string }
+  // Per-uke fordeling trening/hvile/sykdom for stacked bar-graf.
+  weekly_distribution: OverviewWeekDistribution[]
 }
 
 // Addér/trekk dager fra en ISO-datostreng ('YYYY-MM-DD') uten tidssonestøy.
@@ -306,6 +325,22 @@ function daysBetween(fromIso: string, toIso: string): number {
   const from = Date.UTC(fy, (fm ?? 1) - 1, fd ?? 1)
   const to = Date.UTC(ty, (tm ?? 1) - 1, td ?? 1)
   return Math.round((to - from) / 86400000) + 1
+}
+
+// Mandag-dato (ISO) for gitt ISO-år + ukenummer. Brukes for å knytte
+// weekly_reflections (som kun har year+week_number) til en kalenderperiode.
+function isoWeekMondayISO(year: number, weekNumber: number): string {
+  // 4. januar ligger alltid i uke 1 i ISO.
+  const jan4 = new Date(Date.UTC(year, 0, 4))
+  const jan4Dow = jan4.getUTCDay() || 7  // 1–7 (mandag=1)
+  const week1Monday = new Date(jan4)
+  week1Monday.setUTCDate(jan4.getUTCDate() - (jan4Dow - 1))
+  const target = new Date(week1Monday)
+  target.setUTCDate(week1Monday.getUTCDate() + (weekNumber - 1) * 7)
+  const y = target.getUTCFullYear()
+  const m = String(target.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(target.getUTCDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 type RawOverviewWorkoutRow = {
@@ -348,6 +383,11 @@ function emptyOverviewMetrics(sport: Sport): OverviewMetrics {
     competitions: [],
     health_averages: { hrv_ms: null, resting_hr: null, sleep_hours: null, body_weight_kg: null, days_with_data: 0 },
     sport_specific: { sport },
+    rest_days: 0,
+    sickness_days: 0,
+    avg_energy: null,
+    avg_stress: null,
+    avg_perceived_load: null,
   }
 }
 
@@ -399,14 +439,36 @@ async function computeMetricsForRange(
     .gte('date', fromDate)
     .lte('date', toDate)
 
-  const [{ data: workouts, error: wErr }, plannedCount, { data: healthRows, error: hErr }] = await Promise.all([
+  const dayStatesPromise = supabase
+    .from('day_states')
+    .select('date,state_type')
+    .eq('user_id', userId)
+    .gte('date', fromDate)
+    .lte('date', toDate)
+
+  const reflectionsPromise = supabase
+    .from('weekly_reflections')
+    .select('year,week_number,perceived_load,energy,stress')
+    .eq('user_id', userId)
+
+  const [
+    { data: workouts, error: wErr },
+    plannedCount,
+    { data: healthRows, error: hErr },
+    { data: dayStateRows, error: dsErr },
+    { data: reflectionRows, error: rErr },
+  ] = await Promise.all([
     workoutsQuery,
     plannedCountPromise,
     healthPromise,
+    dayStatesPromise,
+    reflectionsPromise,
   ])
 
   if (wErr) throw new Error(wErr.message)
   if (hErr) throw new Error(hErr.message)
+  if (dsErr) throw new Error(dsErr.message)
+  if (rErr) throw new Error(rErr.message)
 
   const metrics = emptyOverviewMetrics(primarySport)
   metrics.planned_count = plannedCount
@@ -541,6 +603,37 @@ async function computeMetricsForRange(
     days_with_data: rows.length,
   }
 
+  // Dag-tilstander: tell unike dager per tilstand i perioden.
+  type DSRow = { date: string; state_type: 'hviledag' | 'sykdom' }
+  const dsRows = (dayStateRows ?? []) as DSRow[]
+  const restSet = new Set<string>()
+  const sickSet = new Set<string>()
+  for (const r of dsRows) {
+    if (r.state_type === 'hviledag') restSet.add(r.date)
+    else if (r.state_type === 'sykdom') sickSet.add(r.date)
+  }
+  metrics.rest_days = restSet.size
+  metrics.sickness_days = sickSet.size
+
+  // Ukes-refleksjoner: filtrer til uker som overlapper perioden [fromDate, toDate]
+  // (basert på ISO-ukens mandag-dato).
+  type RRow = { year: number; week_number: number; perceived_load: number | null; energy: number | null; stress: number | null }
+  const relevantReflections = ((reflectionRows ?? []) as RRow[]).filter(r => {
+    const monday = isoWeekMondayISO(r.year, r.week_number)
+    return monday >= fromDate && monday <= toDate
+  })
+  function avgField(field: 'perceived_load' | 'energy' | 'stress'): number | null {
+    let sum = 0, n = 0
+    for (const r of relevantReflections) {
+      const v = r[field]
+      if (v !== null && v !== undefined && Number.isFinite(Number(v))) { sum += Number(v); n += 1 }
+    }
+    return n > 0 ? Math.round((sum / n) * 10) / 10 : null
+  }
+  metrics.avg_perceived_load = avgField('perceived_load')
+  metrics.avg_energy = avgField('energy')
+  metrics.avg_stress = avgField('stress')
+
   // Sport-spesifikke.
   const ss: SportSpecific = { sport: primarySport, strength_sessions: strengthSessions }
   if (sportKm > 0 || otherKm > 0) ss.km_per_sport = { sport_km: Math.round(sportKm * 10) / 10, other_km: Math.round(otherKm * 10) / 10 }
@@ -594,9 +687,10 @@ export async function getAnalysisOverview(
     const prevTo = shiftDays(fromDate, -1)
     const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
 
-    const [current, previous] = await Promise.all([
+    const [current, previous, weekly_distribution] = await Promise.all([
       computeMetricsForRange(supabase, user.id, fromDate, toDate, primarySport, sportFilter ?? null),
       computeMetricsForRange(supabase, user.id, prevFrom, prevTo, primarySport, sportFilter ?? null),
+      computeWeeklyDistribution(supabase, user.id, fromDate, toDate, sportFilter ?? null),
     ])
 
     return {
@@ -606,15 +700,76 @@ export async function getAnalysisOverview(
         total_seconds: percentChange(current.total_seconds, previous.total_seconds),
         total_meters: percentChange(current.total_meters, previous.total_meters),
         workout_count: percentChange(current.workout_count, previous.workout_count),
+        rest_days: percentChange(current.rest_days, previous.rest_days),
+        sickness_days: percentChange(current.sickness_days, previous.sickness_days),
       },
       primarySport,
       rangeDays,
       previousRange: { from: prevFrom, to: prevTo },
+      weekly_distribution,
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getAnalysisOverview: ${msg}` }
   }
+}
+
+// Bygg per-uke fordeling trening/hvile/sykdom i [fromDate, toDate]. Alle uker
+// inkluderes (også tomme). Uker med startDate før fromDate teller kun dager
+// som faller innenfor perioden.
+async function computeWeeklyDistribution(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+  sportFilter: Sport | null,
+): Promise<OverviewWeekDistribution[]> {
+  let wq = supabase
+    .from('workouts')
+    .select('date')
+    .eq('user_id', userId)
+    .eq('is_planned', false)
+    .gte('date', fromDate).lte('date', toDate)
+  if (sportFilter) wq = wq.eq('sport', sportFilter)
+
+  const [{ data: workoutRows, error: wErr }, { data: dsRows, error: dsErr }] = await Promise.all([
+    wq,
+    supabase.from('day_states')
+      .select('date,state_type')
+      .eq('user_id', userId)
+      .gte('date', fromDate).lte('date', toDate),
+  ])
+  if (wErr) throw new Error(wErr.message)
+  if (dsErr) throw new Error(dsErr.message)
+
+  const workoutDays = new Set<string>()
+  for (const r of (workoutRows ?? []) as { date: string }[]) workoutDays.add(r.date)
+  const restDays = new Set<string>()
+  const sickDays = new Set<string>()
+  for (const r of (dsRows ?? []) as { date: string; state_type: string }[]) {
+    if (r.state_type === 'hviledag') restDays.add(r.date)
+    else if (r.state_type === 'sykdom') sickDays.add(r.date)
+  }
+
+  const buckets = new Map<string, OverviewWeekDistribution>()
+  const [fy, fm, fd] = fromDate.split('-').map(Number)
+  const [ty, tm, td] = toDate.split('-').map(Number)
+  const cursor = new Date(Date.UTC(fy, (fm ?? 1) - 1, fd ?? 1))
+  const end = new Date(Date.UTC(ty, (tm ?? 1) - 1, td ?? 1))
+  while (cursor <= end) {
+    const iso = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}-${String(cursor.getUTCDate()).padStart(2, '0')}`
+    const { weekKey, label, startDate } = isoWeekKey(new Date(cursor))
+    const bucket = buckets.get(weekKey) ?? {
+      weekKey, label, startDate,
+      training_days: 0, rest_days: 0, sickness_days: 0,
+    }
+    if (workoutDays.has(iso)) bucket.training_days += 1
+    if (restDays.has(iso)) bucket.rest_days += 1
+    if (sickDays.has(iso)) bucket.sickness_days += 1
+    buckets.set(weekKey, bucket)
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+  return Array.from(buckets.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
 
 // ── Plan-oversikt ───────────────────────────────────
@@ -760,10 +915,13 @@ export async function getPlannedOverview(
         total_seconds: percentChange(current.total_seconds, previous.total_seconds),
         total_meters: percentChange(current.total_meters, previous.total_meters),
         workout_count: percentChange(current.workout_count, previous.workout_count),
+        rest_days: null,
+        sickness_days: null,
       },
       primarySport,
       rangeDays,
       previousRange: { from: prevFrom, to: prevTo },
+      weekly_distribution: [],
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -1388,6 +1546,32 @@ export interface TemplateLactateSeries {
   points: Array<{ date: string; workout_id: string; mean_mmol: number }>
 }
 
+export interface HealthReflectionTrendPoint {
+  weekKey: string
+  year: number
+  week_number: number
+  startDate: string         // mandag ISO
+  label: string             // 'U12'
+  perceived_load: number | null
+  energy: number | null
+  stress: number | null
+}
+
+export interface HealthSicknessVsLoadPoint {
+  month: string             // 'YYYY-MM'
+  monthLabel: string        // 'mar'
+  sickness_days: number
+  avg_load_hours: number    // sum timer i måneden / antall dager med workouts
+}
+
+export interface HealthInjuryEvent {
+  weekKey: string
+  year: number
+  week_number: number
+  startDate: string
+  notes: string
+}
+
 export interface HealthCorrelations {
   daily: HealthDailyPoint[]             // én rad per dag i perioden (med null-felt hvis ikke logget)
   hasHealthData: boolean
@@ -1396,7 +1580,13 @@ export interface HealthCorrelations {
     hrvVs7dLoad: CorrelationPoint[]
     intervalHrVsHrv: CorrelationPoint[]
     intervalHrVsSleep: CorrelationPoint[]
+    stressVs7dLoad: CorrelationPoint[]       // X: sum timer siste 7 dager før ukens mandag, Y: stress
+    energyVs7dLoad: CorrelationPoint[]
+    restVsPerceivedLoad: CorrelationPoint[]  // X: hviledager i uken, Y: perceived_load samme uke
   }
+  sicknessVsLoad: HealthSicknessVsLoadPoint[]
+  reflectionsTrend: HealthReflectionTrendPoint[]
+  injuries: HealthInjuryEvent[]
   recovery: RecoverySummary
   templateLactate: TemplateLactateSeries[]
 }
@@ -1429,7 +1619,7 @@ export async function getHealthCorrelations(
     // på de tidligste datoene i perioden.
     const lookBackFrom = shiftDays(fromDate, -7)
 
-    const [healthRes, workoutsRes, recoveryRes, templatesRes] = await Promise.all([
+    const [healthRes, workoutsRes, recoveryRes, templatesRes, reflRes, dsRes] = await Promise.all([
       supabase.from('daily_health')
         .select('date,hrv_ms,resting_hr,sleep_hours,sleep_quality,body_weight_kg')
         .eq('user_id', user.id)
@@ -1448,11 +1638,22 @@ export async function getHealthCorrelations(
       supabase.from('workout_templates')
         .select('id,name')
         .eq('user_id', user.id),
+      supabase.from('weekly_reflections')
+        .select('year,week_number,perceived_load,energy,stress,injury_notes')
+        .eq('user_id', user.id)
+        .order('year', { ascending: true })
+        .order('week_number', { ascending: true }),
+      supabase.from('day_states')
+        .select('date,state_type')
+        .eq('user_id', user.id)
+        .gte('date', fromDate).lte('date', toDate),
     ])
 
     if (healthRes.error) return { error: healthRes.error.message }
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (recoveryRes.error) return { error: recoveryRes.error.message }
+    if (reflRes.error) return { error: reflRes.error.message }
+    if (dsRes.error) return { error: dsRes.error.message }
     // templates.error tolereres — da faller vi bare tilbake til tom liste.
 
     type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; sleep_quality: number | null; body_weight_kg: number | null }
@@ -1599,10 +1800,119 @@ export async function getHealthCorrelations(
       .filter(([, v]) => v.points.length >= 3)
       .map(([id, v]) => ({ template_id: id, template_name: v.name, points: v.points.sort((a, b) => a.date.localeCompare(b.date)) }))
 
+    // ── Ukes-refleksjoner (fase 22): tidsserier + korrelasjoner ────────────
+    type RRow = { year: number; week_number: number; perceived_load: number | null; energy: number | null; stress: number | null; injury_notes: string | null }
+    const allReflections = (reflRes.data ?? []) as RRow[]
+
+    // Dag-tilstander innen perioden — per ukemandag.
+    type DSRow = { date: string; state_type: string }
+    const restDaysByWeek = new Map<string, number>()
+    const sickDaysByWeek = new Map<string, number>()
+    for (const r of (dsRes.data ?? []) as DSRow[]) {
+      const d = new Date(r.date + 'T00:00:00Z')
+      const { weekKey } = isoWeekKey(d)
+      if (r.state_type === 'hviledag') restDaysByWeek.set(weekKey, (restDaysByWeek.get(weekKey) ?? 0) + 1)
+      else if (r.state_type === 'sykdom') sickDaysByWeek.set(weekKey, (sickDaysByWeek.get(weekKey) ?? 0) + 1)
+    }
+
+    const reflectionsInRange = allReflections
+      .map(r => {
+        const startDate = isoWeekMondayISO(r.year, r.week_number)
+        const weekKey = `${r.year}-W${String(r.week_number).padStart(2, '0')}`
+        return { r, startDate, weekKey }
+      })
+      .filter(x => x.startDate >= fromDate && x.startDate <= toDate)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+    const reflectionsTrend: HealthReflectionTrendPoint[] = reflectionsInRange.map(({ r, startDate, weekKey }) => ({
+      weekKey,
+      year: r.year,
+      week_number: r.week_number,
+      startDate,
+      label: `U${r.week_number}`,
+      perceived_load: r.perceived_load ?? null,
+      energy: r.energy ?? null,
+      stress: r.stress ?? null,
+    }))
+
+    // Korrelasjoner mellom uke-refleksjoner og 7-dagers treningstid.
+    // X-akse i timer, beregnet som sum timer siste 7 dager fram til (og med) søndag i samme uke.
+    const stressVs7dLoad: CorrelationPoint[] = []
+    const energyVs7dLoad: CorrelationPoint[] = []
+    const restVsPerceivedLoad: CorrelationPoint[] = []
+    for (const { r, startDate, weekKey } of reflectionsInRange) {
+      // Søndag = mandag + 6 dager.
+      const sunday = shiftDays(startDate, 6)
+      let secs = 0
+      for (let i = 0; i < 7; i++) {
+        const iso = shiftDays(sunday, -i)
+        secs += workloadByDate.get(iso) ?? 0
+      }
+      const hours = Math.round((secs / 3600) * 10) / 10
+      if (r.stress != null) stressVs7dLoad.push({ x: hours, y: r.stress, date: startDate })
+      if (r.energy != null) energyVs7dLoad.push({ x: hours, y: r.energy, date: startDate })
+      if (r.perceived_load != null) {
+        const rest = restDaysByWeek.get(weekKey) ?? 0
+        restVsPerceivedLoad.push({ x: rest, y: r.perceived_load, date: startDate })
+      }
+    }
+
+    // Skade-tidslinje.
+    const injuries: HealthInjuryEvent[] = allReflections
+      .filter(r => r.injury_notes && r.injury_notes.trim())
+      .map(r => {
+        const startDate = isoWeekMondayISO(r.year, r.week_number)
+        const weekKey = `${r.year}-W${String(r.week_number).padStart(2, '0')}`
+        return { weekKey, year: r.year, week_number: r.week_number, startDate, notes: r.injury_notes!.trim() }
+      })
+      .filter(x => x.startDate >= fromDate && x.startDate <= toDate)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+    // Sykdom per måned vs snitt treningstime/dag samme måned.
+    const monthSick = new Map<string, number>()
+    const monthTrainSecs = new Map<string, number>()
+    const monthTrainDays = new Map<string, Set<string>>()
+    for (const r of (dsRes.data ?? []) as DSRow[]) {
+      if (r.state_type !== 'sykdom') continue
+      const month = r.date.slice(0, 7)
+      monthSick.set(month, (monthSick.get(month) ?? 0) + 1)
+    }
+    for (const [date, secs] of workloadByDate) {
+      if (date < fromDate || date > toDate) continue
+      if (secs <= 0) continue
+      const month = date.slice(0, 7)
+      monthTrainSecs.set(month, (monthTrainSecs.get(month) ?? 0) + secs)
+      const daySet = monthTrainDays.get(month) ?? new Set<string>()
+      daySet.add(date)
+      monthTrainDays.set(month, daySet)
+    }
+    const monthsInRange = new Set<string>([...monthSick.keys(), ...monthTrainSecs.keys()])
+    const MONTHS_SHORT = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','des']
+    const sicknessVsLoad: HealthSicknessVsLoadPoint[] = Array.from(monthsInRange)
+      .sort()
+      .map(month => {
+        const days = monthTrainDays.get(month)?.size ?? 0
+        const secs = monthTrainSecs.get(month) ?? 0
+        const avgHours = days > 0 ? Math.round((secs / 3600 / days) * 10) / 10 : 0
+        const mm = parseInt(month.slice(5, 7), 10) - 1
+        return {
+          month,
+          monthLabel: `${MONTHS_SHORT[mm] ?? month} ${month.slice(2, 4)}`,
+          sickness_days: monthSick.get(month) ?? 0,
+          avg_load_hours: avgHours,
+        }
+      })
+
     return {
       daily,
       hasHealthData,
-      correlations: { dayFormVs3dLoad, hrvVs7dLoad, intervalHrVsHrv, intervalHrVsSleep },
+      correlations: {
+        dayFormVs3dLoad, hrvVs7dLoad, intervalHrVsHrv, intervalHrVsSleep,
+        stressVs7dLoad, energyVs7dLoad, restVsPerceivedLoad,
+      },
+      sicknessVsLoad,
+      reflectionsTrend,
+      injuries,
       recovery,
       templateLactate,
     }
@@ -2206,6 +2516,30 @@ export interface BelastningDay {
   tssRolling7: number     // glidende 7-dagers snitt av TSS (for bar-chart-linje)
 }
 
+export interface BelastningWeeklyReflectionPoint {
+  weekKey: string            // '2026-W12'
+  year: number
+  week_number: number
+  startDate: string          // mandag ISO
+  label: string              // 'U12'
+  perceived_load: number | null
+  energy: number | null
+  stress: number | null
+  atl_avg: number | null     // gjennomsnittlig ATL i uken (fra belastningskurvene)
+  ctl_avg: number | null
+}
+
+export interface BelastningRestSubtypeRow {
+  sub_type: string            // 'aktiv_hvile' | 'passiv_hvile' | 'restitusjonstrening' | 'ukjent'
+  count: number
+}
+
+export interface BelastningRestStats {
+  total_rest_days: number
+  avg_days_between_rest: number | null  // null hvis < 2 hviledager
+  by_subtype: BelastningRestSubtypeRow[]
+}
+
 export interface BelastningAnalysis {
   daily: BelastningDay[]          // kun innenfor [from, to]
   current: {
@@ -2215,6 +2549,8 @@ export interface BelastningAnalysis {
     formStatus: FormStatus
   }
   hasData: boolean
+  weeklyReflections: BelastningWeeklyReflectionPoint[]
+  restStats: BelastningRestStats
 }
 
 const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'Hurtighet', number> = {
@@ -2344,6 +2680,87 @@ export async function getBelastningAnalysis(
     const currentCtl = last ? last.ctl : 0
     const currentTsb = last ? last.tsb : 0
 
+    // Hent weekly_reflections og day_states parallelt for belastnings-kontekst.
+    const [reflRes, dsRes] = await Promise.all([
+      supabase
+        .from('weekly_reflections')
+        .select('year,week_number,perceived_load,energy,stress')
+        .eq('user_id', user.id),
+      supabase
+        .from('day_states')
+        .select('date,state_type,sub_type')
+        .eq('user_id', user.id)
+        .gte('date', fromDate).lte('date', toDate),
+    ])
+    if (reflRes.error) return { error: reflRes.error.message }
+    if (dsRes.error) return { error: dsRes.error.message }
+
+    // Uke-aggregat av daglige ATL/CTL — indekseres via isoWeekKey av ukemandagen.
+    type DailyRow = { date: string; atl: number; ctl: number }
+    const perWeekSums = new Map<string, { atl: number; ctl: number; count: number }>()
+    for (const p of daily as DailyRow[]) {
+      const d = new Date(p.date + 'T00:00:00Z')
+      const { weekKey } = isoWeekKey(d)
+      const cur = perWeekSums.get(weekKey) ?? { atl: 0, ctl: 0, count: 0 }
+      cur.atl += p.atl; cur.ctl += p.ctl; cur.count += 1
+      perWeekSums.set(weekKey, cur)
+    }
+
+    type RRow = { year: number; week_number: number; perceived_load: number | null; energy: number | null; stress: number | null }
+    const reflections = ((reflRes.data ?? []) as RRow[])
+      .map(r => {
+        const startDate = isoWeekMondayISO(r.year, r.week_number)
+        const weekKey = `${r.year}-W${String(r.week_number).padStart(2, '0')}`
+        return { r, startDate, weekKey }
+      })
+      .filter(x => x.startDate >= fromDate && x.startDate <= toDate)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+    const weeklyReflections: BelastningWeeklyReflectionPoint[] = reflections.map(({ r, startDate, weekKey }) => {
+      const agg = perWeekSums.get(weekKey)
+      return {
+        weekKey,
+        year: r.year,
+        week_number: r.week_number,
+        startDate,
+        label: `U${r.week_number}`,
+        perceived_load: r.perceived_load ?? null,
+        energy: r.energy ?? null,
+        stress: r.stress ?? null,
+        atl_avg: agg && agg.count > 0 ? Math.round((agg.atl / agg.count) * 10) / 10 : null,
+        ctl_avg: agg && agg.count > 0 ? Math.round((agg.ctl / agg.count) * 10) / 10 : null,
+      }
+    })
+
+    // Hviledag-statistikk.
+    type DSRow = { date: string; state_type: string; sub_type: string | null }
+    const dsAll = ((dsRes.data ?? []) as DSRow[]).filter(r => r.state_type === 'hviledag')
+    const restDatesSorted = Array.from(new Set(dsAll.map(r => r.date))).sort()
+    let avgBetween: number | null = null
+    if (restDatesSorted.length >= 2) {
+      let sum = 0
+      for (let i = 1; i < restDatesSorted.length; i++) {
+        const a = new Date(restDatesSorted[i - 1] + 'T00:00:00Z').getTime()
+        const b = new Date(restDatesSorted[i] + 'T00:00:00Z').getTime()
+        sum += Math.round((b - a) / 86400000)
+      }
+      avgBetween = Math.round((sum / (restDatesSorted.length - 1)) * 10) / 10
+    }
+    const subCounts = new Map<string, number>()
+    for (const r of dsAll) {
+      const key = r.sub_type || 'ukjent'
+      subCounts.set(key, (subCounts.get(key) ?? 0) + 1)
+    }
+    const bySubtype: BelastningRestSubtypeRow[] = Array.from(subCounts.entries())
+      .map(([sub_type, count]) => ({ sub_type, count }))
+      .sort((a, b) => b.count - a.count)
+
+    const restStats: BelastningRestStats = {
+      total_rest_days: restDatesSorted.length,
+      avg_days_between_rest: avgBetween,
+      by_subtype: bySubtype,
+    }
+
     return {
       daily,
       current: {
@@ -2353,6 +2770,8 @@ export async function getBelastningAnalysis(
         formStatus: classifyForm(currentTsb),
       },
       hasData: daily.some(d => d.tss > 0) || currentCtl > 0,
+      weeklyReflections,
+      restStats,
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

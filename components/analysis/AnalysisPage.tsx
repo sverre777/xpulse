@@ -5,11 +5,11 @@ import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
-  getBelastningAnalysis,
+  getBelastningAnalysis, getTerskelAnalysis,
   type WorkoutStats, type AnalysisOverview,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
-  type BelastningAnalysis,
+  type BelastningAnalysis, type TerskelAnalysis,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -21,12 +21,14 @@ import { TemplateAnalysisTab } from './TemplateAnalysisTab'
 import { CompareWorkoutsTab } from './CompareWorkoutsTab'
 import { IntensityTab } from './IntensityTab'
 import { BelastningTab } from './BelastningTab'
+import { TerskelTab } from './TerskelTab'
 
 // 8 faner totalt — kun Belastning og Periodisering er igjen som plassholdere etter Fase C.
 // Se AGENTS.md for fase-plan.
 type Tab =
   | 'oversikt'
   | 'belastning'
+  | 'terskel'
   | 'sammenlign'
   | 'mal_analyse'
   | 'konkurranser'
@@ -51,6 +53,7 @@ function defaultMovementForSport(sport: Sport): string {
 const TABS: [Tab, string][] = [
   ['oversikt', 'Oversikt'],
   ['belastning', 'Belastning'],
+  ['terskel', 'Terskel'],
   ['sammenlign', 'Sammenlign økter'],
   ['mal_analyse', 'Mal-analyse'],
   ['konkurranser', 'Konkurranser'],
@@ -103,6 +106,7 @@ export function AnalysisPage({
   const [compareWorkouts, setCompareWorkouts] = useState<WorkoutsForComparison | null>(null)
   const [intensityDist, setIntensityDist] = useState<IntensityDistribution | null>(null)
   const [belastning, setBelastning] = useState<BelastningAnalysis | null>(null)
+  const [terskel, setTerskel] = useState<TerskelAnalysis | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -112,6 +116,7 @@ export function AnalysisPage({
     setCompareWorkouts(null)
     setIntensityDist(null)
     setBelastning(null)
+    setTerskel(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -194,8 +199,16 @@ export function AnalysisPage({
         setBelastning(res)
       })
     }
+    if (tab === 'terskel' && terskel === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getTerskelAnalysis(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setTerskel(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel])
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -309,6 +322,11 @@ export function AnalysisPage({
           belastning
             ? <BelastningTab data={belastning} />
             : <LoadingStub label="Laster belastning…" />
+        )}
+        {tab === 'terskel' && (
+          terskel
+            ? <TerskelTab data={terskel} />
+            : <LoadingStub label="Laster terskel…" />
         )}
         {tab === 'periodisering' && STUB('Periodisering')}
       </div>

@@ -2359,3 +2359,218 @@ export async function getBelastningAnalysis(
     return { error: `getBelastningAnalysis: ${msg}` }
   }
 }
+
+// ── Terskel: laktat-profil, LT1/LT2-estimat, laktat-respons per mal ──
+// Én måling = én punkt i scatter (mmol, HR). Regression gir grov estimat
+// for HR ved mmol=2 (LT1) og mmol=4 (LT2). Brukerens satte terskelpuls
+// (profiles.lactate_threshold_hr) vises for sammenligning.
+
+export interface LactatePoint {
+  date: string                   // YYYY-MM-DD
+  workout_id: string
+  activity_id: string | null     // null hvis fra legacy workout_activities.lactate_mmol
+  template_id: string | null
+  template_name: string | null
+  sport: string
+  activity_type: string | null
+  value_mmol: number
+  heart_rate: number | null      // aktivitetens snittpuls (beste proxy vi har)
+}
+
+export interface TerskelEstimate {
+  lt1_hr: number | null          // estimert HR ved 2 mmol
+  lt2_hr: number | null          // estimert HR ved 4 mmol
+  profile_threshold_hr: number | null
+  regression: { slope: number; intercept: number; r2: number; n: number } | null
+}
+
+export interface TemplateLactateStats {
+  template_id: string
+  template_name: string
+  measurements: number
+  avg_mmol: number
+  min_mmol: number
+  max_mmol: number
+  avg_hr: number | null
+  recent_date: string | null
+  recent_mmol: number | null
+}
+
+export interface TerskelAnalysis {
+  points: LactatePoint[]
+  estimate: TerskelEstimate
+  byTemplate: TemplateLactateStats[]
+  hasData: boolean
+}
+
+type RawTerskelLactate = {
+  value_mmol: number | string | null
+  measured_at: string | null
+}
+
+type RawTerskelActivity = {
+  id: string
+  activity_type: string | null
+  avg_heart_rate: number | null
+  lactate_mmol: number | string | null
+  workout_activity_lactate_measurements: RawTerskelLactate[] | null
+}
+
+type RawTerskelWorkout = {
+  id: string
+  date: string
+  sport: string
+  template_id: string | null
+  workout_activities: RawTerskelActivity[] | null
+}
+
+// Enkel lineær regresjon y = slope * x + intercept (x = mmol, y = HR).
+// Returnerer null hvis < 3 punkter eller nullvarians.
+function linearRegression(points: { x: number; y: number }[]):
+  { slope: number; intercept: number; r2: number; n: number } | null {
+  const n = points.length
+  if (n < 3) return null
+  const meanX = points.reduce((s, p) => s + p.x, 0) / n
+  const meanY = points.reduce((s, p) => s + p.y, 0) / n
+  let num = 0, denX = 0, denY = 0
+  for (const p of points) {
+    const dx = p.x - meanX, dy = p.y - meanY
+    num += dx * dy
+    denX += dx * dx
+    denY += dy * dy
+  }
+  if (denX === 0) return null
+  const slope = num / denX
+  const intercept = meanY - slope * meanX
+  const r2 = denY === 0 ? 0 : (num * num) / (denX * denY)
+  return { slope, intercept, r2, n }
+}
+
+export async function getTerskelAnalysis(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<TerskelAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    let q = supabase
+      .from('workouts')
+      .select(`id,date,sport,template_id,workout_activities(id,activity_type,avg_heart_rate,lactate_mmol,workout_activity_lactate_measurements(value_mmol,measured_at))`)
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) q = q.eq('sport', sportFilter)
+
+    const [workoutsRes, templatesRes, profileRes] = await Promise.all([
+      q,
+      supabase.from('workout_templates').select('id,name').eq('user_id', user.id),
+      supabase.from('profiles').select('lactate_threshold_hr').eq('id', user.id).single(),
+    ])
+    if (workoutsRes.error) return { error: workoutsRes.error.message }
+    if (templatesRes.error) return { error: templatesRes.error.message }
+
+    type TemplateRow = { id: string; name: string }
+    const templatesById = new Map<string, TemplateRow>()
+    for (const t of (templatesRes.data ?? []) as TemplateRow[]) templatesById.set(t.id, t)
+
+    const points: LactatePoint[] = []
+    for (const w of (workoutsRes.data ?? []) as RawTerskelWorkout[]) {
+      const tmpl = w.template_id ? templatesById.get(w.template_id) ?? null : null
+      for (const a of (w.workout_activities ?? [])) {
+        const measurements = a.workout_activity_lactate_measurements ?? []
+        // Prioritér per-måling-rader (phase 7.2). Fall tilbake til legacy lactate_mmol hvis tom.
+        if (measurements.length > 0) {
+          for (const m of measurements) {
+            const mmol = Number(m.value_mmol)
+            if (!Number.isFinite(mmol) || mmol <= 0) continue
+            points.push({
+              date: w.date,
+              workout_id: w.id,
+              activity_id: a.id,
+              template_id: w.template_id,
+              template_name: tmpl?.name ?? null,
+              sport: w.sport,
+              activity_type: a.activity_type,
+              value_mmol: mmol,
+              heart_rate: a.avg_heart_rate,
+            })
+          }
+        } else if (a.lactate_mmol != null) {
+          const mmol = Number(a.lactate_mmol)
+          if (Number.isFinite(mmol) && mmol > 0) {
+            points.push({
+              date: w.date,
+              workout_id: w.id,
+              activity_id: a.id,
+              template_id: w.template_id,
+              template_name: tmpl?.name ?? null,
+              sport: w.sport,
+              activity_type: a.activity_type,
+              value_mmol: mmol,
+              heart_rate: a.avg_heart_rate,
+            })
+          }
+        }
+      }
+    }
+
+    // Regresjon på punkter med HR (mmol → HR).
+    const withHr = points
+      .filter(p => p.heart_rate != null && Number.isFinite(p.heart_rate))
+      .map(p => ({ x: p.value_mmol, y: p.heart_rate as number }))
+    const reg = linearRegression(withHr)
+    const lt1 = reg ? reg.slope * 2 + reg.intercept : null
+    const lt2 = reg ? reg.slope * 4 + reg.intercept : null
+    const profileThresholdHr = (profileRes.data as { lactate_threshold_hr: number | null } | null)?.lactate_threshold_hr ?? null
+
+    // Per-mal statistikk.
+    const byTemplateMap = new Map<string, LactatePoint[]>()
+    for (const p of points) {
+      if (!p.template_id) continue
+      const arr = byTemplateMap.get(p.template_id) ?? []
+      arr.push(p)
+      byTemplateMap.set(p.template_id, arr)
+    }
+    const byTemplate: TemplateLactateStats[] = []
+    for (const [tid, arr] of byTemplateMap.entries()) {
+      const tmpl = templatesById.get(tid)
+      if (!tmpl) continue
+      arr.sort((a, b) => a.date.localeCompare(b.date))
+      const mmols = arr.map(p => p.value_mmol)
+      const hrs = arr.map(p => p.heart_rate).filter((v): v is number => v != null)
+      const last = arr[arr.length - 1]
+      byTemplate.push({
+        template_id: tid,
+        template_name: tmpl.name,
+        measurements: arr.length,
+        avg_mmol: Math.round((mmols.reduce((s, v) => s + v, 0) / mmols.length) * 100) / 100,
+        min_mmol: Math.round(Math.min(...mmols) * 100) / 100,
+        max_mmol: Math.round(Math.max(...mmols) * 100) / 100,
+        avg_hr: hrs.length > 0 ? Math.round(hrs.reduce((s, v) => s + v, 0) / hrs.length) : null,
+        recent_date: last?.date ?? null,
+        recent_mmol: last?.value_mmol ?? null,
+      })
+    }
+    byTemplate.sort((a, b) => b.measurements - a.measurements || b.avg_mmol - a.avg_mmol)
+
+    return {
+      points,
+      estimate: {
+        lt1_hr: lt1 != null ? Math.round(lt1) : null,
+        lt2_hr: lt2 != null ? Math.round(lt2) : null,
+        profile_threshold_hr: profileThresholdHr,
+        regression: reg ? { slope: Math.round(reg.slope * 100) / 100, intercept: Math.round(reg.intercept * 10) / 10, r2: Math.round(reg.r2 * 1000) / 1000, n: reg.n } : null,
+      },
+      byTemplate,
+      hasData: points.length > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getTerskelAnalysis: ${msg}` }
+  }
+}

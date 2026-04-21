@@ -10,6 +10,15 @@ import {
   KEY_EVENT_VISUALS,
   weekOverlayFor,
 } from '@/lib/periodization-overlay'
+import { FocusSection } from '@/components/focus/FocusSection'
+
+function isoWeekKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7))
+  const y = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  const wk = Math.ceil((((d.getTime() - y.getTime()) / 86400000) + 1) / 7)
+  return `${d.getUTCFullYear()}-W${String(wk).padStart(2, '0')}`
+}
 
 type Mode = 'dagbok' | 'plan' | 'periodisering' | 'analyse'
 
@@ -409,12 +418,27 @@ export function WeekCalendarView({
     onCreateWorkout(dateStr, hhmm)
   }
 
+  const focusContext: 'plan' | 'dagbok' | null =
+    mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
+
   return (
     <div>
       <WeekStatsBanner
         weekDates={weekDates} weekNum={weekNum} byDate={byDate}
         mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates}
       />
+
+      {focusContext && (
+        <div className="px-4 md:px-6 py-2">
+          <FocusSection
+            scope="week"
+            periodKey={isoWeekKey(weekDates[0])}
+            context={focusContext}
+            title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
+            showPlanFocus={focusContext === 'dagbok'}
+          />
+        </div>
+      )}
 
       {/* Én kombinert scroll-container for både x og y. Sticky-top holder header+all-day
           synlig ved vertikal scroll; sticky-left holder klokkeslett-kolonnen synlig ved

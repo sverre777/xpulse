@@ -25,6 +25,7 @@ import {
 import {
   DayStateIndicator, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
+import { FocusSection } from '@/components/focus/FocusSection'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -522,10 +523,26 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
 
+  const monthPeriodKey = `${year}-${String(month).padStart(2, '0')}`
+  const focusContext: 'plan' | 'dagbok' | null =
+    mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
+
   return (
     <div>
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
+
+      {focusContext && (
+        <div className="mb-2">
+          <FocusSection
+            scope="month"
+            periodKey={monthPeriodKey}
+            context={focusContext}
+            title={focusContext === 'plan' ? 'Måneds-fokus' : 'Måneds-refleksjon'}
+            showPlanFocus={focusContext === 'dagbok'}
+          />
+        </div>
+      )}
 
       {/* Column headers: week# + 7 days + totals */}
       <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 72px', borderBottom: '1px solid #1A1A1E' }}>
@@ -629,6 +646,28 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       <button type="button" onClick={() => setExpandedDay(null)}
                         style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>×</button>
                     </div>
+
+                    {focusContext && (
+                      <div className="grid md:grid-cols-2 gap-2 mb-3">
+                        <FocusSection
+                          scope="day"
+                          periodKey={ds}
+                          context={focusContext}
+                          title={focusContext === 'plan' ? 'Dagens fokus' : 'Dag-refleksjon'}
+                          showPlanFocus={focusContext === 'dagbok'}
+                          compact
+                        />
+                        <FocusSection
+                          scope="week"
+                          periodKey={isoWeekKey(expandedDate)}
+                          context={focusContext}
+                          title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
+                          showPlanFocus={focusContext === 'dagbok'}
+                          compact
+                        />
+                      </div>
+                    )}
+
                     {dayWorkouts.length === 0 ? (
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
                         {mode === 'plan' ? 'Ingen planlagte økter' : 'Ingen økter'}

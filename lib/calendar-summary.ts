@@ -23,6 +23,7 @@ export type RawCalendarWorkout = {
   id: string; title: string; date: string; workout_type: string
   is_planned: boolean; is_completed: boolean; is_important: boolean
   duration_minutes: number | null
+  distance_km: number | null
   time_of_day?: string | null
   workout_zones?: { zone_name: string; minutes: number }[] | null
   workout_activities?: RawCalendarActivity[] | null
@@ -195,21 +196,31 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
   const act = sumActivityTime(w.workout_activities)
   const start_time = earliestActivityStart(w.workout_activities, snap) ?? w.time_of_day ?? null
 
-  // Faktisk (dagbok): aktivitetsbaserte totaler, fall tilbake til duration_minutes.
+  // Faktisk (dagbok): aktivitetsbaserte totaler, fall tilbake til duration_minutes/distance_km.
+  // Økter uten workout_activities (enkel føring eller gammel migrering) skal fortsatt
+  // telle med så lenge workouts-raden har direkte total-felt.
   const actTotals = totalsFromActivities(w.workout_activities, heartZones)
   const total_seconds = actTotals.totalSeconds > 0
     ? actTotals.totalSeconds
     : (w.duration_minutes ? w.duration_minutes * 60 : 0)
+  const total_meters = actTotals.totalMeters > 0
+    ? actTotals.totalMeters
+    : (w.distance_km ? w.distance_km * 1000 : 0)
   const zone_seconds = actTotals.zoneTotalSec > 0
     ? actTotals.zoneSeconds
     : legacyZonesToSeconds(actualZones)
 
-  // Planlagt: snapshot-aktiviteter foretrukket, ellers planned_duration_minutes.
+  // Planlagt: snapshot-aktiviteter foretrukket, ellers planned_duration_minutes/distance_km.
   const planTotals = totalsFromSnapshot(snap, heartZones)
   const snapDurMin = snap?.duration_minutes ?? (w.is_planned ? w.duration_minutes : null)
+  const snapDistKm = (snap as { distance_km?: number | null } | null)?.distance_km
+    ?? (w.is_planned ? w.distance_km : null)
   const planned_total_seconds = planTotals.totalSeconds > 0
     ? planTotals.totalSeconds
     : (snapDurMin ? snapDurMin * 60 : 0)
+  const planned_total_meters = planTotals.totalMeters > 0
+    ? planTotals.totalMeters
+    : (snapDistKm ? snapDistKm * 1000 : 0)
   const plannedZonesResolved = plannedZones.length > 0 ? plannedZones : (w.is_planned && !w.is_completed ? actualZones : [])
   const planned_zone_seconds = planTotals.zoneTotalSec > 0
     ? planTotals.zoneSeconds
@@ -229,10 +240,10 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     activity_seconds: act.total,
     activity_pause_seconds: act.pause,
     total_seconds,
-    total_meters: actTotals.totalMeters,
+    total_meters,
     zone_seconds,
     planned_total_seconds,
-    planned_total_meters: planTotals.totalMeters,
+    planned_total_meters,
     planned_zone_seconds,
     ...extractCompetition(w.workout_competition_data),
     start_time,

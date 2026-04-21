@@ -63,6 +63,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     is_planned:  formMode === 'plan' ? true : (defaultValues?.is_planned ?? false),
     is_completed: defaultValues?.is_completed ?? false,
     is_important: defaultValues?.is_important ?? false,
+    simple_duration_minutes: defaultValues?.simple_duration_minutes ?? '',
+    simple_distance_km:      defaultValues?.simple_distance_km ?? '',
     movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
       ...m,
       avg_heart_rate: m.avg_heart_rate ?? '',
@@ -284,6 +286,38 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             </div>
           </div>
         </div>
+
+        {/* Enkel føring: totaltid + km direkte på økta. Brukes når brukeren ikke vil bryte
+            ned i aktiviteter, eller for raske importer. Aktiviteter overstyrer disse
+            verdiene i summeringer — da vises en varsel. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <Label>Totaltid (min)</Label>
+            <input type="number" inputMode="numeric" min="0" step="1"
+              value={form.simple_duration_minutes}
+              onChange={e => set('simple_duration_minutes', e.target.value)}
+              placeholder="f.eks. 60"
+              className="w-full px-4 py-3"
+              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
+              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
+          </div>
+          <div>
+            <Label>Distanse (km)</Label>
+            <input type="number" inputMode="decimal" min="0" step="0.1"
+              value={form.simple_distance_km}
+              onChange={e => set('simple_distance_km', e.target.value)}
+              placeholder="f.eks. 10"
+              className="w-full px-4 py-3"
+              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
+              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
+          </div>
+        </div>
+        {form.activities.length > 0 && (form.simple_duration_minutes || form.simple_distance_km) && (
+          <p className="mt-2 text-[11px]"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
+            ⚠ Totaltid/distanse regnes nå fra aktiviteter. Feltene over brukes kun som fallback når økten ikke har aktiviteter.
+          </p>
+        )}
 
         <div className="flex gap-3 mt-4">
           <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">

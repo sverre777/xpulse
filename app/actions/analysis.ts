@@ -317,6 +317,7 @@ type RawOverviewWorkoutRow = {
   is_planned: boolean
   is_completed: boolean
   duration_minutes: number | null
+  distance_km: number | null
   elevation_meters: number | null
   workout_activities: {
     activity_type: string
@@ -370,7 +371,7 @@ async function computeMetricsForRange(
 
   let workoutsQuery = supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,elevation_meters,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(position_overall,participant_count)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,distance_km,elevation_meters,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(position_overall,participant_count)')
     .eq('user_id', userId)
     .eq('is_planned', false)
     .gte('date', fromDate)
@@ -429,10 +430,17 @@ async function computeMetricsForRange(
     }))
     const hasActivities = activities.length > 0
     const totals = hasActivities ? computeActivityTotals(activities, heartZones) : null
-    const sessionSeconds = totals ? totals.totalSeconds : ((w.duration_minutes ?? 0) * 60)
-    const sessionMeters = totals ? totals.totalMeters : 0
+    // Fallback-kjede: aktivitets-sum → workouts-radens direkte total-felt.
+    // Økter uten aktiviteter (enkel føring / legacy) teller så lenge de har
+    // minst ett direkte total-felt.
+    const sessionSeconds = totals && totals.totalSeconds > 0
+      ? totals.totalSeconds
+      : ((w.duration_minutes ?? 0) * 60)
+    const sessionMeters = totals && totals.totalMeters > 0
+      ? totals.totalMeters
+      : ((w.distance_km ?? 0) * 1000)
 
-    if (sessionSeconds <= 0 && !hasActivities) continue
+    if (sessionSeconds <= 0 && sessionMeters <= 0 && !hasActivities) continue
 
     metrics.workout_count += 1
     metrics.total_seconds += sessionSeconds
@@ -616,8 +624,10 @@ type RawPlannedWorkoutRow = {
   date: string
   sport: Sport
   duration_minutes: number | null
+  distance_km: number | null
   planned_snapshot: {
     duration_minutes?: number | null
+    distance_km?: number | null
     activities?: unknown[] | null
   } | null
 }
@@ -638,7 +648,7 @@ async function computePlannedMetricsForRange(
 
   let q = supabase
     .from('workouts')
-    .select('id,date,sport,duration_minutes,planned_snapshot')
+    .select('id,date,sport,duration_minutes,distance_km,planned_snapshot')
     .eq('user_id', userId)
     .eq('is_planned', true)
     .gte('date', fromDate)
@@ -668,12 +678,16 @@ async function computePlannedMetricsForRange(
     const hasActivities = activities.length > 0
     const totals = hasActivities ? computeActivityTotals(activities, heartZones) : null
     const snapDurMin = w.planned_snapshot?.duration_minutes ?? w.duration_minutes ?? 0
+    const snapDistKm = w.planned_snapshot?.distance_km ?? w.distance_km ?? 0
+    // Fallback-kjede: snapshot-aktiviteter → direkte total-felt (snapshot / workouts-rad).
     const sessionSeconds = totals && totals.totalSeconds > 0
       ? totals.totalSeconds
       : snapDurMin * 60
-    const sessionMeters = totals ? totals.totalMeters : 0
+    const sessionMeters = totals && totals.totalMeters > 0
+      ? totals.totalMeters
+      : snapDistKm * 1000
 
-    if (sessionSeconds <= 0 && !hasActivities) continue
+    if (sessionSeconds <= 0 && sessionMeters <= 0 && !hasActivities) continue
 
     metrics.workout_count += 1
     metrics.planned_count += 1

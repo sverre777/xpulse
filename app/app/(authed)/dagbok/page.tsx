@@ -45,7 +45,7 @@ export default async function DagbokPage() {
   const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
-      .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters)')
+      .select('duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters)')
       .eq('user_id', user.id).eq('is_planned', false)
       .gte('date', weekStart).lte('date', weekEnd),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
@@ -76,11 +76,13 @@ export default async function DagbokPage() {
   const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport').eq('id', user.id).single()
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   type WeekActivityRow = { activity_type: string; duration_seconds: number | null; distance_meters: number | null }
-  type WeekWorkoutRow = { duration_minutes: number | null; workout_activities: WeekActivityRow[] | null }
+  type WeekWorkoutRow = { duration_minutes: number | null; distance_km: number | null; workout_activities: WeekActivityRow[] | null }
   const weekWorkouts = (weekData.data ?? []) as WeekWorkoutRow[]
   const PAUSE = new Set(['pause', 'aktiv_pause'])
   let weekSeconds = 0
   let weekMeters = 0
+  // Fallback-kjede: aktivitets-sum → workouts-radens direkte totaltid/distanse.
+  // Slik teller også økter uten workout_activities (enkel føring / legacy).
   for (const w of weekWorkouts) {
     const acts = w.workout_activities ?? []
     let secs = 0, meters = 0
@@ -90,6 +92,7 @@ export default async function DagbokPage() {
       meters += Number(a.distance_meters) || 0
     }
     if (secs === 0 && w.duration_minutes) secs = w.duration_minutes * 60
+    if (meters === 0 && w.distance_km) meters = w.distance_km * 1000
     weekSeconds += secs
     weekMeters += meters
   }

@@ -193,6 +193,11 @@ export interface WorkoutFormData {
   is_planned: boolean
   is_completed: boolean
   is_important: boolean
+  // Enkel føring: brukes når økten ikke har aktiviteter (eller som minimumsregistrering
+  // for gamle/importerte økter). Lagres til workouts.duration_minutes / distance_km.
+  // Når aktiviteter finnes overstyrer aktivitets-summen disse i visning.
+  simple_duration_minutes: string
+  simple_distance_km: string
   movements: MovementRow[]
   zones: ZoneRow[]
   exercises: ExerciseRow[]

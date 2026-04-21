@@ -9,6 +9,7 @@ import {
   StrengthExerciseRow, StrengthSetRow,
   ActivityLactateMeasurement,
   isEnduranceMovement, isStrengthMovement,
+  TUR_SUBCATEGORIES_WITH_SLED, WEATHER_OPTIONS,
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 
@@ -41,6 +42,12 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     prone_hits: '',
     standing_shots: '',
     standing_hits: '',
+    elevation_gain_m: '',
+    elevation_loss_m: '',
+    pack_weight_kg: '',
+    sled_weight_kg: '',
+    weather: '',
+    temperature_c: '',
     notes: '',
     zones: emptyActivityZones(),
     exercises: [],
@@ -194,14 +201,37 @@ function ActivityRowItem({
   const hasSubcat = meta?.usesMovement && (isStrength || subcatOptions.length > 0)
 
   // Når bevegelsesform endres → reset subcategory + exercises/zones-kontekst.
+  // Høydemeter er tilgjengelig for alle utholdenhetsformer, så de nulles
+  // kun når vi forlater utholdenhetsgruppen. Tur-spesifikke felt nulles
+  // når vi bytter bort fra 'Tur'.
   const handleMovementChange = (name: string) => {
-    onUpdate({
+    const toEndurance = isEnduranceMovement(name)
+    const patch: Partial<ActivityRow> = {
       movement_name: name,
       movement_subcategory: '',
-      // Bytter vi bort fra endurance → null ut zones; bytter vi bort fra strength → null ut exercises.
-      zones: isEnduranceMovement(name) ? row.zones : emptyActivityZones(),
+      zones: toEndurance ? row.zones : emptyActivityZones(),
       exercises: isStrengthMovement(name) ? row.exercises : [],
-    })
+    }
+    if (!toEndurance) {
+      patch.elevation_gain_m = ''
+      patch.elevation_loss_m = ''
+    }
+    if (name !== 'Tur') {
+      patch.pack_weight_kg = ''
+      patch.sled_weight_kg = ''
+      patch.weather = ''
+      patch.temperature_c = ''
+    }
+    onUpdate(patch)
+  }
+
+  // Når underkategori endres bort fra en pulk-type, fjern pulkvekt.
+  const handleSubcategoryChange = (sub: string) => {
+    const patch: Partial<ActivityRow> = { movement_subcategory: sub }
+    if (row.movement_name === 'Tur' && !TUR_SUBCATEGORIES_WITH_SLED.has(sub)) {
+      patch.sled_weight_kg = ''
+    }
+    onUpdate(patch)
   }
 
   const displayIcon = isStrength ? '🏋' : (meta?.icon ?? '•')
@@ -311,7 +341,7 @@ function ActivityRowItem({
             {hasSubcat && (
               <Field label={isStrength ? 'Styrke-kategori' : 'Underkategori'}>
                 <select value={row.movement_subcategory}
-                  onChange={e => onUpdate({ movement_subcategory: e.target.value })}
+                  onChange={e => handleSubcategoryChange(e.target.value)}
                   style={iSt}>
                   <option value="">Velg underkategori</option>
                   {subcatOptions.map(s => (
@@ -344,6 +374,26 @@ function ActivityRowItem({
               </Field>
             )}
 
+            {/* Høydemeter — kun utholdenhetsbevegelser (inkl. Tur). Valgfrie. */}
+            {isEndurance && (
+              <>
+                <Field label="Høydemeter opp (m)">
+                  <input value={row.elevation_gain_m}
+                    onChange={e => onUpdate({ elevation_gain_m: e.target.value })}
+                    placeholder="—"
+                    inputMode="numeric"
+                    style={iSt} />
+                </Field>
+                <Field label="Høydemeter ned (m)">
+                  <input value={row.elevation_loss_m}
+                    onChange={e => onUpdate({ elevation_loss_m: e.target.value })}
+                    placeholder="—"
+                    inputMode="numeric"
+                    style={iSt} />
+                </Field>
+              </>
+            )}
+
             {!isPlanMode && (
               <>
                 <Field label="Snittpuls (bpm)">
@@ -371,6 +421,11 @@ function ActivityRowItem({
               </>
             )}
           </div>
+
+          {/* Tur-spesifikke felt — vises kun når bevegelsesform = Tur. */}
+          {row.movement_name === 'Tur' && (
+            <TurFields row={row} onUpdate={onUpdate} />
+          )}
 
           {/* Sonefordeling — kun utholdenhet (ikke skyting/pause/styrke) */}
           {isEndurance && !meta?.isShooting && (
@@ -668,6 +723,79 @@ function LactateMeasurementsEditor({
         }}>
         + Legg til laktat
       </button>
+    </div>
+  )
+}
+
+// ── Tur-spesifikke felt ────────────────────────────────────
+// Pakkevekt, pulkvekt, total (read-only sum), værforhold og temperatur.
+// Pulkvekt vises kun når underkategori tilsier det (f.eks. "Fjellski med pulk").
+
+function TurFields({
+  row, onUpdate,
+}: {
+  row: ActivityRow
+  onUpdate: (patch: Partial<ActivityRow>) => void
+}) {
+  const showSled = TUR_SUBCATEGORIES_WITH_SLED.has(row.movement_subcategory)
+  const pack = parseFloat(row.pack_weight_kg)
+  const sled = parseFloat(row.sled_weight_kg)
+  const total =
+    (Number.isFinite(pack) ? pack : 0) +
+    (showSled && Number.isFinite(sled) ? sled : 0)
+  const hasWeight =
+    (Number.isFinite(pack) && pack > 0) ||
+    (showSled && Number.isFinite(sled) && sled > 0)
+
+  return (
+    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="text-xs tracking-widest uppercase mb-2"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Tur
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Field label="Sekkvekt (kg)">
+          <input value={row.pack_weight_kg}
+            onChange={e => onUpdate({ pack_weight_kg: e.target.value })}
+            placeholder="—" inputMode="decimal"
+            style={iSt} />
+        </Field>
+
+        {showSled && (
+          <Field label="Pulkvekt (kg)">
+            <input value={row.sled_weight_kg}
+              onChange={e => onUpdate({ sled_weight_kg: e.target.value })}
+              placeholder="—" inputMode="decimal"
+              style={iSt} />
+          </Field>
+        )}
+
+        {hasWeight && (
+          <Field label="Total vekt (kg)">
+            <input value={total ? total.toFixed(1) : ''}
+              readOnly
+              style={{ ...iSt, color: '#8A8A96', cursor: 'not-allowed' }} />
+          </Field>
+        )}
+
+        <Field label="Værforhold">
+          <select value={row.weather}
+            onChange={e => onUpdate({ weather: e.target.value })}
+            style={iSt}>
+            <option value="">—</option>
+            {WEATHER_OPTIONS.map(w => (
+              <option key={w} value={w}>{w}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Temperatur (°C)">
+          <input value={row.temperature_c}
+            onChange={e => onUpdate({ temperature_c: e.target.value })}
+            placeholder="—" inputMode="decimal"
+            style={iSt} />
+        </Field>
+      </div>
     </div>
   )
 }

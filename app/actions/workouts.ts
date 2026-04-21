@@ -127,6 +127,15 @@ async function insertActivitiesWithChildren(
       prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null,
       standing_hits: parseInt(a.standing_hits) || null,
+      elevation_gain_m: parseInt(a.elevation_gain_m) || null,
+      elevation_loss_m: parseInt(a.elevation_loss_m) || null,
+      pack_weight_kg: parseFloat(a.pack_weight_kg) || null,
+      sled_weight_kg: parseFloat(a.sled_weight_kg) || null,
+      weather: a.weather || null,
+      temperature_c: (() => {
+        const v = parseFloat(a.temperature_c)
+        return Number.isFinite(v) ? v : null
+      })(),
       zones: serializeZones(a.zones),
       notes: a.notes || null,
     }
@@ -246,6 +255,12 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       prone_hits: a.prone_hits ?? '',
       standing_shots: a.standing_shots ?? '',
       standing_hits: a.standing_hits ?? '',
+      elevation_gain_m: a.elevation_gain_m ?? '',
+      elevation_loss_m: a.elevation_loss_m ?? '',
+      pack_weight_kg: a.pack_weight_kg ?? '',
+      sled_weight_kg: a.sled_weight_kg ?? '',
+      weather: a.weather ?? '',
+      temperature_c: a.temperature_c ?? '',
       notes: a.notes ?? '',
       zones: a.zones ?? emptyActivityZones(),
       exercises: Array.isArray(a.exercises) ? a.exercises.map(ex => ({
@@ -658,7 +673,11 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     start_time: string | null; duration_seconds: number; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
     prone_shots: number | null; prone_hits: number | null
-    standing_shots: number | null; standing_hits: number | null; notes: string | null
+    standing_shots: number | null; standing_hits: number | null
+    elevation_gain_m: number | null; elevation_loss_m: number | null
+    pack_weight_kg: number | null; sled_weight_kg: number | null
+    weather: string | null; temperature_c: number | null
+    notes: string | null
     zones: Record<string, number> | null
     workout_activity_exercises?: DbExercise[] | null
     workout_activity_lactate_measurements?: DbLactate[] | null
@@ -717,6 +736,12 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         prone_hits: a.prone_hits?.toString() ?? '',
         standing_shots: a.standing_shots?.toString() ?? '',
         standing_hits: a.standing_hits?.toString() ?? '',
+        elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
+        elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
+        pack_weight_kg: a.pack_weight_kg?.toString() ?? '',
+        sled_weight_kg: a.sled_weight_kg?.toString() ?? '',
+        weather: a.weather ?? '',
+        temperature_c: a.temperature_c?.toString() ?? '',
         notes: a.notes ?? '',
         zones: deserializeZones(a.zones),
         exercises,

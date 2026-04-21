@@ -65,6 +65,17 @@ export interface MovementCategory {
   subcategories?: string[]
 }
 
+const TUR_SUBCATEGORIES = [
+  'Fjelltur', 'Skogstur', 'Fjellski', 'Fjellski med pulk',
+  'Topptur', 'Skitur', 'Snøskotur', 'Ekspedisjon/flerdagers',
+]
+
+// Tur-underkategorier som normalt involverer pulk. Pulkvekt-feltet vises
+// kun for disse.
+export const TUR_SUBCATEGORIES_WITH_SLED = new Set<string>([
+  'Fjellski med pulk', 'Ekspedisjon/flerdagers',
+])
+
 export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Løping',       subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
   { name: 'Langrenn',     subcategories: SKI_SUBCATEGORIES },
@@ -72,6 +83,7 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Sykling',      subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
   { name: 'Svømming',     subcategories: ['Basseng','Åpent vann'] },
   { name: 'Fjellsport',   subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
+  { name: 'Tur',          subcategories: TUR_SUBCATEGORIES },
   { name: 'Styrke',       subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
   { name: 'Roing' },
   { name: 'Kajak/Padling' },
@@ -86,6 +98,11 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Kampsport' },
   { name: 'Triathlon' },
   { name: 'Snowboard' },
+]
+
+// Værforhold-valg for tur-aktiviteter.
+export const WEATHER_OPTIONS: string[] = [
+  'Sol', 'Delvis skyet', 'Overskyet', 'Snø', 'Regn', 'Vind', 'Tåke',
 ]
 
 export function getSubcategories(name: string): string[] {
@@ -243,6 +260,7 @@ export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = {
   Skøyter:          ['Sprint', 'Allround', 'Langdistanse'],
   Orientering:      ['Skog', 'Sprint', 'Nattorientering', 'Ski-O', 'MTB-O'],
   Turgåing:         ['Rolig tur', 'Rask gange', 'Rulleski-tur'],
+  Tur:              TUR_SUBCATEGORIES,
   Yoga:             ['Hatha', 'Vinyasa', 'Yin', 'Restorativ', 'Mobility'],
 }
 
@@ -255,7 +273,7 @@ export const STRENGTH_SUBCATEGORIES = [
 export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([
   'Løping', 'Langrenn', 'Rulleski', 'Sykling', 'Svømming',
   'Roing', 'Padling', 'Kajak/Padling', 'Fjellsport', 'Skøyter',
-  'Orientering', 'Turgåing',
+  'Orientering', 'Turgåing', 'Tur',
 ])
 
 export function isEnduranceMovement(name: string | null | undefined): boolean {
@@ -327,6 +345,14 @@ export interface ActivityRow {
   prone_hits: string
   standing_shots: string
   standing_hits: string
+  // Høydemeter — valgfritt, tilgjengelig for alle utholdenhetsbevegelser.
+  elevation_gain_m: string
+  elevation_loss_m: string
+  // Tur-spesifikke felt — vises kun når movement_name='Tur'.
+  pack_weight_kg: string
+  sled_weight_kg: string   // kun relevant for "Fjellski med pulk" / "Ekspedisjon/flerdagers"
+  weather: string
+  temperature_c: string
   notes: string
   // Sone-fordeling i minutter (I1..I5). Brukes kun for utholdenhetsbevegelser.
   zones: ActivityZoneMinutes
@@ -356,6 +382,12 @@ export interface WorkoutActivity {
   prone_hits: number | null
   standing_shots: number | null
   standing_hits: number | null
+  elevation_gain_m: number | null
+  elevation_loss_m: number | null
+  pack_weight_kg: number | null
+  sled_weight_kg: number | null
+  weather: string | null
+  temperature_c: number | null
   notes: string | null
   zones: Record<string, number> | null
   created_at: string
@@ -681,6 +713,12 @@ function makeActivity(overrides: Partial<ActivityRow> & { activity_type: Activit
     prone_hits: '',
     standing_shots: '',
     standing_hits: '',
+    elevation_gain_m: '',
+    elevation_loss_m: '',
+    pack_weight_kg: '',
+    sled_weight_kg: '',
+    weather: '',
+    temperature_c: '',
     notes: overrides.notes ?? '',
     zones: emptyActivityZones(),
     exercises: [],

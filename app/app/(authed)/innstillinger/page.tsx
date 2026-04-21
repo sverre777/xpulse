@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -71,6 +72,21 @@ export default async function InnstillingerPage() {
           initialZones={initialZones}
           hasCustomZones={hasCustomZones}
         />
+
+        <Link href="/app/innstillinger/bevegelsesformer"
+          className="flex items-center justify-between p-6 mt-6 transition-opacity hover:opacity-80"
+          style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div>
+            <p className="text-xs tracking-widest uppercase mb-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Egne bevegelsesformer
+            </p>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}>
+              Administrer bevegelsesformer
+            </p>
+          </div>
+          <span style={{ color: '#555560', fontSize: '18px' }}>›</span>
+        </Link>
       </div>
     </div>
   )

@@ -4,16 +4,23 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityRow, ActivityType, ACTIVITY_TYPES, findActivityType,
   Sport, DEFAULT_MOVEMENTS_BY_SPORT, MOVEMENT_CATEGORIES,
-  ACTIVITY_SUBCATEGORIES, STRENGTH_SUBCATEGORIES,
+  STRENGTH_SUBCATEGORIES,
   ActivityZoneMinutes, emptyActivityZones,
   StrengthExerciseRow, StrengthSetRow,
   ActivityLactateMeasurement,
-  isEnduranceMovement, isStrengthMovement,
   TUR_SUBCATEGORIES_WITH_SLED, WEATHER_OPTIONS,
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { getUserExercises, type UserExercise } from '@/app/actions/user-exercises'
+import {
+  getUserMovementTypes, createUserMovementType,
+  type UserMovementType, type UserMovementTypeKind,
+} from '@/app/actions/user-movement-types'
+import {
+  resolveMovementKind, isEnduranceFor, isStrengthFor, isTurFor,
+  subcategoriesFor,
+} from '@/lib/movement-types'
 
 interface Props {
   rows: ActivityRow[]
@@ -99,6 +106,37 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
 export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Props) {
   const isPlanMode = mode === 'plan'
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [userMovementTypes, setUserMovementTypes] = useState<UserMovementType[]>([])
+  const [createModalRowId, setCreateModalRowId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getUserMovementTypes().then(data => {
+      if (!cancelled) setUserMovementTypes(data)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const handleCreated = (created: UserMovementType, rowId: string | null) => {
+    setUserMovementTypes(prev => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)))
+    // Hvis modalet ble åpnet fra en rad sin dropdown, sett formen på den raden.
+    if (rowId) {
+      onChange(rows.map(r => r.id === rowId ? {
+        ...r,
+        movement_name: created.name,
+        movement_subcategory: '',
+        zones: created.type === 'utholdenhet' ? r.zones : emptyActivityZones(),
+        exercises: created.type === 'styrke' ? r.exercises : [],
+        elevation_gain_m: created.type === 'utholdenhet' || created.type === 'tur' ? r.elevation_gain_m : '',
+        elevation_loss_m: created.type === 'utholdenhet' || created.type === 'tur' ? r.elevation_loss_m : '',
+        pack_weight_kg: created.type === 'tur' ? r.pack_weight_kg : '',
+        sled_weight_kg: created.type === 'tur' ? r.sled_weight_kg : '',
+        weather: created.type === 'tur' ? r.weather : '',
+        temperature_c: created.type === 'tur' ? r.temperature_c : '',
+      } : r))
+    }
+    setCreateModalRowId(null)
+  }
 
   const updateRow = (id: string, patch: Partial<ActivityRow>) => {
     onChange(rows.map(r => r.id === id ? { ...r, ...patch } : r))
@@ -154,6 +192,8 @@ export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Pr
           typeOptions={typeOptions}
           sport={sport}
           isPlanMode={isPlanMode}
+          userMovementTypes={userMovementTypes}
+          onRequestCreateMovement={() => setCreateModalRowId(row.id)}
         />
       ))}
 
@@ -172,13 +212,22 @@ export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Pr
       >
         + Legg til aktivitet
       </button>
+
+      {createModalRowId !== null && (
+        <CreateMovementTypeModal
+          onClose={() => setCreateModalRowId(null)}
+          onCreated={u => handleCreated(u, createModalRowId)}
+        />
+      )}
     </div>
   )
 }
 
+const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
+
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
-  typeOptions, sport, isPlanMode,
+  typeOptions, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
 }: {
   row: ActivityRow
   expanded: boolean
@@ -190,35 +239,47 @@ function ActivityRowItem({
   typeOptions: typeof ACTIVITY_TYPES
   sport: Sport
   isPlanMode: boolean
+  userMovementTypes: UserMovementType[]
+  onRequestCreateMovement: () => void
 }) {
   const meta = findActivityType(row.activity_type)
   const durSec = parseActivityDuration(row.duration)
   const durDisplay = durSec != null ? formatActivityDuration(durSec) : row.duration || '—'
-  const isStrength = isStrengthMovement(row.movement_name)
-  const isEndurance = isEnduranceMovement(row.movement_name)
+  const kind = resolveMovementKind(row.movement_name, userMovementTypes)
+  const isStrength = isStrengthFor(row.movement_name, userMovementTypes)
+  const isEndurance = isEnduranceFor(row.movement_name, userMovementTypes)
+  const isTur = isTurFor(row.movement_name, userMovementTypes)
+  const isAnnet = kind === 'annet'
   const isCycling = sport === 'cycling' || row.movement_name === 'Sykling'
-  const subcatOptions =
-    isStrength ? STRENGTH_SUBCATEGORIES :
-    (ACTIVITY_SUBCATEGORIES[row.movement_name] ?? [])
-  const hasSubcat = meta?.usesMovement && (isStrength || subcatOptions.length > 0)
+  const isUserMovement = userMovementTypes.some(u => u.name === row.movement_name)
+  const subcatOptions = isStrength && !isUserMovement
+    ? STRENGTH_SUBCATEGORIES
+    : subcategoriesFor(row.movement_name, userMovementTypes)
+  const hasSubcat = meta?.usesMovement && subcatOptions.length > 0
 
   // Når bevegelsesform endres → reset subcategory + exercises/zones-kontekst.
-  // Høydemeter er tilgjengelig for alle utholdenhetsformer, så de nulles
-  // kun når vi forlater utholdenhetsgruppen. Tur-spesifikke felt nulles
-  // når vi bytter bort fra 'Tur'.
+  // Høydemeter er tilgjengelig for utholdenhet + tur; nulles når vi forlater dem.
+  // Tur-spesifikke felt nulles når vi bytter bort fra 'Tur' (standard eller bruker-definert).
   const handleMovementChange = (name: string) => {
-    const toEndurance = isEnduranceMovement(name)
+    if (name === CREATE_MOVEMENT_SENTINEL) {
+      onRequestCreateMovement()
+      return
+    }
+    const nextKind = resolveMovementKind(name, userMovementTypes)
+    const nextEndurance = nextKind === 'utholdenhet'
+    const nextStrength = nextKind === 'styrke'
+    const nextTur = nextKind === 'tur'
     const patch: Partial<ActivityRow> = {
       movement_name: name,
       movement_subcategory: '',
-      zones: toEndurance ? row.zones : emptyActivityZones(),
-      exercises: isStrengthMovement(name) ? row.exercises : [],
+      zones: nextEndurance ? row.zones : emptyActivityZones(),
+      exercises: nextStrength ? row.exercises : [],
     }
-    if (!toEndurance) {
+    if (!nextEndurance && !nextTur) {
       patch.elevation_gain_m = ''
       patch.elevation_loss_m = ''
     }
-    if (name !== 'Tur') {
+    if (!nextTur) {
       patch.pack_weight_kg = ''
       patch.sled_weight_kg = ''
       patch.weather = ''
@@ -227,7 +288,8 @@ function ActivityRowItem({
     onUpdate(patch)
   }
 
-  // Når underkategori endres bort fra en pulk-type, fjern pulkvekt.
+  // Når underkategori endres bort fra en pulk-type på standard 'Tur', fjern pulkvekt.
+  // Brukerens egne tur-former har ikke faste pulk-kategorier — vi nulstiller ikke da.
   const handleSubcategoryChange = (sub: string) => {
     const patch: Partial<ActivityRow> = { movement_subcategory: sub }
     if (row.movement_name === 'Tur' && !TUR_SUBCATEGORIES_WITH_SLED.has(sub)) {
@@ -336,6 +398,14 @@ function ActivityRowItem({
                   {MOVEMENT_CATEGORIES.map(m => (
                     <option key={m.name} value={m.name}>{m.name}</option>
                   ))}
+                  {userMovementTypes.length > 0 && (
+                    <optgroup label="Mine egne">
+                      {userMovementTypes.map(u => (
+                        <option key={u.id} value={u.name}>{u.name}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  <option value={CREATE_MOVEMENT_SENTINEL}>+ Lag ny bevegelsesform…</option>
                 </select>
               </Field>
             )}
@@ -366,7 +436,7 @@ function ActivityRowItem({
                 style={iSt} />
             </Field>
 
-            {!meta?.isShooting && !isStrength && (
+            {!meta?.isShooting && !isStrength && !isAnnet && (
               <Field label="Distanse (km)">
                 <input value={row.distance_km}
                   onChange={e => onUpdate({ distance_km: e.target.value })}
@@ -376,8 +446,8 @@ function ActivityRowItem({
               </Field>
             )}
 
-            {/* Høydemeter — kun utholdenhetsbevegelser (inkl. Tur). Valgfrie. */}
-            {isEndurance && (
+            {/* Høydemeter — utholdenhet + tur. Valgfrie. */}
+            {(isEndurance || isTur) && (
               <>
                 <Field label="Høydemeter opp (m)">
                   <input value={row.elevation_gain_m}
@@ -405,14 +475,16 @@ function ActivityRowItem({
                     style={iSt} />
                 </Field>
 
-                <Field label="Maks puls (bpm)">
-                  <input value={row.max_heart_rate}
-                    onChange={e => onUpdate({ max_heart_rate: e.target.value })}
-                    inputMode="numeric" placeholder="—"
-                    style={iSt} />
-                </Field>
+                {!isAnnet && (
+                  <Field label="Maks puls (bpm)">
+                    <input value={row.max_heart_rate}
+                      onChange={e => onUpdate({ max_heart_rate: e.target.value })}
+                      inputMode="numeric" placeholder="—"
+                      style={iSt} />
+                  </Field>
+                )}
 
-                {isCycling && !meta?.isShooting && !isStrength && (
+                {isCycling && !meta?.isShooting && !isStrength && !isAnnet && (
                   <Field label="Snittwatt">
                     <input value={row.avg_watts}
                       onChange={e => onUpdate({ avg_watts: e.target.value })}
@@ -424,8 +496,9 @@ function ActivityRowItem({
             )}
           </div>
 
-          {/* Tur-spesifikke felt — vises kun når bevegelsesform = Tur. */}
-          {row.movement_name === 'Tur' && (
+          {/* Tur-spesifikke felt — vises for standard 'Tur' og bruker-definerte
+              tur-former. Pulkvekt vises bare når underkategori matcher pulk-liste. */}
+          {isTur && (
             <TurFields row={row} onUpdate={onUpdate} />
           )}
 
@@ -1129,4 +1202,148 @@ const iSt: React.CSSProperties = {
   padding: '6px 10px',
   outline: 'none',
   width: '100%',
+}
+
+// ── Modal: Lag ny bevegelsesform ───────────────────────────
+// Enkel modal med navn, type (4 valg), valgfrie kommaseparerte underkategorier,
+// og valgfritt notat. Brukes fra bevegelsesform-dropdown-en i aktivitetsraden.
+
+const KIND_LABELS: Record<UserMovementTypeKind, string> = {
+  utholdenhet: 'Utholdenhet',
+  styrke: 'Styrke-spenst',
+  tur: 'Tur',
+  annet: 'Annet',
+}
+
+function CreateMovementTypeModal({
+  onClose, onCreated,
+}: {
+  onClose: () => void
+  onCreated: (u: UserMovementType) => void
+}) {
+  const [name, setName] = useState('')
+  const [type, setType] = useState<UserMovementTypeKind>('utholdenhet')
+  const [subcatsText, setSubcatsText] = useState('')
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (!name.trim() || saving) return
+    setSaving(true)
+    setError(null)
+    const subcategories = subcatsText
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s !== '')
+    const res = await createUserMovementType({ name, type, subcategories, notes })
+    if (res.error) {
+      setError(res.error)
+      setSaving(false)
+      return
+    }
+    if (res.data) onCreated(res.data)
+    setSaving(false)
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)', padding: '16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          backgroundColor: '#111113', border: '1px solid #262629',
+          width: '100%', maxWidth: '480px', padding: '20px',
+        }}
+      >
+        <h3 style={{
+          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontSize: '22px', letterSpacing: '0.05em', margin: 0, marginBottom: '16px',
+        }}>
+          NY BEVEGELSESFORM
+        </h3>
+
+        <div className="space-y-3">
+          <div>
+            <Label>Navn *</Label>
+            <input value={name} onChange={e => setName(e.target.value)}
+              placeholder="F.eks. Innebandy, Kiting"
+              autoFocus
+              style={iSt} />
+          </div>
+
+          <div>
+            <Label>Type *</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {(['utholdenhet', 'styrke', 'tur', 'annet'] as const).map(k => {
+                const active = type === k
+                return (
+                  <button key={k} type="button" onClick={() => setType(k)}
+                    className="text-xs tracking-widest uppercase transition-opacity"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      color: active ? '#FF4500' : '#C0C0CC',
+                      background: active ? '#1A1A1E' : 'none',
+                      border: '1px solid ' + (active ? '#FF4500' : '#262629'),
+                      padding: '6px 12px', cursor: 'pointer',
+                    }}>
+                    {KIND_LABELS[k]}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div>
+            <Label>Underkategorier (valgfritt — kommaseparert)</Label>
+            <input value={subcatsText} onChange={e => setSubcatsText(e.target.value)}
+              placeholder="F.eks. Teknisk, Taktisk, Styrke"
+              style={iSt} />
+          </div>
+
+          <div>
+            <Label>Notat (valgfritt)</Label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)}
+              rows={2} placeholder="Kort beskrivelse..."
+              style={{ ...iSt, resize: 'vertical' }} />
+          </div>
+
+          {error && (
+            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+              {error}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 mt-4">
+          <button type="button" onClick={onClose} disabled={saving}
+            className="px-4 py-2 text-sm tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              background: 'none', border: '1px solid #262629',
+              cursor: saving ? 'not-allowed' : 'pointer',
+            }}>
+            Avbryt
+          </button>
+          <button type="button" onClick={handleSave}
+            disabled={saving || !name.trim()}
+            className="px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+              background: 'none', border: '1px solid #FF4500',
+              cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer',
+              opacity: (saving || !name.trim()) ? 0.5 : 1,
+            }}>
+            {saving ? 'Lagrer…' : 'Lagre'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

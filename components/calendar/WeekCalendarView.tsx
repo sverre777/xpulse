@@ -79,7 +79,9 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: Mode) {
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: Mode): boolean {
-  return mode === 'plan' || !w.is_planned || w.is_completed
+  // Streng adskillelse: Plan teller kun is_planned-rader, Dagbok kun is_planned=false.
+  if (mode === 'plan') return w.is_planned
+  return !w.is_planned
 }
 
 function competitionStyle(w: CalendarWorkoutSummary):

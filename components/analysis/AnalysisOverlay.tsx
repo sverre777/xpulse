@@ -13,7 +13,7 @@ import type { CalendarView } from '@/components/calendar/Calendar'
 interface AnalysisOverlayProps {
   view: CalendarView
   refDate: Date              // referansedato i valgt vy (uke/måned/år)
-  mode: 'dagbok' | 'plan'
+  mode: 'dagbok'
 }
 
 function formatIso(d: Date): string {
@@ -62,7 +62,7 @@ function formatKm(meters: number): string {
   return `${(Math.round((meters / 1000) * 10) / 10).toLocaleString('nb-NO')}`
 }
 
-export function AnalysisOverlay({ view, refDate, mode }: AnalysisOverlayProps) {
+export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<AnalysisOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +99,6 @@ export function AnalysisOverlay({ view, refDate, mode }: AnalysisOverlayProps) {
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           <span aria-hidden="true" style={{ color: '#FF4500' }}>{open ? '▾' : '▸'}</span>
           Analyse {label}
-          {mode === 'plan' && <span style={{ color: '#555560' }}>· planlagt vises ikke</span>}
           {isPending && <span className="ml-2" style={{ color: '#FF4500' }}>…laster</span>}
         </span>
         <span className="text-[11px] tracking-wider"

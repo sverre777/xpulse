@@ -183,9 +183,11 @@ function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<E
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
-  // Plan-kalender: alle planlagte teller. Dagbok/analyse: tell økter som enten
-  // er logget direkte (!is_planned) eller markert som gjennomført.
-  return mode === 'plan' || !w.is_planned || w.is_completed
+  // Streng adskillelse: Plan teller kun is_planned-rader, Dagbok teller kun
+  // is_planned=false-rader. Plan-rader markert som gjennomført hører til Plan-
+  // visningen (ikke Dagbok). Faktisk gjennomføring logges som egen rad i Dagbok.
+  if (mode === 'plan') return w.is_planned
+  return !w.is_planned
 }
 
 interface AggregateTotals {
@@ -528,8 +530,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
   return (
     <div>
-      {/* Month total banner */}
-      {monthTotal.seconds > 0 && (
+      {/* Month total banner — kun Plan. Dagbok har Analyse-overlay øverst i stedet,
+          så vi unngår to oppsummeringer av samme periode. */}
+      {mode === 'plan' && monthTotal.seconds > 0 && (
         <div className="px-4 md:px-6 py-3"
           style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
           <div className="flex items-baseline gap-4 flex-wrap mb-2">
@@ -1149,8 +1152,8 @@ export function Calendar({
         <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
 
-      {/* ── Analyse-overlay (kun dagbok/plan — collapsible). ── */}
-      {(mode === 'dagbok' || mode === 'plan') && (
+      {/* ── Analyse-overlay: kun Dagbok. Plan viser kun planlagte tall (bunnbanner). ── */}
+      {mode === 'dagbok' && (
         <AnalysisOverlay view={view} refDate={refDate} mode={mode} />
       )}
 

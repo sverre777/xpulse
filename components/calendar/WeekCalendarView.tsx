@@ -6,7 +6,7 @@ import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
 import {
-  INTENSITY_TINT, INTENSITY_COLOR, INTENSITY_LABEL,
+  INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
   weekOverlayFor,
 } from '@/lib/periodization-overlay'
@@ -185,7 +185,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
         <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
           style={{
             borderBottom: '1px solid #1A1A1E',
-            backgroundColor: weekOverlay.period ? INTENSITY_TINT[weekOverlay.period.intensity] : '#111113',
+            backgroundColor: '#111113',
             borderLeft: weekOverlay.period ? `3px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}` : 'none',
           }}>
           {weekOverlay.period && (

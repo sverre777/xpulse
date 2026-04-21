@@ -2906,3 +2906,227 @@ export async function getShootingDepthAnalysis(
     return { error: `getShootingDepthAnalysis: ${msg}` }
   }
 }
+
+// ── Periodisering-oversikt: tidsbånd, belastning per periode, mål, konkurranser ──
+// Overlay analyse på sesongens perioder — TSS/tid/økter per periode,
+// konkurranser (key_dates + competition-økter), og sesongens overordnede mål.
+
+export type PeriodIntensity = 'rolig' | 'medium' | 'hard'
+export type PeriodKeyEventType =
+  | 'competition_a' | 'competition_b' | 'competition_c'
+  | 'test' | 'camp' | 'other'
+
+export interface PeriodKeyDate {
+  id: string
+  event_type: PeriodKeyEventType
+  event_date: string
+  name: string
+  sport: string | null
+}
+
+export interface PeriodLoadRow {
+  id: string
+  name: string
+  focus: string | null
+  intensity: PeriodIntensity
+  start_date: string
+  end_date: string
+  sort_order: number
+  sessions: number
+  total_seconds: number
+  total_meters: number
+  total_tss: number
+  competitions: number            // key_dates + workouts med workout_type=competition
+  key_dates: PeriodKeyDate[]
+  status: 'past' | 'current' | 'future'
+}
+
+export interface PeriodizationOverview {
+  season: {
+    id: string
+    name: string
+    start_date: string
+    end_date: string
+    goal_main: string | null
+    goal_details: string | null
+    kpi_notes: string | null
+  } | null
+  today: string
+  totals: {
+    sessions: number
+    total_seconds: number
+    total_meters: number
+    total_tss: number
+    competitions_logged: number
+    key_dates: number
+  }
+  periods: PeriodLoadRow[]
+  keyDates: PeriodKeyDate[]           // alle i sesongen, også de utenfor perioder
+  hasData: boolean
+}
+
+type RawSeasonPeriod = {
+  id: string; name: string; focus: string | null
+  start_date: string; end_date: string
+  intensity: PeriodIntensity; sort_order: number
+}
+
+type RawSeasonKeyDate = {
+  id: string; event_type: PeriodKeyEventType; event_date: string
+  name: string; sport: string | null
+}
+
+type RawPeriodWorkout = {
+  id: string; date: string; sport: Sport; workout_type: WorkoutType
+  duration_minutes: number | null; distance_km: number | null
+  workout_activities: {
+    activity_type: string
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+export async function getPeriodizationOverview(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<PeriodizationOverview | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const today = new Date().toISOString().slice(0, 10)
+
+    // Velg sesongen som overlapper brukerens periode — nyeste først.
+    const { data: seasonRows, error: seasonErr } = await supabase
+      .from('seasons')
+      .select('id,name,start_date,end_date,goal_main,goal_details,kpi_notes')
+      .eq('user_id', user.id)
+      .lte('start_date', toDate)
+      .gte('end_date', fromDate)
+      .order('start_date', { ascending: false })
+      .limit(1)
+    if (seasonErr) return { error: seasonErr.message }
+
+    type SeasonRow = {
+      id: string; name: string; start_date: string; end_date: string
+      goal_main: string | null; goal_details: string | null; kpi_notes: string | null
+    }
+    const season = ((seasonRows ?? [])[0] as SeasonRow | undefined) ?? null
+
+    if (!season) {
+      return {
+        season: null, today,
+        totals: { sessions: 0, total_seconds: 0, total_meters: 0, total_tss: 0, competitions_logged: 0, key_dates: 0 },
+        periods: [], keyDates: [], hasData: false,
+      }
+    }
+
+    // Hent perioder og key_dates for sesongen.
+    const [periodsRes, keyDatesRes] = await Promise.all([
+      supabase.from('season_periods')
+        .select('id,name,focus,start_date,end_date,intensity,sort_order')
+        .eq('season_id', season.id)
+        .order('start_date', { ascending: true }),
+      supabase.from('season_key_dates')
+        .select('id,event_type,event_date,name,sport')
+        .eq('season_id', season.id)
+        .order('event_date', { ascending: true }),
+    ])
+    if (periodsRes.error) return { error: periodsRes.error.message }
+    if (keyDatesRes.error) return { error: keyDatesRes.error.message }
+
+    const periods = (periodsRes.data ?? []) as RawSeasonPeriod[]
+    const keyDates = (keyDatesRes.data ?? []) as RawSeasonKeyDate[]
+
+    // Hent alle økter i hele sesongen (ikke bare fromDate/toDate) — analysen gjelder sesongen.
+    let q = supabase
+      .from('workouts')
+      .select('id,date,sport,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', season.start_date)
+      .lte('date', season.end_date)
+      .order('date', { ascending: true })
+    if (sportFilter) q = q.eq('sport', sportFilter)
+
+    const { data: workoutRows, error: workoutErr } = await q
+    if (workoutErr) return { error: workoutErr.message }
+
+    // Beregn TSS/tid/distanse per økt med standard fallback.
+    type WorkoutMetric = { date: string; seconds: number; meters: number; tss: number; isComp: boolean }
+    const metrics: WorkoutMetric[] = []
+    for (const w of (workoutRows ?? []) as RawPeriodWorkout[]) {
+      const acts: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = computeActivityTotals(acts, heartZones)
+      const secs = totals.totalSeconds > 0 ? totals.totalSeconds : (w.duration_minutes ? w.duration_minutes * 60 : 0)
+      const meters = totals.totalMeters > 0 ? totals.totalMeters : (w.distance_km ? w.distance_km * 1000 : 0)
+      // TSS (same formula as Belastning)
+      const z = totals.zoneSeconds
+      const tss = (z.I1 / 60) * 1 + (z.I2 / 60) * 2 + (z.I3 / 60) * 3 + (z.I4 / 60) * 4 + (z.I5 / 60) * 5 + (z.Hurtighet / 60) * 5
+      metrics.push({
+        date: w.date, seconds: secs, meters, tss,
+        isComp: w.workout_type === 'competition' || w.workout_type === 'testlop',
+      })
+    }
+
+    // Aggreger per periode.
+    const periodRows: PeriodLoadRow[] = periods.map(p => {
+      const inPeriod = metrics.filter(m => m.date >= p.start_date && m.date <= p.end_date)
+      const kdInPeriod = keyDates
+        .filter(k => k.event_date >= p.start_date && k.event_date <= p.end_date)
+        .map(k => ({ id: k.id, event_type: k.event_type, event_date: k.event_date, name: k.name, sport: k.sport }))
+      const competitionsLogged = inPeriod.filter(m => m.isComp).length
+      const status: PeriodLoadRow['status'] =
+        p.end_date < today ? 'past'
+        : (p.start_date <= today && today <= p.end_date ? 'current' : 'future')
+      return {
+        id: p.id, name: p.name, focus: p.focus,
+        intensity: p.intensity,
+        start_date: p.start_date, end_date: p.end_date, sort_order: p.sort_order,
+        sessions: inPeriod.length,
+        total_seconds: inPeriod.reduce((s, m) => s + m.seconds, 0),
+        total_meters: inPeriod.reduce((s, m) => s + m.meters, 0),
+        total_tss: Math.round(inPeriod.reduce((s, m) => s + m.tss, 0)),
+        competitions: competitionsLogged + kdInPeriod.filter(k => k.event_type.startsWith('competition_')).length,
+        key_dates: kdInPeriod,
+        status,
+      }
+    })
+
+    const totals = {
+      sessions: metrics.length,
+      total_seconds: metrics.reduce((s, m) => s + m.seconds, 0),
+      total_meters: metrics.reduce((s, m) => s + m.meters, 0),
+      total_tss: Math.round(metrics.reduce((s, m) => s + m.tss, 0)),
+      competitions_logged: metrics.filter(m => m.isComp).length,
+      key_dates: keyDates.length,
+    }
+
+    return {
+      season: {
+        id: season.id, name: season.name,
+        start_date: season.start_date, end_date: season.end_date,
+        goal_main: season.goal_main, goal_details: season.goal_details, kpi_notes: season.kpi_notes,
+      },
+      today,
+      totals,
+      periods: periodRows,
+      keyDates: keyDates.map(k => ({ id: k.id, event_type: k.event_type, event_date: k.event_date, name: k.name, sport: k.sport })),
+      hasData: true,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getPeriodizationOverview: ${msg}` }
+  }
+}

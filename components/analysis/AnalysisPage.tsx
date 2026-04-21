@@ -5,11 +5,11 @@ import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
-  getBelastningAnalysis, getTerskelAnalysis, getShootingDepthAnalysis,
+  getBelastningAnalysis, getTerskelAnalysis, getShootingDepthAnalysis, getPeriodizationOverview,
   type WorkoutStats, type AnalysisOverview,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
-  type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis,
+  type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis, type PeriodizationOverview,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -23,8 +23,9 @@ import { IntensityTab } from './IntensityTab'
 import { BelastningTab } from './BelastningTab'
 import { TerskelTab } from './TerskelTab'
 import { SkytingTab } from './SkytingTab'
+import { PeriodiseringTab } from './PeriodiseringTab'
 
-// 8 faner totalt — kun Belastning og Periodisering er igjen som plassholdere etter Fase C.
+// 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
 type Tab =
   | 'oversikt'
@@ -66,15 +67,6 @@ const TABS: [Tab, string][] = [
   ['periodisering', 'Periodisering'],
 ]
 
-const STUB = (name: string) => (
-  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-    <p className="text-sm tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-      {name} — kommer snart
-    </p>
-  </div>
-)
-
 function LoadingStub({ label }: { label: string }) {
   return (
     <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
@@ -111,6 +103,7 @@ export function AnalysisPage({
   const [belastning, setBelastning] = useState<BelastningAnalysis | null>(null)
   const [terskel, setTerskel] = useState<TerskelAnalysis | null>(null)
   const [skyting, setSkyting] = useState<ShootingDepthAnalysis | null>(null)
+  const [periodisering, setPeriodisering] = useState<PeriodizationOverview | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -122,6 +115,7 @@ export function AnalysisPage({
     setBelastning(null)
     setTerskel(null)
     setSkyting(null)
+    setPeriodisering(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -220,8 +214,16 @@ export function AnalysisPage({
         setSkyting(res)
       })
     }
+    if (tab === 'periodisering' && periodisering === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setPeriodisering(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering])
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -346,7 +348,11 @@ export function AnalysisPage({
             ? <SkytingTab data={skyting} />
             : <LoadingStub label="Laster skyting-dybde…" />
         )}
-        {tab === 'periodisering' && STUB('Periodisering')}
+        {tab === 'periodisering' && (
+          periodisering
+            ? <PeriodiseringTab data={periodisering} />
+            : <LoadingStub label="Laster periodisering…" />
+        )}
       </div>
     </div>
   )

@@ -74,10 +74,11 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
   return (
     <div
       onClick={onClose}
+      className="px-2 md:px-3"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-        padding: '24px 12px', overflowY: 'auto',
+        paddingTop: '12px', paddingBottom: '12px', overflowY: 'auto',
       }}
     >
       <div
@@ -85,31 +86,37 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
         style={{
           backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
           maxWidth: '820px', width: '100%', position: 'relative',
-          margin: '0 auto', marginBottom: '40px',
+          margin: '0 auto', marginBottom: '24px',
         }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+        {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}
+        <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
+          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {state.kind === 'edit'
               ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
               : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {state.kind === 'edit' && (
               <button type="button" onClick={handleDelete} disabled={deleting}
-                className="px-3 py-1 text-xs tracking-widest uppercase"
+                className="px-3 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif", color: '#8A2A2A',
                   background: 'none', border: '1px solid #8A2A2A',
+                  minHeight: '36px',
                   cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.6 : 1,
                 }}>
                 {deleting ? '...' : 'Slett'}
               </button>
             )}
-            <button type="button" onClick={onClose}
-              style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: '0 4px' }}>
+            <button type="button" onClick={onClose} aria-label="Lukk"
+              style={{
+                color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 28, lineHeight: 1, padding: 0,
+                minHeight: '44px', minWidth: '44px',
+              }}>
               ×
             </button>
           </div>

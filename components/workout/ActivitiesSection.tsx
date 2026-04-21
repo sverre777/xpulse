@@ -302,23 +302,24 @@ function ActivityRowItem({
 
   return (
     <div style={{ border: '1px solid #262629', backgroundColor: '#1A1A1E' }}>
-      {/* Compact row */}
+      {/* Compact row — flex-wrap så label/bevegelsesform kan gå på linje 2 på smal skjerm,
+          mens ikon+type, varighet og kontroller forblir på topp-raden. */}
       <div
-        className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+        className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
         onClick={onToggle}
         style={{ userSelect: 'none' }}
       >
-        {/* Up/down */}
-        <div className="flex flex-col" style={{ width: '18px' }} onClick={e => e.stopPropagation()}>
-          <button type="button" onClick={onMoveUp} disabled={!onMoveUp}
+        {/* Up/down — touch-vennlig bredde */}
+        <div className="flex flex-col items-center justify-center" style={{ width: '24px' }} onClick={e => e.stopPropagation()}>
+          <button type="button" onClick={onMoveUp} disabled={!onMoveUp} aria-label="Flytt opp"
             style={{
-              background: 'none', border: 'none', padding: 0, cursor: onMoveUp ? 'pointer' : 'default',
-              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '10px', lineHeight: 1,
+              background: 'none', border: 'none', padding: '2px 0', cursor: onMoveUp ? 'pointer' : 'default',
+              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '11px', lineHeight: 1,
             }}>▲</button>
-          <button type="button" onClick={onMoveDown} disabled={!onMoveDown}
+          <button type="button" onClick={onMoveDown} disabled={!onMoveDown} aria-label="Flytt ned"
             style={{
-              background: 'none', border: 'none', padding: 0, cursor: onMoveDown ? 'pointer' : 'default',
-              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '10px', lineHeight: 1,
+              background: 'none', border: 'none', padding: '2px 0', cursor: onMoveDown ? 'pointer' : 'default',
+              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '11px', lineHeight: 1,
             }}>▼</button>
         </div>
 
@@ -329,50 +330,55 @@ function ActivityRowItem({
           color: '#F0F0F2',
           fontSize: '14px',
           fontWeight: 600,
-          minWidth: '120px',
         }}>
           {meta?.label ?? row.activity_type}
         </span>
 
         {/* Movement · subcategory */}
         {meta?.usesMovement && row.movement_name && (
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+          <span
+            className="truncate"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              fontSize: '13px', minWidth: 0,
+            }}>
             · {row.movement_name}
             {row.movement_subcategory ? ` — ${row.movement_subcategory}` : ''}
           </span>
         )}
 
-        <div className="flex-1" />
+        <div className="flex-1" style={{ minWidth: '4px' }} />
 
         {/* Duration */}
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em' }}>
           {durDisplay}
         </span>
 
-        {/* HR */}
+        {/* HR — skjules på aller smaleste skjermer for å unngå wrap-bloat */}
         {row.avg_heart_rate && (
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '12px' }}>
+          <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '12px' }}>
             · {row.avg_heart_rate} bpm
           </span>
         )}
 
         {/* Expand */}
         <span style={{
-          color: '#555560', fontSize: '11px',
+          color: '#555560', fontSize: '12px',
           transform: expanded ? 'rotate(90deg)' : 'none',
           transition: 'transform 150ms',
-          marginLeft: '6px',
+          marginLeft: '4px',
         }}>
           ▶
         </span>
 
-        {/* Delete */}
+        {/* Delete — større touch-mål */}
         <button type="button" onClick={e => { e.stopPropagation(); onDelete() }}
+          aria-label="Slett aktivitet"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#555560', fontSize: '16px', lineHeight: 1, padding: '0 4px',
-          }}
-          title="Slett aktivitet">×</button>
+            color: '#555560', fontSize: '20px', lineHeight: 1,
+            padding: '6px 8px', marginRight: '-6px',
+          }}>×</button>
       </div>
 
       {/* Expanded body */}

@@ -470,7 +470,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </p>
         )}
 
-        <div className="flex gap-3 mb-3">
+        {/* Mobil: full-bredde primær øverst, avbryt under. Desktop: side om side. */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3">
           <button type="submit" disabled={saving}
             className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
             style={{
@@ -490,7 +491,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               : 'Lagre økt'}
           </button>
           <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
-            className="px-6 py-4 text-lg tracking-widest uppercase"
+            className="w-full sm:w-auto px-6 py-4 text-lg tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
               backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',

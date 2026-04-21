@@ -414,17 +414,28 @@ export function WeekCalendarView({
         mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates}
       />
 
-      {/* Horisontal scroll på små skjermer — indre bredde bestemmes av min-width per dag. */}
-      <div style={{ overflowX: 'auto' }}>
-        <div style={{ minWidth: `${TIME_COL_WIDTH + DAY_MIN_WIDTH * 7}px` }}>
-          {/* Dags-header */}
+      {/* Én kombinert scroll-container for både x og y. Sticky-top holder header+all-day
+          synlig ved vertikal scroll; sticky-left holder klokkeslett-kolonnen synlig ved
+          horisontal scroll (swipe mellom dager på mobil). */}
+      <div
+        ref={scrollRef}
+        style={{
+          maxHeight: '70vh',
+          overflow: 'auto',
+          position: 'relative',
+        }}
+      >
+        <div style={{ minWidth: `${TIME_COL_WIDTH + DAY_MIN_WIDTH * 7}px`, position: 'relative' }}>
+          {/* Dags-header — sticky-top */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(7, minmax(${DAY_MIN_WIDTH}px, 1fr))`,
             borderBottom: '1px solid #1A1A1E',
             backgroundColor: '#0D0D11',
+            position: 'sticky', top: 0, zIndex: 4,
           }}>
-            <div />
+            {/* Hjørne-celle: sticky både top og left — z-index over andre sticky-kanter. */}
+            <div style={{ position: 'sticky', left: 0, backgroundColor: '#0D0D11', zIndex: 5 }} />
             {weekDates.map((d, i) => {
               const ds = toISO(d)
               const isToday = ds === today
@@ -460,6 +471,7 @@ export function WeekCalendarView({
                   fontFamily: "'Barlow Condensed', sans-serif",
                   color: '#555560',
                   display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                  position: 'sticky', left: 0, backgroundColor: '#0C0C0F', zIndex: 3,
                 }}>
                 Hele dagen
               </div>
@@ -478,22 +490,18 @@ export function WeekCalendarView({
             </div>
           )}
 
-          {/* Scroll-container for time-rutenett */}
-          <div
-            ref={scrollRef}
-            style={{
-              maxHeight: '70vh',
-              overflowY: 'auto',
-              position: 'relative',
-            }}
-          >
+          {/* Time-rutenett */}
+          <div>
             <div style={{
               display: 'grid',
               gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(7, minmax(${DAY_MIN_WIDTH}px, 1fr))`,
               position: 'relative',
             }}>
-              {/* Klokkeslett-kolonne */}
-              <div style={{ position: 'relative' }}>
+              {/* Klokkeslett-kolonne — sticky left så den følger med ved horisontal scroll. */}
+              <div style={{
+                position: 'sticky', left: 0, zIndex: 2,
+                backgroundColor: '#0A0A0B', borderRight: '1px solid #14141A',
+              }}>
                 {Array.from({ length: 24 }, (_, h) => (
                   <div key={h}
                     style={{

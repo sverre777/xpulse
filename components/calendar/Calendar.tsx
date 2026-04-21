@@ -1091,36 +1091,52 @@ export function Calendar({
     <CalendarActionsContext.Provider value={{ onEditWorkout: handleEditWorkout, onCreateWorkout: handleCreateWorkout, onAddRecovery: handleAddRecovery }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+      {/* Mobil: stablet kolonne med sentrert nav. Desktop: view-switcher + nav side om side. */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
         {/* View switcher */}
-        <div className="flex items-center gap-0">
+        <div className="flex items-center justify-center md:justify-start gap-0">
           {(['uke', 'måned', 'år'] as CalendarView[]).map(v => (
             <button key={v} type="button" onClick={() => setView(v)}
-              className="px-3 py-1.5 text-sm tracking-widest uppercase transition-colors"
+              className="px-4 py-2 text-sm tracking-widest uppercase transition-colors"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: view === v ? '#F0F0F2' : '#555560',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: view === v ? '2px solid #FF4500' : '2px solid transparent',
-                paddingBottom: '6px',
+                minHeight: '44px',
               }}>
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
           ))}
         </div>
 
-        {/* Navigation + title */}
-        <div className="flex items-center gap-2 relative">
-          <button type="button" onClick={prev}
-            style={{ color: '#8A8A96', background: 'none', border: '1px solid #222228', cursor: 'pointer', padding: '4px 12px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px' }}>
+        {/* Navigation + title — sentrert på mobil, høyre på desktop */}
+        <div className="flex items-center justify-center gap-2 relative">
+          <button type="button" onClick={prev} aria-label="Forrige periode"
+            style={{
+              color: '#8A8A96', background: 'none', border: '1px solid #222228',
+              cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
+            }}>
             ←
           </button>
           <button type="button" onClick={() => setShowPicker(p => !p)}
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.06em', background: 'none', border: 'none', cursor: 'pointer', minWidth: '200px', textAlign: 'center' }}>
+            className="flex-1 md:flex-none"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontSize: '18px', letterSpacing: '0.06em',
+              background: 'none', border: 'none', cursor: 'pointer',
+              minHeight: '44px', minWidth: '180px', textAlign: 'center',
+              padding: '0 8px',
+            }}>
             {titleLabel}
           </button>
-          <button type="button" onClick={next}
-            style={{ color: '#8A8A96', background: 'none', border: '1px solid #222228', cursor: 'pointer', padding: '4px 12px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px' }}>
+          <button type="button" onClick={next} aria-label="Neste periode"
+            style={{
+              color: '#8A8A96', background: 'none', border: '1px solid #222228',
+              cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
+            }}>
             →
           </button>
           {showPicker && (
@@ -1128,8 +1144,8 @@ export function Calendar({
           )}
         </div>
 
-        {/* Right spacer (balances layout) */}
-        <div style={{ minWidth: '120px' }} />
+        {/* Right spacer — skjules på mobil så navigasjon sentreres naturlig */}
+        <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
 
       {/* ── Content ── */}

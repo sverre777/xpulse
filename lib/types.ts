@@ -76,28 +76,33 @@ export const TUR_SUBCATEGORIES_WITH_SLED = new Set<string>([
   'Fjellski med pulk', 'Ekspedisjon/flerdagers',
 ])
 
+// Sortert: utholdenhet først (mest brukt), deretter styrke, deretter resten.
+// Triathlon er ikke en bevegelsesform — det er en sport (se Sport) og håndteres
+// via Triathlon-modulen med segmenter (svøm/T1/sykkel/T2/løp).
 export const MOVEMENT_CATEGORIES: MovementCategory[] = [
-  { name: 'Løping',       subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
-  { name: 'Langrenn',     subcategories: SKI_SUBCATEGORIES },
-  { name: 'Rulleski',     subcategories: SKI_SUBCATEGORIES },
-  { name: 'Sykling',      subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
-  { name: 'Svømming',     subcategories: ['Basseng','Åpent vann'] },
-  { name: 'Fjellsport',   subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
-  { name: 'Tur',          subcategories: TUR_SUBCATEGORIES },
-  { name: 'Styrke',       subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
+  // Utholdenhet
+  { name: 'Løping',         subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
+  { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
+  { name: 'Svømming',       subcategories: ['Basseng','Åpent vann'] },
+  { name: 'Langrenn',       subcategories: SKI_SUBCATEGORIES },
+  { name: 'Rulleski',       subcategories: SKI_SUBCATEGORIES },
+  { name: 'Skøyter' },
   { name: 'Roing' },
   { name: 'Kajak/Padling' },
-  { name: 'Klatring' },
-  { name: 'Yoga' },
   { name: 'Orientering' },
-  { name: 'Skøyter' },
+  { name: 'Fjellsport',     subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
+  { name: 'Tur',            subcategories: TUR_SUBCATEGORIES },
+  // Styrke
+  { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
+  // Resten
+  { name: 'Yoga' },
+  { name: 'Klatring' },
+  { name: 'Dans' },
   { name: 'Alpint' },
   { name: 'Telemark' },
-  { name: 'Crossfit' },
-  { name: 'Dans' },
-  { name: 'Kampsport' },
-  { name: 'Triathlon' },
   { name: 'Snowboard' },
+  { name: 'Crossfit' },
+  { name: 'Kampsport' },
 ]
 
 // Værforhold-valg for tur-aktiviteter.

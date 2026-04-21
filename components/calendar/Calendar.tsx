@@ -15,6 +15,7 @@ import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
 import { WeekCalendarView } from './WeekCalendarView'
+import { AnalysisOverlay } from '@/components/analysis/AnalysisOverlay'
 import {
   INTENSITY_TINT, INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -1147,6 +1148,11 @@ export function Calendar({
         {/* Right spacer — skjules på mobil så navigasjon sentreres naturlig */}
         <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
+
+      {/* ── Analyse-overlay (kun dagbok/plan — collapsible). ── */}
+      {(mode === 'dagbok' || mode === 'plan') && (
+        <AnalysisOverlay view={view} refDate={refDate} mode={mode} />
+      )}
 
       {/* ── Content ── */}
       {showNotes && view === 'måned' && (

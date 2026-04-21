@@ -16,7 +16,7 @@ import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
 import { WeekCalendarView } from './WeekCalendarView'
 import { AnalysisOverlay } from '@/components/analysis/AnalysisOverlay'
-import type { DayState, DayStateType } from '@/app/actions/day-states'
+import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
 import {

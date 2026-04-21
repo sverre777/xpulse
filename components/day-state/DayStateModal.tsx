@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { upsertDayState, deleteDayState } from '@/app/actions/day-states'
 import {
-  upsertDayState, deleteDayState,
   REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS,
   type DayState, type DayStateType,
-} from '@/app/actions/day-states'
+} from '@/lib/day-state-types'
 import {
   ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter,
 } from '@/components/periodization/ModalShell'

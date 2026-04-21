@@ -9,7 +9,8 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getPeriodizationForDateRange } from '@/app/actions/seasons'
-import { getDayStatesForRange, type DayState } from '@/app/actions/day-states'
+import { getDayStatesForRange } from '@/app/actions/day-states'
+import type { DayState } from '@/lib/day-state-types'
 import { SeasonContextStrip } from '@/components/periodization/SeasonContextStrip'
 
 const PHASE_COLORS: Record<string, string> = {

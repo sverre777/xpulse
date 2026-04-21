@@ -1,6 +1,6 @@
 'use client'
 
-import type { DayState } from '@/app/actions/day-states'
+import type { DayState } from '@/lib/day-state-types'
 
 export const REST_BG = 'rgba(40, 168, 110, 0.12)'
 export const SICK_BG = 'rgba(225, 29, 72, 0.14)'

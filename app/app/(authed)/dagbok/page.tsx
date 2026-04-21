@@ -10,7 +10,8 @@ import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
 import { getPeriodNotes } from '@/app/actions/period-notes'
-import { getDayStatesForRange, type DayState } from '@/app/actions/day-states'
+import { getDayStatesForRange } from '@/app/actions/day-states'
+import type { DayState } from '@/lib/day-state-types'
 
 export default async function DagbokPage() {
   const supabase = await createClient()

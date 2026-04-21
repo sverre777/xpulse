@@ -15,12 +15,15 @@ export type RawCalendarActivity = {
   distance_meters: number | null
   avg_heart_rate: number | null
   zones: Record<string, number> | null
+  start_time?: string | null
+  sort_order?: number | null
 }
 
 export type RawCalendarWorkout = {
   id: string; title: string; date: string; workout_type: string
   is_planned: boolean; is_completed: boolean; is_important: boolean
   duration_minutes: number | null
+  time_of_day?: string | null
   workout_zones?: { zone_name: string; minutes: number }[] | null
   workout_activities?: RawCalendarActivity[] | null
   workout_competition_data?: {
@@ -157,11 +160,40 @@ function extractCompetition(raw: RawCalendarWorkout['workout_competition_data'])
   return { competition_type: t, position_overall: row.position_overall ?? null }
 }
 
+// Plukk tidligste start_time blant aktiviteter (minste sort_order blant de som har start_time).
+// Snapshot-aktiviteter er strings; real activities har start_time: string | null.
+function earliestActivityStart(
+  acts: RawCalendarActivity[] | null | undefined,
+  snap: RawCalendarWorkout['planned_snapshot'],
+): string | null {
+  // Faktiske aktiviteter først.
+  if (acts && acts.length > 0) {
+    const withTime = acts.filter(a => typeof a.start_time === 'string' && a.start_time !== '')
+    if (withTime.length > 0) {
+      withTime.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      return withTime[0].start_time as string
+    }
+  }
+  // Snapshot-aktiviteter (planlagt, ikke gjennomført).
+  const snapActs = snap?.activities
+  if (Array.isArray(snapActs) && snapActs.length > 0) {
+    for (const raw of snapActs) {
+      if (raw && typeof raw === 'object') {
+        const r = raw as Record<string, unknown>
+        const t = typeof r.start_time === 'string' ? r.start_time : ''
+        if (t) return t
+      }
+    }
+  }
+  return null
+}
+
 export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[] = []): CalendarWorkoutSummary {
   const snap = w.planned_snapshot ?? null
   const plannedZones = snapshotZones(snap)
   const actualZones = (w.workout_zones ?? []).map(z => ({ zone_name: z.zone_name, minutes: z.minutes }))
   const act = sumActivityTime(w.workout_activities)
+  const start_time = earliestActivityStart(w.workout_activities, snap) ?? w.time_of_day ?? null
 
   // Faktisk (dagbok): aktivitetsbaserte totaler, fall tilbake til duration_minutes.
   const actTotals = totalsFromActivities(w.workout_activities, heartZones)
@@ -203,6 +235,7 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_total_meters: planTotals.totalMeters,
     planned_zone_seconds,
     ...extractCompetition(w.workout_competition_data),
+    start_time,
   }
 }
 

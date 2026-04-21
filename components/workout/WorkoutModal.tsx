@@ -9,7 +9,7 @@ import { WorkoutForm } from './WorkoutForm'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
-  | { kind: 'create'; date: string; formMode: 'plan' | 'dagbok' }
+  | { kind: 'create'; date: string; formMode: 'plan' | 'dagbok'; initialStartTime?: string }
 
 interface WorkoutModalProps {
   state: WorkoutModalState | null
@@ -28,7 +28,11 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
   useEffect(() => {
     if (!state) { setDefaults(null); return }
     if (state.kind === 'create') {
-      setDefaults({ date: state.date, is_planned: state.formMode === 'plan' })
+      setDefaults({
+        date: state.date,
+        is_planned: state.formMode === 'plan',
+        time_of_day: state.initialStartTime ?? '',
+      })
       return
     }
     setLoading(true)

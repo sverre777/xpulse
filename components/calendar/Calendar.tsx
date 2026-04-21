@@ -14,6 +14,7 @@ import { deleteRecoveryEntry } from '@/app/actions/recovery'
 import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
+import { WeekCalendarView } from './WeekCalendarView'
 import {
   INTENSITY_TINT, INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -64,7 +65,7 @@ export interface CalendarProps {
 // Click actions are passed down via context to avoid prop-drilling
 interface CalendarActions {
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
-  onCreateWorkout: (dateStr: string) => void
+  onCreateWorkout: (dateStr: string, time?: string) => void
   onAddRecovery: (dateStr: string) => void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
@@ -806,210 +807,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   )
 }
 
-// ── Week view ──────────────────────────────────────────────
-
-function WeekView({ weekDates, weekNum, byDate, healthDates, healthData, mode, phases, seasonPeriods, seasonKeyDates }: {
-  weekDates: Date[]
-  weekNum: number
-  byDate: Record<string, CalendarWorkoutSummary[]>
-  healthDates: Set<string>
-  healthData: Record<string, HealthSummary>
-  mode: CalendarMode
-  phases: TrainingPhase[]
-  seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
-  seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
-}) {
-  const { onCreateWorkout } = useCalendarActions()
-  const today = toISO(new Date())
-  const weekAgg = aggregateRange(byDate, weekDates.map(toISO), mode)
-  const totalMins = Math.round(weekAgg.seconds / 60)
-  const totalSessions = weekAgg.sessions
-  const weekKm = fmtKm(weekAgg.meters)
-  const weekOverlay = weekOverlayFor(seasonPeriods, toISO(weekDates[0]))
-  const weekKeyDates = seasonKeyDates.filter(k => {
-    const s = toISO(weekDates[0]); const e = toISO(weekDates[6])
-    return k.event_date >= s && k.event_date <= e
-  })
-
-  return (
-    <div>
-      {/* Periodestripe: periode-navn + intensitet + uke-index + nøkkeldatoer */}
-      {(weekOverlay.period || weekKeyDates.length > 0) && (
-        <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
-          style={{
-            borderBottom: '1px solid #1A1A1E',
-            backgroundColor: weekOverlay.period ? INTENSITY_TINT[weekOverlay.period.intensity] : '#111113',
-            borderLeft: weekOverlay.period ? `3px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}` : 'none',
-          }}>
-          {weekOverlay.period && (
-            <>
-              <span className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-                Periode
-              </span>
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.06em' }}>
-                {weekOverlay.period.name}
-              </span>
-              <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  color: INTENSITY_COLOR[weekOverlay.period.intensity],
-                  border: `1px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}`,
-                }}>
-                {INTENSITY_LABEL[weekOverlay.period.intensity]}
-              </span>
-              {weekOverlay.weekIndex && weekOverlay.weekCount && (
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
-                  Uke {weekOverlay.weekIndex} av {weekOverlay.weekCount}
-                </span>
-              )}
-              {weekOverlay.period.focus && (
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
-                  · {weekOverlay.period.focus}
-                </span>
-              )}
-            </>
-          )}
-          {weekKeyDates.length > 0 && (
-            <div className="flex items-center gap-2 ml-auto flex-wrap">
-              {weekKeyDates.map(k => {
-                const v = KEY_EVENT_VISUALS[k.event_type]
-                return (
-                  <span key={k.id} className="px-2 py-0.5 text-xs"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      color: v.color,
-                      border: `1px solid ${v.color}`,
-                    }}>
-                    <span aria-hidden>{v.icon}</span> {k.name}
-                  </span>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Week stats: label + tid + km + økter + sonebar + legend (matcher måned) */}
-      {weekAgg.seconds > 0 && (
-        <div className="px-4 md:px-6 py-3"
-          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <div className="flex items-baseline gap-4 flex-wrap mb-2">
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-              fontSize: '22px', letterSpacing: '0.06em',
-            }}>
-              UKE {weekNum}:
-            </span>
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
-              fontSize: '24px', letterSpacing: '0.06em',
-            }}>
-              {fmtDuration(totalMins)}
-            </span>
-            {weekKm && (
-              <span style={{
-                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-                fontSize: '20px', letterSpacing: '0.06em',
-              }}>
-                {weekKm}
-              </span>
-            )}
-            <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
-            }}>
-              {totalSessions} økt{totalSessions !== 1 ? 'er' : ''}
-            </span>
-          </div>
-          <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={8} />
-          <div className="mt-1.5">
-            <ZoneLegend zoneSeconds={weekAgg.zoneSeconds} size="md" />
-          </div>
-        </div>
-      )}
-
-      {/* 7-column grid */}
-      <div className="grid grid-cols-7" style={{ borderBottom: '1px solid #1A1A1E' }}>
-        {weekDates.map((date, i) => {
-          const ds = toISO(date)
-          const isToday = ds === today
-          const dayWorkouts = byDate[ds] ?? []
-          const activePhase = phases.find(p => ds >= p.start_date && ds <= p.end_date)
-          const phaseColor = activePhase ? (PHASE_COLORS[activePhase.phase_type ?? ''] ?? activePhase.color ?? null) : null
-
-          return (
-            <div key={ds} className="border-r" style={{ borderColor: '#1A1A1E', backgroundColor: isToday ? '#0D0D14' : 'transparent', minHeight: '200px', position: 'relative' }}>
-              {phaseColor && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', backgroundColor: phaseColor, opacity: 0.6 }} />}
-
-              {/* Day header */}
-              <div className="flex items-center justify-between px-2 py-2" style={{ borderBottom: '1px solid #1A1A1E' }}>
-                <div>
-                  <div className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : '#555560' }}>
-                    {DAYS_NO[i]}
-                  </div>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: isToday ? '#FF4500' : '#F0F0F2', fontSize: '20px', lineHeight: 1 }}>
-                    {date.getDate()}
-                  </div>
-                </div>
-                {!(mode === 'dagbok' && ds > today) && (
-                  <button type="button" onClick={() => onCreateWorkout(ds)}
-                    style={{ color: '#FF4500', fontSize: '16px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.4, lineHeight: 1, padding: 0 }}
-                    title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</button>
-                )}
-              </div>
-
-              <div className="p-1.5 flex flex-col gap-1">
-                {filterByMode(dayWorkouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={ds} mode={mode} />)}
-                {(() => {
-                  const dayAgg = aggregate(dayWorkouts, mode)
-                  if (dayAgg.seconds <= 0) return null
-                  const t = formatDurationShort(dayAgg.seconds)
-                  const km = fmtKm(dayAgg.meters)
-                  return (
-                    <div className="mt-1">
-                      <AggZoneBar zoneSeconds={dayAgg.zoneSeconds} height={3} />
-                      <div className="flex items-baseline justify-between mt-0.5"
-                        style={{
-                          fontFamily: "'Barlow Condensed', sans-serif",
-                          color: '#8A8A96', fontSize: '10px', letterSpacing: '0.04em',
-                        }}>
-                        <span>{km ?? ''}</span>
-                        <span>{t ?? ''}</span>
-                      </div>
-                    </div>
-                  )
-                })()}
-                {healthData[ds] && mode !== 'plan' && (() => {
-                  const h = healthData[ds]
-                  const parts: string[] = []
-                  if (h.hrv_ms != null) parts.push(`HRV ${h.hrv_ms}`)
-                  if (h.resting_hr != null) parts.push(`Hvile ${h.resting_hr}`)
-                  if (h.sleep_hours != null) parts.push(`${h.sleep_hours}t søvn`)
-                  if (h.body_weight_kg != null) parts.push(`${h.body_weight_kg}kg`)
-                  return (
-                    <div className="mt-1 flex items-center gap-1 flex-wrap">
-                      <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
-                      <Link href={`/app/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '11px', textDecoration: 'none' }}>
-                        {parts.length > 0 ? parts.join(' · ') : 'Helse'}
-                      </Link>
-                    </div>
-                  )
-                })()}
-                {!healthData[ds] && healthDates.has(ds) && mode !== 'plan' && (
-                  <div className="mt-1 flex items-center gap-1">
-                    <span style={{ color: '#28A86E', fontSize: '8px' }}>●</span>
-                    <Link href={`/app/health/${ds}`} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '11px', textDecoration: 'none' }}>Helse</Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 // ── Year view ──────────────────────────────────────────────
 
@@ -1156,21 +953,22 @@ export function Calendar({
     setModalState({ kind: 'edit', workoutId: w.id, formMode: 'dagbok' })
   }, [mode, router])
 
-  const handleCreateWorkout = useCallback((dateStr: string) => {
+  const handleCreateWorkout = useCallback((dateStr: string, time?: string) => {
     const today = toISO(new Date())
     const isFuture = dateStr > today
 
     if (mode === 'plan') {
-      setModalState({ kind: 'create', date: dateStr, formMode: 'plan' })
+      setModalState({ kind: 'create', date: dateStr, formMode: 'plan', initialStartTime: time })
       return
     }
     // Dagbok + framtid → naviger til /app/plan
     if (isFuture) {
-      router.push(`${planRoute}?new=${dateStr}`)
+      const qs = time ? `?new=${dateStr}&time=${encodeURIComponent(time)}` : `?new=${dateStr}`
+      router.push(`${planRoute}${qs}`)
       return
     }
     // Dagbok + past/today → logg-modal
-    setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok' })
+    setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok', initialStartTime: time })
   }, [mode, router])
 
   const handleAddRecovery = useCallback((dateStr: string) => {
@@ -1189,14 +987,19 @@ export function Calendar({
     }
   }, [router, searchParams])
 
-  // Auto-åpne modal fra URL (?edit=<id> eller ?new=<date>)
+  // Auto-åpne modal fra URL (?edit=<id> eller ?new=<date>&time=<hh:mm>)
   useEffect(() => {
     const editId = searchParams.get('edit')
     const newDate = searchParams.get('new')
+    const newTime = searchParams.get('time') ?? undefined
     if (editId) {
       setModalState({ kind: 'edit', workoutId: editId, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
     } else if (newDate) {
-      setModalState({ kind: 'create', date: newDate, formMode: mode === 'plan' ? 'plan' : 'dagbok' })
+      setModalState({
+        kind: 'create', date: newDate,
+        formMode: mode === 'plan' ? 'plan' : 'dagbok',
+        initialStartTime: newTime,
+      })
     }
   }, [searchParams, mode])
 
@@ -1354,7 +1157,16 @@ export function Calendar({
         <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} phases={trainingPhases} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
       )}
       {view === 'uke' && (
-        <WeekView weekDates={weekDates} weekNum={weekNum} byDate={byDate} healthDates={healthDates} healthData={healthData} mode={mode} phases={trainingPhases} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
+        <WeekCalendarView
+          weekDates={weekDates}
+          weekNum={weekNum}
+          byDate={byDate}
+          mode={mode}
+          seasonPeriods={seasonPeriods}
+          seasonKeyDates={seasonKeyDates}
+          onEditWorkout={handleEditWorkout}
+          onCreateWorkout={handleCreateWorkout}
+        />
       )}
       {view === 'år' && (
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />

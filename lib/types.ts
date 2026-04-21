@@ -618,6 +618,10 @@ export interface CalendarWorkoutSummary {
   // Kun satt når workout_type='competition'|'testlop' OG rad finnes i workout_competition_data.
   competition_type: CompetitionType | null
   position_overall: number | null
+  // Fase 15: klokkeslett for ukekalender-plassering.
+  // Første aktivitet med start_time (sort_order asc), ellers workouts.time_of_day.
+  // null → plasseres i "Hele dagen"-rad i ukekalender.
+  start_time: string | null
 }
 
 export const TYPE_COLORS: Record<string, string> = {

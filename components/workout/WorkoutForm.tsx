@@ -499,14 +499,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </button>
         </div>
 
-        {/* Save as template */}
+        {/* Save as template — sekundær CTA; tydelig oransje ramme med dempet hover-fyll. */}
         <button type="button" onClick={openTemplateModal}
-          className="text-sm tracking-widest uppercase"
+          className="w-full flex items-center justify-center gap-2 py-3 text-base tracking-widest uppercase transition-colors hover:bg-[rgba(255,69,0,0.08)]"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+            background: 'transparent', border: '1px solid #FF4500',
+            cursor: 'pointer',
           }}>
-          Lagre som mal →
+          <span aria-hidden="true" style={{ fontSize: '16px', lineHeight: 1 }}>🔖</span>
+          Lagre som mal
         </button>
       </div>
 

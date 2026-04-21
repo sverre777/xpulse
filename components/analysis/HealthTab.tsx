@@ -282,7 +282,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
               Laktat-respons per mal
             </p>
           </div>
-          <ChartWrapper title="Laktat ved samme mal" subtitle="Kun maler kjørt ≥3 ganger" height={320}>
+          <ChartWrapper chartKey="health_lactate_per_template" title="Laktat ved samme mal" subtitle="Kun maler kjørt ≥3 ganger" height={320}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -334,7 +334,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
                 Du gjorde <span style={{ color: '#F0F0F2' }}>{data.recovery.entries_last_week}</span> tiltak siste 7 dager.
               </p>
             </div>
-            <ChartWrapper title="Recovery-fordeling" subtitle="Antall per type" height={220}>
+            <ChartWrapper chartKey="health_recovery_distribution" title="Recovery-fordeling" subtitle="Antall per type" height={220}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.recovery.by_type} layout="vertical">
                   <CartesianGrid stroke={GRID_COLOR} horizontal={false} />

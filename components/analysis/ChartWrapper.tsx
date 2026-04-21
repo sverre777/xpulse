@@ -1,27 +1,36 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { StarButton } from './StarButton'
 
 export function ChartWrapper({
-  title, subtitle, children, height = 280,
+  title, subtitle, children, height = 280, chartKey,
 }: {
   title: string
   subtitle?: string
   children: ReactNode
   height?: number
+  chartKey?: string
 }) {
   return (
     <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-      <div className="mb-4">
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-          {title}
-        </p>
-        {subtitle && (
-          <p className="text-xs mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            {subtitle}
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            {title}
           </p>
+          {subtitle && (
+            <p className="text-xs mt-0.5"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {chartKey && (
+          <div className="shrink-0 -mt-1 -mr-1">
+            <StarButton chartKey={chartKey} />
+          </div>
         )}
       </div>
       <div style={{ width: '100%', height }}>

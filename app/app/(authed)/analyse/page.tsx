@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
+import { getFavoriteCharts } from '@/app/actions/favorites'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 
@@ -43,9 +44,10 @@ export default async function AnalysePage() {
 
     const range = rangeFromPreset('30d')
 
-    const [stats, overview] = await Promise.all([
+    const [stats, overview, favoritesRes] = await Promise.all([
       getWorkoutStats(range.from, range.to),
       getAnalysisOverview(range.from, range.to, null),
+      getFavoriteCharts(),
     ])
 
     const statsError = 'error' in stats ? stats.error : null
@@ -63,11 +65,16 @@ export default async function AnalysePage() {
       )
     }
 
+    const initialFavorites = 'favorites' in favoritesRes
+      ? favoritesRes.favorites.map(f => f.chart_key)
+      : []
+
     return (
       <AnalysisPage
         initialStats={stats as Exclude<typeof stats, { error: string }>}
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
         initialRange={range}
+        initialFavorites={initialFavorites}
       />
     )
   } catch (error) {

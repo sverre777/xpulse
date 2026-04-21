@@ -13,6 +13,8 @@ import {
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
+import { FavoritesProvider, useFavorites } from './FavoritesContext'
+import { FavoriteChartsSection, sourceTabForChartKey } from './FavoriteChartsSection'
 import { OverviewTab } from './OverviewTab'
 import { CompetitionsTab } from './CompetitionsTab'
 import { MovementTab } from './MovementTab'
@@ -79,12 +81,32 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
+  initialStats, initialOverview, initialRange, initialFavorites = [],
+}: {
+  initialStats: WorkoutStats
+  initialOverview: AnalysisOverview
+  initialRange: DateRange
+  initialFavorites?: string[]
+}) {
+  return (
+    <FavoritesProvider initialFavorites={initialFavorites}>
+      <AnalysisPageInner
+        initialStats={initialStats}
+        initialOverview={initialOverview}
+        initialRange={initialRange}
+      />
+    </FavoritesProvider>
+  )
+}
+
+function AnalysisPageInner({
   initialStats, initialOverview, initialRange,
 }: {
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
 }) {
+  const { orderedKeys: favoriteKeys } = useFavorites()
   const [tab, setTab] = useState<Tab>('oversikt')
   const [range, setRangeState] = useState<DateRange>(initialRange)
   const [stats, setStats] = useState<WorkoutStats>(initialStats)
@@ -225,6 +247,61 @@ export function AnalysisPage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering])
 
+  // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
+  // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
+  // rendret grafene uten at brukeren må åpne fanene selv.
+  useEffect(() => {
+    if (tab !== 'oversikt' || favoriteKeys.length === 0) return
+    const neededTabs = new Set<string>()
+    for (const key of favoriteKeys) {
+      const src = sourceTabForChartKey(key)
+      if (src && src !== 'oversikt') neededTabs.add(src)
+    }
+    if (neededTabs.has('belastning') && belastning === null) {
+      startTransition(async () => {
+        const res = await getBelastningAnalysis(range.from, range.to, sportFilter)
+        if (!('error' in res)) setBelastning(res)
+      })
+    }
+    if (neededTabs.has('terskel') && terskel === null) {
+      startTransition(async () => {
+        const res = await getTerskelAnalysis(range.from, range.to, sportFilter)
+        if (!('error' in res)) setTerskel(res)
+      })
+    }
+    if (neededTabs.has('skyting') && skyting === null) {
+      startTransition(async () => {
+        const res = await getShootingDepthAnalysis(range.from, range.to, sportFilter)
+        if (!('error' in res)) setSkyting(res)
+      })
+    }
+    if (neededTabs.has('periodisering') && periodisering === null) {
+      startTransition(async () => {
+        const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
+        if (!('error' in res)) setPeriodisering(res)
+      })
+    }
+    if (neededTabs.has('intensitet') && intensityDist === null) {
+      startTransition(async () => {
+        const res = await getIntensityDistribution(range.from, range.to, sportFilter)
+        if (!('error' in res)) setIntensityDist(res)
+      })
+    }
+    if (neededTabs.has('konkurranser') && competitionsAnalysis === null) {
+      startTransition(async () => {
+        const res = await getCompetitionAnalysis(range.from, range.to, sportFilter)
+        if (!('error' in res)) setCompetitionsAnalysis(res)
+      })
+    }
+    if (neededTabs.has('helse') && healthCorrelations === null) {
+      startTransition(async () => {
+        const res = await getHealthCorrelations(range.from, range.to)
+        if (!('error' in res)) setHealthCorrelations(res)
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, favoriteKeys, belastning, terskel, skyting, periodisering, intensityDist, competitionsAnalysis, healthCorrelations])
+
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -297,7 +374,20 @@ export function AnalysisPage({
           </div>
         )}
 
-        {tab === 'oversikt' && <OverviewTab stats={stats} overview={overview} />}
+        {tab === 'oversikt' && (
+          <div className="space-y-5">
+            <FavoriteChartsSection
+              stats={stats}
+              belastning={belastning}
+              terskel={terskel}
+              skyting={skyting}
+              periodisering={periodisering}
+              intensity={intensityDist}
+              onNavigate={(t) => setTab(t)}
+            />
+            <OverviewTab stats={stats} overview={overview} />
+          </div>
+        )}
         {tab === 'konkurranser' && (
           competitionsAnalysis
             ? <CompetitionsTab data={competitionsAnalysis} sportFilter={sportFilter} />

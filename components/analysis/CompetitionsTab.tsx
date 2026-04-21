@@ -309,7 +309,7 @@ export function CompetitionsTab({
           </div>
 
           {/* Plassering over tid (farge per sport) */}
-          <ChartWrapper title="Plasseringer over tid" subtitle="Lavere = bedre · farget per idrett">
+          <ChartWrapper chartKey="competitions_placement_over_time" title="Plasseringer over tid" subtitle="Lavere = bedre · farget per idrett">
             {positionBySport.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -344,7 +344,7 @@ export function CompetitionsTab({
 
           {/* Tider per distanse-format */}
           {formatGroups.length > 0 && (
-            <ChartWrapper title="Sluttid over tid per distanse/format" subtitle="Kun formater med ≥2 datapunkter" height={320}>
+            <ChartWrapper chartKey="competitions_time_per_format" title="Sluttid over tid per distanse/format" subtitle="Kun formater med ≥2 datapunkter" height={320}>
               <div className="flex flex-wrap gap-4 mb-3">
                 {Array.from(latestByFormat.entries()).map(([format, v]) => (
                   <div key={format}>
@@ -391,7 +391,7 @@ export function CompetitionsTab({
               </div>
 
               {/* Treff% per skyting over tid — basert på sort_order */}
-              <ChartWrapper title="Treff% per skyting over tid" subtitle="Første/Andre · Liggende/Stående · Samlet snitt">
+              <ChartWrapper chartKey="competitions_shooting_accuracy_over_time" title="Treff% per skyting over tid" subtitle="Første/Andre · Liggende/Stående · Samlet snitt">
                 {seriesLines.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -422,7 +422,7 @@ export function CompetitionsTab({
               </ChartWrapper>
 
               {/* Komp vs trening */}
-              <ChartWrapper title="Treff% · konkurranse vs trening" subtitle="Aggregert per dag">
+              <ChartWrapper chartKey="competitions_shooting_comp_vs_training" title="Treff% · konkurranse vs trening" subtitle="Aggregert per dag">
                 {compVsTrainingAcc.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -451,7 +451,7 @@ export function CompetitionsTab({
 
               {/* Skytetid per serie (liggende/stående) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <ChartWrapper title="Skytetid per serie" subtitle="Snitt sekunder per serie">
+                <ChartWrapper chartKey="competitions_shooting_time_per_series" title="Skytetid per serie" subtitle="Snitt sekunder per serie">
                   {(shootingTimeSeries.prone.length + shootingTimeSeries.standing.length) === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -477,7 +477,7 @@ export function CompetitionsTab({
                   )}
                 </ChartWrapper>
 
-                <ChartWrapper title="Snittpuls under skyting" subtitle="Aggregert per dag">
+                <ChartWrapper chartKey="competitions_shooting_hr" title="Snittpuls under skyting" subtitle="Aggregert per dag">
                   {shootingHrSeries.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>

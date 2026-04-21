@@ -97,7 +97,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   )
 }
 
-function LactateProfile({ data }: { data: TerskelAnalysis }) {
+export function LactateProfile({ data }: { data: TerskelAnalysis }) {
   // Scatter av (mmol, HR) med regresjonslinje over 0–12 mmol.
   const withHr = data.points.filter(p => p.heart_rate != null)
   const regression = data.estimate.regression
@@ -141,7 +141,7 @@ function LactateProfile({ data }: { data: TerskelAnalysis }) {
           Laktatprofil — mmol/L vs puls
         </p>
       </div>
-      <ChartWrapper title="Scatter med regresjon"
+      <ChartWrapper chartKey="terskel_lactate_profile" title="Scatter med regresjon"
         subtitle="Hvert punkt = én måling (mmol på x, aktivitetens snittpuls på y). Blå linje = lineær regresjon."
         height={340}>
         <ResponsiveContainer width="100%" height="100%">
@@ -177,7 +177,7 @@ function LactateProfile({ data }: { data: TerskelAnalysis }) {
   )
 }
 
-function LactateTrend({ data }: { data: TerskelAnalysis }) {
+export function LactateTrend({ data }: { data: TerskelAnalysis }) {
   // Målinger over tid — én linje, dato på x, mmol på y. Gir rask sjekk på
   // om laktat ved tilsvarende intensitet synker (= aerob forbedring).
   const rows = useMemo(() => {
@@ -197,7 +197,7 @@ function LactateTrend({ data }: { data: TerskelAnalysis }) {
           Laktat over tid
         </p>
       </div>
-      <ChartWrapper title="Alle målinger" subtitle="Sjekk om laktat synker ved tilsvarende intensitet (= aerob forbedring)." height={240}>
+      <ChartWrapper chartKey="terskel_lactate_trend" title="Alle målinger" subtitle="Sjekk om laktat synker ved tilsvarende intensitet (= aerob forbedring)." height={240}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />

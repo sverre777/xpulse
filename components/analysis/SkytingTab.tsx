@@ -111,7 +111,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   )
 }
 
-function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
+export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
   const rows = useMemo(() => data.accuracyTrend.map(p => ({
     date: p.date,
     label: formatDateShort(p.date),
@@ -130,7 +130,7 @@ function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
           Treff% per stilling over tid
         </p>
       </div>
-      <ChartWrapper title="Utvikling per dag" subtitle="Én verdi per dag — aggregert på tvers av alle serier i økten." height={280}>
+      <ChartWrapper chartKey="skyting_accuracy_over_time" title="Utvikling per dag" subtitle="Én verdi per dag — aggregert på tvers av alle serier i økten." height={280}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -151,7 +151,7 @@ function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
   )
 }
 
-function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
+export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
   if (data.accuracyByHrZone.length === 0) return null
   const rows = data.accuracyByHrZone.map(b => ({
     zone: b.zone, accuracy: b.accuracy_pct ?? 0, shots: b.shots,
@@ -165,7 +165,7 @@ function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
           Treff% i puls-soner
         </p>
       </div>
-      <ChartWrapper title="Treff vs. pulsbelastning"
+      <ChartWrapper chartKey="skyting_accuracy_hr_zones" title="Treff vs. pulsbelastning"
         subtitle="Gruppert etter seriens snittpuls — viser hvor mye pulsen koster i treff."
         height={260}>
         <ResponsiveContainer width="100%" height="100%">
@@ -242,7 +242,7 @@ function InlineStat({ label, value, sub, color }: { label: string; value: string
   )
 }
 
-function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
+export function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
   if (data.timeTrend.length === 0) return null
   const rows = data.timeTrend.map(p => ({
     date: p.date, label: formatDateShort(p.date), sekunder: p.avg_seconds,
@@ -257,7 +257,7 @@ function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
           Skytetid-progresjon
         </p>
       </div>
-      <ChartWrapper title="Snitt sekunder per serie"
+      <ChartWrapper chartKey="skyting_time_per_series" title="Snitt sekunder per serie"
         subtitle="Utvikling i hastighet ved skytevolden."
         height={240}>
         <ResponsiveContainer width="100%" height="100%">
@@ -277,7 +277,7 @@ function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
   )
 }
 
-function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
+export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
   const { training, competition } = data.trainingVsComp
   const rows = [
     { kategori: 'Trening', Treff: training.accuracy_pct ?? 0, serier: training.series, skudd: training.shots },
@@ -292,7 +292,7 @@ function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
           Trening vs. konkurranse
         </p>
       </div>
-      <ChartWrapper title="Treff% i kontekst"
+      <ChartWrapper chartKey="skyting_training_vs_comp" title="Treff% i kontekst"
         subtitle="Mental fasthet — sammenlign skyting på trening og i konkurransesituasjon."
         height={220}>
         <ResponsiveContainer width="100%" height="100%">

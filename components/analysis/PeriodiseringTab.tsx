@@ -263,7 +263,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
   )
 }
 
-function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
+export function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
   const rows = useMemo(() => data.periods.map(p => ({
     name: p.name, TSS: p.total_tss, timer: Math.round(p.total_seconds / 3600 * 10) / 10,
     intensity: p.intensity,
@@ -280,7 +280,7 @@ function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
           Total belastning per periode
         </p>
       </div>
-      <ChartWrapper title="Sum TSS per periode"
+      <ChartWrapper chartKey="periodisering_tss_per_period" title="Sum TSS per periode"
         subtitle="Farge = intensitet (rolig/medium/hard)" height={260}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -306,7 +306,7 @@ function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
   )
 }
 
-function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview }) {
+export function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview }) {
   const rows = data.periods.map(p => ({ name: p.name, Konkurranser: p.competitions }))
   const any = rows.some(r => r.Konkurranser > 0)
   if (!any) return null
@@ -319,7 +319,7 @@ function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview }) {
           Konkurranser per periode
         </p>
       </div>
-      <ChartWrapper title="Antall konkurranser"
+      <ChartWrapper chartKey="periodisering_competitions_per_period" title="Antall konkurranser"
         subtitle="Teller både loggede konkurranse-økter og nøkkeldatoer (A/B/C-løp)."
         height={220}>
         <ResponsiveContainer width="100%" height="100%">

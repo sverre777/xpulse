@@ -125,7 +125,7 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   )
 }
 
-function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
+export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
   const rows = useMemo(() => data.daily.map(d => ({
     date: d.date,
     label: formatDateShort(d.date),
@@ -144,7 +144,7 @@ function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
           Fitness / Fatigue / Form
         </p>
       </div>
-      <ChartWrapper title="Belastningskurver"
+      <ChartWrapper chartKey="belastning_fitness_fatigue_form" title="Belastningskurver"
         subtitle="CTL (blå) bygger form over tid · ATL (rød) reflekterer akutt tretthet · TSB (grønn) = form i dag. Bakgrunnsfarge viser form-sone for TSB."
         height={360}>
         <ResponsiveContainer width="100%" height="100%">
@@ -184,7 +184,7 @@ function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
   )
 }
 
-function DailyTssChart({ data }: { data: BelastningAnalysis }) {
+export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
   const rows = useMemo(() => data.daily.map(d => ({
     date: d.date,
     label: formatDateShort(d.date),
@@ -203,7 +203,7 @@ function DailyTssChart({ data }: { data: BelastningAnalysis }) {
           Daglig TSS
         </p>
       </div>
-      <ChartWrapper title="Daglig treningsbelastning (TSS)"
+      <ChartWrapper chartKey="belastning_daily_tss" title="Daglig treningsbelastning (TSS)"
         subtitle="Stolper = TSS per dag · hvit linje = glidende 7-dagers snitt"
         height={260}>
         <ResponsiveContainer width="100%" height="100%">

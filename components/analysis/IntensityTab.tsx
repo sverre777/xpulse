@@ -219,7 +219,7 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
   )
 }
 
-function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution }) {
+export function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution }) {
   const rows = data.weeks.map(w => ({ label: w.label, count: w.intensiveSessions }))
   const any = rows.some(r => r.count > 0)
   if (!any) return null
@@ -232,7 +232,7 @@ function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution }) {
           Hurtighet og høyintensive økter
         </p>
       </div>
-      <ChartWrapper title="Antall økter med I4/I5/Hurtighet per uke" subtitle="Én tellet per økt med >0 sek i høy intensitet" height={220}>
+      <ChartWrapper chartKey="intensity_high_sessions_per_week" title="Antall økter med I4/I5/Hurtighet per uke" subtitle="Én tellet per økt med >0 sek i høy intensitet" height={220}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -248,7 +248,7 @@ function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution }) {
   )
 }
 
-function PolarizedStack({ data, unit }: { data: IntensityDistribution; unit: 'pct' | 'min' }) {
+export function PolarizedStack({ data, unit }: { data: IntensityDistribution; unit: 'pct' | 'min' }) {
   const rows = useMemo(() => data.weeks.map(w => {
     const total = w.polarized.low + w.polarized.mid + w.polarized.high
     if (unit === 'pct') {
@@ -277,7 +277,7 @@ function PolarizedStack({ data, unit }: { data: IntensityDistribution; unit: 'pc
           Lav / Medium / Høy
         </p>
       </div>
-      <ChartWrapper title="Polarisering per uke" subtitle="Lav = I1+I2 · Medium = I3 · Høy = I4+I5+Hurtighet" height={260}>
+      <ChartWrapper chartKey="intensity_polarization_per_week" title="Polarisering per uke" subtitle="Lav = I1+I2 · Medium = I3 · Høy = I4+I5+Hurtighet" height={260}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />

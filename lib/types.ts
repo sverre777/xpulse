@@ -694,9 +694,9 @@ function makeActivity(overrides: Partial<ActivityRow> & { activity_type: Activit
 function biathlonShootingSequence(format: string): ('L' | 'S')[] {
   switch (format) {
     case 'Sprint':       return ['L', 'S']
-    case 'Jaktstart':    return ['L', 'S', 'L', 'S']
+    case 'Jaktstart':    return ['L', 'L', 'S', 'S']
     case 'Normal':       return ['L', 'S', 'L', 'S']
-    case 'Fellesstart':  return ['L', 'S', 'L', 'S']
+    case 'Fellesstart':  return ['L', 'L', 'S', 'S']
     case 'Stafett':      return ['L', 'S']
     case 'Mix-stafett':  return ['L', 'S']
     case 'Supersprint':  return ['L', 'S']

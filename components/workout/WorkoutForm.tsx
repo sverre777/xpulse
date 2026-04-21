@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout } from '@/app/actions/workouts'
-import { saveTemplate } from '@/app/actions/health'
+import { saveAsTemplate } from '@/app/actions/templates'
 import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
-  getWorkoutTypes, WorkoutTemplate,
+  getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
 } from '@/lib/types'
 import { ActivitiesSection } from './ActivitiesSection'
@@ -42,7 +42,10 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [templateName, setTemplateName] = useState('')
-  const [showTemplateInput, setShowTemplateInput] = useState(false)
+  const [templateDescription, setTemplateDescription] = useState('')
+  const [templateCategory, setTemplateCategory] = useState<string>('Annet')
+  const [showTemplateModal, setShowTemplateModal] = useState(false)
+  const [templateError, setTemplateError] = useState<string | null>(null)
   // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
   // Viser full dagbok-utfylling med plan-verdier forhåndsutfylt. Ved lagring settes is_completed=true.
   // planReference: frosset kopi av planen som vises read-only øverst mens bruker redigerer actuals.
@@ -79,6 +82,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     activities:  defaultValues?.activities ?? [],
     planned_activities: defaultValues?.planned_activities,
     competition_data: defaultValues?.competition_data,
+    template_id:   defaultValues?.template_id ?? null,
+    template_name: defaultValues?.template_name ?? null,
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -92,10 +97,24 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   }
 
   const loadTemplate = (template: WorkoutTemplate) => {
-    const d = template.template_data
+    const d = template.template_data ?? ({} as WorkoutFormData)
+    // Generer nye klient-id-er så innholdet ikke kolliderer med eksisterende rader.
+    const freshActivities = (template.activities ?? []).map(a => ({
+      ...a,
+      id: crypto.randomUUID(),
+      exercises: (a.exercises ?? []).map(ex => ({
+        ...ex,
+        id: crypto.randomUUID(),
+        sets: (ex.sets ?? []).map(s => ({ ...s, id: crypto.randomUUID() })),
+      })),
+      lactate_measurements: (a.lactate_measurements ?? []).map(m => ({
+        ...m,
+        id: crypto.randomUUID(),
+      })),
+    }))
     setForm(f => ({
       ...f,
-      sport: d.sport ?? f.sport,
+      sport: template.sport ?? d.sport ?? f.sport,
       workout_type: d.workout_type ?? f.workout_type,
       movements: (d.movements ?? []).map((m: MovementRow) => ({
         ...m,
@@ -107,23 +126,48 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       zones: [],
       exercises: [],
       strength_type: d.strength_type ?? 'basis',
-      notes: d.notes ?? '',
+      notes: d.notes ?? f.notes,
       tags: d.tags ?? [],
+      activities: freshActivities.length > 0 ? freshActivities : f.activities,
+      template_id: template.id,
+      template_name: template.name,
     }))
   }
 
-  const handleSaveTemplate = async () => {
-    if (!templateName.trim()) return
-    setSavingTemplate(true)
-    const templateData = {
-      sport: form.sport, workout_type: form.workout_type,
-      movements: form.movements,
-      notes: form.notes, tags: form.tags,
-    }
-    await saveTemplate(templateName.trim(), templateData as Record<string, unknown>)
-    setSavingTemplate(false)
-    setShowTemplateInput(false)
+  const openTemplateModal = () => {
     setTemplateName('')
+    setTemplateDescription('')
+    setTemplateCategory('Annet')
+    setTemplateError(null)
+    setShowTemplateModal(true)
+  }
+
+  const handleSaveTemplate = async () => {
+    const name = templateName.trim()
+    if (!name) { setTemplateError('Navn er påkrevd'); return }
+    setSavingTemplate(true)
+    setTemplateError(null)
+    const result = await saveAsTemplate({
+      name,
+      description: templateDescription.trim() || undefined,
+      category: templateCategory,
+      sport: form.sport,
+      activities: form.activities,
+      templateData: {
+        sport: form.sport,
+        workout_type: form.workout_type,
+        movements: form.movements,
+        notes: form.notes,
+        tags: form.tags,
+        strength_type: form.strength_type,
+      },
+    })
+    setSavingTemplate(false)
+    if (result.error) {
+      setTemplateError(result.error)
+      return
+    }
+    setShowTemplateModal(false)
   }
 
   const toggleTag = (tag: string) => {
@@ -456,37 +500,149 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
 
         {/* Save as template */}
-        {!showTemplateInput ? (
-          <button type="button" onClick={() => setShowTemplateInput(true)}
-            className="text-sm tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-            }}>
-            Lagre som mal →
-          </button>
-        ) : (
-          <div className="flex gap-2">
-            <input value={templateName} onChange={e => setTemplateName(e.target.value)}
-              placeholder="Navn på mal..."
-              className="flex-1 px-3 py-2 text-sm"
-              style={{ ...iSt, fontSize: '13px', padding: '8px 12px' }} />
-            <button type="button" onClick={handleSaveTemplate} disabled={savingTemplate}
-              className="px-4 py-2 text-sm tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer',
-              }}>
-              {savingTemplate ? '...' : 'Lagre'}
-            </button>
-            <button type="button" onClick={() => setShowTemplateInput(false)}
-              style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-              ×
-            </button>
-          </div>
-        )}
+        <button type="button" onClick={openTemplateModal}
+          className="text-sm tracking-widest uppercase"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          }}>
+          Lagre som mal →
+        </button>
       </div>
+
+      {showTemplateModal && (
+        <SaveAsTemplateModal
+          name={templateName}
+          description={templateDescription}
+          category={templateCategory}
+          sportLabel={SPORTS.find(s => s.value === form.sport)?.label ?? form.sport}
+          onName={setTemplateName}
+          onDescription={setTemplateDescription}
+          onCategory={setTemplateCategory}
+          onCancel={() => setShowTemplateModal(false)}
+          onSave={handleSaveTemplate}
+          saving={savingTemplate}
+          error={templateError}
+        />
+      )}
     </form>
+  )
+}
+
+function SaveAsTemplateModal({
+  name, description, category, sportLabel,
+  onName, onDescription, onCategory,
+  onCancel, onSave, saving, error,
+}: {
+  name: string
+  description: string
+  category: string
+  sportLabel: string
+  onName: (v: string) => void
+  onDescription: (v: string) => void
+  onCategory: (v: string) => void
+  onCancel: () => void
+  onSave: () => void
+  saving: boolean
+  error: string | null
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={onCancel}>
+      <div className="w-full max-w-md p-5"
+        onClick={e => e.stopPropagation()}
+        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+          <span className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            Lagre som mal
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block mb-1 text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Navn *
+            </label>
+            <input value={name} onChange={e => onName(e.target.value)}
+              placeholder="F.eks. 5×5min terskel"
+              autoFocus
+              style={iSt} className="w-full px-3 py-2" />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Beskrivelse
+            </label>
+            <textarea value={description} onChange={e => onDescription(e.target.value)}
+              rows={2} placeholder="Valgfri kort beskrivelse"
+              style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block mb-1 text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Kategori
+              </label>
+              <select value={category} onChange={e => onCategory(e.target.value)}
+                style={iSt} className="w-full px-3 py-2">
+                {TEMPLATE_CATEGORIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Sport
+              </label>
+              <div className="w-full px-3 py-2"
+                style={{
+                  ...iSt, color: '#8A8A96',
+                  display: 'flex', alignItems: 'center', height: '100%',
+                }}>
+                {sportLabel}
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-xs px-3 py-2"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+                backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)',
+              }}>
+              {error}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-2 mt-5">
+          <button type="button" onClick={onSave} disabled={saving}
+            className="flex-1 py-2 text-sm tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: saving ? '#7A2200' : '#FF4500', color: '#F0F0F2',
+              border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
+            }}>
+            {saving ? 'Lagrer...' : 'Lagre mal'}
+          </button>
+          <button type="button" onClick={onCancel}
+            className="px-4 py-2 text-sm tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              background: 'none', border: '1px solid #222228', cursor: 'pointer',
+            }}>
+            Avbryt
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 

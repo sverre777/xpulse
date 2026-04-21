@@ -208,6 +208,11 @@ export interface WorkoutFormData {
   // Fase 8: kontekst + resultat for konkurranse/testløp (egen tabell).
   // Kun relevant når workout_type='competition' eller 'testlop'.
   competition_data?: CompetitionData
+  // Fase 14: kobling til mal brukt ved opprettelse/planlegging.
+  // template_id = null når økten ikke er basert på mal. template_name er
+  // denormalisert for enklere lesing uten join.
+  template_id?: string | null
+  template_name?: string | null
 }
 
 // ── Activities (Fase 7) ────────────────────────────────────
@@ -540,14 +545,29 @@ export interface DailyHealth {
   notes: string | null
 }
 
+// Kategorier for mal — vises i "Lagre som mal"-modal og i filter på /app/maler.
+export const TEMPLATE_CATEGORIES = [
+  'Intervall', 'Terskel', 'Langkjøring', 'Rolig', 'Styrke', 'Teknikk', 'Annet',
+] as const
+export type TemplateCategory = typeof TEMPLATE_CATEGORIES[number]
+
 export interface WorkoutTemplate {
   id: string
   user_id: string
   name: string
+  description: string | null
+  category: string | null
+  sport: Sport | null
+  // Ny primær datamodell: kronologisk aktivitetsliste (ActivityRow[] serialisert).
+  // Kan være null for gamle maler som kun har template_data (legacy-movements).
+  activities: ActivityRow[] | null
+  // Legacy — inneholder sport/workout_type/movements/notes/tags for bakoverkomp.
   template_data: WorkoutFormData
+  times_used: number
   last_used_at: string | null
   use_count: number
   created_at: string
+  updated_at: string
 }
 
 export interface Season {

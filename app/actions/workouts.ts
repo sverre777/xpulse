@@ -458,6 +458,12 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
     day_form_mental: data.day_form_mental,
     rpe: data.rpe,
     shooting_data: shootingData,
+    // Fase 14: mal-referanse + denormalisert tag-array.
+    // workout_tags-child-tabellen beholdes for bakoverkomp (skrives nedenfor);
+    // workouts.tags[] gir GIN-indeks for filter i analyse-visninger.
+    template_id: data.template_id ?? null,
+    template_name: data.template_name ?? null,
+    tags: data.tags.length > 0 ? data.tags : null,
     updated_at: new Date().toISOString(),
   }
 
@@ -864,6 +870,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       shooting_blocks: snap.shooting_blocks ?? [],
       activities:   planActivities,
       competition_data,
+      template_id:   (workout.template_id as string | null) ?? null,
+      template_name: (workout.template_name as string | null) ?? null,
     }
   }
 
@@ -938,6 +946,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     // "Sammenlign med plan"-visning i Dagbok-modalen.
     planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
     competition_data,
+    template_id:   (workout.template_id as string | null) ?? null,
+    template_name: (workout.template_name as string | null) ?? null,
   }
 }
 

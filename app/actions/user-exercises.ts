@@ -1,7 +1,6 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { StrengthExerciseRow, ActivityRow } from '@/lib/types'
 
 // Personlig øvelsesbibliotek — bygges opp automatisk fra lagrede styrke-økter,
 // og brukes til autocomplete i StrengthEditor. Se phase13_user_exercises.sql.
@@ -127,47 +126,3 @@ export async function upsertUserExercise(params: {
   return {}
 }
 
-// Hjelper som tar en liste ActivityRow og plukker ut alle styrke-øvelser
-// fra rader med movement_name = 'Styrke'. Kalles av saveWorkout.
-export interface StrengthExerciseLearn {
-  name: string
-  category: string | null
-  defaultReps: number | null
-  defaultWeightKg: number | null
-}
-
-export function collectStrengthExercises(activities: ActivityRow[]): StrengthExerciseLearn[] {
-  const out: StrengthExerciseLearn[] = []
-  for (const a of activities) {
-    if (a.movement_name !== 'Styrke') continue
-    const category = a.movement_subcategory || null
-    for (const ex of a.exercises ?? []) {
-      const name = ex.exercise_name.trim()
-      if (!name) continue
-      const { reps, weight } = lastMeaningfulSet(ex)
-      out.push({
-        name,
-        category,
-        defaultReps: reps,
-        defaultWeightKg: weight,
-      })
-    }
-  }
-  return out
-}
-
-// Plukker ut siste sett med meningsfulle verdier (reps/vekt) til bruk som default.
-function lastMeaningfulSet(ex: StrengthExerciseRow): { reps: number | null; weight: number | null } {
-  for (let i = ex.sets.length - 1; i >= 0; i--) {
-    const s = ex.sets[i]
-    const reps = parseInt(s.reps)
-    const weight = parseFloat(s.weight_kg)
-    if (Number.isFinite(reps) || Number.isFinite(weight)) {
-      return {
-        reps: Number.isFinite(reps) ? reps : null,
-        weight: Number.isFinite(weight) ? weight : null,
-      }
-    }
-  }
-  return { reps: null, weight: null }
-}

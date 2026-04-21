@@ -659,6 +659,10 @@ export interface CompetitionData {
   position_class: string
   position_gender: string
   participant_count: string
+  // Plan-felter: mål (f.eks. "Topp 10") og før-kommentar (taktikk/forberedelser).
+  goal: string
+  pre_comment: string
+  // Etterpå-kommentar (dagbok-refleksjon).
   comment: string
 }
 
@@ -673,6 +677,8 @@ export function emptyCompetitionData(defaultType: CompetitionType = 'konkurranse
     position_class: '',
     position_gender: '',
     participant_count: '',
+    goal: '',
+    pre_comment: '',
     comment: '',
   }
 }
@@ -690,6 +696,8 @@ export interface WorkoutCompetitionData {
   position_class: number | null
   position_gender: number | null
   participant_count: number | null
+  goal: string | null
+  pre_comment: string | null
   comment: string | null
   created_at: string
   updated_at: string

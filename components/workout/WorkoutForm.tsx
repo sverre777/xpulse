@@ -290,6 +290,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             data={form.competition_data ?? emptyCompetitionData(form.workout_type === 'testlop' ? 'testlop' : 'konkurranse')}
             onChange={d => set('competition_data', d)}
             sport={form.sport}
+            mode={isPlanMode ? 'plan' : 'dagbok'}
             activityCount={form.activities.length}
             onRequestGenerate={(format, replaceExisting) => {
               const generated = generateCompetitionActivities(form.sport, format)

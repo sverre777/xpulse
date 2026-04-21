@@ -9,6 +9,7 @@ interface Props {
   data: CompetitionData
   onChange: (data: CompetitionData) => void
   sport: Sport
+  mode: 'plan' | 'dagbok'
   // Kalles når brukeren velger et nytt format som har auto-mal, eller trykker "Regenerer".
   // Implementeres av WorkoutForm: vis bekreftelses-dialog, og ved ja kall onChange + sett
   // aktivitetslisten basert på format.
@@ -21,9 +22,11 @@ const iSt: React.CSSProperties = {
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
 }
 
-export function CompetitionModule({ data, onChange, sport, onRequestGenerate, activityCount }: Props) {
+export function CompetitionModule({ data, onChange, sport, mode, onRequestGenerate, activityCount }: Props) {
   const formats = DISTANCE_FORMATS[sport] ?? []
   const canAutoGenerate = hasAutoGenerateTemplate(sport, data.distance_format)
+  const isPlan = mode === 'plan'
+  const hasPlanBanner = !isPlan && (data.goal.trim() !== '' || data.pre_comment.trim() !== '')
 
   const set = <K extends keyof CompetitionData>(k: K, v: CompetitionData[K]) =>
     onChange({ ...data, [k]: v })
@@ -49,9 +52,43 @@ export function CompetitionModule({ data, onChange, sport, onRequestGenerate, ac
         <span style={{ width: '16px', height: '2px', backgroundColor: '#D4A017', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
-          Konkurranse
+          Konkurranse {isPlan ? '— Plan' : '— Dagbok'}
         </span>
       </div>
+
+      {hasPlanBanner && (
+        <div className="p-3 mb-4"
+          style={{ backgroundColor: '#0F0F11', border: '1px solid #1E1E22' }}>
+          <div className="text-xs tracking-widest uppercase mb-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            Fra planen
+          </div>
+          {data.goal.trim() !== '' && (
+            <div className="mb-2">
+              <div className="text-xs tracking-widest uppercase mb-0.5"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Mål
+              </div>
+              <div style={{
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+                fontSize: '15px', whiteSpace: 'pre-wrap',
+              }}>{data.goal}</div>
+            </div>
+          )}
+          {data.pre_comment.trim() !== '' && (
+            <div>
+              <div className="text-xs tracking-widest uppercase mb-0.5"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Kommentar før løpet
+              </div>
+              <div style={{
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+                fontSize: '15px', whiteSpace: 'pre-wrap',
+              }}>{data.pre_comment}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
@@ -97,41 +134,65 @@ export function CompetitionModule({ data, onChange, sport, onRequestGenerate, ac
             style={iSt} className="w-full px-3 py-2" />
         </div>
 
-        <div>
-          <Label>Plassering totalt</Label>
-          <input type="number" inputMode="numeric" min={1}
-            value={data.position_overall} onChange={e => set('position_overall', e.target.value)}
-            style={iSt} className="w-full px-3 py-2" />
-        </div>
+        {isPlan && (
+          <>
+            <div className="md:col-span-2">
+              <Label>Mål</Label>
+              <textarea value={data.goal} onChange={e => set('goal', e.target.value)}
+                rows={2}
+                placeholder="Tidsmål, plasseringsmål, prosessmål..."
+                style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
+            </div>
 
-        <div>
-          <Label>Plassering klasse</Label>
-          <input type="number" inputMode="numeric" min={1}
-            value={data.position_class} onChange={e => set('position_class', e.target.value)}
-            style={iSt} className="w-full px-3 py-2" />
-        </div>
+            <div className="md:col-span-2">
+              <Label>Kommentar / notat før løpet</Label>
+              <textarea value={data.pre_comment} onChange={e => set('pre_comment', e.target.value)}
+                rows={2}
+                placeholder="Taktikk, forhold, fokuspunkter..."
+                style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
+            </div>
+          </>
+        )}
 
-        <div>
-          <Label>Plassering kjønn</Label>
-          <input type="number" inputMode="numeric" min={1}
-            value={data.position_gender} onChange={e => set('position_gender', e.target.value)}
-            style={iSt} className="w-full px-3 py-2" />
-        </div>
+        {!isPlan && (
+          <>
+            <div>
+              <Label>Plassering totalt</Label>
+              <input type="number" inputMode="numeric" min={1}
+                value={data.position_overall} onChange={e => set('position_overall', e.target.value)}
+                style={iSt} className="w-full px-3 py-2" />
+            </div>
 
-        <div>
-          <Label>Antall deltakere</Label>
-          <input type="number" inputMode="numeric" min={1}
-            value={data.participant_count} onChange={e => set('participant_count', e.target.value)}
-            style={iSt} className="w-full px-3 py-2" />
-        </div>
+            <div>
+              <Label>Plassering klasse</Label>
+              <input type="number" inputMode="numeric" min={1}
+                value={data.position_class} onChange={e => set('position_class', e.target.value)}
+                style={iSt} className="w-full px-3 py-2" />
+            </div>
 
-        <div className="md:col-span-2">
-          <Label>Konkurransekommentar</Label>
-          <textarea value={data.comment} onChange={e => set('comment', e.target.value)}
-            rows={2}
-            placeholder="Hvordan gikk det? Følelse, taktikk, forhold..."
-            style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
-        </div>
+            <div>
+              <Label>Plassering kjønn</Label>
+              <input type="number" inputMode="numeric" min={1}
+                value={data.position_gender} onChange={e => set('position_gender', e.target.value)}
+                style={iSt} className="w-full px-3 py-2" />
+            </div>
+
+            <div>
+              <Label>Antall deltakere</Label>
+              <input type="number" inputMode="numeric" min={1}
+                value={data.participant_count} onChange={e => set('participant_count', e.target.value)}
+                style={iSt} className="w-full px-3 py-2" />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label>Etterpå-kommentar</Label>
+              <textarea value={data.comment} onChange={e => set('comment', e.target.value)}
+                rows={2}
+                placeholder="Hvordan gikk det? Følelse, taktikk, forhold..."
+                style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
+            </div>
+          </>
+        )}
       </div>
 
       {canAutoGenerate && (

@@ -40,6 +40,7 @@ export function KeyDateModal({
   const [location, setLocation] = useState(editing?.location ?? '')
   const [distanceFormat, setDistanceFormat] = useState(editing?.distance_format ?? '')
   const [notes, setNotes] = useState(editing?.notes ?? '')
+  const [isPeakTarget, setIsPeakTarget] = useState<boolean>(editing?.is_peak_target ?? false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,6 +60,7 @@ export function KeyDateModal({
       location,
       distance_format: distanceFormat,
       notes,
+      is_peak_target: isPeakTarget,
     }
     const res = editing
       ? await updateKeyDate(editing.id, payload)
@@ -74,13 +76,15 @@ export function KeyDateModal({
     const hasWorkout = !!editing.linked_workout_id
     let cascade = false
     if (hasWorkout) {
-      const ans = confirm(
-        `Slette "${editing.name}"?\n\nKoblet planlagt workout finnes. Trykk OK for å slette også workouten, Avbryt for å beholde bare hendelsen.`
+      // Tre-trinns valg: slett alt / behold workout / avbryt.
+      // Nettleserens confirm gir to valg; vi bruker to dialoger etter hverandre.
+      const ans1 = confirm(
+        `Slette "${editing.name}"?\n\nTrykk OK for å fortsette, Avbryt for å beholde hendelsen.`
       )
-      // confirm returnerer true for OK, false for Avbryt. Bruk det som cascade-flagg.
-      // Men hvis bruker trykker Avbryt i cancel-meny forventer vi ikke sletting.
-      // Her tolker vi Avbryt som "behold workout, slett bare key_date".
-      cascade = ans
+      if (!ans1) return
+      cascade = confirm(
+        'Slett også den planlagte økten som er koblet til?\n\nOK = slett også økten\nAvbryt = behold økten uten periodiseringsobjekt'
+      )
     } else {
       if (!confirm(`Slette "${editing.name}"?`)) return
     }
@@ -136,10 +140,25 @@ export function KeyDateModal({
           <FieldLabel>Distanse / format</FieldLabel>
           <input type="text" value={distanceFormat} onChange={e => setDistanceFormat(e.target.value)} style={INPUT_STYLE} placeholder="10 km, sprint, …" />
         </div>
-        <div className="mb-1">
+        <div className="mb-3">
           <FieldLabel>Notat</FieldLabel>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} style={{ ...INPUT_STYLE, resize: 'vertical' }} />
         </div>
+        <label className="flex items-start gap-2 mb-1 cursor-pointer">
+          <input type="checkbox" checked={isPeakTarget}
+            onChange={e => setIsPeakTarget(e.target.checked)}
+            style={{ marginTop: '3px', accentColor: '#D4A017' }} />
+          <span>
+            <span className="block text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
+              Form-topp-mål
+            </span>
+            <span className="block text-xs"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Markér denne hendelsen som peiling for toppform. Får gull-glød i kalenderen.
+            </span>
+          </span>
+        </label>
         {willAutoCreateWorkout && (
           <p className="text-xs mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
             En planlagt workout opprettes automatisk på {eventDate || '—'} og kobles til denne hendelsen.

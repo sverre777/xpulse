@@ -48,6 +48,7 @@ export interface SeasonKeyDate {
   distance_format: string | null
   notes: string | null
   linked_workout_id: string | null
+  is_peak_target: boolean
   created_at: string
 }
 
@@ -466,6 +467,7 @@ export interface KeyDateInput {
   location?: string | null
   distance_format?: string | null
   notes?: string | null
+  is_peak_target?: boolean
 }
 
 // Mappe event_type → workout_type. Returnerer null hvis vi IKKE skal
@@ -552,6 +554,7 @@ export async function createKeyDate(
         distance_format: input.distance_format?.trim() || null,
         notes: input.notes?.trim() || null,
         linked_workout_id: linkedWorkoutId,
+        is_peak_target: input.is_peak_target ?? false,
       })
       .select('id')
       .single()
@@ -646,6 +649,7 @@ export async function updateKeyDate(
         distance_format: input.distance_format?.trim() || null,
         notes: input.notes?.trim() || null,
         linked_workout_id: linkedWorkoutId,
+        is_peak_target: input.is_peak_target ?? false,
       })
       .eq('id', id)
 
@@ -653,6 +657,88 @@ export async function updateKeyDate(
     revalidatePath('/app/periodisering')
     revalidatePath('/app/plan')
     return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// Planlagte workouts brukt av kalender-visningen (én prikk per dato).
+export interface PlannedWorkoutDot {
+  id: string
+  date: string
+  title: string
+  workout_type: string | null
+  sport: Sport | null
+}
+
+// Sammensatt data til Årskalender i én round-trip.
+export interface SeasonCalendarData {
+  season: Season
+  periods: SeasonPeriod[]
+  keyDates: SeasonKeyDate[]
+  plannedWorkouts: PlannedWorkoutDot[]
+}
+
+export async function getSeasonCalendarData(
+  seasonId: string,
+): Promise<SeasonCalendarData | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { data: season, error: sErr } = await supabase
+      .from('seasons')
+      .select('*')
+      .eq('id', seasonId)
+      .eq('user_id', user.id)
+      .single()
+    if (sErr) return { error: sErr.message }
+    if (!season) return { error: 'Fant ikke sesongen' }
+
+    const s = season as Season
+
+    const [periodsRes, keyDatesRes, workoutsRes] = await Promise.all([
+      supabase
+        .from('season_periods')
+        .select('*')
+        .eq('season_id', seasonId)
+        .order('start_date', { ascending: true }),
+      supabase
+        .from('season_key_dates')
+        .select('*')
+        .eq('season_id', seasonId)
+        .order('event_date', { ascending: true }),
+      supabase
+        .from('workouts')
+        .select('id,date,title,workout_type,sport,is_planned')
+        .eq('user_id', user.id)
+        .eq('is_planned', true)
+        .gte('date', s.start_date)
+        .lte('date', s.end_date)
+        .order('date', { ascending: true }),
+    ])
+
+    if (periodsRes.error) return { error: periodsRes.error.message }
+    if (keyDatesRes.error) return { error: keyDatesRes.error.message }
+    if (workoutsRes.error) return { error: workoutsRes.error.message }
+
+    const plannedWorkouts = ((workoutsRes.data ?? []) as {
+      id: string; date: string; title: string | null; workout_type: string | null; sport: Sport | null
+    }[]).map(w => ({
+      id: w.id,
+      date: w.date,
+      title: w.title ?? '',
+      workout_type: w.workout_type,
+      sport: w.sport,
+    }))
+
+    return {
+      season: s,
+      periods: (periodsRes.data ?? []) as SeasonPeriod[],
+      keyDates: (keyDatesRes.data ?? []) as SeasonKeyDate[],
+      plannedWorkouts,
+    }
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }
   }

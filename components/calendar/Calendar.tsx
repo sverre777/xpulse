@@ -427,6 +427,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   // Bruk den viktigste hendelsen på dagen til å velge rammefarge/tykkelse.
   const topKey = keyDatesOnDay[0] ?? null
   const keyVisual = topKey ? KEY_EVENT_VISUALS[topKey.event_type] : null
+  const isPeakTarget = keyDatesOnDay.some(k => k.is_peak_target)
 
   return (
     <div
@@ -444,6 +445,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         cursor: 'pointer',
         outline: keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none',
         outlineOffset: keyVisual ? `-${keyVisual.borderWidth}px` : 0,
+        boxShadow: isPeakTarget ? '0 0 8px rgba(212, 160, 23, 0.6)' : undefined,
         position: 'relative',
         display: 'block',
       }}

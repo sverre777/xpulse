@@ -1448,3 +1448,575 @@ export async function getHealthCorrelations(
     return { error: `getHealthCorrelations: ${msg}` }
   }
 }
+
+// ── Fase C: Mal-analyse ────────────────────────────────
+
+export interface TemplateExecution {
+  workout_id: string
+  date: string
+  title: string
+  sport: Sport
+  duration_seconds: number
+  total_meters: number
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  zones: OverviewZoneSeconds
+  lactate_mmol: number | null
+  notes: string | null
+}
+
+export interface TemplateSummary {
+  id: string
+  name: string
+  category: string | null
+  sport: string | null
+  usage_count: number
+  last_used: string | null
+  avg_heart_rate: number | null
+  avg_duration_seconds: number
+  avg_total_meters: number
+  avg_zones: OverviewZoneSeconds
+  executions: TemplateExecution[]
+}
+
+export interface TemplateAnalysis {
+  templates: TemplateSummary[]
+  hasData: boolean
+}
+
+type RawTemplateWorkoutRow = {
+  id: string
+  date: string
+  title: string | null
+  sport: Sport
+  template_id: string | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  duration_minutes: number | null
+  notes: string | null
+  workout_activities: {
+    activity_type: string
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    max_heart_rate: number | null
+    lactate_mmol: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+function avgOrNull(vals: number[]): number | null {
+  if (vals.length === 0) return null
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+}
+
+export async function getTemplateAnalysis(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<TemplateAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+
+    let wQuery = supabase
+      .from('workouts')
+      .select('id,date,title,sport,template_id,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .not('template_id', 'is', null)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) wQuery = wQuery.eq('sport', sportFilter)
+
+    const [workoutsRes, templatesRes] = await Promise.all([
+      wQuery,
+      supabase.from('workout_templates')
+        .select('id,name,category,sport')
+        .eq('user_id', user.id),
+    ])
+    if (workoutsRes.error) return { error: workoutsRes.error.message }
+    if (templatesRes.error) return { error: templatesRes.error.message }
+
+    type TemplateRow = { id: string; name: string; category: string | null; sport: string | null }
+    const templatesById = new Map<string, TemplateRow>()
+    for (const t of (templatesRes.data ?? []) as TemplateRow[]) templatesById.set(t.id, t)
+
+    // Group executions by template_id.
+    const byTemplate = new Map<string, TemplateExecution[]>()
+    for (const w of (workoutsRes.data ?? []) as RawTemplateWorkoutRow[]) {
+      if (!w.template_id) continue
+      const activities: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = computeActivityTotals(activities, heartZones)
+      const duration = totals.totalSeconds > 0
+        ? totals.totalSeconds
+        : (w.duration_minutes ? w.duration_minutes * 60 : 0)
+
+      // Max HR = workout-level max_heart_rate OR max across activities.
+      let maxHr: number | null = w.max_heart_rate
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.max_heart_rate && (maxHr == null || a.max_heart_rate > maxHr)) maxHr = a.max_heart_rate
+      }
+
+      // Mean lactate across activities (ignoring null).
+      const lacVals: number[] = []
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.lactate_mmol != null && Number.isFinite(Number(a.lactate_mmol))) lacVals.push(Number(a.lactate_mmol))
+      }
+      const lactate = lacVals.length > 0
+        ? Math.round((lacVals.reduce((a, b) => a + b, 0) / lacVals.length) * 100) / 100
+        : null
+
+      // Avg HR = workouts.avg_heart_rate OR weighted avg across activities with duration.
+      let avgHr: number | null = w.avg_heart_rate
+      if (avgHr == null) {
+        let sum = 0, sec = 0
+        for (const a of (w.workout_activities ?? [])) {
+          if (a.avg_heart_rate && a.duration_seconds && a.duration_seconds > 0) {
+            sum += a.avg_heart_rate * a.duration_seconds
+            sec += a.duration_seconds
+          }
+        }
+        if (sec > 0) avgHr = Math.round(sum / sec)
+      }
+
+      const exec: TemplateExecution = {
+        workout_id: w.id,
+        date: w.date,
+        title: w.title ?? '',
+        sport: w.sport,
+        duration_seconds: duration,
+        total_meters: totals.totalMeters,
+        avg_heart_rate: avgHr,
+        max_heart_rate: maxHr,
+        zones: {
+          I1: totals.zoneSeconds.I1, I2: totals.zoneSeconds.I2, I3: totals.zoneSeconds.I3,
+          I4: totals.zoneSeconds.I4, I5: totals.zoneSeconds.I5, Hurtighet: totals.zoneSeconds.Hurtighet,
+        },
+        lactate_mmol: lactate,
+        notes: w.notes,
+      }
+      const arr = byTemplate.get(w.template_id) ?? []
+      arr.push(exec)
+      byTemplate.set(w.template_id, arr)
+    }
+
+    const templates: TemplateSummary[] = []
+    for (const [tid, execs] of byTemplate.entries()) {
+      const t = templatesById.get(tid)
+      if (!t) continue
+      execs.sort((a, b) => a.date.localeCompare(b.date))
+      const hrs = execs.map(e => e.avg_heart_rate).filter((v): v is number => v != null)
+      const avgZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+      for (const e of execs) {
+        avgZones.I1 += e.zones.I1; avgZones.I2 += e.zones.I2; avgZones.I3 += e.zones.I3
+        avgZones.I4 += e.zones.I4; avgZones.I5 += e.zones.I5; avgZones.Hurtighet += e.zones.Hurtighet
+      }
+      const n = execs.length
+      if (n > 0) {
+        avgZones.I1 = Math.round(avgZones.I1 / n); avgZones.I2 = Math.round(avgZones.I2 / n)
+        avgZones.I3 = Math.round(avgZones.I3 / n); avgZones.I4 = Math.round(avgZones.I4 / n)
+        avgZones.I5 = Math.round(avgZones.I5 / n); avgZones.Hurtighet = Math.round(avgZones.Hurtighet / n)
+      }
+      templates.push({
+        id: t.id,
+        name: t.name,
+        category: t.category,
+        sport: t.sport,
+        usage_count: execs.length,
+        last_used: execs.length > 0 ? execs[execs.length - 1].date : null,
+        avg_heart_rate: avgOrNull(hrs),
+        avg_duration_seconds: n > 0 ? Math.round(execs.reduce((s, e) => s + e.duration_seconds, 0) / n) : 0,
+        avg_total_meters: n > 0 ? Math.round(execs.reduce((s, e) => s + e.total_meters, 0) / n) : 0,
+        avg_zones: avgZones,
+        executions: execs,
+      })
+    }
+    templates.sort((a, b) => b.usage_count - a.usage_count || (b.last_used ?? '').localeCompare(a.last_used ?? ''))
+
+    return { templates, hasData: templates.length > 0 }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getTemplateAnalysis: ${msg}` }
+  }
+}
+
+// ── Fase C: Sammenligne økter ──────────────────────────
+
+export interface CompareWorkoutFilter {
+  sport?: Sport | null
+  movement?: string | null
+  workoutType?: WorkoutType | null
+}
+
+export interface ComparableMovementBreakdown {
+  movement_name: string
+  seconds: number
+  meters: number
+}
+
+export interface ComparableShooting {
+  prone_shots: number; prone_hits: number
+  standing_shots: number; standing_hits: number
+  accuracy_pct: number | null
+}
+
+export interface ComparableWorkout {
+  id: string
+  date: string
+  title: string
+  sport: Sport
+  workout_type: WorkoutType
+  duration_seconds: number
+  total_meters: number
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  zones: OverviewZoneSeconds
+  movement_breakdown: ComparableMovementBreakdown[]
+  lactate_values: { activity_label: string; mmol: number }[]
+  shooting: ComparableShooting | null
+  notes: string | null
+}
+
+export interface WorkoutsForComparison {
+  workouts: ComparableWorkout[]
+  movementsPresent: string[]
+  workoutTypesPresent: WorkoutType[]
+  hasData: boolean
+}
+
+type RawCompareRow = {
+  id: string
+  date: string
+  title: string | null
+  sport: Sport
+  workout_type: WorkoutType
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  duration_minutes: number | null
+  notes: string | null
+  workout_activities: {
+    activity_type: string
+    movement_name: string | null
+    sort_order: number
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    max_heart_rate: number | null
+    lactate_mmol: number | null
+    prone_shots: number | null; prone_hits: number | null
+    standing_shots: number | null; standing_hits: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+export async function getWorkoutsForComparison(
+  fromDate: string,
+  toDate: string,
+  filters?: CompareWorkoutFilter,
+): Promise<WorkoutsForComparison | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+
+    let q = supabase
+      .from('workouts')
+      .select('id,date,title,sport,workout_type,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: false })
+    if (filters?.sport) q = q.eq('sport', filters.sport)
+    if (filters?.workoutType) q = q.eq('workout_type', filters.workoutType)
+
+    const { data, error } = await q
+    if (error) return { error: error.message }
+
+    const movementsPresent = new Set<string>()
+    const typesPresent = new Set<WorkoutType>()
+    const workouts: ComparableWorkout[] = []
+
+    for (const w of (data ?? []) as RawCompareRow[]) {
+      const activities: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = computeActivityTotals(activities, heartZones)
+      const duration = totals.totalSeconds > 0
+        ? totals.totalSeconds
+        : (w.duration_minutes ? w.duration_minutes * 60 : 0)
+
+      // Movement breakdown.
+      const movMap = new Map<string, { seconds: number; meters: number }>()
+      for (const a of (w.workout_activities ?? [])) {
+        if (!a.movement_name) continue
+        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        movementsPresent.add(a.movement_name)
+        const prev = movMap.get(a.movement_name) ?? { seconds: 0, meters: 0 }
+        prev.seconds += a.duration_seconds ?? 0
+        prev.meters += a.distance_meters ?? 0
+        movMap.set(a.movement_name, prev)
+      }
+      // Movement filter.
+      if (filters?.movement) {
+        if (!movMap.has(filters.movement)) continue
+      }
+
+      // Shooting aggregation.
+      let proneShots = 0, proneHits = 0, standShots = 0, standHits = 0
+      let hasShoot = false
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.prone_shots) { proneShots += a.prone_shots; hasShoot = true }
+        if (a.prone_hits) { proneHits += a.prone_hits }
+        if (a.standing_shots) { standShots += a.standing_shots; hasShoot = true }
+        if (a.standing_hits) { standHits += a.standing_hits }
+      }
+      const totShots = proneShots + standShots
+      const totHits = proneHits + standHits
+      const shooting: ComparableShooting | null = hasShoot ? {
+        prone_shots: proneShots, prone_hits: proneHits,
+        standing_shots: standShots, standing_hits: standHits,
+        accuracy_pct: totShots > 0 ? Math.round((totHits / totShots) * 1000) / 10 : null,
+      } : null
+
+      // Lactate points per activity.
+      const lactateValues: { activity_label: string; mmol: number }[] = []
+      const sortedActs = [...(w.workout_activities ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+      for (const a of sortedActs) {
+        if (a.lactate_mmol != null && Number.isFinite(Number(a.lactate_mmol))) {
+          const label = a.movement_name
+            ? `${a.activity_type} · ${a.movement_name}`
+            : a.activity_type
+          lactateValues.push({ activity_label: label, mmol: Number(a.lactate_mmol) })
+        }
+      }
+
+      // avg HR + max HR combined.
+      let avgHr: number | null = w.avg_heart_rate
+      if (avgHr == null) {
+        let sum = 0, sec = 0
+        for (const a of (w.workout_activities ?? [])) {
+          if (a.avg_heart_rate && a.duration_seconds && a.duration_seconds > 0) {
+            sum += a.avg_heart_rate * a.duration_seconds; sec += a.duration_seconds
+          }
+        }
+        if (sec > 0) avgHr = Math.round(sum / sec)
+      }
+      let maxHr: number | null = w.max_heart_rate
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.max_heart_rate && (maxHr == null || a.max_heart_rate > maxHr)) maxHr = a.max_heart_rate
+      }
+
+      typesPresent.add(w.workout_type)
+      workouts.push({
+        id: w.id,
+        date: w.date,
+        title: w.title ?? '',
+        sport: w.sport,
+        workout_type: w.workout_type,
+        duration_seconds: duration,
+        total_meters: totals.totalMeters,
+        avg_heart_rate: avgHr,
+        max_heart_rate: maxHr,
+        zones: { ...totals.zoneSeconds },
+        movement_breakdown: Array.from(movMap.entries())
+          .map(([movement_name, v]) => ({ movement_name, seconds: v.seconds, meters: v.meters }))
+          .sort((a, b) => b.seconds - a.seconds),
+        lactate_values: lactateValues,
+        shooting,
+        notes: w.notes,
+      })
+    }
+
+    return {
+      workouts,
+      movementsPresent: Array.from(movementsPresent).sort(),
+      workoutTypesPresent: Array.from(typesPresent),
+      hasData: workouts.length > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getWorkoutsForComparison: ${msg}` }
+  }
+}
+
+// ── Fase C: Intensitetsfordeling ───────────────────────
+
+export interface IntensityWeekBucket {
+  weekKey: string
+  label: string
+  startDate: string
+  zones: OverviewZoneSeconds
+  totalSeconds: number
+  intensiveSessions: number       // antall økter med >0 i I4/I5/Hurtighet den uka
+  polarized: { low: number; mid: number; high: number }   // sekunder I1+I2, I3, I4+I5+Hurtighet
+}
+
+export interface IntensityMovementRow {
+  movement_name: string
+  zones: OverviewZoneSeconds
+  total_seconds: number
+}
+
+export interface IntensityDistribution {
+  totalSeconds: number
+  totalZones: OverviewZoneSeconds
+  weeks: IntensityWeekBucket[]
+  byMovement: IntensityMovementRow[]
+  hasData: boolean
+}
+
+type RawIntensityRow = {
+  id: string
+  date: string
+  workout_activities: {
+    activity_type: string
+    movement_name: string | null
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+export async function getIntensityDistribution(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<IntensityDistribution | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+
+    let q = supabase
+      .from('workouts')
+      .select('id,date,workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) q = q.eq('sport', sportFilter)
+
+    const { data, error } = await q
+    if (error) return { error: error.message }
+
+    const skeleton = buildWeekSkeleton(fromDate, toDate)
+    const weeksByKey = new Map<string, IntensityWeekBucket>()
+    for (const w of skeleton) {
+      weeksByKey.set(w.weekKey, {
+        weekKey: w.weekKey, label: w.label, startDate: w.startDate,
+        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+        totalSeconds: 0, intensiveSessions: 0,
+        polarized: { low: 0, mid: 0, high: 0 },
+      })
+    }
+
+    const totalZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+    let totalSeconds = 0
+
+    const movementMap = new Map<string, IntensityMovementRow>()
+
+    for (const w of (data ?? []) as RawIntensityRow[]) {
+      const dt = new Date(w.date)
+      const { weekKey } = isoWeekKey(dt)
+      const bucket = weeksByKey.get(weekKey)
+      if (!bucket) continue
+
+      // Session-zones total for this workout (for the intensive flag).
+      const acts: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = computeActivityTotals(acts, heartZones)
+
+      bucket.zones.I1 += totals.zoneSeconds.I1
+      bucket.zones.I2 += totals.zoneSeconds.I2
+      bucket.zones.I3 += totals.zoneSeconds.I3
+      bucket.zones.I4 += totals.zoneSeconds.I4
+      bucket.zones.I5 += totals.zoneSeconds.I5
+      bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
+      bucket.totalSeconds += totals.zoneTotalSec
+
+      bucket.polarized.low += totals.zoneSeconds.I1 + totals.zoneSeconds.I2
+      bucket.polarized.mid += totals.zoneSeconds.I3
+      bucket.polarized.high += totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.Hurtighet
+
+      if (totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.Hurtighet > 0) {
+        bucket.intensiveSessions += 1
+      }
+
+      totalZones.I1 += totals.zoneSeconds.I1
+      totalZones.I2 += totals.zoneSeconds.I2
+      totalZones.I3 += totals.zoneSeconds.I3
+      totalZones.I4 += totals.zoneSeconds.I4
+      totalZones.I5 += totals.zoneSeconds.I5
+      totalZones.Hurtighet += totals.zoneSeconds.Hurtighet
+      totalSeconds += totals.zoneTotalSec
+
+      // Per-movement breakdown — approximate using each activity individually.
+      for (const a of (w.workout_activities ?? [])) {
+        if (!a.movement_name) continue
+        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        const subTotals = computeActivityTotals([{
+          activity_type: a.activity_type,
+          duration_seconds: a.duration_seconds,
+          distance_meters: a.distance_meters,
+          avg_heart_rate: a.avg_heart_rate,
+          zones: a.zones,
+        }], heartZones)
+        if (subTotals.zoneTotalSec === 0) continue
+        const row = movementMap.get(a.movement_name) ?? {
+          movement_name: a.movement_name,
+          zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+          total_seconds: 0,
+        }
+        row.zones.I1 += subTotals.zoneSeconds.I1
+        row.zones.I2 += subTotals.zoneSeconds.I2
+        row.zones.I3 += subTotals.zoneSeconds.I3
+        row.zones.I4 += subTotals.zoneSeconds.I4
+        row.zones.I5 += subTotals.zoneSeconds.I5
+        row.zones.Hurtighet += subTotals.zoneSeconds.Hurtighet
+        row.total_seconds += subTotals.zoneTotalSec
+        movementMap.set(a.movement_name, row)
+      }
+    }
+
+    const weeks = Array.from(weeksByKey.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
+    const byMovement = Array.from(movementMap.values()).sort((a, b) => b.total_seconds - a.total_seconds)
+
+    return {
+      totalSeconds,
+      totalZones,
+      weeks,
+      byMovement,
+      hasData: totalSeconds > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getIntensityDistribution: ${msg}` }
+  }
+}

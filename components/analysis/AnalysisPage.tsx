@@ -5,11 +5,11 @@ import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
-  getBelastningAnalysis, getTerskelAnalysis,
+  getBelastningAnalysis, getTerskelAnalysis, getShootingDepthAnalysis,
   type WorkoutStats, type AnalysisOverview,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
-  type BelastningAnalysis, type TerskelAnalysis,
+  type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -22,6 +22,7 @@ import { CompareWorkoutsTab } from './CompareWorkoutsTab'
 import { IntensityTab } from './IntensityTab'
 import { BelastningTab } from './BelastningTab'
 import { TerskelTab } from './TerskelTab'
+import { SkytingTab } from './SkytingTab'
 
 // 8 faner totalt — kun Belastning og Periodisering er igjen som plassholdere etter Fase C.
 // Se AGENTS.md for fase-plan.
@@ -29,6 +30,7 @@ type Tab =
   | 'oversikt'
   | 'belastning'
   | 'terskel'
+  | 'skyting'
   | 'sammenlign'
   | 'mal_analyse'
   | 'konkurranser'
@@ -54,6 +56,7 @@ const TABS: [Tab, string][] = [
   ['oversikt', 'Oversikt'],
   ['belastning', 'Belastning'],
   ['terskel', 'Terskel'],
+  ['skyting', 'Skyting-dybde'],
   ['sammenlign', 'Sammenlign økter'],
   ['mal_analyse', 'Mal-analyse'],
   ['konkurranser', 'Konkurranser'],
@@ -107,6 +110,7 @@ export function AnalysisPage({
   const [intensityDist, setIntensityDist] = useState<IntensityDistribution | null>(null)
   const [belastning, setBelastning] = useState<BelastningAnalysis | null>(null)
   const [terskel, setTerskel] = useState<TerskelAnalysis | null>(null)
+  const [skyting, setSkyting] = useState<ShootingDepthAnalysis | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -117,6 +121,7 @@ export function AnalysisPage({
     setIntensityDist(null)
     setBelastning(null)
     setTerskel(null)
+    setSkyting(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -207,8 +212,16 @@ export function AnalysisPage({
         setTerskel(res)
       })
     }
+    if (tab === 'skyting' && skyting === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getShootingDepthAnalysis(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setSkyting(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting])
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -327,6 +340,11 @@ export function AnalysisPage({
           terskel
             ? <TerskelTab data={terskel} />
             : <LoadingStub label="Laster terskel…" />
+        )}
+        {tab === 'skyting' && (
+          skyting
+            ? <SkytingTab data={skyting} />
+            : <LoadingStub label="Laster skyting-dybde…" />
         )}
         {tab === 'periodisering' && STUB('Periodisering')}
       </div>

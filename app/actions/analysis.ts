@@ -2574,3 +2574,335 @@ export async function getTerskelAnalysis(
     return { error: `getTerskelAnalysis: ${msg}` }
   }
 }
+
+// ── Skyting-dybde: treff%, puls-soner, første vs siste, tid, trening vs konkurranse ──
+// Kun relevant for biathlon. Returnerer tom tilstand hvis ingen skyting i perioden.
+
+export interface ShootingSeriesRow {
+  date: string
+  workout_id: string
+  workout_type: WorkoutType
+  sort_order: number
+  activity_type: string
+  prone_shots: number
+  prone_hits: number
+  standing_shots: number
+  standing_hits: number
+  duration_seconds: number | null
+  avg_heart_rate: number | null
+  in_competition: boolean
+}
+
+export interface ShootingAccuracyPoint {
+  date: string
+  prone_pct: number | null
+  standing_pct: number | null
+  total_pct: number | null
+  shots: number
+}
+
+export interface ShootingHrZoneBucket {
+  zone: string                 // '<130' | '130–149' | '150–169' | '170–184' | '185+' | 'Uten puls'
+  shots: number
+  hits: number
+  accuracy_pct: number | null
+}
+
+export interface ShootingTimePoint {
+  date: string
+  avg_seconds: number          // snitt skytetid for økten
+  series: number
+}
+
+export interface ShootingFirstVsLast {
+  workouts_with_multiple_series: number
+  first_accuracy_pct: number | null
+  last_accuracy_pct: number | null
+  first_avg_hr: number | null
+  last_avg_hr: number | null
+}
+
+export interface ShootingTrainingVsCompSplit {
+  training: { series: number; shots: number; hits: number; accuracy_pct: number | null }
+  competition: { series: number; shots: number; hits: number; accuracy_pct: number | null }
+}
+
+export interface ShootingPerWorkoutType {
+  workout_type: WorkoutType
+  label: string
+  series: number
+  shots: number
+  hits: number
+  accuracy_pct: number | null
+}
+
+export interface ShootingDepthAnalysis {
+  totals: {
+    series: number
+    shots: number
+    hits: number
+    accuracy_pct: number | null
+    prone_accuracy_pct: number | null
+    standing_accuracy_pct: number | null
+    prone_shots: number
+    standing_shots: number
+  }
+  series: ShootingSeriesRow[]
+  accuracyTrend: ShootingAccuracyPoint[]
+  accuracyByHrZone: ShootingHrZoneBucket[]
+  firstVsLast: ShootingFirstVsLast
+  timeTrend: ShootingTimePoint[]
+  trainingVsComp: ShootingTrainingVsCompSplit
+  perWorkoutType: ShootingPerWorkoutType[]
+  hasData: boolean
+  sportMismatch: boolean         // true hvis sportFilter er satt til noe annet enn biathlon
+}
+
+type RawShootingWorkout = {
+  id: string
+  date: string
+  workout_type: WorkoutType
+  sport: Sport
+  workout_activities: {
+    activity_type: string
+    sort_order: number | null
+    duration_seconds: number | null
+    avg_heart_rate: number | null
+    prone_shots: number | null
+    prone_hits: number | null
+    standing_shots: number | null
+    standing_hits: number | null
+  }[] | null
+}
+
+const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
+  long_run: 'Langtur', interval: 'Intervall', threshold: 'Terskel', easy: 'Rolig',
+  competition: 'Konkurranse', testlop: 'Testløp', recovery: 'Restitusjon',
+  technical: 'Teknisk', other: 'Annet',
+  hard_combo: 'Hard kombinasjon', easy_combo: 'Rolig kombinasjon',
+  basis_shooting: 'Basisskyting', warmup_shooting: 'Innskyting',
+}
+
+function hrZoneForShooting(hr: number | null): string {
+  if (hr == null) return 'Uten puls'
+  if (hr < 130) return '<130'
+  if (hr < 150) return '130–149'
+  if (hr < 170) return '150–169'
+  if (hr < 185) return '170–184'
+  return '185+'
+}
+
+const HR_ZONE_ORDER = ['<130','130–149','150–169','170–184','185+','Uten puls']
+
+export async function getShootingDepthAnalysis(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<ShootingDepthAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const empty = (sportMismatch: boolean): ShootingDepthAnalysis => ({
+      totals: { series: 0, shots: 0, hits: 0, accuracy_pct: null, prone_accuracy_pct: null, standing_accuracy_pct: null, prone_shots: 0, standing_shots: 0 },
+      series: [], accuracyTrend: [], accuracyByHrZone: [],
+      firstVsLast: { workouts_with_multiple_series: 0, first_accuracy_pct: null, last_accuracy_pct: null, first_avg_hr: null, last_avg_hr: null },
+      timeTrend: [],
+      trainingVsComp: { training: { series: 0, shots: 0, hits: 0, accuracy_pct: null }, competition: { series: 0, shots: 0, hits: 0, accuracy_pct: null } },
+      perWorkoutType: [],
+      hasData: false, sportMismatch,
+    })
+
+    // Sport er alltid biathlon for skyting-analysen.
+    if (sportFilter && sportFilter !== 'biathlon') return empty(true)
+
+    const { data, error } = await supabase
+      .from('workouts')
+      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .eq('sport', 'biathlon')
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+
+    if (error) return { error: error.message }
+
+    const seriesRows: ShootingSeriesRow[] = []
+    const perWorkout = new Map<string, ShootingSeriesRow[]>()
+
+    for (const w of (data ?? []) as RawShootingWorkout[]) {
+      const acts = (w.workout_activities ?? [])
+        .filter(a => SHOOTING_ACT_TYPES.has(a.activity_type))
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      if (acts.length === 0) continue
+      const inComp = w.workout_type === 'competition' || w.workout_type === 'testlop'
+      let idx = 0
+      for (const a of acts) {
+        idx += 1
+        const row: ShootingSeriesRow = {
+          date: w.date,
+          workout_id: w.id,
+          workout_type: w.workout_type,
+          sort_order: idx,
+          activity_type: a.activity_type,
+          prone_shots: a.prone_shots ?? 0,
+          prone_hits: a.prone_hits ?? 0,
+          standing_shots: a.standing_shots ?? 0,
+          standing_hits: a.standing_hits ?? 0,
+          duration_seconds: a.duration_seconds,
+          avg_heart_rate: a.avg_heart_rate,
+          in_competition: inComp,
+        }
+        seriesRows.push(row)
+        const arr = perWorkout.get(w.id) ?? []
+        arr.push(row)
+        perWorkout.set(w.id, arr)
+      }
+    }
+
+    if (seriesRows.length === 0) return empty(false)
+
+    // Totaler.
+    let totShots = 0, totHits = 0, proneShots = 0, proneHits = 0, standShots = 0, standHits = 0
+    for (const r of seriesRows) {
+      totShots += r.prone_shots + r.standing_shots
+      totHits += r.prone_hits + r.standing_hits
+      proneShots += r.prone_shots; proneHits += r.prone_hits
+      standShots += r.standing_shots; standHits += r.standing_hits
+    }
+
+    // Treff% per dag (aggregert på tvers av serier).
+    const byDate = new Map<string, { ps: number; ph: number; ss: number; sh: number }>()
+    for (const r of seriesRows) {
+      const b = byDate.get(r.date) ?? { ps: 0, ph: 0, ss: 0, sh: 0 }
+      b.ps += r.prone_shots; b.ph += r.prone_hits
+      b.ss += r.standing_shots; b.sh += r.standing_hits
+      byDate.set(r.date, b)
+    }
+    const accuracyTrend: ShootingAccuracyPoint[] = Array.from(byDate.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, b]) => {
+        const shots = b.ps + b.ss
+        return {
+          date,
+          prone_pct: b.ps > 0 ? Math.round((b.ph / b.ps) * 1000) / 10 : null,
+          standing_pct: b.ss > 0 ? Math.round((b.sh / b.ss) * 1000) / 10 : null,
+          total_pct: shots > 0 ? Math.round(((b.ph + b.sh) / shots) * 1000) / 10 : null,
+          shots,
+        }
+      })
+
+    // Treff% per puls-sone.
+    const byZone = new Map<string, { shots: number; hits: number }>()
+    for (const z of HR_ZONE_ORDER) byZone.set(z, { shots: 0, hits: 0 })
+    for (const r of seriesRows) {
+      const shots = r.prone_shots + r.standing_shots
+      const hits = r.prone_hits + r.standing_hits
+      if (shots === 0) continue
+      const z = hrZoneForShooting(r.avg_heart_rate)
+      const bucket = byZone.get(z) ?? { shots: 0, hits: 0 }
+      bucket.shots += shots; bucket.hits += hits
+      byZone.set(z, bucket)
+    }
+    const accuracyByHrZone: ShootingHrZoneBucket[] = HR_ZONE_ORDER.map(z => {
+      const b = byZone.get(z) ?? { shots: 0, hits: 0 }
+      return {
+        zone: z,
+        shots: b.shots,
+        hits: b.hits,
+        accuracy_pct: b.shots > 0 ? Math.round((b.hits / b.shots) * 1000) / 10 : null,
+      }
+    }).filter(b => b.shots > 0)
+
+    // Første vs siste serie per økt (kun økter med ≥2 serier).
+    let wMulti = 0
+    let firstShots = 0, firstHits = 0, lastShots = 0, lastHits = 0
+    let firstHrSum = 0, firstHrN = 0, lastHrSum = 0, lastHrN = 0
+    for (const arr of perWorkout.values()) {
+      if (arr.length < 2) continue
+      wMulti += 1
+      const f = arr[0], l = arr[arr.length - 1]
+      firstShots += f.prone_shots + f.standing_shots
+      firstHits += f.prone_hits + f.standing_hits
+      lastShots += l.prone_shots + l.standing_shots
+      lastHits += l.prone_hits + l.standing_hits
+      if (f.avg_heart_rate != null) { firstHrSum += f.avg_heart_rate; firstHrN += 1 }
+      if (l.avg_heart_rate != null) { lastHrSum += l.avg_heart_rate; lastHrN += 1 }
+    }
+    const firstVsLast: ShootingFirstVsLast = {
+      workouts_with_multiple_series: wMulti,
+      first_accuracy_pct: firstShots > 0 ? Math.round((firstHits / firstShots) * 1000) / 10 : null,
+      last_accuracy_pct: lastShots > 0 ? Math.round((lastHits / lastShots) * 1000) / 10 : null,
+      first_avg_hr: firstHrN > 0 ? Math.round(firstHrSum / firstHrN) : null,
+      last_avg_hr: lastHrN > 0 ? Math.round(lastHrSum / lastHrN) : null,
+    }
+
+    // Skytetid-progresjon — snitt sekunder per serie per dag.
+    const timeByDate = new Map<string, { sum: number; n: number; series: number }>()
+    for (const r of seriesRows) {
+      if (r.duration_seconds == null || r.duration_seconds <= 0) continue
+      const b = timeByDate.get(r.date) ?? { sum: 0, n: 0, series: 0 }
+      b.sum += r.duration_seconds; b.n += 1; b.series += 1
+      timeByDate.set(r.date, b)
+    }
+    const timeTrend: ShootingTimePoint[] = Array.from(timeByDate.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, b]) => ({ date, avg_seconds: Math.round(b.sum / b.n), series: b.series }))
+
+    // Trening vs konkurranse.
+    let tS = 0, tH = 0, tN = 0, cS = 0, cH = 0, cN = 0
+    for (const r of seriesRows) {
+      const shots = r.prone_shots + r.standing_shots
+      const hits = r.prone_hits + r.standing_hits
+      if (r.in_competition) { cS += shots; cH += hits; cN += 1 }
+      else { tS += shots; tH += hits; tN += 1 }
+    }
+    const trainingVsComp: ShootingTrainingVsCompSplit = {
+      training: { series: tN, shots: tS, hits: tH, accuracy_pct: tS > 0 ? Math.round((tH / tS) * 1000) / 10 : null },
+      competition: { series: cN, shots: cS, hits: cH, accuracy_pct: cS > 0 ? Math.round((cH / cS) * 1000) / 10 : null },
+    }
+
+    // Per økt-type.
+    const byType = new Map<WorkoutType, { series: number; shots: number; hits: number }>()
+    for (const r of seriesRows) {
+      const b = byType.get(r.workout_type) ?? { series: 0, shots: 0, hits: 0 }
+      b.series += 1
+      b.shots += r.prone_shots + r.standing_shots
+      b.hits += r.prone_hits + r.standing_hits
+      byType.set(r.workout_type, b)
+    }
+    const perWorkoutType: ShootingPerWorkoutType[] = Array.from(byType.entries())
+      .map(([wt, b]) => ({
+        workout_type: wt,
+        label: WORKOUT_TYPE_LABELS[wt] ?? String(wt),
+        series: b.series, shots: b.shots, hits: b.hits,
+        accuracy_pct: b.shots > 0 ? Math.round((b.hits / b.shots) * 1000) / 10 : null,
+      }))
+      .sort((a, b) => b.series - a.series)
+
+    return {
+      totals: {
+        series: seriesRows.length,
+        shots: totShots, hits: totHits,
+        accuracy_pct: totShots > 0 ? Math.round((totHits / totShots) * 1000) / 10 : null,
+        prone_accuracy_pct: proneShots > 0 ? Math.round((proneHits / proneShots) * 1000) / 10 : null,
+        standing_accuracy_pct: standShots > 0 ? Math.round((standHits / standShots) * 1000) / 10 : null,
+        prone_shots: proneShots, standing_shots: standShots,
+      },
+      series: seriesRows,
+      accuracyTrend,
+      accuracyByHrZone,
+      firstVsLast,
+      timeTrend,
+      trainingVsComp,
+      perWorkoutType,
+      hasData: true,
+      sportMismatch: false,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getShootingDepthAnalysis: ${msg}` }
+  }
+}

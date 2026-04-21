@@ -524,50 +524,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
-  const monthTotal = aggregateRange(byDate, iterMonthDates(year, month), mode)
-  const monthMins = Math.round(monthTotal.seconds / 60)
-  const monthKm = fmtKm(monthTotal.meters)
 
   return (
     <div>
-      {/* Month total banner — kun Plan. Dagbok har Analyse-overlay øverst i stedet,
-          så vi unngår to oppsummeringer av samme periode. */}
-      {mode === 'plan' && monthTotal.seconds > 0 && (
-        <div className="px-4 md:px-6 py-3"
-          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <div className="flex items-baseline gap-4 flex-wrap mb-2">
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-              fontSize: '22px', letterSpacing: '0.06em',
-            }}>
-              {MONTHS_NO[month - 1]}:
-            </span>
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
-              fontSize: '24px', letterSpacing: '0.06em',
-            }}>
-              {fmtDuration(monthMins)}
-            </span>
-            {monthKm && (
-              <span style={{
-                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-                fontSize: '20px', letterSpacing: '0.06em',
-              }}>
-                {monthKm}
-              </span>
-            )}
-            <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
-            }}>
-              {monthTotal.sessions} økt{monthTotal.sessions !== 1 ? 'er' : ''}
-            </span>
-          </div>
-          <AggZoneBar zoneSeconds={monthTotal.zoneSeconds} height={8} />
-          <div className="mt-1.5">
-            <ZoneLegend zoneSeconds={monthTotal.zoneSeconds} size="md" />
-          </div>
-        </div>
-      )}
+      {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
+          og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
       {/* Column headers: week# + 7 days + totals */}
       <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 72px', borderBottom: '1px solid #1A1A1E' }}>
@@ -1152,8 +1113,8 @@ export function Calendar({
         <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
 
-      {/* ── Analyse-overlay: kun Dagbok. Plan viser kun planlagte tall (bunnbanner). ── */}
-      {mode === 'dagbok' && (
+      {/* ── Analyse-overlay: samme layout i Dagbok og Plan; mode styrer datakilde og labels. ── */}
+      {(mode === 'dagbok' || mode === 'plan') && (
         <AnalysisOverlay view={view} refDate={refDate} mode={mode} />
       )}
 

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
+import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import type { Sport, WorkoutType, CompetitionType } from '@/lib/types'
 
 // ── Typer ──────────────────────────────────────────
@@ -605,6 +606,154 @@ export async function getAnalysisOverview(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getAnalysisOverview: ${msg}` }
+  }
+}
+
+// ── Plan-oversikt ───────────────────────────────────
+
+type RawPlannedWorkoutRow = {
+  id: string
+  date: string
+  sport: Sport
+  duration_minutes: number | null
+  planned_snapshot: {
+    duration_minutes?: number | null
+    activities?: unknown[] | null
+  } | null
+}
+
+// Henter planlagt-oversikt for samme shape som AnalysisOverview, men bygget fra
+// planned_snapshot.activities. Alt summeres via computeActivityTotals — samme
+// kilde-funksjon som brukes i kalender-cellene og analyse-overlay for faktisk,
+// slik at Plan- og Dagbok-tall er beregnet konsistent.
+async function computePlannedMetricsForRange(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+  primarySport: Sport,
+  sportFilter: Sport | null,
+): Promise<OverviewMetrics> {
+  const heartZones = await getHeartZonesForUser(supabase, userId)
+
+  let q = supabase
+    .from('workouts')
+    .select('id,date,sport,duration_minutes,planned_snapshot')
+    .eq('user_id', userId)
+    .eq('is_planned', true)
+    .gte('date', fromDate)
+    .lte('date', toDate)
+  if (sportFilter) q = q.eq('sport', sportFilter)
+
+  const { data: workouts, error: wErr } = await q
+  if (wErr) throw new Error(wErr.message)
+
+  const metrics = emptyOverviewMetrics(primarySport)
+  const movementMap = new Map<string, MovementBreakdownRow>()
+
+  for (const w of (workouts ?? []) as RawPlannedWorkoutRow[]) {
+    const snapActs = w.planned_snapshot?.activities ?? []
+    const activities: ActivityLike[] = []
+    const movementNames: string[] = []
+    for (const raw of snapActs) {
+      const like = snapshotActivityToLike(raw)
+      if (!like) continue
+      activities.push(like)
+      const mv = (raw && typeof raw === 'object')
+        ? (raw as Record<string, unknown>).movement_name
+        : null
+      if (typeof mv === 'string' && mv.length > 0) movementNames.push(mv)
+    }
+
+    const hasActivities = activities.length > 0
+    const totals = hasActivities ? computeActivityTotals(activities, heartZones) : null
+    const snapDurMin = w.planned_snapshot?.duration_minutes ?? w.duration_minutes ?? 0
+    const sessionSeconds = totals && totals.totalSeconds > 0
+      ? totals.totalSeconds
+      : snapDurMin * 60
+    const sessionMeters = totals ? totals.totalMeters : 0
+
+    if (sessionSeconds <= 0 && !hasActivities) continue
+
+    metrics.workout_count += 1
+    metrics.planned_count += 1
+    metrics.total_seconds += sessionSeconds
+    metrics.total_meters += sessionMeters
+
+    if (totals) {
+      metrics.zone_seconds.I1 += totals.zoneSeconds.I1
+      metrics.zone_seconds.I2 += totals.zoneSeconds.I2
+      metrics.zone_seconds.I3 += totals.zoneSeconds.I3
+      metrics.zone_seconds.I4 += totals.zoneSeconds.I4
+      metrics.zone_seconds.I5 += totals.zoneSeconds.I5
+      metrics.zone_seconds.Hurtighet += totals.zoneSeconds.Hurtighet
+    }
+
+    // Per-movement sum — snapshot bruker samme movement_name-felt som real activities.
+    // Økt-telleren bruker unike movement-navn i én økt (samme som faktisk-pathen).
+    const seen = new Set<string>()
+    const perMovement = new Map<string, { seconds: number; meters: number }>()
+    for (let i = 0; i < activities.length; i++) {
+      const mv = movementNames[i]
+      if (!mv) continue
+      const a = activities[i]
+      const cur = perMovement.get(mv) ?? { seconds: 0, meters: 0 }
+      cur.seconds += Number(a.duration_seconds) || 0
+      cur.meters += Number(a.distance_meters) || 0
+      perMovement.set(mv, cur)
+    }
+    for (const [mv, { seconds, meters }] of perMovement) {
+      const row = movementMap.get(mv) ?? { movement_name: mv, seconds: 0, meters: 0, sessions: 0 }
+      row.seconds += seconds
+      row.meters += meters
+      movementMap.set(mv, row)
+      if (!seen.has(mv)) { row.sessions += 1; seen.add(mv) }
+    }
+  }
+
+  metrics.movement_breakdown = Array.from(movementMap.values()).sort((a, b) => b.seconds - a.seconds)
+  return metrics
+}
+
+export async function getPlannedOverview(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+): Promise<AnalysisOverview | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { data: profile, error: pErr } = await supabase
+      .from('profiles').select('primary_sport').eq('id', user.id).single()
+    if (pErr) return { error: `profiles: ${pErr.message}` }
+    const primarySport = (profile?.primary_sport as Sport) ?? 'running'
+
+    const rangeDays = Math.max(1, daysBetween(fromDate, toDate))
+    const prevTo = shiftDays(fromDate, -1)
+    const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
+
+    const [current, previous] = await Promise.all([
+      computePlannedMetricsForRange(supabase, user.id, fromDate, toDate, primarySport, sportFilter ?? null),
+      computePlannedMetricsForRange(supabase, user.id, prevFrom, prevTo, primarySport, sportFilter ?? null),
+    ])
+
+    return {
+      current,
+      previous,
+      percent_changes: {
+        total_seconds: percentChange(current.total_seconds, previous.total_seconds),
+        total_meters: percentChange(current.total_meters, previous.total_meters),
+        workout_count: percentChange(current.workout_count, previous.workout_count),
+      },
+      primarySport,
+      rangeDays,
+      previousRange: { from: prevFrom, to: prevTo },
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getPlannedOverview: ${msg}` }
   }
 }
 

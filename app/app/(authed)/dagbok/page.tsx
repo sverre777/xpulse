@@ -23,7 +23,10 @@ export default async function DagbokPage() {
 
   const monday = new Date(now)
   monday.setDate(now.getDate() - ((now.getDay() + 6) % 7))
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
   const weekStart = monday.toISOString().split('T')[0]
+  const weekEnd = sunday.toISOString().split('T')[0]
 
   const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
@@ -44,7 +47,7 @@ export default async function DagbokPage() {
     supabase.from('workouts')
       .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters)')
       .eq('user_id', user.id).eq('is_planned', false)
-      .gte('date', weekStart).lte('date', today),
+      .gte('date', weekStart).lte('date', weekEnd),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', user.id)
       .gte('date', monthStart)

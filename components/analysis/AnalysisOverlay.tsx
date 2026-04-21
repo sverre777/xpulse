@@ -2,18 +2,21 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { getAnalysisOverview, type AnalysisOverview } from '@/app/actions/analysis'
+import { getAnalysisOverview, getPlannedOverview, type AnalysisOverview } from '@/app/actions/analysis'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import type { CalendarView } from '@/components/calendar/Calendar'
 
 // Kompakt, sammenleggbar analyse-panel over Dagbok/Plan-kalenderen.
-// Viser totaltid, antall økter, sone-bar og topp bevegelser for valgt kalenderperiode.
+// Samme visuelle layout i begge moduser — kun innhold (kilde + labels) varierer.
+// Dagbok: faktisk-data (is_planned=false). Plan: planlagt-data (planned_snapshot).
 // Full fordypning skjer i /app/analyse.
+
+export type AnalysisOverlayMode = 'dagbok' | 'plan'
 
 interface AnalysisOverlayProps {
   view: CalendarView
   refDate: Date              // referansedato i valgt vy (uke/måned/år)
-  mode: 'dagbok'
+  mode: AnalysisOverlayMode
 }
 
 function formatIso(d: Date): string {
@@ -62,24 +65,31 @@ function formatKm(meters: number): string {
   return `${(Math.round((meters / 1000) * 10) / 10).toLocaleString('nb-NO')}`
 }
 
-export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
+export function AnalysisOverlay({ view, refDate, mode }: AnalysisOverlayProps) {
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<AnalysisOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const { from, to, label } = rangeForView(view, refDate)
+  const isPlan = mode === 'plan'
+  const headerLabel = isPlan ? 'Plan' : 'Analyse'
+  const timeLabel = isPlan ? 'Planlagt tid' : 'Total tid'
+  const countLabel = isPlan ? 'Planlagte' : 'Økter'
+  const deltaLabel = isPlan ? '% vs. forrige planlagte' : '% vs. forrige'
 
   // Last data når panelet åpnes og når perioden endres mens det er åpent.
   useEffect(() => {
     if (!open) return
     startTransition(async () => {
       setError(null)
-      const res = await getAnalysisOverview(from, to, null)
+      const res = isPlan
+        ? await getPlannedOverview(from, to, null)
+        : await getAnalysisOverview(from, to, null)
       if ('error' in res) { setError(res.error); return }
       setData(res)
     })
-  }, [open, from, to])
+  }, [open, from, to, isPlan])
 
   const zones = data?.current.zone_seconds
   const zoneTotal = zones ? zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet : 0
@@ -98,7 +108,7 @@ export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
         <span className="flex items-center gap-2 text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           <span aria-hidden="true" style={{ color: '#FF4500' }}>{open ? '▾' : '▸'}</span>
-          Analyse {label}
+          {headerLabel} {label}
           {isPending && <span className="ml-2" style={{ color: '#FF4500' }}>…laster</span>}
         </span>
         <span className="text-[11px] tracking-wider"
@@ -130,7 +140,7 @@ export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
                 <div>
                   <p className="text-[10px] tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                    Tid
+                    {timeLabel}
                   </p>
                   <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1 }}>
                     {formatDuration(data.current.total_seconds)}
@@ -141,7 +151,7 @@ export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
                         fontFamily: "'Barlow Condensed', sans-serif",
                         color: delta > 0 ? '#28A86E' : delta < 0 ? '#E11D48' : '#8A8A96',
                       }}>
-                      {delta > 0 ? '+' : ''}{delta}% vs. forrige
+                      {delta > 0 ? '+' : ''}{delta}{deltaLabel}
                     </p>
                   )}
                 </div>
@@ -157,7 +167,7 @@ export function AnalysisOverlay({ view, refDate }: AnalysisOverlayProps) {
                 <div>
                   <p className="text-[10px] tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                    Økter
+                    {countLabel}
                   </p>
                   <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1 }}>
                     {data.current.workout_count}

@@ -70,7 +70,7 @@ function snapshotZones(snap: RawCalendarWorkout['planned_snapshot']): { zone_nam
 
 // Snapshot-aktiviteter er serialiserte ActivityRow-objekter (strings). Konverter
 // til ActivityLike så samme aggregering kan brukes.
-function snapshotActivityToLike(raw: unknown): ActivityLike | null {
+export function snapshotActivityToLike(raw: unknown): ActivityLike | null {
   if (!raw || typeof raw !== 'object') return null
   const r = raw as Record<string, unknown>
   const typeVal = typeof r.activity_type === 'string' ? r.activity_type : ''

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkoutStats, getCompetitionStats, getAnalysisOverview } from '@/app/actions/analysis'
+import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 
@@ -43,20 +43,17 @@ export default async function AnalysePage() {
 
     const range = rangeFromPreset('30d')
 
-    const [stats, competitions, overview] = await Promise.all([
+    const [stats, overview] = await Promise.all([
       getWorkoutStats(range.from, range.to),
-      getCompetitionStats(range.from, range.to, null),
       getAnalysisOverview(range.from, range.to, null),
     ])
 
     const statsError = 'error' in stats ? stats.error : null
-    const competitionsError = 'error' in competitions ? competitions.error : null
     const overviewError = 'error' in overview ? overview.error : null
 
-    if (statsError || competitionsError || overviewError) {
+    if (statsError || overviewError) {
       const parts: string[] = []
       if (statsError) parts.push(`getWorkoutStats: ${statsError}`)
-      if (competitionsError) parts.push(`getCompetitionStats: ${competitionsError}`)
       if (overviewError) parts.push(`getAnalysisOverview: ${overviewError}`)
       return (
         <ErrorPanel
@@ -69,7 +66,6 @@ export default async function AnalysePage() {
     return (
       <AnalysisPage
         initialStats={stats as Exclude<typeof stats, { error: string }>}
-        initialCompetitions={competitions as Exclude<typeof competitions, { error: string }>}
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
         initialRange={range}
       />

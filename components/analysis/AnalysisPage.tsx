@@ -2,15 +2,19 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import {
-  getWorkoutStats, getCompetitionStats, getAnalysisOverview,
-  type WorkoutStats, type CompetitionStats, type AnalysisOverview,
+  getWorkoutStats, getAnalysisOverview,
+  getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
+  type WorkoutStats, type AnalysisOverview,
+  type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
 import { OverviewTab } from './OverviewTab'
-import { CompetitionTab } from './CompetitionTab'
+import { CompetitionsTab } from './CompetitionsTab'
+import { MovementTab } from './MovementTab'
+import { HealthTab } from './HealthTab'
 
-// 8 faner totalt — i Fase A er kun Oversikt og Konkurranser implementert.
+// 8 faner totalt — Oversikt, Konkurranser, Per bevegelsesform og Helse implementert.
 // Resten viser "Kommer snart" som plassholder. Se AGENTS.md for fase-plan.
 type Tab =
   | 'oversikt'
@@ -21,6 +25,19 @@ type Tab =
   | 'helse'
   | 'per_bevegelsesform'
   | 'periodisering'
+
+// Standard-bevegelse basert på brukerens primære sport.
+function defaultMovementForSport(sport: Sport): string {
+  switch (sport) {
+    case 'running': return 'Løping'
+    case 'cross_country_skiing': return 'Langrenn'
+    case 'biathlon': return 'Langrenn'
+    case 'triathlon': return 'Løping'
+    case 'cycling': return 'Sykling'
+    case 'long_distance_skiing': return 'Langrenn'
+    case 'endurance': return 'Løping'
+  }
+}
 
 const TABS: [Tab, string][] = [
   ['oversikt', 'Oversikt'],
@@ -42,22 +59,45 @@ const STUB = (name: string) => (
   </div>
 )
 
+function LoadingStub({ label }: { label: string }) {
+  return (
+    <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <p className="text-sm tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+        {label}
+      </p>
+    </div>
+  )
+}
+
 export function AnalysisPage({
-  initialStats, initialCompetitions, initialOverview, initialRange,
+  initialStats, initialOverview, initialRange,
 }: {
   initialStats: WorkoutStats
-  initialCompetitions: CompetitionStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
 }) {
   const [tab, setTab] = useState<Tab>('oversikt')
-  const [range, setRange] = useState<DateRange>(initialRange)
+  const [range, setRangeState] = useState<DateRange>(initialRange)
   const [stats, setStats] = useState<WorkoutStats>(initialStats)
-  const [competitions, setCompetitions] = useState<CompetitionStats>(initialCompetitions)
   const [overview, setOverview] = useState<AnalysisOverview>(initialOverview)
-  const [sportFilter, setSportFilter] = useState<Sport | null>(null)
+  const [sportFilter, setSportFilterState] = useState<Sport | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  // Lazy-state for Fase B-faner. Nullstilles i setRange/setSportFilter-callback så tab-åpning fetch-er på nytt.
+  const [competitionsAnalysis, setCompetitionsAnalysis] = useState<CompetitionAnalysis | null>(null)
+  const [movementAnalysis, setMovementAnalysis] = useState<MovementAnalysis | null>(null)
+  const [healthCorrelations, setHealthCorrelations] = useState<HealthCorrelations | null>(null)
+
+  const resetPhaseBCache = () => {
+    setCompetitionsAnalysis(null)
+    setMovementAnalysis(null)
+    setHealthCorrelations(null)
+  }
+
+  const setRange = (r: DateRange) => { resetPhaseBCache(); setRangeState(r) }
+  const setSportFilter = (s: Sport | null) => { resetPhaseBCache(); setSportFilterState(s) }
 
   const isInitial = range.from === initialRange.from && range.to === initialRange.to
 
@@ -65,20 +105,47 @@ export function AnalysisPage({
     if (isInitial && sportFilter === null) return
     startTransition(async () => {
       setError(null)
-      const [s, c, o] = await Promise.all([
+      const [s, o] = await Promise.all([
         getWorkoutStats(range.from, range.to),
-        getCompetitionStats(range.from, range.to, sportFilter),
         getAnalysisOverview(range.from, range.to, sportFilter),
       ])
       if ('error' in s) { setError(s.error); return }
-      if ('error' in c) { setError(c.error); return }
       if ('error' in o) { setError(o.error); return }
       setStats(s)
-      setCompetitions(c)
       setOverview(o)
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [range.from, range.to, sportFilter])
+
+  // Lazy-fetch ved tab-åpning. Bruker gjeldende periode + sportFilter (eller primaerSport for movement).
+  useEffect(() => {
+    if (tab === 'konkurranser' && competitionsAnalysis === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getCompetitionAnalysis(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setCompetitionsAnalysis(res)
+      })
+    }
+    if (tab === 'per_bevegelsesform' && movementAnalysis === null) {
+      const movement = defaultMovementForSport(overview.primarySport)
+      startTransition(async () => {
+        setError(null)
+        const res = await getMovementAnalysis(range.from, range.to, movement)
+        if ('error' in res) { setError(res.error); return }
+        setMovementAnalysis(res)
+      })
+    }
+    if (tab === 'helse' && healthCorrelations === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getHealthCorrelations(range.from, range.to)
+        if ('error' in res) { setError(res.error); return }
+        setHealthCorrelations(res)
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations])
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -154,17 +221,28 @@ export function AnalysisPage({
 
         {tab === 'oversikt' && <OverviewTab stats={stats} overview={overview} />}
         {tab === 'konkurranser' && (
-          <CompetitionTab
-            stats={competitions}
-            sportFilter={sportFilter}
-            onSportFilterChange={setSportFilter}
-          />
+          competitionsAnalysis
+            ? <CompetitionsTab data={competitionsAnalysis} sportFilter={sportFilter} />
+            : <LoadingStub label="Laster konkurranser…" />
+        )}
+        {tab === 'per_bevegelsesform' && (
+          movementAnalysis
+            ? <MovementTab
+                initialData={movementAnalysis}
+                from={range.from}
+                to={range.to}
+                availableMovements={movementAnalysis.availableMovements}
+              />
+            : <LoadingStub label="Laster bevegelsesdata…" />
+        )}
+        {tab === 'helse' && (
+          healthCorrelations
+            ? <HealthTab data={healthCorrelations} />
+            : <LoadingStub label="Laster helsedata…" />
         )}
         {tab === 'belastning' && STUB('Belastning')}
         {tab === 'sammenlign' && STUB('Sammenlign perioder')}
         {tab === 'mal_analyse' && STUB('Mal-analyse')}
-        {tab === 'helse' && STUB('Helse-trend')}
-        {tab === 'per_bevegelsesform' && STUB('Per bevegelsesform')}
         {tab === 'periodisering' && STUB('Periodisering')}
       </div>
     </div>

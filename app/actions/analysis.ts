@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getHeartZonesForUser } from '@/lib/heart-zones'
+import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import type { Sport, WorkoutType, CompetitionType } from '@/lib/types'
 
@@ -731,5 +731,720 @@ export async function getCompetitionStats(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getCompetitionStats: ${msg}` }
+  }
+}
+
+// ── Fase B: Konkurranse-analyse ─────────────────────────
+
+export type CompetitionTypeFilter = 'konkurranse' | 'testlop' | 'stafett' | 'tempo'
+
+export interface CompetitionAnalysisRow {
+  id: string
+  date: string
+  title: string
+  sport: Sport
+  workout_type: WorkoutType
+  competition_type: CompetitionType | null
+  name: string | null
+  distance_format: string | null
+  position_overall: number | null
+  participant_count: number | null
+  duration_seconds: number
+  total_meters: number
+}
+
+export interface ShootingSeriesPoint {
+  date: string
+  sort_order: number                // rekkefølge i økten (1-basert)
+  activity_type: string             // 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert' | ...
+  shots: number
+  hits: number
+  accuracy_pct: number | null
+  duration_seconds: number | null
+  avg_heart_rate: number | null
+  in_competition: boolean           // true hvis fra competition/testlop, false ellers
+  workout_id: string
+}
+
+export interface CompetitionAnalysis {
+  rows: CompetitionAnalysisRow[]
+  hasData: boolean
+  sportsPresent: Sport[]
+  // Treff per serie over tid — fra alle økter (trening + konkurranse).
+  shootingSeries: ShootingSeriesPoint[]
+  // Har minst én skyte-serie?
+  hasShooting: boolean
+}
+
+export async function getCompetitionAnalysis(
+  fromDate: string,
+  toDate: string,
+  sportFilter?: Sport | null,
+  typeFilter?: CompetitionTypeFilter[] | null,
+): Promise<CompetitionAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    let compQuery = supabase
+      .from('workouts')
+      .select('id,title,date,sport,workout_type,duration_minutes,workout_activities(activity_type,sort_order,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .in('workout_type', ['competition', 'testlop'])
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) compQuery = compQuery.eq('sport', sportFilter)
+
+    // Alle økter med skyte-aktiviteter i perioden (trening + konkurranse) —
+    // trenger denne separat for "konkurranse vs trening"-graf.
+    let shootingWorkoutsQuery = supabase
+      .from('workouts')
+      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+    if (sportFilter) shootingWorkoutsQuery = shootingWorkoutsQuery.eq('sport', sportFilter)
+
+    const [{ data: compData, error: cErr }, { data: shootingData, error: sErr }] = await Promise.all([
+      compQuery, shootingWorkoutsQuery,
+    ])
+    if (cErr) return { error: cErr.message }
+    if (sErr) return { error: sErr.message }
+
+    const rows: CompetitionAnalysisRow[] = []
+    const sportsPresent = new Set<Sport>()
+
+    for (const w of (compData ?? []) as RawCompetitionRow[]) {
+      const comp = w.workout_competition_data?.[0] ?? null
+      // Filtrer på konkurransetype hvis oppgitt (inkluder om ingen comp-record og type-filter er null).
+      if (typeFilter && typeFilter.length > 0) {
+        if (!comp?.competition_type || !typeFilter.includes(comp.competition_type as CompetitionTypeFilter)) continue
+      }
+      const activities = w.workout_activities ?? []
+      let duration = 0
+      let meters = 0
+      for (const a of activities) {
+        if (PAUSE_ACT_TYPES.has(a.activity_type)) continue
+        duration += a.duration_seconds ?? 0
+        meters += a.distance_meters ?? 0
+      }
+      if (duration <= 0 && w.duration_minutes) duration = w.duration_minutes * 60
+
+      sportsPresent.add(w.sport)
+      rows.push({
+        id: w.id,
+        date: w.date,
+        title: w.title ?? '',
+        sport: w.sport,
+        workout_type: w.workout_type,
+        competition_type: comp?.competition_type ?? null,
+        name: comp?.name ?? null,
+        distance_format: comp?.distance_format ?? null,
+        position_overall: comp?.position_overall ?? null,
+        participant_count: comp?.participant_count ?? null,
+        duration_seconds: duration,
+        total_meters: meters,
+      })
+    }
+
+    const shootingSeries: ShootingSeriesPoint[] = []
+    type ShootingRaw = {
+      id: string; date: string; workout_type: WorkoutType; sport: Sport
+      workout_activities: {
+        activity_type: string; sort_order: number | null; duration_seconds: number | null
+        avg_heart_rate: number | null
+        prone_shots: number | null; prone_hits: number | null
+        standing_shots: number | null; standing_hits: number | null
+      }[] | null
+    }
+    for (const w of (shootingData ?? []) as ShootingRaw[]) {
+      const shootingActs = (w.workout_activities ?? [])
+        .filter(a => SHOOTING_ACT_TYPES.has(a.activity_type))
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      if (shootingActs.length === 0) continue
+      const inComp = w.workout_type === 'competition' || w.workout_type === 'testlop'
+      let seriesIdx = 0
+      for (const a of shootingActs) {
+        seriesIdx += 1
+        const shots = (a.prone_shots ?? 0) + (a.standing_shots ?? 0)
+        const hits = (a.prone_hits ?? 0) + (a.standing_hits ?? 0)
+        shootingSeries.push({
+          date: w.date,
+          sort_order: seriesIdx,
+          activity_type: a.activity_type,
+          shots, hits,
+          accuracy_pct: shots > 0 ? Math.round((hits / shots) * 1000) / 10 : null,
+          duration_seconds: a.duration_seconds,
+          avg_heart_rate: a.avg_heart_rate,
+          in_competition: inComp,
+          workout_id: w.id,
+        })
+      }
+    }
+
+    return {
+      rows,
+      hasData: rows.length > 0,
+      sportsPresent: Array.from(sportsPresent),
+      shootingSeries,
+      hasShooting: shootingSeries.length > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getCompetitionAnalysis: ${msg}` }
+  }
+}
+
+// ── Fase B: Per bevegelsesform-analyse ──────────────────
+
+export interface MovementWeekBucket {
+  weekKey: string
+  label: string
+  startDate: string
+  total_seconds: number
+  total_meters: number
+  activity_count: number
+  zones: OverviewZoneSeconds
+}
+
+export interface MovementActivityPoint {
+  date: string
+  workout_id: string
+  duration_seconds: number
+  distance_meters: number
+  avg_heart_rate: number | null
+  avg_watts: number | null
+  lactate_mmol: number | null
+  pace_sec_per_km: number | null
+  subcategory: string | null   // fra notes/activity_type-mapping — vi bruker movement_subcategory hvis finnes
+}
+
+export interface MovementBestPerformances {
+  longestTime?: { workout_id: string; date: string; duration_seconds: number }
+  longestDistance?: { workout_id: string; date: string; distance_meters: number }
+  highestAvgHr?: { workout_id: string; date: string; avg_heart_rate: number }
+  fastestPace?: { workout_id: string; date: string; pace_sec_per_km: number; duration_seconds: number }
+  maxWatts?: { workout_id: string; date: string; avg_watts: number }
+}
+
+export interface MovementAnalysis {
+  movementName: string
+  availableMovements: string[]
+  current: {
+    total_seconds: number
+    total_meters: number
+    activity_count: number
+    workout_count: number
+    avg_heart_rate: number | null
+    avg_pace_sec_per_km: number | null
+    avg_watts: number | null
+    zones: OverviewZoneSeconds
+  }
+  previous: {
+    total_seconds: number
+    total_meters: number
+    activity_count: number
+    workout_count: number
+    avg_heart_rate: number | null
+    avg_pace_sec_per_km: number | null
+    avg_watts: number | null
+  }
+  percent_changes: {
+    total_seconds: number | null
+    total_meters: number | null
+    activity_count: number | null
+  }
+  weeks: MovementWeekBucket[]
+  activities: MovementActivityPoint[]          // per-aktivitet punkter sortert på dato
+  best: MovementBestPerformances
+  hasData: boolean
+}
+
+type RawMovementRow = {
+  id: string
+  date: string
+  sport: Sport
+  workout_type: WorkoutType
+  duration_minutes: number | null
+  workout_activities: {
+    id: string
+    activity_type: string
+    movement_name: string | null
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    avg_watts: number | null
+    lactate_mmol: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+async function computeMovementMetrics(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  fromDate: string,
+  toDate: string,
+  movementName: string,
+  heartZones: HeartZone[],
+): Promise<MovementAnalysis['current'] & { activities: MovementActivityPoint[]; best: MovementBestPerformances; weeks: MovementWeekBucket[]; workout_count: number }> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id,date,sport,workout_type,duration_minutes,workout_activities(id,activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,avg_watts,lactate_mmol,zones)')
+    .eq('user_id', userId)
+    .eq('is_planned', false)
+    .gte('date', fromDate)
+    .lte('date', toDate)
+    .order('date', { ascending: true })
+  if (error) throw new Error(error.message)
+
+  const weekMap = new Map<string, MovementWeekBucket>()
+  const activities: MovementActivityPoint[] = []
+  let totalSeconds = 0, totalMeters = 0, activityCount = 0
+  let hrSum = 0, hrCount = 0
+  let paceSecSum = 0, paceMeterSum = 0
+  let wattSum = 0, wattCount = 0
+  const zones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  const workoutIds = new Set<string>()
+  const best: MovementBestPerformances = {}
+
+  for (const w of (data ?? []) as RawMovementRow[]) {
+    const matching = (w.workout_activities ?? []).filter(a => a.movement_name === movementName)
+    if (matching.length === 0) continue
+    workoutIds.add(w.id)
+
+    const { weekKey, label, startDate } = isoWeekKey(new Date(w.date))
+    let bucket = weekMap.get(weekKey)
+    if (!bucket) {
+      bucket = {
+        weekKey, label, startDate,
+        total_seconds: 0, total_meters: 0, activity_count: 0,
+        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+      }
+      weekMap.set(weekKey, bucket)
+    }
+
+    // Sone-aggregat kun for de matchende aktivitetene (ikke hele økten).
+    const totals = computeActivityTotals(
+      matching.map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      })),
+      heartZones,
+    )
+    bucket.zones.I1 += totals.zoneSeconds.I1
+    bucket.zones.I2 += totals.zoneSeconds.I2
+    bucket.zones.I3 += totals.zoneSeconds.I3
+    bucket.zones.I4 += totals.zoneSeconds.I4
+    bucket.zones.I5 += totals.zoneSeconds.I5
+    bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
+    zones.I1 += totals.zoneSeconds.I1
+    zones.I2 += totals.zoneSeconds.I2
+    zones.I3 += totals.zoneSeconds.I3
+    zones.I4 += totals.zoneSeconds.I4
+    zones.I5 += totals.zoneSeconds.I5
+    zones.Hurtighet += totals.zoneSeconds.Hurtighet
+
+    for (const a of matching) {
+      const secs = a.duration_seconds ?? 0
+      const meters = a.distance_meters ?? 0
+      bucket.total_seconds += secs
+      bucket.total_meters += meters
+      bucket.activity_count += 1
+
+      totalSeconds += secs
+      totalMeters += meters
+      activityCount += 1
+
+      if (a.avg_heart_rate && a.avg_heart_rate > 0) { hrSum += a.avg_heart_rate; hrCount += 1 }
+      if (meters > 0 && secs > 0) { paceSecSum += secs; paceMeterSum += meters }
+      if (a.avg_watts && a.avg_watts > 0) { wattSum += a.avg_watts; wattCount += 1 }
+
+      const pace = (meters > 0 && secs > 0) ? (secs / meters) * 1000 : null
+      const point: MovementActivityPoint = {
+        date: w.date,
+        workout_id: w.id,
+        duration_seconds: secs,
+        distance_meters: meters,
+        avg_heart_rate: a.avg_heart_rate,
+        avg_watts: a.avg_watts,
+        lactate_mmol: a.lactate_mmol,
+        pace_sec_per_km: pace,
+        subcategory: null,
+      }
+      activities.push(point)
+
+      if (!best.longestTime || secs > best.longestTime.duration_seconds) {
+        best.longestTime = { workout_id: w.id, date: w.date, duration_seconds: secs }
+      }
+      if (meters > 0 && (!best.longestDistance || meters > best.longestDistance.distance_meters)) {
+        best.longestDistance = { workout_id: w.id, date: w.date, distance_meters: meters }
+      }
+      if (a.avg_heart_rate && (!best.highestAvgHr || a.avg_heart_rate > best.highestAvgHr.avg_heart_rate)) {
+        best.highestAvgHr = { workout_id: w.id, date: w.date, avg_heart_rate: a.avg_heart_rate }
+      }
+      // Tempo kvalifiserer kun for Løping + ≥30 min.
+      if (movementName === 'Løping' && pace && secs >= 30 * 60) {
+        if (!best.fastestPace || pace < best.fastestPace.pace_sec_per_km) {
+          best.fastestPace = { workout_id: w.id, date: w.date, pace_sec_per_km: pace, duration_seconds: secs }
+        }
+      }
+      if (a.avg_watts && (!best.maxWatts || a.avg_watts > best.maxWatts.avg_watts)) {
+        best.maxWatts = { workout_id: w.id, date: w.date, avg_watts: a.avg_watts }
+      }
+    }
+  }
+
+  const weeks = Array.from(weekMap.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
+
+  return {
+    total_seconds: totalSeconds,
+    total_meters: totalMeters,
+    activity_count: activityCount,
+    workout_count: workoutIds.size,
+    avg_heart_rate: hrCount > 0 ? Math.round(hrSum / hrCount) : null,
+    avg_pace_sec_per_km: paceMeterSum > 0 ? Math.round((paceSecSum / paceMeterSum) * 1000) : null,
+    avg_watts: wattCount > 0 ? Math.round(wattSum / wattCount) : null,
+    zones,
+    weeks,
+    activities,
+    best,
+  }
+}
+
+export async function getMovementAnalysis(
+  fromDate: string,
+  toDate: string,
+  movementName: string,
+): Promise<MovementAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+
+    // Hent alle unike bevegelsesformer brukeren har i perioden — for movement-velger.
+    const { data: allMoves } = await supabase
+      .from('workouts')
+      .select('workout_activities(movement_name)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+    const availableSet = new Set<string>()
+    for (const w of (allMoves ?? []) as { workout_activities: { movement_name: string | null }[] | null }[]) {
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.movement_name) availableSet.add(a.movement_name)
+      }
+    }
+    const availableMovements = Array.from(availableSet).sort()
+
+    const rangeDays = Math.max(1, daysBetween(fromDate, toDate))
+    const prevTo = shiftDays(fromDate, -1)
+    const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
+
+    const [current, previous] = await Promise.all([
+      computeMovementMetrics(supabase, user.id, fromDate, toDate, movementName, heartZones),
+      computeMovementMetrics(supabase, user.id, prevFrom, prevTo, movementName, heartZones),
+    ])
+
+    return {
+      movementName,
+      availableMovements,
+      current: {
+        total_seconds: current.total_seconds,
+        total_meters: current.total_meters,
+        activity_count: current.activity_count,
+        workout_count: current.workout_count,
+        avg_heart_rate: current.avg_heart_rate,
+        avg_pace_sec_per_km: current.avg_pace_sec_per_km,
+        avg_watts: current.avg_watts,
+        zones: current.zones,
+      },
+      previous: {
+        total_seconds: previous.total_seconds,
+        total_meters: previous.total_meters,
+        activity_count: previous.activity_count,
+        workout_count: previous.workout_count,
+        avg_heart_rate: previous.avg_heart_rate,
+        avg_pace_sec_per_km: previous.avg_pace_sec_per_km,
+        avg_watts: previous.avg_watts,
+      },
+      percent_changes: {
+        total_seconds: percentChange(current.total_seconds, previous.total_seconds),
+        total_meters: percentChange(current.total_meters, previous.total_meters),
+        activity_count: percentChange(current.activity_count, previous.activity_count),
+      },
+      weeks: current.weeks,
+      activities: current.activities,
+      best: current.best,
+      hasData: current.activity_count > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getMovementAnalysis: ${msg}` }
+  }
+}
+
+// ── Fase B: Helse og korrelasjoner ──────────────────────
+
+export interface HealthDailyPoint {
+  date: string
+  hrv_ms: number | null
+  resting_hr: number | null
+  sleep_hours: number | null
+  sleep_quality: number | null
+  body_weight_kg: number | null
+  day_form: number | null             // snitt av day_form_physical/mental fra workouts den dagen
+  workload_seconds: number            // total_seconds den dagen (alle økter, alle sporter)
+}
+
+export interface CorrelationPoint {
+  x: number
+  y: number
+  date: string
+}
+
+export interface RecoverySummary {
+  total_entries: number
+  by_type: Array<{ type: string; count: number }>
+  entries_last_week: number
+}
+
+export interface TemplateLactateSeries {
+  template_id: string
+  template_name: string
+  points: Array<{ date: string; workout_id: string; mean_mmol: number }>
+}
+
+export interface HealthCorrelations {
+  daily: HealthDailyPoint[]             // én rad per dag i perioden (med null-felt hvis ikke logget)
+  hasHealthData: boolean
+  correlations: {
+    dayFormVs3dLoad: CorrelationPoint[]
+    hrvVs7dLoad: CorrelationPoint[]
+    intervalHrVsHrv: CorrelationPoint[]
+    intervalHrVsSleep: CorrelationPoint[]
+  }
+  recovery: RecoverySummary
+  templateLactate: TemplateLactateSeries[]
+}
+
+function toIso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function* iterateDates(fromIso: string, toIso: string): Generator<string> {
+  const [fy, fm, fd] = fromIso.split('-').map(Number)
+  const [ty, tm, td] = toIso.split('-').map(Number)
+  const cursor = new Date(Date.UTC(fy, (fm ?? 1) - 1, fd ?? 1))
+  const end = new Date(Date.UTC(ty, (tm ?? 1) - 1, td ?? 1))
+  while (cursor <= end) {
+    yield `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}-${String(cursor.getUTCDate()).padStart(2, '0')}`
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+}
+
+export async function getHealthCorrelations(
+  fromDate: string,
+  toDate: string,
+): Promise<HealthCorrelations | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    // Vi trenger litt data før fromDate for å beregne 7d/3d rullende belastning
+    // på de tidligste datoene i perioden.
+    const lookBackFrom = shiftDays(fromDate, -7)
+
+    const [healthRes, workoutsRes, recoveryRes, templatesRes] = await Promise.all([
+      supabase.from('daily_health')
+        .select('date,hrv_ms,resting_hr,sleep_hours,sleep_quality,body_weight_kg')
+        .eq('user_id', user.id)
+        .gte('date', fromDate).lte('date', toDate)
+        .order('date', { ascending: true }),
+      supabase.from('workouts')
+        .select('id,date,day_form_physical,day_form_mental,duration_minutes,planned_workout_id,workout_activities(activity_type,duration_seconds,avg_heart_rate,lactate_mmol,zones)')
+        .eq('user_id', user.id)
+        .eq('is_planned', false)
+        .gte('date', lookBackFrom).lte('date', toDate)
+        .order('date', { ascending: true }),
+      supabase.from('recovery_entries')
+        .select('date,type')
+        .eq('user_id', user.id)
+        .gte('date', fromDate).lte('date', toDate),
+      supabase.from('workout_templates')
+        .select('id,name')
+        .eq('user_id', user.id),
+    ])
+
+    if (healthRes.error) return { error: healthRes.error.message }
+    if (workoutsRes.error) return { error: workoutsRes.error.message }
+    if (recoveryRes.error) return { error: recoveryRes.error.message }
+    // templates.error tolereres — da faller vi bare tilbake til tom liste.
+
+    type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; sleep_quality: number | null; body_weight_kg: number | null }
+    type WRow = {
+      id: string; date: string
+      day_form_physical: number | null; day_form_mental: number | null
+      duration_minutes: number | null
+      planned_workout_id: string | null
+      workout_activities: {
+        activity_type: string; duration_seconds: number | null; avg_heart_rate: number | null; lactate_mmol: number | null; zones: Record<string, number | string | null> | null
+      }[] | null
+    }
+
+    const healthByDate = new Map<string, HealthRow>()
+    for (const r of (healthRes.data ?? []) as HealthRow[]) healthByDate.set(r.date, r)
+
+    // Pr-dag workload (sekunder) for ALLE dager i lookBack-perioden.
+    const workloadByDate = new Map<string, number>()
+    // Dagsform aggregat pr dag.
+    const dayFormByDate = new Map<string, { sum: number; count: number }>()
+    // Intervall-HR per dag (snitt av avg_heart_rate på I3+I4+I5-tunge aktiviteter).
+    const intervalHrByDate = new Map<string, { sum: number; count: number }>()
+
+    for (const w of (workoutsRes.data ?? []) as WRow[]) {
+      let daySecs = 0
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        daySecs += a.duration_seconds ?? 0
+      }
+      if (daySecs === 0 && w.duration_minutes) daySecs = w.duration_minutes * 60
+      workloadByDate.set(w.date, (workloadByDate.get(w.date) ?? 0) + daySecs)
+
+      // Dagsform = snitt av phys/mental for økten.
+      const dfVals: number[] = []
+      if (w.day_form_physical != null) dfVals.push(w.day_form_physical)
+      if (w.day_form_mental != null) dfVals.push(w.day_form_mental)
+      if (dfVals.length > 0) {
+        const mean = dfVals.reduce((a, b) => a + b, 0) / dfVals.length
+        const prev = dayFormByDate.get(w.date) ?? { sum: 0, count: 0 }
+        dayFormByDate.set(w.date, { sum: prev.sum + mean, count: prev.count + 1 })
+      }
+
+      // Intervall-HR: aktiviteter som ligger hovedsakelig i I3-I5 basert på explicit zones eller avg_heart_rate + heartZone.
+      for (const a of (w.workout_activities ?? [])) {
+        if (!a.avg_heart_rate || a.avg_heart_rate <= 0) continue
+        const z = a.zones ?? {}
+        const inHighZone = ['I3','I4','I5'].some(k => {
+          const raw = z[k]
+          const n = typeof raw === 'string' ? parseInt(raw) : Number(raw)
+          return Number.isFinite(n) && n > 0
+        })
+        if (inHighZone) {
+          const prev = intervalHrByDate.get(w.date) ?? { sum: 0, count: 0 }
+          intervalHrByDate.set(w.date, { sum: prev.sum + a.avg_heart_rate, count: prev.count + 1 })
+        }
+      }
+    }
+
+    // Bygg daily-array (kun perioden fra→to, men workload ser tilbake 7d).
+    const daily: HealthDailyPoint[] = []
+    for (const iso of iterateDates(fromDate, toDate)) {
+      const h = healthByDate.get(iso)
+      const df = dayFormByDate.get(iso)
+      daily.push({
+        date: iso,
+        hrv_ms: h?.hrv_ms ?? null,
+        resting_hr: h?.resting_hr ?? null,
+        sleep_hours: h?.sleep_hours ?? null,
+        sleep_quality: h?.sleep_quality ?? null,
+        body_weight_kg: h?.body_weight_kg ?? null,
+        day_form: df ? Math.round((df.sum / df.count) * 10) / 10 : null,
+        workload_seconds: workloadByDate.get(iso) ?? 0,
+      })
+    }
+
+    const hasHealthData = daily.some(d =>
+      d.hrv_ms != null || d.resting_hr != null || d.sleep_hours != null || d.body_weight_kg != null
+    )
+
+    // Korrelasjoner.
+    const dayFormVs3dLoad: CorrelationPoint[] = []
+    const hrvVs7dLoad: CorrelationPoint[] = []
+    const intervalHrVsHrv: CorrelationPoint[] = []
+    const intervalHrVsSleep: CorrelationPoint[] = []
+
+    function loadSumLastNDays(targetIso: string, n: number): number {
+      let total = 0
+      for (let i = 1; i <= n; i++) {
+        const iso = shiftDays(targetIso, -i)
+        total += workloadByDate.get(iso) ?? 0
+      }
+      return total
+    }
+
+    for (const d of daily) {
+      if (d.day_form != null) {
+        dayFormVs3dLoad.push({ x: loadSumLastNDays(d.date, 3) / 3600, y: d.day_form, date: d.date })
+      }
+      if (d.hrv_ms != null) {
+        hrvVs7dLoad.push({ x: loadSumLastNDays(d.date, 7) / 3600, y: d.hrv_ms, date: d.date })
+      }
+      const intHr = intervalHrByDate.get(d.date)
+      if (intHr) {
+        const mean = intHr.sum / intHr.count
+        if (d.hrv_ms != null) intervalHrVsHrv.push({ x: d.hrv_ms, y: mean, date: d.date })
+        if (d.sleep_hours != null) intervalHrVsSleep.push({ x: d.sleep_hours, y: mean, date: d.date })
+      }
+    }
+
+    // Recovery-sammendrag.
+    type RecRow = { date: string; type: string }
+    const recRows = (recoveryRes.data ?? []) as RecRow[]
+    const byType = new Map<string, number>()
+    for (const r of recRows) byType.set(r.type, (byType.get(r.type) ?? 0) + 1)
+    const lastWeekFrom = shiftDays(toDate, -6)
+    const entriesLastWeek = recRows.filter(r => r.date >= lastWeekFrom && r.date <= toDate).length
+    const recovery: RecoverySummary = {
+      total_entries: recRows.length,
+      by_type: Array.from(byType.entries()).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count),
+      entries_last_week: entriesLastWeek,
+    }
+
+    // Laktat per mal (kun maler som er brukt ≥3 ganger i perioden).
+    type Template = { id: string; name: string }
+    const templatesById = new Map<string, Template>()
+    for (const t of ((templatesRes.data ?? []) as Template[])) templatesById.set(t.id, t)
+
+    const lactateByTemplate = new Map<string, { name: string; points: { date: string; workout_id: string; mean_mmol: number }[] }>()
+    for (const w of (workoutsRes.data ?? []) as WRow[]) {
+      if (!w.planned_workout_id) continue
+      const vals: number[] = []
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.lactate_mmol != null && Number.isFinite(Number(a.lactate_mmol))) vals.push(Number(a.lactate_mmol))
+      }
+      if (vals.length === 0) continue
+      const t = templatesById.get(w.planned_workout_id)
+      if (!t) continue
+      const mean = vals.reduce((a, b) => a + b, 0) / vals.length
+      const entry = lactateByTemplate.get(t.id) ?? { name: t.name, points: [] }
+      entry.points.push({ date: w.date, workout_id: w.id, mean_mmol: Math.round(mean * 100) / 100 })
+      lactateByTemplate.set(t.id, entry)
+    }
+    const templateLactate: TemplateLactateSeries[] = Array.from(lactateByTemplate.entries())
+      .filter(([, v]) => v.points.length >= 3)
+      .map(([id, v]) => ({ template_id: id, template_name: v.name, points: v.points.sort((a, b) => a.date.localeCompare(b.date)) }))
+
+    return {
+      daily,
+      hasHealthData,
+      correlations: { dayFormVs3dLoad, hrvVs7dLoad, intervalHrVsHrv, intervalHrVsSleep },
+      recovery,
+      templateLactate,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getHealthCorrelations: ${msg}` }
   }
 }

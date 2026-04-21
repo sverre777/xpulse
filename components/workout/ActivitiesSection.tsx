@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityRow, ActivityType, ACTIVITY_TYPES, findActivityType,
   Sport, DEFAULT_MOVEMENTS_BY_SPORT, MOVEMENT_CATEGORIES,
@@ -12,6 +12,8 @@ import {
   TUR_SUBCATEGORIES_WITH_SLED, WEATHER_OPTIONS,
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+import { presetsForCategory } from '@/lib/exercise-presets'
+import { getUserExercises, type UserExercise } from '@/app/actions/user-exercises'
 
 interface Props {
   rows: ActivityRow[]
@@ -452,6 +454,7 @@ function ActivityRowItem({
             <StrengthEditor
               exercises={row.exercises}
               onChange={ex => onUpdate({ exercises: ex })}
+              category={row.movement_subcategory}
             />
           )}
 
@@ -534,14 +537,52 @@ function ZoneEditor({
 }
 
 // ── Styrke ─────────────────────────────────────────────────
+// Autocomplete henter brukerens personlige øvelsesbibliotek (last_used_at desc)
+// ved mount og slår sammen med preset-forslag basert på valgt underkategori.
+// Quick-add-knappene over "+ Legg til øvelse" hopper rett til en ny rad med navnet
+// forhåndsutfylt.
 
 function StrengthEditor({
-  exercises, onChange,
+  exercises, onChange, category,
 }: {
   exercises: StrengthExerciseRow[]
   onChange: (ex: StrengthExerciseRow[]) => void
+  category: string
 }) {
-  const addExercise = () => onChange([...exercises, emptyExercise()])
+  const [library, setLibrary] = useState<UserExercise[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getUserExercises().then(data => {
+      if (!cancelled) setLibrary(data)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const presets = presetsForCategory(category)
+  const libraryNames = useMemo(
+    () => new Set(library.map(e => e.name.toLowerCase())),
+    [library],
+  )
+  const presetQuickAdds = useMemo(
+    () => presets.filter(p => !exercises.some(e => e.exercise_name.trim().toLowerCase() === p.toLowerCase())),
+    [presets, exercises],
+  )
+
+  const addExercise = (seedName?: string, seedFromLibrary?: UserExercise) => {
+    const base = emptyExercise()
+    if (seedName) base.exercise_name = seedName
+    if (seedFromLibrary) {
+      base.exercise_name = seedFromLibrary.name
+      // Forhåndsutfyll default reps/vekt på første sett.
+      base.sets = [{
+        ...base.sets[0],
+        reps: seedFromLibrary.default_reps != null ? String(seedFromLibrary.default_reps) : '',
+        weight_kg: seedFromLibrary.default_weight_kg != null ? String(seedFromLibrary.default_weight_kg) : '',
+      }]
+    }
+    onChange([...exercises, base])
+  }
   const updateExercise = (id: string, patch: Partial<StrengthExerciseRow>) =>
     onChange(exercises.map(e => e.id === id ? { ...e, ...patch } : e))
   const deleteExercise = (id: string) =>
@@ -566,11 +607,36 @@ function StrengthEditor({
             exercise={ex}
             onUpdate={patch => updateExercise(ex.id, patch)}
             onDelete={() => deleteExercise(ex.id)}
+            library={library}
+            presets={presets}
+            libraryNames={libraryNames}
           />
         ))}
       </div>
 
-      <button type="button" onClick={addExercise}
+      {presetQuickAdds.length > 0 && (
+        <div className="mt-3">
+          <div className="text-xs tracking-widest uppercase mb-1.5"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Foreslått
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {presetQuickAdds.map(name => (
+              <button key={name} type="button" onClick={() => addExercise(name)}
+                className="text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
+                  background: 'none', border: '1px solid #262629',
+                  padding: '4px 10px', cursor: 'pointer',
+                }}>
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <button type="button" onClick={() => addExercise()}
         className="mt-3 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
@@ -583,11 +649,14 @@ function StrengthEditor({
 }
 
 function ExerciseBlock({
-  exercise, onUpdate, onDelete,
+  exercise, onUpdate, onDelete, library, presets, libraryNames,
 }: {
   exercise: StrengthExerciseRow
   onUpdate: (patch: Partial<StrengthExerciseRow>) => void
   onDelete: () => void
+  library: UserExercise[]
+  presets: string[]
+  libraryNames: Set<string>
 }) {
   const updateSet = (id: string, patch: Partial<StrengthSetRow>) =>
     onUpdate({ sets: exercise.sets.map(s => s.id === id ? { ...s, ...patch } : s) })
@@ -601,14 +670,34 @@ function ExerciseBlock({
     onUpdate({ sets: next })
   }
 
+  // Fyll inn default reps/vekt fra biblioteket — men bare hvis første sett
+  // fortsatt er tomt (ikke overskriv det brukeren allerede har skrevet).
+  const applyLibraryDefaults = (item: UserExercise) => {
+    const first = exercise.sets[0]
+    const shouldFill =
+      !!first && !first.reps && !first.weight_kg && !first.rpe
+    const patch: Partial<StrengthExerciseRow> = { exercise_name: item.name }
+    if (shouldFill && (item.default_reps != null || item.default_weight_kg != null)) {
+      patch.sets = exercise.sets.map((s, i) => i === 0 ? {
+        ...s,
+        reps: item.default_reps != null ? String(item.default_reps) : s.reps,
+        weight_kg: item.default_weight_kg != null ? String(item.default_weight_kg) : s.weight_kg,
+      } : s)
+    }
+    onUpdate(patch)
+  }
+
   return (
     <div style={{ border: '1px solid #262629', backgroundColor: '#1A1A1E', padding: '10px' }}>
       <div className="flex items-center gap-2 mb-2">
-        <input value={exercise.exercise_name}
-          onChange={e => onUpdate({ exercise_name: e.target.value })}
-          placeholder="Øvelsesnavn (f.eks. Knebøy)"
-          list="strength-exercise-list"
-          style={{ ...iSt, flex: 1, fontWeight: 600 }} />
+        <ExerciseNameAutocomplete
+          value={exercise.exercise_name}
+          onChange={name => onUpdate({ exercise_name: name })}
+          onPickLibrary={applyLibraryDefaults}
+          library={library}
+          presets={presets}
+          libraryNames={libraryNames}
+        />
         <button type="button" onClick={onDelete}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '16px', padding: '0 6px' }}
           title="Slett øvelse">×</button>
@@ -660,6 +749,105 @@ function ExerciseBlock({
         }}>
         + Legg til sett
       </button>
+    </div>
+  )
+}
+
+// Autocomplete for styrke-øvelsesnavn.
+// Primærkilde: brukerens personlige bibliotek (sortert sist brukt først).
+// Sekundær: preset-navn for valgt underkategori som ikke allerede finnes i
+// biblioteket. Listen filtreres case-insensitive på tekst brukeren skriver.
+
+type SuggestionItem =
+  | { kind: 'library'; name: string; item: UserExercise }
+  | { kind: 'preset'; name: string }
+
+function ExerciseNameAutocomplete({
+  value, onChange, onPickLibrary, library, presets, libraryNames,
+}: {
+  value: string
+  onChange: (name: string) => void
+  onPickLibrary: (item: UserExercise) => void
+  library: UserExercise[]
+  presets: string[]
+  libraryNames: Set<string>
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+
+  const q = value.trim().toLowerCase()
+  const suggestions = useMemo<SuggestionItem[]>(() => {
+    const libMatches = library
+      .filter(e => !q || e.name.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map<SuggestionItem>(item => ({ kind: 'library', name: item.name, item }))
+
+    const presetMatches = presets
+      .filter(p => !libraryNames.has(p.toLowerCase()))
+      .filter(p => !q || p.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map<SuggestionItem>(name => ({ kind: 'preset', name }))
+
+    return [...libMatches, ...presetMatches]
+  }, [library, presets, libraryNames, q])
+
+  useEffect(() => {
+    if (!open) return
+    function onDocClick(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [open])
+
+  const pick = (s: SuggestionItem) => {
+    if (s.kind === 'library') {
+      onPickLibrary(s.item)
+    } else {
+      onChange(s.name)
+    }
+    setOpen(false)
+  }
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', flex: 1 }}>
+      <input value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        placeholder="Øvelsesnavn (f.eks. Knebøy)"
+        style={{ ...iSt, width: '100%', fontWeight: 600 }} />
+
+      {open && suggestions.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
+          backgroundColor: '#16161A', border: '1px solid #262629',
+          marginTop: '2px', maxHeight: '220px', overflowY: 'auto',
+        }}>
+          {suggestions.map((s, i) => (
+            <button key={`${s.kind}-${s.name}-${i}`} type="button"
+              onClick={() => pick(s)}
+              className="w-full flex items-center justify-between px-3 py-1.5 transition-colors hover:bg-[#1E1E22]"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+                fontSize: '14px', textAlign: 'left',
+              }}>
+              <span>{s.name}</span>
+              <span style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: s.kind === 'library' ? '#8A8A96' : '#555560',
+                fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase',
+              }}>
+                {s.kind === 'library'
+                  ? `brukt ${s.item.times_used}×`
+                  : 'forslag'}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -105,6 +105,71 @@ function deserializeZones(z: Record<string, number> | null | undefined): Activit
   return base
 }
 
+// Lær brukerens personlige øvelsesbibliotek fra styrke-øvelsene i økta.
+// Kalles kun ved faktisk logging (ikke plan-save) slik at times_used bare
+// teller virkelig gjennomførte øvelser. Upserter én-for-én innenfor samme
+// server-action slik at RLS er tilfredsstilt via den eksisterende klienten.
+async function learnUserExercises(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  activities: ActivityRow[],
+): Promise<void> {
+  const now = new Date().toISOString()
+  for (const a of activities) {
+    if (a.movement_name !== 'Styrke') continue
+    const category = a.movement_subcategory || null
+    for (const ex of a.exercises ?? []) {
+      const name = ex.exercise_name.trim()
+      if (!name) continue
+      // Siste sett med meningsfull reps/vekt blir default.
+      let defaultReps: number | null = null
+      let defaultWeight: number | null = null
+      for (let i = ex.sets.length - 1; i >= 0; i--) {
+        const s = ex.sets[i]
+        const r = parseInt(s.reps)
+        const w = parseFloat(s.weight_kg)
+        if (Number.isFinite(r) || Number.isFinite(w)) {
+          defaultReps = Number.isFinite(r) ? r : null
+          defaultWeight = Number.isFinite(w) ? w : null
+          break
+        }
+      }
+
+      const { data: existing } = await supabase
+        .from('user_exercises')
+        .select('id, times_used')
+        .eq('user_id', userId)
+        .eq('name', name)
+        .maybeSingle()
+
+      if (existing) {
+        await supabase
+          .from('user_exercises')
+          .update({
+            category,
+            default_reps: defaultReps,
+            default_weight_kg: defaultWeight,
+            times_used: (existing.times_used ?? 0) + 1,
+            last_used_at: now,
+            updated_at: now,
+          })
+          .eq('id', existing.id)
+          .eq('user_id', userId)
+      } else {
+        await supabase.from('user_exercises').insert({
+          user_id: userId,
+          name,
+          category,
+          default_reps: defaultReps,
+          default_weight_kg: defaultWeight,
+          times_used: 1,
+          last_used_at: now,
+        })
+      }
+    }
+  }
+}
+
 // 2-pass insert av hele aktivitet-treet (aktiviteter → øvelser+sett → laktatmålinger).
 // Brukes av både saveWorkout og markCompleted (hydrering fra planned_snapshot).
 // Returnerer feilmelding hvis noe gikk galt, null ved suksess.
@@ -504,6 +569,12 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string): Pr
   // Gamle workout_movements/zones/shooting_blocks beholdes midlertidig for bakoverkomp.
   const activityErr = await insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [])
   if (activityErr) return { error: activityErr }
+
+  // Fase 13: lær brukerens personlige øvelsesbibliotek fra styrke-øvelser.
+  // Hopper over rene plan-saves — times_used skal speile faktisk bruk.
+  if (!isPlanSave) {
+    await learnUserExercises(supabase, user.id, data.activities ?? [])
+  }
 
   // Fase 8: konkurranse-data — egen tabell, upsert per workout_id.
   // Skrives kun når økttype er competition/testlop OG det finnes faktisk data.

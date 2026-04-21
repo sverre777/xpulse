@@ -36,10 +36,13 @@ export default async function DagbokPage() {
   const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
   const monthKey = `${year}-${String(month).padStart(2, '0')}`
 
+  // "Denne uken"-kortet skal regne samme metrikk som resten (aktivitets-basert),
+  // ikke workouts.duration_minutes direkte — ellers kan tall divergere fra
+  // kalender-grid og Analyse-overlay.
   const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes] = await Promise.all([
     getWorkoutsForMonth(user.id, year, month),
     supabase.from('workouts')
-      .select('duration_minutes, distance_km')
+      .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters)')
       .eq('user_id', user.id).eq('is_planned', false)
       .gte('date', weekStart).lte('date', today),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
@@ -69,9 +72,26 @@ export default async function DagbokPage() {
 
   const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport').eq('id', user.id).single()
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
-  const weekWorkouts = weekData.data ?? []
-  const weekMinutes = weekWorkouts.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)
-  const weekKm = weekWorkouts.reduce((s, w) => s + (Number(w.distance_km) || 0), 0)
+  type WeekActivityRow = { activity_type: string; duration_seconds: number | null; distance_meters: number | null }
+  type WeekWorkoutRow = { duration_minutes: number | null; workout_activities: WeekActivityRow[] | null }
+  const weekWorkouts = (weekData.data ?? []) as WeekWorkoutRow[]
+  const PAUSE = new Set(['pause', 'aktiv_pause'])
+  let weekSeconds = 0
+  let weekMeters = 0
+  for (const w of weekWorkouts) {
+    const acts = w.workout_activities ?? []
+    let secs = 0, meters = 0
+    for (const a of acts) {
+      if (PAUSE.has(a.activity_type)) continue
+      secs += Number(a.duration_seconds) || 0
+      meters += Number(a.distance_meters) || 0
+    }
+    if (secs === 0 && w.duration_minutes) secs = w.duration_minutes * 60
+    weekSeconds += secs
+    weekMeters += meters
+  }
+  const weekMinutes = Math.round(weekSeconds / 60)
+  const weekKm = weekMeters / 1000
   const weekSessions = weekWorkouts.length
   const weekHours = Math.floor(weekMinutes / 60)
   const weekMins = weekMinutes % 60

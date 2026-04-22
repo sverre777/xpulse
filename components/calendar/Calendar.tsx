@@ -64,6 +64,8 @@ export interface CalendarProps {
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
   // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
   initialDayStates?: Record<string, DayState[]>
+  // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
+  readOnly?: boolean
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -968,6 +970,7 @@ export function Calendar({
   seasonPeriods = [],
   seasonKeyDates = [],
   initialDayStates = {},
+  readOnly = false,
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -994,6 +997,10 @@ export function Calendar({
   const planRoute = '/app/plan'
 
   const handleEditWorkout = useCallback((w: CalendarWorkoutSummary, dateStr: string) => {
+    if (readOnly) {
+      setModalState({ kind: 'edit', workoutId: w.id, formMode: 'dagbok' })
+      return
+    }
     const today = toISO(new Date())
     const isFuture = dateStr > today
     const isPlanned = w.is_planned && !w.is_completed
@@ -1011,9 +1018,10 @@ export function Calendar({
     // Dagbok: planlagt past/today → "Merk gjennomført" (dagbok-form med plan-felt synlig)
     // Dagbok: gjennomført → detalj-/redigeringsmodal
     setModalState({ kind: 'edit', workoutId: w.id, formMode: 'dagbok' })
-  }, [mode, router])
+  }, [mode, router, readOnly])
 
   const openWorkoutCreate = useCallback((dateStr: string, time?: string) => {
+    if (readOnly) return
     const today = toISO(new Date())
     const isFuture = dateStr > today
 
@@ -1029,22 +1037,24 @@ export function Calendar({
     }
     // Dagbok + past/today → logg-modal
     setModalState({ kind: 'create', date: dateStr, formMode: 'dagbok', initialStartTime: time })
-  }, [mode, router])
+  }, [mode, router, readOnly])
 
   const handleCreateWorkout = useCallback((dateStr: string, time?: string) => {
+    if (readOnly) return
     // Vis valg-modal i plan/dagbok: trening eller dag-tilstand.
     if (mode === 'plan' || mode === 'dagbok') {
       setChoiceModal({ date: dateStr, time })
       return
     }
     openWorkoutCreate(dateStr, time)
-  }, [mode, openWorkoutCreate])
+  }, [mode, openWorkoutCreate, readOnly])
 
   const handleEditDayState = useCallback((state: DayState) => {
+    if (readOnly) return
     setDayStateModal({
       date: state.date, stateType: state.state_type, editing: state,
     })
-  }, [])
+  }, [readOnly])
 
   const handleChoicePick = useCallback((choice: CreateChoice) => {
     const c = choiceModal
@@ -1060,8 +1070,9 @@ export function Calendar({
   }, [choiceModal, openWorkoutCreate, dayStatesByDate])
 
   const handleAddRecovery = useCallback((dateStr: string) => {
+    if (readOnly) return
     setRecoveryDate(dateStr)
-  }, [])
+  }, [readOnly])
 
   const closeModal = useCallback(() => {
     setModalState(null)
@@ -1316,6 +1327,7 @@ export function Calendar({
       primarySport={primarySport}
       templates={templates}
       heartZones={heartZones}
+      readOnly={readOnly}
     />
     <RecoveryModal
       date={recoveryDate ?? ''}

@@ -60,7 +60,7 @@ export interface PeriodizationOverlay {
 export async function getSeasons(targetUserId?: string): Promise<Season[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
@@ -82,7 +82,7 @@ export async function getActiveSeason(
 ): Promise<Season | null | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return { error: resolved.error }
 
     const today = date ?? new Date().toISOString().split('T')[0]
@@ -105,16 +105,18 @@ export async function getActiveSeason(
 
 export async function getSeasonPeriods(
   seasonId: string,
+  targetUserId?: string,
 ): Promise<SeasonPeriod[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId)
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('season_periods')
-      .select('*')
+      .select('*, seasons!inner(user_id)')
       .eq('season_id', seasonId)
+      .eq('seasons.user_id', resolved.userId)
       .order('start_date', { ascending: true })
 
     if (error) return { error: error.message }
@@ -126,16 +128,18 @@ export async function getSeasonPeriods(
 
 export async function getSeasonKeyDates(
   seasonId: string,
+  targetUserId?: string,
 ): Promise<SeasonKeyDate[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId)
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('season_key_dates')
-      .select('*')
+      .select('*, seasons!inner(user_id)')
       .eq('season_id', seasonId)
+      .eq('seasons.user_id', resolved.userId)
       .order('event_date', { ascending: true })
 
     if (error) return { error: error.message }
@@ -152,7 +156,7 @@ export async function getPeriodizationForDateRange(
 ): Promise<PeriodizationOverlay | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return { error: resolved.error }
 
     const { data: seasonRows, error: seasonErr } = await supabase
@@ -677,7 +681,7 @@ export async function getSeasonCalendarData(
 ): Promise<SeasonCalendarData | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return { error: resolved.error }
 
     const { data: season, error: sErr } = await supabase

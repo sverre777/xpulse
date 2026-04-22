@@ -893,14 +893,16 @@ export async function getPlannedOverview(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<AnalysisOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     const { data: profile, error: pErr } = await supabase
-      .from('profiles').select('primary_sport').eq('id', user.id).single()
+      .from('profiles').select('primary_sport').eq('id', userId).single()
     if (pErr) return { error: `profiles: ${pErr.message}` }
     const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
@@ -909,8 +911,8 @@ export async function getPlannedOverview(
     const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
 
     const [current, previous] = await Promise.all([
-      computePlannedMetricsForRange(supabase, user.id, fromDate, toDate, primarySport, sportFilter ?? null),
-      computePlannedMetricsForRange(supabase, user.id, prevFrom, prevTo, primarySport, sportFilter ?? null),
+      computePlannedMetricsForRange(supabase, userId, fromDate, toDate, primarySport, sportFilter ?? null),
+      computePlannedMetricsForRange(supabase, userId, prevFrom, prevTo, primarySport, sportFilter ?? null),
     ])
 
     return {
@@ -971,16 +973,18 @@ export async function getCompetitionStats(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<CompetitionStats | { error: string }> {
   try {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+  if ('error' in resolved) return { error: resolved.error }
+  const userId = resolved.userId
 
   let query = supabase
     .from('workouts')
     .select('id,title,date,sport,workout_type,duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .eq('is_completed', true)
     .in('workout_type', ['competition', 'testlop'])
     .gte('date', fromDate)
@@ -1122,11 +1126,13 @@ export async function getCompetitionAnalysis(
   toDate: string,
   sportFilter?: Sport | null,
   typeFilter?: CompetitionTypeFilter[] | null,
+  targetUserId?: string,
 ): Promise<CompetitionAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     // Alle konkurranse-/testløp-rader i perioden (inkluderer både gjennomførte
     // og planlagte som ikke er gjennomført enda). Gjennomførte kan ha
@@ -1134,7 +1140,7 @@ export async function getCompetitionAnalysis(
     let compQuery = supabase
       .from('workouts')
       .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,workout_activities(activity_type,sort_order,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .in('workout_type', ['competition', 'testlop'])
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -1147,7 +1153,7 @@ export async function getCompetitionAnalysis(
     let shootingWorkoutsQuery = supabase
       .from('workouts')
       .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -1493,19 +1499,21 @@ export async function getMovementAnalysis(
   fromDate: string,
   toDate: string,
   movementName: string,
+  targetUserId?: string,
 ): Promise<MovementAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
 
     // Hent alle unike bevegelsesformer brukeren har i perioden — for movement-velger.
     const { data: allMoves } = await supabase
       .from('workouts')
       .select('workout_activities(movement_name)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -1522,8 +1530,8 @@ export async function getMovementAnalysis(
     const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
 
     const [current, previous] = await Promise.all([
-      computeMovementMetrics(supabase, user.id, fromDate, toDate, movementName, heartZones),
-      computeMovementMetrics(supabase, user.id, prevFrom, prevTo, movementName, heartZones),
+      computeMovementMetrics(supabase, userId, fromDate, toDate, movementName, heartZones),
+      computeMovementMetrics(supabase, userId, prevFrom, prevTo, movementName, heartZones),
     ])
 
     return {
@@ -1658,11 +1666,13 @@ function* iterateDates(fromIso: string, toIso: string): Generator<string> {
 export async function getHealthCorrelations(
   fromDate: string,
   toDate: string,
+  targetUserId?: string,
 ): Promise<HealthCorrelations | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     // Vi trenger litt data før fromDate for å beregne 7d/3d rullende belastning
     // på de tidligste datoene i perioden.
@@ -1671,30 +1681,30 @@ export async function getHealthCorrelations(
     const [healthRes, workoutsRes, recoveryRes, templatesRes, reflRes, dsRes] = await Promise.all([
       supabase.from('daily_health')
         .select('date,hrv_ms,resting_hr,sleep_hours,sleep_quality,body_weight_kg')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gte('date', fromDate).lte('date', toDate)
         .order('date', { ascending: true }),
       supabase.from('workouts')
         .select('id,date,day_form_physical,day_form_mental,duration_minutes,planned_workout_id,workout_activities(activity_type,duration_seconds,avg_heart_rate,lactate_mmol,zones)')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('is_completed', true)
         .gte('date', lookBackFrom).lte('date', toDate)
         .order('date', { ascending: true }),
       supabase.from('recovery_entries')
         .select('date,type')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gte('date', fromDate).lte('date', toDate),
       supabase.from('workout_templates')
         .select('id,name')
-        .eq('user_id', user.id),
+        .eq('user_id', userId),
       supabase.from('weekly_reflections')
         .select('year,week_number,perceived_load,energy,stress,injury_notes')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('year', { ascending: true })
         .order('week_number', { ascending: true }),
       supabase.from('day_states')
         .select('date,state_type')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gte('date', fromDate).lte('date', toDate),
     ])
 
@@ -2036,18 +2046,20 @@ export async function getTemplateAnalysis(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<TemplateAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
 
     let wQuery = supabase
       .from('workouts')
       .select('id,date,title,sport,template_id,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .not('template_id', 'is', null)
       .gte('date', fromDate)
@@ -2059,7 +2071,7 @@ export async function getTemplateAnalysis(
       wQuery,
       supabase.from('workout_templates')
         .select('id,name,category,sport')
-        .eq('user_id', user.id),
+        .eq('user_id', userId),
     ])
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (templatesRes.error) return { error: templatesRes.error.message }
@@ -2260,20 +2272,22 @@ export async function getWorkoutsForComparison(
   fromDate: string,
   toDate: string,
   filters?: CompareWorkoutFilter,
+  targetUserId?: string,
 ): Promise<WorkoutsForComparison | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
 
     // Inkluder ALLE økter i perioden — både gjennomførte og planlagte. UI
     // markerer dem ulikt slik at brukeren kan sammenligne plan vs faktisk.
     let q = supabase
       .from('workouts')
       .select('id,date,title,sport,workout_type,is_planned,is_completed,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: false })
@@ -2283,7 +2297,7 @@ export async function getWorkoutsForComparison(
     const dayStatesPromise = supabase
       .from('day_states')
       .select('id,date,state_type,sub_type,notes')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: false })
@@ -2458,18 +2472,20 @@ export async function getIntensityDistribution(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<IntensityDistribution | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
 
     let q = supabase
       .from('workouts')
       .select('id,date,workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -2678,13 +2694,15 @@ export async function getBelastningAnalysis(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<BelastningAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
 
     // 42-dagers warm-up før fromDate slik at CTL er stabil ved periodens start.
     const warmupStart = addDaysISO(fromDate, -42)
@@ -2692,7 +2710,7 @@ export async function getBelastningAnalysis(
     let q = supabase
       .from('workouts')
       .select('id,date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', warmupStart)
       .lte('date', toDate)
@@ -2770,11 +2788,11 @@ export async function getBelastningAnalysis(
       supabase
         .from('weekly_reflections')
         .select('year,week_number,perceived_load,energy,stress')
-        .eq('user_id', user.id),
+        .eq('user_id', userId),
       supabase
         .from('day_states')
         .select('date,state_type,sub_type')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .gte('date', fromDate).lte('date', toDate),
     ])
     if (reflRes.error) return { error: reflRes.error.message }
@@ -2954,16 +2972,18 @@ export async function getTerskelAnalysis(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<TerskelAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     let q = supabase
       .from('workouts')
       .select(`id,date,sport,template_id,workout_activities(id,activity_type,avg_heart_rate,lactate_mmol,workout_activity_lactate_measurements(value_mmol,measured_at))`)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -2972,8 +2992,8 @@ export async function getTerskelAnalysis(
 
     const [workoutsRes, templatesRes, profileRes] = await Promise.all([
       q,
-      supabase.from('workout_templates').select('id,name').eq('user_id', user.id),
-      supabase.from('profiles').select('lactate_threshold_hr').eq('id', user.id).single(),
+      supabase.from('workout_templates').select('id,name').eq('user_id', userId),
+      supabase.from('profiles').select('lactate_threshold_hr').eq('id', userId).single(),
     ])
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (templatesRes.error) return { error: templatesRes.error.message }
@@ -3202,11 +3222,13 @@ export async function getShootingDepthAnalysis(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<ShootingDepthAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     const empty = (sportMismatch: boolean): ShootingDepthAnalysis => ({
       totals: { series: 0, shots: 0, hits: 0, accuracy_pct: null, prone_accuracy_pct: null, standing_accuracy_pct: null, prone_shots: 0, standing_shots: 0 },
@@ -3224,7 +3246,7 @@ export async function getShootingDepthAnalysis(
     const { data, error } = await supabase
       .from('workouts')
       .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .eq('sport', 'biathlon')
       .gte('date', fromDate)
@@ -3496,20 +3518,22 @@ export async function getPeriodizationOverview(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<PeriodizationOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
     const today = new Date().toISOString().slice(0, 10)
 
     // Velg sesongen som overlapper brukerens periode — nyeste først.
     const { data: seasonRows, error: seasonErr } = await supabase
       .from('seasons')
       .select('id,name,start_date,end_date,goal_main,goal_details,kpi_notes')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .lte('start_date', toDate)
       .gte('end_date', fromDate)
       .order('start_date', { ascending: false })
@@ -3551,7 +3575,7 @@ export async function getPeriodizationOverview(
     let q = supabase
       .from('workouts')
       .select('id,date,sport,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', season.start_date)
       .lte('date', season.end_date)
@@ -3711,16 +3735,18 @@ export async function getCustomBreakdown(
   fromDate: string,
   toDate: string,
   grouping: CustomBreakdownGrouping,
+  targetUserId?: string,
 ): Promise<CustomBreakdown | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     const { data: rows, error } = await supabase
       .from('workouts')
       .select('date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -3728,7 +3754,7 @@ export async function getCustomBreakdown(
 
     if (error) return { error: error.message }
 
-    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const heartZones = await getHeartZonesForUser(supabase, userId)
     const buckets = new Map<string, CustomBreakdownBucket>()
     const enduranceInUse = new Set<string>()
     const nonEnduranceInUse = new Set<string>()

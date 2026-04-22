@@ -17,9 +17,10 @@ interface WorkoutModalProps {
   primarySport: Sport
   templates: WorkoutTemplate[]
   heartZones?: HeartZone[]
+  readOnly?: boolean
 }
 
-export function WorkoutModal({ state, onClose, primarySport, templates, heartZones }: WorkoutModalProps) {
+export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false }: WorkoutModalProps) {
   const router = useRouter()
   const [defaults, setDefaults] = useState<Partial<WorkoutFormData> | null>(null)
   const [loading, setLoading] = useState(false)
@@ -99,7 +100,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
               : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
           </span>
           <div className="flex items-center gap-2">
-            {state.kind === 'edit' && (
+            {state.kind === 'edit' && !readOnly && (
               <button type="button" onClick={handleDelete} disabled={deleting}
                 className="px-3 text-xs tracking-widest uppercase"
                 style={{
@@ -137,6 +138,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
             initialDate={state.kind === 'create' ? state.date : undefined}
             onSaved={handleSaved}
             onCancel={onClose}
+            readOnly={readOnly}
           />
         )}
       </div>

@@ -26,6 +26,7 @@ interface WorkoutFormProps {
   heartZones?: HeartZone[]
   onSaved?: () => void
   onCancel?: () => void
+  readOnly?: boolean
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -35,7 +36,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -216,6 +217,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 py-4 space-y-0">
+      <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minInlineSize: 'auto' }}>
 
       {/* ── MALER ── */}
       {templates.length > 0 && (
@@ -496,7 +498,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       </Section>
 
       {/* ── SUBMIT ── */}
-      <div className="pt-4 pb-8">
+      <div className="pt-4 pb-8" hidden={readOnly}>
         {error && (
           <p className="mb-3 px-3 py-2 text-sm"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)' }}>
@@ -561,6 +563,19 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           saving={savingTemplate}
           error={templateError}
         />
+      )}
+      </fieldset>
+      {readOnly && (
+        <div className="px-4 pb-6">
+          <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
+            className="w-full sm:w-auto px-6 py-3 text-base tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',
+            }}>
+            Lukk
+          </button>
+        </div>
       )}
     </form>
   )

@@ -3,11 +3,29 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteTemplate, duplicateTemplate } from '@/app/actions/templates'
+import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
+import { deletePeriodizationTemplate, duplicatePeriodizationTemplate } from '@/app/actions/periodization-templates'
 import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate } from '@/lib/types'
+import type { PlanTemplate, PeriodizationTemplate } from '@/lib/template-types'
 
-export function MalerClient({ initialTemplates }: { initialTemplates: WorkoutTemplate[] }) {
+type Tab = 'okt' | 'plan' | 'periodisering'
+
+interface Props {
+  activeTab: string
+  initialWorkoutTemplates: WorkoutTemplate[]
+  initialPlanTemplates: PlanTemplate[]
+  initialPeriodizationTemplates: PeriodizationTemplate[]
+}
+
+export function MalerClient({
+  activeTab,
+  initialWorkoutTemplates,
+  initialPlanTemplates,
+  initialPeriodizationTemplates,
+}: Props) {
+  const tab: Tab = activeTab === 'plan' || activeTab === 'periodisering' ? activeTab : 'okt'
   const router = useRouter()
-  const [templates] = useState<WorkoutTemplate[]>(initialTemplates)
+
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('')
   const [sport, setSport] = useState<string>('')
@@ -15,40 +33,17 @@ export function MalerClient({ initialTemplates }: { initialTemplates: WorkoutTem
   const [_isPending, startTransition] = useTransition()
   void _isPending
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return templates.filter(t => {
-      if (category && t.category !== category) return false
-      if (sport && t.sport !== sport) return false
-      if (q && !t.name.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [templates, query, category, sport])
-
-  const handleDelete = (id: string, name: string) => {
-    if (!window.confirm(`Slett mal "${name}"?`)) return
-    setPendingId(id)
-    startTransition(async () => {
-      const result = await deleteTemplate(id)
-      if (result.error) window.alert(result.error)
-      else router.refresh()
-      setPendingId(null)
-    })
-  }
-
-  const handleDuplicate = (id: string) => {
-    setPendingId(id)
-    startTransition(async () => {
-      const result = await duplicateTemplate(id)
-      if (result.error) window.alert(result.error)
-      else router.refresh()
-      setPendingId(null)
-    })
+  const setTab = (t: Tab) => {
+    const url = new URL(window.location.href)
+    if (t === 'okt') url.searchParams.delete('tab')
+    else url.searchParams.set('tab', t)
+    router.push(url.pathname + url.search)
   }
 
   return (
     <div>
-      {/* Filter */}
+      <TabBar tab={tab} setTab={setTab} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Søk etter navn..."
@@ -62,53 +57,271 @@ export function MalerClient({ initialTemplates }: { initialTemplates: WorkoutTem
           ))}
         </select>
 
-        <select value={sport} onChange={e => setSport(e.target.value)}
-          style={iSt} className="w-full px-3 py-2">
-          <option value="">Alle sporter</option>
-          {SPORTS.map(s => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
+        {tab === 'okt' ? (
+          <select value={sport} onChange={e => setSport(e.target.value)}
+            style={iSt} className="w-full px-3 py-2">
+            <option value="">Alle sporter</option>
+            {SPORTS.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        ) : (
+          <span />
+        )}
       </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            {templates.length === 0
-              ? 'Du har ingen maler ennå. Lag en ved å trykke "Lagre som mal" nederst i en økt.'
-              : 'Ingen maler matcher filtrene.'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map(t => (
-            <TemplateRow key={t.id}
-              template={t}
-              disabled={pendingId === t.id}
-              onDelete={() => handleDelete(t.id, t.name)}
-              onDuplicate={() => handleDuplicate(t.id)}
-            />
-          ))}
-        </div>
+      {tab === 'okt' && (
+        <WorkoutList
+          templates={initialWorkoutTemplates}
+          query={query} category={category} sport={sport}
+          pendingId={pendingId}
+          onDelete={(id, name) => {
+            if (!window.confirm(`Slett mal "${name}"?`)) return
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await deleteTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+          onDuplicate={(id) => {
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await duplicateTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+        />
+      )}
+
+      {tab === 'plan' && (
+        <PlanList
+          templates={initialPlanTemplates}
+          query={query} category={category}
+          pendingId={pendingId}
+          onDelete={(id, name) => {
+            if (!window.confirm(`Slett plan-mal "${name}"?`)) return
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await deletePlanTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+          onDuplicate={(id) => {
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await duplicatePlanTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+        />
+      )}
+
+      {tab === 'periodisering' && (
+        <PeriodizationList
+          templates={initialPeriodizationTemplates}
+          query={query} category={category}
+          pendingId={pendingId}
+          onDelete={(id, name) => {
+            if (!window.confirm(`Slett periodiserings-mal "${name}"?`)) return
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await deletePeriodizationTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+          onDuplicate={(id) => {
+            setPendingId(id)
+            startTransition(async () => {
+              const r = await duplicatePeriodizationTemplate(id)
+              if (r.error) window.alert(r.error); else router.refresh()
+              setPendingId(null)
+            })
+          }}
+        />
       )}
     </div>
   )
 }
 
-function TemplateRow({
-  template, disabled, onDelete, onDuplicate,
+function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'okt', label: 'Økt-maler' },
+    { key: 'plan', label: 'Plan-maler' },
+    { key: 'periodisering', label: 'Periodiserings-maler' },
+  ]
+  return (
+    <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #1E1E22' }}>
+      {tabs.map(t => {
+        const active = t.key === tab
+        return (
+          <button key={t.key} type="button" onClick={() => setTab(t.key)}
+            className="px-4 py-2 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: active ? '#FF4500' : '#8A8A96',
+              background: 'none',
+              border: 'none',
+              borderBottom: `2px solid ${active ? '#FF4500' : 'transparent'}`,
+              cursor: 'pointer',
+              marginBottom: '-1px',
+            }}>
+            {t.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function WorkoutList({
+  templates, query, category, sport, pendingId, onDelete, onDuplicate,
 }: {
-  template: WorkoutTemplate
+  templates: WorkoutTemplate[]
+  query: string; category: string; sport: string
+  pendingId: string | null
+  onDelete: (id: string, name: string) => void
+  onDuplicate: (id: string) => void
+}) {
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return templates.filter(t => {
+      if (category && t.category !== category) return false
+      if (sport && t.sport !== sport) return false
+      if (q && !t.name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [templates, query, category, sport])
+  if (filtered.length === 0) {
+    return <EmptyBox empty={templates.length === 0} kind="økt" />
+  }
+  return (
+    <div className="space-y-2">
+      {filtered.map(t => {
+        const sportLabel = SPORTS.find(s => s.value === t.sport)?.label ?? t.sport ?? '—'
+        const lastUsed = t.last_used_at
+          ? new Date(t.last_used_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })
+          : 'Aldri brukt'
+        return (
+          <TemplateRow key={t.id}
+            name={t.name} description={t.description} category={t.category}
+            meta={[sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
+            disabled={pendingId === t.id}
+            onDelete={() => onDelete(t.id, t.name)}
+            onDuplicate={() => onDuplicate(t.id)}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+function PlanList({
+  templates, query, category, pendingId, onDelete, onDuplicate,
+}: {
+  templates: PlanTemplate[]
+  query: string; category: string
+  pendingId: string | null
+  onDelete: (id: string, name: string) => void
+  onDuplicate: (id: string) => void
+}) {
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return templates.filter(t => {
+      if (category && t.category !== category) return false
+      if (q && !t.name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [templates, query, category])
+  if (filtered.length === 0) {
+    return <EmptyBox empty={templates.length === 0} kind="plan" />
+  }
+  return (
+    <div className="space-y-2">
+      {filtered.map(t => (
+        <TemplateRow key={t.id}
+          name={t.name} description={t.description} category={t.category}
+          meta={[
+            `${t.duration_days} dager`,
+            `${t.plan_data?.workouts?.length ?? 0} økter`,
+          ]}
+          disabled={pendingId === t.id}
+          onDelete={() => onDelete(t.id, t.name)}
+          onDuplicate={() => onDuplicate(t.id)}
+        />
+      ))}
+    </div>
+  )
+}
+
+function PeriodizationList({
+  templates, query, category, pendingId, onDelete, onDuplicate,
+}: {
+  templates: PeriodizationTemplate[]
+  query: string; category: string
+  pendingId: string | null
+  onDelete: (id: string, name: string) => void
+  onDuplicate: (id: string) => void
+}) {
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return templates.filter(t => {
+      if (category && t.category !== category) return false
+      if (q && !t.name.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [templates, query, category])
+  if (filtered.length === 0) {
+    return <EmptyBox empty={templates.length === 0} kind="periodisering" />
+  }
+  return (
+    <div className="space-y-2">
+      {filtered.map(t => (
+        <TemplateRow key={t.id}
+          name={t.name} description={t.description} category={t.category}
+          meta={[
+            `${t.duration_days} dager`,
+            `${t.periodization_data?.periods?.length ?? 0} perioder`,
+            `${t.periodization_data?.key_dates?.length ?? 0} nøkkeldatoer`,
+          ]}
+          disabled={pendingId === t.id}
+          onDelete={() => onDelete(t.id, t.name)}
+          onDuplicate={() => onDuplicate(t.id)}
+        />
+      ))}
+    </div>
+  )
+}
+
+function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' | 'periodisering' }) {
+  const emptyText =
+    kind === 'økt' ? 'Du har ingen økt-maler ennå. Lag en ved å trykke "Lagre som mal" nederst i en økt.' :
+    kind === 'plan' ? 'Du har ingen plan-maler ennå. Lag en ved å trykke "Lagre som mal" i Plan-kalenderen.' :
+    'Du har ingen periodiserings-maler ennå. Lag en ved å trykke "Lagre som mal" i Periodisering-siden.'
+  return (
+    <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        {empty ? emptyText : 'Ingen maler matcher filtrene.'}
+      </p>
+    </div>
+  )
+}
+
+function TemplateRow({
+  name, description, category, meta, disabled, onDelete, onDuplicate,
+}: {
+  name: string
+  description: string | null
+  category: string | null
+  meta: string[]
   disabled: boolean
   onDelete: () => void
   onDuplicate: () => void
 }) {
-  const sportLabel = SPORTS.find(s => s.value === template.sport)?.label ?? template.sport ?? '—'
-  const lastUsed = template.last_used_at
-    ? new Date(template.last_used_at).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })
-    : 'Aldri brukt'
-
   return (
     <div className="p-4"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -118,20 +331,18 @@ function TemplateRow({
             fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
-            {template.name}
+            {name}
           </div>
-          {template.description && (
+          {description && (
             <p className="mt-1 text-sm"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
-              {template.description}
+              {description}
             </p>
           )}
           <div className="mt-2 flex flex-wrap gap-2 items-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            {template.category && <Badge color="#D4A017">{template.category}</Badge>}
-            <span>· {sportLabel}</span>
-            <span>· Brukt {template.times_used}×</span>
-            <span>· Sist: {lastUsed}</span>
+            {category && <Badge color="#D4A017">{category}</Badge>}
+            {meta.map((m, i) => <span key={i}>· {m}</span>)}
           </div>
         </div>
 

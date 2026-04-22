@@ -2,7 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { Sport, WorkoutType } from '@/lib/types'
+import type { ActivityRow, Sport, WorkoutType } from '@/lib/types'
+import type {
+  PlanTemplateData, PlanTemplateFocusPoint,
+  PeriodizationTemplateData,
+} from '@/lib/template-types'
 
 // ── Typer ───────────────────────────────────────────────────
 
@@ -232,7 +236,7 @@ export async function listCoachPeriodizationTemplates(): Promise<
   if (!user) return { error: 'Ikke innlogget' }
   const { data, error } = await supabase
     .from('periodization_templates')
-    .select('id, name, description, updated_at')
+    .select('id, name, description, duration_days, updated_at')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
   if (error) return { error: error.message }
@@ -240,19 +244,198 @@ export async function listCoachPeriodizationTemplates(): Promise<
     id: t.id,
     name: t.name,
     description: t.description,
+    durationDays: t.duration_days,
     updatedAt: t.updated_at,
   }))
 }
 
-interface PlanTemplateData {
-  items?: Array<{
-    offset_days: number
-    title: string
-    sport: Sport
-    workout_type: WorkoutType
-    duration_minutes?: number | null
-    distance_km?: number | null
-  }>
+// ── Plan-mal → materialisering ──────────────────────────────
+
+function addDaysISO(anchorISO: string, days: number): string {
+  const d = new Date(anchorISO + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+function isoWeekKeyForDate(iso: string): string {
+  const d = new Date(iso + 'T00:00:00')
+  const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7))
+  const y0 = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1))
+  const week = Math.ceil((((tmp.getTime() - y0.getTime()) / 86400000) + 1) / 7)
+  return `${tmp.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
+}
+
+function addWeeksISOWeek(startKey: string, offset: number): string {
+  const m = /^(\d{4})-W(\d{2})$/.exec(startKey)
+  if (!m) return startKey
+  const y = parseInt(m[1]), w = parseInt(m[2])
+  const jan4 = new Date(Date.UTC(y, 0, 4))
+  const dow = jan4.getUTCDay() || 7
+  const week1Monday = new Date(jan4)
+  week1Monday.setUTCDate(jan4.getUTCDate() - (dow - 1))
+  const target = new Date(week1Monday)
+  target.setUTCDate(week1Monday.getUTCDate() + (w - 1 + offset) * 7)
+  return isoWeekKeyForDate(target.toISOString().slice(0, 10))
+}
+
+function addMonthsMonthKey(startKey: string, offset: number): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(startKey)
+  if (!m) return startKey
+  const y = parseInt(m[1]), mo = parseInt(m[2])
+  const total = (y * 12 + (mo - 1)) + offset
+  const ny = Math.floor(total / 12)
+  const nmo = (total % 12) + 1
+  return `${ny}-${String(nmo).padStart(2, '0')}`
+}
+
+const ZONE_KEYS_ALL = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+function serializeZones(z: ActivityRow['zones']): Record<string, number> | null {
+  const out: Record<string, number> = {}
+  for (const k of ZONE_KEYS_ALL) {
+    const n = parseInt(z?.[k] ?? '')
+    if (Number.isFinite(n) && n > 0) out[k] = n
+  }
+  return Object.keys(out).length > 0 ? out : null
+}
+
+function parseIntOrNull(s: string | null | undefined): number | null {
+  if (!s) return null
+  const n = parseInt(s)
+  return Number.isFinite(n) ? n : null
+}
+
+function parseFloatOrNull(s: string | null | undefined): number | null {
+  if (!s) return null
+  const n = parseFloat(s)
+  return Number.isFinite(n) ? n : null
+}
+
+async function insertActivityTreeForWorkout(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  workoutId: string,
+  activities: ActivityRow[],
+): Promise<string | null> {
+  if (!activities || activities.length === 0) return null
+
+  const activityRows = activities.map((a, ai) => {
+    const durSec = parseIntOrNull(a.duration) ?? 0
+    const km = parseFloatOrNull(a.distance_km)
+    return {
+      workout_id: workoutId,
+      activity_type: a.activity_type,
+      movement_name: a.movement_name || null,
+      movement_subcategory: a.movement_subcategory || null,
+      sort_order: ai,
+      start_time: a.start_time || null,
+      duration_seconds: durSec,
+      distance_meters: km != null ? Math.round(km * 1000) : null,
+      avg_heart_rate: parseIntOrNull(a.avg_heart_rate),
+      max_heart_rate: parseIntOrNull(a.max_heart_rate),
+      avg_watts: parseIntOrNull(a.avg_watts),
+      prone_shots: parseIntOrNull(a.prone_shots),
+      prone_hits: parseIntOrNull(a.prone_hits),
+      standing_shots: parseIntOrNull(a.standing_shots),
+      standing_hits: parseIntOrNull(a.standing_hits),
+      elevation_gain_m: parseIntOrNull(a.elevation_gain_m),
+      elevation_loss_m: parseIntOrNull(a.elevation_loss_m),
+      incline_percent: parseFloatOrNull(a.incline_percent),
+      pack_weight_kg: parseFloatOrNull(a.pack_weight_kg),
+      sled_weight_kg: parseFloatOrNull(a.sled_weight_kg),
+      weather: a.weather || null,
+      temperature_c: parseFloatOrNull(a.temperature_c),
+      zones: serializeZones(a.zones),
+      notes: a.notes || null,
+    }
+  })
+
+  const { data: insertedActivities, error: actErr } = await supabase
+    .from('workout_activities')
+    .insert(activityRows)
+    .select('id, sort_order')
+  if (actErr) return actErr.message
+
+  const idBySortOrder = new Map<number, string>()
+  for (const r of (insertedActivities ?? []) as { id: string; sort_order: number }[]) {
+    idBySortOrder.set(r.sort_order, r.id)
+  }
+
+  for (const [ai, a] of activities.entries()) {
+    const activityId = idBySortOrder.get(ai)
+    if (!activityId) continue
+    const exercises = (a.exercises ?? []).filter(ex => ex.exercise_name.trim())
+    if (exercises.length === 0) continue
+    const exerciseRows = exercises.map((ex, i) => ({
+      activity_id: activityId,
+      exercise_name: ex.exercise_name.trim(),
+      sort_order: i,
+      notes: ex.notes || null,
+    }))
+    const { data: insertedEx, error: exErr } = await supabase
+      .from('workout_activity_exercises')
+      .insert(exerciseRows)
+      .select('id, sort_order')
+    if (exErr) return exErr.message
+    const exIdBySort = new Map<number, string>()
+    for (const r of (insertedEx ?? []) as { id: string; sort_order: number }[]) {
+      exIdBySort.set(r.sort_order, r.id)
+    }
+
+    const setRows: {
+      exercise_id: string; set_number: number
+      reps: number | null; weight_kg: number | null
+      rpe: number | null; notes: string | null
+    }[] = []
+    for (const [i, ex] of exercises.entries()) {
+      const exerciseId = exIdBySort.get(i)
+      if (!exerciseId) continue
+      for (const [si, s] of ex.sets.entries()) {
+        const reps = parseIntOrNull(s.reps)
+        const weight = parseFloatOrNull(s.weight_kg)
+        const rpe = parseIntOrNull(s.rpe)
+        if (reps == null && weight == null && rpe == null && !s.notes) continue
+        setRows.push({
+          exercise_id: exerciseId,
+          set_number: parseIntOrNull(s.set_number) ?? (si + 1),
+          reps, weight_kg: weight, rpe,
+          notes: s.notes || null,
+        })
+      }
+    }
+    if (setRows.length > 0) {
+      const { error: setErr } = await supabase
+        .from('workout_activity_exercise_sets')
+        .insert(setRows)
+      if (setErr) return setErr.message
+    }
+  }
+
+  const lactateRows: {
+    activity_id: string; value_mmol: number
+    measured_at: string | null; sort_order: number
+  }[] = []
+  for (const [ai, a] of activities.entries()) {
+    const activityId = idBySortOrder.get(ai)
+    if (!activityId) continue
+    const measurements = (a.lactate_measurements ?? [])
+      .map(m => ({ ...m, parsed: parseFloatOrNull(m.value_mmol) }))
+      .filter(m => m.parsed != null && m.parsed > 0)
+    for (const [mi, m] of measurements.entries()) {
+      lactateRows.push({
+        activity_id: activityId,
+        value_mmol: m.parsed as number,
+        measured_at: m.measured_at || null,
+        sort_order: mi,
+      })
+    }
+  }
+  if (lactateRows.length > 0) {
+    const { error: lErr } = await supabase
+      .from('workout_activity_lactate_measurements')
+      .insert(lactateRows)
+    if (lErr) return lErr.message
+  }
+  return null
 }
 
 export async function pushPlanTemplateToAthlete(
@@ -272,33 +455,112 @@ export async function pushPlanTemplateToAthlete(
   if (tplErr) return { error: tplErr.message }
   if (!tpl) return { error: 'Fant ikke mal' }
 
-  const planData = (tpl.plan_data ?? {}) as PlanTemplateData
-  const items = Array.isArray(planData.items) ? planData.items : []
-  if (items.length === 0) return { error: 'Malen inneholder ingen økter' }
+  const planData = (tpl.plan_data ?? {
+    workouts: [], day_states: [], week_notes: {}, month_notes: {}, focus_points: [],
+  }) as PlanTemplateData
 
-  const start = new Date(input.startDate + 'T00:00:00')
-  const rows = items.map(it => {
-    const d = new Date(start)
-    d.setDate(d.getDate() + (Number(it.offset_days) || 0))
+  // ── Økter ──
+  const workoutRows = (planData.workouts ?? []).map(w => ({
+    user_id: input.athleteId,
+    date: addDaysISO(input.startDate, w.day_offset),
+    time_of_day: w.time_of_day ?? null,
+    title: w.title,
+    sport: w.sport,
+    workout_type: w.workout_type,
+    duration_minutes: w.duration_minutes,
+    distance_km: w.distance_km,
+    notes: w.notes,
+    tags: w.tags ?? [],
+    is_planned: true,
+    is_completed: false,
+    is_important: false,
+    created_by_coach_id: check.coachId,
+  }))
+
+  let createdCount = 0
+  if (workoutRows.length > 0) {
+    const { data: inserted, error: wErr } = await supabase
+      .from('workouts')
+      .insert(workoutRows)
+      .select('id')
+    if (wErr) return { error: `workouts: ${wErr.message}` }
+    createdCount = inserted?.length ?? 0
+
+    // Aktiviteter per økt (parallell indeks med planData.workouts).
+    const ids = (inserted ?? []) as { id: string }[]
+    for (let i = 0; i < ids.length; i++) {
+      const wId = ids[i]?.id
+      const activities = planData.workouts[i]?.activities ?? []
+      if (!wId || activities.length === 0) continue
+      const actErr = await insertActivityTreeForWorkout(supabase, wId, activities)
+      if (actErr) return { error: `activities: ${actErr}` }
+    }
+  }
+
+  // ── Day states ──
+  const dayStateRows = (planData.day_states ?? []).map(s => ({
+    user_id: input.athleteId,
+    date: addDaysISO(input.startDate, s.day_offset),
+    state_type: s.state_type,
+    is_planned: s.is_planned,
+    sub_type: s.sub_type,
+    notes: s.notes,
+  }))
+  if (dayStateRows.length > 0) {
+    const { error: dsErr } = await supabase
+      .from('day_states')
+      .upsert(dayStateRows, { onConflict: 'user_id,date,state_type' })
+    if (dsErr) return { error: `day_states: ${dsErr.message}` }
+  }
+
+  // ── Period notes (week/month, context='plan') ──
+  const startWeekKey = isoWeekKeyForDate(input.startDate)
+  const startMonthKey = input.startDate.slice(0, 7)
+  const notesRows: { user_id: string; scope: 'week' | 'month'; period_key: string; context: 'plan'; note: string }[] = []
+  for (const [offStr, note] of Object.entries(planData.week_notes ?? {})) {
+    const off = parseInt(offStr)
+    if (!Number.isFinite(off)) continue
+    notesRows.push({
+      user_id: input.athleteId, scope: 'week',
+      period_key: addWeeksISOWeek(startWeekKey, off),
+      context: 'plan', note,
+    })
+  }
+  for (const [offStr, note] of Object.entries(planData.month_notes ?? {})) {
+    const off = parseInt(offStr)
+    if (!Number.isFinite(off)) continue
+    notesRows.push({
+      user_id: input.athleteId, scope: 'month',
+      period_key: addMonthsMonthKey(startMonthKey, off),
+      context: 'plan', note,
+    })
+  }
+  if (notesRows.length > 0) {
+    const { error: nErr } = await supabase
+      .from('period_notes')
+      .upsert(notesRows, { onConflict: 'user_id,scope,period_key,context' })
+    if (nErr) return { error: `period_notes: ${nErr.message}` }
+  }
+
+  // ── Focus points ──
+  const focusRows = (planData.focus_points ?? []).map((f: PlanTemplateFocusPoint) => {
+    let period_key: string
+    if (f.scope === 'day') period_key = addDaysISO(input.startDate, f.period_offset)
+    else if (f.scope === 'week') period_key = addWeeksISOWeek(startWeekKey, f.period_offset)
+    else period_key = addMonthsMonthKey(startMonthKey, f.period_offset)
     return {
       user_id: input.athleteId,
-      date: d.toISOString().slice(0, 10),
-      title: it.title,
-      sport: it.sport,
-      workout_type: it.workout_type,
-      duration_minutes: it.duration_minutes ?? null,
-      distance_km: it.distance_km ?? null,
-      is_planned: true,
-      is_completed: false,
-      is_important: false,
-      created_by_coach_id: check.coachId,
+      scope: f.scope,
+      period_key,
+      context: 'plan' as const,
+      content: f.content,
+      sort_order: f.sort_order,
     }
   })
-  if (rows.length === 0) return { error: 'Ingen økter å opprette' }
-
-  const { data, error } = await supabase.from('workouts').insert(rows).select('id')
-  if (error) return { error: error.message }
-  const createdCount = data?.length ?? 0
+  if (focusRows.length > 0) {
+    const { error: fErr } = await supabase.from('focus_points').insert(focusRows)
+    if (fErr) return { error: `focus_points: ${fErr.message}` }
+  }
 
   await writeAudit({
     athleteId: input.athleteId,
@@ -321,18 +583,7 @@ export async function pushPlanTemplateToAthlete(
   return { createdCount }
 }
 
-interface PeriodizationTemplateData {
-  season_name?: string
-  goal_main?: string | null
-  duration_weeks?: number
-  periods?: Array<{
-    offset_days: number
-    length_days: number
-    name: string
-    focus?: string | null
-    intensity?: 'rolig' | 'medium' | 'hard'
-  }>
-}
+// ── Periodisering-mal → materialisering ─────────────────────
 
 export async function pushPeriodizationTemplateToAthlete(
   input: { athleteId: string; templateId: string; startDate: string },
@@ -344,52 +595,71 @@ export async function pushPeriodizationTemplateToAthlete(
   const supabase = await createClient()
   const { data: tpl, error: tplErr } = await supabase
     .from('periodization_templates')
-    .select('id, name, template_data')
+    .select('id, name, duration_days, periodization_data')
     .eq('id', input.templateId)
     .eq('user_id', check.coachId)
     .maybeSingle()
   if (tplErr) return { error: tplErr.message }
   if (!tpl) return { error: 'Fant ikke periodiseringsmal' }
 
-  const data = (tpl.template_data ?? {}) as PeriodizationTemplateData
-  const periods = Array.isArray(data.periods) ? data.periods : []
-  const weeks = Math.max(1, Number(data.duration_weeks) || 12)
-  const start = new Date(input.startDate + 'T00:00:00')
-  const end = new Date(start)
-  end.setDate(end.getDate() + weeks * 7 - 1)
+  const data = (tpl.periodization_data ?? {
+    season: { name: tpl.name, goal_main: null, goal_secondary: null, sport: null },
+    periods: [], key_dates: [],
+  }) as PeriodizationTemplateData
+
+  const durationDays = Math.max(1, Number(tpl.duration_days) || 1)
+  const endDate = addDaysISO(input.startDate, durationDays - 1)
 
   const { data: season, error: seasonErr } = await supabase
     .from('seasons')
     .insert({
       user_id: input.athleteId,
-      name: data.season_name ?? tpl.name,
+      name: data.season.name || tpl.name,
       start_date: input.startDate,
-      end_date: end.toISOString().slice(0, 10),
-      goal_main: data.goal_main ?? null,
+      end_date: endDate,
+      goal_main: data.season.goal_main ?? null,
+      goal_details: data.season.goal_secondary ?? null,
     })
     .select('id')
     .single()
   if (seasonErr || !season) return { error: seasonErr?.message ?? 'Kunne ikke opprette sesong' }
 
-  if (periods.length > 0) {
-    const periodRows = periods.map((p, i) => {
-      const pStart = new Date(start); pStart.setDate(pStart.getDate() + (Number(p.offset_days) || 0))
-      const pEnd = new Date(pStart); pEnd.setDate(pEnd.getDate() + (Number(p.length_days) || 7) - 1)
-      return {
-        season_id: season.id,
-        name: p.name,
-        focus: p.focus ?? null,
-        start_date: pStart.toISOString().slice(0, 10),
-        end_date: pEnd.toISOString().slice(0, 10),
-        intensity: p.intensity ?? 'medium',
-        sort_order: i,
-      }
-    })
-    const { error: periodsErr } = await supabase.from('season_periods').insert(periodRows)
-    if (periodsErr) {
-      // Rull tilbake sesongen hvis perioder feiler.
+  const periodRows = (data.periods ?? []).map((p, i) => ({
+    season_id: season.id,
+    name: p.name,
+    focus: p.phase_type || null,
+    start_date: addDaysISO(input.startDate, p.start_offset),
+    end_date: addDaysISO(input.startDate, Math.max(p.start_offset, p.end_offset)),
+    intensity: (p.intensity === 'rolig' || p.intensity === 'medium' || p.intensity === 'hard')
+      ? p.intensity
+      : 'medium',
+    notes: p.notes ?? null,
+    sort_order: typeof p.sort_order === 'number' ? p.sort_order : i,
+  }))
+  if (periodRows.length > 0) {
+    const { error: pErr } = await supabase.from('season_periods').insert(periodRows)
+    if (pErr) {
       await supabase.from('seasons').delete().eq('id', season.id)
-      return { error: periodsErr.message }
+      return { error: `season_periods: ${pErr.message}` }
+    }
+  }
+
+  const ALLOWED_EVENT_TYPES = new Set([
+    'competition_a', 'competition_b', 'competition_c', 'test', 'camp', 'other',
+  ])
+  const keyDateRows = (data.key_dates ?? []).map(k => ({
+    season_id: season.id,
+    event_type: ALLOWED_EVENT_TYPES.has(k.date_type) ? k.date_type : 'other',
+    event_date: addDaysISO(input.startDate, k.day_offset),
+    name: k.title,
+    sport: k.sport ?? null,
+    notes: k.notes ?? null,
+  }))
+  if (keyDateRows.length > 0) {
+    const { error: kErr } = await supabase.from('season_key_dates').insert(keyDateRows)
+    if (kErr) {
+      await supabase.from('seasons').delete().eq('id', season.id)
+      return { error: `season_key_dates: ${kErr.message}` }
     }
   }
 
@@ -399,13 +669,18 @@ export async function pushPeriodizationTemplateToAthlete(
     actionType: 'push_periodization_template',
     entityType: 'season',
     entityId: season.id,
-    details: { start_date: input.startDate, template_name: tpl.name, periods: periods.length },
+    details: {
+      start_date: input.startDate,
+      template_name: tpl.name,
+      periods: periodRows.length,
+      key_dates: keyDateRows.length,
+    },
   })
   await notifyAthlete({
     athleteId: input.athleteId,
     type: 'periodization_push',
     title: 'Ny periodisering fra trener',
-    content: `${tpl.name} · ${periods.length} perioder`,
+    content: `${tpl.name} · ${periodRows.length} perioder`,
     linkUrl: `/app/periodisering`,
   })
 

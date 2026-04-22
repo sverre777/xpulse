@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import type { FocusPoint, FocusScope, FocusContext } from '@/lib/focus-point-types'
 
 function validScope(s: string): s is FocusScope {
@@ -16,20 +17,24 @@ function revalidateContext(context: FocusContext) {
   else revalidatePath('/app/dagbok')
 }
 
+function requiredPermFor(context: FocusContext) {
+  return context === 'dagbok' ? 'can_view_dagbok' : 'can_edit_plan'
+}
+
 export async function getFocusPoints(
-  scope: FocusScope, periodKey: string, context: FocusContext,
+  scope: FocusScope, periodKey: string, context: FocusContext, targetUserId?: string,
 ): Promise<FocusPoint[] | { error: string }> {
   try {
     if (!validScope(scope) || !validContext(context)) return { error: 'Ugyldig parameter' }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, requiredPermFor(context))
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('focus_points')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .eq('scope', scope)
       .eq('period_key', periodKey)
       .eq('context', context)
@@ -45,19 +50,19 @@ export async function getFocusPoints(
 
 // Henter både plan- og dagbok-punktene i én runde (Dagbok-visning trenger begge).
 export async function getFocusPointsBoth(
-  scope: FocusScope, periodKey: string,
+  scope: FocusScope, periodKey: string, targetUserId?: string,
 ): Promise<{ plan: FocusPoint[]; dagbok: FocusPoint[] } | { error: string }> {
   try {
     if (!validScope(scope)) return { error: 'Ugyldig scope' }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('focus_points')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .eq('scope', scope)
       .eq('period_key', periodKey)
       .order('sort_order', { ascending: true })
@@ -75,7 +80,7 @@ export async function getFocusPointsBoth(
 }
 
 export async function addFocusPoint(
-  scope: FocusScope, periodKey: string, context: FocusContext, content: string,
+  scope: FocusScope, periodKey: string, context: FocusContext, content: string, targetUserId?: string,
 ): Promise<{ id?: string; error?: string }> {
   try {
     if (!validScope(scope) || !validContext(context)) return { error: 'Ugyldig parameter' }
@@ -84,14 +89,13 @@ export async function addFocusPoint(
     if (!periodKey) return { error: 'Periode-nøkkel mangler' }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, requiredPermFor(context))
+    if ('error' in resolved) return { error: resolved.error }
 
-    // Finn neste sort_order.
     const { data: maxRow } = await supabase
       .from('focus_points')
       .select('sort_order')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .eq('scope', scope)
       .eq('period_key', periodKey)
       .eq('context', context)
@@ -103,7 +107,7 @@ export async function addFocusPoint(
     const { data, error } = await supabase
       .from('focus_points')
       .insert({
-        user_id: user.id,
+        user_id: resolved.userId,
         scope, period_key: periodKey, context,
         content: trimmed,
         sort_order: nextOrder,
@@ -120,21 +124,21 @@ export async function addFocusPoint(
 }
 
 export async function updateFocusPoint(
-  id: string, content: string,
+  id: string, content: string, targetUserId?: string,
 ): Promise<{ error?: string }> {
   try {
     const trimmed = content.trim()
     if (!trimmed) return { error: 'Innhold er påkrevd' }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: existing, error: fetchErr } = await supabase
       .from('focus_points')
       .select('context')
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .single()
     if (fetchErr) return { error: fetchErr.message }
 
@@ -142,7 +146,7 @@ export async function updateFocusPoint(
       .from('focus_points')
       .update({ content: trimmed })
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
 
     if (error) return { error: error.message }
     revalidateContext(existing.context as FocusContext)
@@ -153,18 +157,18 @@ export async function updateFocusPoint(
 }
 
 export async function deleteFocusPoint(
-  id: string,
+  id: string, targetUserId?: string,
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: existing, error: fetchErr } = await supabase
       .from('focus_points')
       .select('context')
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .single()
     if (fetchErr) return { error: fetchErr.message }
 
@@ -172,7 +176,7 @@ export async function deleteFocusPoint(
       .from('focus_points')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
 
     if (error) return { error: error.message }
     revalidateContext(existing.context as FocusContext)
@@ -183,31 +187,30 @@ export async function deleteFocusPoint(
 }
 
 export async function reorderFocusPoints(
-  ids: string[],
+  ids: string[], targetUserId?: string,
 ): Promise<{ error?: string }> {
   try {
     if (!Array.isArray(ids) || ids.length === 0) return {}
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: rows, error: fetchErr } = await supabase
       .from('focus_points')
       .select('id,context')
       .in('id', ids)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
     if (fetchErr) return { error: fetchErr.message }
 
     const contexts = new Set<FocusContext>((rows ?? []).map(r => r.context as FocusContext))
 
-    // Sekvensiell update — skala her er lav (typisk <10 punkter per scope).
     for (let i = 0; i < ids.length; i++) {
       const { error } = await supabase
         .from('focus_points')
         .update({ sort_order: i })
         .eq('id', ids[i])
-        .eq('user_id', user.id)
+        .eq('user_id', resolved.userId)
       if (error) return { error: error.message }
     }
 

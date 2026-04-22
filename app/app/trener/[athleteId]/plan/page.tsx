@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
-import { getAthleteContext, getAthleteWorkouts } from '@/app/actions/coach-athlete'
-import { AthleteWorkoutsList } from '@/components/coach/AthleteWorkoutsList'
+import { resolveCoachContext } from '@/lib/view-context'
+import { PlanPageView } from '@/components/views/PlanPageView'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { PushTemplateModal } from '@/components/coach/PushTemplateModal'
+import { getAthleteContext } from '@/app/actions/coach-athlete'
 
 interface Props {
   params: Promise<{ athleteId: string }>
@@ -20,45 +21,18 @@ function isoWeekKey(d: Date): string {
 export default async function AthletePlanTab({ params, searchParams }: Props) {
   const { athleteId } = await params
   const { push } = await searchParams
+  const viewContext = await resolveCoachContext(athleteId)
+  if ('error' in viewContext) redirect(`/app/trener/${athleteId}`)
+
   const ctx = await getAthleteContext(athleteId)
   if ('error' in ctx) redirect(`/app/trener/${athleteId}`)
 
-  const data = await getAthleteWorkouts(athleteId, 'plan', {})
   const weekKey = isoWeekKey(new Date())
   const showPush = push === '1'
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
-        <h2
-          className="text-lg tracking-wide uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
-        >
-          Plan — kommende 4 uker
-        </h2>
-        {!ctx.permissions.can_edit_plan && (
-          <span
-            className="text-[10px] tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}
-          >
-            Les-modus (ingen redigeringstilgang)
-          </span>
-        )}
-      </div>
-
-      {'error' in data ? (
-        <p className="text-xs py-4"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
-          {data.error}
-        </p>
-      ) : (
-        <AthleteWorkoutsList
-          mode="plan"
-          workouts={data.workouts}
-          dayStates={data.dayStates}
-          emptyLabel="Ingen planlagte økter i perioden."
-        />
-      )}
+      <PlanPageView viewContext={viewContext} />
 
       <CommentSection
         athleteId={athleteId}

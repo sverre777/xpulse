@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import type { WeeklyReflection, WeeklyReflectionInput } from '@/lib/weekly-reflection-types'
 
 function validScore(n: number | null | undefined): boolean {
@@ -10,7 +11,7 @@ function validScore(n: number | null | undefined): boolean {
 }
 
 export async function getWeeklyReflection(
-  year: number, weekNumber: number,
+  year: number, weekNumber: number, targetUserId?: string,
 ): Promise<WeeklyReflection | null | { error: string }> {
   try {
     if (!Number.isInteger(year) || !Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 53) {
@@ -18,13 +19,13 @@ export async function getWeeklyReflection(
     }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('weekly_reflections')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .eq('year', year)
       .eq('week_number', weekNumber)
       .maybeSingle()
@@ -37,7 +38,7 @@ export async function getWeeklyReflection(
 }
 
 export async function upsertWeeklyReflection(
-  year: number, weekNumber: number, input: WeeklyReflectionInput,
+  year: number, weekNumber: number, input: WeeklyReflectionInput, targetUserId?: string,
 ): Promise<{ id?: string; error?: string }> {
   try {
     if (!Number.isInteger(year) || !Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 53) {
@@ -48,11 +49,11 @@ export async function upsertWeeklyReflection(
     }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+    if ('error' in resolved) return { error: resolved.error }
 
     const payload = {
-      user_id: user.id,
+      user_id: resolved.userId,
       year, week_number: weekNumber,
       perceived_load: input.perceived_load ?? null,
       energy: input.energy ?? null,

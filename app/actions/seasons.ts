@@ -2,9 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import type { Sport, WorkoutType } from '@/lib/types'
-
-// ── Typer ───────────────────────────────────────────────────
 
 export type Intensity = 'rolig' | 'medium' | 'hard'
 export type KeyEventType =
@@ -58,18 +57,16 @@ export interface PeriodizationOverlay {
   keyDates: SeasonKeyDate[]
 }
 
-// ── Read actions ────────────────────────────────────────────
-
-export async function getSeasons(): Promise<Season[] | { error: string }> {
+export async function getSeasons(targetUserId?: string): Promise<Season[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('seasons')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .order('start_date', { ascending: false })
 
     if (error) return { error: error.message }
@@ -81,18 +78,19 @@ export async function getSeasons(): Promise<Season[] | { error: string }> {
 
 export async function getActiveSeason(
   date?: string,
+  targetUserId?: string,
 ): Promise<Season | null | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const today = date ?? new Date().toISOString().split('T')[0]
 
     const { data, error } = await supabase
       .from('seasons')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .lte('start_date', today)
       .gte('end_date', today)
       .order('start_date', { ascending: false })
@@ -147,21 +145,20 @@ export async function getSeasonKeyDates(
   }
 }
 
-// Alt overlay-data for Plan-kalenderen i et datointervall.
-// Henter sesongen som overlapper [fromDate, toDate] og dens perioder/datoer.
 export async function getPeriodizationForDateRange(
   fromDate: string,
   toDate: string,
+  targetUserId?: string,
 ): Promise<PeriodizationOverlay | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: seasonRows, error: seasonErr } = await supabase
       .from('seasons')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .lte('start_date', toDate)
       .gte('end_date', fromDate)
       .order('start_date', { ascending: false })
@@ -198,8 +195,6 @@ export async function getPeriodizationForDateRange(
   }
 }
 
-// ── Write actions: seasons ──────────────────────────────────
-
 export interface SeasonInput {
   name: string
   start_date: string
@@ -207,6 +202,7 @@ export interface SeasonInput {
   goal_main?: string | null
   goal_details?: string | null
   kpi_notes?: string | null
+  targetUserId?: string
 }
 
 function validateSeasonInput(input: SeasonInput): string | null {
@@ -225,13 +221,13 @@ export async function createSeason(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('seasons')
       .insert({
-        user_id: user.id,
+        user_id: resolved.userId,
         name: input.name.trim(),
         start_date: input.start_date,
         end_date: input.end_date,
@@ -260,8 +256,8 @@ export async function updateSeason(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { error } = await supabase
       .from('seasons')
@@ -274,7 +270,7 @@ export async function updateSeason(
         kpi_notes: input.kpi_notes?.trim() || null,
       })
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
 
     if (error) return { error: error.message }
     revalidatePath('/app/periodisering')
@@ -285,17 +281,20 @@ export async function updateSeason(
   }
 }
 
-export async function deleteSeason(id: string): Promise<{ error?: string }> {
+export async function deleteSeason(
+  id: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { error } = await supabase
       .from('seasons')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
 
     if (error) return { error: error.message }
     revalidatePath('/app/periodisering')
@@ -305,8 +304,6 @@ export async function deleteSeason(id: string): Promise<{ error?: string }> {
     return { error: e instanceof Error ? e.message : String(e) }
   }
 }
-
-// ── Write actions: season_periods ──────────────────────────
 
 export interface PeriodInput {
   season_id: string
@@ -317,6 +314,7 @@ export interface PeriodInput {
   intensity: Intensity
   notes?: string | null
   sort_order?: number
+  targetUserId?: string
 }
 
 function validatePeriodInput(input: PeriodInput): string | null {
@@ -328,7 +326,6 @@ function validatePeriodInput(input: PeriodInput): string | null {
   return null
 }
 
-// Sjekk at en periode er innenfor sesongen og ikke overlapper andre perioder.
 async function checkPeriodConstraints(
   supabase: Awaited<ReturnType<typeof createClient>>,
   input: PeriodInput,
@@ -369,8 +366,8 @@ export async function createPeriod(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const constraintErr = await checkPeriodConstraints(supabase, input)
     if (constraintErr) return { error: constraintErr }
@@ -408,8 +405,8 @@ export async function updatePeriod(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const constraintErr = await checkPeriodConstraints(supabase, input, id)
     if (constraintErr) return { error: constraintErr }
@@ -436,11 +433,14 @@ export async function updatePeriod(
   }
 }
 
-export async function deletePeriod(id: string): Promise<{ error?: string }> {
+export async function deletePeriod(
+  id: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { error } = await supabase
       .from('season_periods')
@@ -456,8 +456,6 @@ export async function deletePeriod(id: string): Promise<{ error?: string }> {
   }
 }
 
-// ── Write actions: season_key_dates (med auto-workout) ─────
-
 export interface KeyDateInput {
   season_id: string
   event_type: KeyEventType
@@ -468,10 +466,9 @@ export interface KeyDateInput {
   distance_format?: string | null
   notes?: string | null
   is_peak_target?: boolean
+  targetUserId?: string
 }
 
-// Mappe event_type → workout_type. Returnerer null hvis vi IKKE skal
-// opprette en workout (f.eks. camp/other).
 function workoutTypeFor(eventType: KeyEventType): WorkoutType | null {
   switch (eventType) {
     case 'competition_a':
@@ -514,13 +511,12 @@ export async function createKeyDate(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const seasonCheck = await checkKeyDateInSeason(supabase, input)
     if (seasonCheck.error || !seasonCheck.season) return { error: seasonCheck.error ?? 'Ukjent feil' }
 
-    // Auto-opprett workout hvis event_type krever det.
     let linkedWorkoutId: string | null = null
     const wType = workoutTypeFor(input.event_type)
     if (wType) {
@@ -534,6 +530,7 @@ export async function createKeyDate(
           workout_type: wType,
           is_planned: true,
           notes: input.notes?.trim() || null,
+          created_by_coach_id: resolved.isCoachImpersonating ? resolved.coachId : null,
         })
         .select('id')
         .single()
@@ -560,7 +557,6 @@ export async function createKeyDate(
       .single()
 
     if (error) {
-      // Rull tilbake workout hvis den ble opprettet.
       if (linkedWorkoutId) {
         await supabase.from('workouts').delete().eq('id', linkedWorkoutId)
       }
@@ -584,8 +580,8 @@ export async function updateKeyDate(
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const seasonCheck = await checkKeyDateInSeason(supabase, input)
     if (seasonCheck.error || !seasonCheck.season) return { error: seasonCheck.error ?? 'Ukjent feil' }
@@ -602,7 +598,6 @@ export async function updateKeyDate(
     const wType = workoutTypeFor(input.event_type)
 
     if (wType && oldWorkoutId) {
-      // Synkroniser koblet workout.
       const { error: wErr } = await supabase
         .from('workouts')
         .update({
@@ -616,7 +611,6 @@ export async function updateKeyDate(
         .eq('user_id', seasonCheck.season.user_id)
       if (wErr) return { error: `Kunne ikke oppdatere koblet workout: ${wErr.message}` }
     } else if (wType && !oldWorkoutId) {
-      // Event_type ble endret til en som krever workout — opprett ny.
       const { data: workout, error: wErr } = await supabase
         .from('workouts')
         .insert({
@@ -627,13 +621,13 @@ export async function updateKeyDate(
           workout_type: wType,
           is_planned: true,
           notes: input.notes?.trim() || null,
+          created_by_coach_id: resolved.isCoachImpersonating ? resolved.coachId : null,
         })
         .select('id')
         .single()
       if (wErr) return { error: `Kunne ikke opprette koblet workout: ${wErr.message}` }
       linkedWorkoutId = workout.id as string
     } else if (!wType && oldWorkoutId) {
-      // Event_type ble endret til en som IKKE krever workout — slett den gamle.
       await supabase.from('workouts').delete().eq('id', oldWorkoutId)
       linkedWorkoutId = null
     }
@@ -662,7 +656,6 @@ export async function updateKeyDate(
   }
 }
 
-// Planlagte workouts brukt av kalender-visningen (én prikk per dato).
 export interface PlannedWorkoutDot {
   id: string
   date: string
@@ -671,7 +664,6 @@ export interface PlannedWorkoutDot {
   sport: Sport | null
 }
 
-// Sammensatt data til Årskalender i én round-trip.
 export interface SeasonCalendarData {
   season: Season
   periods: SeasonPeriod[]
@@ -681,17 +673,18 @@ export interface SeasonCalendarData {
 
 export async function getSeasonCalendarData(
   seasonId: string,
+  targetUserId?: string,
 ): Promise<SeasonCalendarData | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: season, error: sErr } = await supabase
       .from('seasons')
       .select('*')
       .eq('id', seasonId)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .single()
     if (sErr) return { error: sErr.message }
     if (!season) return { error: 'Fant ikke sesongen' }
@@ -712,7 +705,7 @@ export async function getSeasonCalendarData(
       supabase
         .from('workouts')
         .select('id,date,title,workout_type,sport,is_planned')
-        .eq('user_id', user.id)
+        .eq('user_id', resolved.userId)
         .eq('is_planned', true)
         .gte('date', s.start_date)
         .lte('date', s.end_date)
@@ -744,16 +737,15 @@ export async function getSeasonCalendarData(
   }
 }
 
-// deleteKeyDate: hvis cascadeWorkout=true, slettes også koblet workout.
-// Ellers slettes kun key_date; workouten beholdes som standalone.
 export async function deleteKeyDate(
   id: string,
   cascadeWorkout: boolean,
+  targetUserId?: string,
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data: existing, error: exErr } = await supabase
       .from('season_key_dates')
@@ -775,7 +767,7 @@ export async function deleteKeyDate(
         .from('workouts')
         .delete()
         .eq('id', linkedWorkoutId)
-        .eq('user_id', user.id)
+        .eq('user_id', resolved.userId)
     }
 
     revalidatePath('/app/periodisering')

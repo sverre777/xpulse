@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import type { DayState, DayStateInput } from '@/lib/day-state-types'
 
 async function validate(input: DayStateInput): Promise<string | null> {
@@ -17,16 +18,17 @@ async function validate(input: DayStateInput): Promise<string | null> {
 
 export async function getDayStatesForRange(
   fromDate: string, toDate: string,
+  targetUserId?: string,
 ): Promise<DayState[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('day_states')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: true })
@@ -39,18 +41,18 @@ export async function getDayStatesForRange(
 }
 
 export async function upsertDayState(
-  input: DayStateInput,
+  input: DayStateInput & { targetUserId?: string },
 ): Promise<{ id?: string; error?: string }> {
   try {
     const err = await validate(input)
     if (err) return { error: err }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_plan')
+    if ('error' in resolved) return { error: resolved.error }
 
     const payload = {
-      user_id: user.id,
+      user_id: resolved.userId,
       date: input.date,
       state_type: input.state_type,
       is_planned: input.is_planned ?? false,
@@ -78,17 +80,20 @@ export async function upsertDayState(
   }
 }
 
-export async function deleteDayState(id: string): Promise<{ error?: string }> {
+export async function deleteDayState(
+  id: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { error } = await supabase
       .from('day_states')
       .delete()
       .eq('id', id)
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
 
     if (error) return { error: error.message }
     revalidatePath('/app/dagbok')

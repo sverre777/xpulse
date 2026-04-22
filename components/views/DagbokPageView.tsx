@@ -43,6 +43,8 @@ export async function DagbokPageView({ viewContext }: Props) {
   const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
   const monthKey = `${year}-${String(month).padStart(2, '0')}`
 
+  const isCoachView = viewContext.mode === 'coach-view'
+  const targetId = isCoachView ? userId : undefined
   const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes, dayStatesRes] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
     supabase.from('workouts')
@@ -54,11 +56,11 @@ export async function DagbokPageView({ viewContext }: Props) {
       .gte('date', monthStart)
       .lte('date', monthEnd),
     getRecoveryEntriesForRange(userId, monthStart, monthEnd),
-    getTemplates(),
+    getTemplates(targetId),
     getHeartZonesForUser(supabase, userId),
-    getPeriodNotes('week', [weekKey], 'dagbok'),
-    getPeriodNotes('month', [monthKey], 'dagbok'),
-    getDayStatesForRange(monthStart, monthEnd),
+    getPeriodNotes('week', [weekKey], 'dagbok', targetId),
+    getPeriodNotes('month', [monthKey], 'dagbok', targetId),
+    getDayStatesForRange(monthStart, monthEnd, targetId),
   ])
 
   const dayStatesByDate: Record<string, DayState[]> = {}

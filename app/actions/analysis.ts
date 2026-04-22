@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
@@ -127,16 +128,18 @@ type RawWorkoutRow = {
 export async function getWorkoutStats(
   fromDate: string,
   toDate: string,
+  targetUserId?: string,
 ): Promise<WorkoutStats | { error: string }> {
   try {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+  if ('error' in resolved) return { error: resolved.error }
+  const userId = resolved.userId
 
   const { data: rows, error } = await supabase
     .from('workouts')
     .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .eq('is_completed', true)       // kun gjennomførte økter (is_planned kan fortsatt være true)
     .gte('date', fromDate)
     .lte('date', toDate)
@@ -144,7 +147,7 @@ export async function getWorkoutStats(
 
   if (error) return { error: error.message }
 
-  const heartZones = await getHeartZonesForUser(supabase, user.id)
+  const heartZones = await getHeartZonesForUser(supabase, userId)
   const skeleton = buildWeekSkeleton(fromDate, toDate)
   const weeksByKey = new Map(skeleton.map(w => [w.weekKey, w]))
   const movementNames = new Set<string>()
@@ -672,14 +675,16 @@ export async function getAnalysisOverview(
   fromDate: string,
   toDate: string,
   sportFilter?: Sport | null,
+  targetUserId?: string,
 ): Promise<AnalysisOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
 
     const { data: profile, error: pErr } = await supabase
-      .from('profiles').select('primary_sport').eq('id', user.id).single()
+      .from('profiles').select('primary_sport').eq('id', userId).single()
     if (pErr) return { error: `profiles: ${pErr.message}` }
     const primarySport = (profile?.primary_sport as Sport) ?? 'running'
 
@@ -688,9 +693,9 @@ export async function getAnalysisOverview(
     const prevFrom = shiftDays(prevTo, -(rangeDays - 1))
 
     const [current, previous, weekly_distribution] = await Promise.all([
-      computeMetricsForRange(supabase, user.id, fromDate, toDate, primarySport, sportFilter ?? null),
-      computeMetricsForRange(supabase, user.id, prevFrom, prevTo, primarySport, sportFilter ?? null),
-      computeWeeklyDistribution(supabase, user.id, fromDate, toDate, sportFilter ?? null),
+      computeMetricsForRange(supabase, userId, fromDate, toDate, primarySport, sportFilter ?? null),
+      computeMetricsForRange(supabase, userId, prevFrom, prevTo, primarySport, sportFilter ?? null),
+      computeWeeklyDistribution(supabase, userId, fromDate, toDate, sportFilter ?? null),
     ])
 
     return {

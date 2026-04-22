@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 
 export type NoteScope = 'week' | 'month'
 export type NoteContext = 'plan' | 'dagbok'
@@ -13,21 +14,22 @@ export interface PeriodNote {
   note: string
 }
 
-// Hent kommentarer for en gitt periode og kontekst.
 export async function getPeriodNotes(
   scope: NoteScope,
   periodKeys: string[],
   context: NoteContext,
+  targetUserId?: string,
 ): Promise<Record<string, string>> {
   if (periodKeys.length === 0) return {}
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return {}
+  const required = context === 'dagbok' ? 'can_view_dagbok' : 'can_edit_plan'
+  const resolved = await resolveTargetUser(supabase, targetUserId, required)
+  if ('error' in resolved) return {}
 
   const { data } = await supabase
     .from('period_notes')
     .select('period_key, note')
-    .eq('user_id', user.id)
+    .eq('user_id', resolved.userId)
     .eq('scope', scope)
     .eq('context', context)
     .in('period_key', periodKeys)
@@ -44,19 +46,20 @@ export async function savePeriodNote(input: {
   period_key: string
   context: NoteContext
   note: string
+  targetUserId?: string
 }): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const required = input.context === 'dagbok' ? 'can_view_dagbok' : 'can_edit_plan'
+  const resolved = await resolveTargetUser(supabase, input.targetUserId, required)
+  if ('error' in resolved) return { error: resolved.error }
 
   const trimmed = input.note.trim()
 
-  // Tom tekst → slett raden (hold tabellen ryddig).
   if (trimmed === '') {
     const { error } = await supabase
       .from('period_notes')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .eq('scope', input.scope)
       .eq('period_key', input.period_key)
       .eq('context', input.context)
@@ -65,7 +68,7 @@ export async function savePeriodNote(input: {
     const { error } = await supabase
       .from('period_notes')
       .upsert({
-        user_id: user.id,
+        user_id: resolved.userId,
         scope: input.scope,
         period_key: input.period_key,
         context: input.context,

@@ -43,15 +43,17 @@ export async function PlanPageView({ viewContext }: Props) {
   const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
 
+  const isCoachView = viewContext.mode === 'coach-view'
+  const targetId = isCoachView ? userId : undefined
   const [rawWorkouts, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization, dayStatesRes] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
     supabase.from('profiles').select('primary_sport').eq('id', userId).single(),
-    getTemplates(),
+    getTemplates(targetId),
     getHeartZonesForUser(supabase, userId),
-    getPeriodNotes('week', [weekKey], 'plan'),
-    getPeriodNotes('month', [monthKey], 'plan'),
-    getPeriodizationForDateRange(overlayFromISO, overlayToISO),
-    getDayStatesForRange(monthStart, monthEnd),
+    getPeriodNotes('week', [weekKey], 'plan', targetId),
+    getPeriodNotes('month', [monthKey], 'plan', targetId),
+    getPeriodizationForDateRange(overlayFromISO, overlayToISO, targetId),
+    getDayStatesForRange(monthStart, monthEnd, targetId),
   ])
 
   const activeSeason = !('error' in periodization) ? periodization.season : null

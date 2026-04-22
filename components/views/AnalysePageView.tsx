@@ -40,15 +40,14 @@ function ErrorPanel({ title, message, stack }: { title: string; message: string;
 }
 
 export async function AnalysePageView({ viewContext }: Props) {
-  // viewContext.userId is currently only consumed by client-side calls in Fase 2 —
-  // the server-side actions here still use auth.uid(). For self-mode (Fase 1) this is correct.
-  void viewContext
+  const isCoachView = viewContext.mode === 'coach-view'
+  const targetId = isCoachView ? viewContext.userId : undefined
   try {
     const range = rangeFromPreset('30d')
 
     const [stats, overview, favoritesRes] = await Promise.all([
-      getWorkoutStats(range.from, range.to),
-      getAnalysisOverview(range.from, range.to, null),
+      getWorkoutStats(range.from, range.to, targetId),
+      getAnalysisOverview(range.from, range.to, null, targetId),
       getFavoriteCharts(),
     ])
 

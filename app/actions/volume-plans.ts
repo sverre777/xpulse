@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 
 export interface MonthlyVolumePlan {
   id: string
@@ -28,20 +29,19 @@ function parseNum(v: string | number | null | undefined): number | null {
 }
 
 // Les alle månedsplaner for en bruker innenfor et gitt år.
-// RLS sikrer at innlogget bruker kun ser egne (eller egne utøveres) planer.
 export async function getMonthlyVolumePlans(
   userId: string,
   year: number,
 ): Promise<MonthlyVolumePlan[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, userId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
       .from('monthly_volume_plans')
       .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
-      .eq('user_id', userId)
+      .eq('user_id', resolved.userId)
       .eq('year', year)
       .order('month', { ascending: true })
 
@@ -63,9 +63,8 @@ export async function upsertMonthlyVolumePlan(
     if (month < 1 || month > 12) return { error: 'Ugyldig måned' }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
-    if (user.id !== userId) return { error: 'Kan kun redigere egne månedsplaner' }
+    const resolved = await resolveTargetUser(supabase, userId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const hours = parseNum(data.planned_hours)
     const km = parseNum(data.planned_km)
@@ -77,7 +76,7 @@ export async function upsertMonthlyVolumePlan(
       const { error } = await supabase
         .from('monthly_volume_plans')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', resolved.userId)
         .eq('year', year)
         .eq('month', month)
       if (error) return { error: error.message }
@@ -89,7 +88,7 @@ export async function upsertMonthlyVolumePlan(
     const { error } = await supabase
       .from('monthly_volume_plans')
       .upsert({
-        user_id: userId,
+        user_id: resolved.userId,
         season_id: seasonId,
         year,
         month,
@@ -108,16 +107,17 @@ export async function upsertMonthlyVolumePlan(
   }
 }
 
-// Hent månedsplaner for innlogget bruker som overlapper et datointervall.
+// Hent månedsplaner for brukeren som overlapper et datointervall.
 // Brukes av OverviewTab for å beregne planlagt volum i gjeldende analyse-periode.
 export async function getMyVolumePlansForDateRange(
   fromDate: string,
   toDate: string,
+  targetUserId?: string,
 ): Promise<MonthlyVolumePlan[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
 
     const from = new Date(fromDate + 'T00:00:00')
     const to = new Date(toDate + 'T00:00:00')
@@ -127,7 +127,7 @@ export async function getMyVolumePlansForDateRange(
     const { data, error } = await supabase
       .from('monthly_volume_plans')
       .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
-      .eq('user_id', user.id)
+      .eq('user_id', resolved.userId)
       .gte('year', startYear)
       .lte('year', endYear)
       .order('year', { ascending: true })
@@ -158,8 +158,8 @@ export async function getVolumePlansForSeason(
 ): Promise<MonthlyVolumePlan[] | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
+    const resolved = await resolveTargetUser(supabase, userId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
 
     const start = new Date(startDate + 'T00:00:00')
     const end = new Date(endDate + 'T00:00:00')
@@ -169,7 +169,7 @@ export async function getVolumePlansForSeason(
     const { data, error } = await supabase
       .from('monthly_volume_plans')
       .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
-      .eq('user_id', userId)
+      .eq('user_id', resolved.userId)
       .gte('year', startYear)
       .lte('year', endYear)
       .order('year', { ascending: true })

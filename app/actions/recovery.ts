@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import { RecoveryEntry } from '@/lib/recovery-types'
 
 export async function saveRecoveryEntry(data: {
@@ -10,10 +11,11 @@ export async function saveRecoveryEntry(data: {
   start_time: string
   duration_minutes: string
   notes: string
+  targetUserId?: string
 }): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, data.targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
 
   if (!data.type.trim()) return { error: 'Type er påkrevd' }
 
@@ -21,7 +23,7 @@ export async function saveRecoveryEntry(data: {
   if (data.date > today) return { error: 'Kan ikke logge recovery for fremtidig dato' }
 
   const payload = {
-    user_id: user.id,
+    user_id: resolved.userId,
     date: data.date,
     type: data.type,
     start_time: data.start_time || null,
@@ -41,16 +43,16 @@ export async function saveRecoveryEntry(data: {
   return { id: inserted.id }
 }
 
-export async function deleteRecoveryEntry(id: string): Promise<{ error?: string }> {
+export async function deleteRecoveryEntry(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
 
   const { error } = await supabase
     .from('recovery_entries')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('user_id', resolved.userId)
 
   if (error) return { error: error.message }
 
@@ -64,10 +66,12 @@ export async function getRecoveryEntriesForRange(
   endDate: string,
 ): Promise<RecoveryEntry[]> {
   const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  if ('error' in resolved) return []
   const { data } = await supabase
     .from('recovery_entries')
     .select('*')
-    .eq('user_id', userId)
+    .eq('user_id', resolved.userId)
     .gte('date', startDate)
     .lte('date', endDate)
     .order('date')

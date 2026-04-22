@@ -47,9 +47,11 @@ function resolveView(v: string | undefined): CalendarView {
 
 export async function PeriodiseringPageView({ viewContext, searchParams }: Props) {
   const userId = viewContext.userId
+  const isCoachView = viewContext.mode === 'coach-view'
+  const targetId = isCoachView ? userId : undefined
   const selectedSeasonId = searchParams?.s
   const view = resolveView(searchParams?.view)
-  const seasonsResult = await getSeasons()
+  const seasonsResult = await getSeasons(targetId)
 
   if ('error' in seasonsResult) {
     return (
@@ -87,7 +89,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   let volumePlans: MonthlyVolumePlan[] = []
 
   if (activeSeason) {
-    const data = await getSeasonCalendarData(activeSeason.id)
+    const data = await getSeasonCalendarData(activeSeason.id, targetId)
     if ('error' in data) {
       calendarError = data.error
     } else {

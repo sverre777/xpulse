@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import type { WorkoutTemplate } from '@/lib/types'
+import type { Sport, WorkoutTemplate } from '@/lib/types'
 import type { PlanTemplate, PeriodizationTemplate } from '@/lib/template-types'
 import { OktmalTab } from '@/components/coach/OktmalTab'
 import { PlanMalTab } from '@/components/coach/PlanMalTab'
@@ -13,6 +13,7 @@ type Tab = 'okt' | 'plan' | 'periodisering'
 
 interface Props {
   activeTab: string
+  primarySport: Sport
   initialWorkoutTemplates: WorkoutTemplate[]
   initialPlanTemplates: PlanTemplate[]
   initialPeriodizationTemplates: PeriodizationTemplate[]
@@ -20,6 +21,7 @@ interface Props {
 
 export function TrenerPlanleggPage({
   activeTab,
+  primarySport,
   initialWorkoutTemplates,
   initialPlanTemplates,
   initialPeriodizationTemplates,
@@ -50,7 +52,12 @@ export function TrenerPlanleggPage({
 
         <TabBar tab={tab} setTab={setTab} />
 
-        {tab === 'okt' && <OktmalTab initialTemplates={initialWorkoutTemplates} />}
+        {tab === 'okt' && (
+          <OktmalTab
+            initialTemplates={initialWorkoutTemplates}
+            primarySport={primarySport}
+          />
+        )}
         {tab === 'plan' && <PlanMalTab initialTemplates={initialPlanTemplates} />}
         {tab === 'periodisering' && <PeriodiseringMalTab initialTemplates={initialPeriodizationTemplates} />}
       </div>

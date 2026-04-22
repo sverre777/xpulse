@@ -27,6 +27,10 @@ interface WorkoutFormProps {
   onSaved?: () => void
   onCancel?: () => void
   readOnly?: boolean
+  // Mal-bygging: fjerner "Lagre økt"-knappen og gjør "Lagre som mal" til primær CTA.
+  // Trener-bruk i /app/trener/planlegg.
+  templateBuildingMode?: boolean
+  onTemplateSaved?: (id: string) => void
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -36,7 +40,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -171,6 +175,10 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       return
     }
     setShowTemplateModal(false)
+    if (templateBuildingMode) {
+      if (onTemplateSaved && result.id) onTemplateSaved(result.id)
+      else if (onSaved) onSaved()
+    }
   }
 
   const toggleTag = (tag: string) => {
@@ -508,24 +516,36 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 
         {/* Mobil: full-bredde primær øverst, avbryt under. Desktop: side om side. */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3">
-          <button type="submit" disabled={saving}
-            className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: saving ? '#7A2200' : '#FF4500',
-              color: '#F0F0F2', border: 'none',
-              cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
-            }}>
-            {saving
-              ? 'Lagrer...'
-              : markingCompleted
-              ? '✓ Lagre som gjennomført'
-              : workoutId
-              ? 'Lagre endringer'
-              : isPlanMode
-              ? 'Lagre plan'
-              : 'Lagre økt'}
-          </button>
+          {templateBuildingMode ? (
+            <button type="button" onClick={openTemplateModal}
+              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none',
+                cursor: 'pointer',
+              }}>
+              Lagre som mal
+            </button>
+          ) : (
+            <button type="submit" disabled={saving}
+              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: saving ? '#7A2200' : '#FF4500',
+                color: '#F0F0F2', border: 'none',
+                cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
+              }}>
+              {saving
+                ? 'Lagrer...'
+                : markingCompleted
+                ? '✓ Lagre som gjennomført'
+                : workoutId
+                ? 'Lagre endringer'
+                : isPlanMode
+                ? 'Lagre plan'
+                : 'Lagre økt'}
+            </button>
+          )}
           <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
             className="w-full sm:w-auto px-6 py-4 text-lg tracking-widest uppercase"
             style={{
@@ -536,17 +556,19 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </button>
         </div>
 
-        {/* Save as template — sekundær CTA; tydelig oransje ramme med dempet hover-fyll. */}
-        <button type="button" onClick={openTemplateModal}
-          className="w-full flex items-center justify-center gap-2 py-3 text-base tracking-widest uppercase transition-colors hover:bg-[rgba(255,69,0,0.08)]"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-            background: 'transparent', border: '1px solid #FF4500',
-            cursor: 'pointer',
-          }}>
-          <span aria-hidden="true" style={{ fontSize: '16px', lineHeight: 1 }}>🔖</span>
-          Lagre som mal
-        </button>
+        {/* Save as template — sekundær CTA; skjules i template-building-modus siden primærknappen allerede er mal-lagring. */}
+        {!templateBuildingMode && (
+          <button type="button" onClick={openTemplateModal}
+            className="w-full flex items-center justify-center gap-2 py-3 text-base tracking-widest uppercase transition-colors hover:bg-[rgba(255,69,0,0.08)]"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+              background: 'transparent', border: '1px solid #FF4500',
+              cursor: 'pointer',
+            }}>
+            <span aria-hidden="true" style={{ fontSize: '16px', lineHeight: 1 }}>🔖</span>
+            Lagre som mal
+          </button>
+        )}
       </div>
 
       {showTemplateModal && (

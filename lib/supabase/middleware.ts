@@ -53,12 +53,13 @@ export async function updateSession(request: NextRequest) {
   if (isAuthPage) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('active_role, role')
       .eq('id', user.id)
       .single()
 
+    const activeRole = profile?.active_role ?? profile?.role
     const url = request.nextUrl.clone()
-    url.pathname = profile?.role === 'coach' ? '/app/trener' : '/app/dagbok'
+    url.pathname = activeRole === 'coach' ? '/app/trener' : '/app/dagbok'
     return NextResponse.redirect(url)
   }
 

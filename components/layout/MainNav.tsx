@@ -4,9 +4,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
+import { RoleSwitcher } from './RoleSwitcher'
+import type { Role } from '@/lib/types'
+
+const ATHLETE_ORANGE = '#FF4500'
+const COACH_BLUE = '#1A6FD4'
 
 interface MainNavProps {
   userName: string | null
+  activeRole?: Role
+  hasAthleteRole?: boolean
+  hasCoachRole?: boolean
 }
 
 const NAV_LINKS = [
@@ -25,10 +33,16 @@ const MOBILE_LINKS = [
 
 const BREAKPOINT = 900
 
-export function MainNav({ userName }: MainNavProps) {
+export function MainNav({
+  userName,
+  activeRole = 'athlete',
+  hasAthleteRole = true,
+  hasCoachRole = false,
+}: MainNavProps) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const accent = activeRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < BREAKPOINT)
@@ -70,7 +84,7 @@ export function MainNav({ userName }: MainNavProps) {
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
-              color: '#FF4500',
+              color: accent,
               fontSize: '18px',
               letterSpacing: '0.4em',
             }}>
@@ -99,6 +113,10 @@ export function MainNav({ userName }: MainNavProps) {
             userName={userName}
             logHref={logHref}
             logLabel={logLabel}
+            accent={accent}
+            activeRole={activeRole}
+            hasAthleteRole={hasAthleteRole}
+            hasCoachRole={hasCoachRole}
             onClose={() => setMenuOpen(false)}
           />
         )}
@@ -124,7 +142,7 @@ export function MainNav({ userName }: MainNavProps) {
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px', letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: accent, fontSize: '20px', letterSpacing: '0.1em' }}>
             X-PULSE
           </span>
         </Link>
@@ -141,7 +159,7 @@ export function MainNav({ userName }: MainNavProps) {
                   fontFamily: "'Barlow Condensed', sans-serif",
                   color: active ? '#F0F0F2' : '#555560',
                   height: '52px',
-                  borderBottom: active ? '2px solid #FF4500' : '2px solid transparent',
+                  borderBottom: active ? `2px solid ${accent}` : '2px solid transparent',
                   textDecoration: 'none',
                 }}
               >
@@ -153,18 +171,26 @@ export function MainNav({ userName }: MainNavProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link
-          href={logHref}
-          className="px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500',
-            color: '#F0F0F2',
-            textDecoration: 'none',
-          }}
-        >
-          {logLabel}
-        </Link>
+        {activeRole === 'athlete' && (
+          <Link
+            href={logHref}
+            className="px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: accent,
+              color: '#F0F0F2',
+              textDecoration: 'none',
+            }}
+          >
+            {logLabel}
+          </Link>
+        )}
+
+        <RoleSwitcher
+          activeRole={activeRole}
+          hasAthleteRole={hasAthleteRole}
+          hasCoachRole={hasCoachRole}
+        />
 
         <span
           className="hidden sm:block text-sm tracking-wide"
@@ -206,11 +232,15 @@ export function MainNav({ userName }: MainNavProps) {
   )
 }
 
-function MobileOverlay({ pathname, userName, logHref, logLabel, onClose }: {
+function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, onClose }: {
   pathname: string
   userName: string | null
   logHref: string
   logLabel: string
+  accent: string
+  activeRole: Role
+  hasAthleteRole: boolean
+  hasCoachRole: boolean
   onClose: () => void
 }) {
   const [touchStartY, setTouchStartY] = useState<number | null>(null)
@@ -243,7 +273,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, onClose }: {
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           fontWeight: 600,
-          color: '#FF4500',
+          color: accent,
           fontSize: '18px',
           letterSpacing: '0.4em',
         }}>
@@ -264,22 +294,29 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, onClose }: {
         </button>
       </div>
 
-      {/* Log-økt CTA */}
-      <div className="flex justify-center px-6 mt-2">
-        <Link
-          href={logHref}
-          onClick={onClose}
-          className="text-sm font-semibold tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500',
-            color: '#F0F0F2',
-            textDecoration: 'none',
-            padding: '10px 24px',
-          }}
-        >
-          {logLabel}
-        </Link>
+      {/* Log-økt CTA + rolle-switcher */}
+      <div className="flex flex-col items-center gap-3 px-6 mt-2" onClick={e => e.stopPropagation()}>
+        {activeRole === 'athlete' && (
+          <Link
+            href={logHref}
+            onClick={onClose}
+            className="text-sm font-semibold tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: accent,
+              color: '#F0F0F2',
+              textDecoration: 'none',
+              padding: '10px 24px',
+            }}
+          >
+            {logLabel}
+          </Link>
+        )}
+        <RoleSwitcher
+          activeRole={activeRole}
+          hasAthleteRole={hasAthleteRole}
+          hasCoachRole={hasCoachRole}
+        />
       </div>
 
       {/* Centered link list */}
@@ -295,9 +332,9 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, onClose }: {
                 fontFamily: "'Bebas Neue', sans-serif",
                 fontSize: '24px',
                 letterSpacing: '0.1em',
-                color: active ? '#FF4500' : 'rgba(242,240,236,0.6)',
+                color: active ? accent : 'rgba(242,240,236,0.6)',
                 textDecoration: 'none',
-                borderBottom: active ? '1px solid #FF4500' : '1px solid transparent',
+                borderBottom: active ? `1px solid ${accent}` : '1px solid transparent',
                 paddingBottom: '3px',
                 transition: 'color 150ms',
               }}

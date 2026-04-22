@@ -60,28 +60,35 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {/* Role selector */}
+          {/* Role selector — dual-role: velg én eller begge. */}
           <div className="flex flex-col gap-2">
             <span
               className="text-sm tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
             >
-              Din rolle
+              Dine roller
             </span>
             <div className="grid grid-cols-2 gap-3">
               <RoleOption
-                value="athlete"
+                name="wants_athlete"
                 label="Utøver"
                 description="Logg og analyser treningen din"
                 accentColor="#FF4500"
+                defaultChecked
               />
               <RoleOption
-                value="coach"
+                name="wants_coach"
                 label="Trener"
                 description="Følg opp utøverne dine"
                 accentColor="#1A6FD4"
               />
             </div>
+            <p
+              className="text-xs mt-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+            >
+              Du kan velge begge — veksle senere i toppen av appen.
+            </p>
           </div>
 
           {state?.error && (
@@ -138,15 +145,17 @@ export default function RegisterPage() {
 }
 
 function RoleOption({
-  value,
+  name,
   label,
   description,
   accentColor,
+  defaultChecked,
 }: {
-  value: string
+  name: string
   label: string
   description: string
   accentColor: string
+  defaultChecked?: boolean
 }) {
   return (
     <label
@@ -157,10 +166,9 @@ function RoleOption({
       }}
     >
       <input
-        type="radio"
-        name="role"
-        value={value}
-        required
+        type="checkbox"
+        name={name}
+        defaultChecked={defaultChecked}
         className="sr-only peer"
       />
       <span

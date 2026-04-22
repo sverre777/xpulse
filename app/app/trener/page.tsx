@@ -20,7 +20,12 @@ export default async function CoachDashboard() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role === 'athlete') {
+  // Rolle-guard: kun brukere i trener-modus får se trenerpanelet.
+  const activeRole = profile?.active_role ?? profile?.role
+  if (activeRole !== 'coach') {
+    redirect('/app/dagbok')
+  }
+  if (!(profile?.has_coach_role ?? profile?.role === 'coach')) {
     redirect('/app/dagbok')
   }
 
@@ -28,7 +33,12 @@ export default async function CoachDashboard() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
-      <NavBar role="coach" userName={profile?.full_name} />
+      <NavBar
+        role="coach"
+        userName={profile?.full_name}
+        hasAthleteRole={profile?.has_athlete_role ?? false}
+        hasCoachRole={profile?.has_coach_role ?? true}
+      />
 
       <main className="flex-1 px-4 py-8 max-w-6xl mx-auto w-full">
 

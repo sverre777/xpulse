@@ -443,7 +443,12 @@ export interface Profile {
   id: string
   email: string
   full_name: string | null
+  // Legacy — beholdt for bakoverkompatibilitet. Ny logikk skal bruke
+  // has_athlete_role/has_coach_role + active_role.
   role: Role
+  has_athlete_role: boolean
+  has_coach_role: boolean
+  active_role: Role
   primary_sport: Sport | null
   avatar_url: string | null
   birth_year: number | null

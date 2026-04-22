@@ -1,13 +1,16 @@
 import { logout } from '@/app/actions/auth'
+import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
+import type { Role } from '@/lib/types'
 
 interface NavBarProps {
-  role: 'athlete' | 'coach'
+  role: Role
   userName: string | null
+  hasAthleteRole?: boolean
+  hasCoachRole?: boolean
 }
 
-export function NavBar({ role, userName }: NavBarProps) {
+export function NavBar({ role, userName, hasAthleteRole, hasCoachRole }: NavBarProps) {
   const accentColor = role === 'coach' ? '#1A6FD4' : '#FF4500'
-  const roleLabel = role === 'coach' ? 'Trener' : 'Utøver'
 
   return (
     <nav
@@ -20,20 +23,9 @@ export function NavBar({ role, userName }: NavBarProps) {
       <div className="flex items-center gap-4">
         <span
           className="text-2xl tracking-widest"
-          style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500' }}
+          style={{ fontFamily: "'Bebas Neue', sans-serif", color: accentColor }}
         >
           X-PULSE
-        </span>
-        <span
-          className="px-2 py-0.5 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: accentColor,
-            border: `1px solid ${accentColor}`,
-            opacity: 0.9,
-          }}
-        >
-          {roleLabel}
         </span>
       </div>
 
@@ -44,6 +36,11 @@ export function NavBar({ role, userName }: NavBarProps) {
         >
           {userName ?? 'Bruker'}
         </span>
+        <RoleSwitcher
+          activeRole={role}
+          hasAthleteRole={hasAthleteRole ?? (role === 'athlete')}
+          hasCoachRole={hasCoachRole ?? (role === 'coach')}
+        />
         <form action={logout}>
           <button
             type="submit"

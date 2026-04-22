@@ -14,9 +14,11 @@ interface CoachNavProps {
   hasCoachRole: boolean
 }
 
+// TODO: Analyse (sammenligne utøvere) og AI Coach for trener kommer senere.
 const NAV_LINKS = [
-  { href: '/app/trener',   label: 'Oversikt' },
-  { href: '/app/innboks',  label: 'Innboks' },
+  { href: '/app/trener',           label: 'Oversikt' },
+  { href: '/app/trener/planlegg',  label: 'Planlegg' },
+  { href: '/app/innboks',          label: 'Innboks' },
 ]
 
 const MOBILE_LINKS = [

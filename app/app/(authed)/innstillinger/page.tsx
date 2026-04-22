@@ -87,6 +87,21 @@ export default async function InnstillingerPage() {
           </div>
           <span style={{ color: '#555560', fontSize: '18px' }}>›</span>
         </Link>
+
+        <Link href="/app/innstillinger/trener"
+          className="flex items-center justify-between p-6 mt-6 transition-opacity hover:opacity-80"
+          style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div>
+            <p className="text-xs tracking-widest uppercase mb-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Trener
+            </p>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}>
+              Generer trener-kode og administrer koblinger
+            </p>
+          </div>
+          <span style={{ color: '#555560', fontSize: '18px' }}>›</span>
+        </Link>
       </div>
     </div>
   )

@@ -13,6 +13,7 @@ import type { DayState } from '@/lib/day-state-types'
 import { SeasonContextStrip } from '@/components/periodization/SeasonContextStrip'
 import { PlanGoalsSection } from '@/components/plan/PlanGoalsSection'
 import { PlanPhasesSection } from '@/components/plan/PlanPhasesSection'
+import { SavePlanTemplateButton } from '@/components/plan/SavePlanTemplateButton'
 import type { ViewContext } from '@/lib/view-context'
 
 interface Props {
@@ -42,6 +43,11 @@ export async function PlanPageView({ viewContext }: Props) {
 
   const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
+
+  const dow = now.getDay()
+  const mondayOffset = dow === 0 ? -6 : 1 - dow
+  const mondayDate = new Date(now); mondayDate.setDate(now.getDate() + mondayOffset)
+  const isoWeekStart = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`
 
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
@@ -75,11 +81,20 @@ export async function PlanPageView({ viewContext }: Props) {
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
       <div className="max-w-5xl mx-auto px-4 py-6">
 
-        <div className="flex items-center gap-3 mb-6">
-          <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
-            Plan {year}
-          </h1>
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3">
+            <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
+              Plan {year}
+            </h1>
+          </div>
+          {!isCoachView && (
+            <SavePlanTemplateButton
+              isoWeekStart={isoWeekStart}
+              monthStart={monthStart}
+              monthEnd={monthEnd}
+            />
+          )}
         </div>
 
         <SeasonContextStrip periods={seasonPeriods} keyDates={seasonKeyDates} todayISO={today} />

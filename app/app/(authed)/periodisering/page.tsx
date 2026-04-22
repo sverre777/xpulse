@@ -2,6 +2,10 @@ import {
   getSeasons, getSeasonCalendarData,
   type Season, type SeasonPeriod, type SeasonKeyDate, type PlannedWorkoutDot,
 } from '@/app/actions/seasons'
+import {
+  getVolumePlansForSeason, type MonthlyVolumePlan,
+} from '@/app/actions/volume-plans'
+import { createClient } from '@/lib/supabase/server'
 import { SeasonSelector } from '@/components/periodization/SeasonSelector'
 import { SeasonHeaderBar } from '@/components/periodization/SeasonHeaderBar'
 import { ViewToggle, type CalendarView } from '@/components/periodization/ViewToggle'
@@ -10,6 +14,7 @@ import { MonthFullCalendar } from '@/components/periodization/MonthFullCalendar'
 import { WeekOverviewCalendar } from '@/components/periodization/WeekOverviewCalendar'
 import { PeriodsSection } from '@/components/periodization/PeriodsSection'
 import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
+import { MonthlyVolumeSection } from '@/components/periodization/MonthlyVolumeSection'
 
 function ErrorBox({ message }: { message: string }) {
   return (
@@ -77,6 +82,11 @@ export default async function PeriodiseringPage({
   let periods: SeasonPeriod[] = []
   let keyDates: SeasonKeyDate[] = []
   let plannedWorkouts: PlannedWorkoutDot[] = []
+  let volumePlans: MonthlyVolumePlan[] = []
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const userId = user?.id ?? null
 
   if (activeSeason) {
     const data = await getSeasonCalendarData(activeSeason.id)
@@ -86,6 +96,10 @@ export default async function PeriodiseringPage({
       periods = data.periods
       keyDates = data.keyDates
       plannedWorkouts = data.plannedWorkouts
+    }
+    if (userId) {
+      const vp = await getVolumePlansForSeason(userId, activeSeason.start_date, activeSeason.end_date)
+      if (!('error' in vp)) volumePlans = vp
     }
   }
 
@@ -117,7 +131,17 @@ export default async function PeriodiseringPage({
           </div>
         ) : (
           <>
-            <SeasonHeaderBar season={activeSeason} periods={periods} keyDates={keyDates} />
+            <SeasonHeaderBar season={activeSeason} periods={periods} keyDates={keyDates} volumePlans={volumePlans} />
+
+            {userId && (
+              <MonthlyVolumeSection
+                userId={userId}
+                seasonId={activeSeason.id}
+                startDate={activeSeason.start_date}
+                endDate={activeSeason.end_date}
+                plans={volumePlans}
+              />
+            )}
 
             <div className="flex items-center justify-between mb-4">
               <ViewToggle active={view} />

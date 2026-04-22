@@ -1,7 +1,9 @@
 'use client'
 
 import type { Season, SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
+import type { MonthlyVolumePlan } from '@/app/actions/volume-plans'
 import { headerStatsFor } from '@/lib/season-calendar'
+import { SeasonVolumeSummary } from './SeasonVolumeSummary'
 
 function fmtDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
@@ -23,11 +25,12 @@ function StatBlock({ label, value }: { label: string; value: string | number }) 
 }
 
 export function SeasonHeaderBar({
-  season, periods, keyDates,
+  season, periods, keyDates, volumePlans,
 }: {
   season: Season
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
+  volumePlans?: MonthlyVolumePlan[]
 }) {
   const stats = headerStatsFor(periods, keyDates)
   const peakDates = stats.peakTargets
@@ -68,6 +71,10 @@ export function SeasonHeaderBar({
           <StatBlock label="Datoer" value={stats.totalKeyDates} />
         </div>
       </div>
+
+      {volumePlans && volumePlans.length > 0 && (
+        <SeasonVolumeSummary plans={volumePlans} />
+      )}
 
       {peakDates.length > 0 && (
         <div className="mt-4 pt-3 flex flex-wrap items-center gap-2"

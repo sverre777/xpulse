@@ -1,14 +1,17 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   LineChart, Line, Legend,
 } from 'recharts'
 import type { WorkoutStats, AnalysisOverview, OverviewZoneSeconds, MovementBreakdownRow, OverviewWeekDistribution } from '@/app/actions/analysis'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { getMyVolumePlansForDateRange, type MonthlyVolumePlan } from '@/app/actions/volume-plans'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
+import { VolumeProgressBar } from './VolumeProgressBar'
 import type { DateRange } from './date-range'
 
 // Palett for bevegelsesform-stack. Stabil rekkefølge via modulo.
@@ -126,9 +129,24 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ stats, overview, analysisRange }: OverviewTabProps) {
+  const [volumePlans, setVolumePlans] = useState<MonthlyVolumePlan[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getMyVolumePlansForDateRange(analysisRange.from, analysisRange.to).then(res => {
+      if (cancelled) return
+      if ('error' in res) setVolumePlans([])
+      else setVolumePlans(res)
+    })
+    return () => { cancelled = true }
+  }, [analysisRange.from, analysisRange.to])
+
   if (!stats.hasData && (!overview || overview.current.workout_count === 0)) return EMPTY
 
   const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+
+  const plannedHours = volumePlans.reduce((s, p) => s + (Number(p.planned_hours) || 0), 0)
+  const actualSeconds = overview?.current.total_seconds ?? 0
 
   // Hjelpere for sublabel ("Forrige: X").
   const prev = overview?.previous
@@ -136,6 +154,9 @@ export function OverviewTab({ stats, overview, analysisRange }: OverviewTabProps
 
   return (
     <div className="space-y-5">
+      {plannedHours > 0 && (
+        <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
+      )}
       {/* Metric cards — hovedtall for valgt periode, med sammenligning forrige tilsvarende periode. */}
       {overview && (
         <>

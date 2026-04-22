@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
-import type { Sport, WorkoutType, CompetitionType } from '@/lib/types'
+import { ENDURANCE_ACTIVITY_MOVEMENTS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
 
 // ── Typer ──────────────────────────────────────────
 
@@ -3547,5 +3547,176 @@ export async function getPeriodizationOverview(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getPeriodizationOverview: ${msg}` }
+  }
+}
+
+// ── Custom breakdown (fleksibel graf i Oversikt) ───────────────────────
+// Returnerer tid per bucket (uke/måned/år) fordelt på sone-segmenter for
+// utholdenhetsbevegelser og per-bevegelse-segmenter for ikke-utholdenhet.
+// Server-siden kjenner ikke til klientens multi-select — vi returnerer alle
+// bevegelsesnavn som dukket opp, og lar klienten filtrere i UI.
+
+export type CustomBreakdownGrouping = 'week' | 'month' | 'year'
+
+export interface CustomBreakdownBucket {
+  bucketKey: string         // 'YYYY-WNN' | 'YYYY-MM' | 'YYYY'
+  label: string             // 'U12' | 'mar 26' | '2026'
+  startDate: string         // ISO 'YYYY-MM-DD' — brukes til sortering
+  total_seconds: number
+  endurance_zone_seconds: { I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number }
+  // Nøkkel = bevegelsesnavn (f.eks. 'Styrke'), verdi = sekunder.
+  non_endurance_seconds: Record<string, number>
+}
+
+export interface CustomBreakdown {
+  buckets: CustomBreakdownBucket[]
+  // Bevegelser som har minst én aktivitet i perioden — klienten bruker dette
+  // til å fylle multi-selecten og bygge legend.
+  enduranceMovementsInUse: string[]
+  nonEnduranceMovementsInUse: string[]
+  // Full statisk liste (bygget fra MOVEMENT_CATEGORIES via ENDURANCE_ACTIVITY_MOVEMENTS)
+  // slik at klienten kan vise alle valgmuligheter, også de uten data.
+  allEnduranceMovements: string[]
+  allNonEnduranceMovements: string[]
+  hasData: boolean
+}
+
+// Norske forkortelser for måneder — brukes i label.
+const NB_MONTHS_SHORT = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
+
+function bucketKeyFor(dateIso: string, grouping: CustomBreakdownGrouping): { bucketKey: string; label: string; startDate: string } {
+  const [y, m, d] = dateIso.split('-').map(Number)
+  if (grouping === 'year') {
+    const bucketKey = `${y}`
+    return { bucketKey, label: `${y}`, startDate: `${y}-01-01` }
+  }
+  if (grouping === 'month') {
+    const mm = String(m).padStart(2, '0')
+    const bucketKey = `${y}-${mm}`
+    const yy = String(y).slice(-2)
+    return { bucketKey, label: `${NB_MONTHS_SHORT[m - 1]} ${yy}`, startDate: `${y}-${mm}-01` }
+  }
+  // week (ISO)
+  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1))
+  const info = isoWeekKey(new Date(y, (m ?? 1) - 1, d ?? 1))
+  void dt
+  return { bucketKey: info.weekKey, label: info.label, startDate: info.startDate }
+}
+
+// Kategoriser movement_name som utholdenhet eller ikke. Null/ukjent faller
+// til 'Annet' i ikke-utholdenhet.
+function classifyMovement(name: string | null): { name: string; endurance: boolean } {
+  if (!name) return { name: 'Annet', endurance: false }
+  return { name, endurance: ENDURANCE_ACTIVITY_MOVEMENTS.has(name) }
+}
+
+type CustomBreakdownRawRow = {
+  date: string
+  workout_activities: {
+    activity_type: string
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    movement_name: string | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
+export async function getCustomBreakdown(
+  fromDate: string,
+  toDate: string,
+  grouping: CustomBreakdownGrouping,
+): Promise<CustomBreakdown | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+
+    const { data: rows, error } = await supabase
+      .from('workouts')
+      .select('date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
+      .eq('user_id', user.id)
+      .eq('is_planned', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date')
+
+    if (error) return { error: error.message }
+
+    const heartZones = await getHeartZonesForUser(supabase, user.id)
+    const buckets = new Map<string, CustomBreakdownBucket>()
+    const enduranceInUse = new Set<string>()
+    const nonEnduranceInUse = new Set<string>()
+
+    for (const w of (rows ?? []) as CustomBreakdownRawRow[]) {
+      const { bucketKey, label, startDate } = bucketKeyFor(w.date, grouping)
+      let bucket = buckets.get(bucketKey)
+      if (!bucket) {
+        bucket = {
+          bucketKey, label, startDate,
+          total_seconds: 0,
+          endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+          non_endurance_seconds: {},
+        }
+        buckets.set(bucketKey, bucket)
+      }
+
+      for (const a of (w.workout_activities ?? [])) {
+        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+
+        const cls = classifyMovement(a.movement_name)
+
+        if (cls.endurance) {
+          // Beregn sone-sekunder for denne aktiviteten alene (bruk samme
+          // HR-fallback-logikk som resten av analysen).
+          const like: ActivityLike = {
+            activity_type: a.activity_type,
+            duration_seconds: a.duration_seconds,
+            distance_meters: a.distance_meters,
+            avg_heart_rate: a.avg_heart_rate,
+            zones: a.zones,
+          }
+          const t = computeActivityTotals([like], heartZones)
+          if (t.totalSeconds <= 0) continue
+          bucket.total_seconds += t.totalSeconds
+          bucket.endurance_zone_seconds.I1 += t.zoneSeconds.I1
+          bucket.endurance_zone_seconds.I2 += t.zoneSeconds.I2
+          bucket.endurance_zone_seconds.I3 += t.zoneSeconds.I3
+          bucket.endurance_zone_seconds.I4 += t.zoneSeconds.I4
+          bucket.endurance_zone_seconds.I5 += t.zoneSeconds.I5
+          bucket.endurance_zone_seconds.Hurtighet += t.zoneSeconds.Hurtighet
+          enduranceInUse.add(cls.name)
+        } else {
+          const sec = Number(a.duration_seconds) || 0
+          if (sec <= 0) continue
+          bucket.total_seconds += sec
+          bucket.non_endurance_seconds[cls.name] = (bucket.non_endurance_seconds[cls.name] ?? 0) + sec
+          nonEnduranceInUse.add(cls.name)
+        }
+      }
+    }
+
+    // Bygg statiske lister (bevegelser brukeren kan velge i filter).
+    // Utholdenhet: fra det delte settet.
+    const allEnduranceMovements = Array.from(ENDURANCE_ACTIVITY_MOVEMENTS).sort((a, b) => a.localeCompare(b, 'nb'))
+    // Ikke-utholdenhet: union av typiske bevegelser + de som faktisk er registrert.
+    const commonNonEndurance = ['Styrke', 'Yoga', 'Klatring', 'Dans', 'Alpint', 'Telemark', 'Snowboard', 'Crossfit', 'Kampsport']
+    const nonEnduranceSet = new Set<string>([...commonNonEndurance, ...nonEnduranceInUse])
+    const allNonEnduranceMovements = Array.from(nonEnduranceSet).sort((a, b) => a.localeCompare(b, 'nb'))
+
+    const bucketList = Array.from(buckets.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
+    const hasData = bucketList.some(b => b.total_seconds > 0)
+
+    return {
+      buckets: bucketList,
+      enduranceMovementsInUse: Array.from(enduranceInUse).sort((a, b) => a.localeCompare(b, 'nb')),
+      nonEnduranceMovementsInUse: Array.from(nonEnduranceInUse).sort((a, b) => a.localeCompare(b, 'nb')),
+      allEnduranceMovements,
+      allNonEnduranceMovements,
+      hasData,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getCustomBreakdown: ${msg}` }
   }
 }

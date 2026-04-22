@@ -385,9 +385,10 @@ function AnalysisPageInner({
               intensity={intensityDist}
               overview={overview}
               health={healthCorrelations}
+              analysisRange={range}
               onNavigate={(t) => setTab(t)}
             />
-            <OverviewTab stats={stats} overview={overview} />
+            <OverviewTab stats={stats} overview={overview} analysisRange={range} />
           </div>
         )}
         {tab === 'konkurranser' && (

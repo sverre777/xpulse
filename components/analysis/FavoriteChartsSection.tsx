@@ -12,6 +12,8 @@ import {
   OverviewHoursPerWeek, OverviewZonesPerWeek, OverviewKmPerMovement, OverviewIntensiveSessions,
   OverviewTrainingVsRestVsSickness,
 } from './OverviewTab'
+import { CustomBreakdownChart } from './CustomBreakdownChart'
+import type { DateRange } from './date-range'
 import { MetricCard } from './MetricCard'
 import {
   FitnessFatigueChart, DailyTssChart,
@@ -45,6 +47,7 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   overview_average_energy: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Snitt overskudd 🙂' },
   overview_average_stress: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Snitt stress 😰' },
   overview_training_vs_rest_vs_sickness: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Trening vs hvile vs sykdom per uke' },
+  overview_custom_breakdown: { tab: 'oversikt', tabLabel: 'Oversikt', title: 'Custom graf — fleksibel nedbryting' },
 
   // Belastning
   belastning_fitness_fatigue_form: { tab: 'belastning', tabLabel: 'Belastning', title: 'Belastningskurver (CTL/ATL/TSB)' },
@@ -105,6 +108,7 @@ interface Props {
   intensity: IntensityDistribution | null
   overview: AnalysisOverview | null
   health: HealthCorrelations | null
+  analysisRange: DateRange
   onNavigate: (tab: TabKey) => void
 }
 
@@ -151,6 +155,7 @@ export function FavoriteChartsSection(props: Props) {
             intensity={props.intensity}
             overview={props.overview}
             health={props.health}
+            analysisRange={props.analysisRange}
             onNavigate={props.onNavigate}
           />
         ))}
@@ -160,14 +165,14 @@ export function FavoriteChartsSection(props: Props) {
 }
 
 function FavoriteChartSlot({
-  chartKey, stats, belastning, terskel, skyting, periodisering, intensity, overview, health, onNavigate,
+  chartKey, stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange, onNavigate,
 }: Props & { chartKey: string }) {
   const meta = CHART_META[chartKey]
   if (!meta) {
     return <UnknownChart chartKey={chartKey} />
   }
 
-  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity, overview, health })
+  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange })
   if (rendered) return <div>{rendered}</div>
 
   // Kjent chart_key, men data-kilden er ikke lastet enda (eller grafen er ikke
@@ -188,14 +193,16 @@ function renderKnownChart(
     intensity: IntensityDistribution | null
     overview: AnalysisOverview | null
     health: HealthCorrelations | null
+    analysisRange: DateRange
   },
 ): ReactNode | null {
-  const { stats, belastning, terskel, skyting, periodisering, intensity, overview, health } = data
+  const { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange } = data
   switch (chartKey) {
     case 'overview_hours_per_week': return <OverviewHoursPerWeek stats={stats} />
     case 'overview_zones_per_week': return <OverviewZonesPerWeek stats={stats} />
     case 'overview_km_per_movement': return <OverviewKmPerMovement stats={stats} />
     case 'overview_intensive_sessions': return <OverviewIntensiveSessions stats={stats} />
+    case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={analysisRange} />
     case 'overview_training_vs_rest_vs_sickness':
       return overview ? <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} /> : null
     case 'overview_rest_days':

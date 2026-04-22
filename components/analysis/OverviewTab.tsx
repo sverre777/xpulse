@@ -8,6 +8,8 @@ import type { WorkoutStats, AnalysisOverview, OverviewZoneSeconds, MovementBreak
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
+import { CustomBreakdownChart } from './CustomBreakdownChart'
+import type { DateRange } from './date-range'
 
 // Palett for bevegelsesform-stack. Stabil rekkefølge via modulo.
 const MOVEMENT_PALETTE = [
@@ -120,9 +122,10 @@ function MovementChips({ rows }: { rows: MovementBreakdownRow[] }) {
 interface OverviewTabProps {
   stats: WorkoutStats
   overview?: AnalysisOverview | null
+  analysisRange: DateRange
 }
 
-export function OverviewTab({ stats, overview }: OverviewTabProps) {
+export function OverviewTab({ stats, overview, analysisRange }: OverviewTabProps) {
   if (!stats.hasData && (!overview || overview.current.workout_count === 0)) return EMPTY
 
   const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
@@ -365,6 +368,10 @@ export function OverviewTab({ stats, overview }: OverviewTabProps) {
       {overview && overview.weekly_distribution.some(w => w.training_days + w.rest_days + w.sickness_days > 0) && (
         <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} />
       )}
+
+      {/* Custom fleksibel nedbryting — bruker egen server-action med lokal
+          kontroll over periode, gruppering og bevegelsesformer. */}
+      <CustomBreakdownChart analysisRange={analysisRange} />
     </div>
   )
 }

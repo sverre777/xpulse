@@ -137,7 +137,7 @@ export async function getWorkoutStats(
     .from('workouts')
     .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
     .eq('user_id', user.id)
-    .eq('is_planned', false)        // kun gjennomførte økter
+    .eq('is_completed', true)       // kun gjennomførte økter (is_planned kan fortsatt være true)
     .gte('date', fromDate)
     .lte('date', toDate)
     .order('date')
@@ -413,7 +413,7 @@ async function computeMetricsForRange(
     .from('workouts')
     .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,distance_km,elevation_meters,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(position_overall,participant_count)')
     .eq('user_id', userId)
-    .eq('is_planned', false)
+    .eq('is_completed', true)
     .gte('date', fromDate)
     .lte('date', toDate)
     .order('date', { ascending: true })
@@ -728,7 +728,7 @@ async function computeWeeklyDistribution(
     .from('workouts')
     .select('date')
     .eq('user_id', userId)
-    .eq('is_planned', false)
+    .eq('is_completed', true)
     .gte('date', fromDate).lte('date', toDate)
   if (sportFilter) wq = wq.eq('sport', sportFilter)
 
@@ -976,7 +976,7 @@ export async function getCompetitionStats(
     .from('workouts')
     .select('id,title,date,sport,workout_type,duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
     .eq('user_id', user.id)
-    .eq('is_planned', false)
+    .eq('is_completed', true)
     .in('workout_type', ['competition', 'testlop'])
     .gte('date', fromDate)
     .lte('date', toDate)
@@ -1072,6 +1072,19 @@ export interface CompetitionAnalysisRow {
   participant_count: number | null
   duration_seconds: number
   total_meters: number
+  is_planned: boolean
+  is_completed: boolean
+}
+
+export interface PlannedCompetitionRow {
+  id: string
+  date: string
+  title: string
+  sport: Sport
+  workout_type: WorkoutType
+  competition_type: CompetitionType | null
+  name: string | null
+  distance_format: string | null
 }
 
 export interface ShootingSeriesPoint {
@@ -1089,6 +1102,8 @@ export interface ShootingSeriesPoint {
 
 export interface CompetitionAnalysis {
   rows: CompetitionAnalysisRow[]
+  // Kommende planlagte konkurranser som ligger etter dagens dato.
+  upcomingPlanned: PlannedCompetitionRow[]
   hasData: boolean
   sportsPresent: Sport[]
   // Treff per serie over tid — fra alle økter (trening + konkurranse).
@@ -1108,11 +1123,13 @@ export async function getCompetitionAnalysis(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Ikke innlogget' }
 
+    // Alle konkurranse-/testløp-rader i perioden (inkluderer både gjennomførte
+    // og planlagte som ikke er gjennomført enda). Gjennomførte kan ha
+    // is_planned=true samtidig som is_completed=true siden planen beholdes.
     let compQuery = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,workout_activities(activity_type,sort_order,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
+      .select('id,title,date,sport,workout_type,is_planned,is_completed,duration_minutes,workout_activities(activity_type,sort_order,duration_seconds,distance_meters,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,name,distance_format,position_overall,participant_count)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
       .in('workout_type', ['competition', 'testlop'])
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -1120,12 +1137,13 @@ export async function getCompetitionAnalysis(
     if (sportFilter) compQuery = compQuery.eq('sport', sportFilter)
 
     // Alle økter med skyte-aktiviteter i perioden (trening + konkurranse) —
-    // trenger denne separat for "konkurranse vs trening"-graf.
+    // trenger denne separat for "konkurranse vs trening"-graf. Vi tar kun
+    // gjennomførte økter her (ellers forurenser tomme planlagte grafene).
     let shootingWorkoutsQuery = supabase
       .from('workouts')
       .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: true })
@@ -1138,14 +1156,37 @@ export async function getCompetitionAnalysis(
     if (sErr) return { error: sErr.message }
 
     const rows: CompetitionAnalysisRow[] = []
+    const upcomingPlanned: PlannedCompetitionRow[] = []
     const sportsPresent = new Set<Sport>()
+    const todayISO = new Date().toISOString().slice(0, 10)
 
-    for (const w of (compData ?? []) as RawCompetitionRow[]) {
+    type RawCompRowWithFlags = RawCompetitionRow & { is_planned: boolean; is_completed: boolean }
+    for (const w of (compData ?? []) as RawCompRowWithFlags[]) {
       const comp = w.workout_competition_data?.[0] ?? null
       // Filtrer på konkurransetype hvis oppgitt (inkluder om ingen comp-record og type-filter er null).
       if (typeFilter && typeFilter.length > 0) {
         if (!comp?.competition_type || !typeFilter.includes(comp.competition_type as CompetitionTypeFilter)) continue
       }
+
+      // Planlagte som ikke er gjennomført og ligger i dag eller i fremtiden → upcoming-liste.
+      if (!w.is_completed && w.is_planned && w.date >= todayISO) {
+        sportsPresent.add(w.sport)
+        upcomingPlanned.push({
+          id: w.id,
+          date: w.date,
+          title: w.title ?? '',
+          sport: w.sport,
+          workout_type: w.workout_type,
+          competition_type: comp?.competition_type ?? null,
+          name: comp?.name ?? null,
+          distance_format: comp?.distance_format ?? null,
+        })
+        continue
+      }
+
+      // Uviktige planlagte som ligger i fortiden (aldri gjennomført) hoppes over.
+      if (!w.is_completed) continue
+
       const activities = w.workout_activities ?? []
       let duration = 0
       let meters = 0
@@ -1170,6 +1211,8 @@ export async function getCompetitionAnalysis(
         participant_count: comp?.participant_count ?? null,
         duration_seconds: duration,
         total_meters: meters,
+        is_planned: w.is_planned,
+        is_completed: w.is_completed,
       })
     }
 
@@ -1210,7 +1253,8 @@ export async function getCompetitionAnalysis(
 
     return {
       rows,
-      hasData: rows.length > 0,
+      upcomingPlanned: upcomingPlanned.sort((a, b) => a.date.localeCompare(b.date)),
+      hasData: rows.length > 0 || upcomingPlanned.length > 0,
       sportsPresent: Array.from(sportsPresent),
       shootingSeries,
       hasShooting: shootingSeries.length > 0,
@@ -1317,7 +1361,7 @@ async function computeMovementMetrics(
     .from('workouts')
     .select('id,date,sport,workout_type,duration_minutes,workout_activities(id,activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,avg_watts,lactate_mmol,zones)')
     .eq('user_id', userId)
-    .eq('is_planned', false)
+    .eq('is_completed', true)
     .gte('date', fromDate)
     .lte('date', toDate)
     .order('date', { ascending: true })
@@ -1457,7 +1501,7 @@ export async function getMovementAnalysis(
       .from('workouts')
       .select('workout_activities(movement_name)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
     const availableSet = new Set<string>()
@@ -1628,7 +1672,7 @@ export async function getHealthCorrelations(
       supabase.from('workouts')
         .select('id,date,day_form_physical,day_form_mental,duration_minutes,planned_workout_id,workout_activities(activity_type,duration_seconds,avg_heart_rate,lactate_mmol,zones)')
         .eq('user_id', user.id)
-        .eq('is_planned', false)
+        .eq('is_completed', true)
         .gte('date', lookBackFrom).lte('date', toDate)
         .order('date', { ascending: true }),
       supabase.from('recovery_entries')
@@ -1999,7 +2043,7 @@ export async function getTemplateAnalysis(
       .from('workouts')
       .select('id,date,title,sport,template_id,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .not('template_id', 'is', null)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -2159,10 +2203,22 @@ export interface ComparableWorkout {
   lactate_values: { activity_label: string; mmol: number }[]
   shooting: ComparableShooting | null
   notes: string | null
+  // Status-flagg — UI bruker disse til å differensiere gjennomført / planlagt.
+  is_planned: boolean
+  is_completed: boolean
+}
+
+export interface ComparableDayState {
+  id: string
+  date: string
+  kind: 'rest' | 'sickness'
+  sub_type: string | null
+  notes: string | null
 }
 
 export interface WorkoutsForComparison {
   workouts: ComparableWorkout[]
+  dayStates: ComparableDayState[]
   movementsPresent: string[]
   workoutTypesPresent: WorkoutType[]
   hasData: boolean
@@ -2174,6 +2230,8 @@ type RawCompareRow = {
   title: string | null
   sport: Sport
   workout_type: WorkoutType
+  is_planned: boolean
+  is_completed: boolean
   avg_heart_rate: number | null
   max_heart_rate: number | null
   duration_minutes: number | null
@@ -2205,18 +2263,27 @@ export async function getWorkoutsForComparison(
 
     const heartZones = await getHeartZonesForUser(supabase, user.id)
 
+    // Inkluder ALLE økter i perioden — både gjennomførte og planlagte. UI
+    // markerer dem ulikt slik at brukeren kan sammenligne plan vs faktisk.
     let q = supabase
       .from('workouts')
-      .select('id,date,title,sport,workout_type,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones)')
+      .select('id,date,title,sport,workout_type,is_planned,is_completed,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: false })
     if (filters?.sport) q = q.eq('sport', filters.sport)
     if (filters?.workoutType) q = q.eq('workout_type', filters.workoutType)
 
-    const { data, error } = await q
+    const dayStatesPromise = supabase
+      .from('day_states')
+      .select('id,date,state_type,sub_type,notes')
+      .eq('user_id', user.id)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: false })
+
+    const [{ data, error }, dsRes] = await Promise.all([q, dayStatesPromise])
     if (error) return { error: error.message }
 
     const movementsPresent = new Set<string>()
@@ -2315,14 +2382,27 @@ export async function getWorkoutsForComparison(
         lactate_values: lactateValues,
         shooting,
         notes: w.notes,
+        is_planned: w.is_planned,
+        is_completed: w.is_completed,
       })
     }
 
+    type RawDayState = { id: string; date: string; state_type: string; sub_type: string | null; notes: string | null }
+    const dayStates: ComparableDayState[] = ((dsRes.data ?? []) as RawDayState[])
+      .map(r => ({
+        id: r.id,
+        date: r.date,
+        kind: (r.state_type === 'sykdom' ? 'sickness' : 'rest') as 'rest' | 'sickness',
+        sub_type: r.sub_type,
+        notes: r.notes,
+      }))
+
     return {
       workouts,
+      dayStates,
       movementsPresent: Array.from(movementsPresent).sort(),
       workoutTypesPresent: Array.from(typesPresent),
-      hasData: workouts.length > 0,
+      hasData: workouts.length > 0 || dayStates.length > 0,
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -2385,7 +2465,7 @@ export async function getIntensityDistribution(
       .from('workouts')
       .select('id,date,workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: true })
@@ -2608,7 +2688,7 @@ export async function getBelastningAnalysis(
       .from('workouts')
       .select('id,date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', warmupStart)
       .lte('date', toDate)
       .order('date', { ascending: true })
@@ -2879,7 +2959,7 @@ export async function getTerskelAnalysis(
       .from('workouts')
       .select(`id,date,sport,template_id,workout_activities(id,activity_type,avg_heart_rate,lactate_mmol,workout_activity_lactate_measurements(value_mmol,measured_at))`)
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date', { ascending: true })
@@ -3140,7 +3220,7 @@ export async function getShootingDepthAnalysis(
       .from('workouts')
       .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .eq('sport', 'biathlon')
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -3467,7 +3547,7 @@ export async function getPeriodizationOverview(
       .from('workouts')
       .select('id,date,sport,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', season.start_date)
       .lte('date', season.end_date)
       .order('date', { ascending: true })
@@ -3636,7 +3716,7 @@ export async function getCustomBreakdown(
       .from('workouts')
       .select('date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', user.id)
-      .eq('is_planned', false)
+      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date')

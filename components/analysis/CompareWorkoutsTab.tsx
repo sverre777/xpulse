@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useTransition } from 'react'
 import Link from 'next/link'
 import {
   getWorkoutsForComparison,
-  type WorkoutsForComparison, type ComparableWorkout, type OverviewZoneSeconds,
+  type WorkoutsForComparison, type ComparableWorkout, type ComparableDayState, type OverviewZoneSeconds,
 } from '@/app/actions/analysis'
 import { SPORTS, WORKOUT_TYPES_BIATHLON, type Sport, type WorkoutType } from '@/lib/types'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
@@ -83,6 +83,23 @@ export function CompareWorkoutsTab({
       w.title.toLowerCase().includes(s) || w.date.includes(s),
     )
   }, [data.workouts, search])
+
+  const filteredDayStates = useMemo(() => {
+    const s = search.trim().toLowerCase()
+    if (!s) return data.dayStates
+    return data.dayStates.filter(d =>
+      d.date.includes(s) ||
+      (d.notes ?? '').toLowerCase().includes(s) ||
+      (d.sub_type ?? '').toLowerCase().includes(s),
+    )
+  }, [data.dayStates, search])
+
+  // Gjennomførte valgbare for sammenligning — planlagte og dag-tilstander
+  // vises i listen for kontekst, men kan ikke velges i grafen.
+  const selectableWorkouts = useMemo(
+    () => filtered.filter(w => w.is_completed),
+    [filtered],
+  )
 
   const selectedWorkouts = useMemo(
     () => selected.map(id => data.workouts.find(w => w.id === id)).filter((w): w is ComparableWorkout => !!w),
@@ -185,25 +202,68 @@ export function CompareWorkoutsTab({
       </div>
 
       {/* Workout list */}
-      {!data.hasData || filtered.length === 0 ? (
+      {!data.hasData || (filtered.length === 0 && filteredDayStates.length === 0) ? (
         <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
             {!data.hasData ? 'Ingen økter i valgt periode.' : 'Ingen treff på filter.'}
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {filtered.map(w => (
-            <WorkoutRow
-              key={w.id}
-              workout={w}
-              selected={selected.includes(w.id)}
-              disabled={!selected.includes(w.id) && selected.length >= MAX_COMPARE}
-              onToggle={() => toggleSelect(w.id)}
-            />
-          ))}
-        </div>
+        <>
+          <p className="text-[11px] tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            {selectableWorkouts.length} valgbare · {filtered.length - selectableWorkouts.length} planlagte · {filteredDayStates.length} dag-tilstander
+          </p>
+          <div className="space-y-2">
+            {filtered.map(w => (
+              <WorkoutRow
+                key={w.id}
+                workout={w}
+                selected={selected.includes(w.id)}
+                disabled={!w.is_completed || (!selected.includes(w.id) && selected.length >= MAX_COMPARE)}
+                onToggle={() => toggleSelect(w.id)}
+              />
+            ))}
+            {filteredDayStates.map(d => (
+              <DayStateRow key={d.id} state={d} />
+            ))}
+          </div>
+        </>
       )}
+    </div>
+  )
+}
+
+function DayStateRow({ state }: { state: ComparableDayState }) {
+  const color = state.kind === 'sickness' ? '#E11D48' : '#8A8A96'
+  const label = state.kind === 'sickness' ? 'Sykdom' : 'Hviledag'
+  return (
+    <div
+      className="flex items-center gap-3 p-3"
+      style={{
+        backgroundColor: '#0D0D10',
+        border: `1px dashed ${color}`,
+        opacity: 0.75,
+        minHeight: '44px',
+      }}
+    >
+      <div style={{ width: 18, height: 18, border: `1px solid ${color}`, backgroundColor: 'transparent' }} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+            {state.date}
+          </span>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color, fontSize: '18px', letterSpacing: '0.03em' }}>
+            {label}{state.sub_type ? ` · ${state.sub_type}` : ''}
+          </span>
+        </div>
+        {state.notes && (
+          <p className="text-xs mt-1"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            {state.notes}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -241,20 +301,30 @@ function WorkoutRow({
   disabled: boolean
   onToggle: () => void
 }) {
+  const isPlannedOnly = workout.is_planned && !workout.is_completed
+  const borderStyle = selected
+    ? '1px solid #FF4500'
+    : isPlannedOnly
+      ? '1px dashed #D4A017'
+      : '1px solid #1E1E22'
   return (
     <label
-      className="flex items-center gap-3 p-3 cursor-pointer"
+      className="flex items-center gap-3 p-3"
       style={{
-        backgroundColor: selected ? '#1E1E22' : '#111113',
-        border: selected ? '1px solid #FF4500' : '1px solid #1E1E22',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
+        backgroundColor: selected ? '#1E1E22' : isPlannedOnly ? '#100F0A' : '#111113',
+        border: borderStyle,
+        cursor: isPlannedOnly ? 'default' : (disabled ? 'not-allowed' : 'pointer'),
+        opacity: isPlannedOnly ? 0.75 : (disabled ? 0.5 : 1),
         minHeight: '44px',
       }}
     >
-      <input type="checkbox" checked={selected} disabled={disabled}
-        onChange={onToggle}
-        style={{ accentColor: '#FF4500', width: 18, height: 18 }} />
+      {isPlannedOnly ? (
+        <div style={{ width: 18, height: 18, border: '1px dashed #D4A017', backgroundColor: 'transparent' }} />
+      ) : (
+        <input type="checkbox" checked={selected} disabled={disabled}
+          onChange={onToggle}
+          style={{ accentColor: '#FF4500', width: 18, height: 18 }} />
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
@@ -267,6 +337,24 @@ function WorkoutRow({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
           </span>
+          {isPlannedOnly && (
+            <span className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#D4A017', border: '1px solid #D4A017',
+              }}>
+              Planlagt
+            </span>
+          )}
+          {workout.is_completed && workout.is_planned && (
+            <span className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#28A86E', border: '1px solid #28A86E',
+              }}>
+              Gjennomført plan
+            </span>
+          )}
         </div>
         <p className="text-xs mt-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

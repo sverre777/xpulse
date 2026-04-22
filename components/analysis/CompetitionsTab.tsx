@@ -260,13 +260,53 @@ export function CompetitionsTab({
         </div>
       </div>
 
+      {/* Kommende planlagte konkurranser — vis alltid hvis det finnes. */}
+      {data.upcomingPlanned.length > 0 && (
+        <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #D4A017' }}>
+          <p className="text-xs tracking-widest uppercase mb-3"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
+            Kommende planlagte ({data.upcomingPlanned.length})
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <thead>
+                <tr style={{ color: '#555560', fontSize: '11px', letterSpacing: '0.1em' }} className="uppercase">
+                  <th className="text-left py-2 pr-3">Dato</th>
+                  <th className="text-left py-2 pr-3">Navn</th>
+                  <th className="text-left py-2 pr-3">Idrett</th>
+                  <th className="text-left py-2 pr-3">Type</th>
+                  <th className="text-left py-2 pr-3">Format</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.upcomingPlanned.map(r => (
+                  <tr key={r.id}
+                    style={{ borderTop: '1px solid #1E1E22', color: '#F0F0F2' }}
+                    className="hover:bg-[#1A1A1E]">
+                    <td className="py-2 pr-3" style={{ color: '#D4A017' }}>
+                      <Link href={`/app/plan?edit=${r.id}`} className="block">{r.date}</Link>
+                    </td>
+                    <td className="py-2 pr-3">
+                      <Link href={`/app/plan?edit=${r.id}`} className="block">{r.name || r.title || '—'}</Link>
+                    </td>
+                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelSport(r.sport)}</td>
+                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelCompType(r.competition_type)}</td>
+                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{r.distance_format ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {rows.length === 0 ? EMPTY : (
         <>
           {/* Liste — klikk åpner i dagbok (ruting via query-param). */}
           <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-              Konkurranser i perioden ({rows.length})
+              Gjennomførte konkurranser i perioden ({rows.length})
             </p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>

@@ -363,6 +363,8 @@ export interface ActivityRow {
   // Høydemeter — valgfritt, tilgjengelig for alle utholdenhetsbevegelser.
   elevation_gain_m: string
   elevation_loss_m: string
+  // Stigning i prosent — vises kun når movement_name='Løping' og movement_subcategory='Tredemølle'.
+  incline_percent: string
   // Tur-spesifikke felt — vises kun når movement_name='Tur'.
   pack_weight_kg: string
   sled_weight_kg: string   // kun relevant for "Fjellski med pulk" / "Ekspedisjon/flerdagers"
@@ -762,6 +764,7 @@ function makeActivity(overrides: Partial<ActivityRow> & { activity_type: Activit
     standing_hits: '',
     elevation_gain_m: '',
     elevation_loss_m: '',
+    incline_percent: '',
     pack_weight_kg: '',
     sled_weight_kg: '',
     weather: '',

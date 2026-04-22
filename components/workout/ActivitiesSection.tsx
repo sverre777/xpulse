@@ -53,6 +53,7 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     standing_hits: '',
     elevation_gain_m: '',
     elevation_loss_m: '',
+    incline_percent: '',
     pack_weight_kg: '',
     sled_weight_kg: '',
     weather: '',
@@ -447,6 +448,16 @@ function ActivityRowItem({
                 <input value={row.distance_km}
                   onChange={e => onUpdate({ distance_km: e.target.value })}
                   placeholder="10.5"
+                  inputMode="decimal"
+                  style={iSt} />
+              </Field>
+            )}
+
+            {row.movement_name === 'Løping' && row.movement_subcategory === 'Tredemølle' && (
+              <Field label="Stigning (%)">
+                <input value={row.incline_percent}
+                  onChange={e => onUpdate({ incline_percent: e.target.value })}
+                  placeholder="0.0"
                   inputMode="decimal"
                   style={iSt} />
               </Field>

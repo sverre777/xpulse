@@ -27,6 +27,7 @@ import {
 } from '@/components/day-state/DayStateIndicator'
 import { FocusSection } from '@/components/focus/FocusSection'
 import { WeeklyReflectionSection } from '@/components/weekly-reflection/WeeklyReflectionSection'
+import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -322,30 +323,41 @@ function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
   return null
 }
 
+// Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
+const COACH_BLUE = '#1A6FD4'
+
 function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const comp = competitionChipStyle(w, mode)
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
+  const isCoachEdited = !!w.created_by_coach_id
   // Vis aktivitets-aggregert tid på chip-en. secondsFor faller tilbake til
   // duration_minutes hvis økten ikke har aktiviteter.
   const durationLabel = formatDurationShort(secondsFor(w, mode))
   const { onEditWorkout } = useCalendarActions()
 
   // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
-  const border = comp
-    ? (isPlanned
-        ? `${comp.thickBorder ? 2 : 1}px ${comp.thickBorder ? 'solid' : 'solid'} ${color}`
-        : `${comp.thickBorder ? 2 : 1}px solid ${color}`)
-    : (isPlanned ? `1px dashed ${color}` : `1px solid ${color}55`)
+  // Trener-endret økt: 1px solid blå overstyrer annen ytre ramme så attribusjon er synlig i celle.
+  const border = isCoachEdited
+    ? `1px solid ${COACH_BLUE}`
+    : (comp
+        ? (isPlanned
+            ? `${comp.thickBorder ? 2 : 1}px ${comp.thickBorder ? 'solid' : 'solid'} ${color}`
+            : `${comp.thickBorder ? 2 : 1}px solid ${color}`)
+        : (isPlanned ? `1px dashed ${color}` : `1px solid ${color}55`))
   const bg = comp
     ? (isPlanned ? 'transparent' : `${color}55`)
     : (isPlanned ? 'transparent' : `${color}33`)
+  const coachTitle = isCoachEdited
+    ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`
+    : undefined
 
   return (
     <button
       type="button"
       onClick={e => { e.stopPropagation(); onEditWorkout(w, dateStr) }}
+      title={coachTitle}
       style={{
         display: 'block', width: '100%', textAlign: 'left', marginBottom: '2px',
         background: 'none', border: 'none', padding: 0, cursor: 'pointer',
@@ -359,6 +371,14 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '10px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+          {isCoachEdited && (
+            <span aria-hidden="true"
+              style={{
+                display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%',
+                backgroundColor: COACH_BLUE, marginRight: '3px', verticalAlign: 'middle',
+              }}
+            />
+          )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.title}
@@ -696,15 +716,18 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const comp = competitionChipStyle(w, mode)
                           const color = comp?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = planVisual(w, mode)
+                          const isCoachEdited = !!w.created_by_coach_id
                           return (
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-2" style={{
                                 backgroundColor: comp && !isPlanned ? `${color}22` : '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
-                                border: comp
-                                  ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
-                                  : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`),
+                                border: isCoachEdited
+                                  ? `1px solid ${COACH_BLUE}`
+                                  : (comp
+                                      ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
+                                      : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`)),
                               }}>
                                 <div className="flex items-center justify-between">
                                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
@@ -716,6 +739,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     )}
                                   </span>
                                   <div className="flex items-center gap-2">
+                                    {isCoachEdited && w.updated_at && (
+                                      <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
+                                    )}
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
                                     {isPlanned && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
                                     {(() => {

@@ -25,6 +25,11 @@ export type RawCalendarWorkout = {
   duration_minutes: number | null
   distance_km: number | null
   time_of_day?: string | null
+  // Coach-attribusjon: ikke-null når trener har laget/endret økta.
+  created_by_coach_id?: string | null
+  updated_at?: string | null
+  // Fylles inn av serveraction ved oppslag i profiles — brukes av CoachChangeIndicator.
+  coach_name?: string | null
   workout_zones?: { zone_name: string; minutes: number }[] | null
   workout_activities?: RawCalendarActivity[] | null
   workout_competition_data?: {
@@ -247,6 +252,9 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_zone_seconds,
     ...extractCompetition(w.workout_competition_data),
     start_time,
+    created_by_coach_id: w.created_by_coach_id ?? null,
+    coach_name: w.coach_name ?? null,
+    updated_at: w.updated_at ?? null,
   }
 }
 

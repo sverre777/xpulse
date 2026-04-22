@@ -275,6 +275,9 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 }
 
 // ── Økt-kort i kalender (kompakt) ────────────────────────────
+// Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
+const COACH_BLUE = '#1A6FD4'
+
 function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
   pw: PlacedWorkout
   dateStr: string
@@ -286,11 +289,14 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
+  const isCoachEdited = !!w.created_by_coach_id
   // Grønn når gjennomført (ikke konkurranse/testløp).
   const completedTone = !isPlanned && !comp && w.is_completed
   const borderStyle = isPlanned && !comp ? 'dashed' : 'solid'
   const borderWidth = comp ? 2 : 1
-  const border = `${borderWidth}px ${borderStyle} ${color}`
+  const border = isCoachEdited
+    ? `1px solid ${COACH_BLUE}`
+    : `${borderWidth}px ${borderStyle} ${color}`
   const bg = comp
     ? (isPlanned ? 'rgba(0,0,0,0.35)' : `${color}55`)
     : isPlanned ? 'rgba(0,0,0,0.35)' : completedTone ? '#1A3A2A' : `${color}33`
@@ -298,6 +304,10 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
 
   const widthPct = 100 / laneCount
   const leftPct = widthPct * lane
+
+  const coachTitle = isCoachEdited
+    ? ` · Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` (${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })})` : ''}`
+    : ''
 
   return (
     <button
@@ -321,10 +331,15 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
         fontSize: '11px',
         lineHeight: 1.2,
       }}
-      title={`${w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}`}
+      title={`${w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}${coachTitle}`}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F0F0F2' }}>
         {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+        {isCoachEdited && (
+          <span aria-hidden="true"
+            style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COACH_BLUE, display: 'inline-block', flexShrink: 0 }}
+          />
+        )}
         {comp && <span>{comp.icon}</span>}
         {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E' }}>✓</span>}
         <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -351,19 +366,27 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
+  const isCoachEdited = !!w.created_by_coach_id
   const borderStyle = isPlanned && !comp ? 'dashed' : 'solid'
   const borderWidth = comp ? 2 : 1
   const bg = comp
     ? (isPlanned ? 'transparent' : `${color}55`)
     : (isPlanned ? 'transparent' : `${color}33`)
   const durLabel = formatDurationShort(secondsFor(w, mode))
+  const border = isCoachEdited
+    ? `1px solid ${COACH_BLUE}`
+    : `${borderWidth}px ${borderStyle} ${color}`
+  const coachTitle = isCoachEdited
+    ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}` : ''}`
+    : undefined
   return (
     <button type="button"
       onClick={e => { e.stopPropagation(); onEdit(w, dateStr) }}
+      title={coachTitle}
       style={{
         display: 'block', width: '100%', marginBottom: '2px',
         background: bg,
-        border: `${borderWidth}px ${borderStyle} ${color}`,
+        border,
         borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
         padding: '2px 4px',
         fontFamily: "'Barlow Condensed', sans-serif",
@@ -373,6 +396,11 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         cursor: 'pointer',
       }}>
       {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+      {isCoachEdited && (
+        <span aria-hidden="true"
+          style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COACH_BLUE, marginRight: '3px', verticalAlign: 'middle' }}
+        />
+      )}
       {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
       {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
       {w.title}

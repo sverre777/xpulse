@@ -686,17 +686,40 @@ export async function deleteWorkout(id: string, targetUserId?: string): Promise<
   return {}
 }
 
+// Slå opp trenernavn for et sett workout-rader med created_by_coach_id-felt.
+// Returnerer original-rekkefølgen, men med coach_name attached når treneren finnes i profiles.
+async function attachCoachNames<T extends { created_by_coach_id?: string | null }>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: T[],
+): Promise<(T & { coach_name: string | null })[]> {
+  const coachIds = Array.from(new Set(
+    rows.map(r => r.created_by_coach_id).filter((id): id is string => !!id),
+  ))
+  const coachNameById = new Map<string, string>()
+  if (coachIds.length > 0) {
+    const { data: coaches } = await supabase
+      .from('profiles').select('id, full_name').in('id', coachIds)
+    for (const c of (coaches ?? [])) {
+      if (c.full_name) coachNameById.set(c.id as string, c.full_name as string)
+    }
+  }
+  return rows.map(r => ({
+    ...r,
+    coach_name: r.created_by_coach_id ? (coachNameById.get(r.created_by_coach_id) ?? null) : null,
+  }))
+}
+
 export async function getCalendarWorkouts(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
-  return data ?? []
+  return await attachCoachNames(supabase, data ?? [])
 }
 
 export async function getWorkoutsForMonth(userId: string, year: number, month: number) {
@@ -707,11 +730,11 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
-  return data ?? []
+  return await attachCoachNames(supabase, data ?? [])
 }
 
 export async function getWorkoutsForWeek(userId: string, startDate: string, endDate: string) {
@@ -724,7 +747,7 @@ export async function getWorkoutsForWeek(userId: string, startDate: string, endD
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
-  return data ?? []
+  return await attachCoachNames(supabase, (data ?? []) as { created_by_coach_id?: string | null }[])
 }
 
 export async function getWorkout(id: string) {

@@ -639,6 +639,11 @@ export interface CalendarWorkoutSummary {
   // Første aktivitet med start_time (sort_order asc), ellers workouts.time_of_day.
   // null → plasseres i "Hele dagen"-rad i ukekalender.
   start_time: string | null
+  // Coach-attribusjon for blå ramme/badge i kalenderceller.
+  // Ikke-null når økta er laget/endret av trener (workouts.created_by_coach_id).
+  created_by_coach_id: string | null
+  coach_name: string | null
+  updated_at: string | null
 }
 
 export const TYPE_COLORS: Record<string, string> = {

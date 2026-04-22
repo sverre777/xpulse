@@ -115,6 +115,7 @@ export async function PlanPageView({ viewContext }: Props) {
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
+              targetUserId={targetId}
             />
           </Suspense>
         </div>

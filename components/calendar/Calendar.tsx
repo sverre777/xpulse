@@ -67,6 +67,9 @@ export interface CalendarProps {
   initialDayStates?: Record<string, DayState[]>
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
   readOnly?: boolean
+  // Trener-visning: routes period-note writes til utøverens user_id via server action.
+  // Undefined i self-view — server action bruker da den innloggede brukeren.
+  targetUserId?: string
 }
 
 // Click actions are passed down via context to avoid prop-drilling
@@ -997,6 +1000,7 @@ export function Calendar({
   seasonKeyDates = [],
   initialDayStates = {},
   readOnly = false,
+  targetUserId,
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1181,15 +1185,15 @@ export function Calendar({
     let cancelled = false
     ;(async () => {
       if (view === 'uke') {
-        const map = await getPeriodNotes('week', [weekPeriodKey], noteContext)
+        const map = await getPeriodNotes('week', [weekPeriodKey], noteContext, targetUserId)
         if (!cancelled) setWeekNote(map[weekPeriodKey] ?? '')
       } else if (view === 'måned') {
-        const map = await getPeriodNotes('month', [monthPeriodKey], noteContext)
+        const map = await getPeriodNotes('month', [monthPeriodKey], noteContext, targetUserId)
         if (!cancelled) setMonthNote(map[monthPeriodKey] ?? '')
       }
     })()
     return () => { cancelled = true }
-  }, [mounted, showNotes, view, weekPeriodKey, monthPeriodKey, noteContext])
+  }, [mounted, showNotes, view, weekPeriodKey, monthPeriodKey, noteContext, targetUserId])
 
   function getDateRange(v: CalendarView, ref: Date) {
     if (v === 'uke') {
@@ -1308,7 +1312,9 @@ export function Calendar({
       )}
 
       {/* ── Content ── */}
-      {showNotes && view === 'måned' && (
+      {/* Dagbok er utøverens private notat — i coach-view (readOnly) skjules PeriodNote helt.
+          Plan-notater forblir synlige i coach-view slik at trener kan skrive plan-kommentarer. */}
+      {showNotes && view === 'måned' && !(readOnly && noteContext === 'dagbok') && (
         <PeriodNote
           key={`month-${monthPeriodKey}-${noteContext}`}
           scope="month"
@@ -1316,9 +1322,10 @@ export function Calendar({
           context={noteContext}
           initialNote={monthNote}
           label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
+          targetUserId={targetUserId}
         />
       )}
-      {showNotes && view === 'uke' && (
+      {showNotes && view === 'uke' && !(readOnly && noteContext === 'dagbok') && (
         <PeriodNote
           key={`week-${weekPeriodKey}-${noteContext}`}
           scope="week"
@@ -1326,6 +1333,7 @@ export function Calendar({
           context={noteContext}
           initialNote={weekNote}
           label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
+          targetUserId={targetUserId}
         />
       )}
       {view === 'måned' && (

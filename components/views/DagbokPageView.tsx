@@ -191,6 +191,7 @@ export async function DagbokPageView({ viewContext }: Props) {
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
               readOnly={isCoachView}
+              targetUserId={targetId}
             />
           </Suspense>
         </div>

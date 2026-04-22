@@ -4,13 +4,15 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { savePeriodNote, type NoteScope, type NoteContext } from '@/app/actions/period-notes'
 
 export function PeriodNote({
-  scope, periodKey, context, initialNote, label,
+  scope, periodKey, context, initialNote, label, targetUserId,
 }: {
   scope: NoteScope
   periodKey: string
   context: NoteContext
   initialNote: string
   label: string
+  // Når satt (coach-view) lagres notatet til utøverens user_id via server action.
+  targetUserId?: string
 }) {
   // NB: komponenten remountes av parent via `key` når scope/periode/kontekst
   // endres, så initialNote kan brukes trygt som startverdi i useState.
@@ -28,7 +30,7 @@ export function PeriodNote({
     setErrorMsg(null)
     startTransition(async () => {
       try {
-        const res = await savePeriodNote({ scope, period_key: periodKey, context, note: value })
+        const res = await savePeriodNote({ scope, period_key: periodKey, context, note: value, targetUserId })
         if (res.error) { setSaved('error'); setErrorMsg(res.error); return }
         lastSavedRef.current = value
         setSaved('ok')

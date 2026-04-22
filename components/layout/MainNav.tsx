@@ -18,6 +18,7 @@ interface MainNavProps {
 }
 
 const NAV_LINKS = [
+  { href: '/app/oversikt',      label: 'Oversikt' },
   { href: '/app/dagbok',        label: 'Dagbok' },
   { href: '/app/plan',          label: 'Plan' },
   { href: '/app/periodisering', label: 'Periodisering' },
@@ -80,7 +81,7 @@ export function MainNav({
             height: '52px',
           }}
         >
-          <Link href="/app/dagbok" style={{ textDecoration: 'none' }}>
+          <Link href="/app/oversikt" style={{ textDecoration: 'none' }}>
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -138,7 +139,7 @@ export function MainNav({
     >
       <div className="flex items-center gap-6">
         <Link
-          href="/app/dagbok"
+          href="/app/oversikt"
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >

@@ -11,6 +11,7 @@ import {
   PeriodiseringMalBuilder, PERIOD_SPORT_CATEGORIES,
 } from '@/components/coach/PeriodiseringMalBuilder'
 import { PeriodiseringMalEditModal } from '@/components/coach/PeriodiseringMalEditModal'
+import { CoachPushModal } from '@/components/coach/CoachPushModal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -27,6 +28,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
   const [builderOpen, setBuilderOpen] = useState(false)
   const [buildingFrom, setBuildingFrom] = useState<PeriodizationTemplate | null>(null)
   const [editing, setEditing] = useState<PeriodizationTemplate | null>(null)
+  const [pushing, setPushing] = useState<PeriodizationTemplate | null>(null)
   const [_isPending, startTransition] = useTransition()
   void _isPending
 
@@ -107,6 +109,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
                       key={t.id}
                       template={t}
                       disabled={pendingId === t.id}
+                      onSend={() => setPushing(t)}
                       onBuild={() => { setBuildingFrom(t); setBuilderOpen(true) }}
                       onEditMeta={() => setEditing(t)}
                       onDuplicate={() => {
@@ -145,15 +148,24 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
       {editing && (
         <PeriodiseringMalEditModal template={editing} onClose={() => setEditing(null)} />
       )}
+      {pushing && (
+        <CoachPushModal
+          kind="periodization"
+          templateId={pushing.id}
+          templateName={pushing.name}
+          onClose={() => setPushing(null)}
+        />
+      )}
     </div>
   )
 }
 
 function Row({
-  template, disabled, onBuild, onEditMeta, onDuplicate, onDelete,
+  template, disabled, onSend, onBuild, onEditMeta, onDuplicate, onDelete,
 }: {
   template: PeriodizationTemplate
   disabled: boolean
+  onSend: () => void
   onBuild: () => void
   onEditMeta: () => void
   onDuplicate: () => void
@@ -192,7 +204,8 @@ function Row({
         </div>
 
         <div className="flex gap-1.5 flex-wrap">
-          <ActionBtn onClick={onBuild} disabled={disabled} primary>Bygg</ActionBtn>
+          <ActionBtn onClick={onSend} disabled={disabled} primary>Send</ActionBtn>
+          <ActionBtn onClick={onBuild} disabled={disabled}>Bygg</ActionBtn>
           <ActionBtn onClick={onEditMeta} disabled={disabled}>Rediger info</ActionBtn>
           <ActionBtn onClick={onDuplicate} disabled={disabled}>Dupliser</ActionBtn>
           <ActionBtn onClick={onDelete} disabled={disabled} danger>Slett</ActionBtn>

@@ -207,6 +207,181 @@ export async function pushCompetitionToAthlete(
 
 // ── Maler: liste + push ─────────────────────────────────────
 
+// ── Push-target: utøvere + grupper koblet til aktiv trener ──
+
+export interface CoachTargetAthlete {
+  id: string
+  name: string
+  primarySport: Sport | null
+}
+
+export interface CoachTargetGroup {
+  id: string
+  name: string
+  athleteIds: string[]
+}
+
+export async function listCoachTargets(): Promise<
+  { athletes: CoachTargetAthlete[]; groups: CoachTargetGroup[] } | { error: string }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const [relRes, groupMemRes] = await Promise.all([
+    supabase
+      .from('coach_athlete_relations')
+      .select('athlete_id')
+      .eq('coach_id', user.id)
+      .eq('status', 'active'),
+    supabase
+      .from('coach_group_members')
+      .select('group_id')
+      .eq('user_id', user.id),
+  ])
+
+  if (relRes.error) return { error: relRes.error.message }
+  const athleteIds = (relRes.data ?? []).map(r => r.athlete_id as string)
+
+  const athletes: CoachTargetAthlete[] = []
+  if (athleteIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, primary_sport')
+      .in('id', athleteIds)
+    for (const p of profiles ?? []) {
+      athletes.push({
+        id: p.id as string,
+        name: (p.full_name as string | null) ?? 'Utøver',
+        primarySport: (p.primary_sport as Sport | null) ?? null,
+      })
+    }
+    athletes.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+  }
+
+  const groupIds = (groupMemRes.data ?? []).map(g => g.group_id as string)
+  const groups: CoachTargetGroup[] = []
+  if (groupIds.length > 0) {
+    const athleteIdSet = new Set(athleteIds)
+    const [groupsRes, allMembersRes] = await Promise.all([
+      supabase.from('coach_groups').select('id, name').in('id', groupIds),
+      supabase
+        .from('coach_group_members')
+        .select('group_id, user_id, role')
+        .in('group_id', groupIds)
+        .eq('role', 'athlete'),
+    ])
+    if (groupsRes.error) return { error: groupsRes.error.message }
+    const membersByGroup = new Map<string, string[]>()
+    for (const m of allMembersRes.data ?? []) {
+      const gid = m.group_id as string
+      const uid = m.user_id as string
+      if (!athleteIdSet.has(uid)) continue
+      const arr = membersByGroup.get(gid) ?? []
+      arr.push(uid)
+      membersByGroup.set(gid, arr)
+    }
+    for (const g of groupsRes.data ?? []) {
+      groups.push({
+        id: g.id as string,
+        name: g.name as string,
+        athleteIds: membersByGroup.get(g.id as string) ?? [],
+      })
+    }
+    groups.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+  }
+
+  return { athletes, groups }
+}
+
+// ── Push: øktmal → én planlagt økt ──────────────────────────
+
+export async function pushWorkoutTemplateToAthlete(
+  input: { athleteId: string; templateId: string; date: string; isImportant?: boolean },
+): Promise<{ id?: string; error?: string }> {
+  const check = await assertActiveCoach(input.athleteId)
+  if (!check.ok) return { error: check.error }
+  if (!input.date) return { error: 'Dato er påkrevd' }
+
+  const supabase = await createClient()
+  const { data: tpl, error: tplErr } = await supabase
+    .from('workout_templates')
+    .select('id, name, sport, template_data, activities')
+    .eq('id', input.templateId)
+    .eq('user_id', check.coachId)
+    .maybeSingle()
+  if (tplErr) return { error: tplErr.message }
+  if (!tpl) return { error: 'Fant ikke øktmal' }
+
+  const td = (tpl.template_data ?? {}) as {
+    workout_type?: WorkoutType
+    notes?: string | null
+    tags?: string[] | null
+  }
+  const sport = (tpl.sport ?? 'running') as Sport
+  const activities = ((tpl.activities as ActivityRow[] | null) ?? []) as ActivityRow[]
+
+  // Utled varighet og distanse fra aktiviteter (ekskluder pauser).
+  const PAUSE = new Set(['pause', 'aktiv_pause'])
+  let durSec = 0
+  let km = 0
+  for (const a of activities) {
+    if (PAUSE.has(a.activity_type)) continue
+    const d = parseIntOrNull(a.duration) ?? 0
+    const dk = parseFloatOrNull(a.distance_km) ?? 0
+    durSec += d
+    km += dk
+  }
+  const durationMinutes = durSec > 0 ? Math.round(durSec / 60) : null
+  const distanceKm = km > 0 ? km : null
+
+  const { data, error } = await supabase
+    .from('workouts')
+    .insert({
+      user_id: input.athleteId,
+      date: input.date,
+      title: tpl.name as string,
+      sport,
+      workout_type: (td.workout_type ?? 'easy') as WorkoutType,
+      duration_minutes: durationMinutes,
+      distance_km: distanceKm,
+      notes: td.notes ?? null,
+      tags: td.tags ?? [],
+      is_planned: true,
+      is_completed: false,
+      is_important: input.isImportant ?? false,
+      created_by_coach_id: check.coachId,
+    })
+    .select('id')
+    .single()
+  if (error || !data) return { error: error?.message ?? 'Kunne ikke lagre økt' }
+
+  if (activities.length > 0) {
+    const actErr = await insertActivityTreeForWorkout(supabase, data.id as string, activities)
+    if (actErr) return { error: `activities: ${actErr}` }
+  }
+
+  await writeAudit({
+    athleteId: input.athleteId,
+    coachId: check.coachId,
+    actionType: 'push_workout_template',
+    entityType: 'workout',
+    entityId: data.id as string,
+    details: { date: input.date, template_id: tpl.id, template_name: tpl.name, sport },
+  })
+  await notifyAthlete({
+    athleteId: input.athleteId,
+    type: 'template_push',
+    title: 'Ny økt fra trener',
+    content: `${tpl.name} · ${input.date}`,
+    linkUrl: `/app/plan`,
+  })
+
+  revalidatePath(`/app/trener/${input.athleteId}/plan`)
+  revalidatePath(`/app/plan`)
+  return { id: data.id as string }
+}
+
 export async function listCoachPlanTemplates(): Promise<
   CoachOwnTemplateSummary[] | { error: string }
 > {

@@ -7,6 +7,7 @@ import { TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/typ
 import type { PlanTemplate } from '@/lib/template-types'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 import { PlanMalEditModal } from '@/components/coach/PlanMalEditModal'
+import { CoachPushModal } from '@/components/coach/CoachPushModal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -24,6 +25,7 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
   const [builderOpen, setBuilderOpen] = useState(false)
   const [buildingFrom, setBuildingFrom] = useState<PlanTemplate | null>(null)
   const [editing, setEditing] = useState<PlanTemplate | null>(null)
+  const [pushing, setPushing] = useState<PlanTemplate | null>(null)
   const [_isPending, startTransition] = useTransition()
   void _isPending
 
@@ -80,6 +82,7 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
               key={t.id}
               template={t}
               disabled={pendingId === t.id}
+              onSend={() => setPushing(t)}
               onBuild={() => { setBuildingFrom(t); setBuilderOpen(true) }}
               onEditMeta={() => setEditing(t)}
               onDuplicate={() => {
@@ -115,15 +118,24 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
       {editing && (
         <PlanMalEditModal template={editing} onClose={() => setEditing(null)} />
       )}
+      {pushing && (
+        <CoachPushModal
+          kind="plan"
+          templateId={pushing.id}
+          templateName={pushing.name}
+          onClose={() => setPushing(null)}
+        />
+      )}
     </div>
   )
 }
 
 function Row({
-  template, disabled, onBuild, onEditMeta, onDuplicate, onDelete,
+  template, disabled, onSend, onBuild, onEditMeta, onDuplicate, onDelete,
 }: {
   template: PlanTemplate
   disabled: boolean
+  onSend: () => void
   onBuild: () => void
   onEditMeta: () => void
   onDuplicate: () => void
@@ -168,7 +180,8 @@ function Row({
         </div>
 
         <div className="flex gap-1.5 flex-wrap">
-          <ActionBtn onClick={onBuild} disabled={disabled} primary>Bygg</ActionBtn>
+          <ActionBtn onClick={onSend} disabled={disabled} primary>Send</ActionBtn>
+          <ActionBtn onClick={onBuild} disabled={disabled}>Bygg</ActionBtn>
           <ActionBtn onClick={onEditMeta} disabled={disabled}>Rediger info</ActionBtn>
           <ActionBtn onClick={onDuplicate} disabled={disabled}>Dupliser</ActionBtn>
           <ActionBtn onClick={onDelete} disabled={disabled} danger>Slett</ActionBtn>

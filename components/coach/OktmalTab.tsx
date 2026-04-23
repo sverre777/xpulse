@@ -6,6 +6,7 @@ import { deleteTemplate, duplicateTemplate } from '@/app/actions/templates'
 import { SPORTS, TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { OktmalEditModal } from '@/components/coach/OktmalEditModal'
+import { CoachPushModal } from '@/components/coach/CoachPushModal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -22,6 +23,7 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [showBuilder, setShowBuilder] = useState(false)
   const [editing, setEditing] = useState<WorkoutTemplate | null>(null)
+  const [pushing, setPushing] = useState<WorkoutTemplate | null>(null)
   const [_isPending, startTransition] = useTransition()
   void _isPending
 
@@ -84,6 +86,7 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
               key={t.id}
               template={t}
               disabled={pendingId === t.id}
+              onSend={() => setPushing(t)}
               onEdit={() => setEditing(t)}
               onDuplicate={() => {
                 setPendingId(t.id)
@@ -117,15 +120,24 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
       {editing && (
         <OktmalEditModal template={editing} onClose={() => setEditing(null)} />
       )}
+      {pushing && (
+        <CoachPushModal
+          kind="workout"
+          templateId={pushing.id}
+          templateName={pushing.name}
+          onClose={() => setPushing(null)}
+        />
+      )}
     </div>
   )
 }
 
 function Row({
-  template, disabled, onEdit, onDuplicate, onDelete,
+  template, disabled, onSend, onEdit, onDuplicate, onDelete,
 }: {
   template: WorkoutTemplate
   disabled: boolean
+  onSend: () => void
   onEdit: () => void
   onDuplicate: () => void
   onDelete: () => void
@@ -165,7 +177,8 @@ function Row({
           </div>
         </div>
 
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-wrap">
+          <ActionBtn onClick={onSend} disabled={disabled} primary>Send</ActionBtn>
           <ActionBtn onClick={onEdit} disabled={disabled}>Rediger</ActionBtn>
           <ActionBtn onClick={onDuplicate} disabled={disabled}>Dupliser</ActionBtn>
           <ActionBtn onClick={onDelete} disabled={disabled} danger>Slett</ActionBtn>
@@ -176,21 +189,24 @@ function Row({
 }
 
 function ActionBtn({
-  children, onClick, disabled, danger,
+  children, onClick, disabled, danger, primary,
 }: {
   children: React.ReactNode
   onClick: () => void
   disabled?: boolean
   danger?: boolean
+  primary?: boolean
 }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled}
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : '#8A8A96',
-        background: 'none',
-        border: `1px solid ${danger ? '#FF450066' : '#222228'}`,
+        color: primary ? '#F0F0F2' : danger ? '#FF4500' : '#8A8A96',
+        background: primary ? COACH_BLUE : 'none',
+        border: primary
+          ? 'none'
+          : `1px solid ${danger ? '#FF450066' : '#222228'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
       }}>

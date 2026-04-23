@@ -65,7 +65,12 @@ export function TrenerPlanleggPage({
             workoutTemplates={initialWorkoutTemplates}
           />
         )}
-        {tab === 'periodisering' && <PeriodiseringMalTab initialTemplates={initialPeriodizationTemplates} />}
+        {tab === 'periodisering' && (
+          <PeriodiseringMalTab
+            initialTemplates={initialPeriodizationTemplates}
+            primarySport={primarySport}
+          />
+        )}
       </div>
     </div>
   )

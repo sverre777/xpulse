@@ -602,3 +602,150 @@ export async function markAllNotificationsRead(): Promise<{ error?: string }> {
   revalidatePath('/app/innboks')
   return {}
 }
+
+// ── Ny samtale: mottaker-kandidater og gruppe-opprettelse ───
+
+export interface RecipientCandidate {
+  id: string
+  fullName: string | null
+  isCoach: boolean
+  /** Hvor denne relasjonen kommer fra — brukt for gruppering i UI. */
+  source: 'coach' | 'athlete' | 'group'
+  /** Gruppenavn hvis source='group' (for visning). */
+  groupName?: string
+}
+
+/**
+ * Lister brukere den innloggede kan starte en DM med:
+ *  - Utøver: sine trenere + andre medlemmer i grupper de er med i
+ *  - Trener: sine utøvere + andre trenere som er i felles gruppe + øvrige gruppemedlemmer
+ * Duplikater dedupliseres, egen bruker ekskluderes.
+ */
+export async function getAvailableRecipients(): Promise<
+  RecipientCandidate[] | { error: string }
+> {
+  const res = await getViewer()
+  if (!res.ok) return { error: res.error }
+  const viewer = res.viewer
+  const supabase = await createClient()
+
+  // Samle ider fra tre kilder i parallell.
+  const [coachesRes, athletesRes, groupMembershipRes] = await Promise.all([
+    // Mine trenere (hvis jeg er utøver)
+    viewer.hasAthleteRole
+      ? supabase
+          .from('coach_athlete_relations')
+          .select('coach_id')
+          .eq('athlete_id', viewer.userId)
+          .eq('status', 'active')
+      : Promise.resolve({ data: [], error: null } as const),
+    // Mine utøvere (hvis jeg er trener)
+    viewer.hasCoachRole
+      ? supabase
+          .from('coach_athlete_relations')
+          .select('athlete_id')
+          .eq('coach_id', viewer.userId)
+          .eq('status', 'active')
+      : Promise.resolve({ data: [], error: null } as const),
+    // Grupper jeg er med i
+    supabase
+      .from('coach_group_members')
+      .select('group_id')
+      .eq('user_id', viewer.userId),
+  ])
+
+  if (coachesRes.error) return { error: coachesRes.error.message }
+  if (athletesRes.error) return { error: athletesRes.error.message }
+  if (groupMembershipRes.error) return { error: groupMembershipRes.error.message }
+
+  const sourceById = new Map<string, RecipientCandidate['source']>()
+  const groupNameById = new Map<string, string>()
+
+  for (const r of coachesRes.data ?? []) {
+    if (r.coach_id && r.coach_id !== viewer.userId) sourceById.set(r.coach_id, 'coach')
+  }
+  for (const r of athletesRes.data ?? []) {
+    if (r.athlete_id && r.athlete_id !== viewer.userId) {
+      if (!sourceById.has(r.athlete_id)) sourceById.set(r.athlete_id, 'athlete')
+    }
+  }
+
+  const groupIds = (groupMembershipRes.data ?? []).map(r => r.group_id).filter(Boolean)
+  if (groupIds.length > 0) {
+    const [groupsRes, membersRes] = await Promise.all([
+      supabase.from('coach_groups').select('id, name').in('id', groupIds),
+      supabase.from('coach_group_members').select('group_id, user_id').in('group_id', groupIds),
+    ])
+    for (const g of groupsRes.data ?? []) groupNameById.set(g.id, g.name)
+    for (const m of membersRes.data ?? []) {
+      if (m.user_id === viewer.userId) continue
+      if (!sourceById.has(m.user_id)) {
+        sourceById.set(m.user_id, 'group')
+      }
+    }
+  }
+
+  const ids = Array.from(sourceById.keys())
+  if (ids.length === 0) return []
+
+  const { data: profiles, error: profErr } = await supabase
+    .from('profiles')
+    .select('id, full_name, has_coach_role')
+    .in('id', ids)
+  if (profErr) return { error: profErr.message }
+
+  // Gruppenavn for visning — bare meningsfullt for 'group'-kilden, men den trenger
+  // en referanse til én gruppe. Hvis bruker er i flere felles grupper, plukk første.
+  const firstGroupForUser = new Map<string, string>()
+  if (groupIds.length > 0) {
+    const { data: allMembers } = await supabase
+      .from('coach_group_members')
+      .select('user_id, group_id')
+      .in('group_id', groupIds)
+    for (const m of allMembers ?? []) {
+      if (!firstGroupForUser.has(m.user_id)) firstGroupForUser.set(m.user_id, m.group_id)
+    }
+  }
+
+  const out: RecipientCandidate[] = (profiles ?? []).map(p => {
+    const source = sourceById.get(p.id) ?? 'group'
+    const groupId = source === 'group' ? firstGroupForUser.get(p.id) : undefined
+    return {
+      id: p.id,
+      fullName: p.full_name,
+      isCoach: Boolean(p.has_coach_role),
+      source,
+      groupName: groupId ? groupNameById.get(groupId) : undefined,
+    }
+  })
+
+  out.sort((a, b) => {
+    // coach > athlete > group
+    const rank = { coach: 0, athlete: 1, group: 2 } as const
+    if (rank[a.source] !== rank[b.source]) return rank[a.source] - rank[b.source]
+    return (a.fullName ?? '').localeCompare(b.fullName ?? '', 'nb')
+  })
+  return out
+}
+
+/**
+ * Oppretter ny gruppe via SECURITY DEFINER RPC (phase30). Kun trenere.
+ * Kaller blir admin; medlemmer legges til med rolle basert på profil.
+ */
+export async function createCoachGroup(
+  name: string,
+  memberIds: string[],
+  description?: string,
+): Promise<{ id?: string; error?: string }> {
+  const trimmed = name?.trim()
+  if (!trimmed) return { error: 'Gruppenavn er påkrevd' }
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('create_coach_group', {
+    p_name: trimmed,
+    p_description: description?.trim() || null,
+    p_member_ids: memberIds ?? [],
+  })
+  if (error) return { error: error.message }
+  revalidatePath('/app/innboks')
+  return { id: data as string }
+}

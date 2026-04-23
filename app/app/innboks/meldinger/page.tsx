@@ -8,6 +8,7 @@ import {
 } from '@/app/actions/inbox'
 import { ConversationList } from '@/components/inbox/ConversationList'
 import { MessageThread } from '@/components/inbox/MessageThread'
+import { NewMessageButton } from '@/components/inbox/NewMessageButton'
 
 interface Props {
   searchParams: Promise<{ thread?: string; to?: string }>
@@ -80,5 +81,12 @@ export default async function InboxMessagesPage({ searchParams }: Props) {
     )
   }
 
-  return <ConversationList conversations={convRes} viewerId={viewer.userId} />
+  return (
+    <div>
+      <div className="flex justify-end mb-3">
+        <NewMessageButton viewerIsCoach={viewer.hasCoachRole} />
+      </div>
+      <ConversationList conversations={convRes} viewerId={viewer.userId} />
+    </div>
+  )
 }

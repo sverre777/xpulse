@@ -4,26 +4,25 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteTemplate, duplicateTemplate } from '@/app/actions/templates'
 import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
-import { deletePeriodizationTemplate, duplicatePeriodizationTemplate } from '@/app/actions/periodization-templates'
 import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate } from '@/lib/types'
-import type { PlanTemplate, PeriodizationTemplate } from '@/lib/template-types'
+import type { PlanTemplate } from '@/lib/template-types'
 
-type Tab = 'okt' | 'plan' | 'periodisering'
+// Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
+// materialisert i egen periodiserings-side, ikke som mal-objekter.
+type Tab = 'okt' | 'plan'
 
 interface Props {
   activeTab: string
   initialWorkoutTemplates: WorkoutTemplate[]
   initialPlanTemplates: PlanTemplate[]
-  initialPeriodizationTemplates: PeriodizationTemplate[]
 }
 
 export function MalerClient({
   activeTab,
   initialWorkoutTemplates,
   initialPlanTemplates,
-  initialPeriodizationTemplates,
 }: Props) {
-  const tab: Tab = activeTab === 'plan' || activeTab === 'periodisering' ? activeTab : 'okt'
+  const tab: Tab = activeTab === 'plan' ? 'plan' : 'okt'
   const router = useRouter()
 
   const [query, setQuery] = useState('')
@@ -120,30 +119,6 @@ export function MalerClient({
         />
       )}
 
-      {tab === 'periodisering' && (
-        <PeriodizationList
-          templates={initialPeriodizationTemplates}
-          query={query} category={category}
-          pendingId={pendingId}
-          onDelete={(id, name) => {
-            if (!window.confirm(`Slett periodiserings-mal "${name}"?`)) return
-            setPendingId(id)
-            startTransition(async () => {
-              const r = await deletePeriodizationTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
-              setPendingId(null)
-            })
-          }}
-          onDuplicate={(id) => {
-            setPendingId(id)
-            startTransition(async () => {
-              const r = await duplicatePeriodizationTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
-              setPendingId(null)
-            })
-          }}
-        />
-      )}
     </div>
   )
 }
@@ -152,7 +127,6 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'okt', label: 'Økt-maler' },
     { key: 'plan', label: 'Plan-maler' },
-    { key: 'periodisering', label: 'Periodiserings-maler' },
   ]
   return (
     <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -258,50 +232,11 @@ function PlanList({
   )
 }
 
-function PeriodizationList({
-  templates, query, category, pendingId, onDelete, onDuplicate,
-}: {
-  templates: PeriodizationTemplate[]
-  query: string; category: string
-  pendingId: string | null
-  onDelete: (id: string, name: string) => void
-  onDuplicate: (id: string) => void
-}) {
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return templates.filter(t => {
-      if (category && t.category !== category) return false
-      if (q && !t.name.toLowerCase().includes(q)) return false
-      return true
-    })
-  }, [templates, query, category])
-  if (filtered.length === 0) {
-    return <EmptyBox empty={templates.length === 0} kind="periodisering" />
-  }
-  return (
-    <div className="space-y-2">
-      {filtered.map(t => (
-        <TemplateRow key={t.id}
-          name={t.name} description={t.description} category={t.category}
-          meta={[
-            `${t.duration_days} dager`,
-            `${t.periodization_data?.periods?.length ?? 0} perioder`,
-            `${t.periodization_data?.key_dates?.length ?? 0} nøkkeldatoer`,
-          ]}
-          disabled={pendingId === t.id}
-          onDelete={() => onDelete(t.id, t.name)}
-          onDuplicate={() => onDuplicate(t.id)}
-        />
-      ))}
-    </div>
-  )
-}
-
-function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' | 'periodisering' }) {
+function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
   const emptyText =
-    kind === 'økt' ? 'Du har ingen økt-maler ennå. Lag en ved å trykke "Lagre som mal" nederst i en økt.' :
-    kind === 'plan' ? 'Du har ingen plan-maler ennå. Lag en ved å trykke "Lagre som mal" i Plan-kalenderen.' :
-    'Du har ingen periodiserings-maler ennå. Lag en ved å trykke "Lagre som mal" i Periodisering-siden.'
+    kind === 'økt'
+      ? 'Du har ingen økt-maler ennå. Lag en ved å trykke "Lagre som mal" nederst i en økt.'
+      : 'Du har ingen plan-maler ennå. Lag en ved å trykke "Lagre som mal" i Plan-kalenderen.'
   return (
     <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>

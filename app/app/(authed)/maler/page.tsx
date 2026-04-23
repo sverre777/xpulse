@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getTemplates } from '@/app/actions/templates'
 import { getPlanTemplates } from '@/app/actions/plan-templates'
-import { getPeriodizationTemplates } from '@/app/actions/periodization-templates'
 import { MalerClient } from './MalerClient'
 
 interface Props {
@@ -15,12 +14,11 @@ export default async function MalerPage({ searchParams }: Props) {
   if (!user) redirect('/app')
 
   const sp = await searchParams
-  const activeTab = sp.tab === 'plan' || sp.tab === 'periodisering' ? sp.tab : 'okt'
+  const activeTab = sp.tab === 'plan' ? 'plan' : 'okt'
 
-  const [workoutTemplates, planTemplates, periodizationTemplates] = await Promise.all([
+  const [workoutTemplates, planTemplates] = await Promise.all([
     getTemplates(),
     getPlanTemplates(),
-    getPeriodizationTemplates(),
   ])
 
   return (
@@ -37,7 +35,6 @@ export default async function MalerPage({ searchParams }: Props) {
           activeTab={activeTab}
           initialWorkoutTemplates={workoutTemplates}
           initialPlanTemplates={planTemplates}
-          initialPeriodizationTemplates={periodizationTemplates}
         />
       </div>
     </div>

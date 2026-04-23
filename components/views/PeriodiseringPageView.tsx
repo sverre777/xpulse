@@ -14,7 +14,6 @@ import { WeekOverviewCalendar } from '@/components/periodization/WeekOverviewCal
 import { PeriodsSection } from '@/components/periodization/PeriodsSection'
 import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
 import { MonthlyVolumeSection } from '@/components/periodization/MonthlyVolumeSection'
-import { SavePeriodizationTemplateButton } from '@/components/periodization/SavePeriodizationTemplateButton'
 import type { ViewContext } from '@/lib/view-context'
 
 interface Props {
@@ -114,12 +113,6 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {!isCoachView && (
-              <SavePeriodizationTemplateButton
-                seasons={seasons.map(s => ({ id: s.id, name: s.name, start_date: s.start_date, end_date: s.end_date }))}
-                defaultSeasonId={activeSeason?.id ?? null}
-              />
-            )}
             <SeasonSelector
               seasons={seasons}
               activeSeason={activeSeason}

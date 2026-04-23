@@ -80,6 +80,8 @@ interface CalendarActions {
   onEditDayState: (state: DayState) => void
   dayStatesByDate: Record<string, DayState[]>
   targetUserId?: string
+  // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
+  readOnly: boolean
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -449,7 +451,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   onToggle: () => void
   keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
-  const { onCreateWorkout, dayStatesByDate } = useCalendarActions()
+  const { onCreateWorkout, dayStatesByDate, readOnly } = useCalendarActions()
   const dateStr = toISO(date)
   const today = toISO(new Date())
   const isToday = dateStr === today
@@ -502,7 +504,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             </span>
           ))}
           {healthDate && <span style={{ color: '#28A86E', fontSize: '7px' }}>●</span>}
-          {(mode === 'plan' || mode === 'dagbok') && (
+          {(mode === 'plan' || mode === 'dagbok') && !readOnly && (
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
               style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
@@ -551,7 +553,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
@@ -786,10 +788,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
                             {parts.join(' · ')}
                           </span>
-                          <Link href={`/app/health/${ds}`}
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', textDecoration: 'none', borderBottom: '1px solid #333340', marginLeft: '4px' }}>
-                            Rediger
-                          </Link>
+                          {!readOnly && (
+                            <Link href={`/app/health/${ds}`}
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', textDecoration: 'none', borderBottom: '1px solid #333340', marginLeft: '4px' }}>
+                              Rediger
+                            </Link>
+                          )}
                         </div>
                       ) : null
                     })()}
@@ -822,13 +826,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   </span>
                                 )}
                               </div>
-                              <button type="button"
-                                onClick={async () => {
-                                  const res = await deleteRecoveryEntry(r.id)
-                                  if (!res.error) router.refresh()
-                                }}
-                                style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
-                                title="Slett">×</button>
+                              {!readOnly && (
+                                <button type="button"
+                                  onClick={async () => {
+                                    const res = await deleteRecoveryEntry(r.id)
+                                    if (!res.error) router.refresh()
+                                  }}
+                                  style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
+                                  title="Slett">×</button>
+                              )}
                             </div>
                           )
                         })}
@@ -849,10 +855,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))
                           if (s.feeling != null) meta.push(`Følelse ${s.feeling}/5`)
                           if (s.expected_days_off != null) meta.push(`${s.expected_days_off} dager utenfor`)
-                          return (
-                            <button key={s.id} type="button" onClick={() => onEditDayState(s)}
-                              className="w-full flex items-center justify-between p-2 text-left"
-                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
+                          const rowInner = (
+                            <>
                               <span className="flex items-center gap-2 flex-wrap">
                                 <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
                                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
@@ -869,31 +873,48 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   </span>
                                 )}
                               </span>
-                              <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
+                              {!readOnly && (
+                                <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
+                              )}
+                            </>
+                          )
+                          return readOnly ? (
+                            <div key={s.id}
+                              className="w-full flex items-center justify-between p-2 text-left"
+                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
+                              {rowInner}
+                            </div>
+                          ) : (
+                            <button key={s.id} type="button" onClick={() => onEditDayState(s)}
+                              className="w-full flex items-center justify-between p-2 text-left"
+                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
+                              {rowInner}
                             </button>
                           )
                         })}
                       </div>
                     )}
 
-                    <div className="flex gap-3 flex-wrap">
-                      <button type="button" onClick={() => onCreateWorkout(ds)}
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                        {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
-                      </button>
-                      {mode !== 'plan' && !healthData[ds] && (
-                        <Link href={`/app/health/${ds}`}
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                          + Helse
-                        </Link>
-                      )}
-                      {mode !== 'plan' && !isFuture && (
-                        <button type="button" onClick={() => onAddRecovery(ds)}
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                          + Legg til recovery
+                    {!readOnly && (
+                      <div className="flex gap-3 flex-wrap">
+                        <button type="button" onClick={() => onCreateWorkout(ds)}
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                          {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
                         </button>
-                      )}
-                    </div>
+                        {mode !== 'plan' && !healthData[ds] && (
+                          <Link href={`/app/health/${ds}`}
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                            + Helse
+                          </Link>
+                        )}
+                        {mode !== 'plan' && !isFuture && (
+                          <button type="button" onClick={() => onAddRecovery(ds)}
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
+                            + Legg til recovery
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -1259,6 +1280,7 @@ export function Calendar({
       onEditDayState: handleEditDayState,
       dayStatesByDate,
       targetUserId,
+      readOnly,
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
@@ -1325,28 +1347,34 @@ export function Calendar({
       )}
 
       {/* ── Content ── */}
-      {/* Dagbok er utøverens private notat — i coach-view (readOnly) skjules PeriodNote helt.
-          Plan-notater forblir synlige i coach-view slik at trener kan skrive plan-kommentarer. */}
-      {showNotes && view === 'måned' && !(readOnly && noteContext === 'dagbok') && (
+      {/* I coach-view (readOnly) + dagbok vises utøverens notat som grå read-only.
+          Plan-notater forblir redigerbare i coach-view slik at trener kan skrive plan-kommentarer. */}
+      {showNotes && view === 'måned' && (
         <PeriodNote
           key={`month-${monthPeriodKey}-${noteContext}`}
           scope="month"
           periodKey={monthPeriodKey}
           context={noteContext}
           initialNote={monthNote}
-          label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
+          label={readOnly && noteContext === 'dagbok'
+            ? `Utøverens notat for ${MONTHS_NO[month - 1]}`
+            : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
           targetUserId={targetUserId}
+          readOnly={readOnly && noteContext === 'dagbok'}
         />
       )}
-      {showNotes && view === 'uke' && !(readOnly && noteContext === 'dagbok') && (
+      {showNotes && view === 'uke' && (
         <PeriodNote
           key={`week-${weekPeriodKey}-${noteContext}`}
           scope="week"
           periodKey={weekPeriodKey}
           context={noteContext}
           initialNote={weekNote}
-          label={`${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
+          label={readOnly && noteContext === 'dagbok'
+            ? `Utøverens notat for uke ${weekNum}`
+            : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
           targetUserId={targetUserId}
+          readOnly={readOnly && noteContext === 'dagbok'}
         />
       )}
       {view === 'måned' && (
@@ -1363,6 +1391,7 @@ export function Calendar({
           onEditWorkout={handleEditWorkout}
           onCreateWorkout={handleCreateWorkout}
           targetUserId={targetUserId}
+          readOnly={readOnly}
         />
       )}
       {view === 'år' && (

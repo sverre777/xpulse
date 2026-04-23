@@ -33,6 +33,7 @@ interface Props {
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
   targetUserId?: string
+  readOnly?: boolean
 }
 
 const DAYS_NO = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -421,6 +422,7 @@ export function WeekCalendarView({
   seasonPeriods, seasonKeyDates,
   onEditWorkout, onCreateWorkout,
   targetUserId,
+  readOnly = false,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const today = toISO(new Date())
@@ -445,6 +447,7 @@ export function WeekCalendarView({
   const hasAnyAllDay = weekDates.some(d => (layouts[toISO(d)]?.allDay.length ?? 0) > 0)
 
   const handleColumnClick = (e: React.MouseEvent<HTMLDivElement>, dateStr: string) => {
+    if (readOnly) return
     if (mode === 'dagbok' && dateStr > today) return
     // currentTarget er dag-kolonnen (position: relative). getBoundingClientRect() gir
     // viewport-koordinater — y = clientY - rect.top fungerer uansett scrollposisjon
@@ -602,7 +605,7 @@ export function WeekCalendarView({
               {weekDates.map(d => {
                 const ds = toISO(d)
                 const isToday = ds === today
-                const canClick = !(mode === 'dagbok' && ds > today)
+                const canClick = !readOnly && !(mode === 'dagbok' && ds > today)
                 const lay = layouts[ds]
                 return (
                   <div key={ds}

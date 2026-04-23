@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { savePeriodNote, type NoteScope, type NoteContext } from '@/app/actions/period-notes'
 
 export function PeriodNote({
-  scope, periodKey, context, initialNote, label, targetUserId,
+  scope, periodKey, context, initialNote, label, targetUserId, readOnly = false,
 }: {
   scope: NoteScope
   periodKey: string
@@ -13,7 +13,31 @@ export function PeriodNote({
   label: string
   // Når satt (coach-view) lagres notatet til utøverens user_id via server action.
   targetUserId?: string
+  // Trener-visning av utøverens dagbok-notater: vis grått, ikke redigerbart.
+  readOnly?: boolean
 }) {
+  if (readOnly) {
+    const hasNote = initialNote.trim().length > 0
+    return (
+      <div className="px-4 md:px-6 py-2" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#0E0E10' }}>
+        <p className="text-xs tracking-widest uppercase mb-1"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {label}
+        </p>
+        {hasNote ? (
+          <p className="text-sm whitespace-pre-wrap"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            {initialNote}
+          </p>
+        ) : (
+          <p className="text-sm"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#3A3A44', fontStyle: 'italic' }}>
+            — Utøveren har ikke skrevet noe her.
+          </p>
+        )}
+      </div>
+    )
+  }
   // NB: komponenten remountes av parent via `key` når scope/periode/kontekst
   // endres, så initialNote kan brukes trygt som startverdi i useState.
   const [note, setNote] = useState(initialNote)

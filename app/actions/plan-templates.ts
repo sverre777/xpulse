@@ -49,6 +49,7 @@ export async function savePlanTemplate(input: SavePlanTemplateInput): Promise<{ 
 
   if (error) return { error: error.message }
   revalidatePath('/app/maler')
+  revalidatePath('/app/trener/planlegg')
   return { id: data.id as string }
 }
 
@@ -85,6 +86,53 @@ export async function getPlanTemplate(id: string): Promise<PlanTemplate | null> 
   return rowToPlanTemplate(data as Record<string, unknown>)
 }
 
+export interface UpdatePlanTemplateInput {
+  name?: string
+  description?: string | null
+  category?: string | null
+  duration_days?: number
+  plan_data?: PlanTemplateData
+}
+
+export async function updatePlanTemplate(
+  id: string,
+  patch: UpdatePlanTemplateInput,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (patch.name !== undefined) {
+    const n = patch.name.trim()
+    if (!n) return { error: 'Navn er påkrevd' }
+    update.name = n
+  }
+  if (patch.description !== undefined) {
+    update.description = patch.description?.trim() || null
+  }
+  if (patch.category !== undefined) {
+    update.category = patch.category?.trim() || null
+  }
+  if (patch.duration_days !== undefined) {
+    if (!Number.isInteger(patch.duration_days) || patch.duration_days < 1) {
+      return { error: 'Varighet må være minst én dag' }
+    }
+    update.duration_days = patch.duration_days
+  }
+  if (patch.plan_data !== undefined) update.plan_data = patch.plan_data
+
+  const { error } = await supabase
+    .from('plan_templates')
+    .update(update)
+    .eq('id', id)
+    .eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/app/maler')
+  revalidatePath('/app/trener/planlegg')
+  return {}
+}
+
 export async function deletePlanTemplate(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -96,6 +144,7 @@ export async function deletePlanTemplate(id: string): Promise<{ error?: string }
     .eq('user_id', user.id)
   if (error) return { error: error.message }
   revalidatePath('/app/maler')
+  revalidatePath('/app/trener/planlegg')
   return {}
 }
 
@@ -120,6 +169,7 @@ export async function duplicatePlanTemplate(id: string): Promise<{ error?: strin
 
   if (error) return { error: error.message }
   revalidatePath('/app/maler')
+  revalidatePath('/app/trener/planlegg')
   return { id: data.id as string }
 }
 

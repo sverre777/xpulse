@@ -31,6 +31,11 @@ interface WorkoutFormProps {
   // Trener-bruk i /app/trener/planlegg.
   templateBuildingMode?: boolean
   onTemplateSaved?: (id: string) => void
+  // Fanger form-state uten å lagre til DB (brukes av plan-mal-bygger).
+  // Når satt: primær-knapp kaller onCapture(formData) i stedet for saveWorkout.
+  captureOnlyMode?: boolean
+  onCapture?: (data: WorkoutFormData) => void
+  captureSubmitLabel?: string
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -40,7 +45,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -195,13 +200,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) { setError('Tittel er påkrevd'); return }
-    setSaving(true); setError(null)
-    // Payload: is_planned bevares (så planen forblir synlig i Plan). Gjennomføring signaleres
-    // med is_completed=true. Ved rene dagbok-økter (ikke fra plan) er is_planned=false.
     const payload: WorkoutFormData = {
       ...form,
       is_completed: markingCompleted ? true : (isPlanMode ? false : (form.is_planned ? form.is_completed : true)),
     }
+    if (captureOnlyMode) {
+      if (onCapture) onCapture(payload)
+      return
+    }
+    setSaving(true); setError(null)
     const result = await saveWorkout(payload, workoutId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
@@ -526,6 +533,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               }}>
               Lagre som mal
             </button>
+          ) : captureOnlyMode ? (
+            <button type="submit"
+              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: '#1A6FD4', color: '#F0F0F2', border: 'none',
+                cursor: 'pointer',
+              }}>
+              {captureSubmitLabel ?? 'Lagre til mal'}
+            </button>
           ) : (
             <button type="submit" disabled={saving}
               className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
@@ -556,8 +573,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </button>
         </div>
 
-        {/* Save as template — sekundær CTA; skjules i template-building-modus siden primærknappen allerede er mal-lagring. */}
-        {!templateBuildingMode && (
+        {/* Save as template — sekundær CTA; skjules i template-building/capture-modus. */}
+        {!templateBuildingMode && !captureOnlyMode && (
           <button type="button" onClick={openTemplateModal}
             className="w-full flex items-center justify-center gap-2 py-3 text-base tracking-widest uppercase transition-colors hover:bg-[rgba(255,69,0,0.08)]"
             style={{

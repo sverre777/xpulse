@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updatePlanTemplate } from '@/app/actions/plan-templates'
-import { TEMPLATE_CATEGORIES } from '@/lib/types'
+import { PERIOD_SPORT_CATEGORIES } from '@/lib/types'
 import type { PlanTemplate } from '@/lib/template-types'
 
 const COACH_BLUE = '#1A6FD4'
@@ -104,9 +104,9 @@ export function PlanMalEditModal({ template, onClose }: Props) {
               rows={3} style={iSt} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Kategori">
+            <Field label="Sport">
               <select value={category} onChange={e => setCategory(e.target.value)} style={iSt}>
-                {TEMPLATE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {PERIOD_SPORT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
             <Field label="Varighet (dager)">

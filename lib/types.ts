@@ -568,6 +568,25 @@ export const TEMPLATE_CATEGORIES = [
 ] as const
 export type TemplateCategory = typeof TEMPLATE_CATEGORIES[number]
 
+// Sport-kategori for plan-maler og periodiseringsmaler. Lagres i `category`-kolonnen.
+export const PERIOD_SPORT_CATEGORIES = [
+  'Løping', 'Langrenn', 'Skiskyting', 'Sykling', 'Triatlon',
+  'Flerdistrikt', 'Annet',
+] as const
+export type PeriodSportCategory = typeof PERIOD_SPORT_CATEGORIES[number]
+
+export function sportToCategory(sport: Sport | null | undefined): PeriodSportCategory {
+  switch (sport) {
+    case 'running': return 'Løping'
+    case 'cross_country_skiing': return 'Langrenn'
+    case 'biathlon': return 'Skiskyting'
+    case 'cycling': return 'Sykling'
+    case 'triathlon': return 'Triatlon'
+    case 'long_distance_skiing': return 'Flerdistrikt'
+    default: return 'Annet'
+  }
+}
+
 export interface WorkoutTemplate {
   id: string
   user_id: string

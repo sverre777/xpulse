@@ -185,7 +185,7 @@ export async function buildPeriodizationTemplateFromSeason(
 
   const { data: season, error: sErr } = await supabase
     .from('seasons')
-    .select('id, name, start_date, end_date, goal_main, goal_details')
+    .select('id, name, start_date, end_date, goal_main, goal_details, kpi_notes')
     .eq('id', seasonId)
     .eq('user_id', user.id)
     .single()
@@ -208,7 +208,7 @@ export async function buildPeriodizationTemplateFromSeason(
 
   const { data: keyDates, error: kErr } = await supabase
     .from('season_key_dates')
-    .select('name, event_date, event_type, sport, notes')
+    .select('name, event_date, event_type, sport, location, distance_format, notes, is_peak_target')
     .eq('season_id', seasonId)
   if (kErr) return { error: `season_key_dates: ${kErr.message}` }
 
@@ -219,6 +219,7 @@ export async function buildPeriodizationTemplateFromSeason(
         goal_main: season.goal_main ?? null,
         goal_secondary: season.goal_details ?? null,
         sport: null,
+        kpi_notes: season.kpi_notes ?? null,
       },
       periods: ((periods ?? []) as {
         name: string; focus: string | null; start_date: string; end_date: string
@@ -234,14 +235,18 @@ export async function buildPeriodizationTemplateFromSeason(
       })),
       key_dates: ((keyDates ?? []) as {
         name: string; event_date: string; event_type: string
-        sport: string | null; notes: string | null
+        sport: string | null; location: string | null; distance_format: string | null
+        notes: string | null; is_peak_target: boolean | null
       }[]).map(k => ({
         day_offset: dayOffset(k.event_date),
         title: k.name,
         date_type: k.event_type,
         priority: k.event_type.startsWith('competition_') ? k.event_type.slice(-1) : 'c',
         sport: k.sport,
+        location: k.location ?? null,
+        distance_format: k.distance_format ?? null,
         notes: k.notes,
+        is_peak_target: k.is_peak_target ?? false,
       })),
     },
     duration_days,

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
-import { TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
+import { PERIOD_SPORT_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
 import type { PlanTemplate } from '@/lib/template-types'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 import { PlanMalEditModal } from '@/components/coach/PlanMalEditModal'
@@ -62,8 +62,8 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
           style={iSt} className="w-full px-3 py-2" />
         <select value={category} onChange={e => setCategory(e.target.value)}
           style={iSt} className="w-full px-3 py-2">
-          <option value="">Alle kategorier</option>
-          {TEMPLATE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          <option value="">Alle sporter</option>
+          {PERIOD_SPORT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
@@ -123,6 +123,7 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
           kind="plan"
           templateId={pushing.id}
           templateName={pushing.name}
+          durationDays={pushing.duration_days}
           onClose={() => setPushing(null)}
         />
       )}

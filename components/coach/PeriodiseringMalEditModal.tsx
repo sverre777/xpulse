@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updatePeriodizationTemplate } from '@/app/actions/periodization-templates'
 import type { PeriodizationTemplate } from '@/lib/template-types'
-import { PERIOD_SPORT_CATEGORIES } from '@/components/coach/PeriodiseringMalBuilder'
+import { PERIOD_SPORT_CATEGORIES } from '@/lib/types'
 
 const COACH_BLUE = '#1A6FD4'
 

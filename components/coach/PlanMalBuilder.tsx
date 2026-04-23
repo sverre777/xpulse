@@ -6,7 +6,7 @@ import { savePlanTemplate, updatePlanTemplate } from '@/app/actions/plan-templat
 import type {
   PlanTemplate, PlanTemplateData, PlanTemplateDayState, PlanTemplateWorkout,
 } from '@/lib/template-types'
-import { TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
+import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { RelativeDateCalendar } from '@/components/coach/RelativeDateCalendar'
 import { PlanMalDayEditor } from '@/components/coach/PlanMalDayEditor'
 
@@ -27,7 +27,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
   const router = useRouter()
   const [name, setName] = useState(editing?.name ?? '')
   const [description, setDescription] = useState(editing?.description ?? '')
-  const [category, setCategory] = useState(editing?.category ?? 'Annet')
+  const [category, setCategory] = useState<string>(editing?.category ?? sportToCategory(primarySport))
   const [durationDays, setDurationDays] = useState<number>(editing?.duration_days ?? 28)
   const [data, setData] = useState<PlanTemplateData>(editing?.plan_data ?? EMPTY_DATA)
   const [openDay, setOpenDay] = useState<number | null>(null)
@@ -203,9 +203,9 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
                 placeholder="F.eks. 4-ukers grunntrening"
                 style={iSt} />
             </Field>
-            <Field label="Kategori">
+            <Field label="Sport">
               <select value={category} onChange={e => setCategory(e.target.value)} style={iSt}>
-                {TEMPLATE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {PERIOD_SPORT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
             <Field label="Beskrivelse">

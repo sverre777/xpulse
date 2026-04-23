@@ -6,10 +6,8 @@ import {
   deletePeriodizationTemplate, duplicatePeriodizationTemplate,
 } from '@/app/actions/periodization-templates'
 import type { PeriodizationTemplate } from '@/lib/template-types'
-import type { Sport } from '@/lib/types'
-import {
-  PeriodiseringMalBuilder, PERIOD_SPORT_CATEGORIES,
-} from '@/components/coach/PeriodiseringMalBuilder'
+import { PERIOD_SPORT_CATEGORIES, type Sport } from '@/lib/types'
+import { PeriodiseringMalBuilder } from '@/components/coach/PeriodiseringMalBuilder'
 import { PeriodiseringMalEditModal } from '@/components/coach/PeriodiseringMalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
 

@@ -8,6 +8,7 @@ import {
   pushPlanTemplateToAthlete,
   pushPeriodizationTemplateToAthlete,
   type CoachTargetAthlete, type CoachTargetGroup,
+  type PeriodizationOverlapInfo,
 } from '@/app/actions/coach-push'
 
 const COACH_BLUE = '#1A6FD4'
@@ -19,6 +20,9 @@ interface Props {
   templateId: string
   templateName: string
   onClose: () => void
+  // Varighet fra malen — brukes kun for kind='plan' til å foreslå default sluttdato
+  // og beregne om lineær skalering skal trigges.
+  durationDays?: number
 }
 
 interface PushOutcome {
@@ -28,7 +32,7 @@ interface PushOutcome {
   message: string
 }
 
-export function CoachPushModal({ kind, templateId, templateName, onClose }: Props) {
+export function CoachPushModal({ kind, templateId, templateName, onClose, durationDays }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [athletes, setAthletes] = useState<CoachTargetAthlete[]>([])
@@ -36,9 +40,19 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<Set<string>>(new Set())
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set())
   const [date, setDate] = useState<string>(todayIso())
+  // Valgfri sluttdato for kind='plan' — aktiverer lineær skalering når satt.
+  const [planEndDate, setPlanEndDate] = useState<string>('')
+  // Overlapp-varsel for kind='periodization': kart fra athleteId → liste med
+  // overlappende sesonger. Når satt må brukeren bekrefte for å fortsette.
+  const [pendingOverlap, setPendingOverlap] = useState<Map<string, PeriodizationOverlapInfo[]>>(new Map())
   const [err, setErr] = useState<string | null>(null)
   const [outcomes, setOutcomes] = useState<PushOutcome[] | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  // Foreslått default sluttdato når plan-mal: startdato + (durationDays - 1).
+  const defaultPlanEnd = kind === 'plan' && durationDays
+    ? addDaysIsoClient(date, Math.max(0, durationDays - 1))
+    : ''
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -114,6 +128,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
 
     startTransition(async () => {
       const results: PushOutcome[] = []
+      const overlaps = new Map<string, PeriodizationOverlapInfo[]>()
       for (const aid of selectedAthleteIds) {
         const athlete = athletes.find(a => a.id === aid)
         const name = athlete?.name ?? 'Utøver'
@@ -127,6 +142,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
           } else if (kind === 'plan') {
             const r = await pushPlanTemplateToAthlete({
               athleteId: aid, templateId, startDate: date,
+              endDate: planEndDate || undefined,
             })
             if (r.error) results.push({ athleteId: aid, athleteName: name, ok: false, message: r.error })
             else results.push({
@@ -137,8 +153,17 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
             const r = await pushPeriodizationTemplateToAthlete({
               athleteId: aid, templateId, startDate: date,
             })
-            if (r.error) results.push({ athleteId: aid, athleteName: name, ok: false, message: r.error })
-            else results.push({ athleteId: aid, athleteName: name, ok: true, message: 'Sesong opprettet' })
+            if (r.overlap && r.overlap.length > 0) {
+              overlaps.set(aid, r.overlap)
+              results.push({
+                athleteId: aid, athleteName: name, ok: false,
+                message: `Overlapp: ${r.overlap.map(o => o.name).join(', ')} — bekreft eller hopp over`,
+              })
+            } else if (r.error) {
+              results.push({ athleteId: aid, athleteName: name, ok: false, message: r.error })
+            } else {
+              results.push({ athleteId: aid, athleteName: name, ok: true, message: 'Sesong opprettet' })
+            }
           }
         } catch (e) {
           const msg = e instanceof Error ? e.message : 'Ukjent feil'
@@ -146,11 +171,45 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
         }
         setOutcomes([...results])
       }
+      setPendingOverlap(overlaps)
       router.refresh()
     })
   }
 
-  const allDone = outcomes != null && outcomes.length === selectedAthleteIds.size && !isPending
+  const handleConfirmOverlaps = () => {
+    if (pendingOverlap.size === 0) return
+    setErr(null)
+    startTransition(async () => {
+      const results = [...(outcomes ?? [])]
+      for (const [aid, infos] of pendingOverlap) {
+        void infos
+        const idx = results.findIndex(o => o.athleteId === aid)
+        const athlete = athletes.find(a => a.id === aid)
+        const name = athlete?.name ?? 'Utøver'
+        try {
+          const r = await pushPeriodizationTemplateToAthlete({
+            athleteId: aid, templateId, startDate: date, allowOverlap: true,
+          })
+          if (r.error) {
+            const entry = { athleteId: aid, athleteName: name, ok: false, message: r.error }
+            if (idx >= 0) results[idx] = entry; else results.push(entry)
+          } else {
+            const entry = { athleteId: aid, athleteName: name, ok: true, message: 'Sesong opprettet (beholdt eksisterende)' }
+            if (idx >= 0) results[idx] = entry; else results.push(entry)
+          }
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : 'Ukjent feil'
+          const entry = { athleteId: aid, athleteName: name, ok: false, message: msg }
+          if (idx >= 0) results[idx] = entry; else results.push(entry)
+        }
+        setOutcomes([...results])
+      }
+      setPendingOverlap(new Map())
+      router.refresh()
+    })
+  }
+
+  const allDone = outcomes != null && outcomes.length === selectedAthleteIds.size && !isPending && pendingOverlap.size === 0
 
   return (
     <div
@@ -217,6 +276,42 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
                   style={iSt} />
               </div>
+
+              {kind === 'plan' && (
+                <div>
+                  <Label>Sluttdato (valgfri — strekker/komprimerer malen)</Label>
+                  <div className="flex gap-2 items-center">
+                    <input type="date" value={planEndDate} onChange={e => setPlanEndDate(e.target.value)}
+                      min={date}
+                      placeholder={defaultPlanEnd}
+                      style={iSt} />
+                    {defaultPlanEnd && (
+                      <button type="button"
+                        onClick={() => setPlanEndDate(defaultPlanEnd)}
+                        className="px-3 py-2 text-[11px] tracking-widest uppercase whitespace-nowrap"
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          color: '#8A8A96', background: 'none',
+                          border: '1px solid #222228', cursor: 'pointer',
+                        }}>
+                        Forslag
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] mt-1"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                    {durationDays
+                      ? `Malens varighet: ${durationDays} dager. La stå tom for 1:1-dato.`
+                      : 'La stå tom for 1:1-dato.'}
+                  </p>
+                </div>
+              )}
+              {kind === 'periodization' && (
+                <p className="text-[10px]"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  Varigheten er låst fra malen. Eksisterende sesonger overskrives ikke.
+                </p>
+              )}
 
               {groups.length > 0 && (
                 <div>
@@ -296,6 +391,52 @@ export function CoachPushModal({ kind, templateId, templateName, onClose }: Prop
             </div>
           )}
 
+          {pendingOverlap.size > 0 && (
+            <div className="p-3"
+              style={{
+                backgroundColor: '#1A1308', border: '1px solid #D4A01766',
+              }}>
+              <p className="text-xs tracking-widest uppercase mb-2"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
+                Overlapp med eksisterende sesonger
+              </p>
+              <p className="text-xs mb-3"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+                {pendingOverlap.size} utøver{pendingOverlap.size === 1 ? '' : 'e'} har allerede sesong i samme periode. Eksisterende beholdes — ny legges til som tillegg.
+              </p>
+              <div className="flex flex-col gap-1 mb-3">
+                {[...pendingOverlap].map(([aid, infos]) => {
+                  const a = athletes.find(x => x.id === aid)
+                  return (
+                    <div key={aid} className="text-[11px] px-2 py-1"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        backgroundColor: '#111113', color: '#C0C0CC',
+                      }}>
+                      <span style={{ color: '#F0F0F2' }}>{a?.name ?? 'Utøver'}</span>
+                      <span style={{ color: '#8A8A96' }}>
+                        {' '}· {infos.map(i => `${i.name} (${i.start_date} → ${i.end_date})`).join(', ')}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+              <button type="button"
+                onClick={handleConfirmOverlaps}
+                disabled={isPending}
+                className="px-3 py-1.5 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  color: '#0A0A0B', backgroundColor: '#D4A017',
+                  border: 'none',
+                  cursor: isPending ? 'not-allowed' : 'pointer',
+                  opacity: isPending ? 0.5 : 1,
+                }}>
+                {isPending ? 'Sender…' : 'Behold begge og legg til ny sesong'}
+              </button>
+            </div>
+          )}
+
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
@@ -337,6 +478,13 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
+}
+
+function addDaysIsoClient(iso: string, days: number): string {
+  if (!iso) return ''
+  const d = new Date(iso + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
 }
 
 function kindLabel(kind: PushKind): string {

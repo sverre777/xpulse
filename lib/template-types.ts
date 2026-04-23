@@ -63,6 +63,7 @@ export interface PeriodizationTemplateSeason {
   goal_main: string | null
   goal_secondary: string | null
   sport: string | null
+  kpi_notes: string | null
 }
 
 export interface PeriodizationTemplatePeriod {
@@ -83,6 +84,9 @@ export interface PeriodizationTemplateKeyDate {
   priority: string
   sport: string | null
   notes: string | null
+  is_peak_target?: boolean
+  location?: string | null
+  distance_format?: string | null
 }
 
 export interface PeriodizationTemplateData {

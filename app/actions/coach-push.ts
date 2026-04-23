@@ -613,8 +613,14 @@ async function insertActivityTreeForWorkout(
   return null
 }
 
+function diffDaysISO(fromISO: string, toISO: string): number {
+  const a = new Date(fromISO + 'T00:00:00')
+  const b = new Date(toISO + 'T00:00:00')
+  return Math.round((b.getTime() - a.getTime()) / 86400000)
+}
+
 export async function pushPlanTemplateToAthlete(
-  input: { athleteId: string; templateId: string; startDate: string },
+  input: { athleteId: string; templateId: string; startDate: string; endDate?: string },
 ): Promise<{ createdCount?: number; error?: string }> {
   const check = await assertActiveCoach(input.athleteId)
   if (!check.ok) return { error: check.error }
@@ -634,10 +640,21 @@ export async function pushPlanTemplateToAthlete(
     workouts: [], day_states: [], week_notes: {}, month_notes: {}, focus_points: [],
   }) as PlanTemplateData
 
+  // Lineær skalering av day_offsets hvis sluttdato er gitt og forskjellig fra malens varighet.
+  const originalSpan = Math.max(1, Number(tpl.duration_days) || 1) - 1 // 0-indeksert siste offset
+  let scaleDays = (off: number) => off
+  if (input.endDate && input.endDate >= input.startDate) {
+    const targetSpan = Math.max(0, diffDaysISO(input.startDate, input.endDate))
+    if (targetSpan !== originalSpan && originalSpan > 0) {
+      const ratio = targetSpan / originalSpan
+      scaleDays = (off: number) => Math.round(off * ratio)
+    }
+  }
+
   // ── Økter ──
   const workoutRows = (planData.workouts ?? []).map(w => ({
     user_id: input.athleteId,
-    date: addDaysISO(input.startDate, w.day_offset),
+    date: addDaysISO(input.startDate, scaleDays(w.day_offset)),
     time_of_day: w.time_of_day ?? null,
     title: w.title,
     sport: w.sport,
@@ -675,7 +692,7 @@ export async function pushPlanTemplateToAthlete(
   // ── Day states ──
   const dayStateRows = (planData.day_states ?? []).map(s => ({
     user_id: input.athleteId,
-    date: addDaysISO(input.startDate, s.day_offset),
+    date: addDaysISO(input.startDate, scaleDays(s.day_offset)),
     state_type: s.state_type,
     is_planned: s.is_planned,
     sub_type: s.sub_type,
@@ -720,7 +737,7 @@ export async function pushPlanTemplateToAthlete(
   // ── Focus points ──
   const focusRows = (planData.focus_points ?? []).map((f: PlanTemplateFocusPoint) => {
     let period_key: string
-    if (f.scope === 'day') period_key = addDaysISO(input.startDate, f.period_offset)
+    if (f.scope === 'day') period_key = addDaysISO(input.startDate, scaleDays(f.period_offset))
     else if (f.scope === 'week') period_key = addWeeksISOWeek(startWeekKey, f.period_offset)
     else period_key = addMonthsMonthKey(startMonthKey, f.period_offset)
     return {
@@ -760,9 +777,16 @@ export async function pushPlanTemplateToAthlete(
 
 // ── Periodisering-mal → materialisering ─────────────────────
 
+export interface PeriodizationOverlapInfo {
+  id: string
+  name: string
+  start_date: string
+  end_date: string
+}
+
 export async function pushPeriodizationTemplateToAthlete(
-  input: { athleteId: string; templateId: string; startDate: string },
-): Promise<{ seasonId?: string; error?: string }> {
+  input: { athleteId: string; templateId: string; startDate: string; allowOverlap?: boolean },
+): Promise<{ seasonId?: string; error?: string; overlap?: PeriodizationOverlapInfo[] }> {
   const check = await assertActiveCoach(input.athleteId)
   if (!check.ok) return { error: check.error }
   if (!input.startDate) return { error: 'Startdato er påkrevd' }
@@ -778,12 +802,34 @@ export async function pushPeriodizationTemplateToAthlete(
   if (!tpl) return { error: 'Fant ikke periodiseringsmal' }
 
   const data = (tpl.periodization_data ?? {
-    season: { name: tpl.name, goal_main: null, goal_secondary: null, sport: null },
+    season: { name: tpl.name, goal_main: null, goal_secondary: null, sport: null, kpi_notes: null },
     periods: [], key_dates: [],
   }) as PeriodizationTemplateData
 
   const durationDays = Math.max(1, Number(tpl.duration_days) || 1)
   const endDate = addDaysISO(input.startDate, durationDays - 1)
+
+  // Overlapp-sjekk: returnér overlappende sesonger før innsetting, med mindre klienten
+  // har bekreftet at det er greit (allowOverlap=true → default "behold begge").
+  if (!input.allowOverlap) {
+    const { data: existing, error: exErr } = await supabase
+      .from('seasons')
+      .select('id, name, start_date, end_date')
+      .eq('user_id', input.athleteId)
+      .lte('start_date', endDate)
+      .gte('end_date', input.startDate)
+    if (exErr) return { error: exErr.message }
+    if (existing && existing.length > 0) {
+      return {
+        overlap: existing.map(s => ({
+          id: s.id as string,
+          name: s.name as string,
+          start_date: s.start_date as string,
+          end_date: s.end_date as string,
+        })),
+      }
+    }
+  }
 
   const { data: season, error: seasonErr } = await supabase
     .from('seasons')
@@ -794,6 +840,7 @@ export async function pushPeriodizationTemplateToAthlete(
       end_date: endDate,
       goal_main: data.season.goal_main ?? null,
       goal_details: data.season.goal_secondary ?? null,
+      kpi_notes: data.season.kpi_notes ?? null,
     })
     .select('id')
     .single()
@@ -828,7 +875,10 @@ export async function pushPeriodizationTemplateToAthlete(
     event_date: addDaysISO(input.startDate, k.day_offset),
     name: k.title,
     sport: k.sport ?? null,
+    location: k.location ?? null,
+    distance_format: k.distance_format ?? null,
     notes: k.notes ?? null,
+    is_peak_target: k.is_peak_target ?? false,
   }))
   if (keyDateRows.length > 0) {
     const { error: kErr } = await supabase.from('season_key_dates').insert(keyDateRows)

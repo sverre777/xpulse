@@ -9,14 +9,10 @@ import type {
   PeriodizationTemplate, PeriodizationTemplateData,
   PeriodizationTemplateKeyDate, PeriodizationTemplatePeriod,
 } from '@/lib/template-types'
-import { SPORTS, type Sport } from '@/lib/types'
+import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
 
 const COACH_BLUE = '#1A6FD4'
-
-export const PERIOD_SPORT_CATEGORIES = [
-  'Løping', 'Langrenn', 'Skiskyting', 'Sykling', 'Triatlon',
-  'Flerdistrikt', 'Annet',
-] as const
+const GOLD = '#D4A017'
 
 const PHASE_TYPES: { value: string; label: string }[] = [
   { value: 'base',        label: 'Grunntrening' },
@@ -54,7 +50,7 @@ interface Props {
 }
 
 const EMPTY_DATA: PeriodizationTemplateData = {
-  season: { name: '', goal_main: null, goal_secondary: null, sport: null },
+  season: { name: '', goal_main: null, goal_secondary: null, sport: null, kpi_notes: null },
   periods: [],
   key_dates: [],
 }
@@ -67,7 +63,20 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
   const [description, setDescription] = useState(editing?.description ?? '')
   const [category, setCategory] = useState<string>(defaultCat)
   const [durationDays, setDurationDays] = useState<number>(editing?.duration_days ?? 210)
-  const [data, setData] = useState<PeriodizationTemplateData>(editing?.periodization_data ?? EMPTY_DATA)
+  const [data, setData] = useState<PeriodizationTemplateData>(() => {
+    if (!editing?.periodization_data) return EMPTY_DATA
+    const pd = editing.periodization_data
+    return {
+      ...pd,
+      season: {
+        name: pd.season?.name ?? '',
+        goal_main: pd.season?.goal_main ?? null,
+        goal_secondary: pd.season?.goal_secondary ?? null,
+        sport: pd.season?.sport ?? null,
+        kpi_notes: pd.season?.kpi_notes ?? null,
+      },
+    }
+  })
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -123,6 +132,9 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
         priority: 'a',
         sport: null,
         notes: null,
+        is_peak_target: false,
+        location: null,
+        distance_format: null,
       }],
     }))
   }
@@ -285,10 +297,11 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   style={iSt} />
               </Field>
               <Field label="Delmål">
-                <input
+                <textarea
                   value={data.season.goal_secondary ?? ''}
                   onChange={e => updateSeason({ goal_secondary: e.target.value || null })}
-                  style={iSt} />
+                  rows={2}
+                  style={{ ...iSt, resize: 'vertical' }} />
               </Field>
               <Field label="Sesong-sport (valgfri)">
                 <select
@@ -299,6 +312,16 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </Field>
+              <div className="md:col-span-2">
+                <Field label="KPI-notater (valgfri)">
+                  <textarea
+                    value={data.season.kpi_notes ?? ''}
+                    onChange={e => updateSeason({ kpi_notes: e.target.value || null })}
+                    rows={2}
+                    placeholder="VO2max 72, 100 km/uke i base, …"
+                    style={{ ...iSt, resize: 'vertical' }} />
+                </Field>
+              </div>
             </div>
           </section>
 
@@ -474,12 +497,38 @@ function KeyDateRow({
             {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
         </Field>
+        <Field label="Sted (valgfri)">
+          <input value={keyDate.location ?? ''}
+            onChange={e => onChange({ location: e.target.value || null })}
+            style={iSt} />
+        </Field>
+        <Field label="Distanse/format (valgfri)">
+          <input value={keyDate.distance_format ?? ''}
+            placeholder="10 km, sprint, …"
+            onChange={e => onChange({ distance_format: e.target.value || null })}
+            style={iSt} />
+        </Field>
         <Field label="Notat">
           <input value={keyDate.notes ?? ''}
             onChange={e => onChange({ notes: e.target.value || null })}
             style={iSt} />
         </Field>
       </div>
+      <label className="flex items-start gap-2 cursor-pointer mt-1">
+        <input type="checkbox" checked={!!keyDate.is_peak_target}
+          onChange={e => onChange({ is_peak_target: e.target.checked })}
+          style={{ marginTop: '3px', accentColor: GOLD }} />
+        <span>
+          <span className="block text-[10px] tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
+            Form-topp-mål
+          </span>
+          <span className="block text-[11px]"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            Markér som peiling for toppform. Gir gull-glød i utøverens kalender.
+          </span>
+        </span>
+      </label>
       <div className="flex justify-end">
         <BtnSm onClick={onRemove} danger>Fjern hendelse</BtnSm>
       </div>
@@ -539,18 +588,6 @@ function offsetToWeekDayLabel(offset: number): string {
   const week = Math.floor(offset / 7) + 1
   const day = (offset % 7) + 1
   return `Uke ${week}, dag ${day}`
-}
-
-function sportToCategory(sport: Sport): string {
-  switch (sport) {
-    case 'running': return 'Løping'
-    case 'cross_country_skiing': return 'Langrenn'
-    case 'biathlon': return 'Skiskyting'
-    case 'cycling': return 'Sykling'
-    case 'triathlon': return 'Triatlon'
-    case 'long_distance_skiing': return 'Flerdistrikt'
-    default: return 'Annet'
-  }
 }
 
 const iSt: React.CSSProperties = {

@@ -190,11 +190,13 @@ function zoneSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): Record<E
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
-  // Streng adskillelse: Plan teller kun is_planned-rader, Dagbok teller kun
-  // is_planned=false-rader. Plan-rader markert som gjennomført hører til Plan-
-  // visningen (ikke Dagbok). Faktisk gjennomføring logges som egen rad i Dagbok.
+  // Plan: tell alle planlagte rader (uavhengig av is_completed — planen beholdes
+  // selv om økta er utført). Dagbok: tell alle gjennomførte rader — en planlagt
+  // økt som er fullført teller også i dagbok. Matcher server-side analyse-overlay
+  // (is_completed=true) slik at WeekStatsBanner og AnalysisOverlay rapporterer
+  // samme økt-telling.
   if (mode === 'plan') return w.is_planned
-  return !w.is_planned
+  return w.is_completed
 }
 
 interface AggregateTotals {

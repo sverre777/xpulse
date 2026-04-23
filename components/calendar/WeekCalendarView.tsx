@@ -90,9 +90,11 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: Mode) {
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: Mode): boolean {
-  // Streng adskillelse: Plan teller kun is_planned-rader, Dagbok kun is_planned=false.
+  // Plan teller alle planlagte rader. Dagbok teller alle gjennomførte rader —
+  // planlagt+gjennomført teller også i dagbok. Matcher analyse-overlay
+  // (is_completed=true) slik at WeekStatsBanner rapporterer samme tall.
   if (mode === 'plan') return w.is_planned
-  return !w.is_planned
+  return w.is_completed
 }
 
 function competitionStyle(w: CalendarWorkoutSummary):

@@ -79,6 +79,7 @@ interface CalendarActions {
   onAddRecovery: (dateStr: string) => void
   onEditDayState: (state: DayState) => void
   dayStatesByDate: Record<string, DayState[]>
+  targetUserId?: string
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -544,7 +545,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
@@ -566,6 +567,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
             context={focusContext}
             title={focusContext === 'plan' ? 'Måneds-fokus' : 'Måneds-refleksjon'}
             showPlanFocus={focusContext === 'dagbok'}
+            targetUserId={targetUserId}
           />
         </div>
       )}
@@ -682,6 +684,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           title={focusContext === 'plan' ? 'Dagens fokus' : 'Dag-refleksjon'}
                           showPlanFocus={focusContext === 'dagbok'}
                           compact
+                          targetUserId={targetUserId}
                         />
                         <FocusSection
                           scope="week"
@@ -690,6 +693,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
                           showPlanFocus={focusContext === 'dagbok'}
                           compact
+                          targetUserId={targetUserId}
                         />
                       </div>
                     )}
@@ -704,6 +708,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             weekNumber={isoWeek(expandedDate)}
                             currentYear={parseInt(curYStr, 10)}
                             currentWeek={parseInt(curWStr, 10)}
+                            targetUserId={targetUserId}
                           />
                         </div>
                       )
@@ -1136,7 +1141,7 @@ export function Calendar({
     setLoading(true)
     const [raw, statesRes] = await Promise.all([
       getCalendarWorkouts(userId, toISO(start), toISO(end)),
-      getDayStatesForRange(toISO(start), toISO(end)),
+      getDayStatesForRange(toISO(start), toISO(end), targetUserId),
     ])
     setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[], heartZones))
     if (!('error' in statesRes)) {
@@ -1148,11 +1153,11 @@ export function Calendar({
       setDayStatesByDate(map)
     }
     setLoading(false)
-  }, [userId, heartZones])
+  }, [userId, heartZones, targetUserId])
 
   const refreshDayStates = useCallback(async () => {
     const { start, end } = getDateRange(view, refDate)
-    const statesRes = await getDayStatesForRange(toISO(start), toISO(end))
+    const statesRes = await getDayStatesForRange(toISO(start), toISO(end), targetUserId)
     if ('error' in statesRes) return
     const map: Record<string, DayState[]> = {}
     for (const s of statesRes) {
@@ -1160,7 +1165,7 @@ export function Calendar({
       map[s.date].push(s)
     }
     setDayStatesByDate(map)
-  }, [view, refDate])
+  }, [view, refDate, targetUserId])
 
   // Fetch when view/refDate changes (skip initial load — data is passed in).
   // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
@@ -1246,6 +1251,7 @@ export function Calendar({
       onAddRecovery: handleAddRecovery,
       onEditDayState: handleEditDayState,
       dayStatesByDate,
+      targetUserId,
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
@@ -1308,7 +1314,7 @@ export function Calendar({
 
       {/* ── Analyse-overlay: samme layout i Dagbok og Plan; mode styrer datakilde og labels. ── */}
       {(mode === 'dagbok' || mode === 'plan') && (
-        <AnalysisOverlay view={view} refDate={refDate} mode={mode} />
+        <AnalysisOverlay view={view} refDate={refDate} mode={mode} targetUserId={targetUserId} />
       )}
 
       {/* ── Content ── */}
@@ -1349,6 +1355,7 @@ export function Calendar({
           seasonKeyDates={seasonKeyDates}
           onEditWorkout={handleEditWorkout}
           onCreateWorkout={handleCreateWorkout}
+          targetUserId={targetUserId}
         />
       )}
       {view === 'år' && (

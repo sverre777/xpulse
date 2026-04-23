@@ -10,6 +10,7 @@ interface Props {
   // Året og uken som identifiserer inneværende uke — brukes til fremtids-sperre.
   currentYear: number
   currentWeek: number
+  targetUserId?: string
 }
 
 const WARN = '#D4A017'
@@ -80,7 +81,7 @@ function ScoreRow({
 }
 
 export function WeeklyReflectionSection({
-  year, weekNumber, currentYear, currentWeek,
+  year, weekNumber, currentYear, currentWeek, targetUserId,
 }: Props) {
   const isFuture = year > currentYear || (year === currentYear && weekNumber > currentWeek)
 
@@ -97,7 +98,7 @@ export function WeeklyReflectionSection({
     if (isFuture) { setLoaded(true); return }
     let cancelled = false
     setLoaded(false)
-    getWeeklyReflection(year, weekNumber).then(res => {
+    getWeeklyReflection(year, weekNumber, targetUserId).then(res => {
       if (cancelled) return
       if (res && typeof res === 'object' && 'error' in res) {
         setError(res.error)
@@ -110,7 +111,7 @@ export function WeeklyReflectionSection({
       setLoaded(true)
     })
     return () => { cancelled = true }
-  }, [year, weekNumber, isFuture])
+  }, [year, weekNumber, isFuture, targetUserId])
 
   if (isFuture) return null
 
@@ -124,7 +125,7 @@ export function WeeklyReflectionSection({
     }
     startTransition(async () => {
       setError(null)
-      const res = await upsertWeeklyReflection(year, weekNumber, merged)
+      const res = await upsertWeeklyReflection(year, weekNumber, merged, targetUserId)
       if (res.error) { setError(res.error); return }
       // Oppdater lokal state uten ekstra round-trip.
       setData(prev => ({

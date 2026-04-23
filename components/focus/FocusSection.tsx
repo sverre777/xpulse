@@ -15,6 +15,7 @@ interface Props {
   showPlanFocus?: boolean
   // Styring: kompakt modus reduserer padding for integrering i kalender-celler.
   compact?: boolean
+  targetUserId?: string
 }
 
 const ACCENT_PLAN = '#FF4500'
@@ -22,7 +23,7 @@ const ACCENT_DAGBOK_HAS = '#28A86E'
 const ACCENT_EMPTY = '#1E1E22'
 
 export function FocusSection({
-  scope, periodKey, context, title, showPlanFocus = false, compact = false,
+  scope, periodKey, context, title, showPlanFocus = false, compact = false, targetUserId,
 }: Props) {
   const [planPoints, setPlanPoints] = useState<FocusPoint[]>([])
   const [ownPoints, setOwnPoints] = useState<FocusPoint[]>([])
@@ -39,7 +40,7 @@ export function FocusSection({
   useEffect(() => {
     let cancelled = false
     setLoaded(false)
-    getFocusPointsBoth(scope, periodKey).then(res => {
+    getFocusPointsBoth(scope, periodKey, targetUserId).then(res => {
       if (cancelled) return
       if ('error' in res) {
         setError(res.error)
@@ -55,7 +56,7 @@ export function FocusSection({
       setLoaded(true)
     })
     return () => { cancelled = true }
-  }, [scope, periodKey, context])
+  }, [scope, periodKey, context, targetUserId])
 
   const accent = !loaded
     ? ACCENT_EMPTY
@@ -67,10 +68,10 @@ export function FocusSection({
     if (!draftContent.trim()) return
     startTransition(async () => {
       setError(null)
-      const res = await addFocusPoint(scope, periodKey, context, draftContent)
+      const res = await addFocusPoint(scope, periodKey, context, draftContent, targetUserId)
       if (res.error) { setError(res.error); return }
       // Refetch for å få riktig id/sort_order.
-      const fresh = await getFocusPointsBoth(scope, periodKey)
+      const fresh = await getFocusPointsBoth(scope, periodKey, targetUserId)
       if ('error' in fresh) { setError(fresh.error); return }
       setPlanPoints(fresh.plan)
       setOwnPoints(context === 'plan' ? fresh.plan : fresh.dagbok)
@@ -83,7 +84,7 @@ export function FocusSection({
     if (!editContent.trim()) return
     startTransition(async () => {
       setError(null)
-      const res = await updateFocusPoint(id, editContent)
+      const res = await updateFocusPoint(id, editContent, targetUserId)
       if (res.error) { setError(res.error); return }
       setOwnPoints(prev => prev.map(p => p.id === id ? { ...p, content: editContent.trim() } : p))
       setEditingId(null)
@@ -93,7 +94,7 @@ export function FocusSection({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       setError(null)
-      const res = await deleteFocusPoint(id)
+      const res = await deleteFocusPoint(id, targetUserId)
       if (res.error) { setError(res.error); return }
       setOwnPoints(prev => prev.filter(p => p.id !== id))
     })

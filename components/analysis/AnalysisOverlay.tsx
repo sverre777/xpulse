@@ -17,6 +17,7 @@ interface AnalysisOverlayProps {
   view: CalendarView
   refDate: Date              // referansedato i valgt vy (uke/måned/år)
   mode: AnalysisOverlayMode
+  targetUserId?: string
 }
 
 function formatIso(d: Date): string {
@@ -65,7 +66,7 @@ function formatKm(meters: number): string {
   return `${(Math.round((meters / 1000) * 10) / 10).toLocaleString('nb-NO')}`
 }
 
-export function AnalysisOverlay({ view, refDate, mode }: AnalysisOverlayProps) {
+export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisOverlayProps) {
   const [data, setData] = useState<AnalysisOverview | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -82,12 +83,12 @@ export function AnalysisOverlay({ view, refDate, mode }: AnalysisOverlayProps) {
     startTransition(async () => {
       setError(null)
       const res = isPlan
-        ? await getPlannedOverview(from, to, null)
-        : await getAnalysisOverview(from, to, null)
+        ? await getPlannedOverview(from, to, null, targetUserId)
+        : await getAnalysisOverview(from, to, null, targetUserId)
       if ('error' in res) { setError(res.error); return }
       setData(res)
     })
-  }, [from, to, isPlan])
+  }, [from, to, isPlan, targetUserId])
 
   const zones = data?.current.zone_seconds
   const zoneTotal = zones ? zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet : 0

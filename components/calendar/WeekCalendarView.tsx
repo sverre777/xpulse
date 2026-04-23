@@ -32,6 +32,7 @@ interface Props {
   seasonKeyDates: SeasonKeyDate[]
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
+  targetUserId?: string
 }
 
 const DAYS_NO = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -413,6 +414,7 @@ export function WeekCalendarView({
   weekDates, weekNum, byDate, mode,
   seasonPeriods, seasonKeyDates,
   onEditWorkout, onCreateWorkout,
+  targetUserId,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const today = toISO(new Date())
@@ -465,6 +467,7 @@ export function WeekCalendarView({
             context={focusContext}
             title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
             showPlanFocus={focusContext === 'dagbok'}
+            targetUserId={targetUserId}
           />
         </div>
       )}
@@ -479,6 +482,7 @@ export function WeekCalendarView({
               weekNumber={weekNum}
               currentYear={parseInt(curYStr, 10)}
               currentWeek={parseInt(curWStr, 10)}
+              targetUserId={targetUserId}
             />
           </div>
         )

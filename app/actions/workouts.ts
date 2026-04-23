@@ -455,7 +455,6 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   const basePayload: Record<string, unknown> = {
     user_id: resolved.userId,
-    created_by_coach_id: resolved.isCoachImpersonating ? resolved.coachId : null,
     title: data.title,
     sport: data.sport,
     workout_type: data.workout_type,
@@ -503,6 +502,10 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   let savedId = workoutId
 
   if (workoutId) {
+    // Trener-stempel bevares mellom redigeringer:
+    //  - Trener redigerer → oppdater created_by_coach_id til innlogget trener (blå markering beholdes/oppdateres).
+    //  - Utøver redigerer → ikke rør feltet (behold historikk for om treneren har rørt økten).
+    if (resolved.isCoachImpersonating) workoutPayload.created_by_coach_id = resolved.coachId
     const { error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', resolved.userId)
     if (error) return { error: error.message }
     await Promise.all([
@@ -515,6 +518,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
       supabase.from('workout_activities').delete().eq('workout_id', workoutId),
     ])
   } else {
+    workoutPayload.created_by_coach_id = resolved.isCoachImpersonating ? resolved.coachId : null
     const { data: inserted, error } = await supabase.from('workouts').insert(workoutPayload).select('id').single()
     if (error) return { error: error.message }
     savedId = inserted.id

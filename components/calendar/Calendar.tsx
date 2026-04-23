@@ -1369,6 +1369,7 @@ export function Calendar({
       templates={templates}
       heartZones={heartZones}
       readOnly={readOnly}
+      targetUserId={targetUserId}
     />
     <RecoveryModal
       date={recoveryDate ?? ''}
@@ -1390,6 +1391,7 @@ export function Calendar({
         stateType={dayStateModal.stateType}
         editing={dayStateModal.editing}
         onSaved={() => { refreshDayStates() }}
+        targetUserId={targetUserId}
       />
     )}
     </CalendarActionsContext.Provider>

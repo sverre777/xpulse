@@ -16,7 +16,7 @@ const FEELING_LABELS: Record<number, string> = {
 }
 
 export function DayStateModal({
-  open, onClose, date, stateType, editing, onSaved,
+  open, onClose, date, stateType, editing, onSaved, targetUserId,
 }: {
   open: boolean
   onClose: () => void
@@ -24,6 +24,7 @@ export function DayStateModal({
   stateType: DayStateType
   editing?: DayState | null
   onSaved?: () => void
+  targetUserId?: string
 }) {
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0]
@@ -54,6 +55,7 @@ export function DayStateModal({
       symptoms: isRest ? null : symptoms,
       notes,
       expected_days_off: isRest ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
+      targetUserId,
     })
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
@@ -66,7 +68,7 @@ export function DayStateModal({
     if (!editing) return
     if (!confirm(`Fjern ${isRest ? 'hviledag-markeringen' : 'sykdom-markeringen'} for ${date}?`)) return
     setBusy(true); setError(null)
-    const res = await deleteDayState(editing.id)
+    const res = await deleteDayState(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
     setBusy(false)

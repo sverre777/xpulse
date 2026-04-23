@@ -6,11 +6,12 @@ import { createSeason, updateSeason, deleteSeason, type Season } from '@/app/act
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
 
 export function SeasonModal({
-  open, onClose, editing,
+  open, onClose, editing, targetUserId,
 }: {
   open: boolean
   onClose: () => void
   editing?: Season | null
+  targetUserId?: string
 }) {
   const router = useRouter()
   const [name, setName] = useState(editing?.name ?? '')
@@ -31,6 +32,7 @@ export function SeasonModal({
     const payload = {
       name, start_date: startDate, end_date: endDate,
       goal_main: goalMain, goal_details: goalDetails, kpi_notes: kpiNotes,
+      targetUserId,
     }
     const res = editing
       ? await updateSeason(editing.id, payload)
@@ -48,7 +50,7 @@ export function SeasonModal({
     if (!editing) return
     if (!confirm(`Slette sesongen "${editing.name}"? Alle perioder og nøkkeldatoer slettes også.`)) return
     setBusy(true); setError(null)
-    const res = await deleteSeason(editing.id)
+    const res = await deleteSeason(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
     router.push('/app/periodisering')
     router.refresh()

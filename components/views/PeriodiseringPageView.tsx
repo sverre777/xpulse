@@ -120,7 +120,12 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
                 defaultSeasonId={activeSeason?.id ?? null}
               />
             )}
-            <SeasonSelector seasons={seasons} activeSeason={activeSeason} />
+            <SeasonSelector
+              seasons={seasons}
+              activeSeason={activeSeason}
+              targetUserId={targetId}
+              basePath={isCoachView ? `/app/trener/${userId}/periodisering` : '/app/periodisering'}
+            />
           </div>
         </div>
 
@@ -184,8 +189,8 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
             </div>
 
-            <PeriodsSection season={activeSeason} periods={periods} />
-            <KeyDatesSection season={activeSeason} keyDates={keyDates} />
+            <PeriodsSection season={activeSeason} periods={periods} targetUserId={targetId} />
+            <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} />
           </>
         )}
 

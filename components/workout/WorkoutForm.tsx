@@ -36,6 +36,9 @@ interface WorkoutFormProps {
   captureOnlyMode?: boolean
   onCapture?: (data: WorkoutFormData) => void
   captureSubmitLabel?: string
+  // Når satt: trener redigerer utøvers plan. saveWorkout skriver da til utøverens rad,
+  // og created_by_coach_id settes til innlogget trener → gir blå markering i Calendar.
+  targetUserId?: string
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -45,7 +48,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, targetUserId }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -209,7 +212,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       return
     }
     setSaving(true); setError(null)
-    const result = await saveWorkout(payload, workoutId)
+    const result = await saveWorkout(payload, workoutId, targetUserId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
       if (onSaved) onSaved()

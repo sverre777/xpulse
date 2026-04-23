@@ -23,7 +23,7 @@ const EVENT_TYPES: { value: KeyEventType; label: string; icon: string }[] = [
 const AUTO_WORKOUT_TYPES: KeyEventType[] = ['competition_a', 'competition_b', 'competition_c', 'test']
 
 export function KeyDateModal({
-  open, onClose, seasonId, seasonStart, seasonEnd, editing,
+  open, onClose, seasonId, seasonStart, seasonEnd, editing, targetUserId,
 }: {
   open: boolean
   onClose: () => void
@@ -31,6 +31,7 @@ export function KeyDateModal({
   seasonStart: string
   seasonEnd: string
   editing?: SeasonKeyDate | null
+  targetUserId?: string
 }) {
   const router = useRouter()
   const [eventType, setEventType] = useState<KeyEventType>(editing?.event_type ?? 'competition_a')
@@ -61,6 +62,7 @@ export function KeyDateModal({
       distance_format: distanceFormat,
       notes,
       is_peak_target: isPeakTarget,
+      targetUserId,
     }
     const res = editing
       ? await updateKeyDate(editing.id, payload)
@@ -89,7 +91,7 @@ export function KeyDateModal({
       if (!confirm(`Slette "${editing.name}"?`)) return
     }
     setBusy(true); setError(null)
-    const res = await deleteKeyDate(editing.id, cascade)
+    const res = await deleteKeyDate(editing.id, cascade, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
     setBusy(false)

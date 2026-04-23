@@ -15,7 +15,7 @@ const INTENSITIES: { value: Intensity; label: string }[] = [
 ]
 
 export function PeriodModal({
-  open, onClose, seasonId, seasonStart, seasonEnd, editing,
+  open, onClose, seasonId, seasonStart, seasonEnd, editing, targetUserId,
 }: {
   open: boolean
   onClose: () => void
@@ -23,6 +23,7 @@ export function PeriodModal({
   seasonStart: string
   seasonEnd: string
   editing?: SeasonPeriod | null
+  targetUserId?: string
 }) {
   const router = useRouter()
   const [name, setName] = useState(editing?.name ?? '')
@@ -43,6 +44,7 @@ export function PeriodModal({
     const payload = {
       season_id: seasonId, name, focus, start_date: startDate, end_date: endDate, intensity, notes,
       sort_order: editing?.sort_order ?? 0,
+      targetUserId,
     }
     const res = editing
       ? await updatePeriod(editing.id, payload)
@@ -57,7 +59,7 @@ export function PeriodModal({
     if (!editing) return
     if (!confirm(`Slette perioden "${editing.name}"?`)) return
     setBusy(true); setError(null)
-    const res = await deletePeriod(editing.id)
+    const res = await deletePeriod(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
     setBusy(false)

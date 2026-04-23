@@ -17,10 +17,11 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
 }
 
 export function PeriodsSection({
-  season, periods,
+  season, periods, targetUserId,
 }: {
   season: Season
   periods: SeasonPeriod[]
+  targetUserId?: string
 }) {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<SeasonPeriod | null>(null)
@@ -106,6 +107,7 @@ export function PeriodsSection({
         seasonId={season.id}
         seasonStart={season.start_date}
         seasonEnd={season.end_date}
+        targetUserId={targetUserId}
       />
       <PeriodModal
         open={editing !== null}
@@ -114,6 +116,7 @@ export function PeriodsSection({
         seasonStart={season.start_date}
         seasonEnd={season.end_date}
         editing={editing}
+        targetUserId={targetUserId}
       />
     </section>
   )

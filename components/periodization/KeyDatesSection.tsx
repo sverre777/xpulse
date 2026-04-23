@@ -14,10 +14,11 @@ const EVENT_STYLE: Record<KeyEventType, { label: string; color: string; icon: st
 }
 
 export function KeyDatesSection({
-  season, keyDates,
+  season, keyDates, targetUserId,
 }: {
   season: Season
   keyDates: SeasonKeyDate[]
+  targetUserId?: string
 }) {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<SeasonKeyDate | null>(null)
@@ -111,6 +112,7 @@ export function KeyDatesSection({
         seasonId={season.id}
         seasonStart={season.start_date}
         seasonEnd={season.end_date}
+        targetUserId={targetUserId}
       />
       <KeyDateModal
         open={editing !== null}
@@ -119,6 +121,7 @@ export function KeyDatesSection({
         seasonStart={season.start_date}
         seasonEnd={season.end_date}
         editing={editing}
+        targetUserId={targetUserId}
       />
     </section>
   )

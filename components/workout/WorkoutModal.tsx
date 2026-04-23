@@ -18,9 +18,11 @@ interface WorkoutModalProps {
   templates: WorkoutTemplate[]
   heartZones?: HeartZone[]
   readOnly?: boolean
+  // Når satt: trener opererer på utøvers økter i /app/trener/[athleteId]/plan.
+  targetUserId?: string
 }
 
-export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false }: WorkoutModalProps) {
+export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false, targetUserId }: WorkoutModalProps) {
   const router = useRouter()
   const [defaults, setDefaults] = useState<Partial<WorkoutFormData> | null>(null)
   const [loading, setLoading] = useState(false)
@@ -37,11 +39,11 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
       return
     }
     setLoading(true)
-    getWorkoutForEdit(state.workoutId, state.formMode).then(d => {
+    getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
       setDefaults(d)
       setLoading(false)
     })
-  }, [state])
+  }, [state, targetUserId])
 
   useEffect(() => {
     if (!state) return
@@ -66,7 +68,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
     if (state.kind !== 'edit') return
     if (!confirm('Slette denne økten?')) return
     startDelete(async () => {
-      await deleteWorkout(state.workoutId)
+      await deleteWorkout(state.workoutId, targetUserId)
       onClose()
       router.refresh()
     })
@@ -139,6 +141,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
             onSaved={handleSaved}
             onCancel={onClose}
             readOnly={readOnly}
+            targetUserId={targetUserId}
           />
         )}
       </div>

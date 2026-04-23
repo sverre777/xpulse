@@ -6,10 +6,12 @@ import type { Season } from '@/app/actions/seasons'
 import { SeasonModal } from './SeasonModal'
 
 export function SeasonSelector({
-  seasons, activeSeason,
+  seasons, activeSeason, targetUserId, basePath = '/app/periodisering',
 }: {
   seasons: Season[]
   activeSeason: Season | null
+  targetUserId?: string
+  basePath?: string
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -20,7 +22,7 @@ export function SeasonSelector({
     const params = new URLSearchParams(searchParams.toString())
     if (e.target.value) params.set('s', e.target.value)
     else params.delete('s')
-    router.push(`/app/periodisering?${params.toString()}`)
+    router.push(`${basePath}?${params.toString()}`)
   }
 
   return (
@@ -78,9 +80,9 @@ export function SeasonSelector({
         </button>
       </div>
 
-      <SeasonModal open={newOpen} onClose={() => setNewOpen(false)} />
+      <SeasonModal open={newOpen} onClose={() => setNewOpen(false)} targetUserId={targetUserId} />
       {activeSeason && (
-        <SeasonModal open={editOpen} onClose={() => setEditOpen(false)} editing={activeSeason} />
+        <SeasonModal open={editOpen} onClose={() => setEditOpen(false)} editing={activeSeason} targetUserId={targetUserId} />
       )}
     </>
   )

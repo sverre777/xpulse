@@ -291,12 +291,15 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
+  // Trener-markering vises kun i planlagt tilstand — gjennomført økt ser
+  // lik ut som enhver annen gjennomført.
+  const showCoachStyle = isCoachEdited && isPlanned
   // Grønn når gjennomført (ikke konkurranse/testløp).
   const completedTone = !isPlanned && !comp && w.is_completed
   const borderStyle = isPlanned && !comp ? 'dashed' : 'solid'
   const borderWidth = comp ? 2 : 1
-  const border = isCoachEdited
-    ? `1px solid ${COACH_BLUE}`
+  const border = showCoachStyle
+    ? `1px dashed ${COACH_BLUE}`
     : `${borderWidth}px ${borderStyle} ${color}`
   const bg = comp
     ? (isPlanned ? 'rgba(0,0,0,0.35)' : `${color}55`)
@@ -306,7 +309,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
   const widthPct = 100 / laneCount
   const leftPct = widthPct * lane
 
-  const coachTitle = isCoachEdited
+  const coachTitle = showCoachStyle
     ? ` · Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` (${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })})` : ''}`
     : ''
 
@@ -336,7 +339,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F0F0F2' }}>
         {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
-        {isCoachEdited && (
+        {showCoachStyle && (
           <span aria-hidden="true"
             style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COACH_BLUE, display: 'inline-block', flexShrink: 0 }}
           />
@@ -368,16 +371,17 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
+  const showCoachStyle = isCoachEdited && isPlanned
   const borderStyle = isPlanned && !comp ? 'dashed' : 'solid'
   const borderWidth = comp ? 2 : 1
   const bg = comp
     ? (isPlanned ? 'transparent' : `${color}55`)
     : (isPlanned ? 'transparent' : `${color}33`)
   const durLabel = formatDurationShort(secondsFor(w, mode))
-  const border = isCoachEdited
-    ? `1px solid ${COACH_BLUE}`
+  const border = showCoachStyle
+    ? `1px dashed ${COACH_BLUE}`
     : `${borderWidth}px ${borderStyle} ${color}`
-  const coachTitle = isCoachEdited
+  const coachTitle = showCoachStyle
     ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}` : ''}`
     : undefined
   return (
@@ -397,7 +401,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         cursor: 'pointer',
       }}>
       {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
-      {isCoachEdited && (
+      {showCoachStyle && (
         <span aria-hidden="true"
           style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: COACH_BLUE, marginRight: '3px', verticalAlign: 'middle' }}
         />

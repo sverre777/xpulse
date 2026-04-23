@@ -336,15 +336,19 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
+  // Trener-markering vises kun i planlagt tilstand (plan-kalender alltid, dagbok
+  // kun når ikke gjennomført). Gjennomført økt i dagbok ser ut som enhver annen
+  // gjennomført — ingen blå attribusjon.
+  const showCoachStyle = isCoachEdited && isPlanned
   // Vis aktivitets-aggregert tid på chip-en. secondsFor faller tilbake til
   // duration_minutes hvis økten ikke har aktiviteter.
   const durationLabel = formatDurationShort(secondsFor(w, mode))
   const { onEditWorkout } = useCalendarActions()
 
   // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
-  // Trener-endret økt: 1px solid blå overstyrer annen ytre ramme så attribusjon er synlig i celle.
-  const border = isCoachEdited
-    ? `1px solid ${COACH_BLUE}`
+  // Trener-planlagt økt: stiplet blå-ramme så plan-stil bevares.
+  const border = showCoachStyle
+    ? `1px dashed ${COACH_BLUE}`
     : (comp
         ? (isPlanned
             ? `${comp.thickBorder ? 2 : 1}px ${comp.thickBorder ? 'solid' : 'solid'} ${color}`
@@ -353,7 +357,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   const bg = comp
     ? (isPlanned ? 'transparent' : `${color}55`)
     : (isPlanned ? 'transparent' : `${color}33`)
-  const coachTitle = isCoachEdited
+  const coachTitle = showCoachStyle
     ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`
     : undefined
 
@@ -375,7 +379,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '10px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
-          {isCoachEdited && (
+          {showCoachStyle && (
             <span aria-hidden="true"
               style={{
                 display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%',
@@ -725,14 +729,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const color = comp?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = planVisual(w, mode)
                           const isCoachEdited = !!w.created_by_coach_id
+                          const showCoachStyle = isCoachEdited && isPlanned
                           return (
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-2" style={{
                                 backgroundColor: comp && !isPlanned ? `${color}22` : '#16161A',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
-                                border: isCoachEdited
-                                  ? `1px solid ${COACH_BLUE}`
+                                border: showCoachStyle
+                                  ? `1px dashed ${COACH_BLUE}`
                                   : (comp
                                       ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
                                       : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`)),
@@ -747,7 +752,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     )}
                                   </span>
                                   <div className="flex items-center gap-2">
-                                    {isCoachEdited && w.updated_at && (
+                                    {showCoachStyle && w.updated_at && (
                                       <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
                                     )}
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}

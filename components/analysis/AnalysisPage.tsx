@@ -6,10 +6,12 @@ import {
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
   getBelastningAnalysis, getTerskelAnalysis, getShootingDepthAnalysis, getPeriodizationOverview,
+  getTestsAndPRs,
   type WorkoutStats, type AnalysisOverview,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
   type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis, type PeriodizationOverview,
+  type TestsAndPRs,
 } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
@@ -26,6 +28,7 @@ import { BelastningTab } from './BelastningTab'
 import { TerskelTab } from './TerskelTab'
 import { SkytingTab } from './SkytingTab'
 import { PeriodiseringTab } from './PeriodiseringTab'
+import { TesterPRTab } from './TesterPRTab'
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -37,6 +40,7 @@ type Tab =
   | 'sammenlign'
   | 'mal_analyse'
   | 'konkurranser'
+  | 'tester_pr'
   | 'helse'
   | 'per_bevegelsesform'
   | 'intensitet'
@@ -63,6 +67,7 @@ const TABS: [Tab, string][] = [
   ['sammenlign', 'Sammenlign økter'],
   ['mal_analyse', 'Mal-analyse'],
   ['konkurranser', 'Konkurranser'],
+  ['tester_pr', 'Tester & PR'],
   ['helse', 'Helse'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
@@ -126,6 +131,7 @@ function AnalysisPageInner({
   const [terskel, setTerskel] = useState<TerskelAnalysis | null>(null)
   const [skyting, setSkyting] = useState<ShootingDepthAnalysis | null>(null)
   const [periodisering, setPeriodisering] = useState<PeriodizationOverview | null>(null)
+  const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -138,6 +144,7 @@ function AnalysisPageInner({
     setTerskel(null)
     setSkyting(null)
     setPeriodisering(null)
+    setTestsAndPRs(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -244,8 +251,16 @@ function AnalysisPageInner({
         setPeriodisering(res)
       })
     }
+    if (tab === 'tester_pr' && testsAndPRs === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getTestsAndPRs(sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setTestsAndPRs(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -445,6 +460,11 @@ function AnalysisPageInner({
           periodisering
             ? <PeriodiseringTab data={periodisering} />
             : <LoadingStub label="Laster periodisering…" />
+        )}
+        {tab === 'tester_pr' && (
+          testsAndPRs
+            ? <TesterPRTab data={testsAndPRs} />
+            : <LoadingStub label="Laster tester og PR…" />
         )}
       </div>
     </div>

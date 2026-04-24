@@ -3831,3 +3831,143 @@ export async function getCustomBreakdown(
     return { error: `getCustomBreakdown: ${msg}` }
   }
 }
+
+// ─── Tester og PR ───────────────────────────────────────────
+// Leser workout_test_data + personal_records for utøveren. Progresjonskurvene
+// grupperes per (sport, test_type) slik at test-fanen kan vise en separat
+// linjegraf per type (f.eks. 5km-TT utvikling over tid).
+export type TestResultRow = {
+  id: string
+  workout_id: string
+  date: string
+  title: string | null
+  sport: Sport
+  test_type: string
+  primary_result: number | null
+  primary_unit: string | null
+  protocol_notes: string | null
+  equipment: string | null
+  conditions: string | null
+}
+
+export type PersonalRecordRow = {
+  id: string
+  sport: Sport
+  record_type: string
+  value: number
+  unit: string
+  achieved_at: string
+  workout_id: string | null
+  notes: string | null
+  is_manual: boolean
+}
+
+export type TestProgressionSeries = {
+  sport: Sport
+  test_type: string
+  unit: string | null
+  points: { date: string; value: number; workout_id: string }[]
+}
+
+export type TestsAndPRs = {
+  tests: TestResultRow[]
+  personalRecords: PersonalRecordRow[]
+  progressions: TestProgressionSeries[]
+  hasData: boolean
+}
+
+export async function getTestsAndPRs(
+  sportFilter?: Sport | null,
+  targetUserId?: string,
+): Promise<TestsAndPRs | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
+
+    let testQuery = supabase
+      .from('workout_test_data')
+      .select('id,workout_id,sport,test_type,primary_result,primary_unit,protocol_notes,equipment,conditions,workouts!inner(date,title,user_id)')
+      .eq('user_id', userId)
+    if (sportFilter) testQuery = testQuery.eq('sport', sportFilter)
+
+    let prQuery = supabase
+      .from('personal_records')
+      .select('id,sport,record_type,value,unit,achieved_at,workout_id,notes,is_manual')
+      .eq('user_id', userId)
+      .order('achieved_at', { ascending: false })
+    if (sportFilter) prQuery = prQuery.eq('sport', sportFilter)
+
+    const [{ data: testRows, error: tErr }, { data: prRows, error: pErr }] = await Promise.all([
+      testQuery, prQuery,
+    ])
+    if (tErr) return { error: tErr.message }
+    if (pErr) return { error: pErr.message }
+
+    type RawTestRow = {
+      id: string; workout_id: string; sport: string; test_type: string
+      primary_result: number | null; primary_unit: string | null
+      protocol_notes: string | null; equipment: string | null; conditions: string | null
+      workouts: { date: string; title: string | null; user_id: string } | { date: string; title: string | null; user_id: string }[] | null
+    }
+    const tests: TestResultRow[] = ((testRows ?? []) as RawTestRow[]).map(r => {
+      const w = Array.isArray(r.workouts) ? r.workouts[0] : r.workouts
+      return {
+        id: r.id,
+        workout_id: r.workout_id,
+        date: w?.date ?? '',
+        title: w?.title ?? null,
+        sport: r.sport as Sport,
+        test_type: r.test_type,
+        primary_result: r.primary_result,
+        primary_unit: r.primary_unit,
+        protocol_notes: r.protocol_notes,
+        equipment: r.equipment,
+        conditions: r.conditions,
+      }
+    }).filter(t => t.date !== '')
+      .sort((a, b) => b.date.localeCompare(a.date))
+
+    // Progresjoner per (sport, test_type). Ignorer tester uten numerisk primary_result.
+    const progMap = new Map<string, TestProgressionSeries>()
+    for (const t of tests) {
+      if (t.primary_result == null) continue
+      const key = `${t.sport}::${t.test_type}`
+      let series = progMap.get(key)
+      if (!series) {
+        series = { sport: t.sport, test_type: t.test_type, unit: t.primary_unit, points: [] }
+        progMap.set(key, series)
+      }
+      series.points.push({ date: t.date, value: t.primary_result, workout_id: t.workout_id })
+    }
+    for (const s of progMap.values()) {
+      s.points.sort((a, b) => a.date.localeCompare(b.date))
+    }
+    const progressions = Array.from(progMap.values())
+      .filter(s => s.points.length >= 1)
+      .sort((a, b) => (a.sport + a.test_type).localeCompare(b.sport + b.test_type))
+
+    const personalRecords: PersonalRecordRow[] = (prRows ?? []).map(r => ({
+      id: r.id as string,
+      sport: r.sport as Sport,
+      record_type: r.record_type as string,
+      value: Number(r.value),
+      unit: r.unit as string,
+      achieved_at: r.achieved_at as string,
+      workout_id: (r.workout_id as string | null) ?? null,
+      notes: (r.notes as string | null) ?? null,
+      is_manual: Boolean(r.is_manual),
+    }))
+
+    return {
+      tests,
+      personalRecords,
+      progressions,
+      hasData: tests.length > 0 || personalRecords.length > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getTestsAndPRs: ${msg}` }
+  }
+}

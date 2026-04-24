@@ -1,0 +1,253 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import Link from 'next/link'
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
+} from 'recharts'
+import type { TestsAndPRs, TestResultRow, TestProgressionSeries } from '@/app/actions/analysis'
+import { SPORTS, type Sport } from '@/lib/types'
+import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+
+// Blå aksent matcher TestDataModule-visualspråket.
+const TEST_BLUE = '#1A6FD4'
+const GOLD = '#D4A017'
+
+const SPORT_COLOR: Record<Sport, string> = {
+  running: '#FF4500',
+  cross_country_skiing: '#1A6FD4',
+  biathlon: '#E11D48',
+  triathlon: '#8B5CF6',
+  cycling: '#28A86E',
+  long_distance_skiing: '#D4A017',
+  endurance: '#8A8A96',
+}
+
+function labelSport(s: Sport): string { return SPORTS.find(x => x.value === s)?.label ?? s }
+
+function formatValue(v: number, unit: string | null): string {
+  if (!isFinite(v)) return '—'
+  if (unit === 'sek' || unit === 'tid') {
+    const m = Math.floor(v / 60)
+    const s = Math.floor(v % 60)
+    return `${m}:${String(s).padStart(2, '0')}`
+  }
+  if (Number.isInteger(v)) return String(v)
+  return v.toFixed(2).replace(/\.?0+$/, '')
+}
+
+const EMPTY = (
+  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
+    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      Ingen tester eller PR-er i valgt periode.
+    </p>
+  </div>
+)
+
+function ProgressionChart({ series }: { series: TestProgressionSeries }) {
+  const data = series.points.map(p => ({
+    date: p.date, value: p.value, workout_id: p.workout_id,
+  }))
+  const color = SPORT_COLOR[series.sport] ?? TEST_BLUE
+  return (
+    <ChartWrapper
+      title={`${series.test_type} — ${labelSport(series.sport)}`}
+      subtitle={series.unit ? `Enhet: ${series.unit}` : undefined}
+      height={240}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+          <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+          <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
+          <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR}
+            tickFormatter={(v: number) => formatValue(v, series.unit)} />
+          <Tooltip
+            contentStyle={TOOLTIP_STYLE}
+            formatter={(v) => [formatValue(Number(v), series.unit), series.unit ?? 'verdi']}
+          />
+          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }} />
+          <Line type="monotone" dataKey="value" name={series.test_type}
+            stroke={color} strokeWidth={2} dot={{ r: 4, fill: color }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </ChartWrapper>
+  )
+}
+
+function TestRowItem({ row }: { row: TestResultRow }) {
+  return (
+    <Link href={`/app/dagbok/${row.workout_id}`}
+      className="block px-4 py-3 hover:bg-white/5 transition-colors"
+      style={{ borderBottom: '1px solid #1E1E22' }}>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: TEST_BLUE }}>
+            {row.test_type} — {labelSport(row.sport)}
+          </p>
+          <p className="text-sm"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            {row.date}{row.title ? ` · ${row.title}` : ''}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xl"
+            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+            {row.primary_result != null ? formatValue(row.primary_result, row.primary_unit) : '—'}
+            {row.primary_unit && (
+              <span className="ml-1 text-xs"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                {row.primary_unit}
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+      {(row.conditions || row.equipment) && (
+        <p className="mt-1 text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {[row.equipment, row.conditions].filter(Boolean).join(' · ')}
+        </p>
+      )}
+    </Link>
+  )
+}
+
+export function TesterPRTab({ data }: { data: TestsAndPRs }) {
+  const [sportTab, setSportTab] = useState<Sport | 'all'>('all')
+
+  const filteredTests = useMemo(
+    () => sportTab === 'all' ? data.tests : data.tests.filter(t => t.sport === sportTab),
+    [data.tests, sportTab],
+  )
+  const filteredPRs = useMemo(
+    () => sportTab === 'all' ? data.personalRecords : data.personalRecords.filter(p => p.sport === sportTab),
+    [data.personalRecords, sportTab],
+  )
+  const filteredProgressions = useMemo(
+    () => sportTab === 'all' ? data.progressions : data.progressions.filter(s => s.sport === sportTab),
+    [data.progressions, sportTab],
+  )
+
+  const sportsInUse = useMemo(() => {
+    const set = new Set<Sport>()
+    for (const t of data.tests) set.add(t.sport)
+    for (const p of data.personalRecords) set.add(p.sport)
+    return Array.from(set)
+  }, [data])
+
+  if (!data.hasData) return EMPTY
+
+  return (
+    <div className="space-y-6">
+      {sportsInUse.length > 1 && (
+        <div className="flex gap-1 overflow-x-auto">
+          <button type="button" onClick={() => setSportTab('all')}
+            className="px-3 py-1 text-xs tracking-widest uppercase whitespace-nowrap"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: sportTab === 'all' ? TEST_BLUE + '33' : 'transparent',
+              border: `1px solid ${sportTab === 'all' ? TEST_BLUE : '#1E1E22'}`,
+              color: sportTab === 'all' ? TEST_BLUE : '#8A8A96',
+              minHeight: '36px',
+            }}>
+            Alle
+          </button>
+          {sportsInUse.map(s => (
+            <button key={s} type="button" onClick={() => setSportTab(s)}
+              className="px-3 py-1 text-xs tracking-widest uppercase whitespace-nowrap"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: sportTab === s ? TEST_BLUE + '33' : 'transparent',
+                border: `1px solid ${sportTab === s ? TEST_BLUE : '#1E1E22'}`,
+                color: sportTab === s ? TEST_BLUE : '#8A8A96',
+                minHeight: '36px',
+              }}>
+              {labelSport(s)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {filteredPRs.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ width: '16px', height: '2px', backgroundColor: GOLD, display: 'inline-block' }} />
+            <h2 className="text-sm tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
+              Personlige rekorder
+            </h2>
+          </div>
+          <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+            {filteredPRs.map(pr => (
+              <div key={pr.id}
+                className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+                style={{ borderBottom: '1px solid #1E1E22' }}>
+                <div>
+                  <p className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
+                    {pr.record_type} — {labelSport(pr.sport)}
+                    {pr.is_manual && <span className="ml-2" style={{ color: '#555560' }}>· manuell</span>}
+                  </p>
+                  <p className="text-sm"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    {pr.achieved_at}{pr.notes ? ` · ${pr.notes}` : ''}
+                  </p>
+                </div>
+                <p className="text-xl"
+                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+                  {formatValue(pr.value, pr.unit)}
+                  <span className="ml-1 text-xs"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    {pr.unit}
+                  </span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {filteredProgressions.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ width: '16px', height: '2px', backgroundColor: TEST_BLUE, display: 'inline-block' }} />
+            <h2 className="text-sm tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: TEST_BLUE }}>
+              Progresjon
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredProgressions.map(s => (
+              <ProgressionChart key={`${s.sport}::${s.test_type}`} series={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {filteredTests.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ width: '16px', height: '2px', backgroundColor: TEST_BLUE, display: 'inline-block' }} />
+            <h2 className="text-sm tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: TEST_BLUE }}>
+              Test-tidslinje
+            </h2>
+          </div>
+          <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+            {filteredTests.map(t => <TestRowItem key={t.id} row={t} />)}
+          </div>
+        </section>
+      )}
+
+      {filteredPRs.length === 0 && filteredTests.length === 0 && (
+        <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+            Ingen tester eller PR-er for valgt sport.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}

@@ -6,9 +6,10 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend,
 } from 'recharts'
-import type { TestsAndPRs, TestResultRow, TestProgressionSeries } from '@/app/actions/analysis'
+import type { TestsAndPRs, TestResultRow, TestProgressionSeries, PersonalRecordRow } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { PersonalRecordModal } from './PersonalRecordModal'
 
 // Blå aksent matcher TestDataModule-visualspråket.
 const TEST_BLUE = '#1A6FD4'
@@ -116,6 +117,7 @@ function TestRowItem({ row }: { row: TestResultRow }) {
 
 export function TesterPRTab({ data }: { data: TestsAndPRs }) {
   const [sportTab, setSportTab] = useState<Sport | 'all'>('all')
+  const [prModal, setPrModal] = useState<{ mode: 'new' } | { mode: 'edit'; row: PersonalRecordRow } | null>(null)
 
   const filteredTests = useMemo(
     () => sportTab === 'all' ? data.tests : data.tests.filter(t => t.sport === sportTab),
@@ -137,11 +139,9 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
     return Array.from(set)
   }, [data])
 
-  if (!data.hasData) return EMPTY
-
-  return (
-    <div className="space-y-6">
-      {sportsInUse.length > 1 && (
+  const headerBar = (
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      {sportsInUse.length > 1 ? (
         <div className="flex gap-1 overflow-x-auto">
           <button type="button" onClick={() => setSportTab('all')}
             className="px-3 py-1 text-xs tracking-widest uppercase whitespace-nowrap"
@@ -168,7 +168,41 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
             </button>
           ))}
         </div>
-      )}
+      ) : <span />}
+      <button type="button" onClick={() => setPrModal({ mode: 'new' })}
+        className="px-3 py-1 text-xs tracking-widest uppercase"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          backgroundColor: GOLD + '22', border: `1px solid ${GOLD}`,
+          color: GOLD, minHeight: '36px',
+        }}>
+        + Ny PR
+      </button>
+    </div>
+  )
+
+  const modal = prModal && (
+    <PersonalRecordModal
+      existing={prModal.mode === 'edit' ? prModal.row : undefined}
+      defaultSport={sportTab === 'all' ? 'running' : sportTab}
+      onClose={() => setPrModal(null)}
+      onSaved={() => setPrModal(null)}
+    />
+  )
+
+  if (!data.hasData) {
+    return (
+      <div className="space-y-6">
+        {headerBar}
+        {EMPTY}
+        {modal}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {headerBar}
 
       {filteredPRs.length > 0 && (
         <section>
@@ -181,8 +215,9 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
           </div>
           <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
             {filteredPRs.map(pr => (
-              <div key={pr.id}
-                className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+              <button key={pr.id} type="button"
+                onClick={() => setPrModal({ mode: 'edit', row: pr })}
+                className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
                 style={{ borderBottom: '1px solid #1E1E22' }}>
                 <div>
                   <p className="text-xs tracking-widest uppercase"
@@ -203,7 +238,7 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
                     {pr.unit}
                   </span>
                 </p>
-              </div>
+              </button>
             ))}
           </div>
         </section>
@@ -248,6 +283,7 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
           </p>
         </div>
       )}
+      {modal}
     </div>
   )
 }

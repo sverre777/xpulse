@@ -9,7 +9,22 @@ import {
 import type { TestsAndPRs, TestResultRow, TestProgressionSeries, PersonalRecordRow } from '@/app/actions/analysis'
 import { SPORTS, type Sport } from '@/lib/types'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
-import { PersonalRecordModal } from './PersonalRecordModal'
+import { PersonalRecordModal, type PRPreset } from './PersonalRecordModal'
+
+// Forhåndsutfylte PR-kategorier. Dekker de vanligste PR-typene på tvers
+// av utholdenhet, styrke og laboratorie-tester. Sport settes bare når
+// verdien er sport-spesifikk; ellers arver modalen aktiv sport-fane.
+const PR_PRESETS: { label: string; preset: PRPreset }[] = [
+  { label: 'Styrke', preset: { record_type: 'Styrke', unit: 'kg', placeholder: 'f.eks. 120' } },
+  { label: 'VO2max', preset: { record_type: 'VO2max', unit: 'ml/kg/min', placeholder: 'f.eks. 68' } },
+  { label: 'FTP', preset: { record_type: 'FTP', unit: 'watt', sport: 'cycling', placeholder: 'f.eks. 320' } },
+  { label: 'Terskel-puls', preset: { record_type: 'Terskel-puls', unit: 'bpm', placeholder: 'f.eks. 172' } },
+  { label: 'Maks puls', preset: { record_type: 'Maks puls', unit: 'bpm', placeholder: 'f.eks. 198' } },
+  { label: '5km', preset: { record_type: '5km', unit: 'sek', sport: 'running', placeholder: 'sekunder, f.eks. 1122' } },
+  { label: '10km', preset: { record_type: '10km', unit: 'sek', sport: 'running', placeholder: 'sekunder' } },
+  { label: 'Halvmaraton', preset: { record_type: 'Halvmaraton', unit: 'sek', sport: 'running' } },
+  { label: 'Maraton', preset: { record_type: 'Maraton', unit: 'sek', sport: 'running' } },
+]
 
 // Blå aksent matcher TestDataModule-visualspråket.
 const TEST_BLUE = '#1A6FD4'
@@ -117,7 +132,11 @@ function TestRowItem({ row }: { row: TestResultRow }) {
 
 export function TesterPRTab({ data }: { data: TestsAndPRs }) {
   const [sportTab, setSportTab] = useState<Sport | 'all'>('all')
-  const [prModal, setPrModal] = useState<{ mode: 'new' } | { mode: 'edit'; row: PersonalRecordRow } | null>(null)
+  const [prModal, setPrModal] = useState<
+    | { mode: 'new'; preset?: PRPreset }
+    | { mode: 'edit'; row: PersonalRecordRow }
+    | null
+  >(null)
 
   const filteredTests = useMemo(
     () => sportTab === 'all' ? data.tests : data.tests.filter(t => t.sport === sportTab),
@@ -181,10 +200,34 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
     </div>
   )
 
+  const presetBar = (
+    <div>
+      <p className="mb-2 text-[10px] tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Hurtig-PR
+      </p>
+      <div className="flex gap-2 flex-wrap">
+        {PR_PRESETS.map(p => (
+          <button key={p.label} type="button"
+            onClick={() => setPrModal({ mode: 'new', preset: p.preset })}
+            className="px-3 py-1 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: 'transparent', border: `1px solid ${GOLD}44`,
+              color: GOLD, minHeight: '32px',
+            }}>
+            + {p.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
   const modal = prModal && (
     <PersonalRecordModal
       existing={prModal.mode === 'edit' ? prModal.row : undefined}
       defaultSport={sportTab === 'all' ? 'running' : sportTab}
+      preset={prModal.mode === 'new' ? prModal.preset : undefined}
       onClose={() => setPrModal(null)}
       onSaved={() => setPrModal(null)}
     />
@@ -194,6 +237,7 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
     return (
       <div className="space-y-6">
         {headerBar}
+        {presetBar}
         {EMPTY}
         {modal}
       </div>
@@ -203,6 +247,7 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
   return (
     <div className="space-y-6">
       {headerBar}
+      {presetBar}
 
       {filteredPRs.length > 0 && (
         <section>

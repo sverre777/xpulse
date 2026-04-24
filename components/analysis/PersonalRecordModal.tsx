@@ -13,19 +13,27 @@ const inputStyle: React.CSSProperties = {
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
 
+export interface PRPreset {
+  record_type: string
+  unit: string
+  sport?: Sport
+  placeholder?: string
+}
+
 interface Props {
   existing?: PersonalRecordRow
   defaultSport?: Sport
+  preset?: PRPreset
   onClose: () => void
   onSaved: () => void
 }
 
-export function PersonalRecordModal({ existing, defaultSport = 'running', onClose, onSaved }: Props) {
+export function PersonalRecordModal({ existing, defaultSport = 'running', preset, onClose, onSaved }: Props) {
   const router = useRouter()
-  const [sport, setSport] = useState<Sport>(existing?.sport ?? defaultSport)
-  const [recordType, setRecordType] = useState(existing?.record_type ?? '')
+  const [sport, setSport] = useState<Sport>(existing?.sport ?? preset?.sport ?? defaultSport)
+  const [recordType, setRecordType] = useState(existing?.record_type ?? preset?.record_type ?? '')
   const [value, setValue] = useState(existing ? String(existing.value) : '')
-  const [unit, setUnit] = useState(existing?.unit ?? '')
+  const [unit, setUnit] = useState(existing?.unit ?? preset?.unit ?? '')
   const [achievedAt, setAchievedAt] = useState(existing?.achieved_at ?? new Date().toISOString().slice(0, 10))
   const [notes, setNotes] = useState(existing?.notes ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -114,7 +122,7 @@ export function PersonalRecordModal({ existing, defaultSport = 'running', onClos
           <div className="grid grid-cols-2 gap-3">
             <Field label="Verdi">
               <input value={value} onChange={e => setValue(e.target.value)}
-                placeholder="320" style={inputStyle} />
+                placeholder={preset?.placeholder ?? '320'} style={inputStyle} />
             </Field>
             <Field label="Enhet">
               <input value={unit} onChange={e => setUnit(e.target.value)}

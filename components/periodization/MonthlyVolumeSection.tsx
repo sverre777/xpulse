@@ -18,14 +18,17 @@ function enumerateMonths(startDate: string, endDate: string): { year: number; mo
 }
 
 export function MonthlyVolumeSection({
-  userId, seasonId, startDate, endDate, plans,
+  userId, seasonId, startDate, endDate, plans, canEdit = true, targetUserId,
 }: {
   userId: string
   seasonId: string | null
   startDate: string
   endDate: string
   plans: MonthlyVolumePlan[]
+  canEdit?: boolean
+  targetUserId?: string
 }) {
+  void targetUserId
   const [open, setOpen] = useState(false)
   const months = enumerateMonths(startDate, endDate)
   const byKey = new Map(plans.map(p => [`${p.year}-${p.month}`, p]))
@@ -73,7 +76,13 @@ export function MonthlyVolumeSection({
 
       {open && (
         <div className="px-4 pb-3">
-          {months.map(({ year, month }) => {
+          {!canEdit && (
+            <p className="text-[11px] pt-2"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                Read-only — ingen redigeringsrett.
+            </p>
+          )}
+          {canEdit && months.map(({ year, month }) => {
             const existing = byKey.get(`${year}-${month}`) ?? null
             return (
               <MonthlyVolumeInput
@@ -88,10 +97,26 @@ export function MonthlyVolumeSection({
               />
             )
           })}
-          <p className="mt-3 text-[11px]"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Endringer lagres automatisk.
-          </p>
+          {!canEdit && months.map(({ year, month }) => {
+            const existing = byKey.get(`${year}-${month}`) ?? null
+            const hasData = existing?.planned_hours != null || existing?.planned_km != null || existing?.notes
+            return (
+              <div key={`ro-${year}-${month}`} className="py-2 text-xs"
+                style={{ borderTop: '1px solid #1A1A1E', fontFamily: "'Barlow Condensed', sans-serif", color: hasData ? '#C0C0CC' : '#3A3A44' }}>
+                <span style={{ color: '#8A8A96', marginRight: 8 }}>{month}/{year}:</span>
+                {existing?.planned_hours != null && <span>{existing.planned_hours} t · </span>}
+                {existing?.planned_km != null && <span>{existing.planned_km} km</span>}
+                {existing?.notes && <span> · {existing.notes}</span>}
+                {!hasData && <span>—</span>}
+              </div>
+            )
+          })}
+          {canEdit && (
+            <p className="mt-3 text-[11px]"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Endringer lagres automatisk.
+            </p>
+          )}
         </div>
       )}
     </section>

@@ -17,11 +17,12 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
 }
 
 export function PeriodsSection({
-  season, periods, targetUserId,
+  season, periods, targetUserId, canEdit = true,
 }: {
   season: Season
   periods: SeasonPeriod[]
   targetUserId?: string
+  canEdit?: boolean
 }) {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<SeasonPeriod | null>(null)
@@ -35,20 +36,22 @@ export function PeriodsSection({
             Perioder
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={() => setNewOpen(true)}
-          className="px-3 py-1.5 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500',
-            border: '1px solid #FF4500',
-            color: '#FFFFFF',
-            cursor: 'pointer',
-          }}
-        >
-          + Legg til periode
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => setNewOpen(true)}
+            className="px-3 py-1.5 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: '#FF4500',
+              border: '1px solid #FF4500',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+            }}
+          >
+            + Legg til periode
+          </button>
+        )}
       </div>
 
       {periods.length === 0 ? (
@@ -63,13 +66,14 @@ export function PeriodsSection({
             <button
               key={p.id}
               type="button"
-              onClick={() => setEditing(p)}
+              onClick={() => canEdit && setEditing(p)}
+              disabled={!canEdit}
               className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
               style={{
                 backgroundColor: '#111113',
                 borderLeft: `3px solid ${INTENSITY_COLOR[p.intensity]}`,
                 border: '1px solid #1E1E22',
-                cursor: 'pointer',
+                cursor: canEdit ? 'pointer' : 'default',
               }}
             >
               <div className="flex-1">
@@ -101,23 +105,27 @@ export function PeriodsSection({
         </div>
       )}
 
-      <PeriodModal
-        open={newOpen}
-        onClose={() => setNewOpen(false)}
-        seasonId={season.id}
-        seasonStart={season.start_date}
-        seasonEnd={season.end_date}
-        targetUserId={targetUserId}
-      />
-      <PeriodModal
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        seasonId={season.id}
-        seasonStart={season.start_date}
-        seasonEnd={season.end_date}
-        editing={editing}
-        targetUserId={targetUserId}
-      />
+      {canEdit && (
+        <>
+          <PeriodModal
+            open={newOpen}
+            onClose={() => setNewOpen(false)}
+            seasonId={season.id}
+            seasonStart={season.start_date}
+            seasonEnd={season.end_date}
+            targetUserId={targetUserId}
+          />
+          <PeriodModal
+            open={editing !== null}
+            onClose={() => setEditing(null)}
+            seasonId={season.id}
+            seasonStart={season.start_date}
+            seasonEnd={season.end_date}
+            editing={editing}
+            targetUserId={targetUserId}
+          />
+        </>
+      )}
     </section>
   )
 }

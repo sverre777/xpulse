@@ -6,12 +6,13 @@ import type { Season } from '@/app/actions/seasons'
 import { SeasonModal } from './SeasonModal'
 
 export function SeasonSelector({
-  seasons, activeSeason, targetUserId, basePath = '/app/periodisering',
+  seasons, activeSeason, targetUserId, basePath = '/app/periodisering', canEdit = true,
 }: {
   seasons: Season[]
   activeSeason: Season | null
   targetUserId?: string
   basePath?: string
+  canEdit?: boolean
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -24,6 +25,8 @@ export function SeasonSelector({
     else params.delete('s')
     router.push(`${basePath}?${params.toString()}`)
   }
+
+  const hideCreateEdit = !canEdit
 
   return (
     <>
@@ -48,7 +51,7 @@ export function SeasonSelector({
             </option>
           ))}
         </select>
-        {activeSeason && (
+        {!hideCreateEdit && activeSeason && (
           <button
             type="button"
             onClick={() => setEditOpen(true)}
@@ -64,25 +67,29 @@ export function SeasonSelector({
             Rediger
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => setNewOpen(true)}
-          className="px-3 py-2 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500',
-            border: '1px solid #FF4500',
-            color: '#FFFFFF',
-            cursor: 'pointer',
-          }}
-        >
-          + Ny sesong
-        </button>
+        {!hideCreateEdit && (
+          <button
+            type="button"
+            onClick={() => setNewOpen(true)}
+            className="px-3 py-2 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: '#FF4500',
+              border: '1px solid #FF4500',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+            }}
+          >
+            + Ny sesong
+          </button>
+        )}
       </div>
 
-      <SeasonModal open={newOpen} onClose={() => setNewOpen(false)} targetUserId={targetUserId} />
-      {activeSeason && (
-        <SeasonModal open={editOpen} onClose={() => setEditOpen(false)} editing={activeSeason} targetUserId={targetUserId} />
+      {!hideCreateEdit && (
+        <SeasonModal open={newOpen} onClose={() => setNewOpen(false)} targetUserId={targetUserId} basePath={basePath} />
+      )}
+      {!hideCreateEdit && activeSeason && (
+        <SeasonModal open={editOpen} onClose={() => setEditOpen(false)} editing={activeSeason} targetUserId={targetUserId} basePath={basePath} />
       )}
     </>
   )

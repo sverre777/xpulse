@@ -6,12 +6,13 @@ import { createSeason, updateSeason, deleteSeason, type Season } from '@/app/act
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
 
 export function SeasonModal({
-  open, onClose, editing, targetUserId,
+  open, onClose, editing, targetUserId, basePath = '/app/periodisering',
 }: {
   open: boolean
   onClose: () => void
   editing?: Season | null
   targetUserId?: string
+  basePath?: string
 }) {
   const router = useRouter()
   const [name, setName] = useState(editing?.name ?? '')
@@ -40,7 +41,7 @@ export function SeasonModal({
     if (res.error) { setError(res.error); setBusy(false); return }
     router.refresh()
     if (!editing && 'id' in res && res.id) {
-      router.push(`/app/periodisering?s=${res.id}`)
+      router.push(`${basePath}?s=${res.id}`)
     }
     setBusy(false)
     onClose()
@@ -52,7 +53,7 @@ export function SeasonModal({
     setBusy(true); setError(null)
     const res = await deleteSeason(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
-    router.push('/app/periodisering')
+    router.push(basePath)
     router.refresh()
     setBusy(false)
     onClose()

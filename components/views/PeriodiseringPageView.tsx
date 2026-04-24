@@ -14,6 +14,7 @@ import { WeekOverviewCalendar } from '@/components/periodization/WeekOverviewCal
 import { PeriodsSection } from '@/components/periodization/PeriodsSection'
 import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
 import { MonthlyVolumeSection } from '@/components/periodization/MonthlyVolumeSection'
+import { SaveSeasonAsTemplate } from '@/components/coach/SaveSeasonAsTemplate'
 import type { ViewContext } from '@/lib/view-context'
 
 interface Props {
@@ -49,8 +50,10 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   const userId = viewContext.userId
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
+  const canEdit = isCoachView ? !!viewContext.permissions.can_edit_periodization : true
   const selectedSeasonId = searchParams?.s
   const view = resolveView(searchParams?.view)
+  const basePath = isCoachView ? `/app/trener/${userId}/periodisering` : '/app/periodisering'
   const seasonsResult = await getSeasons(targetId)
 
   if ('error' in seasonsResult) {
@@ -112,13 +115,20 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               Periodisering
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <SeasonSelector
               seasons={seasons}
               activeSeason={activeSeason}
               targetUserId={targetId}
-              basePath={isCoachView ? `/app/trener/${userId}/periodisering` : '/app/periodisering'}
+              basePath={basePath}
+              canEdit={canEdit}
             />
+            {isCoachView && activeSeason && (
+              <SaveSeasonAsTemplate
+                seasonId={activeSeason.id}
+                defaultName={activeSeason.name}
+              />
+            )}
           </div>
         </div>
 
@@ -143,6 +153,8 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               startDate={activeSeason.start_date}
               endDate={activeSeason.end_date}
               plans={volumePlans}
+              targetUserId={targetId}
+              canEdit={canEdit}
             />
 
             <div className="flex items-center justify-between mb-4">
@@ -182,8 +194,8 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
             </div>
 
-            <PeriodsSection season={activeSeason} periods={periods} targetUserId={targetId} />
-            <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} />
+            <PeriodsSection season={activeSeason} periods={periods} targetUserId={targetId} canEdit={canEdit} />
+            <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
           </>
         )}
 

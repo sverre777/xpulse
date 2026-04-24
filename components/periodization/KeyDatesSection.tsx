@@ -14,11 +14,12 @@ const EVENT_STYLE: Record<KeyEventType, { label: string; color: string; icon: st
 }
 
 export function KeyDatesSection({
-  season, keyDates, targetUserId,
+  season, keyDates, targetUserId, canEdit = true,
 }: {
   season: Season
   keyDates: SeasonKeyDate[]
   targetUserId?: string
+  canEdit?: boolean
 }) {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<SeasonKeyDate | null>(null)
@@ -32,20 +33,22 @@ export function KeyDatesSection({
             Konkurranser og viktige datoer
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={() => setNewOpen(true)}
-          className="px-3 py-1.5 text-xs tracking-widest uppercase"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500',
-            border: '1px solid #FF4500',
-            color: '#FFFFFF',
-            cursor: 'pointer',
-          }}
-        >
-          + Legg til hendelse
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => setNewOpen(true)}
+            className="px-3 py-1.5 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: '#FF4500',
+              border: '1px solid #FF4500',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+            }}
+          >
+            + Legg til hendelse
+          </button>
+        )}
       </div>
 
       {keyDates.length === 0 ? (
@@ -62,13 +65,14 @@ export function KeyDatesSection({
               <button
                 key={k.id}
                 type="button"
-                onClick={() => setEditing(k)}
+                onClick={() => canEdit && setEditing(k)}
+                disabled={!canEdit}
                 className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
                 style={{
                   backgroundColor: '#111113',
                   borderLeft: `3px solid ${style.color}`,
                   border: '1px solid #1E1E22',
-                  cursor: 'pointer',
+                  cursor: canEdit ? 'pointer' : 'default',
                 }}
               >
                 <span style={{ fontSize: '20px' }} aria-hidden>{style.icon}</span>
@@ -106,23 +110,27 @@ export function KeyDatesSection({
         </div>
       )}
 
-      <KeyDateModal
-        open={newOpen}
-        onClose={() => setNewOpen(false)}
-        seasonId={season.id}
-        seasonStart={season.start_date}
-        seasonEnd={season.end_date}
-        targetUserId={targetUserId}
-      />
-      <KeyDateModal
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        seasonId={season.id}
-        seasonStart={season.start_date}
-        seasonEnd={season.end_date}
-        editing={editing}
-        targetUserId={targetUserId}
-      />
+      {canEdit && (
+        <>
+          <KeyDateModal
+            open={newOpen}
+            onClose={() => setNewOpen(false)}
+            seasonId={season.id}
+            seasonStart={season.start_date}
+            seasonEnd={season.end_date}
+            targetUserId={targetUserId}
+          />
+          <KeyDateModal
+            open={editing !== null}
+            onClose={() => setEditing(null)}
+            seasonId={season.id}
+            seasonStart={season.start_date}
+            seasonEnd={season.end_date}
+            editing={editing}
+            targetUserId={targetUserId}
+          />
+        </>
+      )}
     </section>
   )
 }

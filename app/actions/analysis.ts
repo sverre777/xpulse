@@ -3201,8 +3201,8 @@ type RawShootingWorkout = {
 
 const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
   long_run: 'Langtur', interval: 'Intervall', threshold: 'Terskel', easy: 'Rolig',
-  competition: 'Konkurranse', testlop: 'Testløp', recovery: 'Restitusjon',
-  technical: 'Teknisk', other: 'Annet',
+  competition: 'Konkurranse', testlop: 'Testløp', test: 'Test / protokoll',
+  recovery: 'Restitusjon', technical: 'Teknisk', other: 'Annet',
   hard_combo: 'Hard kombinasjon', easy_combo: 'Rolig kombinasjon',
   basis_shooting: 'Basisskyting', warmup_shooting: 'Innskyting',
 }

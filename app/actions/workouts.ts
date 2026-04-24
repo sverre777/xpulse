@@ -10,6 +10,7 @@ import {
   StrengthExerciseRow, StrengthSetRow,
   ActivityLactateMeasurement,
   CompetitionData, CompetitionType,
+  TestData,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -92,6 +93,35 @@ function competitionRowToForm(row: {
     goal: row.goal ?? '',
     pre_comment: row.pre_comment ?? '',
     comment: row.comment ?? '',
+  }
+}
+
+function testRowToForm(row: {
+  sport: string | null
+  test_type: string | null
+  primary_result: number | null
+  primary_unit: string | null
+  secondary_results: Record<string, unknown> | null
+  protocol_notes: string | null
+  equipment: string | null
+  conditions: string | null
+}): TestData {
+  const secondary: Record<string, string> = {}
+  if (row.secondary_results && typeof row.secondary_results === 'object') {
+    for (const [k, v] of Object.entries(row.secondary_results)) {
+      if (v == null) continue
+      secondary[k] = typeof v === 'string' ? v : String(v)
+    }
+  }
+  return {
+    sport: (row.sport as Sport) ?? '',
+    test_type: row.test_type ?? '',
+    primary_result: row.primary_result != null ? String(row.primary_result) : '',
+    primary_unit: row.primary_unit ?? '',
+    secondary_results: secondary,
+    protocol_notes: row.protocol_notes ?? '',
+    equipment: row.equipment ?? '',
+    conditions: row.conditions ?? '',
   }
 }
 
@@ -615,6 +645,30 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     await supabase.from('workout_competition_data').delete().eq('workout_id', savedId!)
   }
 
+  // Fase 31: test-data — egen tabell, upsert per workout_id.
+  const isTestWorkout = data.workout_type === 'test'
+  if (isTestWorkout && data.test_data && (data.test_data.test_type || data.test_data.primary_result)) {
+    const td = data.test_data
+    const primary = td.primary_result.trim()
+    const { error: tErr } = await supabase
+      .from('workout_test_data')
+      .upsert({
+        workout_id: savedId!,
+        user_id: resolved.userId,
+        sport: td.sport || data.sport,
+        test_type: td.test_type || 'annet',
+        primary_result: primary ? parseFloat(primary.replace(',', '.')) : null,
+        primary_unit: td.primary_unit || null,
+        secondary_results: td.secondary_results ?? {},
+        protocol_notes: td.protocol_notes || null,
+        equipment: td.equipment || null,
+        conditions: td.conditions || null,
+      }, { onConflict: 'workout_id' })
+    if (tErr) return { error: tErr.message }
+  } else {
+    await supabase.from('workout_test_data').delete().eq('workout_id', savedId!)
+  }
+
   if (data.tags.length > 0) {
     await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
   }
@@ -774,7 +828,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       workout_movements(*), workout_zones(*), workout_tags(*),
       workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
       workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
-      workout_competition_data(*)
+      workout_competition_data(*),
+      workout_test_data(*)
     `)
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== resolved.userId) return null
@@ -784,6 +839,11 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     ? workout.workout_competition_data[0] ?? null
     : workout.workout_competition_data ?? null
   const competition_data = compRaw ? competitionRowToForm(compRaw) : undefined
+
+  const testRaw = Array.isArray(workout.workout_test_data)
+    ? workout.workout_test_data[0] ?? null
+    : workout.workout_test_data ?? null
+  const test_data = testRaw ? testRowToForm(testRaw) : undefined
 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
   type DbSet = {
@@ -921,6 +981,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       shooting_blocks: snap.shooting_blocks ?? [],
       activities:   planActivities,
       competition_data,
+      test_data,
       template_id:   (workout.template_id as string | null) ?? null,
       template_name: (workout.template_name as string | null) ?? null,
     }
@@ -999,6 +1060,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     // "Sammenlign med plan"-visning i Dagbok-modalen.
     planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
     competition_data,
+    test_data,
     template_id:   (workout.template_id as string | null) ?? null,
     template_name: (workout.template_name as string | null) ?? null,
   }

@@ -9,10 +9,12 @@ import {
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
+  TestData, emptyTestData,
 } from '@/lib/types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
+import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { HeartZone } from '@/lib/heart-zones'
 
@@ -99,6 +101,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     competition_data: defaultValues?.competition_data,
     template_id:   defaultValues?.template_id ?? null,
     template_name: defaultValues?.template_name ?? null,
+    test_data:     defaultValues?.test_data,
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -378,6 +381,18 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               />
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── TEST (protokoll + resultat — kun for workout_type='test') ── */}
+      {form.workout_type === 'test' && (
+        <div className="mt-4">
+          <TestDataModule
+            data={form.test_data ?? emptyTestData(form.sport)}
+            onChange={d => set('test_data', d)}
+            sport={form.sport}
+            mode={isPlanMode ? 'plan' : 'dagbok'}
+          />
         </div>
       )}
 

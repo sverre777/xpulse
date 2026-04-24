@@ -4,7 +4,7 @@ export type Sport =
   | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
 
 export type WorkoutType =
-  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'testlop' | 'recovery' | 'technical' | 'other'
+  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'testlop' | 'test' | 'recovery' | 'technical' | 'other'
   | 'hard_combo' | 'easy_combo' | 'basis_shooting' | 'warmup_shooting'
 
 // ── Lookup arrays ──────────────────────────────────────────
@@ -26,6 +26,7 @@ export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [
   { value: 'easy',        label: 'Rolig' },
   { value: 'competition', label: 'Konkurranse' },
   { value: 'testlop',     label: 'Testløp' },
+  { value: 'test',        label: 'Test / protokoll' },
   { value: 'recovery',    label: 'Restitusjon' },
   { value: 'technical',   label: 'Teknisk' },
   { value: 'other',       label: 'Annet' },
@@ -223,6 +224,75 @@ export interface WorkoutFormData {
   // denormalisert for enklere lesing uten join.
   template_id?: string | null
   template_name?: string | null
+  // Fase 31: strukturert test-resultat (kun relevant når workout_type='test').
+  // Lagres i workout_test_data som egen rad per workout.
+  test_data?: TestData
+}
+
+// ── Test-økter (Fase 31) ───────────────────────────────────
+
+export interface TestData {
+  test_type: string
+  sport: Sport | ''
+  // Primærresultat (typisk tid i sek, watt, vo2max, 1RM kg, etc.)
+  primary_result: string
+  primary_unit: string
+  secondary_results: Record<string, string>
+  protocol_notes: string
+  equipment: string
+  conditions: string
+}
+
+export function emptyTestData(defaultSport: Sport = 'running'): TestData {
+  return {
+    test_type: '',
+    sport: defaultSport,
+    primary_result: '',
+    primary_unit: '',
+    secondary_results: {},
+    protocol_notes: '',
+    equipment: '',
+    conditions: '',
+  }
+}
+
+// Sport-spesifikke standard tester (forslag i dropdown).
+export const TEST_TYPES_BY_SPORT: Record<Sport, { value: string; label: string; unit: string }[]> = {
+  running:              [
+    { value: '5km_tt',    label: '5 km tempo-test',      unit: 'tid' },
+    { value: '10km_tt',   label: '10 km tempo-test',     unit: 'tid' },
+    { value: 'vo2max',    label: 'VO2max (labtest)',     unit: 'ml/kg/min' },
+    { value: 'lt2',       label: 'LT2 / terskel',        unit: 'km/t' },
+    { value: 'cooper',    label: 'Cooper (12 min)',      unit: 'meter' },
+  ],
+  cross_country_skiing: [
+    { value: 'rulleski_motbakke', label: 'Rulleski motbakke', unit: 'tid' },
+    { value: 'vo2max',            label: 'VO2max (labtest)',  unit: 'ml/kg/min' },
+    { value: 'lt2',               label: 'LT2 / terskel',     unit: 'watt' },
+  ],
+  biathlon:             [
+    { value: 'standplass_10',  label: 'Standplass 10×liggende/stående', unit: 'treff' },
+    { value: 'vo2max',         label: 'VO2max (labtest)',     unit: 'ml/kg/min' },
+  ],
+  cycling:              [
+    { value: 'ftp_20',    label: 'FTP (20-min)',         unit: 'watt' },
+    { value: 'ftp_ramp',  label: 'FTP (ramp test)',      unit: 'watt' },
+    { value: 'vo2max',    label: 'VO2max (labtest)',     unit: 'ml/kg/min' },
+  ],
+  triathlon:            [
+    { value: 'ftp_20',    label: 'FTP (20-min)',         unit: 'watt' },
+    { value: 'swim_400',  label: '400 m svøm',           unit: 'tid' },
+    { value: '5km_tt',    label: '5 km løp-test',        unit: 'tid' },
+  ],
+  long_distance_skiing: [
+    { value: 'langtur',   label: 'Langtur-test',         unit: 'tid' },
+    { value: 'vo2max',    label: 'VO2max (labtest)',     unit: 'ml/kg/min' },
+  ],
+  endurance:            [
+    { value: 'vo2max',    label: 'VO2max (labtest)',     unit: 'ml/kg/min' },
+    { value: 'lt2',       label: 'LT2 / terskel',        unit: 'watt' },
+    { value: '1rm',       label: '1RM styrke',           unit: 'kg' },
+  ],
 }
 
 // ── Activities (Fase 7) ────────────────────────────────────

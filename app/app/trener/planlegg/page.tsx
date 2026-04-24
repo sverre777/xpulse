@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getTemplates } from '@/app/actions/templates'
 import { getPlanTemplates } from '@/app/actions/plan-templates'
 import { getPeriodizationTemplates } from '@/app/actions/periodization-templates'
+import { getTestTemplates } from '@/app/actions/tests'
 import { TrenerPlanleggPage } from '@/components/coach/TrenerPlanleggPage'
 import type { Sport } from '@/lib/types'
 
@@ -16,12 +17,13 @@ export default async function TrenerPlanleggRoute({ searchParams }: Props) {
   if (!user) redirect('/app')
 
   const sp = await searchParams
-  const activeTab = sp.tab === 'plan' || sp.tab === 'periodisering' ? sp.tab : 'okt'
+  const activeTab = sp.tab === 'plan' || sp.tab === 'periodisering' || sp.tab === 'test' ? sp.tab : 'okt'
 
-  const [workoutTemplates, planTemplates, periodizationTemplates, { data: profile }] = await Promise.all([
+  const [workoutTemplates, planTemplates, periodizationTemplates, testTemplates, { data: profile }] = await Promise.all([
     getTemplates(),
     getPlanTemplates(),
     getPeriodizationTemplates(),
+    getTestTemplates(),
     supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
   ])
 
@@ -34,6 +36,7 @@ export default async function TrenerPlanleggRoute({ searchParams }: Props) {
       initialWorkoutTemplates={workoutTemplates}
       initialPlanTemplates={planTemplates}
       initialPeriodizationTemplates={periodizationTemplates}
+      initialTestTemplates={testTemplates}
     />
   )
 }

@@ -3,13 +3,15 @@
 import { useRouter } from 'next/navigation'
 import type { Sport, WorkoutTemplate } from '@/lib/types'
 import type { PlanTemplate, PeriodizationTemplate } from '@/lib/template-types'
+import type { TestTemplate } from '@/app/actions/tests'
 import { OktmalTab } from '@/components/coach/OktmalTab'
 import { PlanMalTab } from '@/components/coach/PlanMalTab'
 import { PeriodiseringMalTab } from '@/components/coach/PeriodiseringMalTab'
+import { TestMalTab } from '@/components/coach/TestMalTab'
 
 const COACH_BLUE = '#1A6FD4'
 
-type Tab = 'okt' | 'plan' | 'periodisering'
+type Tab = 'okt' | 'plan' | 'periodisering' | 'test'
 
 interface Props {
   activeTab: string
@@ -17,6 +19,7 @@ interface Props {
   initialWorkoutTemplates: WorkoutTemplate[]
   initialPlanTemplates: PlanTemplate[]
   initialPeriodizationTemplates: PeriodizationTemplate[]
+  initialTestTemplates: TestTemplate[]
 }
 
 export function TrenerPlanleggPage({
@@ -25,8 +28,9 @@ export function TrenerPlanleggPage({
   initialWorkoutTemplates,
   initialPlanTemplates,
   initialPeriodizationTemplates,
+  initialTestTemplates,
 }: Props) {
-  const tab: Tab = activeTab === 'plan' || activeTab === 'periodisering' ? activeTab : 'okt'
+  const tab: Tab = activeTab === 'plan' || activeTab === 'periodisering' || activeTab === 'test' ? activeTab : 'okt'
   const router = useRouter()
 
   const setTab = (t: Tab) => {
@@ -71,6 +75,12 @@ export function TrenerPlanleggPage({
             primarySport={primarySport}
           />
         )}
+        {tab === 'test' && (
+          <TestMalTab
+            initialTemplates={initialTestTemplates}
+            primarySport={primarySport}
+          />
+        )}
       </div>
     </div>
   )
@@ -81,6 +91,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: 'okt', label: 'Øktmaler' },
     { key: 'plan', label: 'Plan-maler' },
     { key: 'periodisering', label: 'Periodiseringsmaler' },
+    { key: 'test', label: 'Test-maler' },
   ]
   return (
     <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #1E1E22' }}>

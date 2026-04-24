@@ -28,6 +28,7 @@ import {
 import { FocusSection } from '@/components/focus/FocusSection'
 import { WeeklyReflectionSection } from '@/components/weekly-reflection/WeeklyReflectionSection'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
+import { CommentSection } from '@/components/coach/CommentSection'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -1350,32 +1351,58 @@ export function Calendar({
       {/* I coach-view (readOnly) + dagbok vises utøverens notat som grå read-only.
           Plan-notater forblir redigerbare i coach-view slik at trener kan skrive plan-kommentarer. */}
       {showNotes && view === 'måned' && (
-        <PeriodNote
-          key={`month-${monthPeriodKey}-${noteContext}`}
-          scope="month"
-          periodKey={monthPeriodKey}
-          context={noteContext}
-          initialNote={monthNote}
-          label={readOnly && noteContext === 'dagbok'
-            ? `Utøverens notat for ${MONTHS_NO[month - 1]}`
-            : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
-          targetUserId={targetUserId}
-          readOnly={readOnly && noteContext === 'dagbok'}
-        />
+        <>
+          <PeriodNote
+            key={`month-${monthPeriodKey}-${noteContext}`}
+            scope="month"
+            periodKey={monthPeriodKey}
+            context={noteContext}
+            initialNote={monthNote}
+            label={readOnly && noteContext === 'dagbok'
+              ? `Utøverens notat for ${MONTHS_NO[month - 1]}`
+              : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
+            targetUserId={targetUserId}
+            readOnly={readOnly && noteContext === 'dagbok'}
+          />
+          <div className="px-4 md:px-6">
+            <CommentSection
+              key={`comments-month-${monthPeriodKey}-${noteContext}`}
+              athleteId={targetUserId ?? userId}
+              context={noteContext}
+              scope="month"
+              periodKey={monthPeriodKey}
+              viewerRole={readOnly ? 'coach' : 'athlete'}
+              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — ${MONTHS_NO[month - 1]}`}
+            />
+          </div>
+        </>
       )}
       {showNotes && view === 'uke' && (
-        <PeriodNote
-          key={`week-${weekPeriodKey}-${noteContext}`}
-          scope="week"
-          periodKey={weekPeriodKey}
-          context={noteContext}
-          initialNote={weekNote}
-          label={readOnly && noteContext === 'dagbok'
-            ? `Utøverens notat for uke ${weekNum}`
-            : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
-          targetUserId={targetUserId}
-          readOnly={readOnly && noteContext === 'dagbok'}
-        />
+        <>
+          <PeriodNote
+            key={`week-${weekPeriodKey}-${noteContext}`}
+            scope="week"
+            periodKey={weekPeriodKey}
+            context={noteContext}
+            initialNote={weekNote}
+            label={readOnly && noteContext === 'dagbok'
+              ? `Utøverens notat for uke ${weekNum}`
+              : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}
+            targetUserId={targetUserId}
+            readOnly={readOnly && noteContext === 'dagbok'}
+          />
+          <div className="px-4 md:px-6">
+            <CommentSection
+              key={`comments-week-${weekPeriodKey}-${noteContext}`}
+              athleteId={targetUserId ?? userId}
+              context={noteContext}
+              scope="week"
+              periodKey={weekPeriodKey}
+              viewerRole={readOnly ? 'coach' : 'athlete'}
+              title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — uke ${weekNum}`}
+            />
+          </div>
+        </>
       )}
       {view === 'måned' && (
         <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
@@ -1406,6 +1433,7 @@ export function Calendar({
       heartZones={heartZones}
       readOnly={readOnly}
       targetUserId={targetUserId}
+      athleteId={targetUserId ?? userId}
     />
     <RecoveryModal
       date={recoveryDate ?? ''}

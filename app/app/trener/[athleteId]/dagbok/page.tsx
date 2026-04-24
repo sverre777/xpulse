@@ -1,18 +1,9 @@
 import { redirect } from 'next/navigation'
 import { resolveCoachContext } from '@/lib/view-context'
 import { DagbokPageView } from '@/components/views/DagbokPageView'
-import { CommentSection } from '@/components/coach/CommentSection'
 
 interface Props {
   params: Promise<{ athleteId: string }>
-}
-
-function isoWeekKey(d: Date): string {
-  const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-  tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7))
-  const y0 = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1))
-  const week = Math.ceil((((tmp.getTime() - y0.getTime()) / 86400000) + 1) / 7)
-  return `${tmp.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
 }
 
 export default async function AthleteDagbokTab({ params }: Props) {
@@ -34,23 +25,14 @@ export default async function AthleteDagbokTab({ params }: Props) {
     )
   }
 
-  // Coach sees same dagbok layout as athlete, but read-only: all inputs disabled,
-  // only the comment field below is active.
+  // Coach sees same dagbok layout as athlete, but read-only. Diskusjon-tråder
+  // (uke/måned/økt) vises inne i Calendar/WorkoutModal, ikke som ett fast
+  // panel nederst på siden.
   const readOnlyContext = { ...viewContext, readOnly: true }
-  const weekKey = isoWeekKey(new Date())
 
   return (
     <section>
       <DagbokPageView viewContext={readOnlyContext} />
-
-      <CommentSection
-        athleteId={athleteId}
-        context="dagbok"
-        scope="week"
-        periodKey={weekKey}
-        viewerRole="coach"
-        title={`Kommentarer — ${weekKey}`}
-      />
     </section>
   )
 }

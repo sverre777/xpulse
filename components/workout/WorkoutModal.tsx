@@ -6,6 +6,7 @@ import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
 import { Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
+import { CommentSection } from '@/components/coach/CommentSection'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
@@ -20,9 +21,12 @@ interface WorkoutModalProps {
   readOnly?: boolean
   // Når satt: trener opererer på utøvers økter i /app/trener/[athleteId]/plan.
   targetUserId?: string
+  // Utøverens user_id — brukes som athleteId for økt-nivå kommentartråd.
+  // I coach-view er dette targetUserId, i self-view er det innlogget bruker.
+  athleteId?: string
 }
 
-export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false, targetUserId }: WorkoutModalProps) {
+export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false, targetUserId, athleteId }: WorkoutModalProps) {
   const router = useRouter()
   const [defaults, setDefaults] = useState<Partial<WorkoutFormData> | null>(null)
   const [loading, setLoading] = useState(false)
@@ -130,19 +134,33 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
             Laster...
           </div>
         ) : (
-          <WorkoutForm
-            workoutId={state.kind === 'edit' ? state.workoutId : undefined}
-            defaultValues={defaults}
-            formMode={state.formMode}
-            templates={templates}
-            heartZones={heartZones}
-            initialSport={primarySport}
-            initialDate={state.kind === 'create' ? state.date : undefined}
-            onSaved={handleSaved}
-            onCancel={onClose}
-            readOnly={readOnly}
-            targetUserId={targetUserId}
-          />
+          <>
+            <WorkoutForm
+              workoutId={state.kind === 'edit' ? state.workoutId : undefined}
+              defaultValues={defaults}
+              formMode={state.formMode}
+              templates={templates}
+              heartZones={heartZones}
+              initialSport={primarySport}
+              initialDate={state.kind === 'create' ? state.date : undefined}
+              onSaved={handleSaved}
+              onCancel={onClose}
+              readOnly={readOnly}
+              targetUserId={targetUserId}
+            />
+            {state.kind === 'edit' && athleteId && (
+              <div className="px-4 pb-4">
+                <CommentSection
+                  athleteId={athleteId}
+                  context={state.formMode}
+                  scope="workout"
+                  periodKey={state.workoutId}
+                  viewerRole={readOnly ? 'coach' : 'athlete'}
+                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — denne økta`}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -27,7 +27,7 @@ function ErrorBox({ message }: { message: string }) {
     <div className="p-4 mb-6" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
-        Kunne ikke laste periodiseringsdata
+        Kunne ikke laste årsplan-data
       </p>
       <pre className="whitespace-pre-wrap break-words"
         style={{ fontFamily: 'ui-monospace, monospace', color: '#F0F0F2', fontSize: '13px' }}>
@@ -63,7 +63,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
           <div className="flex items-center gap-3 mb-6">
             <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
-              Periodisering
+              Årsplan
             </h1>
           </div>
           <ErrorBox message={seasonsResult.error} />
@@ -112,7 +112,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
           <div className="flex items-center gap-3">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
-              Periodisering
+              Årsplan
             </h1>
           </div>
           <div className="flex items-center gap-2 flex-wrap">

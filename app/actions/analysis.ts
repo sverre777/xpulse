@@ -3841,7 +3841,11 @@ export type TestResultRow = {
   workout_id: string
   date: string
   title: string | null
-  sport: Sport
+  // Sport-feltet kan inneholde TestPRSport (ny) eller Sport (eldre rader).
+  // Beholdes som string for å dekke begge.
+  sport: string
+  subcategory: string | null
+  custom_label: string | null
   test_type: string
   primary_result: number | null
   primary_unit: string | null
@@ -3852,7 +3856,9 @@ export type TestResultRow = {
 
 export type PersonalRecordRow = {
   id: string
-  sport: Sport
+  sport: string
+  subcategory: string | null
+  custom_label: string | null
   record_type: string
   value: number
   unit: string
@@ -3863,7 +3869,7 @@ export type PersonalRecordRow = {
 }
 
 export type TestProgressionSeries = {
-  sport: Sport
+  sport: string
   test_type: string
   unit: string | null
   points: { date: string; value: number; workout_id: string }[]
@@ -3888,13 +3894,13 @@ export async function getTestsAndPRs(
 
     let testQuery = supabase
       .from('workout_test_data')
-      .select('id,workout_id,sport,test_type,primary_result,primary_unit,protocol_notes,equipment,conditions,workouts!inner(date,title,user_id)')
+      .select('id,workout_id,sport,subcategory,custom_label,test_type,primary_result,primary_unit,protocol_notes,equipment,conditions,workouts!inner(date,title,user_id)')
       .eq('user_id', userId)
     if (sportFilter) testQuery = testQuery.eq('sport', sportFilter)
 
     let prQuery = supabase
       .from('personal_records')
-      .select('id,sport,record_type,value,unit,achieved_at,workout_id,notes,is_manual')
+      .select('id,sport,subcategory,custom_label,record_type,value,unit,achieved_at,workout_id,notes,is_manual')
       .eq('user_id', userId)
       .order('achieved_at', { ascending: false })
     if (sportFilter) prQuery = prQuery.eq('sport', sportFilter)
@@ -3906,7 +3912,9 @@ export async function getTestsAndPRs(
     if (pErr) return { error: pErr.message }
 
     type RawTestRow = {
-      id: string; workout_id: string; sport: string; test_type: string
+      id: string; workout_id: string; sport: string
+      subcategory: string | null; custom_label: string | null
+      test_type: string
       primary_result: number | null; primary_unit: string | null
       protocol_notes: string | null; equipment: string | null; conditions: string | null
       workouts: { date: string; title: string | null; user_id: string } | { date: string; title: string | null; user_id: string }[] | null
@@ -3918,7 +3926,9 @@ export async function getTestsAndPRs(
         workout_id: r.workout_id,
         date: w?.date ?? '',
         title: w?.title ?? null,
-        sport: r.sport as Sport,
+        sport: r.sport,
+        subcategory: r.subcategory ?? null,
+        custom_label: r.custom_label ?? null,
         test_type: r.test_type,
         primary_result: r.primary_result,
         primary_unit: r.primary_unit,
@@ -3950,7 +3960,9 @@ export async function getTestsAndPRs(
 
     const personalRecords: PersonalRecordRow[] = (prRows ?? []).map(r => ({
       id: r.id as string,
-      sport: r.sport as Sport,
+      sport: r.sport as string,
+      subcategory: (r.subcategory as string | null) ?? null,
+      custom_label: (r.custom_label as string | null) ?? null,
       record_type: r.record_type as string,
       value: Number(r.value),
       unit: r.unit as string,

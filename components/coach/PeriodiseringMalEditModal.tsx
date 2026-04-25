@@ -68,7 +68,7 @@ export function PeriodiseringMalEditModal({ template, onClose }: Props) {
           style={{ borderBottom: '1px solid #1E1E22' }}>
           <div className="text-[10px] tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
-            Rediger periodiseringsmal
+            Rediger årsplan-mal
           </div>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase px-2 py-1"

@@ -80,7 +80,7 @@ export function PeriodiseringTab({ data }: { data: PeriodizationOverview }) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
-          Ingen sesong overlapper valgt periode. Opprett en sesong i Periodisering for å se oversikt her.
+          Ingen sesong overlapper valgt periode. Opprett en sesong i Årsplan for å se oversikt her.
         </p>
       </div>
     )
@@ -499,10 +499,10 @@ function MethodNote() {
       </p>
       <p className="text-xs leading-relaxed"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        <strong style={{ color: '#F0F0F2' }}>Sesongen</strong> er den du har opprettet i Periodisering — oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
+        <strong style={{ color: '#F0F0F2' }}>Sesongen</strong> er den du har opprettet i Årsplan — oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
         {' '}<strong style={{ color: '#F0F0F2' }}>TSS</strong> per periode bruker samme formel som Belastning-fanen (minutter i sone × sone-vekt).
         {' '}<strong style={{ color: '#F0F0F2' }}>Konkurranser</strong> teller økter markert som <em>competition</em>/<em>testlop</em> pluss nøkkeldatoer av typen A/B/C-løp i periodens datointervall — dobbelttelling kan forekomme hvis du har både nøkkeldato og registrert løpet som økt.
-        {' '}Oppdater mål og detaljer i Periodisering-seksjonen.
+        {' '}Oppdater mål og detaljer i Årsplan-seksjonen.
       </p>
     </div>
   )

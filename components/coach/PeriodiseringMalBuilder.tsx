@@ -226,7 +226,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
-            {editing ? 'Rediger periodiseringsmal' : 'Ny periodiseringsmal'}
+            {editing ? 'Rediger årsplan-mal' : 'Ny årsplan-mal'}
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{

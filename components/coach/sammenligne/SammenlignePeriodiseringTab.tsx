@@ -36,7 +36,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
       <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Ingen utøvere har aktiv sesong eller periodiseringsdata.
+          Ingen utøvere har aktiv sesong eller årsplan-data.
         </p>
       </div>
     )

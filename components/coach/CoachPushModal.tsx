@@ -491,7 +491,7 @@ function kindLabel(kind: PushKind): string {
   switch (kind) {
     case 'workout': return 'øktmal'
     case 'plan': return 'plan-mal'
-    case 'periodization': return 'periodiseringsmal'
+    case 'periodization': return 'årsplan-mal'
   }
 }
 

@@ -71,7 +71,7 @@ const TABS: [Tab, string][] = [
   ['helse', 'Helse'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
-  ['periodisering', 'Periodisering'],
+  ['periodisering', 'Årsplan'],
 ]
 
 function LoadingStub({ label }: { label: string }) {
@@ -86,12 +86,15 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
-  initialStats, initialOverview, initialRange, initialFavorites = [],
+  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId,
 }: {
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
   initialFavorites?: string[]
+  // Når satt: trener ser/redigerer utøverens analyse. Sendes med til
+  // TesterPRTab → PersonalRecordModal slik at trener-PR lagres på utøver.
+  targetUserId?: string
 }) {
   return (
     <FavoritesProvider initialFavorites={initialFavorites}>
@@ -99,17 +102,19 @@ export function AnalysisPage({
         initialStats={initialStats}
         initialOverview={initialOverview}
         initialRange={initialRange}
+        targetUserId={targetUserId}
       />
     </FavoritesProvider>
   )
 }
 
 function AnalysisPageInner({
-  initialStats, initialOverview, initialRange,
+  initialStats, initialOverview, initialRange, targetUserId,
 }: {
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
+  targetUserId?: string
 }) {
   const { orderedKeys: favoriteKeys } = useFavorites()
   const [tab, setTab] = useState<Tab>('oversikt')
@@ -459,11 +464,11 @@ function AnalysisPageInner({
         {tab === 'periodisering' && (
           periodisering
             ? <PeriodiseringTab data={periodisering} />
-            : <LoadingStub label="Laster periodisering…" />
+            : <LoadingStub label="Laster årsplan…" />
         )}
         {tab === 'tester_pr' && (
           testsAndPRs
-            ? <TesterPRTab data={testsAndPRs} />
+            ? <TesterPRTab data={testsAndPRs} targetUserId={targetUserId} />
             : <LoadingStub label="Laster tester og PR…" />
         )}
       </div>

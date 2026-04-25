@@ -136,7 +136,7 @@ function PhaseCard({ phase }: { phase: OversiktPhase | null }) {
     return (
       <Card kicker="Periode" accent="#1A6FD4" href="/app/periodisering">
         <CardTitle>Ingen aktiv fase</CardTitle>
-        <CardMeta>Definer perioder i periodiseringsplanen.</CardMeta>
+        <CardMeta>Definer perioder i årsplanen.</CardMeta>
       </Card>
     )
   }

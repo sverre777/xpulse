@@ -10,7 +10,7 @@ import {
   StrengthExerciseRow, StrengthSetRow,
   ActivityLactateMeasurement,
   CompetitionData, CompetitionType,
-  TestData,
+  TestData, TestPRSport,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -98,6 +98,8 @@ function competitionRowToForm(row: {
 
 function testRowToForm(row: {
   sport: string | null
+  subcategory: string | null
+  custom_label: string | null
   test_type: string | null
   primary_result: number | null
   primary_unit: string | null
@@ -114,7 +116,12 @@ function testRowToForm(row: {
     }
   }
   return {
-    sport: (row.sport as Sport) ?? '',
+    // Eldre rader kan ha lagret Sport-verdi her ('running' osv.).
+    // De vises som blank sport i ny TestPRSport-modell, og brukeren kan
+    // velge på nytt før neste lagring.
+    sport: (row.sport as TestPRSport) ?? '',
+    subcategory: row.subcategory ?? '',
+    custom_label: row.custom_label ?? '',
     test_type: row.test_type ?? '',
     primary_result: row.primary_result != null ? String(row.primary_result) : '',
     primary_unit: row.primary_unit ?? '',
@@ -645,18 +652,28 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     await supabase.from('workout_competition_data').delete().eq('workout_id', savedId!)
   }
 
-  // Fase 31: test-data — egen tabell, upsert per workout_id.
+  // Fase 31/32: test-data — egen tabell, upsert per workout_id.
+  // Test/PR-sport (TestPRSport) lagres i sport-kolonnen sammen med
+  // subcategory + custom_label. test_type avledes for bakoverkompatibilitet.
   const isTestWorkout = data.workout_type === 'test'
-  if (isTestWorkout && data.test_data && (data.test_data.test_type || data.test_data.primary_result)) {
+  if (isTestWorkout && data.test_data && (data.test_data.subcategory || data.test_data.custom_label || data.test_data.primary_result)) {
     const td = data.test_data
     const primary = td.primary_result.trim()
+    const derivedTestType =
+      td.test_type
+      || (td.sport === 'annet' ? td.custom_label.trim() : '')
+      || (td.subcategory === 'Egen' ? td.custom_label.trim() : '')
+      || td.subcategory
+      || 'annet'
     const { error: tErr } = await supabase
       .from('workout_test_data')
       .upsert({
         workout_id: savedId!,
         user_id: resolved.userId,
-        sport: td.sport || data.sport,
-        test_type: td.test_type || 'annet',
+        sport: td.sport || 'annet',
+        subcategory: td.subcategory || null,
+        custom_label: td.custom_label || null,
+        test_type: derivedTestType,
         primary_result: primary ? parseFloat(primary.replace(',', '.')) : null,
         primary_unit: td.primary_unit || null,
         secondary_results: td.secondary_results ?? {},

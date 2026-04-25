@@ -19,7 +19,7 @@ function timeAgo(iso: string): string {
 const CONTEXT_LABEL: Record<InboxCommentItem['context'], string> = {
   plan: 'Plan',
   dagbok: 'Dagbok',
-  periodisering: 'Periodisering',
+  periodisering: 'Årsplan',
 }
 
 export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) {

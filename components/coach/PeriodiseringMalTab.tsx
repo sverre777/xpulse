@@ -55,7 +55,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {initialTemplates.length} periodiseringsmal{initialTemplates.length === 1 ? '' : 'er'}
+          {initialTemplates.length} årsplan-mal{initialTemplates.length === 1 ? '' : 'er'}
         </p>
         <button type="button" onClick={() => { setBuildingFrom(null); setBuilderOpen(true) }}
           className="px-4 py-2 text-xs tracking-widest uppercase"
@@ -64,7 +64,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
             backgroundColor: COACH_BLUE, color: '#F0F0F2',
             border: 'none', cursor: 'pointer',
           }}>
-          + Ny periodiseringsmal
+          + Ny årsplan-mal
         </button>
       </div>
 
@@ -83,8 +83,8 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
         <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             {initialTemplates.length === 0
-              ? 'Ingen periodiseringsmaler ennå. Trykk "+ Ny periodiseringsmal" for å bygge din første mal.'
-              : 'Ingen periodiseringsmaler matcher filtrene.'}
+              ? 'Ingen årsplan-maler ennå. Trykk "+ Ny årsplan-mal" for å bygge din første mal.'
+              : 'Ingen årsplan-maler matcher filtrene.'}
           </p>
         </div>
       ) : (

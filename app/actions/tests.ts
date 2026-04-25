@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
-import { Sport } from '@/lib/types'
+import { Sport, TestPRSport } from '@/lib/types'
 
 export type TestTemplate = {
   id: string
@@ -184,7 +184,13 @@ export async function pushTestTemplateToAthlete(
 
 export type PersonalRecordInput = {
   id?: string
-  sport: Sport
+  // sport er Test/PR-sport (TestPRSport — Løping, Sykling, Styrke, …),
+  // ikke nødvendigvis lik en utholdenhets-Sport. Lagres som tekst.
+  sport: TestPRSport
+  subcategory?: string | null
+  custom_label?: string | null
+  // record_type er avledet identifikator brukt for gruppering/kompatibilitet
+  // (typisk = subcategory eller custom_label).
   record_type: string
   value: number
   unit: string
@@ -192,6 +198,10 @@ export type PersonalRecordInput = {
   workout_id?: string | null
   notes?: string | null
   is_manual?: boolean
+  // Når true opprettes også en planlagt/ferdig workout (workout_type='test')
+  // i Dagbok på datoen, slik at testen teller med i belastning og kalender.
+  // Workout knyttes til PR-raden via workout_id.
+  log_to_dagbok?: boolean
 }
 
 // Oppretter eller oppdaterer en PR. Gjenbruker resolveTargetUser slik at
@@ -209,14 +219,60 @@ export async function savePersonalRecord(
     if (!Number.isFinite(input.value)) return { error: 'Verdi må være et tall' }
     if (!input.achieved_at) return { error: 'Dato mangler' }
 
+    // Når log_to_dagbok er på (kun ved nye PR-er, ikke ved redigering)
+    // opprettes også en workout + workout_test_data og PR-raden får
+    // workout_id-pekeren satt.
+    let workoutId: string | null = input.workout_id ?? null
+    if (!input.id && input.log_to_dagbok) {
+      const title = input.custom_label?.trim()
+        || input.subcategory?.trim()
+        || input.record_type.trim()
+        || 'Test'
+      const { data: w, error: wErr } = await supabase
+        .from('workouts')
+        .insert({
+          user_id: resolved.userId,
+          date: input.achieved_at,
+          title,
+          // Workout sport-feltet bruker Sport-typen. Vi mapper TestPRSport
+          // til en passende Sport for kalender/dagbok-rendring.
+          sport: testPRSportToWorkoutSport(input.sport),
+          workout_type: 'test',
+          is_planned: false,
+          is_completed: true,
+        })
+        .select('id')
+        .single()
+      if (wErr || !w) return { error: wErr?.message ?? 'Kunne ikke opprette økt' }
+      workoutId = w.id as string
+
+      const { error: tErr } = await supabase
+        .from('workout_test_data')
+        .insert({
+          workout_id: workoutId,
+          user_id: resolved.userId,
+          sport: input.sport,
+          subcategory: input.subcategory ?? null,
+          custom_label: input.custom_label ?? null,
+          test_type: input.record_type.trim(),
+          primary_result: input.value,
+          primary_unit: input.unit.trim(),
+          secondary_results: {},
+          protocol_notes: input.notes?.trim() || null,
+        })
+      if (tErr) return { error: tErr.message }
+    }
+
     const row = {
       user_id: resolved.userId,
       sport: input.sport,
+      subcategory: input.subcategory ?? null,
+      custom_label: input.custom_label ?? null,
       record_type: input.record_type.trim(),
       value: input.value,
       unit: input.unit.trim(),
       achieved_at: input.achieved_at,
-      workout_id: input.workout_id ?? null,
+      workout_id: workoutId,
       notes: input.notes?.trim() ? input.notes.trim() : null,
       is_manual: input.is_manual ?? true,
     }
@@ -229,6 +285,7 @@ export async function savePersonalRecord(
         .eq('user_id', resolved.userId)
       if (error) return { error: error.message }
       revalidatePath('/app/analyse')
+      revalidatePath('/app/dagbok')
       return { id: input.id }
     }
 
@@ -239,10 +296,27 @@ export async function savePersonalRecord(
       .single()
     if (error || !data) return { error: error?.message ?? 'Insert feilet' }
     revalidatePath('/app/analyse')
+    revalidatePath('/app/dagbok')
     return { id: data.id as string }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `savePersonalRecord: ${msg}` }
+  }
+}
+
+// Map Test/PR-sport til en utholdenhets-Sport for workouts-tabellen.
+// workouts.sport krever en Sport-verdi, så vi velger nærmeste passform
+// for kalender/dagbok-rendring. Styrke/spenst/skyting/annet faller
+// tilbake til 'endurance' (generell sport).
+function testPRSportToWorkoutSport(s: TestPRSport): Sport {
+  switch (s) {
+    case 'lop':        return 'running'
+    case 'sykling':    return 'cycling'
+    case 'svomming':   return 'triathlon'
+    case 'langrenn':   return 'cross_country_skiing'
+    case 'skiskyting': return 'biathlon'
+    case 'triathlon':  return 'triathlon'
+    default:           return 'endurance'
   }
 }
 

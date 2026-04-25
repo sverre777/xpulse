@@ -67,8 +67,8 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   skyting_training_vs_comp: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Trening vs. konkurranse' },
 
   // Periodisering
-  periodisering_tss_per_period: { tab: 'periodisering', tabLabel: 'Periodisering', title: 'Sum TSS per periode' },
-  periodisering_competitions_per_period: { tab: 'periodisering', tabLabel: 'Periodisering', title: 'Antall konkurranser per periode' },
+  periodisering_tss_per_period: { tab: 'periodisering', tabLabel: 'Årsplan', title: 'Sum TSS per periode' },
+  periodisering_competitions_per_period: { tab: 'periodisering', tabLabel: 'Årsplan', title: 'Antall konkurranser per periode' },
 
   // Intensitet
   intensity_high_sessions_per_week: { tab: 'intensitet', tabLabel: 'Intensitetsfordeling', title: 'Antall økter med I4/I5/Hurtighet per uke' },

@@ -76,6 +76,7 @@ export async function AnalysePageView({ viewContext }: Props) {
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
         initialRange={range}
         initialFavorites={initialFavorites}
+        targetUserId={targetId}
       />
     )
   } catch (error) {

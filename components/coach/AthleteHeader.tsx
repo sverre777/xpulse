@@ -132,7 +132,7 @@ export function AthleteHeader({ context }: Props) {
         <PermissionIcon label="Plan (rediger)" granted={permissions.can_edit_plan} />
         <PermissionIcon label="Dagbok (les)" granted={permissions.can_view_dagbok} />
         <PermissionIcon label="Analyse (les)" granted={permissions.can_view_analysis} />
-        <PermissionIcon label="Periodisering (rediger)" granted={permissions.can_edit_periodization} />
+        <PermissionIcon label="Årsplan (rediger)" granted={permissions.can_edit_periodization} />
       </div>
     </section>
   )

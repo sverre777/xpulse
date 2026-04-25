@@ -156,7 +156,7 @@ export async function duplicatePeriodizationTemplate(id: string): Promise<{ erro
   if (!user) return { error: 'Ikke innlogget' }
 
   const source = await getPeriodizationTemplate(id)
-  if (!source) return { error: 'Fant ikke periodiserings-mal' }
+  if (!source) return { error: 'Fant ikke årsplan-mal' }
 
   const now = new Date().toISOString()
   const { data, error } = await supabase.from('periodization_templates').insert({

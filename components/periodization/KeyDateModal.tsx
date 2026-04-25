@@ -85,7 +85,7 @@ export function KeyDateModal({
       )
       if (!ans1) return
       cascade = confirm(
-        'Slett også den planlagte økten som er koblet til?\n\nOK = slett også økten\nAvbryt = behold økten uten periodiseringsobjekt'
+        'Slett også den planlagte økten som er koblet til?\n\nOK = slett også økten\nAvbryt = behold økten uten årsplan-objekt'
       )
     } else {
       if (!confirm(`Slette "${editing.name}"?`)) return

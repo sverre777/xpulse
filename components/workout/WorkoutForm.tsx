@@ -388,9 +388,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       {form.workout_type === 'test' && (
         <div className="mt-4">
           <TestDataModule
-            data={form.test_data ?? emptyTestData(form.sport)}
+            data={form.test_data ?? emptyTestData()}
             onChange={d => set('test_data', d)}
-            sport={form.sport}
             mode={isPlanMode ? 'plan' : 'dagbok'}
           />
         </div>

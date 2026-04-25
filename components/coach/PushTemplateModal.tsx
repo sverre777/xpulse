@@ -102,7 +102,7 @@ export function PushTemplateModal({
           <TabButton label="Økt"           active={tab === 'okt'}          onClick={() => setTab('okt')} disabled={!canEditPlan} />
           <TabButton label="Konkurranse"   active={tab === 'konkurranse'}  onClick={() => setTab('konkurranse')} disabled={!canEditPlan} />
           <TabButton label="Plan-mal"      active={tab === 'plan'}         onClick={() => setTab('plan')} disabled={!canEditPlan} />
-          <TabButton label="Periodisering" active={tab === 'periodisering'} onClick={() => setTab('periodisering')} disabled={!canEditPeriodization} />
+          <TabButton label="Årsplan" active={tab === 'periodisering'} onClick={() => setTab('periodisering')} disabled={!canEditPeriodization} />
         </div>
 
         <div className="p-5">
@@ -458,7 +458,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
     return (
       <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        Ingen periodiseringsmaler ennå.
+        Ingen årsplan-maler ennå.
       </p>
     )
   }
@@ -468,7 +468,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
     startTransition(async () => {
       const res = await pushPeriodizationTemplateToAthlete({ athleteId, templateId, startDate })
       if (res.error) { onError(res.error); return }
-      onDone(`Periodisering opprettet fra ${startDate}`)
+      onDone(`Årsplan opprettet fra ${startDate}`)
     })
   }
 
@@ -485,7 +485,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle()} />
       </div>
       <div className="flex justify-end mt-2">
-        <PrimaryButton label={isPending ? 'Sender…' : 'Push periodisering'} onClick={submit} disabled={isPending} />
+        <PrimaryButton label={isPending ? 'Sender…' : 'Push årsplan'} onClick={submit} disabled={isPending} />
       </div>
     </div>
   )

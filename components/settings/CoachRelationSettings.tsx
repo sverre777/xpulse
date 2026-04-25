@@ -163,7 +163,7 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
           disabled={isPending}
         />
         <PermissionToggle
-          label="Periodisering (se + endre)"
+          label="Årsplan (se + endre)"
           checked={perm.can_edit_periodization}
           onToggle={() => togglePerm('can_edit_periodization')}
           disabled={isPending}

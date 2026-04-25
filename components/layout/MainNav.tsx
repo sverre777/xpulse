@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { href: '/app/oversikt',      label: 'Oversikt' },
   { href: '/app/dagbok',        label: 'Dagbok' },
   { href: '/app/plan',          label: 'Plan' },
-  { href: '/app/periodisering', label: 'Periodisering' },
+  { href: '/app/periodisering', label: 'Årsplan' },
   { href: '/app/analyse',       label: 'Analyse' },
   { href: '/app/ai-coach',      label: 'AI Coach' },
   { href: '/app/historikk',     label: 'Historikk' },

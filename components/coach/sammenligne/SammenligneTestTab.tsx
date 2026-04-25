@@ -5,7 +5,6 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import type { AthleteTestsSnapshot } from '@/app/actions/comparison'
 import type { PersonalRecordRow } from '@/app/actions/analysis'
 import { ChartWrapper, AXIS_STYLE, GRID_COLOR, TOOLTIP_STYLE } from '@/components/analysis/ChartWrapper'
-import type { Sport } from '@/lib/types'
 
 const PALETTE = ['#1A6FD4', '#FF4500', '#D4A017', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
 function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
@@ -39,7 +38,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
 
   // Bygg felles sett av PR-typer på tvers av utøvere.
   const prKeys = useMemo(() => {
-    const set = new Map<string, { sport: Sport; record_type: string; unit: string }>()
+    const set = new Map<string, { sport: string; record_type: string; unit: string }>()
     valid.forEach(r => r.tests!.personalRecords.forEach(pr => {
       const key = `${pr.sport}::${pr.record_type}::${pr.unit}`
       if (!set.has(key)) set.set(key, { sport: pr.sport, record_type: pr.record_type, unit: pr.unit })
@@ -128,7 +127,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
 
 function bestPR(
   records: PersonalRecordRow[],
-  meta: { sport: Sport; record_type: string; unit: string },
+  meta: { sport: string; record_type: string; unit: string },
 ): PersonalRecordRow | null {
   const matches = records.filter(r =>
     r.sport === meta.sport && r.record_type === meta.record_type && r.unit === meta.unit,

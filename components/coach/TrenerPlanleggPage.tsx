@@ -51,7 +51,7 @@ export function TrenerPlanleggPage({
         </div>
         <p className="mb-6 text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          Bygg øktmaler, plan-maler og periodiseringsmaler — push til utøvere eller grupper.
+          Bygg øktmaler, plan-maler og årsplan-maler — push til utøvere eller grupper.
         </p>
 
         <TabBar tab={tab} setTab={setTab} />
@@ -90,7 +90,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'okt', label: 'Øktmaler' },
     { key: 'plan', label: 'Plan-maler' },
-    { key: 'periodisering', label: 'Periodiseringsmaler' },
+    { key: 'periodisering', label: 'Årsplan-maler' },
     { key: 'test', label: 'Test-maler' },
   ]
   return (

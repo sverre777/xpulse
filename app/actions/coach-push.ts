@@ -799,7 +799,7 @@ export async function pushPeriodizationTemplateToAthlete(
     .eq('user_id', check.coachId)
     .maybeSingle()
   if (tplErr) return { error: tplErr.message }
-  if (!tpl) return { error: 'Fant ikke periodiseringsmal' }
+  if (!tpl) return { error: 'Fant ikke årsplan-mal' }
 
   const data = (tpl.periodization_data ?? {
     season: { name: tpl.name, goal_main: null, goal_secondary: null, sport: null, kpi_notes: null },
@@ -904,7 +904,7 @@ export async function pushPeriodizationTemplateToAthlete(
   await notifyAthlete({
     athleteId: input.athleteId,
     type: 'periodization_push',
-    title: 'Ny periodisering fra trener',
+    title: 'Ny årsplan fra trener',
     content: `${tpl.name} · ${periodRows.length} perioder`,
     linkUrl: `/app/periodisering`,
   })

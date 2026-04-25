@@ -232,8 +232,13 @@ export interface WorkoutFormData {
 // ── Test-økter (Fase 31) ───────────────────────────────────
 
 export interface TestData {
+  // sport er Test/PR-sport (TestPRSport — Løping, Sykling, Styrke, …),
+  // ikke nødvendigvis lik workout.sport.
+  sport: TestPRSport | ''
+  subcategory: string
+  custom_label: string
+  // Legacy/avledet ID for testen (auto-utledes fra subcategory/custom_label).
   test_type: string
-  sport: Sport | ''
   // Primærresultat (typisk tid i sek, watt, vo2max, 1RM kg, etc.)
   primary_result: string
   primary_unit: string
@@ -243,10 +248,12 @@ export interface TestData {
   conditions: string
 }
 
-export function emptyTestData(defaultSport: Sport = 'running'): TestData {
+export function emptyTestData(): TestData {
   return {
+    sport: '',
+    subcategory: '',
+    custom_label: '',
     test_type: '',
-    sport: defaultSport,
     primary_result: '',
     primary_unit: '',
     secondary_results: {},
@@ -293,6 +300,56 @@ export const TEST_TYPES_BY_SPORT: Record<Sport, { value: string; label: string; 
     { value: 'lt2',       label: 'LT2 / terskel',        unit: 'watt' },
     { value: '1rm',       label: '1RM styrke',           unit: 'kg' },
   ],
+}
+
+// ── Test/PR sport + underkategori (felles for Dagbok og Analyse) ─
+//
+// Egen modell for Test/PR-skjema. Skiller seg fra Sport-typen over
+// ved at den dekker hele bredden av disipliner brukerne logger PR i
+// (ikke bare utholdenhetssporter), og ved at hver sport har sine
+// egne underkategorier. "Egen"/"Annet" → fritekst-felt (custom_label).
+export type TestPRSport =
+  | 'lop' | 'sykling' | 'svomming' | 'langrenn' | 'skiskyting'
+  | 'triathlon' | 'styrke' | 'spenst' | 'skyting' | 'annet'
+
+export interface TestPRSportDef {
+  value: TestPRSport
+  label: string
+  // Underkategorier vises som dropdown. Tom liste = kun fritekst.
+  subcategories: string[]
+}
+
+// "Egen" er standardverdi for fritekst-overstyring i hver sport
+// med dropdown. "Annet" har kun fritekst (ingen dropdown).
+export const TEST_PR_SPORTS_AND_SUBCATEGORIES: TestPRSportDef[] = [
+  { value: 'lop',        label: 'Løping',
+    subcategories: ['Vei', 'Terreng', 'Bane', 'Tredemølle', 'Egen'] },
+  { value: 'sykling',    label: 'Sykling',
+    subcategories: ['Landevei', 'Terreng', 'Innendørs', 'Egen'] },
+  { value: 'svomming',   label: 'Svømming',
+    subcategories: ['Basseng (25m)', 'Basseng (50m)', 'Åpent vann', 'Egen'] },
+  { value: 'langrenn',   label: 'Langrenn',
+    subcategories: ['Skøyting', 'Klassisk', 'Rulleski skøyting', 'Rulleski klassisk', 'Egen'] },
+  { value: 'skiskyting', label: 'Skiskyting',
+    subcategories: ['Sprint', 'Jaktstart', 'Normal', 'Fellesstart', 'Egen'] },
+  { value: 'triathlon',  label: 'Triathlon',
+    subcategories: ['Sprint', 'Olympisk', 'Halv Ironman', 'Ironman', 'Egen'] },
+  { value: 'styrke',     label: 'Styrke',
+    subcategories: [
+      'Helkropp', 'Overkropp', 'Underkropp',
+      'Knebøy 1RM', 'Markløft 1RM', 'Benkpress 1RM', 'Pull-ups maks reps',
+      'Egen',
+    ] },
+  { value: 'spenst',     label: 'Spenst/hopp',
+    subcategories: ['CMJ', 'Stående lengde', 'Stående høyde', '30m sprint', 'Egen'] },
+  { value: 'skyting',    label: 'Skyting',
+    subcategories: ['Liggende', 'Stående', 'Standardøvelse', 'Egen'] },
+  { value: 'annet',      label: 'Annet',
+    subcategories: [] },
+]
+
+export function findTestPRSport(value: string): TestPRSportDef | null {
+  return TEST_PR_SPORTS_AND_SUBCATEGORIES.find(s => s.value === value) ?? null
 }
 
 // ── Activities (Fase 7) ────────────────────────────────────

@@ -42,7 +42,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'helse',           label: 'Helse' },
   { key: 'konkurranser',    label: 'Konkurranser' },
   { key: 'test',            label: 'Tester & PR' },
-  { key: 'periodisering',   label: 'Periodisering' },
+  { key: 'periodisering',   label: 'Årsplan' },
 ]
 
 export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
@@ -215,7 +215,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           tests ? <SammenligneTestTab data={tests} /> : <Stub label="Laster tester og PR…" />
         )}
         {hasValidSelection && tab === 'periodisering' && (
-          multi ? <SammenlignePeriodiseringTab data={multi} /> : <Stub label="Laster periodisering…" />
+          multi ? <SammenlignePeriodiseringTab data={multi} /> : <Stub label="Laster årsplan…" />
         )}
       </div>
     </div>

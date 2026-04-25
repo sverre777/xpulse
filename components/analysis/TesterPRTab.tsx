@@ -7,30 +7,33 @@ import {
   CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { TestsAndPRs, TestResultRow, TestProgressionSeries, PersonalRecordRow } from '@/app/actions/analysis'
-import { SPORTS, type Sport } from '@/lib/types'
+import {
+  SPORTS, TEST_PR_SPORTS_AND_SUBCATEGORIES, findTestPRSport,
+} from '@/lib/types'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 import { PersonalRecordModal, type PRPreset } from './PersonalRecordModal'
 
 // Forhåndsutfylte PR-kategorier. Dekker de vanligste PR-typene på tvers
-// av utholdenhet, styrke og laboratorie-tester. Sport settes bare når
-// verdien er sport-spesifikk; ellers arver modalen aktiv sport-fane.
+// av utholdenhet, styrke og laboratorie-tester. Bruker den nye
+// TestPRSport + subcategory-modellen.
 const PR_PRESETS: { label: string; preset: PRPreset }[] = [
-  { label: 'Styrke', preset: { record_type: 'Styrke', unit: 'kg', placeholder: 'f.eks. 120' } },
-  { label: 'VO2max', preset: { record_type: 'VO2max', unit: 'ml/kg/min', placeholder: 'f.eks. 68' } },
-  { label: 'FTP', preset: { record_type: 'FTP', unit: 'watt', sport: 'cycling', placeholder: 'f.eks. 320' } },
-  { label: 'Terskel-puls', preset: { record_type: 'Terskel-puls', unit: 'bpm', placeholder: 'f.eks. 172' } },
-  { label: 'Maks puls', preset: { record_type: 'Maks puls', unit: 'bpm', placeholder: 'f.eks. 198' } },
-  { label: '5km', preset: { record_type: '5km', unit: 'sek', sport: 'running', placeholder: 'sekunder, f.eks. 1122' } },
-  { label: '10km', preset: { record_type: '10km', unit: 'sek', sport: 'running', placeholder: 'sekunder' } },
-  { label: 'Halvmaraton', preset: { record_type: 'Halvmaraton', unit: 'sek', sport: 'running' } },
-  { label: 'Maraton', preset: { record_type: 'Maraton', unit: 'sek', sport: 'running' } },
+  { label: 'Knebøy 1RM', preset: { sport: 'styrke', subcategory: 'Knebøy 1RM', unit: 'kg', placeholder: 'f.eks. 120' } },
+  { label: 'Markløft 1RM', preset: { sport: 'styrke', subcategory: 'Markløft 1RM', unit: 'kg', placeholder: 'f.eks. 160' } },
+  { label: 'Benkpress 1RM', preset: { sport: 'styrke', subcategory: 'Benkpress 1RM', unit: 'kg', placeholder: 'f.eks. 90' } },
+  { label: 'Pull-ups maks', preset: { sport: 'styrke', subcategory: 'Pull-ups maks reps', unit: 'reps', placeholder: 'f.eks. 18' } },
+  { label: 'VO2max', preset: { sport: 'lop', subcategory: 'Egen', custom_label: 'VO2max (labtest)', unit: 'ml/kg/min', placeholder: 'f.eks. 68' } },
+  { label: 'FTP', preset: { sport: 'sykling', subcategory: 'Egen', custom_label: 'FTP (20-min)', unit: 'watt', placeholder: 'f.eks. 320' } },
+  { label: '5 km vei', preset: { sport: 'lop', subcategory: 'Vei', unit: 'sek', placeholder: 'sekunder, f.eks. 1122' } },
+  { label: '10 km vei', preset: { sport: 'lop', subcategory: 'Vei', unit: 'sek', placeholder: 'sekunder' } },
+  { label: 'CMJ', preset: { sport: 'spenst', subcategory: 'CMJ', unit: 'cm', placeholder: 'f.eks. 42' } },
 ]
 
 // Blå aksent matcher TestDataModule-visualspråket.
 const TEST_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
 
-const SPORT_COLOR: Record<Sport, string> = {
+const SPORT_COLOR: Record<string, string> = {
+  // Sport (eldre rader)
   running: '#FF4500',
   cross_country_skiing: '#1A6FD4',
   biathlon: '#E11D48',
@@ -38,9 +41,32 @@ const SPORT_COLOR: Record<Sport, string> = {
   cycling: '#28A86E',
   long_distance_skiing: '#D4A017',
   endurance: '#8A8A96',
+  // TestPRSport (ny modell)
+  lop: '#FF4500',
+  sykling: '#28A86E',
+  svomming: '#1A6FD4',
+  langrenn: '#1A6FD4',
+  skiskyting: '#E11D48',
+  styrke: '#D4A017',
+  spenst: '#A855F7',
+  skyting: '#0EA5E9',
+  annet: '#8A8A96',
 }
 
-function labelSport(s: Sport): string { return SPORTS.find(x => x.value === s)?.label ?? s }
+// Sport-feltet kan inneholde TestPRSport (ny) eller Sport (eldre rader).
+// Slå opp i begge tabeller, med TestPRSport først.
+function labelSport(s: string): string {
+  const tp = findTestPRSport(s)
+  if (tp) return tp.label
+  return SPORTS.find(x => x.value === s)?.label ?? s
+}
+
+// Liste over alle Test/PR-sport-verdier som kan bli brukt som filter.
+const ALL_SPORT_VALUES: string[] = [
+  ...TEST_PR_SPORTS_AND_SUBCATEGORIES.map(s => s.value),
+  ...SPORTS.map(s => s.value),
+]
+void ALL_SPORT_VALUES
 
 function formatValue(v: number, unit: string | null): string {
   if (!isFinite(v)) return '—'
@@ -91,6 +117,52 @@ function ProgressionChart({ series }: { series: TestProgressionSeries }) {
   )
 }
 
+// Indikator-badge for hvor en PR-rad kommer fra:
+// "Manuell"  = lagt inn via PR-modal uten knytning til økt
+// "Økt"      = stammer fra workout (workout_id satt)
+function PRSourceBadge({ pr }: { pr: PersonalRecordRow }) {
+  const isLinked = !!pr.workout_id
+  const label = isLinked ? 'Økt' : 'Manuell'
+  const color = isLinked ? TEST_BLUE : '#8A8A96'
+  return (
+    <span className="ml-2 px-1.5 py-0.5 text-[9px] tracking-widest uppercase"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif",
+        color, border: `1px solid ${color}55`,
+      }}>
+      {label}
+    </span>
+  )
+}
+
+function PRRow({ pr, onEdit }: { pr: PersonalRecordRow; onEdit: () => void }) {
+  return (
+    <button type="button" onClick={onEdit}
+      className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
+      style={{ borderBottom: '1px solid #1E1E22' }}>
+      <div>
+        <p className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
+          {pr.custom_label || pr.record_type}
+          <PRSourceBadge pr={pr} />
+        </p>
+        <p className="text-sm"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          {pr.achieved_at}{pr.notes ? ` · ${pr.notes}` : ''}
+        </p>
+      </div>
+      <p className="text-xl"
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+        {formatValue(pr.value, pr.unit)}
+        <span className="ml-1 text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          {pr.unit}
+        </span>
+      </p>
+    </button>
+  )
+}
+
 function TestRowItem({ row }: { row: TestResultRow }) {
   return (
     <Link href={`/app/dagbok/${row.workout_id}`}
@@ -130,8 +202,8 @@ function TestRowItem({ row }: { row: TestResultRow }) {
   )
 }
 
-export function TesterPRTab({ data }: { data: TestsAndPRs }) {
-  const [sportTab, setSportTab] = useState<Sport | 'all'>('all')
+export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetUserId?: string }) {
+  const [sportTab, setSportTab] = useState<string>('all')
   const [prModal, setPrModal] = useState<
     | { mode: 'new'; preset?: PRPreset }
     | { mode: 'edit'; row: PersonalRecordRow }
@@ -151,8 +223,36 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
     [data.progressions, sportTab],
   )
 
+  // Gruppering av PR-er pr (sport, subcategory). Test-rader (workout-koblede)
+  // kan også vises i samme tre når PR-rad mangler — men typisk er PR-er
+  // master-listen. Vi grupperer kun PR-er her; tests vises i egen tidslinje.
+  const groupedPRs = useMemo(() => {
+    type Group = { sport: string; subcategory: string; rows: PersonalRecordRow[] }
+    const map = new Map<string, Group>()
+    for (const pr of filteredPRs) {
+      const subKey = pr.subcategory || pr.custom_label || pr.record_type || '—'
+      const key = `${pr.sport}::${subKey}`
+      let g = map.get(key)
+      if (!g) {
+        g = { sport: pr.sport, subcategory: subKey, rows: [] }
+        map.set(key, g)
+      }
+      g.rows.push(pr)
+    }
+    // Sorter rader nyligst først, så grupper alfabetisk per sport-label.
+    for (const g of map.values()) {
+      g.rows.sort((a, b) => b.achieved_at.localeCompare(a.achieved_at))
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const sa = labelSport(a.sport)
+      const sb = labelSport(b.sport)
+      if (sa !== sb) return sa.localeCompare(sb)
+      return a.subcategory.localeCompare(b.subcategory)
+    })
+  }, [filteredPRs])
+
   const sportsInUse = useMemo(() => {
-    const set = new Set<Sport>()
+    const set = new Set<string>()
     for (const t of data.tests) set.add(t.sport)
     for (const p of data.personalRecords) set.add(p.sport)
     return Array.from(set)
@@ -226,8 +326,8 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
   const modal = prModal && (
     <PersonalRecordModal
       existing={prModal.mode === 'edit' ? prModal.row : undefined}
-      defaultSport={sportTab === 'all' ? 'running' : sportTab}
       preset={prModal.mode === 'new' ? prModal.preset : undefined}
+      targetUserId={targetUserId}
       onClose={() => setPrModal(null)}
       onSaved={() => setPrModal(null)}
     />
@@ -249,43 +349,50 @@ export function TesterPRTab({ data }: { data: TestsAndPRs }) {
       {headerBar}
       {presetBar}
 
-      {filteredPRs.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-3">
+      {groupedPRs.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
             <span style={{ width: '16px', height: '2px', backgroundColor: GOLD, display: 'inline-block' }} />
             <h2 className="text-sm tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
               Personlige rekorder
             </h2>
           </div>
-          <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
-            {filteredPRs.map(pr => (
-              <button key={pr.id} type="button"
-                onClick={() => setPrModal({ mode: 'edit', row: pr })}
-                className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
-                style={{ borderBottom: '1px solid #1E1E22' }}>
-                <div>
-                  <p className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
-                    {pr.record_type} — {labelSport(pr.sport)}
-                    {pr.is_manual && <span className="ml-2" style={{ color: '#555560' }}>· manuell</span>}
-                  </p>
-                  <p className="text-sm"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                    {pr.achieved_at}{pr.notes ? ` · ${pr.notes}` : ''}
-                  </p>
-                </div>
-                <p className="text-xl"
-                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
-                  {formatValue(pr.value, pr.unit)}
-                  <span className="ml-1 text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                    {pr.unit}
-                  </span>
-                </p>
-              </button>
-            ))}
-          </div>
+          {/* Gruppert per sport → underkategori. Hver rad har badge for
+              kilde (manuell vs koblet til økt). */}
+          {Object.entries(
+            groupedPRs.reduce<Record<string, typeof groupedPRs>>((acc, g) => {
+              (acc[g.sport] ??= []).push(g)
+              return acc
+            }, {})
+          ).map(([sport, groups]) => (
+            <div key={sport}>
+              <p className="mb-2 text-[10px] tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: SPORT_COLOR[sport] ?? '#8A8A96' }}>
+                <span style={{
+                  display: 'inline-block', width: '8px', height: '8px',
+                  backgroundColor: SPORT_COLOR[sport] ?? '#8A8A96', marginRight: '6px',
+                }} />
+                {labelSport(sport)}
+              </p>
+              <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+                {groups.map(g => (
+                  <div key={`${g.sport}::${g.subcategory}`}>
+                    <p className="px-4 py-2 text-[10px] tracking-widest uppercase"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        color: '#8A8A96',
+                        backgroundColor: '#16161A',
+                        borderBottom: '1px solid #1E1E22',
+                      }}>
+                      {g.subcategory}
+                    </p>
+                    {g.rows.map(pr => <PRRow key={pr.id} pr={pr} onEdit={() => setPrModal({ mode: 'edit', row: pr })} />)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </section>
       )}
 

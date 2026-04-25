@@ -26,7 +26,7 @@ export function AthleteTabsNav({ athleteId, permissions }: Props) {
     { slug: 'plan',          label: 'Plan',          enabled: true },
     { slug: 'dagbok',        label: 'Dagbok',        enabled: permissions.can_view_dagbok, hint: 'Ingen lesetilgang' },
     { slug: 'analyse',       label: 'Analyse',       enabled: permissions.can_view_analysis, hint: 'Ingen analysetilgang' },
-    { slug: 'periodisering', label: 'Periodisering', enabled: true },
+    { slug: 'periodisering', label: 'Årsplan', enabled: true },
     { slug: 'historikk',     label: 'Historikk',     enabled: permissions.can_view_dagbok, hint: 'Følger dagbok-tilgang' },
   ]
 

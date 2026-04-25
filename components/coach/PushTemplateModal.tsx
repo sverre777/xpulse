@@ -11,8 +11,11 @@ import {
   pushPeriodizationTemplateToAthlete,
   listCoachPlanTemplates,
   listCoachPeriodizationTemplates,
+  getPlanTemplateForPush,
   type CoachOwnTemplateSummary,
+  type PlanTemplatePushPreview,
 } from '@/app/actions/coach-push'
+import { addDays, formatNorskKortDato } from '@/lib/template-dates'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -383,10 +386,31 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
   const { list, loadError } = useTemplateList(listCoachPlanTemplates)
   const [templateId, setTemplateId] = useState('')
   const [startDate, setStartDate] = useState(todayIso())
+  const [preview, setPreview] = useState<PlanTemplatePushPreview | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  // Hold cache av endrede datoer per indeks. Tomt felt = bruk beregnet dato.
+  const [overrides, setOverrides] = useState<Record<number, string>>({})
+  const [showDateTable, setShowDateTable] = useState(false)
 
   useEffect(() => {
     if (list && list.length > 0 && !templateId) setTemplateId(list[0].id)
   }, [list, templateId])
+
+  // Last preview når valgt mal endres. Reset overrides og start-modus.
+  useEffect(() => {
+    if (!templateId) return
+    let alive = true
+    setPreview(null); setPreviewError(null); setOverrides({})
+    ;(async () => {
+      const res = await getPlanTemplateForPush(templateId)
+      if (!alive) return
+      if ('error' in res) { setPreviewError(res.error); return }
+      setPreview(res)
+      // Hvis malen har lagret startdato, default til den (trener kan overstyre).
+      if (res.startDate) setStartDate(res.startDate)
+    })()
+    return () => { alive = false }
+  }, [templateId])
 
   if (loadError) {
     return <p className="text-xs"
@@ -405,12 +429,22 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
     )
   }
 
+  const usingOriginalStart = !!(preview?.startDate && startDate === preview.startDate)
+  const computedDateForWorkout = (dayOffset: number) => addDays(startDate, dayOffset)
+
   const submit = () => {
     if (!templateId) { onError('Velg en mal'); return }
+    if (!startDate) { onError('Startdato er påkrevd'); return }
     startTransition(async () => {
-      const res = await pushPlanTemplateToAthlete({ athleteId, templateId, startDate })
+      const res = await pushPlanTemplateToAthlete({
+        athleteId, templateId, startDate,
+        workoutDateOverrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+      })
       if (res.error) { onError(res.error); return }
-      onDone(`Plan sendt (${res.createdCount ?? 0} økter fra ${startDate})`)
+      const r = res.report
+      const skippedTotal = (r?.skippedDayStates ?? 0) + (r?.skippedPeriodNotes ?? 0) + (r?.skippedFocusPoints ?? 0)
+      const skipNote = skippedTotal > 0 ? ` · ${skippedTotal} eksisterende beholdt` : ''
+      onDone(`Plan sendt (${r?.createdCount ?? 0} økter fra ${startDate})${skipNote}`)
     })
   }
 
@@ -426,10 +460,123 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
           ))}
         </select>
       </div>
+
       <div>
         <label style={labelStyle()}>Startdato</label>
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle()} />
+        {preview?.startDate && (
+          <div className="flex items-center gap-2 mt-1.5">
+            <button
+              type="button"
+              onClick={() => setStartDate(preview.startDate ?? startDate)}
+              disabled={usingOriginalStart}
+              className="text-[10px] tracking-widest uppercase px-2 py-1"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
+                background: 'transparent',
+                border: `1px solid ${usingOriginalStart ? '#1E1E22' : COACH_BLUE}`,
+                cursor: usingOriginalStart ? 'default' : 'pointer',
+              }}
+            >
+              {usingOriginalStart ? `Bruker malens dato (${preview.startDate})` : `Bruk malens dato (${preview.startDate})`}
+            </button>
+          </div>
+        )}
       </div>
+
+      {previewError && (
+        <p className="text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
+          {previewError}
+        </p>
+      )}
+
+      {preview && preview.workouts.length > 0 && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowDateTable(s => !s)}
+            className="text-[10px] tracking-widest uppercase px-2 py-1"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: '#8A8A96', background: 'transparent', border: '1px solid #1E1E22',
+              cursor: 'pointer',
+            }}
+          >
+            {showDateTable ? `Skjul dato-tabell (${preview.workouts.length})` : `Juster datoer per økt (${preview.workouts.length})`}
+          </button>
+          {showDateTable && (
+            <div className="mt-2"
+              style={{
+                border: '1px solid #1E1E22', maxHeight: '260px', overflowY: 'auto',
+              }}>
+              <table className="w-full text-xs"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                <thead style={{ backgroundColor: '#16161A' }}>
+                  <tr>
+                    <Th>Økt</Th>
+                    <Th>Original dag</Th>
+                    <Th>Beregnet</Th>
+                    <Th>Bruk</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.workouts.map(w => {
+                    const computed = computedDateForWorkout(w.dayOffset)
+                    const value = overrides[w.index] ?? computed
+                    const isOverride = !!overrides[w.index] && overrides[w.index] !== computed
+                    return (
+                      <tr key={w.index} style={{ borderTop: '1px solid #1E1E22' }}>
+                        <Td>
+                          <span className="block truncate" style={{ maxWidth: '160px' }}>
+                            {w.title}
+                          </span>
+                          <span className="text-[10px]" style={{ color: '#555560' }}>
+                            {w.sport} · {w.workoutType}
+                          </span>
+                        </Td>
+                        <Td><span style={{ color: '#8A8A96' }}>Dag {w.dayOffset + 1}</span></Td>
+                        <Td>
+                          <span style={{ color: isOverride ? '#8A8A96' : '#F0F0F2' }}>
+                            {formatNorskKortDato(computed)}
+                          </span>
+                        </Td>
+                        <Td>
+                          <input
+                            type="date"
+                            value={value}
+                            onChange={e => {
+                              const next = e.target.value
+                              setOverrides(prev => {
+                                const cp = { ...prev }
+                                if (!next || next === computed) delete cp[w.index]
+                                else cp[w.index] = next
+                                return cp
+                              })
+                            }}
+                            style={{
+                              ...inputStyle(),
+                              padding: '4px 6px',
+                              borderColor: isOverride ? COACH_BLUE : '#1E1E22',
+                            }}
+                          />
+                        </Td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      <p className="text-[10px]"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Eksisterende hviledager, perioden-notater og fokuspunkter på utøveren beholdes — bare nye legges til.
+      </p>
+
       <div className="flex justify-end mt-2">
         <PrimaryButton label={isPending ? 'Sender…' : 'Push plan'} onClick={submit} disabled={isPending} />
       </div>
@@ -437,14 +584,36 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
   )
 }
 
+function Th({ children }: { children: React.ReactNode }) {
+  return (
+    <th className="text-left px-2 py-1.5 text-[10px] tracking-widest uppercase"
+      style={{ color: '#8A8A96', fontWeight: 'normal' }}>
+      {children}
+    </th>
+  )
+}
+function Td({ children }: { children: React.ReactNode }) {
+  return <td className="px-2 py-1.5 align-top">{children}</td>
+}
+
 function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, onDone, onError }: CommonFormProps) {
   const { list, loadError } = useTemplateList(listCoachPeriodizationTemplates)
   const [templateId, setTemplateId] = useState('')
   const [startDate, setStartDate] = useState(todayIso())
+  const [allowOverlap, setAllowOverlap] = useState(false)
+  const [overlapWarning, setOverlapWarning] = useState<{ id: string; name: string; start_date: string; end_date: string }[] | null>(null)
 
   useEffect(() => {
     if (list && list.length > 0 && !templateId) setTemplateId(list[0].id)
   }, [list, templateId])
+
+  // Når valgt mal endres: hvis malen har lagret startdato, default til den.
+  useEffect(() => {
+    if (!templateId || !list) return
+    const t = list.find(x => x.id === templateId)
+    if (t?.startDate) setStartDate(t.startDate)
+    setAllowOverlap(false); setOverlapWarning(null)
+  }, [templateId, list])
 
   if (loadError) {
     return <p className="text-xs"
@@ -463,11 +632,22 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
     )
   }
 
+  const selected = list.find(t => t.id === templateId) ?? null
+  const usingOriginalStart = !!(selected?.startDate && startDate === selected.startDate)
+
   const submit = () => {
     if (!templateId) { onError('Velg en mal'); return }
+    if (!startDate) { onError('Startdato er påkrevd'); return }
     startTransition(async () => {
-      const res = await pushPeriodizationTemplateToAthlete({ athleteId, templateId, startDate })
+      const res = await pushPeriodizationTemplateToAthlete({
+        athleteId, templateId, startDate, allowOverlap,
+      })
       if (res.error) { onError(res.error); return }
+      if (res.overlap && res.overlap.length > 0) {
+        setOverlapWarning(res.overlap)
+        return
+      }
+      setOverlapWarning(null)
       onDone(`Årsplan opprettet fra ${startDate}`)
     })
   }
@@ -483,7 +663,52 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
       <div>
         <label style={labelStyle()}>Startdato</label>
         <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle()} />
+        {selected?.startDate && (
+          <div className="flex items-center gap-2 mt-1.5">
+            <button
+              type="button"
+              onClick={() => setStartDate(selected.startDate ?? startDate)}
+              disabled={usingOriginalStart}
+              className="text-[10px] tracking-widest uppercase px-2 py-1"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
+                background: 'transparent',
+                border: `1px solid ${usingOriginalStart ? '#1E1E22' : COACH_BLUE}`,
+                cursor: usingOriginalStart ? 'default' : 'pointer',
+              }}
+            >
+              {usingOriginalStart ? `Bruker malens dato (${selected.startDate})` : `Bruk malens dato (${selected.startDate})`}
+            </button>
+          </div>
+        )}
       </div>
+
+      {overlapWarning && overlapWarning.length > 0 && (
+        <div className="text-xs px-3 py-2"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#E0A030',
+            border: '1px solid #E0A03066', background: '#1A1410',
+          }}>
+          <p className="mb-1">Utøveren har allerede sesong som overlapper:</p>
+          <ul className="list-disc pl-4">
+            {overlapWarning.map(s => (
+              <li key={s.id}>{s.name} ({s.start_date}–{s.end_date})</li>
+            ))}
+          </ul>
+          <label className="flex items-center gap-2 mt-2 cursor-pointer">
+            <input type="checkbox" checked={allowOverlap}
+              onChange={e => setAllowOverlap(e.target.checked)} />
+            <span>Behold begge — opprett ny sesong likevel</span>
+          </label>
+        </div>
+      )}
+
+      <p className="text-[10px]"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Eksisterende sesonger og perioder beholdes — den nye legges ved siden av.
+      </p>
+
       <div className="flex justify-end mt-2">
         <PrimaryButton label={isPending ? 'Sender…' : 'Push årsplan'} onClick={submit} disabled={isPending} />
       </div>

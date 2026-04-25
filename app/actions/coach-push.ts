@@ -34,6 +34,7 @@ export interface CoachOwnTemplateSummary {
   name: string
   description: string | null
   durationDays?: number
+  startDate?: string | null
   updatedAt: string
 }
 
@@ -390,7 +391,7 @@ export async function listCoachPlanTemplates(): Promise<
   if (!user) return { error: 'Ikke innlogget' }
   const { data, error } = await supabase
     .from('plan_templates')
-    .select('id, name, description, duration_days, updated_at')
+    .select('id, name, description, duration_days, start_date, updated_at')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
   if (error) return { error: error.message }
@@ -399,6 +400,7 @@ export async function listCoachPlanTemplates(): Promise<
     name: t.name,
     description: t.description,
     durationDays: t.duration_days,
+    startDate: (t.start_date as string | null) ?? null,
     updatedAt: t.updated_at,
   }))
 }
@@ -411,7 +413,7 @@ export async function listCoachPeriodizationTemplates(): Promise<
   if (!user) return { error: 'Ikke innlogget' }
   const { data, error } = await supabase
     .from('periodization_templates')
-    .select('id, name, description, duration_days, updated_at')
+    .select('id, name, description, duration_days, start_date, updated_at')
     .eq('user_id', user.id)
     .order('updated_at', { ascending: false })
   if (error) return { error: error.message }
@@ -420,8 +422,60 @@ export async function listCoachPeriodizationTemplates(): Promise<
     name: t.name,
     description: t.description,
     durationDays: t.duration_days,
+    startDate: (t.start_date as string | null) ?? null,
     updatedAt: t.updated_at,
   }))
+}
+
+// Henter en plan-mal i et lett format som modalen kan vise i dato-tabell.
+// Inkluderer hver økts indeks (matcher rekkefølgen i plan_data.workouts) slik
+// at workoutDateOverrides kan bruke samme indeks ved push.
+export interface PlanTemplatePushPreviewWorkout {
+  index: number
+  dayOffset: number
+  title: string
+  sport: string
+  workoutType: string
+  timeOfDay: string | null
+}
+export interface PlanTemplatePushPreview {
+  id: string
+  name: string
+  durationDays: number
+  startDate: string | null
+  workouts: PlanTemplatePushPreviewWorkout[]
+}
+
+export async function getPlanTemplateForPush(
+  templateId: string,
+): Promise<PlanTemplatePushPreview | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { data, error } = await supabase
+    .from('plan_templates')
+    .select('id, name, duration_days, start_date, plan_data')
+    .eq('id', templateId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Fant ikke mal' }
+  const planData = (data.plan_data ?? { workouts: [] }) as PlanTemplateData
+  const workouts: PlanTemplatePushPreviewWorkout[] = (planData.workouts ?? []).map((w, i) => ({
+    index: i,
+    dayOffset: w.day_offset,
+    title: w.title || '(uten tittel)',
+    sport: w.sport,
+    workoutType: w.workout_type,
+    timeOfDay: w.time_of_day ?? null,
+  }))
+  return {
+    id: data.id as string,
+    name: data.name as string,
+    durationDays: data.duration_days as number,
+    startDate: (data.start_date as string | null) ?? null,
+    workouts,
+  }
 }
 
 // ── Plan-mal → materialisering ──────────────────────────────
@@ -619,9 +673,27 @@ function diffDaysISO(fromISO: string, toISO: string): number {
   return Math.round((b.getTime() - a.getTime()) / 86400000)
 }
 
+export interface PlanTemplatePushInput {
+  athleteId: string
+  templateId: string
+  startDate: string
+  endDate?: string
+  // Override-dato per workout-indeks (matcher rekkefølgen i plan_data.workouts).
+  // Brukes når trener vil flytte enkelte økter manuelt fra det skalerte tidspunktet.
+  workoutDateOverrides?: Record<number, string>
+}
+
+// Merge-rapport returneres slik at klient kan vise hva som ble hoppet over.
+export interface PlanTemplatePushReport {
+  createdCount: number
+  skippedDayStates: number
+  skippedPeriodNotes: number
+  skippedFocusPoints: number
+}
+
 export async function pushPlanTemplateToAthlete(
-  input: { athleteId: string; templateId: string; startDate: string; endDate?: string },
-): Promise<{ createdCount?: number; error?: string }> {
+  input: PlanTemplatePushInput,
+): Promise<{ report?: PlanTemplatePushReport; error?: string }> {
   const check = await assertActiveCoach(input.athleteId)
   if (!check.ok) return { error: check.error }
   if (!input.startDate) return { error: 'Startdato er påkrevd' }
@@ -651,10 +723,18 @@ export async function pushPlanTemplateToAthlete(
     }
   }
 
+  // Hjelper: utled målpdato for én workout (override > skalering > rå offset).
+  const overrides = input.workoutDateOverrides ?? {}
+  const targetDateForIndex = (i: number, dayOffset: number): string => {
+    const ov = overrides[i]
+    if (ov && /^\d{4}-\d{2}-\d{2}$/.test(ov)) return ov
+    return addDaysISO(input.startDate, scaleDays(dayOffset))
+  }
+
   // ── Økter ──
-  const workoutRows = (planData.workouts ?? []).map(w => ({
+  const workoutRows = (planData.workouts ?? []).map((w, i) => ({
     user_id: input.athleteId,
-    date: addDaysISO(input.startDate, scaleDays(w.day_offset)),
+    date: targetDateForIndex(i, w.day_offset),
     time_of_day: w.time_of_day ?? null,
     title: w.title,
     sport: w.sport,
@@ -689,8 +769,9 @@ export async function pushPlanTemplateToAthlete(
     }
   }
 
-  // ── Day states ──
-  const dayStateRows = (planData.day_states ?? []).map(s => ({
+  // ── Day states ── (merge: ikke overskriv eksisterende state for utøveren)
+  let skippedDayStates = 0
+  const dayStateCandidates = (planData.day_states ?? []).map(s => ({
     user_id: input.athleteId,
     date: addDaysISO(input.startDate, scaleDays(s.day_offset)),
     state_type: s.state_type,
@@ -698,21 +779,34 @@ export async function pushPlanTemplateToAthlete(
     sub_type: s.sub_type,
     notes: s.notes,
   }))
-  if (dayStateRows.length > 0) {
-    const { error: dsErr } = await supabase
+  if (dayStateCandidates.length > 0) {
+    const dates = Array.from(new Set(dayStateCandidates.map(d => d.date)))
+    const { data: existingDs, error: exErr } = await supabase
       .from('day_states')
-      .upsert(dayStateRows, { onConflict: 'user_id,date,state_type' })
-    if (dsErr) return { error: `day_states: ${dsErr.message}` }
+      .select('date, state_type')
+      .eq('user_id', input.athleteId)
+      .in('date', dates)
+    if (exErr) return { error: `day_states (lookup): ${exErr.message}` }
+    const existingKey = new Set(
+      (existingDs ?? []).map(r => `${r.date}|${r.state_type}`),
+    )
+    const toInsert = dayStateCandidates.filter(r => !existingKey.has(`${r.date}|${r.state_type}`))
+    skippedDayStates = dayStateCandidates.length - toInsert.length
+    if (toInsert.length > 0) {
+      const { error: dsErr } = await supabase.from('day_states').insert(toInsert)
+      if (dsErr) return { error: `day_states: ${dsErr.message}` }
+    }
   }
 
-  // ── Period notes (week/month, context='plan') ──
+  // ── Period notes (week/month, context='plan') ── (merge: behold eksisterende)
+  let skippedPeriodNotes = 0
   const startWeekKey = isoWeekKeyForDate(input.startDate)
   const startMonthKey = input.startDate.slice(0, 7)
-  const notesRows: { user_id: string; scope: 'week' | 'month'; period_key: string; context: 'plan'; note: string }[] = []
+  const noteCandidates: { user_id: string; scope: 'week' | 'month'; period_key: string; context: 'plan'; note: string }[] = []
   for (const [offStr, note] of Object.entries(planData.week_notes ?? {})) {
     const off = parseInt(offStr)
     if (!Number.isFinite(off)) continue
-    notesRows.push({
+    noteCandidates.push({
       user_id: input.athleteId, scope: 'week',
       period_key: addWeeksISOWeek(startWeekKey, off),
       context: 'plan', note,
@@ -721,21 +815,34 @@ export async function pushPlanTemplateToAthlete(
   for (const [offStr, note] of Object.entries(planData.month_notes ?? {})) {
     const off = parseInt(offStr)
     if (!Number.isFinite(off)) continue
-    notesRows.push({
+    noteCandidates.push({
       user_id: input.athleteId, scope: 'month',
       period_key: addMonthsMonthKey(startMonthKey, off),
       context: 'plan', note,
     })
   }
-  if (notesRows.length > 0) {
-    const { error: nErr } = await supabase
+  if (noteCandidates.length > 0) {
+    const { data: existingNotes, error: nLookupErr } = await supabase
       .from('period_notes')
-      .upsert(notesRows, { onConflict: 'user_id,scope,period_key,context' })
-    if (nErr) return { error: `period_notes: ${nErr.message}` }
+      .select('scope, period_key')
+      .eq('user_id', input.athleteId)
+      .eq('context', 'plan')
+      .in('period_key', noteCandidates.map(n => n.period_key))
+    if (nLookupErr) return { error: `period_notes (lookup): ${nLookupErr.message}` }
+    const existingNoteKey = new Set(
+      (existingNotes ?? []).map(r => `${r.scope}:${r.period_key}`),
+    )
+    const toInsertNotes = noteCandidates.filter(n => !existingNoteKey.has(`${n.scope}:${n.period_key}`))
+    skippedPeriodNotes = noteCandidates.length - toInsertNotes.length
+    if (toInsertNotes.length > 0) {
+      const { error: nErr } = await supabase.from('period_notes').insert(toInsertNotes)
+      if (nErr) return { error: `period_notes: ${nErr.message}` }
+    }
   }
 
-  // ── Focus points ──
-  const focusRows = (planData.focus_points ?? []).map((f: PlanTemplateFocusPoint) => {
+  // ── Focus points ── (merge: hopp over hvis identisk content allerede finnes)
+  let skippedFocusPoints = 0
+  const focusCandidates = (planData.focus_points ?? []).map((f: PlanTemplateFocusPoint) => {
     let period_key: string
     if (f.scope === 'day') period_key = addDaysISO(input.startDate, scaleDays(f.period_offset))
     else if (f.scope === 'week') period_key = addWeeksISOWeek(startWeekKey, f.period_offset)
@@ -749,9 +856,31 @@ export async function pushPlanTemplateToAthlete(
       sort_order: f.sort_order,
     }
   })
-  if (focusRows.length > 0) {
-    const { error: fErr } = await supabase.from('focus_points').insert(focusRows)
-    if (fErr) return { error: `focus_points: ${fErr.message}` }
+  if (focusCandidates.length > 0) {
+    const keys = Array.from(new Set(focusCandidates.map(f => f.period_key)))
+    const { data: existingFocus, error: fLookupErr } = await supabase
+      .from('focus_points')
+      .select('scope, period_key, content')
+      .eq('user_id', input.athleteId)
+      .eq('context', 'plan')
+      .in('period_key', keys)
+    if (fLookupErr) return { error: `focus_points (lookup): ${fLookupErr.message}` }
+    const existingFocusKey = new Set(
+      (existingFocus ?? []).map(r => `${r.scope}|${r.period_key}|${r.content}`),
+    )
+    const toInsertFocus = focusCandidates.filter(f => !existingFocusKey.has(`${f.scope}|${f.period_key}|${f.content}`))
+    skippedFocusPoints = focusCandidates.length - toInsertFocus.length
+    if (toInsertFocus.length > 0) {
+      const { error: fErr } = await supabase.from('focus_points').insert(toInsertFocus)
+      if (fErr) return { error: `focus_points: ${fErr.message}` }
+    }
+  }
+
+  const report: PlanTemplatePushReport = {
+    createdCount,
+    skippedDayStates,
+    skippedPeriodNotes,
+    skippedFocusPoints,
   }
 
   await writeAudit({
@@ -760,7 +889,12 @@ export async function pushPlanTemplateToAthlete(
     actionType: 'push_plan_template',
     entityType: 'plan_template',
     entityId: tpl.id,
-    details: { start_date: input.startDate, count: createdCount, template_name: tpl.name },
+    details: {
+      start_date: input.startDate,
+      template_name: tpl.name,
+      ...report,
+      override_count: Object.keys(overrides).length,
+    },
   })
   await notifyAthlete({
     athleteId: input.athleteId,
@@ -772,7 +906,7 @@ export async function pushPlanTemplateToAthlete(
 
   revalidatePath(`/app/trener/${input.athleteId}/plan`)
   revalidatePath(`/app/plan`)
-  return { createdCount }
+  return { report }
 }
 
 // ── Periodisering-mal → materialisering ─────────────────────

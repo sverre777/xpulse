@@ -147,7 +147,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
             if (r.error) results.push({ athleteId: aid, athleteName: name, ok: false, message: r.error })
             else results.push({
               athleteId: aid, athleteName: name, ok: true,
-              message: `${r.createdCount ?? 0} økter materialisert`,
+              message: `${r.report?.createdCount ?? 0} økter materialisert`,
             })
           } else {
             const r = await pushPeriodizationTemplateToAthlete({

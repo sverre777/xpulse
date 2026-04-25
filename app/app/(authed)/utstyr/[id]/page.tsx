@@ -5,6 +5,7 @@ import {
   getSkiData,
   listWorkoutsForEquipment,
 } from '@/app/actions/equipment'
+import { listSkiTestsForSki } from '@/app/actions/ski-tests'
 import { EquipmentDetailView } from '@/components/equipment/EquipmentDetailView'
 
 export default async function EquipmentDetailPage({
@@ -21,6 +22,17 @@ export default async function EquipmentDetailPage({
   if (!equipment) notFound()
 
   const workouts = await listWorkoutsForEquipment(id)
-  const skiData = equipment.category === 'ski' ? await getSkiData(id) : null
-  return <EquipmentDetailView equipment={equipment} workouts={workouts} skiData={skiData} />
+  const isSki = equipment.category === 'ski'
+  const [skiData, skiTests] = await Promise.all([
+    isSki ? getSkiData(id) : Promise.resolve(null),
+    isSki ? listSkiTestsForSki(id) : Promise.resolve([]),
+  ])
+  return (
+    <EquipmentDetailView
+      equipment={equipment}
+      workouts={workouts}
+      skiData={skiData}
+      skiTests={skiTests}
+    />
+  )
 }

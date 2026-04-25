@@ -22,6 +22,7 @@ import {
   type EquipmentWithUsage,
   type SkiType,
 } from '@/lib/equipment-types'
+import type { SkiTestWithEntries } from '@/lib/ski-test-types'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -36,9 +37,10 @@ interface Props {
     duration_minutes: number | null
   }>
   skiData?: EquipmentSkiData | null
+  skiTests?: SkiTestWithEntries[]
 }
 
-export function EquipmentDetailView({ equipment, workouts, skiData = null }: Props) {
+export function EquipmentDetailView({ equipment, workouts, skiData = null, skiTests = [] }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -242,6 +244,10 @@ export function EquipmentDetailView({ equipment, workouts, skiData = null }: Pro
           <SkiDataSection equipmentId={equipment.id} skiData={skiData} />
         )}
 
+        {equipment.category === 'ski' && (
+          <SkiTestHistorySection skiId={equipment.id} tests={skiTests} />
+        )}
+
         <h2 className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Brukt på {workouts.length} økt{workouts.length === 1 ? '' : 'er'}
@@ -414,6 +420,120 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
       </div>
     </form>
   )
+}
+
+function SkiTestHistorySection({ skiId, tests }: { skiId: string; tests: SkiTestWithEntries[] }) {
+  const myEntries = tests
+    .map(t => {
+      const entry = t.entries.find(e => e.ski_id === skiId)
+      return entry ? { test: t, entry } : null
+    })
+    .filter((x): x is { test: SkiTestWithEntries; entry: SkiTestWithEntries['entries'][number] } => x !== null)
+
+  if (myEntries.length === 0) {
+    return (
+      <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <p className="text-xs tracking-widest uppercase mb-2"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Ski-tester
+        </p>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          Ingen tester registrert for dette skiparet. Start en test fra Min skipark.
+        </p>
+      </div>
+    )
+  }
+
+  const bestConditions = analyseBestConditions(myEntries)
+
+  return (
+    <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <p className="text-xs tracking-widest uppercase mb-3"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Ski-tester ({myEntries.length})
+      </p>
+
+      {bestConditions.length > 0 && (
+        <div className="mb-4 p-3" style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+          <p className="text-[10px] tracking-widest uppercase mb-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Beste forhold for paret
+          </p>
+          {bestConditions.map(c => (
+            <div key={c.label} className="flex items-center justify-between py-1">
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                {c.label}
+              </span>
+              <span className="text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                snitt {c.avgRating.toFixed(1)} · {c.count} test{c.count === 1 ? '' : 'er'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {myEntries.map(({ test, entry }) => {
+          const condition = [test.snow_type, test.conditions].filter(Boolean).join(' · ')
+          const stats: string[] = []
+          if (typeof entry.rank_in_test === 'number') stats.push(`#${entry.rank_in_test}`)
+          if (typeof entry.rating === 'number') stats.push(`${entry.rating}/10`)
+          if (typeof entry.time_seconds === 'number') stats.push(`${entry.time_seconds}s`)
+          return (
+            <div key={entry.id} className="px-3 py-2"
+              style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="min-w-0">
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                    {test.test_date}{test.location ? ` · ${test.location}` : ''}
+                  </p>
+                  {condition && (
+                    <p className="text-xs"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      {condition}
+                      {test.air_temp != null ? ` · luft ${test.air_temp}°` : ''}
+                      {test.snow_temp != null ? ` · snø ${test.snow_temp}°` : ''}
+                    </p>
+                  )}
+                </div>
+                <span className="text-xs tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  {stats.join(' · ') || '—'}
+                </span>
+              </div>
+              {(entry.wax_used || entry.slip_used) && (
+                <p className="text-xs mt-1"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  {[entry.wax_used && `Smøring: ${entry.wax_used}`, entry.slip_used && `Slip: ${entry.slip_used}`]
+                    .filter(Boolean).join(' · ')}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function analyseBestConditions(items: Array<{ test: SkiTestWithEntries; entry: SkiTestWithEntries['entries'][number] }>) {
+  const groups = new Map<string, { sum: number; count: number }>()
+  for (const { test, entry } of items) {
+    if (typeof entry.rating !== 'number' || !test.snow_type) continue
+    const key = test.snow_type
+    const cur = groups.get(key) ?? { sum: 0, count: 0 }
+    cur.sum += entry.rating
+    cur.count += 1
+    groups.set(key, cur)
+  }
+  const result = Array.from(groups.entries()).map(([label, { sum, count }]) => ({
+    label,
+    avgRating: sum / count,
+    count,
+  }))
+  result.sort((a, b) => b.avgRating - a.avgRating)
+  return result.slice(0, 3)
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

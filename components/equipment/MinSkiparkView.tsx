@@ -8,17 +8,22 @@ import {
   type SkiEquipment,
   type SkiType,
 } from '@/lib/equipment-types'
+import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
+import { NewSkiTestModal } from './NewSkiTestModal'
 
 const ATHLETE_ORANGE = '#FF4500'
 
 interface Props {
   ski: SkiEquipment[]
+  templates: UserConditionsTemplate[]
+  tests: SkiTestWithEntries[]
 }
 
 type Tab = SkiType | 'all'
 
-export function MinSkiparkView({ ski }: Props) {
+export function MinSkiparkView({ ski, templates, tests }: Props) {
   const [tab, setTab] = useState<Tab>('all')
+  const [showModal, setShowModal] = useState(false)
 
   const filtered = useMemo(() => {
     if (tab === 'all') return ski
@@ -41,6 +46,17 @@ export function MinSkiparkView({ ski }: Props) {
               Min skipark
             </h1>
           </div>
+          {ski.length >= 2 && (
+            <button type="button" onClick={() => setShowModal(true)}
+              className="px-4 py-2 text-sm tracking-widest uppercase"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2',
+                border: 'none', cursor: 'pointer',
+              }}>
+              + Ny test
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1 mb-6 flex-wrap">
@@ -67,6 +83,18 @@ export function MinSkiparkView({ ski }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filtered.map(s => <SkiCard key={s.id} ski={s} />)}
           </div>
+        )}
+
+        {tests.length > 0 && (
+          <RecentTestsSection tests={tests} ski={ski} />
+        )}
+
+        {showModal && (
+          <NewSkiTestModal
+            ski={ski}
+            templates={templates}
+            onClose={() => setShowModal(false)}
+          />
         )}
       </div>
     </div>
@@ -104,6 +132,63 @@ function SkiCard({ ski }: { ski: SkiEquipment }) {
         {ski.usage.total_km.toFixed(1)} km · {ski.usage.workout_count} økter
       </p>
     </Link>
+  )
+}
+
+function RecentTestsSection({ tests, ski }: { tests: SkiTestWithEntries[]; ski: SkiEquipment[] }) {
+  const skiById = new Map(ski.map(s => [s.id, s]))
+  const recent = tests.slice(0, 5)
+  return (
+    <div className="mt-10">
+      <h2 className="text-xs tracking-widest uppercase mb-3"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Siste tester
+      </h2>
+      <div className="space-y-2">
+        {recent.map(t => {
+          const winner = bestEntry(t)
+          const winnerSki = winner ? skiById.get(winner.ski_id) : null
+          const condition = [t.snow_type, t.conditions].filter(Boolean).join(' · ')
+          return (
+            <div key={t.id} className="px-4 py-3"
+              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                    {t.test_date}{t.location ? ` · ${t.location}` : ''}
+                  </p>
+                  {condition && (
+                    <p className="text-xs"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      {condition}
+                    </p>
+                  )}
+                </div>
+                <div className="text-right text-xs tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  {t.entries.length} ski
+                  {winnerSki && <> · 🏆 {winnerSki.name}</>}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function bestEntry(test: SkiTestWithEntries) {
+  const ranked = test.entries.filter(e => typeof e.rank_in_test === 'number')
+  if (ranked.length > 0) {
+    return ranked.reduce((best, e) =>
+      (best.rank_in_test! < e.rank_in_test!) ? best : e
+    )
+  }
+  const rated = test.entries.filter(e => typeof e.rating === 'number')
+  if (rated.length === 0) return null
+  return rated.reduce((best, e) =>
+    (best.rating! > e.rating!) ? best : e
   )
 }
 

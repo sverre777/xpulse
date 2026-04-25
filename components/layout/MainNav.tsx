@@ -29,6 +29,7 @@ const NAV_LINKS = [
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
+  { href: '/app/utstyr',        label: 'Utstyr' },
   { href: '/app/innstillinger', label: 'Innstillinger' },
 ]
 

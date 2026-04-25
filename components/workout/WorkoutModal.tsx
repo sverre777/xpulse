@@ -3,7 +3,9 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
+import { listEquipment, getWorkoutEquipmentIds } from '@/app/actions/equipment'
 import { Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
+import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
 import { CommentSection } from '@/components/coach/CommentSection'
@@ -31,22 +33,33 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
   const [defaults, setDefaults] = useState<Partial<WorkoutFormData> | null>(null)
   const [loading, setLoading] = useState(false)
   const [deleting, startDelete] = useTransition()
+  const [equipment, setEquipment] = useState<Equipment[]>([])
+  const [equipmentIds, setEquipmentIds] = useState<string[]>([])
 
   useEffect(() => {
-    if (!state) { setDefaults(null); return }
+    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); return }
     if (state.kind === 'create') {
       setDefaults({
         date: state.date,
         is_planned: state.formMode === 'plan',
         time_of_day: state.initialStartTime ?? '',
       })
-      return
+      setEquipmentIds([])
+    } else {
+      setLoading(true)
+      getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
+        setDefaults(d)
+        setLoading(false)
+      })
     }
-    setLoading(true)
-    getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
-      setDefaults(d)
-      setLoading(false)
-    })
+    // Last brukerens utstyr-bibliotek én gang per modal-åpning. Hopper over for
+    // trener-redigering siden trener ikke registrerer utstyr på utøvers vegne.
+    if (!targetUserId) {
+      listEquipment({ status: 'active' }).then(setEquipment)
+      if (state.kind === 'edit') {
+        getWorkoutEquipmentIds(state.workoutId).then(setEquipmentIds)
+      }
+    }
   }, [state, targetUserId])
 
   useEffect(() => {
@@ -147,6 +160,8 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
               onCancel={onClose}
               readOnly={readOnly}
               targetUserId={targetUserId}
+              availableEquipment={equipment}
+              initialEquipmentIds={equipmentIds}
             />
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">

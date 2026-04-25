@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout } from '@/app/actions/workouts'
 import { saveAsTemplate } from '@/app/actions/templates'
+import { setWorkoutEquipment } from '@/app/actions/equipment'
 import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
@@ -11,11 +12,13 @@ import {
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
 } from '@/lib/types'
+import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
+import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
 
 interface WorkoutFormProps {
@@ -47,6 +50,10 @@ interface WorkoutFormProps {
   // Brukerens default pace-enhet (profiles.default_pace_unit). Brukes til å vise
   // pace-felt i ActivitiesSection med riktig enhet ved første visning.
   defaultPaceUnit?: 'min_per_km' | 'km_per_h' | null
+  // Utstyr: hvilke ID-er som er valgt i denne økten + tilgjengelig liste.
+  // Når satt vises EquipmentSelectorInWorkout. Endringer lagres etter saveWorkout.
+  availableEquipment?: Equipment[]
+  initialEquipmentIds?: string[]
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -56,7 +63,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -112,6 +119,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
+
+  // Utstyr-valg for økten. Endres uavhengig av form-state; lagres separat etter saveWorkout.
+  const [equipmentIds, setEquipmentIds] = useState<string[]>(initialEquipmentIds)
 
   // Dirty-tracking: vi snapshotter første render som "rent" og varsler foreldre
   // når noen form-felt avviker. Brukes av plan-mal-bygger for å vise bekreftelses-
@@ -234,6 +244,12 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     const result = await saveWorkout(payload, workoutId, targetUserId)
     if (result.error) { setError(result.error); setSaving(false) }
     else {
+      // Lagre utstyr-koblinger separat. Hopper over for trener-redigering (ikke
+      // egen utstyr-tabell) og når formen er i ren plan-modus uten økt-id.
+      const savedId = result.id
+      if (savedId && !targetUserId && availableEquipment.length > 0) {
+        await setWorkoutEquipment(savedId, equipmentIds)
+      }
       if (onSaved) onSaved()
       else router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
       router.refresh()
@@ -546,6 +562,17 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </>
         )}
       </Section>
+
+      {/* ── UTSTYR ── */}
+      {availableEquipment.length > 0 && !targetUserId && (
+        <Section label="Utstyr">
+          <EquipmentSelectorInWorkout
+            available={availableEquipment}
+            selectedIds={equipmentIds}
+            onChange={setEquipmentIds}
+          />
+        </Section>
+      )}
 
       {/* ── SUBMIT ── */}
       <div className="pt-4 pb-8" hidden={readOnly}>

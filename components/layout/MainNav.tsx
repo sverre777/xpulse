@@ -25,11 +25,11 @@ const NAV_LINKS = [
   { href: '/app/analyse',       label: 'Analyse' },
   { href: '/app/ai-coach',      label: 'AI Coach' },
   { href: '/app/historikk',     label: 'Historikk' },
+  { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
-  { href: '/app/utstyr',        label: 'Utstyr' },
   { href: '/app/innstillinger', label: 'Innstillinger' },
 ]
 

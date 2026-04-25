@@ -6,6 +6,12 @@ import {
 } from '@/lib/heart-zones'
 import { HeartZonesSection } from '@/components/settings/HeartZonesSection'
 import { UnitsSection } from '@/components/settings/UnitsSection'
+import { ProfileSection } from '@/components/settings/ProfileSection'
+import { SecuritySection } from '@/components/settings/SecuritySection'
+import { NotificationsSection } from '@/components/settings/NotificationsSection'
+import { DataExportButton } from '@/components/settings/DataExportButton'
+import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
+import type { Sport } from '@/lib/types'
 
 export default async function InnstillingerPage() {
   const supabase = await createClient()
@@ -38,32 +44,28 @@ export default async function InnstillingerPage() {
           </h1>
         </div>
 
-        <div className="p-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-          <p className="text-xs tracking-widest uppercase mb-4"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Profil
-          </p>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Navn</p>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}>
-                {profile?.full_name ?? '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>E-post</p>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}>
-                {user.email ?? '—'}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Rolle</p>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}>
-                {profile?.role === 'coach' ? 'Trener' : 'Utøver'}
-              </p>
-            </div>
-          </div>
-        </div>
+        <ProfileSection
+          initialFirstName={profile?.first_name ?? null}
+          initialLastName={profile?.last_name ?? null}
+          initialFullName={profile?.full_name ?? null}
+          initialBirthYear={profile?.birth_year ?? null}
+          initialPrimarySport={(profile?.primary_sport ?? null) as Sport | null}
+          initialGender={profile?.gender ?? null}
+          initialCountry={profile?.country ?? null}
+          initialProfileImageUrl={profile?.profile_image_url ?? profile?.avatar_url ?? null}
+        />
+
+        <SecuritySection
+          currentEmail={user.email ?? '—'}
+          pendingEmail={profile?.email_change_pending ?? null}
+        />
+
+        <UnitsSection
+          initialPaceUnit={profile?.default_pace_unit ?? null}
+          initialDistanceUnit={profile?.default_distance_unit ?? null}
+          initialTemperatureUnit={profile?.default_temperature_unit ?? null}
+          initialWeightUnit={profile?.default_weight_unit ?? null}
+        />
 
         <HeartZonesSection
           birthYear={profile?.birth_year ?? null}
@@ -74,7 +76,30 @@ export default async function InnstillingerPage() {
           hasCustomZones={hasCustomZones}
         />
 
-        <UnitsSection initialPaceUnit={profile?.default_pace_unit ?? null} />
+        <NotificationsSection initial={{
+          coach_comment:    profile?.notify_email_coach_comment ?? true,
+          new_message:      profile?.notify_email_new_message ?? true,
+          plan_pushed:      profile?.notify_email_plan_pushed ?? true,
+          weekly_summary:   profile?.notify_email_weekly_summary ?? false,
+          product_updates:  profile?.notify_email_product_updates ?? false,
+        }} />
+
+        <div className="p-6 mt-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <p className="text-xs tracking-widest uppercase mb-4"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Personvern og data
+          </p>
+          <div className="space-y-4">
+            <DataExportButton />
+            <div>
+              <p className="text-xs mb-2"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                Slett kontoen og alle dine data. Du har 7 dagers angrefrist.
+              </p>
+              <DeleteAccountModal deletionRequestedAt={profile?.deletion_requested_at ?? null} />
+            </div>
+          </div>
+        </div>
 
         <Link href="/app/innstillinger/bevegelsesformer"
           className="flex items-center justify-between p-6 mt-6 transition-opacity hover:opacity-80"

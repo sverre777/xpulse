@@ -613,6 +613,23 @@ export interface Profile {
   resting_heart_rate: number | null
   // Foretrukket visningsenhet for fart/pace. null → bruker default 'min_per_km'.
   default_pace_unit: PaceUnitPref | null
+  // Fase 34: brukerkonto-innstillinger (profil/sikkerhet/enheter/varsler/GDPR)
+  first_name: string | null
+  last_name: string | null
+  profile_image_url: string | null
+  gender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
+  country: string | null
+  email_change_pending: string | null
+  email_change_requested_at: string | null
+  default_distance_unit: 'km' | 'mi' | null
+  default_temperature_unit: 'c' | 'f' | null
+  default_weight_unit: 'kg' | 'lb' | null
+  notify_email_coach_comment: boolean
+  notify_email_new_message: boolean
+  notify_email_plan_pushed: boolean
+  notify_email_weekly_summary: boolean
+  notify_email_product_updates: boolean
+  deletion_requested_at: string | null
   created_at: string
   updated_at: string
 }

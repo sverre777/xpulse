@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { savePlanTemplate, updatePlanTemplate } from '@/app/actions/plan-templates'
 import type {
@@ -9,6 +9,7 @@ import type {
 import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { RelativeDateCalendar } from '@/components/coach/RelativeDateCalendar'
 import { PlanMalDayEditor } from '@/components/coach/PlanMalDayEditor'
+import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -34,9 +35,28 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  const [initialSnapshot] = useState<string>(() => JSON.stringify({
+    name: editing?.name ?? '',
+    description: editing?.description ?? '',
+    category: editing?.category ?? sportToCategory(primarySport),
+    durationDays: editing?.duration_days ?? 28,
+    data: editing?.plan_data ?? EMPTY_DATA,
+  }))
+  const dirty = useMemo(
+    () => JSON.stringify({ name, description, category, durationDays, data }) !== initialSnapshot,
+    [name, description, category, durationDays, data, initialSnapshot],
+  )
+
+  const requestClose = useCallback(() => {
+    if (!confirmDiscardIfDirty(dirty)) return
+    onClose()
+  }, [dirty, onClose])
+
+  useBeforeUnloadGuard(dirty)
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && openDay == null) onClose()
+      if (e.key === 'Escape' && openDay == null) requestClose()
     }
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
@@ -45,7 +65,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [onClose, openDay])
+  }, [requestClose, openDay])
 
   const workoutsForOpen = useMemo(() => {
     if (openDay == null) return []
@@ -154,7 +174,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
 
   return (
     <div
-      onClick={onClose}
+      onClick={requestClose}
       className="px-2 md:px-3"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
@@ -176,7 +196,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {editing ? 'Rediger plan-mal' : 'Ny plan-mal'}
           </span>
-          <button type="button" onClick={onClose} aria-label="Lukk"
+          <button type="button" onClick={requestClose} aria-label="Lukk"
             style={{
               color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
@@ -235,7 +255,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
           />
 
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
-            <button type="button" onClick={onClose}
+            <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',

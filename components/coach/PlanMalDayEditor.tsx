@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
 import type { Sport, WorkoutFormData, WorkoutTemplate, ActivityRow } from '@/lib/types'
 import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-types'
+import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -31,9 +32,27 @@ export function PlanMalDayEditor({
   onAddWorkout, onUpdateWorkout, onRemoveWorkout, onSetRestDay, onClearRestDay, onClose,
 }: Props) {
   const [mode, setMode] = useState<Mode>({ kind: 'menu' })
+  // Dirty-state for indre WorkoutForm. Brukes til å beskytte mot tap av data ved
+  // klikk-utenfor / Escape. Nullstilles når brukeren bytter mode.
+  const [formDirty, setFormDirty] = useState(false)
+
+  // Forsøk å lukke — bekreft hvis form er dirty.
+  const requestClose = useCallback(() => {
+    if (mode.kind === 'workout' && formDirty) {
+      if (!confirmDiscardIfDirty(true)) return
+    }
+    onClose()
+  }, [mode.kind, formDirty, onClose])
+
+  // Bytt fra workout-mode tilbake til menu — bekreft hvis dirty.
+  const requestBackToMenu = useCallback(() => {
+    if (formDirty && !confirmDiscardIfDirty(true)) return
+    setFormDirty(false)
+    setMode({ kind: 'menu' })
+  }, [formDirty])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose() }
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -41,7 +60,9 @@ export function PlanMalDayEditor({
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [onClose])
+  }, [requestClose])
+
+  useBeforeUnloadGuard(formDirty)
 
   const handleCapture = (data: WorkoutFormData) => {
     const w = toPlanWorkout(data, dayOffset)
@@ -50,16 +71,21 @@ export function PlanMalDayEditor({
     } else {
       onAddWorkout(w)
     }
+    setFormDirty(false)
     onClose()
   }
 
   const week = Math.floor(dayOffset / 7) + 1
   const dow = (dayOffset % 7) + 1
-  const title = `Dag ${dayOffset + 1} · Uke ${week}, dag ${dow}`
+  const title = mode.kind === 'workout'
+    ? (mode.editIndex != null
+        ? `Rediger økt på Dag ${dayOffset + 1}`
+        : `Legg til økt på Dag ${dayOffset + 1}`)
+    : `Dag ${dayOffset + 1} · Uke ${week}, dag ${dow}`
 
   return (
     <div
-      onClick={onClose}
+      onClick={requestClose}
       className="px-2 md:px-3"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
@@ -81,7 +107,7 @@ export function PlanMalDayEditor({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {title}
           </span>
-          <button type="button" onClick={onClose} aria-label="Lukk"
+          <button type="button" onClick={requestClose} aria-label="Lukk"
             style={{
               color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
@@ -126,8 +152,13 @@ export function PlanMalDayEditor({
             templates={workoutTemplates}
             captureOnlyMode
             onCapture={handleCapture}
-            onCancel={() => setMode({ kind: 'menu' })}
-            captureSubmitLabel={mode.editIndex != null ? 'Oppdater i mal' : 'Legg til i mal'}
+            onCancel={requestBackToMenu}
+            onDirtyChange={setFormDirty}
+            captureSubmitLabel={
+              mode.editIndex != null
+                ? `Oppdater økt på Dag ${dayOffset + 1}`
+                : `Legg til økt på Dag ${dayOffset + 1}`
+            }
           />
         )}
 

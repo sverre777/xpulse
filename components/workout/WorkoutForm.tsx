@@ -38,6 +38,9 @@ interface WorkoutFormProps {
   captureOnlyMode?: boolean
   onCapture?: (data: WorkoutFormData) => void
   captureSubmitLabel?: string
+  // Varsles når form-data er endret fra initial-tilstand. Brukes av modal-foreldre
+  // for å vise bekreftelses-dialog på klikk-utenfor / Escape / refresh.
+  onDirtyChange?: (dirty: boolean) => void
   // Når satt: trener redigerer utøvers plan. saveWorkout skriver da til utøverens rad,
   // og created_by_coach_id settes til innlogget trener → gir blå markering i Calendar.
   targetUserId?: string
@@ -53,7 +56,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, targetUserId, defaultPaceUnit = null }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -109,6 +112,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
+
+  // Dirty-tracking: vi snapshotter første render som "rent" og varsler foreldre
+  // når noen form-felt avviker. Brukes av plan-mal-bygger for å vise bekreftelses-
+  // dialog på klikk-utenfor/Escape.
+  const [initialFormSnapshot] = useState<string>(() => JSON.stringify(form))
+  useEffect(() => {
+    if (!onDirtyChange) return
+    const dirty = JSON.stringify(form) !== initialFormSnapshot
+    onDirtyChange(dirty)
+  }, [form, initialFormSnapshot, onDirtyChange])
 
   const set = <K extends keyof WorkoutFormData>(key: K, val: WorkoutFormData[K]) =>
     setForm(f => ({ ...f, [key]: val }))

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   savePeriodizationTemplate, updatePeriodizationTemplate,
@@ -10,6 +10,7 @@ import type {
   PeriodizationTemplateKeyDate, PeriodizationTemplatePeriod,
 } from '@/lib/template-types'
 import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
+import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -80,8 +81,27 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  const [initialSnapshot] = useState<string>(() => JSON.stringify({
+    name: editing?.name ?? '',
+    description: editing?.description ?? '',
+    category: defaultCat,
+    durationDays: editing?.duration_days ?? 210,
+    data: editing?.periodization_data ?? EMPTY_DATA,
+  }))
+  const dirty = useMemo(
+    () => JSON.stringify({ name, description, category, durationDays, data }) !== initialSnapshot,
+    [name, description, category, durationDays, data, initialSnapshot],
+  )
+
+  const requestClose = useCallback(() => {
+    if (!confirmDiscardIfDirty(dirty)) return
+    onClose()
+  }, [dirty, onClose])
+
+  useBeforeUnloadGuard(dirty)
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose() }
     window.addEventListener('keydown', onKey)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -89,7 +109,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prev
     }
-  }, [onClose])
+  }, [requestClose])
 
   const totalWeeks = Math.ceil(durationDays / 7)
 
@@ -206,7 +226,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
 
   return (
     <div
-      onClick={onClose}
+      onClick={requestClose}
       className="px-2 md:px-3"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
@@ -228,7 +248,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {editing ? 'Rediger årsplan-mal' : 'Ny årsplan-mal'}
           </span>
-          <button type="button" onClick={onClose} aria-label="Lukk"
+          <button type="button" onClick={requestClose} aria-label="Lukk"
             style={{
               color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
@@ -370,7 +390,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           </section>
 
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
-            <button type="button" onClick={onClose}
+            <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',

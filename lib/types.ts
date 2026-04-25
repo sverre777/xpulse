@@ -471,6 +471,20 @@ export interface StrengthExerciseRow {
 
 // Form-row — alle tall-felt som string for input-binding.
 // distance_km holdes som km i skjemaet; konverteres til meter ved lagring.
+// Pace-enhet for visning og inntasting. Lagres kanonisk som sekunder per km
+// (avg_pace_seconds_per_km), men *visningsenheten* huskes per aktivitet via
+// pace_unit_preference. Tom streng = bruker brukerens default_pace_unit.
+export type PaceUnitPref = 'min_per_km' | 'km_per_h'
+
+// En split per km — radvis i splits_per_km (jsonb i DB). Form-radens felter er
+// strings for input-binding; konverteres til {km:int, seconds:int} ved lagring.
+export interface SplitRow {
+  id: string
+  db_km?: number              // Hvis lest fra DB
+  km: string                  // 1, 2, 3, …
+  duration: string            // MM:SS for *denne* km'en
+}
+
 export interface ActivityRow {
   id: string                   // client-side key (uuid)
   db_id?: string               // DB-id hvis lastet fra DB
@@ -483,6 +497,13 @@ export interface ActivityRow {
   avg_heart_rate: string
   max_heart_rate: string
   avg_watts: string
+  // Snittpace lagres som tekst slik brukeren tastet — rå-streng formatert via
+  // PaceInput. Konverteres til avg_pace_seconds_per_km ved lagring.
+  avg_pace_seconds_per_km: string
+  // Visningsenhet for *denne* radens pace. Tom streng = bruk brukerens default.
+  pace_unit_preference: PaceUnitPref | ''
+  // Splits per km — kollapsbart. Tomt array når ingen splits er ført.
+  splits_per_km: SplitRow[]
   prone_shots: string
   prone_hits: string
   standing_shots: string
@@ -520,6 +541,12 @@ export interface WorkoutActivity {
   avg_heart_rate: number | null
   max_heart_rate: number | null
   avg_watts: number | null
+  // Pace per km — kanonisk lagring i sekunder. Splits er en jsonb-array av
+  // {km:int, seconds:int} der hver entry er én km. pace_unit_preference styrer
+  // hvordan verdien vises tilbake til brukeren.
+  avg_pace_seconds_per_km: number | null
+  splits_per_km: { km: number; seconds: number }[] | null
+  pace_unit_preference: PaceUnitPref | null
   lactate_mmol: number | null
   lactate_measured_at: string | null
   prone_shots: number | null
@@ -584,6 +611,8 @@ export interface Profile {
   max_heart_rate: number | null
   lactate_threshold_hr: number | null
   resting_heart_rate: number | null
+  // Foretrukket visningsenhet for fart/pace. null → bruker default 'min_per_km'.
+  default_pace_unit: PaceUnitPref | null
   created_at: string
   updated_at: string
 }
@@ -909,6 +938,9 @@ function makeActivity(overrides: Partial<ActivityRow> & { activity_type: Activit
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
+    avg_pace_seconds_per_km: '',
+    pace_unit_preference: '',
+    splits_per_km: [],
     prone_shots: '',
     prone_hits: '',
     standing_shots: '',

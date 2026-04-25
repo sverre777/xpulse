@@ -11,6 +11,12 @@ import {
   TUR_SUBCATEGORIES_WITH_SLED, WEATHER_OPTIONS,
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+import { PaceInput } from '@/components/pace/PaceInput'
+import { SplitsTable } from '@/components/pace/SplitsTable'
+import { resolvePaceUnit } from '@/components/pace/PaceDisplay'
+import {
+  paceFromDistanceDuration, type PaceUnit,
+} from '@/lib/pace-utils'
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { getUserExercises, type UserExercise } from '@/app/actions/user-exercises'
 import {
@@ -29,6 +35,8 @@ interface Props {
   // I plan-modus skjules rene måleverdier (puls, laktat, treff) — plan fokuserer
   // på intensjon (type, bevegelsesform, varighet, soner/målpuls).
   mode?: 'plan' | 'dagbok'
+  // Brukerens default pace-enhet fra profiles.default_pace_unit. null = min_per_km.
+  defaultPaceUnit?: PaceUnit | null
 }
 
 function defaultMovementForSport(sport: Sport): string {
@@ -47,6 +55,9 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
+    avg_pace_seconds_per_km: '',
+    pace_unit_preference: '',
+    splits_per_km: [],
     prone_shots: '',
     prone_hits: '',
     standing_shots: '',
@@ -104,7 +115,7 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   Hurtighet: '#8B5CF6',
 }
 
-export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok', defaultPaceUnit = null }: Props) {
   const isPlanMode = mode === 'plan'
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [userMovementTypes, setUserMovementTypes] = useState<UserMovementType[]>([])
@@ -195,6 +206,7 @@ export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok' }: Pr
           isPlanMode={isPlanMode}
           userMovementTypes={userMovementTypes}
           onRequestCreateMovement={() => setCreateModalRowId(row.id)}
+          defaultPaceUnit={defaultPaceUnit}
         />
       ))}
 
@@ -229,6 +241,7 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
   typeOptions, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
+  defaultPaceUnit,
 }: {
   row: ActivityRow
   expanded: boolean
@@ -242,6 +255,7 @@ function ActivityRowItem({
   isPlanMode: boolean
   userMovementTypes: UserMovementType[]
   onRequestCreateMovement: () => void
+  defaultPaceUnit: PaceUnit | null
 }) {
   const meta = findActivityType(row.activity_type)
   const durSec = parseActivityDuration(row.duration)
@@ -512,6 +526,13 @@ function ActivityRowItem({
               </>
             )}
           </div>
+
+          {/* Pace per km — utholdenhet + tur. Brukeren ser min/km eller km/t
+              (lokal toggle), kanonisk lagring er sekunder per km. Auto-forslag
+              fra distanse + varighet vises når feltet er tomt. */}
+          {(isEndurance || isTur) && !meta?.isShooting && !isAnnet && (
+            <PaceField row={row} onUpdate={onUpdate} defaultPaceUnit={defaultPaceUnit} />
+          )}
 
           {/* Tur-spesifikke felt — vises for standard 'Tur' og bruker-definerte
               tur-former. Pulkvekt vises bare når underkategori matcher pulk-liste. */}
@@ -1360,6 +1381,64 @@ function CreateMovementTypeModal({
             {saving ? 'Lagrer…' : 'Lagre'}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Pace per km ─────────────────────────────────────────────
+//
+// Eier av canonical-verdien (sekunder per km) er ActivityRow.avg_pace_seconds_per_km.
+// Vi lagrer som strenger i form-radens felt for konsistens med øvrige tall-felt;
+// parsing/visning skjer via helpers i lib/pace-utils.ts.
+//
+// Visningsenhet: rader uten preferanse arver brukerens default. Når bruker
+// endrer toggle på radnivå skrives det til pace_unit_preference. Dette gjør at
+// to radtyper (f.eks. løpetur i min/km og sykkeløkt i km/t) kan sameksistere.
+
+function PaceField({
+  row, onUpdate, defaultPaceUnit,
+}: {
+  row: ActivityRow
+  onUpdate: (patch: Partial<ActivityRow>) => void
+  defaultPaceUnit: PaceUnit | null
+}) {
+  const unit = resolvePaceUnit(row.pace_unit_preference, defaultPaceUnit)
+
+  // Auto-forslag: distance × duration → s/km. Tomme felt ⇒ ingen forslag.
+  const km = parseFloat(row.distance_km)
+  const durSec = parseActivityDuration(row.duration) ?? 0
+  const computed = paceFromDistanceDuration(km, durSec)
+  const computedRounded = computed != null ? Math.round(computed) : null
+
+  const currentSeconds = (() => {
+    const v = parseInt(row.avg_pace_seconds_per_km)
+    return Number.isFinite(v) && v > 0 ? v : null
+  })()
+
+  return (
+    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <PaceInput
+        value={currentSeconds}
+        onChange={next => onUpdate({
+          avg_pace_seconds_per_km: next != null ? String(next) : '',
+        })}
+        unit={unit}
+        onUnitChange={u => onUpdate({ pace_unit_preference: u })}
+        computedSuggestion={computedRounded}
+        onAcceptSuggestion={() => {
+          if (computedRounded != null) {
+            onUpdate({ avg_pace_seconds_per_km: String(computedRounded) })
+          }
+        }}
+      />
+
+      <div className="mt-3">
+        <SplitsTable
+          splits={row.splits_per_km}
+          onChange={s => onUpdate({ splits_per_km: s })}
+          unit={unit}
+        />
       </div>
     </div>
   )

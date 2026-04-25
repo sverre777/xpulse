@@ -11,11 +11,17 @@ import {
   zoneForHeartRate,
 } from '@/lib/heart-zones'
 import { parseActivityDuration } from '@/lib/activity-duration'
+import {
+  formatPace, paceFromDistanceDuration, type PaceUnit,
+} from '@/lib/pace-utils'
+import { resolvePaceUnit } from '@/components/pace/PaceDisplay'
 
 interface Props {
   activities: ActivityRow[]
   heartZones: HeartZone[]
   sport: Sport
+  // Brukerens default pace-enhet — null faller tilbake til 'min_per_km'.
+  defaultPaceUnit?: PaceUnit | null
 }
 
 const ZONE_COLORS: Record<ExtendedZoneName, string> = {
@@ -36,11 +42,17 @@ function formatTotalTime(totalSeconds: number): string {
   return `${m}min`
 }
 
-export function ActivitySummary({ activities, heartZones, sport }: Props) {
+export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
+    // Pace per bevegelsesform: vekt = sekunder, slik at lange økter teller mer.
+    // Snitt-pace utledes fra Σmeter / Σsekunder per bevegelse.
+    const movementMeters: Record<string, number> = {}
+    const movementPaceSeconds: Record<string, number> = {}
+    let bestPaceSeconds: number | null = null
+    let bestPaceMovement: string | null = null
     const zoneSeconds: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
     let missingHrCount = 0
 
@@ -104,11 +116,30 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
       if (Number.isFinite(km) && km > 0) totalMeters += km * 1000
 
       // Bevegelsesform-fordeling
+      const label = meta?.isShooting
+        ? 'Skyting'
+        : (a.movement_name || meta?.label || 'Annet')
       if (durSec > 0) {
-        const label = meta?.isShooting
-          ? 'Skyting'
-          : (a.movement_name || meta?.label || 'Annet')
         movementSeconds[label] = (movementSeconds[label] ?? 0) + durSec
+      }
+
+      // Pace-aggregering: bruk eksplisitt avg_pace_seconds_per_km hvis satt,
+      // ellers avled fra distanse + varighet for denne raden. Vekter på meter.
+      if (!meta?.isShooting && Number.isFinite(km) && km > 0 && durSec > 0) {
+        const meters = km * 1000
+        const explicit = parseInt(a.avg_pace_seconds_per_km)
+        const rowPaceSec = Number.isFinite(explicit) && explicit > 0
+          ? explicit
+          : paceFromDistanceDuration(km, durSec)
+        if (rowPaceSec != null && rowPaceSec > 0) {
+          movementMeters[label] = (movementMeters[label] ?? 0) + meters
+          // Σsekunder = pace × meter / 1000 (rekonstruerer sum-tid).
+          movementPaceSeconds[label] = (movementPaceSeconds[label] ?? 0) + rowPaceSec * (meters / 1000)
+          if (bestPaceSeconds == null || rowPaceSec < bestPaceSeconds) {
+            bestPaceSeconds = rowPaceSec
+            bestPaceMovement = label
+          }
+        }
       }
 
       // Sonefordeling — eksplisitte zones først (inkl. Hurtighet), ellers puls → sone.
@@ -136,7 +167,17 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
 
     const movementList = Object.entries(movementSeconds)
       .sort((a, b) => b[1] - a[1])
-      .map(([name, sec]) => ({ name, minutes: Math.round(sec / 60) }))
+      .map(([name, sec]) => {
+        const meters = movementMeters[name] ?? 0
+        const totalPaceSec = movementPaceSeconds[name] ?? 0
+        const km = meters / 1000
+        const avgPace = km > 0 ? totalPaceSec / km : null
+        return {
+          name,
+          minutes: Math.round(sec / 60),
+          avgPaceSeconds: avgPace,
+        }
+      })
 
     return {
       totalSeconds,
@@ -148,6 +189,8 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
       shooting,
       lactateCount,
       lactateMax,
+      bestPaceSeconds,
+      bestPaceMovement,
     }
   }, [activities, heartZones])
 
@@ -158,6 +201,7 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
   const hasShooting = isBiathlon && summary.shooting.total_shots > 0
   const pct = (hits: number, shots: number) =>
     shots > 0 ? Math.round((hits / shots) * 100) : null
+  const paceUnit: PaceUnit = resolvePaceUnit('', defaultPaceUnit)
 
   return (
     <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -173,6 +217,13 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
         <Metric label="Totaltid" value={formatTotalTime(summary.totalSeconds)} />
         <Metric label="Distanse" value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'} />
+        {summary.bestPaceSeconds != null && (
+          <Metric
+            label="Beste pace"
+            value={formatPace(summary.bestPaceSeconds, paceUnit)}
+            sub={summary.bestPaceMovement ?? undefined}
+          />
+        )}
         {summary.lactateCount > 0 && (
           <Metric
             label="Laktat"
@@ -190,6 +241,9 @@ export function ActivitySummary({ activities, heartZones, sport }: Props) {
               <span key={m.name}>
                 {i > 0 && <span style={{ color: '#555560' }}> · </span>}
                 <span>{m.name} {m.minutes}min</span>
+                {m.avgPaceSeconds != null && (
+                  <span style={{ color: '#8A8A96' }}> ({formatPace(m.avgPaceSeconds, paceUnit)})</span>
+                )}
               </span>
             ))}
           </div>
@@ -292,13 +346,18 @@ function ZoneBar({
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
       <Label>{label}</Label>
       <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.05em', lineHeight: 1.1 }}>
         {value}
       </p>
+      {sub && (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px' }}>
+          {sub}
+        </p>
+      )}
     </div>
   )
 }

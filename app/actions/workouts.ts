@@ -14,6 +14,7 @@ import {
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
 
 // Serialiser sone-minutter til jsonb-format. Returnerer null hvis ingen soner har verdi.
 // Inkluderer Hurtighet — en 6. sone som føres manuelt (ikke fra puls).
@@ -233,6 +234,9 @@ async function insertActivitiesWithChildren(
       avg_heart_rate: parseInt(a.avg_heart_rate) || null,
       max_heart_rate: parseInt(a.max_heart_rate) || null,
       avg_watts: parseInt(a.avg_watts) || null,
+      avg_pace_seconds_per_km: parseInt(a.avg_pace_seconds_per_km) || null,
+      pace_unit_preference: a.pace_unit_preference || null,
+      splits_per_km: serializeSplits(a.splits_per_km ?? []),
       prone_shots: parseInt(a.prone_shots) || null,
       prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null,
@@ -365,6 +369,13 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       avg_heart_rate: a.avg_heart_rate ?? '',
       max_heart_rate: a.max_heart_rate ?? '',
       avg_watts: a.avg_watts ?? '',
+      avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? '',
+      pace_unit_preference: a.pace_unit_preference ?? '',
+      splits_per_km: Array.isArray(a.splits_per_km) ? a.splits_per_km.map(s => ({
+        id: crypto.randomUUID(),
+        km: s.km ?? '',
+        duration: s.duration ?? '',
+      })) : [],
       prone_shots: a.prone_shots ?? '',
       prone_hits: a.prone_hits ?? '',
       standing_shots: a.standing_shots ?? '',
@@ -880,6 +891,9 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     sort_order: number
     start_time: string | null; duration_seconds: number; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    avg_pace_seconds_per_km: number | null
+    splits_per_km: { km: number; seconds: number }[] | null
+    pace_unit_preference: 'min_per_km' | 'km_per_h' | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
@@ -941,6 +955,9 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
         max_heart_rate: a.max_heart_rate?.toString() ?? '',
         avg_watts: a.avg_watts?.toString() ?? '',
+        avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
+        pace_unit_preference: a.pace_unit_preference ?? '',
+        splits_per_km: deserializeSplits(a.splits_per_km),
         prone_shots: a.prone_shots?.toString() ?? '',
         prone_hits: a.prone_hits?.toString() ?? '',
         standing_shots: a.standing_shots?.toString() ?? '',

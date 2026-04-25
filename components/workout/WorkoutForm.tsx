@@ -41,6 +41,9 @@ interface WorkoutFormProps {
   // Når satt: trener redigerer utøvers plan. saveWorkout skriver da til utøverens rad,
   // og created_by_coach_id settes til innlogget trener → gir blå markering i Calendar.
   targetUserId?: string
+  // Brukerens default pace-enhet (profiles.default_pace_unit). Brukes til å vise
+  // pace-felt i ActivitiesSection med riktig enhet ved første visning.
+  defaultPaceUnit?: 'min_per_km' | 'km_per_h' | null
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -50,7 +53,7 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
   }))
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, targetUserId }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, targetUserId, defaultPaceUnit = null }: WorkoutFormProps) {
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -356,6 +359,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             activities={form.activities}
             heartZones={heartZones}
             sport={form.sport}
+            defaultPaceUnit={defaultPaceUnit}
           />
         </div>
       )}
@@ -427,6 +431,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           onChange={a => set('activities', a)}
           sport={form.sport}
           mode={isPlanMode ? 'plan' : 'dagbok'}
+          defaultPaceUnit={defaultPaceUnit}
         />
       </Section>
 

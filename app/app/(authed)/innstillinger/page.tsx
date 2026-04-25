@@ -5,6 +5,7 @@ import {
   computeZonesFromMaxHr, resolveMaxHr, ZONE_NAMES, HeartZone,
 } from '@/lib/heart-zones'
 import { HeartZonesSection } from '@/components/settings/HeartZonesSection'
+import { UnitsSection } from '@/components/settings/UnitsSection'
 
 export default async function InnstillingerPage() {
   const supabase = await createClient()
@@ -72,6 +73,8 @@ export default async function InnstillingerPage() {
           initialZones={initialZones}
           hasCustomZones={hasCustomZones}
         />
+
+        <UnitsSection initialPaceUnit={profile?.default_pace_unit ?? null} />
 
         <Link href="/app/innstillinger/bevegelsesformer"
           className="flex items-center justify-between p-6 mt-6 transition-opacity hover:opacity-80"

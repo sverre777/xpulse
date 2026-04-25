@@ -373,6 +373,9 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
     movement_name: string | null; movement_subcategory: string | null
     start_time: string | null; duration_seconds: number | null; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    avg_pace_seconds_per_km: number | null
+    splits_per_km: { km: number; seconds: number }[] | null
+    pace_unit_preference: 'min_per_km' | 'km_per_h' | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
@@ -414,6 +417,23 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
       avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
       max_heart_rate: a.max_heart_rate?.toString() ?? '',
       avg_watts: a.avg_watts?.toString() ?? '',
+      avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
+      pace_unit_preference: a.pace_unit_preference ?? '',
+      splits_per_km: Array.isArray(a.splits_per_km) ? a.splits_per_km
+        .filter((s): s is { km: number; seconds: number } =>
+          typeof s === 'object' && s !== null
+          && typeof s.km === 'number' && typeof s.seconds === 'number')
+        .sort((x, y) => x.km - y.km)
+        .map(s => ({
+          id: crypto.randomUUID(),
+          db_km: s.km,
+          km: String(s.km),
+          duration: (() => {
+            const m = Math.floor(s.seconds / 60)
+            const ss = s.seconds % 60
+            return `${m}:${String(ss).padStart(2, '0')}`
+          })(),
+        })) : [],
       prone_shots: a.prone_shots?.toString() ?? '',
       prone_hits: a.prone_hits?.toString() ?? '',
       standing_shots: a.standing_shots?.toString() ?? '',

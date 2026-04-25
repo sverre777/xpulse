@@ -15,6 +15,8 @@ function rowToPeriodizationTemplate(row: Record<string, unknown>): Periodization
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
     duration_days: row.duration_days as number,
+    start_date: (row.start_date as string | null) ?? null,
+    end_date: (row.end_date as string | null) ?? null,
     periodization_data: (row.periodization_data as PeriodizationTemplateData) ?? ({
       season: { name: '', goal_main: null, goal_secondary: null, sport: null },
       periods: [],
@@ -43,6 +45,8 @@ export async function savePeriodizationTemplate(input: SavePeriodizationTemplate
     description: input.description?.trim() || null,
     category: input.category?.trim() || null,
     duration_days: input.duration_days,
+    start_date: input.start_date ?? null,
+    end_date: input.end_date ?? null,
     periodization_data: input.periodization_data,
     updated_at: now,
   }).select('id').single()
@@ -91,6 +95,8 @@ export interface UpdatePeriodizationTemplateInput {
   description?: string | null
   category?: string | null
   duration_days?: number
+  start_date?: string | null
+  end_date?: string | null
   periodization_data?: PeriodizationTemplateData
 }
 
@@ -120,6 +126,8 @@ export async function updatePeriodizationTemplate(
     }
     update.duration_days = patch.duration_days
   }
+  if (patch.start_date !== undefined) update.start_date = patch.start_date
+  if (patch.end_date !== undefined) update.end_date = patch.end_date
   if (patch.periodization_data !== undefined) {
     update.periodization_data = patch.periodization_data
   }
@@ -165,6 +173,8 @@ export async function duplicatePeriodizationTemplate(id: string): Promise<{ erro
     description: source.description,
     category: source.category,
     duration_days: source.duration_days,
+    start_date: source.start_date,
+    end_date: source.end_date,
     periodization_data: source.periodization_data,
     updated_at: now,
   }).select('id').single()

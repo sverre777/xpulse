@@ -11,6 +11,7 @@ import type {
 } from '@/lib/template-types'
 import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
+import { addDays, deriveEndDate, formatNorskKortDato } from '@/lib/template-dates'
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -64,6 +65,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
   const [description, setDescription] = useState(editing?.description ?? '')
   const [category, setCategory] = useState<string>(defaultCat)
   const [durationDays, setDurationDays] = useState<number>(editing?.duration_days ?? 210)
+  const [startDate, setStartDate] = useState<string>(editing?.start_date ?? '')
   const [data, setData] = useState<PeriodizationTemplateData>(() => {
     if (!editing?.periodization_data) return EMPTY_DATA
     const pd = editing.periodization_data
@@ -86,11 +88,12 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
     description: editing?.description ?? '',
     category: defaultCat,
     durationDays: editing?.duration_days ?? 210,
+    startDate: editing?.start_date ?? '',
     data: editing?.periodization_data ?? EMPTY_DATA,
   }))
   const dirty = useMemo(
-    () => JSON.stringify({ name, description, category, durationDays, data }) !== initialSnapshot,
-    [name, description, category, durationDays, data, initialSnapshot],
+    () => JSON.stringify({ name, description, category, durationDays, startDate, data }) !== initialSnapshot,
+    [name, description, category, durationDays, startDate, data, initialSnapshot],
   )
 
   const requestClose = useCallback(() => {
@@ -199,6 +202,8 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
       key_dates: data.key_dates.slice().sort((a, b) => a.day_offset - b.day_offset),
     }
 
+    const start = startDate || null
+    const end = deriveEndDate(start, durationDays)
     startTransition(async () => {
       if (editing) {
         const res = await updatePeriodizationTemplate(editing.id, {
@@ -206,6 +211,8 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           description: description.trim() || null,
           category,
           duration_days: durationDays,
+          start_date: start,
+          end_date: end,
           periodization_data: payload,
         })
         if (res.error) { setErr(res.error); return }
@@ -215,6 +222,8 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           description: description.trim() || null,
           category,
           duration_days: durationDays,
+          start_date: start,
+          end_date: end,
           periodization_data: payload,
         })
         if (res.error) { setErr(res.error); return }
@@ -296,6 +305,18 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   ≈ {totalWeeks} uker
                 </p>
               </Field>
+              <Field label="Startdato (valgfri)">
+                <input type="date"
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                  style={iSt} />
+                <p className="text-[10px] mt-1 tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  {startDate
+                    ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
+                    : 'La stå tom for relativ mal'}
+                </p>
+              </Field>
             </div>
           </section>
 
@@ -359,6 +380,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                     key={i}
                     period={p}
                     max={durationDays - 1}
+                    startDate={startDate || null}
                     onChange={(patch) => updatePeriod(i, patch)}
                     onRemove={() => removePeriod(i)}
                   />
@@ -381,6 +403,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                     key={i}
                     keyDate={k}
                     max={durationDays - 1}
+                    startDate={startDate || null}
                     onChange={(patch) => updateKeyDate(i, patch)}
                     onRemove={() => removeKeyDate(i)}
                   />
@@ -417,15 +440,20 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
 }
 
 function PeriodRow({
-  period, max, onChange, onRemove,
+  period, max, startDate, onChange, onRemove,
 }: {
   period: PeriodizationTemplatePeriod
   max: number
+  startDate: string | null
   onChange: (patch: Partial<PeriodizationTemplatePeriod>) => void
   onRemove: () => void
 }) {
-  const startLabel = offsetToWeekDayLabel(period.start_offset)
-  const endLabel = offsetToWeekDayLabel(period.end_offset)
+  const startLabel = startDate
+    ? formatNorskKortDato(addDays(startDate, period.start_offset))
+    : offsetToWeekDayLabel(period.start_offset)
+  const endLabel = startDate
+    ? formatNorskKortDato(addDays(startDate, period.end_offset))
+    : offsetToWeekDayLabel(period.end_offset)
   return (
     <div className="p-3 flex flex-col gap-2"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -473,14 +501,17 @@ function PeriodRow({
 }
 
 function KeyDateRow({
-  keyDate, max, onChange, onRemove,
+  keyDate, max, startDate, onChange, onRemove,
 }: {
   keyDate: PeriodizationTemplateKeyDate
   max: number
+  startDate: string | null
   onChange: (patch: Partial<PeriodizationTemplateKeyDate>) => void
   onRemove: () => void
 }) {
-  const dayLabel = offsetToWeekDayLabel(keyDate.day_offset)
+  const dayLabel = startDate
+    ? formatNorskKortDato(addDays(startDate, keyDate.day_offset))
+    : offsetToWeekDayLabel(keyDate.day_offset)
   return (
     <div className="p-3 flex flex-col gap-2"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>

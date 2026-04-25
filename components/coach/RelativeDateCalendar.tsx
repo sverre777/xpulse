@@ -1,6 +1,7 @@
 'use client'
 
 import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-types'
+import { addDays, formatNorskKortDato } from '@/lib/template-dates'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -8,13 +9,16 @@ interface Props {
   durationDays: number
   workouts: PlanTemplateWorkout[]
   dayStates: PlanTemplateDayState[]
+  // Hvis satt, viser cellene konkrete kalenderdatoer i tillegg til "Dag N".
+  // Ukene merkes også med dato-spennet i stedet for kun "Uke 1".
+  startDate?: string | null
   onDayClick: (dayOffset: number) => void
 }
 
 // Relativ kalender for plan-mal-bygging. Viser dag-celler merket som
 // "Dag N / Uke W, Dag D" — ingen faktiske datoer. Klikk på en celle
 // åpner dagens editor i parent.
-export function RelativeDateCalendar({ durationDays, workouts, dayStates, onDayClick }: Props) {
+export function RelativeDateCalendar({ durationDays, workouts, dayStates, startDate, onDayClick }: Props) {
   const workoutsByDay = new Map<number, PlanTemplateWorkout[]>()
   for (const w of workouts) {
     const list = workoutsByDay.get(w.day_offset) ?? []
@@ -51,39 +55,48 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, onDayC
         ))}
       </div>
 
-      {weeks.map((row, wi) => (
-        <div key={wi} className="mb-2">
-          <div className="text-[10px] tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            Uke {wi + 1}
+      {weeks.map((row, wi) => {
+        const firstDay = row[0]
+        const lastDay = row[row.length - 1]
+        const weekRangeLabel = startDate && firstDay !== undefined && lastDay !== undefined
+          ? `Uke ${wi + 1} · ${formatNorskKortDato(addDays(startDate, firstDay))}–${formatNorskKortDato(addDays(startDate, lastDay))}`
+          : `Uke ${wi + 1}`
+        return (
+          <div key={wi} className="mb-2">
+            <div className="text-[10px] tracking-widest uppercase mb-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              {weekRangeLabel}
+            </div>
+            <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: '#1E1E22' }}>
+              {Array.from({ length: 7 }).map((_, di) => {
+                const day = row[di]
+                if (day === undefined) {
+                  return <div key={di} style={{ minHeight: '88px', backgroundColor: '#09090B' }} />
+                }
+                return (
+                  <DayCell
+                    key={di}
+                    day={day}
+                    dateLabel={startDate ? formatNorskKortDato(addDays(startDate, day)) : null}
+                    workouts={workoutsByDay.get(day) ?? []}
+                    state={stateByDay.get(day) ?? null}
+                    onClick={() => onDayClick(day)}
+                  />
+                )
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: '#1E1E22' }}>
-            {Array.from({ length: 7 }).map((_, di) => {
-              const day = row[di]
-              if (day === undefined) {
-                return <div key={di} style={{ minHeight: '88px', backgroundColor: '#09090B' }} />
-              }
-              return (
-                <DayCell
-                  key={di}
-                  day={day}
-                  workouts={workoutsByDay.get(day) ?? []}
-                  state={stateByDay.get(day) ?? null}
-                  onClick={() => onDayClick(day)}
-                />
-              )
-            })}
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
 
 function DayCell({
-  day, workouts, state, onClick,
+  day, dateLabel, workouts, state, onClick,
 }: {
   day: number
+  dateLabel: string | null
   workouts: PlanTemplateWorkout[]
   state: PlanTemplateDayState | null
   onClick: () => void
@@ -101,11 +114,17 @@ function DayCell({
         display: 'flex',
         flexDirection: 'column',
       }}>
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-1 gap-1">
         <span className="text-[10px] tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Dag {day + 1}
         </span>
+        {dateLabel && (
+          <span className="text-[10px] tracking-widest uppercase truncate"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            {dateLabel}
+          </span>
+        )}
       </div>
       {isRest && (
         <span className="text-[11px]"

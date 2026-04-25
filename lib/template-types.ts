@@ -50,6 +50,10 @@ export interface PlanTemplate {
   description: string | null
   duration_days: number
   category: string | null
+  // Faktiske kalenderdatoer for malen (valgfrie — eldre maler har bare offsets).
+  // Når satt, kan UI vise konkrete dager i stedet for "Dag N".
+  start_date: string | null
+  end_date: string | null
   plan_data: PlanTemplateData
   created_at: string
   updated_at: string
@@ -102,6 +106,8 @@ export interface PeriodizationTemplate {
   description: string | null
   duration_days: number
   category: string | null
+  start_date: string | null
+  end_date: string | null
   periodization_data: PeriodizationTemplateData
   created_at: string
   updated_at: string
@@ -127,6 +133,8 @@ export interface SavePlanTemplateInput {
   description?: string | null
   category?: string | null
   duration_days: number
+  start_date?: string | null
+  end_date?: string | null
   plan_data: PlanTemplateData
 }
 
@@ -135,5 +143,7 @@ export interface SavePeriodizationTemplateInput {
   description?: string | null
   category?: string | null
   duration_days: number
+  start_date?: string | null
+  end_date?: string | null
   periodization_data: PeriodizationTemplateData
 }

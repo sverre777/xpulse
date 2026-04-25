@@ -10,6 +10,7 @@ import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport, type WorkoutTempl
 import { RelativeDateCalendar } from '@/components/coach/RelativeDateCalendar'
 import { PlanMalDayEditor } from '@/components/coach/PlanMalDayEditor'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
+import { deriveEndDate } from '@/lib/template-dates'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -30,6 +31,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
   const [description, setDescription] = useState(editing?.description ?? '')
   const [category, setCategory] = useState<string>(editing?.category ?? sportToCategory(primarySport))
   const [durationDays, setDurationDays] = useState<number>(editing?.duration_days ?? 28)
+  const [startDate, setStartDate] = useState<string>(editing?.start_date ?? '')
   const [data, setData] = useState<PlanTemplateData>(editing?.plan_data ?? EMPTY_DATA)
   const [openDay, setOpenDay] = useState<number | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -40,11 +42,12 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
     description: editing?.description ?? '',
     category: editing?.category ?? sportToCategory(primarySport),
     durationDays: editing?.duration_days ?? 28,
+    startDate: editing?.start_date ?? '',
     data: editing?.plan_data ?? EMPTY_DATA,
   }))
   const dirty = useMemo(
-    () => JSON.stringify({ name, description, category, durationDays, data }) !== initialSnapshot,
-    [name, description, category, durationDays, data, initialSnapshot],
+    () => JSON.stringify({ name, description, category, durationDays, startDate, data }) !== initialSnapshot,
+    [name, description, category, durationDays, startDate, data, initialSnapshot],
   )
 
   const requestClose = useCallback(() => {
@@ -144,6 +147,8 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
     if (!name.trim()) { setErr('Navn er påkrevd'); return }
     if (durationDays < 1) { setErr('Varighet må være minst én dag'); return }
     setErr(null)
+    const start = startDate || null
+    const end = deriveEndDate(start, durationDays)
     startTransition(async () => {
       if (editing) {
         const res = await updatePlanTemplate(editing.id, {
@@ -151,6 +156,8 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
           description: description.trim() || null,
           category,
           duration_days: durationDays,
+          start_date: start,
+          end_date: end,
           plan_data: data,
         })
         if (res.error) { setErr(res.error); return }
@@ -160,6 +167,8 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
           description: description.trim() || null,
           category,
           duration_days: durationDays,
+          start_date: start,
+          end_date: end,
           plan_data: data,
         })
         if (res.error) { setErr(res.error); return }
@@ -238,6 +247,18 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
                 onChange={e => handleDurationChange(parseInt(e.target.value) || 1)}
                 style={iSt} />
             </Field>
+            <Field label="Startdato (valgfri)">
+              <input type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                style={iSt} />
+              <p className="text-[10px] mt-1 tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                {startDate
+                  ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
+                  : 'La stå tom for relativ mal (Dag 1, 2, …)'}
+              </p>
+            </Field>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] tracking-widest uppercase"
@@ -251,6 +272,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
             durationDays={durationDays}
             workouts={data.workouts}
             dayStates={data.day_states}
+            startDate={startDate || null}
             onDayClick={(d) => setOpenDay(d)}
           />
 

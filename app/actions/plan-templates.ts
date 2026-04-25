@@ -17,6 +17,8 @@ function rowToPlanTemplate(row: Record<string, unknown>): PlanTemplate {
     description: (row.description as string | null) ?? null,
     category: (row.category as string | null) ?? null,
     duration_days: row.duration_days as number,
+    start_date: (row.start_date as string | null) ?? null,
+    end_date: (row.end_date as string | null) ?? null,
     plan_data: (row.plan_data as PlanTemplateData) ?? ({
       workouts: [], day_states: [], week_notes: {}, month_notes: {}, focus_points: [],
     }),
@@ -43,6 +45,8 @@ export async function savePlanTemplate(input: SavePlanTemplateInput): Promise<{ 
     description: input.description?.trim() || null,
     category: input.category?.trim() || null,
     duration_days: input.duration_days,
+    start_date: input.start_date ?? null,
+    end_date: input.end_date ?? null,
     plan_data: input.plan_data,
     updated_at: now,
   }).select('id').single()
@@ -91,6 +95,8 @@ export interface UpdatePlanTemplateInput {
   description?: string | null
   category?: string | null
   duration_days?: number
+  start_date?: string | null
+  end_date?: string | null
   plan_data?: PlanTemplateData
 }
 
@@ -120,6 +126,8 @@ export async function updatePlanTemplate(
     }
     update.duration_days = patch.duration_days
   }
+  if (patch.start_date !== undefined) update.start_date = patch.start_date
+  if (patch.end_date !== undefined) update.end_date = patch.end_date
   if (patch.plan_data !== undefined) update.plan_data = patch.plan_data
 
   const { error } = await supabase
@@ -163,6 +171,8 @@ export async function duplicatePlanTemplate(id: string): Promise<{ error?: strin
     description: source.description,
     category: source.category,
     duration_days: source.duration_days,
+    start_date: source.start_date,
+    end_date: source.end_date,
     plan_data: source.plan_data,
     updated_at: now,
   }).select('id').single()

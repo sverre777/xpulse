@@ -75,3 +75,46 @@ export interface WorkoutEquipment {
   equipment_id: string
   created_at: string
 }
+
+// ── Ski-spesifikk data (Fase 37) ─────────────────────────────
+//
+// equipment.category = 'ski' kan ha en tilhørende rad i equipment_ski_data
+// med utvidede felter for skipark + smøring/slip-historikk.
+export const SKI_TYPES = ['klassisk', 'skoyting', 'staking'] as const
+export type SkiType = typeof SKI_TYPES[number]
+
+export const SKI_TYPE_LABELS: Record<SkiType, string> = {
+  klassisk: 'Klassisk',
+  skoyting: 'Skøyting',
+  staking: 'Staking',
+}
+
+export interface EquipmentSkiData {
+  equipment_id: string
+  ski_type: SkiType | null
+  length_cm: number | null
+  camber: string | null
+  current_slip: string | null
+  slip_date: string | null
+  slip_by: string | null
+  current_wax: string | null
+  notes: string | null
+  updated_at: string
+}
+
+export interface SaveSkiDataInput {
+  equipment_id: string
+  ski_type?: SkiType | null
+  length_cm?: number | null
+  camber?: string | null
+  current_slip?: string | null
+  slip_date?: string | null
+  slip_by?: string | null
+  current_wax?: string | null
+  notes?: string | null
+}
+
+// Equipment + ski_data + usage i én leselig form for skipark-visning.
+export interface SkiEquipment extends EquipmentWithUsage {
+  ski_data: EquipmentSkiData | null
+}

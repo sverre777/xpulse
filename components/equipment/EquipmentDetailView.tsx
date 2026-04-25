@@ -7,15 +7,20 @@ import {
   updateEquipment,
   deleteEquipment,
   duplicateEquipment,
+  saveSkiData,
 } from '@/app/actions/equipment'
 import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_LABELS,
   EQUIPMENT_STATUSES,
   EQUIPMENT_STATUS_LABELS,
+  SKI_TYPES,
+  SKI_TYPE_LABELS,
   type EquipmentCategory,
   type EquipmentStatus,
+  type EquipmentSkiData,
   type EquipmentWithUsage,
+  type SkiType,
 } from '@/lib/equipment-types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -30,9 +35,10 @@ interface Props {
     distance_km: number | null
     duration_minutes: number | null
   }>
+  skiData?: EquipmentSkiData | null
 }
 
-export function EquipmentDetailView({ equipment, workouts }: Props) {
+export function EquipmentDetailView({ equipment, workouts, skiData = null }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -232,6 +238,10 @@ export function EquipmentDetailView({ equipment, workouts }: Props) {
           </form>
         )}
 
+        {equipment.category === 'ski' && (
+          <SkiDataSection equipmentId={equipment.id} skiData={skiData} />
+        )}
+
         <h2 className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Brukt på {workouts.length} økt{workouts.length === 1 ? '' : 'er'}
@@ -266,6 +276,143 @@ export function EquipmentDetailView({ equipment, workouts }: Props) {
         )}
       </div>
     </div>
+  )
+}
+
+function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData: EquipmentSkiData | null }) {
+  const router = useRouter()
+  const [editing, setEditing] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    ski_type: (skiData?.ski_type ?? '') as SkiType | '',
+    length_cm: skiData?.length_cm != null ? String(skiData.length_cm) : '',
+    camber: skiData?.camber ?? '',
+    current_slip: skiData?.current_slip ?? '',
+    slip_date: skiData?.slip_date ?? '',
+    slip_by: skiData?.slip_by ?? '',
+    current_wax: skiData?.current_wax ?? '',
+    notes: skiData?.notes ?? '',
+  })
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    startTransition(async () => {
+      const result = await saveSkiData({
+        equipment_id: equipmentId,
+        ski_type: form.ski_type === '' ? null : form.ski_type,
+        length_cm: form.length_cm ? parseInt(form.length_cm) : null,
+        camber: form.camber,
+        current_slip: form.current_slip,
+        slip_date: form.slip_date || null,
+        slip_by: form.slip_by,
+        current_wax: form.current_wax,
+        notes: form.notes,
+      })
+      if (result.error) { setError(result.error); return }
+      setEditing(false)
+      router.refresh()
+    })
+  }
+
+  if (!editing) {
+    return (
+      <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Ski-data
+          </p>
+          <button type="button" onClick={() => setEditing(true)} style={btnSecondary}>
+            {skiData ? 'Rediger' : 'Legg til'}
+          </button>
+        </div>
+        {!skiData ? (
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+            Ingen ski-data ennå. Legg til ski-type, lengde, slip og smøring for å vise i Min skipark.
+          </p>
+        ) : (
+          <>
+            <Row label="Ski-type" value={skiData.ski_type ? SKI_TYPE_LABELS[skiData.ski_type] : null} />
+            <Row label="Lengde" value={skiData.length_cm != null ? `${skiData.length_cm} cm` : null} />
+            <Row label="Camber/stivhet" value={skiData.camber} />
+            <Row label="Slip" value={skiData.current_slip} />
+            <Row label="Slip-dato" value={skiData.slip_date} />
+            <Row label="Slip utført av" value={skiData.slip_by} />
+            <Row label="Smøring" value={skiData.current_wax} />
+            <Row label="Notater" value={skiData.notes} multiline />
+          </>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSave} className="p-6 mb-6 space-y-4"
+      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <p className="text-xs tracking-widest uppercase mb-2"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Ski-data
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Ski-type">
+          <select value={form.ski_type}
+            onChange={e => setForm(f => ({ ...f, ski_type: e.target.value as SkiType | '' }))}
+            className="w-full px-4 py-3" style={inputStyle}>
+            <option value="">— ikke satt —</option>
+            {SKI_TYPES.map(t => <option key={t} value={t}>{SKI_TYPE_LABELS[t]}</option>)}
+          </select>
+        </Field>
+        <Field label="Lengde (cm)">
+          <input type="number" min="100" max="220" value={form.length_cm}
+            onChange={e => setForm(f => ({ ...f, length_cm: e.target.value }))}
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+      </div>
+      <Field label="Camber / stivhet">
+        <input value={form.camber} onChange={e => setForm(f => ({ ...f, camber: e.target.value }))}
+          placeholder="F.eks. medium, hard pakksnø"
+          className="w-full px-4 py-3" style={inputStyle} />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Slip">
+          <input value={form.current_slip} onChange={e => setForm(f => ({ ...f, current_slip: e.target.value }))}
+            placeholder="F.eks. fin struktur, varmt"
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+        <Field label="Smøring">
+          <input value={form.current_wax} onChange={e => setForm(f => ({ ...f, current_wax: e.target.value }))}
+            placeholder="F.eks. Swix HF6"
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Slip-dato">
+          <input type="date" value={form.slip_date}
+            onChange={e => setForm(f => ({ ...f, slip_date: e.target.value }))}
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+        <Field label="Slip utført av">
+          <input value={form.slip_by} onChange={e => setForm(f => ({ ...f, slip_by: e.target.value }))}
+            placeholder="Navn på slipper"
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+      </div>
+      <Field label="Notater">
+        <textarea value={form.notes} rows={3}
+          onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+          className="w-full px-4 py-3" style={inputStyle} />
+      </Field>
+      {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <button type="button" onClick={() => setEditing(false)} style={btnSecondary}>Avbryt</button>
+        <button type="submit" disabled={pending}
+          style={{ ...btnPrimary, opacity: pending ? 0.6 : 1 }}>
+          {pending ? 'Lagrer…' : 'Lagre'}
+        </button>
+      </div>
+    </form>
   )
 }
 

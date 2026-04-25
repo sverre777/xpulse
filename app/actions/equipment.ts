@@ -10,8 +10,16 @@ import type {
   EquipmentWithUsage,
   SaveEquipmentInput,
   UpdateEquipmentInput,
+  EquipmentSkiData,
+  SaveSkiDataInput,
+  SkiEquipment,
+  SkiType,
 } from '@/lib/equipment-types'
-import { EQUIPMENT_CATEGORIES, EQUIPMENT_STATUSES } from '@/lib/equipment-types'
+import {
+  EQUIPMENT_CATEGORIES,
+  EQUIPMENT_STATUSES,
+  SKI_TYPES,
+} from '@/lib/equipment-types'
 
 // Hent alle utstyrsrader for innlogget bruker. Filtrer optional på kategori +
 // status. Sortering: aktive først, deretter sist endret.
@@ -312,6 +320,83 @@ export async function getWorkoutEquipmentIds(workoutId: string): Promise<string[
     .select('equipment_id')
     .eq('workout_id', workoutId)
   return (data ?? []).map(r => r.equipment_id)
+}
+
+// ── Ski-spesifikk data (Fase 37) ─────────────────────────────
+
+export async function getSkiData(equipmentId: string): Promise<EquipmentSkiData | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  // RLS sikrer at vi bare ser ski-data for vårt eget utstyr.
+  const { data } = await supabase
+    .from('equipment_ski_data')
+    .select('*')
+    .eq('equipment_id', equipmentId)
+    .maybeSingle()
+  return (data as EquipmentSkiData | null) ?? null
+}
+
+// Upsert ski-data. Verifiserer at utstyret tilhører brukeren og er av kategori 'ski'.
+export async function saveSkiData(input: SaveSkiDataInput): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  if (input.ski_type !== undefined && input.ski_type !== null && !SKI_TYPES.includes(input.ski_type)) {
+    return { error: 'Ugyldig ski-type' }
+  }
+
+  const { data: equipment } = await supabase
+    .from('equipment')
+    .select('id, category')
+    .eq('id', input.equipment_id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!equipment) return { error: 'Fant ikke utstyret' }
+  if (equipment.category !== 'ski') return { error: 'Ski-data kan kun lagres for ski' }
+
+  const row = {
+    equipment_id: input.equipment_id,
+    ski_type: input.ski_type ?? null,
+    length_cm: typeof input.length_cm === 'number' ? input.length_cm : null,
+    camber: input.camber?.trim() || null,
+    current_slip: input.current_slip?.trim() || null,
+    slip_date: input.slip_date || null,
+    slip_by: input.slip_by?.trim() || null,
+    current_wax: input.current_wax?.trim() || null,
+    notes: input.notes?.trim() || null,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await supabase
+    .from('equipment_ski_data')
+    .upsert(row, { onConflict: 'equipment_id' })
+  if (error) return { error: error.message }
+
+  revalidatePath('/app/utstyr/ski')
+  revalidatePath(`/app/utstyr/${input.equipment_id}`)
+  return {}
+}
+
+// Hent alle ski + ski_data for skipark-visning. Filtrer på ski_type ved behov.
+export async function listSkiEquipment(filter?: { ski_type?: SkiType | null }): Promise<SkiEquipment[]> {
+  const all = await listEquipmentWithUsage({ category: 'ski', status: 'active' })
+  if (all.length === 0) return []
+
+  const supabase = await createClient()
+  const ids = all.map(e => e.id)
+  const { data: skiRows } = await supabase
+    .from('equipment_ski_data')
+    .select('*')
+    .in('equipment_id', ids)
+
+  const byId = new Map<string, EquipmentSkiData>()
+  for (const r of (skiRows ?? [])) byId.set(r.equipment_id, r as EquipmentSkiData)
+
+  const merged: SkiEquipment[] = all.map(e => ({ ...e, ski_data: byId.get(e.id) ?? null }))
+  if (filter?.ski_type) return merged.filter(s => s.ski_data?.ski_type === filter.ski_type)
+  return merged
 }
 
 export async function getEquipmentForWorkout(workoutId: string): Promise<Equipment[]> {

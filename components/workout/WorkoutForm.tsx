@@ -247,7 +247,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       // Lagre utstyr-koblinger separat. Hopper over for trener-redigering (ikke
       // egen utstyr-tabell) og når formen er i ren plan-modus uten økt-id.
       const savedId = result.id
-      if (savedId && !targetUserId && availableEquipment.length > 0) {
+      if (savedId && !targetUserId && !isPlanMode && availableEquipment.length > 0) {
         await setWorkoutEquipment(savedId, equipmentIds)
       }
       if (onSaved) onSaved()
@@ -379,6 +379,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             ★ Viktig økt
           </Chip>
         </div>
+
+        {!isPlanMode && availableEquipment.length > 0 && !targetUserId && (
+          <div className="mt-4">
+            <EquipmentSelectorInWorkout
+              available={availableEquipment}
+              selectedIds={equipmentIds}
+              onChange={setEquipmentIds}
+            />
+          </div>
+        )}
       </Section>
 
       {/* ── OPPSUMMERING (auto — read-only) ── */}
@@ -562,17 +572,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </>
         )}
       </Section>
-
-      {/* ── UTSTYR ── */}
-      {availableEquipment.length > 0 && !targetUserId && (
-        <Section label="Utstyr">
-          <EquipmentSelectorInWorkout
-            available={availableEquipment}
-            selectedIds={equipmentIds}
-            onChange={setEquipmentIds}
-          />
-        </Section>
-      )}
 
       {/* ── SUBMIT ── */}
       <div className="pt-4 pb-8" hidden={readOnly}>

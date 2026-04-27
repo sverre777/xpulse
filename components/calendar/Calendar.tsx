@@ -556,13 +556,12 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
-      className="text-left border-l w-full"
+      className="text-left border-l w-full h-[110px] sm:h-[140px]"
       style={{
         borderColor: '#1A1A1E',
         borderLeftStyle: borderStyle ?? 'solid',
         background: stateBg ?? baseBg,
         opacity: isCurrentMonth ? 1 : 0.3,
-        height: '140px',
         overflow: 'hidden',
         padding: '4px',
         cursor: 'pointer',

@@ -131,8 +131,8 @@ export function MonthFullCalendar({
                   type="button"
                   onClick={() => within && goToDay(iso)}
                   disabled={!within}
+                  className="h-[110px] sm:h-[140px]"
                   style={{
-                    minHeight: '96px',
                     padding: '4px 6px',
                     textAlign: 'left',
                     backgroundColor: isToday ? '#0D0D14' : bg,

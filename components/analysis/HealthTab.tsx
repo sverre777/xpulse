@@ -86,7 +86,7 @@ const EMPTY = (
 )
 
 function TrendChart({
-  title, subtitle, daily, field, color, unit, yDomain,
+  title, subtitle, daily, field, color, unit, yDomain, chartKey,
 }: {
   title: string
   subtitle?: string
@@ -95,6 +95,7 @@ function TrendChart({
   color: string
   unit: string
   yDomain?: [number | string, number | string]
+  chartKey?: string
 }) {
   const points = daily
     .filter(d => typeof d[field] === 'number' && Number.isFinite(Number(d[field])))
@@ -106,7 +107,7 @@ function TrendChart({
   const trend = linearTrend(points)
 
   return (
-    <ChartWrapper title={title} subtitle={subtitle}>
+    <ChartWrapper chartKey={chartKey} title={title} subtitle={subtitle}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -205,11 +206,11 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {hasHrv && <TrendChart title="HRV" subtitle="millisekunder" daily={data.daily} field="hrv_ms" color="#8B5CF6" unit="ms" />}
-        {hasRhr && <TrendChart title="Hvilepuls" subtitle="bpm" daily={data.daily} field="resting_hr" color="#E11D48" unit="bpm" />}
-        {hasSleep && <TrendChart title="Søvn" subtitle="timer" daily={data.daily} field="sleep_hours" color="#1A6FD4" unit="t" />}
-        {hasWeight && <TrendChart title="Vekt" subtitle="kg" daily={data.daily} field="body_weight_kg" color="#D4A017" unit="kg" />}
-        {hasDayForm && <TrendChart title="Dagsform" subtitle="1-5 skala" daily={data.daily} field="day_form" color="#28A86E" unit="" yDomain={[1, 5]} />}
+        {hasHrv && <TrendChart chartKey="helse_hrv" title="HRV" subtitle="millisekunder" daily={data.daily} field="hrv_ms" color="#8B5CF6" unit="ms" />}
+        {hasRhr && <TrendChart chartKey="helse_resting_hr" title="Hvilepuls" subtitle="bpm" daily={data.daily} field="resting_hr" color="#E11D48" unit="bpm" />}
+        {hasSleep && <TrendChart chartKey="helse_sleep_hours" title="Søvn" subtitle="timer" daily={data.daily} field="sleep_hours" color="#1A6FD4" unit="t" />}
+        {hasWeight && <TrendChart chartKey="helse_body_weight" title="Vekt" subtitle="kg" daily={data.daily} field="body_weight_kg" color="#D4A017" unit="kg" />}
+        {hasDayForm && <TrendChart chartKey="helse_day_form" title="Dagsform" subtitle="1-5 skala" daily={data.daily} field="day_form" color="#28A86E" unit="" yDomain={[1, 5]} />}
       </div>
 
       {/* Del B — korrelasjoner */}

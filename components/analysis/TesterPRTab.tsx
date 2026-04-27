@@ -94,6 +94,7 @@ function ProgressionChart({ series }: { series: TestProgressionSeries }) {
   const color = SPORT_COLOR[series.sport] ?? TEST_BLUE
   return (
     <ChartWrapper
+      chartKey={`tester_pr_${series.sport}_${series.test_type}`}
       title={`${series.test_type} — ${labelSport(series.sport)}`}
       subtitle={series.unit ? `Enhet: ${series.unit}` : undefined}
       height={240}

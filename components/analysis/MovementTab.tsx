@@ -206,7 +206,7 @@ function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
     km: Math.round((w.total_meters / 1000) * 10) / 10,
   }))
   return (
-    <ChartWrapper title="Tid og km per uke" subtitle="Venstre: timer · høyre: km">
+    <ChartWrapper chartKey="bevegelse_time_and_km" title="Tid og km per uke" subtitle="Venstre: timer · høyre: km">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -233,7 +233,7 @@ function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }
   if (points.length === 0) return null
   const trend = linearTrend(points)
   return (
-    <ChartWrapper title="Snittpuls over tid" subtitle="Per aktivitet · med trendlinje">
+    <ChartWrapper chartKey="bevegelse_avg_hr" title="Snittpuls over tid" subtitle="Per aktivitet · med trendlinje">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -267,7 +267,7 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
   const totalZones = data.reduce((s, r) => s + r.I1 + r.I2 + r.I3 + r.I4 + r.I5 + r.Hurtighet, 0)
   if (totalZones === 0) return null
   return (
-    <ChartWrapper title="Sonefordeling per uke" subtitle="Minutter">
+    <ChartWrapper chartKey="bevegelse_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -335,7 +335,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
     if (points.length === 0) return null
     const trend = linearTrend(points)
     return (
-      <ChartWrapper title="Snittempo over tid" subtitle="Min/km · aktiviteter ≥10 min">
+      <ChartWrapper chartKey="bevegelse_pace_running" title="Snittempo over tid" subtitle="Min/km · aktiviteter ≥10 min">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -365,7 +365,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
     if (points.length === 0) return null
     const trend = linearTrend(points)
     return (
-      <ChartWrapper title="Snittwatt over tid" subtitle="Per aktivitet · med trendlinje">
+      <ChartWrapper chartKey="bevegelse_watts" title="Snittwatt over tid" subtitle="Per aktivitet · med trendlinje">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -393,7 +393,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
     if (points.length === 0) return null
     const trend = linearTrend(points)
     return (
-      <ChartWrapper title="Snitthastighet over tid" subtitle="km/t per aktivitet">
+      <ChartWrapper chartKey="bevegelse_speed_skiing" title="Snitthastighet over tid" subtitle="km/t per aktivitet">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />

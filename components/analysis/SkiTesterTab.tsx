@@ -178,6 +178,7 @@ export function SkiTesterTab({ data }: Props) {
       {/* Tidslinje-graf: rating per ski over tid */}
       {timeChart.points.length >= 2 && timeChart.skiIds.length > 0 && (
         <ChartWrapper
+          chartKey="ski_tester_rating_over_time"
           title="Rating over tid"
           subtitle={`Snitt-rating per ski over ${timeChart.points.length} test-dato${timeChart.points.length === 1 ? '' : 'er'}. Hover for detaljer.`}
           height={300}

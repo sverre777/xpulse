@@ -131,7 +131,8 @@ function WeeklyStack({
         </div>
       </div>
 
-      <ChartWrapper title={unit === 'pct' ? 'Sonefordeling per uke (%)' : 'Sonefordeling per uke (minutter)'}
+      <ChartWrapper chartKey="intensity_zones_per_week"
+        title={unit === 'pct' ? 'Sonefordeling per uke (%)' : 'Sonefordeling per uke (minutter)'}
         subtitle={unit === 'pct' ? 'Andel av ukens tid i sone' : 'Absolutt tid per sone'} height={320}>
         <ResponsiveContainer width="100%" height="100%">
           {unit === 'pct' ? (

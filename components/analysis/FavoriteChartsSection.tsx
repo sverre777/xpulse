@@ -34,6 +34,7 @@ import { IntensiveWorkoutsLine, PolarizedStack } from './IntensityTab'
 
 export type FavoriteTabKey = 'oversikt' | 'belastning' | 'terskel' | 'skyting'
   | 'periodisering' | 'intensitet' | 'konkurranser' | 'helse'
+  | 'per_bevegelsesform' | 'mal_analyse' | 'tester_pr' | 'ski_tester'
 type TabKey = FavoriteTabKey
 
 const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string }> = {
@@ -73,6 +74,24 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   // Intensitet
   intensity_high_sessions_per_week: { tab: 'intensitet', tabLabel: 'Intensitetsfordeling', title: 'Antall økter med I4/I5/Hurtighet per uke' },
   intensity_polarization_per_week: { tab: 'intensitet', tabLabel: 'Intensitetsfordeling', title: 'Polarisering per uke' },
+  intensity_zones_per_week: { tab: 'intensitet', tabLabel: 'Intensitetsfordeling', title: 'Sonefordeling per uke' },
+
+  // Per bevegelsesform
+  bevegelse_time_and_km: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Tid og km per uke' },
+  bevegelse_avg_hr: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Snittpuls over tid' },
+  bevegelse_zones_per_week: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Sonefordeling per uke' },
+  bevegelse_pace_running: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Snittempo (løping)' },
+  bevegelse_watts: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Snittwatt over tid' },
+  bevegelse_speed_skiing: { tab: 'per_bevegelsesform', tabLabel: 'Per bevegelsesform', title: 'Snitthastighet (langrenn/rulleski)' },
+
+  // Mal-analyse
+  mal_analyse_avg_hr: { tab: 'mal_analyse', tabLabel: 'Mal-analyse', title: 'Snittpuls over tid (mal)' },
+  mal_analyse_total_time: { tab: 'mal_analyse', tabLabel: 'Mal-analyse', title: 'Total tid over tid (mal)' },
+  mal_analyse_total_km: { tab: 'mal_analyse', tabLabel: 'Mal-analyse', title: 'Total km over tid (mal)' },
+  mal_analyse_lactate_progression: { tab: 'mal_analyse', tabLabel: 'Mal-analyse', title: 'Laktat-progresjon (mal)' },
+
+  // Ski-tester
+  ski_tester_rating_over_time: { tab: 'ski_tester', tabLabel: 'Ski-tester', title: 'Rating over tid' },
 
   // Konkurranser (fallback — ikke ekstrahert enda)
   competitions_placement_over_time: { tab: 'konkurranser', tabLabel: 'Konkurranser', title: 'Plasseringer over tid' },
@@ -91,6 +110,11 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   helse_rest_vs_perceived: { tab: 'helse', tabLabel: 'Helse', title: 'Hviledager 🛌 vs opplevd belastning' },
   helse_reflections_trend: { tab: 'helse', tabLabel: 'Helse', title: 'Overskudd, stress og opplevd belastning over tid' },
   helse_injuries_timeline: { tab: 'helse', tabLabel: 'Helse', title: 'Skade-tidslinje' },
+  helse_hrv: { tab: 'helse', tabLabel: 'Helse', title: 'HRV over tid' },
+  helse_resting_hr: { tab: 'helse', tabLabel: 'Helse', title: 'Hvilepuls over tid' },
+  helse_sleep_hours: { tab: 'helse', tabLabel: 'Helse', title: 'Søvn over tid' },
+  helse_body_weight: { tab: 'helse', tabLabel: 'Helse', title: 'Vekt over tid' },
+  helse_day_form: { tab: 'helse', tabLabel: 'Helse', title: 'Dagsform over tid' },
 }
 
 // Hjelper for AnalysisPage: hvilken fane-kilde må lazy-fetches for å rendre

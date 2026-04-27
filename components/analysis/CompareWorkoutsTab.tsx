@@ -372,7 +372,9 @@ export function CompareWorkoutsTab({
         </div>
       </div>
 
-      {/* Workout list */}
+      {/* Workout list — egen scroll-container slik at lista scroller uten
+          å dra hele siden når den blir lang. Filters + selected-summary
+          over står naturlig fast øverst på siden. */}
       {!data.hasData || (filtered.length === 0 && filteredDayStates.length === 0) ? (
         <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
@@ -380,7 +382,10 @@ export function CompareWorkoutsTab({
           </p>
         </div>
       ) : (
-        <>
+        <div
+          className="flex flex-col gap-2"
+          style={{ maxHeight: 'calc(100vh - 320px)', minHeight: '320px', overflowY: 'auto' }}
+        >
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             {selectableWorkouts.length} valgbare · {filtered.length - selectableWorkouts.length} planlagte · {filteredDayStates.length} dag-tilstander
@@ -399,7 +404,7 @@ export function CompareWorkoutsTab({
               <DayStateRow key={d.id} state={d} />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   )

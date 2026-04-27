@@ -335,11 +335,13 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
           />
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
+            const Glyph = COACH_NAV_GLYPHS[href]
             return (
               <Link
                 key={href}
                 href={href}
-                className="px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
+                title={label}
+                className="px-3 xl:px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
@@ -350,7 +352,9 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
                   textDecoration: 'none',
                 }}
               >
-                {label}
+                {Glyph ? <Glyph size={18} /> : null}
+                <span className="hidden xl:inline">{label}</span>
+                <span className="xl:hidden sr-only">{label}</span>
               </Link>
             )
           })}

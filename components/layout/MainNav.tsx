@@ -37,11 +37,11 @@ const NAV_LINKS = [
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
-// Mobil-menyen inkluderer Hjem + Maler i tillegg til de andre rutene.
+// Mobil-menyen inkluderer Hjem i tillegg til de andre rutene. Maler er IKKE
+// med — utøvere kommer dit via Plan-kalenderens "+ Fra øktmal"-knapp.
 const MOBILE_LINKS = [
-  { href: '/app/oversikt',      label: 'Hjem' },
+  { href: '/app/oversikt', label: 'Hjem' },
   ...NAV_LINKS,
-  { href: '/app/maler',         label: 'Maler' },
 ]
 
 const BREAKPOINT = 900
@@ -202,11 +202,13 @@ export function MainNav({
           />
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
+            const Glyph = ATHLETE_NAV_GLYPHS[href]
             return (
               <Link
                 key={href}
                 href={href}
-                className="px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
+                title={label}
+                className="px-3 xl:px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
@@ -217,7 +219,9 @@ export function MainNav({
                   textDecoration: 'none',
                 }}
               >
-                {label}
+                {Glyph ? <Glyph size={18} /> : null}
+                <span className="hidden xl:inline">{label}</span>
+                <span className="xl:hidden sr-only">{label}</span>
               </Link>
             )
           })}

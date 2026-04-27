@@ -68,18 +68,33 @@ const TABS: [Tab, string][] = [
   ['belastning', 'Belastning'],
   ['terskel', 'Terskel'],
   ['skyting', 'Skyting-dybde'],
-  ['sammenlign', 'Sammenlign økter'],
-  ['mal_analyse', 'Mal-analyse'],
+  ['sammenlign', 'Sammenlign økt/plan'],
   ['konkurranser', 'Konkurranser'],
   ['tester_pr', 'Tester & PR'],
   ['ski_tester', 'Ski-tester'],
   ['helse', 'Helse'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
-  ['periodisering', 'Årsplan'],
 ]
 
 const TAB_KEYS = new Set<string>(TABS.map(([k]) => k))
+
+function SammenlignSection({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-4">
+        <span style={{ width: '32px', height: '3px', backgroundColor: accent, display: 'inline-block' }} />
+        <h2 style={{
+          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontSize: '24px', letterSpacing: '0.06em',
+        }}>
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
+  )
+}
 
 function LoadingStub({ label }: { label: string }) {
   return (
@@ -222,13 +237,30 @@ function AnalysisPageInner({
         setTemplateAnalysis(res)
       })
     }
-    if (tab === 'sammenlign' && compareWorkouts === null) {
-      startTransition(async () => {
-        setError(null)
-        const res = await getWorkoutsForComparison(range.from, range.to, { sport: sportFilter })
-        if ('error' in res) { setError(res.error); return }
-        setCompareWorkouts(res)
-      })
+    if (tab === 'sammenlign') {
+      // Sammenlign-fanen samler tre seksjoner: økt-sammenligning, mal-analyse
+      // og årsplan-analyse. Last alle tre datasettene parallelt så bruker
+      // ikke trenger å bytte fane for å se hver seksjon.
+      if (compareWorkouts === null) {
+        startTransition(async () => {
+          setError(null)
+          const res = await getWorkoutsForComparison(range.from, range.to, { sport: sportFilter })
+          if ('error' in res) { setError(res.error); return }
+          setCompareWorkouts(res)
+        })
+      }
+      if (templateAnalysis === null) {
+        startTransition(async () => {
+          const res = await getTemplateAnalysis(range.from, range.to, sportFilter)
+          if (!('error' in res)) setTemplateAnalysis(res)
+        })
+      }
+      if (periodisering === null) {
+        startTransition(async () => {
+          const res = await getPeriodizationOverview(range.from, range.to, sportFilter)
+          if (!('error' in res)) setPeriodisering(res)
+        })
+      }
     }
     if (tab === 'intensitet' && intensityDist === null) {
       startTransition(async () => {
@@ -453,14 +485,32 @@ function AnalysisPageInner({
             : <LoadingStub label="Laster helsedata…" />
         )}
         {tab === 'mal_analyse' && (
+          // Beholdt for backward compat — FavoriteChartsSection og dypkoblinger
+          // kan navigere hit. Innholdet er duplisert i sammenlign-fanen.
           templateAnalysis
             ? <TemplateAnalysisTab data={templateAnalysis} />
             : <LoadingStub label="Laster mal-analyse…" />
         )}
         {tab === 'sammenlign' && (
-          compareWorkouts
-            ? <CompareWorkoutsTab initialData={compareWorkouts} from={range.from} to={range.to} />
-            : <LoadingStub label="Laster økter…" />
+          <div className="space-y-8">
+            <SammenlignSection title="Økt-sammenligning" accent="#FF4500">
+              {compareWorkouts
+                ? <CompareWorkoutsTab initialData={compareWorkouts} from={range.from} to={range.to} />
+                : <LoadingStub label="Laster økter…" />}
+            </SammenlignSection>
+
+            <SammenlignSection title="Mal-analyse" accent="#1A6FD4">
+              {templateAnalysis
+                ? <TemplateAnalysisTab data={templateAnalysis} />
+                : <LoadingStub label="Laster mal-analyse…" />}
+            </SammenlignSection>
+
+            <SammenlignSection title="Årsplan-analyse" accent="#28A86E">
+              {periodisering
+                ? <PeriodiseringTab data={periodisering} />
+                : <LoadingStub label="Laster årsplan-analyse…" />}
+            </SammenlignSection>
+          </div>
         )}
         {tab === 'intensitet' && (
           intensityDist

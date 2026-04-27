@@ -4,6 +4,7 @@ import { MainNav } from '@/components/layout/MainNav'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
 import { InboxTabs } from '@/components/inbox/InboxTabs'
+import { getInboxUnreadCount } from '@/app/actions/inbox'
 import type { Role } from '@/lib/types'
 
 export default async function InboxLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
   const activeRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
+  const unreadInboxCount = await getInboxUnreadCount()
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
@@ -29,6 +31,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             userName={profile?.full_name ?? null}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            unreadInboxCount={unreadInboxCount}
           />
         ) : (
           <MainNav
@@ -36,6 +39,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             activeRole={activeRole}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            unreadInboxCount={unreadInboxCount}
           />
         )}
         <main className="flex-1 w-full max-w-4xl mx-auto px-4 md:px-6 pt-4 pb-10">

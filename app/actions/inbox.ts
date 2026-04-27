@@ -749,3 +749,84 @@ export async function createCoachGroup(
   revalidatePath('/app/innboks')
   return { id: data as string }
 }
+
+// ── Ulest-antall for nav-badge ─────────────────────────────
+//
+// Returnerer total ulest-antall for innlogget bruker, summert over:
+//   · uleste DM-er hvor jeg er recipient
+//   · uleste gruppemeldinger i grupper hvor jeg er medlem (sender_id != meg)
+//   · uleste coach_comments rettet mot meg som utøver, eller mot mine
+//     aktive utøvere når jeg er trener
+//   · uleste notifications hvor user_id = meg
+//
+// Brukes av MainNav/CoachNav for å vise badge ved Innboks-lenken.
+// Returnerer 0 ved feil — badge er ikke kritisk for funksjonalitet.
+export async function getInboxUnreadCount(): Promise<number> {
+  const res = await getViewer()
+  if (!res.ok) return 0
+  const viewer = res.viewer
+  const supabase = await createClient()
+
+  // Gruppe-medlemskap først (trengs for messages-spørringen).
+  const { data: groupRows } = await supabase
+    .from('coach_group_members')
+    .select('group_id')
+    .eq('user_id', viewer.userId)
+  const groupIds = (groupRows ?? []).map(r => r.group_id).filter(Boolean) as string[]
+
+  // Athlete-ids for kommentar-tellingen (kun for trener-modus).
+  let coachAthleteIds: string[] = []
+  if (viewer.activeRole === 'coach') {
+    const { data: rels } = await supabase
+      .from('coach_athlete_relations')
+      .select('athlete_id')
+      .eq('coach_id', viewer.userId)
+      .eq('status', 'active')
+    coachAthleteIds = (rels ?? []).map(r => r.athlete_id)
+  }
+
+  // Parallelle count-spørringer (head: true → kun count, ingen rader returneres).
+  const [dmRes, groupMsgRes, commentRes, notifRes] = await Promise.all([
+    supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('recipient_id', viewer.userId)
+      .eq('is_read', false)
+      .is('group_id', null),
+    groupIds.length > 0
+      ? supabase
+          .from('messages')
+          .select('id', { count: 'exact', head: true })
+          .in('group_id', groupIds)
+          .neq('sender_id', viewer.userId)
+          .eq('is_read', false)
+      : Promise.resolve({ count: 0 } as { count: number | null }),
+    viewer.activeRole === 'coach'
+      ? coachAthleteIds.length > 0
+        ? supabase
+            .from('coach_comments')
+            .select('id', { count: 'exact', head: true })
+            .in('athlete_id', coachAthleteIds)
+            .neq('author_id', viewer.userId)
+            .eq('is_read', false)
+        : Promise.resolve({ count: 0 } as { count: number | null })
+      : supabase
+          .from('coach_comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('athlete_id', viewer.userId)
+          .neq('author_id', viewer.userId)
+          .eq('is_read', false),
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', viewer.userId)
+      .eq('is_read', false),
+  ])
+
+  const total =
+    (dmRes.count ?? 0) +
+    (groupMsgRes.count ?? 0) +
+    (commentRes.count ?? 0) +
+    (notifRes.count ?? 0)
+  return total
+}

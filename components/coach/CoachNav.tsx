@@ -12,14 +12,17 @@ interface CoachNavProps {
   userName: string | null
   hasAthleteRole: boolean
   hasCoachRole: boolean
+  unreadInboxCount?: number
 }
+
+const INBOX_LINK = { href: '/app/innboks', label: 'Innboks' }
 
 // TODO: AI Coach for trener kommer senere.
 const NAV_LINKS = [
   { href: '/app/trener',            label: 'Oversikt' },
   { href: '/app/trener/planlegg',   label: 'Planlegg' },
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
-  { href: '/app/innboks',           label: 'Innboks' },
+  INBOX_LINK,
 ]
 
 const MOBILE_LINKS = [
@@ -29,7 +32,7 @@ const MOBILE_LINKS = [
 
 const BREAKPOINT = 900
 
-export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavProps) {
+export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCount = 0 }: CoachNavProps) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -161,6 +164,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
             <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
               {MOBILE_LINKS.map(({ href, label }) => {
                 const active = pathname === href || pathname.startsWith(href + '/')
+                const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
                 return (
                   <Link
                     key={href}
@@ -174,9 +178,13 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
                       textDecoration: 'none',
                       borderBottom: active ? `1px solid ${COACH_BLUE}` : '1px solid transparent',
                       paddingBottom: '3px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '10px',
                     }}
                   >
                     {label}
+                    {showBadge && <UnreadBadge count={unreadInboxCount} />}
                   </Link>
                 )
               })}
@@ -255,11 +263,12 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
         <div className="flex items-center gap-0">
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
+            const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
             return (
               <Link
                 key={href}
                 href={href}
-                className="px-4 py-0 flex items-center text-sm tracking-widest uppercase transition-colors"
+                className="px-4 py-0 flex items-center gap-2 text-sm tracking-widest uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   color: active ? '#F0F0F2' : '#555560',
@@ -269,6 +278,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
                 }}
               >
                 {label}
+                {showBadge && <UnreadBadge count={unreadInboxCount} />}
               </Link>
             )
           })}
@@ -319,6 +329,25 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
         </form>
       </div>
     </nav>
+  )
+}
+
+function UnreadBadge({ count }: { count: number }) {
+  return (
+    <span
+      className="text-[10px] tracking-widest"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif",
+        backgroundColor: COACH_BLUE,
+        color: '#F0F0F2',
+        padding: '1px 6px',
+        minWidth: '18px',
+        textAlign: 'center',
+        lineHeight: '1.2',
+      }}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
   )
 }
 

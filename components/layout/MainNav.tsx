@@ -15,7 +15,10 @@ interface MainNavProps {
   activeRole?: Role
   hasAthleteRole?: boolean
   hasCoachRole?: boolean
+  unreadInboxCount?: number
 }
+
+const INBOX_LINK = { href: '/app/innboks', label: 'Innboks' }
 
 const NAV_LINKS = [
   { href: '/app/oversikt',      label: 'Oversikt' },
@@ -26,6 +29,7 @@ const NAV_LINKS = [
   { href: '/app/ai-coach',      label: 'AI Coach' },
   { href: '/app/historikk',     label: 'Historikk' },
   { href: '/app/utstyr',        label: 'Utstyr' },
+  INBOX_LINK,
 ]
 
 const MOBILE_LINKS = [
@@ -40,6 +44,7 @@ export function MainNav({
   activeRole = 'athlete',
   hasAthleteRole = true,
   hasCoachRole = false,
+  unreadInboxCount = 0,
 }: MainNavProps) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
@@ -133,6 +138,7 @@ export function MainNav({
             activeRole={activeRole}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            unreadInboxCount={unreadInboxCount}
             onClose={() => setMenuOpen(false)}
           />
         )}
@@ -177,11 +183,12 @@ export function MainNav({
         <div className="flex items-center gap-0">
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
+            const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
             return (
               <Link
                 key={href}
                 href={href}
-                className="px-4 py-0 flex items-center text-sm tracking-widest uppercase transition-colors"
+                className="px-4 py-0 flex items-center gap-2 text-sm tracking-widest uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   color: active ? '#F0F0F2' : '#555560',
@@ -191,6 +198,7 @@ export function MainNav({
                 }}
               >
                 {label}
+                {showBadge && <UnreadBadge count={unreadInboxCount} accent={accent} />}
               </Link>
             )
           })}
@@ -259,7 +267,7 @@ export function MainNav({
   )
 }
 
-function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, onClose }: {
+function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, unreadInboxCount, onClose }: {
   pathname: string
   userName: string | null
   logHref: string
@@ -268,6 +276,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   activeRole: Role
   hasAthleteRole: boolean
   hasCoachRole: boolean
+  unreadInboxCount: number
   onClose: () => void
 }) {
   const [touchStartY, setTouchStartY] = useState<number | null>(null)
@@ -363,6 +372,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
         {MOBILE_LINKS.map(({ href, label }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
+          const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
           return (
             <Link
               key={href}
@@ -377,11 +387,15 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
                 borderBottom: active ? `1px solid ${accent}` : '1px solid transparent',
                 paddingBottom: '3px',
                 transition: 'color 150ms',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
               }}
               onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#F0F0F2' }}
               onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(242,240,236,0.6)' }}
             >
               {label}
+              {showBadge && <UnreadBadge count={unreadInboxCount} accent={accent} />}
             </Link>
           )
         })}
@@ -416,6 +430,25 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         </form>
       </div>
     </div>
+  )
+}
+
+function UnreadBadge({ count, accent }: { count: number; accent: string }) {
+  return (
+    <span
+      className="text-[10px] tracking-widest"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif",
+        backgroundColor: accent,
+        color: '#F0F0F2',
+        padding: '1px 6px',
+        minWidth: '18px',
+        textAlign: 'center',
+        lineHeight: '1.2',
+      }}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
   )
 }
 

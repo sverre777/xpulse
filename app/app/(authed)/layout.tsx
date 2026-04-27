@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
+import { getInboxUnreadCount } from '@/app/actions/inbox'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
+  const unreadInboxCount = await getInboxUnreadCount()
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
@@ -26,6 +28,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           activeRole={activeRole}
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
+          unreadInboxCount={unreadInboxCount}
         />
         <div className="flex-1">
           {children}

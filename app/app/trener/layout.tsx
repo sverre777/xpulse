@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CoachNav } from '@/components/coach/CoachNav'
+import { getInboxUnreadCount } from '@/app/actions/inbox'
 
 export default async function CoachLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -18,12 +19,15 @@ export default async function CoachLayout({ children }: { children: React.ReactN
   if (!hasCoachRole) redirect('/app/oversikt')
   if (activeRole !== 'coach') redirect('/app/oversikt')
 
+  const unreadInboxCount = await getInboxUnreadCount()
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
       <CoachNav
         userName={profile?.full_name ?? null}
         hasAthleteRole={profile?.has_athlete_role ?? false}
         hasCoachRole={true}
+        unreadInboxCount={unreadInboxCount}
       />
       <div className="flex-1">
         {children}

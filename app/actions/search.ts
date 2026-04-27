@@ -77,19 +77,18 @@ export async function searchAcrossCategories(
         .ilike('tag', like)
         .limit(PER_CATEGORY_LIMIT)
       if (!data) return null
-      const hits: SearchHit[] = data
-        .map(t => {
-          const w = (t as unknown as { workout: { id: string; title: string; date: string; sport: string } | null }).workout
-          if (!w) return null
-          return {
-            id: `tag-${w.id}`,
-            title: w.title,
-            subtitle: `Tag: ${(t as { tag: string }).tag}`,
-            date: w.date,
-            href: `/app/dagbok?date=${encodeURIComponent(w.date)}`,
-          }
+      const hits: SearchHit[] = []
+      for (const t of data) {
+        const row = t as unknown as { tag: string; workout: { id: string; title: string; date: string; sport: string } | null }
+        if (!row.workout) continue
+        hits.push({
+          id: `tag-${row.workout.id}`,
+          title: row.workout.title,
+          subtitle: `Tag: ${row.tag}`,
+          date: row.workout.date,
+          href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
         })
-        .filter((x): x is SearchHit => x !== null)
+      }
       return { category: 'workouts' as const, hits }
     })())
   }
@@ -102,25 +101,24 @@ export async function searchAcrossCategories(
         .or(`name.ilike.${like},location.ilike.${like},comment.ilike.${like}`)
         .limit(PER_CATEGORY_LIMIT)
       if (!data) return { category: 'competitions' as const, hits: [] }
-      const hits: SearchHit[] = data
-        .map(c => {
-          const row = c as unknown as {
-            id: string; name: string | null; location: string | null
-            position_overall: number | null
-            workout: { id: string; title: string; date: string } | null
-          }
-          if (!row.workout) return null
-          const subtitleParts = [row.location, row.position_overall ? `${row.position_overall}. plass` : null]
-            .filter(Boolean)
-          return {
-            id: row.id,
-            title: row.name ?? row.workout.title,
-            subtitle: subtitleParts.join(' · ') || null,
-            date: row.workout.date,
-            href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
-          }
+      const hits: SearchHit[] = []
+      for (const c of data) {
+        const row = c as unknown as {
+          id: string; name: string | null; location: string | null
+          position_overall: number | null
+          workout: { id: string; title: string; date: string } | null
+        }
+        if (!row.workout) continue
+        const subtitleParts = [row.location, row.position_overall ? `${row.position_overall}. plass` : null]
+          .filter(Boolean) as string[]
+        hits.push({
+          id: row.id,
+          title: row.name ?? row.workout.title,
+          subtitle: subtitleParts.join(' · ') || null,
+          date: row.workout.date,
+          href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
         })
-        .filter((x): x is SearchHit => x !== null)
+      }
       return { category: 'competitions' as const, hits }
     })())
   }

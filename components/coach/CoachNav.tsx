@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
+import { SearchIconButton } from '@/components/search/SearchIconButton'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -91,6 +92,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <SearchIconButton mode="coach" accent={COACH_BLUE} />
             <InboxIconLink
               unreadCount={unreadInboxCount}
               isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
@@ -292,6 +294,8 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
       </div>
 
       <div className="flex items-center gap-3">
+        <SearchIconButton mode="coach" accent={COACH_BLUE} />
+
         <InboxIconLink
           unreadCount={unreadInboxCount}
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}

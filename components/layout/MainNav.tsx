@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
+import { SearchIconButton } from '@/components/search/SearchIconButton'
 import type { Role } from '@/lib/types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -27,7 +28,6 @@ const NAV_LINKS = [
   { href: '/app/periodisering', label: 'Årsplan' },
   { href: '/app/analyse',       label: 'Analyse' },
   { href: '/app/ai-coach',      label: 'AI Coach' },
-  { href: '/app/historikk',     label: 'Historikk' },
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
@@ -112,6 +112,7 @@ export function MainNav({
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
             <InboxIconLink
               unreadCount={unreadInboxCount}
               accent={accent}
@@ -224,6 +225,8 @@ export function MainNav({
             {logLabel}
           </Link>
         )}
+
+        <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
 
         <InboxIconLink
           unreadCount={unreadInboxCount}

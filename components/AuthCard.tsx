@@ -1,3 +1,5 @@
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
+
 interface AuthCardProps {
   title: string
   subtitle?: string
@@ -15,12 +17,13 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
       }}
     >
       <div className="mb-8">
-        <div className="mb-6 text-center">
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <XPulseIcon size={32} ariaLabel="X-PULSE" />
           <span
             className="text-3xl tracking-widest"
             style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500' }}
           >
-            X-PULSE
+            PULSE
           </span>
         </div>
         <h2

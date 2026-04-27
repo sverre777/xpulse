@@ -9,6 +9,7 @@ import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
 import { HomeIconButton } from '@/components/layout/HomeIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -71,6 +72,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             href="/app/trener"
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
+            <XPulseIcon size={22} ariaLabel="X-PULSE" />
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -78,7 +80,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
               fontSize: '18px',
               letterSpacing: '0.4em',
             }}>
-              X-PULSE
+              PULSE
             </span>
             <span
               className="text-xs tracking-widest uppercase"
@@ -137,6 +139,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
           >
             <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <XPulseIcon size={22} ariaLabel="X-PULSE" />
                 <span style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
@@ -144,7 +147,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
                   fontSize: '18px',
                   letterSpacing: '0.4em',
                 }}>
-                  X-PULSE
+                  PULSE
                 </span>
                 <span
                   className="text-xs tracking-widest uppercase"
@@ -256,8 +259,9 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >
+          <XPulseIcon size={24} ariaLabel="X-PULSE" />
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: COACH_BLUE, fontSize: '20px', letterSpacing: '0.1em' }}>
-            X-PULSE
+            PULSE
           </span>
           <span
             className="text-xs tracking-widest uppercase ml-1"

@@ -9,6 +9,7 @@ import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
 import { HomeIconButton } from './HomeIconButton'
 import { UserMenu } from './UserMenu'
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import type { Role } from '@/lib/types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -91,6 +92,7 @@ export function MainNav({
             href="/app/oversikt"
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
+            <XPulseIcon size={22} ariaLabel="X-PULSE" />
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -98,7 +100,7 @@ export function MainNav({
               fontSize: '18px',
               letterSpacing: '0.4em',
             }}>
-              X-PULSE
+              PULSE
             </span>
             <span
               className="text-xs tracking-widest uppercase"
@@ -186,8 +188,9 @@ export function MainNav({
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >
+          <XPulseIcon size={24} ariaLabel="X-PULSE" />
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: accent, fontSize: '20px', letterSpacing: '0.1em' }}>
-            X-PULSE
+            PULSE
           </span>
           <span
             className="text-xs tracking-widest uppercase ml-1"
@@ -313,6 +316,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       {/* Header row (X close) */}
       <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <XPulseIcon size={22} ariaLabel="X-PULSE" />
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600,
@@ -320,7 +324,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             fontSize: '18px',
             letterSpacing: '0.4em',
           }}>
-            X-PULSE
+            PULSE
           </span>
           <span
             className="text-xs tracking-widest uppercase"

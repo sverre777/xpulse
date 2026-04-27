@@ -27,7 +27,6 @@ const NAV_LINKS = [
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
-  { href: INBOX_HREF, label: 'Innboks' },
   { href: '/app/innstillinger', label: 'Innstillinger' },
 ]
 

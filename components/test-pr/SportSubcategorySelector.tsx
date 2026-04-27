@@ -15,14 +15,14 @@ interface Props {
   sport: TestPRSport | ''
   subcategory: string
   customLabel: string
-  onSportChange: (sport: TestPRSport | '') => void
-  onSubcategoryChange: (subcategory: string) => void
-  onCustomLabelChange: (label: string) => void
+  // Sport-bytte må endre tre felt samtidig (sport + subcategory + customLabel).
+  // Tre separate callbacks ville bygd på stale value og overskrevet hverandre,
+  // så vi eksponerer én batched callback i tillegg til de individuelle.
+  onPatch: (patch: { sport?: TestPRSport | ''; subcategory?: string; customLabel?: string }) => void
 }
 
 export function SportSubcategorySelector({
-  sport, subcategory, customLabel,
-  onSportChange, onSubcategoryChange, onCustomLabelChange,
+  sport, subcategory, customLabel, onPatch,
 }: Props) {
   const def = sport ? findTestPRSport(sport) : null
   const subs = def?.subcategories ?? []
@@ -32,11 +32,9 @@ export function SportSubcategorySelector({
 
   const onSelectSport = (val: string) => {
     const next = (val || '') as TestPRSport | ''
-    onSportChange(next)
-    // Reset underkategori når sport endres slik at vi ikke står med
-    // ugyldig kombinasjon. Custom-label nullstilles også for ren start.
-    onSubcategoryChange('')
-    onCustomLabelChange('')
+    // Reset underkategori og custom-label samtidig så vi ikke står med
+    // ugyldig kombinasjon — én patch sikrer at alle tre treffer samme render.
+    onPatch({ sport: next, subcategory: '', customLabel: '' })
   }
 
   return (
@@ -52,7 +50,7 @@ export function SportSubcategorySelector({
 
       {subs.length > 0 && (
         <Field label="Underkategori">
-          <select value={subcategory} onChange={e => onSubcategoryChange(e.target.value)} style={inputStyle}>
+          <select value={subcategory} onChange={e => onPatch({ subcategory: e.target.value })} style={inputStyle}>
             <option value="">— velg —</option>
             {subs.map(s => (
               <option key={s} value={s}>{s}</option>
@@ -64,7 +62,7 @@ export function SportSubcategorySelector({
       {showCustom && (
         <Field label={sport === 'annet' ? 'Hva tester du?' : 'Egen test (fritekst)'}>
           <input value={customLabel}
-            onChange={e => onCustomLabelChange(e.target.value)}
+            onChange={e => onPatch({ customLabel: e.target.value })}
             placeholder="f.eks. Standhopp m/sving, 6×400m, Pull-up dødheng…"
             style={inputStyle} />
         </Field>

@@ -11,6 +11,7 @@ import {
   getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
+  ActivityRow, emptyActivityZones,
 } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
@@ -61,6 +62,50 @@ function makeDefaultMovements(sport: Sport): MovementRow[] {
     id: crypto.randomUUID(), movement_name: name, minutes: '', distance_km: '',
     elevation_meters: '', avg_heart_rate: '', zones: [], exercises: [],
   }))
+}
+
+// Mal-snapshots kan mangle nyere felt (zones, exercises, lactate_measurements,
+// splits_per_km osv.). Render-koden i ActivitiesSection forventer at disse er
+// fylt inn — uten normalisering crasher klikk/expand på en aktivitet etter
+// mal-bruk ("Page could not load").
+function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow {
+  return {
+    id: crypto.randomUUID(),
+    activity_type: a.activity_type ?? 'aktivitet',
+    movement_name: a.movement_name ?? '',
+    movement_subcategory: a.movement_subcategory ?? '',
+    start_time: a.start_time ?? '',
+    duration: a.duration ?? '',
+    distance_km: a.distance_km ?? '',
+    avg_heart_rate: a.avg_heart_rate ?? '',
+    max_heart_rate: a.max_heart_rate ?? '',
+    avg_watts: a.avg_watts ?? '',
+    avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? '',
+    pace_unit_preference: a.pace_unit_preference ?? '',
+    splits_per_km: a.splits_per_km ?? [],
+    prone_shots: a.prone_shots ?? '',
+    prone_hits: a.prone_hits ?? '',
+    standing_shots: a.standing_shots ?? '',
+    standing_hits: a.standing_hits ?? '',
+    elevation_gain_m: a.elevation_gain_m ?? '',
+    elevation_loss_m: a.elevation_loss_m ?? '',
+    incline_percent: a.incline_percent ?? '',
+    pack_weight_kg: a.pack_weight_kg ?? '',
+    sled_weight_kg: a.sled_weight_kg ?? '',
+    weather: a.weather ?? '',
+    temperature_c: a.temperature_c ?? '',
+    notes: a.notes ?? '',
+    zones: a.zones ?? emptyActivityZones(),
+    exercises: (a.exercises ?? []).map(ex => ({
+      ...ex,
+      id: crypto.randomUUID(),
+      sets: (ex.sets ?? []).map(s => ({ ...s, id: crypto.randomUUID() })),
+    })),
+    lactate_measurements: (a.lactate_measurements ?? []).map(m => ({
+      ...m,
+      id: crypto.randomUUID(),
+    })),
+  }
 }
 
 export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
@@ -142,20 +187,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
 
   const loadTemplate = (template: WorkoutTemplate) => {
     const d = template.template_data ?? ({} as WorkoutFormData)
-    // Generer nye klient-id-er så innholdet ikke kolliderer med eksisterende rader.
-    const freshActivities = (template.activities ?? []).map(a => ({
-      ...a,
-      id: crypto.randomUUID(),
-      exercises: (a.exercises ?? []).map(ex => ({
-        ...ex,
-        id: crypto.randomUUID(),
-        sets: (ex.sets ?? []).map(s => ({ ...s, id: crypto.randomUUID() })),
-      })),
-      lactate_measurements: (a.lactate_measurements ?? []).map(m => ({
-        ...m,
-        id: crypto.randomUUID(),
-      })),
-    }))
+    // Generer nye klient-id-er + safe defaults for alle felt så ikke gamle
+    // mal-snapshots krasjer render i ActivitiesSection.
+    const freshActivities = (template.activities ?? []).map(normalizeActivityRowFromTemplate)
     setForm(f => ({
       ...f,
       sport: template.sport ?? d.sport ?? f.sport,

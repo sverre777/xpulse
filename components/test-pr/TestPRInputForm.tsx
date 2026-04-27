@@ -78,9 +78,12 @@ export function TestPRInputForm({
           sport={value.sport}
           subcategory={value.subcategory}
           customLabel={value.custom_label}
-          onSportChange={s => set('sport', s)}
-          onSubcategoryChange={s => set('subcategory', s)}
-          onCustomLabelChange={l => set('custom_label', l)}
+          onPatch={patch => onChange({
+            ...value,
+            ...(patch.sport !== undefined ? { sport: patch.sport } : null),
+            ...(patch.subcategory !== undefined ? { subcategory: patch.subcategory } : null),
+            ...(patch.customLabel !== undefined ? { custom_label: patch.customLabel } : null),
+          })}
         />
 
         <Field label="Resultat">

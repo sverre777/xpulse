@@ -60,6 +60,11 @@ export async function register(prevState: AuthState, formData: FormData): Promis
     return { error: 'Du må velge minst én rolle' }
   }
 
+  const acceptTerms = formData.get('accept_terms') === 'on' || formData.get('accept_terms') === 'true'
+  if (!acceptTerms) {
+    return { error: 'Du må godta brukervilkårene og personvernerklæringen' }
+  }
+
   // active_role — hvis kun én rolle: den; hvis begge: utøver som start.
   const activeRole: Role = hasAthlete ? 'athlete' : 'coach'
   // Legacy role: matcher active_role for bakoverkomp.

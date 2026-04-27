@@ -5,6 +5,7 @@ import { useActionState } from 'react'
 import { register, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
+import { PublicFooter } from '@/components/legal/PublicFooter'
 import { SPORTS } from '@/lib/types'
 
 const initialState: AuthState = {}
@@ -13,6 +14,7 @@ export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(register, initialState)
 
   return (
+    <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
       style={{ backgroundColor: '#0A0A0B' }}
@@ -91,6 +93,29 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name="accept_terms"
+              required
+              className="mt-1"
+              style={{ accentColor: '#FF4500' }}
+            />
+            <span
+              className="text-xs tracking-wide"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.4 }}
+            >
+              Jeg har lest og godtar{' '}
+              <Link href="/vilkar" target="_blank" className="underline transition-opacity hover:opacity-80" style={{ color: '#FF4500' }}>
+                brukervilkårene
+              </Link>
+              {' '}og{' '}
+              <Link href="/personvern" target="_blank" className="underline transition-opacity hover:opacity-80" style={{ color: '#FF4500' }}>
+                personvernerklæringen
+              </Link>.
+            </span>
+          </label>
+
           {state?.error && (
             <p
               className="text-sm px-3 py-2"
@@ -141,6 +166,8 @@ export default function RegisterPage() {
         </div>
       </AuthCard>
     </main>
+    <PublicFooter />
+    </>
   )
 }
 

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
-import { addDays, formatNorskKortDato } from '@/lib/template-dates'
+import { addMonths, formatNorskMaaned } from '@/lib/template-dates'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -44,9 +44,9 @@ export function PeriodiseringMalVolumeSection({
 
   const labelFor = (offset: number) => {
     if (!startDate) return `Måned ${offset + 1}`
-    // Approximate month label by adding offset*30 days from startDate.
-    const approx = addDays(startDate, offset * 30)
-    return `Måned ${offset + 1} (≈ ${formatNorskKortDato(approx)})`
+    // Adder hele måneder fra startDate så hver iterasjon treffer riktig kalendermåned.
+    const target = addMonths(startDate, offset)
+    return `Måned ${offset + 1} (${formatNorskMaaned(target)})`
   }
 
   return (

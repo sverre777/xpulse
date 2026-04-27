@@ -5,6 +5,7 @@ import { useActionState } from 'react'
 import { login, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
+import { PublicFooter } from '@/components/legal/PublicFooter'
 
 const initialState: AuthState = {}
 
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState)
 
   return (
+    <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
       style={{ backgroundColor: '#0A0A0B' }}
@@ -85,5 +87,7 @@ export default function LoginPage() {
         </div>
       </AuthCard>
     </main>
+    <PublicFooter />
+    </>
   )
 }

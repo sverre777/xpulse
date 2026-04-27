@@ -11,7 +11,7 @@ import type {
 } from '@/lib/template-types'
 import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
-import { addDays, deriveEndDate, formatNorskKortDato } from '@/lib/template-dates'
+import { addDays, deriveEndDate, diffDays, formatNorskKortDato } from '@/lib/template-dates'
 import { PeriodiseringMalTimeline } from '@/components/coach/PeriodiseringMalTimeline'
 import { PeriodiseringMalVolumeSection } from '@/components/coach/PeriodiseringMalVolumeSection'
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
@@ -397,7 +397,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   <PeriodRow
                     key={i}
                     period={p}
-                    max={durationDays - 1}
+                    durationDays={durationDays}
                     startDate={startDate || null}
                     onChange={(patch) => updatePeriod(i, patch)}
                     onRemove={() => removePeriod(i)}
@@ -420,7 +420,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   <KeyDateRow
                     key={i}
                     keyDate={k}
-                    max={durationDays - 1}
+                    durationDays={durationDays}
                     startDate={startDate || null}
                     onChange={(patch) => updateKeyDate(i, patch)}
                     onRemove={() => removeKeyDate(i)}
@@ -470,20 +470,15 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
 }
 
 function PeriodRow({
-  period, max, startDate, onChange, onRemove,
+  period, durationDays, startDate, onChange, onRemove,
 }: {
   period: PeriodizationTemplatePeriod
-  max: number
+  durationDays: number
   startDate: string | null
   onChange: (patch: Partial<PeriodizationTemplatePeriod>) => void
   onRemove: () => void
 }) {
-  const startLabel = startDate
-    ? formatNorskKortDato(addDays(startDate, period.start_offset))
-    : offsetToWeekDayLabel(period.start_offset)
-  const endLabel = startDate
-    ? formatNorskKortDato(addDays(startDate, period.end_offset))
-    : offsetToWeekDayLabel(period.end_offset)
+  const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -500,16 +495,20 @@ function PeriodRow({
             {PHASE_TYPES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </Field>
-        <Field label={`Startdag (${startLabel})`}>
-          <input type="number" min={0} max={max} value={period.start_offset}
-            onChange={e => onChange({ start_offset: parseInt(e.target.value) || 0 })}
-            style={iSt} />
-        </Field>
-        <Field label={`Sluttdag (${endLabel})`}>
-          <input type="number" min={0} max={max} value={period.end_offset}
-            onChange={e => onChange({ end_offset: parseInt(e.target.value) || 0 })}
-            style={iSt} />
-        </Field>
+        <DateOrDayField
+          label="Startdato"
+          offset={period.start_offset}
+          startDate={startDate}
+          maxOffset={max}
+          onChange={v => onChange({ start_offset: v })}
+        />
+        <DateOrDayField
+          label="Sluttdato"
+          offset={period.end_offset}
+          startDate={startDate}
+          maxOffset={max}
+          onChange={v => onChange({ end_offset: v })}
+        />
         <Field label="Belastning">
           <select value={period.intensity}
             onChange={e => onChange({ intensity: e.target.value })}

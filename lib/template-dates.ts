@@ -32,6 +32,24 @@ export function formatNorskKortDato(iso: string): string {
   return `${NORSKE_DAGER[date.getUTCDay()]} ${date.getUTCDate()}. ${NORSKE_MND[date.getUTCMonth()]}`
 }
 
+// Adderer hele måneder uten å drifte. Beholder samme dag-i-måneden hvis mulig,
+// ellers klemmer til siste dag i mål-måneden (f.eks. 31. jan + 1 mnd = 28./29. feb).
+export function addMonths(iso: string, months: number): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  const totalMonths = (y * 12 + (m - 1)) + months
+  const ny = Math.floor(totalMonths / 12)
+  const nm = (totalMonths % 12) + 1
+  const lastDay = new Date(Date.UTC(ny, nm, 0)).getUTCDate()
+  const nd = Math.min(d, lastDay)
+  return `${ny}-${String(nm).padStart(2, '0')}-${String(nd).padStart(2, '0')}`
+}
+
+// "jun 2026"
+export function formatNorskMaaned(iso: string): string {
+  const [y, m] = iso.split('-').map(Number)
+  return `${NORSKE_MND[m - 1]} ${y}`
+}
+
 // Dagens dato i lokal tidssone som YYYY-MM-DD (egnet til <input type="date">).
 export function todayISO(): string {
   const n = new Date()

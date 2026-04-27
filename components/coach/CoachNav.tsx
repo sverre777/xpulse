@@ -232,8 +232,13 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
 
   return (
     <nav
-      className="flex items-center justify-between px-4 md:px-6 py-0"
-      style={{ backgroundColor: '#111113', borderBottom: '1px solid #1E1E22', height: '52px' }}
+      className="flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40"
+      style={{
+        background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        height: '52px',
+      }}
     >
       <div className="flex items-center gap-6">
         <Link
@@ -277,10 +282,12 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
               <Link
                 key={href}
                 href={href}
-                className="px-4 py-0 flex items-center gap-2 text-sm tracking-widest uppercase transition-colors"
+                className="px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: active ? '#F0F0F2' : '#555560',
+                  fontWeight: 600,
+                  letterSpacing: '0.16em',
+                  color: active ? '#F0F0F2' : 'rgba(242,240,236,0.55)',
                   height: '52px',
                   borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                   textDecoration: 'none',

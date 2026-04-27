@@ -12,6 +12,7 @@ import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrap
 import { MetricCard } from './MetricCard'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
+import { PlanVsActualCard } from './PlanVsActualCard'
 import type { DateRange } from './date-range'
 
 // Palett for bevegelsesform-stack. Stabil rekkefølge via modulo.
@@ -157,6 +158,7 @@ export function OverviewTab({ stats, overview, analysisRange }: OverviewTabProps
       {plannedHours > 0 && (
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
       )}
+      <PlanVsActualCard range={analysisRange} />
       {/* Metric cards — hovedtall for valgt periode, med sammenligning forrige tilsvarende periode. */}
       {overview && (
         <>

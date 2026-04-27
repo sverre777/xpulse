@@ -11,6 +11,7 @@ import {
   MONTHS_NO, DAYS_NO_LONG, buildMonthGrid, toISO,
   isoWeekNum, findPeriod, indexByDate, PEAK_GLOW,
 } from '@/lib/season-calendar'
+import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 
 function parseMonthParam(m: string | null, fallback: { year: number; month0: number }): { year: number; month0: number } {
   if (!m) return fallback
@@ -100,8 +101,7 @@ export function MonthFullCalendar({
       </div>
 
       {/* Header row */}
-      <div className="grid" style={{ gridTemplateColumns: '44px repeat(7, 1fr)', borderBottom: '1px solid #1A1A1E' }}>
-        <div />
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO_LONG.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -111,22 +111,9 @@ export function MonthFullCalendar({
       </div>
 
       {weeks.map((week, wi) => {
-        const mondayISO = toISO(week[0])
-        const wn = isoWeekNum(week[0])
         return (
           <div key={wi} className="grid"
-            style={{ gridTemplateColumns: '44px repeat(7, 1fr)', borderBottom: '1px solid #1A1A1E' }}>
-            <button type="button" onClick={() => goToWeek(mondayISO)}
-              className="flex items-start justify-center pt-2"
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif", color: '#555560', fontSize: '13px',
-                background: 'none', border: 'none', cursor: 'pointer',
-              }}
-              title={`Uke ${wn}`}
-            >
-              {wn}
-            </button>
-
+            style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.weekDivider }}>
             {week.map(d => {
               const iso = toISO(d)
               const within = inSeason(iso)

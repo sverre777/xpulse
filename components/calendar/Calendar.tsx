@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
+import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
@@ -29,7 +30,7 @@ import { FocusSection } from '@/components/focus/FocusSection'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
 import {
-  INTENSITY_COLOR, INTENSITY_LABEL,
+  INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
   keyDatesForDate, weekOverlayFor,
 } from '@/lib/periodization-overlay'
@@ -298,8 +299,8 @@ function WeekAnalysisStripe({
     <div
       className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2"
       style={{
-        backgroundColor: '#0E0E12',
-        borderBottom: '1px solid #1A1A1E',
+        backgroundColor: CALENDAR_TOKENS.weekStripeBg,
+        borderBottom: CALENDAR_TOKENS.weekDivider,
         borderLeft: accent ? `3px solid ${accent}` : '3px solid transparent',
       }}
     >
@@ -699,8 +700,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       )}
 
       {/* Column headers: week# + 7 days + totals */}
-      <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr)', borderBottom: '1px solid #1A1A1E' }}>
-        <div />
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
@@ -720,22 +720,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         return (
           <Fragment key={wi}>
             <div className="grid" style={{
-              gridTemplateColumns: '36px repeat(7, 1fr)',
-              borderBottom: expandedInWeek ? 'none' : '1px solid #1A1A1E',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              borderBottom: expandedInWeek ? 'none' : CALENDAR_TOKENS.weekDivider,
+              borderLeft: weekOverlay.period ? `3px solid ${rowAccent}` : '3px solid transparent',
             }}>
-              {/* Week number + period badge + subtle period stripe */}
-              <div className="flex flex-col items-center justify-start pt-2" style={{
-                borderLeft: weekOverlay.period ? `3px solid ${rowAccent}` : 'none',
-              }}>
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: weekOverlay.period ? rowAccent : '#2A2A30', fontSize: '13px' }}>{wn}</span>
-                {weekOverlay.weekIndex && weekOverlay.weekCount && (
-                  <span title={`${weekOverlay.period?.name} · ${INTENSITY_LABEL[weekOverlay.period!.intensity]}`}
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '9px', marginTop: '2px', letterSpacing: '0.04em' }}>
-                    {weekOverlay.weekIndex}/{weekOverlay.weekCount}
-                  </span>
-                )}
-              </div>
-
               {/* Days */}
               {week.map(date => {
                 const ds = toISO(date)

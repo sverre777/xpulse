@@ -721,7 +721,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           <Fragment key={wi}>
             <div className="grid" style={{
               gridTemplateColumns: 'repeat(7, 1fr)',
-              borderBottom: expandedInWeek ? 'none' : CALENDAR_TOKENS.weekDivider,
+              // Skille kun mellom uker — ikke mellom kalenderrad og stripa
+              // som hører til samme uke. Stripa har egen borderBottom som
+              // utgjør uke-skillet.
               borderLeft: weekOverlay.period ? `3px solid ${rowAccent}` : '3px solid transparent',
             }}>
               {/* Days */}

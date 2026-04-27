@@ -514,8 +514,40 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       </div>
 
-      {/* Workouts (mode-filtered) */}
-      {filterByMode(workouts, mode).map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
+      {/* Workouts (mode-filtered) — kappet til MAX_VISIBLE i lukket tilstand,
+          rest avsløres via "+N flere"-pill som åpner dagens inline-expansion. */}
+      {(() => {
+        const filtered = filterByMode(workouts, mode)
+        const MAX_VISIBLE = 3
+        const visible = isExpanded ? filtered : filtered.slice(0, MAX_VISIBLE)
+        const overflow = filtered.length - visible.length
+        return (
+          <>
+            {visible.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
+            {overflow > 0 && !isExpanded && (
+              <button
+                type="button"
+                onClick={e => { e.stopPropagation(); onToggle() }}
+                className="text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'center',
+                  color: '#FF4500',
+                  background: 'rgba(255,69,0,0.1)',
+                  border: '1px dashed rgba(255,69,0,0.4)',
+                  padding: '2px 4px',
+                  marginTop: '2px',
+                  cursor: 'pointer',
+                }}
+              >
+                +{overflow} flere
+              </button>
+            )}
+          </>
+        )
+      })()}
 
       {/* Dag-oppsummering: kompakt sonebar + tid + km (dempet, nederst) */}
       {(() => {

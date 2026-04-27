@@ -497,11 +497,107 @@ export function WeekCalendarView({
         )
       })()}
 
-      {/* Én kombinert scroll-container for både x og y. Sticky-top holder header+all-day
-          synlig ved vertikal scroll; sticky-left holder klokkeslett-kolonnen synlig ved
-          horisontal scroll (swipe mellom dager på mobil). */}
+      {/* Mobil: stablet daglig liste i stedet for time-rutenettet. Bedre lesbarhet
+          enn å zoome i en horisontal scroll-tabell. Vises på <640px (sm:hidden). */}
+      <div className="sm:hidden flex flex-col">
+        {weekDates.map((d, i) => {
+          const ds = toISO(d)
+          const isToday = ds === today
+          const dayWorkouts = filterByMode(byDate[ds] ?? [], mode)
+          return (
+            <div key={ds} style={{ borderBottom: '1px solid #1A1A1E', padding: '12px 16px' }}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : '#555560' }}>
+                    {DAYS_NO[i]}
+                  </span>
+                  <span style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    color: isToday ? '#FF4500' : '#F0F0F2',
+                    fontSize: '20px', letterSpacing: '0.04em', lineHeight: 1,
+                  }}>
+                    {d.getDate()}. {MONTHS_SHORT_NO[d.getMonth()]}
+                  </span>
+                </div>
+                {!readOnly && (mode === 'plan' || mode === 'dagbok') && (
+                  <button
+                    type="button"
+                    onClick={() => onCreateWorkout(ds)}
+                    aria-label="Legg til økt"
+                    style={{
+                      color: '#FF4500', fontSize: '20px', fontWeight: 700,
+                      background: 'none', border: '1px solid rgba(255,69,0,0.4)',
+                      width: '32px', height: '32px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      lineHeight: 1, padding: 0,
+                    }}
+                  >
+                    +
+                  </button>
+                )}
+              </div>
+              {dayWorkouts.length === 0 ? (
+                <p className="text-xs"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
+                  Ingen økter
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {dayWorkouts.map(w => {
+                    const compStyle = competitionStyle(w)
+                    const dur = formatDurationShort(secondsFor(w, mode))
+                    const km = fmtKm(metersFor(w, mode))
+                    const planned = planVisual(w, mode)
+                    const accent = compStyle?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
+                    const meta = [
+                      w.start_time ? w.start_time.slice(0, 5) : null,
+                      dur || null,
+                      km || null,
+                    ].filter(Boolean).join(' · ')
+                    return (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => onEditWorkout(w, ds)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '10px 12px',
+                          backgroundColor: '#111113',
+                          border: planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,
+                          borderLeft: `3px solid ${accent}`,
+                          textAlign: 'left', cursor: 'pointer', width: '100%',
+                        }}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {compStyle && <span aria-hidden="true">{compStyle.icon}</span>}
+                            <span className="text-sm truncate"
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                              {w.title}
+                            </span>
+                          </div>
+                          {meta && (
+                            <div className="text-xs tracking-widest uppercase mt-0.5"
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                              {meta}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: time-rutenett med sticky header og venstre tid-kolonne. Skjules på <640px. */}
       <div
         ref={scrollRef}
+        className="hidden sm:block"
         style={{
           maxHeight: '70vh',
           overflow: 'auto',

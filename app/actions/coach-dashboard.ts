@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { Sport } from '@/lib/types'
 
@@ -338,4 +339,210 @@ export async function createCoachGroup(formData: FormData): Promise<{ error?: st
   if (memErr) return { error: memErr.message }
 
   return { id: group.id }
+}
+
+// ── Gruppe-detaljer og redigering ──────────────────────────
+
+export interface CoachGroupMember {
+  userId: string
+  fullName: string | null
+  email: string | null
+  role: 'admin' | 'coach' | 'athlete'
+  isViewer: boolean
+}
+
+export interface CoachGroupDetails {
+  id: string
+  name: string
+  description: string | null
+  members: CoachGroupMember[]
+}
+
+async function ensureGroupAdmin(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  groupId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { data, error } = await supabase
+    .from('coach_group_members')
+    .select('role')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (error) return { ok: false, error: error.message }
+  if (!data || data.role !== 'admin') return { ok: false, error: 'Ikke admin i gruppen' }
+  return { ok: true }
+}
+
+export async function getCoachGroupDetails(
+  groupId: string,
+): Promise<CoachGroupDetails | { error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const { data: membership } = await supabase
+    .from('coach_group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!membership) return { error: 'Ingen tilgang til gruppen' }
+
+  const [groupRes, membersRes] = await Promise.all([
+    supabase.from('coach_groups').select('id, name, description').eq('id', groupId).single(),
+    supabase.from('coach_group_members').select('user_id, role').eq('group_id', groupId),
+  ])
+  if (groupRes.error || !groupRes.data) {
+    return { error: groupRes.error?.message ?? 'Fant ikke gruppe' }
+  }
+
+  const memberIds = (membersRes.data ?? []).map(m => m.user_id)
+  const profilesById = new Map<string, { full_name: string | null; email: string | null }>()
+  if (memberIds.length > 0) {
+    const { data: profs } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', memberIds)
+    for (const p of profs ?? []) profilesById.set(p.id, { full_name: p.full_name, email: p.email })
+  }
+
+  const members: CoachGroupMember[] = (membersRes.data ?? []).map(m => {
+    const p = profilesById.get(m.user_id)
+    return {
+      userId: m.user_id,
+      fullName: p?.full_name ?? null,
+      email: p?.email ?? null,
+      role: m.role as 'admin' | 'coach' | 'athlete',
+      isViewer: m.user_id === user.id,
+    }
+  }).sort((a, b) => (a.fullName ?? '').localeCompare(b.fullName ?? '', 'nb'))
+
+  return {
+    id: groupRes.data.id,
+    name: groupRes.data.name,
+    description: groupRes.data.description,
+    members,
+  }
+}
+
+export async function updateCoachGroup(
+  groupId: string,
+  patch: { name?: string; description?: string | null },
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const guard = await ensureGroupAdmin(supabase, user.id, groupId)
+  if (!guard.ok) return { error: guard.error }
+
+  const update: { name?: string; description?: string | null; updated_at: string } = {
+    updated_at: new Date().toISOString(),
+  }
+  if (typeof patch.name === 'string') {
+    const trimmed = patch.name.trim()
+    if (!trimmed) return { error: 'Navn kan ikke være tomt' }
+    update.name = trimmed
+  }
+  if (patch.description !== undefined) {
+    update.description = patch.description?.trim() || null
+  }
+
+  const { error } = await supabase.from('coach_groups').update(update).eq('id', groupId)
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/grupper')
+  return {}
+}
+
+export async function deleteCoachGroup(groupId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const guard = await ensureGroupAdmin(supabase, user.id, groupId)
+  if (!guard.ok) return { error: guard.error }
+
+  const { error } = await supabase.from('coach_groups').delete().eq('id', groupId)
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/grupper')
+  return {}
+}
+
+export async function updateCoachGroupMemberRole(
+  groupId: string,
+  memberUserId: string,
+  role: 'admin' | 'coach' | 'athlete',
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const guard = await ensureGroupAdmin(supabase, user.id, groupId)
+  if (!guard.ok) return { error: guard.error }
+
+  const { error } = await supabase
+    .from('coach_group_members')
+    .update({ role })
+    .eq('group_id', groupId)
+    .eq('user_id', memberUserId)
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/grupper')
+  return {}
+}
+
+export async function removeCoachGroupMember(
+  groupId: string,
+  memberUserId: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const guard = await ensureGroupAdmin(supabase, user.id, groupId)
+  if (!guard.ok) return { error: guard.error }
+
+  // Tillat ikke å fjerne seg selv hvis det vil etterlate gruppen uten admin.
+  if (memberUserId === user.id) {
+    const { count } = await supabase
+      .from('coach_group_members')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('group_id', groupId)
+      .eq('role', 'admin')
+    if ((count ?? 0) <= 1) {
+      return { error: 'Gruppen må ha minst én admin' }
+    }
+  }
+
+  const { error } = await supabase
+    .from('coach_group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('user_id', memberUserId)
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/grupper')
+  return {}
+}
+
+export async function addCoachGroupMembers(
+  groupId: string,
+  memberUserIds: string[],
+  role: 'coach' | 'athlete' = 'athlete',
+): Promise<{ error?: string; added?: number }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const guard = await ensureGroupAdmin(supabase, user.id, groupId)
+  if (!guard.ok) return { error: guard.error }
+
+  if (memberUserIds.length === 0) return { added: 0 }
+
+  const rows = memberUserIds.map(uid => ({ group_id: groupId, user_id: uid, role }))
+  const { error, count } = await supabase
+    .from('coach_group_members')
+    .upsert(rows, { onConflict: 'group_id,user_id', count: 'exact' })
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/grupper')
+  return { added: count ?? memberUserIds.length }
 }

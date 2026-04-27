@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createCoachGroup, type CoachGroupSummary } from '@/app/actions/coach-dashboard'
+import { EditGroupModal } from './EditGroupModal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -18,6 +18,7 @@ export function CoachGroupsSection({ groups }: Props) {
   const [description, setDescription] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -141,10 +142,11 @@ export function CoachGroupsSection({ groups }: Props) {
         <ul>
           {groups.map(g => (
             <li key={g.id} style={{ borderTop: '1px solid #1E1E22' }} className="first:border-t-0">
-              <Link
-                href={`/app/trener/grupper/${g.id}`}
-                className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-[#16161A]"
-                style={{ textDecoration: 'none' }}
+              <button
+                type="button"
+                onClick={() => setEditingGroupId(g.id)}
+                className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-[#16161A]"
+                style={{ background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
               >
                 <span
                   className="text-sm"
@@ -156,13 +158,19 @@ export function CoachGroupsSection({ groups }: Props) {
                   className="text-xs tracking-wide"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
                 >
-                  {g.memberCount} {g.memberCount === 1 ? 'medlem' : 'medlemmer'}
+                  {g.memberCount} {g.memberCount === 1 ? 'medlem' : 'medlemmer'} · Rediger
                 </span>
-              </Link>
+              </button>
             </li>
           ))}
         </ul>
       )}
+
+      <EditGroupModal
+        groupId={editingGroupId ?? ''}
+        open={editingGroupId !== null}
+        onClose={() => setEditingGroupId(null)}
+      />
     </section>
   )
 }

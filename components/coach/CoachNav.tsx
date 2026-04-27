@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
+import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
+import { UserMenu } from '@/components/layout/UserMenu'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -17,6 +19,7 @@ interface CoachNavProps {
 }
 
 const INBOX_HREF = '/app/innboks'
+const SETTINGS_HREF = '/app/innstillinger'
 
 // TODO: AI Coach for trener kommer senere.
 const NAV_LINKS = [
@@ -26,10 +29,7 @@ const NAV_LINKS = [
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
 ]
 
-const MOBILE_LINKS = [
-  ...NAV_LINKS,
-  { href: '/app/innstillinger', label: 'Innstillinger' },
-]
+const MOBILE_LINKS = NAV_LINKS
 
 const BREAKPOINT = 900
 
@@ -96,6 +96,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             <InboxIconLink
               unreadCount={unreadInboxCount}
               isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
+            />
+            <SettingsIconButton
+              accent={COACH_BLUE}
+              isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
             />
             <button
               type="button"
@@ -308,47 +312,18 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
         />
 
+        <SettingsIconButton
+          accent={COACH_BLUE}
+          isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
+        />
+
         <RoleSwitcher
           activeRole="coach"
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
         />
 
-        <span
-          className="hidden sm:block text-sm tracking-wide"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
-        >
-          {userName?.split(' ')[0]}
-        </span>
-
-        <Link
-          href="/app/innstillinger"
-          className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#55555F',
-            textDecoration: 'none',
-          }}
-        >
-          Innstillinger
-        </Link>
-
-        <form action={logout}>
-          <button
-            type="submit"
-            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#55555F',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 0',
-            }}
-          >
-            Logg ut
-          </button>
-        </form>
+        <UserMenu userName={userName} accent={COACH_BLUE} />
       </div>
     </nav>
   )

@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
+import { SettingsIconButton } from './SettingsIconButton'
+import { UserMenu } from './UserMenu'
 import type { Role } from '@/lib/types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -20,6 +22,7 @@ interface MainNavProps {
 }
 
 const INBOX_HREF = '/app/innboks'
+const SETTINGS_HREF = '/app/innstillinger'
 
 const NAV_LINKS = [
   { href: '/app/oversikt',      label: 'Oversikt' },
@@ -31,10 +34,7 @@ const NAV_LINKS = [
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
-const MOBILE_LINKS = [
-  ...NAV_LINKS,
-  { href: '/app/innstillinger', label: 'Innstillinger' },
-]
+const MOBILE_LINKS = NAV_LINKS
 
 const BREAKPOINT = 900
 
@@ -117,6 +117,10 @@ export function MainNav({
               unreadCount={unreadInboxCount}
               accent={accent}
               isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
+            />
+            <SettingsIconButton
+              accent={accent}
+              isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
             />
             <button
               type="button"
@@ -241,47 +245,18 @@ export function MainNav({
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
         />
 
+        <SettingsIconButton
+          accent={accent}
+          isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
+        />
+
         <RoleSwitcher
           activeRole={activeRole}
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
         />
 
-        <span
-          className="hidden sm:block text-sm tracking-wide"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
-        >
-          {userName?.split(' ')[0]}
-        </span>
-
-        <Link
-          href="/app/innstillinger"
-          className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#55555F',
-            textDecoration: 'none',
-          }}
-        >
-          Innstillinger
-        </Link>
-
-        <form action={logout}>
-          <button
-            type="submit"
-            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#55555F',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 0',
-            }}
-          >
-            Logg ut
-          </button>
-        </form>
+        <UserMenu userName={userName} accent={accent} />
       </div>
     </nav>
   )

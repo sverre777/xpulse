@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 // Server-actions for stjerne-markerte favoritt-grafer i Analyse.
@@ -55,6 +56,7 @@ export async function addFavoriteChart(chartKey: string): Promise<{ error?: stri
     )
 
   if (error) return { error: error.message }
+  revalidatePath('/app/analyse')
   return {}
 }
 
@@ -73,6 +75,7 @@ export async function removeFavoriteChart(chartKey: string): Promise<{ error?: s
     .eq('chart_key', key)
 
   if (error) return { error: error.message }
+  revalidatePath('/app/analyse')
   return {}
 }
 
@@ -98,6 +101,7 @@ export async function toggleFavoriteChart(chartKey: string): Promise<{ favorited
       .eq('user_id', user.id)
       .eq('chart_key', key)
     if (error) return { error: error.message }
+    revalidatePath('/app/analyse')
     return { favorited: false }
   }
 
@@ -116,5 +120,6 @@ export async function toggleFavoriteChart(chartKey: string): Promise<{ favorited
     .insert({ user_id: user.id, chart_key: key, sort_order: nextOrder })
 
   if (error) return { error: error.message }
+  revalidatePath('/app/analyse')
   return { favorited: true }
 }

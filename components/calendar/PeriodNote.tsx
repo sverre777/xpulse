@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { savePeriodNote, type NoteScope, type NoteContext } from '@/app/actions/period-notes'
 
 export function PeriodNote({
@@ -40,6 +41,7 @@ export function PeriodNote({
   }
   // NB: komponenten remountes av parent via `key` når scope/periode/kontekst
   // endres, så initialNote kan brukes trygt som startverdi i useState.
+  const router = useRouter()
   const [note, setNote] = useState(initialNote)
   const [open, setOpen] = useState(initialNote.trim().length > 0)
   const [saved, setSaved] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle')
@@ -59,6 +61,9 @@ export function PeriodNote({
         lastSavedRef.current = value
         setSaved('ok')
         window.setTimeout(() => setSaved(s => (s === 'ok' ? 'idle' : s)), 1200)
+        // Refetch server-data slik at parent-indikatorer (uke-/måneds-summary)
+        // viser at notatet finnes — uten å kreve manuell refresh.
+        router.refresh()
       } catch (e) {
         setSaved('error')
         setErrorMsg(e instanceof Error ? e.message : String(e))

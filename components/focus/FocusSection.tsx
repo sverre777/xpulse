@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import type { FocusPoint, FocusScope, FocusContext } from '@/lib/focus-point-types'
 import {
   getFocusPointsBoth, addFocusPoint, updateFocusPoint, deleteFocusPoint,
@@ -25,6 +26,7 @@ const ACCENT_EMPTY = '#1E1E22'
 export function FocusSection({
   scope, periodKey, context, title, showPlanFocus = false, compact = false, targetUserId,
 }: Props) {
+  const router = useRouter()
   const [planPoints, setPlanPoints] = useState<FocusPoint[]>([])
   const [ownPoints, setOwnPoints] = useState<FocusPoint[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -77,6 +79,7 @@ export function FocusSection({
       setOwnPoints(context === 'plan' ? fresh.plan : fresh.dagbok)
       setDraftContent('')
       setDrafting(false)
+      router.refresh()
     })
   }
 
@@ -97,6 +100,7 @@ export function FocusSection({
       const res = await deleteFocusPoint(id, targetUserId)
       if (res.error) { setError(res.error); return }
       setOwnPoints(prev => prev.filter(p => p.id !== id))
+      router.refresh()
     })
   }
 

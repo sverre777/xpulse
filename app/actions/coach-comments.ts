@@ -163,8 +163,20 @@ export async function addCoachComment(
     // Varsel-svikt skal ikke blokkere selve kommentaren.
   }
 
-  revalidatePath(`/app/trener/${input.athleteId}`)
+  // Revalider alle plasseringene en kommentar vises:
+  // - Trener-utøverside (alle kontekster: dagbok, plan, periodisering)
+  // - Utøverens egne ruter for samme kontekst
+  // - Innboks-kommentar-feeden (begge sider)
+  // - Oversikt for nye-kommentarer-badgen
+  const trenerBase = `/app/trener/${input.athleteId}`
+  revalidatePath(trenerBase)
+  revalidatePath(`${trenerBase}/dagbok`)
+  revalidatePath(`${trenerBase}/plan`)
+  revalidatePath(`${trenerBase}/periodisering`)
   revalidatePath(`/app/${input.context === 'periodisering' ? 'periodisering' : input.context}`)
+  revalidatePath('/app/innboks/kommentarer')
+  revalidatePath('/app/innboks')
+  revalidatePath('/app/oversikt')
   return { id: data.id }
 }
 

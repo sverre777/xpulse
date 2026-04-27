@@ -68,7 +68,7 @@ const TABS: [Tab, string][] = [
   ['belastning', 'Belastning'],
   ['terskel', 'Terskel'],
   ['skyting', 'Skyting-dybde'],
-  ['sammenlign', 'Sammenlign økt/plan'],
+  ['sammenlign', 'Sammenligning'],
   ['konkurranser', 'Konkurranser'],
   ['tester_pr', 'Tester & PR'],
   ['ski_tester', 'Ski-tester'],

@@ -936,57 +936,10 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
   mode: CalendarMode
   onSelectMonth: (m: number) => void
 }) {
-  // Årstotal — samme banner-stil som måned/uke.
-  const yearAgg = aggregateRange(
-    byDate,
-    (function* () {
-      for (let mi = 1; mi <= 12; mi++) yield* iterMonthDates(year, mi)
-    })(),
-    mode,
-  )
-  const yearMins = Math.round(yearAgg.seconds / 60)
-  const yearKm = fmtKm(yearAgg.meters)
-
   return (
     <div>
-      {/* Year total banner (matcher måned/uke) */}
-      {yearAgg.seconds > 0 && (
-        <div className="px-4 md:px-6 py-3"
-          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
-          <div className="flex items-baseline gap-4 flex-wrap mb-2">
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-              fontSize: '22px', letterSpacing: '0.06em',
-            }}>
-              {year}:
-            </span>
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500',
-              fontSize: '24px', letterSpacing: '0.06em',
-            }}>
-              {fmtDuration(yearMins)}
-            </span>
-            {yearKm && (
-              <span style={{
-                fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-                fontSize: '20px', letterSpacing: '0.06em',
-              }}>
-                {yearKm}
-              </span>
-            )}
-            <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px',
-            }}>
-              {yearAgg.sessions} økt{yearAgg.sessions !== 1 ? 'er' : ''}
-            </span>
-          </div>
-          <AggZoneBar zoneSeconds={yearAgg.zoneSeconds} height={8} />
-          <div className="mt-1.5">
-            <ZoneLegend zoneSeconds={yearAgg.zoneSeconds} size="md" />
-          </div>
-        </div>
-      )}
-
+      {/* Ingen års-banner her: Analyse-overlay øverst dekker både Dagbok og Plan,
+          og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
       <div className="grid grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
       {MONTHS_NO.map((name, mi) => {
         const agg = aggregateRange(byDate, iterMonthDates(year, mi + 1), mode)

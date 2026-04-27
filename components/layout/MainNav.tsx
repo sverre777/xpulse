@@ -18,7 +18,7 @@ interface MainNavProps {
   unreadInboxCount?: number
 }
 
-const INBOX_LINK = { href: '/app/innboks', label: 'Innboks' }
+const INBOX_HREF = '/app/innboks'
 
 const NAV_LINKS = [
   { href: '/app/oversikt',      label: 'Oversikt' },
@@ -29,11 +29,11 @@ const NAV_LINKS = [
   { href: '/app/ai-coach',      label: 'AI Coach' },
   { href: '/app/historikk',     label: 'Historikk' },
   { href: '/app/utstyr',        label: 'Utstyr' },
-  INBOX_LINK,
 ]
 
 const MOBILE_LINKS = [
   ...NAV_LINKS,
+  { href: INBOX_HREF, label: 'Innboks' },
   { href: '/app/innstillinger', label: 'Innstillinger' },
 ]
 
@@ -112,20 +112,27 @@ export function MainNav({
               Beta
             </span>
           </Link>
-          <button
-            type="button"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
-            aria-expanded={menuOpen}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              width: '44px', height: '44px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 0,
-            }}
-          >
-            <HamburgerIcon open={menuOpen} />
-          </button>
+          <div className="flex items-center gap-1">
+            <InboxIconLink
+              unreadCount={unreadInboxCount}
+              accent={accent}
+              isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
+            />
+            <button
+              type="button"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
+              aria-expanded={menuOpen}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                width: '44px', height: '44px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: 0,
+              }}
+            >
+              <HamburgerIcon open={menuOpen} />
+            </button>
+          </div>
         </nav>
 
         {menuOpen && (
@@ -183,7 +190,6 @@ export function MainNav({
         <div className="flex items-center gap-0">
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
-            const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
             return (
               <Link
                 key={href}
@@ -198,7 +204,6 @@ export function MainNav({
                 }}
               >
                 {label}
-                {showBadge && <UnreadBadge count={unreadInboxCount} accent={accent} />}
               </Link>
             )
           })}
@@ -220,6 +225,12 @@ export function MainNav({
             {logLabel}
           </Link>
         )}
+
+        <InboxIconLink
+          unreadCount={unreadInboxCount}
+          accent={accent}
+          isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
+        />
 
         <RoleSwitcher
           activeRole={activeRole}
@@ -372,7 +383,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
         {MOBILE_LINKS.map(({ href, label }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
-          const showBadge = href === INBOX_LINK.href && unreadInboxCount > 0
+          const showBadge = href === INBOX_HREF && unreadInboxCount > 0
           return (
             <Link
               key={href}
@@ -430,6 +441,71 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         </form>
       </div>
     </div>
+  )
+}
+
+function InboxIconLink({ unreadCount, accent, isActive }: {
+  unreadCount: number
+  accent: string
+  isActive: boolean
+}) {
+  return (
+    <Link
+      href={INBOX_HREF}
+      aria-label={`Innboks${unreadCount > 0 ? ` (${unreadCount} uleste)` : ''}`}
+      style={{
+        position: 'relative',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: isActive ? accent : '#8A8A96',
+        textDecoration: 'none',
+        transition: 'color 150ms',
+      }}
+    >
+      <MailIcon />
+      {unreadCount > 0 && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: '4px',
+            right: '2px',
+            backgroundColor: accent,
+            color: '#F0F0F2',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '10px',
+            padding: '0 4px',
+            minWidth: '16px',
+            textAlign: 'center',
+            lineHeight: '1.4',
+          }}
+        >
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </Link>
+  )
+}
+
+function MailIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-10 5L2 7" />
+    </svg>
   )
 }
 

@@ -36,6 +36,22 @@ function parseIntOrNull(s: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+// Revalider alle ruter som viser økt-data så endringer dukker opp uten manuell
+// refresh. Dekker både utøver- og trener-vinkler. For dynamiske trener-ruter
+// brukes route-literalen for å invalidere alle [athleteId]-instanser.
+function revalidateWorkoutPaths() {
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
+  revalidatePath('/app/oversikt')
+  revalidatePath('/app/analyse')
+  revalidatePath('/app/historikk')
+  revalidatePath('/app/trener')
+  revalidatePath('/app/trener/[athleteId]/dagbok', 'page')
+  revalidatePath('/app/trener/[athleteId]/plan', 'page')
+  revalidatePath('/app/trener/[athleteId]/analyse', 'page')
+  revalidatePath('/app/trener/[athleteId]/historikk', 'page')
+}
+
 // Sjekk om konkurranse-modulen faktisk har innhold å lagre.
 function hasCompetitionContent(d: CompetitionData): boolean {
   return !!(
@@ -715,8 +731,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     )
   }
 
-  revalidatePath('/app/dagbok')
-  revalidatePath('/app/plan')
+  revalidateWorkoutPaths()
   return { id: savedId }
 }
 
@@ -756,8 +771,7 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
     .update({ is_completed: true, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidatePath('/app/dagbok')
-  revalidatePath('/app/plan')
+  revalidateWorkoutPaths()
   return {}
 }
 
@@ -767,8 +781,7 @@ export async function deleteWorkout(id: string, targetUserId?: string): Promise<
   if ('error' in resolved) return { error: resolved.error }
   const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidatePath('/app/dagbok')
-  revalidatePath('/app/plan')
+  revalidateWorkoutPaths()
   return {}
 }
 

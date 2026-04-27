@@ -1,16 +1,17 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/types'
 
 export type RoleActionState = {
   error?: string
+  redirectTo?: string
 }
 
 // Veksler aktiv modus for en bruker som allerede har rollen.
-// Kalles fra RoleSwitcher i header.
+// Returnerer redirectTo så klienten kan navigere + kalle router.refresh()
+// for å invalidere router-cachen i tillegg til server-cachen.
 export async function switchActiveRole(
   prevState: RoleActionState,
   formData: FormData,
@@ -48,7 +49,7 @@ export async function switchActiveRole(
   }
 
   revalidatePath('/', 'layout')
-  redirect(target === 'coach' ? '/app/trener' : '/app/dagbok')
+  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }
 
 // Legger til en rolle brukeren ikke har fra før. Setter samtidig active_role
@@ -75,5 +76,5 @@ export async function addRole(
   if (error) return { error: error.message }
 
   revalidatePath('/', 'layout')
-  redirect(target === 'coach' ? '/app/trener' : '/app/dagbok')
+  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }

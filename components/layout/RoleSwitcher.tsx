@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { switchActiveRole } from '@/app/actions/roles'
 import type { Role } from '@/lib/types'
 import { RoleActivationModal } from './RoleActivationModal'
@@ -166,6 +167,14 @@ function RoleMenuItem({
   onPick: () => void
 }) {
   const [state, formAction, pending] = useActionState(switchActiveRole, {})
+  const router = useRouter()
+
+  useEffect(() => {
+    if (state?.redirectTo) {
+      router.push(state.redirectTo)
+      router.refresh()
+    }
+  }, [state, router])
 
   return (
     <form

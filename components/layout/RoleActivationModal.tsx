@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { addRole } from '@/app/actions/roles'
 import type { Role } from '@/lib/types'
 
@@ -14,6 +15,7 @@ interface Props {
 
 export function RoleActivationModal({ role, onClose }: Props) {
   const [state, formAction, pending] = useActionState(addRole, {})
+  const router = useRouter()
 
   useEffect(() => {
     const prev = document.body.style.overflow
@@ -25,6 +27,13 @@ export function RoleActivationModal({ role, onClose }: Props) {
       document.removeEventListener('keydown', onKey)
     }
   }, [onClose])
+
+  useEffect(() => {
+    if (state?.redirectTo) {
+      router.push(state.redirectTo)
+      router.refresh()
+    }
+  }, [state, router])
 
   const isCoach = role === 'coach'
   const color = isCoach ? COACH_BLUE : ATHLETE_ORANGE

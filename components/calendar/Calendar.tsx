@@ -271,6 +271,87 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
   )
 }
 
+// Ukes-analyse-stripe under hver uke i månedsvisningen. Erstatter den gamle
+// høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
+// kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
+function WeekAnalysisStripe({
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent,
+}: {
+  weekNumber: number
+  totalSeconds: number
+  totalMeters: number
+  sessions: number
+  zoneSeconds: Record<ExtendedZoneName, number>
+  accent: string | null
+}) {
+  const totalMins = Math.round(totalSeconds / 60)
+  const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
+  const totalZoneSec = ALL_ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
+  const pct = (k: ExtendedZoneName) =>
+    totalZoneSec > 0 ? Math.round((zoneSeconds[k] / totalZoneSec) * 100) : 0
+  const i12 = pct('I1') + pct('I2')
+  const i3 = pct('I3')
+  const i45 = pct('I4') + pct('I5') + pct('Hurtighet')
+  const empty = sessions === 0
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2"
+      style={{
+        backgroundColor: '#0E0E12',
+        borderBottom: '1px solid #1A1A1E',
+        borderLeft: accent ? `3px solid ${accent}` : '3px solid transparent',
+      }}
+    >
+      <span
+        className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minWidth: '52px' }}
+      >
+        Uke {weekNumber}
+      </span>
+      {empty ? (
+        <span
+          className="text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+        >
+          Ingen aktivitet
+        </span>
+      ) : (
+        <>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '17px', lineHeight: 1, letterSpacing: '0.02em' }}>
+            {fmtDuration(totalMins)}
+          </span>
+          {km > 0 && (
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+              {km.toLocaleString('nb-NO')} km
+            </span>
+          )}
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+            {sessions} økt{sessions !== 1 ? 'er' : ''}
+          </span>
+          {totalZoneSec > 0 && (
+            <>
+              <div className="hidden md:block flex-1 min-w-[120px] max-w-[260px]">
+                <AggZoneBar zoneSeconds={zoneSeconds} height={6} />
+              </div>
+              <span
+                className="text-xs tracking-wide"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              >
+                <span style={{ color: ZONE_COLORS_V2.I1 }}>I1-2: {i12}%</span>
+                <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                <span style={{ color: ZONE_COLORS_V2.I3 }}>I3: {i3}%</span>
+                <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                <span style={{ color: ZONE_COLORS_V2.I5 }}>I4-5+: {i45}%</span>
+              </span>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 // Kompakt sonebar basert på aggregerte sekunder per sone (6 segmenter inkl. Hurtighet).
 function AggZoneBar({
   zoneSeconds, height = 3,
@@ -618,14 +699,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       )}
 
       {/* Column headers: week# + 7 days + totals */}
-      <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 88px', borderBottom: '1px solid #1A1A1E' }}>
+      <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr)', borderBottom: '1px solid #1A1A1E' }}>
         <div />
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
         ))}
-        <div className="py-2 text-right text-xs tracking-widest uppercase pr-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Total</div>
       </div>
 
       {weeks.map((week, wi) => {
@@ -641,7 +720,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         return (
           <Fragment key={wi}>
             <div className="grid" style={{
-              gridTemplateColumns: '36px repeat(7, 1fr) 88px',
+              gridTemplateColumns: '36px repeat(7, 1fr)',
               borderBottom: expandedInWeek ? 'none' : '1px solid #1A1A1E',
             }}>
               {/* Week number + period badge + subtle period stripe */}
@@ -675,28 +754,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 )
               })}
 
-              {/* Week totals: tid + km + sessions + mini sonebar */}
-              <div className="flex flex-col items-end justify-start pt-2 pr-2" style={{ gap: '3px' }}>
-                {weekMins > 0 && (
-                  <>
-                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '18px', lineHeight: 1, letterSpacing: '0.02em' }}>
-                      {fmtDuration(weekMins)}
-                    </span>
-                    {weekKm && (
-                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
-                        {weekKm}
-                      </span>
-                    )}
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
-                      {weekAgg.sessions} økt{weekAgg.sessions !== 1 ? 'er' : ''}
-                    </span>
-                    <div style={{ width: '72px', marginTop: '2px' }}>
-                      <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={3} />
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
+
+            {/* Ukes-analyse-stripe under uken — fullbredde, samme på desktop og mobil */}
+            <WeekAnalysisStripe
+              weekNumber={wn}
+              totalSeconds={weekAgg.seconds}
+              totalMeters={weekAgg.meters}
+              sessions={weekAgg.sessions}
+              zoneSeconds={weekAgg.zoneSeconds}
+              accent={weekOverlay.period ? rowAccent : null}
+            />
 
             {/* Inline day expansion */}
             {expandedInWeek && expandedDate && (() => {

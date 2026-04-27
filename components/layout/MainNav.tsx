@@ -7,6 +7,7 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
+import { HomeIconButton } from './HomeIconButton'
 import { UserMenu } from './UserMenu'
 import type { Role } from '@/lib/types'
 
@@ -23,9 +24,9 @@ interface MainNavProps {
 
 const INBOX_HREF = '/app/innboks'
 const SETTINGS_HREF = '/app/innstillinger'
+const HOME_HREF = '/app/oversikt'
 
 const NAV_LINKS = [
-  { href: '/app/oversikt',      label: 'Oversikt' },
   { href: '/app/dagbok',        label: 'Dagbok' },
   { href: '/app/plan',          label: 'Plan' },
   { href: '/app/periodisering', label: 'Årsplan' },
@@ -112,6 +113,11 @@ export function MainNav({
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <HomeIconButton
+              href={HOME_HREF}
+              accent={accent}
+              isActive={pathname === HOME_HREF}
+            />
             <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
             <InboxIconLink
               unreadCount={unreadInboxCount}
@@ -197,6 +203,11 @@ export function MainNav({
         </Link>
 
         <div className="flex items-center gap-0">
+          <HomeIconButton
+            href={HOME_HREF}
+            accent={accent}
+            isActive={pathname === HOME_HREF}
+          />
           {NAV_LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(href + '/')
             return (

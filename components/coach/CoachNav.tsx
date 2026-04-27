@@ -7,6 +7,7 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
+import { HomeIconButton } from '@/components/layout/HomeIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
 
 const COACH_BLUE = '#1A6FD4'
@@ -20,10 +21,10 @@ interface CoachNavProps {
 
 const INBOX_HREF = '/app/innboks'
 const SETTINGS_HREF = '/app/innstillinger'
+const HOME_HREF = '/app/trener'
 
 // TODO: AI Coach for trener kommer senere.
 const NAV_LINKS = [
-  { href: '/app/trener',             label: 'Oversikt' },
   { href: '/app/trener/utovere',     label: 'Utøvere' },
   { href: '/app/trener/planlegg',    label: 'Planlegg' },
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
@@ -92,6 +93,11 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             </span>
           </Link>
           <div className="flex items-center gap-1">
+            <HomeIconButton
+              href={HOME_HREF}
+              accent={COACH_BLUE}
+              isActive={pathname === HOME_HREF}
+            />
             <SearchIconButton mode="coach" accent={COACH_BLUE} />
             <InboxIconLink
               unreadCount={unreadInboxCount}
@@ -278,10 +284,13 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
         </Link>
 
         <div className="flex items-center gap-0">
+          <HomeIconButton
+            href={HOME_HREF}
+            accent={COACH_BLUE}
+            isActive={pathname === HOME_HREF}
+          />
           {NAV_LINKS.map(({ href, label }) => {
-            const active = href === '/app/trener'
-              ? pathname === href
-              : pathname === href || pathname.startsWith(href + '/')
+            const active = pathname === href || pathname.startsWith(href + '/')
             return (
               <Link
                 key={href}

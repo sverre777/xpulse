@@ -116,7 +116,8 @@ export async function getConversations(): Promise<
   const viewer = res.viewer
   const supabase = await createClient()
 
-  // DM-meldinger der jeg er deltaker
+  // DM-meldinger der jeg er deltaker. I gruppe-medlemskapet henter vi også
+  // role-feltet — det avgjør om gruppa hører til utøver- eller trener-modus.
   const [sentRes, receivedRes, groupMembershipRes] = await Promise.all([
     supabase
       .from('messages')
@@ -134,7 +135,7 @@ export async function getConversations(): Promise<
       .limit(300),
     supabase
       .from('coach_group_members')
-      .select('group_id')
+      .select('group_id, role')
       .eq('user_id', viewer.userId),
   ])
 
@@ -194,22 +195,33 @@ export async function getConversations(): Promise<
     }
   }
 
-  const dmConversations: ConversationSummary[] = Array.from(dmByCounterpart.values()).map(d => {
-    const p = counterpartProfiles.get(d.counterpartId)
-    return {
-      key: `u:${d.counterpartId}`,
-      kind: 'dm',
-      title: p?.full_name ?? 'Ukjent bruker',
-      subtitle: null,
-      lastMessage: d.lastMessage,
-      lastAt: d.lastAt,
-      unreadCount: d.unread,
-      counterpartIsCoach: Boolean(p?.has_coach_role),
-    }
-  })
+  const dmConversations: ConversationSummary[] = Array.from(dmByCounterpart.values())
+    .map(d => {
+      const p = counterpartProfiles.get(d.counterpartId)
+      return {
+        key: `u:${d.counterpartId}`,
+        kind: 'dm' as const,
+        title: p?.full_name ?? 'Ukjent bruker',
+        subtitle: null,
+        lastMessage: d.lastMessage,
+        lastAt: d.lastAt,
+        unreadCount: d.unread,
+        counterpartIsCoach: Boolean(p?.has_coach_role),
+      }
+    })
+    // I utøver-modus: kun DM-er der motparten er trener (vi snakker med
+    // trenere). I trener-modus viser vi alt (utøvere + andre trenere).
+    .filter(c => viewer.activeRole === 'coach' || c.counterpartIsCoach)
 
-  // Gruppe-samtaler
-  const groupIds = (groupMembershipRes.data ?? []).map(r => r.group_id).filter(Boolean)
+  // Gruppe-samtaler — filtrer på medlemsrolle slik at utøver-modus bare
+  // ser grupper der jeg er medlem som utøver, og trener-modus bare ser
+  // grupper der jeg er admin/coach.
+  const memberships = (groupMembershipRes.data ?? []).filter(r => {
+    if (!r.group_id) return false
+    if (viewer.activeRole === 'coach') return r.role === 'admin' || r.role === 'coach'
+    return r.role === 'athlete'
+  })
+  const groupIds = memberships.map(r => r.group_id).filter(Boolean)
   const groupConversations: ConversationSummary[] = []
   if (groupIds.length > 0) {
     const [groupsRes, groupMsgsRes] = await Promise.all([
@@ -493,12 +505,17 @@ export async function getInboxComments(): Promise<InboxCommentItem[] | { error: 
     athleteIds = [viewer.userId]
   }
 
-  const { data, error } = await supabase
+  // Utøver: kommentarer ANDRE har skrevet på mine data (author != meg).
+  // Trener: kommentarer JEG har skrevet på utøvere (author = meg).
+  let req = supabase
     .from('coach_comments')
     .select('id, author_id, athlete_id, scope, period_key, context, content, is_read, created_at')
     .in('athlete_id', athleteIds)
     .order('created_at', { ascending: false })
     .limit(200)
+  if (viewer.activeRole === 'athlete') req = req.neq('author_id', viewer.userId)
+  else req = req.eq('author_id', viewer.userId)
+  const { data, error } = await req
   if (error) return { error: error.message }
 
   const peopleIds = new Set<string>()

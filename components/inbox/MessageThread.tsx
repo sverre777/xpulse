@@ -30,6 +30,38 @@ function sameDay(a: string, b: string): boolean {
   return a.slice(0, 10) === b.slice(0, 10)
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '·'
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function Avatar({ name, color }: { name: string; color: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        backgroundColor: 'transparent',
+        border: `1px solid ${color}`,
+        color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: '13px',
+        fontWeight: 600,
+        flexShrink: 0,
+      }}
+    >
+      {getInitials(name)}
+    </div>
+  )
+}
+
 export function MessageThread({ viewerId, viewerIsCoach, header, messages, error }: Props) {
   const router = useRouter()
   const [draft, setDraft] = useState('')
@@ -121,57 +153,68 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         )}
         {messages.map((m, i) => {
           const mine = m.senderId === viewerId
-          const bubbleColor = mine ? myColor : (m.senderIsCoach ? COACH_BLUE : ATHLETE_ORANGE)
+          const senderColor = m.senderIsCoach ? COACH_BLUE : ATHLETE_ORANGE
+          const bubbleAccent = mine ? myColor : senderColor
           const prev = i > 0 ? messages[i - 1] : null
           const showDivider = !prev || !sameDay(prev.createdAt, m.createdAt)
+          const displayName = mine ? 'Du' : (m.senderName ?? 'Ukjent')
+          const roleLabel = m.senderIsCoach ? 'Trener' : 'Utøver'
           return (
             <div key={m.id} className="flex flex-col">
               {showDivider && (
-                <div className="text-[9px] tracking-widest uppercase text-center my-2"
+                <div className="text-xs tracking-widest uppercase text-center my-2"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
                   {formatDate(m.createdAt)}
                 </div>
               )}
-              <div
-                className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}
-              >
-                {header.kind === 'group' && !mine && (
-                  <span
-                    className="text-xs tracking-widest uppercase mb-0.5"
+              <div className={`flex gap-2 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
+                <Avatar name={displayName} color={senderColor} />
+                <div className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`} style={{ maxWidth: '75%' }}>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span
+                      className="text-xs"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        color: '#F0F0F2',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {displayName}
+                    </span>
+                    <span
+                      className="text-xs tracking-widest uppercase"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        color: senderColor,
+                      }}
+                    >
+                      <span aria-hidden="true" style={{ marginRight: '4px' }}>●</span>{roleLabel}
+                    </span>
+                    <span
+                      className="text-xs tracking-widest uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+                    >
+                      {formatTime(m.createdAt)}
+                    </span>
+                  </div>
+                  <div
+                    className="px-3 py-2 text-sm"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: m.senderIsCoach ? COACH_BLUE : ATHLETE_ORANGE,
+                      color: '#F0F0F2',
+                      backgroundColor: mine ? 'transparent' : '#111113',
+                      border: '1px solid #1E1E22',
+                      borderLeftWidth: mine ? '1px' : '3px',
+                      borderLeftColor: mine ? '#1E1E22' : bubbleAccent,
+                      borderRightWidth: mine ? '3px' : '1px',
+                      borderRightColor: mine ? bubbleAccent : '#1E1E22',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
                     }}
                   >
-                    {m.senderName ?? 'Ukjent'}
-                  </span>
-                )}
-                <div
-                  className="px-3 py-2 text-sm"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    color: '#F0F0F2',
-                    backgroundColor: mine ? 'rgba(26,111,212,0.00)' : '#111113',
-                    borderLeft: mine ? 'none' : `3px solid ${bubbleColor}`,
-                    borderRight: mine ? `3px solid ${bubbleColor}` : 'none',
-                    border: '1px solid #1E1E22',
-                    borderLeftWidth: mine ? '1px' : '3px',
-                    borderLeftColor: mine ? '#1E1E22' : bubbleColor,
-                    borderRightWidth: mine ? '3px' : '1px',
-                    borderRightColor: mine ? bubbleColor : '#1E1E22',
-                    maxWidth: '75%',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {m.content}
+                    {m.content}
+                  </div>
                 </div>
-                <span
-                  className="text-[9px] tracking-widest uppercase mt-0.5"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
-                >
-                  {formatTime(m.createdAt)}
-                </span>
               </div>
             </div>
           )

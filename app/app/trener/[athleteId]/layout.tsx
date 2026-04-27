@@ -29,14 +29,14 @@ export default async function AthleteDetailLayout({ children, params }: Props) {
 
   if ('error' in ctx) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <ErrorBox message={ctx.error} />
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
       <AthleteHeader context={ctx} />
       <AthleteTabsNav athleteId={athleteId} permissions={ctx.permissions} />
       {children}

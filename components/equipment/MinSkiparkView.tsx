@@ -32,7 +32,7 @@ export function MinSkiparkView({ ski, templates, tests }: Props) {
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <Link href="/app/utstyr"
           className="text-xs tracking-widest uppercase inline-block mb-4"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textDecoration: 'none' }}>

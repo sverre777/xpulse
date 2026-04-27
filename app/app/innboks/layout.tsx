@@ -42,7 +42,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             unreadInboxCount={unreadInboxCount}
           />
         )}
-        <main className="flex-1 w-full max-w-4xl mx-auto px-4 md:px-6 pt-4 pb-10">
+        <main className="flex-1 w-full max-w-[1800px] mx-auto px-4 lg:px-6 pt-4 pb-10">
           <h1
             className="text-2xl mb-3"
             style={{

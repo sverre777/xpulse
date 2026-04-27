@@ -25,14 +25,14 @@ export default async function CoachDashboardPage() {
 
   if ('error' in res) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <ErrorBox message={res.error} />
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
       <CoachHero
         firstName={res.firstName}
         activeAthletes={res.stats.activeAthletes}

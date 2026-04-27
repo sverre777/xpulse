@@ -122,7 +122,7 @@ export async function DagbokPageView({ viewContext }: Props) {
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <div className="mb-6">
           <p className="text-sm tracking-widest uppercase mb-0.5"

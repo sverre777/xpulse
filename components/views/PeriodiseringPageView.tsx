@@ -59,7 +59,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   if ('error' in seasonsResult) {
     return (
       <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-        <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
           <div className="flex items-center gap-3 mb-6">
             <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
@@ -106,7 +106,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">

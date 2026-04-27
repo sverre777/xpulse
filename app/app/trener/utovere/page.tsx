@@ -24,14 +24,14 @@ export default async function CoachUtoverePage() {
 
   if ('error' in res) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <ErrorBox message={res.error} />
       </div>
     )
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
       <div className="mb-6">
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>

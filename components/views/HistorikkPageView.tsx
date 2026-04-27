@@ -19,7 +19,7 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-8">
 
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />

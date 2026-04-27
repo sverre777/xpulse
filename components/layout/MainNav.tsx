@@ -10,6 +10,7 @@ import { SettingsIconButton } from './SettingsIconButton'
 import { HomeIconButton } from './HomeIconButton'
 import { UserMenu } from './UserMenu'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
+import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
 import type { Role } from '@/lib/types'
 
 const ATHLETE_ORANGE = '#FF4500'
@@ -36,7 +37,12 @@ const NAV_LINKS = [
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
-const MOBILE_LINKS = NAV_LINKS
+// Mobil-menyen inkluderer Hjem + Maler i tillegg til de andre rutene.
+const MOBILE_LINKS = [
+  { href: '/app/oversikt',      label: 'Hjem' },
+  ...NAV_LINKS,
+  { href: '/app/maler',         label: 'Maler' },
+]
 
 const BREAKPOINT = 900
 
@@ -114,37 +120,20 @@ export function MainNav({
               Beta
             </span>
           </Link>
-          <div className="flex items-center gap-1">
-            <HomeIconButton
-              href={HOME_HREF}
-              accent={accent}
-              isActive={pathname === HOME_HREF}
-            />
-            <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
-            <InboxIconLink
-              unreadCount={unreadInboxCount}
-              accent={accent}
-              isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
-            />
-            <SettingsIconButton
-              accent={accent}
-              isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
-            />
-            <button
-              type="button"
-              onClick={() => setMenuOpen(o => !o)}
-              aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
-              aria-expanded={menuOpen}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                width: '44px', height: '44px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: 0,
-              }}
-            >
-              <HamburgerIcon open={menuOpen} />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label={menuOpen ? 'Lukk meny' : 'Åpne meny'}
+            aria-expanded={menuOpen}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              width: '44px', height: '44px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 0,
+            }}
+          >
+            <HamburgerIcon open={menuOpen} />
+          </button>
         </nav>
 
         {menuOpen && (
@@ -353,9 +342,55 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         </button>
       </div>
 
-      {/* Log-økt CTA + rolle-switcher */}
-      <div className="flex flex-col items-center gap-3 px-6 mt-2" onClick={e => e.stopPropagation()}>
-        {activeRole === 'athlete' && (
+      {/* Ikon-rad: Søk, Innboks, Innstillinger */}
+      <div
+        className="flex items-center justify-around px-6 py-3"
+        onClick={e => e.stopPropagation()}
+        style={{ borderBottom: '1px solid #1E1E22' }}
+      >
+        <div onClick={onClose}>
+          <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
+        </div>
+        <Link
+          href={INBOX_HREF}
+          onClick={onClose}
+          aria-label={`Innboks${unreadInboxCount > 0 ? ` (${unreadInboxCount} uleste)` : ''}`}
+          style={{
+            position: 'relative',
+            width: '50px', height: '50px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#F0F0F2', textDecoration: 'none',
+          }}
+        >
+          <MailIcon />
+          {unreadInboxCount > 0 && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute', top: '8px', right: '8px',
+                width: '10px', height: '10px', borderRadius: '50%',
+                backgroundColor: accent,
+              }}
+            />
+          )}
+        </Link>
+        <Link
+          href="/app/innstillinger"
+          onClick={onClose}
+          aria-label="Innstillinger"
+          style={{
+            width: '50px', height: '50px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#F0F0F2', textDecoration: 'none',
+          }}
+        >
+          <GearIcon />
+        </Link>
+      </div>
+
+      {/* Logg-økt CTA */}
+      {activeRole === 'athlete' && (
+        <div className="flex justify-center px-6 mt-3" onClick={e => e.stopPropagation()}>
           <Link
             href={logHref}
             onClick={onClose}
@@ -370,45 +405,54 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
           >
             {logLabel}
           </Link>
-        )}
-        <RoleSwitcher
-          activeRole={activeRole}
-          hasAthleteRole={hasAthleteRole}
-          hasCoachRole={hasCoachRole}
-        />
-      </div>
+        </div>
+      )}
 
-      {/* Centered link list */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6">
+      {/* Nav-rute-liste med ikon + tekst */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1">
         {MOBILE_LINKS.map(({ href, label }) => {
-          const active = pathname === href || pathname.startsWith(href + '/')
-          const showBadge = href === INBOX_HREF && unreadInboxCount > 0
+          const active = href === HOME_HREF
+            ? pathname === href
+            : pathname === href || pathname.startsWith(href + '/')
+          const Glyph = ATHLETE_NAV_GLYPHS[href]
           return (
             <Link
               key={href}
               href={href}
               onClick={onClose}
               style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: '24px',
-                letterSpacing: '0.1em',
-                color: active ? accent : 'rgba(242,240,236,0.6)',
-                textDecoration: 'none',
-                borderBottom: active ? `1px solid ${accent}` : '1px solid transparent',
-                paddingBottom: '3px',
-                transition: 'color 150ms',
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '14px',
+                padding: '14px 12px',
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: '17px',
+                letterSpacing: '0.1em',
+                color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
+                textDecoration: 'none',
+                backgroundColor: active ? '#16161A' : 'transparent',
+                borderLeft: active ? `3px solid ${accent}` : '3px solid transparent',
+                textTransform: 'uppercase',
               }}
-              onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#F0F0F2' }}
-              onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(242,240,236,0.6)' }}
             >
-              {label}
-              {showBadge && <UnreadBadge count={unreadInboxCount} accent={accent} />}
+              {Glyph ? <span style={{ color: active ? accent : '#8A8A96', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
+              <span>{label}</span>
             </Link>
           )
         })}
+      </div>
+
+      {/* Bunn: rolle-bytte */}
+      <div
+        className="flex flex-col items-center gap-3 px-6 pt-4 pb-4"
+        onClick={e => e.stopPropagation()}
+        style={{ borderTop: '1px solid #1E1E22' }}
+      >
+        <RoleSwitcher
+          activeRole={activeRole}
+          hasAthleteRole={hasAthleteRole}
+          hasCoachRole={hasCoachRole}
+        />
       </div>
 
       {/* Bottom: username + logout */}
@@ -486,6 +530,25 @@ function InboxIconLink({ unreadCount, accent, isActive }: {
         </span>
       )}
     </Link>
+  )
+}
+
+function GearIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
   )
 }
 

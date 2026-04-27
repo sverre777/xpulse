@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
 
 const COLOR_PRONE = '#38BDF8'      // liggende (blå)
 const COLOR_STANDING = '#FF4500'   // stående (oransje)
@@ -65,6 +66,7 @@ export function SkytingTab({ data }: { data: ShootingDepthAnalysis }) {
   return (
     <div className="space-y-5">
       <SummaryCards data={data} />
+      <CustomSkytingChartBuilder data={data} />
       <AccuracyTrend data={data} />
       <HrZoneAccuracy data={data} />
       <FirstVsLast data={data} />

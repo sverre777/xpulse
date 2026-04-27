@@ -380,7 +380,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </Chip>
         </div>
 
-        {!isPlanMode && availableEquipment.length > 0 && !targetUserId && (
+        {!isPlanMode && !targetUserId && (
           <div className="mt-4">
             <EquipmentSelectorInWorkout
               available={availableEquipment}

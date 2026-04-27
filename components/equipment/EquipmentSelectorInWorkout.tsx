@@ -16,7 +16,7 @@ interface Props {
 // utstyr eksplisitt; vi auto-foreslår ikke. Tom liste vises som tom-tilstand
 // med lenke til /app/utstyr.
 export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }: Props) {
-  const [open, setOpen] = useState(selectedIds.length > 0)
+  const [open, setOpen] = useState(true)
 
   const activeAvailable = available.filter(e => e.status === 'active')
 

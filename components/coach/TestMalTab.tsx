@@ -10,7 +10,7 @@ import { SPORTS, TEST_TYPES_BY_SPORT, type Sport } from '@/lib/types'
 
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A', border: '1px solid #1E1E22',
+  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
@@ -48,7 +48,7 @@ export function TestMalTab({ initialTemplates, primarySport }: Props) {
           </p>
         </div>
       ) : (
-        <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+        <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
           {initialTemplates.map(t => (
             <button key={t.id} type="button"
               onClick={() => setEditing(t)}
@@ -145,7 +145,7 @@ function TestMalEditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={onClose}>
       <div className="w-full max-w-xl p-5"
-        style={{ backgroundColor: '#111113', border: `1px solid ${COACH_BLUE}55` }}
+        style={{ backgroundColor: '#13131A', border: `1px solid ${COACH_BLUE}55` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

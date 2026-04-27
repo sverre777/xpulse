@@ -376,14 +376,14 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
                 }} />
                 {labelSport(sport)}
               </p>
-              <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+              <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
                 {groups.map(g => (
                   <div key={`${g.sport}::${g.subcategory}`}>
                     <p className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
                         color: '#8A8A96',
-                        backgroundColor: '#16161A',
+                        backgroundColor: '#1A1A22',
                         borderBottom: '1px solid #1E1E22',
                       }}>
                       {g.subcategory}
@@ -423,7 +423,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
               Test-tidslinje
             </h2>
           </div>
-          <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+          <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
             {filteredTests.map(t => <TestRowItem key={t.id} row={t} />)}
           </div>
         </section>

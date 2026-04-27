@@ -68,9 +68,9 @@ export function PeriodsSection({
               type="button"
               onClick={() => canEdit && setEditing(p)}
               disabled={!canEdit}
-              className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
+              className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
               style={{
-                backgroundColor: '#111113',
+                backgroundColor: '#13131A',
                 borderLeft: `3px solid ${INTENSITY_COLOR[p.intensity]}`,
                 border: '1px solid #1E1E22',
                 cursor: canEdit ? 'pointer' : 'default',

@@ -385,7 +385,7 @@ function MovementGroup({
   return (
     <div className="py-1">
       <div className="px-3 py-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', backgroundColor: '#111113' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', backgroundColor: '#13131A' }}>
         {title}
       </div>
       {options.map(name => {

@@ -51,7 +51,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
         const p = r.periodization!
         const season = p.season
         return (
-          <div key={r.athlete.id} style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div key={r.athlete.id} style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <div className="px-4 py-3 flex items-center gap-2"
               style={{ borderBottom: '1px solid #1E1E22' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
@@ -148,7 +148,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
 
 function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #1E1E22' }}>

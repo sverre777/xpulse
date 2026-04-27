@@ -40,7 +40,7 @@ export function DefaultPermissionsSection({ initial }: Props) {
   return (
     <section
       className="p-5"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
     >
       <p className="text-sm mb-4"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

@@ -18,7 +18,7 @@ export function VolumeProgressBar({
 
   return (
     <div className="p-4 mb-5"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-baseline justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

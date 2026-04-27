@@ -83,7 +83,7 @@ function EmptyCard({ title, message }: { title: string; message: string }) {
   return (
     <div
       className="p-5 flex flex-col gap-2"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}
     >
       <span
         className="text-xs tracking-widest uppercase"
@@ -114,9 +114,9 @@ export async function CoachUpcomingCards() {
       {competition ? (
         <Link
           href={competition.hrefBase}
-          className="block p-5 transition-colors hover:bg-[#16161A]"
+          className="block p-5 transition-colors hover:bg-[#1A1A22]"
           style={{
-            backgroundColor: '#111113',
+            backgroundColor: '#13131A',
             border: '1px solid #1E1E22',
             borderLeft: `3px solid ${GOLD}`,
             textDecoration: 'none',
@@ -177,9 +177,9 @@ export async function CoachUpcomingCards() {
       {session ? (
         <Link
           href={session.hrefBase}
-          className="block p-5 transition-colors hover:bg-[#16161A]"
+          className="block p-5 transition-colors hover:bg-[#1A1A22]"
           style={{
-            backgroundColor: '#111113',
+            backgroundColor: '#13131A',
             border: '1px solid #1E1E22',
             borderLeft: `3px solid ${COACH_BLUE}`,
             textDecoration: 'none',

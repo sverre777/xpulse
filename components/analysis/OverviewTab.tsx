@@ -344,7 +344,7 @@ export function OverviewTab({ stats, overview, analysisRange }: OverviewTabProps
 
           {/* Konkurranseliste — kompakt. Full analyse finnes i Konkurranser-fanen. */}
           {overview.current.competitions.length > 0 && (
-            <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+            <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
               <p className="text-xs tracking-widest uppercase mb-3"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
                 Konkurranser i perioden

@@ -102,7 +102,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole }: Props
             top: 'calc(100% + 4px)',
             right: 0,
             minWidth: 180,
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
             zIndex: 60,

@@ -423,7 +423,7 @@ function SelectField({ label, value, onChange, children }: {
         className="text-sm px-2 py-1"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#16161A',
+          backgroundColor: '#1A1A22',
           border: '1px solid #1E1E22',
           color: '#F0F0F2',
           outline: 'none',

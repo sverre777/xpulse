@@ -39,7 +39,7 @@ export function SeasonHeaderBar({
 
   return (
     <section className="p-4 mb-6"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex-1 min-w-[240px]">
           <div className="flex items-center gap-3 mb-2">

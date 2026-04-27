@@ -68,7 +68,7 @@ export function PushTemplateModal({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '560px',
-          backgroundColor: '#111113', border: '1px solid #1E1E22',
+          backgroundColor: '#13131A', border: '1px solid #1E1E22',
         }}
       >
         <div
@@ -192,7 +192,7 @@ function TabButton({ label, active, onClick, disabled }: {
 function inputStyle(): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
-    backgroundColor: '#16161A',
+    backgroundColor: '#1A1A22',
     color: '#F0F0F2',
     border: '1px solid #1E1E22',
     padding: '6px 8px',
@@ -513,7 +513,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
               }}>
               <table className="w-full text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-                <thead style={{ backgroundColor: '#16161A' }}>
+                <thead style={{ backgroundColor: '#1A1A22' }}>
                   <tr>
                     <Th>Økt</Th>
                     <Th>Original dag</Th>

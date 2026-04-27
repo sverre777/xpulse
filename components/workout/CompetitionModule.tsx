@@ -18,7 +18,7 @@ interface Props {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A', border: '1px solid #1E1E22',
+  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
 }
 
@@ -47,7 +47,7 @@ export function CompetitionModule({ data, onChange, sport, mode, onRequestGenera
 
   return (
     <div className="p-4 mb-4"
-      style={{ backgroundColor: '#111113', border: '1px solid #D4A01744' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #D4A01744' }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: '#D4A017', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"

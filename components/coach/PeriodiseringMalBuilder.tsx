@@ -481,7 +481,7 @@ function PeriodRow({
   const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <Field label="Navn">
           <input value={period.name}
@@ -541,7 +541,7 @@ function KeyDateRow({
   const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <Field label="Tittel">
           <input value={keyDate.title}
@@ -727,7 +727,7 @@ function offsetToWeekDayLabel(offset: number): string {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

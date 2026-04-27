@@ -14,7 +14,7 @@ export default async function AbonnementInnstillingerPage() {
           title="Abonnement"
           description="Administrer planen din og fakturering. Stripe-integrasjon kommer snart."
         />
-        <div className="p-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div className="p-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
           <p className="text-xs tracking-widest uppercase mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
             Aktiv plan

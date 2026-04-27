@@ -4,7 +4,7 @@ import type { TestPRSport } from '@/lib/types'
 import { SportSubcategorySelector } from './SportSubcategorySelector'
 
 const inputStyle: React.CSSProperties = {
-  backgroundColor: '#16161A', border: '1px solid #1E1E22',
+  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
@@ -64,7 +64,7 @@ export function TestPRInputForm({
 
   return (
     <div className="p-4"
-      style={{ backgroundColor: '#111113', border: `1px solid ${TEST_BLUE}44` }}>
+      style={{ backgroundColor: '#13131A', border: `1px solid ${TEST_BLUE}44` }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: TEST_BLUE, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"

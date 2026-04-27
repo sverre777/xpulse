@@ -77,7 +77,7 @@ export function SeasonWeeksStrip({
         </div>
       </div>
 
-      <div className="p-4 overflow-x-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-4 overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <div className="flex items-stretch gap-[2px]" style={{ minWidth: `${weeks.length * 20}px` }}>
           {weeks.map(w => {
             const p = periodForDate(periods, w.monday)

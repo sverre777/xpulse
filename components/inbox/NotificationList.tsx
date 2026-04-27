@@ -65,7 +65,7 @@ export function NotificationList({ notifications }: Props) {
       <p className="p-5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#111113', border: '1px solid #1E1E22',
+          backgroundColor: '#13131A', border: '1px solid #1E1E22',
         }}>
         Ingen varsler ennå.
       </p>
@@ -93,7 +93,7 @@ export function NotificationList({ notifications }: Props) {
           </button>
         </div>
       )}
-      <ul style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <ul style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         {notifications.map(n => {
           const accent = colorFor(n.type)
           const content = (

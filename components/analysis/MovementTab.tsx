@@ -95,7 +95,7 @@ export function MovementTab({
   return (
     <div className="space-y-5">
       {/* Movement-velger */}
-      <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Bevegelsesform {isPending && <span className="ml-2 normal-case" style={{ color: '#FF4500' }}>…laster</span>}
@@ -303,7 +303,7 @@ function MovementBest({ data, movement }: { data: MovementAnalysis; movement: st
   if (rows.length === 0) return null
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         Beste prestasjoner i perioden
@@ -414,7 +414,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
 
   if (ELEVATION_MOVEMENTS.has(movement)) {
     return (
-      <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Høydemeter / sekkvekt

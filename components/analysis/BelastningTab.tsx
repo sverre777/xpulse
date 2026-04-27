@@ -95,7 +95,7 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
       <StatCard label="Form (TSB)"    value={(tsb >= 0 ? '+' : '') + tsb.toFixed(0)}
                 sub="CTL − ATL" accent={COLOR_TSB} />
       <div className="p-4 flex flex-col gap-1"
-        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Formstatus
@@ -114,7 +114,7 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
     <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
@@ -405,7 +405,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

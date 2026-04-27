@@ -27,7 +27,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
       <div
         className="p-3 transition-colors"
         style={{
-          backgroundColor: '#16161A',
+          backgroundColor: '#1A1A22',
           border: `1px ${borderStyle} ${borderColor}`,
           borderLeft: `3px solid ${workout.is_important ? '#FF4500' : typeColor}`,
         }}

@@ -13,7 +13,7 @@ export function ChartWrapper({
   chartKey?: string
 }) {
   return (
-    <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs tracking-widest uppercase"

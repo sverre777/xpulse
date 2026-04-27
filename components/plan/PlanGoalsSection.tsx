@@ -68,7 +68,7 @@ export function PlanGoalsSection({
 
       {season.goal_main && (
         <div className="p-4 mb-3"
-          style={{ backgroundColor: '#111113', borderLeft: '3px solid #FF4500', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: '#13131A', borderLeft: '3px solid #FF4500', border: '1px solid #1E1E22' }}>
           <p className="text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Hovedmål · {season.name}
@@ -97,9 +97,9 @@ export function PlanGoalsSection({
                 key={k.id}
                 type="button"
                 onClick={() => setEditing(k)}
-                className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
+                className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
                 style={{
-                  backgroundColor: '#111113',
+                  backgroundColor: '#13131A',
                   borderLeft: `3px solid ${style.color}`,
                   border: '1px solid #1E1E22',
                   cursor: 'pointer',

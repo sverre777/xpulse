@@ -65,7 +65,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#111113',
+          backgroundColor: '#13131A',
           border: '1px solid #1E1E22',
           maxWidth: 480,
           width: '100%',

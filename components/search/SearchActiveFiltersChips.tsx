@@ -48,7 +48,7 @@ export function SearchActiveFiltersChips({ filters, onChange }: Props) {
             fontFamily: "'Barlow Condensed', sans-serif",
             padding: '4px 8px',
             border: '1px solid #1E1E22',
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             color: '#F0F0F2',
             cursor: 'pointer',
           }}

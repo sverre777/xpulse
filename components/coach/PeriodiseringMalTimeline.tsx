@@ -168,7 +168,7 @@ function KeyDateChip({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#F0F0F2',
-        backgroundColor: '#111113',
+        backgroundColor: '#13131A',
         border: `${visual.borderWidth}px solid ${visual.color}`,
         boxShadow: isPeak ? `0 0 6px ${GOLD}AA` : undefined,
       }}>

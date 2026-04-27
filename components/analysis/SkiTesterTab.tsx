@@ -218,7 +218,7 @@ export function SkiTesterTab({ data }: Props) {
       )}
 
       {/* Toppoversikt: ski rangert etter snitt-rating */}
-      <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ski rangert etter snitt-rating ({data.tests.length} test{data.tests.length === 1 ? '' : 'er'} totalt)
@@ -272,7 +272,7 @@ export function SkiTesterTab({ data }: Props) {
 
       {/* Beste ski per snøtype */}
       {byCondition.length > 0 && (
-        <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
           <p className="text-xs tracking-widest uppercase mb-3"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Beste ski per snøtype

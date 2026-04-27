@@ -104,7 +104,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
 
       <div
         className="px-4 py-3 flex items-center gap-3"
-        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderBottom: 'none' }}
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderBottom: 'none' }}
       >
         <span
           style={{
@@ -202,7 +202,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: '#F0F0F2',
-                      backgroundColor: mine ? 'transparent' : '#111113',
+                      backgroundColor: mine ? 'transparent' : '#13131A',
                       border: '1px solid #1E1E22',
                       borderLeftWidth: mine ? '1px' : '3px',
                       borderLeftColor: mine ? '#1E1E22' : bubbleAccent,
@@ -223,7 +223,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
 
       <div
         className="flex items-end gap-2 p-3"
-        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderTop: 'none' }}
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderTop: 'none' }}
       >
         <textarea
           value={draft}
@@ -239,7 +239,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
           className="flex-1 p-2 text-sm resize-none"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             color: '#F0F0F2',
             border: '1px solid #1E1E22',
             outline: 'none',

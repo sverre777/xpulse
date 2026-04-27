@@ -54,7 +54,7 @@ export function IntensityTab({ data }: { data: IntensityDistribution }) {
 function PeriodSummary({ data }: { data: IntensityDistribution }) {
   const total = data.totalSeconds
   return (
-    <div className="p-5" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Total tid i soner
@@ -185,7 +185,7 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
           Fordeling per bevegelsesform
         </p>
       </div>
-      <div className="overflow-x-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>

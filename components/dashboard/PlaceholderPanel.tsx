@@ -15,7 +15,7 @@ export function PlaceholderPanel({
     <div
       className="flex flex-col gap-4 p-6"
       style={{
-        backgroundColor: '#16161A',
+        backgroundColor: '#1A1A22',
         border: '1px solid #222228',
       }}
     >

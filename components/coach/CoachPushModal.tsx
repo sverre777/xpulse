@@ -347,8 +347,8 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       <label key={a.id}
                         className="flex items-center gap-3 px-3 py-2 cursor-pointer"
                         style={{
-                          backgroundColor: checked ? '#16161A' : '#0D0D11',
-                          borderBottom: '1px solid #111113',
+                          backgroundColor: checked ? '#1A1A22' : '#0D0D11',
+                          borderBottom: '1px solid #13131A',
                         }}>
                         <input type="checkbox" checked={checked}
                           onChange={() => toggleAthlete(a.id)}
@@ -380,7 +380,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: o.ok ? '#7DD87D' : '#E11D48',
-                      backgroundColor: '#111113', border: '1px solid #1E1E22',
+                      backgroundColor: '#13131A', border: '1px solid #1E1E22',
                     }}>
                     <span>{o.ok ? '✓' : '✕'}</span>
                     <span className="flex-1" style={{ color: '#F0F0F2' }}>{o.athleteName}</span>
@@ -411,7 +411,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     <div key={aid} className="text-xs px-2 py-1"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#111113', color: '#C0C0CC',
+                        backgroundColor: '#13131A', color: '#C0C0CC',
                       }}>
                       <span style={{ color: '#F0F0F2' }}>{a?.name ?? 'Utøver'}</span>
                       <span style={{ color: '#8A8A96' }}>
@@ -514,7 +514,7 @@ function labelForKind(kind: PushKind, hasTargets: boolean, n: number): string {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

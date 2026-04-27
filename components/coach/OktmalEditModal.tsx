@@ -63,7 +63,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
       <div onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '520px',
-          backgroundColor: '#111113', border: '1px solid #1E1E22',
+          backgroundColor: '#13131A', border: '1px solid #1E1E22',
         }}>
         <div className="px-5 py-3 flex items-center justify-between"
           style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -155,7 +155,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

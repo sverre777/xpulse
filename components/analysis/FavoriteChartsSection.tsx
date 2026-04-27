@@ -142,7 +142,7 @@ export function FavoriteChartsSection(props: Props) {
   if (orderedKeys.length === 0) {
     return (
       <div className="p-6 flex flex-col items-center text-center gap-2"
-        style={{ backgroundColor: '#111113', border: '1px dashed #1E1E22' }}>
+        style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Mine grafer
@@ -316,7 +316,7 @@ function FallbackCard({
 }) {
   return (
     <div className="p-5 flex items-center justify-between gap-4"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <div className="min-w-0">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
@@ -351,7 +351,7 @@ function FallbackCard({
 function UnknownChart({ chartKey }: { chartKey: string }) {
   return (
     <div className="p-4 flex items-center justify-between gap-3"
-      style={{ backgroundColor: '#111113', border: '1px dashed #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E22' }}>
       <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Ukjent graf ({chartKey}) — kan ha blitt fjernet.

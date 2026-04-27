@@ -203,7 +203,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   className="px-3 py-2 text-sm"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: '#16161A', border: '1px solid #1E1E22',
+                    backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
                     color: '#F0F0F2', outline: 'none',
                   }}
                 />
@@ -218,7 +218,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   className="px-3 py-2 text-sm"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: '#16161A', border: '1px solid #1E1E22',
+                    backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
                     color: '#F0F0F2', outline: 'none', resize: 'vertical',
                   }}
                 />
@@ -263,7 +263,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                 {showAddPanel && (
                   <div
                     className="px-3 py-2 flex flex-col gap-1"
-                    style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}
+                    style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
                   >
                     {availableCandidates.length === 0 ? (
                       <p className="text-xs"
@@ -402,7 +402,7 @@ function MemberRow({
           className="text-xs px-2 py-1"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#16161A', border: '1px solid #1E1E22',
+            backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
             color: '#F0F0F2', outline: 'none',
           }}
         >

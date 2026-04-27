@@ -35,7 +35,7 @@ export function MineUtovereSettingsSection({ initial }: Props) {
     return (
       <section
         className="p-5"
-        style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}
+        style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
       >
         <p className="text-sm"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
@@ -114,7 +114,7 @@ function RelationCard({
     <li
       className="p-4"
       style={{
-        backgroundColor: '#16161A', border: '1px solid #1E1E22',
+        backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
         opacity: inactive ? 0.6 : 1,
       }}
     >

@@ -22,7 +22,7 @@ export default async function PersonvernInnstillingerPage() {
           title="Personvern og data"
           description="Eksporter alle dine data eller slett kontoen permanent. Ved sletting har du 7 dagers angrefrist."
         />
-        <div className="p-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div className="p-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
           <div className="space-y-4">
             <DataExportButton />
             <div>

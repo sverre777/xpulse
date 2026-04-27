@@ -53,7 +53,7 @@ export function PeriodiseringMalVolumeSection({
         const plan = byOffset.get(i)
         return (
           <div key={i} className="p-3 grid grid-cols-2 md:grid-cols-4 gap-2"
-            style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+            style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
             <div className="md:col-span-1">
               <p className="text-xs tracking-widest uppercase mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
@@ -124,7 +124,7 @@ function NumField({
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

@@ -204,7 +204,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
   const paceUnit: PaceUnit = resolvePaceUnit('', defaultPaceUnit)
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"

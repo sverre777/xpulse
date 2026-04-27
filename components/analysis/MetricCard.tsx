@@ -40,7 +40,7 @@ export function MetricCard({
     <div
       className="p-4 flex flex-col gap-1 relative"
       style={{
-        backgroundColor: '#111113',
+        backgroundColor: '#13131A',
         border: '1px solid #1E1E22',
         borderLeft: `3px solid ${accent}`,
         minHeight: '110px',

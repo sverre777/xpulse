@@ -82,7 +82,7 @@ function EstimateCards({ data }: { data: TerskelAnalysis }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
     <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
@@ -120,7 +120,7 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
 
   if (withHr.length === 0) {
     return (
-      <div className="p-5" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
           Laktatprofil
@@ -230,7 +230,7 @@ function TemplateTable({ data }: { data: TerskelAnalysis }) {
           Laktat-respons per mal
         </p>
       </div>
-      <div className="overflow-x-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
@@ -286,7 +286,7 @@ function CsvExport({ data }: { data: TerskelAnalysis }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

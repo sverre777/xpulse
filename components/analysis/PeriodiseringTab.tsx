@@ -107,7 +107,7 @@ function SeasonHeader({ data }: { data: PeriodizationOverview }) {
   const progressPct = Math.max(0, Math.min(100, Math.round((elapsed / totalDays) * 100)))
 
   return (
-    <div className="p-5" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: '3px solid #FF4500' }}>
+    <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: '3px solid #FF4500' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Sesong
@@ -150,7 +150,7 @@ function SummaryCards({ data }: { data: PeriodizationOverview }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
     <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
@@ -180,7 +180,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
           Tidsbånd — periode-fordeling
         </p>
       </div>
-      <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         {/* Tidsbånd */}
         <div style={{ position: 'relative', width: '100%', height: 56, backgroundColor: '#0A0A0B', border: '1px solid #1E1E22' }}>
           {data.periods.map(p => {
@@ -348,7 +348,7 @@ function PeriodTable({ data }: { data: PeriodizationOverview }) {
           Perioder i detalj
         </p>
       </div>
-      <div className="overflow-x-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
@@ -404,7 +404,7 @@ function GoalsBlock({ data }: { data: PeriodizationOverview }) {
           Mål og KPI-er
         </p>
       </div>
-      <div className="p-5 space-y-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-5 space-y-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         {s.goal_main && (
           <div>
             <p className="text-xs tracking-widest uppercase mb-1"
@@ -466,7 +466,7 @@ function CsvExport({ data }: { data: PeriodizationOverview }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

@@ -120,7 +120,7 @@ export function PersonalRecordModal({ existing, preset, targetUserId, onClose, o
       style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
       onClick={onClose}>
       <div className="w-full max-w-lg p-5"
-        style={{ backgroundColor: '#111113', border: `1px solid ${GOLD}55` }}
+        style={{ backgroundColor: '#13131A', border: `1px solid ${GOLD}55` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

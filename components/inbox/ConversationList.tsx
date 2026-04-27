@@ -28,7 +28,7 @@ export function ConversationList({ conversations }: Props) {
       <p className="p-5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#111113', border: '1px solid #1E1E22',
+          backgroundColor: '#13131A', border: '1px solid #1E1E22',
         }}>
         Ingen samtaler ennå.
       </p>
@@ -36,7 +36,7 @@ export function ConversationList({ conversations }: Props) {
   }
 
   return (
-    <ul style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <ul style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       {conversations.map(c => {
         const accent = c.kind === 'dm'
           ? (c.counterpartIsCoach ? COACH_BLUE : ATHLETE_ORANGE)

@@ -34,7 +34,7 @@ export function ModalShell({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#111113',
+          backgroundColor: '#13131A',
           border: '1px solid #1E1E22',
           maxWidth: '560px',
           width: '100%',
@@ -131,7 +131,7 @@ export function ModalFooter({
           className="px-3 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             cursor: busy ? 'not-allowed' : 'pointer',

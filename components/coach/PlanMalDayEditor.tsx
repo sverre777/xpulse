@@ -203,7 +203,7 @@ function MenuView({
           </p>
           {existingWorkouts.map((w, i) => (
             <div key={i} className="p-3 flex items-start justify-between gap-3"
-              style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
               <div className="flex-1 min-w-0">
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
                   {w.title || '(uten tittel)'}
@@ -263,9 +263,9 @@ function FromTemplateView({
       <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto">
         {templates.map(t => (
           <button key={t.id} type="button" onClick={() => onPick(t)}
-            className="text-left p-3 transition-colors hover:bg-[#16161A]"
+            className="text-left p-3 transition-colors hover:bg-[#1A1A22]"
             style={{
-              backgroundColor: '#111113', border: '1px solid #1E1E22',
+              backgroundColor: '#13131A', border: '1px solid #1E1E22',
               cursor: 'pointer',
             }}>
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>

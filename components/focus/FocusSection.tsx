@@ -185,7 +185,7 @@ export function FocusSection({
               return (
                 <div key={p.id} className="flex items-start gap-2 px-2 py-1.5"
                   style={{
-                    backgroundColor: '#111113',
+                    backgroundColor: '#13131A',
                     borderLeft: `2px solid ${context === 'plan' ? ACCENT_PLAN : ACCENT_DAGBOK_HAS}`,
                   }}>
                   {isEditing ? (

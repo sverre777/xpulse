@@ -70,7 +70,7 @@ function CollapsibleSection({
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: '#C0C0CC',
-          background: '#111113',
+          background: '#13131A',
           border: 'none',
           cursor: 'pointer',
         }}>
@@ -180,7 +180,7 @@ function FocusPointsEditor({
         <div className="flex flex-col gap-2">
           {focusPoints.map((f, i) => (
             <div key={i} className="p-3 flex flex-col gap-2"
-              style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <div>
                   <label className="block mb-1 text-xs tracking-widest uppercase"
@@ -269,7 +269,7 @@ function AddBtn({ onClick, children }: { onClick: () => void; children: React.Re
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

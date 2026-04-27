@@ -415,7 +415,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
   const [pickYear, setPickYear] = useState(year)
   return (
     <div className="absolute z-50 top-full left-1/2 mt-2 shadow-xl"
-      style={{ backgroundColor: '#16161A', border: '1px solid #2A2A30', transform: 'translateX(-50%)', minWidth: '280px' }}>
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #2A2A30', transform: 'translateX(-50%)', minWidth: '280px' }}>
       <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid #1A1A1E' }}>
         <button type="button" onClick={() => setPickYear(y => y - 1)}
           style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>←</button>
@@ -759,7 +759,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-2" style={{
-                                backgroundColor: comp && !isPlanned ? `${color}22` : '#16161A',
+                                backgroundColor: comp && !isPlanned ? `${color}22` : '#1A1A22',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 border: showCoachStyle
                                   ? `1px dashed ${COACH_BLUE}`
@@ -830,7 +830,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           return (
                             <div key={r.id}
                               className="flex items-center justify-between p-2"
-                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E' }}>
+                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E' }}>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span style={{ fontSize: '14px' }}>{icon}</span>
                                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
@@ -902,13 +902,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           return readOnly ? (
                             <div key={s.id}
                               className="w-full flex items-center justify-between p-2 text-left"
-                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
+                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
                               {rowInner}
                             </div>
                           ) : (
                             <button key={s.id} type="button" onClick={() => onEditDayState(s)}
                               className="w-full flex items-center justify-between p-2 text-left"
-                              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
+                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
                               {rowInner}
                             </button>
                           )

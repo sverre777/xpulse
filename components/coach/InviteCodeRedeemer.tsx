@@ -81,7 +81,7 @@ export function InviteCodeRedeemer() {
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%', maxWidth: '460px',
-              backgroundColor: '#111113', border: '1px solid #1E1E22',
+              backgroundColor: '#13131A', border: '1px solid #1E1E22',
             }}
           >
             <div
@@ -122,7 +122,7 @@ export function InviteCodeRedeemer() {
                 autoComplete="off"
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
-                  backgroundColor: '#16161A',
+                  backgroundColor: '#1A1A22',
                   color: '#F0F0F2',
                   border: '1px solid #1E1E22',
                   padding: '10px 12px',

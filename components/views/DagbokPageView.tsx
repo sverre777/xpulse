@@ -135,7 +135,7 @@ export async function DagbokPageView({ viewContext }: Props) {
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Denne uken
@@ -145,7 +145,7 @@ export async function DagbokPageView({ viewContext }: Props) {
             </p>
             <p className="text-xs mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Total tid</p>
           </div>
-          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Km
@@ -155,7 +155,7 @@ export async function DagbokPageView({ viewContext }: Props) {
             </p>
             <p className="text-xs mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>kilometer</p>
           </div>
-          <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Økter

@@ -38,7 +38,7 @@ export function SeasonSelector({
           className="px-3 py-2 text-sm"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#111113',
+            backgroundColor: '#13131A',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             minWidth: '240px',
@@ -58,7 +58,7 @@ export function SeasonSelector({
             className="px-3 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#16161A',
+              backgroundColor: '#1A1A22',
               border: '1px solid #1E1E22',
               color: '#F0F0F2',
               cursor: 'pointer',

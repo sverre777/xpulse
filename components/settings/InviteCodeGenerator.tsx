@@ -53,7 +53,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
   }
 
   return (
-    <section className="p-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <section className="p-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Trener-kode

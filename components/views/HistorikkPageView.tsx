@@ -37,7 +37,7 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
               className="flex-1 px-4 py-3 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#16161A', border: '1px solid #1E1E22',
+                backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
                 color: '#F0F0F2', outline: 'none',
               }}
             />
@@ -55,23 +55,23 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
           <div className="flex gap-3 flex-wrap">
             <select name="sport" defaultValue={params.sport ?? ''}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#16161A', border: '1px solid #1E1E22', color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }}>
               <option value="">Alle sporter</option>
               {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
             <select name="type" defaultValue={params.type ?? ''}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#16161A', border: '1px solid #1E1E22', color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }}>
               <option value="">Alle økttyper</option>
               {WORKOUT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
             <input type="date" name="from" defaultValue={params.from}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#16161A', border: '1px solid #1E1E22', color: '#8A8A96' }} />
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }} />
             <span className="self-center text-sm" style={{ color: '#555560' }}>—</span>
             <input type="date" name="to" defaultValue={params.to}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#16161A', border: '1px solid #1E1E22', color: '#8A8A96' }} />
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }} />
           </div>
         </form>
 

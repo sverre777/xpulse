@@ -15,7 +15,7 @@ export function SettingsCategoryCard({ href, glyph, title, description, accent =
     <Link href={href}
       className="flex items-center gap-4 p-5 transition-colors hover:bg-[#1A1A1F]"
       style={{
-        backgroundColor: '#16161A', border: '1px solid #1E1E22',
+        backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
         textDecoration: 'none',
       }}>
       <div style={{

@@ -49,7 +49,7 @@ export function CoachAthleteList({ athletes }: Props) {
   }, [athletes, query, sportFilter])
 
   return (
-    <section className="mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <section className="mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div
         className="flex flex-wrap items-center gap-3 px-5 py-3"
         style={{ borderBottom: '1px solid #1E1E22' }}
@@ -71,7 +71,7 @@ export function CoachAthleteList({ athletes }: Props) {
           placeholder="Søk"
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -83,7 +83,7 @@ export function CoachAthleteList({ athletes }: Props) {
           onChange={e => setSportFilter(e.target.value as 'all' | Sport)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",

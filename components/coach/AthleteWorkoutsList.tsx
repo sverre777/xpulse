@@ -62,7 +62,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               key={r.key}
               className="p-3 flex items-center gap-3"
               style={{
-                backgroundColor: '#16161A',
+                backgroundColor: '#1A1A22',
                 border: `1px dashed ${color}`,
                 opacity: 0.85,
               }}
@@ -103,7 +103,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
             key={r.key}
             className="p-3"
             style={{
-              backgroundColor: '#16161A',
+              backgroundColor: '#1A1A22',
               border: '1px solid #1E1E22',
               borderTop: byCoach ? `3px solid ${COACH_BLUE}` : '1px solid #1E1E22',
               borderStyle: isPlannedOnly ? 'dashed' : 'solid',

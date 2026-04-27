@@ -95,7 +95,7 @@ export function UtovereGrid({ athletes }: Props) {
       {/* Filtre */}
       <div
         className="flex flex-wrap items-center gap-3 px-4 py-3 mb-4"
-        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}
       >
         <input
           type="text"
@@ -104,7 +104,7 @@ export function UtovereGrid({ athletes }: Props) {
           placeholder="Søk navn"
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -116,7 +116,7 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setSportFilter(e.target.value as 'all' | Sport)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -132,7 +132,7 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setStatusFilter(e.target.value as 'all' | UtoverStatus)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -149,7 +149,7 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setSortKey(e.target.value as SortKey)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -183,7 +183,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
   return (
     <div
       style={{
-        backgroundColor: '#111113',
+        backgroundColor: '#13131A',
         border: '1px solid #1E1E22',
         borderLeft: `3px solid ${STATUS_COLOR[athlete.status]}`,
       }}

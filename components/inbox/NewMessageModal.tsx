@@ -131,7 +131,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                 className="px-3 py-1.5 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: mode === m ? '#16161A' : 'transparent',
+                  backgroundColor: mode === m ? '#1A1A22' : 'transparent',
                   border: `1px solid ${mode === m ? COACH_BLUE : '#1E1E22'}`,
                   color: mode === m ? '#F0F0F2' : '#8A8A96',
                   cursor: 'pointer',
@@ -153,7 +153,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
               className="px-3 py-2 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#16161A',
+                backgroundColor: '#1A1A22',
                 color: '#F0F0F2',
                 border: '1px solid #1E1E22',
                 outline: 'none',
@@ -169,14 +169,14 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
             className="px-3 py-2 text-sm"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#16161A',
+              backgroundColor: '#1A1A22',
               color: '#F0F0F2',
               border: '1px solid #1E1E22',
               outline: 'none',
             }}
           />
 
-          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
             {loading && (
               <p className="p-4 text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
@@ -207,7 +207,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                       onClick={() => (isDmMode ? handleDmSelect(r.id) : toggle(r.id))}
                       className="w-full px-4 py-3 flex items-center gap-3 text-left transition-opacity hover:opacity-90"
                       style={{
-                        background: selected ? '#16161A' : 'transparent',
+                        background: selected ? '#1A1A22' : 'transparent',
                         border: 'none',
                         cursor: 'pointer',
                       }}

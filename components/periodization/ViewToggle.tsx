@@ -23,7 +23,7 @@ export function ViewToggle({ active }: { active: CalendarView }) {
 
   return (
     <div className="inline-flex" role="tablist" aria-label="Kalendervisning"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       {VIEWS.map(v => {
         const isActive = v.value === active
         return (

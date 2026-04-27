@@ -10,7 +10,7 @@ export function StatCard({ label, value, unit, accentColor = '#FF4500' }: StatCa
     <div
       className="flex flex-col gap-1 p-5"
       style={{
-        backgroundColor: '#16161A',
+        backgroundColor: '#1A1A22',
         border: '1px solid #222228',
       }}
     >

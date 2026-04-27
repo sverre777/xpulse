@@ -52,7 +52,7 @@ export function TrenerProfilSection({ initial }: Props) {
     <form
       action={formAction}
       className="p-5 flex flex-col gap-4"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
     >
       <div className="flex flex-col gap-1">
         <label htmlFor="bio" className="text-xs tracking-widest uppercase" style={labelStyle}>

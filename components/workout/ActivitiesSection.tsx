@@ -601,7 +601,7 @@ function ZoneEditor({
   const keys = ZONE_KEYS
   const total = sumZoneMinutes(zones)
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -700,7 +700,7 @@ function StrengthEditor({
     onChange(exercises.filter(e => e.id !== id))
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Øvelser
@@ -933,7 +933,7 @@ function ExerciseNameAutocomplete({
       {open && suggestions.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-          backgroundColor: '#16161A', border: '1px solid #262629',
+          backgroundColor: '#1A1A22', border: '1px solid #262629',
           marginTop: '2px', maxHeight: '220px', overflowY: 'auto',
         }}>
           {suggestions.map((s, i) => (
@@ -978,7 +978,7 @@ function LactateMeasurementsEditor({
     onChange(measurements.filter(m => m.id !== id))
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Laktat
@@ -1047,7 +1047,7 @@ function TurFields({
     (showSled && Number.isFinite(sled) && sled > 0)
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Tur
@@ -1127,7 +1127,7 @@ function ShootingFields({
                    'Skyting'
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {heading}
@@ -1232,7 +1232,7 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
@@ -1296,7 +1296,7 @@ function CreateMovementTypeModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#111113', border: '1px solid #262629',
+          backgroundColor: '#13131A', border: '1px solid #262629',
           width: '100%', maxWidth: '480px', padding: '20px',
         }}
       >
@@ -1417,7 +1417,7 @@ function PaceField({
   })()
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <PaceInput
         value={currentSeconds}
         onChange={next => onUpdate({

@@ -21,7 +21,7 @@ export default async function AthleteUtstyrTab({ params }: Props) {
         <p className="p-5 text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017',
-            backgroundColor: '#111113', border: '1px solid #1E1E22',
+            backgroundColor: '#13131A', border: '1px solid #1E1E22',
           }}>
           Ingen lesetilgang til utstyr (følger dagbok-tilgang).
         </p>

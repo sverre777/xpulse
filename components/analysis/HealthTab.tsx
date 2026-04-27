@@ -348,7 +348,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5">
-            <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+            <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
               <p className="text-xs tracking-widest uppercase mb-2"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Antall recovery-tiltak
@@ -448,7 +448,7 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

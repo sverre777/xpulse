@@ -41,7 +41,7 @@ export function DateRangePicker({
           className="px-3 py-1.5 text-xs tracking-widest uppercase transition-colors"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: value.preset === p.key ? '#FF4500' : '#16161A',
+            backgroundColor: value.preset === p.key ? '#FF4500' : '#1A1A22',
             border: value.preset === p.key ? '1px solid #FF4500' : '1px solid #1E1E22',
             color: value.preset === p.key ? '#FFFFFF' : '#F0F0F2',
           }}

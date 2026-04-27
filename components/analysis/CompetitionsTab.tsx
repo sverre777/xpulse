@@ -234,7 +234,7 @@ export function CompetitionsTab({
   return (
     <div className="space-y-5">
       {/* Type-filter */}
-      <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Type konkurranse
@@ -262,7 +262,7 @@ export function CompetitionsTab({
 
       {/* Kommende planlagte konkurranser — vis alltid hvis det finnes. */}
       {data.upcomingPlanned.length > 0 && (
-        <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #D4A017' }}>
+        <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #D4A017' }}>
           <p className="text-xs tracking-widest uppercase mb-3"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
             Kommende planlagte ({data.upcomingPlanned.length})
@@ -303,7 +303,7 @@ export function CompetitionsTab({
       {rows.length === 0 ? EMPTY : (
         <>
           {/* Liste — klikk åpner i dagbok (ruting via query-param). */}
-          <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
               Gjennomførte konkurranser i perioden ({rows.length})

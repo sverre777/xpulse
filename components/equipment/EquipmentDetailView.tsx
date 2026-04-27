@@ -156,7 +156,7 @@ export function EquipmentDetailView({
         </div>
 
         {!editing ? (
-          <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-6 mb-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <Row label="Sport" value={equipment.sport} />
             <Row label="Kjøpsdato" value={equipment.purchase_date} />
             <Row label="Pris" value={equipment.price_kr != null ? `${equipment.price_kr} kr` : null} />
@@ -179,7 +179,7 @@ export function EquipmentDetailView({
           </div>
         ) : (
           <form onSubmit={handleSave} className="p-6 mb-6 space-y-4"
-            style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+            style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <Field label="Navn">
               <input value={form.name} required onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 className="w-full px-4 py-3" style={inputStyle} />
@@ -272,7 +272,7 @@ export function EquipmentDetailView({
           <div className="space-y-2">
             {workouts.map(w => (
               <div key={w.id} className="flex items-center justify-between gap-2 px-4 py-3"
-                style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+                style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
                 <div className="min-w-0">
                   <p className="truncate"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
@@ -336,7 +336,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
 
   if (!editing) {
     return (
-      <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-6 mb-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -368,7 +368,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
 
   return (
     <form onSubmit={handleSave} className="p-6 mb-6 space-y-4"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Ski-data
@@ -465,7 +465,7 @@ function SkiTestHistorySection({
   if (myEntries.length === 0) {
     return (
       <>
-        <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div className="p-6 mb-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
           {headerWithButton}
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
             Ingen tester registrert for dette skiparet ennå.
@@ -487,7 +487,7 @@ function SkiTestHistorySection({
 
   return (
     <>
-    <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="p-6 mb-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       {headerWithButton}
 
       {bestConditions.length > 0 && (
@@ -584,7 +584,7 @@ function analyseBestConditions(items: Array<{ test: SkiTestWithEntries; entry: S
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}

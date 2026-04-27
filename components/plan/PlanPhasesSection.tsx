@@ -85,9 +85,9 @@ export function PlanPhasesSection({
               key={p.id}
               type="button"
               onClick={() => setEditing(p)}
-              className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
+              className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
               style={{
-                backgroundColor: '#111113',
+                backgroundColor: '#13131A',
                 borderLeft: `3px solid ${INTENSITY_COLOR[p.intensity]}`,
                 border: `1px solid ${isCurrent ? '#FF4500' : '#1E1E22'}`,
                 cursor: 'pointer',

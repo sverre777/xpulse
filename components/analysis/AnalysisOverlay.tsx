@@ -201,7 +201,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                       className="text-xs px-1.5 py-0.5"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#111113', border: '1px solid #1E1E22', color: '#F0F0F2',
+                        backgroundColor: '#13131A', border: '1px solid #1E1E22', color: '#F0F0F2',
                       }}>
                       {m.movement_name} · {formatDuration(m.seconds)}
                     </span>

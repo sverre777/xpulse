@@ -21,7 +21,7 @@ export function SeasonContextStrip({
 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-6 p-3"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
 
       <div className="flex items-center gap-2">
         <span className="text-xs tracking-widest uppercase"

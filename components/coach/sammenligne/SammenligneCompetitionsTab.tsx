@@ -43,7 +43,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
         const c = r.competitions
         if (!c?.hasData) return null
         return (
-          <div key={r.athlete.id} style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div key={r.athlete.id} style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <div className="px-4 py-3 flex items-center gap-2"
               style={{ borderBottom: '1px solid #1E1E22' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
@@ -91,7 +91,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
 
 function SummaryTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #1E1E22' }}>

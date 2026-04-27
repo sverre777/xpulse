@@ -40,14 +40,14 @@ export function AthleteHeader({ context }: Props) {
     : null
 
   return (
-    <section className="mb-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <section className="mb-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="p-5 flex flex-wrap items-center gap-4">
         {/* Avatar */}
         <div
           className="shrink-0 flex items-center justify-center"
           style={{
             width: '56px', height: '56px',
-            backgroundColor: '#16161A',
+            backgroundColor: '#1A1A22',
             border: `2px solid ${COACH_BLUE}`,
           }}
         >

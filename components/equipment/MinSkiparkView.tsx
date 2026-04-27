@@ -72,7 +72,7 @@ export function MinSkiparkView({ ski, templates, tests }: Props) {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="p-12 text-center" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
               {ski.length === 0
                 ? 'Ingen ski registrert ennå. Legg til ski via «Nytt utstyr» på utstyr-siden.'
@@ -107,7 +107,7 @@ function SkiCard({ ski }: { ski: SkiEquipment }) {
   return (
     <Link href={`/app/utstyr/${ski.id}`}
       className="block p-4 transition-opacity hover:opacity-80"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22', textDecoration: 'none' }}>
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', textDecoration: 'none' }}>
       <div className="flex items-center justify-between gap-2 mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -151,7 +151,7 @@ function RecentTestsSection({ tests, ski }: { tests: SkiTestWithEntries[]; ski: 
           const condition = [t.snow_type, t.conditions].filter(Boolean).join(' · ')
           return (
             <div key={t.id} className="px-4 py-3"
-              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div>
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>

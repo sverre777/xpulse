@@ -133,7 +133,7 @@ export function CompareWorkoutsTab({
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="p-4 space-y-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-4 space-y-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <input
           type="text"
           value={search}
@@ -167,7 +167,7 @@ export function CompareWorkoutsTab({
 
       {/* Selected summary + compare button */}
       <div className="p-3 flex items-center justify-between gap-3 flex-wrap"
-        style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {selected.length} valgt · maks {MAX_COMPARE}
@@ -311,7 +311,7 @@ function WorkoutRow({
     <label
       className="flex items-center gap-3 p-3"
       style={{
-        backgroundColor: selected ? '#1E1E22' : isPlannedOnly ? '#100F0A' : '#111113',
+        backgroundColor: selected ? '#1E1E22' : isPlannedOnly ? '#100F0A' : '#13131A',
         border: borderStyle,
         cursor: isPlannedOnly ? 'default' : (disabled ? 'not-allowed' : 'pointer'),
         opacity: isPlannedOnly ? 0.75 : (disabled ? 0.5 : 1),
@@ -393,7 +393,7 @@ function ComparisonGrid({ workouts }: { workouts: ComparableWorkout[] }) {
 
 function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
   return (
-    <div className="p-4 space-y-3" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="p-4 space-y-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
           {workout.date}
@@ -567,7 +567,7 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
   }
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         Endring ({first.date} → {last.date})

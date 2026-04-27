@@ -38,7 +38,7 @@ function Card({
   )
   const cls = 'p-4 h-full'
   const style: React.CSSProperties = {
-    backgroundColor: '#111113', border: '1px solid #1E1E22',
+    backgroundColor: '#13131A', border: '1px solid #1E1E22',
     textDecoration: 'none', display: 'block',
   }
   if (href) {

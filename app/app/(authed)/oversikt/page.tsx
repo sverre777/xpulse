@@ -73,7 +73,7 @@ function AiCoachTeaser() {
 function WeekFocusBox({ items }: { items: string[] }) {
   if (items.length === 0) return null
   return (
-    <section className="p-5 mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <SectionHeader label="Fokus denne uken" />
       <ul className="list-disc pl-5 text-sm"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
@@ -122,7 +122,7 @@ export default async function OversiktPage() {
           health={res.health}
         />
 
-        <section className="p-5 mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+        <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
           <SectionHeader label="Volum siste 12 uker" />
           <CustomBreakdownChart analysisRange={range} />
         </section>

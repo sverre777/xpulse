@@ -121,7 +121,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
         <AthletePicker athletes={athletes} selected={selected} onToggle={toggle} />
 
         <div className="my-5 p-4 flex flex-col md:flex-row md:items-end md:gap-6 gap-4"
-          style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -170,7 +170,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               className="px-4 py-2 text-sm tracking-widest uppercase whitespace-nowrap"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: tab === t.key ? '#16161A' : 'transparent',
+                backgroundColor: tab === t.key ? '#1A1A22' : 'transparent',
                 borderBottom: tab === t.key ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                 color: tab === t.key ? '#F0F0F2' : '#555560',
                 minHeight: '44px',

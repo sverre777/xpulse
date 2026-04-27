@@ -65,7 +65,7 @@ export function CreateChoiceModal({
             key={opt.key}
             type="button"
             onClick={() => onPick(opt.key)}
-            className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#16161A]"
+            className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
             style={{
               backgroundColor: '#0F0F12',
               border: '1px solid #1E1E22',

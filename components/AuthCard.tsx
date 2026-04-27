@@ -11,7 +11,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
     <div
       className="w-full max-w-md mx-auto"
       style={{
-        backgroundColor: '#16161A',
+        backgroundColor: '#1A1A22',
         border: '1px solid #222228',
         padding: '2.5rem',
       }}

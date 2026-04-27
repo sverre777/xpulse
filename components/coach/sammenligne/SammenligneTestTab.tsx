@@ -51,7 +51,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
       <SummaryTable rows={data.athletes} />
 
       {prKeys.length > 0 && (
-        <div style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+        <div style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
           <div className="px-4 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
@@ -161,7 +161,7 @@ function buildProgressionData(
 
 function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #1E1E22' }}>

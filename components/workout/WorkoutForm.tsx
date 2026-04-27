@@ -433,7 +433,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
               className="px-3 py-2 text-sm w-full max-w-md"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#16161A',
+                backgroundColor: '#1A1A22',
                 border: '1px solid #1E1E22',
                 color: '#F0F0F2',
                 outline: 'none',
@@ -770,7 +770,7 @@ function SaveAsTemplateModal({
       onClick={onCancel}>
       <div className="w-full max-w-md p-5"
         onClick={e => e.stopPropagation()}
-        style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <div className="flex items-center gap-2 mb-4">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
@@ -938,7 +938,7 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A', border: '1px solid #1E1E22',
+  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
 }
 

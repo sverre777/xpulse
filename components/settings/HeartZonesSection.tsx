@@ -146,7 +146,7 @@ export function HeartZonesSection({
   }
 
   return (
-    <section className="p-6 mt-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <section className="p-6 mt-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <h2 className="text-xs tracking-widest uppercase"
@@ -280,7 +280,7 @@ function ZoneCard({
 }) {
   return (
     <div className="flex items-center gap-3 p-3"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
       <span style={{
         fontFamily: "'Bebas Neue', sans-serif", color, fontSize: '22px',
         letterSpacing: '0.06em', minWidth: '28px',
@@ -323,7 +323,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#16161A',
+  backgroundColor: '#1A1A22',
   border: '1px solid #1E1E22',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",

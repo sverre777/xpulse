@@ -25,7 +25,7 @@ function fmtDuration(mins: number | null): string {
 
 export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
   return (
-    <section className="p-5 mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />

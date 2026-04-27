@@ -89,7 +89,7 @@ function TemplateRow({
   onToggle: () => void
 }) {
   return (
-    <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <button
         type="button"
         onClick={onToggle}
@@ -167,7 +167,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
   [execs])
 
   return (
-    <div className="p-4 space-y-5" style={{ borderTop: '1px solid #1E1E22', backgroundColor: '#16161A' }}>
+    <div className="p-4 space-y-5" style={{ borderTop: '1px solid #1E1E22', backgroundColor: '#1A1A22' }}>
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Gjennomføringer" value={String(template.usage_count)} />
@@ -180,7 +180,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
       </div>
 
       {/* Avg zones bar */}
-      <div className="p-4" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Snitt-sonefordeling (per gjennomføring)
@@ -296,7 +296,7 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
   }
 
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>

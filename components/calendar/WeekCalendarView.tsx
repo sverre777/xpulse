@@ -198,7 +198,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
         <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
           style={{
             borderBottom: '1px solid #1A1A1E',
-            backgroundColor: '#111113',
+            backgroundColor: '#13131A',
             borderLeft: weekOverlay.period ? `3px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}` : 'none',
           }}>
           {weekOverlay.period && (
@@ -243,7 +243,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 
       {seconds > 0 && (
         <div className="px-4 md:px-6 py-3"
-          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#111113' }}>
+          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#13131A' }}>
           <div className="flex items-baseline gap-4 flex-wrap mb-2">
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.06em' }}>
               UKE {weekNum}:
@@ -546,7 +546,7 @@ export function WeekCalendarView({
                         style={{
                           display: 'flex', alignItems: 'center', gap: '10px',
                           padding: '10px 12px',
-                          backgroundColor: '#111113',
+                          backgroundColor: '#13131A',
                           border: planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,
                           borderLeft: `3px solid ${accent}`,
                           textAlign: 'left', cursor: 'pointer', width: '100%',

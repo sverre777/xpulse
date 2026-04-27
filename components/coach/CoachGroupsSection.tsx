@@ -36,7 +36,7 @@ export function CoachGroupsSection({ groups }: Props) {
   }
 
   return (
-    <section className="mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
+    <section className="mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div
         className="flex items-center justify-between px-5 py-3"
         style={{ borderBottom: '1px solid #1E1E22' }}
@@ -81,7 +81,7 @@ export function CoachGroupsSection({ groups }: Props) {
             required
             className="px-2 py-2 text-sm"
             style={{
-              backgroundColor: '#16161A', border: '1px solid #1E1E22',
+              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
               color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
@@ -93,7 +93,7 @@ export function CoachGroupsSection({ groups }: Props) {
             maxLength={200}
             className="px-2 py-2 text-sm"
             style={{
-              backgroundColor: '#16161A', border: '1px solid #1E1E22',
+              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
               color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
@@ -145,7 +145,7 @@ export function CoachGroupsSection({ groups }: Props) {
               <button
                 type="button"
                 onClick={() => setEditingGroupId(g.id)}
-                className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-[#16161A]"
+                className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-[#1A1A22]"
                 style={{ background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
               >
                 <span

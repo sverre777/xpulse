@@ -105,10 +105,10 @@ function DayCell({
   const hasContent = workouts.length > 0 || state != null
   return (
     <button type="button" onClick={onClick}
-      className="text-left px-2 py-1.5 transition-colors hover:bg-[#16161A]"
+      className="text-left px-2 py-1.5 transition-colors hover:bg-[#1A1A22]"
       style={{
         minHeight: '88px',
-        backgroundColor: hasContent ? '#111113' : '#0D0D11',
+        backgroundColor: hasContent ? '#13131A' : '#0D0D11',
         border: 'none',
         cursor: 'pointer',
         display: 'flex',

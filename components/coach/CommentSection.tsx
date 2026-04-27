@@ -74,7 +74,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
   return (
     <section
       className="mt-4"
-      style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}
+      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}
     >
       <div
         className="flex items-center gap-3 px-4 py-2"
@@ -118,7 +118,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
                 key={c.id}
                 className="p-3"
                 style={{
-                  backgroundColor: '#16161A',
+                  backgroundColor: '#1A1A22',
                   borderLeft: `3px solid ${color}`,
                 }}
               >
@@ -157,7 +157,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
             placeholder={viewerRole === 'coach' ? 'Skriv en kommentar til utøveren…' : 'Svar treneren…'}
             className="px-2 py-2 text-sm"
             style={{
-              backgroundColor: '#16161A', border: '1px solid #1E1E22',
+              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
               color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
               resize: 'vertical',
             }}

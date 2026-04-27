@@ -430,7 +430,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
                 letterSpacing: '0.1em',
                 color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
                 textDecoration: 'none',
-                backgroundColor: active ? '#16161A' : 'transparent',
+                backgroundColor: active ? '#1A1A22' : 'transparent',
                 borderLeft: active ? `3px solid ${accent}` : '3px solid transparent',
                 textTransform: 'uppercase',
               }}

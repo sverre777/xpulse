@@ -21,7 +21,7 @@ export function CoachRelationSettings({ relations }: Props) {
       <p className="p-5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#16161A', border: '1px solid #1E1E22',
+          backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
         }}>
         Ingen aktive trenerkoblinger ennå. Del trener-koden over for å koble til en trener.
       </p>
@@ -73,7 +73,7 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
   }
 
   return (
-    <li className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+    <li className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <div className="flex items-center gap-3 flex-wrap">
         <span
           style={{

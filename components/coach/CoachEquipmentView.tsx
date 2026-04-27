@@ -29,7 +29,7 @@ export function CoachEquipmentView({ equipment, skiTests }: Props) {
 
   if (equipment.length === 0) {
     return (
-      <div className="p-12 text-center" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
           Ingen utstyr registrert av utøveren.
         </p>
@@ -69,7 +69,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
   const subtitle = [equipment.brand, equipment.model].filter(Boolean).join(' ')
   return (
     <div className="p-4"
-      style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {EQUIPMENT_CATEGORY_LABELS[equipment.category]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
@@ -111,7 +111,7 @@ function SkiTestsBlock({
           const winnerSki = winner ? skiById.get(winner.ski_id) : null
           return (
             <div key={test.id} className="p-4"
-              style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
               <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                 <div>
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>

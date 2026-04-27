@@ -130,7 +130,7 @@ export function CompetitionTab({
   return (
     <div className="space-y-5">
       {/* Filter-rad */}
-      <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Filter
@@ -189,7 +189,7 @@ export function CompetitionTab({
       {!hasRows ? EMPTY : (
         <>
           {/* Liste */}
-          <div className="p-5" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
               Konkurranser i perioden ({rows.length})

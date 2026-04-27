@@ -80,7 +80,7 @@ export function MonthFullCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#16161A', border: '1px solid #1E1E22',
+              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
               color: prevAllowed ? '#F0F0F2' : '#2A2A30',
               cursor: prevAllowed ? 'pointer' : 'not-allowed',
             }}>
@@ -90,7 +90,7 @@ export function MonthFullCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#16161A', border: '1px solid #1E1E22',
+              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
               color: nextAllowed ? '#F0F0F2' : '#2A2A30',
               cursor: nextAllowed ? 'pointer' : 'not-allowed',
             }}>

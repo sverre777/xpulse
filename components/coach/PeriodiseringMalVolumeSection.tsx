@@ -44,9 +44,7 @@ export function PeriodiseringMalVolumeSection({
 
   const labelFor = (offset: number) => {
     if (!startDate) return `Måned ${offset + 1}`
-    // Adder hele måneder fra startDate så hver iterasjon treffer riktig kalendermåned.
-    const target = addMonths(startDate, offset)
-    return `Måned ${offset + 1} (${formatNorskMaaned(target)})`
+    return formatNorskMaaned(addMonths(startDate, offset))
   }
 
   return (

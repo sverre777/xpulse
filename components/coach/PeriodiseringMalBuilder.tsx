@@ -530,17 +530,15 @@ function PeriodRow({
 }
 
 function KeyDateRow({
-  keyDate, max, startDate, onChange, onRemove,
+  keyDate, durationDays, startDate, onChange, onRemove,
 }: {
   keyDate: PeriodizationTemplateKeyDate
-  max: number
+  durationDays: number
   startDate: string | null
   onChange: (patch: Partial<PeriodizationTemplateKeyDate>) => void
   onRemove: () => void
 }) {
-  const dayLabel = startDate
-    ? formatNorskKortDato(addDays(startDate, keyDate.day_offset))
-    : offsetToWeekDayLabel(keyDate.day_offset)
+  const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
@@ -550,11 +548,13 @@ function KeyDateRow({
             onChange={e => onChange({ title: e.target.value })}
             style={iSt} />
         </Field>
-        <Field label={`Dag (${dayLabel})`}>
-          <input type="number" min={0} max={max} value={keyDate.day_offset}
-            onChange={e => onChange({ day_offset: parseInt(e.target.value) || 0 })}
-            style={iSt} />
-        </Field>
+        <DateOrDayField
+          label="Dato"
+          offset={keyDate.day_offset}
+          startDate={startDate}
+          maxOffset={max}
+          onChange={v => onChange({ day_offset: v })}
+        />
         <Field label="Type">
           <select value={keyDate.date_type}
             onChange={e => onChange({ date_type: e.target.value })}
@@ -634,6 +634,62 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </label>
       {children}
     </div>
+  )
+}
+
+// Velger dato når malen har startDate satt, ellers et tall-felt for dag-offset.
+// Dato lagres internt som offset fra startDate slik at mal-dataformatet er uendret.
+function DateOrDayField({
+  label, offset, startDate, maxOffset, onChange,
+}: {
+  label: string
+  offset: number
+  startDate: string | null
+  maxOffset: number
+  onChange: (offset: number) => void
+}) {
+  if (startDate) {
+    const value = addDays(startDate, offset)
+    const minDate = startDate
+    const maxDate = addDays(startDate, maxOffset)
+    return (
+      <Field label={label}>
+        <input
+          type="date"
+          value={value}
+          min={minDate}
+          max={maxDate}
+          onChange={e => {
+            const v = e.target.value
+            if (!v) return
+            const d = diffDays(startDate, v)
+            const clamped = Math.max(0, Math.min(maxOffset, d))
+            onChange(clamped)
+          }}
+          style={iSt}
+        />
+        <p className="text-[10px] mt-1"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {formatNorskKortDato(value)}
+        </p>
+      </Field>
+    )
+  }
+  return (
+    <Field label={`${label} (dag-nr)`}>
+      <input
+        type="number"
+        min={0}
+        max={maxOffset}
+        value={offset}
+        onChange={e => onChange(parseInt(e.target.value) || 0)}
+        style={iSt}
+      />
+      <p className="text-[10px] mt-1"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        {offsetToWeekDayLabel(offset)}
+      </p>
+    </Field>
   )
 }
 

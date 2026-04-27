@@ -4,6 +4,7 @@ import { CoachActivityFeed } from '@/components/coach/CoachActivityFeed'
 import { CoachAthleteList } from '@/components/coach/CoachAthleteList'
 import { CoachGroupsSection } from '@/components/coach/CoachGroupsSection'
 import { CoachUpcomingCards } from '@/components/coach/CoachUpcomingCards'
+import { NewGroupSessionButton } from '@/components/coach/NewGroupSessionButton'
 
 function ErrorBox({ message }: { message: string }) {
   return (
@@ -41,6 +42,8 @@ export default async function CoachDashboardPage() {
       />
 
       <CoachUpcomingCards />
+
+      <NewGroupSessionButton />
 
       <CoachActivityFeed items={res.feed} />
 

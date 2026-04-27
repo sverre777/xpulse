@@ -101,6 +101,112 @@ async function notifyAthlete(params: {
   } catch { /* ignorer */ }
 }
 
+// ── Push: fellestrening til flere utøvere ──────────────────
+
+export interface PushGroupSessionInput {
+  athleteIds: string[]
+  date: string
+  title: string
+  sport: Sport
+  workoutType: WorkoutType
+  durationMinutes: number | null
+  distanceKm: number | null
+  label?: string | null
+  isImportant?: boolean
+}
+
+export interface PushGroupSessionReport {
+  created: number
+  skippedAthleteIds: string[]
+  errors: { athleteId: string; message: string }[]
+}
+
+export async function pushGroupSession(
+  input: PushGroupSessionInput,
+): Promise<PushGroupSessionReport | { error: string }> {
+  const title = input.title?.trim()
+  if (!title) return { error: 'Tittel er påkrevd' }
+  if (!input.date) return { error: 'Dato er påkrevd' }
+  if (input.athleteIds.length === 0) return { error: 'Velg minst én mottaker' }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const coachId = user.id
+
+  // Verifiser at coach har aktive relasjoner med alle valgte utøvere — hopper
+  // over (ikke krasher) for de som ikke matcher.
+  const { data: rels } = await supabase
+    .from('coach_athlete_relations')
+    .select('athlete_id, can_edit_plan')
+    .eq('coach_id', coachId)
+    .eq('status', 'active')
+    .in('athlete_id', input.athleteIds)
+  const validIds = new Set(
+    (rels ?? []).filter(r => r.can_edit_plan).map(r => r.athlete_id as string),
+  )
+  const skipped = input.athleteIds.filter(id => !validIds.has(id))
+  const targets = input.athleteIds.filter(id => validIds.has(id))
+  if (targets.length === 0) {
+    return { error: 'Ingen aktiv plan-tilgang til de valgte utøverne' }
+  }
+
+  const label = input.label?.trim() || null
+  const rows = targets.map(uid => ({
+    user_id: uid,
+    date: input.date,
+    title,
+    sport: input.sport,
+    workout_type: input.workoutType,
+    duration_minutes: input.durationMinutes,
+    distance_km: input.distanceKm,
+    is_planned: true,
+    is_completed: false,
+    is_important: input.isImportant ?? false,
+    is_group_session: true,
+    group_session_label: label,
+    created_by_coach_id: coachId,
+  }))
+
+  const errors: PushGroupSessionReport['errors'] = []
+  const { data: inserted, error } = await supabase
+    .from('workouts')
+    .insert(rows)
+    .select('id, user_id')
+  if (error) {
+    return { error: error.message }
+  }
+
+  // Audit + varsel per opprettet rad. Best-effort, ikke blokkerende.
+  for (const row of inserted ?? []) {
+    void writeAudit({
+      athleteId: row.user_id as string,
+      coachId,
+      actionType: 'push_group_session',
+      entityType: 'workout',
+      entityId: row.id as string,
+      details: { date: input.date, title, label },
+    })
+    void notifyAthlete({
+      athleteId: row.user_id as string,
+      type: 'group_session_push',
+      title: 'Ny fellestrening fra trener',
+      content: `${label ?? title} · ${input.date}`,
+      linkUrl: '/app/plan',
+    })
+  }
+
+  for (const id of new Set(targets)) revalidatePath(`/app/trener/${id}/plan`)
+  revalidatePath('/app/trener')
+  revalidatePath('/app/plan')
+
+  return {
+    created: (inserted ?? []).length,
+    skippedAthleteIds: skipped,
+    errors,
+  }
+}
+
 // ── Push: enkelt økt / treningsmal ──────────────────────────
 
 export async function pushWorkoutToAthlete(

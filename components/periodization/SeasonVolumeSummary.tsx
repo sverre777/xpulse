@@ -11,7 +11,7 @@ export function SeasonVolumeSummary({ plans }: { plans: MonthlyVolumePlan[] }) {
   return (
     <div className="mt-3 pt-3 flex flex-wrap items-baseline gap-3"
       style={{ borderTop: '1px solid #1E1E22' }}>
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Planlagt årstotal
       </span>

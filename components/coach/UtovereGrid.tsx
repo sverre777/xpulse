@@ -217,7 +217,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
             </Link>
             {athlete.unreadCount > 0 && (
               <span
-                className="text-[10px] px-1.5"
+                className="text-xs px-1.5"
                 style={{
                   backgroundColor: COACH_BLUE,
                   color: '#F0F0F2',
@@ -235,7 +235,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
             {sportLabel(athlete.primarySport)}
             {athlete.mainGoal && ` · ${athlete.mainGoal}`}
           </p>
-          <p className="text-[11px] mt-0.5"
+          <p className="text-xs mt-0.5"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             {formatLastWorkout(athlete.lastWorkoutDate, athlete.lastWorkoutTitle)}
           </p>
@@ -252,7 +252,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         style={{ borderTop: '1px solid #1E1E22' }}>
         <Link
           href={`/app/innboks?to=${athlete.id}`}
-          className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: COACH_BLUE,
@@ -264,7 +264,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         </Link>
         <Link
           href={`/app/trener/${athlete.id}?push=1`}
-          className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: COACH_BLUE,
@@ -276,7 +276,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         </Link>
         <Link
           href={`/app/trener/${athlete.id}/plan`}
-          className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: '#8A8A96',
@@ -288,7 +288,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         </Link>
         <Link
           href={`/app/trener/${athlete.id}/analyse`}
-          className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: '#8A8A96',
@@ -301,7 +301,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         <div className="flex-1" />
         <Link
           href={`/app/trener/${athlete.id}`}
-          className="px-3 py-1 text-[10px] tracking-widest uppercase transition-opacity hover:opacity-80"
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: COACH_BLUE,
@@ -319,7 +319,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
 function PeriodStats({ label, stats }: { label: string; stats: { sessions: number; minutes: number; km: number } }) {
   return (
     <div className="px-4 py-3" style={{ backgroundColor: '#0D0D11' }}>
-      <p className="text-[10px] tracking-widest uppercase mb-1.5"
+      <p className="text-xs tracking-widest uppercase mb-1.5"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>
@@ -343,7 +343,7 @@ function PeriodStats({ label, stats }: { label: string; stats: { sessions: numbe
           </span>
         )}
       </div>
-      <p className="text-[11px] mt-0.5"
+      <p className="text-xs mt-0.5"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {stats.sessions} økt{stats.sessions !== 1 ? 'er' : ''}
       </p>

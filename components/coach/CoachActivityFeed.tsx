@@ -38,7 +38,7 @@ export function CoachActivityFeed({ items }: Props) {
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
-            className="text-[10px] tracking-widest uppercase"
+            className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
           >
             Aktivitet fra utøvere

@@ -329,12 +329,12 @@ function ActivityRowItem({
           <button type="button" onClick={onMoveUp} disabled={!onMoveUp} aria-label="Flytt opp"
             style={{
               background: 'none', border: 'none', padding: '2px 0', cursor: onMoveUp ? 'pointer' : 'default',
-              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '11px', lineHeight: 1,
+              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '13px', lineHeight: 1,
             }}>▲</button>
           <button type="button" onClick={onMoveDown} disabled={!onMoveDown} aria-label="Flytt ned"
             style={{
               background: 'none', border: 'none', padding: '2px 0', cursor: onMoveDown ? 'pointer' : 'default',
-              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '11px', lineHeight: 1,
+              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '13px', lineHeight: 1,
             }}>▼</button>
         </div>
 
@@ -949,7 +949,7 @@ function ExerciseNameAutocomplete({
               <span style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: s.kind === 'library' ? '#8A8A96' : '#555560',
-                fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase',
+                fontSize: '13px', letterSpacing: '0.05em', textTransform: 'uppercase',
               }}>
                 {s.kind === 'library'
                   ? `brukt ${s.item.times_used}×`

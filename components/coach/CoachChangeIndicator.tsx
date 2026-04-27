@@ -14,7 +14,7 @@ export function CoachChangeIndicator({ coachName, updatedAt }: Props) {
   return (
     <span
       title={`Endret av ${name} · ${label}`}
-      className="inline-flex items-center gap-1 text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+      className="inline-flex items-center gap-1 text-xs tracking-widest uppercase px-1.5 py-0.5"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         backgroundColor: 'rgba(26,111,212,0.12)',

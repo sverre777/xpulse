@@ -67,7 +67,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
         }}>
         <div className="px-5 py-3 flex items-center justify-between"
           style={{ borderBottom: '1px solid #1E1E22' }}>
-          <div className="text-[10px] tracking-widest uppercase"
+          <div className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             Rediger mal
           </div>
@@ -145,7 +145,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block mb-1 text-[10px] tracking-widest uppercase"
+      <label className="block mb-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </label>

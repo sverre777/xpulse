@@ -402,7 +402,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </div>
         </div>
         {form.activities.length > 0 && (form.simple_duration_minutes || form.simple_distance_km) && (
-          <p className="mt-2 text-[11px]"
+          <p className="mt-2 text-xs"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
             ⚠ Totaltid/distanse regnes nå fra aktiviteter. Feltene over brukes kun som fallback når økten ikke har aktiviteter.
           </p>

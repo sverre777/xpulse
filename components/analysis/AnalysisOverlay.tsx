@@ -140,7 +140,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
             {/* Venstre: nøkkeltall (tid, km, økter). */}
             <div className="flex gap-4 flex-wrap">
               <div>
-                <p className="text-[10px] tracking-widest uppercase"
+                <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                   {timeLabel}
                 </p>
@@ -148,7 +148,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                   {formatDuration(data.current.total_seconds)}
                 </p>
                 {delta !== null && delta !== undefined && (
-                  <p className="text-[11px]"
+                  <p className="text-xs"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: delta > 0 ? '#28A86E' : delta < 0 ? '#E11D48' : '#8A8A96',
@@ -158,7 +158,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                 )}
               </div>
               <div>
-                <p className="text-[10px] tracking-widest uppercase"
+                <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                   KM
                 </p>
@@ -167,7 +167,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                 </p>
               </div>
               <div>
-                <p className="text-[10px] tracking-widest uppercase"
+                <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                   {countLabel}
                 </p>
@@ -181,7 +181,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
             <div className="flex flex-col gap-2 min-w-0">
               {zones && zoneTotal > 0 ? (
                 <div>
-                  <p className="text-[10px] tracking-widest uppercase mb-1"
+                  <p className="text-xs tracking-widest uppercase mb-1"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                     Soner
                   </p>
@@ -198,7 +198,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                 <div className="flex flex-wrap gap-1">
                   {topMovements.map(m => (
                     <span key={m.movement_name}
-                      className="text-[10px] px-1.5 py-0.5"
+                      className="text-xs px-1.5 py-0.5"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
                         backgroundColor: '#111113', border: '1px solid #1E1E22', color: '#F0F0F2',

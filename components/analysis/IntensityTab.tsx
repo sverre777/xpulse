@@ -188,14 +188,14 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
-              <th className="text-left px-3 py-2 text-[11px] tracking-widest uppercase">Bevegelse</th>
+              <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Bevegelse</th>
               {ZONE_KEYS.map(k => (
-                <th key={k} className="text-right px-3 py-2 text-[11px] tracking-widest uppercase"
+                <th key={k} className="text-right px-3 py-2 text-xs tracking-widest uppercase"
                   style={{ color: ZONE_COLORS_V2[k] }}>
                   {k}
                 </th>
               ))}
-              <th className="text-right px-3 py-2 text-[11px] tracking-widest uppercase">Sum</th>
+              <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Sum</th>
             </tr>
           </thead>
           <tbody>

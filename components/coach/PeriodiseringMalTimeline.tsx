@@ -47,7 +47,7 @@ export function PeriodiseringMalTimeline({
           <div className="flex" style={{ borderBottom: '1px solid #1E1E22' }}>
             {Array.from({ length: totalWeeks }, (_, i) => (
               <div key={i}
-                className="flex items-center justify-center text-[10px]"
+                className="flex items-center justify-center text-xs"
                 style={{
                   flex: '1 0 0',
                   minWidth: '12px',
@@ -64,7 +64,7 @@ export function PeriodiseringMalTimeline({
           {/* Period bars (stacked vertically — sortert etter start) */}
           <div className="flex flex-col gap-1 mt-2">
             {sortedPeriods.length === 0 ? (
-              <p className="text-[11px] py-3 text-center"
+              <p className="text-xs py-3 text-center"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 Ingen perioder ennå. Legg til perioder under for å bygge sesongstruktur.
               </p>
@@ -83,7 +83,7 @@ export function PeriodiseringMalTimeline({
           {/* Key dates row */}
           {keyDates.length > 0 && (
             <div className="mt-3 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
-              <p className="text-[10px] tracking-widest uppercase mb-1"
+              <p className="text-xs tracking-widest uppercase mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Nøkkel-datoer
               </p>
@@ -139,7 +139,7 @@ function PeriodBar({
         paddingLeft: '6px',
         overflow: 'hidden',
       }}>
-        <span className="truncate text-[11px]"
+        <span className="truncate text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: '#F0F0F2',
@@ -164,7 +164,7 @@ function KeyDateChip({
     : `Dag ${keyDate.day_offset + 1}`
   const isPeak = !!keyDate.is_peak_target
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-1 text-[11px]"
+    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#F0F0F2',
@@ -181,7 +181,7 @@ function KeyDateChip({
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-3 text-[11px]"
+    <div className="flex flex-wrap items-center gap-3 text-xs"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
       {(['rolig', 'medium', 'hard'] as const).map(k => (
         <span key={k} className="flex items-center gap-1">

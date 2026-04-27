@@ -12,7 +12,7 @@ function PermissionIcon({ label, granted }: { label: string; granted: boolean })
   return (
     <span
       title={granted ? `${label}: tilgang` : `${label}: ingen tilgang`}
-      className="text-[10px] tracking-widest uppercase px-2 py-0.5"
+      className="text-xs tracking-widest uppercase px-2 py-0.5"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: granted ? '#F0F0F2' : '#555560',
@@ -124,7 +124,7 @@ export function AthleteHeader({ context }: Props) {
         style={{ borderTop: '1px solid #1E1E22' }}
       >
         <span
-          className="text-[10px] tracking-widest uppercase mr-2"
+          className="text-xs tracking-widest uppercase mr-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
         >
           Tilganger:

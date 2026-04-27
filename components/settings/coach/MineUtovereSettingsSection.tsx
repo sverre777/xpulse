@@ -135,7 +135,7 @@ function RelationCard({
           )}
         </div>
         <span
-          className="text-[10px] tracking-widest uppercase px-2 py-0.5"
+          className="text-xs tracking-widest uppercase px-2 py-0.5"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: STATUS_COLOR[relation.status],
@@ -185,7 +185,7 @@ function RelationCard({
       <div className="flex flex-wrap gap-2">
         <Link
           href={`/app/trener/${relation.athleteId}/profil`}
-          className="px-3 py-1.5 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+          className="px-3 py-1.5 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
@@ -199,7 +199,7 @@ function RelationCard({
             type="button"
             onClick={handleEnd}
             disabled={isPending}
-            className="px-3 py-1.5 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(225,29,72,0.1)]"
+            className="px-3 py-1.5 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(225,29,72,0.1)]"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: '#E11D48', border: '1px solid #E11D48',
@@ -233,7 +233,7 @@ function PermToggle({
         onChange={onToggle}
         style={{ accentColor: COACH_BLUE }}
       />
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         {label}
       </span>

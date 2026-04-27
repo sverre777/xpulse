@@ -238,7 +238,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                           {r.fullName ?? 'Ukjent bruker'}
                         </div>
                         <div
-                          className="text-[10px] tracking-widest uppercase"
+                          className="text-xs tracking-widest uppercase"
                           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
                         >
                           {r.source === 'coach' && 'Din trener'}

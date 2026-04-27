@@ -302,7 +302,7 @@ function ZoneCard({
           disabled={!editable} inputMode="numeric"
           style={{ ...iSt, width: '72px', textAlign: 'center',
             opacity: editable ? 1 : 0.7 }} />
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '11px' }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
           bpm
         </span>
       </div>

@@ -97,14 +97,14 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   return (
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-[11px] tracking-widest uppercase"
+      <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </p>
       <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {sub}
       </p>
     </div>
@@ -230,14 +230,14 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
 function InlineStat({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
     <div>
-      <p className="text-[11px] tracking-widest uppercase mb-1"
+      <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </p>
       <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: color ?? '#F0F0F2', fontSize: '28px', lineHeight: 1 }}>
         {value}
       </p>
-      {sub && <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{sub}</p>}
+      {sub && <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{sub}</p>}
     </div>
   )
 }
@@ -335,11 +335,11 @@ function PerWorkoutType({ data }: { data: ShootingDepthAnalysis }) {
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
-              <th className="text-left px-3 py-2 text-[11px] tracking-widest uppercase">Økt-type</th>
-              <th className="text-right px-3 py-2 text-[11px] tracking-widest uppercase">Serier</th>
-              <th className="text-right px-3 py-2 text-[11px] tracking-widest uppercase">Skudd</th>
-              <th className="text-right px-3 py-2 text-[11px] tracking-widest uppercase">Treff</th>
-              <th className="text-right px-3 py-2 text-[11px] tracking-widest uppercase">Treff%</th>
+              <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Økt-type</th>
+              <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Serier</th>
+              <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Skudd</th>
+              <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Treff</th>
+              <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Treff%</th>
             </tr>
           </thead>
           <tbody>
@@ -409,7 +409,7 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
 function MethodNote() {
   return (
     <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
-      <p className="text-[11px] tracking-widest uppercase mb-2"
+      <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Slik beregnes tallene
       </p>

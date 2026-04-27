@@ -45,7 +45,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
     <div>
       <div className="grid grid-cols-7 gap-px mb-1" style={{ backgroundColor: '#1E1E22' }}>
         {dayNames.map(n => (
-          <div key={n} className="px-2 py-1 text-center text-[10px] tracking-widest uppercase"
+          <div key={n} className="px-2 py-1 text-center text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
               backgroundColor: '#0A0A0B',
@@ -63,7 +63,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
           : `Uke ${wi + 1}`
         return (
           <div key={wi} className="mb-2">
-            <div className="text-[10px] tracking-widest uppercase mb-1"
+            <div className="text-xs tracking-widest uppercase mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {weekRangeLabel}
             </div>
@@ -115,26 +115,26 @@ function DayCell({
         flexDirection: 'column',
       }}>
       <div className="flex items-center justify-between mb-1 gap-1">
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Dag {day + 1}
         </span>
         {dateLabel && (
-          <span className="text-[10px] tracking-widest uppercase truncate"
+          <span className="text-xs tracking-widest uppercase truncate"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {dateLabel}
           </span>
         )}
       </div>
       {isRest && (
-        <span className="text-[11px]"
+        <span className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           · Hviledag
         </span>
       )}
       {workouts.slice(0, 2).map((w, i) => (
         <span key={i}
-          className="text-[11px] truncate"
+          className="text-xs truncate"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: COACH_BLUE,
@@ -146,7 +146,7 @@ function DayCell({
         </span>
       ))}
       {workouts.length > 2 && (
-        <span className="text-[10px] mt-0.5"
+        <span className="text-xs mt-0.5"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           +{workouts.length - 2} flere
         </span>

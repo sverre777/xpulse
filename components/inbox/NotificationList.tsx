@@ -80,7 +80,7 @@ export function NotificationList({ notifications }: Props) {
             type="button"
             onClick={onMarkAll}
             disabled={isPending}
-            className="text-[10px] tracking-widest uppercase px-2 py-1"
+            className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'transparent',
@@ -115,7 +115,7 @@ export function NotificationList({ notifications }: Props) {
                 >
                   {n.title}
                 </span>
-                <span className="ml-auto text-[10px] tracking-wider uppercase"
+                <span className="ml-auto text-xs tracking-wider uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
                   {timeAgo(n.createdAt)}
                 </span>

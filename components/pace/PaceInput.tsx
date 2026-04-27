@@ -148,7 +148,7 @@ function UnitToggle({
 }) {
   const baseStyle: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif",
-    fontSize: '11px',
+    fontSize: '13px',
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
     border: '1px solid #262629',

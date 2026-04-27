@@ -97,7 +97,7 @@ function NoteList({
         const value = notes[key] ?? ''
         return (
           <div key={key}>
-            <label className="block mb-1 text-[10px] tracking-widest uppercase"
+            <label className="block mb-1 text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {labelFor(i)}
             </label>
@@ -172,7 +172,7 @@ function FocusPointsEditor({
   return (
     <div className="flex flex-col gap-3">
       {sorted.length === 0 ? (
-        <p className="text-[11px]"
+        <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen fokuspunkter ennå. Legg til ett under for å fremheve mål, fokusområder eller beskjeder for spesifikke dager, uker eller måneder.
         </p>
@@ -183,7 +183,7 @@ function FocusPointsEditor({
               style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <div>
-                  <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                  <label className="block mb-1 text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                     Type
                   </label>
@@ -201,7 +201,7 @@ function FocusPointsEditor({
                   </select>
                 </div>
                 <div>
-                  <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                  <label className="block mb-1 text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                     {labelFor(f.scope, f.period_offset)}
                   </label>
@@ -215,7 +215,7 @@ function FocusPointsEditor({
                 </div>
               </div>
               <div>
-                <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                <label className="block mb-1 text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
                   Fokus
                 </label>
@@ -229,7 +229,7 @@ function FocusPointsEditor({
               </div>
               <div className="flex justify-end">
                 <button type="button" onClick={() => removePoint(i)}
-                  className="px-3 py-1 text-[11px] tracking-widest uppercase"
+                  className="px-3 py-1 text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     color: '#FF4500',

@@ -67,7 +67,7 @@ export function MonthlyVolumeInput({
   const labelSt: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif",
     color: '#8A8A96',
-    fontSize: '10px',
+    fontSize: '13px',
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
     marginBottom: '2px',
@@ -119,14 +119,14 @@ export function MonthlyVolumeInput({
       <div className="col-span-4 md:col-span-1 flex items-end h-full">
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: '11px',
+          fontSize: '13px',
           color: err ? '#E11D48' : saved ? '#28A86E' : '#555560',
         }}>
           {err ? 'Feil' : saved ? 'Lagret' : isPending ? '…' : ''}
         </span>
       </div>
       {err && (
-        <div className="col-span-12 text-[11px]"
+        <div className="col-span-12 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
           {err}
         </div>

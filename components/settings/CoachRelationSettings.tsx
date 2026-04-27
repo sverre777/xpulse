@@ -99,7 +99,7 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
           <button
             type="button"
             onClick={onRevoke}
-            className="px-3 py-1.5 text-[10px] tracking-widest uppercase"
+            className="px-3 py-1.5 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'transparent', color: '#E11D48',
@@ -114,7 +114,7 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
             <button
               type="button"
               onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 text-[10px] tracking-widest uppercase"
+              className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent', color: '#8A8A96',
@@ -128,7 +128,7 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
               type="button"
               onClick={onRevoke}
               disabled={isPending}
-              className="px-3 py-1.5 text-[10px] tracking-widest uppercase"
+              className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: '#E11D48', color: '#F0F0F2',
@@ -199,7 +199,7 @@ function PermissionToggle({
         onChange={onToggle}
         style={{ accentColor: COACH_BLUE }}
       />
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         {label}
       </span>

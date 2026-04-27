@@ -43,7 +43,7 @@ export function CoachGroupsSection({ groups }: Props) {
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
-            className="text-[10px] tracking-widest uppercase"
+            className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
           >
             Grupper ({groups.length})
@@ -53,7 +53,7 @@ export function CoachGroupsSection({ groups }: Props) {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+            className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,

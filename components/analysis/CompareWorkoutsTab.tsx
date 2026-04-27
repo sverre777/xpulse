@@ -210,7 +210,7 @@ export function CompareWorkoutsTab({
         </div>
       ) : (
         <>
-          <p className="text-[11px] tracking-widest uppercase"
+          <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             {selectableWorkouts.length} valgbare · {filtered.length - selectableWorkouts.length} planlagte · {filteredDayStates.length} dag-tilstander
           </p>
@@ -276,7 +276,7 @@ function FilterSelect({
 }) {
   return (
     <div>
-      <p className="text-[11px] tracking-widest uppercase mb-1"
+      <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>
@@ -333,12 +333,12 @@ function WorkoutRow({
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.03em' }}>
             {workout.title || '(uten tittel)'}
           </span>
-          <span className="text-[11px] tracking-widest uppercase"
+          <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
           </span>
           {isPlannedOnly && (
-            <span className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+            <span className="text-xs tracking-widest uppercase px-1.5 py-0.5"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#D4A017', border: '1px solid #D4A017',
@@ -347,7 +347,7 @@ function WorkoutRow({
             </span>
           )}
           {workout.is_completed && workout.is_planned && (
-            <span className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+            <span className="text-xs tracking-widest uppercase px-1.5 py-0.5"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#28A86E', border: '1px solid #28A86E',
@@ -405,7 +405,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
           }}>
           {workout.title || '(uten tittel)'}
         </Link>
-        <p className="text-[11px] tracking-widest uppercase mt-1"
+        <p className="text-xs tracking-widest uppercase mt-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
         </p>
@@ -421,7 +421,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
 
       {/* Zone bar */}
       <div>
-        <p className="text-[11px] tracking-widest uppercase mb-1"
+        <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Sonefordeling
         </p>
@@ -431,7 +431,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {/* Movements */}
       {workout.movement_breakdown.length > 0 && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase mb-1"
+          <p className="text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Bevegelsesform
           </p>
@@ -452,7 +452,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {/* Lactate */}
       {workout.lactate_values.length > 0 && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase mb-1"
+          <p className="text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Laktat
           </p>
@@ -471,7 +471,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {/* Shooting */}
       {workout.shooting && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase mb-1"
+          <p className="text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Skyting
           </p>
@@ -487,7 +487,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {/* Notes */}
       {workout.notes && (
         <div>
-          <p className="text-[11px] tracking-widest uppercase mb-1"
+          <p className="text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Notat
           </p>
@@ -504,12 +504,12 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
 function MiniStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
   return (
     <div>
-      <p className="text-[10px] tracking-widest uppercase"
+      <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>
       <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', lineHeight: 1 }}>
-        {value}{suffix && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#8A8A96' }}> {suffix}</span>}
+        {value}{suffix && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: '#8A8A96' }}> {suffix}</span>}
       </p>
     </div>
   )
@@ -575,10 +575,10 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ color: '#555560', borderBottom: '1px solid #1E1E22' }}>
-            <th className="text-left py-1 text-[11px] tracking-widest uppercase">Metrikk</th>
-            <th className="text-right py-1 text-[11px] tracking-widest uppercase">Første</th>
-            <th className="text-right py-1 text-[11px] tracking-widest uppercase">Siste</th>
-            <th className="text-right py-1 text-[11px] tracking-widest uppercase">Δ</th>
+            <th className="text-left py-1 text-xs tracking-widest uppercase">Metrikk</th>
+            <th className="text-right py-1 text-xs tracking-widest uppercase">Første</th>
+            <th className="text-right py-1 text-xs tracking-widest uppercase">Siste</th>
+            <th className="text-right py-1 text-xs tracking-widest uppercase">Δ</th>
           </tr>
         </thead>
         <tbody>

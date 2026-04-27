@@ -249,7 +249,7 @@ export function SkiTesterTab({ data }: Props) {
                   {s.avg_rating != null
                     ? <>snitt {s.avg_rating.toFixed(1)}/10</>
                     : <span style={{ color: '#555560' }}>ingen score</span>}
-                  <div style={{ color: '#8A8A96', fontSize: '11px', marginTop: 2 }}>
+                  <div style={{ color: '#8A8A96', fontSize: '13px', marginTop: 2 }}>
                     {s.test_count} test{s.test_count === 1 ? '' : 'er'}
                     {s.best_rank_avg != null && ` · #${s.best_rank_avg.toFixed(1)} snitt`}
                   </div>
@@ -280,7 +280,7 @@ export function SkiTesterTab({ data }: Props) {
             {byCondition.map(c => (
               <div key={c.snow_type} className="p-3"
                 style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
-                <p className="text-[11px] tracking-widest uppercase mb-2"
+                <p className="text-xs tracking-widest uppercase mb-2"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
                   {c.snow_type}
                 </p>

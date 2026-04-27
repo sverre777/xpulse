@@ -28,7 +28,7 @@ function Card({
     <>
       <div className="flex items-center gap-2 mb-2">
         <span style={{ width: '14px', height: '2px', backgroundColor: accent, display: 'inline-block' }} />
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {kicker}
         </span>
@@ -109,7 +109,7 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
       </CardMeta>
       {progress !== null && (
         <div className="mt-3">
-          <div className="flex justify-between text-[10px] tracking-widest uppercase mb-1"
+          <div className="flex justify-between text-xs tracking-widest uppercase mb-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             <span>Volum hittil</span>
             <span style={{ color: '#F0F0F2' }}>{progress}%</span>
@@ -121,7 +121,7 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
               backgroundColor: progress >= 80 ? '#28A86E' : progress >= 50 ? '#D4A017' : '#FF4500',
             }} />
           </div>
-          <p className="mt-1 text-[10px] tracking-wider"
+          <p className="mt-1 text-xs tracking-wider"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
             {goal.actual_hours_to_date!.toFixed(0)}t av {goal.planned_hours_total!.toFixed(0)}t
           </p>
@@ -152,7 +152,7 @@ function PhaseCard({ phase }: { phase: OversiktPhase | null }) {
       <CardMeta>
         Uke {phase.week_in_phase}/{phase.phase_weeks_total} · {fmtDate(phase.start_date)}–{fmtDate(phase.end_date)}
       </CardMeta>
-      <div className="mt-3 inline-block px-2 py-0.5 text-[10px] tracking-widest uppercase"
+      <div className="mt-3 inline-block px-2 py-0.5 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: intensityColor[phase.intensity],
@@ -184,7 +184,7 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         {pairs.map(p => (
           <div key={p.label} className="flex flex-col">
-            <span className="text-[10px] tracking-widest uppercase"
+            <span className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               {p.label}
             </span>

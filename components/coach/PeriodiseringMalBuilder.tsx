@@ -308,7 +308,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   value={durationDays}
                   onChange={e => setDurationDays(parseInt(e.target.value) || 1)}
                   style={iSt} />
-                <p className="text-[10px] mt-1 tracking-widest uppercase"
+                <p className="text-xs mt-1 tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                   ≈ {totalWeeks} uker
                 </p>
@@ -318,7 +318,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   value={startDate}
                   onChange={e => setStartDate(e.target.value)}
                   style={iSt} />
-                <p className="text-[10px] mt-1 tracking-widest uppercase"
+                <p className="text-xs mt-1 tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                   {startDate
                     ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
@@ -599,11 +599,11 @@ function KeyDateRow({
           onChange={e => onChange({ is_peak_target: e.target.checked })}
           style={{ marginTop: '3px', accentColor: GOLD }} />
         <span>
-          <span className="block text-[10px] tracking-widest uppercase"
+          <span className="block text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
             Form-topp-mål
           </span>
-          <span className="block text-[11px]"
+          <span className="block text-xs"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Markér som peiling for toppform. Gir gull-glød i utøverens kalender.
           </span>
@@ -628,7 +628,7 @@ function SectionTitle({ children, compact }: { children: React.ReactNode; compac
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block mb-1 text-[10px] tracking-widest uppercase"
+      <label className="block mb-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </label>
@@ -668,7 +668,7 @@ function DateOrDayField({
           }}
           style={iSt}
         />
-        <p className="text-[10px] mt-1"
+        <p className="text-xs mt-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {formatNorskKortDato(value)}
         </p>
@@ -685,7 +685,7 @@ function DateOrDayField({
         onChange={e => onChange(parseInt(e.target.value) || 0)}
         style={iSt}
       />
-      <p className="text-[10px] mt-1"
+      <p className="text-xs mt-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {offsetToWeekDayLabel(offset)}
       </p>
@@ -708,7 +708,7 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
 function BtnSm({ onClick, children, danger }: { onClick: () => void; children: React.ReactNode; danger?: boolean }) {
   return (
     <button type="button" onClick={onClick}
-      className="px-3 py-1 text-[11px] tracking-widest uppercase"
+      className="px-3 py-1 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: danger ? '#FF4500' : '#8A8A96',

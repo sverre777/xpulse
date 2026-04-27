@@ -335,7 +335,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
         textAlign: 'left',
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#F0F0F2',
-        fontSize: '11px',
+        fontSize: '13px',
         lineHeight: 1.2,
       }}
       title={`${w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}${coachTitle}`}
@@ -354,10 +354,10 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
         </span>
       </div>
       {height >= 28 && durLabel && (
-        <div style={{ color: '#FF4500', fontSize: '10px' }}>{durLabel}</div>
+        <div style={{ color: '#FF4500', fontSize: '13px' }}>{durLabel}</div>
       )}
       {height >= 44 && w.position_overall != null && mode !== 'plan' && (
-        <div style={{ color, fontWeight: 600, fontSize: '10px' }}>#{w.position_overall}</div>
+        <div style={{ color, fontWeight: 600, fontSize: '13px' }}>#{w.position_overall}</div>
       )}
     </button>
   )
@@ -399,7 +399,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         padding: '2px 4px',
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#C0C0CC',
-        fontSize: '11px',
+        fontSize: '13px',
         textAlign: 'left',
         cursor: 'pointer',
       }}>
@@ -594,7 +594,7 @@ export function WeekCalendarView({
                       textAlign: 'right',
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: '#555560',
-                      fontSize: '11px',
+                      fontSize: '13px',
                     }}>
                     {String(h).padStart(2, '0')}:00
                   </div>

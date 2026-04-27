@@ -57,7 +57,7 @@ export function CoachAthleteList({ athletes }: Props) {
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
-            className="text-[10px] tracking-widest uppercase"
+            className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
           >
             Utøvere ({athletes.length})
@@ -132,7 +132,7 @@ export function CoachAthleteList({ athletes }: Props) {
                     </Link>
                     {a.unreadCount > 0 && (
                       <span
-                        className="text-[10px] px-1.5"
+                        className="text-xs px-1.5"
                         style={{
                           backgroundColor: COACH_BLUE,
                           color: '#F0F0F2',
@@ -152,7 +152,7 @@ export function CoachAthleteList({ athletes }: Props) {
                     {a.mainGoal && ` · ${a.mainGoal}`}
                   </p>
                   <p
-                    className="text-[11px] mt-0.5"
+                    className="text-xs mt-0.5"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
                   >
                     {formatLastWorkout(a.lastWorkoutDate, a.lastWorkoutTitle)}
@@ -163,7 +163,7 @@ export function CoachAthleteList({ athletes }: Props) {
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href={`/app/innboks?to=${a.id}`}
-                    className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+                    className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
@@ -174,7 +174,7 @@ export function CoachAthleteList({ athletes }: Props) {
                   </Link>
                   <Link
                     href={`/app/trener/${a.id}?push=1`}
-                    className="px-2 py-1 text-[10px] tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+                    className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
@@ -185,7 +185,7 @@ export function CoachAthleteList({ athletes }: Props) {
                   </Link>
                   <Link
                     href={`/app/trener/${a.id}`}
-                    className="px-2 py-1 text-[10px] tracking-widest uppercase transition-opacity hover:opacity-80"
+                    className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       backgroundColor: COACH_BLUE, color: '#F0F0F2',

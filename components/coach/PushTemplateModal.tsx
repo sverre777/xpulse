@@ -76,7 +76,7 @@ export function PushTemplateModal({
           style={{ borderBottom: '1px solid #1E1E22' }}
         >
           <div>
-            <div className="text-[10px] tracking-widest uppercase"
+            <div className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
               Push til utøver
             </div>
@@ -204,7 +204,7 @@ function labelStyle(): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
     color: '#8A8A96',
-    fontSize: '10px',
+    fontSize: '13px',
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
     display: 'block',
@@ -470,7 +470,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
               type="button"
               onClick={() => setStartDate(preview.startDate ?? startDate)}
               disabled={usingOriginalStart}
-              className="text-[10px] tracking-widest uppercase px-2 py-1"
+              className="text-xs tracking-widest uppercase px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
@@ -497,7 +497,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
           <button
             type="button"
             onClick={() => setShowDateTable(s => !s)}
-            className="text-[10px] tracking-widest uppercase px-2 py-1"
+            className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: '#8A8A96', background: 'transparent', border: '1px solid #1E1E22',
@@ -532,7 +532,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                           <span className="block truncate" style={{ maxWidth: '160px' }}>
                             {w.title}
                           </span>
-                          <span className="text-[10px]" style={{ color: '#555560' }}>
+                          <span className="text-xs" style={{ color: '#555560' }}>
                             {w.sport} · {w.workoutType}
                           </span>
                         </Td>
@@ -572,7 +572,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
         </div>
       )}
 
-      <p className="text-[10px]"
+      <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Eksisterende hviledager, perioden-notater og fokuspunkter på utøveren beholdes — bare nye legges til.
       </p>
@@ -586,7 +586,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="text-left px-2 py-1.5 text-[10px] tracking-widest uppercase"
+    <th className="text-left px-2 py-1.5 text-xs tracking-widest uppercase"
       style={{ color: '#8A8A96', fontWeight: 'normal' }}>
       {children}
     </th>
@@ -669,7 +669,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
               type="button"
               onClick={() => setStartDate(selected.startDate ?? startDate)}
               disabled={usingOriginalStart}
-              className="text-[10px] tracking-widest uppercase px-2 py-1"
+              className="text-xs tracking-widest uppercase px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
@@ -704,7 +704,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
         </div>
       )}
 
-      <p className="text-[10px]"
+      <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Eksisterende sesonger og perioder beholdes — den nye legges ved siden av.
       </p>

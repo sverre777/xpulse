@@ -93,7 +93,7 @@ function ZoneBar({ zones }: { zones: OversiktZoneSeconds }) {
 function StatCell({ label, value, delta }: { label: string; value: string; delta?: number | null }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </span>
@@ -120,14 +120,14 @@ export function UkensTotaler({
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <span className="text-[10px] tracking-widest uppercase"
+          <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Ukens totaler · Uke {weekNumber}
           </span>
         </div>
 
         {reflection.filled ? (
-          <span className="text-[10px] tracking-widest uppercase px-2 py-0.5"
+          <span className="text-xs tracking-widest uppercase px-2 py-0.5"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: '#28A86E', border: '1px solid #28A86E',
@@ -136,7 +136,7 @@ export function UkensTotaler({
           </span>
         ) : (
           <Link href="/app/dagbok"
-            className="text-[10px] tracking-widest uppercase px-2 py-0.5 hover:opacity-80"
+            className="text-xs tracking-widest uppercase px-2 py-0.5 hover:opacity-80"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: '#D4A017', border: '1px solid #D4A017',

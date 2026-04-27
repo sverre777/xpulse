@@ -269,7 +269,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
           </div>
           <p className="mt-1" style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#555560', fontSize: '11px',
+            color: '#555560', fontSize: '13px',
           }}>
             OLT I-skala — basert på % av maksimal puls
           </p>
@@ -354,7 +354,7 @@ function Metric({ label, value, sub }: { label: string; value: string; sub?: str
         {value}
       </p>
       {sub && (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
           {sub}
         </p>
       )}

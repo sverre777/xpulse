@@ -76,7 +76,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
                   <tr key={key} style={{ borderBottom: '1px solid #1E1E22' }}>
                     <Td>
                       <span style={{ color: '#F0F0F2' }}>{meta.record_type}</span>{' '}
-                      <span style={{ color: '#555560', fontSize: '11px' }}>{meta.sport}</span>
+                      <span style={{ color: '#555560', fontSize: '13px' }}>{meta.sport}</span>
                     </Td>
                     {valid.map(r => {
                       const pr = bestPR(r.tests!.personalRecords, meta)

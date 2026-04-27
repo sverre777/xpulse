@@ -195,7 +195,7 @@ function bestEntry(test: SkiTestWithEntries) {
 function Detail({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
-      <p className="text-[10px] tracking-widest uppercase"
+      <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>

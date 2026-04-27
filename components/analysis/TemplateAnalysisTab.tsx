@@ -107,7 +107,7 @@ function TemplateRow({
         </div>
         <div className="flex gap-6 items-baseline">
           <div>
-            <p className="text-[11px] tracking-widest uppercase"
+            <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Antall
             </p>
@@ -116,7 +116,7 @@ function TemplateRow({
             </p>
           </div>
           <div>
-            <p className="text-[11px] tracking-widest uppercase"
+            <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Sist brukt
             </p>
@@ -125,7 +125,7 @@ function TemplateRow({
             </p>
           </div>
           <div>
-            <p className="text-[11px] tracking-widest uppercase"
+            <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Snitt-tid
             </p>
@@ -186,7 +186,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           Snitt-sonefordeling (per gjennomføring)
         </p>
         <ZoneBar zones={template.avg_zones} height={18} />
-        <div className="flex flex-wrap gap-3 mt-2 text-[11px]"
+        <div className="flex flex-wrap gap-3 mt-2 text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {(['I1','I2','I3','I4','I5','Hurtighet'] as const).map(k => (
             <div key={k} className="flex items-center gap-1">
@@ -345,7 +345,7 @@ function Th({
 }) {
   const active = sortKey === k
   return (
-    <th className="px-3 py-2 text-left tracking-widest uppercase text-[11px]">
+    <th className="px-3 py-2 text-left tracking-widest uppercase text-xs">
       <button type="button" onClick={() => onClick(k)}
         style={{ color: active ? '#F0F0F2' : '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
         {label}{active && (sortDir === 'asc' ? ' ↑' : ' ↓')}

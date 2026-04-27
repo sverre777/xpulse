@@ -94,7 +94,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
             if (!list || list.length === 0) return null
             return (
               <div key={cat}>
-                <h3 className="text-[10px] tracking-widest uppercase mb-2"
+                <h3 className="text-xs tracking-widest uppercase mb-2"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     color: COACH_BLUE, letterSpacing: '0.2em',

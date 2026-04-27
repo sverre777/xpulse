@@ -88,7 +88,7 @@ function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
           const pct = total > 0 ? (zones[k] / total) * 100 : 0
           if (pct <= 0) return null
           return (
-            <span key={k} className="text-[11px] tracking-wider"
+            <span key={k} className="text-xs tracking-wider"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               <span style={{ display: 'inline-block', width: 8, height: 8, backgroundColor: ZONE_COLORS_V2[k], marginRight: 4 }} />
               {k} {Math.round(pct)}%
@@ -107,7 +107,7 @@ function MovementChips({ rows }: { rows: MovementBreakdownRow[] }) {
     <div className="flex flex-wrap gap-1.5">
       {top.map((r, i) => (
         <span key={r.movement_name}
-          className="text-[11px] px-2 py-0.5"
+          className="text-xs px-2 py-0.5"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: '#0A0A0B',

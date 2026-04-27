@@ -265,7 +265,7 @@ function GroupingSelector({
   ]
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Gruppering
       </span>
@@ -298,7 +298,7 @@ function RangeSelector({
 }: { value: PresetKey | 'inherit'; onChange: (v: PresetKey | 'inherit') => void }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Periode
       </span>
@@ -336,7 +336,7 @@ function MovementMultiSelect({
 
   return (
     <div className="relative flex-1 min-w-0">
-      <span className="text-[10px] tracking-widest uppercase block mb-1.5"
+      <span className="text-xs tracking-widest uppercase block mb-1.5"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Bevegelsesformer ({selectedCount}/{totalCount})
       </span>
@@ -384,7 +384,7 @@ function MovementGroup({
   if (options.length === 0) return null
   return (
     <div className="py-1">
-      <div className="px-3 py-1 text-[10px] tracking-widest uppercase"
+      <div className="px-3 py-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', backgroundColor: '#111113' }}>
         {title}
       </div>

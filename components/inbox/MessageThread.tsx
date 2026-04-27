@@ -88,7 +88,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
             {header.title}
           </div>
           {header.subtitle && (
-            <div className="text-[10px] tracking-widest uppercase"
+            <div className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {header.subtitle}
             </div>
@@ -137,7 +137,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
               >
                 {header.kind === 'group' && !mine && (
                   <span
-                    className="text-[10px] tracking-widest uppercase mb-0.5"
+                    className="text-xs tracking-widest uppercase mb-0.5"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: m.senderIsCoach ? COACH_BLUE : ATHLETE_ORANGE,

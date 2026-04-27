@@ -29,13 +29,13 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <span className="text-[10px] tracking-widest uppercase"
+          <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Siste aktiviteter
           </span>
         </div>
         <Link href="/app/historikk"
-          className="text-[10px] tracking-widest uppercase hover:opacity-80"
+          className="text-xs tracking-widest uppercase hover:opacity-80"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textDecoration: 'none' }}>
           Alle →
         </Link>

@@ -45,12 +45,12 @@ function AutoPace({ movement, minutes, km }: { movement: string; minutes: string
   if (isRunning) {
     const pace = formatPace(minutes, km)
     if (!pace) return null
-    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px' }}>{pace}</span>
+    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>{pace}</span>
   }
   if (isCycling) {
     const spd = formatSpeed(minutes, km)
     if (!spd) return null
-    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px' }}>{spd}</span>
+    return <span style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>{spd}</span>
   }
   return null
 }
@@ -97,7 +97,7 @@ function ZoneExpandSection({ zones, onChange }: { zones: ZoneRow[]; onChange: (z
                   style={iSt}
                 />
               </div>
-              <span style={{ color: '#333340', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>min</span>
+              <span style={{ color: '#333340', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>min</span>
             </div>
           )
         })}
@@ -273,7 +273,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                           style={{
                             color: isExp ? '#FF4500' : '#333340',
                             background: 'none', border: 'none', cursor: 'pointer',
-                            fontSize: '10px', padding: 0, lineHeight: 1, flexShrink: 0,
+                            fontSize: '13px', padding: 0, lineHeight: 1, flexShrink: 0,
                           }}
                           title={isExp ? 'Skjul detaljer' : 'Vis detaljer'}
                         >
@@ -341,7 +341,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
                     <div className="flex items-center gap-0.5">
                       <input type="number" value={row.avg_heart_rate} onChange={e => update(i, 'avg_heart_rate', e.target.value)}
                         placeholder="—" min="0" max="250" style={iSt} />
-                      {row.avg_heart_rate && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif", flexShrink: 0 }}>bpm</span>}
+                      {row.avg_heart_rate && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif", flexShrink: 0 }}>bpm</span>}
                     </div>
                   </td>
                   <td className="px-2 py-1.5 w-8">

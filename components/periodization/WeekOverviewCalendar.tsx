@@ -125,7 +125,7 @@ export function WeekOverviewCalendar({
                 cursor: within ? 'pointer' : 'default',
               }}>
               <div className="flex items-baseline justify-between mb-2">
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {DAYS_NO_LONG[i]}
                 </span>
                 <span style={{
@@ -150,7 +150,7 @@ export function WeekOverviewCalendar({
               ))}
 
               {workouts.map(w => (
-                <div key={w.id} className="text-[11px] truncate"
+                <div key={w.id} className="text-xs truncate"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
                   title={w.title}>
                   • {w.title || 'Planlagt økt'}
@@ -158,7 +158,7 @@ export function WeekOverviewCalendar({
               ))}
 
               {events.length === 0 && workouts.length === 0 && within && (
-                <span className="text-[10px]"
+                <span className="text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
                   —
                 </span>

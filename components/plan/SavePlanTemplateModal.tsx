@@ -159,7 +159,7 @@ const label: React.CSSProperties = {
   display: 'block',
   fontFamily: "'Barlow Condensed', sans-serif",
   color: '#8A8A96',
-  fontSize: '11px',
+  fontSize: '13px',
   letterSpacing: '0.15em',
   textTransform: 'uppercase',
   marginBottom: '6px',

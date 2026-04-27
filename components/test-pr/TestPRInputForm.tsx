@@ -172,7 +172,7 @@ export function deriveTestType(v: TestPRFormValue): string {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block mb-1 text-[10px] tracking-widest uppercase"
+      <label className="block mb-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </label>

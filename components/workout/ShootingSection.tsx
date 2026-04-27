@@ -104,7 +104,7 @@ export function ShootingSection({ blocks, onChange }: ShootingSectionProps) {
                 <div className="flex items-center gap-2">
                   <input type="number" value={b.prone_shots} onChange={e => upd(b.id, 'prone_shots', e.target.value)}
                     placeholder="skudd" min="0" max="100" style={numSt} />
-                  <span style={{ color: '#333340', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>treff</span>
+                  <span style={{ color: '#333340', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>treff</span>
                   <input type="number" value={b.prone_hits} onChange={e => upd(b.id, 'prone_hits', e.target.value)}
                     placeholder="treff" min="0" max="100" style={numSt} />
                   <PctBadge value={pronePct} />
@@ -117,7 +117,7 @@ export function ShootingSection({ blocks, onChange }: ShootingSectionProps) {
                 <div className="flex items-center gap-2">
                   <input type="number" value={b.standing_shots} onChange={e => upd(b.id, 'standing_shots', e.target.value)}
                     placeholder="skudd" min="0" max="100" style={numSt} />
-                  <span style={{ color: '#333340', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>treff</span>
+                  <span style={{ color: '#333340', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>treff</span>
                   <input type="number" value={b.standing_hits} onChange={e => upd(b.id, 'standing_hits', e.target.value)}
                     placeholder="treff" min="0" max="100" style={numSt} />
                   <PctBadge value={standingPct} />

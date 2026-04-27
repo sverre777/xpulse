@@ -100,13 +100,13 @@ export function ConversationList({ conversations }: Props) {
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <span className="text-[10px] tracking-wider uppercase"
+                <span className="text-xs tracking-wider uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                   {timeAgo(c.lastAt)}
                 </span>
                 {c.unreadCount > 0 && (
                   <span
-                    className="text-[10px] px-1.5 py-0.5"
+                    className="text-xs px-1.5 py-0.5"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       backgroundColor: accent, color: '#0A0A0B',

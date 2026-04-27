@@ -232,7 +232,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
           style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
           <div>
-            <div className="text-[10px] tracking-widest uppercase"
+            <div className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
               Send {kindLabel(kind)}
             </div>
@@ -288,7 +288,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     {defaultPlanEnd && (
                       <button type="button"
                         onClick={() => setPlanEndDate(defaultPlanEnd)}
-                        className="px-3 py-2 text-[11px] tracking-widest uppercase whitespace-nowrap"
+                        className="px-3 py-2 text-xs tracking-widest uppercase whitespace-nowrap"
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
                           color: '#8A8A96', background: 'none',
@@ -298,7 +298,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       </button>
                     )}
                   </div>
-                  <p className="text-[10px] mt-1"
+                  <p className="text-xs mt-1"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                     {durationDays
                       ? `Malens varighet: ${durationDays} dager. La stå tom for 1:1-dato.`
@@ -307,7 +307,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 </div>
               )}
               {kind === 'periodization' && (
-                <p className="text-[10px]"
+                <p className="text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                   Varigheten er låst fra malen. Eksisterende sesonger overskrives ikke.
                 </p>
@@ -321,7 +321,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       const active = selectedGroupIds.has(g.id)
                       return (
                         <button key={g.id} type="button" onClick={() => toggleGroup(g)}
-                          className="px-3 py-1.5 text-[11px] tracking-widest uppercase"
+                          className="px-3 py-1.5 text-xs tracking-widest uppercase"
                           style={{
                             fontFamily: "'Barlow Condensed', sans-serif",
                             color: active ? '#F0F0F2' : '#8A8A96',
@@ -358,7 +358,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                           {a.name}
                         </span>
                         {a.primarySport && (
-                          <span className="text-[10px] tracking-widest uppercase"
+                          <span className="text-xs tracking-widest uppercase"
                             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                             {a.primarySport}
                           </span>
@@ -408,7 +408,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 {[...pendingOverlap].map(([aid, infos]) => {
                   const a = athletes.find(x => x.id === aid)
                   return (
-                    <div key={aid} className="text-[11px] px-2 py-1"
+                    <div key={aid} className="text-xs px-2 py-1"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
                         backgroundColor: '#111113', color: '#C0C0CC',
@@ -469,7 +469,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block mb-1 text-[10px] tracking-widest uppercase"
+    <label className="block mb-1 text-xs tracking-widest uppercase"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
       {children}
     </label>

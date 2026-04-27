@@ -340,7 +340,7 @@ const inputStyle: React.CSSProperties = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[10px] tracking-widest uppercase mb-1"
+      <label className="block text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </label>

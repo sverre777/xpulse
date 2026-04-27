@@ -80,7 +80,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
               X-PULSE
             </span>
             <span
-              className="text-[10px] tracking-widest uppercase"
+              className="text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: COACH_BLUE,
@@ -137,7 +137,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
                   X-PULSE
                 </span>
                 <span
-                  className="text-[10px] tracking-widest uppercase"
+                  className="text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     color: COACH_BLUE,
@@ -245,7 +245,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             X-PULSE
           </span>
           <span
-            className="text-[10px] tracking-widest uppercase ml-1"
+            className="text-xs tracking-widest uppercase ml-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: COACH_BLUE,
@@ -256,7 +256,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
             Beta
           </span>
           <span
-            className="text-[10px] tracking-widest uppercase"
+            className="text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: COACH_BLUE,
@@ -378,7 +378,7 @@ function InboxIconLink({ unreadCount, isActive }: {
             backgroundColor: COACH_BLUE,
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '10px',
+            fontSize: '13px',
             padding: '0 4px',
             minWidth: '16px',
             textAlign: 'center',
@@ -414,7 +414,7 @@ function MailIcon() {
 function UnreadBadge({ count }: { count: number }) {
   return (
     <span
-      className="text-[10px] tracking-widest"
+      className="text-xs tracking-widest"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         backgroundColor: COACH_BLUE,

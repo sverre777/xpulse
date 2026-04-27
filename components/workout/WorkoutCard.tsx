@@ -35,13 +35,13 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
         {/* Type badge + time */}
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs px-1.5 py-0.5 tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: typeColor, color: '#F0F0F2', fontSize: '11px' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: typeColor, color: '#F0F0F2', fontSize: '13px' }}>
             {typeLabel}
           </span>
           <div className="flex items-center gap-2">
             {workout.is_important && <span style={{ color: '#FF4500', fontSize: '12px' }}>★</span>}
             {workout.is_planned && !workout.is_completed && (
-              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '10px' }}>
+              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
                 Planlagt
               </span>
             )}
@@ -86,7 +86,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: '#111115', color: '#8A8A96',
-                  border: '1px solid #1E1E22', fontSize: '11px',
+                  border: '1px solid #1E1E22', fontSize: '13px',
                 }}>
                 {m.movement_name}{m.minutes ? ` ${m.minutes}min` : ''}
               </span>
@@ -97,8 +97,8 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
         {/* Coach comment indicator */}
         {workout.coach_comment && (
           <div className="mt-2 flex items-center gap-1">
-            <span style={{ color: '#1A6FD4', fontSize: '10px' }}>▌</span>
-            <span className="text-xs" style={{ color: '#1A6FD4', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px' }}>
+            <span style={{ color: '#1A6FD4', fontSize: '13px' }}>▌</span>
+            <span className="text-xs" style={{ color: '#1A6FD4', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
               Trenerkommentar
             </span>
           </div>

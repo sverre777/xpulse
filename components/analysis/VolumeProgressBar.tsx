@@ -20,7 +20,7 @@ export function VolumeProgressBar({
     <div className="p-4 mb-5"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
       <div className="flex items-baseline justify-between mb-2">
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {label ?? 'Planlagt volum — gjeldende periode'}
         </span>
@@ -47,7 +47,7 @@ export function VolumeProgressBar({
         }} />
       </div>
       <div className="mt-1 flex items-center justify-between">
-        <span className="text-[11px]"
+        <span className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {pct.toFixed(0)}% av plan
         </span>

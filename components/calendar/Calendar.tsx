@@ -382,7 +382,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
         border,
         padding: '1px 4px',
       }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '10px', lineHeight: '14px' }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
           {showCoachStyle && (
             <span aria-hidden="true"
@@ -500,7 +500,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           <DayStateIndicator states={states} size={11} />
           {keyDatesOnDay.slice(0, 2).map(k => (
             <span key={k.id} aria-hidden
-              style={{ fontSize: '11px', lineHeight: 1 }}>
+              style={{ fontSize: '13px', lineHeight: 1 }}>
               {KEY_EVENT_VISUALS[k.event_type].icon}
             </span>
           ))}
@@ -529,7 +529,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             <div className="flex items-baseline justify-between mt-0.5"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#555560', fontSize: '10px', letterSpacing: '0.04em',
+                color: '#555560', fontSize: '13px', letterSpacing: '0.04em',
               }}>
               <span>{kmLabel ?? ''}</span>
               <span>{timeLabel ?? ''}</span>
@@ -647,11 +647,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       {fmtDuration(weekMins)}
                     </span>
                     {weekKm && (
-                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px' }}>
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
                         {weekKm}
                       </span>
                     )}
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '11px' }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '13px' }}>
                       {weekAgg.sessions} økt{weekAgg.sessions !== 1 ? 'er' : ''}
                     </span>
                     <div style={{ width: '56px', marginTop: '2px' }}>
@@ -760,8 +760,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     {showCoachStyle && w.updated_at && (
                                       <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
                                     )}
-                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '11px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
-                                    {isPlanned && <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
+                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
+                                    {isPlanned && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))
                                       return lbl ? <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
@@ -875,7 +875,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 )}
                               </span>
                               {!readOnly && (
-                                <span style={{ color: '#555560', fontSize: '10px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
+                                <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
                               )}
                             </>
                           )

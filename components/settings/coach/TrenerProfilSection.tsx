@@ -55,7 +55,7 @@ export function TrenerProfilSection({ initial }: Props) {
       style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}
     >
       <div className="flex flex-col gap-1">
-        <label htmlFor="bio" className="text-[10px] tracking-widest uppercase" style={labelStyle}>
+        <label htmlFor="bio" className="text-xs tracking-widest uppercase" style={labelStyle}>
           Bio
         </label>
         <textarea
@@ -71,7 +71,7 @@ export function TrenerProfilSection({ initial }: Props) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="certifications" className="text-[10px] tracking-widest uppercase" style={labelStyle}>
+        <label htmlFor="certifications" className="text-xs tracking-widest uppercase" style={labelStyle}>
           Sertifiseringer
         </label>
         <textarea
@@ -87,7 +87,7 @@ export function TrenerProfilSection({ initial }: Props) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="specialties" className="text-[10px] tracking-widest uppercase" style={labelStyle}>
+        <label htmlFor="specialties" className="text-xs tracking-widest uppercase" style={labelStyle}>
           Spesialiteter (komma-separert)
         </label>
         <input
@@ -103,7 +103,7 @@ export function TrenerProfilSection({ initial }: Props) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="experience_years" className="text-[10px] tracking-widest uppercase" style={labelStyle}>
+        <label htmlFor="experience_years" className="text-xs tracking-widest uppercase" style={labelStyle}>
           Erfaring (år)
         </label>
         <input

@@ -58,7 +58,7 @@ export function MonthlyVolumeSection({
           }}>
             Planlagt volum per måned
           </span>
-          <span className="text-[11px] tracking-wider uppercase"
+          <span className="text-xs tracking-wider uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {totalHours > 0 || totalKm > 0
               ? `${totalHours.toFixed(0)} t · ${totalKm.toFixed(0)} km`
@@ -77,7 +77,7 @@ export function MonthlyVolumeSection({
       {open && (
         <div className="px-4 pb-3">
           {!canEdit && (
-            <p className="text-[11px] pt-2"
+            <p className="text-xs pt-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Read-only — ingen redigeringsrett.
             </p>
@@ -112,7 +112,7 @@ export function MonthlyVolumeSection({
             )
           })}
           {canEdit && (
-            <p className="mt-3 text-[11px]"
+            <p className="mt-3 text-xs"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Endringer lagres automatisk.
             </p>

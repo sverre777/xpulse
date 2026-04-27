@@ -52,7 +52,7 @@ export function MetricCard({
         </div>
       )}
       <p
-        className="text-[11px] tracking-widest uppercase"
+        className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', paddingRight: chartKey ? '24px' : undefined }}
       >
         {label}
@@ -80,7 +80,7 @@ export function MetricCard({
       </div>
       {sublabel && (
         <p
-          className="text-[11px]"
+          className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
         >
           {sublabel}

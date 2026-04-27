@@ -135,14 +135,14 @@ export function SaveSeasonAsTemplate({
                   </p>
 
                   <div>
-                    <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                    <label className="block mb-1 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                       Mal-navn
                     </label>
                     <input value={name} onChange={e => setName(e.target.value)} style={iSt} />
                   </div>
                   <div>
-                    <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                    <label className="block mb-1 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                       Sport-kategori
                     </label>
@@ -151,7 +151,7 @@ export function SaveSeasonAsTemplate({
                     </select>
                   </div>
                   <div>
-                    <label className="block mb-1 text-[10px] tracking-widest uppercase"
+                    <label className="block mb-1 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                       Beskrivelse (valgfri)
                     </label>

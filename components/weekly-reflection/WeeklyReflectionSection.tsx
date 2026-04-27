@@ -43,7 +43,7 @@ function ScoreRow({
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1">
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {label}
         </span>
@@ -228,7 +228,7 @@ export function WeeklyReflectionSection({
           </div>
 
           <div>
-            <label className="text-[10px] tracking-widest uppercase block mb-1"
+            <label className="text-xs tracking-widest uppercase block mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               Ukens kommentar
             </label>
@@ -246,7 +246,7 @@ export function WeeklyReflectionSection({
           </div>
 
           <div>
-            <label className="text-[10px] tracking-widest uppercase flex items-center gap-1 mb-1"
+            <label className="text-xs tracking-widest uppercase flex items-center gap-1 mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               <span style={{ color: DANGER }}>⚠</span> Skade eller plage <span style={{ color: '#555560' }}>(valgfri)</span>
             </label>
@@ -263,7 +263,7 @@ export function WeeklyReflectionSection({
             />
           </div>
 
-          <div className="flex items-center justify-between text-[10px]"
+          <div className="flex items-center justify-between text-xs"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
             <span style={{ color: pending ? '#FF4500' : '#555560' }}>
               {pending ? 'Lagrer...' : savedAt ? 'Lagret' : 'Autolagres ved endring'}

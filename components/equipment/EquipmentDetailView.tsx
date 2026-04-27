@@ -492,7 +492,7 @@ function SkiTestHistorySection({
 
       {bestConditions.length > 0 && (
         <div className="mb-4 p-3" style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
-          <p className="text-[10px] tracking-widest uppercase mb-2"
+          <p className="text-xs tracking-widest uppercase mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Beste forhold for paret
           </p>
@@ -585,7 +585,7 @@ function analyseBestConditions(items: Array<{ test: SkiTestWithEntries; entry: S
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-      <p className="text-[10px] tracking-widest uppercase"
+      <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>
@@ -600,7 +600,7 @@ function Row({ label, value, multiline }: { label: string; value: string | null 
   if (!value) return null
   return (
     <div className="py-2" style={{ borderBottom: '1px solid #1E1E22' }}>
-      <p className="text-[10px] tracking-widest uppercase mb-1"
+      <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </p>

@@ -111,12 +111,12 @@ export function PlanGoalsSection({
                     <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
                       {k.name}
                     </span>
-                    <span className="px-2 py-0.5 text-[10px] tracking-widest uppercase"
+                    <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: style.color, border: `1px solid ${style.color}` }}>
                       {style.label}
                     </span>
                     {k.sport && (
-                      <span className="px-2 py-0.5 text-[10px] tracking-widest uppercase"
+                      <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
                         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #1E1E22' }}>
                         {k.sport}
                       </span>

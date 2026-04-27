@@ -99,12 +99,12 @@ export function PlanPhasesSection({
                   <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
                     {p.name}
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] tracking-widest uppercase"
+                  <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: INTENSITY_COLOR[p.intensity], border: `1px solid ${INTENSITY_COLOR[p.intensity]}` }}>
                     {INTENSITY_LABEL[p.intensity]}
                   </span>
                   {isCurrent && (
-                    <span className="px-2 py-0.5 text-[10px] tracking-widest uppercase"
+                    <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', border: '1px solid #FF4500' }}>
                       Nå
                     </span>

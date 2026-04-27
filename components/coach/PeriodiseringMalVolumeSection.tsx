@@ -55,11 +55,11 @@ export function PeriodiseringMalVolumeSection({
           <div key={i} className="p-3 grid grid-cols-2 md:grid-cols-4 gap-2"
             style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
             <div className="md:col-span-1">
-              <p className="text-[10px] tracking-widest uppercase mb-1"
+              <p className="text-xs tracking-widest uppercase mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
                 {labelFor(i)}
               </p>
-              <p className="text-[10px]"
+              <p className="text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 {plan ? 'Planlagt' : 'Ingen plan'}
               </p>
@@ -71,7 +71,7 @@ export function PeriodiseringMalVolumeSection({
               value={plan?.planned_km ?? null}
               onChange={v => updateMonth(i, { planned_km: v })} />
             <div>
-              <label className="block mb-1 text-[10px] tracking-widest uppercase"
+              <label className="block mb-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Notat
               </label>
@@ -85,7 +85,7 @@ export function PeriodiseringMalVolumeSection({
           </div>
         )
       })}
-      <p className="text-[11px]"
+      <p className="text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Tomme måneder lagres ikke. La stå tom om du ikke vil sette volum-mål.
       </p>
@@ -102,7 +102,7 @@ function NumField({
 }) {
   return (
     <div>
-      <label className="block mb-1 text-[10px] tracking-widest uppercase"
+      <label className="block mb-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </label>

@@ -37,12 +37,12 @@ export function OversiktHero({
     <section className="mb-8">
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '28px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {capitalizedDate} · Uke {hero.weekNumber}
         </span>
         {hero.unreadCoachComments > 0 && (
-          <span className="px-2 py-0.5 text-[10px] tracking-widest uppercase"
+          <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: '#1A6FD4', color: '#F0F0F2',

@@ -270,7 +270,7 @@ export function CompetitionsTab({
           <div className="overflow-x-auto">
             <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               <thead>
-                <tr style={{ color: '#555560', fontSize: '11px', letterSpacing: '0.1em' }} className="uppercase">
+                <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
                   <th className="text-left py-2 pr-3">Dato</th>
                   <th className="text-left py-2 pr-3">Navn</th>
                   <th className="text-left py-2 pr-3">Idrett</th>
@@ -311,7 +311,7 @@ export function CompetitionsTab({
             <div className="overflow-x-auto">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 <thead>
-                  <tr style={{ color: '#555560', fontSize: '11px', letterSpacing: '0.1em' }} className="uppercase">
+                  <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
                     <th className="text-left py-2 pr-3">Dato</th>
                     <th className="text-left py-2 pr-3">Navn</th>
                     <th className="text-left py-2 pr-3">Idrett</th>
@@ -388,7 +388,7 @@ export function CompetitionsTab({
               <div className="flex flex-wrap gap-4 mb-3">
                 {Array.from(latestByFormat.entries()).map(([format, v]) => (
                   <div key={format}>
-                    <p className="text-[10px] tracking-widest uppercase"
+                    <p className="text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                       Nyeste · {format}
                     </p>

@@ -26,7 +26,7 @@ function fmtDate(iso: string): string {
 
 function Label({ text }: { text: string }) {
   return (
-    <span className="text-[10px] tracking-widest uppercase"
+    <span className="text-xs tracking-widest uppercase"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
       {text}
     </span>

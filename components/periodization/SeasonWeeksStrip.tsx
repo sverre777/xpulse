@@ -104,13 +104,13 @@ export function SeasonWeeksStrip({
                   outlineOffset: '-1px',
                 }}
               >
-                <span className="text-[10px]"
+                <span className="text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1 }}>
                   {w.weekNum}
                 </span>
                 <div className="flex flex-col items-center gap-[1px] mt-1">
                   {events.slice(0, 3).map(ev => (
-                    <span key={ev.id} style={{ fontSize: '11px', lineHeight: 1 }} aria-hidden>
+                    <span key={ev.id} style={{ fontSize: '13px', lineHeight: 1 }} aria-hidden>
                       {KEY_EVENT_VISUALS[ev.event_type].icon}
                     </span>
                   ))}

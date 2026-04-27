@@ -197,7 +197,7 @@ export function CompetitionTab({
             <div className="overflow-x-auto">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 <thead>
-                  <tr style={{ color: '#555560', fontSize: '11px', letterSpacing: '0.1em' }} className="uppercase">
+                  <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
                     <th className="text-left py-2 pr-3">Dato</th>
                     <th className="text-left py-2 pr-3">Navn</th>
                     <th className="text-left py-2 pr-3">Idrett</th>

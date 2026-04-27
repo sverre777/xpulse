@@ -13,7 +13,7 @@ function fmtDate(iso: string): string {
 function StatBlock({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] tracking-widest uppercase"
+      <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </span>
@@ -44,7 +44,7 @@ export function SeasonHeaderBar({
         <div className="flex-1 min-w-[240px]">
           <div className="flex items-center gap-3 mb-2">
             <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-            <span className="text-[10px] tracking-widest uppercase"
+            <span className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               Sesong
             </span>
@@ -79,7 +79,7 @@ export function SeasonHeaderBar({
       {peakDates.length > 0 && (
         <div className="mt-4 pt-3 flex flex-wrap items-center gap-2"
           style={{ borderTop: '1px solid #1E1E22' }}>
-          <span className="text-[10px] tracking-widest uppercase"
+          <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Form-topp
           </span>

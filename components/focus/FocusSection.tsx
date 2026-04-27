@@ -144,7 +144,7 @@ export function FocusSection({
         <div className="px-3 pb-3 space-y-2">
           {showPlan && (
             <div className="space-y-1">
-              <p className="text-[10px] tracking-widest uppercase"
+              <p className="text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 Planlagt
               </p>
@@ -165,7 +165,7 @@ export function FocusSection({
 
           <div className="space-y-1">
             {showPlan && (
-              <p className="text-[10px] tracking-widest uppercase"
+              <p className="text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 Refleksjon
               </p>
@@ -206,7 +206,7 @@ export function FocusSection({
                       </p>
                       <button type="button"
                         onClick={() => { setEditingId(p.id); setEditContent(p.content) }}
-                        style={{ background: 'none', border: 'none', color: '#555560', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+                        style={{ background: 'none', border: 'none', color: '#555560', fontSize: '13px', cursor: 'pointer', padding: 0 }}
                         title="Rediger">✎</button>
                       <button type="button"
                         onClick={() => handleDelete(p.id)}

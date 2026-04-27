@@ -24,6 +24,12 @@
   --color-foreground: var(--text-primary);
 }
 
+/* Hev minste fontstørrelse for lesbarhet — text-xs løftes fra 12px til 13px globalt. */
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -217,7 +217,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1">
-      <span className="text-[10px] tracking-widest uppercase mr-1"
+      <span className="text-xs tracking-widest uppercase mr-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </span>

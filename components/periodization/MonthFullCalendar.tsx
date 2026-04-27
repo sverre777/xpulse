@@ -175,7 +175,7 @@ export function MonthFullCalendar({
 
                   {events.map(e => (
                     <div key={e.id}
-                      className="truncate mb-0.5 text-[11px]"
+                      className="truncate mb-0.5 text-xs"
                       style={{
                         color: KEY_EVENT_VISUALS[e.event_type].color,
                         fontWeight: e.is_peak_target ? 600 : 400,
@@ -186,7 +186,7 @@ export function MonthFullCalendar({
                   ))}
 
                   {workouts.length > 0 && (
-                    <div className="text-[11px] truncate" style={{ color: '#8A8A96' }}>
+                    <div className="text-xs truncate" style={{ color: '#8A8A96' }}>
                       {workouts.length === 1
                         ? workouts[0].title || 'Planlagt økt'
                         : `${workouts.length} økter`}

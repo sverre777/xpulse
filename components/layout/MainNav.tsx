@@ -100,7 +100,7 @@ export function MainNav({
               X-PULSE
             </span>
             <span
-              className="text-[10px] tracking-widest uppercase"
+              className="text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: accent,
@@ -175,7 +175,7 @@ export function MainNav({
             X-PULSE
           </span>
           <span
-            className="text-[10px] tracking-widest uppercase ml-1"
+            className="text-xs tracking-widest uppercase ml-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: accent,
@@ -330,7 +330,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             X-PULSE
           </span>
           <span
-            className="text-[10px] tracking-widest uppercase"
+            className="text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: accent,
@@ -478,7 +478,7 @@ function InboxIconLink({ unreadCount, accent, isActive }: {
             backgroundColor: accent,
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '10px',
+            fontSize: '13px',
             padding: '0 4px',
             minWidth: '16px',
             textAlign: 'center',
@@ -514,7 +514,7 @@ function MailIcon() {
 function UnreadBadge({ count, accent }: { count: number; accent: string }) {
   return (
     <span
-      className="text-[10px] tracking-widest"
+      className="text-xs tracking-widest"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         backgroundColor: accent,

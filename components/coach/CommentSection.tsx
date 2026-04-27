@@ -82,7 +82,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
       >
         <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
         <span
-          className="text-[10px] tracking-widest uppercase"
+          className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
         >
           {title ?? 'Kommentarer'} ({comments.length})
@@ -124,14 +124,14 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span
-                    className="text-[10px] tracking-widest uppercase"
+                    className="text-xs tracking-widest uppercase"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color }}
                   >
                     {isCoachComment ? 'Trener' : 'Utøver'}{c.authorName ? ` · ${c.authorName.split(' ')[0]}` : ''}
                   </span>
                   <span className="flex-1" />
                   <span
-                    className="text-[10px] tracking-wide"
+                    className="text-xs tracking-wide"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
                   >
                     {timeLabel(c.createdAt)}

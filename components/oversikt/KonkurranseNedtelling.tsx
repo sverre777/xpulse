@@ -29,7 +29,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
       }}>
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: gold, display: 'inline-block' }} />
-        <span className="text-[10px] tracking-widest uppercase"
+        <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: gold }}>
           Neste konkurranse
         </span>
@@ -63,7 +63,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
             {comp.days_until === 0 ? 'I DAG' : comp.days_until}
           </span>
           {comp.days_until !== 0 && (
-            <span className="text-[10px] tracking-widest uppercase mt-1"
+            <span className="text-xs tracking-widest uppercase mt-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: gold }}>
               {comp.days_until === 1 ? 'Dag igjen' : 'Dager igjen'}
             </span>

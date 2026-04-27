@@ -302,7 +302,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
 
   const presetBar = (
     <div>
-      <p className="mb-2 text-[10px] tracking-widest uppercase"
+      <p className="mb-2 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Hurtig-PR
       </p>
@@ -367,7 +367,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
             }, {})
           ).map(([sport, groups]) => (
             <div key={sport}>
-              <p className="mb-2 text-[10px] tracking-widest uppercase"
+              <p className="mb-2 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: SPORT_COLOR[sport] ?? '#8A8A96' }}>
                 <span style={{
                   display: 'inline-block', width: '8px', height: '8px',
@@ -378,7 +378,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
               <div style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
                 {groups.map(g => (
                   <div key={`${g.sport}::${g.subcategory}`}>
-                    <p className="px-4 py-2 text-[10px] tracking-widest uppercase"
+                    <p className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
                         color: '#8A8A96',

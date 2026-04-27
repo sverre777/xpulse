@@ -253,7 +253,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
                 style={iSt} />
-              <p className="text-[10px] mt-1 tracking-widest uppercase"
+              <p className="text-xs mt-1 tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 {startDate
                   ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
@@ -262,7 +262,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
             </Field>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] tracking-widest uppercase"
+          <div className="flex items-center gap-4 text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             <span>{totalWorkouts} økt{totalWorkouts === 1 ? '' : 'er'}</span>
             <span>· {totalRest} hviledag{totalRest === 1 ? '' : 'er'}</span>
@@ -329,7 +329,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block mb-1 text-[10px] tracking-widest uppercase"
+      <label className="block mb-1 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </label>

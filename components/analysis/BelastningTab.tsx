@@ -96,14 +96,14 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
                 sub="CTL − ATL" accent={COLOR_TSB} />
       <div className="p-4 flex flex-col gap-1"
         style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
-        <p className="text-[11px] tracking-widest uppercase"
+        <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Formstatus
         </p>
         <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: form.color, fontSize: '28px', lineHeight: 1.05, letterSpacing: '0.03em' }}>
           {form.label}
         </p>
-        <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {form.desc}
         </p>
       </div>
@@ -115,14 +115,14 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
   return (
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: '#111113', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
-      <p className="text-[11px] tracking-widest uppercase"
+      <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
       </p>
       <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {sub}
       </p>
     </div>
@@ -178,7 +178,7 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
         {FORM_ZONES.map(z => (
           <span key={z.label} className="flex items-center gap-2">
             <span style={{ width: 12, height: 12, backgroundColor: z.color, border: '1px solid #1E1E22' }} />
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '11px' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
               {z.label}
             </span>
           </span>
@@ -330,7 +330,7 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
         <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr] gap-4 items-stretch h-full">
           <div className="p-3 flex flex-col gap-1"
             style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E', minWidth: '140px' }}>
-            <p className="text-[11px] tracking-widest uppercase"
+            <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Totalt hviledager 🛌</p>
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
               {r.total_rest_days}
@@ -338,12 +338,12 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
           </div>
           <div className="p-3 flex flex-col gap-1"
             style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #8B5CF6', minWidth: '140px' }}>
-            <p className="text-[11px] tracking-widest uppercase"
+            <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Snitt dager mellom</p>
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
               {r.avg_days_between_rest != null ? r.avg_days_between_rest : '—'}
             </span>
-            <p className="text-[11px]" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               {r.avg_days_between_rest != null ? 'dager' : 'Trenger ≥ 2 hviledager'}
             </p>
           </div>
@@ -447,7 +447,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
 function MethodNote() {
   return (
     <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
-      <p className="text-[11px] tracking-widest uppercase mb-2"
+      <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Slik beregnes tallene
       </p>

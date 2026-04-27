@@ -68,7 +68,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               }}
             >
               <span
-                className="text-[10px] tracking-widest uppercase px-2 py-0.5"
+                className="text-xs tracking-widest uppercase px-2 py-0.5"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: 'transparent',
@@ -112,7 +112,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
           >
             <div className="flex items-center gap-3 flex-wrap">
               <span
-                className="text-[10px] tracking-widest uppercase px-2 py-0.5"
+                className="text-xs tracking-widest uppercase px-2 py-0.5"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: TYPE_COLORS[w.workoutType] ?? '#4A4A4A',
@@ -132,7 +132,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               </span>
               {w.isImportant && (
                 <span
-                  className="text-[10px] tracking-widest uppercase"
+                  className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}
                 >
                   ★ Viktig
@@ -140,7 +140,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               )}
               {isPlannedOnly && (
                 <span
-                  className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+                  className="text-xs tracking-widest uppercase px-1.5 py-0.5"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     backgroundColor: 'transparent',
@@ -153,7 +153,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               )}
               {w.isCompleted && w.isPlanned && (
                 <span
-                  className="text-[10px] tracking-widest uppercase px-1.5 py-0.5"
+                  className="text-xs tracking-widest uppercase px-1.5 py-0.5"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     backgroundColor: 'transparent',

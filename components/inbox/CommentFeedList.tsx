@@ -54,7 +54,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
             >
               <div className="flex items-center gap-2 mb-1">
                 <span
-                  className="text-[10px] tracking-widest uppercase"
+                  className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: accent }}
                 >
                   {c.authorName ?? 'Ukjent'} {c.authorIsCoach ? '· Trener' : '· Utøver'}
@@ -77,7 +77,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
                     }}
                   />
                 )}
-                <span className="ml-auto text-[10px] tracking-wider uppercase"
+                <span className="ml-auto text-xs tracking-wider uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
                   {timeAgo(c.createdAt)}
                 </span>
@@ -94,7 +94,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
                 {c.content}
               </p>
               {c.athleteName && (
-                <p className="text-[10px] tracking-widest uppercase mt-1"
+                <p className="text-xs tracking-widest uppercase mt-1"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
                   Om: {c.athleteName}
                 </p>

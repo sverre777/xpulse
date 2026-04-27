@@ -45,7 +45,7 @@ export function MonthMiniCalendar({
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: `${titleSize}px`, letterSpacing: '0.06em' }}>
           {MONTHS_NO[month0]}
         </span>
-        <span className="text-[10px]"
+        <span className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {year}
         </span>
@@ -55,7 +55,7 @@ export function MonthMiniCalendar({
       <div className="grid" style={{ gridTemplateColumns: `18px repeat(7, 1fr)`, gap: '2px' }}>
         <div />
         {DAYS_NO_SHORT.map((d, i) => (
-          <div key={i} className="text-center text-[10px]"
+          <div key={i} className="text-center text-xs"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1 }}>
             {d}
           </div>
@@ -70,7 +70,7 @@ export function MonthMiniCalendar({
             <button
               type="button"
               onClick={() => onSelectWeek?.(mondayISO)}
-              className="text-center text-[10px]"
+              className="text-center text-xs"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#555560',

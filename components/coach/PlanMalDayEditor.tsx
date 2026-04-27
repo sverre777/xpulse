@@ -197,7 +197,7 @@ function MenuView({
     <div className="p-5 flex flex-col gap-4">
       {existingWorkouts.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-[10px] tracking-widest uppercase"
+          <p className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Økter på denne dagen
           </p>
@@ -208,7 +208,7 @@ function MenuView({
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
                   {w.title || '(uten tittel)'}
                 </div>
-                <div className="text-[11px] mt-0.5"
+                <div className="text-xs mt-0.5"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                   {w.sport}{w.workout_type ? ` · ${w.workout_type}` : ''}
                   {w.duration_minutes ? ` · ${w.duration_minutes}min` : ''}
@@ -235,7 +235,7 @@ function MenuView({
       </div>
 
       {workoutTemplates.length === 0 && (
-        <p className="text-[11px]"
+        <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Du har ingen øktmaler å velge fra. Lag noen i Øktmaler-fanen først.
         </p>
@@ -254,7 +254,7 @@ function FromTemplateView({
   return (
     <div className="p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] tracking-widest uppercase"
+        <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Velg øktmal
         </p>
@@ -272,12 +272,12 @@ function FromTemplateView({
               {t.name}
             </div>
             {t.description && (
-              <div className="text-[11px] mt-0.5"
+              <div className="text-xs mt-0.5"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 {t.description}
               </div>
             )}
-            <div className="text-[10px] mt-1 tracking-widest uppercase"
+            <div className="text-xs mt-1 tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               {t.sport ?? '—'}{t.category ? ` · ${t.category}` : ''}
             </div>
@@ -321,7 +321,7 @@ function BtnSecondary({ onClick, children, disabled }: { onClick: () => void; ch
 function BtnSm({ onClick, children, danger }: { onClick: () => void; children: React.ReactNode; danger?: boolean }) {
   return (
     <button type="button" onClick={onClick}
-      className="px-3 py-1 text-[11px] tracking-widest uppercase"
+      className="px-3 py-1 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: danger ? '#FF4500' : '#8A8A96',

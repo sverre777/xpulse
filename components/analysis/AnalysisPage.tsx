@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
@@ -78,6 +79,8 @@ const TABS: [Tab, string][] = [
   ['periodisering', 'Årsplan'],
 ]
 
+const TAB_KEYS = new Set<string>(TABS.map(([k]) => k))
+
 function LoadingStub({ label }: { label: string }) {
   return (
     <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
@@ -121,7 +124,12 @@ function AnalysisPageInner({
   targetUserId?: string
 }) {
   const { orderedKeys: favoriteKeys } = useFavorites()
-  const [tab, setTab] = useState<Tab>('oversikt')
+  const searchParams = useSearchParams()
+  const initialTab: Tab = (() => {
+    const t = searchParams?.get('tab')
+    return t && TAB_KEYS.has(t) ? (t as Tab) : 'oversikt'
+  })()
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [range, setRangeState] = useState<DateRange>(initialRange)
   const [stats, setStats] = useState<WorkoutStats>(initialStats)
   const [overview, setOverview] = useState<AnalysisOverview>(initialOverview)

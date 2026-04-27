@@ -168,7 +168,7 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
   const hasAny = h.last_entry_date !== null
   if (!hasAny) {
     return (
-      <Card kicker="Helse" accent="#28A86E" href="/app/health">
+      <Card kicker="Helse" accent="#28A86E" href="/app/analyse?tab=helse">
         <CardTitle>Ingen data</CardTitle>
         <CardMeta>Logg hvilepuls, HRV og søvn for å følge form.</CardMeta>
       </Card>
@@ -180,7 +180,7 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
   if (h.sleep_hours !== null) pairs.push({ label: 'Søvn', value: `${h.sleep_hours.toFixed(1)} t` })
 
   return (
-    <Card kicker="Helse" accent="#28A86E" href="/app/health">
+    <Card kicker="Helse" accent="#28A86E" href="/app/analyse?tab=helse">
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         {pairs.map(p => (
           <div key={p.label} className="flex flex-col">

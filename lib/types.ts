@@ -194,6 +194,8 @@ export interface WorkoutFormData {
   is_planned: boolean
   is_completed: boolean
   is_important: boolean
+  is_group_session: boolean
+  group_session_label: string
   // Enkel føring: brukes når økten ikke har aktiviteter (eller som minimumsregistrering
   // for gamle/importerte økter). Lagres til workouts.duration_minutes / distance_km.
   // Når aktiviteter finnes overstyrer aktivitets-summen disse i visning.
@@ -802,6 +804,8 @@ export interface CalendarWorkoutSummary {
   is_planned: boolean
   is_completed: boolean
   is_important: boolean
+  is_group_session?: boolean
+  group_session_label?: string | null
   workout_type: WorkoutType
   duration_minutes: number | null
   zones: { zone_name: string; minutes: number }[]

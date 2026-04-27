@@ -3,6 +3,7 @@ import { CoachHero } from '@/components/coach/CoachHero'
 import { CoachActivityFeed } from '@/components/coach/CoachActivityFeed'
 import { CoachAthleteList } from '@/components/coach/CoachAthleteList'
 import { CoachGroupsSection } from '@/components/coach/CoachGroupsSection'
+import { CoachUpcomingCards } from '@/components/coach/CoachUpcomingCards'
 
 function ErrorBox({ message }: { message: string }) {
   return (
@@ -38,6 +39,8 @@ export default async function CoachDashboardPage() {
         activeAthletes={res.stats.activeAthletes}
         unreadNotifications={res.stats.unreadNotifications}
       />
+
+      <CoachUpcomingCards />
 
       <CoachActivityFeed items={res.feed} />
 

@@ -50,6 +50,29 @@ export interface CoachDashboardData {
   groups: CoachGroupSummary[]
 }
 
+export interface CoachOverviewAthlete {
+  id: string
+  fullName: string | null
+}
+
+export interface NextCompetitionInfo {
+  date: string                  // YYYY-MM-DD
+  workoutType: string           // 'competition' | 'testlop' | 'test'
+  workoutTypeLabel: string
+  title: string
+  athletes: CoachOverviewAthlete[]
+  hrefBase: string              // peker mot første utøvers visning av økten
+}
+
+export interface NextGroupSessionInfo {
+  date: string
+  label: string | null
+  title: string
+  sport: string
+  athletes: CoachOverviewAthlete[]
+  hrefBase: string
+}
+
 // ── Helpers ─────────────────────────────────────────────────
 
 function daysBetween(isoDate: string, today: Date): number {
@@ -312,6 +335,150 @@ async function fetchGroupsWithCounts(
   return (groupsRes.data ?? [])
     .map(g => ({ id: g.id, name: g.name, memberCount: counts.get(g.id) ?? 0 }))
     .sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+}
+
+// ── Trener-oversikt: neste konkurranse og neste fellestrening ──────────
+
+const COMPETITION_TYPES = ['competition', 'testlop', 'test'] as const
+const COMPETITION_LABEL: Record<string, string> = {
+  competition: 'Konkurranse',
+  testlop: 'Testløp',
+  test: 'Test',
+}
+
+export async function getNextCompetitionForCoach(): Promise<
+  NextCompetitionInfo | null | { error: string }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const { data: rels } = await supabase
+    .from('coach_athlete_relations')
+    .select('athlete_id')
+    .eq('coach_id', user.id)
+    .eq('status', 'active')
+  const athleteIds = (rels ?? []).map(r => r.athlete_id)
+  if (athleteIds.length === 0) return null
+
+  const today = new Date().toISOString().slice(0, 10)
+  const { data: workouts } = await supabase
+    .from('workouts')
+    .select('id, user_id, date, workout_type, title')
+    .in('user_id', athleteIds)
+    .in('workout_type', COMPETITION_TYPES as unknown as string[])
+    .eq('is_planned', true)
+    .gte('date', today)
+    .order('date', { ascending: true })
+    .limit(50)
+  if (!workouts || workouts.length === 0) return null
+
+  const firstDate = workouts[0].date
+  const onFirstDate = workouts.filter(w => w.date === firstDate)
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', onFirstDate.map(w => w.user_id))
+  const profById = new Map((profiles ?? []).map(p => [p.id, p.full_name]))
+
+  const seen = new Set<string>()
+  const athletes: CoachOverviewAthlete[] = []
+  for (const w of onFirstDate) {
+    if (seen.has(w.user_id)) continue
+    seen.add(w.user_id)
+    athletes.push({ id: w.user_id, fullName: profById.get(w.user_id) ?? null })
+  }
+
+  const top = onFirstDate[0]
+  return {
+    date: firstDate,
+    workoutType: top.workout_type,
+    workoutTypeLabel: COMPETITION_LABEL[top.workout_type] ?? top.workout_type,
+    title: top.title,
+    athletes,
+    hrefBase: `/app/trener/${top.user_id}/plan?date=${firstDate}`,
+  }
+}
+
+export async function getNextGroupSessionForCoach(): Promise<
+  NextGroupSessionInfo | null | { error: string }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const { data: rels } = await supabase
+    .from('coach_athlete_relations')
+    .select('athlete_id')
+    .eq('coach_id', user.id)
+    .eq('status', 'active')
+  const athleteIds = (rels ?? []).map(r => r.athlete_id)
+  if (athleteIds.length === 0) return null
+
+  const today = new Date().toISOString().slice(0, 10)
+  const { data: workouts } = await supabase
+    .from('workouts')
+    .select('id, user_id, date, title, sport, group_session_label')
+    .in('user_id', athleteIds)
+    .eq('is_group_session', true)
+    .eq('is_planned', true)
+    .gte('date', today)
+    .order('date', { ascending: true })
+    .limit(200)
+  if (!workouts || workouts.length === 0) return null
+
+  // Grupper på (dato, label || tittel) — krev minst 2 utøvere for å regnes
+  // som fellestrening i trener-oversikt.
+  type Group = {
+    date: string; label: string | null
+    title: string; sport: string
+    userIds: Set<string>
+    sampleUserId: string
+  }
+  const groups = new Map<string, Group>()
+  for (const w of workouts) {
+    const key = `${w.date}::${w.group_session_label ?? `__t:${w.title}`}`
+    const existing = groups.get(key)
+    if (existing) {
+      existing.userIds.add(w.user_id)
+    } else {
+      groups.set(key, {
+        date: w.date,
+        label: w.group_session_label ?? null,
+        title: w.title,
+        sport: w.sport,
+        userIds: new Set([w.user_id]),
+        sampleUserId: w.user_id,
+      })
+    }
+  }
+
+  // Sorter: nærmeste dato først, deretter flest utøvere.
+  const sorted = Array.from(groups.values())
+    .filter(g => g.userIds.size >= 2)
+    .sort((a, b) => a.date.localeCompare(b.date) || b.userIds.size - a.userIds.size)
+  const top = sorted[0]
+  if (!top) return null
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', Array.from(top.userIds))
+  const profById = new Map((profiles ?? []).map(p => [p.id, p.full_name]))
+  const athletes: CoachOverviewAthlete[] = Array.from(top.userIds).map(id => ({
+    id,
+    fullName: profById.get(id) ?? null,
+  }))
+
+  return {
+    date: top.date,
+    label: top.label,
+    title: top.title,
+    sport: top.sport,
+    athletes,
+    hrefBase: `/app/trener/${top.sampleUserId}/plan?date=${top.date}`,
+  }
 }
 
 // ── Enkle write-actions for gruppe-opprettelse ──────────────

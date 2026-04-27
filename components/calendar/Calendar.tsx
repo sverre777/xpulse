@@ -364,12 +364,15 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   const coachTitle = showCoachStyle
     ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`
     : undefined
+  const groupTitle = w.is_group_session
+    ? (w.group_session_label ? `Fellestrening: ${w.group_session_label}` : 'Fellestrening')
+    : undefined
 
   return (
     <button
       type="button"
       onClick={e => { e.stopPropagation(); onEditWorkout(w, dateStr) }}
-      title={coachTitle}
+      title={[coachTitle, groupTitle].filter(Boolean).join(' · ') || undefined}
       style={{
         display: 'block', width: '100%', textAlign: 'left', marginBottom: '2px',
         background: 'none', border: 'none', padding: 0, cursor: 'pointer',
@@ -383,6 +386,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+          {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '2px' }} aria-label="Fellestrening">👥</span>}
           {showCoachStyle && (
             <span aria-hidden="true"
               style={{

@@ -136,6 +136,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     is_planned:  formMode === 'plan' ? true : (defaultValues?.is_planned ?? false),
     is_completed: defaultValues?.is_completed ?? false,
     is_important: defaultValues?.is_important ?? false,
+    is_group_session: defaultValues?.is_group_session ?? false,
+    group_session_label: defaultValues?.group_session_label ?? '',
     simple_duration_minutes: defaultValues?.simple_duration_minutes ?? '',
     simple_distance_km:      defaultValues?.simple_distance_km ?? '',
     movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
@@ -408,11 +410,41 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </p>
         )}
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex flex-wrap gap-3 mt-4">
           <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
             ★ Viktig økt
           </Chip>
+          <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
+            👥 Fellestrening
+          </Chip>
         </div>
+        {form.is_group_session && (
+          <div className="mt-3">
+            <label className="text-xs tracking-widest uppercase block mb-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Etikett (valgfri)
+            </label>
+            <input
+              type="text"
+              value={form.group_session_label}
+              onChange={e => set('group_session_label', e.target.value)}
+              placeholder="f.eks. Tirsdagstrening klubb"
+              maxLength={120}
+              className="px-3 py-2 text-sm w-full max-w-md"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: '#16161A',
+                border: '1px solid #1E1E22',
+                color: '#F0F0F2',
+                outline: 'none',
+              }}
+            />
+            <p className="text-xs mt-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Flere økter med samme etikett = samme fellestrening i trener-oversikt.
+            </p>
+          </div>
+        )}
 
         {!isPlanMode && !targetUserId && (
           <div className="mt-4">

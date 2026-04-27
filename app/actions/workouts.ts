@@ -531,6 +531,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     is_planned: data.is_planned,
     is_completed: data.is_completed,
     is_important: data.is_important,
+    is_group_session: data.is_group_session,
+    group_session_label: data.is_group_session ? (data.group_session_label || null) : null,
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
     rpe: data.rpe,
@@ -814,7 +816,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -829,7 +831,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,workout_type,is_planned,is_completed,is_important,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('time_of_day')
@@ -1015,6 +1017,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       is_planned:   true,
       is_completed: workout.is_completed,
       is_important: workout.is_important,
+      is_group_session: workout.is_group_session ?? false,
+      group_session_label: workout.group_session_label ?? '',
       notes:        snap.notes ?? '',
       day_form_physical: null,
       day_form_mental:   null,
@@ -1043,6 +1047,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     is_planned:   workout.is_planned,
     is_completed: workout.is_completed,
     is_important: workout.is_important,
+    is_group_session: workout.is_group_session ?? false,
+    group_session_label: workout.group_session_label ?? '',
     notes:        workout.notes ?? '',
     day_form_physical: workout.day_form_physical,
     day_form_mental:   workout.day_form_mental,

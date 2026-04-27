@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { REMINDER_THRESHOLDS } from './coach-settings-constants'
 
 // Datalag for trener-spesifikke innstillinger under /app/innstillinger.
 
@@ -125,8 +126,6 @@ export interface InactivityReminder {
   thresholdDays: number
   enabled: boolean
 }
-
-export const REMINDER_THRESHOLDS = [3, 7, 14] as const
 
 export async function getInactivityReminders(): Promise<InactivityReminder[] | { error: string }> {
   const supabase = await createClient()

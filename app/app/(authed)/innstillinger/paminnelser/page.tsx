@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { PaminnelserSection } from '@/components/settings/coach/PaminnelserSection'
-import { getInactivityReminders, REMINDER_THRESHOLDS } from '@/app/actions/coach-settings'
+import { getInactivityReminders } from '@/app/actions/coach-settings'
+import { REMINDER_THRESHOLDS } from '@/app/actions/coach-settings-constants'
 
 const COACH_BLUE = '#1A6FD4'
 

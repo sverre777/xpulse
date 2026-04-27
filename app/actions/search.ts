@@ -19,6 +19,14 @@ export type SearchCategory =
   | 'templates'
   | 'athletes'
 
+export type SearchSort = 'relevance' | 'date_desc' | 'date_asc' | 'alphabetical' | 'duration' | 'distance'
+
+export interface SearchFilters {
+  sports?: string[]
+  fromDate?: string
+  toDate?: string
+}
+
 export interface SearchHit {
   id: string
   title: string
@@ -33,7 +41,12 @@ const PER_CATEGORY_LIMIT = 8
 
 export async function searchAcrossCategories(
   rawQuery: string,
-  opts: { mode: 'athlete' | 'coach'; category?: SearchCategory | 'all' } = { mode: 'athlete' },
+  opts: {
+    mode: 'athlete' | 'coach'
+    category?: SearchCategory | 'all'
+    sort?: SearchSort
+    filters?: SearchFilters
+  } = { mode: 'athlete' },
 ): Promise<SearchResults> {
   const query = rawQuery.trim()
   if (query.length < 2) return {}
@@ -46,20 +59,35 @@ export async function searchAcrossCategories(
   const wanted = (cat: SearchCategory) =>
     !opts.category || opts.category === 'all' || opts.category === cat
 
+  const sort = opts.sort ?? 'relevance'
+  const filters = opts.filters ?? {}
+  const dateFilterApplies = !!(filters.fromDate || filters.toDate)
+  const sportFilterApplies = !!(filters.sports && filters.sports.length > 0)
+
   const tasks: Array<Promise<{ category: SearchCategory; hits: SearchHit[] } | null>> = []
 
   if (wanted('workouts')) {
     tasks.push((async () => {
-      const { data } = await supabase
+      let req = supabase
         .from('workouts')
-        .select('id, title, sport, workout_type, date, notes, description, user_id')
+        .select('id, title, sport, workout_type, date, notes, description, user_id, duration_minutes, distance_km')
         .or(
           `title.ilike.${like},notes.ilike.${like},description.ilike.${like},sport.ilike.${like}`,
         )
-        .order('date', { ascending: false })
-        .limit(PER_CATEGORY_LIMIT)
+        .limit(PER_CATEGORY_LIMIT * 2)
+      if (sportFilterApplies) req = req.in('sport', filters.sports!)
+      if (filters.fromDate) req = req.gte('date', filters.fromDate)
+      if (filters.toDate) req = req.lte('date', filters.toDate)
+      switch (sort) {
+        case 'date_asc': req = req.order('date', { ascending: true }); break
+        case 'alphabetical': req = req.order('title', { ascending: true }); break
+        case 'duration': req = req.order('duration_minutes', { ascending: false, nullsFirst: false }); break
+        case 'distance': req = req.order('distance_km', { ascending: false, nullsFirst: false }); break
+        default: req = req.order('date', { ascending: false })
+      }
+      const { data } = await req
       if (!data) return { category: 'workouts' as const, hits: [] }
-      const hits: SearchHit[] = data.map(w => ({
+      const hits: SearchHit[] = data.slice(0, PER_CATEGORY_LIMIT).map(w => ({
         id: w.id,
         title: w.title,
         subtitle: [w.sport, w.workout_type].filter(Boolean).join(' · '),
@@ -69,37 +97,48 @@ export async function searchAcrossCategories(
       return { category: 'workouts' as const, hits }
     })())
 
-    // Tags er separat tabell; egen runde for å få med treff via tag.
-    tasks.push((async () => {
-      const { data } = await supabase
-        .from('workout_tags')
-        .select('tag, workout:workouts(id, title, date, sport)')
-        .ilike('tag', like)
-        .limit(PER_CATEGORY_LIMIT)
-      if (!data) return null
-      const hits: SearchHit[] = []
-      for (const t of data) {
-        const row = t as unknown as { tag: string; workout: { id: string; title: string; date: string; sport: string } | null }
-        if (!row.workout) continue
-        hits.push({
-          id: `tag-${row.workout.id}`,
-          title: row.workout.title,
-          subtitle: `Tag: ${row.tag}`,
-          date: row.workout.date,
-          href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
-        })
-      }
-      return { category: 'workouts' as const, hits }
-    })())
+    // Tag-treff (ekskluderer fra dato-/sport-filter siden tag-radene ikke har dem direkte)
+    if (!dateFilterApplies && !sportFilterApplies) {
+      tasks.push((async () => {
+        const { data } = await supabase
+          .from('workout_tags')
+          .select('tag, workout:workouts(id, title, date, sport)')
+          .ilike('tag', like)
+          .limit(PER_CATEGORY_LIMIT)
+        if (!data) return null
+        const hits: SearchHit[] = []
+        for (const t of data) {
+          const row = t as unknown as { tag: string; workout: { id: string; title: string; date: string; sport: string } | null }
+          if (!row.workout) continue
+          hits.push({
+            id: `tag-${row.workout.id}`,
+            title: row.workout.title,
+            subtitle: `Tag: ${row.tag}`,
+            date: row.workout.date,
+            href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
+          })
+        }
+        return { category: 'workouts' as const, hits }
+      })())
+    }
   }
 
   if (wanted('competitions')) {
     tasks.push((async () => {
-      const { data } = await supabase
+      let req = supabase
         .from('workout_competition_data')
-        .select('id, name, location, comment, position_overall, workout:workouts(id, title, date)')
+        .select('id, name, location, comment, position_overall, workout:workouts!inner(id, title, date, sport)')
         .or(`name.ilike.${like},location.ilike.${like},comment.ilike.${like}`)
-        .limit(PER_CATEGORY_LIMIT)
+        .limit(PER_CATEGORY_LIMIT * 2)
+      if (sportFilterApplies) req = req.in('workout.sport', filters.sports!)
+      if (filters.fromDate) req = req.gte('workout.date', filters.fromDate)
+      if (filters.toDate) req = req.lte('workout.date', filters.toDate)
+      switch (sort) {
+        case 'date_asc': req = req.order('date', { ascending: true, referencedTable: 'workouts' }); break
+        case 'alphabetical': req = req.order('name', { ascending: true }); break
+        default: req = req.order('date', { ascending: false, referencedTable: 'workouts' })
+      }
+      const { data } = await req
       if (!data) return { category: 'competitions' as const, hits: [] }
       const hits: SearchHit[] = []
       for (const c of data) {
@@ -118,6 +157,7 @@ export async function searchAcrossCategories(
           date: row.workout.date,
           href: `/app/dagbok?date=${encodeURIComponent(row.workout.date)}`,
         })
+        if (hits.length >= PER_CATEGORY_LIMIT) break
       }
       return { category: 'competitions' as const, hits }
     })())
@@ -125,12 +165,15 @@ export async function searchAcrossCategories(
 
   if (wanted('comments')) {
     tasks.push((async () => {
-      const { data } = await supabase
+      let req = supabase
         .from('coach_comments')
         .select('id, content, scope, period_key, context, created_at, athlete_id')
         .ilike('content', like)
-        .order('created_at', { ascending: false })
         .limit(PER_CATEGORY_LIMIT)
+      if (filters.fromDate) req = req.gte('created_at', filters.fromDate)
+      if (filters.toDate) req = req.lte('created_at', filters.toDate + 'T23:59:59')
+      req = req.order('created_at', { ascending: sort === 'date_asc' })
+      const { data } = await req
       if (!data) return { category: 'comments' as const, hits: [] }
       const hits: SearchHit[] = data.map(c => ({
         id: c.id,
@@ -148,15 +191,21 @@ export async function searchAcrossCategories(
       const [testsRes, prsRes, templatesRes] = await Promise.all([
         supabase
           .from('workout_test_data')
-          .select('id, test_type, sport, protocol_notes, equipment, conditions, workout:workouts(id, title, date)')
+          .select('id, test_type, sport, protocol_notes, equipment, conditions, workout:workouts!inner(id, title, date)')
           .or(`test_type.ilike.${like},protocol_notes.ilike.${like},sport.ilike.${like},equipment.ilike.${like},conditions.ilike.${like}`)
           .limit(PER_CATEGORY_LIMIT),
-        supabase
-          .from('personal_records')
-          .select('id, sport, record_type, value, unit, achieved_at, notes')
-          .or(`record_type.ilike.${like},sport.ilike.${like},notes.ilike.${like}`)
-          .order('achieved_at', { ascending: false })
-          .limit(PER_CATEGORY_LIMIT),
+        (() => {
+          let req = supabase
+            .from('personal_records')
+            .select('id, sport, record_type, value, unit, achieved_at, notes')
+            .or(`record_type.ilike.${like},sport.ilike.${like},notes.ilike.${like}`)
+            .limit(PER_CATEGORY_LIMIT)
+          if (sportFilterApplies) req = req.in('sport', filters.sports!)
+          if (filters.fromDate) req = req.gte('achieved_at', filters.fromDate)
+          if (filters.toDate) req = req.lte('achieved_at', filters.toDate)
+          req = req.order('achieved_at', { ascending: sort === 'date_asc' })
+          return req
+        })(),
         supabase
           .from('test_templates')
           .select('id, name, sport, test_type, protocol')
@@ -169,6 +218,9 @@ export async function searchAcrossCategories(
           id: string; test_type: string; sport: string
           workout: { id: string; title: string; date: string } | null
         }
+        if (sportFilterApplies && !filters.sports!.includes(row.sport)) continue
+        if (filters.fromDate && row.workout && row.workout.date < filters.fromDate) continue
+        if (filters.toDate && row.workout && row.workout.date > filters.toDate) continue
         hits.push({
           id: `test-${row.id}`,
           title: row.test_type,
@@ -189,6 +241,7 @@ export async function searchAcrossCategories(
         })
       }
       for (const tpl of templatesRes.data ?? []) {
+        if (sportFilterApplies && !filters.sports!.includes(tpl.sport)) continue
         hits.push({
           id: `test-tpl-${tpl.id}`,
           title: tpl.name,
@@ -203,21 +256,25 @@ export async function searchAcrossCategories(
 
   if (wanted('templates')) {
     tasks.push((async () => {
+      const sortAlpha = sort === 'alphabetical'
       const [oktmal, plan, perio] = await Promise.all([
         supabase
           .from('workout_templates')
-          .select('id, name')
+          .select('id, name, created_at')
           .ilike('name', like)
+          .order(sortAlpha ? 'name' : 'created_at', { ascending: sortAlpha })
           .limit(PER_CATEGORY_LIMIT),
         supabase
           .from('plan_templates')
-          .select('id, name, description, category')
+          .select('id, name, description, category, created_at')
           .or(`name.ilike.${like},description.ilike.${like},category.ilike.${like}`)
+          .order(sortAlpha ? 'name' : 'created_at', { ascending: sortAlpha })
           .limit(PER_CATEGORY_LIMIT),
         supabase
           .from('periodization_templates')
-          .select('id, name, description, category')
+          .select('id, name, description, category, created_at')
           .or(`name.ilike.${like},description.ilike.${like},category.ilike.${like}`)
+          .order(sortAlpha ? 'name' : 'created_at', { ascending: sortAlpha })
           .limit(PER_CATEGORY_LIMIT),
       ])
       const hits: SearchHit[] = []
@@ -256,12 +313,16 @@ export async function searchAcrossCategories(
       const athleteIds = (relations ?? []).map(r => r.athlete_id)
       if (athleteIds.length === 0) return { category: 'athletes' as const, hits: [] }
 
-      const { data: profiles } = await supabase
+      let req = supabase
         .from('profiles')
         .select('id, full_name, email, primary_sport')
         .in('id', athleteIds)
         .or(`full_name.ilike.${like},email.ilike.${like},primary_sport.ilike.${like}`)
         .limit(PER_CATEGORY_LIMIT)
+      if (sportFilterApplies) req = req.in('primary_sport', filters.sports!)
+      if (sort === 'alphabetical') req = req.order('full_name', { ascending: true })
+
+      const { data: profiles } = await req
 
       const hits: SearchHit[] = (profiles ?? []).map(p => ({
         id: p.id,

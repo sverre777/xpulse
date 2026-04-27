@@ -1,9 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { searchAcrossCategories, type SearchResults, type SearchCategory } from '@/app/actions/search'
+import {
+  searchAcrossCategories,
+  type SearchResults, type SearchCategory, type SearchSort, type SearchFilters,
+} from '@/app/actions/search'
 import { SearchCategoryFilter, type CategoryKey, type CategoryOption } from './SearchCategoryFilter'
 import { SearchResultGroup } from './SearchResultGroup'
+import { SearchSortDropdown } from './SearchSortDropdown'
+import { SearchFilterPanel } from './SearchFilterPanel'
+import { SearchActiveFiltersChips } from './SearchActiveFiltersChips'
 
 interface Props {
   open: boolean
@@ -28,11 +34,18 @@ const ORDER: SearchCategory[] = ['workouts', 'competitions', 'comments', 'tests'
 export function SearchModal({ open, onClose, mode, accent }: Props) {
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('all')
+  const [sort, setSort] = useState<SearchSort>('relevance')
+  const [filters, setFilters] = useState<SearchFilters>({})
+  const [filterOpen, setFilterOpen] = useState(false)
   const [results, setResults] = useState<SearchResults>({})
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const requestSeq = useRef(0)
+
+  const filterCount =
+    (filters.fromDate || filters.toDate ? 1 : 0) +
+    (filters.sports?.length ?? 0)
 
   const options: CategoryOption[] = useMemo(() => {
     const base: CategoryOption[] = [
@@ -51,6 +64,9 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
     if (!open) {
       setQuery('')
       setActiveCategory('all')
+      setSort('relevance')
+      setFilters({})
+      setFilterOpen(false)
       setResults({})
       return
     }
@@ -83,13 +99,15 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
         const res = await searchAcrossCategories(trimmed, {
           mode,
           category: activeCategory === 'all' ? undefined : activeCategory,
+          sort,
+          filters,
         })
         if (seq !== requestSeq.current) return
         setResults(res)
       })
     }, DEBOUNCE_MS)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, activeCategory, mode, open])
+  }, [query, activeCategory, mode, sort, filters, open])
 
   if (!open) return null
 
@@ -157,6 +175,39 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
             accent={accent}
           />
         </div>
+
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-2"
+          style={{ borderBottom: '1px solid #1E1E22' }}
+        >
+          <SearchSortDropdown value={sort} onChange={setSort} />
+          <button
+            type="button"
+            onClick={() => setFilterOpen(o => !o)}
+            aria-expanded={filterOpen}
+            className="text-xs tracking-widest uppercase flex items-center gap-2"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              padding: '4px 10px',
+              border: `1px solid ${filterCount > 0 ? accent : '#1E1E22'}`,
+              backgroundColor: 'transparent',
+              color: filterCount > 0 ? accent : '#8A8A96',
+              cursor: 'pointer',
+            }}
+          >
+            Filter{filterCount > 0 ? ` (${filterCount})` : ''}
+            <span aria-hidden="true">{filterOpen ? '▴' : '▾'}</span>
+          </button>
+        </div>
+
+        <SearchFilterPanel
+          open={filterOpen}
+          filters={filters}
+          onChange={setFilters}
+          accent={accent}
+        />
+
+        <SearchActiveFiltersChips filters={filters} onChange={setFilters} />
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
           {showHint && (

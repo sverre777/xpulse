@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { after } from 'next/server'
 import {
   getConversations,
   getThreadHeader,
@@ -54,8 +55,9 @@ export default async function InboxMessagesPage({ searchParams }: Props) {
       )
     }
 
-    // Markér som lest når tråden åpnes
-    await markThreadRead(activeKey)
+    // Markér som lest etter at responsen er sendt — `markThreadRead` kaller
+    // revalidatePath, som ikke kan kjøres under render i Next.js 16.
+    after(() => markThreadRead(activeKey))
 
     const messages = 'error' in messagesRes ? [] : messagesRes
     const messagesError = 'error' in messagesRes ? messagesRes.error : null

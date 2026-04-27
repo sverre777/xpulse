@@ -26,7 +26,6 @@ import {
   DayStateIndicator, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
 import { FocusSection } from '@/components/focus/FocusSection'
-import { WeeklyReflectionSection } from '@/components/weekly-reflection/WeeklyReflectionSection'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
 import {
@@ -738,22 +737,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         />
                       </div>
                     )}
-
-                    {focusContext === 'dagbok' && (() => {
-                      const [yStr] = isoWeekKey(expandedDate).split('-W')
-                      const [curYStr, curWStr] = isoWeekKey(new Date()).split('-W')
-                      return (
-                        <div className="mb-3">
-                          <WeeklyReflectionSection
-                            year={parseInt(yStr, 10)}
-                            weekNumber={isoWeek(expandedDate)}
-                            currentYear={parseInt(curYStr, 10)}
-                            currentWeek={parseInt(curWStr, 10)}
-                            targetUserId={targetUserId}
-                          />
-                        </div>
-                      )
-                    })()}
 
                     {dayWorkouts.length === 0 ? (
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>

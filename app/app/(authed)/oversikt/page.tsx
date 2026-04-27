@@ -110,7 +110,6 @@ export default async function OversiktPage() {
 
         <UkensTotaler
           totals={res.weekTotals}
-          reflection={res.weeklyReflection}
           weekNumber={res.hero.weekNumber}
         />
 

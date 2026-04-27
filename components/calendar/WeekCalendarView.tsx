@@ -11,7 +11,6 @@ import {
   weekOverlayFor,
 } from '@/lib/periodization-overlay'
 import { FocusSection } from '@/components/focus/FocusSection'
-import { WeeklyReflectionSection } from '@/components/weekly-reflection/WeeklyReflectionSection'
 
 function isoWeekKey(date: Date): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -480,22 +479,6 @@ export function WeekCalendarView({
           />
         </div>
       )}
-
-      {focusContext === 'dagbok' && (() => {
-        const [yStr] = isoWeekKey(weekDates[0]).split('-W')
-        const [curYStr, curWStr] = isoWeekKey(new Date()).split('-W')
-        return (
-          <div className="px-4 md:px-6 py-2">
-            <WeeklyReflectionSection
-              year={parseInt(yStr, 10)}
-              weekNumber={weekNum}
-              currentYear={parseInt(curYStr, 10)}
-              currentWeek={parseInt(curWStr, 10)}
-              targetUserId={targetUserId}
-            />
-          </div>
-        )
-      })()}
 
       {/* Mobil: stablet daglig liste i stedet for time-rutenettet. Bedre lesbarhet
           enn å zoome i en horisontal scroll-tabell. Vises på <640px (sm:hidden). */}

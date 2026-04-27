@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import type { OversiktWeekTotals, OversiktZoneSeconds, OversiktWeeklyReflectionBadge } from '@/app/actions/oversikt'
+import type { OversiktWeekTotals, OversiktZoneSeconds } from '@/app/actions/oversikt'
 
 const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
 
@@ -109,42 +108,19 @@ function StatCell({ label, value, delta }: { label: string; value: string; delta
 }
 
 export function UkensTotaler({
-  totals, reflection, weekNumber,
+  totals, weekNumber,
 }: {
   totals: OversiktWeekTotals
-  reflection: OversiktWeeklyReflectionBadge
   weekNumber: number
 }) {
   return (
     <section className="p-5 mb-6" style={{ backgroundColor: '#111113', border: '1px solid #1E1E22' }}>
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3">
-          <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            Ukens totaler · Uke {weekNumber}
-          </span>
-        </div>
-
-        {reflection.filled ? (
-          <span className="text-xs tracking-widest uppercase px-2 py-0.5"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#28A86E', border: '1px solid #28A86E',
-            }}>
-            Tilbakeblikk fylt
-          </span>
-        ) : (
-          <Link href="/app/dagbok"
-            className="text-xs tracking-widest uppercase px-2 py-0.5 hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#D4A017', border: '1px solid #D4A017',
-              textDecoration: 'none',
-            }}>
-            Fyll tilbakeblikk →
-          </Link>
-        )}
+      <div className="flex items-center gap-3 mb-3">
+        <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Ukens totaler · Uke {weekNumber}
+        </span>
       </div>
 
       <div className="flex flex-wrap gap-x-10 gap-y-4">

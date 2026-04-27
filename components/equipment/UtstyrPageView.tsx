@@ -3,6 +3,10 @@
 import { useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
+} from 'recharts'
 import { saveEquipment } from '@/app/actions/equipment'
 import {
   EQUIPMENT_CATEGORIES,
@@ -40,6 +44,21 @@ export function UtstyrPageView({ initialEquipment }: Props) {
     for (const cat of EQUIPMENT_CATEGORIES) map.set(cat, [])
     for (const e of filtered) map.get(e.category)?.push(e)
     return map
+  }, [filtered])
+
+  // Topp-8 utstyr etter total bruk (km eller tid). Brukes i sammenligningsgrafen
+  // øverst på siden. Bruker filtrert liste så grafen følger kategori/status-toggles.
+  const topUsage = useMemo(() => {
+    return [...filtered]
+      .map(e => ({
+        id: e.id,
+        name: e.name,
+        km: Number(e.usage.total_km.toFixed(1)),
+        hours: Number((e.usage.total_minutes / 60).toFixed(1)),
+      }))
+      .filter(d => d.km > 0 || d.hours > 0)
+      .sort((a, b) => (b.km + b.hours) - (a.km + a.hours))
+      .slice(0, 8)
   }, [filtered])
 
   return (
@@ -88,6 +107,47 @@ export function UtstyrPageView({ initialEquipment }: Props) {
             <FilterButton active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>Alle</FilterButton>
           </FilterGroup>
         </div>
+
+        {topUsage.length > 0 && (
+          <div className="mb-8 p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+            <p className="text-xs tracking-widest uppercase mb-3"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Totalbruk — topp {topUsage.length}
+            </p>
+            <div style={{ width: '100%', height: 240 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topUsage} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                  <CartesianGrid stroke="#1E1E22" strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: '#555560' }}
+                    stroke="#1E1E22"
+                    interval={0}
+                    tickFormatter={(n: string) => n.length > 12 ? `${n.slice(0, 12)}…` : n}
+                  />
+                  <YAxis
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: '#555560' }}
+                    stroke="#1E1E22"
+                    width={36}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+                      fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px', color: '#F0F0F2',
+                    }}
+                    formatter={(val, key) => [val as number, String(key) === 'km' ? 'Km' : 'Timer']}
+                  />
+                  <Legend
+                    wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }}
+                    formatter={(key: string) => key === 'km' ? 'Distanse (km)' : 'Tid (timer)'}
+                  />
+                  <Bar dataKey="km" fill={ATHLETE_ORANGE} isAnimationActive={false} />
+                  <Bar dataKey="hours" fill="#1A6FD4" isAnimationActive={false} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {filtered.length === 0 ? (
           <div className="p-12 text-center" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>

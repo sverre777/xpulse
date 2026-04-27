@@ -1,8 +1,16 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend,
+} from 'recharts'
 import type { SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { SKI_TYPE_LABELS, type SkiType } from '@/lib/equipment-types'
+import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+
+// Stabile farger for opp til 8 ski; resten faller tilbake til grå.
+const SKI_LINE_COLORS = ['#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#A855F7', '#E11D48', '#0EA5E9', '#F97316']
 
 interface Props {
   data: SkiTestAnalysisData
@@ -99,6 +107,34 @@ export function SkiTesterTab({ data }: Props) {
     return result
   }, [data.tests, skiById])
 
+  // Bygg datapunkter for tids-graf: én rad per testdato med kolonne per ski-id.
+  // Når en ski ikke ble testet på en gitt dato er kolonnen null (Recharts hopper
+  // over). connectNulls=true gir kontinuerlige linjer på tvers av missing dager.
+  const timeChart = useMemo(() => {
+    const dateMap = new Map<string, Record<string, string | number | null>>()
+    const skiIds = new Set<string>()
+    for (const t of data.tests) {
+      const row = dateMap.get(t.test_date) ?? { date: t.test_date, snow_type: t.snow_type ?? '' }
+      for (const e of t.entries) {
+        if (typeof e.rating !== 'number') continue
+        skiIds.add(e.ski_id)
+        row[e.ski_id] = e.rating
+      }
+      dateMap.set(t.test_date, row)
+    }
+    const points = Array.from(dateMap.values()).sort((a, b) =>
+      String(a.date).localeCompare(String(b.date)),
+    )
+    // Sorter ski-id-er etter hvor mange punkter de har, så viktigste vises først i legend.
+    const ids = Array.from(skiIds)
+    const counts = new Map<string, number>()
+    for (const p of points) {
+      for (const id of ids) if (typeof p[id] === 'number') counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
+    ids.sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0))
+    return { points, skiIds: ids }
+  }, [data.tests])
+
   const timeline = useMemo(() => {
     if (!selectedSkiId) return []
     const items: Array<{
@@ -139,6 +175,47 @@ export function SkiTesterTab({ data }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Tidslinje-graf: rating per ski over tid */}
+      {timeChart.points.length >= 2 && timeChart.skiIds.length > 0 && (
+        <ChartWrapper
+          title="Rating over tid"
+          subtitle={`Snitt-rating per ski over ${timeChart.points.length} test-dato${timeChart.points.length === 1 ? '' : 'er'}. Hover for detaljer.`}
+          height={300}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={timeChart.points} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+              <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
+              <YAxis domain={[0, 10]} tick={AXIS_STYLE} stroke={GRID_COLOR} width={28} />
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                labelStyle={{ color: '#F0F0F2' }}
+                formatter={(val, key) => {
+                  const info = skiById.get(String(key))
+                  return [val as number, info?.name ?? String(key)]
+                }}
+              />
+              <Legend
+                wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }}
+                formatter={(key: string) => skiById.get(key)?.name ?? key}
+              />
+              {timeChart.skiIds.map((id, i) => (
+                <Line
+                  key={id}
+                  type="monotone"
+                  dataKey={id}
+                  stroke={SKI_LINE_COLORS[i % SKI_LINE_COLORS.length]}
+                  strokeWidth={selectedSkiId === id ? 3 : 1.5}
+                  dot={{ r: selectedSkiId === id ? 4 : 2 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartWrapper>
+      )}
+
       {/* Toppoversikt: ski rangert etter snitt-rating */}
       <div className="p-4" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
         <p className="text-xs tracking-widest uppercase mb-3"

@@ -7,7 +7,6 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
-import { HomeIconButton } from '@/components/layout/HomeIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
@@ -328,13 +327,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
         </Link>
 
         <div className="flex items-center gap-0">
-          <HomeIconButton
-            href={HOME_HREF}
-            accent={COACH_BLUE}
-            isActive={pathname === HOME_HREF}
-          />
-          {NAV_LINKS.map(({ href, label }) => {
-            const active = pathname === href || pathname.startsWith(href + '/')
+          {[{ href: HOME_HREF, label: 'Hjem' }, ...NAV_LINKS].map(({ href, label }) => {
+            const active = href === HOME_HREF
+              ? pathname === href
+              : pathname === href || pathname.startsWith(href + '/')
             const Glyph = COACH_NAV_GLYPHS[href]
             return (
               <Link

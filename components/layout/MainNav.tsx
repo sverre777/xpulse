@@ -7,7 +7,6 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
-import { HomeIconButton } from './HomeIconButton'
 import { UserMenu } from './UserMenu'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
@@ -195,13 +194,10 @@ export function MainNav({
         </Link>
 
         <div className="flex items-center gap-0">
-          <HomeIconButton
-            href={HOME_HREF}
-            accent={accent}
-            isActive={pathname === HOME_HREF}
-          />
-          {NAV_LINKS.map(({ href, label }) => {
-            const active = pathname === href || pathname.startsWith(href + '/')
+          {[{ href: HOME_HREF, label: 'Hjem' }, ...NAV_LINKS].map(({ href, label }) => {
+            const active = href === HOME_HREF
+              ? pathname === href
+              : pathname === href || pathname.startsWith(href + '/')
             const Glyph = ATHLETE_NAV_GLYPHS[href]
             return (
               <Link

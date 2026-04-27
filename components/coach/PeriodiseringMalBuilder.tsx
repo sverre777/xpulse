@@ -12,6 +12,9 @@ import type {
 import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { addDays, deriveEndDate, formatNorskKortDato } from '@/lib/template-dates'
+import { PeriodiseringMalTimeline } from '@/components/coach/PeriodiseringMalTimeline'
+import { PeriodiseringMalVolumeSection } from '@/components/coach/PeriodiseringMalVolumeSection'
+import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -55,6 +58,7 @@ const EMPTY_DATA: PeriodizationTemplateData = {
   season: { name: '', goal_main: null, goal_secondary: null, sport: null, kpi_notes: null },
   periods: [],
   key_dates: [],
+  volume_plans: [],
 }
 
 export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Props) {
@@ -78,6 +82,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
         sport: pd.season?.sport ?? null,
         kpi_notes: pd.season?.kpi_notes ?? null,
       },
+      volume_plans: pd.volume_plans ?? [],
     }
   })
   const [err, setErr] = useState<string | null>(null)
@@ -200,6 +205,9 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
         .sort((a, b) => a.start_offset - b.start_offset)
         .map((p, i) => ({ ...p, sort_order: i })),
       key_dates: data.key_dates.slice().sort((a, b) => a.day_offset - b.day_offset),
+      volume_plans: (data.volume_plans ?? [])
+        .slice()
+        .sort((a, b) => a.month_offset - b.month_offset),
     }
 
     const start = startDate || null
@@ -367,6 +375,16 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           </section>
 
           <section>
+            <SectionTitle>Forhåndsvisning</SectionTitle>
+            <PeriodiseringMalTimeline
+              durationDays={durationDays}
+              startDate={startDate || null}
+              periods={data.periods}
+              keyDates={data.key_dates}
+            />
+          </section>
+
+          <section>
             <div className="flex items-center justify-between mb-3">
               <SectionTitle compact>Perioder</SectionTitle>
               <BtnSm onClick={addPeriod}>+ Ny periode</BtnSm>
@@ -410,6 +428,18 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                 ))}
               </div>
             )}
+          </section>
+
+          <section>
+            <SectionTitle>Månedlig volum-plan</SectionTitle>
+            <PeriodiseringMalVolumeSection
+              durationDays={durationDays}
+              startDate={startDate || null}
+              volumePlans={data.volume_plans ?? []}
+              onChange={(next: PeriodizationTemplateVolumePlan[]) =>
+                setData(d => ({ ...d, volume_plans: next }))
+              }
+            />
           </section>
 
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>

@@ -93,10 +93,21 @@ export interface PeriodizationTemplateKeyDate {
   distance_format?: string | null
 }
 
+export interface PeriodizationTemplateVolumePlan {
+  // Måneds-offset fra malens startdato (0 = første måned).
+  // Ved push: faktisk år+måned utledes ved å legge til måneder på input.startDate.
+  month_offset: number
+  planned_hours: number | null
+  planned_km: number | null
+  notes: string | null
+}
+
 export interface PeriodizationTemplateData {
   season: PeriodizationTemplateSeason
   periods: PeriodizationTemplatePeriod[]
   key_dates: PeriodizationTemplateKeyDate[]
+  // Optional for backwards compat — gamle maler har ingen volum-plan.
+  volume_plans?: PeriodizationTemplateVolumePlan[]
 }
 
 export interface PeriodizationTemplate {

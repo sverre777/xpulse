@@ -1022,6 +1022,50 @@ export async function pushPeriodizationTemplateToAthlete(
     }
   }
 
+  // Volum-planer: konverter month_offset → (year, month) basert på startDate.
+  // Hopp over måneder som allerede har en plan for denne brukeren (merge-strategi).
+  let volumePlanCount = 0
+  let volumePlanSkipped = 0
+  const tplVolumePlans = data.volume_plans ?? []
+  if (tplVolumePlans.length > 0) {
+    const startY = parseInt(input.startDate.slice(0, 4))
+    const startM = parseInt(input.startDate.slice(5, 7))
+    const candidates = tplVolumePlans.map(v => {
+      const totalMonths = (startY * 12 + (startM - 1)) + v.month_offset
+      const year = Math.floor(totalMonths / 12)
+      const month = (totalMonths % 12) + 1
+      return {
+        user_id: input.athleteId,
+        season_id: season.id,
+        year,
+        month,
+        planned_hours: v.planned_hours,
+        planned_km: v.planned_km,
+        notes: v.notes,
+      }
+    })
+    const { data: existing, error: vLookupErr } = await supabase
+      .from('monthly_volume_plans')
+      .select('year, month')
+      .eq('user_id', input.athleteId)
+      .in('year', Array.from(new Set(candidates.map(c => c.year))))
+    if (vLookupErr) {
+      await supabase.from('seasons').delete().eq('id', season.id)
+      return { error: `monthly_volume_plans (lookup): ${vLookupErr.message}` }
+    }
+    const existingKeys = new Set((existing ?? []).map(r => `${r.year}-${r.month}`))
+    const toInsert = candidates.filter(c => !existingKeys.has(`${c.year}-${c.month}`))
+    volumePlanSkipped = candidates.length - toInsert.length
+    if (toInsert.length > 0) {
+      const { error: vErr } = await supabase.from('monthly_volume_plans').insert(toInsert)
+      if (vErr) {
+        await supabase.from('seasons').delete().eq('id', season.id)
+        return { error: `monthly_volume_plans: ${vErr.message}` }
+      }
+      volumePlanCount = toInsert.length
+    }
+  }
+
   await writeAudit({
     athleteId: input.athleteId,
     coachId: check.coachId,
@@ -1033,6 +1077,8 @@ export async function pushPeriodizationTemplateToAthlete(
       template_name: tpl.name,
       periods: periodRows.length,
       key_dates: keyDateRows.length,
+      volume_plans: volumePlanCount,
+      volume_plans_skipped: volumePlanSkipped,
     },
   })
   await notifyAthlete({

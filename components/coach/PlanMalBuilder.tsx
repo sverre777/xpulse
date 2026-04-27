@@ -9,6 +9,7 @@ import type {
 import { PERIOD_SPORT_CATEGORIES, sportToCategory, type Sport, type WorkoutTemplate } from '@/lib/types'
 import { RelativeDateCalendar } from '@/components/coach/RelativeDateCalendar'
 import { PlanMalDayEditor } from '@/components/coach/PlanMalDayEditor'
+import { PlanMalNotesSection } from '@/components/coach/PlanMalNotesSection'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { deriveEndDate } from '@/lib/template-dates'
 
@@ -274,6 +275,12 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
             dayStates={data.day_states}
             startDate={startDate || null}
             onDayClick={(d) => setOpenDay(d)}
+          />
+
+          <PlanMalNotesSection
+            durationDays={durationDays}
+            data={data}
+            onChange={setData}
           />
 
           <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>

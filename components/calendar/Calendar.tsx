@@ -582,7 +582,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       )}
 
       {/* Column headers: week# + 7 days + totals */}
-      <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 72px', borderBottom: '1px solid #1A1A1E' }}>
+      <div className="grid" style={{ gridTemplateColumns: '36px repeat(7, 1fr) 88px', borderBottom: '1px solid #1A1A1E' }}>
         <div />
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
@@ -605,7 +605,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         return (
           <Fragment key={wi}>
             <div className="grid" style={{
-              gridTemplateColumns: '36px repeat(7, 1fr) 72px',
+              gridTemplateColumns: '36px repeat(7, 1fr) 88px',
               borderBottom: expandedInWeek ? 'none' : '1px solid #1A1A1E',
             }}>
               {/* Week number + period badge + subtle period stripe */}
@@ -640,21 +640,21 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               })}
 
               {/* Week totals: tid + km + sessions + mini sonebar */}
-              <div className="flex flex-col items-end justify-start pt-2 pr-2" style={{ gap: '2px' }}>
+              <div className="flex flex-col items-end justify-start pt-2 pr-2" style={{ gap: '3px' }}>
                 {weekMins > 0 && (
                   <>
-                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '13px', lineHeight: 1 }}>
+                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '18px', lineHeight: 1, letterSpacing: '0.02em' }}>
                       {fmtDuration(weekMins)}
                     </span>
                     {weekKm && (
-                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
                         {weekKm}
                       </span>
                     )}
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '13px' }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
                       {weekAgg.sessions} økt{weekAgg.sessions !== 1 ? 'er' : ''}
                     </span>
-                    <div style={{ width: '56px', marginTop: '2px' }}>
+                    <div style={{ width: '72px', marginTop: '2px' }}>
                       <AggZoneBar zoneSeconds={weekAgg.zoneSeconds} height={3} />
                     </div>
                   </>

@@ -480,7 +480,8 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         borderLeftStyle: borderStyle ?? 'solid',
         background: stateBg ?? baseBg,
         opacity: isCurrentMonth ? 1 : 0.3,
-        minHeight: '96px',
+        height: '140px',
+        overflow: 'hidden',
         padding: '4px',
         cursor: 'pointer',
         outline: keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none',
@@ -517,17 +518,17 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       </div>
 
-      {/* Workouts (mode-filtered) — kappet til MAX_VISIBLE i lukket tilstand,
-          rest avsløres via "+N flere"-pill som åpner dagens inline-expansion. */}
+      {/* Workouts (mode-filtered) — kappet til MAX_VISIBLE alltid (cellen har
+          fast høyde). Den fulle listen vises i inline-expansion under uken. */}
       {(() => {
         const filtered = filterByMode(workouts, mode)
         const MAX_VISIBLE = 3
-        const visible = isExpanded ? filtered : filtered.slice(0, MAX_VISIBLE)
+        const visible = filtered.slice(0, MAX_VISIBLE)
         const overflow = filtered.length - visible.length
         return (
           <>
             {visible.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
-            {overflow > 0 && !isExpanded && (
+            {overflow > 0 && (
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); onToggle() }}

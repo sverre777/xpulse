@@ -62,7 +62,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
             height: '52px',
           }}
         >
-          <Link href="/app/trener" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/app/trener"
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -71,6 +74,17 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
               letterSpacing: '0.4em',
             }}>
               X-PULSE
+            </span>
+            <span
+              className="text-[10px] tracking-widest uppercase"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: COACH_BLUE,
+                border: `1px solid ${COACH_BLUE}`,
+                padding: '1px 6px',
+              }}
+            >
+              Beta
             </span>
           </Link>
           <button
@@ -101,15 +115,28 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
             }}
           >
             <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
-              <span style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 600,
-                color: COACH_BLUE,
-                fontSize: '18px',
-                letterSpacing: '0.4em',
-              }}>
-                X-PULSE
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600,
+                  color: COACH_BLUE,
+                  fontSize: '18px',
+                  letterSpacing: '0.4em',
+                }}>
+                  X-PULSE
+                </span>
+                <span
+                  className="text-[10px] tracking-widest uppercase"
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    color: COACH_BLUE,
+                    border: `1px solid ${COACH_BLUE}`,
+                    padding: '1px 6px',
+                  }}
+                >
+                  Beta
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
@@ -203,6 +230,17 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole }: CoachNavPro
           </span>
           <span
             className="text-[10px] tracking-widest uppercase ml-1"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: COACH_BLUE,
+              border: `1px solid ${COACH_BLUE}`,
+              padding: '1px 6px',
+            }}
+          >
+            Beta
+          </span>
+          <span
+            className="text-[10px] tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: COACH_BLUE,

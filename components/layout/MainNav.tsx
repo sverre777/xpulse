@@ -82,7 +82,10 @@ export function MainNav({
             height: '52px',
           }}
         >
-          <Link href="/app/oversikt" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/app/oversikt"
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -91,6 +94,17 @@ export function MainNav({
               letterSpacing: '0.4em',
             }}>
               X-PULSE
+            </span>
+            <span
+              className="text-[10px] tracking-widest uppercase"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: accent,
+                border: `1px solid ${accent}`,
+                padding: '1px 6px',
+              }}
+            >
+              Beta
             </span>
           </Link>
           <button
@@ -146,6 +160,17 @@ export function MainNav({
         >
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: accent, fontSize: '20px', letterSpacing: '0.1em' }}>
             X-PULSE
+          </span>
+          <span
+            className="text-[10px] tracking-widest uppercase ml-1"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: accent,
+              border: `1px solid ${accent}`,
+              padding: '1px 6px',
+            }}
+          >
+            Beta
           </span>
         </Link>
 
@@ -272,15 +297,28 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
     >
       {/* Header row (X close) */}
       <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
-        <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 600,
-          color: accent,
-          fontSize: '18px',
-          letterSpacing: '0.4em',
-        }}>
-          X-PULSE
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 600,
+            color: accent,
+            fontSize: '18px',
+            letterSpacing: '0.4em',
+          }}>
+            X-PULSE
+          </span>
+          <span
+            className="text-[10px] tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: accent,
+              border: `1px solid ${accent}`,
+              padding: '1px 6px',
+            }}
+          >
+            Beta
+          </span>
+        </div>
         <button
           type="button"
           onClick={onClose}

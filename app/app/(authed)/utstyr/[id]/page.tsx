@@ -3,9 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import {
   getEquipmentById,
   getSkiData,
+  listSkiEquipment,
   listWorkoutsForEquipment,
 } from '@/app/actions/equipment'
-import { listSkiTestsForSki } from '@/app/actions/ski-tests'
+import { listConditionsTemplates, listSkiTestsForSki } from '@/app/actions/ski-tests'
 import { EquipmentDetailView } from '@/components/equipment/EquipmentDetailView'
 
 export default async function EquipmentDetailPage({
@@ -23,9 +24,11 @@ export default async function EquipmentDetailPage({
 
   const workouts = await listWorkoutsForEquipment(id)
   const isSki = equipment.category === 'ski'
-  const [skiData, skiTests] = await Promise.all([
+  const [skiData, skiTests, allSki, conditionsTemplates] = await Promise.all([
     isSki ? getSkiData(id) : Promise.resolve(null),
     isSki ? listSkiTestsForSki(id) : Promise.resolve([]),
+    isSki ? listSkiEquipment() : Promise.resolve([]),
+    isSki ? listConditionsTemplates() : Promise.resolve([]),
   ])
   return (
     <EquipmentDetailView
@@ -33,6 +36,8 @@ export default async function EquipmentDetailPage({
       workouts={workouts}
       skiData={skiData}
       skiTests={skiTests}
+      allSki={allSki}
+      conditionsTemplates={conditionsTemplates}
     />
   )
 }

@@ -29,6 +29,8 @@ import { TerskelTab } from './TerskelTab'
 import { SkytingTab } from './SkytingTab'
 import { PeriodiseringTab } from './PeriodiseringTab'
 import { TesterPRTab } from './TesterPRTab'
+import { SkiTesterTab } from './SkiTesterTab'
+import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -41,6 +43,7 @@ type Tab =
   | 'mal_analyse'
   | 'konkurranser'
   | 'tester_pr'
+  | 'ski_tester'
   | 'helse'
   | 'per_bevegelsesform'
   | 'intensitet'
@@ -68,6 +71,7 @@ const TABS: [Tab, string][] = [
   ['mal_analyse', 'Mal-analyse'],
   ['konkurranser', 'Konkurranser'],
   ['tester_pr', 'Tester & PR'],
+  ['ski_tester', 'Ski-tester'],
   ['helse', 'Helse'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
@@ -137,6 +141,7 @@ function AnalysisPageInner({
   const [skyting, setSkyting] = useState<ShootingDepthAnalysis | null>(null)
   const [periodisering, setPeriodisering] = useState<PeriodizationOverview | null>(null)
   const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
+  const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -150,6 +155,7 @@ function AnalysisPageInner({
     setSkyting(null)
     setPeriodisering(null)
     setTestsAndPRs(null)
+    setSkiTesterData(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -264,8 +270,15 @@ function AnalysisPageInner({
         setTestsAndPRs(res)
       })
     }
+    if (tab === 'ski_tester' && skiTesterData === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getSkiTestAnalysis(range.from, range.to)
+        setSkiTesterData(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -470,6 +483,11 @@ function AnalysisPageInner({
           testsAndPRs
             ? <TesterPRTab data={testsAndPRs} targetUserId={targetUserId} />
             : <LoadingStub label="Laster tester og PR…" />
+        )}
+        {tab === 'ski_tester' && (
+          skiTesterData
+            ? <SkiTesterTab data={skiTesterData} />
+            : <LoadingStub label="Laster ski-tester…" />
         )}
       </div>
     </div>

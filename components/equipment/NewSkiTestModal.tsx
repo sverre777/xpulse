@@ -85,7 +85,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose }: Props
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (entries.length < 2) { setError('Minst 2 ski må testes'); return }
+    if (entries.length < 1) { setError('Minst 1 ski må registreres'); return }
     setError(null)
     startTransition(async () => {
       const result = await saveSkiTest({

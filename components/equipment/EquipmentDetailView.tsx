@@ -22,7 +22,9 @@ import {
   type EquipmentWithUsage,
   type SkiType,
 } from '@/lib/equipment-types'
-import type { SkiTestWithEntries } from '@/lib/ski-test-types'
+import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
+import { NewSkiTestModal } from './NewSkiTestModal'
+import type { SkiEquipment } from '@/lib/equipment-types'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -38,9 +40,14 @@ interface Props {
   }>
   skiData?: EquipmentSkiData | null
   skiTests?: SkiTestWithEntries[]
+  // Brukes til "+ Ny test"-modal når kategorien er ski.
+  allSki?: SkiEquipment[]
+  conditionsTemplates?: UserConditionsTemplate[]
 }
 
-export function EquipmentDetailView({ equipment, workouts, skiData = null, skiTests = [] }: Props) {
+export function EquipmentDetailView({
+  equipment, workouts, skiData = null, skiTests = [], allSki = [], conditionsTemplates = [],
+}: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -245,7 +252,12 @@ export function EquipmentDetailView({ equipment, workouts, skiData = null, skiTe
         )}
 
         {equipment.category === 'ski' && (
-          <SkiTestHistorySection skiId={equipment.id} tests={skiTests} />
+          <SkiTestHistorySection
+            skiId={equipment.id}
+            tests={skiTests}
+            allSki={allSki}
+            templates={conditionsTemplates}
+          />
         )}
 
         <h2 className="text-xs tracking-widest uppercase mb-3"
@@ -422,7 +434,15 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
   )
 }
 
-function SkiTestHistorySection({ skiId, tests }: { skiId: string; tests: SkiTestWithEntries[] }) {
+function SkiTestHistorySection({
+  skiId, tests, allSki, templates,
+}: {
+  skiId: string
+  tests: SkiTestWithEntries[]
+  allSki: SkiEquipment[]
+  templates: UserConditionsTemplate[]
+}) {
+  const [showModal, setShowModal] = useState(false)
   const myEntries = tests
     .map(t => {
       const entry = t.entries.find(e => e.ski_id === skiId)
@@ -430,28 +450,45 @@ function SkiTestHistorySection({ skiId, tests }: { skiId: string; tests: SkiTest
     })
     .filter((x): x is { test: SkiTestWithEntries; entry: SkiTestWithEntries['entries'][number] } => x !== null)
 
+  const headerWithButton = (
+    <div className="flex items-center justify-between mb-3">
+      <p className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Ski-tester ({myEntries.length})
+      </p>
+      <button type="button" onClick={() => setShowModal(true)} style={btnPrimary}>
+        + Ny test
+      </button>
+    </div>
+  )
+
   if (myEntries.length === 0) {
     return (
-      <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-        <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Ski-tester
-        </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
-          Ingen tester registrert for dette skiparet. Start en test fra Min skipark.
-        </p>
-      </div>
+      <>
+        <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
+          {headerWithButton}
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+            Ingen tester registrert for dette skiparet ennå.
+          </p>
+        </div>
+        {showModal && (
+          <NewSkiTestModal
+            ski={allSki}
+            templates={templates}
+            defaultSkiId={skiId}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </>
     )
   }
 
   const bestConditions = analyseBestConditions(myEntries)
 
   return (
+    <>
     <div className="p-6 mb-6" style={{ backgroundColor: '#16161A', border: '1px solid #1E1E22' }}>
-      <p className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Ski-tester ({myEntries.length})
-      </p>
+      {headerWithButton}
 
       {bestConditions.length > 0 && (
         <div className="mb-4 p-3" style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
@@ -514,6 +551,15 @@ function SkiTestHistorySection({ skiId, tests }: { skiId: string; tests: SkiTest
         })}
       </div>
     </div>
+    {showModal && (
+      <NewSkiTestModal
+        ski={allSki}
+        templates={templates}
+        defaultSkiId={skiId}
+        onClose={() => setShowModal(false)}
+      />
+    )}
+    </>
   )
 }
 

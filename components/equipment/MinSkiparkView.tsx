@@ -46,7 +46,7 @@ export function MinSkiparkView({ ski, templates, tests }: Props) {
               Min skipark
             </h1>
           </div>
-          {ski.length >= 2 && (
+          {ski.length >= 1 && (
             <button type="button" onClick={() => setShowModal(true)}
               className="px-4 py-2 text-sm tracking-widest uppercase"
               style={{

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
+import { CustomCursor } from '@/components/cursor/CustomCursor'
 
 export default async function CoachLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -23,6 +24,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
+      <CustomCursor color="#1A6FD4" />
       <CoachNav
         userName={profile?.full_name ?? null}
         hasAthleteRole={profile?.has_athlete_role ?? false}

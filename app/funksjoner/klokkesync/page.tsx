@@ -30,9 +30,9 @@ export default function KlokkesyncPage() {
   return (
     <LandingShell>
       <SportPageHero
-        kicker="Kommer Q3 2026"
-        title={<>KLOKKESYNC <span style={{ color: '#FF4500' }}>KOMMER.</span></>}
-        description="Auto-import fra Garmin, Apple Watch, Polar og Coros. Strava OAuth fungerer i dag; .fit-opplasting virker for alle leverandører. Direkte-koblinger åpner Q3 2026 — meld deg på listen så får du beskjed."
+        kicker="Strava + .fit i dag · direkte Q3 2026"
+        title={<>STRAVA OG <span style={{ color: '#FF4500' }}>.FIT-OPPLASTING<br/>VIRKER NÅ.</span></>}
+        description="Du er på lufta i dag — koble Strava OAuth med ett klikk eller last opp .fit-filer fra hvilken som helst klokke. Direkte-synk for Garmin, Apple Health, Polar og Coros åpner Q3 2026."
         icon={<ClockIcon />}
       />
 

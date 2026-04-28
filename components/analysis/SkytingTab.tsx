@@ -133,7 +133,7 @@ export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
         </p>
       </div>
       <ChartWrapper chartKey="skyting_accuracy_over_time" title="Utvikling per dag" subtitle="Én verdi per dag — aggregert på tvers av alle serier i økten." height={280}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -170,7 +170,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
       <ChartWrapper chartKey="skyting_accuracy_hr_zones" title="Treff vs. pulsbelastning"
         subtitle="Gruppert etter seriens snittpuls — viser hvor mye pulsen koster i treff."
         height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="zone" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -262,7 +262,7 @@ export function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
       <ChartWrapper chartKey="skyting_time_per_series" title="Snitt sekunder per serie"
         subtitle="Utvikling i hastighet ved skytevolden."
         height={240}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -297,7 +297,7 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
       <ChartWrapper chartKey="skyting_training_vs_comp" title="Treff% i kontekst"
         subtitle="Mental fasthet — sammenlign skyting på trening og i konkurransesituasjon."
         height={220}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="kategori" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

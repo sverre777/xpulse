@@ -201,7 +201,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {hrPoints.length >= 2 && (
           <ChartWrapper chartKey="mal_analyse_avg_hr" title="Snittpuls over tid" subtitle="Per gjennomføring">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={hrPoints}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -217,7 +217,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
         )}
         {timePoints.length >= 2 && (
           <ChartWrapper chartKey="mal_analyse_total_time" title="Total tid over tid" subtitle="Minutter per gjennomføring">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={timePoints}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -233,7 +233,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
         )}
         {kmPoints.length >= 2 && (
           <ChartWrapper chartKey="mal_analyse_total_km" title="Total km over tid" subtitle="Kilometer per gjennomføring">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={kmPoints}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -249,7 +249,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
         )}
         {lactatePoints.length >= 1 && (
           <ChartWrapper chartKey="mal_analyse_lactate_progression" title="Laktat-progresjon" subtitle="Snitt laktat per gjennomføring">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <ScatterChart>
                 <CartesianGrid stroke={GRID_COLOR} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}

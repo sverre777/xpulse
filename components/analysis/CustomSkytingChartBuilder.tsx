@@ -345,7 +345,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
     const firstPoints = data.points.filter(p => p.series === 'first')
     const lastPoints = data.points.filter(p => p.series === 'last')
     return (
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis
@@ -375,7 +375,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
   // For tall-akser bruk scatter; kategori-akse (dato) bruk linje.
   if (data.xType === 'number') {
     return (
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart>
           <CartesianGrid stroke={GRID_COLOR} />
           <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -392,7 +392,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
   }
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={data.points}>
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

@@ -124,7 +124,7 @@ function MiniChart({
       ) : (
         <>
           <div style={{ width: '100%', height: 80 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={points} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}

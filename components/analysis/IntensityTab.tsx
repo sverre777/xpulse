@@ -134,7 +134,7 @@ function WeeklyStack({
       <ChartWrapper chartKey="intensity_zones_per_week"
         title={unit === 'pct' ? 'Sonefordeling per uke (%)' : 'Sonefordeling per uke (minutter)'}
         subtitle={unit === 'pct' ? 'Andel av ukens tid i sone' : 'Absolutt tid per sone'} height={320}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           {unit === 'pct' ? (
             <AreaChart data={rows} stackOffset="expand">
               <CartesianGrid stroke={GRID_COLOR} vertical={false} />
@@ -234,7 +234,7 @@ export function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution })
         </p>
       </div>
       <ChartWrapper chartKey="intensity_high_sessions_per_week" title="Antall økter med I4/I5/Hurtighet per uke" subtitle="Én tellet per økt med >0 sek i høy intensitet" height={220}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -279,7 +279,7 @@ export function PolarizedStack({ data, unit }: { data: IntensityDistribution; un
         </p>
       </div>
       <ChartWrapper chartKey="intensity_polarization_per_week" title="Polarisering per uke" subtitle="Lav = I1+I2 · Medium = I3 · Høy = I4+I5+Hurtighet" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

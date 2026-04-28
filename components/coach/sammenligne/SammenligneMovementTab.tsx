@@ -51,7 +51,7 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
       <MovementTable rows={data.athletes} />
 
       <ChartWrapper title="Tid i hovedbevegelse" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={tidData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
@@ -63,7 +63,7 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
       </ChartWrapper>
 
       <ChartWrapper title="Distanse i hovedbevegelse" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={distData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
@@ -100,7 +100,7 @@ function ZoneStackChart({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }
     I4: '#F97316', I5: '#EF4444', Hurtighet: '#A855F7',
   }
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />

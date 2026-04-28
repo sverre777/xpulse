@@ -90,7 +90,7 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
         {title}
       </p>
       <div style={{ width: '100%', height }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis type="number" dataKey="x" domain={[0, 'dataMax']}

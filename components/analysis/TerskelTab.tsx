@@ -144,7 +144,7 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
       <ChartWrapper chartKey="terskel_lactate_profile" title="Scatter med regresjon"
         subtitle="Hvert punkt = én måling (mmol på x, aktivitetens snittpuls på y). Blå linje = lineær regresjon."
         height={340}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} />
             <XAxis type="number" dataKey="x" name="mmol/L" domain={[0, 'auto']}
@@ -198,7 +198,7 @@ export function LactateTrend({ data }: { data: TerskelAnalysis }) {
         </p>
       </div>
       <ChartWrapper chartKey="terskel_lactate_trend" title="Alle målinger" subtitle="Sjekk om laktat synker ved tilsvarende intensitet (= aerob forbedring)." height={240}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}

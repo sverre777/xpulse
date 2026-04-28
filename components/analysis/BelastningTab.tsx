@@ -151,7 +151,7 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
       <ChartWrapper chartKey="belastning_fitness_fatigue_form" title="Belastningskurver"
         subtitle="CTL (blå) bygger form over tid · ATL (rød) reflekterer akutt tretthet · TSB (grønn) = form i dag. Bakgrunnsfarge viser form-sone for TSB."
         height={360}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -210,7 +210,7 @@ export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
       <ChartWrapper chartKey="belastning_daily_tss" title="Daglig treningsbelastning (TSS)"
         subtitle="Stolper = TSS per dag · hvit linje = glidende 7-dagers snitt"
         height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -249,7 +249,7 @@ export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis 
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -289,7 +289,7 @@ export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -348,7 +348,7 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
             </p>
           </div>
           <div style={{ width: '100%', minHeight: 160 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={r.by_subtype.map(s => ({ label: subLabel(s.sub_type), count: s.count }))} layout="vertical"
                 margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke={GRID_COLOR} horizontal={false} />

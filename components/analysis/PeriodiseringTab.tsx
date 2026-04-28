@@ -282,7 +282,7 @@ export function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
       </div>
       <ChartWrapper chartKey="periodisering_tss_per_period" title="Sum TSS per periode"
         subtitle="Farge = intensitet (rolig/medium/hard)" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -322,7 +322,7 @@ export function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview })
       <ChartWrapper chartKey="periodisering_competitions_per_period" title="Antall konkurranser"
         subtitle="Teller både loggede konkurranse-økter og nøkkeldatoer (A/B/C-løp)."
         height={220}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}

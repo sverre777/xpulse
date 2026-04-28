@@ -413,7 +413,7 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={weekly}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -435,7 +435,7 @@ export function OverviewHoursPerWeek({ stats }: { stats: WorkoutStats }) {
   return (
     <ChartWrapper chartKey="overview_hours_per_week" title="Treningstimer per uke"
       subtitle={`Totalt: ${secondsToHours(stats.totalSeconds)} t · ${stats.totalSessions} økter`}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={timeData}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -461,7 +461,7 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
   }))
   return (
     <ChartWrapper chartKey="overview_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter — OLT I-skala">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={zoneData}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -494,7 +494,7 @@ export function OverviewKmPerMovement({ stats }: { stats: WorkoutStats }) {
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={movementData}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -516,7 +516,7 @@ export function OverviewIntensiveSessions({ stats }: { stats: WorkoutStats }) {
   return (
     <ChartWrapper chartKey="overview_intensive_sessions" title="Intensive økter per uke"
       subtitle="Intervall, terskel, hard komb, testløp, konkurranse">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={intensityData}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

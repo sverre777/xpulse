@@ -199,7 +199,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
               </p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={chartData}>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

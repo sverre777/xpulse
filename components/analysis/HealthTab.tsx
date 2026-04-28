@@ -108,7 +108,7 @@ function TrendChart({
 
   return (
     <ChartWrapper chartKey={chartKey} title={title} subtitle={subtitle}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -156,7 +156,7 @@ function CorrelationScatter({
   const r = pearson(points)
   return (
     <ChartWrapper chartKey={chartKey} title={title} subtitle={`${subtitle} · ${formatR(r)}`} height={280}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart>
           <CartesianGrid stroke={GRID_COLOR} />
           <XAxis type="number" dataKey="x" name={xLabel}
@@ -310,7 +310,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
             </p>
           </div>
           <ChartWrapper chartKey="health_lactate_per_template" title="Laktat ved samme mal" subtitle="Kun maler kjørt ≥3 ganger" height={320}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart>
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -362,7 +362,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
               </p>
             </div>
             <ChartWrapper chartKey="health_recovery_distribution" title="Recovery-fordeling" subtitle="Antall per type" height={220}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={data.recovery.by_type} layout="vertical">
                   <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
                   <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
@@ -522,7 +522,7 @@ export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -570,7 +570,7 @@ export function HealthInjuriesTimeline({ data }: { data: HealthCorrelations }) {
       title="Skade-tidslinje"
       subtitle={`${data.injuries.length} skade-uke${data.injuries.length === 1 ? '' : 'r'} i perioden`}
       height={160}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
           <CartesianGrid stroke={GRID_COLOR} vertical={false} horizontal={false} />
           <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -606,7 +606,7 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
           </p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="monthLabel" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

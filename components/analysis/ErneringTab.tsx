@@ -201,7 +201,7 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
     return <Empty msg="Ingen økter med både varighet og karbo-data" />
   }
   return (
-    <div style={{ width: '100%', height: 320 }}>
+    <div style={{ width: '100%', height: 320, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
           <CartesianGrid stroke={GRID_COLOR} />
@@ -258,7 +258,7 @@ function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }
     return <Empty msg="Ingen økter med både snittpuls og karbo-data" />
   }
   return (
-    <div style={{ width: '100%', height: 320 }}>
+    <div style={{ width: '100%', height: 320, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
           <CartesianGrid stroke={GRID_COLOR} />
@@ -301,7 +301,7 @@ function TypeDistribution({ data }: { data: NutritionAnalysis['type_distribution
     carbs_g: d.carbs_g,
   }))
   return (
-    <div style={{ width: '100%', height: 280 }}>
+    <div style={{ width: '100%', height: 280, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={rows} layout="vertical" margin={{ top: 6, right: 16, bottom: 6, left: 24 }}>
           <CartesianGrid stroke={GRID_COLOR} horizontal={false} />

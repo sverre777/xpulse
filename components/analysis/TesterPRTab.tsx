@@ -99,7 +99,7 @@ function ProgressionChart({ series }: { series: TestProgressionSeries }) {
       subtitle={series.unit ? `Enhet: ${series.unit}` : undefined}
       height={240}
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
           <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />

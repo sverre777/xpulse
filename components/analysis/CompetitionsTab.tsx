@@ -358,7 +358,7 @@ export function CompetitionsTab({
                 </p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <ScatterChart>
                   <CartesianGrid stroke={GRID_COLOR} />
                   <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -463,7 +463,7 @@ export function CompetitionsTab({
                     </p>
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart>
                       <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                       <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -494,7 +494,7 @@ export function CompetitionsTab({
                     </p>
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={compVsTrainingAcc}>
                       <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                       <XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']}
@@ -523,7 +523,7 @@ export function CompetitionsTab({
                       </p>
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart>
                         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                         <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
@@ -549,7 +549,7 @@ export function CompetitionsTab({
                       </p>
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={shootingHrSeries}>
                         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                         <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}

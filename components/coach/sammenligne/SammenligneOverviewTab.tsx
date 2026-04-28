@@ -58,7 +58,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
       <ComparisonTable rows={rows} />
 
       <ChartWrapper title="Total treningstid (timer)" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={volumeData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
@@ -74,7 +74,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
       </ChartWrapper>
 
       <ChartWrapper title="Total distanse (km)" height={260}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={distanceData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
@@ -191,7 +191,7 @@ function WeeklyTrainingDaysChart({ rows }: { rows: MultipleAthletesAnalysis['ath
   })
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="week" tick={AXIS_STYLE} stroke={GRID_COLOR} />

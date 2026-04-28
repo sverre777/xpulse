@@ -183,7 +183,7 @@ export function SkiTesterTab({ data }: Props) {
           subtitle={`Snitt-rating per ski over ${timeChart.points.length} test-dato${timeChart.points.length === 1 ? '' : 'er'}. Hover for detaljer.`}
           height={300}
         >
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={timeChart.points} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
               <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
               <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />

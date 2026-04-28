@@ -237,7 +237,7 @@ export function CompetitionTab({
                 </p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <ScatterChart>
                   <CartesianGrid stroke={GRID_COLOR} />
                   <XAxis
@@ -274,7 +274,7 @@ export function CompetitionTab({
                 </p>
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <LineChart>
                   <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                   <XAxis
@@ -321,7 +321,7 @@ export function CompetitionTab({
               </div>
 
               <ChartWrapper title="Treffprosent over tid" subtitle="Liggende, stående, totalt">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <LineChart data={hitPctTrend}>
                     <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                     <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -347,7 +347,7 @@ export function CompetitionTab({
                       </p>
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <BarChart data={biathlonShootingTimes}>
                         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                         <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
@@ -367,7 +367,7 @@ export function CompetitionTab({
                       </p>
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={biathlonAvgHr}>
                         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                         <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />

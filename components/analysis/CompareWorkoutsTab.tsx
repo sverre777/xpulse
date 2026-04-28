@@ -831,7 +831,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
         Splits per km
       </p>
       <div style={{ width: '100%', height: 260 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
@@ -877,7 +877,7 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
         Laktat-utvikling
       </p>
       <div style={{ width: '100%', height: 240 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}

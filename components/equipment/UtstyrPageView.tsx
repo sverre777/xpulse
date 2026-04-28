@@ -115,7 +115,7 @@ export function UtstyrPageView({ initialEquipment }: Props) {
               Totalbruk — topp {topUsage.length}
             </p>
             <div style={{ width: '100%', height: 240 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={topUsage} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid stroke="#1E1E22" strokeDasharray="3 3" />
                   <XAxis

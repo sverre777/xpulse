@@ -819,7 +819,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
     .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day').order('sort_order').order('created_at')
+    .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
 }
 
@@ -834,7 +834,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
     .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day').order('sort_order').order('created_at')
+    .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
 }
 
@@ -847,7 +847,7 @@ export async function getWorkoutsForWeek(userId: string, startDate: string, endD
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day').order('sort_order').order('created_at')
+    .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, (data ?? []) as { created_by_coach_id?: string | null }[])
 }
 
@@ -1127,7 +1127,7 @@ export async function getWorkoutsForDay(userId: string, date: string) {
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId).eq('date', date)
-    .order('time_of_day').order('sort_order').order('created_at')
+    .order('sort_order').order('time_of_day').order('created_at')
   return data ?? []
 }
 

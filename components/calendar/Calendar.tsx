@@ -29,7 +29,6 @@ import {
 } from '@/components/day-state/DayStateIndicator'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
-import { workoutLabel } from '@/lib/workout-label'
 import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
@@ -417,7 +416,7 @@ function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
 // Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
 const COACH_BLUE = '#1A6FD4'
 
-function WorkoutChip({ w, dateStr, mode, dayWorkouts }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode; dayWorkouts: CalendarWorkoutSummary[] }) {
+function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
   const comp = competitionChipStyle(w, mode)
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
@@ -480,10 +479,9 @@ function WorkoutChip({ w, dateStr, mode, dayWorkouts }: { w: CalendarWorkoutSumm
           )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
-          {(() => {
-            const lbl = workoutLabel(w, dayWorkouts)
-            return lbl ? <span style={{ color: '#8A8A96', marginRight: '4px' }}>{lbl}</span> : null
-          })()}
+          {w.start_time && (
+            <span style={{ color: '#8A8A96', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
+          )}
           {w.title}
           {w.position_overall != null && mode !== 'plan' && (
             <span style={{ color, marginLeft: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
@@ -613,7 +611,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         if (filtered.length === 0) return null
         return (
           <div style={{ flex: 1, minHeight: 0 }}>
-            {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} dayWorkouts={filtered} />)}
+            {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
           </div>
         )
       })()}
@@ -806,16 +804,18 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     ) : (
                       <div className="space-y-2 mb-3">
                         {(() => {
-                          // No-time økter sorteres etter sort_order og kan flyttes opp/ned.
-                          // Reorder-knappene er kun synlige når dagen har 2+ no-time-økter
-                          // (og brukeren har skriverettighet).
-                          const noTimeIds = dayWorkouts.filter(w => !w.start_time).map(w => w.id)
-                          const canReorder = !readOnly && noTimeIds.length >= 2
+                          // Når ALLE økter har klokkeslett: rekkefølgen følger time_of_day
+                          // automatisk og er ikke endrebar. Hvis MINST én mangler
+                          // klokkeslett: brukeren styrer rekkefølgen via opp/ned-pil
+                          // (lagres som sort_order på alle øktene i dagen).
+                          const hasMissingTime = dayWorkouts.some(w => !w.start_time)
+                          const canReorder = !readOnly && hasMissingTime && dayWorkouts.length >= 2
+                          const orderedIds = dayWorkouts.map(w => w.id)
                           const move = async (workoutId: string, direction: -1 | 1) => {
-                            const i = noTimeIds.indexOf(workoutId)
+                            const i = orderedIds.indexOf(workoutId)
                             const j = i + direction
-                            if (i < 0 || j < 0 || j >= noTimeIds.length) return
-                            const nextOrder = [...noTimeIds]
+                            if (i < 0 || j < 0 || j >= orderedIds.length) return
+                            const nextOrder = [...orderedIds]
                             ;[nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]]
                             const sortOrders = nextOrder.map((_, idx) => idx)
                             const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
@@ -835,9 +835,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const maxHr = w.max_heart_rate
                           const rpe = w.rpe
                           const notes = (w.notes ?? '').trim()
-                          const lbl = workoutLabel(w, dayWorkouts)
-                          const noTimeIdx = noTimeIds.indexOf(w.id)
-                          const showArrows = canReorder && noTimeIdx >= 0
+                          const dayIdx = orderedIds.indexOf(w.id)
+                          const showArrows = canReorder
                           return (
                             <div key={w.id} className="flex items-stretch gap-1">
                               <button type="button" onClick={() => onEditWorkout(w, ds)}
@@ -857,7 +856,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
-                                      {lbl && <span style={{ color: '#8A8A96', marginRight: '6px' }}>{lbl}</span>}
+                                      {w.start_time && <span style={{ color: '#8A8A96', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
                                       {w.title}
                                       {w.position_overall != null && mode !== 'plan' && (
                                         <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
@@ -932,27 +931,27 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 <div className="flex flex-col gap-1 shrink-0">
                                   <button type="button"
                                     onClick={() => move(w.id, -1)}
-                                    disabled={noTimeIdx === 0}
+                                    disabled={dayIdx === 0}
                                     aria-label="Flytt opp"
                                     style={{
                                       flex: 1, padding: '0 8px',
                                       background: '#1A1A22',
                                       border: '1px solid #1E1E22',
-                                      color: noTimeIdx === 0 ? '#333340' : '#8A8A96',
-                                      cursor: noTimeIdx === 0 ? 'default' : 'pointer',
+                                      color: dayIdx === 0 ? '#333340' : '#8A8A96',
+                                      cursor: dayIdx === 0 ? 'default' : 'pointer',
                                       fontFamily: "'Barlow Condensed', sans-serif",
                                       fontSize: '14px',
                                     }}>↑</button>
                                   <button type="button"
                                     onClick={() => move(w.id, 1)}
-                                    disabled={noTimeIdx === noTimeIds.length - 1}
+                                    disabled={dayIdx === orderedIds.length - 1}
                                     aria-label="Flytt ned"
                                     style={{
                                       flex: 1, padding: '0 8px',
                                       background: '#1A1A22',
                                       border: '1px solid #1E1E22',
-                                      color: noTimeIdx === noTimeIds.length - 1 ? '#333340' : '#8A8A96',
-                                      cursor: noTimeIdx === noTimeIds.length - 1 ? 'default' : 'pointer',
+                                      color: dayIdx === orderedIds.length - 1 ? '#333340' : '#8A8A96',
+                                      cursor: dayIdx === orderedIds.length - 1 ? 'default' : 'pointer',
                                       fontFamily: "'Barlow Condensed', sans-serif",
                                       fontSize: '14px',
                                     }}>↓</button>

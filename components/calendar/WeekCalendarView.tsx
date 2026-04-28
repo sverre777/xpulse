@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { CalendarWorkoutSummary, TYPE_COLORS } from '@/lib/types'
-import { workoutLabel } from '@/lib/workout-label'
+import { reorderWorkouts } from '@/app/actions/workouts'
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
@@ -424,6 +425,7 @@ export function WeekCalendarView({
   readOnly = false,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const router = useRouter()
   const today = toISO(new Date())
 
   // Scroll til default-timen på mount (06:00).
@@ -513,7 +515,24 @@ export function WeekCalendarView({
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
                   Ingen økter
                 </p>
-              ) : (
+              ) : (() => {
+                // Reorder-pil vises på dager der minst én økt mangler klokkeslett.
+                // Lagrer eksplisitt sort_order på alle dagens økter slik at
+                // brukerens manuelle rekkefølge overstyrer time_of_day-sorteringen.
+                const hasMissingTime = dayWorkouts.some(w => !w.start_time)
+                const canReorder = !readOnly && hasMissingTime && dayWorkouts.length >= 2
+                const orderedIds = dayWorkouts.map(w => w.id)
+                const move = async (workoutId: string, direction: -1 | 1) => {
+                  const i = orderedIds.indexOf(workoutId)
+                  const j = i + direction
+                  if (i < 0 || j < 0 || j >= orderedIds.length) return
+                  const nextOrder = [...orderedIds]
+                  ;[nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]]
+                  const sortOrders = nextOrder.map((_, idx) => idx)
+                  const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
+                  if (!('error' in res)) router.refresh()
+                }
+                return (
                 <div className="flex flex-col gap-2">
                   {dayWorkouts.map(w => {
                     const compStyle = competitionStyle(w)
@@ -521,15 +540,15 @@ export function WeekCalendarView({
                     const km = fmtKm(metersFor(w, mode))
                     const planned = planVisual(w, mode)
                     const accent = compStyle?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
-                    const lbl = workoutLabel(w, dayWorkouts)
                     const meta = [
-                      lbl,
+                      w.start_time ? w.start_time.slice(0, 5) : null,
                       dur || null,
                       km || null,
                     ].filter(Boolean).join(' · ')
+                    const dayIdx = orderedIds.indexOf(w.id)
                     return (
+                      <div key={w.id} className="flex items-stretch gap-1">
                       <button
-                        key={w.id}
                         type="button"
                         onClick={() => onEditWorkout(w, ds)}
                         style={{
@@ -538,7 +557,7 @@ export function WeekCalendarView({
                           backgroundColor: '#13131A',
                           border: planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,
                           borderLeft: `3px solid ${accent}`,
-                          textAlign: 'left', cursor: 'pointer', width: '100%',
+                          textAlign: 'left', cursor: 'pointer', flex: 1, minWidth: 0,
                         }}
                       >
                         <div className="flex-1 min-w-0">
@@ -557,10 +576,38 @@ export function WeekCalendarView({
                           )}
                         </div>
                       </button>
+                      {canReorder && (
+                        <div className="flex flex-col gap-1 shrink-0">
+                          <button type="button"
+                            onClick={() => move(w.id, -1)}
+                            disabled={dayIdx === 0}
+                            aria-label="Flytt opp"
+                            style={{
+                              flex: 1, padding: '0 10px',
+                              background: '#1A1A22', border: '1px solid #1E1E22',
+                              color: dayIdx === 0 ? '#333340' : '#8A8A96',
+                              cursor: dayIdx === 0 ? 'default' : 'pointer',
+                              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
+                            }}>↑</button>
+                          <button type="button"
+                            onClick={() => move(w.id, 1)}
+                            disabled={dayIdx === orderedIds.length - 1}
+                            aria-label="Flytt ned"
+                            style={{
+                              flex: 1, padding: '0 10px',
+                              background: '#1A1A22', border: '1px solid #1E1E22',
+                              color: dayIdx === orderedIds.length - 1 ? '#333340' : '#8A8A96',
+                              cursor: dayIdx === orderedIds.length - 1 ? 'default' : 'pointer',
+                              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
+                            }}>↓</button>
+                        </div>
+                      )}
+                      </div>
                     )
                   })}
                 </div>
-              )}
+                )
+              })()}
             </div>
           )
         })}

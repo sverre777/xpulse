@@ -2,24 +2,48 @@ import Link from 'next/link'
 
 // Hero-blokk for funksjoner-undersider. Tar inn sport-ikonet som ReactNode
 // så hver side kan injisere sitt eget ikon uten at heroen vet om alle.
+//
+// Når backgroundImage er satt vises bildet bak innholdet med en
+// venstre-vekt gradient-overlay så tekst er lesbar. Ikonet skjules da på
+// mobil for å gi bildet plass.
 
 export interface SportPageHeroProps {
   kicker: string
   title: React.ReactNode
   description: string
   icon: React.ReactNode
+  backgroundImage?: string
 }
 
-export function SportPageHero({ kicker, title, description, icon }: SportPageHeroProps) {
+export function SportPageHero({
+  kicker, title, description, icon, backgroundImage,
+}: SportPageHeroProps) {
   return (
     <section className="relative overflow-hidden px-6 lg:px-14 pt-20 md:pt-28 pb-20 md:pb-24">
+      {backgroundImage && (
+        <>
+          <div aria-hidden style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+          }} />
+          <div aria-hidden style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            background: 'linear-gradient(to right, rgba(10,10,11,0.95) 0%, rgba(10,10,11,0.75) 45%, rgba(10,10,11,0.35) 100%)',
+          }} />
+          <div aria-hidden style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            background: 'linear-gradient(to top, rgba(10,10,11,0.95) 0%, transparent 40%)',
+          }} />
+        </>
+      )}
       <div aria-hidden style={{
-        position: 'absolute', top: 0, right: 0,
+        position: 'absolute', top: 0, right: 0, zIndex: 2,
         width: 480, height: 480,
         background: 'radial-gradient(circle, rgba(255,69,0,0.08), transparent 70%)',
         pointerEvents: 'none',
       }} />
-      <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-[1.4fr_1fr] items-center relative">
+      <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-[1.4fr_1fr] items-center relative" style={{ zIndex: 3 }}>
         <div>
           <div className="flex items-center gap-3 mb-6"
             style={{

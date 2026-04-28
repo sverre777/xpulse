@@ -10,6 +10,8 @@ export interface SportPageContent {
     kicker: string
     titleLines: string[]   // Splittes på <br/> i UI; siste linje får oransje aksent
     description: string
+    // Valgfritt hero-bakgrunnsbilde. Path som er relativt fra public/.
+    backgroundImage?: string
   }
   metaDescription: string
   sections: {
@@ -29,6 +31,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Klassisk.', 'Skøyting.', 'Staking.'],
       description:
         'Full bredde av langrennssporten på én plattform. Logg drag, analyser bevegelsesform-spesifikk utvikling, hold orden på skiparken og bygg sesongplan rundt nasjonale konkurranser.',
+      backgroundImage: '/photos/DSC09859_thumb.jpg',
     },
     metaDescription:
       'X-PULSE for langrennsutøvere. Klassisk, skøyting, staking, skipark, ski-tester og bevegelsesform-spesifikk analyse på én plattform.',
@@ -91,6 +94,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Eneste plattformen', 'med dyp', 'skyting-analyse.'],
       description:
         'Auto-genererte konkurranseformater (Sprint, Jaktstart, Normal, Fellesstart), per-skyting-data, treff% delt på liggende/stående, og custom grafer som lar deg svare på spørsmål andre apper ikke kan.',
+      backgroundImage: '/photos/IMG_4578_thumb.jpg',
     },
     metaDescription:
       'X-PULSE for skiskyttere. Auto-konkurransestruktur, treff% per posisjon, per-skyting-data og custom skyting-grafer.',
@@ -165,6 +169,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Birken.', 'Vasaloppet.', 'Lange økter.'],
       description:
         'Bygd for de virkelig lange utholdenhetsøktene og turrennene. Logg ernæring, klær, gear og forhold per økt; bygg periodiseringen så du topper formen til riktig dato.',
+      backgroundImage: '/photos/DJI_0062_thumb.jpg',
     },
     metaDescription:
       'X-PULSE for langløp. Lang-tur-spesifikke felt, terreng-detaljering, periodisering mot Birken/Vasaloppet og pacing-analyse.',
@@ -239,6 +244,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Bane.', 'Asfalt.', 'Terreng.'],
       description:
         'Sone-styrt plan, pace-utvikling over tid og tester for å se om treningen faktisk gir fremgang. Funksjoner som dekker hele bredden — fra 800-meter-intervall til ultra på fjellet.',
+      backgroundImage: '/photos/DSC07271_thumb.jpg',
     },
     metaDescription:
       'X-PULSE for løpere. Sone-styrt plan, pace-utvikling, tester og PR-historikk for både bane, asfalt og terreng.',

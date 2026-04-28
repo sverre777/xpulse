@@ -22,9 +22,11 @@ const SPORT_LINKS = [
 ] as const
 
 const MODULE_LINKS = [
-  { href: '/funksjoner/analyse',    label: 'Analyse' },
-  { href: '/funksjoner/trener',     label: 'Trener' },
-  { href: '/funksjoner/klokkesync', label: 'Klokkesync' },
+  { href: '/funksjoner/dagbok-og-plan', label: 'Dagbok og Plan',                soon: false },
+  { href: '/funksjoner/analyse',        label: 'Analyse',                       soon: false },
+  { href: '/funksjoner/trener',         label: 'Trener',                        soon: false },
+  { href: '/funksjoner/klokkesync',     label: 'Klokkesync',                    soon: false },
+  { href: '/funksjoner/ai-coach',       label: 'AI Coach',                      soon: true },
 ] as const
 
 function XLogo({ size = 32 }: { size?: number }) {
@@ -117,6 +119,16 @@ export function LandingNav() {
                   }}
                 >
                   {m.label}
+                  {m.soon && (
+                    <span style={{
+                      display: 'inline-block', marginLeft: 6, padding: '1px 6px',
+                      background: 'rgba(245,197,66,0.15)', border: '1px solid rgba(245,197,66,0.4)',
+                      color: '#F5C542', fontSize: 9, letterSpacing: '1.5px',
+                      verticalAlign: 'middle',
+                    }}>
+                      Q3 2026
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

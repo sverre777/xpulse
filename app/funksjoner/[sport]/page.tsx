@@ -73,6 +73,7 @@ export default async function SportFeaturePage(
         }
         description={content.hero.description}
         icon={<Icon size={140} />}
+        backgroundImage={content.hero.backgroundImage}
       />
 
       {content.sections.map((s, i) => (

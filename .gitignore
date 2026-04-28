@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Foto-originaler — webb-skalerte thumbs ligger i public/photos/.
+public/Bilder/

@@ -555,7 +555,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
-      className="text-left border-l w-full h-[140px] sm:h-[150px]"
+      className="text-left border-l w-full h-[140px] sm:h-[150px] flex flex-col"
       style={{
         borderColor: '#1A1A1E',
         borderLeftStyle: borderStyle ?? 'solid',
@@ -598,38 +598,30 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       </div>
 
-      {/* Workouts (mode-filtered) — kappet til MAX_VISIBLE alltid (cellen har
-          fast høyde). Den fulle listen vises i inline-expansion under uken. */}
+      {/* Workouts (mode-filtered) — full liste i scrollbar inner-div. Cellen
+          har fast høyde; brukeren kan swipe internt for å se flere. Klikk
+          på cellen åpner modal med full detalj-visning. */}
       {(() => {
         const filtered = filterByMode(workouts, mode)
-        const MAX_VISIBLE = 3
-        const visible = filtered.slice(0, MAX_VISIBLE)
-        const overflow = filtered.length - visible.length
+        if (filtered.length === 0) return null
+        const hasOverflow = filtered.length > 3
         return (
-          <>
-            {visible.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
-            {overflow > 0 && (
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); onToggle() }}
-                className="text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'center',
-                  color: '#FF4500',
-                  background: 'rgba(255,69,0,0.1)',
-                  border: '1px dashed rgba(255,69,0,0.4)',
-                  padding: '2px 4px',
-                  marginTop: '2px',
-                  cursor: 'pointer',
-                }}
-              >
-                +{overflow} flere
-              </button>
-            )}
-          </>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              position: 'relative',
+              maskImage: hasOverflow
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 8px), transparent 100%)'
+                : undefined,
+              WebkitMaskImage: hasOverflow
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 8px), transparent 100%)'
+                : undefined,
+            }}
+          >
+            {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
+          </div>
         )
       })()}
 

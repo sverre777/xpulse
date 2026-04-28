@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
+import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUser } from '@/lib/heart-zones'
@@ -124,6 +125,8 @@ export async function PlanPageView({ viewContext }: Props) {
           <PlanGoalsSection season={activeSeason} keyDates={seasonKeyDates} todayISO={today} />
           <PlanPhasesSection season={activeSeason} periods={seasonPeriods} todayISO={today} />
         </div>
+
+        <CalendarAnalysisSnippets mode="plan" targetUserId={targetId} />
 
       </div>
     </div>

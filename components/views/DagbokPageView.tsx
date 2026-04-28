@@ -4,6 +4,7 @@ import { getWorkoutsForMonth } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
+import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
@@ -195,6 +196,8 @@ export async function DagbokPageView({ viewContext }: Props) {
             />
           </Suspense>
         </div>
+
+        <CalendarAnalysisSnippets mode="dagbok" targetUserId={targetId} />
 
       </div>
     </div>

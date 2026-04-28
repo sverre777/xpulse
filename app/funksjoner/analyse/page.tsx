@@ -48,7 +48,7 @@ export default function AnalysePage() {
 
       <SportFeatureSection
         kicker="Sonefordeling"
-        title="HVOR MYE LIGGER DU EGENTLIG?"
+        title="POLARISERT — ELLER NO MAN'S LAND?"
         intro="Sone-statistikk per uke, måned og sesong — og per sport. Polariserende trening krever mye sone 1 og noe sone 5; X-PULSE viser om du faktisk gjør det eller om du driver i no man's land."
         bullets={[
           { title: 'Per-sport-soner', body: 'Soner registreres uavhengig per disiplin så svømme-stats ikke forurenser løpe-stats.' },

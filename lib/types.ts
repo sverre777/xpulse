@@ -229,6 +229,10 @@ export interface WorkoutFormData {
   // Fase 31: strukturert test-resultat (kun relevant når workout_type='test').
   // Lagres i workout_test_data som egen rad per workout.
   test_data?: TestData
+  // Fase 48: ernæring-rader per økt — gel, drikke, bar, mat, salt-tabletter.
+  // Sortert på time_offset_minutes ved visning. Valgfritt for å beholde
+  // bakoverkompatibilitet med eksisterende kode som ikke kjenner feltet.
+  nutrition_entries?: NutritionEntryRow[]
 }
 
 // ── Test-økter (Fase 31) ───────────────────────────────────
@@ -450,6 +454,46 @@ export interface ActivityLactateMeasurement {
   db_id?: string
   value_mmol: string
   measured_at: string  // HH:MM — valgfritt
+}
+
+// Fase 48: ernæring-rad per økt. En økt kan ha mange rader; hver rad er
+// ett enkelt inntak (gel, drikke, bar, etc.) på et gitt tidspunkt.
+export const NUTRITION_TYPES = [
+  { value: 'gel',           label: 'Gel' },
+  { value: 'drikke',        label: 'Drikke' },
+  { value: 'bar',           label: 'Bar' },
+  { value: 'frukt',         label: 'Frukt' },
+  { value: 'mat',           label: 'Mat' },
+  { value: 'salt',          label: 'Salt-tablett' },
+  { value: 'egendefinert',  label: 'Egendefinert' },
+] as const
+
+export type NutritionType = typeof NUTRITION_TYPES[number]['value']
+
+// Form-side: alle tall-felt som string for input-binding.
+export interface NutritionEntryRow {
+  id: string
+  db_id?: string
+  time_offset_minutes: string  // minutter inn i økten ("45"); valgfritt
+  nutrition_type: NutritionType | ''
+  carbs_g: string
+  protein_g: string
+  ketones_g: string
+  custom_label: string
+  notes: string
+}
+
+export function emptyNutritionEntryRow(): NutritionEntryRow {
+  return {
+    id: crypto.randomUUID(),
+    time_offset_minutes: '',
+    nutrition_type: '',
+    carbs_g: '',
+    protein_g: '',
+    ketones_g: '',
+    custom_label: '',
+    notes: '',
+  }
 }
 
 // Styrke-øvelse med sett.

@@ -872,7 +872,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
       workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
       workout_competition_data(*),
-      workout_test_data(*)
+      workout_test_data(*),
+      workout_nutrition_entries(*)
     `)
     .eq('id', id).single()
   if (error || !workout || workout.user_id !== resolved.userId) return null
@@ -1114,6 +1115,26 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
     competition_data,
     test_data,
+    nutrition_entries: ((workout.workout_nutrition_entries ?? []) as {
+      id: string
+      time_offset_minutes: number | null
+      nutrition_type: string
+      carbs_g: number | null
+      protein_g: number | null
+      ketones_g: number | null
+      custom_label: string | null
+      notes: string | null
+    }[]).map(n => ({
+      id: n.id,
+      db_id: n.id,
+      time_offset_minutes: n.time_offset_minutes != null ? String(n.time_offset_minutes) : '',
+      nutrition_type: n.nutrition_type as import('@/lib/types').NutritionType,
+      carbs_g: n.carbs_g != null ? String(n.carbs_g) : '',
+      protein_g: n.protein_g != null ? String(n.protein_g) : '',
+      ketones_g: n.ketones_g != null ? String(n.ketones_g) : '',
+      custom_label: n.custom_label ?? '',
+      notes: n.notes ?? '',
+    })),
     template_id:   (workout.template_id as string | null) ?? null,
     template_name: (workout.template_name as string | null) ?? null,
   }

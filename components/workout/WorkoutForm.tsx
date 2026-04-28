@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { saveWorkout } from '@/app/actions/workouts'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
+import { replaceWorkoutNutrition } from '@/app/actions/nutrition'
 import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
@@ -12,6 +13,7 @@ import {
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
   ActivityRow, emptyActivityZones,
+  NutritionEntryRow,
 } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
@@ -19,6 +21,7 @@ import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
+import { NutritionSection } from './NutritionSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
 
@@ -162,6 +165,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     template_id:   defaultValues?.template_id ?? null,
     template_name: defaultValues?.template_name ?? null,
     test_data:     defaultValues?.test_data,
+    nutrition_entries: defaultValues?.nutrition_entries ?? [],
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -285,6 +289,15 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
       const savedId = result.id
       if (savedId && !targetUserId && !isPlanMode && availableEquipment.length > 0) {
         await setWorkoutEquipment(savedId, equipmentIds)
+      }
+      // Lagre ernæring-rader separat (egen tabell, ikke en del av saveWorkout-
+      // payloaden). Skip i plan-modus siden plan-økter ikke har ernæring.
+      if (savedId && !isPlanMode && (form.nutrition_entries?.length ?? 0) > 0) {
+        await replaceWorkoutNutrition(savedId, form.nutrition_entries ?? [], targetUserId)
+      } else if (savedId && !isPlanMode) {
+        // Tom liste = brukeren har fjernet alle rader; sørg for at gamle rader
+        // slettes også.
+        await replaceWorkoutNutrition(savedId, [], targetUserId)
       }
       if (onSaved) onSaved()
       else router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
@@ -539,6 +552,22 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           defaultPaceUnit={defaultPaceUnit}
         />
       </Section>
+
+      {/* ── ERNÆRING — vises i dagbok-modus (gjennomført økt) ── */}
+      {showExecutionFields && (
+        <Section label="Ernæring">
+          <NutritionSection
+            entries={form.nutrition_entries ?? []}
+            onChange={(next: NutritionEntryRow[]) => set('nutrition_entries', next)}
+            durationMinutes={
+              form.simple_duration_minutes
+                ? parseInt(form.simple_duration_minutes, 10) || null
+                : null
+            }
+            readOnly={readOnly}
+          />
+        </Section>
+      )}
 
       {/* ── PLAN-REFERANSE (read-only) — vises mens bruker registrerer actuals ── */}
       {markingCompleted && planReference && (

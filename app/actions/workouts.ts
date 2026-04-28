@@ -816,10 +816,10 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day')
+    .order('date').order('time_of_day').order('sort_order').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
 }
 
@@ -831,10 +831,10 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day')
+    .order('date').order('time_of_day').order('sort_order').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
 }
 
@@ -847,7 +847,7 @@ export async function getWorkoutsForWeek(userId: string, startDate: string, endD
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
-    .order('date').order('time_of_day')
+    .order('date').order('time_of_day').order('sort_order').order('created_at')
   return await attachCoachNames(supabase, (data ?? []) as { created_by_coach_id?: string | null }[])
 }
 
@@ -1127,8 +1127,43 @@ export async function getWorkoutsForDay(userId: string, date: string) {
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId).eq('date', date)
-    .order('time_of_day')
+    .order('time_of_day').order('sort_order').order('created_at')
   return data ?? []
+}
+
+// Sett sort_order eksplisitt på en sekvens av økter (samme dag). Brukes når
+// utøveren bytter rekkefølge eller markerer to økter som "samme økt" (lik
+// sort_order). Validerer at alle økter tilhører samme bruker.
+export async function reorderWorkouts(
+  workoutIds: string[],
+  sortOrders: number[],
+  targetUserId?: string,
+): Promise<{ ok: true } | { error: string }> {
+  if (workoutIds.length === 0) return { ok: true }
+  if (workoutIds.length !== sortOrders.length) return { error: 'Mismatch IDs/sortOrders' }
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const { data: existing, error: fetchErr } = await supabase
+    .from('workouts')
+    .select('id,user_id')
+    .in('id', workoutIds)
+  if (fetchErr) return { error: fetchErr.message }
+  if ((existing ?? []).some(w => w.user_id !== resolved.userId)) {
+    return { error: 'Forbidden' }
+  }
+
+  for (let i = 0; i < workoutIds.length; i++) {
+    const { error } = await supabase
+      .from('workouts')
+      .update({ sort_order: sortOrders[i] })
+      .eq('id', workoutIds[i])
+      .eq('user_id', resolved.userId)
+    if (error) return { error: error.message }
+  }
+  revalidateWorkoutPaths()
+  return { ok: true }
 }
 
 export async function searchWorkouts(userId: string, query: string, filters: {

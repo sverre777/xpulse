@@ -854,6 +854,9 @@ export interface CalendarWorkoutSummary {
   // Første aktivitet med start_time (sort_order asc), ellers workouts.time_of_day.
   // null → plasseres i "Hele dagen"-rad i ukekalender.
   start_time: string | null
+  // Fase 46: stabil rekkefølge på samme-dag-økter uten klokkeslett. Default 0.
+  // Lik sort_order på flere økter samme dag = "samme økt" (Økt 1.1 / 1.2 i UI).
+  sort_order: number
   // Coach-attribusjon for blå ramme/badge i kalenderceller.
   // Ikke-null når økta er laget/endret av trener (workouts.created_by_coach_id).
   created_by_coach_id: string | null

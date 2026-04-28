@@ -37,6 +37,7 @@ export type RawCalendarWorkout = {
   duration_minutes: number | null
   distance_km: number | null
   time_of_day?: string | null
+  sort_order?: number | null
   // Coach-attribusjon: ikke-null når trener har laget/endret økta.
   created_by_coach_id?: string | null
   updated_at?: string | null
@@ -266,6 +267,7 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_zone_seconds,
     ...extractCompetition(w.workout_competition_data),
     start_time,
+    sort_order: w.sort_order ?? 0,
     created_by_coach_id: w.created_by_coach_id ?? null,
     coach_name: w.coach_name ?? null,
     updated_at: w.updated_at ?? null,

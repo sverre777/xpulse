@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useMemo } from 'react'
 import { CalendarWorkoutSummary, TYPE_COLORS } from '@/lib/types'
+import { workoutLabel } from '@/lib/workout-label'
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
@@ -520,8 +521,9 @@ export function WeekCalendarView({
                     const km = fmtKm(metersFor(w, mode))
                     const planned = planVisual(w, mode)
                     const accent = compStyle?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
+                    const lbl = workoutLabel(w, dayWorkouts)
                     const meta = [
-                      w.start_time ? w.start_time.slice(0, 5) : null,
+                      lbl,
                       dur || null,
                       km || null,
                     ].filter(Boolean).join(' · ')

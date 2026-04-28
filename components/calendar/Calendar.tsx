@@ -29,6 +29,7 @@ import {
 } from '@/components/day-state/DayStateIndicator'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
+import { NutritionSummary } from '@/components/workout/NutritionSummary'
 import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
@@ -659,6 +660,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const router = useRouter()
   const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
+  // Lazy-loadet ernæring per økt — kun hentet når dag-detalj-modal er åpen.
+  // null = ikke lastet enda; tomt array = ingen rader registrert.
+  const [nutritionByWorkout, setNutritionByWorkout] = useState<Record<string, import('@/lib/types').NutritionEntryRow[]>>({})
 
   // ESC lukker dag-detalj-modalen + lås bakgrunnsscroll mens den er åpen.
   useEffect(() => {
@@ -672,6 +676,31 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       document.body.style.overflow = prev
     }
   }, [expandedDay])
+
+  // Hent ernæring for alle økter i dag-detalj når modal åpnes. Cacher per
+  // workout-id så raden ikke hentes på nytt hvis modalen lukkes og åpnes.
+  useEffect(() => {
+    if (!expandedDay) return
+    const dayWorkouts = byDate[expandedDay] ?? []
+    const idsToFetch = dayWorkouts.map(w => w.id).filter(id => !(id in nutritionByWorkout))
+    if (idsToFetch.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      const { getNutritionForWorkout } = await import('@/app/actions/nutrition')
+      const results = await Promise.all(
+        idsToFetch.map(id => getNutritionForWorkout(id).then(res => [id, res] as const))
+      )
+      if (cancelled) return
+      setNutritionByWorkout(prev => {
+        const next = { ...prev }
+        for (const [id, res] of results) {
+          next[id] = Array.isArray(res) ? res : []
+        }
+        return next
+      })
+    })()
+    return () => { cancelled = true }
+  }, [expandedDay, byDate, nutritionByWorkout])
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
 
@@ -917,6 +946,16 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                         standing_hits: w.shooting.standing_hits,
                                       }}
                                       variant="inline"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Ernæring (read-only) — vises hvis økten har rader */}
+                                {(nutritionByWorkout[w.id]?.length ?? 0) > 0 && (
+                                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid #1E1E22' }}>
+                                    <NutritionSummary
+                                      entries={nutritionByWorkout[w.id]}
+                                      durationMinutes={w.duration_minutes}
                                     />
                                   </div>
                                 )}

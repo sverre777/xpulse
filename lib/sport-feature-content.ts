@@ -270,7 +270,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         bullets: [
           { title: 'Pace-PR per distanse', body: '5K, 10K, halv, hel marathon — auto-detekteres fra økter.' },
           { title: 'Same-route-sammenlign', body: 'Logg favoritt-runder med navn; pace-trend per rute over tid.' },
-          { title: 'Pace-trend over tid', body: 'Pace utvikles plottes over uker så du ser fremgang i aerob fitness.' },
+          { title: 'Pace-trend over tid', body: 'Plot pace per distanse over uker via custom-graf — synlig fremgang i aerob fitness.' },
         ],
       },
       {

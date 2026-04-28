@@ -807,6 +807,25 @@ export interface CalendarWorkoutSummary {
   is_group_session?: boolean
   group_session_label?: string | null
   workout_type: WorkoutType
+  // Sport på workouts-tabellen + utledet primær bevegelsesform fra
+  // workout_activities (modus-mest-brukte movement_name).
+  sport?: Sport | null
+  primary_movement?: string | null
+  // Workouts-tabellen (raden selv). avg/max-puls vises i dag-detalj-modal.
+  avg_heart_rate?: number | null
+  max_heart_rate?: number | null
+  // Subjektiv RPE (1-10) hvis registrert.
+  rpe?: number | null
+  // Notat på selve økten — kuttes med ellipsis i UI.
+  notes?: string | null
+  // Aggregert skyting fra workout_activities (sum prone/standing hits+shots).
+  // null hvis ingen skyting registrert.
+  shooting?: {
+    prone_shots: number
+    prone_hits: number
+    standing_shots: number
+    standing_hits: number
+  } | null
   duration_minutes: number | null
   zones: { zone_name: string; minutes: number }[]
   // Planlagte verdier fra planned_snapshot — brukes i Plan-visninger slik at

@@ -3,9 +3,10 @@
 import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CalendarWorkoutSummary, Sport, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
+import { CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
+import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
@@ -599,11 +600,14 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       </div>
 
       {/* Workouts (mode-filtered) — full liste i scrollbar inner-div. Cellen
-          har fast høyde; brukeren kan swipe internt for å se flere. Klikk
-          på cellen åpner modal med full detalj-visning. */}
+          har fast høyde; brukeren kan swipe/scroll internt for å se flere
+          (mobil + desktop). Klikk på cellen åpner modal med full detalj. */}
       {(() => {
         const filtered = filterByMode(workouts, mode)
         if (filtered.length === 0) return null
+        // Antar overflow når flere enn 3 økter — chips er ~22px, cellen har
+        // ~80-90px tilgjengelig for liste etter header + summary, så 3 fyller.
+        // Desktop med større celle (150px) får ~95-100px → trigger ved 4+.
         const hasOverflow = filtered.length > 3
         return (
           <div
@@ -611,13 +615,17 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
               flex: 1,
               minHeight: 0,
               overflowY: 'auto',
+              overflowX: 'hidden',
               position: 'relative',
+              // Fade-out i bunn signaliserer at det er mer å se. Vises på
+              // både mobil og desktop når overflow finnes.
               maskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 8px), transparent 100%)'
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
                 : undefined,
               WebkitMaskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 8px), transparent 100%)'
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
                 : undefined,
+              scrollbarWidth: 'thin',
             }}
           >
             {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
@@ -792,17 +800,25 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         {mode === 'plan' ? 'Ingen planlagte økter' : 'Ingen økter'}
                       </p>
                     ) : (
-                      <div className="space-y-1 mb-3">
+                      <div className="space-y-2 mb-3">
                         {dayWorkouts.map(w => {
                           const comp = competitionChipStyle(w, mode)
                           const color = comp?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
                           const isPlanned = planVisual(w, mode)
                           const isCoachEdited = !!w.created_by_coach_id
                           const showCoachStyle = isCoachEdited && isPlanned
+                          const sport = w.sport ? SPORTS.find(s => s.value === w.sport)?.label ?? w.sport : null
+                          const movement = w.primary_movement
+                          const sportLine = [sport, movement].filter(Boolean).join(' · ')
+                          const km = (w.total_meters || 0) > 0 ? Math.round((w.total_meters / 1000) * 10) / 10 : null
+                          const hr = w.avg_heart_rate
+                          const maxHr = w.max_heart_rate
+                          const rpe = w.rpe
+                          const notes = (w.notes ?? '').trim()
                           return (
                             <button key={w.id} type="button" onClick={() => onEditWorkout(w, ds)}
                               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
-                              <div className="p-2" style={{
+                              <div className="p-3" style={{
                                 backgroundColor: comp && !isPlanned ? `${color}22` : '#1A1A22',
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 border: showCoachStyle
@@ -811,28 +827,80 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                       ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
                                       : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`)),
                               }}>
-                                <div className="flex items-center justify-between">
-                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
-                                    {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
-                                    {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
-                                    {w.title}
-                                    {w.position_overall != null && mode !== 'plan' && (
-                                      <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
+                                      {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
+                                      {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
+                                      {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
+                                      {w.title}
+                                      {w.position_overall != null && mode !== 'plan' && (
+                                        <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
+                                      )}
+                                    </div>
+                                    {sportLine && (
+                                      <div className="text-xs tracking-widest uppercase mt-0.5"
+                                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                                        {sportLine}
+                                      </div>
                                     )}
-                                  </span>
-                                  <div className="flex items-center gap-2">
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
                                     {showCoachStyle && w.updated_at && (
                                       <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
                                     )}
-                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓ Gjennomført</span>}
-                                    {isPlanned && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLANLAGT</span>}
+                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
+                                    {isPlanned && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))
-                                      return lbl ? <span style={{ color: '#FF4500', fontSize: '13px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
+                                      return lbl ? <span style={{ color: '#FF4500', fontSize: '14px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
                                     })()}
                                   </div>
                                 </div>
-                                {(zonesFor(w, mode) ?? []).length > 0 && <ZoneBar zones={zonesFor(w, mode)} />}
+
+                                {/* Stats-rad: km, snittpuls, maks-puls, RPE */}
+                                {(km !== null || hr != null || maxHr != null || rpe != null) && (
+                                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5"
+                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+                                    {km !== null && <span>{km.toLocaleString('nb-NO')} km</span>}
+                                    {hr != null && <span>Snitt {hr} bpm</span>}
+                                    {maxHr != null && <span>Maks {maxHr} bpm</span>}
+                                    {rpe != null && <span>RPE {rpe}</span>}
+                                  </div>
+                                )}
+
+                                {/* Sonebar */}
+                                {(zonesFor(w, mode) ?? []).length > 0 && <div className="mt-2"><ZoneBar zones={zonesFor(w, mode)} /></div>}
+
+                                {/* Skyting */}
+                                {w.shooting && (
+                                  <div className="mt-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+                                    <TreffPercentageDisplay
+                                      totals={{
+                                        prone_shots: w.shooting.prone_shots,
+                                        prone_hits: w.shooting.prone_hits,
+                                        standing_shots: w.shooting.standing_shots,
+                                        standing_hits: w.shooting.standing_hits,
+                                      }}
+                                      variant="inline"
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Notater (kuttet) */}
+                                {notes && (
+                                  <p className="mt-2 text-xs italic"
+                                    style={{
+                                      fontFamily: "'Barlow Condensed', sans-serif",
+                                      color: '#8A8A96',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                    }}>
+                                    {notes}
+                                  </p>
+                                )}
                               </div>
                             </button>
                           )

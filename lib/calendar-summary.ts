@@ -17,6 +17,11 @@ export type RawCalendarActivity = {
   zones: Record<string, number> | null
   start_time?: string | null
   sort_order?: number | null
+  movement_name?: string | null
+  prone_shots?: number | null
+  prone_hits?: number | null
+  standing_shots?: number | null
+  standing_hits?: number | null
 }
 
 export type RawCalendarWorkout = {
@@ -24,6 +29,11 @@ export type RawCalendarWorkout = {
   is_planned: boolean; is_completed: boolean; is_important: boolean
   is_group_session?: boolean | null
   group_session_label?: string | null
+  sport?: string | null
+  avg_heart_rate?: number | null
+  max_heart_rate?: number | null
+  rpe?: number | null
+  notes?: string | null
   duration_minutes: number | null
   distance_km: number | null
   time_of_day?: string | null
@@ -259,6 +269,47 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     created_by_coach_id: w.created_by_coach_id ?? null,
     coach_name: w.coach_name ?? null,
     updated_at: w.updated_at ?? null,
+    sport: (w.sport as CalendarWorkoutSummary['sport']) ?? null,
+    avg_heart_rate: w.avg_heart_rate ?? null,
+    max_heart_rate: w.max_heart_rate ?? null,
+    rpe: w.rpe ?? null,
+    notes: w.notes ?? null,
+    primary_movement: extractPrimaryMovement(w.workout_activities),
+    shooting: extractShootingTotals(w.workout_activities),
+  }
+}
+
+function extractPrimaryMovement(acts: RawCalendarWorkout['workout_activities']): string | null {
+  if (!acts || acts.length === 0) return null
+  const counts = new Map<string, number>()
+  for (const a of acts) {
+    const m = a.movement_name?.trim()
+    if (!m) continue
+    counts.set(m, (counts.get(m) ?? 0) + (a.duration_seconds ?? 0))
+  }
+  let top: string | null = null
+  let topVal = 0
+  for (const [name, val] of counts) {
+    if (val > topVal) { top = name; topVal = val }
+  }
+  return top
+}
+
+function extractShootingTotals(acts: RawCalendarWorkout['workout_activities']): CalendarWorkoutSummary['shooting'] {
+  if (!acts || acts.length === 0) return null
+  let proneShots = 0, proneHits = 0, standingShots = 0, standingHits = 0
+  for (const a of acts) {
+    proneShots += Number(a.prone_shots) || 0
+    proneHits += Number(a.prone_hits) || 0
+    standingShots += Number(a.standing_shots) || 0
+    standingHits += Number(a.standing_hits) || 0
+  }
+  if (proneShots + standingShots === 0) return null
+  return {
+    prone_shots: proneShots,
+    prone_hits: proneHits,
+    standing_shots: standingShots,
+    standing_hits: standingHits,
   }
 }
 

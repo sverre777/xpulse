@@ -81,6 +81,16 @@ export default async function InnstillingerPage() {
             />
           )}
 
+          {!isCoachMode && (
+            <SettingsCategoryCard
+              href="/app/innstillinger/klokkesync"
+              glyph="⌚"
+              title="Klokkesync"
+              description="Strava OAuth + .fit-fil-opplasting"
+              accent={accent}
+            />
+          )}
+
           <SettingsCategoryCard
             href="/app/innstillinger/varsler"
             glyph="✉"

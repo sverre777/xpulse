@@ -1,0 +1,13 @@
+# Netlify-konfig for X-PULSE.
+#
+# Next.js bygges med @netlify/plugin-nextjs (auto-installert ved Netlify-
+# build). Scheduled Functions ligger i netlify/functions/ og deklarerer
+# selv schedule via @netlify/functions sin schedule()-helper.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

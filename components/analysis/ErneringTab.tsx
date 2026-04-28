@@ -202,7 +202,7 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
   }
   return (
     <div style={{ width: '100%', height: 320 }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
           <CartesianGrid stroke={GRID_COLOR} />
           <XAxis type="number" dataKey="hours" name="Varighet"
@@ -259,7 +259,7 @@ function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }
   }
   return (
     <div style={{ width: '100%', height: 320 }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
           <CartesianGrid stroke={GRID_COLOR} />
           <XAxis type="number" dataKey="hr" name="Snittpuls"
@@ -302,7 +302,7 @@ function TypeDistribution({ data }: { data: NutritionAnalysis['type_distribution
   }))
   return (
     <div style={{ width: '100%', height: 280 }}>
-      <ResponsiveContainer>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={rows} layout="vertical" margin={{ top: 6, right: 16, bottom: 6, left: 24 }}>
           <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
           <XAxis type="number" tick={AXIS_STYLE}

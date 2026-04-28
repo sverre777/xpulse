@@ -56,9 +56,12 @@ const PRESETS_FOR_OVERRIDE: { key: PresetKey | 'inherit'; label: string }[] = [
 
 interface Props {
   analysisRange: DateRange
+  // 'completed' (default) viser gjennomførte økter; 'planned' viser
+  // planlagte økter (is_planned=true) — brukes i Plan-side-snippets.
+  mode?: 'completed' | 'planned'
 }
 
-export function CustomBreakdownChart({ analysisRange }: Props) {
+export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Props) {
   const [grouping, setGrouping] = useState<CustomBreakdownGrouping>('week')
   const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>('inherit')
   const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(null)
@@ -76,11 +79,11 @@ export function CustomBreakdownChart({ analysisRange }: Props) {
   useEffect(() => {
     startTransition(async () => {
       setError(null)
-      const res = await getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping)
+      const res = await getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, mode)
       if ('error' in res) { setError(res.error); return }
       setData(res)
     })
-  }, [effectiveRange.from, effectiveRange.to, grouping])
+  }, [effectiveRange.from, effectiveRange.to, grouping, mode])
 
   // Initialiser multi-select til alle tilgjengelige bevegelser første gang data kommer.
   useEffect(() => {

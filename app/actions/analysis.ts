@@ -3736,6 +3736,7 @@ export async function getCustomBreakdown(
   toDate: string,
   grouping: CustomBreakdownGrouping,
   targetUserId?: string,
+  mode: 'completed' | 'planned' = 'completed',
 ): Promise<CustomBreakdown | { error: string }> {
   try {
     const supabase = await createClient()
@@ -3743,14 +3744,18 @@ export async function getCustomBreakdown(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const { data: rows, error } = await supabase
+    // Planned-mode bruker is_planned=true (inkluderer både kommende og
+    // gjennomførte planlagte økter). Completed-mode bruker is_completed=true.
+    let req = supabase
       .from('workouts')
       .select('date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', userId)
-      .eq('is_completed', true)
       .gte('date', fromDate)
       .lte('date', toDate)
       .order('date')
+    if (mode === 'planned') req = req.eq('is_planned', true)
+    else req = req.eq('is_completed', true)
+    const { data: rows, error } = await req
 
     if (error) return { error: error.message }
 

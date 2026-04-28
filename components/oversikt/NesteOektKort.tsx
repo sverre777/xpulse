@@ -43,7 +43,7 @@ function CardShell({
   ctaLabel?: string
 }) {
   return (
-    <div className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-5 h-full" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: accent, display: 'inline-block' }} />
         <Label text={kicker} />

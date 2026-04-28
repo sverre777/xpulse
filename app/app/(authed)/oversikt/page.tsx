@@ -1,11 +1,15 @@
+import Link from 'next/link'
 import { getOversiktDashboard } from '@/app/actions/oversikt'
+import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
 import { NesteOektKort } from '@/components/oversikt/NesteOektKort'
 import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
 import { KonkurranseNedtelling } from '@/components/oversikt/KonkurranseNedtelling'
 import { NoekkelkortGrid } from '@/components/oversikt/NoekkelkortGrid'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
+import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
+import { HelseMiniDashboard } from '@/components/analysis/HelseMiniDashboard'
 import type { DateRange } from '@/components/analysis/date-range'
 
 function rangeLast12Weeks(): DateRange {
@@ -71,7 +75,10 @@ function AiCoachTeaser() {
 }
 
 export default async function OversiktPage() {
-  const res = await getOversiktDashboard()
+  const [res, coachOverviewRaw] = await Promise.all([
+    getOversiktDashboard(),
+    getAthleteCoachOverview(),
+  ])
 
   if ('error' in res) {
     return (
@@ -84,6 +91,9 @@ export default async function OversiktPage() {
   }
 
   const range = rangeLast12Weeks()
+  const coachOverview = 'error' in coachOverviewRaw
+    ? { hasCoach: false as const, coach: null, lastActivity: null }
+    : coachOverviewRaw
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -91,14 +101,13 @@ export default async function OversiktPage() {
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />
 
-        <NesteOektKort next={res.nextWorkout} />
-
-        {res.competition && <KonkurranseNedtelling comp={res.competition} />}
-
-        <UkensTotaler
-          totals={res.weekTotals}
-          weekNumber={res.hero.weekNumber}
-        />
+        {/* Tre-kort-rad øverst: Neste økt · Ukens totaler · Neste konkurranse.
+            Stables på <lg. Konkurranse-kortet faller ut hvis ingen er planlagt. */}
+        <div className="grid gap-4 lg:grid-cols-3 mb-6">
+          <NesteOektKort next={res.nextWorkout} />
+          <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} />
+          {res.competition && <KonkurranseNedtelling comp={res.competition} />}
+        </div>
 
         <NoekkelkortGrid
           lastHardWorkout={res.lastHardWorkout}
@@ -107,8 +116,28 @@ export default async function OversiktPage() {
           health={res.health}
         />
 
+        {/* Helse-mini + trener-kort side om side. Om utøver ikke har trener
+            vises trener-kortet som koble-knapp (ingen full bredde-fallback —
+            grid-klassen gir naturlig 50/50 i begge tilfellene). */}
+        <div className="grid gap-4 md:grid-cols-2 mb-6">
+          <HelseMiniDashboard range={range} />
+          <TrenerKort overview={coachOverview} />
+        </div>
+
         <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-          <SectionHeader label="Volum siste 12 uker" />
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+            <SectionHeader label="Volum siste 12 uker" />
+            <Link href="/app/analyse"
+              className="text-xs tracking-widest uppercase px-3 py-2 transition-colors hover:bg-[rgba(255,69,0,0.1)]"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#FF4500',
+                border: '1px solid #FF4500',
+                textDecoration: 'none',
+              }}>
+              Se full analyse →
+            </Link>
+          </div>
           <CustomBreakdownChart analysisRange={range} />
         </section>
 

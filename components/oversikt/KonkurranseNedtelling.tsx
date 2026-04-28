@@ -21,7 +21,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
     : '/app/periodisering'
 
   return (
-    <section className="p-5 mb-6"
+    <section className="p-5 h-full"
       style={{
         backgroundColor: '#14110A',
         border: `1px solid ${gold}`,

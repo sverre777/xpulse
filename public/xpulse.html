@@ -172,6 +172,7 @@
   .devices-list { display:flex; align-items:center; gap:44px; flex-wrap:wrap; }
   .device-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:17px; letter-spacing:3px; text-transform:uppercase; color:rgba(242,240,236,0.22); transition:color 0.2s; white-space:nowrap; }
   .device-name:hover { color:rgba(242,240,236,0.55); }
+  .device-name.device-soon { font-size:13px; letter-spacing:1.5px; color:rgba(242,240,236,0.4); }
 
   /* PROBLEM */
   .problem-section { padding:100px 56px; background:var(--darker); }
@@ -209,7 +210,10 @@
   .feature-card.ai-card .feature-icon-img { opacity:1; filter:invert(36%) sepia(98%) saturate(1352%) hue-rotate(196deg) brightness(97%) contrast(97%); }
   .feature-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:18px; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
   .feature-title .blue { color:var(--blue); }
+  .feature-badge-soon { display:inline-block; padding:1px 7px; margin-left:8px; background:rgba(245,197,66,0.15); border:1px solid rgba(245,197,66,0.4); color:#F5C542; font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
   .feature-desc { font-size:14px; line-height:1.75; color:rgba(242,240,236,0.5); }
+  .feature-link { color:var(--blue); text-decoration:none; border-bottom:1px solid rgba(26,111,212,0.4); transition:border-color 0.15s; }
+  .feature-link:hover { border-bottom-color:var(--blue); }
 
   /* IMAGE STRIP */
   .image-strip { display:grid; grid-template-columns:2fr 1fr 1fr; gap:2px; height:380px; }
@@ -687,7 +691,7 @@
   <div class="hero-overlay-bottom"></div>
   <div class="hero-content">
     <div class="hero-badges">
-      <div class="hero-tag">For seriøse utøvere — alle utholdenhetsidretter</div>
+      <div class="hero-tag">For seriøse utøvere — utholdenhetsidretter på én plattform</div>
       <div class="hero-beta">BETA</div>
     </div>
     <h1>BYGGET FOR<br><span class="h1-orange">ELITEN.</span><br>ENKEL FOR <span class="h1-blue">ALLE.</span></h1>
@@ -707,12 +711,9 @@
 <div class="devices-bar">
   <div class="devices-label">Synker med</div>
   <div class="devices-list">
-    <span class="device-name">Garmin</span>
-    <span class="device-name">Polar</span>
-    <span class="device-name">Whoop</span>
-    <span class="device-name">Suunto</span>
-    <span class="device-name">Apple Health</span>
-    <span class="device-name">Wahoo</span>
+    <span class="device-name">Strava (i dag)</span>
+    <span class="device-name">.fit-import</span>
+    <span class="device-name device-soon">Garmin · Apple Health · Polar · Coros — Q3 2026</span>
   </div>
 </div>
 
@@ -826,14 +827,14 @@
     <div class="feature-card ai-card">
       <div class="feature-num">03</div>
       <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title"><span class="blue">AI</span> Coach</div>
-      <p class="feature-desc">En coach som aldri glemmer en økt. Lærer seg dine mønstre, foreslår justeringer og blir smartere jo mer data den får. Du bestemmer alltid selv.</p>
+      <div class="feature-title"><span class="blue">AI</span> Coach <span class="feature-badge-soon">Q3 2026</span></div>
+      <p class="feature-desc">Foreslår justeringer fra dine mønstre og kommentarer. Auto-tolkning av økter etter klokkesync, anbefalte økter ut fra form og mål. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet ved lansering →</a></p>
     </div>
     <div class="feature-card">
       <div class="feature-num">04</div>
       <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title">Enkel klokketilkobling</div>
-      <p class="feature-desc">Koble til Garmin, Polar, Whoop eller Apple Health på minutter. Puls, HRV, søvn og treningsdata hentes automatisk — ingen manuell jobb.</p>
+      <div class="feature-title">Klokkesync</div>
+      <p class="feature-desc">Last opp .fit-filer fra Garmin, Coros, Polar eller Wahoo i dag. Strava-OAuth synker automatisk. Garmin og Apple Health direkte: Q3 2026.</p>
     </div>
     <div class="feature-card">
       <div class="feature-num">05</div>
@@ -903,9 +904,10 @@
 <section class="ai-section" id="ai">
   <div class="ai-inner">
     <div>
-      <div class="section-label">AI Coach</div>
+      <div class="section-label">AI Coach <span class="feature-badge-soon">Q3 2026</span></div>
       <h2 class="section-title" style="margin-bottom:20px;">EN COACH SOM<br>LÆRER SEG DEG.</h2>
       <p style="font-size:15px;line-height:1.8;color:rgba(242,240,236,0.55);max-width:400px;">Ikke generiske råd. En AI som leser dine data, dine kommentarer og dine mønstre — og blir smartere for hver økt du logger. Du velger selv hvor mye hjelp du vil ha.</p>
+      <p style="font-size:13px;line-height:1.7;color:rgba(242,240,236,0.45);max-width:400px;margin-top:14px;">Modulen lanseres Q3 2026 sammen med direkte klokkesync. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet ved lansering →</a></p>
     </div>
     <div class="ai-slider-visual">
       <div class="section-label" style="margin-bottom:8px;">Velg ditt nivå</div>

@@ -52,7 +52,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         intro:
           'Registrer hele skiparken med par, ski-merke, type og strukturen. Test ulike par på ulike forhold (snøtype, temperatur, fuktighet) og se hvilken konfigurasjon som faktisk fungerer på din typiske konkurransedag.',
         bullets: [
-          { title: 'Par og merker', body: 'Hvert ski-par registreres med modell, lengde, fleks, slip og strukturen.' },
+          { title: 'Par og merker', body: 'Hvert ski-par registreres med modell, lengde, fleks og slip-historikk.' },
           { title: 'Test-historikk', body: 'Logg test-økter med snøtype, lufttemp, snøtemp og fuktighet. Se hva som har vært raskest under hvilke forhold.' },
           { title: 'Smøring og slip', body: 'Hold rede på siste smøre-jobb og når slip ble gjort på hvert par.' },
         ],
@@ -122,12 +122,12 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       {
         id: 'per-skyting',
         kicker: 'Per-skyting-data',
-        title: 'FØRSTE VS SISTE SKUDD.',
+        title: 'FØRSTE VS SISTE SKYTING.',
         intro:
-          'For hver skyting registreres skudd-for-skudd hvis du vil ha det detaljert. Akkumulert utvikling fra første skyting til siste viser om du blir mer eller mindre stabil utover økten — kritisk for fellesstart.',
+          'For hver skyting i økten registreres totaltall: treff, bom og poengsum per posisjon. Sammenligning av første mot siste skyting viser om du blir mer eller mindre stabil utover økten — kritisk for fellesstart.',
         bullets: [
-          { title: 'Skudd-for-skudd', body: 'Treff/bom per skudd, automatisk poeng-sum og treff% beregning.' },
-          { title: 'Akkumulert per skyting', body: '5-skudds-rekka analyseres rad for rad — første liggende vs siste liggende.' },
+          { title: '5-skudds-totaler per skyting', body: 'Treff, bom og poengsum logges per skyting (1-N) i økten.' },
+          { title: 'Skyting-til-skyting-utvikling', body: 'Sammenlign første vs siste skyting i økten — viser stabilitet under tretthet.' },
           { title: 'Tid på skytteplass', body: 'Logg skytetid per skyting hvis tilgjengelig; sammenlign med treff%.' },
         ],
       },
@@ -264,7 +264,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         bullets: [
           { title: 'Pace-PR per distanse', body: '5K, 10K, halv, hel marathon — auto-detekteres fra økter.' },
           { title: 'Same-route-sammenlign', body: 'Logg favoritt-runder med navn; pace-trend per rute over tid.' },
-          { title: 'Aerob-effektivitet', body: 'Pace ved gitt puls (snitt 150 bpm) — utvikling per måned.' },
+          { title: 'Pace-trend over tid', body: 'Pace utvikles plottes over uker så du ser fremgang i aerob fitness.' },
         ],
       },
       {
@@ -307,14 +307,14 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     sections: [
       {
         id: 'effekt',
-        kicker: 'Effekt-soner',
-        title: 'WATT-BASERTE INTERVALLER.',
+        kicker: 'Effekt og belastning',
+        title: 'TSS — BELASTNING I TALL.',
         intro:
-          'Hvis du har effektmåler kan plan-økter settes med watt-mål per drag. Aktivitets-loggen plotter effekt mot puls og sone-tid, så du ser om dragene faktisk traff målet.',
+          'TSS regnes automatisk fra økt-data og brukes i ATL/CTL/TSB-modellen. FTP-test er en av de standard test-malene — bruk den for å spore terskel-utvikling. Egne effekt-soner og NP/IF kommer.',
         bullets: [
-          { title: 'FTP-soner', body: 'Sett FTP og generer 7 effekt-soner. Plan-økter har watt-mål per drag.' },
-          { title: 'Effekt vs puls', body: 'Cardiac decoupling, dvs. om puls drev oppover på samme effekt over en lang økt.' },
-          { title: 'Normalisert effekt', body: 'NP/IF/TSS regnes automatisk fra .fit-import — vises som default i sammenligning.' },
+          { title: 'TSS i belastningsmodell', body: 'Hver økt får en TSS-verdi som driver fitness/fatigue/form-grafen.' },
+          { title: 'FTP-test som standard mal', body: 'Cooper, FTP, terskel-test og flere er forhåndskonfigurert med riktig protokoll.' },
+          { title: 'Effekt-soner og NP/IF', body: 'Egne effekt-soner og normalisert effekt kommer i 2026.' },
         ],
       },
       {
@@ -412,7 +412,6 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         bullets: [
           { title: 'Disiplin-filter', body: 'Alle dashbord kan filtreres på svøm/sykkel/løp eller multi.' },
           { title: 'Pace-tap etter sykkel', body: 'Spor om løpe-pace-tap-mellom-solo-og-brick reduseres over sesong.' },
-          { title: 'Konkurranse-prognose', body: 'Estimat basert på siste 6 ukers brick-økter for total-tid på halv/full distanse.' },
         ],
       },
     ],

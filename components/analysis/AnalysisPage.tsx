@@ -32,6 +32,8 @@ import { PeriodiseringTab } from './PeriodiseringTab'
 import { TesterPRTab } from './TesterPRTab'
 import { SkiTesterTab } from './SkiTesterTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
+import { ErneringTab } from './ErneringTab'
+import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -46,6 +48,7 @@ type Tab =
   | 'tester_pr'
   | 'ski_tester'
   | 'helse'
+  | 'ernering'
   | 'per_bevegelsesform'
   | 'intensitet'
   | 'periodisering'
@@ -73,6 +76,7 @@ const TABS: [Tab, string][] = [
   ['tester_pr', 'Tester & PR'],
   ['ski_tester', 'Ski-tester'],
   ['helse', 'Helse'],
+  ['ernering', 'Ernæring'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
 ]
@@ -165,6 +169,7 @@ function AnalysisPageInner({
   const [periodisering, setPeriodisering] = useState<PeriodizationOverview | null>(null)
   const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
   const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
+  const [nutritionAnalysis, setNutritionAnalysis] = useState<NutritionAnalysis | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -179,6 +184,7 @@ function AnalysisPageInner({
     setPeriodisering(null)
     setTestsAndPRs(null)
     setSkiTesterData(null)
+    setNutritionAnalysis(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -227,6 +233,14 @@ function AnalysisPageInner({
         const res = await getHealthCorrelations(range.from, range.to)
         if ('error' in res) { setError(res.error); return }
         setHealthCorrelations(res)
+      })
+    }
+    if (tab === 'ernering' && nutritionAnalysis === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getNutritionAnalysis(range.from, range.to, targetUserId)
+        if ('error' in res) { setError(res.error); return }
+        setNutritionAnalysis(res)
       })
     }
     if (tab === 'mal_analyse' && templateAnalysis === null) {
@@ -483,6 +497,11 @@ function AnalysisPageInner({
           healthCorrelations
             ? <HealthTab data={healthCorrelations} />
             : <LoadingStub label="Laster helsedata…" />
+        )}
+        {tab === 'ernering' && (
+          nutritionAnalysis
+            ? <ErneringTab data={nutritionAnalysis} />
+            : <LoadingStub label="Laster ernærings-data…" />
         )}
         {tab === 'mal_analyse' && (
           // Beholdt for backward compat — FavoriteChartsSection og dypkoblinger

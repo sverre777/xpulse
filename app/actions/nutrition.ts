@@ -128,3 +128,159 @@ function revalidateNutritionPaths() {
 
 // Sync-aggregering ligger i lib/nutrition-totals.ts (server-actions-filer
 // kan ikke eksportere sync-funksjoner).
+
+// ─── Analyse: ernæring-data over en periode ──────────────────
+
+export interface NutritionAnalysisWorkout {
+  id: string
+  date: string
+  title: string
+  sport: string
+  duration_minutes: number | null
+  avg_heart_rate: number | null
+  rpe: number | null
+  total_carbs_g: number
+  total_protein_g: number
+  total_fat_g: number
+  total_ketones_g: number
+  carbs_per_hour: number | null
+  entry_count: number
+}
+
+export interface NutritionAnalysis {
+  workouts: NutritionAnalysisWorkout[]
+  // Aggregert over hele perioden — kan vises som "snitt og totalsum" øverst.
+  summary: {
+    total_workouts_with_nutrition: number
+    total_carbs_g: number
+    total_protein_g: number
+    total_fat_g: number
+    total_ketones_g: number
+    avg_carbs_per_hour: number | null
+  }
+  // Hvor mange rader per type i perioden — basis for type-fordeling.
+  type_distribution: { type: string; count: number; carbs_g: number }[]
+}
+
+export async function getNutritionAnalysis(
+  from: string,
+  to: string,
+  targetUserId?: string,
+): Promise<NutritionAnalysis | { error: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+  if ('error' in resolved) return { error: resolved.error }
+
+  // Kun økter med faktisk ernæring-data — workouts uten rader filtreres bort
+  // ved aggregering, ikke ved query (Supabase joins er enklere uten EXISTS-filter).
+  const { data, error } = await supabase
+    .from('workouts')
+    .select(`
+      id, date, title, sport, duration_minutes, avg_heart_rate, rpe,
+      workout_nutrition_entries (
+        nutrition_type, carbs_g, protein_g, fat_g, ketones_g
+      )
+    `)
+    .eq('user_id', resolved.userId)
+    .gte('date', from).lte('date', to)
+    .order('date', { ascending: true })
+  if (error) return { error: error.message }
+
+  type WorkoutRow = {
+    id: string
+    date: string
+    title: string
+    sport: string
+    duration_minutes: number | null
+    avg_heart_rate: number | null
+    rpe: number | null
+    workout_nutrition_entries: {
+      nutrition_type: string
+      carbs_g: number | null
+      protein_g: number | null
+      fat_g: number | null
+      ketones_g: number | null
+    }[] | null
+  }
+
+  const workouts: NutritionAnalysisWorkout[] = []
+  let sumCarbs = 0, sumProtein = 0, sumFat = 0, sumKetones = 0
+  let workoutsWithCarbs = 0
+  let weightedCarbsPerHour = 0
+  let totalDurationMin = 0
+  const typeMap = new Map<string, { count: number; carbs: number }>()
+
+  for (const w of (data ?? []) as WorkoutRow[]) {
+    const entries = w.workout_nutrition_entries ?? []
+    if (entries.length === 0) continue
+
+    let c = 0, p = 0, f = 0, k = 0
+    for (const e of entries) {
+      c += e.carbs_g ?? 0
+      p += e.protein_g ?? 0
+      f += e.fat_g ?? 0
+      k += e.ketones_g ?? 0
+      const slot = typeMap.get(e.nutrition_type) ?? { count: 0, carbs: 0 }
+      slot.count += 1
+      slot.carbs += e.carbs_g ?? 0
+      typeMap.set(e.nutrition_type, slot)
+    }
+
+    const dur = w.duration_minutes
+    const carbsPerHour = c > 0 && dur && dur > 0
+      ? Math.round((c / (dur / 60)) * 10) / 10
+      : null
+
+    workouts.push({
+      id: w.id,
+      date: w.date,
+      title: w.title,
+      sport: w.sport,
+      duration_minutes: dur,
+      avg_heart_rate: w.avg_heart_rate,
+      rpe: w.rpe,
+      total_carbs_g: Math.round(c * 10) / 10,
+      total_protein_g: Math.round(p * 10) / 10,
+      total_fat_g: Math.round(f * 10) / 10,
+      total_ketones_g: Math.round(k * 100) / 100,
+      carbs_per_hour: carbsPerHour,
+      entry_count: entries.length,
+    })
+
+    sumCarbs += c
+    sumProtein += p
+    sumFat += f
+    sumKetones += k
+    if (c > 0 && dur && dur > 0) {
+      workoutsWithCarbs += 1
+      weightedCarbsPerHour += (c / (dur / 60)) * dur
+      totalDurationMin += dur
+    }
+  }
+
+  const avgCarbsPerHour = totalDurationMin > 0
+    ? Math.round((weightedCarbsPerHour / totalDurationMin) * 10) / 10
+    : null
+
+  const type_distribution = Array.from(typeMap.entries())
+    .map(([type, { count, carbs }]) => ({
+      type, count, carbs_g: Math.round(carbs * 10) / 10,
+    }))
+    .sort((a, b) => b.count - a.count)
+
+  return {
+    workouts,
+    summary: {
+      total_workouts_with_nutrition: workouts.length,
+      total_carbs_g: Math.round(sumCarbs * 10) / 10,
+      total_protein_g: Math.round(sumProtein * 10) / 10,
+      total_fat_g: Math.round(sumFat * 10) / 10,
+      total_ketones_g: Math.round(sumKetones * 100) / 100,
+      avg_carbs_per_hour: avgCarbsPerHour,
+    },
+    type_distribution,
+  }
+}
+// Notat om vekting: avg_carbs_per_hour er vektet på varighet (lange økter
+// teller mer), ikke et enkelt snitt over økter. Det er mer rettferdig når
+// noen økter er 4 timer og andre 45 min.

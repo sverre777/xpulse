@@ -556,20 +556,20 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
-      className="text-left border-l w-full h-[140px] sm:h-[150px] flex flex-col"
+      className="text-left border-l w-full min-h-[140px] sm:min-h-[150px] flex flex-col"
       style={{
         borderColor: '#1A1A1E',
         borderLeftStyle: borderStyle ?? 'solid',
         background: stateBg ?? baseBg,
         opacity: isCurrentMonth ? 1 : 0.3,
-        overflow: 'hidden',
         padding: '4px',
         cursor: 'pointer',
         outline: keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none',
         outlineOffset: keyVisual ? `-${keyVisual.borderWidth}px` : 0,
         boxShadow: isPeakTarget ? '0 0 8px rgba(212, 160, 23, 0.6)' : undefined,
         position: 'relative',
-        display: 'block',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
     >
@@ -599,35 +599,15 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         </div>
       </div>
 
-      {/* Workouts (mode-filtered) — full liste i scrollbar inner-div. Cellen
-          har fast høyde; brukeren kan swipe/scroll internt for å se flere
-          (mobil + desktop). Klikk på cellen åpner modal med full detalj. */}
+      {/* Workouts (mode-filtered) — vokser cellen naturlig. Hele uke-raden
+          har en felles scroll-wrapper i MonthView som tar over når én eller
+          flere dager har mange økter (alle 7 cellene strekkes likt via grid
+          stretch, raden scrolles internt som én enhet). */}
       {(() => {
         const filtered = filterByMode(workouts, mode)
         if (filtered.length === 0) return null
-        // Antar overflow når flere enn 3 økter — chips er ~22px, cellen har
-        // ~80-90px tilgjengelig for liste etter header + summary, så 3 fyller.
-        // Desktop med større celle (150px) får ~95-100px → trigger ved 4+.
-        const hasOverflow = filtered.length > 3
         return (
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              position: 'relative',
-              // Fade-out i bunn signaliserer at det er mer å se. Vises på
-              // både mobil og desktop når overflow finnes.
-              maskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
-                : undefined,
-              WebkitMaskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
-                : undefined,
-              scrollbarWidth: 'thin',
-            }}
-          >
+          <div style={{ flex: 1, minHeight: 0 }}>
             {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
           </div>
         )
@@ -716,33 +696,52 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
 
+        // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
+        // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
+        const maxWorkoutsInWeek = week.reduce((max, d) => {
+          const filtered = filterByMode(byDate[toISO(d)] ?? [], mode)
+          return Math.max(max, filtered.length)
+        }, 0)
+        const hasOverflow = maxWorkoutsInWeek > 3
+
         return (
           <Fragment key={wi}>
-            <div className="grid" style={{
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              // Skille kun mellom uker — ikke mellom kalenderrad og stripa
-              // som hører til samme uke. Stripa har egen borderBottom som
-              // utgjør uke-skillet.
+            {/* Hele uke-raden scroller som én enhet. Alle 7 celler har samme
+                høyde via grid-stretch (default) — den lengste cellens
+                naturlige høyde bestemmer rad-høyden. Wrapperen kapper på
+                190px og lar brukeren swipe vertikalt for å se mer. */}
+            <div style={{
+              maxHeight: '190px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
               borderLeft: weekOverlay.period ? `3px solid ${rowAccent}` : '3px solid transparent',
+              maskImage: hasOverflow
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
+                : undefined,
+              WebkitMaskImage: hasOverflow
+                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
+                : undefined,
+              scrollbarWidth: 'thin',
             }}>
-              {/* Days */}
-              {week.map(date => {
-                const ds = toISO(date)
-                return (
-                  <DayCell
-                    key={ds}
-                    date={date}
-                    workouts={byDate[ds] ?? []}
-                    healthDate={healthDates.has(ds)}
-                    mode={mode}
-                    isCurrentMonth={date.getMonth() === month - 1}
-                    isExpanded={expandedDay === ds}
-                    onToggle={() => setExpandedDay(prev => prev === ds ? null : ds)}
-                    keyDatesOnDay={keyDatesForDate(seasonKeyDates, ds)}
-                  />
-                )
-              })}
-
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                {/* Days */}
+                {week.map(date => {
+                  const ds = toISO(date)
+                  return (
+                    <DayCell
+                      key={ds}
+                      date={date}
+                      workouts={byDate[ds] ?? []}
+                      healthDate={healthDates.has(ds)}
+                      mode={mode}
+                      isCurrentMonth={date.getMonth() === month - 1}
+                      isExpanded={expandedDay === ds}
+                      onToggle={() => setExpandedDay(prev => prev === ds ? null : ds)}
+                      keyDatesOnDay={keyDatesForDate(seasonKeyDates, ds)}
+                    />
+                  )
+                })}
+              </div>
             </div>
 
             {/* Ukes-analyse-stripe under uken — fullbredde, samme på desktop og mobil */}

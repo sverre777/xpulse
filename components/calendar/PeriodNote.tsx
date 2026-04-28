@@ -6,6 +6,7 @@ import { savePeriodNote, type NoteScope, type NoteContext } from '@/app/actions/
 
 export function PeriodNote({
   scope, periodKey, context, initialNote, label, targetUserId, readOnly = false,
+  planNote = null,
 }: {
   scope: NoteScope
   periodKey: string
@@ -16,6 +17,10 @@ export function PeriodNote({
   targetUserId?: string
   // Trener-visning av utøverens dagbok-notater: vis grått, ikke redigerbart.
   readOnly?: boolean
+  // Når context='dagbok' og det finnes et plan-notat for samme periode,
+  // vises det som en "Plan"-tagget read-only blokk over redigeringsfeltet
+  // slik at utøveren ser planen mens de skriver.
+  planNote?: string | null
 }) {
   if (readOnly) {
     const hasNote = initialNote.trim().length > 0
@@ -97,8 +102,25 @@ export function PeriodNote({
     )
   }
 
+  const planNoteTrimmed = (planNote ?? '').trim()
   return (
     <div className="px-4 md:px-6 py-2" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#0E0E10' }}>
+      {planNoteTrimmed.length > 0 && (
+        <div className="mb-2 px-3 py-2"
+          style={{
+            backgroundColor: '#0A0A0B',
+            borderLeft: '3px solid #FF4500',
+          }}>
+          <p className="text-xs tracking-widest uppercase mb-1"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            Plan
+          </p>
+          <p className="text-sm whitespace-pre-wrap"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+            {planNoteTrimmed}
+          </p>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>

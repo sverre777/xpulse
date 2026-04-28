@@ -70,19 +70,6 @@ function AiCoachTeaser() {
   )
 }
 
-function WeekFocusBox({ items }: { items: string[] }) {
-  if (items.length === 0) return null
-  return (
-    <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <SectionHeader label="Fokus denne uken" />
-      <ul className="list-disc pl-5 text-sm"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-        {items.map((p, i) => <li key={i}>{p}</li>)}
-      </ul>
-    </section>
-  )
-}
-
 export default async function OversiktPage() {
   const res = await getOversiktDashboard()
 
@@ -104,7 +91,7 @@ export default async function OversiktPage() {
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />
 
-        <NesteOektKort next={res.nextWorkout} focusPoints={res.focusPoints} />
+        <NesteOektKort next={res.nextWorkout} />
 
         {res.competition && <KonkurranseNedtelling comp={res.competition} />}
 
@@ -112,8 +99,6 @@ export default async function OversiktPage() {
           totals={res.weekTotals}
           weekNumber={res.hero.weekNumber}
         />
-
-        <WeekFocusBox items={res.focusPoints.week} />
 
         <NoekkelkortGrid
           lastHardWorkout={res.lastHardWorkout}

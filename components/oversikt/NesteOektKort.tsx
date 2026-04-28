@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { OversiktNextWorkout, OversiktWorkoutCard, OversiktFocusPoints } from '@/app/actions/oversikt'
+import type { OversiktNextWorkout, OversiktWorkoutCard } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 
 function sportLabel(v: string): string {
@@ -94,10 +94,9 @@ function WorkoutBody({ w }: { w: OversiktWorkoutCard }) {
 }
 
 export function NesteOektKort({
-  next, focusPoints,
+  next,
 }: {
   next: OversiktNextWorkout
-  focusPoints: OversiktFocusPoints
 }) {
   const today = new Date().toISOString().slice(0, 10)
 
@@ -145,15 +144,6 @@ export function NesteOektKort({
         ctaLabel="Logg gjennomføring"
       >
         <WorkoutBody w={next.workout} />
-        {focusPoints.day.length > 0 && (
-          <div className="mt-4 pt-3" style={{ borderTop: '1px solid #1E1E22' }}>
-            <Label text="Fokus i dag" />
-            <ul className="mt-1 list-disc pl-5 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-              {focusPoints.day.map((p, i) => <li key={i}>{p}</li>)}
-            </ul>
-          </div>
-        )}
       </CardShell>
     )
   }

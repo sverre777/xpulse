@@ -26,7 +26,6 @@ import {
 import {
   DayStateIndicator, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
-import { FocusSection } from '@/components/focus/FocusSection'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
 import {
@@ -685,18 +684,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
-      {focusContext && (
-        <div className="mb-2">
-          <FocusSection
-            scope="month"
-            periodKey={monthPeriodKey}
-            context={focusContext}
-            title={focusContext === 'plan' ? 'Måneds-fokus' : 'Måneds-refleksjon'}
-            showPlanFocus={focusContext === 'dagbok'}
-            targetUserId={targetUserId}
-          />
-        </div>
-      )}
 
       {/* Column headers: week# + 7 days + totals */}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
@@ -777,28 +764,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>×</button>
                     </div>
 
-                    {focusContext && (
-                      <div className="grid md:grid-cols-2 gap-2 mb-3">
-                        <FocusSection
-                          scope="day"
-                          periodKey={ds}
-                          context={focusContext}
-                          title={focusContext === 'plan' ? 'Dagens fokus' : 'Dag-refleksjon'}
-                          showPlanFocus={focusContext === 'dagbok'}
-                          compact
-                          targetUserId={targetUserId}
-                        />
-                        <FocusSection
-                          scope="week"
-                          periodKey={isoWeekKey(expandedDate)}
-                          context={focusContext}
-                          title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
-                          showPlanFocus={focusContext === 'dagbok'}
-                          compact
-                          targetUserId={targetUserId}
-                        />
-                      </div>
-                    )}
 
                     {dayWorkouts.length === 0 ? (
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -1243,6 +1208,10 @@ export function Calendar({
   const showNotes = mode === 'plan' || mode === 'dagbok'
   const [weekNote, setWeekNote] = useState(initialWeekNote)
   const [monthNote, setMonthNote] = useState(initialMonthNote)
+  // I dagbok-modus henter vi også plan-notatet for samme periode for å vise
+  // det som en "Plan"-tagget read-only blokk over utøverens egne dagbok-notat.
+  const [planWeekNote, setPlanWeekNote] = useState('')
+  const [planMonthNote, setPlanMonthNote] = useState('')
 
   useEffect(() => {
     if (!mounted || !showNotes) return
@@ -1251,9 +1220,21 @@ export function Calendar({
       if (view === 'uke') {
         const map = await getPeriodNotes('week', [weekPeriodKey], noteContext, targetUserId)
         if (!cancelled) setWeekNote(map[weekPeriodKey] ?? '')
+        if (noteContext === 'dagbok') {
+          const planMap = await getPeriodNotes('week', [weekPeriodKey], 'plan', targetUserId)
+          if (!cancelled) setPlanWeekNote(planMap[weekPeriodKey] ?? '')
+        } else {
+          if (!cancelled) setPlanWeekNote('')
+        }
       } else if (view === 'måned') {
         const map = await getPeriodNotes('month', [monthPeriodKey], noteContext, targetUserId)
         if (!cancelled) setMonthNote(map[monthPeriodKey] ?? '')
+        if (noteContext === 'dagbok') {
+          const planMap = await getPeriodNotes('month', [monthPeriodKey], 'plan', targetUserId)
+          if (!cancelled) setPlanMonthNote(planMap[monthPeriodKey] ?? '')
+        } else {
+          if (!cancelled) setPlanMonthNote('')
+        }
       }
     })()
     return () => { cancelled = true }
@@ -1388,6 +1369,7 @@ export function Calendar({
             periodKey={monthPeriodKey}
             context={noteContext}
             initialNote={monthNote}
+            planNote={noteContext === 'dagbok' ? planMonthNote : null}
             label={readOnly && noteContext === 'dagbok'
               ? `Utøverens notat for ${MONTHS_NO[month - 1]}`
               : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for ${MONTHS_NO[month - 1]}`}
@@ -1415,6 +1397,7 @@ export function Calendar({
             periodKey={weekPeriodKey}
             context={noteContext}
             initialNote={weekNote}
+            planNote={noteContext === 'dagbok' ? planWeekNote : null}
             label={readOnly && noteContext === 'dagbok'
               ? `Utøverens notat for uke ${weekNum}`
               : `${noteContext === 'plan' ? 'Plan' : 'Notat'} for uke ${weekNum}`}

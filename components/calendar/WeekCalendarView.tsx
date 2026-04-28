@@ -10,7 +10,6 @@ import {
   KEY_EVENT_VISUALS,
   weekOverlayFor,
 } from '@/lib/periodization-overlay'
-import { FocusSection } from '@/components/focus/FocusSection'
 
 function isoWeekKey(date: Date): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -467,18 +466,6 @@ export function WeekCalendarView({
         mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates}
       />
 
-      {focusContext && (
-        <div className="px-4 md:px-6 py-2">
-          <FocusSection
-            scope="week"
-            periodKey={isoWeekKey(weekDates[0])}
-            context={focusContext}
-            title={focusContext === 'plan' ? 'Ukens fokus' : 'Uke-refleksjon'}
-            showPlanFocus={focusContext === 'dagbok'}
-            targetUserId={targetUserId}
-          />
-        </div>
-      )}
 
       {/* Mobil: stablet daglig liste i stedet for time-rutenettet. Bedre lesbarhet
           enn å zoome i en horisontal scroll-tabell. Vises på <640px (sm:hidden). */}

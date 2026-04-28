@@ -83,6 +83,10 @@ interface CalendarActions {
   targetUserId?: string
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
   readOnly: boolean
+  // Tving Calendar til å re-fetche workout-data. Brukes etter mutasjoner som
+  // ikke går gjennom WorkoutModal — f.eks. reorderWorkouts. Calendar holder
+  // byDate i lokal state, så router.refresh() alene oppdaterer ikke UI.
+  refreshCalendar: () => Promise<void> | void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -653,7 +657,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // ESC lukker dag-detalj-modalen + lås bakgrunnsscroll mens den er åpen.
@@ -819,7 +823,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             ;[nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]]
                             const sortOrders = nextOrder.map((_, idx) => idx)
                             const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
-                            if (!('error' in res)) router.refresh()
+                            if ('error' in res) {
+                              console.error('reorderWorkouts:', res.error)
+                              alert(`Kunne ikke endre rekkefølge: ${res.error}`)
+                              return
+                            }
+                            await refreshCalendar()
+                            router.refresh()
                           }
                           return dayWorkouts.map(w => {
                           const comp = competitionChipStyle(w, mode)
@@ -1338,6 +1348,11 @@ export function Calendar({
     setDayStatesByDate(map)
   }, [view, refDate, targetUserId])
 
+  const refreshCalendar = useCallback(async () => {
+    const { start, end } = getDateRange(view, refDate)
+    await fetchData(start, end)
+  }, [fetchData, view, refDate])
+
   // Fetch when view/refDate changes (skip initial load — data is passed in).
   // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
   // trigger nytt fetch (ellers beholder state kun forrige uke).
@@ -1440,6 +1455,7 @@ export function Calendar({
       dayStatesByDate,
       targetUserId,
       readOnly,
+      refreshCalendar,
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
@@ -1579,6 +1595,7 @@ export function Calendar({
           onCreateWorkout={handleCreateWorkout}
           targetUserId={targetUserId}
           readOnly={readOnly}
+          refreshCalendar={refreshCalendar}
         />
       )}
       {view === 'år' && (

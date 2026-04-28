@@ -34,6 +34,7 @@ interface Props {
   onCreateWorkout: (dateStr: string, time?: string) => void
   targetUserId?: string
   readOnly?: boolean
+  refreshCalendar?: () => Promise<void> | void
 }
 
 const DAYS_NO = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -423,6 +424,7 @@ export function WeekCalendarView({
   onEditWorkout, onCreateWorkout,
   targetUserId,
   readOnly = false,
+  refreshCalendar,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
@@ -530,7 +532,13 @@ export function WeekCalendarView({
                   ;[nextOrder[i], nextOrder[j]] = [nextOrder[j], nextOrder[i]]
                   const sortOrders = nextOrder.map((_, idx) => idx)
                   const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
-                  if (!('error' in res)) router.refresh()
+                  if ('error' in res) {
+                    console.error('reorderWorkouts:', res.error)
+                    alert(`Kunne ikke endre rekkefølge: ${res.error}`)
+                    return
+                  }
+                  if (refreshCalendar) await refreshCalendar()
+                  router.refresh()
                 }
                 return (
                 <div className="flex flex-col gap-2">

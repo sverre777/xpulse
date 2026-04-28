@@ -1150,6 +1150,9 @@ export async function reorderWorkouts(
     .select('id,user_id')
     .in('id', workoutIds)
   if (fetchErr) return { error: fetchErr.message }
+  if ((existing ?? []).length !== workoutIds.length) {
+    return { error: 'Fant ikke alle øktene (kanskje migrasjonen mangler eller RLS blokkerer)' }
+  }
   if ((existing ?? []).some(w => w.user_id !== resolved.userId)) {
     return { error: 'Forbidden' }
   }

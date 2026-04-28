@@ -29,7 +29,7 @@ const MODULE_LINKS = [
   { href: '/funksjoner/ai-coach',       label: 'AI Coach',                      soon: true },
 ] as const
 
-function XLogo({ size = 32 }: { size?: number }) {
+function XLogo({ size = 35 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
       <defs>
@@ -52,12 +52,11 @@ export function LandingNav() {
   return (
     <>
       <nav
-        className="flex items-center justify-between px-6 lg:px-14 py-6"
+        className="flex items-center justify-between px-6 lg:px-14 py-7"
         style={{
           position: 'sticky', top: 0, zIndex: 100,
-          background: 'linear-gradient(to bottom, rgba(11,19,21,0.85), rgba(11,19,21,0.6))',
+          background: 'linear-gradient(to bottom, rgba(11,19,21,0.85), rgba(11,19,21,0.5))',
           backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid #262629',
         }}
       >
         <Link href="/xpulse.html"
@@ -65,10 +64,10 @@ export function LandingNav() {
           aria-label="X-PULSE"
           style={{ textDecoration: 'none' }}
         >
-          <XLogo size={32} />
+          <XLogo size={35} />
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 600, fontSize: '18px', letterSpacing: '0.4em',
+            fontWeight: 600, fontSize: '20px', letterSpacing: '0.4em',
             color: '#F2F0EC', textTransform: 'uppercase',
           }}>PULSE</span>
         </Link>
@@ -80,7 +79,7 @@ export function LandingNav() {
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase',
+                fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
                 color: 'rgba(242,240,236,0.55)', padding: 0,
               }}
               aria-haspopup="true"
@@ -141,7 +140,7 @@ export function LandingNav() {
               style={{
                 background: '#FF4500', color: '#F2F0EC', padding: '9px 20px',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase',
+                fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
                 textDecoration: 'none',
               }}>
               Start gratis prøve
@@ -233,7 +232,7 @@ export function LandingNav() {
               marginTop: 'auto', padding: 18, background: '#FF4500',
               color: '#F2F0EC', textAlign: 'center', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-              fontSize: '13px', letterSpacing: '0.18em', textTransform: 'uppercase',
+              fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase',
             }}>
             Start 30 dagers gratis prøve
           </Link>
@@ -245,7 +244,7 @@ export function LandingNav() {
 
 const navLinkStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-  fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase',
+  fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
   color: 'rgba(242,240,236,0.55)', textDecoration: 'none',
 }
 

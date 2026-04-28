@@ -9,6 +9,7 @@ import {
 import type { CompetitionAnalysis, CompetitionTypeFilter, ShootingSeriesPoint } from '@/app/actions/analysis'
 import { SPORTS, COMPETITION_TYPES, type Sport, type CompetitionType } from '@/lib/types'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { TreffPercentageDisplay } from './TreffPercentageDisplay'
 
 const SPORT_COLOR: Record<Sport, string> = {
   running: '#FF4500',
@@ -429,6 +430,29 @@ export function CompetitionsTab({
                   Skiskyting
                 </p>
               </div>
+
+              {/* Aggregert treff% i konkurranse: total / liggende / stående */}
+              {(() => {
+                let proneShots = 0, proneHits = 0, standingShots = 0, standingHits = 0
+                for (const p of data.shootingSeries) {
+                  if (!p.in_competition) continue
+                  if (p.activity_type === 'skyting_liggende') {
+                    proneShots += p.shots; proneHits += p.hits
+                  } else if (p.activity_type === 'skyting_staaende') {
+                    standingShots += p.shots; standingHits += p.hits
+                  }
+                }
+                if (proneShots + standingShots === 0) return null
+                return (
+                  <TreffPercentageDisplay
+                    totals={{
+                      prone_shots: proneShots, prone_hits: proneHits,
+                      standing_shots: standingShots, standing_hits: standingHits,
+                    }}
+                    variant="cards"
+                  />
+                )
+              })()}
 
               {/* Treff% per skyting over tid — basert på sort_order */}
               <ChartWrapper chartKey="competitions_shooting_accuracy_over_time" title="Treff% per skyting over tid" subtitle="Første/Andre · Liggende/Stående · Samlet snitt">

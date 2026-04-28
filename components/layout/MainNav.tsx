@@ -97,7 +97,7 @@ export function MainNav({
             href="/app/oversikt"
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <XPulseIcon size={29} ariaLabel="X-PULSE" />
+            <XPulseIcon size={35} ariaLabel="X-PULSE" />
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 600,
@@ -176,8 +176,8 @@ export function MainNav({
           className="flex items-center gap-2 shrink-0"
           style={{ textDecoration: 'none' }}
         >
-          <XPulseIcon size={31} ariaLabel="X-PULSE" />
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: accent, fontSize: '22px', letterSpacing: '0.1em' }}>
+          <XPulseIcon size={37} ariaLabel="X-PULSE" />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, color: accent, fontSize: '22px', letterSpacing: '0.4em' }}>
             PULSE
           </span>
           <span
@@ -305,7 +305,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       {/* Header row (X close) */}
       <div className="flex items-center justify-between px-4" style={{ height: '52px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <XPulseIcon size={29} ariaLabel="X-PULSE" />
+          <XPulseIcon size={35} ariaLabel="X-PULSE" />
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600,

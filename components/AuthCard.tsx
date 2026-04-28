@@ -18,10 +18,15 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
     >
       <div className="mb-8">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <XPulseIcon size={42} ariaLabel="X-PULSE" />
+          <XPulseIcon size={50} ariaLabel="X-PULSE" />
           <span
-            className="tracking-widest"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '33px' }}
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              color: '#FF4500',
+              fontSize: '33px',
+              letterSpacing: '0.4em',
+            }}
           >
             PULSE
           </span>

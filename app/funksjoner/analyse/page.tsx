@@ -33,6 +33,7 @@ export default function AnalysePage() {
         title={<>FORSTÅ <span style={{ color: '#FF4500' }}>DIN<br/>EGEN UTVIKLING.</span></>}
         description="Data uten innsikt er bare tall. Analyse-modulen kobler puls, HRV, laktat og subjektiv følelse i én helhetlig oversikt — slik at du faktisk lærer av hver økt og av sesongen som helhet."
         icon={<AnalyseIcon />}
+        backgroundImage="/photos/DSC05290_thumb.jpg"
       />
 
       <SportFeatureSection

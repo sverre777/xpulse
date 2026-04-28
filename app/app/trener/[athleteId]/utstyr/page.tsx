@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation'
 import { getAthleteContext } from '@/app/actions/coach-athlete'
 import {
   listAthleteEquipmentWithUsage,
+  listAthleteSkiEquipment,
   listAthleteSkiTests,
 } from '@/app/actions/coach-equipment'
+import { listConditionsTemplates } from '@/app/actions/ski-tests'
 import { CoachEquipmentView } from '@/components/coach/CoachEquipmentView'
 
 interface Props {
@@ -29,14 +31,23 @@ export default async function AthleteUtstyrTab({ params }: Props) {
     )
   }
 
-  const [equipment, skiTests] = await Promise.all([
+  const [equipment, skiEquipment, skiTests, templates] = await Promise.all([
     listAthleteEquipmentWithUsage(athleteId),
+    listAthleteSkiEquipment(athleteId),
     listAthleteSkiTests(athleteId),
+    listConditionsTemplates(),
   ])
 
   return (
     <section>
-      <CoachEquipmentView equipment={equipment} skiTests={skiTests} />
+      <CoachEquipmentView
+        equipment={equipment}
+        skiEquipment={skiEquipment}
+        skiTests={skiTests}
+        conditionsTemplates={templates}
+        athleteId={athleteId}
+        canEditPlan={ctx.permissions.can_edit_plan}
+      />
     </section>
   )
 }

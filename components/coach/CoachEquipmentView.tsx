@@ -7,18 +7,28 @@ import {
   EQUIPMENT_STATUS_LABELS,
   type EquipmentCategory,
   type EquipmentWithUsage,
+  type SkiEquipment,
 } from '@/lib/equipment-types'
-import type { SkiTestWithEntries } from '@/lib/ski-test-types'
+import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
+import { NewSkiTestModal } from '@/components/equipment/NewSkiTestModal'
 
 const COACH_BLUE = '#1A6FD4'
 
 interface Props {
   equipment: EquipmentWithUsage[]
+  skiEquipment?: SkiEquipment[]
   skiTests: SkiTestWithEntries[]
+  conditionsTemplates?: UserConditionsTemplate[]
+  athleteId?: string
+  canEditPlan?: boolean
 }
 
-export function CoachEquipmentView({ equipment, skiTests }: Props) {
+export function CoachEquipmentView({
+  equipment, skiEquipment = [], skiTests,
+  conditionsTemplates = [], athleteId, canEditPlan = false,
+}: Props) {
   const [filter, setFilter] = useState<EquipmentCategory | 'all'>('all')
+  const [skiTestModalOpen, setSkiTestModalOpen] = useState(false)
 
   const filtered = useMemo(() => {
     if (filter === 'all') return equipment
@@ -58,8 +68,43 @@ export function CoachEquipmentView({ equipment, skiTests }: Props) {
         {filtered.map(e => <EquipmentCard key={e.id} equipment={e} />)}
       </div>
 
-      {skiCount > 0 && skiTests.length > 0 && (
+      {/* Trener kan registrere ski-test for utøveren hvis can_edit_plan
+          er gitt i relasjonen. Krever minst én aktiv ski-par i parken. */}
+      {canEditPlan && skiCount > 0 && athleteId && skiEquipment.length > 0 && (
+        <div className="flex justify-end">
+          <button type="button"
+            onClick={() => setSkiTestModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
+              background: COACH_BLUE, color: '#F0F0F2', border: 'none',
+              cursor: 'pointer',
+            }}>
+            + Legg til ski-test
+          </button>
+        </div>
+      )}
+
+      {(skiCount > 0 && skiTests.length > 0) ? (
         <SkiTestsBlock equipment={equipment} tests={skiTests} />
+      ) : (canEditPlan && skiCount > 0 && skiEquipment.length > 0) ? (
+        <p className="p-4 text-xs"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            backgroundColor: '#13131A', border: '1px solid #1E1E22',
+          }}>
+          Ingen ski-tester registrert enda — trykk "+ Legg til ski-test" for å logge dagens forhold.
+        </p>
+      ) : null}
+
+      {skiTestModalOpen && athleteId && (
+        <NewSkiTestModal
+          ski={skiEquipment}
+          templates={conditionsTemplates}
+          targetUserId={athleteId}
+          onClose={() => setSkiTestModalOpen(false)}
+        />
       )}
     </div>
   )

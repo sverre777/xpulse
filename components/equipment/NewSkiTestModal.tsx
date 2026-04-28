@@ -17,6 +17,9 @@ interface Props {
   templates: UserConditionsTemplate[]
   defaultSkiId?: string
   onClose: () => void
+  // Når satt: trener legger til test for utøver. saveSkiTest sjekker
+  // can_edit_plan-permission via resolveTargetUser.
+  targetUserId?: string
 }
 
 interface EntryRow {
@@ -34,7 +37,7 @@ const todayISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose }: Props) {
+export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetUserId }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -105,7 +108,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose }: Props
           slip_used: en.slip_used || null,
           notes: en.notes || null,
         })),
-      })
+      }, targetUserId)
       if (result.error) { setError(result.error); return }
       router.refresh()
       onClose()

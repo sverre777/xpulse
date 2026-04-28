@@ -34,6 +34,7 @@ export default function TrenerPage() {
         title={<>SPAR TID MED <span style={{ color: '#1A6FD4' }}>X-PULSE TRENER.</span></>}
         description="Trener-modulen er ikke en utøver-app du må omgå. Den er bygget rundt jobben treneren faktisk gjør — overvåke et helt lag, push planer raskt og holde direkte dialog med hver utøver."
         icon={<TrenerIcon />}
+        backgroundImage="/photos/DSC08247-2_thumb.jpg"
       />
 
       <SportFeatureSection

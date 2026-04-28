@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
 import type {
   SkiTest,
   SkiTestEntry,
@@ -71,10 +72,13 @@ export async function listSkiTestsForSki(skiId: string): Promise<SkiTestWithEntr
   return tests.map(t => ({ ...(t as SkiTest), entries: byTest.get(t.id) ?? [] }))
 }
 
-export async function saveSkiTest(input: SaveSkiTestInput): Promise<{ id?: string; error?: string }> {
+export async function saveSkiTest(
+  input: SaveSkiTestInput,
+  targetUserId?: string,
+): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
 
   if (!input.test_date) return { error: 'Dato er påkrevd' }
   if (input.entries.length < 1) return { error: 'Minst 1 ski må registreres' }
@@ -84,7 +88,7 @@ export async function saveSkiTest(input: SaveSkiTestInput): Promise<{ id?: strin
   const { data: test, error: testErr } = await supabase
     .from('ski_tests')
     .insert({
-      user_id: user.id,
+      user_id: resolved.userId,
       workout_id: input.workout_id ?? null,
       test_date: input.test_date,
       location: input.location?.trim() || null,
@@ -118,6 +122,7 @@ export async function saveSkiTest(input: SaveSkiTestInput): Promise<{ id?: strin
   }
 
   revalidatePath('/app/utstyr/ski')
+  if (targetUserId) revalidatePath('/app/trener/[athleteId]/utstyr', 'page')
   return { id: test.id }
 }
 

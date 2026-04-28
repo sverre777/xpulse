@@ -97,17 +97,21 @@
     display:none; background:none; border:none; padding:6px; cursor:none;
     color:var(--white);
   }
+  /* Hamburger-meny — mobil-only. flex-column med konsistent gap. CTA
+     pushed til bunn med margin-top:auto, men kun når innholdet får plass;
+     ved overflow scroller hele panelet og CTA flyter naturlig. */
   .nav-panel {
     position:fixed; inset:0; z-index:200;
-    background:var(--darker); padding:24px;
-    flex-direction:column; gap:20px;
+    background:var(--darker); padding:20px;
+    flex-direction:column; gap:16px;
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
   }
   .nav-panel:not([hidden]) { display:flex; }
   body.nav-locked { overflow:hidden; }
-  .nav-panel-top { display:flex; justify-content:space-between; align-items:center; }
+  .nav-panel-top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
   .nav-panel-close { background:none; border:none; color:var(--white); cursor:none; padding:6px; }
-  .nav-panel-icons { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .nav-panel-icons { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0; }
   .nav-panel-icon-btn {
     padding:14px 8px; background:var(--surface); border:1px solid var(--border);
     display:flex; flex-direction:column; align-items:center; gap:8px;
@@ -117,24 +121,31 @@
     transition:background 0.15s, border-color 0.15s;
   }
   .nav-panel-icon-btn:hover { background:var(--mid); border-color:var(--orange); }
-  .nav-panel-links { display:flex; flex-direction:column; gap:2px; }
+
+  /* Lenke-blokken: rene cards med åpenbar separasjon. 4px gap så hvert
+     element er en tydelig flate, ikke en sammenhengende stripe. */
+  .nav-panel-links { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+  .nav-panel-group { display:block; }
   .nav-panel-links > a, .nav-panel-group > summary {
-    padding:18px 16px; background:var(--surface);
+    padding:16px 18px; background:var(--surface);
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:14px; letter-spacing:2px; text-transform:uppercase;
     color:var(--white); text-decoration:none;
     list-style:none; cursor:none;
     display:flex; justify-content:space-between; align-items:center;
+    transition:background 0.15s;
   }
+  .nav-panel-links > a:hover, .nav-panel-group > summary:hover { background:#22222A; }
   .nav-panel-group > summary::-webkit-details-marker { display:none; }
+  .nav-panel-group > summary::marker { display:none; content:''; }
   .nav-panel-group[open] > summary .dropdown-chev { transform:rotate(180deg); }
-  .nav-panel-sublinks { display:flex; flex-direction:column; }
+  .nav-panel-sublinks { display:flex; flex-direction:column; gap:1px; margin-top:1px; }
   .nav-panel-sublinks a {
-    padding:14px 28px; background:var(--mid);
+    padding:13px 18px 13px 32px; background:var(--mid);
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
-    color:rgba(242,240,236,0.7); text-decoration:none;
-    border-top:1px solid var(--border);
+    color:rgba(242,240,236,0.65); text-decoration:none;
+    transition:background 0.15s, color 0.15s;
   }
   .nav-panel-sublinks a:hover { color:var(--white); background:var(--surface); }
   .nav-panel-cta {
@@ -143,7 +154,7 @@
     text-align:center; text-decoration:none;
     font-family:'Barlow Condensed',sans-serif; font-weight:700;
     font-size:13px; letter-spacing:2.5px; text-transform:uppercase;
-    transition:background 0.2s;
+    transition:background 0.2s; flex-shrink:0;
   }
   .nav-panel-cta:hover { background:var(--orange-dark); }
 

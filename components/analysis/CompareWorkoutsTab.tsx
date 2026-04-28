@@ -14,6 +14,7 @@ import {
 import { SPORTS, WORKOUT_TYPES_BIATHLON, type Sport, type WorkoutType } from '@/lib/types'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { MultiWorkoutTimeSeriesChart } from './MultiWorkoutTimeSeriesChart'
+import { TreffPercentageDisplay } from './TreffPercentageDisplay'
 
 function formatDuration(sec: number): string {
   if (sec <= 0) return '—'
@@ -651,12 +652,16 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Skyting
           </p>
-          <ul className="text-xs space-y-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-            <li>Liggende: {workout.shooting.prone_hits}/{workout.shooting.prone_shots}</li>
-            <li>Stående: {workout.shooting.standing_hits}/{workout.shooting.standing_shots}</li>
-            <li>Treff: {workout.shooting.accuracy_pct != null ? `${workout.shooting.accuracy_pct}%` : '—'}</li>
-          </ul>
+          <TreffPercentageDisplay
+            totals={{
+              prone_shots: workout.shooting.prone_shots,
+              prone_hits: workout.shooting.prone_hits,
+              standing_shots: workout.shooting.standing_shots,
+              standing_hits: workout.shooting.standing_hits,
+              total_accuracy_pct: workout.shooting.accuracy_pct,
+            }}
+            variant="inline"
+          />
         </div>
       )}
 

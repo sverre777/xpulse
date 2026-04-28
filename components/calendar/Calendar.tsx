@@ -672,6 +672,19 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const router = useRouter()
   const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
+
+  // ESC lukker dag-detalj-modalen + lås bakgrunnsscroll mens den er åpen.
+  useEffect(() => {
+    if (!expandedDay) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setExpandedDay(null) }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [expandedDay])
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
 
@@ -751,17 +764,34 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               const today = toISO(new Date())
               const isFuture = ds > today
               return (
-                <div style={{ backgroundColor: '#0F0F16', borderTop: '2px solid #FF4500', borderBottom: '1px solid #1E1E22' }}>
-                  <div className="px-4 md:px-6 py-4">
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  onClick={() => setExpandedDay(null)}
+                  className="fixed inset-0 z-50 sm:flex sm:items-start sm:justify-center sm:pt-12 sm:px-4"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+                >
+                  <div
+                    onClick={e => e.stopPropagation()}
+                    className="w-full sm:max-w-2xl flex flex-col"
+                    style={{
+                      backgroundColor: '#0F0F16',
+                      border: '1px solid #1E1E22',
+                      borderTop: '2px solid #FF4500',
+                      maxHeight: '100vh',
+                    }}
+                  >
+                    <div className="overflow-y-auto px-4 md:px-6 py-4" style={{ maxHeight: '100vh' }}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-                        <h3 className="capitalize" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.08em' }}>
+                        <h3 className="capitalize" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
                           {fmt}
                         </h3>
                       </div>
                       <button type="button" onClick={() => setExpandedDay(null)}
-                        style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>×</button>
+                        aria-label="Lukk"
+                        style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
                     </div>
 
 
@@ -958,6 +988,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         )}
                       </div>
                     )}
+                    </div>
                   </div>
                 </div>
               )

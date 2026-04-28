@@ -1121,6 +1121,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       nutrition_type: string
       carbs_g: number | null
       protein_g: number | null
+      fat_g: number | null
       ketones_g: number | null
       custom_label: string | null
       notes: string | null
@@ -1131,6 +1132,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       nutrition_type: n.nutrition_type as import('@/lib/types').NutritionType,
       carbs_g: n.carbs_g != null ? String(n.carbs_g) : '',
       protein_g: n.protein_g != null ? String(n.protein_g) : '',
+      fat_g: n.fat_g != null ? String(n.fat_g) : '',
       ketones_g: n.ketones_g != null ? String(n.ketones_g) : '',
       custom_label: n.custom_label ?? '',
       notes: n.notes ?? '',

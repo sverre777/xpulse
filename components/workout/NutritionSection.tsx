@@ -93,6 +93,9 @@ export function NutritionSection({
           {totals.protein_g !== null && (
             <span><span style={{ color: '#555560' }}>Protein: </span>{totals.protein_g} g</span>
           )}
+          {totals.fat_g !== null && (
+            <span><span style={{ color: '#555560' }}>Fett: </span>{totals.fat_g} g</span>
+          )}
           {totals.ketones_g !== null && (
             <span><span style={{ color: '#555560' }}>Ketoner: </span>{totals.ketones_g} g</span>
           )}
@@ -116,7 +119,7 @@ function NutritionRow({
   return (
     <div className="grid gap-2"
       style={{
-        gridTemplateColumns: 'minmax(0, 70px) minmax(0, 1fr) minmax(0, 80px) minmax(0, 80px) minmax(0, 80px) auto',
+        gridTemplateColumns: 'minmax(0, 70px) minmax(0, 1fr) minmax(0, 80px) minmax(0, 80px) minmax(0, 80px) minmax(0, 90px) auto',
         background: '#13131A', border: '1px solid #1E1E22', padding: 8,
       }}>
       <input
@@ -148,7 +151,7 @@ function NutritionRow({
       />
       <input
         type="text" inputMode="decimal"
-        placeholder="g prot"
+        placeholder="g protein"
         value={entry.protein_g}
         onChange={e => onChange({ protein_g: e.target.value })}
         disabled={readOnly}
@@ -156,7 +159,15 @@ function NutritionRow({
       />
       <input
         type="text" inputMode="decimal"
-        placeholder="g ket"
+        placeholder="g fett"
+        value={entry.fat_g}
+        onChange={e => onChange({ fat_g: e.target.value })}
+        disabled={readOnly}
+        style={inputStyle}
+      />
+      <input
+        type="text" inputMode="decimal"
+        placeholder="g ketoner"
         value={entry.ketones_g}
         onChange={e => onChange({ ketones_g: e.target.value })}
         disabled={readOnly}

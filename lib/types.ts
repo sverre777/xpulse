@@ -478,6 +478,7 @@ export interface NutritionEntryRow {
   nutrition_type: NutritionType | ''
   carbs_g: string
   protein_g: string
+  fat_g: string
   ketones_g: string
   custom_label: string
   notes: string
@@ -490,6 +491,7 @@ export function emptyNutritionEntryRow(): NutritionEntryRow {
     nutrition_type: '',
     carbs_g: '',
     protein_g: '',
+    fat_g: '',
     ketones_g: '',
     custom_label: '',
     notes: '',

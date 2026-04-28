@@ -43,8 +43,9 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
             : '—'
           const macros: string[] = []
           if (e.carbs_g) macros.push(`${e.carbs_g} g karbo`)
-          if (e.protein_g) macros.push(`${e.protein_g} g prot`)
-          if (e.ketones_g) macros.push(`${e.ketones_g} g ket`)
+          if (e.protein_g) macros.push(`${e.protein_g} g protein`)
+          if (e.fat_g) macros.push(`${e.fat_g} g fett`)
+          if (e.ketones_g) macros.push(`${e.ketones_g} g ketoner`)
           return (
             <li key={e.id}
               className="flex items-baseline gap-3 px-2 py-1"
@@ -74,8 +75,9 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
         }}>
         <strong style={{ color: '#F0F0F2' }}>Total</strong>
         {totals.carbs_g !== null && <span>{totals.carbs_g} g karbo</span>}
-        {totals.protein_g !== null && <span>{totals.protein_g} g prot</span>}
-        {totals.ketones_g !== null && <span>{totals.ketones_g} g ket</span>}
+        {totals.protein_g !== null && <span>{totals.protein_g} g protein</span>}
+        {totals.fat_g !== null && <span>{totals.fat_g} g fett</span>}
+        {totals.ketones_g !== null && <span>{totals.ketones_g} g ketoner</span>}
         {totals.carbs_per_hour !== null && (
           <span style={{ color: '#FF4500' }}>≈ {totals.carbs_per_hour} g karbo/time</span>
         )}

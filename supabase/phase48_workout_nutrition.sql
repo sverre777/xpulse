@@ -21,11 +21,17 @@ create table if not exists public.workout_nutrition_entries (
     check (nutrition_type in ('gel','drikke','bar','frukt','mat','salt','egendefinert')),
   carbs_g               numeric(6,1),
   protein_g             numeric(6,1),
+  fat_g                 numeric(6,1),
   ketones_g             numeric(6,2),
   custom_label          text,
   notes                 text,
   created_at            timestamptz not null default now()
 );
+
+-- Idempotent — sørger for at fat_g finnes også hvis tabellen ble opprettet
+-- uten kolonnen (tidlig versjon av phase48 manglet fett).
+alter table public.workout_nutrition_entries
+  add column if not exists fat_g numeric(6,1);
 
 create index if not exists workout_nutrition_workout_idx
   on public.workout_nutrition_entries(workout_id, time_offset_minutes nulls last);

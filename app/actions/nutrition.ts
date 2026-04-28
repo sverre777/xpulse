@@ -37,7 +37,7 @@ export async function getNutritionForWorkout(
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('workout_nutrition_entries')
-    .select('id, time_offset_minutes, nutrition_type, carbs_g, protein_g, ketones_g, custom_label, notes')
+    .select('id, time_offset_minutes, nutrition_type, carbs_g, protein_g, fat_g, ketones_g, custom_label, notes')
     .eq('workout_id', workoutId)
     .order('time_offset_minutes', { ascending: true, nullsFirst: false })
   if (error) return { error: error.message }
@@ -49,6 +49,7 @@ export async function getNutritionForWorkout(
     nutrition_type: r.nutrition_type as NutritionType,
     carbs_g: r.carbs_g != null ? String(r.carbs_g) : '',
     protein_g: r.protein_g != null ? String(r.protein_g) : '',
+    fat_g: r.fat_g != null ? String(r.fat_g) : '',
     ketones_g: r.ketones_g != null ? String(r.ketones_g) : '',
     custom_label: r.custom_label ?? '',
     notes: r.notes ?? '',
@@ -102,6 +103,7 @@ export async function replaceWorkoutNutrition(
     nutrition_type: e.nutrition_type,
     carbs_g: parseNumOrNull(e.carbs_g),
     protein_g: parseNumOrNull(e.protein_g),
+    fat_g: parseNumOrNull(e.fat_g),
     ketones_g: parseNumOrNull(e.ketones_g),
     custom_label: e.custom_label || null,
     notes: e.notes || null,

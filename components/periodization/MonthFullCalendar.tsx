@@ -131,7 +131,7 @@ export function MonthFullCalendar({
                   type="button"
                   onClick={() => within && goToDay(iso)}
                   disabled={!within}
-                  className="h-[110px] sm:h-[140px]"
+                  className="h-[140px] sm:h-[150px]"
                   style={{
                     padding: '4px 6px',
                     textAlign: 'left',

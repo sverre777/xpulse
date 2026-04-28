@@ -4,6 +4,8 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { PlanVsActualCard } from './PlanVsActualCard'
+import { BelastningTrendMini } from './BelastningTrendMini'
+import { HelseMiniDashboard } from './HelseMiniDashboard'
 import type { DateRange } from './date-range'
 import { rangeFromPreset } from './date-range'
 
@@ -157,6 +159,17 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
             mode={mode === 'plan' ? 'planned' : 'completed'}
           />
         </div>
+
+        {/* Plan-side får belastnings-trend (CTL/ATL/TSB) sist —
+            tilbakeskuende form-indikator som hjelper med planlegging. */}
+        {mode === 'plan' && (
+          <BelastningTrendMini range={range} targetUserId={targetUserId} />
+        )}
+
+        {/* Dagbok-side får helse-mini-dashboard (HRV/RHR/søvn) sist. */}
+        {mode === 'dagbok' && (
+          <HelseMiniDashboard range={range} targetUserId={targetUserId} />
+        )}
       </div>
     </section>
   )

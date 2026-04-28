@@ -59,13 +59,14 @@ export default function AnalysePage() {
       />
 
       <SportFeatureSection
-        kicker="Korrelasjoner — kommer Q4 2026"
+        kicker="Korrelasjoner"
         title="HVA HENGER SAMMEN?"
-        intro="HRV mot prestasjon. Søvn mot HRV. Belastning mot dagsform. Auto-detektert korrelasjons-innsikt kommer i Q4 2026. Inntil da kan du sammenstille metrikker manuelt i custom-graf-bygger."
+        intro="HRV mot belastning. Dagsform mot 3-dagers-load. Snittpuls i intervaller mot HRV. Helse-fanen i analyse-modulen plotter alle disse som scatter-grafer med Pearson-korrelasjon — og finner mønstre i dine egne data, ikke generiske råd."
         bullets={[
-          { title: 'Manuell sammenstilling i dag', body: 'Custom-graf lar deg kombinere HRV, søvn, belastning og prestasjons-tall på samme akse.' },
-          { title: 'Auto-korrelasjon (Q4 2026)', body: 'Algoritmen finner sammenhenger i dine egne data og rapporterer dem ukentlig.' },
-          { title: 'Personlige terskler (Q4 2026)', body: 'F.eks. "din HRV faller under 50 hvis du sover under 6.5 timer" — basert på dine tall, ikke generiske råd.' },
+          { title: 'HRV vs treningsvolum', body: 'Hvordan henger din HRV sammen med summen av timer siste 7 dager? Scatter-plot + korrelasjons-koeffisient.' },
+          { title: 'Dagsform vs 3-dagers-belastning', body: 'Subjektiv dagsform-rating mot akkumulert belastning siste 3 dager — ser du fall etter harde uker?' },
+          { title: 'Sykdom vs belastning', body: 'Markering av sykedager mot foregående belastning — finn dine egne overtrenings-grenser.' },
+          { title: 'Skadehistorikk', body: 'Skadeperioder spores mot belastnings-trend så du ser om volum-spikes utløste skadene.' },
         ]}
       />
 

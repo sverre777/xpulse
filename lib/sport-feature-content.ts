@@ -294,9 +294,129 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     ],
   },
 
-  // Fylles i Chunk 6.
-  sykling: null,
-  triatlon: null,
+  sykling: {
+    slug: 'sykling',
+    hero: {
+      kicker: 'X-PULSE for sykling',
+      titleLines: ['Landevei.', 'Terreng.', 'Effekt.'],
+      description:
+        'Effekt-soner, høydemeter og sammenligning over sesong. Logg landeveis-økter og terrengritt med samme rammeverk og se utviklingen mot dine mål.',
+    },
+    metaDescription:
+      'X-PULSE for syklister. Effekt-soner, høydemeter, FTP-utvikling og sammenligning av økter på samme rute over sesong.',
+    sections: [
+      {
+        id: 'effekt',
+        kicker: 'Effekt-soner',
+        title: 'WATT-BASERTE INTERVALLER.',
+        intro:
+          'Hvis du har effektmåler kan plan-økter settes med watt-mål per drag. Aktivitets-loggen plotter effekt mot puls og sone-tid, så du ser om dragene faktisk traff målet.',
+        bullets: [
+          { title: 'FTP-soner', body: 'Sett FTP og generer 7 effekt-soner. Plan-økter har watt-mål per drag.' },
+          { title: 'Effekt vs puls', body: 'Cardiac decoupling, dvs. om puls drev oppover på samme effekt over en lang økt.' },
+          { title: 'Normalisert effekt', body: 'NP/IF/TSS regnes automatisk fra .fit-import — vises som default i sammenligning.' },
+        ],
+      },
+      {
+        id: 'klatring',
+        kicker: 'Høydemeter',
+        title: 'KLATRING SOM EGEN MUSKEL.',
+        intro:
+          'Stigninger logges per drag eller hele økten. PR-listen tracker lengste klatring og total høydemeter per uke/måned, så du ser om volum-progresjonen er der.',
+        bullets: [
+          { title: 'Per-drag-stigning', body: 'Bryt opp en lang tur i klatringer + flatt; statistikk per type vises.' },
+          { title: 'Klatre-PR', body: 'Lengste enkelt-klatring og største høydemeter-uke loggføres i PR.' },
+          { title: 'Klatre-effekt', body: 'Watt per kg på klatringer hvis vekt er logget.' },
+        ],
+      },
+      {
+        id: 'sesong',
+        kicker: 'Sesong-sammenligning',
+        title: 'SAMME RUTE — TO ÅR.',
+        intro:
+          'Logg favoritt-runder med navn. Hver gang du gjør runden lagres tider og effekt så du kan plotte sesong-utvikling mot fjorårets samme runde.',
+        bullets: [
+          { title: 'Navngivne ruter', body: 'Marker en runde som "favoritt" — alle senere økter på den ruten samles.' },
+          { title: 'År-mot-år-graf', body: 'Sesong 2025 vs 2026 på samme runde, plottet i én graf.' },
+          { title: 'Vær-kontekst', body: 'Vind og temp logges per runde-økt så du kan filtrere på sammenlignbare forhold.' },
+        ],
+      },
+      {
+        id: 'utstyr',
+        kicker: 'Utstyr',
+        title: 'SYKKELPARK OG SLITASJE.',
+        intro:
+          'Hver sykkel registreres som eget utstyr. Dekk, kjede, kassett og pads får km/timer-historikk så du vet når det er på tide å bytte.',
+        bullets: [
+          { title: 'Per-sykkel-logg', body: 'Velg sykkel per økt — total km per sykkel oppdateres automatisk.' },
+          { title: 'Komponent-slitasje', body: 'Kjede, dekk, klosser har egne km-tellere; varsel når terskel nås.' },
+          { title: 'Service-historikk', body: 'Logg verksteds-besøk og bytt med dato; se historikk per sykkel.' },
+        ],
+      },
+    ],
+  },
+
+  triatlon: {
+    slug: 'triatlon',
+    hero: {
+      kicker: 'X-PULSE for triatlon',
+      titleLines: ['Svømming.', 'Sykling.', 'Løping.'],
+      description:
+        'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurransedato — uten å måtte hoppe mellom tre apper for å holde oversikt.',
+    },
+    metaDescription:
+      'X-PULSE for triatleter. Tre disipliner i én plan, brick-økter, bytt-tider og periodisering mot Ironman/Olympic-distanse.',
+    sections: [
+      {
+        id: 'tre-i-en',
+        kicker: 'Tre disipliner — én plan',
+        title: 'SVØM, SYKKEL, LØP — KOBLET.',
+        intro:
+          'Plan-modulen håndterer alle tre disipliner som førsteklasses borgere. Sone-soner per sport (svømme-puls er ikke løpe-puls), egne tester per disiplin, og total-belastning som summerer alt.',
+        bullets: [
+          { title: 'Per-sport-soner', body: 'Maks-puls og terskler settes uavhengig for svøm/sykkel/løp.' },
+          { title: 'Total-belastning', body: 'CTL/ATL/TSB regnes på tvers av alle tre — utbrenthet kommer ikke fra én sport alene.' },
+          { title: 'Disiplin-volum-mål', body: 'Sett uke-mål per sport (km svøm, t sykkel, km løp); avvik flagges.' },
+        ],
+      },
+      {
+        id: 'brick',
+        kicker: 'Brick-økter',
+        title: 'OVERGANG SOM EGEN ØKT.',
+        intro:
+          'En brick (svøm-sykkel eller sykkel-løp uten pause) registreres som én økt med to aktiviteter, ikke to separate. Bytt-tiden mellom disiplinene logges som egen rad.',
+        bullets: [
+          { title: 'Multi-aktivitet', body: 'Én økt kan inneholde svøm + sykkel + løp i sekvens med egne stats.' },
+          { title: 'Bytt-tid', body: 'T1 og T2 logges separat; sammenlign med konkurransedager.' },
+          { title: 'Aerob effektivitet', body: 'Pace-fall fra solo-løp til løp etter sykkel — viktig indikator for triatlon-form.' },
+        ],
+      },
+      {
+        id: 'periodisering',
+        kicker: 'Periodisering',
+        title: 'TOPP TIL KONKURRANSEDAGEN.',
+        intro:
+          'Olympic-distanse, halv-ironman og full Ironman har vidt forskjellig peak-strategi. Plan-malene reflekterer det — taper-fasen er ikke én størrelse.',
+        bullets: [
+          { title: 'Format-spesifikke maler', body: 'Olympic, 70.3, full Ironman har egne periode-strukturer.' },
+          { title: 'Brick-progresjon', body: 'Brick-volum øker mot konkurransen og trappes ned i taper.' },
+          { title: 'Race-day-checklist', body: 'Egen pre-race-mal med ernæring, gear og bytt-rutiner.' },
+        ],
+      },
+      {
+        id: 'analyse',
+        kicker: 'Disiplin-analyse',
+        title: 'HVOR FALER DU?',
+        intro:
+          'Custom-graf-modulen lar deg plotte løpe-pace etter sykkelen vs frittstående løpe-pace, eller se om svøm-pulsen din henger med uten å bli utmattet.',
+        bullets: [
+          { title: 'Disiplin-filter', body: 'Alle dashbord kan filtreres på svøm/sykkel/løp eller multi.' },
+          { title: 'Pace-tap etter sykkel', body: 'Spor om løpe-pace-tap-mellom-solo-og-brick reduseres over sesong.' },
+          { title: 'Konkurranse-prognose', body: 'Estimat basert på siste 6 ukers brick-økter for total-tid på halv/full distanse.' },
+        ],
+      },
+    ],
+  },
 }
 
 export function getSportPageContent(slug: string): SportPageContent | null {

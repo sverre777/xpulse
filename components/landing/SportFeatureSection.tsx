@@ -101,7 +101,7 @@ export function SportFeatureSection({
 // kan bytte tekst og lenkemål ett sted.
 export function SportPageCTA({
   title = 'Start 30 dagers gratis prøve',
-  subtitle = 'Ingen kortinfo, ingen bindingstid. Kom i gang på minutter.',
+  subtitle = 'Ingen bindingstid. Kom i gang på minutter.',
   href = '/app/registrer',
   label = 'Start gratis prøve',
 }: {

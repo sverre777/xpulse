@@ -125,7 +125,7 @@ export function LandingNav() {
           <li><Link href="/xpulse.html#faq"    style={navLinkStyle}>FAQ</Link></li>
           <li><Link href="/app"                style={navLinkStyle}>Logg inn</Link></li>
           <li>
-            <Link href="/app/registrer"
+            <Link href="/xpulse.html#priser"
               style={{
                 background: '#FF4500', color: '#F2F0EC', padding: '9px 20px',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -216,7 +216,7 @@ export function LandingNav() {
           <Link href="/xpulse.html#priser" onClick={() => setPanelOpen(false)} style={panelLinkStyle}>Priser</Link>
           <Link href="/xpulse.html#faq" onClick={() => setPanelOpen(false)} style={panelLinkStyle}>FAQ</Link>
 
-          <Link href="/app/registrer" onClick={() => setPanelOpen(false)}
+          <Link href="/xpulse.html#priser" onClick={() => setPanelOpen(false)}
             style={{
               marginTop: 'auto', padding: 18, background: '#FF4500',
               color: '#F2F0EC', textAlign: 'center', textDecoration: 'none',

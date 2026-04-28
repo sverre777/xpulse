@@ -102,7 +102,7 @@ export function SportFeatureSection({
 export function SportPageCTA({
   title = 'Start 30 dagers gratis prøve',
   subtitle = 'Ingen bindingstid. Kom i gang på minutter.',
-  href = '/app/registrer',
+  href = '/xpulse.html#priser',
   label = 'Start gratis prøve',
 }: {
   title?: string

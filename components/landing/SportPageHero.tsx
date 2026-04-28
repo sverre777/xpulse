@@ -44,7 +44,7 @@ export function SportPageHero({ kicker, title, description, icon }: SportPageHer
             {description}
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/app/registrer" style={{
+            <Link href="/xpulse.html#priser" style={{
               background: '#FF4500', color: '#F2F0EC',
               padding: '14px 28px', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -52,13 +52,13 @@ export function SportPageHero({ kicker, title, description, icon }: SportPageHer
             }}>
               Start 30 dagers gratis prøve
             </Link>
-            <Link href="/xpulse.html#priser" style={{
+            <Link href="/xpulse.html#faq" style={{
               color: '#F2F0EC', padding: '14px 28px',
               border: '1px solid #262629', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
             }}>
-              Se priser
+              FAQ
             </Link>
           </div>
         </div>

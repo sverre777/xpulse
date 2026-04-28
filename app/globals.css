@@ -94,3 +94,25 @@ input:focus, select:focus, textarea:focus {
 input::placeholder {
   color: var(--text-muted);
 }
+
+/* Landing-undersider topbar — speiler xpulse.html nav-stil. Hover-effekt
+   krever ekte CSS-klasse siden inline style ikke støtter pseudo-states. */
+.landing-nav-link {
+  color: rgba(242, 240, 236, 0.55);
+  transition: color 0.3s;
+}
+.landing-nav-link:hover { color: #F2F0EC; }
+.landing-dropdown-link {
+  color: rgba(242, 240, 236, 0.6);
+  transition: background-color 0.15s, color 0.15s;
+}
+.landing-dropdown-link:hover {
+  background: #1A1A1E;
+  color: #F2F0EC;
+}
+.landing-cta {
+  background: #FF4500;
+  color: #F2F0EC;
+  transition: background-color 0.2s;
+}
+.landing-cta:hover { background: #cc3700; }

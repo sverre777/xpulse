@@ -55,8 +55,7 @@ export function LandingNav() {
         className="flex items-center justify-between px-6 lg:px-14 py-7"
         style={{
           position: 'sticky', top: 0, zIndex: 100,
-          background: 'linear-gradient(to bottom, rgba(11,19,21,0.85), rgba(11,19,21,0.5))',
-          backdropFilter: 'blur(8px)',
+          background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
         }}
       >
         <Link href="/xpulse.html"
@@ -75,12 +74,12 @@ export function LandingNav() {
         <ul className="hidden lg:flex items-center gap-8 list-none m-0 p-0">
           <li className="relative group">
             <button type="button"
-              className="inline-flex items-center gap-1.5"
+              className="landing-nav-link inline-flex items-center gap-1.5"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                 fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
-                color: 'rgba(242,240,236,0.55)', padding: 0,
+                padding: 0,
               }}
               aria-haspopup="true"
             >
@@ -97,11 +96,12 @@ export function LandingNav() {
             >
               {SPORT_LINKS.map(s => (
                 <Link key={s.slug} href={`/funksjoner/${s.slug}`}
+                  className="landing-dropdown-link"
                   style={{
                     display: 'block', padding: '11px 20px',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
-                    color: 'rgba(242,240,236,0.6)', textDecoration: 'none',
+                    fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
+                    textDecoration: 'none',
                   }}
                 >
                   {s.label}
@@ -110,11 +110,12 @@ export function LandingNav() {
               <div style={{ height: 1, background: '#262629', margin: '6px 12px' }} />
               {MODULE_LINKS.map(m => (
                 <Link key={m.href} href={m.href}
+                  className="landing-dropdown-link"
                   style={{
                     display: 'block', padding: '11px 20px',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
-                    color: 'rgba(242,240,236,0.6)', textDecoration: 'none',
+                    fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
+                    textDecoration: 'none',
                   }}
                 >
                   {m.label}
@@ -132,13 +133,14 @@ export function LandingNav() {
               ))}
             </div>
           </li>
-          <li><Link href="/xpulse.html#priser" style={navLinkStyle}>Priser</Link></li>
-          <li><Link href="/xpulse.html#faq"    style={navLinkStyle}>FAQ</Link></li>
-          <li><Link href="/app"                style={navLinkStyle}>Logg inn</Link></li>
+          <li><Link href="/xpulse.html#priser" className="landing-nav-link" style={navLinkStyle}>Priser</Link></li>
+          <li><Link href="/xpulse.html#faq"    className="landing-nav-link" style={navLinkStyle}>FAQ</Link></li>
+          <li><Link href="/app"                className="landing-nav-link" style={navLinkStyle}>Logg inn</Link></li>
           <li>
             <Link href="/xpulse.html#priser"
+              className="landing-cta"
               style={{
-                background: '#FF4500', color: '#F2F0EC', padding: '9px 20px',
+                padding: '9px 20px',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
                 textDecoration: 'none',
@@ -245,7 +247,7 @@ export function LandingNav() {
 const navLinkStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
   fontSize: '11px', letterSpacing: '2.5px', textTransform: 'uppercase',
-  color: 'rgba(242,240,236,0.55)', textDecoration: 'none',
+  textDecoration: 'none',
 }
 
 const panelIconStyle: React.CSSProperties = {

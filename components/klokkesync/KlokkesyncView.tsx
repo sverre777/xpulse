@@ -26,6 +26,7 @@ interface StravaConn {
 interface Props {
   stravaConnection: StravaConn | null
   status: string | null
+  detail?: string | null
 }
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -37,7 +38,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   'token-feilet':   { label: 'Token-utveksling feilet — prøv igjen',       color: '#E11D48' },
 }
 
-export function KlokkesyncView({ stravaConnection, status }: Props) {
+export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
   return (
     <div className="space-y-8">
       {status && STATUS_LABEL[status] && (
@@ -48,7 +49,12 @@ export function KlokkesyncView({ stravaConnection, status }: Props) {
             color: STATUS_LABEL[status].color,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
-          {STATUS_LABEL[status].label}
+          <div>{STATUS_LABEL[status].label}</div>
+          {detail && (
+            <div style={{ marginTop: 6, fontSize: 11, opacity: 0.8 }}>
+              Detaljer: <code>{detail}</code>
+            </div>
+          )}
         </div>
       )}
 

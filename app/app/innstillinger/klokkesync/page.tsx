@@ -4,7 +4,7 @@ import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncView } from '@/components/klokkesync/KlokkesyncView'
 
 interface Props {
-  searchParams: Promise<{ strava?: string }>
+  searchParams: Promise<{ strava?: string; detail?: string }>
 }
 
 export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
@@ -23,6 +23,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   // lagrer ikke det enda — viser bare athlete_id som fallback.)
   const sp = await searchParams
   const stravaStatus = sp.strava ?? null
+  const stravaDetail = sp.detail ?? null
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -37,6 +38,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
             connected_at: stravaConn.created_at,
           } : null}
           status={stravaStatus}
+          detail={stravaDetail}
         />
       </div>
     </div>

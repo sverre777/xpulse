@@ -50,61 +50,87 @@ export interface ListSyncableResult {
 }
 
 // Hent aktiviteter fra Strava + flag konflikter mot workouts. Lager INGEN
-// endringer — bare returnerer preview.
+// endringer — bare returnerer preview. All feil fanges og returneres
+// strukturert så UI ikke får server-action-throw → "page could not load".
 export async function listSyncableActivities(
   mode: SyncMode = 'last_30d',
 ): Promise<ListSyncableResult | { error: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
-  const conn = await getStravaConnection(supabase, user.id)
-  if (!conn) return { error: 'Strava ikke tilkoblet' }
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Ikke innlogget' }
+    const conn = await getStravaConnection(supabase, user.id)
+    if (!conn) return { error: 'Strava ikke tilkoblet' }
 
-  const after = computeAfterTimestamp(mode)
-  const stravaActivities = await fetchStravaActivities(supabase, conn, {
-    after, per_page: 100,
-  })
-  if (stravaActivities.length === 0) {
-    return { activities: [], total: 0, last_sync_at: conn.last_sync_at }
-  }
+    console.log('[strava-sync] listSyncable start', { user_id: user.id, mode })
+    const after = computeAfterTimestamp(mode)
 
-  // Sjekk hvilke som allerede er importert.
-  const stravaIds = stravaActivities.map(a => `strava_${a.id}`)
-  const { data: alreadyImported } = await supabase
-    .from('imported_activities')
-    .select('external_id')
-    .eq('user_id', user.id)
-    .eq('source', 'strava')
-    .in('external_id', stravaIds)
-  const importedSet = new Set((alreadyImported ?? []).map(r => r.external_id as string))
+    let stravaActivities: Awaited<ReturnType<typeof fetchStravaActivities>>
+    try {
+      stravaActivities = await fetchStravaActivities(supabase, conn, {
+        after, per_page: 100,
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('[strava-sync] fetchStravaActivities failed:', msg)
+      return { error: `Strava API: ${msg}` }
+    }
 
-  // Hent eksisterende workouts i samme periode for konflikt-deteksjon.
-  const fromDate = new Date(after * 1000).toISOString().slice(0, 10)
-  const { data: existingWorkouts } = await supabase
-    .from('workouts')
-    .select('id, date, time_of_day, duration_minutes')
-    .eq('user_id', user.id)
-    .gte('date', fromDate)
+    console.log('[strava-sync] fetched', stravaActivities.length, 'activities')
+    if (stravaActivities.length === 0) {
+      return { activities: [], total: 0, last_sync_at: conn.last_sync_at }
+    }
 
-  const conflicts = new Map<number, string>()
-  for (const sa of stravaActivities) {
-    const conflict = findConflict(sa, existingWorkouts ?? [])
-    if (conflict) conflicts.set(sa.id, conflict)
-  }
+    // Sjekk hvilke som allerede er importert.
+    const stravaIds = stravaActivities.map(a => `strava_${a.id}`)
+    const { data: alreadyImported, error: impErr } = await supabase
+      .from('imported_activities')
+      .select('external_id')
+      .eq('user_id', user.id)
+      .eq('source', 'strava')
+      .in('external_id', stravaIds)
+    if (impErr) {
+      console.error('[strava-sync] imported_activities query failed:', impErr)
+      return { error: `DB-feil (imported_activities): ${impErr.message}` }
+    }
+    const importedSet = new Set((alreadyImported ?? []).map(r => r.external_id as string))
 
-  return {
-    activities: stravaActivities.map(sa => ({
-      strava_id: sa.id,
-      name: sa.name,
-      sport_type: sa.sport_type,
-      start_date: sa.start_date,
-      duration_minutes: Math.round(sa.elapsed_time / 60),
-      distance_km: Math.round((sa.distance / 1000) * 10) / 10,
-      conflict_workout_id: conflicts.get(sa.id) ?? null,
-      already_imported: importedSet.has(`strava_${sa.id}`),
-    })),
-    total: stravaActivities.length,
-    last_sync_at: conn.last_sync_at,
+    // Hent eksisterende workouts i samme periode for konflikt-deteksjon.
+    const fromDate = new Date(after * 1000).toISOString().slice(0, 10)
+    const { data: existingWorkouts, error: wkErr } = await supabase
+      .from('workouts')
+      .select('id, date, time_of_day, duration_minutes')
+      .eq('user_id', user.id)
+      .gte('date', fromDate)
+    if (wkErr) {
+      console.error('[strava-sync] workouts query failed:', wkErr)
+      return { error: `DB-feil (workouts): ${wkErr.message}` }
+    }
+
+    const conflicts = new Map<number, string>()
+    for (const sa of stravaActivities) {
+      const conflict = findConflict(sa, existingWorkouts ?? [])
+      if (conflict) conflicts.set(sa.id, conflict)
+    }
+
+    return {
+      activities: stravaActivities.map(sa => ({
+        strava_id: sa.id,
+        name: sa.name,
+        sport_type: sa.sport_type,
+        start_date: sa.start_date,
+        duration_minutes: Math.round(sa.elapsed_time / 60),
+        distance_km: Math.round((sa.distance / 1000) * 10) / 10,
+        conflict_workout_id: conflicts.get(sa.id) ?? null,
+        already_imported: importedSet.has(`strava_${sa.id}`),
+      })),
+      total: stravaActivities.length,
+      last_sync_at: conn.last_sync_at,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('[strava-sync] listSyncable unexpected:', msg, e)
+    return { error: `Uventet feil: ${msg}` }
   }
 }
 
@@ -127,6 +153,7 @@ export async function importStravaActivity(
     conflictWorkoutId?: string
   } = {},
 ): Promise<ImportResult> {
+  try {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Ikke innlogget' }
@@ -179,6 +206,11 @@ export async function importStravaActivity(
 
   // keep_both eller ingen konflikt: opprett ny workout direkte.
   return await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.error('[strava-sync] importStravaActivity failed:', msg, e)
+    return { ok: false, error: `Import-feil: ${msg}` }
+  }
 }
 
 // "Synk alt uten konflikt" — auto-importer alle aktiviteter fra perioden

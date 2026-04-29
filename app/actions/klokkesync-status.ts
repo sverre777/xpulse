@@ -2,24 +2,53 @@
 
 import { createClient } from '@/lib/supabase/server'
 
-// Lett-vekt status-action for topbar-ikonet. Returnerer kun det som
-// trengs for å vise prikken og popup — minimal payload, kjapt kall.
+// To server-actions for topbar-status:
+//
+// getKlokkesyncBadge — hentes server-side i layout, kjører før første
+//   render så ikonet rendres med riktig fargedot fra start. Én DB-query.
+//
+// getKlokkesyncStatus — full status med siste imported workout, kalles
+//   først når brukeren åpner popup. To DB-queries.
 
-export interface KlokkesyncStatus {
+export interface KlokkesyncBadge {
   connected: boolean
-  // Hvis koblet: når sist Strava-synk gikk gjennom (cron eller manuell).
   lastSyncAt: string | null
-  // Hvis koblet: nyeste importerte aktivitet (tittel + dato + workout_id
-  // for klikk-til-detalj).
+  hasError: boolean
+}
+
+export interface KlokkesyncStatus extends KlokkesyncBadge {
   lastWorkout: {
     id: string
     title: string
     date: string
-    source: string  // 'strava' / 'fit_upload'
+    source: string
   } | null
-  // Sant hvis token er utløpt og refresh ikke virker. Foreløpig avledet
-  // fra utløpt token uten siste-synk i etterkant.
-  hasError: boolean
+}
+
+// Liten payload for badge-ren­dering. Brukes fra (authed)-layout server-
+// side så ikonet vises samtidig med de andre topbar-ikonene.
+export async function getKlokkesyncBadge(): Promise<KlokkesyncBadge> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { connected: false, lastSyncAt: null, hasError: false }
+  }
+  const { data: conn } = await supabase
+    .from('strava_connections')
+    .select('last_sync_at, token_expires_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  if (!conn) {
+    return { connected: false, lastSyncAt: null, hasError: false }
+  }
+  const tokenExpired = new Date(conn.token_expires_at).getTime() < Date.now()
+  const hasError = tokenExpired && !!conn.last_sync_at &&
+    (Date.now() - new Date(conn.last_sync_at).getTime()) > 24 * 3600 * 1000
+  return {
+    connected: true,
+    lastSyncAt: conn.last_sync_at,
+    hasError,
+  }
 }
 
 export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {

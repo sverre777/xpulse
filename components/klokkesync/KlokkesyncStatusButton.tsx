@@ -1,55 +1,49 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  getKlokkesyncStatus, type KlokkesyncStatus,
+  getKlokkesyncStatus, type KlokkesyncBadge, type KlokkesyncStatus,
 } from '@/app/actions/klokkesync-status'
 import { quickSyncNonConflicting } from '@/app/actions/strava-sync'
 
-// Topbar-ikon for klokkesync-status. Viser RefreshCw med fargedot for
-// tilstand: grønn (synket), oransje (ikke koblet), rød (feil). Klikk
-// åpner enten popup (koblet) eller naviger direkte til innstillinger
-// (ikke koblet / feil).
+// Topbar-ikon for klokkesync. Rendres umiddelbart med initialBadge fra
+// server-side layout-fetch — ingen useEffect-blink ved første render.
+// Full status (m/siste imported workout) hentes lazy først når brukeren
+// åpner popup.
 
 interface Props {
-  // Når satt: bypasser server-action ved første render. MainNav kan sende
-  // pre-fetched status så ikon ikke flapper på mount.
-  initialStatus?: KlokkesyncStatus
+  // Server-side fetched i layout. Hvis ikke gitt rendres ikonet som
+  // "ikke koblet" inntil videre.
+  initialBadge?: KlokkesyncBadge
 }
 
-export function KlokkesyncStatusButton({ initialStatus }: Props) {
-  const [status, setStatus] = useState<KlokkesyncStatus | null>(initialStatus ?? null)
+export function KlokkesyncStatusButton({ initialBadge }: Props) {
+  const badge: KlokkesyncBadge = initialBadge ?? {
+    connected: false, lastSyncAt: null, hasError: false,
+  }
   const [popupOpen, setPopupOpen] = useState(false)
+  const [fullStatus, setFullStatus] = useState<KlokkesyncStatus | null>(null)
   const router = useRouter()
 
-  // Hent status hvis ingen pre-fetched. Kjører kun én gang på mount.
-  useEffect(() => {
-    if (initialStatus) return
-    let cancelled = false
-    getKlokkesyncStatus().then(s => {
-      if (!cancelled) setStatus(s)
-    })
-    return () => { cancelled = true }
-  }, [initialStatus])
-
-  if (!status) {
-    return <div style={{ width: 36, height: 36 }} />  // placeholder så layout ikke flytter
-  }
-
-  const dotColor = status.hasError ? '#E11D48'
-    : status.connected ? '#28A86E'
+  const dotColor = badge.hasError ? '#E11D48'
+    : badge.connected ? '#28A86E'
     : '#FF4500'
-  const tooltip = status.hasError
+  const tooltip = badge.hasError
     ? 'Synk feilet — re-koble'
-    : status.connected
-      ? `Sist synket: ${status.lastSyncAt ? formatRelative(status.lastSyncAt) : 'aldri'}`
+    : badge.connected
+      ? `Sist synket: ${badge.lastSyncAt ? formatRelative(badge.lastSyncAt) : 'aldri'}`
       : 'Koble til klokken'
 
-  const handleClick = () => {
-    if (!status.connected || status.hasError) {
+  const handleClick = async () => {
+    if (!badge.connected || badge.hasError) {
       router.push('/app/innstillinger/klokkesync')
       return
+    }
+    // Lazy-fetch full status (med siste imported workout) ved første åpning.
+    if (!fullStatus) {
+      const s = await getKlokkesyncStatus()
+      setFullStatus(s)
     }
     setPopupOpen(prev => !prev)
   }
@@ -58,9 +52,8 @@ export function KlokkesyncStatusButton({ initialStatus }: Props) {
     setPopupOpen(false)
     const fresh = await quickSyncNonConflicting('last_30d')
     if (!fresh.error) {
-      // Re-hent status så popup vises korrekt neste gang.
       const next = await getKlokkesyncStatus()
-      setStatus(next)
+      setFullStatus(next)
       router.refresh()
     }
   }
@@ -83,9 +76,9 @@ export function KlokkesyncStatusButton({ initialStatus }: Props) {
             border: '2px solid #0A0A0B',
           }} />
       </button>
-      {popupOpen && (
+      {popupOpen && fullStatus && (
         <KlokkesyncStatusPopup
-          status={status}
+          status={fullStatus}
           onClose={() => setPopupOpen(false)}
           onSyncNow={handleSyncNow}
         />
@@ -192,9 +185,6 @@ function KlokkesyncStatusPopup({
   )
 }
 
-// Inline RefreshCw — speiler Lucide-design uten å trekke inn pakken.
-// Sirkulær pil med stop-spiss i ene enden, samme stroke-style som de
-// andre nav-ikonene i appen.
 function RefreshCwIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24"

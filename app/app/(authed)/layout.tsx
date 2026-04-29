@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
+import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
 import { AppFooter } from '@/components/layout/AppFooter'
 import type { Role } from '@/lib/types'
@@ -20,7 +21,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
-  const unreadInboxCount = await getInboxUnreadCount()
+  // Parallelliser server-fetches så ingen blokker hverandre.
+  const [unreadInboxCount, klokkesyncBadge] = await Promise.all([
+    getInboxUnreadCount(),
+    getKlokkesyncBadge(),
+  ])
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
@@ -32,6 +37,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
           unreadInboxCount={unreadInboxCount}
+          klokkesyncBadge={klokkesyncBadge}
         />
         <div className="flex-1">
           {children}

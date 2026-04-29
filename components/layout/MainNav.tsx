@@ -8,6 +8,7 @@ import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
+import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { UserMenu } from './UserMenu'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
@@ -22,6 +23,7 @@ interface MainNavProps {
   hasAthleteRole?: boolean
   hasCoachRole?: boolean
   unreadInboxCount?: number
+  klokkesyncBadge?: KlokkesyncBadge
 }
 
 const INBOX_HREF = '/app/innboks'
@@ -52,6 +54,7 @@ export function MainNav({
   hasAthleteRole = true,
   hasCoachRole = false,
   unreadInboxCount = 0,
+  klokkesyncBadge,
 }: MainNavProps) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
@@ -147,6 +150,7 @@ export function MainNav({
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
             unreadInboxCount={unreadInboxCount}
+            klokkesyncBadge={klokkesyncBadge}
             onClose={() => setMenuOpen(false)}
           />
         )}
@@ -249,7 +253,7 @@ export function MainNav({
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
         />
 
-        {activeRole !== 'coach' && <KlokkesyncStatusButton />}
+        {activeRole !== 'coach' && <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />}
 
         <SettingsIconButton
           accent={accent}
@@ -268,7 +272,7 @@ export function MainNav({
   )
 }
 
-function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, unreadInboxCount, onClose }: {
+function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, unreadInboxCount, klokkesyncBadge, onClose }: {
   pathname: string
   userName: string | null
   logHref: string
@@ -278,6 +282,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   hasAthleteRole: boolean
   hasCoachRole: boolean
   unreadInboxCount: number
+  klokkesyncBadge?: KlokkesyncBadge
   onClose: () => void
 }) {
   const [touchStartY, setTouchStartY] = useState<number | null>(null)
@@ -379,7 +384,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         </Link>
         {activeRole !== 'coach' && (
           <div onClick={onClose}>
-            <KlokkesyncStatusButton />
+            <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />
           </div>
         )}
         <Link

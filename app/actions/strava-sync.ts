@@ -8,6 +8,7 @@ import {
   fetchStravaActivityDetail,
   fetchStravaStreams,
   mapStravaSportToXpulse,
+  hasRequiredStravaScope,
   type StravaActivitySummary,
   type StravaActivityDetail,
   type StravaLap,
@@ -61,8 +62,14 @@ export async function listSyncableActivities(
     if (!user) return { error: 'Ikke innlogget' }
     const conn = await getStravaConnection(supabase, user.id)
     if (!conn) return { error: 'Strava ikke tilkoblet' }
+    if (!hasRequiredStravaScope(conn.scope)) {
+      return {
+        error: 'Strava-koblingen mangler "activity:read_all"-tilgang. ' +
+          'Frakoble og koble til på nytt for å gi tilgang til økter.',
+      }
+    }
 
-    console.log('[strava-sync] listSyncable start', { user_id: user.id, mode })
+    console.log('[strava-sync] listSyncable start', { user_id: user.id, mode, scope: conn.scope })
     const after = computeAfterTimestamp(mode)
 
     let stravaActivities: Awaited<ReturnType<typeof fetchStravaActivities>>
@@ -159,6 +166,9 @@ export async function importStravaActivity(
   if (!user) return { ok: false, error: 'Ikke innlogget' }
   const conn = await getStravaConnection(supabase, user.id)
   if (!conn) return { ok: false, error: 'Strava ikke tilkoblet' }
+  if (!hasRequiredStravaScope(conn.scope)) {
+    return { ok: false, error: 'Mangler activity:read_all — frakoble og koble til på nytt' }
+  }
 
   // Sjekk om allerede importert.
   const externalId = `strava_${stravaActivityId}`

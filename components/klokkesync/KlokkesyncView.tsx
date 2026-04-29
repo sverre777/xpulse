@@ -120,6 +120,9 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   const [previewList, setPreviewList] = useState<SyncableActivity[] | null>(null)
   const [conflict, setConflict] = useState<{ activity: SyncableActivity } | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  // Eksisterende koblinger fra før vi fikset scope-encoding-bug-en kan
+  // mangle activity:read_all. Da må brukeren re-autorisere.
+  const missingScope = !conn.scope || !conn.scope.includes('activity:read_all')
 
   const handleSync = () => {
     startTransition(async () => {
@@ -182,6 +185,19 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
   return (
     <>
+      {missingScope && (
+        <div className="p-3 mb-3"
+          style={{
+            background: 'rgba(245,197,66,0.1)',
+            border: '1px solid rgba(245,197,66,0.5)',
+            color: '#F5C542',
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+          }}>
+          ⚠️ Eksisterende kobling mangler <code>activity:read_all</code>-tilgang
+          (scope: <code>{conn.scope ?? '—'}</code>). Frakoble og koble til på nytt
+          for å gi tilgang til økter.
+        </div>
+      )}
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <div style={{

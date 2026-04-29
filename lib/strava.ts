@@ -20,21 +20,38 @@ export interface StravaConnection {
 
 // Generer OAuth-URL som brukeren omdirigeres til. Caller må selv håndtere
 // 302-respons. State-parameter brukes til å hindre CSRF.
+// Strava krever scope som rå komma-separert liste (ikke URL-encoded
+// komma). URLSearchParams ville bli kodet til %2C og %3A som Strava
+// håndterer dårlig — bygger scope-parameteren manuelt for å unngå det.
+const STRAVA_SCOPE = 'read,activity:read_all'
+
 export function buildStravaAuthUrl(state: string): string {
   const clientId = process.env.STRAVA_CLIENT_ID
   const redirectUri = process.env.STRAVA_REDIRECT_URI
   if (!clientId || !redirectUri) {
     throw new Error('STRAVA_CLIENT_ID/STRAVA_REDIRECT_URI mangler i env')
   }
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    approval_prompt: 'auto',
-    scope: 'read,activity:read_all',
-    state,
-  })
-  return `https://www.strava.com/oauth/authorize?${params.toString()}`
+  // Bygg URL manuelt: client_id/redirect_uri/state encodes med
+  // encodeURIComponent, men scope holdes rå.
+  const parts = [
+    `client_id=${encodeURIComponent(clientId)}`,
+    `redirect_uri=${encodeURIComponent(redirectUri)}`,
+    `response_type=code`,
+    `approval_prompt=auto`,
+    `scope=${STRAVA_SCOPE}`,
+    `state=${encodeURIComponent(state)}`,
+  ]
+  return `https://www.strava.com/oauth/authorize?${parts.join('&')}`
+}
+
+// Hva vi forventer at brukerens scope inneholder. Brukes til å oppdage
+// gamle koblinger med utilstrekkelig scope og varsle dem om re-auth.
+export function hasRequiredStravaScope(scope: string | null): boolean {
+  if (!scope) return false
+  // Strava skiller scope-elementer med komma OG mellomrom avhengig av
+  // hvordan token-responsen er formatert. Splitt på begge.
+  const granted = new Set(scope.split(/[,\s]+/).filter(Boolean))
+  return granted.has('activity:read_all')
 }
 
 // Bytt authorization-code mot token-par. Kalles fra /auth/strava/callback.

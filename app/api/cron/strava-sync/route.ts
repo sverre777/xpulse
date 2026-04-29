@@ -11,9 +11,10 @@ import {
   type StravaLap,
 } from '@/lib/strava'
 
-// Cron-route for auto-synk fra Strava. Konfigurer Vercel cron til å treffe
-// denne hver time (eller hver 15. min). Eksternt kall må sende
-// Authorization: Bearer ${CRON_SECRET} så ikke åpen for offentlig spam.
+// Cron-route for auto-synk fra Strava. Trigges av Netlify Scheduled
+// Function (se netlify/functions/strava-sync.ts) som kjøres */15 * * * *.
+// Eksternt kall må sende Authorization: Bearer ${CRON_SECRET} så ruten
+// ikke er åpen for offentlig spam.
 //
 // Sjekker alle brukere med auto_sync=true, henter siste 24t aktiviteter,
 // importerer ikke-konflikterende. Konflikter må brukeren selv håndtere

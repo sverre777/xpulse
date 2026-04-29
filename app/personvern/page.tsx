@@ -47,7 +47,7 @@ export default function PersonvernPage() {
       </LegalP>
       <LegalUL>
         <LegalLI><strong>Supabase (databehandler):</strong> hosting av database og autentisering. Data lagres på servere i EU.</LegalLI>
-        <LegalLI><strong>Vercel (databehandler):</strong> hosting av nettapplikasjonen.</LegalLI>
+        <LegalLI><strong>Netlify (databehandler):</strong> hosting av nettapplikasjonen.</LegalLI>
         <LegalLI><strong>Trener-tilkobling:</strong> hvis du som utøver kobler deg til en trener, vil treneren se treningsdata, planer og notater du deler. Du kan når som helst koble fra i innstillingene.</LegalLI>
       </LegalUL>
       <LegalP>

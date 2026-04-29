@@ -60,11 +60,13 @@ export function LandingFooter() {
         ]} />
 
         <FooterCol label="Plattform" items={[
-          { href: '/funksjoner/analyse',    label: 'Analyse' },
-          { href: '/funksjoner/trener',     label: 'Trener' },
-          { href: '/funksjoner/klokkesync', label: 'Klokkesync' },
-          { href: '/xpulse.html#priser',    label: 'Priser' },
-          { href: '/xpulse.html#faq',       label: 'FAQ' },
+          { href: '/funksjoner/dagbok-og-plan', label: 'Dagbok og Plan' },
+          { href: '/funksjoner/analyse',        label: 'Analyse' },
+          { href: '/funksjoner/trener',         label: 'Trener' },
+          { href: '/funksjoner/klokkesync',     label: 'Klokkesync' },
+          { href: '/funksjoner/ai-coach',       label: 'AI Coach' },
+          { href: '/xpulse.html#priser',        label: 'Priser' },
+          { href: '/xpulse.html#faq',           label: 'FAQ' },
         ]} />
 
         <FooterCol label="Selskap" items={[

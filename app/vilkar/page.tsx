@@ -8,11 +8,11 @@ export const metadata = {
 
 export default function VilkarPage() {
   return (
-    <LegalLayout title="Brukervilkår" updatedAt="[DATO]">
+    <LegalLayout title="Brukervilkår" updatedAt="2026-04-29">
       <LegalP>
         Disse vilkårene gjelder for din bruk av X-PULSE («tjenesten»). Ved å registrere
         deg eller bruke tjenesten godtar du vilkårene. Tjenesten leveres av
-        <strong> [Sverre / X-PULSE]</strong>, <strong>[Adresse]</strong>.
+        <strong> X-PULSE AS</strong> (org.nr <strong>923 830 146</strong>).
       </LegalP>
 
       <LegalH2>1. Tjenesten</LegalH2>
@@ -125,8 +125,8 @@ export default function VilkarPage() {
 
       <LegalH2>12. Kontakt</LegalH2>
       <LegalP>
-        Spørsmål om vilkårene? Kontakt <strong>[Sverre / X-PULSE]</strong> på
-        <strong> [kontakt-e-post]</strong>.
+        Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
+        på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.
       </LegalP>
 
       <div className="mt-10">

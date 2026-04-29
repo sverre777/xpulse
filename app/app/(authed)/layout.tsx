@@ -4,6 +4,7 @@ import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
+import { AppFooter } from '@/components/layout/AppFooter'
 import type { Role } from '@/lib/types'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +36,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <div className="flex-1">
           {children}
         </div>
+        <AppFooter />
       </div>
     </RoleProvider>
   )

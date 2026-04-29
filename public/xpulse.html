@@ -106,8 +106,9 @@
     flex-direction:column; gap:16px;
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
+    display:none;
   }
-  .nav-panel:not([hidden]) { display:flex; }
+  .nav-panel.open { display:flex; }
   body.nav-locked { overflow:hidden; }
   .nav-panel-top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
   .nav-panel-close { background:none; border:none; color:var(--white); cursor:none; padding:6px; }
@@ -184,10 +185,11 @@
   .hero-free { margin-top:20px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; color:var(--muted); animation:fadeUp 0.8s ease both 0.6s; }
   .hero-free span { color:var(--orange); }
 
-  /* DEVICES */
-  .devices-bar { background:var(--mid); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:18px 56px; display:flex; align-items:center; }
+  /* DEVICES — horisontal scroll inne hvis innhold er bredere enn skjerm.
+     Selve seksjonen holder fortsatt 100% bredde av siden. */
+  .devices-bar { background:var(--mid); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:18px 56px; display:flex; align-items:center; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:thin; }
   .devices-label { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--muted); white-space:nowrap; margin-right:40px; padding-right:40px; border-right:1px solid var(--border); flex-shrink:0; }
-  .devices-list { display:flex; align-items:center; gap:44px; flex-wrap:wrap; }
+  .devices-list { display:flex; align-items:center; gap:44px; flex-wrap:nowrap; flex-shrink:0; }
   .device-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:17px; letter-spacing:3px; text-transform:uppercase; color:rgba(242,240,236,0.22); transition:color 0.2s; white-space:nowrap; }
   .device-name:hover { color:rgba(242,240,236,0.55); }
   .device-name.device-soon { font-size:13px; letter-spacing:1.5px; color:rgba(242,240,236,0.4); }
@@ -656,7 +658,7 @@
   </button>
 </nav>
 
-<div class="nav-panel" id="navPanel" role="dialog" aria-modal="true" aria-label="Hovedmeny" hidden>
+<div class="nav-panel" id="navPanel" role="dialog" aria-modal="true" aria-label="Hovedmeny">
   <div class="nav-panel-top">
     <a class="nav-logo" href="/xpulse.html">
       <svg width="32" height="32" viewBox="0 0 200 200" aria-hidden="true">
@@ -1212,12 +1214,13 @@
     <div class="footer-col">
       <div class="footer-col-label">Plattform</div>
       <ul>
+        <li><a href="/funksjoner/dagbok-og-plan">Dagbok og Plan</a></li>
         <li><a href="/funksjoner/analyse">Analyse</a></li>
         <li><a href="/funksjoner/trener">Trener</a></li>
         <li><a href="/funksjoner/klokkesync">Klokkesync</a></li>
+        <li><a href="/funksjoner/ai-coach">AI Coach <span style="color:#F5C542;font-size:9px;letter-spacing:1.5px;margin-left:4px;">KOMMER</span></a></li>
         <li><a href="#priser">Priser</a></li>
         <li><a href="#faq">FAQ</a></li>
-        <li><a href="/roadmap">Roadmap</a></li>
       </ul>
     </div>
 
@@ -1290,12 +1293,16 @@
     const panel=document.getElementById('navPanel');
     const closeBtn=document.getElementById('navClose');
     if(!burger||!panel) return;
-    const open=()=>{ panel.hidden=false; document.body.classList.add('nav-locked'); burger.setAttribute('aria-expanded','true'); };
-    const close=()=>{ panel.hidden=true; document.body.classList.remove('nav-locked'); burger.setAttribute('aria-expanded','false'); };
+    // Bytter til class-toggle siden [hidden] kan kollidere med
+    // browser-defaults i noen edge-cases. Også trygg å re-initialisere.
+    panel.removeAttribute('hidden');
+    const isOpen=()=>panel.classList.contains('open');
+    const open=(e)=>{ if(e){ e.preventDefault(); e.stopPropagation(); } panel.classList.add('open'); document.body.classList.add('nav-locked'); burger.setAttribute('aria-expanded','true'); };
+    const close=()=>{ panel.classList.remove('open'); document.body.classList.remove('nav-locked'); burger.setAttribute('aria-expanded','false'); };
     burger.addEventListener('click', open);
     closeBtn?.addEventListener('click', close);
     panel.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-    document.addEventListener('keydown', e => { if(e.key==='Escape' && !panel.hidden) close(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape' && isOpen()) close(); });
   })();
 </script>
 </body>

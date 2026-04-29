@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PersonvernPage() {
   return (
-    <LegalLayout title="Personvernerklæring" updatedAt="[DATO]">
+    <LegalLayout title="Personvernerklæring" updatedAt="2026-04-29">
       <LegalP>
         Denne personvernerklæringen forklarer hvordan X-PULSE samler inn, bruker og beskytter
         personopplysningene dine når du bruker tjenesten. Vi følger personopplysningsloven og
@@ -17,9 +17,9 @@ export default function PersonvernPage() {
 
       <LegalH2>1. Behandlingsansvarlig</LegalH2>
       <LegalP>
-        Behandlingsansvarlig for personopplysningene er <strong>[Sverre / X-PULSE]</strong>,
-        med adresse <strong>[Adresse]</strong>. Spørsmål om personvern kan rettes til oss på
-        e-post: <strong>[kontakt-e-post]</strong>.
+        Behandlingsansvarlig for personopplysningene er <strong>X-PULSE AS</strong>,
+        org.nr <strong>923 830 146</strong>. Spørsmål om personvern kan rettes til oss på
+        e-post: <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.
       </LegalP>
 
       <LegalH2>2. Hvilke opplysninger vi samler inn</LegalH2>
@@ -74,7 +74,7 @@ export default function PersonvernPage() {
         <LegalLI><strong>Klage til tilsynsmyndighet:</strong> du kan klage til Datatilsynet (datatilsynet.no).</LegalLI>
       </LegalUL>
       <LegalP>
-        For å bruke disse rettighetene, kontakt oss på <strong>[kontakt-e-post]</strong> eller
+        For å bruke disse rettighetene, kontakt oss på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong> eller
         bruk verktøyene i innstillingene.
       </LegalP>
 
@@ -94,13 +94,13 @@ export default function PersonvernPage() {
       <LegalH2>9. Endringer</LegalH2>
       <LegalP>
         Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
-        i appen før de trer i kraft. Sist oppdatert: <strong>[DATO]</strong>.
+        i appen før de trer i kraft. Sist oppdatert: <strong>2026-04-29</strong>.
       </LegalP>
 
       <LegalH2>10. Kontakt</LegalH2>
       <LegalP>
-        For spørsmål om personvern, kontakt <strong>[Sverre / X-PULSE]</strong> på
-        <strong> [kontakt-e-post]</strong> eller <strong>[Adresse]</strong>.
+        For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
+        på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.
       </LegalP>
 
       <div className="mt-10">

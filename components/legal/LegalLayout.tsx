@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { LandingShell } from '@/components/landing/LandingShell'
 
 export function LegalLayout({
   title, updatedAt, children,
@@ -8,8 +9,9 @@ export function LegalLayout({
   children: ReactNode
 }) {
   return (
+    <LandingShell>
     <main
-      className="min-h-screen px-4 py-12"
+      className="px-4 py-12"
       style={{ backgroundColor: '#0A0A0B' }}
     >
       <div className="max-w-3xl mx-auto">
@@ -34,6 +36,7 @@ export function LegalLayout({
         </div>
       </div>
     </main>
+    </LandingShell>
   )
 }
 

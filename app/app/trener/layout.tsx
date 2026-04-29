@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
+import { AppFooter } from '@/components/layout/AppFooter'
 
 export default async function CoachLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -34,6 +35,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
       <div className="flex-1">
         {children}
       </div>
+      <AppFooter />
     </div>
   )
 }

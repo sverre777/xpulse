@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookies" updatedAt="[DATO]">
+    <LegalLayout title="Cookies" updatedAt="2026-04-29">
       <LegalP>
         X-PULSE bruker cookies og tilsvarende teknologi (localStorage, sessionStorage)
         for å levere og sikre tjenesten. Denne siden forklarer hva vi bruker og hvorfor.
@@ -71,8 +71,8 @@ export default function CookiesPage() {
 
       <LegalH2>4. Kontakt</LegalH2>
       <LegalP>
-        Spørsmål om cookies? Kontakt <strong>[Sverre / X-PULSE]</strong> på
-        <strong> [kontakt-e-post]</strong>.
+        Spørsmål om cookies? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
+        på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.
       </LegalP>
 
       <div className="mt-10">

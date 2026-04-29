@@ -7,6 +7,7 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
+import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import { UserMenu } from './UserMenu'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { ATHLETE_NAV_GLYPHS } from './NavLinkIcons'
@@ -248,6 +249,8 @@ export function MainNav({
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
         />
 
+        {activeRole !== 'coach' && <KlokkesyncStatusButton />}
+
         <SettingsIconButton
           accent={accent}
           isActive={pathname === SETTINGS_HREF || pathname.startsWith(SETTINGS_HREF + '/')}
@@ -374,6 +377,11 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             />
           )}
         </Link>
+        {activeRole !== 'coach' && (
+          <div onClick={onClose}>
+            <KlokkesyncStatusButton />
+          </div>
+        )}
         <Link
           href="/app/innstillinger"
           onClick={onClose}

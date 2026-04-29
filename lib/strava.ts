@@ -44,14 +44,20 @@ export function buildStravaAuthUrl(state: string): string {
   return `https://www.strava.com/oauth/authorize?${parts.join('&')}`
 }
 
-// Hva vi forventer at brukerens scope inneholder. Brukes til å oppdage
-// gamle koblinger med utilstrekkelig scope og varsle dem om re-auth.
+// Sjekker om brukerens granted-scope gir noen form for aktivitets-lese.
+// Vi BER om "activity:read_all" i OAuth-flyten, men brukeren kan velge
+// å granted bare "activity:read" (offentlige aktiviteter) i Strava-
+// dialogen. Begge gir adgang til /athlete/activities — _all gir bare
+// tilgang til de markerte som private.
+//
+// Returnerer false kun hvis ingen activity-scope er granted (typisk
+// når bruker autoriserte med kun "read" som er profile-info).
 export function hasRequiredStravaScope(scope: string | null): boolean {
   if (!scope) return false
   // Strava skiller scope-elementer med komma OG mellomrom avhengig av
   // hvordan token-responsen er formatert. Splitt på begge.
   const granted = new Set(scope.split(/[,\s]+/).filter(Boolean))
-  return granted.has('activity:read_all')
+  return granted.has('activity:read') || granted.has('activity:read_all')
 }
 
 // Bytt authorization-code mot token-par. Kalles fra /auth/strava/callback.

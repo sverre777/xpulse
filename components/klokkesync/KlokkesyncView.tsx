@@ -120,9 +120,16 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   const [previewList, setPreviewList] = useState<SyncableActivity[] | null>(null)
   const [conflict, setConflict] = useState<{ activity: SyncableActivity } | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
-  // Eksisterende koblinger fra før vi fikset scope-encoding-bug-en kan
-  // mangle activity:read_all. Da må brukeren re-autorisere.
-  const missingScope = !conn.scope || !conn.scope.includes('activity:read_all')
+  // Aksepter både activity:read (offentlige) og activity:read_all (alle).
+  // Banner vises kun hvis brukeren ikke har gitt noen aktivitets-tilgang
+  // — typisk fra gamle koblinger med utilstrekkelig scope.
+  const missingScope = !conn.scope ||
+    (!conn.scope.includes('activity:read') && !conn.scope.includes('activity:read_all'))
+  // Vis informasjons-banner hvis brukeren bare har offentlige aktiviteter
+  // (ingen activity:read_all) — funker fortsatt, men private kommer ikke.
+  const onlyPublic = !!conn.scope &&
+    conn.scope.includes('activity:read') &&
+    !conn.scope.includes('activity:read_all')
 
   const handleSync = () => {
     startTransition(async () => {
@@ -188,14 +195,27 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       {missingScope && (
         <div className="p-3 mb-3"
           style={{
-            background: 'rgba(245,197,66,0.1)',
-            border: '1px solid rgba(245,197,66,0.5)',
-            color: '#F5C542',
+            background: 'rgba(225,29,72,0.1)',
+            border: '1px solid rgba(225,29,72,0.5)',
+            color: '#E11D48',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
-          ⚠️ Eksisterende kobling mangler <code>activity:read_all</code>-tilgang
+          ⚠️ Eksisterende kobling mangler aktivitets-tilgang
           (scope: <code>{conn.scope ?? '—'}</code>). Frakoble og koble til på nytt
           for å gi tilgang til økter.
+        </div>
+      )}
+      {!missingScope && onlyPublic && (
+        <div className="p-3 mb-3"
+          style={{
+            background: 'rgba(245,197,66,0.08)',
+            border: '1px solid rgba(245,197,66,0.4)',
+            color: '#F5C542',
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
+          }}>
+            Bare offentlige Strava-aktiviteter er gitt tilgang. Private aktiviteter
+            importeres ikke. Koble til på nytt og kryss av for «alle» (inkl. private)
+            i Strava-dialogen om du vil ha alt.
         </div>
       )}
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">

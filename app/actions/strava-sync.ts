@@ -64,8 +64,8 @@ export async function listSyncableActivities(
     if (!conn) return { error: 'Strava ikke tilkoblet' }
     if (!hasRequiredStravaScope(conn.scope)) {
       return {
-        error: 'Strava-koblingen mangler "activity:read_all"-tilgang. ' +
-          'Frakoble og koble til på nytt for å gi tilgang til økter.',
+        error: 'Strava-koblingen mangler tilgang til aktiviteter. ' +
+          'Frakoble og koble til på nytt — pass på at du ikke fjerner aktivitets-tilgangen i Strava-dialogen.',
       }
     }
 
@@ -167,7 +167,7 @@ export async function importStravaActivity(
   const conn = await getStravaConnection(supabase, user.id)
   if (!conn) return { ok: false, error: 'Strava ikke tilkoblet' }
   if (!hasRequiredStravaScope(conn.scope)) {
-    return { ok: false, error: 'Mangler activity:read_all — frakoble og koble til på nytt' }
+    return { ok: false, error: 'Mangler aktivitets-tilgang — frakoble og koble til på nytt' }
   }
 
   // Sjekk om allerede importert.

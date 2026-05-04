@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import type { ActivityRow, Sport, WorkoutType } from '@/lib/types'
 import type {
   PlanTemplateData, PlanTemplateFocusPoint,
@@ -719,6 +720,7 @@ async function insertActivityTreeForWorkout(
     const setRows: {
       exercise_id: string; set_number: number
       reps: number | null; weight_kg: number | null
+      duration_seconds: number | null
       rpe: number | null; notes: string | null
     }[] = []
     for (const [i, ex] of exercises.entries()) {
@@ -728,11 +730,12 @@ async function insertActivityTreeForWorkout(
         const reps = parseIntOrNull(s.reps)
         const weight = parseFloatOrNull(s.weight_kg)
         const rpe = parseIntOrNull(s.rpe)
-        if (reps == null && weight == null && rpe == null && !s.notes) continue
+        const duration = parseDurationToSeconds(s.duration)
+        if (reps == null && weight == null && duration == null && rpe == null && !s.notes) continue
         setRows.push({
           exercise_id: exerciseId,
           set_number: parseIntOrNull(s.set_number) ?? (si + 1),
-          reps, weight_kg: weight, rpe,
+          reps, weight_kg: weight, duration_seconds: duration, rpe,
           notes: s.notes || null,
         })
       }

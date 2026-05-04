@@ -310,6 +310,7 @@ async function insertActivitiesWithChildren(
     const setRows: {
       exercise_id: string; set_number: number
       reps: number | null; weight_kg: number | null
+      duration_seconds: number | null
       rpe: number | null; notes: string | null
     }[] = []
     for (const [i, ex] of exercises.entries()) {
@@ -319,12 +320,20 @@ async function insertActivitiesWithChildren(
         const reps = parseInt(s.reps)
         const weight = parseFloat(s.weight_kg)
         const rpe = parseInt(s.rpe)
-        if (!Number.isFinite(reps) && !Number.isFinite(weight) && !Number.isFinite(rpe) && !s.notes) continue
+        // Tid aksepterer både "90" og "1:30" — parser til total sekunder.
+        // Gjenbruker shooting-duration sin parser for konsistens.
+        const duration = parseDurationToSeconds(s.duration)
+        if (
+          !Number.isFinite(reps) && !Number.isFinite(weight)
+          && duration === null
+          && !Number.isFinite(rpe) && !s.notes
+        ) continue
         setRows.push({
           exercise_id: exerciseId,
           set_number: parseInt(s.set_number) || (si + 1),
           reps: Number.isFinite(reps) ? reps : null,
           weight_kg: Number.isFinite(weight) ? weight : null,
+          duration_seconds: duration,
           rpe: Number.isFinite(rpe) ? rpe : null,
           notes: s.notes || null,
         })
@@ -415,10 +424,14 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
               set_number: s.set_number ?? String(i + 1),
               reps: s.reps ?? '',
               weight_kg: s.weight_kg ?? '',
+              duration: s.duration ?? '',
               rpe: s.rpe ?? '',
               notes: s.notes ?? '',
             }))
-          : [{ id: crypto.randomUUID(), set_number: '1', reps: '', weight_kg: '', rpe: '', notes: '' }],
+          : [{
+              id: crypto.randomUUID(), set_number: '1',
+              reps: '', weight_kg: '', duration: '', rpe: '', notes: '',
+            }],
       })) : [],
       lactate_measurements: Array.isArray(a.lactate_measurements) ? a.lactate_measurements.map(m => ({
         id: crypto.randomUUID(),
@@ -892,6 +905,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
   type DbSet = {
     id: string; set_number: number; reps: number | null; weight_kg: number | null
+    duration_seconds: number | null
     rpe: number | null; notes: string | null
   }
   type DbExercise = {
@@ -937,6 +951,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
               set_number: String(s.set_number),
               reps: s.reps?.toString() ?? '',
               weight_kg: s.weight_kg?.toString() ?? '',
+              duration: formatDurationFromSeconds(s.duration_seconds),
               rpe: s.rpe?.toString() ?? '',
               notes: s.notes ?? '',
             }))
@@ -946,7 +961,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
             exercise_name: ex.exercise_name,
             notes: ex.notes ?? '',
             sets: sets.length > 0 ? sets : [{
-              id: crypto.randomUUID(), set_number: '1', reps: '', weight_kg: '', rpe: '', notes: '',
+              id: crypto.randomUUID(), set_number: '1',
+              reps: '', weight_kg: '', duration: '', rpe: '', notes: '',
             }],
           }
         })

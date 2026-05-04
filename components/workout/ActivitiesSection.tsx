@@ -99,6 +99,7 @@ function emptySet(n: number): StrengthSetRow {
     set_number: String(n),
     reps: '',
     weight_kg: '',
+    duration: '',
     rpe: '',
     notes: '',
   }
@@ -814,22 +815,24 @@ function ExerciseBlock({
           title="Slett øvelse">×</button>
       </div>
 
-      {/* Set rows */}
+      {/* Set rows — Tid-kolonnen er for isometriske hold (planke, statisk
+          muskeldraining). Bruker kan fylle reps/kg/tid uavhengig. */}
       <div className="space-y-1.5">
         <div className="grid gap-2 px-1 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-            gridTemplateColumns: '40px 1fr 1fr 70px 24px',
+            gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px',
           }}>
           <span>Sett</span>
           <span>Reps</span>
           <span>Vekt (kg)</span>
+          <span>Tid (s/m:ss)</span>
           <span>RPE</span>
           <span></span>
         </div>
         {exercise.sets.map(s => (
           <div key={s.id} className="grid gap-2 items-center"
-            style={{ gridTemplateColumns: '40px 1fr 1fr 70px 24px' }}>
+            style={{ gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px' }}>
             <span style={{
               fontFamily: "'Bebas Neue', sans-serif", color: '#8A8A96', fontSize: '14px', textAlign: 'center',
             }}>{s.set_number}</span>
@@ -840,6 +843,11 @@ function ExerciseBlock({
             <input value={s.weight_kg}
               onChange={e => updateSet(s.id, { weight_kg: e.target.value })}
               inputMode="decimal" placeholder="—"
+              style={{ ...iSt, textAlign: 'center' }} />
+            <input value={s.duration}
+              onChange={e => updateSet(s.id, { duration: e.target.value })}
+              inputMode="numeric" placeholder="—"
+              title="Sekunder (90) eller MM:SS (1:30)"
               style={{ ...iSt, textAlign: 'center' }} />
             <input value={s.rpe}
               onChange={e => updateSet(s.id, { rpe: e.target.value })}

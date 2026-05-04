@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { formatDurationFromSeconds } from '@/lib/shooting-duration'
 import type {
   PlanTemplate, PlanTemplateData,
   PlanTemplateDayState, PlanTemplateFocusPoint, PlanTemplateWorkout,
@@ -375,7 +376,7 @@ function monthOffset(startKey: string, key: string): number | null {
 // Se workouts.ts getWorkoutForEdit for fullstendig hydrering; her lagrer vi en
 // forenklet versjon som er tilstrekkelig for re-materialisering.
 function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
-  type DbSet = { id: string; set_number: number; reps: number | null; weight_kg: number | null; rpe: number | null; notes: string | null }
+  type DbSet = { id: string; set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null; notes: string | null }
   type DbExercise = { id: string; exercise_name: string; sort_order: number; notes: string | null; workout_activity_exercise_sets?: DbSet[] | null }
   type DbLactate = { id: string; value_mmol: number; measured_at: string | null; sort_order: number }
   type DbActivity = {
@@ -412,6 +413,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
             set_number: String(s.set_number),
             reps: s.reps?.toString() ?? '',
             weight_kg: s.weight_kg?.toString() ?? '',
+            duration: formatDurationFromSeconds(s.duration_seconds),
             rpe: s.rpe?.toString() ?? '',
             notes: s.notes ?? '',
           })),

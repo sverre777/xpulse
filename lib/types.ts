@@ -505,6 +505,10 @@ export interface StrengthSetRow {
   set_number: string
   reps: string
   weight_kg: string
+  // Tid per sett — sekunder (heltall) eller MM:SS. Brukes for isometriske
+  // hold (planke, statisk muskeldraining). Tomt = ikke registrert. Reps/kg
+  // og duration kan settes uavhengig — bruker fyller ut det som er relevant.
+  duration: string
   rpe: string
   notes: string
 }

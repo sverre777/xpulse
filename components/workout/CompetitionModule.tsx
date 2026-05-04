@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  CompetitionData, COMPETITION_TYPES, DISTANCE_FORMATS, Sport,
+  CompetitionData, COMPETITION_TYPES, DISTANCE_FORMATS, Sport, SPORTS,
   hasAutoGenerateTemplate,
 } from '@/lib/types'
 
@@ -10,6 +10,11 @@ interface Props {
   onChange: (data: CompetitionData) => void
   sport: Sport
   mode: 'plan' | 'dagbok'
+  // Sport-velger inni konkurranse-skjemaet — multi-sport-utøvere kan ha
+  // konkurranser på tvers av primær-sport (f.eks. langrenn-utøver med
+  // terrengsykkel-konkurranse). Default = workoutets gjeldende sport.
+  // Når undefined skjules sport-velgeren (f.eks. i mal-bygging).
+  onSportChange?: (sport: Sport) => void
   // Kalles når brukeren velger et nytt format som har auto-mal, eller trykker "Regenerer".
   // Implementeres av WorkoutForm: vis bekreftelses-dialog, og ved ja kall onChange + sett
   // aktivitetslisten basert på format.
@@ -22,7 +27,7 @@ const iSt: React.CSSProperties = {
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
 }
 
-export function CompetitionModule({ data, onChange, sport, mode, onRequestGenerate, activityCount }: Props) {
+export function CompetitionModule({ data, onChange, sport, mode, onSportChange, onRequestGenerate, activityCount }: Props) {
   const formats = DISTANCE_FORMATS[sport] ?? []
   const canAutoGenerate = hasAutoGenerateTemplate(sport, data.distance_format)
   const isPlan = mode === 'plan'
@@ -91,6 +96,17 @@ export function CompetitionModule({ data, onChange, sport, mode, onRequestGenera
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {onSportChange && (
+          <div className="md:col-span-2">
+            <Label>Sport for denne konkurransen</Label>
+            <select value={sport}
+              onChange={e => onSportChange(e.target.value as Sport)}
+              style={iSt} className="w-full px-3 py-2">
+              {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
+          </div>
+        )}
+
         <div>
           <Label>Konkurransetype</Label>
           <select value={data.competition_type}

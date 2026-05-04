@@ -17,6 +17,7 @@ import {
 } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
+import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { TestDataModule } from './TestDataModule'
@@ -513,6 +514,8 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             data={form.test_data ?? emptyTestData()}
             onChange={d => set('test_data', d)}
             mode={isPlanMode ? 'plan' : 'dagbok'}
+            workoutSport={form.sport}
+            onWorkoutSportChange={s => handleSportChange(s)}
           />
         </div>
       )}
@@ -524,6 +527,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             data={form.competition_data ?? emptyCompetitionData(form.workout_type === 'testlop' ? 'testlop' : 'konkurranse')}
             onChange={d => set('competition_data', d)}
             sport={form.sport}
+            onSportChange={s => handleSportChange(s)}
             mode={isPlanMode ? 'plan' : 'dagbok'}
             activityCount={form.activities.length}
             onRequestGenerate={(format, replaceExisting) => {
@@ -667,6 +671,11 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           </>
         )}
       </Section>
+
+      {/* ── KLOKKESYNC-DATA (sek-for-sek + lap-tabell) — kun edit-modus, kun hvis import-data finnes ── */}
+      {workoutId && !isPlanMode && (
+        <WorkoutKlokkesyncSection workoutId={workoutId} />
+      )}
 
       {/* ── SUBMIT ── */}
       <div className="pt-4 pb-8" hidden={readOnly}>

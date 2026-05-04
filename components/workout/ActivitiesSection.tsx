@@ -118,7 +118,11 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
 
 export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok', defaultPaceUnit = null }: Props) {
   const isPlanMode = mode === 'plan'
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  // Når formen er initialisert med én default-rad (ny økt) skal den være åpen
+  // for utfylling med en gang. Ekspander første rad ved mount.
+  const [expandedId, setExpandedId] = useState<string | null>(() =>
+    rows.length === 1 ? rows[0].id : null,
+  )
   const [userMovementTypes, setUserMovementTypes] = useState<UserMovementType[]>([])
   const [createModalRowId, setCreateModalRowId] = useState<string | null>(null)
 

@@ -463,13 +463,11 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   const movementMinutes = data.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
   const movementKm      = data.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
   const totalElev       = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
-  // Enkel føring: direkte totaltid/distanse på økta. Tar forrang over movements-summen
-  // slik at brukeren kan føre en minimum-økt uten å bryte ned i bevegelser eller aktiviteter.
-  // Aktivitets-sum overstyrer igjen disse i visning (via fallback-kjede i calendar-summary/analysis).
-  const simpleMinutes = parseInt(data.simple_duration_minutes) || 0
-  const simpleKm      = parseFloat(data.simple_distance_km) || 0
-  const totalMinutes  = simpleMinutes > 0 ? simpleMinutes : movementMinutes
-  const totalKm       = simpleKm > 0 ? simpleKm : movementKm
+  // Hurtigføring (simple_duration_minutes/simple_distance_km) er fjernet.
+  // Aktivitets-summen er nå primær kilde — fallback til movements-aggregatet for
+  // gamle økter som fortsatt bruker workout_movements (legacy phase 2.5-flyt).
+  const totalMinutes  = movementMinutes
+  const totalKm       = movementKm
 
   // Aggreger samlet skytestatistikk fra shooting_blocks (kun Skiskyting/biathlon).
   // Brukes til bakover-kompatibel workouts.shooting_data-kolonne.
@@ -1041,8 +1039,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       day_form_mental:   null,
       rpe:          null,
       tags:         snap.tags ?? [],
-      simple_duration_minutes: snap.duration_minutes != null ? String(snap.duration_minutes) : '',
-      simple_distance_km:      snap.distance_km != null ? String(snap.distance_km) : '',
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
       lactate:      [],
@@ -1071,8 +1067,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     day_form_mental:   workout.day_form_mental,
     rpe:          workout.rpe,
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
-    simple_duration_minutes: workout.duration_minutes != null ? String(workout.duration_minutes) : '',
-    simple_distance_km:      workout.distance_km != null ? String(workout.distance_km) : '',
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
       .map((m: {

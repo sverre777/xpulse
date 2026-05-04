@@ -77,25 +77,28 @@ export const TUR_SUBCATEGORIES_WITH_SLED = new Set<string>([
   'Fjellski med pulk', 'Ekspedisjon/flerdagers',
 ])
 
-// Sortert: utholdenhet først (mest brukt), deretter styrke, deretter resten.
+// Rekkefølge: de mest brukte først (Løping, Langrenn, Sykling, Styrke, Rulleski),
+// deretter resten alfabetisk. Ski-erg ligger som underkategori på Rulleski siden
+// bevegelsesmønsteret er det samme — kun innendørs vs ute.
 // Triathlon er ikke en bevegelsesform — det er en sport (se Sport) og håndteres
 // via Triathlon-modulen med segmenter (svøm/T1/sykkel/T2/løp).
+const RULLESKI_SUBCATEGORIES = [...SKI_SUBCATEGORIES, 'Ski-erg']
+
 export const MOVEMENT_CATEGORIES: MovementCategory[] = [
-  // Utholdenhet
+  // Topp 5 — vises øverst i dropdown.
   { name: 'Løping',         subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
-  { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
-  { name: 'Svømming',       subcategories: ['Basseng','Åpent vann'] },
   { name: 'Langrenn',       subcategories: SKI_SUBCATEGORIES },
-  { name: 'Rulleski',       subcategories: SKI_SUBCATEGORIES },
+  { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo'] },
+  { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
+  { name: 'Rulleski',       subcategories: RULLESKI_SUBCATEGORIES },
+  // Resten — utholdenhet før øvrige.
+  { name: 'Svømming',       subcategories: ['Basseng','Åpent vann'] },
   { name: 'Skøyter' },
   { name: 'Roing' },
   { name: 'Kajak/Padling' },
   { name: 'Orientering' },
   { name: 'Fjellsport',     subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
   { name: 'Tur',            subcategories: TUR_SUBCATEGORIES },
-  // Styrke
-  { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
-  // Resten
   { name: 'Yoga' },
   { name: 'Klatring' },
   { name: 'Dans' },
@@ -196,11 +199,6 @@ export interface WorkoutFormData {
   is_important: boolean
   is_group_session: boolean
   group_session_label: string
-  // Enkel føring: brukes når økten ikke har aktiviteter (eller som minimumsregistrering
-  // for gamle/importerte økter). Lagres til workouts.duration_minutes / distance_km.
-  // Når aktiviteter finnes overstyrer aktivitets-summen disse i visning.
-  simple_duration_minutes: string
-  simple_distance_km: string
   movements: MovementRow[]
   zones: ZoneRow[]
   exercises: ExerciseRow[]
@@ -1019,7 +1017,9 @@ export interface WorkoutCompetitionData {
 
 // ── Auto-genererte aktiviteter for konkurranser ────────────
 
-function makeActivity(overrides: Partial<ActivityRow> & { activity_type: ActivityType }): ActivityRow {
+// Eksportert så WorkoutForm kan initialisere skjemaet med én default
+// aktivitet-rad allerede på plass når brukeren oppretter en ny økt.
+export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: ActivityType }): ActivityRow {
   return {
     id: crypto.randomUUID(),
     activity_type: overrides.activity_type,

@@ -12,12 +12,12 @@ import {
   getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
-  ActivityRow, emptyActivityZones,
+  ActivityRow, emptyActivityZones, makeActivity,
   NutritionEntryRow,
 } from '@/lib/types'
+import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
-import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { TestDataModule } from './TestDataModule'
@@ -142,8 +142,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     is_important: defaultValues?.is_important ?? false,
     is_group_session: defaultValues?.is_group_session ?? false,
     group_session_label: defaultValues?.group_session_label ?? '',
-    simple_duration_minutes: defaultValues?.simple_duration_minutes ?? '',
-    simple_distance_km:      defaultValues?.simple_distance_km ?? '',
     movements:   (defaultValues?.movements ?? makeDefaultMovements(defaultValues?.sport ?? initialSport)).map(m => ({
       ...m,
       avg_heart_rate: m.avg_heart_rate ?? '',
@@ -160,7 +158,16 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
     notes:       defaultValues?.notes ?? '',
     tags:        defaultValues?.tags ?? [],
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
-    activities:  defaultValues?.activities ?? [],
+    // Init med én default aktivitet-rad ved opprettelse (ingen workoutId).
+    // Eksisterende økter beholder sine activities (også om tom liste fra DB).
+    activities: defaultValues?.activities ?? (
+      workoutId
+        ? []
+        : [makeActivity({
+            activity_type: 'aktivitet',
+            movement_name: DEFAULT_MOVEMENTS_BY_SPORT[defaultValues?.sport ?? initialSport]?.[0] ?? 'Løping',
+          })]
+    ),
     planned_activities: defaultValues?.planned_activities,
     competition_data: defaultValues?.competition_data,
     template_id:   defaultValues?.template_id ?? null,
@@ -365,14 +372,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             <input type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
               style={iSt} className="w-full px-4 py-3" />
           </div>
-          <div>
-            <Label>Sport</Label>
-            <select value={form.sport} onChange={e => handleSportChange(e.target.value as Sport)}
-              style={iSt} className="w-full px-4 py-3">
-              {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
-          <div>
+          <div className="md:col-span-2">
             <Label>Økttype</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {workoutTypeOptions.filter(t => t.value !== 'warmup_shooting').map(t => (
@@ -391,38 +391,6 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
             </div>
           </div>
         </div>
-
-        {/* Enkel føring: totaltid + km direkte på økta. Brukes når brukeren ikke vil bryte
-            ned i aktiviteter, eller for raske importer. Aktiviteter overstyrer disse
-            verdiene i summeringer — da vises en varsel. */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <Label>Totaltid (min)</Label>
-            <input type="number" inputMode="numeric" min="0" step="1"
-              value={form.simple_duration_minutes}
-              onChange={e => set('simple_duration_minutes', e.target.value)}
-              placeholder="f.eks. 60"
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
-          </div>
-          <div>
-            <Label>Distanse (km)</Label>
-            <input type="number" inputMode="decimal" min="0" step="0.1"
-              value={form.simple_distance_km}
-              onChange={e => set('simple_distance_km', e.target.value)}
-              placeholder="f.eks. 10"
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
-          </div>
-        </div>
-        {form.activities.length > 0 && (form.simple_duration_minutes || form.simple_distance_km) && (
-          <p className="mt-2 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
-            ⚠ Totaltid/distanse regnes nå fra aktiviteter. Feltene over brukes kun som fallback når økten ikke har aktiviteter.
-          </p>
-        )}
 
         <div className="flex flex-wrap gap-3 mt-4">
           <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
@@ -507,6 +475,23 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
       )}
 
+      {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ──
+          Plassert høyt i skjemaet siden dette er hovedinnsats-feltet. Test/
+          Konkurranse-undersettene under setter ekstra-data og kan auto-generere
+          aktivitets-struktur. */}
+      <Section label="Aktiviteter">
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
+        </p>
+        <ActivitiesSection
+          rows={form.activities}
+          onChange={a => set('activities', a)}
+          sport={form.sport}
+          mode={isPlanMode ? 'plan' : 'dagbok'}
+          defaultPaceUnit={defaultPaceUnit}
+        />
+      </Section>
+
       {/* ── TEST (protokoll + resultat — kun for workout_type='test') ── */}
       {form.workout_type === 'test' && (
         <div className="mt-4">
@@ -543,31 +528,21 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         </div>
       )}
 
-      {/* ── AKTIVITETER (kronologisk liste — erstatter Bevegelsesformer + Skyting) ── */}
-      <Section label="Aktiviteter">
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
-        </p>
-        <ActivitiesSection
-          rows={form.activities}
-          onChange={a => set('activities', a)}
-          sport={form.sport}
-          mode={isPlanMode ? 'plan' : 'dagbok'}
-          defaultPaceUnit={defaultPaceUnit}
-        />
-      </Section>
-
       {/* ── ERNÆRING — vises i dagbok-modus (gjennomført økt) ── */}
       {showExecutionFields && (
         <Section label="Ernæring">
           <NutritionSection
             entries={form.nutrition_entries ?? []}
             onChange={(next: NutritionEntryRow[]) => set('nutrition_entries', next)}
-            durationMinutes={
-              form.simple_duration_minutes
-                ? parseInt(form.simple_duration_minutes, 10) || null
-                : null
-            }
+            durationMinutes={(() => {
+              // Beregn fra aktivitets-summen siden enkel-føring er fjernet.
+              // Tom liste eller bare 0-varigheter → null (ingen porsjons-anbefaling).
+              const sec = form.activities.reduce(
+                (s, a) => s + (parseActivityDuration(a.duration) ?? 0),
+                0,
+              )
+              return sec > 0 ? Math.round(sec / 60) : null
+            })()}
             readOnly={readOnly}
           />
         </Section>
@@ -672,10 +647,9 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
         )}
       </Section>
 
-      {/* ── KLOKKESYNC-DATA (sek-for-sek + lap-tabell) — kun edit-modus, kun hvis import-data finnes ── */}
-      {workoutId && !isPlanMode && (
-        <WorkoutKlokkesyncSection workoutId={workoutId} />
-      )}
+      {/* ── KLOKKESYNC-DATA — komponent under utvikling (untracked filer i klokkesync-grenen).
+          Re-aktiveres når WorkoutKlokkesyncSection + WorkoutDetailChart + LapTable
+          + WorkoutDeepAnalysis + app/actions/workout-klokkesync.ts er klar for commit. ── */}
 
       {/* ── SUBMIT ── */}
       <div className="pt-4 pb-8" hidden={readOnly}>

@@ -365,16 +365,15 @@ function deriveDistanceKm(activities: ActivityRow[]): number | null {
 }
 
 function toPlanWorkout(d: WorkoutFormData, dayOffset: number): PlanTemplateWorkout {
-  const simpleDuration = parseIntOrNull(d.simple_duration_minutes)
-  const simpleDist = parseFloatOrNull(d.simple_distance_km)
+  // Hurtigføring fjernet — varighet/distanse utledes alltid fra aktiviteter.
   return {
     day_offset: dayOffset,
     time_of_day: d.time_of_day || null,
     title: d.title.trim(),
     sport: d.sport,
     workout_type: d.workout_type,
-    duration_minutes: simpleDuration ?? deriveDurationMinutes(d.activities),
-    distance_km: simpleDist ?? deriveDistanceKm(d.activities),
+    duration_minutes: deriveDurationMinutes(d.activities),
+    distance_km: deriveDistanceKm(d.activities),
     notes: d.notes?.trim() || null,
     tags: d.tags ?? [],
     activities: d.activities ?? [],
@@ -387,8 +386,6 @@ function planWorkoutToFormDefaults(w: PlanTemplateWorkout): Partial<WorkoutFormD
     time_of_day: w.time_of_day ?? '',
     sport: w.sport as Sport,
     workout_type: w.workout_type as WorkoutFormData['workout_type'],
-    simple_duration_minutes: w.duration_minutes != null ? String(w.duration_minutes) : '',
-    simple_distance_km: w.distance_km != null ? String(w.distance_km) : '',
     notes: w.notes ?? '',
     tags: w.tags ?? [],
     activities: w.activities ?? [],

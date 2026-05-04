@@ -7,6 +7,7 @@ import { reorderWorkouts } from '@/app/actions/workouts'
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
+import type { DayState } from '@/lib/day-state-types'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -32,6 +33,10 @@ interface Props {
   seasonKeyDates: SeasonKeyDate[]
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
+  // Hviledag/sykdom-merker per dato — vises som egne rader i mobil-listen
+  // i tillegg til økt-radene. Tom/undefined = ingen merker den uka.
+  dayStatesByDate?: Record<string, DayState[]>
+  onEditDayState?: (state: DayState) => void
   targetUserId?: string
   readOnly?: boolean
   refreshCalendar?: () => Promise<void> | void
@@ -422,6 +427,8 @@ export function WeekCalendarView({
   weekDates, weekNum, byDate, mode,
   seasonPeriods, seasonKeyDates,
   onEditWorkout, onCreateWorkout,
+  dayStatesByDate,
+  onEditDayState,
   targetUserId,
   readOnly = false,
   refreshCalendar,
@@ -479,6 +486,7 @@ export function WeekCalendarView({
           const ds = toISO(d)
           const isToday = ds === today
           const dayWorkouts = filterByMode(byDate[ds] ?? [], mode)
+          const states = dayStatesByDate?.[ds] ?? []
           return (
             <div key={ds} style={{ borderBottom: '1px solid #1A1A1E', padding: '12px 16px' }}>
               <div className="flex items-center justify-between mb-2">
@@ -512,6 +520,64 @@ export function WeekCalendarView({
                   </button>
                 )}
               </div>
+
+              {/* Dag-tilstander (hviledag/sykdom) — egne rader, samme styling
+                  som måneds-visning. Klikkbare når ikke readOnly + onEditDayState
+                  er satt; ellers ren visning. */}
+              {states.length > 0 && (
+                <div className="flex flex-col gap-1 mb-2">
+                  {states.map(s => {
+                    const isRest = s.state_type === 'hviledag'
+                    const color = isRest ? '#28A86E' : '#E11D48'
+                    const icon = isRest ? '🛌' : '🤒'
+                    const label = isRest
+                      ? (s.is_planned ? 'Planlagt hviledag' : 'Hviledag')
+                      : 'Sykdom'
+                    const meta: string[] = []
+                    if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))
+                    if (s.feeling != null) meta.push(`Følelse ${s.feeling}/5`)
+                    const inner = (
+                      <>
+                        <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
+                        <span style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          color: '#F0F0F2', fontSize: '13px', fontWeight: 600,
+                        }}>
+                          {label}
+                        </span>
+                        {meta.length > 0 && (
+                          <span style={{
+                            fontFamily: "'Barlow Condensed', sans-serif",
+                            color: '#8A8A96', fontSize: '12px',
+                          }}>
+                            {meta.join(' · ')}
+                          </span>
+                        )}
+                      </>
+                    )
+                    const baseStyle: React.CSSProperties = {
+                      display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+                      padding: '8px 10px',
+                      backgroundColor: '#1A1A22',
+                      border: '1px solid #1E1E22',
+                      borderLeft: `3px solid ${color}`,
+                      textAlign: 'left',
+                    }
+                    return !readOnly && onEditDayState ? (
+                      <button key={s.id} type="button"
+                        onClick={() => onEditDayState(s)}
+                        style={{ ...baseStyle, cursor: 'pointer' }}>
+                        {inner}
+                      </button>
+                    ) : (
+                      <div key={s.id} style={baseStyle}>
+                        {inner}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
               {dayWorkouts.length === 0 ? (
                 <p className="text-xs"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
@@ -547,7 +613,15 @@ export function WeekCalendarView({
                     const dur = formatDurationShort(secondsFor(w, mode))
                     const km = fmtKm(metersFor(w, mode))
                     const planned = planVisual(w, mode)
-                    const accent = compStyle?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
+                    const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+                    const accent = compStyle?.color ?? fallbackColor
+                    // Trener-stil overstyrer ramme-fargen til blå dashed når
+                    // økta er laget/endret av trener og fortsatt er planlagt
+                    // (matcher desktop TimedWorkoutCard/AllDayCard-logikken).
+                    const isCoachEdited = !!w.created_by_coach_id
+                    const showCoachStyle = isCoachEdited && planned
+                    // Venstre-aksent rød ved viktig økt — matcher desktop.
+                    const leftAccent = w.is_important ? '#FF4500' : accent
                     const meta = [
                       w.start_time ? w.start_time.slice(0, 5) : null,
                       dur || null,
@@ -563,14 +637,36 @@ export function WeekCalendarView({
                           display: 'flex', alignItems: 'center', gap: '10px',
                           padding: '10px 12px',
                           backgroundColor: '#13131A',
-                          border: planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,
-                          borderLeft: `3px solid ${accent}`,
+                          border: showCoachStyle
+                            ? `1px dashed ${COACH_BLUE}`
+                            : planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,
+                          borderLeft: `3px solid ${leftAccent}`,
                           textAlign: 'left', cursor: 'pointer', flex: 1, minWidth: 0,
                         }}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
+                            {w.is_important && (
+                              <span aria-label="Viktig" style={{ color: '#FF4500', flexShrink: 0 }}>★</span>
+                            )}
+                            {showCoachStyle && (
+                              <span aria-label="Endret av trener"
+                                style={{
+                                  width: '6px', height: '6px', borderRadius: '50%',
+                                  backgroundColor: COACH_BLUE,
+                                  display: 'inline-block', flexShrink: 0,
+                                }}
+                              />
+                            )}
+                            {w.is_group_session && (
+                              <span aria-label="Fellestrening"
+                                style={{ color: COACH_BLUE, flexShrink: 0 }}>👥</span>
+                            )}
                             {compStyle && <span aria-hidden="true">{compStyle.icon}</span>}
+                            {w.is_completed && mode !== 'plan' && (
+                              <span aria-label="Gjennomført"
+                                style={{ color: '#28A86E', flexShrink: 0 }}>✓</span>
+                            )}
                             <span className="text-sm truncate"
                               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
                               {w.title}

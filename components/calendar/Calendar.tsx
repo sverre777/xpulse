@@ -1632,6 +1632,8 @@ export function Calendar({
           seasonKeyDates={seasonKeyDates}
           onEditWorkout={handleEditWorkout}
           onCreateWorkout={handleCreateWorkout}
+          dayStatesByDate={dayStatesByDate}
+          onEditDayState={handleEditDayState}
           targetUserId={targetUserId}
           readOnly={readOnly}
           refreshCalendar={refreshCalendar}

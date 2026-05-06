@@ -3,7 +3,7 @@
 import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
+import { ActivityType, CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
@@ -55,6 +55,9 @@ export interface CalendarProps {
   // Brukerens fulle sport-liste (primary + secondary). Sendes videre til
   // WorkoutModal/WorkoutForm. Default = [primarySport].
   userSports?: Sport[]
+  // Topp 5 mest brukte aktivitetstyper siste 60 dager. Vises som "Mest brukt"-
+  // optgroup øverst i Aktivitetstype-velgeren. Tom liste = ingen historikk.
+  activityTypeFavorites?: ActivityType[]
   templates: WorkoutTemplate[]
   initialView?: CalendarView
   initialDate?: string
@@ -1217,7 +1220,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
 // ── Main Calendar component ────────────────────────────────
 
 export function Calendar({
-  mode, userId, primarySport, userSports, templates,
+  mode, userId, primarySport, userSports, activityTypeFavorites, templates,
   initialView = 'måned', initialDate,
   initialWorkoutsByDate = {}, initialHealthData = {},
   initialRecoveryData = {},
@@ -1651,6 +1654,7 @@ export function Calendar({
       onClose={closeModal}
       primarySport={primarySport}
       userSports={userSports}
+      activityTypeFavorites={activityTypeFavorites}
       templates={templates}
       heartZones={heartZones}
       readOnly={readOnly}

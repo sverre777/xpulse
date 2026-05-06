@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkoutsForMonth } from '@/app/actions/workouts'
+import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
 import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
@@ -69,6 +69,7 @@ export async function PlanPageView({ viewContext }: Props) {
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
   const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
+  const activityTypeFavorites = await getActivityTypeFavorites(userId)
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {
@@ -109,6 +110,7 @@ export async function PlanPageView({ viewContext }: Props) {
               userId={userId}
               primarySport={primarySport}
               userSports={userSports}
+              activityTypeFavorites={activityTypeFavorites}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
               initialView="måned"

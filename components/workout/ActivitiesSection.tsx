@@ -36,6 +36,9 @@ interface Props {
   // sport-spesifikke aktivitets-typer (f.eks. skyting når brukeren har
   // biathlon i sin profil), uavhengig av økt-sporten. Default: [sport].
   userSports?: Sport[]
+  // Topp 5 mest brukte aktivitetstyper siste 60 dager (server-beregnet).
+  // Vises som "Mest brukt"-optgroup øverst i Aktivitetstype-dropdownen.
+  activityTypeFavorites?: ActivityType[]
   // I plan-modus skjules rene måleverdier (puls, laktat, treff) — plan fokuserer
   // på intensjon (type, bevegelsesform, varighet, soner/målpuls).
   mode?: 'plan' | 'dagbok'
@@ -121,7 +124,7 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   Hurtighet: '#8B5CF6',
 }
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, mode = 'dagbok', defaultPaceUnit = null }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -226,6 +229,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, mode = 'd
           onMoveUp={idx > 0 ? () => moveRow(row.id, -1) : undefined}
           onMoveDown={idx < rows.length - 1 ? () => moveRow(row.id, 1) : undefined}
           typeOptions={typeOptions}
+          favoriteTypes={activityTypeFavorites ?? []}
           sport={sport}
           isPlanMode={isPlanMode}
           userMovementTypes={userMovementTypes}
@@ -283,7 +287,7 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
-  typeOptions, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
+  typeOptions, favoriteTypes, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
   defaultPaceUnit,
 }: {
   row: ActivityRow
@@ -294,12 +298,23 @@ function ActivityRowItem({
   onMoveUp?: () => void
   onMoveDown?: () => void
   typeOptions: typeof ACTIVITY_TYPES
+  // Topp 5 mest brukte aktivitetstyper siste 60 dager. Filtreres mot
+  // typeOptions før render (skjuler favoritter som ikke er tilgjengelige
+  // for brukerens sport-profil).
+  favoriteTypes: ActivityType[]
   sport: Sport
   isPlanMode: boolean
   userMovementTypes: UserMovementType[]
   onRequestCreateMovement: () => void
   defaultPaceUnit: PaceUnit | null
 }) {
+  // Beregn hvilke favoritter som er tilgjengelige for denne brukeren
+  // (typeOptions er allerede filtrert på userSports). Skjul Mest brukt-
+  // optgruppen helt hvis ingen treff — én entry-favoritt er ikke verdt
+  // visuell støy.
+  const availableTypeValues = new Set(typeOptions.map(t => t.value))
+  const visibleFavorites = favoriteTypes.filter(v => availableTypeValues.has(v))
+  const showFavoritesGroup = visibleFavorites.length >= 2
   const meta = findActivityType(row.activity_type)
   const durSec = parseActivityDuration(row.duration)
   const durDisplay = durSec != null ? formatActivityDuration(durSec) : row.duration || '—'
@@ -447,9 +462,28 @@ function ActivityRowItem({
               <select value={row.activity_type}
                 onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })}
                 style={iSt}>
-                {typeOptions.map(t => (
-                  <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
-                ))}
+                {showFavoritesGroup && (
+                  <optgroup label="Mest brukt">
+                    {visibleFavorites.map(v => {
+                      const opt = typeOptions.find(t => t.value === v)
+                      if (!opt) return null
+                      return (
+                        <option key={`fav-${v}`} value={v}>{opt.icon}  {opt.label}</option>
+                      )
+                    })}
+                  </optgroup>
+                )}
+                {showFavoritesGroup ? (
+                  <optgroup label="Alle">
+                    {typeOptions.map(t => (
+                      <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
+                    ))}
+                  </optgroup>
+                ) : (
+                  typeOptions.map(t => (
+                    <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
+                  ))
+                )}
               </select>
             </Field>
 

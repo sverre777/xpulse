@@ -1156,6 +1156,50 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   }
 }
 
+// Topp 5 mest brukte aktivitetstyper siste 60 dager for én bruker.
+// Brukes til å rendre "Mest brukt"-optgroup øverst i Aktivitetstype-velgeren
+// (ActivitiesSection). Returnerer tom liste hvis brukeren ikke har nok historikk.
+// Pause-typer ekskluderes — de er sjelden noe man velger fra dropdown bevisst.
+export async function getActivityTypeFavorites(
+  userId: string,
+  daysBack = 60,
+  limit = 5,
+): Promise<ActivityType[]> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  if ('error' in resolved) return []
+
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - daysBack)
+  const cutoffISO = cutoff.toISOString().split('T')[0]
+
+  // workout_activities har user_id via workouts(user_id). Bruker inner join via
+  // foreign-key-relasjonen (Supabase nested select). Filtrerer på workout-dato
+  // for å unngå at planlagte fremtidige økter teller med.
+  const { data, error } = await supabase
+    .from('workout_activities')
+    .select('activity_type, workouts!inner(user_id, date, is_planned, is_completed)')
+    .eq('workouts.user_id', resolved.userId)
+    .gte('workouts.date', cutoffISO)
+  if (error || !data) return []
+
+  type Row = { activity_type: string; workouts: { is_planned: boolean; is_completed: boolean } | { is_planned: boolean; is_completed: boolean }[] | null }
+  const counts = new Map<string, number>()
+  for (const r of data as Row[]) {
+    // Bare gjennomførte (eller ikke-planlagte) økter teller — planlagte fremtidige
+    // intervalløkter skal ikke skvise andre faktiske favoritter ut.
+    const w = Array.isArray(r.workouts) ? r.workouts[0] : r.workouts
+    if (!w) continue
+    if (w.is_planned && !w.is_completed) continue
+    counts.set(r.activity_type, (counts.get(r.activity_type) ?? 0) + 1)
+  }
+
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([t]) => t as ActivityType)
+}
+
 export async function getWorkoutsForDay(userId: string, date: string) {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')

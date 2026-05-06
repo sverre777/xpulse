@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkoutsForMonth } from '@/app/actions/workouts'
+import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
@@ -90,6 +90,10 @@ export async function DagbokPageView({ viewContext }: Props) {
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
   const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
+  // Topp 5 mest brukte aktivitetstyper siste 60 dager — vises øverst i
+  // Aktivitetstype-velgeren i WorkoutForm. Hentes server-side så Calendar/
+  // Modal/Form bare videreformidler en ferdig liste.
+  const activityTypeFavorites = await getActivityTypeFavorites(userId)
   type WeekActivityRow = { activity_type: string; duration_seconds: number | null; distance_meters: number | null }
   type WeekWorkoutRow = { duration_minutes: number | null; distance_km: number | null; workout_activities: WeekActivityRow[] | null }
   const weekWorkouts = (weekData.data ?? []) as WeekWorkoutRow[]
@@ -184,6 +188,7 @@ export async function DagbokPageView({ viewContext }: Props) {
               userId={userId}
               primarySport={primarySport}
               userSports={userSports}
+              activityTypeFavorites={activityTypeFavorites}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
               initialView="måned"

@@ -12,7 +12,7 @@ import {
   getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
-  ActivityRow, emptyActivityZones, makeActivity,
+  ActivityRow, ActivityType, emptyActivityZones, makeActivity,
   NutritionEntryRow,
 } from '@/lib/types'
 import { parseActivityDuration } from '@/lib/activity-duration'
@@ -33,6 +33,9 @@ interface WorkoutFormProps {
   // i ActivitiesSection som vises hvis brukeren har biathlon i sine sporter,
   // uavhengig av hvilken sport selve økten føres som. Default: [initialSport].
   userSports?: Sport[]
+  // Topp 5 mest brukte aktivitetstyper siste 60 dager. Vises som "Mest brukt"-
+  // optgroup øverst i Aktivitetstype-velgeren i ActivitiesSection.
+  activityTypeFavorites?: ActivityType[]
   initialDate?: string
   workoutId?: string
   defaultValues?: Partial<WorkoutFormData>
@@ -118,7 +121,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   }
 }
 
-export function WorkoutForm({ initialSport = 'running', userSports, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
@@ -495,6 +498,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, initialDate,
           onChange={a => set('activities', a)}
           sport={form.sport}
           userSports={effectiveUserSports}
+          activityTypeFavorites={activityTypeFavorites}
           mode={isPlanMode ? 'plan' : 'dagbok'}
           defaultPaceUnit={defaultPaceUnit}
         />

@@ -257,6 +257,7 @@ async function insertActivitiesWithChildren(
       prone_hits: parseInt(a.prone_hits) || null,
       standing_shots: parseInt(a.standing_shots) || null,
       standing_hits: parseInt(a.standing_hits) || null,
+      is_dry_training: a.is_dry_training === true,
       elevation_gain_m: parseInt(a.elevation_gain_m) || null,
       elevation_loss_m: parseInt(a.elevation_loss_m) || null,
       incline_percent: (() => {
@@ -405,6 +406,7 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       prone_hits: a.prone_hits ?? '',
       standing_shots: a.standing_shots ?? '',
       standing_hits: a.standing_hits ?? '',
+      is_dry_training: a.is_dry_training ?? false,
       elevation_gain_m: a.elevation_gain_m ?? '',
       elevation_loss_m: a.elevation_loss_m ?? '',
       incline_percent: a.incline_percent ?? '',
@@ -924,6 +926,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     pace_unit_preference: 'min_per_km' | 'km_per_h' | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
+    is_dry_training: boolean | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
     incline_percent: number | null
     pack_weight_kg: number | null; sled_weight_kg: number | null
@@ -992,6 +995,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         prone_hits: a.prone_hits?.toString() ?? '',
         standing_shots: a.standing_shots?.toString() ?? '',
         standing_hits: a.standing_hits?.toString() ?? '',
+        is_dry_training: a.is_dry_training === true,
         elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
         elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
         incline_percent: a.incline_percent?.toString() ?? '',

@@ -389,6 +389,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
     pace_unit_preference: 'min_per_km' | 'km_per_h' | null
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
+    is_dry_training: boolean | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
     incline_percent: number | null
     pack_weight_kg: number | null; sled_weight_kg: number | null
@@ -450,6 +451,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
       prone_hits: a.prone_hits?.toString() ?? '',
       standing_shots: a.standing_shots?.toString() ?? '',
       standing_hits: a.standing_hits?.toString() ?? '',
+      is_dry_training: a.is_dry_training === true,
       elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
       elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
       incline_percent: a.incline_percent?.toString() ?? '',

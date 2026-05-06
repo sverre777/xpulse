@@ -32,6 +32,10 @@ interface Props {
   rows: ActivityRow[]
   onChange: (rows: ActivityRow[]) => void
   sport: Sport
+  // Brukerens sporter (primary + secondary). Avgjør tilgjengelighet av
+  // sport-spesifikke aktivitets-typer (f.eks. skyting når brukeren har
+  // biathlon i sin profil), uavhengig av økt-sporten. Default: [sport].
+  userSports?: Sport[]
   // I plan-modus skjules rene måleverdier (puls, laktat, treff) — plan fokuserer
   // på intensjon (type, bevegelsesform, varighet, soner/målpuls).
   mode?: 'plan' | 'dagbok'
@@ -62,6 +66,7 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     prone_hits: '',
     standing_shots: '',
     standing_hits: '',
+    is_dry_training: false,
     elevation_gain_m: '',
     elevation_loss_m: '',
     incline_percent: '',
@@ -116,7 +121,9 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   Hurtighet: '#8B5CF6',
 }
 
-export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok', defaultPaceUnit = null }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, mode = 'dagbok', defaultPaceUnit = null }: Props) {
+  const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
+  const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
   // Når formen er initialisert med én default-rad (ny økt) skal den være åpen
   // for utfylling med en gang. Ekspander første rad ved mount.
@@ -185,8 +192,20 @@ export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok', defa
     setExpandedId(newRow.id)
   }
 
-  const isBiathlon = sport === 'biathlon'
-  const typeOptions = ACTIVITY_TYPES.filter(t => !t.biathlonOnly || isBiathlon)
+  // Legger til en skyte-rad uavhengig av eksisterende aktiviteter eller
+  // bevegelsesformer. Plasseres sist; brukeren flytter den til riktig
+  // kronologisk plass via opp/ned-pilene.
+  const addShootingRow = () => {
+    const newRow = emptyRow('skyting_kombinert', '')
+    onChange([...rows, newRow])
+    setExpandedId(newRow.id)
+  }
+
+  // Skyte-typer er tilgjengelig når brukeren har biathlon i sine sporter
+  // (primær eller sekundær), uansett hvilken sport selve økta føres som.
+  // Dette gjør at f.eks. en langrenns-langtur eller styrkeøkt kan inneholde
+  // basisskyting/tørrtrening som egen rad.
+  const typeOptions = ACTIVITY_TYPES.filter(t => !t.biathlonOnly || userHasBiathlon)
 
   return (
     <div className="space-y-2">
@@ -215,21 +234,40 @@ export function ActivitiesSection({ rows, onChange, sport, mode = 'dagbok', defa
         />
       ))}
 
-      <button
-        type="button"
-        onClick={addRow}
-        className="mt-3 px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#FF4500',
-          background: 'none',
-          border: '1px dashed #FF4500',
-          cursor: 'pointer',
-          width: '100%',
-        }}
-      >
-        + Legg til aktivitet
-      </button>
+      <div className="mt-3 flex flex-col sm:flex-row gap-2">
+        <button
+          type="button"
+          onClick={addRow}
+          className="px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: '#FF4500',
+            background: 'none',
+            border: '1px dashed #FF4500',
+            cursor: 'pointer',
+            flex: 1,
+          }}
+        >
+          + Legg til aktivitet
+        </button>
+        {userHasBiathlon && (
+          <button
+            type="button"
+            onClick={addShootingRow}
+            className="px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              color: '#FF4500',
+              background: 'none',
+              border: '1px dashed #FF4500',
+              cursor: 'pointer',
+              flex: 1,
+            }}
+          >
+            🎯 + Legg til skyting
+          </button>
+        )}
+      </div>
 
       {createModalRowId !== null && (
         <CreateMovementTypeModal
@@ -1140,14 +1178,33 @@ function ShootingFields({
 
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <div className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        {heading}
-        {!planMode && (
-          <span style={{ marginLeft: 8, color: '#8A8A96', textTransform: 'none', letterSpacing: 0 }}>
-            · Treff er valgfritt
-          </span>
-        )}
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <div className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {heading}
+          {!planMode && (
+            <span style={{ marginLeft: 8, color: '#8A8A96', textTransform: 'none', letterSpacing: 0 }}>
+              · Treff er valgfritt
+            </span>
+          )}
+        </div>
+        {/* Tørrtrening — ortogonalt til posisjon. Kan slås på selv for konkurranse-/
+            kombinert-typer; brukes til å skille tørr-skyting fra skarp ammunisjon i analyse. */}
+        <button
+          type="button"
+          onClick={() => onUpdate({ is_dry_training: !row.is_dry_training })}
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: row.is_dry_training ? 'rgba(255,140,0,0.18)' : 'transparent',
+            color: row.is_dry_training ? '#FF8C00' : '#555560',
+            border: `1px solid ${row.is_dry_training ? '#FF8C00' : '#222228'}`,
+            cursor: 'pointer',
+          }}
+          aria-pressed={row.is_dry_training}
+        >
+          {row.is_dry_training ? '✓ Tørrtrening' : 'Tørrtrening'}
+        </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {showProne && (

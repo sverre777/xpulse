@@ -52,6 +52,9 @@ export interface CalendarProps {
   mode: CalendarMode
   userId: string
   primarySport: Sport
+  // Brukerens fulle sport-liste (primary + secondary). Sendes videre til
+  // WorkoutModal/WorkoutForm. Default = [primarySport].
+  userSports?: Sport[]
   templates: WorkoutTemplate[]
   initialView?: CalendarView
   initialDate?: string
@@ -1214,7 +1217,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
 // ── Main Calendar component ────────────────────────────────
 
 export function Calendar({
-  mode, userId, primarySport, templates,
+  mode, userId, primarySport, userSports, templates,
   initialView = 'måned', initialDate,
   initialWorkoutsByDate = {}, initialHealthData = {},
   initialRecoveryData = {},
@@ -1647,6 +1650,7 @@ export function Calendar({
       state={modalState}
       onClose={closeModal}
       primarySport={primarySport}
+      userSports={userSports}
       templates={templates}
       heartZones={heartZones}
       readOnly={readOnly}

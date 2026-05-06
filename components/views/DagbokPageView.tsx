@@ -86,8 +86,10 @@ export async function DagbokPageView({ viewContext }: Props) {
     recoveryByDate[r.date].push(r)
   }
 
-  const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport').eq('id', userId).single()
+  const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport, secondary_sports').eq('id', userId).single()
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
+  const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
+  const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
   type WeekActivityRow = { activity_type: string; duration_seconds: number | null; distance_meters: number | null }
   type WeekWorkoutRow = { duration_minutes: number | null; distance_km: number | null; workout_activities: WeekActivityRow[] | null }
   const weekWorkouts = (weekData.data ?? []) as WeekWorkoutRow[]
@@ -181,6 +183,7 @@ export async function DagbokPageView({ viewContext }: Props) {
               mode="dagbok"
               userId={userId}
               primarySport={primarySport}
+              userSports={userSports}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
               initialView="måned"

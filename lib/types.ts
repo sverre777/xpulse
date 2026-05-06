@@ -558,6 +558,9 @@ export interface ActivityRow {
   prone_hits: string
   standing_shots: string
   standing_hits: string
+  // Tørrtrening — skyting uten skarp ammunisjon. Ortogonalt til posisjon
+  // (liggende/stående/kombinert). Kun meningsfullt for skyting_*-aktiviteter.
+  is_dry_training: boolean
   // Høydemeter — valgfritt, tilgjengelig for alle utholdenhetsbevegelser.
   elevation_gain_m: string
   elevation_loss_m: string
@@ -603,6 +606,7 @@ export interface WorkoutActivity {
   prone_hits: number | null
   standing_shots: number | null
   standing_hits: number | null
+  is_dry_training: boolean | null
   elevation_gain_m: number | null
   elevation_loss_m: number | null
   pack_weight_kg: number | null
@@ -656,6 +660,9 @@ export interface Profile {
   has_coach_role: boolean
   active_role: Role
   primary_sport: Sport | null
+  // Ekstra sporter utover primary_sport. Brukes for å vise sport-spesifikke
+  // kontroller (f.eks. skyte-felt) selv når økten føres som annen sport.
+  secondary_sports: Sport[]
   avatar_url: string | null
   birth_year: number | null
   max_heart_rate: number | null
@@ -1038,6 +1045,7 @@ export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: 
     prone_hits: '',
     standing_shots: '',
     standing_hits: '',
+    is_dry_training: false,
     elevation_gain_m: '',
     elevation_loss_m: '',
     incline_percent: '',

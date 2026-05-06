@@ -54,7 +54,7 @@ export async function PlanPageView({ viewContext }: Props) {
   const targetId = isCoachView ? userId : undefined
   const [rawWorkouts, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization, dayStatesRes] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
-    supabase.from('profiles').select('primary_sport').eq('id', userId).single(),
+    supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', userId).single(),
     getTemplates(targetId),
     getHeartZonesForUser(supabase, userId),
     getPeriodNotes('week', [weekKey], 'plan', targetId),
@@ -67,6 +67,8 @@ export async function PlanPageView({ viewContext }: Props) {
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
+  const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
+  const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {
@@ -106,6 +108,7 @@ export async function PlanPageView({ viewContext }: Props) {
               mode="plan"
               userId={userId}
               primarySport={primarySport}
+              userSports={userSports}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
               initialView="måned"

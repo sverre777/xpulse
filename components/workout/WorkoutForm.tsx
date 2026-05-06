@@ -28,6 +28,11 @@ import { HeartZone } from '@/lib/heart-zones'
 
 interface WorkoutFormProps {
   initialSport?: Sport
+  // Brukerens sporter (primary + secondary). Brukes til å vise/skjule sport-
+  // spesifikke kontroller i økt-skjemaet — f.eks. "+ Legg til skyting"-knappen
+  // i ActivitiesSection som vises hvis brukeren har biathlon i sine sporter,
+  // uavhengig av hvilken sport selve økten føres som. Default: [initialSport].
+  userSports?: Sport[]
   initialDate?: string
   workoutId?: string
   defaultValues?: Partial<WorkoutFormData>
@@ -91,6 +96,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
     prone_hits: a.prone_hits ?? '',
     standing_shots: a.standing_shots ?? '',
     standing_hits: a.standing_hits ?? '',
+    is_dry_training: a.is_dry_training ?? false,
     elevation_gain_m: a.elevation_gain_m ?? '',
     elevation_loss_m: a.elevation_loss_m ?? '',
     incline_percent: a.incline_percent ?? '',
@@ -112,7 +118,8 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   }
 }
 
-export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
+  const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
   const [saving, setSaving] = useState(false)
@@ -487,6 +494,7 @@ export function WorkoutForm({ initialSport = 'running', initialDate, workoutId, 
           rows={form.activities}
           onChange={a => set('activities', a)}
           sport={form.sport}
+          userSports={effectiveUserSports}
           mode={isPlanMode ? 'plan' : 'dagbok'}
           defaultPaceUnit={defaultPaceUnit}
         />

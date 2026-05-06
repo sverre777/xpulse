@@ -18,6 +18,9 @@ interface WorkoutModalProps {
   state: WorkoutModalState | null
   onClose: () => void
   primarySport: Sport
+  // Brukerens sporter (primary + secondary). Sendes videre til WorkoutForm
+  // for å styre tilgjengelighet av sport-spesifikke kontroller.
+  userSports?: Sport[]
   templates: WorkoutTemplate[]
   heartZones?: HeartZone[]
   readOnly?: boolean
@@ -28,7 +31,7 @@ interface WorkoutModalProps {
   athleteId?: string
 }
 
-export function WorkoutModal({ state, onClose, primarySport, templates, heartZones, readOnly = false, targetUserId, athleteId }: WorkoutModalProps) {
+export function WorkoutModal({ state, onClose, primarySport, userSports, templates, heartZones, readOnly = false, targetUserId, athleteId }: WorkoutModalProps) {
   const router = useRouter()
   const [defaults, setDefaults] = useState<Partial<WorkoutFormData> | null>(null)
   const [loading, setLoading] = useState(false)
@@ -155,6 +158,7 @@ export function WorkoutModal({ state, onClose, primarySport, templates, heartZon
               templates={templates}
               heartZones={heartZones}
               initialSport={primarySport}
+              userSports={userSports}
               initialDate={state.kind === 'create' ? state.date : undefined}
               onSaved={handleSaved}
               onCancel={onClose}

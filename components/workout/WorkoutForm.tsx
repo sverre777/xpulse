@@ -6,6 +6,7 @@ import { saveWorkout } from '@/app/actions/workouts'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
 import { replaceWorkoutNutrition } from '@/app/actions/nutrition'
+import { toggleAttendanceForWorkout } from '@/app/actions/trainer-calendar'
 import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
@@ -125,6 +126,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
+  // Trener oppretter ny økt for utøver: vis "Skal delta"-chip ved siden av
+  // Fellestrening. Etter saveWorkout fires toggleAttendanceForWorkout(id).
+  // For redigering håndterer TrainerAttendanceSection i WorkoutModal saken.
+  const showCoachAttendChip = !!targetUserId && !workoutId
+  const [coachWillAttend, setCoachWillAttend] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -317,6 +323,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         // slettes også.
         await replaceWorkoutNutrition(savedId, [], targetUserId)
       }
+      // Trener oppretter for utøver + Skal delta-chip aktiv → toggle attendance
+      // direkte etter at workout er lagret. Krever savedId + showCoachAttendChip
+      // (som garanterer at vi er i create-flow med targetUserId satt).
+      if (savedId && showCoachAttendChip && coachWillAttend) {
+        await toggleAttendanceForWorkout(savedId)
+      }
       if (onSaved) onSaved()
       else router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
       router.refresh()
@@ -409,6 +421,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
             👥 Fellestrening
           </Chip>
+          {showCoachAttendChip && (
+            <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
+              👥 Skal delta
+            </Chip>
+          )}
         </div>
         {form.is_group_session && (
           <div className="mt-3">

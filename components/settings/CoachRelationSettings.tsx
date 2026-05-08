@@ -8,14 +8,17 @@ import {
   type AthleteCoachRelation,
   type AthletePermissionsPatch,
 } from '@/app/actions/coach-invite'
+import { setCoachDataPermission } from '@/app/actions/coach-data-permissions'
 
 const COACH_BLUE = '#1A6FD4'
 
 interface Props {
   relations: AthleteCoachRelation[]
+  // Map relationId → can_see_health_data. Default false (DENY) hvis nøkkel mangler.
+  initialHealthPermissions?: Record<string, boolean>
 }
 
-export function CoachRelationSettings({ relations }: Props) {
+export function CoachRelationSettings({ relations, initialHealthPermissions = {} }: Props) {
   if (relations.length === 0) {
     return (
       <p className="p-5 text-xs"
@@ -29,12 +32,23 @@ export function CoachRelationSettings({ relations }: Props) {
   }
   return (
     <ul className="flex flex-col gap-3">
-      {relations.map(r => <RelationRow key={r.id} relation={r} />)}
+      {relations.map(r => (
+        <RelationRow
+          key={r.id}
+          relation={r}
+          initialCanSeeHealthData={initialHealthPermissions[r.id] === true}
+        />
+      ))}
     </ul>
   )
 }
 
-function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
+function RelationRow({
+  relation, initialCanSeeHealthData,
+}: {
+  relation: AthleteCoachRelation
+  initialCanSeeHealthData: boolean
+}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [confirming, setConfirming] = useState(false)
@@ -45,6 +59,8 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
     can_view_analysis: relation.can_view_analysis,
     can_edit_periodization: relation.can_edit_periodization,
   })
+  const [canSeeHealthData, setCanSeeHealthData] = useState<boolean>(initialCanSeeHealthData)
+  const [healthPending, startHealthTransition] = useTransition()
 
   const togglePerm = (key: keyof typeof perm) => {
     const next = { ...perm, [key]: !perm[key] }
@@ -56,6 +72,21 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
         setError(res.error)
         // rull tilbake ved feil
         setPerm(perm)
+      } else {
+        setError(null)
+        router.refresh()
+      }
+    })
+  }
+
+  const toggleHealthData = () => {
+    const next = !canSeeHealthData
+    setCanSeeHealthData(next)
+    startHealthTransition(async () => {
+      const res = await setCoachDataPermission(relation.id, next)
+      if (res.error) {
+        setError(res.error)
+        setCanSeeHealthData(canSeeHealthData) // rull tilbake
       } else {
         setError(null)
         router.refresh()
@@ -168,6 +199,25 @@ function RelationRow({ relation }: { relation: AthleteCoachRelation }) {
           onToggle={() => togglePerm('can_edit_periodization')}
           disabled={isPending}
         />
+      </div>
+
+      {/* Helsedata-deling — separat fra grunn-permissions siden HRV/søvn/vekt/
+          hvilepuls er privat-data som krever eksplisitt opt-in per trener.
+          Default AV. Når av skjules helse-fane og helse-KPIer i analysen. */}
+      <div className="mt-3 pt-3"
+        style={{ borderTop: '1px solid #1E1E22' }}>
+        <PermissionToggle
+          label={`Vis helsedata (HRV, søvn, vekt, hvilepuls) til ${relation.coachName ?? 'treneren'}`}
+          checked={canSeeHealthData}
+          onToggle={toggleHealthData}
+          disabled={healthPending}
+        />
+        <p className="mt-1 text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {canSeeHealthData
+            ? 'Treneren ser helse-fane og helse-KPIer i analysen din.'
+            : 'Treneren ser all annen analyse, men ikke helsedata.'}
+        </p>
       </div>
 
       {error && (

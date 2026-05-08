@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAthleteCoachSetup } from '@/app/actions/coach-invite'
+import { getMyCoachDataPermissions } from '@/app/actions/coach-data-permissions'
 import { InviteCodeGenerator } from '@/components/settings/InviteCodeGenerator'
 import { CoachRelationSettings } from '@/components/settings/CoachRelationSettings'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
@@ -10,7 +11,10 @@ export default async function TrenerInnstillingerPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/app')
 
-  const res = await getAthleteCoachSetup()
+  const [res, healthPermissions] = await Promise.all([
+    getAthleteCoachSetup(),
+    getMyCoachDataPermissions(),
+  ])
   const activeCode = 'error' in res ? null : res.activeCode
   const relations = 'error' in res ? [] : res.relations
   const loadError = 'error' in res ? res.error : null
@@ -39,7 +43,7 @@ export default async function TrenerInnstillingerPage() {
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Aktive trenerkoblinger
           </p>
-          <CoachRelationSettings relations={activeRelations} />
+          <CoachRelationSettings relations={activeRelations} initialHealthPermissions={healthPermissions} />
         </div>
       </div>
     </div>

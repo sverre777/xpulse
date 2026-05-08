@@ -34,6 +34,8 @@ import { SkiTesterTab } from './SkiTesterTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { ErneringTab } from './ErneringTab'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
+import { KlokkedataTrenderTab } from './KlokkedataTrenderTab'
+import { getKlokkedataTrender, type KlokkedataTrender } from '@/app/actions/klokkedata-trender'
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -52,6 +54,7 @@ type Tab =
   | 'per_bevegelsesform'
   | 'intensitet'
   | 'periodisering'
+  | 'klokkedata'
 
 // Standard-bevegelse basert på brukerens primære sport.
 function defaultMovementForSport(sport: Sport): string {
@@ -79,6 +82,7 @@ const TABS: [Tab, string][] = [
   ['ernering', 'Ernæring'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
+  ['klokkedata', 'Klokkedata-trender'],
 ]
 
 const TAB_KEYS = new Set<string>(TABS.map(([k]) => k))
@@ -112,7 +116,7 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
-  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId,
+  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true,
 }: {
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
@@ -121,6 +125,10 @@ export function AnalysisPage({
   // Når satt: trener ser/redigerer utøverens analyse. Sendes med til
   // TesterPRTab → PersonalRecordModal slik at trener-PR lagres på utøver.
   targetUserId?: string
+  // Trener-view: false hvis utøveren ikke har opt'et inn på helsedata-deling
+  // for denne treneren. Skjuler "Helse"-tab og filtrerer helse-KPIer fra
+  // OverviewTab. Self-view: alltid true.
+  canSeeHealthData?: boolean
 }) {
   return (
     <FavoritesProvider initialFavorites={initialFavorites}>
@@ -129,18 +137,20 @@ export function AnalysisPage({
         initialOverview={initialOverview}
         initialRange={initialRange}
         targetUserId={targetUserId}
+        canSeeHealthData={canSeeHealthData}
       />
     </FavoritesProvider>
   )
 }
 
 function AnalysisPageInner({
-  initialStats, initialOverview, initialRange, targetUserId,
+  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData,
 }: {
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
   targetUserId?: string
+  canSeeHealthData: boolean
 }) {
   const { orderedKeys: favoriteKeys } = useFavorites()
   const searchParams = useSearchParams()
@@ -170,6 +180,7 @@ function AnalysisPageInner({
   const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
   const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
   const [nutritionAnalysis, setNutritionAnalysis] = useState<NutritionAnalysis | null>(null)
+  const [klokkedataTrender, setKlokkedataTrender] = useState<KlokkedataTrender | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -185,6 +196,7 @@ function AnalysisPageInner({
     setTestsAndPRs(null)
     setSkiTesterData(null)
     setNutritionAnalysis(null)
+    setKlokkedataTrender(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -331,8 +343,16 @@ function AnalysisPageInner({
         setSkiTesterData(res)
       })
     }
+    if (tab === 'klokkedata' && klokkedataTrender === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getKlokkedataTrender(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setKlokkedataTrender(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedataTrender])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -399,9 +419,22 @@ function AnalysisPageInner({
           </h1>
         </div>
 
+        {/* Trener-view: hvis utøveren ikke har opt'et inn på helsedata-deling
+            for denne treneren, skjuler vi "Helse"-tab og filtrerer helse-KPIer
+            fra OverviewTab. Info-banner gjør synlig hva som er filtrert. */}
+        {!canSeeHealthData && (
+          <div className="mb-4 p-3"
+            style={{ backgroundColor: '#13131A', border: '1px solid #1A6FD4' }}>
+            <p className="text-xs"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', letterSpacing: '0.08em' }}>
+              Helsedata (HRV, søvn, vekt, hvilepuls) er skjult for deg — utøveren har valgt å ikke dele helsemålinger med deg.
+            </p>
+          </div>
+        )}
+
         {/* Tabs — horisontal scroll på mobil, flex-wrap på desktop. */}
         <div className="flex gap-1 mb-5 overflow-x-auto" style={{ scrollbarWidth: 'thin' }}>
-          {TABS.map(([key, label]) => (
+          {TABS.filter(([key]) => key !== 'helse' || canSeeHealthData).map(([key, label]) => (
             <button
               key={key}
               type="button"
@@ -475,7 +508,7 @@ function AnalysisPageInner({
               analysisRange={range}
               onNavigate={(t) => setTab(t)}
             />
-            <OverviewTab stats={stats} overview={overview} analysisRange={range} />
+            <OverviewTab stats={stats} overview={overview} analysisRange={range} canSeeHealthData={canSeeHealthData} />
           </div>
         )}
         {tab === 'konkurranser' && (
@@ -565,6 +598,11 @@ function AnalysisPageInner({
           skiTesterData
             ? <SkiTesterTab data={skiTesterData} />
             : <LoadingStub label="Laster ski-tester…" />
+        )}
+        {tab === 'klokkedata' && (
+          klokkedataTrender
+            ? <KlokkedataTrenderTab data={klokkedataTrender} />
+            : <LoadingStub label="Laster klokkedata…" />
         )}
       </div>
     </div>

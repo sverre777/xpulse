@@ -1,5 +1,6 @@
 import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
 import { getFavoriteCharts } from '@/app/actions/favorites'
+import { getCoachCanSeeHealthDataForAthlete } from '@/app/actions/coach-data-permissions'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 import type { ViewContext } from '@/lib/view-context'
@@ -45,10 +46,17 @@ export async function AnalysePageView({ viewContext }: Props) {
   try {
     const range = rangeFromPreset('30d')
 
-    const [stats, overview, favoritesRes] = await Promise.all([
+    // Trener-view: utøver må ha eksplisitt opt'et inn for at trener skal se
+    // helsedata. Default DENY. Self-view: brukeren ser alltid sine egne.
+    const canSeeHealthDataPromise = isCoachView
+      ? getCoachCanSeeHealthDataForAthlete(viewContext.userId)
+      : Promise.resolve(true)
+
+    const [stats, overview, favoritesRes, canSeeHealthData] = await Promise.all([
       getWorkoutStats(range.from, range.to, targetId),
       getAnalysisOverview(range.from, range.to, null, targetId),
       getFavoriteCharts(),
+      canSeeHealthDataPromise,
     ])
 
     const statsError = 'error' in stats ? stats.error : null
@@ -77,6 +85,7 @@ export async function AnalysePageView({ viewContext }: Props) {
         initialRange={range}
         initialFavorites={initialFavorites}
         targetUserId={targetId}
+        canSeeHealthData={canSeeHealthData}
       />
     )
   } catch (error) {

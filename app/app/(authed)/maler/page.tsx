@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getTemplates } from '@/app/actions/templates'
 import { getPlanTemplates } from '@/app/actions/plan-templates'
+import type { Sport } from '@/lib/types'
 import { MalerClient } from './MalerClient'
 
 interface Props {
@@ -16,10 +17,12 @@ export default async function MalerPage({ searchParams }: Props) {
   const sp = await searchParams
   const activeTab = sp.tab === 'plan' ? 'plan' : 'okt'
 
-  const [workoutTemplates, planTemplates] = await Promise.all([
+  const [workoutTemplates, planTemplates, { data: profile }] = await Promise.all([
     getTemplates(),
     getPlanTemplates(),
+    supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
   ])
+  const primarySport: Sport = (profile?.primary_sport as Sport) ?? 'running'
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -33,6 +36,7 @@ export default async function MalerPage({ searchParams }: Props) {
 
         <MalerClient
           activeTab={activeTab}
+          primarySport={primarySport}
           initialWorkoutTemplates={workoutTemplates}
           initialPlanTemplates={planTemplates}
         />

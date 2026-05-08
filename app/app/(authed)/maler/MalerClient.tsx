@@ -4,8 +4,10 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteTemplate, duplicateTemplate } from '@/app/actions/templates'
 import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
-import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate } from '@/lib/types'
+import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate, type Sport } from '@/lib/types'
 import type { PlanTemplate } from '@/lib/template-types'
+import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
+import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
@@ -13,12 +15,16 @@ type Tab = 'okt' | 'plan'
 
 interface Props {
   activeTab: string
+  // Brukerens primære sport — sendes til builder-modaler så ny økt-/plan-mal
+  // forhåndsutfylles med utøvers sport.
+  primarySport: Sport
   initialWorkoutTemplates: WorkoutTemplate[]
   initialPlanTemplates: PlanTemplate[]
 }
 
 export function MalerClient({
   activeTab,
+  primarySport,
   initialWorkoutTemplates,
   initialPlanTemplates,
 }: Props) {
@@ -31,6 +37,11 @@ export function MalerClient({
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [_isPending, startTransition] = useTransition()
   void _isPending
+  // Builder-modaler — én av gangen. saveAsTemplate / savePlanTemplate bruker
+  // user_id = auth.uid() så maler er allerede privat per bruker (ingen ekstra
+  // visibility-flag trengs; treners RLS leser bare egne).
+  const [showOktmalBuilder, setShowOktmalBuilder] = useState(false)
+  const [showPlanmalBuilder, setShowPlanmalBuilder] = useState(false)
 
   const setTab = (t: Tab) => {
     const url = new URL(window.location.href)
@@ -42,6 +53,45 @@ export function MalerClient({
   return (
     <div>
       <TabBar tab={tab} setTab={setTab} />
+
+      {/* Opprett-knapper — utøver kan lage egne private maler. Knappene
+          tilpasses aktiv tab så CTA er kontekstuelt riktig. */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button type="button" onClick={() => setShowOktmalBuilder(true)}
+          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+            backgroundColor: '#FF4500', border: 'none',
+            padding: '10px 16px', cursor: 'pointer',
+          }}>
+          + Ny øktmal
+        </button>
+        <button type="button" onClick={() => setShowPlanmalBuilder(true)}
+          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+            background: 'none', border: '1px solid #FF4500',
+            padding: '10px 16px', cursor: 'pointer',
+          }}>
+          + Ny planmal
+        </button>
+      </div>
+
+      {showOktmalBuilder && (
+        <OktmalBuilder
+          primarySport={primarySport}
+          templates={initialWorkoutTemplates}
+          onClose={() => setShowOktmalBuilder(false)}
+        />
+      )}
+
+      {showPlanmalBuilder && (
+        <PlanMalBuilder
+          primarySport={primarySport}
+          workoutTemplates={initialWorkoutTemplates}
+          onClose={() => setShowPlanmalBuilder(false)}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         <input value={query} onChange={e => setQuery(e.target.value)}

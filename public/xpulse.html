@@ -140,8 +140,17 @@
   .nav-panel-icon-btn:hover { background:var(--mid); border-color:var(--orange); }
 
   /* Lenke-blokken: rene cards med åpenbar separasjon. 4px gap så hvert
-     element er en tydelig flate, ikke en sammenhengende stripe. */
-  .nav-panel-links { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+     element er en tydelig flate, ikke en sammenhengende stripe.
+     position:static + padding/background:initial overstyrer den globale
+     `nav { position:fixed; ... }`-regelen i tilfelle elementet renderes
+     som en <nav> (skjedde tidligere — dekket logo + ikon-raden). */
+  .nav-panel-links {
+    display:flex; flex-direction:column; gap:4px; flex-shrink:0;
+    position:static; padding:0; background:none; z-index:auto;
+  }
+  .nav-panel-links, .nav-panel-top, .nav-panel-icons {
+    position:static !important;
+  }
   .nav-panel-group { display:block; width:100%; }
   .nav-panel-links > a, .nav-panel-group > summary {
     padding:16px 18px; background:var(--surface);
@@ -719,7 +728,7 @@
     </a>
   </div>
 
-  <nav class="nav-panel-links" aria-label="Sider">
+  <div class="nav-panel-links" role="navigation" aria-label="Sider">
     <details class="nav-panel-group">
       <summary>Funksjoner <svg class="dropdown-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
       <div class="nav-panel-sublinks">
@@ -741,7 +750,7 @@
     <!-- Vilkår + Personvern er fjernet fra mobil-menyen — de finnes i footer.
          Mobil-menyen ble for høy med dem og overflowet viewport, slik at
          FUNKSJONER + topprad scrollet ut av syne. -->
-  </nav>
+  </div>
 
   <a class="nav-panel-cta" href="#priser">Start 30 dagers gratis prøve</a>
 </div>

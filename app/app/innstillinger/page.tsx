@@ -106,6 +106,13 @@ export default async function InnstillingerPage() {
             accent={accent}
           />
           <SettingsCategoryCard
+            href="/app/innstillinger/styrkeoevelser"
+            glyph="⚒"
+            title="Styrkeøvelser"
+            description="Eget bibliotek av styrkeøvelser med default reps og vekt"
+            accent={accent}
+          />
+          <SettingsCategoryCard
             href="/app/innstillinger/personvern"
             glyph="⊘"
             title="Personvern og data"

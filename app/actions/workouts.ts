@@ -214,6 +214,7 @@ async function learnUserExercises(
         await supabase.from('user_exercises').insert({
           user_id: userId,
           name,
+          kind: 'strength',
           category,
           default_reps: defaultReps,
           default_weight_kg: defaultWeight,

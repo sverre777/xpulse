@@ -830,11 +830,78 @@ export async function getCoachUpcomingEvents(
     }
   }
 
-  // 2) Trener-attendance (Fase B): trainer_attendance-tabell finnes ikke ennå.
-  //    Når tabellen kommer, hent rows + join workouts for å materialisere events.
+  // 2) Trener-attendance (Fase B): én rad per workout treneren har klikket
+  //    "Skal delta" på. Joiner med workouts for dato/tid/tittel og profiles
+  //    for utøvernavn. RLS sikrer at kun trenerens egne rader returneres.
+  {
+    const { data: rows } = await supabase
+      .from('trainer_attendance')
+      .select('id, workout_id, workouts!inner(id, user_id, date, time_of_day, title, sport)')
+      .eq('trainer_user_id', user.id)
+      .not('workout_id', 'is', null)
+      .gte('workouts.date', today)
+      .order('workouts(date)', { ascending: true })
+      .limit(50)
 
-  // 3) Egne notater (Fase B): trainer_calendar_notes-tabell finnes ikke ennå.
-  //    Samme — hent og legg til events her når tabellen er klar.
+    type AttendanceRow = {
+      id: string
+      workout_id: string
+      workouts: {
+        id: string; user_id: string; date: string
+        time_of_day: string | null; title: string; sport: string
+      } | { id: string; user_id: string; date: string
+        time_of_day: string | null; title: string; sport: string }[] | null
+    }
+
+    if (rows && rows.length > 0) {
+      const workoutInfos = (rows as AttendanceRow[])
+        .map(r => Array.isArray(r.workouts) ? r.workouts[0] : r.workouts)
+        .filter((w): w is NonNullable<typeof w> => !!w)
+
+      const userIds = Array.from(new Set(workoutInfos.map(w => w.user_id)))
+      const { data: profs } = await supabase
+        .from('profiles').select('id, full_name').in('id', userIds)
+      const nameById = new Map((profs ?? []).map(p => [p.id, p.full_name as string | null]))
+
+      for (const w of workoutInfos) {
+        events.push({
+          kind: 'attendance',
+          date: w.date,
+          startTime: w.time_of_day ?? null,
+          title: w.title,
+          context: nameById.get(w.user_id) ?? null,
+          href: `/app/trener/${w.user_id}/plan?date=${w.date}`,
+        })
+      }
+    }
+  }
+
+  // 3) Egne notater (Fase B): trainer_calendar_notes — fra og med i dag.
+  {
+    const { data: notes } = await supabase
+      .from('trainer_calendar_notes')
+      .select('id, date, start_time, title, description')
+      .eq('trainer_user_id', user.id)
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .limit(50)
+
+    if (notes && notes.length > 0) {
+      for (const n of notes as Array<{
+        id: string; date: string; start_time: string | null
+        title: string; description: string | null
+      }>) {
+        events.push({
+          kind: 'note',
+          date: n.date,
+          startTime: n.start_time,
+          title: n.title,
+          context: n.description,
+          href: `/app/trener/kalender?note=${n.id}`,
+        })
+      }
+    }
+  }
 
   // Sortér og kapp.
   events.sort((a, b) => {
@@ -845,4 +912,164 @@ export async function getCoachUpcomingEvents(
   })
 
   return events.slice(0, limit)
+}
+
+// Range-variant for /app/trener/kalender. Henter alle events i et datointervall
+// uten limit. Bruker samme aggregation som getCoachUpcomingEvents.
+export async function getCoachCalendarEvents(
+  fromDate: string, toDate: string,
+): Promise<CoachUpcomingEvent[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: rels } = await supabase
+    .from('coach_athlete_relations')
+    .select('athlete_id')
+    .eq('coach_id', user.id)
+    .eq('status', 'active')
+  const athleteIds = (rels ?? []).map(r => r.athlete_id)
+  const events: CoachUpcomingEvent[] = []
+
+  // Konkurranser fra utøvere
+  if (athleteIds.length > 0) {
+    const { data: workouts } = await supabase
+      .from('workouts')
+      .select('id, user_id, date, time_of_day, workout_type, title')
+      .in('user_id', athleteIds)
+      .in('workout_type', COMPETITION_TYPES as unknown as string[])
+      .eq('is_planned', true)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date', { ascending: true })
+
+    if (workouts && workouts.length > 0) {
+      const profileIds = Array.from(new Set(workouts.map(w => w.user_id)))
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds)
+      const nameById = new Map((profiles ?? []).map(p => [p.id, p.full_name as string | null]))
+
+      type Bucket = {
+        date: string; startTime: string | null
+        workoutType: string; title: string
+        userIds: Set<string>; sampleUserId: string
+      }
+      const buckets = new Map<string, Bucket>()
+      for (const w of workouts as Array<{
+        id: string; user_id: string; date: string
+        time_of_day: string | null; workout_type: string; title: string
+      }>) {
+        const key = `${w.date}|${w.title.toLowerCase().trim()}`
+        const existing = buckets.get(key)
+        if (existing) {
+          existing.userIds.add(w.user_id)
+        } else {
+          buckets.set(key, {
+            date: w.date,
+            startTime: w.time_of_day ?? null,
+            workoutType: w.workout_type,
+            title: w.title,
+            userIds: new Set([w.user_id]),
+            sampleUserId: w.user_id,
+          })
+        }
+      }
+      for (const b of buckets.values()) {
+        const names = Array.from(b.userIds)
+          .map(id => nameById.get(id))
+          .filter((n): n is string => !!n)
+        const context = names.length === 0 ? null
+          : names.length === 1 ? names[0]
+          : names.length <= 3 ? names.join(', ')
+          : `${names.slice(0, 2).join(', ')} +${names.length - 2}`
+        events.push({
+          kind: 'competition',
+          date: b.date,
+          startTime: b.startTime,
+          title: `${COMPETITION_LABEL[b.workoutType] ?? b.workoutType}: ${b.title}`,
+          context,
+          href: `/app/trener/${b.sampleUserId}/plan?date=${b.date}`,
+        })
+      }
+    }
+  }
+
+  // Trener-attendance i intervallet
+  {
+    const { data: rows } = await supabase
+      .from('trainer_attendance')
+      .select('id, workout_id, workouts!inner(id, user_id, date, time_of_day, title, sport)')
+      .eq('trainer_user_id', user.id)
+      .not('workout_id', 'is', null)
+      .gte('workouts.date', fromDate)
+      .lte('workouts.date', toDate)
+
+    type AttendanceRow = {
+      id: string
+      workout_id: string
+      workouts: {
+        id: string; user_id: string; date: string
+        time_of_day: string | null; title: string; sport: string
+      } | { id: string; user_id: string; date: string
+        time_of_day: string | null; title: string; sport: string }[] | null
+    }
+
+    if (rows && rows.length > 0) {
+      const workoutInfos = (rows as AttendanceRow[])
+        .map(r => Array.isArray(r.workouts) ? r.workouts[0] : r.workouts)
+        .filter((w): w is NonNullable<typeof w> => !!w)
+      const userIds = Array.from(new Set(workoutInfos.map(w => w.user_id)))
+      const { data: profs } = await supabase
+        .from('profiles').select('id, full_name').in('id', userIds)
+      const nameById = new Map((profs ?? []).map(p => [p.id, p.full_name as string | null]))
+
+      for (const w of workoutInfos) {
+        events.push({
+          kind: 'attendance',
+          date: w.date,
+          startTime: w.time_of_day ?? null,
+          title: w.title,
+          context: nameById.get(w.user_id) ?? null,
+          href: `/app/trener/${w.user_id}/plan?date=${w.date}`,
+        })
+      }
+    }
+  }
+
+  // Egne notater i intervallet
+  {
+    const { data: notes } = await supabase
+      .from('trainer_calendar_notes')
+      .select('id, date, start_time, title, description')
+      .eq('trainer_user_id', user.id)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+
+    if (notes && notes.length > 0) {
+      for (const n of notes as Array<{
+        id: string; date: string; start_time: string | null
+        title: string; description: string | null
+      }>) {
+        events.push({
+          kind: 'note',
+          date: n.date,
+          startTime: n.start_time,
+          title: n.title,
+          context: n.description,
+          href: `/app/trener/kalender?note=${n.id}`,
+        })
+      }
+    }
+  }
+
+  events.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    const at = a.startTime ?? '99:99'
+    const bt = b.startTime ?? '99:99'
+    return at.localeCompare(bt)
+  })
+
+  return events
 }

@@ -173,13 +173,15 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               initialEquipmentIds={equipmentIds}
             />
             {/* Trener-deltakelse — kun for redigering av eksisterende økter
-                (krever workout_id). I trener-drilldown (readOnly+targetUserId)
-                vises Delta/Deltar-toggle; i utøvers egen visning vises badge
-                med trenere som har markert deltakelse. */}
+                (krever workout_id). targetUserId-presence er det riktige
+                signalet for "trener ser utøvers økt" — readOnly er ikke det,
+                fordi trener er readOnly i dagbok-fanen men IKKE i plan-fanen
+                (treneren får redigere planen). Tidligere ville Delta-knappen
+                bare vises i dagbok-drilldown; nå vises den korrekt i begge. */}
             {state.kind === 'edit' && (
               <TrainerAttendanceSection
                 workoutId={state.workoutId}
-                viewerRole={readOnly ? 'coach' : 'athlete'}
+                viewerRole={targetUserId ? 'coach' : 'athlete'}
               />
             )}
             {state.kind === 'edit' && athleteId && (

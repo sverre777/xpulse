@@ -35,17 +35,16 @@ const NAV_LINKS = [
   { href: '/app/plan',          label: 'Plan' },
   { href: '/app/periodisering', label: 'Årsplan' },
   { href: '/app/analyse',       label: 'Analyse' },
+  { href: '/app/maler',         label: 'Maler' },
   { href: '/app/ai-coach',      label: 'AI Coach' },
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
-// Mobil-menyen inkluderer Hjem og Maler i tillegg til de andre rutene.
-// /app/maler er en standalone admin-side for økt-maler (3e); utøvere kommer
-// også dit via Plan-kalenderens "+ Fra øktmal"-knapp.
+// Mobil-menyen inkluderer Hjem øverst — Maler ligger nå i NAV_LINKS slik
+// at den synes både på desktop og i hamburgermenyen.
 const MOBILE_LINKS = [
   { href: '/app/oversikt', label: 'Hjem' },
   ...NAV_LINKS,
-  { href: '/app/maler', label: 'Maler' },
 ]
 
 const BREAKPOINT = 900

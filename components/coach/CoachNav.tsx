@@ -28,6 +28,7 @@ const HOME_HREF = '/app/trener'
 const NAV_LINKS = [
   { href: '/app/trener/utovere',     label: 'Utøvere' },
   { href: '/app/trener/planlegg',    label: 'Planlegg' },
+  { href: '/app/trener/kalender',    label: 'Kalender' },
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
 ]
 

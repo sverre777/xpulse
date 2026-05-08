@@ -125,5 +125,6 @@ export const COACH_NAV_GLYPHS: Record<string, NavGlyph> = {
   '/app/trener': HomeGlyph,
   '/app/trener/utovere': UsersGlyph,
   '/app/trener/planlegg': CalendarPlusGlyph,
+  '/app/trener/kalender': CalendarGlyph,
   '/app/trener/sammenligne': CompareGlyph,
 }

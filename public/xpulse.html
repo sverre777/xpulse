@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>X-PULSE — Fra øktplan til toppform</title>
 <link rel="icon" type="image/svg+xml" href="/x-pulse-icon.svg">
 <link rel="icon" type="image/png" sizes="16x16"  href="/x-pulse-icon-16.png">
@@ -99,20 +99,32 @@
   }
   /* Hamburger-meny — mobil-only. flex-column med konsistent gap. CTA
      pushed til bunn med margin-top:auto, men kun når innholdet får plass;
-     ved overflow scroller hele panelet og CTA flyter naturlig. */
+     ved overflow scroller hele panelet og CTA flyter naturlig.
+     Safe-area-insets respekteres på iPhone-notch/Dynamic-Island. */
   .nav-panel {
     position:fixed; inset:0; z-index:200;
-    background:var(--darker); padding:20px;
+    background:var(--darker);
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
     flex-direction:column; gap:16px;
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
     display:none;
+    box-sizing:border-box;
   }
   .nav-panel.open { display:flex; }
+  /* Alle direkte barn av panelet skal stretche full bredde —
+     defensiv mot weird flex-default-overrides. */
+  .nav-panel > * { width:100%; box-sizing:border-box; }
   body.nav-locked { overflow:hidden; }
   .nav-panel-top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
   .nav-panel-close { background:none; border:none; color:var(--white); cursor:none; padding:6px; }
-  .nav-panel-icons { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0; }
+  .nav-panel-icons {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px; flex-shrink:0;
+  }
   .nav-panel-icon-btn {
     padding:14px 8px; background:var(--surface); border:1px solid var(--border);
     display:flex; flex-direction:column; align-items:center; gap:8px;
@@ -120,13 +132,14 @@
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:11px; letter-spacing:2px; text-transform:uppercase;
     transition:background 0.15s, border-color 0.15s;
+    min-width:0;
   }
   .nav-panel-icon-btn:hover { background:var(--mid); border-color:var(--orange); }
 
   /* Lenke-blokken: rene cards med åpenbar separasjon. 4px gap så hvert
      element er en tydelig flate, ikke en sammenhengende stripe. */
   .nav-panel-links { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
-  .nav-panel-group { display:block; }
+  .nav-panel-group { display:block; width:100%; }
   .nav-panel-links > a, .nav-panel-group > summary {
     padding:16px 18px; background:var(--surface);
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
@@ -135,18 +148,20 @@
     list-style:none; cursor:none;
     display:flex; justify-content:space-between; align-items:center;
     transition:background 0.15s;
+    width:100%; box-sizing:border-box;
   }
   .nav-panel-links > a:hover, .nav-panel-group > summary:hover { background:#22222A; }
   .nav-panel-group > summary::-webkit-details-marker { display:none; }
   .nav-panel-group > summary::marker { display:none; content:''; }
   .nav-panel-group[open] > summary .dropdown-chev { transform:rotate(180deg); }
-  .nav-panel-sublinks { display:flex; flex-direction:column; gap:1px; margin-top:1px; }
+  .nav-panel-sublinks { display:flex; flex-direction:column; gap:1px; margin-top:1px; width:100%; }
   .nav-panel-sublinks a {
     padding:13px 18px 13px 32px; background:var(--mid);
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
     color:rgba(242,240,236,0.65); text-decoration:none;
     transition:background 0.15s, color 0.15s;
+    width:100%; box-sizing:border-box; display:block;
   }
   .nav-panel-sublinks a:hover { color:var(--white); background:var(--surface); }
   .nav-panel-cta {
@@ -156,6 +171,7 @@
     font-family:'Barlow Condensed',sans-serif; font-weight:700;
     font-size:13px; letter-spacing:2.5px; text-transform:uppercase;
     transition:background 0.2s; flex-shrink:0;
+    box-sizing:border-box; display:block;
   }
   .nav-panel-cta:hover { background:var(--orange-dark); }
 
@@ -576,10 +592,17 @@
   }
 
   @media (max-width:900px) {
-    nav { padding:20px 24px; }
+    /* Nav respekterer iPhone safe-area-top så logo ikke kolliderer med
+       Dynamic Island / notch. */
+    nav { padding:max(20px, calc(env(safe-area-inset-top) + 12px)) 24px 20px; }
     .nav-links { display:none; }
     .nav-hamburger { display:inline-flex; }
-    .hero-content { padding:0 24px 80px; }
+    /* Hero skifter fra align-items:flex-end (desktop) til flex-start på mobil
+       så orange "FOR SERIØSE..."-tag ikke overflower viewport-toppen og
+       blir kuttet av status-baren på smale telefoner. min-height beholdes
+       for å fylle skjermen, men content sitter trygt under nav. */
+    .hero { align-items:flex-start; }
+    .hero-content { padding:max(120px, calc(env(safe-area-inset-top) + 100px)) 24px 80px; }
     .devices-bar,.problem-section,.section,.ai-section,.roles-section,.preview-section,.builtby-section,.sport-cards-section,.trener-section,.pricing-section,.faq-section { padding-left:24px; padding-right:24px; }
     .sport-cards-grid { grid-template-columns:1fr; }
     .sport-card-img { height:140px; }

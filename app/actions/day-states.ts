@@ -7,7 +7,11 @@ import type { DayState, DayStateInput } from '@/lib/day-state-types'
 
 async function validate(input: DayStateInput): Promise<string | null> {
   if (!input.date) return 'Dato er påkrevd'
-  if (input.state_type !== 'hviledag' && input.state_type !== 'sykdom') {
+  if (
+    input.state_type !== 'hviledag' &&
+    input.state_type !== 'sykdom' &&
+    input.state_type !== 'skade'
+  ) {
     return 'Ugyldig tilstand'
   }
   if (input.feeling != null && (input.feeling < 1 || input.feeling > 5)) {

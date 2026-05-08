@@ -16,7 +16,7 @@ export interface OversiktHero {
 }
 
 export interface OversiktTodayState {
-  kind: 'rest' | 'sickness'
+  kind: 'rest' | 'sickness' | 'injury'
   notes: string | null
   sub_type: string | null
 }
@@ -421,7 +421,9 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     if (dayStateRes.data) {
       const row = dayStateRes.data as { state_type: string; sub_type: string | null; notes: string | null }
       todayState = {
-        kind: row.state_type === 'sykdom' ? 'sickness' : 'rest',
+        kind: row.state_type === 'sykdom' ? 'sickness'
+          : row.state_type === 'skade' ? 'injury'
+          : 'rest',
         notes: row.notes,
         sub_type: row.sub_type,
       }

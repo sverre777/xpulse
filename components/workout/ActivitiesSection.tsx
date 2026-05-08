@@ -18,7 +18,8 @@ import {
   paceFromDistanceDuration, type PaceUnit,
 } from '@/lib/pace-utils'
 import { presetsForCategory } from '@/lib/exercise-presets'
-import { getUserExercises, type UserExercise } from '@/app/actions/user-exercises'
+import { getUserExercises } from '@/app/actions/user-exercises'
+import type { UserExercise } from '@/lib/user-exercise-types'
 import {
   getUserMovementTypes, createUserMovementType,
   type UserMovementType, type UserMovementTypeKind,

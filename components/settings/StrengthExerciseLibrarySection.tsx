@@ -4,8 +4,8 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   createUserExerciseManual, updateUserExercise, deleteUserExercise,
-  type UserExercise,
 } from '@/app/actions/user-exercises'
+import type { UserExercise } from '@/lib/user-exercise-types'
 
 interface Props {
   initial: UserExercise[]

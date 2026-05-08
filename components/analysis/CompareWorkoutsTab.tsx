@@ -412,8 +412,12 @@ export function CompareWorkoutsTab({
 }
 
 function DayStateRow({ state }: { state: ComparableDayState }) {
-  const color = state.kind === 'sickness' ? '#E11D48' : '#8A8A96'
-  const label = state.kind === 'sickness' ? 'Sykdom' : 'Hviledag'
+  const color = state.kind === 'sickness' ? '#E11D48'
+    : state.kind === 'injury' ? '#FF8C00'
+    : '#8A8A96'
+  const label = state.kind === 'sickness' ? 'Sykdom'
+    : state.kind === 'injury' ? 'Skade'
+    : 'Hviledag'
   return (
     <div
       className="flex items-center gap-3 p-3"

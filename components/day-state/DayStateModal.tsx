@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { upsertDayState, deleteDayState } from '@/app/actions/day-states'
 import {
-  REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS,
+  REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS,
   type DayState, type DayStateType,
 } from '@/lib/day-state-types'
 import {
@@ -29,6 +29,8 @@ export function DayStateModal({
   const router = useRouter()
   const today = new Date().toISOString().split('T')[0]
   const isRest = stateType === 'hviledag'
+  const isInjury = stateType === 'skade'
+  const isSick = stateType === 'sykdom'
   const isPlanned = editing?.is_planned ?? (date > today)
 
   const [subType, setSubType] = useState<string>(editing?.sub_type ?? '')
@@ -52,8 +54,11 @@ export function DayStateModal({
       is_planned: isPlanned,
       sub_type: subType || null,
       feeling: feeling === '' ? null : Number(feeling),
-      symptoms: isRest ? null : symptoms,
+      // Symptomer er kun relevant for sykdom (infeksjon). Skade bruker
+      // notes-feltet til å beskrive type/grad og kroppsdel ligger i sub_type.
+      symptoms: isSick ? symptoms : null,
       notes,
+      // Antatt dager utenfor trening gjelder både sykdom og skade.
       expected_days_off: isRest ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
       targetUserId,
     })
@@ -66,7 +71,10 @@ export function DayStateModal({
 
   const handleDelete = async () => {
     if (!editing) return
-    if (!confirm(`Fjern ${isRest ? 'hviledag-markeringen' : 'sykdom-markeringen'} for ${date}?`)) return
+    const label = isRest ? 'hviledag-markeringen'
+      : isInjury ? 'skade-markeringen'
+      : 'sykdom-markeringen'
+    if (!confirm(`Fjern ${label} for ${date}?`)) return
     setBusy(true); setError(null)
     const res = await deleteDayState(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }
@@ -78,9 +86,16 @@ export function DayStateModal({
 
   const title = isRest
     ? (editing ? 'Rediger hviledag' : (isPlanned ? 'Planlegg hviledag' : 'Marker hviledag'))
-    : (editing ? 'Rediger sykdom' : 'Marker sykdom')
+    : isInjury
+      ? (editing ? 'Rediger skade' : 'Marker skade')
+      : (editing ? 'Rediger sykdom' : 'Marker sykdom')
 
-  const SUBTYPES = isRest ? REST_SUBTYPE_LABELS : SICK_SUBTYPE_LABELS
+  const SUBTYPES = isRest ? REST_SUBTYPE_LABELS
+    : isInjury ? INJURY_SUBTYPE_LABELS
+    : SICK_SUBTYPE_LABELS
+  const subTypeLabel = isRest ? 'Type'
+    : isInjury ? 'Kroppsdel'
+    : 'Type'
 
   return (
     <ModalShell open={open} onClose={onClose} title={title}>
@@ -91,7 +106,7 @@ export function DayStateModal({
         </p>
 
         <div className="mb-3">
-          <FieldLabel>Type</FieldLabel>
+          <FieldLabel>{subTypeLabel}</FieldLabel>
           <select value={subType} onChange={e => setSubType(e.target.value)} style={INPUT_STYLE}>
             <option value="">—</option>
             {Object.entries(SUBTYPES).map(([value, label]) => (
@@ -111,22 +126,22 @@ export function DayStateModal({
           </select>
         </div>
 
+        {isSick && (
+          <div className="mb-3">
+            <FieldLabel>Symptomer</FieldLabel>
+            <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} rows={2}
+              style={{ ...INPUT_STYLE, resize: 'vertical' }}
+              placeholder="Sår hals, feber, …" />
+          </div>
+        )}
         {!isRest && (
-          <>
-            <div className="mb-3">
-              <FieldLabel>Symptomer</FieldLabel>
-              <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} rows={2}
-                style={{ ...INPUT_STYLE, resize: 'vertical' }}
-                placeholder="Sår hals, feber, …" />
-            </div>
-            <div className="mb-3">
-              <FieldLabel>Antatt dager utenfor trening</FieldLabel>
-              <input type="number" min={0} max={60}
-                value={expectedDaysOff}
-                onChange={e => setExpectedDaysOff(e.target.value === '' ? '' : Number(e.target.value))}
-                style={INPUT_STYLE} placeholder="f.eks. 3" />
-            </div>
-          </>
+          <div className="mb-3">
+            <FieldLabel>Antatt dager utenfor trening</FieldLabel>
+            <input type="number" min={0} max={60}
+              value={expectedDaysOff}
+              onChange={e => setExpectedDaysOff(e.target.value === '' ? '' : Number(e.target.value))}
+              style={INPUT_STYLE} placeholder="f.eks. 3" />
+          </div>
         )}
 
         <div className="mb-1">

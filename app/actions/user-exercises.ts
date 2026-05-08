@@ -2,27 +2,18 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import {
+  USER_EXERCISE_KINDS,
+  type UserExercise, type UserExerciseKind,
+} from '@/lib/user-exercise-types'
 
 // Personlig øvelsesbibliotek — bygges opp automatisk fra lagrede styrke-økter,
 // og kan også opprettes manuelt fra /app/innstillinger/styrkeoevelser.
 // Brukes til autocomplete i StrengthEditor. Se phase13_user_exercises.sql og
 // phase56_user_exercises_kind.sql.
-
-export type UserExerciseKind = 'strength' | 'mobility' | 'plyometric'
-
-export const USER_EXERCISE_KINDS: UserExerciseKind[] = ['strength', 'mobility', 'plyometric']
-
-export interface UserExercise {
-  id: string
-  name: string
-  kind: UserExerciseKind
-  category: string | null
-  notes: string | null
-  default_reps: number | null
-  default_weight_kg: number | null
-  times_used: number
-  last_used_at: string | null
-}
+//
+// Typer + konstanter er flyttet til lib/user-exercise-types.ts fordi
+// 'use server'-filer kun kan eksportere async funksjoner.
 
 type DbUserExerciseRow = {
   id: string

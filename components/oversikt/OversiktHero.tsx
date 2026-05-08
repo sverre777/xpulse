@@ -64,18 +64,26 @@ export function OversiktHero({
         Uke {hero.weekNumber} · {hero.weekWorkoutCount} {hero.weekWorkoutCount === 1 ? 'økt' : 'økter'} · {formatHoursMin(hero.weekTotalSeconds)}
       </p>
 
-      {todayState && (
-        <div className="mt-3 inline-block px-3 py-1"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            border: `1px solid ${todayState.kind === 'sickness' ? '#E11D48' : '#8A8A96'}`,
-            color: todayState.kind === 'sickness' ? '#E11D48' : '#F0F0F2',
-            fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase',
-          }}>
-            {todayState.kind === 'sickness' ? 'Sykdom' : 'Hviledag'}
-            {todayState.sub_type ? ` · ${todayState.sub_type}` : ''}
-        </div>
-      )}
+      {todayState && (() => {
+        const accent = todayState.kind === 'sickness' ? '#E11D48'
+          : todayState.kind === 'injury' ? '#FF8C00'
+          : '#8A8A96'
+        const label = todayState.kind === 'sickness' ? 'Sykdom'
+          : todayState.kind === 'injury' ? 'Skade'
+          : 'Hviledag'
+        return (
+          <div className="mt-3 inline-block px-3 py-1"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              border: `1px solid ${accent}`,
+              color: todayState.kind === 'rest' ? '#F0F0F2' : accent,
+              fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}>
+              {label}
+              {todayState.sub_type ? ` · ${todayState.sub_type}` : ''}
+          </div>
+        )
+      })()}
     </section>
   )
 }

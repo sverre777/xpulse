@@ -20,7 +20,7 @@ export interface CoachAthleteCard {
   unreadCount: number                  // uleste meldinger fra denne utøveren
 }
 
-export type FeedItemType = 'workout_logged' | 'workout_completed' | 'sick' | 'rest' | 'goal_reached'
+export type FeedItemType = 'workout_logged' | 'workout_completed' | 'sick' | 'injury' | 'rest' | 'goal_reached'
 
 export interface CoachFeedItem {
   id: string
@@ -280,11 +280,15 @@ export async function getCoachDashboard(): Promise<
   for (const s of dayStatesRes.data ?? []) {
     const p = profilesById.get(s.user_id)
     const athleteName = firstNameOf(p?.full_name ?? null)
-    const type: FeedItemType = s.state_type === 'sykdom' ? 'sick' : 'rest'
+    const type: FeedItemType = s.state_type === 'sykdom' ? 'sick'
+      : s.state_type === 'skade' ? 'injury'
+      : 'rest'
     const label =
       s.state_type === 'sykdom'
         ? `${athleteName} markerte syk`
-        : `${athleteName} markerte hviledag`
+        : s.state_type === 'skade'
+          ? `${athleteName} markerte skade`
+          : `${athleteName} markerte hviledag`
     rawFeed.push({
       sort: s.created_at,
       item: {

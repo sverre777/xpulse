@@ -25,6 +25,7 @@ function typeColor(type: CoachFeedItem['type']): string {
     case 'workout_completed': return '#28A86E'
     case 'workout_logged':    return COACH_BLUE
     case 'sick':              return '#E11D48'
+    case 'injury':            return '#FF8C00'
     case 'rest':              return '#D4A017'
     case 'goal_reached':      return '#FF4500'
     default:                  return '#8A8A96'

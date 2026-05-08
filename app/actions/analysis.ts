@@ -2228,7 +2228,7 @@ export interface ComparableWorkout {
 export interface ComparableDayState {
   id: string
   date: string
-  kind: 'rest' | 'sickness'
+  kind: 'rest' | 'sickness' | 'injury'
   sub_type: string | null
   notes: string | null
 }
@@ -2411,7 +2411,9 @@ export async function getWorkoutsForComparison(
       .map(r => ({
         id: r.id,
         date: r.date,
-        kind: (r.state_type === 'sykdom' ? 'sickness' : 'rest') as 'rest' | 'sickness',
+        kind: (r.state_type === 'sykdom' ? 'sickness'
+          : r.state_type === 'skade' ? 'injury'
+          : 'rest') as 'rest' | 'sickness' | 'injury',
         sub_type: r.sub_type,
         notes: r.notes,
       }))

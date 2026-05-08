@@ -39,11 +39,13 @@ const NAV_LINKS = [
   { href: '/app/utstyr',        label: 'Utstyr' },
 ]
 
-// Mobil-menyen inkluderer Hjem i tillegg til de andre rutene. Maler er IKKE
-// med — utøvere kommer dit via Plan-kalenderens "+ Fra øktmal"-knapp.
+// Mobil-menyen inkluderer Hjem og Maler i tillegg til de andre rutene.
+// /app/maler er en standalone admin-side for økt-maler (3e); utøvere kommer
+// også dit via Plan-kalenderens "+ Fra øktmal"-knapp.
 const MOBILE_LINKS = [
   { href: '/app/oversikt', label: 'Hjem' },
   ...NAV_LINKS,
+  { href: '/app/maler', label: 'Maler' },
 ]
 
 const BREAKPOINT = 900

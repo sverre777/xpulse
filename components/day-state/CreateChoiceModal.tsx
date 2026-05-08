@@ -2,7 +2,7 @@
 
 import { ModalShell } from '@/components/periodization/ModalShell'
 
-export type CreateChoice = 'workout' | 'hviledag' | 'sykdom'
+export type CreateChoice = 'workout' | 'hviledag' | 'sykdom' | 'skade'
 
 interface ChoiceOption {
   key: CreateChoice
@@ -48,8 +48,15 @@ export function CreateChoiceModal({
       key: 'sykdom',
       icon: '🤒',
       label: 'Markér sykdom',
-      description: 'Logg sykdom eller skade. Blokkerer ikke andre aktiviteter.',
+      description: 'Forkjølelse, influensa, utbrenthet — infeksjon eller systemisk plage.',
       accent: '#E11D48',
+    })
+    options.push({
+      key: 'skade',
+      icon: '🩹',
+      label: 'Markér skade',
+      description: 'Belastnings- eller akutt skade. Egen markering for analyse av kroppsdel og varighet.',
+      accent: '#FF8C00',
     })
   }
 

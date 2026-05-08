@@ -119,7 +119,18 @@
      defensiv mot weird flex-default-overrides. */
   .nav-panel > * { width:100%; box-sizing:border-box; }
   body.nav-locked { overflow:hidden; }
-  .nav-panel-top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+  /* Sticky topprad: logo + lukk-knapp synlig uansett hvor brukeren scroller
+     i panelet. Forrige bug: når Funksjoner-details ble åpnet/lukket, scrollet
+     panelet og toppraden + ikon-raden forsvant uten en åpenbar måte å komme
+     tilbake til dem på. */
+  .nav-panel-top {
+    display:flex; justify-content:space-between; align-items:center;
+    flex-shrink:0;
+    position:sticky; top:0; z-index:2;
+    background:var(--darker);
+    margin: -16px 0 0;
+    padding: 16px 0;
+  }
   .nav-panel-close { background:none; border:none; color:var(--white); cursor:none; padding:6px; }
   .nav-panel-icons {
     display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
@@ -708,7 +719,7 @@
     </a>
     <a class="nav-panel-icon-btn" href="#faq">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20 L16 16"/></svg>
-      Søk
+      FAQ
     </a>
     <a class="nav-panel-icon-btn" href="mailto:support@x-pulse.no">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7 L12 13 L21 7"/></svg>
@@ -735,8 +746,9 @@
     </details>
     <a href="#priser">Priser</a>
     <a href="#faq">FAQ</a>
-    <a href="/vilkar">Vilkår</a>
-    <a href="/personvern">Personvern</a>
+    <!-- Vilkår + Personvern er fjernet fra mobil-menyen — de finnes i footer.
+         Mobil-menyen ble for høy med dem og overflowet viewport, slik at
+         FUNKSJONER + topprad scrollet ut av syne. -->
   </nav>
 
   <a class="nav-panel-cta" href="#priser">Start 30 dagers gratis prøve</a>
@@ -1326,6 +1338,18 @@
     closeBtn?.addEventListener('click', close);
     panel.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
     document.addEventListener('keydown', e => { if(e.key==='Escape' && isOpen()) close(); });
+
+    // Når Funksjoner-details lukkes, scroll panelet til toppen så brukeren
+    // ikke "mister" ikon-raden. Sticky-toppraden holder logo + close synlig
+    // selv om panelet scroller, men ikon-raden er ikke sticky og kan ende
+    // utenfor viewport hvis brukeren har scrollet ned for å se sublinks.
+    panel.querySelectorAll('details.nav-panel-group').forEach(d => {
+      d.addEventListener('toggle', () => {
+        if (!d.open) {
+          panel.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
   })();
 </script>
 </body>

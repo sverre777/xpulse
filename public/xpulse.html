@@ -119,17 +119,9 @@
      defensiv mot weird flex-default-overrides. */
   .nav-panel > * { width:100%; box-sizing:border-box; }
   body.nav-locked { overflow:hidden; }
-  /* Sticky topprad: logo + lukk-knapp synlig uansett hvor brukeren scroller
-     i panelet. Forrige bug: når Funksjoner-details ble åpnet/lukket, scrollet
-     panelet og toppraden + ikon-raden forsvant uten en åpenbar måte å komme
-     tilbake til dem på. */
   .nav-panel-top {
     display:flex; justify-content:space-between; align-items:center;
     flex-shrink:0;
-    position:sticky; top:0; z-index:2;
-    background:var(--darker);
-    margin: -16px 0 0;
-    padding: 16px 0;
   }
   .nav-panel-close { background:none; border:none; color:var(--white); cursor:none; padding:6px; }
   .nav-panel-icons {

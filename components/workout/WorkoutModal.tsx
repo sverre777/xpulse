@@ -9,6 +9,7 @@ import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
 import { CommentSection } from '@/components/coach/CommentSection'
+import { TrainerAttendanceSection } from './TrainerAttendanceSection'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
@@ -171,6 +172,16 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               availableEquipment={equipment}
               initialEquipmentIds={equipmentIds}
             />
+            {/* Trener-deltakelse — kun for redigering av eksisterende økter
+                (krever workout_id). I trener-drilldown (readOnly+targetUserId)
+                vises Delta/Deltar-toggle; i utøvers egen visning vises badge
+                med trenere som har markert deltakelse. */}
+            {state.kind === 'edit' && (
+              <TrainerAttendanceSection
+                workoutId={state.workoutId}
+                viewerRole={readOnly ? 'coach' : 'athlete'}
+              />
+            )}
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">
                 <CommentSection

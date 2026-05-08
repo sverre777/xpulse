@@ -717,3 +717,132 @@ export async function addCoachGroupMembers(
   revalidatePath('/app/innstillinger/grupper')
   return { added: count ?? memberUserIds.length }
 }
+
+// ── Trener-oversikt: "Neste på kalenderen"-modul (Fase A.2) ────────────
+//
+// Aggregerer kommende events for treneren, sortert kronologisk:
+//   - Konkurranser fra koblede utøvere (workout_competition_data joined med workouts)
+//   - Trener-attendance (Fase B — trainer_attendance-tabell, returnerer [] inntil tabell finnes)
+//   - Egne notater (Fase B — trainer_calendar_notes-tabell, returnerer [] inntil tabell finnes)
+//
+// Returnerer maks `limit` rader. Hver rad har nok kontekst til at UI kan vise
+// dato + tid + tittel + relevant kontekst (utøver-navn for konk osv) og linke
+// videre til detalj-visning.
+
+export type CoachUpcomingEventKind = 'competition' | 'attendance' | 'note'
+
+export interface CoachUpcomingEvent {
+  kind: CoachUpcomingEventKind
+  date: string                     // ISO-dato YYYY-MM-DD
+  startTime: string | null         // HH:MM hvis kjent, ellers null
+  title: string
+  context: string | null           // f.eks. utøver-navn(e), gruppe-label
+  href: string                     // klikk-mål
+}
+
+export async function getCoachUpcomingEvents(
+  limit = 5,
+): Promise<CoachUpcomingEvent[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: rels } = await supabase
+    .from('coach_athlete_relations')
+    .select('athlete_id')
+    .eq('coach_id', user.id)
+    .eq('status', 'active')
+  const athleteIds = (rels ?? []).map(r => r.athlete_id)
+
+  const today = new Date().toISOString().slice(0, 10)
+  const events: CoachUpcomingEvent[] = []
+
+  // 1) Konkurranser fra utøvere — slå sammen til ett event per (dato, tittel)
+  //    så samme stafett-konkurranse ikke duplikeres per deltaker.
+  if (athleteIds.length > 0) {
+    const { data: workouts } = await supabase
+      .from('workouts')
+      .select('id, user_id, date, time_of_day, workout_type, title')
+      .in('user_id', athleteIds)
+      .in('workout_type', COMPETITION_TYPES as unknown as string[])
+      .eq('is_planned', true)
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .order('time_of_day', { ascending: true, nullsFirst: false })
+      .limit(50)
+
+    if (workouts && workouts.length > 0) {
+      const profileIds = Array.from(new Set(workouts.map(w => w.user_id)))
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', profileIds)
+      const nameById = new Map((profiles ?? []).map(p => [p.id, p.full_name as string | null]))
+
+      // Grupper på (dato, tittel) — to utøvere på samme stafett-dato får
+      // ett event med begge navn i context.
+      type Bucket = {
+        date: string
+        startTime: string | null
+        workoutType: string
+        title: string
+        userIds: Set<string>
+        sampleUserId: string
+      }
+      const buckets = new Map<string, Bucket>()
+      for (const w of workouts as Array<{
+        id: string; user_id: string; date: string
+        time_of_day: string | null; workout_type: string; title: string
+      }>) {
+        const key = `${w.date}|${w.title.toLowerCase().trim()}`
+        const existing = buckets.get(key)
+        if (existing) {
+          existing.userIds.add(w.user_id)
+        } else {
+          buckets.set(key, {
+            date: w.date,
+            startTime: w.time_of_day ?? null,
+            workoutType: w.workout_type,
+            title: w.title,
+            userIds: new Set([w.user_id]),
+            sampleUserId: w.user_id,
+          })
+        }
+      }
+
+      for (const b of buckets.values()) {
+        const names = Array.from(b.userIds)
+          .map(id => nameById.get(id))
+          .filter((n): n is string => !!n)
+        const context = names.length === 0 ? null
+          : names.length === 1 ? names[0]
+          : names.length <= 3 ? names.join(', ')
+          : `${names.slice(0, 2).join(', ')} +${names.length - 2}`
+        events.push({
+          kind: 'competition',
+          date: b.date,
+          startTime: b.startTime,
+          title: `${COMPETITION_LABEL[b.workoutType] ?? b.workoutType}: ${b.title}`,
+          context,
+          href: `/app/trener/${b.sampleUserId}/plan?date=${b.date}`,
+        })
+      }
+    }
+  }
+
+  // 2) Trener-attendance (Fase B): trainer_attendance-tabell finnes ikke ennå.
+  //    Når tabellen kommer, hent rows + join workouts for å materialisere events.
+
+  // 3) Egne notater (Fase B): trainer_calendar_notes-tabell finnes ikke ennå.
+  //    Samme — hent og legg til events her når tabellen er klar.
+
+  // Sortér og kapp.
+  events.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    const at = a.startTime ?? '99:99'
+    const bt = b.startTime ?? '99:99'
+    return at.localeCompare(bt)
+  })
+
+  return events.slice(0, limit)
+}

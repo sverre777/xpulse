@@ -31,7 +31,11 @@ const NAV_LINKS = [
   { href: '/app/trener/sammenligne', label: 'Sammenligne' },
 ]
 
-const MOBILE_LINKS = NAV_LINKS
+// Mobil-menyen inkluderer Hjem øverst (matcher utøvers MainNav-mønster).
+const MOBILE_LINKS = [
+  { href: HOME_HREF, label: 'Hjem' },
+  ...NAV_LINKS,
+]
 
 const BREAKPOINT = 900
 

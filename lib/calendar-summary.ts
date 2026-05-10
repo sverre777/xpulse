@@ -5,6 +5,7 @@ import {
   ActivityTotals,
   computeActivityTotals,
   emptyTotals,
+  isShootingActivityType,
 } from './activity-summary'
 import { parseActivityDuration } from './activity-duration'
 
@@ -59,15 +60,24 @@ export type RawCalendarWorkout = {
   } | null
 }
 
-function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): { total: number; pause: number } {
-  if (!acts || acts.length === 0) return { total: 0, pause: 0 }
-  let total = 0, pause = 0
+function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
+  total: number       // ren treningstid (ekskl. pause + skyting)
+  pause: number
+  shooting: number    // skyting (alle typer + tørrtrening)
+} {
+  if (!acts || acts.length === 0) return { total: 0, pause: 0, shooting: 0 }
+  let total = 0, pause = 0, shooting = 0
   for (const a of acts) {
     const s = Number(a.duration_seconds) || 0
-    if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') pause += s
-    else total += s
+    if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') {
+      pause += s
+    } else if (isShootingActivityType(a.activity_type)) {
+      shooting += s
+    } else {
+      total += s
+    }
   }
-  return { total, pause }
+  return { total, pause, shooting }
 }
 
 function snapshotZones(snap: RawCalendarWorkout['planned_snapshot']): { zone_name: string; minutes: number }[] {
@@ -218,12 +228,15 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
   // Økter uten workout_activities (enkel føring eller gammel migrering) skal fortsatt
   // telle med så lenge workouts-raden har direkte total-felt.
   const actTotals = totalsFromActivities(w.workout_activities, heartZones)
+  // total_seconds er ren TRENINGSTID — skyting holdes utenfor og bobler opp i
+  // shooting_seconds. Dette gjelder både legacy-fallback og moderne aktiviteter.
   const total_seconds = actTotals.totalSeconds > 0
     ? actTotals.totalSeconds
     : (w.duration_minutes ? w.duration_minutes * 60 : 0)
   const total_meters = actTotals.totalMeters > 0
     ? actTotals.totalMeters
     : (w.distance_km ? w.distance_km * 1000 : 0)
+  const shooting_seconds = actTotals.shootingSeconds
   const zone_seconds = actTotals.zoneTotalSec > 0
     ? actTotals.zoneSeconds
     : legacyZonesToSeconds(actualZones)
@@ -239,6 +252,7 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
   const planned_total_meters = planTotals.totalMeters > 0
     ? planTotals.totalMeters
     : (snapDistKm ? snapDistKm * 1000 : 0)
+  const planned_shooting_seconds = planTotals.shootingSeconds
   const plannedZonesResolved = plannedZones.length > 0 ? plannedZones : (w.is_planned && !w.is_completed ? actualZones : [])
   const planned_zone_seconds = planTotals.zoneTotalSec > 0
     ? planTotals.zoneSeconds
@@ -259,11 +273,14 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_zones: plannedZonesResolved,
     activity_seconds: act.total,
     activity_pause_seconds: act.pause,
+    activity_shooting_seconds: act.shooting,
     total_seconds,
     total_meters,
+    shooting_seconds,
     zone_seconds,
     planned_total_seconds,
     planned_total_meters,
+    planned_shooting_seconds,
     planned_zone_seconds,
     ...extractCompetition(w.workout_competition_data),
     start_time,

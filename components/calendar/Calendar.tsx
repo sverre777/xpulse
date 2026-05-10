@@ -196,6 +196,12 @@ function emptyZoneSec(): Record<ExtendedZoneName, number> {
 function secondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_total_seconds : w.total_seconds
 }
+
+// Skyting-tid (alle skyting_*-aktiviteter + tørrtrening). Holdes utenfor
+// treningstid og vises som egen liten label på workout-chip når > 0.
+function shootingSecondsFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
+  return mode === 'plan' ? w.planned_shooting_seconds : w.shooting_seconds
+}
 function metersFor(w: CalendarWorkoutSummary, mode: CalendarMode): number {
   return mode === 'plan' ? w.planned_total_meters : w.total_meters
 }
@@ -438,8 +444,13 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
   // gjennomført — ingen blå attribusjon.
   const showCoachStyle = isCoachEdited && isPlanned
   // Vis aktivitets-aggregert tid på chip-en. secondsFor faller tilbake til
-  // duration_minutes hvis økten ikke har aktiviteter.
+  // duration_minutes hvis økten ikke har aktiviteter. Skyting holdes utenfor
+  // treningstid og vises som egen liten label når > 0.
   const durationLabel = formatDurationShort(secondsFor(w, mode))
+  const shootingSec = shootingSecondsFor(w, mode)
+  const shootingLabel = shootingSec > 0
+    ? `🎯 ${Math.round(shootingSec / 60)}min`
+    : null
   const { onEditWorkout } = useCalendarActions()
 
   // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
@@ -498,6 +509,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
             <span style={{ color, marginLeft: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
           )}
           {durationLabel ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{durationLabel}</span> : null}
+          {shootingLabel ? <span style={{ color: '#8A8A96', marginLeft: '4px', fontSize: '11px' }}>{shootingLabel}</span> : null}
         </span>
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>

@@ -1003,11 +1003,13 @@ export async function getCompetitionStats(
     const comp = w.workout_competition_data?.[0] ?? null
     const activities = w.workout_activities ?? []
 
-    // Samlet aktivitets-tid og distanse (uten pauser).
+    // Samlet aktivitets-tid og distanse — ekskluderer pauser OG skyting.
+    // Skyting akkumuleres separat i shooting.total_shooting_seconds nedenfor.
     let duration = 0
     let meters = 0
     for (const a of activities) {
       if (PAUSE_ACT_TYPES.has(a.activity_type)) continue
+      if (SHOOTING_ACT_TYPES.has(a.activity_type)) continue
       duration += a.duration_seconds ?? 0
       meters += a.distance_meters ?? 0
     }
@@ -1203,6 +1205,7 @@ export async function getCompetitionAnalysis(
       let meters = 0
       for (const a of activities) {
         if (PAUSE_ACT_TYPES.has(a.activity_type)) continue
+        if (SHOOTING_ACT_TYPES.has(a.activity_type)) continue
         duration += a.duration_seconds ?? 0
         meters += a.distance_meters ?? 0
       }

@@ -888,18 +888,24 @@ export interface CalendarWorkoutSummary {
   // inneholder actual-verdier).
   planned_duration_minutes: number | null
   planned_zones: { zone_name: string; minutes: number }[]
-  // Sum av duration_seconds over workout_activities — ekskluderer pause/aktiv_pause.
+  // Sum av duration_seconds over workout_activities — ekskluderer pause/aktiv_pause OG skyting.
   activity_seconds: number
   activity_pause_seconds: number
+  // Skyting (alle typer + tørrtrening) holdt utenfor activity_seconds.
+  activity_shooting_seconds: number
   // Aggregert fra workout_activities (faktisk) — faller tilbake til duration_minutes*60
-  // hvis aktivitetsdata mangler. Zone-seconds bruker zoneForHeartRate-fallback.
+  // hvis aktivitetsdata mangler. Skyting ekskludert fra total_seconds; ligger i
+  // shooting_seconds. Zone-seconds bruker zoneForHeartRate-fallback (skyting bidrar
+  // ikke til soner uansett).
   total_seconds: number
   total_meters: number
+  shooting_seconds: number
   zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
   // Aggregert fra planned_snapshot.activities (planlagt) — faller tilbake til
   // planned_duration_minutes*60 hvis snapshot-activities mangler.
   planned_total_seconds: number
   planned_total_meters: number
+  planned_shooting_seconds: number
   planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
   // Fase 8: konkurranse-markør for kalender-chips.
   // Kun satt når workout_type='competition'|'testlop' OG rad finnes i workout_competition_data.

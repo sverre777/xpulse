@@ -44,7 +44,8 @@ function formatTotalTime(totalSeconds: number): string {
 
 export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null }: Props) {
   const summary = useMemo(() => {
-    let totalSeconds = 0
+    let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
+    let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
     let totalMeters = 0
     const movementSeconds: Record<string, number> = {}
     // Pace per bevegelsesform: vekt = sekunder, slik at lange økter teller mer.
@@ -110,11 +111,19 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
 
       if (isPause) continue
 
-      // Totaltid + distanse (pauser eksludert)
-      totalSeconds += durSec
-      const km = parseFloat(a.distance_km)
-      if (Number.isFinite(km) && km > 0) totalMeters += km * 1000
+      // Skyting holdes utenfor treningstid og total-distanse — gå rett til
+      // bevegelsesform-fordelingen (vi vil fortsatt se en "Skyting"-rad der).
+      // skytingSeconds bobler opp som egen Metric.
+      if (meta?.isShooting) {
+        shootingSeconds += durSec
+      } else {
+        // Totaltid + distanse (pauser OG skyting ekskludert)
+        totalSeconds += durSec
+        const kmTrain = parseFloat(a.distance_km)
+        if (Number.isFinite(kmTrain) && kmTrain > 0) totalMeters += kmTrain * 1000
+      }
 
+      const km = parseFloat(a.distance_km)
       // Bevegelsesform-fordeling
       const label = meta?.isShooting
         ? 'Skyting'
@@ -181,6 +190,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
 
     return {
       totalSeconds,
+      shootingSeconds,
       totalMeters,
       movementList,
       zoneSeconds,
@@ -213,10 +223,13 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
         </span>
       </div>
 
-      {/* Totaltid + Distanse */}
+      {/* Totaltid + Distanse + (eventuelt) Skyting */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
-        <Metric label="Totaltid" value={formatTotalTime(summary.totalSeconds)} />
+        <Metric label="Treningstid" value={formatTotalTime(summary.totalSeconds)} />
         <Metric label="Distanse" value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'} />
+        {summary.shootingSeconds > 0 && (
+          <Metric label="Skyting" value={`${Math.round(summary.shootingSeconds / 60)} min`} sub="Holdes utenfor treningstid" />
+        )}
         {summary.bestPaceSeconds != null && (
           <Metric
             label="Beste pace"

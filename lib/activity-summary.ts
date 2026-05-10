@@ -29,8 +29,9 @@ export interface ActivityLike {
 }
 
 export interface ActivityTotals {
-  totalSeconds: number                         // sum av varighet — pauser ekskludert
+  totalSeconds: number      // sum av varighet — pauser OG skyting ekskludert ("ren treningstid")
   pauseSeconds: number
+  shootingSeconds: number   // skyting (alle typer + tørrtrening) som egen kategori
   totalMeters: number
   zoneSeconds: Record<ExtendedZoneName, number>
   zoneTotalSec: number
@@ -45,6 +46,7 @@ export function emptyTotals(): ActivityTotals {
   return {
     totalSeconds: 0,
     pauseSeconds: 0,
+    shootingSeconds: 0,
     totalMeters: 0,
     zoneSeconds: emptyZoneSeconds(),
     zoneTotalSec: 0,
@@ -52,9 +54,18 @@ export function emptyTotals(): ActivityTotals {
   }
 }
 
-const SHOOTING_TYPES = new Set([
-  'skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting',
+// Alle skyte-typer som regnes som skyting (ikke trening). Eksportert så andre
+// moduler (calendar-summary, analysis) kan bruke samme prediktat.
+export const SHOOTING_ACTIVITY_TYPES = new Set<string>([
+  'skyting_liggende', 'skyting_staaende', 'skyting_kombinert',
+  'skyting_innskyting', 'skyting_basis',
 ])
+
+export function isShootingActivityType(t: string): boolean {
+  return SHOOTING_ACTIVITY_TYPES.has(t)
+}
+
+const SHOOTING_TYPES = SHOOTING_ACTIVITY_TYPES
 
 const PAUSE_TYPES = new Set(['pause', 'aktiv_pause'])
 
@@ -77,11 +88,17 @@ export function computeActivityTotals(
       totals.pauseSeconds += sec
       continue
     }
+    const isShooting = SHOOTING_TYPES.has(a.activity_type)
+    if (isShooting) {
+      // Skyting (inkl. tørrtrening) regnes som egen kategori, ikke som
+      // treningstid. Distanse fra skyting (typisk 0) ekskluderes også fra
+      // totalMeters siden den ikke representerer treningsbevegelse.
+      totals.shootingSeconds += sec
+      continue
+    }
     totals.totalSeconds += sec
     const meters = Number(a.distance_meters) || 0
     if (meters > 0) totals.totalMeters += meters
-
-    const isShooting = SHOOTING_TYPES.has(a.activity_type)
 
     // 1. Eksplisitte soner (minutter per sone i zones jsonb) — inkl. Hurtighet.
     let hasExplicitHr = false  // kun I1-I5 styrer HR-fallback
@@ -100,7 +117,8 @@ export function computeActivityTotals(
     void hasExplicitAny
 
     // 2. Ingen eksplisitte HR-soner — fall tilbake til puls + hele varigheten.
-    if (sec <= 0 || isShooting) continue
+    // Skyting er allerede returnert tidligere via continue, så ingen risiko her.
+    if (sec <= 0) continue
     const hr = Number(a.avg_heart_rate) || 0
     if (hr > 0 && heartZones.length === ZONE_NAMES.length) {
       const z = zoneForHeartRate(hr, heartZones)
@@ -120,6 +138,7 @@ export function mergeTotals(parts: ActivityTotals[]): ActivityTotals {
   for (const p of parts) {
     out.totalSeconds += p.totalSeconds
     out.pauseSeconds += p.pauseSeconds
+    out.shootingSeconds += p.shootingSeconds
     out.totalMeters += p.totalMeters
     for (const k of ALL_ZONE_NAMES) out.zoneSeconds[k] += p.zoneSeconds[k]
     out.missingHrCount += p.missingHrCount

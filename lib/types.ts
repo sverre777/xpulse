@@ -121,6 +121,9 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Snowboard' },
   { name: 'Crossfit' },
   { name: 'Kampsport' },
+  // Catch-all for nische-aktiviteter uten egen bevegelsesform (f.eks. Strava-
+  // import av Soccer/Golf/Padel/etc). Brukeren kan rename på activity-raden.
+  { name: 'Annet' },
 ]
 
 // Værforhold-valg for tur-aktiviteter.

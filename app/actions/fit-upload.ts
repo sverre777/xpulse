@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import FitParser from 'fit-file-parser'
-import { mapStravaSportToXpulse } from '@/lib/strava'
+// mapStravaSportToXpulse returnerer nå { movement, subcategory } (ikke
+// x-pulse Sport-string), så den kan ikke brukes som fallback for
+// mapFitSportToXpulse. .fit-importen har sin egen heuristikk i stedet.
 
 // .fit-fil-opplasting. Brukeren laster opp én eller flere .fit-filer fra
 // Garmin/Coros/Polar/Wahoo/etc. Vi parser, sjekker konflikt og enten
@@ -48,7 +50,7 @@ function mapFitSportToXpulse(sport: string | undefined, subSport?: string): stri
   if (s.includes('swim')) return 'endurance'
   // Sub-sport kan gi mer hint i edge-cases.
   if (subSport?.toLowerCase().includes('run')) return 'running'
-  return mapStravaSportToXpulse(sport)
+  return 'endurance'
 }
 
 // FitParser-resultat har en cascade-struktur når mode:'cascade' er valgt.

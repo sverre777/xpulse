@@ -270,25 +270,103 @@ export interface StravaStreamSet {
   cadence?: StravaStream
 }
 
-// ── Sport-mapping Strava → X-PULSE ───────────────────────────
+// ── Sport-mapping Strava → X-PULSE bevegelsesform/underkategori ──
+//
+// Strava-feltet `sport_type` er det moderne, presise feltet (skiller f.eks.
+// MountainBikeRide vs Ride). Mapping nedenfor peker EKSKLUSIVT til
+// EKSISTERENDE bevegelsesformer + underkategorier i lib/types.ts.
+//
+// VIKTIG: Mapping påvirker IKKE workouts.sport. Sport hentes fra brukerens
+// primary_sport i profilen — en langrennsutøver som synker en sykkeltur er
+// fortsatt en langrennsutøver, sykkelen er krysstrening for hovedsporten.
+// Mappingen styrer kun activity-radenes movement_name + movement_subcategory.
 
-const STRAVA_SPORT_MAP: Record<string, string> = {
-  Run: 'running',
-  TrailRun: 'running',
-  VirtualRun: 'running',
-  Ride: 'cycling',
-  VirtualRide: 'cycling',
-  GravelRide: 'cycling',
-  MountainBikeRide: 'cycling',
-  EBikeRide: 'cycling',
-  NordicSki: 'cross_country_skiing',
-  BackcountrySki: 'cross_country_skiing',
-  Swim: 'endurance',
-  Triathlon: 'triathlon',
-  Workout: 'endurance',
-  WeightTraining: 'endurance',
+export interface StravaMovementMapping {
+  movement: string                      // matcher MOVEMENT_CATEGORIES.name
+  subcategory: string | null            // matcher subkategori i MOVEMENT_CATEGORIES, eller null
 }
 
-export function mapStravaSportToXpulse(stravaType: string): string {
-  return STRAVA_SPORT_MAP[stravaType] ?? 'endurance'
+const STRAVA_SPORT_MAP: Record<string, StravaMovementMapping> = {
+  // ── LØPE-RELATERT ──
+  Run:                { movement: 'Løping',                  subcategory: null },
+  TrailRun:           { movement: 'Løping',                  subcategory: 'Terreng' },
+  VirtualRun:         { movement: 'Løping',                  subcategory: 'Tredemølle' },
+
+  // ── SYKLING ──
+  Ride:               { movement: 'Sykling',                 subcategory: 'Landevei' },
+  MountainBikeRide:   { movement: 'Sykling',                 subcategory: 'Terreng/MTB' },
+  GravelRide:         { movement: 'Sykling',                 subcategory: 'Gravel' },
+  VirtualRide:        { movement: 'Sykling',                 subcategory: 'Indoors/Ergo' },
+  EBikeRide:          { movement: 'Sykling',                 subcategory: 'Landevei' },
+  EMountainBikeRide:  { movement: 'Sykling',                 subcategory: 'Terreng/MTB' },
+  Velomobile:         { movement: 'Sykling',                 subcategory: 'Landevei' },
+  Handcycle:          { movement: 'Sykling',                 subcategory: null },
+
+  // ── LANGRENN / SKI ──
+  NordicSki:          { movement: 'Langrenn',                subcategory: null },
+  RollerSki:          { movement: 'Rulleski',                subcategory: null },
+  BackcountrySki:     { movement: 'Fjellsport',              subcategory: 'Topptur' },
+  AlpineSki:          { movement: 'Alpint',                  subcategory: null },
+  Snowboard:          { movement: 'Snowboard',               subcategory: null },
+  Snowshoe:           { movement: 'Tur',                     subcategory: 'Snøskotur' },
+
+  // ── SVØMMING (default basseng 25m — bruker kan endre etter import) ──
+  Swim:               { movement: 'Svømming basseng 25m',    subcategory: null },
+
+  // ── VANN ──
+  Rowing:             { movement: 'Roing',                   subcategory: 'På vann' },
+  VirtualRow:         { movement: 'Roing',                   subcategory: 'Romaskin' },
+  Canoeing:           { movement: 'Kajak/Padling',           subcategory: null },
+  Kayaking:           { movement: 'Kajak/Padling',           subcategory: null },
+  StandUpPaddling:    { movement: 'Kajak/Padling',           subcategory: null },
+  Surfing:            { movement: 'Annet',                   subcategory: null },
+  Sail:               { movement: 'Annet',                   subcategory: null },
+  Kitesurf:           { movement: 'Annet',                   subcategory: null },
+  Windsurf:           { movement: 'Annet',                   subcategory: null },
+
+  // ── GANG / TUR ──
+  Walk:               { movement: 'Tur',                     subcategory: 'Skogstur' },
+  Hike:               { movement: 'Tur',                     subcategory: 'Fjelltur' },
+
+  // ── STYRKE / FITNESS ──
+  WeightTraining:     { movement: 'Styrke',                  subcategory: null },
+  Workout:            { movement: 'Styrke',                  subcategory: null },
+  Crossfit:           { movement: 'Crossfit',                subcategory: null },
+  Yoga:               { movement: 'Yoga',                    subcategory: null },
+  // Pilates er ikke yoga (brukeren presisert) — fall tilbake til Annet
+  // i stedet for å mappe feil. Egen Pilates-bevegelsesform finnes ikke.
+  Pilates:            { movement: 'Annet',                   subcategory: null },
+
+  // ── INNENDØRS ──
+  StairStepper:       { movement: 'Stairmaster',             subcategory: null },
+  Elliptical:         { movement: 'Ellipsemaskin',           subcategory: null },
+
+  // ── ANNET (eksisterende-match) ──
+  IceSkate:           { movement: 'Skøyter',                 subcategory: null },
+  InlineSkate:        { movement: 'Skøyter',                 subcategory: null },
+  RockClimbing:       { movement: 'Klatring',                subcategory: null },
+  Dance:              { movement: 'Dans',                    subcategory: null },
+
+  // ── ANNET (catch-all — Strava-typer uten matchende bevegelsesform) ──
+  Skateboard:         { movement: 'Annet',                   subcategory: null },
+  Soccer:             { movement: 'Annet',                   subcategory: null },
+  Golf:               { movement: 'Annet',                   subcategory: null },
+  Wheelchair:         { movement: 'Annet',                   subcategory: null },
+  Basketball:         { movement: 'Annet',                   subcategory: null },
+  Volleyball:         { movement: 'Annet',                   subcategory: null },
+  Cricket:            { movement: 'Annet',                   subcategory: null },
+  Padel:              { movement: 'Annet',                   subcategory: null },
+  PhysicalTherapy:    { movement: 'Annet',                   subcategory: null },
+}
+
+// Returnerer { movement, subcategory } for en Strava sport_type-verdi.
+// Logger ukjente Strava-typer til konsollen så vi kan oppdage nye verdier.
+// Fallback: { movement: 'Annet', subcategory: null }.
+export function mapStravaSportToXpulse(stravaType: string): StravaMovementMapping {
+  const hit = STRAVA_SPORT_MAP[stravaType]
+  if (hit) return hit
+  if (stravaType) {
+    console.warn(`[strava-sync] ukjent sport_type "${stravaType}" — bruker fallback Annet`)
+  }
+  return { movement: 'Annet', subcategory: null }
 }

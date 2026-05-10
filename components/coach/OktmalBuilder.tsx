@@ -1,19 +1,25 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { WorkoutForm } from '@/components/workout/WorkoutForm'
+import { updateTemplate } from '@/app/actions/templates'
 import type { Sport, WorkoutTemplate, WorkoutFormData } from '@/lib/types'
 
 interface Props {
   primarySport: Sport
   templates: WorkoutTemplate[]
   defaultValues?: Partial<WorkoutFormData>
+  // Når satt: redigerer eksisterende mal i stedet for å lage ny. WorkoutForm
+  // pre-fylles fra editing.template_data + activities, og lagring kaller
+  // updateTemplate(editing.id, …) i stedet for saveAsTemplate.
+  editing?: WorkoutTemplate | null
   onClose: () => void
 }
 
-export function OktmalBuilder({ primarySport, templates, defaultValues, onClose }: Props) {
+export function OktmalBuilder({ primarySport, templates, defaultValues, editing, onClose }: Props) {
   const router = useRouter()
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -27,6 +33,41 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, onClose 
   }, [onClose])
 
   const handleSaved = () => {
+    onClose()
+    router.refresh()
+  }
+
+  // Edit-modus: pre-fyll WorkoutForm fra eksisterende mal-data og bruk
+  // captureOnlyMode så formen ikke kaller saveWorkout. onCapture fanger
+  // form-dataen og vi kaller updateTemplate manuelt.
+  const editDefaults: Partial<WorkoutFormData> | undefined = editing
+    ? {
+        ...editing.template_data,
+        title: editing.name,
+        activities: editing.activities ?? editing.template_data?.activities ?? [],
+      }
+    : defaultValues
+
+  const handleCapture = async (data: WorkoutFormData) => {
+    if (!editing) return
+    setSaveError(null)
+    const res = await updateTemplate(editing.id, {
+      name: data.title,
+      sport: data.sport,
+      activities: data.activities,
+      templateData: {
+        sport: data.sport,
+        workout_type: data.workout_type,
+        movements: data.movements,
+        notes: data.notes,
+        tags: data.tags,
+        strength_type: data.strength_type,
+      },
+    })
+    if (res.error) {
+      setSaveError(res.error)
+      return
+    }
     onClose()
     router.refresh()
   }
@@ -53,7 +94,7 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, onClose 
           style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            Ny øktmal
+            {editing ? 'Rediger øktmal' : 'Ny øktmal'}
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
@@ -65,16 +106,39 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, onClose 
           </button>
         </div>
 
-        <WorkoutForm
-          initialSport={primarySport}
-          defaultValues={defaultValues}
-          formMode="plan"
-          templates={templates}
-          templateBuildingMode
-          onTemplateSaved={handleSaved}
-          onSaved={handleSaved}
-          onCancel={onClose}
-        />
+        {saveError && (
+          <p className="px-4 py-2 text-xs"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
+              backgroundColor: 'rgba(255,69,0,0.1)',
+            }}>
+            {saveError}
+          </p>
+        )}
+
+        {editing ? (
+          <WorkoutForm
+            initialSport={editing.sport ?? primarySport}
+            defaultValues={editDefaults}
+            formMode="plan"
+            templates={templates}
+            captureOnlyMode
+            onCapture={handleCapture}
+            captureSubmitLabel="Lagre endringer"
+            onCancel={onClose}
+          />
+        ) : (
+          <WorkoutForm
+            initialSport={primarySport}
+            defaultValues={defaultValues}
+            formMode="plan"
+            templates={templates}
+            templateBuildingMode
+            onTemplateSaved={handleSaved}
+            onSaved={handleSaved}
+            onCancel={onClose}
+          />
+        )}
       </div>
     </div>
   )

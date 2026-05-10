@@ -42,6 +42,10 @@ export function MalerClient({
   // visibility-flag trengs; treners RLS leser bare egne).
   const [showOktmalBuilder, setShowOktmalBuilder] = useState(false)
   const [showPlanmalBuilder, setShowPlanmalBuilder] = useState(false)
+  // Edit-modus: når satt åpnes builder med eksisterende mal-data og lagring
+  // oppdaterer raden i stedet for å lage ny.
+  const [editingOktmal, setEditingOktmal] = useState<WorkoutTemplate | null>(null)
+  const [editingPlanmal, setEditingPlanmal] = useState<PlanTemplate | null>(null)
 
   const setTab = (t: Tab) => {
     const url = new URL(window.location.href)
@@ -77,19 +81,21 @@ export function MalerClient({
         </button>
       </div>
 
-      {showOktmalBuilder && (
+      {(showOktmalBuilder || editingOktmal) && (
         <OktmalBuilder
           primarySport={primarySport}
           templates={initialWorkoutTemplates}
-          onClose={() => setShowOktmalBuilder(false)}
+          editing={editingOktmal}
+          onClose={() => { setShowOktmalBuilder(false); setEditingOktmal(null) }}
         />
       )}
 
-      {showPlanmalBuilder && (
+      {(showPlanmalBuilder || editingPlanmal) && (
         <PlanMalBuilder
           primarySport={primarySport}
           workoutTemplates={initialWorkoutTemplates}
-          onClose={() => setShowPlanmalBuilder(false)}
+          editing={editingPlanmal}
+          onClose={() => { setShowPlanmalBuilder(false); setEditingPlanmal(null) }}
         />
       )}
 
@@ -124,6 +130,7 @@ export function MalerClient({
           templates={initialWorkoutTemplates}
           query={query} category={category} sport={sport}
           pendingId={pendingId}
+          onEdit={(t) => setEditingOktmal(t)}
           onDelete={(id, name) => {
             if (!window.confirm(`Slett mal "${name}"?`)) return
             setPendingId(id)
@@ -149,6 +156,7 @@ export function MalerClient({
           templates={initialPlanTemplates}
           query={query} category={category}
           pendingId={pendingId}
+          onEdit={(t) => setEditingPlanmal(t)}
           onDelete={(id, name) => {
             if (!window.confirm(`Slett plan-mal "${name}"?`)) return
             setPendingId(id)
@@ -203,11 +211,12 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function WorkoutList({
-  templates, query, category, sport, pendingId, onDelete, onDuplicate,
+  templates, query, category, sport, pendingId, onEdit, onDelete, onDuplicate,
 }: {
   templates: WorkoutTemplate[]
   query: string; category: string; sport: string
   pendingId: string | null
+  onEdit: (t: WorkoutTemplate) => void
   onDelete: (id: string, name: string) => void
   onDuplicate: (id: string) => void
 }) {
@@ -235,6 +244,7 @@ function WorkoutList({
             name={t.name} description={t.description} category={t.category}
             meta={[sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
             disabled={pendingId === t.id}
+            onEdit={() => onEdit(t)}
             onDelete={() => onDelete(t.id, t.name)}
             onDuplicate={() => onDuplicate(t.id)}
           />
@@ -245,11 +255,12 @@ function WorkoutList({
 }
 
 function PlanList({
-  templates, query, category, pendingId, onDelete, onDuplicate,
+  templates, query, category, pendingId, onEdit, onDelete, onDuplicate,
 }: {
   templates: PlanTemplate[]
   query: string; category: string
   pendingId: string | null
+  onEdit: (t: PlanTemplate) => void
   onDelete: (id: string, name: string) => void
   onDuplicate: (id: string) => void
 }) {
@@ -274,6 +285,7 @@ function PlanList({
             `${t.plan_data?.workouts?.length ?? 0} økter`,
           ]}
           disabled={pendingId === t.id}
+          onEdit={() => onEdit(t)}
           onDelete={() => onDelete(t.id, t.name)}
           onDuplicate={() => onDuplicate(t.id)}
         />
@@ -297,18 +309,22 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
 }
 
 function TemplateRow({
-  name, description, category, meta, disabled, onDelete, onDuplicate,
+  name, description, category, meta, disabled, onEdit, onDelete, onDuplicate,
 }: {
   name: string
   description: string | null
   category: string | null
   meta: string[]
   disabled: boolean
+  onEdit: () => void
   onDelete: () => void
   onDuplicate: () => void
 }) {
+  // Hele raden klikkbar → åpner edit. Knappene under stopper propagation
+  // så Dupliser/Slett ikke trigger edit ved et uhell.
   return (
-    <div className="p-4"
+    <div className="p-4 transition-colors hover:bg-[#1A1A22] cursor-pointer"
+      onClick={onEdit}
       style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -331,7 +347,9 @@ function TemplateRow({
           </div>
         </div>
 
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5"
+          onClick={e => e.stopPropagation()}>
+          <ActionBtn onClick={onEdit} disabled={disabled}>Rediger</ActionBtn>
           <ActionBtn onClick={onDuplicate} disabled={disabled}>Dupliser</ActionBtn>
           <ActionBtn onClick={onDelete} disabled={disabled} danger>Slett</ActionBtn>
         </div>

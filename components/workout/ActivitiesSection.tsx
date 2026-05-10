@@ -1217,14 +1217,21 @@ function ShootingFields({
         <div className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {heading}
-          {!planMode && (
+          {!planMode && !row.is_dry_training && (
             <span style={{ marginLeft: 8, color: '#8A8A96', textTransform: 'none', letterSpacing: 0 }}>
               · Treff er valgfritt
             </span>
           )}
+          {row.is_dry_training && (
+            <span style={{ marginLeft: 8, color: '#FF8C00', textTransform: 'none', letterSpacing: 0 }}>
+              · Uten skarp ammunisjon
+            </span>
+          )}
         </div>
         {/* Tørrtrening — ortogonalt til posisjon. Kan slås på selv for konkurranse-/
-            kombinert-typer; brukes til å skille tørr-skyting fra skarp ammunisjon i analyse. */}
+            kombinert-typer; brukes til å skille tørr-skyting fra skarp ammunisjon i
+            analyse. Når aktiv: skjules skudd/treff-felt og kun varighet + posisjon
+            beholdes (varighet ligger på selve aktivitets-raden). */}
         <button
           type="button"
           onClick={() => onUpdate({ is_dry_training: !row.is_dry_training })}
@@ -1241,6 +1248,12 @@ function ShootingFields({
           {row.is_dry_training ? '✓ Tørrtrening' : 'Tørrtrening'}
         </button>
       </div>
+      {row.is_dry_training ? (
+        <p className="text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Tørrtrening — registrér kun varighet og posisjon. Skudd/treff-statistikk hoppes over for denne raden.
+        </p>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {showProne && (
           <ShootingBlock
@@ -1263,6 +1276,7 @@ function ShootingFields({
           />
         )}
       </div>
+      )}
     </div>
   )
 }

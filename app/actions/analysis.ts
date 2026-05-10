@@ -665,7 +665,7 @@ function isPrimarySportMovement(sport: Sport, movement: string): boolean {
     cross_country_skiing: ['Langrenn', 'Rulleski'],
     long_distance_skiing: ['Langrenn', 'Rulleski'],
     biathlon: ['Langrenn', 'Rulleski'],
-    triathlon: ['Løping', 'Sykling', 'Svømming'],
+    triathlon: ['Løping', 'Sykling', 'Svømming', 'Svømming basseng 25m', 'Svømming basseng 50m', 'Svømming åpent vann'],
     endurance: ['Løping', 'Sykling', 'Langrenn', 'Rulleski'],
   }
   return map[sport]?.includes(movement) ?? false

@@ -197,6 +197,100 @@ export async function deleteTemplate(id: string): Promise<{ error?: string }> {
   return {}
 }
 
+// Bruk en eksisterende mal til å opprette en ny planlagt økt på valgt dato i
+// utøvers Plan-kalender. Kun for mal-eieren (RLS sikrer det). Kaller IKKE
+// trener-push-flyten — målet er kun den innloggede brukeren selv.
+//
+// Returnerer { workoutId } ved suksess. Brukeren kan så åpne økten i Plan
+// for å redigere ytterligere. Aktiviteter på malen kopieres med basis-felter
+// (movement, duration, distance, hr, zones, notes). Dyp styrke-tre eller
+// laktat-målinger overføres ikke i denne enkle kopieringen — sjelden i maler.
+export async function materializeOktmalAtDate(
+  templateId: string,
+  date: string,
+): Promise<{ error?: string; workoutId?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'Ugyldig dato' }
+
+  // RLS sikrer at brukeren bare ser sine egne maler — bekreft eksplisitt
+  // for pen feilmelding.
+  const template = await getTemplate(templateId)
+  if (!template) return { error: 'Fant ikke mal' }
+
+  const td = template.template_data ?? ({} as Partial<WorkoutFormData>)
+  const sport = template.sport ?? td.sport ?? null
+
+  // Hovedrad i workouts. is_planned=true så den havner i Plan-kalenderen.
+  const { data: workout, error: workoutErr } = await supabase
+    .from('workouts')
+    .insert({
+      user_id: user.id,
+      title: template.name,
+      sport,
+      workout_type: td.workout_type ?? 'long_run',
+      date,
+      notes: td.notes ?? null,
+      tags: td.tags ?? [],
+      is_planned: true,
+      is_completed: false,
+      template_id: template.id,
+      template_name: template.name,
+    })
+    .select('id')
+    .single()
+  if (workoutErr || !workout) {
+    return { error: workoutErr?.message ?? 'Kunne ikke opprette økt' }
+  }
+
+  // Aktiviteter — basis-felter. Strenger fra templates konverteres til
+  // numeriske felter forventet av workout_activities.
+  const activities = template.activities ?? []
+  if (activities.length > 0) {
+    const activityRows = activities.map((a, ai) => {
+      const durSec = parseInt(a.duration) || 0
+      const km = parseFloat(a.distance_km)
+      return {
+        workout_id: workout.id,
+        activity_type: a.activity_type,
+        movement_name: a.movement_name || null,
+        movement_subcategory: a.movement_subcategory || null,
+        sort_order: ai,
+        start_time: a.start_time || null,
+        duration_seconds: durSec,
+        distance_meters: Number.isFinite(km) ? Math.round(km * 1000) : null,
+        avg_heart_rate: parseInt(a.avg_heart_rate) || null,
+        max_heart_rate: parseInt(a.max_heart_rate) || null,
+        elevation_gain_m: parseInt(a.elevation_gain_m) || null,
+        elevation_loss_m: parseInt(a.elevation_loss_m) || null,
+        prone_shots: parseInt(a.prone_shots) || null,
+        prone_hits: parseInt(a.prone_hits) || null,
+        standing_shots: parseInt(a.standing_shots) || null,
+        standing_hits: parseInt(a.standing_hits) || null,
+        is_dry_training: a.is_dry_training === true,
+        zones: a.zones,
+        notes: a.notes || null,
+      }
+    })
+    const { error: actErr } = await supabase
+      .from('workout_activities')
+      .insert(activityRows)
+    if (actErr) {
+      // Rull tilbake workout-raden så brukeren ikke ender med en tom planlagt
+      // økt uten innhold.
+      await supabase.from('workouts').delete().eq('id', workout.id).eq('user_id', user.id)
+      return { error: `Aktiviteter: ${actErr.message}` }
+    }
+  }
+
+  await incrementTemplateUsage(templateId)
+  revalidatePath('/app/plan')
+  revalidatePath('/app/dagbok')
+  return { workoutId: workout.id }
+}
+
 // Dupliser en eksisterende mal. Nytt navn = "<original> (kopi)".
 export async function duplicateTemplate(id: string): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()

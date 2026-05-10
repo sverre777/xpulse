@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteTemplate, duplicateTemplate } from '@/app/actions/templates'
+import { deleteTemplate, duplicateTemplate, materializeOktmalAtDate } from '@/app/actions/templates'
 import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
 import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate, type Sport } from '@/lib/types'
 import type { PlanTemplate } from '@/lib/template-types'
@@ -46,6 +46,8 @@ export function MalerClient({
   // oppdaterer raden i stedet for å lage ny.
   const [editingOktmal, setEditingOktmal] = useState<WorkoutTemplate | null>(null)
   const [editingPlanmal, setEditingPlanmal] = useState<PlanTemplate | null>(null)
+  // Bruk-på-dato: setter mal som skal materialiseres + dato-modal vises.
+  const [bruktOktmal, setBruktOktmal] = useState<WorkoutTemplate | null>(null)
 
   const setTab = (t: Tab) => {
     const url = new URL(window.location.href)
@@ -125,12 +127,25 @@ export function MalerClient({
         )}
       </div>
 
+      {bruktOktmal && (
+        <BrukPaaDatoModal
+          template={bruktOktmal}
+          onClose={() => setBruktOktmal(null)}
+          onMaterialized={(date) => {
+            setBruktOktmal(null)
+            router.push(`/app/plan?date=${date}`)
+            router.refresh()
+          }}
+        />
+      )}
+
       {tab === 'okt' && (
         <WorkoutList
           templates={initialWorkoutTemplates}
           query={query} category={category} sport={sport}
           pendingId={pendingId}
           onEdit={(t) => setEditingOktmal(t)}
+          onUseDate={(t) => setBruktOktmal(t)}
           onDelete={(id, name) => {
             if (!window.confirm(`Slett mal "${name}"?`)) return
             setPendingId(id)
@@ -211,12 +226,13 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function WorkoutList({
-  templates, query, category, sport, pendingId, onEdit, onDelete, onDuplicate,
+  templates, query, category, sport, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: WorkoutTemplate[]
   query: string; category: string; sport: string
   pendingId: string | null
   onEdit: (t: WorkoutTemplate) => void
+  onUseDate: (t: WorkoutTemplate) => void
   onDelete: (id: string, name: string) => void
   onDuplicate: (id: string) => void
 }) {
@@ -245,6 +261,7 @@ function WorkoutList({
             meta={[sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
             disabled={pendingId === t.id}
             onEdit={() => onEdit(t)}
+            onUseDate={() => onUseDate(t)}
             onDelete={() => onDelete(t.id, t.name)}
             onDuplicate={() => onDuplicate(t.id)}
           />
@@ -309,7 +326,7 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
 }
 
 function TemplateRow({
-  name, description, category, meta, disabled, onEdit, onDelete, onDuplicate,
+  name, description, category, meta, disabled, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   name: string
   description: string | null
@@ -317,6 +334,8 @@ function TemplateRow({
   meta: string[]
   disabled: boolean
   onEdit: () => void
+  // Bruk-på-dato finnes kun på øktmal i v1; planmal kan utvides senere.
+  onUseDate?: () => void
   onDelete: () => void
   onDuplicate: () => void
 }) {
@@ -347,8 +366,11 @@ function TemplateRow({
           </div>
         </div>
 
-        <div className="flex gap-1.5"
+        <div className="flex flex-wrap gap-1.5"
           onClick={e => e.stopPropagation()}>
+          {onUseDate && (
+            <ActionBtn onClick={onUseDate} disabled={disabled}>Bruk på dato</ActionBtn>
+          )}
           <ActionBtn onClick={onEdit} disabled={disabled}>Rediger</ActionBtn>
           <ActionBtn onClick={onDuplicate} disabled={disabled}>Dupliser</ActionBtn>
           <ActionBtn onClick={onDelete} disabled={disabled} danger>Slett</ActionBtn>
@@ -401,4 +423,101 @@ const iSt: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   outline: 'none',
+}
+
+// Lett dato-velger-modal for "Bruk på dato"-flyten. Validerer at dato ikke
+// er i fortid (planlagte økter må være i nåtid eller fremtiden). Etter
+// bekreftelse kalles materializeOktmalAtDate og parent får workout-id.
+function BrukPaaDatoModal({
+  template, onClose, onMaterialized,
+}: {
+  template: WorkoutTemplate
+  onClose: () => void
+  // Mottar valgt dato (ikke workout-id) så parent kan navigere til riktig
+  // dag i Plan-kalenderen.
+  onMaterialized: (date: string) => void
+}) {
+  const today = new Date().toISOString().slice(0, 10)
+  const [date, setDate] = useState(today)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  const handleConfirm = () => {
+    setError(null)
+    startTransition(async () => {
+      const res = await materializeOktmalAtDate(template.id, date)
+      if (res.error) {
+        setError(res.error)
+        return
+      }
+      onMaterialized(date)
+    })
+  }
+
+  return (
+    <div onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        paddingTop: '80px', paddingLeft: '12px', paddingRight: '12px',
+      }}>
+      <div onClick={e => e.stopPropagation()}
+        className="w-full max-w-md p-5"
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+          <span className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            Bruk mal på dato
+          </span>
+        </div>
+
+        <p className="mb-4 text-sm"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+          Sett inn <strong style={{ color: '#F0F0F2' }}>{template.name}</strong> som planlagt
+          økt på valgt dato i din Plan-kalender.
+        </p>
+
+        <label className="block mb-1 text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Dato
+        </label>
+        <input type="date" value={date} min={today}
+          onChange={e => setDate(e.target.value)}
+          style={{ ...iSt, width: '100%', padding: '8px 12px' }} />
+
+        {error && (
+          <p className="mt-3 text-xs"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            {error}
+          </p>
+        )}
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button type="button" onClick={onClose} disabled={pending}
+            className="text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              background: 'none', border: '1px solid #262629',
+              padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
+            }}>
+            Avbryt
+          </button>
+          <button type="button" onClick={handleConfirm}
+            disabled={pending || !date}
+            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+              background: '#FF4500', border: 'none',
+              padding: '8px 14px',
+              cursor: (pending || !date) ? 'not-allowed' : 'pointer',
+              opacity: (pending || !date) ? 0.6 : 1,
+            }}>
+            {pending ? 'Setter inn…' : 'Bekreft'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

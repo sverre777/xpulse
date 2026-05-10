@@ -14,6 +14,14 @@ import {
   type StravaLap,
   type StravaStreamSet,
 } from '@/lib/strava'
+import { DEFAULT_MOVEMENTS_BY_SPORT, type Sport } from '@/lib/types'
+
+// Mapping fra x-pulse Sport → primær bevegelsesform-navn vist på activity-rad.
+// Bruker første entry i DEFAULT_MOVEMENTS_BY_SPORT som er hovedbevegelsen for
+// sporten ('Løping' for running, 'Langrenn' for cross_country_skiing osv.).
+function movementForSport(sport: Sport): string {
+  return DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping'
+}
 
 // Server-actions for Strava-import. Tre nivåer:
 // 1. listSyncableActivities — preview-liste m/konflikt-flagg, brukeren
@@ -409,12 +417,17 @@ function mapLapToActivity(
   idx: number,
   stravaSportType: string,
 ) {
-  const sport = mapStravaSportToXpulse(stravaSportType)
-  // Aktivitets-type er "running"/"cycling"/etc — vi har egne verdier
-  // i ACTIVITY_TYPES-konstanten, men for Strava-import bruker vi sporten.
+  const sport = mapStravaSportToXpulse(stravaSportType) as Sport
+  // activity_type MÅ være en av verdiene i workout_activities_activity_type_check
+  // (oppvarming/aktivitet/pause/aktiv_pause/skyting_*/nedjogg/annet). Tidligere
+  // brukte vi sport-navnet ("running"/"cycling"/...) som activity_type, og
+  // hver lap-insert ble silent avvist av DB-CHECK — ingen laps lagret, ingen
+  // zones beregnet, kun workout-tittel+totaltid synlig. Sporten lagres i
+  // movement_name som beskriver bevegelsesformen ("Løping"/"Sykling"/...).
   return {
     workout_id: workoutId,
-    activity_type: sport,
+    activity_type: 'aktivitet',
+    movement_name: movementForSport(sport),
     duration_seconds: lap.elapsed_time,
     distance_meters: Math.round(lap.distance),
     avg_heart_rate: lap.average_heartrate ?? null,

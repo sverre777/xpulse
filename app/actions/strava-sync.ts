@@ -74,18 +74,20 @@ export async function listSyncableActivities(
     console.log('[strava-sync] listSyncable start', { user_id: user.id, mode, scope: conn.scope })
     const after = computeAfterTimestamp(mode)
 
+    // Paginer gjennom Strava-respons. Strava /athlete/activities returnerer
+    // én side per call (default 30, max 200 per_page). Uten paginering ble
+    // alt utover første side silently tapt — kritisk for last_year/all-modus
+    // der brukere typisk har 100+ aktiviteter.
     let stravaActivities: Awaited<ReturnType<typeof fetchStravaActivities>>
     try {
-      stravaActivities = await fetchStravaActivities(supabase, conn, {
-        after, per_page: 100,
-      })
+      stravaActivities = await fetchAllStravaActivitiesPaged(supabase, conn, after)
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       console.error('[strava-sync] fetchStravaActivities failed:', msg)
       return { error: `Strava API: ${msg}` }
     }
 
-    console.log('[strava-sync] fetched', stravaActivities.length, 'activities')
+    console.log('[strava-sync] fetched', stravaActivities.length, 'activities (paginated)')
     if (stravaActivities.length === 0) {
       return { activities: [], total: 0, last_sync_at: conn.last_sync_at }
     }
@@ -386,6 +388,33 @@ async function backfillOneWorkout(
 }
 
 // ── Internal helpers ──────────────────────────────────────────
+
+// Strava /athlete/activities returnerer kun én side per call. Loop til vi
+// får en side med færre enn per_page resultater (= siste side). Hard cap
+// på 20 sider à 200 = 4000 aktiviteter for å unngå rate-limit / endeløse
+// looper hvis Strava skulle returnere full side hver gang.
+const STRAVA_PAGE_SIZE = 200
+const STRAVA_MAX_PAGES = 20
+
+async function fetchAllStravaActivitiesPaged(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  conn: Parameters<typeof fetchStravaActivities>[1],
+  after: number,
+): Promise<Awaited<ReturnType<typeof fetchStravaActivities>>> {
+  const all: Awaited<ReturnType<typeof fetchStravaActivities>> = []
+  for (let page = 1; page <= STRAVA_MAX_PAGES; page++) {
+    const batch = await fetchStravaActivities(supabase, conn, {
+      after, per_page: STRAVA_PAGE_SIZE, page,
+    })
+    console.log(`[strava-sync] page ${page}: ${batch.length} activities`)
+    all.push(...batch)
+    if (batch.length < STRAVA_PAGE_SIZE) break
+  }
+  if (all.length >= STRAVA_PAGE_SIZE * STRAVA_MAX_PAGES) {
+    console.warn(`[strava-sync] hit STRAVA_MAX_PAGES cap (${STRAVA_MAX_PAGES}) — eldre aktiviteter ble ikke hentet`)
+  }
+  return all
+}
 
 function computeAfterTimestamp(mode: SyncMode): number {
   const now = Date.now()

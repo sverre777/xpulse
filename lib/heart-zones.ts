@@ -98,3 +98,46 @@ export function zoneForHeartRate(hr: number, zones: HeartZone[]): ZoneName | nul
   }
   return 'I5'
 }
+
+// Beregn minutter per sone fra puls-samples. Brukes etter Strava-import
+// for å fylle workout_activities.zones uten at brukeren må gjette manuelt.
+//
+// `windowStart`/`windowEnd` er sek-fra-økt-start. Settes når vi vil ha
+// soner for én lap (lap-vindu). Utelat for hele økten.
+//
+// Returnerer minutter (Record-format) — samme format som zones jsonb-feltet
+// allerede bruker (jf. activity-summary.ts/zoneMinutes).
+export function computeZoneMinutesFromSamples(
+  hrSamples: Array<{ t: number; hr: number }>,
+  zones: HeartZone[],
+  windowStart?: number,
+  windowEnd?: number,
+): Record<ZoneName, number> {
+  const seconds: Record<ZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
+  if (zones.length === 0 || hrSamples.length < 2) {
+    return seconds
+  }
+
+  for (let i = 1; i < hrSamples.length; i++) {
+    const cur = hrSamples[i]
+    const prev = hrSamples[i - 1]
+    if (windowStart != null && cur.t < windowStart) continue
+    if (windowEnd != null && cur.t > windowEnd) break
+
+    // Strava er normalt 1 Hz men kan ha gaps (autopause). Ignorer dt > 60s
+    // for å unngå å bake pauser inn i sonene.
+    const dt = cur.t - prev.t
+    if (dt <= 0 || dt > 60) continue
+
+    const z = zoneForHeartRate(cur.hr, zones)
+    if (z) seconds[z] += dt
+  }
+
+  return {
+    I1: Math.round(seconds.I1 / 60),
+    I2: Math.round(seconds.I2 / 60),
+    I3: Math.round(seconds.I3 / 60),
+    I4: Math.round(seconds.I4 / 60),
+    I5: Math.round(seconds.I5 / 60),
+  }
+}

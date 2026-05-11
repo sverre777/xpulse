@@ -14,6 +14,7 @@ import {
   type StravaLap,
   type StravaStreamSet,
 } from '@/lib/strava'
+import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
 
 // Server-actions for Strava-import. Tre nivåer:
@@ -202,21 +203,32 @@ export async function importStravaActivity(
     fetchStravaStreams(supabase, conn, stravaActivityId),
   ])
 
+  let result: ImportResult
   if (options.conflictResolution === 'merge' && options.conflictWorkoutId) {
     // Merge: hent eksisterende workout, legg til samples + activities,
     // ikke endre tittel/notater (bevarer brukerens egen logging).
-    return await mergeIntoExisting(
+    result = await mergeIntoExisting(
       supabase, user.id, options.conflictWorkoutId, detail, streams, externalId,
     )
-  }
-
-  if (options.conflictResolution === 'replace' && options.conflictWorkoutId) {
+  } else if (options.conflictResolution === 'replace' && options.conflictWorkoutId) {
     // Replace: slett eksisterende, opprett ny fra Strava.
     await supabase.from('workouts').delete().eq('id', options.conflictWorkoutId).eq('user_id', user.id)
+    result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
+  } else {
+    // keep_both eller ingen konflikt: opprett ny workout direkte.
+    result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
   }
 
-  // keep_both eller ingen konflikt: opprett ny workout direkte.
-  return await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
+  // Oppdater last_sync_at også når brukeren importerer enkeltvis (UI per-rad-
+  // knapp). Tidligere ble feltet kun satt fra quickSync-flyten, så feltet kunne
+  // forbli null til tross for vellykkede importer.
+  if (result.ok) {
+    await supabase
+      .from('strava_connections')
+      .update({ last_sync_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+  }
+  return result
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('[strava-sync] importStravaActivity failed:', msg, e)
@@ -255,6 +267,122 @@ export async function quickSyncNonConflicting(
   revalidatePath('/app/oversikt')
   revalidatePath('/app/innstillinger/klokkesync')
   return { imported, skipped }
+}
+
+// Backfill av sone-fordeling på eksisterende Strava-importer som mangler
+// zones. Bruker workout_samples.hr_samples (lagret ved opprinnelig import)
+// + activities.duration_seconds (lap-vinduer) + brukerens heart-zones.
+// Returnerer per-workout detalj så vi ser HVORFOR enkelte ikke fikk zones
+// (ingen hr_samples, ingen activities, eller alle vinduer tomme).
+export async function backfillStravaZones(): Promise<
+  | { ok: true; checked: number; updated: number; details: BackfillDetail[] }
+  | { error: string }
+> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const heartZones = await getHeartZonesForUser(supabase, user.id)
+  if (heartZones.length === 0) {
+    return { error: 'Heart-zones kunne ikke beregnes (mangler max_heart_rate/birth_year i profil)' }
+  }
+
+  const { data: imports, error: impErr } = await supabase
+    .from('imported_activities')
+    .select('workout_id, external_id')
+    .eq('user_id', user.id)
+    .eq('source', 'strava')
+    .not('workout_id', 'is', null)
+  if (impErr) return { error: `imported_activities-query: ${impErr.message}` }
+
+  const details: BackfillDetail[] = []
+  let updated = 0
+
+  for (const imp of imports ?? []) {
+    if (!imp.workout_id) continue
+    const detail = await backfillOneWorkout(supabase, imp.workout_id, heartZones)
+    details.push({ ...detail, external_id: imp.external_id })
+    if (detail.updated_laps > 0) updated++
+  }
+
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/oversikt')
+  return { ok: true, checked: imports?.length ?? 0, updated, details }
+}
+
+interface BackfillDetail {
+  workout_id: string
+  external_id?: string | null
+  updated_laps: number
+  total_laps: number
+  reason: string
+}
+
+async function backfillOneWorkout(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  workoutId: string,
+  heartZones: Awaited<ReturnType<typeof getHeartZonesForUser>>,
+): Promise<BackfillDetail> {
+  const [{ data: acts }, { data: samplesRow }] = await Promise.all([
+    supabase
+      .from('workout_activities')
+      .select('id, sort_order, duration_seconds, zones')
+      .eq('workout_id', workoutId)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('workout_samples')
+      .select('hr_samples')
+      .eq('workout_id', workoutId)
+      .eq('source', 'strava')
+      .maybeSingle(),
+  ])
+
+  if (!acts || acts.length === 0) {
+    return { workout_id: workoutId, updated_laps: 0, total_laps: 0, reason: 'ingen workout_activities-rader' }
+  }
+
+  const hrRaw = (samplesRow?.hr_samples as unknown) ?? null
+  if (!Array.isArray(hrRaw) || hrRaw.length < 2) {
+    return { workout_id: workoutId, updated_laps: 0, total_laps: acts.length, reason: 'ingen hr_samples i workout_samples' }
+  }
+
+  const hrSamples: Array<{ t: number; hr: number }> = []
+  for (const s of hrRaw) {
+    if (!s || typeof s !== 'object') continue
+    const obj = s as Record<string, unknown>
+    const t = Number(obj.t)
+    const hr = Number(obj.hr)
+    if (Number.isFinite(t) && Number.isFinite(hr) && hr > 0) {
+      hrSamples.push({ t, hr })
+    }
+  }
+  if (hrSamples.length < 2) {
+    return { workout_id: workoutId, updated_laps: 0, total_laps: acts.length, reason: 'hr_samples-parsing gav ingen brukbare verdier' }
+  }
+
+  let cumStart = 0
+  let updatedLaps = 0
+  for (const act of acts) {
+    const dur = (act.duration_seconds as number | null) ?? 0
+    const cumEnd = cumStart + dur
+    const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+    const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+    if (total > 0) {
+      const { error } = await supabase
+        .from('workout_activities')
+        .update({ zones: { ...minutes, Hurtighet: 0 } })
+        .eq('id', act.id)
+      if (!error) updatedLaps++
+    }
+    cumStart = cumEnd
+  }
+
+  return {
+    workout_id: workoutId,
+    updated_laps: updatedLaps,
+    total_laps: acts.length,
+    reason: updatedLaps > 0 ? 'OK' : 'alle lap-vinduer tomme etter beregning (mulig hr-stream slutt før siste lap, eller alle samples utenfor I1-grensen)',
+  }
 }
 
 // ── Internal helpers ──────────────────────────────────────────
@@ -336,22 +464,53 @@ async function createWorkoutFromStrava(
     return { ok: false, error: insertErr?.message ?? 'Workout-insert feilet' }
   }
 
-  // Legg til en aktivitet per Strava-lap.
+  // Legg til en aktivitet per Strava-lap. Capture id+sort_order så
+  // populateZonesForLaps kan oppdatere zones-feltet etter sample-prosessering.
+  // Insert kan feile silently hvis fase 51-kolonner mangler — logger derfor
+  // eksplisitt slik at årsaken er synlig i Netlify Function logs.
+  let activityIds: Array<{ id: string; sort_order: number }> = []
+  console.log(`[strava-sync] activity ${detail.id} — laps fra Strava: ${detail.laps?.length ?? 0}`)
   if (detail.laps && detail.laps.length > 0) {
     const activityRows = detail.laps.map((lap, idx) =>
       mapLapToActivity(workout.id, lap, idx, detail.sport_type)
     )
-    await supabase.from('workout_activities').insert(activityRows)
+    const { data: inserted, error: lapErr } = await supabase
+      .from('workout_activities')
+      .insert(activityRows)
+      .select('id, sort_order')
+    if (lapErr) {
+      console.error(`[strava-sync] workout_activities insert FAILED for ${detail.id}:`, lapErr.message, lapErr.details ?? '')
+    } else {
+      activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
+      console.log(`[strava-sync] activity ${detail.id} — ${activityIds.length} laps lagret`)
+    }
   }
 
   // Lagre streams hvis tilgjengelig.
   if (hasStreamData(streams)) {
-    await supabase.from('workout_samples').insert({
+    const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workout.id,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
     })
+    if (sampleErr) {
+      console.error(`[strava-sync] workout_samples insert FAILED for ${detail.id}:`, sampleErr.message, sampleErr.details ?? '')
+    }
+  }
+
+  // Beregn sone-fordeling per lap fra hr-stream og oppdater workout_activities.zones.
+  // Uten dette får importerte økter null-soner og fanges ikke av belastnings- og
+  // intensitets-analyser. Hvis stream/laps/activities mangler logges det
+  // eksplisitt så vi ser hvilken kondisjon som avbryter.
+  if (streams.heartrate?.data && detail.laps && activityIds.length > 0) {
+    console.log(`[strava-sync] activity ${detail.id} — beregner zones for ${activityIds.length} laps`)
+    await populateZonesForLaps(supabase, userId, detail.laps, activityIds, streams)
+  } else {
+    console.log(
+      `[strava-sync] activity ${detail.id} — hopper over zones`,
+      `(hr=${!!streams.heartrate?.data}, laps=${detail.laps?.length ?? 0}, activityIds=${activityIds.length})`,
+    )
   }
 
   // Marker som importert.
@@ -397,12 +556,31 @@ async function mergeIntoExisting(
   if (hasStreamData(streams)) {
     // Slett gamle samples (hvis Strava-import skjer flere ganger).
     await supabase.from('workout_samples').delete().eq('workout_id', workoutId).eq('source', 'strava')
-    await supabase.from('workout_samples').insert({
+    const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workoutId,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
     })
+    if (sampleErr) {
+      console.error(`[strava-sync] merge workout_samples insert FAILED for ${detail.id}:`, sampleErr.message)
+    }
+  }
+
+  // Beregn sone-fordeling for eksisterende Strava-mappede activities (de som
+  // har strava_lap_index og null/tom zones). Manuelt loggede activities røres ikke.
+  if (streams.heartrate?.data && detail.laps && detail.laps.length > 0) {
+    const { data: existingActs } = await supabase
+      .from('workout_activities')
+      .select('id, sort_order, zones, strava_lap_index')
+      .eq('workout_id', workoutId)
+      .order('sort_order', { ascending: true })
+    const stravaLapActs = (existingActs ?? []).filter(
+      a => a.strava_lap_index != null && isEmptyZones(a.zones),
+    ) as Array<{ id: string; sort_order: number }>
+    if (stravaLapActs.length > 0) {
+      await populateZonesForLaps(supabase, userId, detail.laps, stravaLapActs, streams)
+    }
   }
 
   await supabase.from('imported_activities').insert({
@@ -413,6 +591,16 @@ async function mergeIntoExisting(
   })
 
   return { ok: true, workout_id: workoutId }
+}
+
+function isEmptyZones(zones: unknown): boolean {
+  if (!zones || typeof zones !== 'object') return true
+  const z = zones as Record<string, unknown>
+  let total = 0
+  for (const k of ['I1','I2','I3','I4','I5']) {
+    total += Number(z[k]) || 0
+  }
+  return total === 0
 }
 
 function mapLapToActivity(
@@ -461,6 +649,58 @@ function mapStreamsToSamples(streams: StravaStreamSet) {
     altitude_samples: arr(streams.altitude, 'alt'),
     cadence_samples:  arr(streams.cadence, 'cad'),
   }
+}
+
+// Beregner sone-minutter per lap fra Strava sin streams og oppdaterer
+// workout_activities.zones. Streams er flat array — vi mapper t-aksen til
+// kumulert lap-tid for å plukke ut riktig vindu. Logger eksplisitt så vi
+// ser hvor mange laps som ble oppdatert vs hoppet (typisk null-total).
+async function populateZonesForLaps(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  laps: StravaLap[],
+  activityIds: Array<{ id: string; sort_order: number }>,
+  streams: StravaStreamSet,
+) {
+  const heartZones = await getHeartZonesForUser(supabase, userId)
+  if (heartZones.length === 0) {
+    console.warn(`[strava-sync] populateZonesForLaps: ingen heart zones for user ${userId} — hopper`)
+    return
+  }
+
+  const time = streams.time?.data ?? []
+  const hr = streams.heartrate?.data ?? []
+  if (hr.length < 2) {
+    console.warn(`[strava-sync] populateZonesForLaps: for få hr-samples (${hr.length}) — hopper`)
+    return
+  }
+
+  const hrSamples = hr.map((v, i) => ({ t: time[i] ?? i, hr: v }))
+  const idBySortOrder = new Map(activityIds.map(a => [a.sort_order, a.id]))
+  let cumStart = 0
+  let updated = 0
+  for (let idx = 0; idx < laps.length; idx++) {
+    const lap = laps[idx]
+    const cumEnd = cumStart + lap.elapsed_time
+    const activityId = idBySortOrder.get(idx)
+    if (activityId) {
+      const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+      const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+      if (total > 0) {
+        const { error } = await supabase
+          .from('workout_activities')
+          .update({ zones: { ...minutes, Hurtighet: 0 } })
+          .eq('id', activityId)
+        if (error) {
+          console.error(`[strava-sync] zone update FAILED for activity ${activityId}:`, error.message)
+        } else {
+          updated++
+        }
+      }
+    }
+    cumStart = cumEnd
+  }
+  console.log(`[strava-sync] populateZonesForLaps: oppdaterte ${updated}/${activityIds.length} laps med zones`)
 }
 
 // Frakoble Strava — sletter tokens. Eksisterende imported_activities-

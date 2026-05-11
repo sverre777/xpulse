@@ -434,8 +434,13 @@ function findConflict(
   for (const w of workouts) {
     if (w.date !== stravaDate) continue
     if (!w.time_of_day) {
-      // Ingen klokkeslett på den eksisterende — anta konflikt på samme dato.
-      return w.id
+      // Manuelt loggede økter har typisk ingen time_of_day. Tidligere antok
+      // vi konflikt på samme dato, men det førte til at Strava-importer ble
+      // silent-droppet hver gang brukeren hadde en manuell loggføring samme
+      // dag. Nå: hopp over rader uten klokkeslett i konflikt-sjekken så
+      // Strava-importen får lov å eksistere side om side. Brukeren kan
+      // slå sammen via merge-handling i UI om de vil.
+      continue
     }
     const [h, m] = w.time_of_day.split(':').map(Number)
     const wStart = new Date(`${w.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime()

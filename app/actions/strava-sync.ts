@@ -145,7 +145,21 @@ export async function listSyncableActivities(
   }
 }
 
+// Konflikt-handling når importert Strava-aktivitet kolliderer med en eksisterende
+// (typisk planlagt) workout samme dato. Default-flyt (keep_both) lager ny rad
+// uavhengig.
+//   - merge: oppdater eksisterende workout med Strava-data (samples + soner)
+//   - replace: slett eksisterende, opprett ny fra Strava
+//   - keep_both: opprett ny rad — eksisterende rør ikke (default ved bulk-import)
+//   - skip: hopp over import, marker som behandlet
+//   - mark_planned_completed: marker eksisterende planlagt-økt som gjennomført
+//     + opprett importert som separat rad + sett linked_workout_id på planlagt
+//     så UI kan vise "Se faktisk økt"-lenke. Mest vanlig user-valg ved samme-dato-konflikt.
+//
+// Felles type med fit-upload (klokkesync-arbeid) holdes på 4-tilstandene; den
+// femte er kun støttet av Strava-import per nå.
 export type ConflictResolution = 'merge' | 'replace' | 'keep_both' | 'skip'
+export type StravaConflictResolution = ConflictResolution | 'mark_planned_completed'
 
 export interface ImportResult {
   ok: boolean
@@ -160,7 +174,7 @@ export interface ImportResult {
 export async function importStravaActivity(
   stravaActivityId: number,
   options: {
-    conflictResolution?: ConflictResolution
+    conflictResolution?: StravaConflictResolution
     conflictWorkoutId?: string
   } = {},
 ): Promise<ImportResult> {
@@ -216,6 +230,16 @@ export async function importStravaActivity(
     // Replace: slett eksisterende, opprett ny fra Strava.
     await supabase.from('workouts').delete().eq('id', options.conflictWorkoutId).eq('user_id', user.id)
     result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
+  } else if (options.conflictResolution === 'mark_planned_completed' && options.conflictWorkoutId) {
+    // Marker planlagt-økt som gjennomført + opprett importert separat + lenk dem.
+    result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
+    if (result.ok && result.workout_id) {
+      const now = new Date().toISOString()
+      await supabase.from('workouts')
+        .update({ is_completed: true, completed_at: now, linked_workout_id: result.workout_id, updated_at: now })
+        .eq('id', options.conflictWorkoutId)
+        .eq('user_id', user.id)
+    }
   } else {
     // keep_both eller ingen konflikt: opprett ny workout direkte.
     result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)

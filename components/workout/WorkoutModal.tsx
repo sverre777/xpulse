@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
+import { getWorkoutForEdit, deleteWorkout, markCompleted, markUncompleted } from '@/app/actions/workouts'
 import { listEquipment, getWorkoutEquipmentIds } from '@/app/actions/equipment'
 import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
@@ -98,6 +98,24 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
     })
   }
 
+  // Toggle is_completed på planlagte økter — brukerens måte å manuelt bekrefte
+  // at planen ble fulgt uten å fylle ut detaljer. Idempotent.
+  const [completing, startCompleteToggle] = useTransition()
+  const handleToggleCompleted = () => {
+    if (state.kind !== 'edit' || !defaults) return
+    startCompleteToggle(async () => {
+      const action = defaults.is_completed ? markUncompleted : markCompleted
+      const res = await action(state.workoutId, targetUserId)
+      if (res.error) {
+        alert(`Kunne ikke endre status: ${res.error}`)
+        return
+      }
+      router.refresh()
+      // Lokal state oppdateres ved router.refresh — modal forblir åpen så brukeren ser endringen.
+      setDefaults(d => d ? { ...d, is_completed: !d.is_completed } : d)
+    })
+  }
+
   return (
     <div
       onClick={onClose}
@@ -141,6 +159,26 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             )}
           </div>
           <div className="flex items-center gap-2">
+            {/* Marker som gjennomført / ikke gjennomført — kun synlig for
+                planlagte økter brukeren selv eier (eller trener kan endre).
+                Reversibel: én knapp toggler basert på is_completed-flag. */}
+            {state.kind === 'edit' && !readOnly && defaults?.is_planned && (
+              <button type="button" onClick={handleToggleCompleted} disabled={completing}
+                className="px-3 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  color: defaults.is_completed ? '#8A8A96' : '#28A86E',
+                  background: 'none',
+                  border: `1px solid ${defaults.is_completed ? '#8A8A96' : '#28A86E'}`,
+                  minHeight: '36px',
+                  cursor: completing ? 'not-allowed' : 'pointer',
+                  opacity: completing ? 0.6 : 1,
+                }}>
+                {completing
+                  ? '...'
+                  : (defaults.is_completed ? '↺ Ikke gjennomført' : '✓ Gjennomført')}
+              </button>
+            )}
             {state.kind === 'edit' && !readOnly && (
               <button type="button" onClick={handleDelete} disabled={deleting}
                 className="px-3 text-xs tracking-widest uppercase"

@@ -788,8 +788,25 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
     }
   }
 
+  const now = new Date().toISOString()
   const { error } = await supabase.from('workouts')
-    .update({ is_completed: true, updated_at: new Date().toISOString() })
+    .update({ is_completed: true, completed_at: now, updated_at: now })
+    .eq('id', workoutId).eq('user_id', resolved.userId)
+  if (error) return { error: error.message }
+  revalidateWorkoutPaths()
+  return {}
+}
+
+// Reverser markCompleted: planlagt økt får is_completed=false + completed_at=null,
+// linked_workout_id beholdes (tipisk null på planlagte uansett). Brukeren har
+// tilfeldig markert ferdig og vil tilbake til planlagt-tilstand.
+export async function markUncompleted(workoutId: string, targetUserId?: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const { error } = await supabase.from('workouts')
+    .update({ is_completed: false, completed_at: null, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
   revalidateWorkoutPaths()

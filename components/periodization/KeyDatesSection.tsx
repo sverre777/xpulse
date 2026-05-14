@@ -112,23 +112,31 @@ export function KeyDatesSection({
 
       {canEdit && (
         <>
-          <KeyDateModal
-            open={newOpen}
-            onClose={() => setNewOpen(false)}
-            seasonId={season.id}
-            seasonStart={season.start_date}
-            seasonEnd={season.end_date}
-            targetUserId={targetUserId}
-          />
-          <KeyDateModal
-            open={editing !== null}
-            onClose={() => setEditing(null)}
-            seasonId={season.id}
-            seasonStart={season.start_date}
-            seasonEnd={season.end_date}
-            editing={editing}
-            targetUserId={targetUserId}
-          />
+          {newOpen && (
+            <KeyDateModal
+              open
+              onClose={() => setNewOpen(false)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              targetUserId={targetUserId}
+            />
+          )}
+          {/* Re-mount modalen per rad — useState i KeyDateModal initialiseres
+              fra editing-prop kun ved første mount, så pre-fylling krever
+              fersk instans. */}
+          {editing && (
+            <KeyDateModal
+              key={editing.id}
+              open
+              onClose={() => setEditing(null)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              editing={editing}
+              targetUserId={targetUserId}
+            />
+          )}
         </>
       )}
     </section>

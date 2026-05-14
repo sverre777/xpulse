@@ -114,6 +114,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
           maxWidth: '820px', width: '100%', position: 'relative',
           margin: '0 auto', marginBottom: '24px',
+          overflowX: 'hidden',
         }}
       >
         {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}

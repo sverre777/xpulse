@@ -41,61 +41,69 @@ export function AthleteHeader({ context }: Props) {
 
   return (
     <section className="mb-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <div className="p-5 flex flex-wrap items-center gap-4">
-        {/* Avatar */}
-        <div
-          className="shrink-0 flex items-center justify-center"
-          style={{
-            width: '56px', height: '56px',
-            backgroundColor: '#1A1A22',
-            border: `2px solid ${COACH_BLUE}`,
-          }}
-        >
-          {profile.avatarUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={profile.avatarUrl}
-              alt={displayName}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <span
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                color: COACH_BLUE,
-                fontSize: '22px', letterSpacing: '0.05em',
-              }}
-            >
-              {initials || '?'}
-            </span>
-          )}
-        </div>
-
-        {/* Navn + kontakt */}
-        <div className="flex-1 min-w-0">
-          <h1
-            className="text-3xl md:text-4xl"
+      {/* På mobil: avatar+navn på én linje, knappene stables under (2 knapper
+          ved siden av hverandre, full bredde). På sm+: alt på samme linje med
+          knappene høyre-justert. Tidligere overlapp på mobil ved lange navn
+          som "Jørgen Kjos Barkenes" — knappene la seg oppå navnet fordi
+          flex-wrap på outer-div ikke ble utløst når shrink-0 på knappene
+          presset dem ut over viewporten. */}
+      <div className="p-5 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          {/* Avatar */}
+          <div
+            className="shrink-0 flex items-center justify-center"
             style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              color: '#F0F0F2', letterSpacing: '0.04em',
+              width: '56px', height: '56px',
+              backgroundColor: '#1A1A22',
+              border: `2px solid ${COACH_BLUE}`,
             }}
           >
-            {displayName}
-          </h1>
-          <p
-            className="text-xs tracking-wide mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
-          >
-            {sportLabel ? `${sportLabel}` : 'Ingen idrett valgt'}
-            {profile.email && ` · ${profile.email}`}
-          </p>
+            {profile.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={profile.avatarUrl}
+                alt={displayName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <span
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  color: COACH_BLUE,
+                  fontSize: '22px', letterSpacing: '0.05em',
+                }}
+              >
+                {initials || '?'}
+              </span>
+            )}
+          </div>
+
+          {/* Navn + kontakt */}
+          <div className="flex-1 min-w-0">
+            <h1
+              className="text-2xl sm:text-3xl md:text-4xl break-words"
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                color: '#F0F0F2', letterSpacing: '0.04em',
+              }}
+            >
+              {displayName}
+            </h1>
+            <p
+              className="text-xs tracking-wide mt-0.5 break-words"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            >
+              {sportLabel ? `${sportLabel}` : 'Ingen idrett valgt'}
+              {profile.email && ` · ${profile.email}`}
+            </p>
+          </div>
         </div>
 
-        {/* Handlinger */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Handlinger — full bredde stack på mobil, høyre-justert på sm+ */}
+        <div className="flex items-center gap-2 sm:shrink-0 w-full sm:w-auto">
           <Link
             href={`/app/innboks?to=${profile.id}`}
-            className="px-3 py-2 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
+            className="flex-1 sm:flex-none text-center px-3 py-2 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
@@ -106,7 +114,7 @@ export function AthleteHeader({ context }: Props) {
           </Link>
           <Link
             href={`/app/trener/${profile.id}/plan?push=1`}
-            className="px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+            className="flex-1 sm:flex-none text-center px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: COACH_BLUE, color: '#F0F0F2',

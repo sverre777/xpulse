@@ -85,11 +85,13 @@ export function SeasonSelector({
         )}
       </div>
 
-      {!hideCreateEdit && (
-        <SeasonModal open={newOpen} onClose={() => setNewOpen(false)} targetUserId={targetUserId} basePath={basePath} />
+      {!hideCreateEdit && newOpen && (
+        <SeasonModal open onClose={() => setNewOpen(false)} targetUserId={targetUserId} basePath={basePath} />
       )}
-      {!hideCreateEdit && activeSeason && (
-        <SeasonModal open={editOpen} onClose={() => setEditOpen(false)} editing={activeSeason} targetUserId={targetUserId} basePath={basePath} />
+      {/* Re-mount per sesong-id så pre-fylling treffer riktig sesong (ellers
+          beholder useState verdiene fra første åpning). */}
+      {!hideCreateEdit && activeSeason && editOpen && (
+        <SeasonModal key={activeSeason.id} open onClose={() => setEditOpen(false)} editing={activeSeason} targetUserId={targetUserId} basePath={basePath} />
       )}
     </>
   )

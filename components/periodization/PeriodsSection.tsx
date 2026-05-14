@@ -107,23 +107,32 @@ export function PeriodsSection({
 
       {canEdit && (
         <>
-          <PeriodModal
-            open={newOpen}
-            onClose={() => setNewOpen(false)}
-            seasonId={season.id}
-            seasonStart={season.start_date}
-            seasonEnd={season.end_date}
-            targetUserId={targetUserId}
-          />
-          <PeriodModal
-            open={editing !== null}
-            onClose={() => setEditing(null)}
-            seasonId={season.id}
-            seasonStart={season.start_date}
-            seasonEnd={season.end_date}
-            editing={editing}
-            targetUserId={targetUserId}
-          />
+          {newOpen && (
+            <PeriodModal
+              open
+              onClose={() => setNewOpen(false)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              targetUserId={targetUserId}
+            />
+          )}
+          {/* Mount modalen friskt per redigering. Tidligere lå modalen alltid
+              mountet og useState(editing?.x ?? '') ble satt ved første mount
+              (editing=null), så felter forble tomme når brukeren klikket en
+              eksisterende rad. key={editing.id} sikrer re-mount per rad. */}
+          {editing && (
+            <PeriodModal
+              key={editing.id}
+              open
+              onClose={() => setEditing(null)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              editing={editing}
+              targetUserId={targetUserId}
+            />
+          )}
         </>
       )}
     </section>

@@ -16,11 +16,11 @@ UPDATE workout_templates
 SET activities = REPLACE(activities::text, '"movement_name":"Ski-erg"', '"movement_name":"SkiErg"')::jsonb
 WHERE activities::text LIKE '%"movement_name":"Ski-erg"%';
 
--- 3. Plan-templates — plan_templates.payload kan også inneholde planlagte
+-- 3. Plan-templates — plan_templates.plan_data kan også inneholde planlagte
 --    bevegelsesformer per dag.
 UPDATE plan_templates
-SET payload = REPLACE(payload::text, '"movement_name":"Ski-erg"', '"movement_name":"SkiErg"')::jsonb
-WHERE payload::text LIKE '%"movement_name":"Ski-erg"%';
+SET plan_data = REPLACE(plan_data::text, '"movement_name":"Ski-erg"', '"movement_name":"SkiErg"')::jsonb
+WHERE plan_data::text LIKE '%"movement_name":"Ski-erg"%';
 
 -- 4. Brukerens egne bevegelsesformer — user_movement_types.name. Treffes kun
 --    hvis noen brukere har lagt til 'Ski-erg' selv (sjelden, men trygt).

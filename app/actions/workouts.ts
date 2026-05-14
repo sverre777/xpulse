@@ -251,6 +251,7 @@ async function insertActivitiesWithChildren(
       avg_heart_rate: parseInt(a.avg_heart_rate) || null,
       max_heart_rate: parseInt(a.max_heart_rate) || null,
       avg_watts: parseInt(a.avg_watts) || null,
+      resistance_level: parseInt(a.resistance_level) || null,
       avg_pace_seconds_per_km: parseInt(a.avg_pace_seconds_per_km) || null,
       pace_unit_preference: a.pace_unit_preference || null,
       splits_per_km: serializeSplits(a.splits_per_km ?? []),
@@ -396,6 +397,7 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       avg_heart_rate: a.avg_heart_rate ?? '',
       max_heart_rate: a.max_heart_rate ?? '',
       avg_watts: a.avg_watts ?? '',
+      resistance_level: a.resistance_level ?? '',
       avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? '',
       pace_unit_preference: a.pace_unit_preference ?? '',
       splits_per_km: Array.isArray(a.splits_per_km) ? a.splits_per_km.map(s => ({
@@ -922,6 +924,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     sort_order: number
     start_time: string | null; duration_seconds: number; distance_meters: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    resistance_level: number | null
     avg_pace_seconds_per_km: number | null
     splits_per_km: { km: number; seconds: number }[] | null
     pace_unit_preference: 'min_per_km' | 'km_per_h' | null
@@ -989,6 +992,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
         max_heart_rate: a.max_heart_rate?.toString() ?? '',
         avg_watts: a.avg_watts?.toString() ?? '',
+        resistance_level: a.resistance_level?.toString() ?? '',
         avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
         pace_unit_preference: a.pace_unit_preference ?? '',
         splits_per_km: deserializeSplits(a.splits_per_km),

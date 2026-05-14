@@ -29,6 +29,30 @@ import {
   subcategoriesFor,
 } from '@/lib/movement-types'
 
+// Innendørs-maskiner med motstand-skala 1-10. Watt + resistance_level vises;
+// høydemeter skjules (gir ikke mening). Tredemølle har egen incline-felt og
+// regnes ikke som motstand-maskin.
+function isResistanceMachineFor(name: string, subcategory: string): boolean {
+  if (name === 'SkiErg') return true
+  if (name === 'Stairmaster') return true
+  if (name === 'Ellipsemaskin') return true
+  if (name === 'Roing' && subcategory === 'Romaskin') return true
+  if (name === 'Sykling' && (
+    subcategory === 'Spinning' ||
+    subcategory === 'Indoors/Ergo' ||
+    subcategory === 'Air bike'
+  )) return true
+  return false
+}
+
+// Alle innendørs-aktiviteter — inkluderer tredemølle (har incline_percent
+// men ingen høydemeter). Brukes for å skjule elevation-feltene.
+function isIndoorActivityFor(name: string, subcategory: string): boolean {
+  if (isResistanceMachineFor(name, subcategory)) return true
+  if (name === 'Løping' && subcategory === 'Tredemølle') return true
+  return false
+}
+
 interface Props {
   rows: ActivityRow[]
   onChange: (rows: ActivityRow[]) => void
@@ -63,6 +87,7 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
+    resistance_level: '',
     avg_pace_seconds_per_km: '',
     pace_unit_preference: '',
     splits_per_km: [],
@@ -325,6 +350,8 @@ function ActivityRowItem({
   const isTur = isTurFor(row.movement_name, userMovementTypes)
   const isAnnet = kind === 'annet'
   const isCycling = sport === 'cycling' || row.movement_name === 'Sykling'
+  const isResistanceMachine = isResistanceMachineFor(row.movement_name, row.movement_subcategory)
+  const isIndoorActivity = isIndoorActivityFor(row.movement_name, row.movement_subcategory)
   const isUserMovement = userMovementTypes.some(u => u.name === row.movement_name)
   const subcatOptions = isStrength && !isUserMovement
     ? STRENGTH_SUBCATEGORIES
@@ -359,6 +386,14 @@ function ActivityRowItem({
       patch.weather = ''
       patch.temperature_c = ''
     }
+    // Resistance er bevegelses- + subkategori-styrt. Etter movement-change er
+    // subcategory tom (settes på linje over via patch.movement_subcategory='').
+    // Sjekk om navnet alene fortsatt kvalifiserer (SkiErg/Stairmaster/Ellipsemaskin
+    // har subcategory=null/'' så de fortsatt regnes som resistance) — hvis ikke,
+    // null resistance.
+    if (!isResistanceMachineFor(name, '')) {
+      patch.resistance_level = ''
+    }
     onUpdate(patch)
   }
 
@@ -368,6 +403,11 @@ function ActivityRowItem({
     const patch: Partial<ActivityRow> = { movement_subcategory: sub }
     if (row.movement_name === 'Tur' && !TUR_SUBCATEGORIES_WITH_SLED.has(sub)) {
       patch.sled_weight_kg = ''
+    }
+    // Når brukeren bytter til en sub som ikke lenger er resistance-maskin
+    // (f.eks. Sykling: Spinning → Landevei), null resistance_level.
+    if (!isResistanceMachineFor(row.movement_name, sub)) {
+      patch.resistance_level = ''
     }
     onUpdate(patch)
   }
@@ -558,8 +598,10 @@ function ActivityRowItem({
               </Field>
             )}
 
-            {/* Høydemeter — utholdenhet + tur. Valgfrie. */}
-            {(isEndurance || isTur) && (
+            {/* Høydemeter — utholdenhet + tur. Skjules for innendørs-aktiviteter
+                (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
+                Indoors/Ergo, Air bike, Tredemølle) der høydemeter ikke er meningsfullt. */}
+            {(isEndurance || isTur) && !isIndoorActivity && (
               <>
                 <Field label="Høydemeter opp (m)">
                   <input value={row.elevation_gain_m}
@@ -596,12 +638,28 @@ function ActivityRowItem({
                   </Field>
                 )}
 
-                {isCycling && !meta?.isShooting && !isStrength && !isAnnet && (
+                {(isCycling || isResistanceMachine) && !meta?.isShooting && !isStrength && !isAnnet && (
                   <Field label="Snittwatt">
                     <input value={row.avg_watts}
                       onChange={e => onUpdate({ avg_watts: e.target.value })}
                       inputMode="numeric" placeholder="—"
                       style={iSt} />
+                  </Field>
+                )}
+
+                {/* Motstand 1-10 — kun for innendørs-maskiner med motstand-skala
+                    (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
+                    Indoors/Ergo, Air bike). Tredemølle har incline_percent. */}
+                {isResistanceMachine && (
+                  <Field label="Motstand (1-10)">
+                    <select value={row.resistance_level}
+                      onChange={e => onUpdate({ resistance_level: e.target.value })}
+                      style={iSt}>
+                      <option value="">—</option>
+                      {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                        <option key={n} value={String(n)}>{n}</option>
+                      ))}
+                    </select>
                   </Field>
                 )}
               </>

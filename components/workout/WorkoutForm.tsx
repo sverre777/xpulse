@@ -93,6 +93,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
     avg_heart_rate: a.avg_heart_rate ?? '',
     max_heart_rate: a.max_heart_rate ?? '',
     avg_watts: a.avg_watts ?? '',
+    resistance_level: a.resistance_level ?? '',
     avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? '',
     pace_unit_preference: a.pace_unit_preference ?? '',
     splits_per_km: a.splits_per_km ?? [],

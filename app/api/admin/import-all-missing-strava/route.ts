@@ -5,15 +5,18 @@ import { importStravaActivity } from '@/app/actions/strava-sync'
 
 // Bulk-import av alle Strava-aktiviteter som ikke har en imported_activities-
 // rad ennå. Bruker conflictResolution='keep_both' så Strava-importer lever
-// side om side med eventuelle manuelle workouts på samme dato — som var
-// rotårsaken til at 181 av 194 aktiviteter ble silent-droppet av default
-// quickSync-flyten (findConflict markerte dem som konflikt mot manuelle
-// workouts uten time_of_day).
+// side om side med eventuelle manuelle workouts på samme dato.
 //
-// Throwaway-endepunkt: GET fra nettleser mens innlogget. Returnerer per-
-// aktivitet-resultat så det er synlig hva som faktisk skjedde.
+// Batch-versjon: Netlify edge function timeout 10s; 181 imports tar 5-10 min.
+// Per kall importeres `batch` aktiviteter med start på `offset`. Klient
+// (eller runner-siden) looper offset+=batch til next_offset er null.
 //
-// ?days=365 (default) — vinduet vi henter fra Strava.
+// Throwaway-endepunkt: GET fra nettleser mens innlogget.
+//
+// Query-params:
+//   ?days=365     — Strava-vinduet (default 365, max 1825)
+//   ?batch=20     — antall aktiviteter å importere per kall (default 20)
+//   ?offset=0     — start-indeks i missing-listen (default 0)
 
 const STRAVA_PAGE_SIZE = 200
 const STRAVA_MAX_PAGES = 20
@@ -27,6 +30,8 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url)
   const days = Math.max(1, Math.min(365 * 5, Number(url.searchParams.get('days') ?? 365)))
+  const batch = Math.max(1, Math.min(50, Number(url.searchParams.get('batch') ?? 20)))
+  const offset = Math.max(0, Number(url.searchParams.get('offset') ?? 0))
   const after = Math.floor((Date.now() - days * 86400_000) / 1000)
 
   const conn = await getStravaConnection(supabase, user.id)
@@ -39,11 +44,11 @@ export async function GET(request: Request) {
   const stravaActivities: StravaActivity[] = []
   try {
     for (let page = 1; page <= STRAVA_MAX_PAGES; page++) {
-      const batch = await fetchStravaActivities(supabase, conn, {
+      const b = await fetchStravaActivities(supabase, conn, {
         after, per_page: STRAVA_PAGE_SIZE, page,
       })
-      stravaActivities.push(...batch)
-      if (batch.length < STRAVA_PAGE_SIZE) break
+      stravaActivities.push(...b)
+      if (b.length < STRAVA_PAGE_SIZE) break
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
@@ -61,10 +66,11 @@ export async function GET(request: Request) {
   }
   const importedIds = new Set((imports ?? []).map(r => r.external_id as string))
 
-  const missing = stravaActivities.filter(sa => !importedIds.has(`strava_${sa.id}`))
+  // Stabil rekkefølge: nyeste først (samme rekkefølge Strava returnerer dem).
+  const allMissing = stravaActivities.filter(sa => !importedIds.has(`strava_${sa.id}`))
+  const slice = allMissing.slice(offset, offset + batch)
+  const totalMissing = allMissing.length
 
-  // Importer hver missing med keep_both. Try-catch per aktivitet så én feil
-  // ikke stopper hele batchen.
   type ResultRow = {
     strava_id: number
     name: string
@@ -79,7 +85,7 @@ export async function GET(request: Request) {
   let skipped = 0
   let failed = 0
 
-  for (const sa of missing) {
+  for (const sa of slice) {
     try {
       const res = await importStravaActivity(sa.id, { conflictResolution: 'keep_both' })
       if (res.ok && !res.skipped) {
@@ -111,14 +117,26 @@ export async function GET(request: Request) {
     }
   }
 
-  // Oppdater last_sync_at.
-  await supabase
-    .from('strava_connections')
-    .update({ last_sync_at: new Date().toISOString() })
-    .eq('user_id', user.id)
+  // Oppdater last_sync_at hvis vi importerte noe.
+  if (imported > 0) {
+    await supabase
+      .from('strava_connections')
+      .update({ last_sync_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+  }
 
-  // Aggregerte counts per sport_type for failed — avslører om en bestemt
-  // sport-type konsekvent feiler (typisk CHECK-constraint-mismatch).
+  // total_remaining = antall missing igjen ETTER denne batchen.
+  // next_offset = offset for neste batch, eller null hvis vi er ferdig.
+  // OBS: vi beregner mot offset (ikke offset+imported) fordi failed/skipped
+  // også teller som "håndtert" — neste batch skal ikke prøve dem på nytt.
+  // (failed-rader får ingen imported_activities-rad og ville ellers blitt
+  //  hentet på nytt i neste call. For å unngå loop bruker vi indeks-basert
+  //  paginering — hopp over allerede behandlede uavhengig av status.)
+  const processedThrough = offset + slice.length
+  const isDone = processedThrough >= totalMissing
+  const nextOffset = isDone ? null : processedThrough
+
+  // Aggregerte counts per sport_type for failed.
   const failedBySport: Record<string, number> = {}
   for (const r of results) {
     if (r.status === 'failed') {
@@ -129,13 +147,19 @@ export async function GET(request: Request) {
   return NextResponse.json({
     user_id: user.id,
     window_days: days,
-    strava_total: stravaActivities.length,
-    already_in_db: importedIds.size,
-    attempted: missing.length,
-    imported,
-    skipped,
-    failed,
+    batch,
+    offset,
+    total_strava: stravaActivities.length,
+    total_missing_at_start: totalMissing,
+    processed_in_batch: slice.length,
+    imported_this_batch: imported,
+    skipped_this_batch: skipped,
+    failed_this_batch: failed,
     failed_by_sport_type: failedBySport,
+    processed_through: processedThrough,
+    total_remaining: Math.max(0, totalMissing - processedThrough),
+    next_offset: nextOffset,
+    is_done: isDone,
     results,
   })
 }

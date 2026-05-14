@@ -52,6 +52,14 @@ export async function GET(request: Request) {
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
+    // 429-håndtering: returner 200 med rate_limited-flagg så runner kan
+    // pause og prøve samme offset igjen, i stedet for å abortere helt.
+    if (msg.includes('429')) {
+      return NextResponse.json({
+        rate_limited: true, retry_after_seconds: 900,
+        offset, batch, error: msg,
+      })
+    }
     return NextResponse.json({ error: `Strava API: ${msg}` }, { status: 502 })
   }
 
@@ -85,7 +93,10 @@ export async function GET(request: Request) {
   let skipped = 0
   let failed = 0
 
-  for (const sa of slice) {
+  let rateLimitedDuringLoop = false
+  let rateLimitedAtIndex = -1
+  for (let i = 0; i < slice.length; i++) {
+    const sa = slice[i]
     try {
       const res = await importStravaActivity(sa.id, { conflictResolution: 'keep_both' })
       if (res.ok && !res.skipped) {
@@ -101,11 +112,19 @@ export async function GET(request: Request) {
           sport_type: sa.sport_type, status: 'skipped', workout_id: res.workout_id,
         })
       } else {
+        const errMsg = res.error ?? 'ukjent'
         failed++
         results.push({
           strava_id: sa.id, name: sa.name, date: sa.start_date.slice(0, 10),
-          sport_type: sa.sport_type, status: 'failed', error: res.error ?? 'ukjent',
+          sport_type: sa.sport_type, status: 'failed', error: errMsg,
         })
+        // Hvis Strava-call inni importStravaActivity ble rate-limited, stopper
+        // vi resten av batchen — neste imports vil bare hope opp 429-feil.
+        if (errMsg.includes('429')) {
+          rateLimitedDuringLoop = true
+          rateLimitedAtIndex = i
+          break
+        }
       }
     } catch (e) {
       failed++
@@ -114,6 +133,11 @@ export async function GET(request: Request) {
         strava_id: sa.id, name: sa.name, date: sa.start_date.slice(0, 10),
         sport_type: sa.sport_type, status: 'failed', error: msg,
       })
+      if (msg.includes('429')) {
+        rateLimitedDuringLoop = true
+        rateLimitedAtIndex = i
+        break
+      }
     }
   }
 
@@ -132,8 +156,14 @@ export async function GET(request: Request) {
   // (failed-rader får ingen imported_activities-rad og ville ellers blitt
   //  hentet på nytt i neste call. For å unngå loop bruker vi indeks-basert
   //  paginering — hopp over allerede behandlede uavhengig av status.)
-  const processedThrough = offset + slice.length
-  const isDone = processedThrough >= totalMissing
+  // Hvis rate-limited midt i batchen, marker offset slik at runner kan
+  // retry samme posisjon etter ventetid. Failed-rader fra denne batchen
+  // gjenoppstår som missing (de fikk ingen imported_activities-rad).
+  const actuallyProcessed = rateLimitedDuringLoop
+    ? Math.max(0, rateLimitedAtIndex) // antall som faktisk ble behandlet før 429
+    : slice.length
+  const processedThrough = offset + actuallyProcessed
+  const isDone = !rateLimitedDuringLoop && processedThrough >= totalMissing
   const nextOffset = isDone ? null : processedThrough
 
   // Aggregerte counts per sport_type for failed.
@@ -151,7 +181,7 @@ export async function GET(request: Request) {
     offset,
     total_strava: stravaActivities.length,
     total_missing_at_start: totalMissing,
-    processed_in_batch: slice.length,
+    processed_in_batch: actuallyProcessed,
     imported_this_batch: imported,
     skipped_this_batch: skipped,
     failed_this_batch: failed,
@@ -160,6 +190,8 @@ export async function GET(request: Request) {
     total_remaining: Math.max(0, totalMissing - processedThrough),
     next_offset: nextOffset,
     is_done: isDone,
+    rate_limited: rateLimitedDuringLoop,
+    retry_after_seconds: rateLimitedDuringLoop ? 900 : null,
     results,
   })
 }

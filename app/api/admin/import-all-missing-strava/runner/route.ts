@@ -116,6 +116,22 @@ async function start() {
         log(txt, cls);
       }
       updateStats();
+
+      // Rate-limited? Pause auto til Strava-vinduet er nytt (15 min) og prøv samme offset.
+      if (r.rate_limited) {
+        const waitSec = r.retry_after_seconds || 900;
+        log('429 RATE-LIMIT — venter ' + waitSec + ' sek før retry på samme offset (' + offset + ')...', 'fail');
+        $('status').textContent = 'Rate-limit — venter ' + waitSec + ' sek...';
+        for (let s = waitSec; s > 0 && !stopFlag; s -= 5) {
+          $('status').textContent = 'Rate-limit — venter ' + s + ' sek (offset=' + offset + ')...';
+          await new Promise(r => setTimeout(r, 5000));
+        }
+        if (stopFlag) break;
+        $('status').textContent = 'Retry offset=' + offset + ' etter pause...';
+        log('Pause ferdig — fortsetter på offset=' + offset, 'skip');
+        continue; // retry samme offset (next_offset er = offset pga 429-failed-rader er ikke skrevet)
+      }
+
       if (r.is_done || r.next_offset === null) {
         $('status').textContent = 'FERDIG! Totalt importert ' + totals.imported + ' av ' + r.total_missing_at_start + '.';
         log('=== FERDIG ===', 'ok');
@@ -125,8 +141,8 @@ async function start() {
         break;
       }
       offset = r.next_offset;
-      // Liten pause mellom batcher for å la Strava puste (hindrer 429).
-      await new Promise(r => setTimeout(r, 300));
+      // Pause mellom batcher (1.5s) for å holde under 100 req/15min-snittet.
+      await new Promise(r => setTimeout(r, 1500));
     }
   } catch (e) {
     log('FEIL: ' + (e.message || e), 'fail');

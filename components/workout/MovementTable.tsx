@@ -11,7 +11,7 @@ interface MovementTableProps {
 
 const STRENGTH_MOVEMENTS = ['Styrke', 'Crossfit', 'Kampsport']
 const ENDURANCE_MOVEMENTS = [
-  'Løping', 'Langrenn', 'Rulleski', 'Ski-erg', 'Sykling',
+  'Løping', 'Langrenn', 'Rulleski', 'SkiErg', 'Sykling',
   'Svømming', 'Roing', 'Stairmaster', 'Ellipsemaskin',
 ]
 const isStrengthMovement = (name: string) => STRENGTH_MOVEMENTS.some(s => name.startsWith(s))

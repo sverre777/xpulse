@@ -51,7 +51,7 @@ export const SHOOTING_WORKOUT_TYPES: WorkoutType[] = [
 ]
 
 export const ENDURANCE_MOVEMENT_NAMES = [
-  'Løping','Langrenn','Rulleski','Ski-erg','Sykling',
+  'Løping','Langrenn','Rulleski','SkiErg','Sykling',
   'Svømming basseng 25m','Svømming basseng 50m','Svømming åpent vann',
   'Roing','Stairmaster','Ellipsemaskin',
   'Fjellsport','Kajak/Padling','Orientering','Skøyter',
@@ -82,7 +82,7 @@ export const TUR_SUBCATEGORIES_WITH_SLED = new Set<string>([
 ])
 
 // Rekkefølge: de mest brukte først (Løping, Langrenn, Sykling, Styrke, Rulleski,
-// Ski-erg), deretter resten. Ski-erg er nå en EGEN bevegelsesform — tidligere lå
+// SkiErg), deretter resten. SkiErg er nå en EGEN bevegelsesform — tidligere lå
 // den som underkategori på Rulleski, men spec krever den som top-level siden den
 // brukes mye uavhengig av rulleski (innendørs ergometer-trening).
 // Triathlon er ikke en bevegelsesform — det er en sport (se Sport) og håndteres
@@ -100,7 +100,7 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo','Spinning','Air bike'] },
   { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
   { name: 'Rulleski',       subcategories: SKI_SUBCATEGORIES },
-  { name: 'Ski-erg' },
+  { name: 'SkiErg' },
   // Resten — utholdenhet før øvrige.
   { name: 'Svømming basseng 25m', subcategories: SVOMMING_TECHNIQUES },
   { name: 'Svømming basseng 50m', subcategories: SVOMMING_TECHNIQUES },
@@ -137,11 +137,11 @@ export function getSubcategories(name: string): string[] {
 
 export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
   running:              ['Løping', 'Sykling', 'Styrke'],
-  cross_country_skiing: ['Langrenn', 'Rulleski', 'Ski-erg', 'Løping', 'Styrke'],
-  biathlon:             ['Langrenn', 'Rulleski', 'Ski-erg', 'Løping', 'Styrke'],
+  cross_country_skiing: ['Langrenn', 'Rulleski', 'SkiErg', 'Løping', 'Styrke'],
+  biathlon:             ['Langrenn', 'Rulleski', 'SkiErg', 'Løping', 'Styrke'],
   triathlon:            ['Svømming basseng 25m', 'Sykling', 'Løping', 'Styrke'],
   cycling:              ['Sykling', 'Løping', 'Styrke'],
-  long_distance_skiing: ['Langrenn', 'Rulleski', 'Ski-erg', 'Løping', 'Styrke'],
+  long_distance_skiing: ['Langrenn', 'Rulleski', 'SkiErg', 'Løping', 'Styrke'],
   endurance:            ['Løping', 'Sykling', 'Svømming basseng 25m', 'Styrke'],
 }
 
@@ -438,7 +438,7 @@ export const STRENGTH_SUBCATEGORIES = [
 
 // Utholdenhetsformer som får sone-fordeling inline.
 export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([
-  'Løping', 'Langrenn', 'Rulleski', 'Ski-erg', 'Sykling',
+  'Løping', 'Langrenn', 'Rulleski', 'SkiErg', 'Sykling',
   'Svømming basseng 25m', 'Svømming basseng 50m', 'Svømming åpent vann',
   'Roing', 'Stairmaster', 'Ellipsemaskin',
   'Padling', 'Kajak/Padling', 'Fjellsport', 'Skøyter',

@@ -34,11 +34,14 @@ import { SkiTesterTab } from './SkiTesterTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { ErneringTab } from './ErneringTab'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
+import { KlokkedataTrenderTab } from './KlokkedataTrenderTab'
+import { getKlokkedataTrender, type KlokkedataTrender } from '@/app/actions/klokkedata-trender'
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
 type Tab =
   | 'oversikt'
+  | 'klokkedata'
   | 'belastning'
   | 'terskel'
   | 'skyting'
@@ -68,6 +71,7 @@ function defaultMovementForSport(sport: Sport): string {
 
 const TABS: [Tab, string][] = [
   ['oversikt', 'Oversikt'],
+  ['klokkedata', 'Klokkedata-trender'],
   ['belastning', 'Belastning'],
   ['terskel', 'Terskel'],
   ['skyting', 'Skyting-dybde'],
@@ -176,6 +180,7 @@ function AnalysisPageInner({
   const [testsAndPRs, setTestsAndPRs] = useState<TestsAndPRs | null>(null)
   const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
   const [nutritionAnalysis, setNutritionAnalysis] = useState<NutritionAnalysis | null>(null)
+  const [klokkedata, setKlokkedata] = useState<KlokkedataTrender | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -191,6 +196,7 @@ function AnalysisPageInner({
     setTestsAndPRs(null)
     setSkiTesterData(null)
     setNutritionAnalysis(null)
+    setKlokkedata(null)
   }
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
@@ -337,8 +343,16 @@ function AnalysisPageInner({
         setSkiTesterData(res)
       })
     }
+    if (tab === 'klokkedata' && klokkedata === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getKlokkedataTrender(range.from, range.to, sportFilter)
+        if ('error' in res) { setError(res.error); return }
+        setKlokkedata(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -584,6 +598,11 @@ function AnalysisPageInner({
           skiTesterData
             ? <SkiTesterTab data={skiTesterData} />
             : <LoadingStub label="Laster ski-tester…" />
+        )}
+        {tab === 'klokkedata' && (
+          klokkedata
+            ? <KlokkedataTrenderTab data={klokkedata} />
+            : <LoadingStub label="Laster klokkedata-trender…" />
         )}
       </div>
     </div>

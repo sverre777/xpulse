@@ -122,6 +122,7 @@ export default async function OversiktPage() {
           lastHardWorkout={res.lastHardWorkout}
           mainGoal={res.mainGoal}
           phase={res.phase}
+          phaseStatus={res.phaseStatus}
           health={res.health}
         />
 

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Sport, WorkoutType } from '@/lib/types'
 import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
+import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
 
 // ── Typer ────────────────────────────────────────────
 
@@ -129,6 +130,8 @@ export interface OversiktWeeklyReflectionBadge {
   stress: number | null
 }
 
+export type OversiktPhaseStatus = 'active' | 'no_season' | 'no_periods' | 'gap'
+
 export interface OversiktData {
   hero: OversiktHero
   todayState: OversiktTodayState | null
@@ -138,6 +141,7 @@ export interface OversiktData {
   lastHardWorkout: OversiktWorkoutCard | null
   mainGoal: OversiktMainGoal | null
   phase: OversiktPhase | null
+  phaseStatus: OversiktPhaseStatus
   health: OversiktHealthSummary
   feed: OversiktFeedEntry[]
   focusPoints: OversiktFocusPoints
@@ -164,22 +168,22 @@ function daysBetween(fromISO: string, toISO: string): number {
   return Math.round((to.getTime() - from.getTime()) / 86400000)
 }
 
-// Summer sone-sekunder fra workout_activities.zones (jsonb med minutter).
+// Summer sone-sekunder fra workout_activities.zones (jsonb med sekunder fra phase 64).
 function accumulateZonesFromActivities(
-  activities: { zones: Record<string, number> | null | undefined }[],
+  activities: { zones: Record<string, number | string | null> | null | undefined }[],
   into: OversiktZoneSeconds,
 ): void {
   for (const a of activities) {
     const z = a.zones
     if (!z) continue
     for (const k of ZONE_KEYS) {
-      const mins = Number(z[k]) || 0
-      if (mins > 0) into[k] += mins * 60
+      const sec = Number(z[k]) || 0
+      if (sec > 0) into[k] += sec
     }
   }
 }
 
-// I3+I4+I5+Hurtighet sekunder for én workout.
+// I3+I4+I5+Hurtighet sekunder for én workout (verdier er allerede sekunder fra phase 64).
 function hardSecondsForWorkout(
   activities: { zones: Record<string, number> | null | undefined }[],
 ): number {
@@ -289,20 +293,26 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .order('date', { ascending: true })
       .limit(1)
 
-    // 5. Ukens økter (gjennomførte).
+    // 5. Ukens økter — fanger både dagbok-loggede (is_planned=false) og
+    //    planlagte som er markert gjennomført (is_completed=true). Tidligere
+    //    krevde vi is_completed=true, men Dagbok-input setter ikke alltid det
+    //    flagget — så Ukens totaler ble 0 selv om brukeren hadde logget økter.
+    //    .lte('date', todayISO) filtrerer ut fremtidige planlagte i samme uke.
+    //    Inkluderer workout_activities så vi kan ekskludere skyting-tid via
+    //    computeActivityTotals.
     const weekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km,workout_activities(zones)')
+      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', user.id)
-      .eq('is_completed', true)
-      .gte('date', weekStart).lte('date', weekEnd)
+      .or('is_completed.eq.true,is_planned.eq.false')
+      .gte('date', weekStart).lte('date', todayISO)
 
-    // 6. Forrige ukes økter.
+    // 6. Forrige ukes økter — samme filter-utvidelse.
     const prevWeekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km')
+      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', user.id)
-      .eq('is_completed', true)
+      .or('is_completed.eq.true,is_planned.eq.false')
       .gte('date', prevWeekStart).lte('date', prevWeekEnd)
 
     // 7. Kommende konkurranse — fra season_key_dates først, fallback til workouts.
@@ -324,12 +334,16 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .order('date', { ascending: true })
       .limit(1)
 
-    // 8. Siste hardøkt — hent siste 30 gjennomførte økter, filtrer client-side.
+    // 8. Siste hardøkt — hent siste 30 gjennomførte fortidige økter, filtrer client-side.
+    //    .lte('date', todayISO) er kritisk: tidligere ble fremtidige planlagte
+    //    konkurranser (med is_completed satt feil) plukket som "siste hardøkt".
+    //    Også utvidet filter for å fange dagbok-input som ikke har is_completed=true.
     const recentCompletedPromise = supabase
       .from('workouts')
       .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed, workout_activities(zones)')
       .eq('user_id', user.id)
-      .eq('is_completed', true)
+      .or('is_completed.eq.true,is_planned.eq.false')
+      .lte('date', todayISO)
       .order('date', { ascending: false })
       .order('time_of_day', { ascending: false, nullsFirst: false })
       .limit(30)
@@ -399,13 +413,29 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const fullName = (profileRes.data?.full_name as string | null) ?? ''
     const firstName = fullName.split(/\s+/)[0] || 'utøver'
 
-    const weekWorkouts = (weekWorkoutsRes.data ?? []) as {
+    type WeekWorkout = {
       id: string
       duration_minutes: number | null
       distance_km: number | null
-      workout_activities?: { zones: Record<string, number> | null }[] | null
-    }[]
-    const weekTotalSeconds = weekWorkouts.reduce((s, w) => s + ((w.duration_minutes ?? 0) * 60), 0)
+      workout_activities?: ActivityLike[] | null
+    }
+    const weekWorkouts = (weekWorkoutsRes.data ?? []) as WeekWorkout[]
+    // Beregn ukens totaler via computeActivityTotals så skyting + pauser
+    // ekskluderes automatisk (memory: skyting-tid skal ikke telles som
+    // treningstid). Fallback til workouts.duration_minutes hvis økten ikke
+    // har activities-rader.
+    function totalsForWorkout(w: WeekWorkout) {
+      const acts = (w.workout_activities ?? []) as ActivityLike[]
+      if (acts.length > 0) {
+        const t = computeActivityTotals(acts, [])
+        return { sec: t.totalSeconds, m: t.totalMeters }
+      }
+      return {
+        sec: (w.duration_minutes ?? 0) * 60,
+        m: Math.round((w.distance_km ?? 0) * 1000),
+      }
+    }
+    const weekTotalSeconds = weekWorkouts.reduce((s, w) => s + totalsForWorkout(w).sec, 0)
 
     const hero: OversiktHero = {
       firstName,
@@ -446,16 +476,16 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
         : { kind: 'none' }
     }
 
-    // Ukes-totaler + soner
+    // Ukes-totaler + soner (skyting ekskludert via computeActivityTotals).
     const weekZones = zeroZones()
     let weekMeters = 0
     for (const w of weekWorkouts) {
       accumulateZonesFromActivities(w.workout_activities ?? [], weekZones)
-      weekMeters += Math.round((w.distance_km ?? 0) * 1000)
+      weekMeters += totalsForWorkout(w).m
     }
-    const prevWeek = (prevWeekWorkoutsRes.data ?? []) as { duration_minutes: number | null; distance_km: number | null }[]
-    const prevSeconds = prevWeek.reduce((s, w) => s + ((w.duration_minutes ?? 0) * 60), 0)
-    const prevMeters = prevWeek.reduce((s, w) => s + Math.round((w.distance_km ?? 0) * 1000), 0)
+    const prevWeek = (prevWeekWorkoutsRes.data ?? []) as WeekWorkout[]
+    const prevSeconds = prevWeek.reduce((s, w) => s + totalsForWorkout(w).sec, 0)
+    const prevMeters = prevWeek.reduce((s, w) => s + totalsForWorkout(w).m, 0)
 
     const weekTotals: OversiktWeekTotals = {
       current: {
@@ -529,6 +559,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
 
     let mainGoal: OversiktMainGoal | null = null
     let phase: OversiktPhase | null = null
+    let phaseStatus: OversiktPhaseStatus = seasonRow ? 'no_periods' : 'no_season'
 
     if (seasonRow) {
       // Hent perioder + planlagt volum-sum for sesongen.
@@ -548,16 +579,28 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
         const plannedHours = (volumeRes.data ?? []).reduce(
           (s: number, r: { planned_hours: number | null }) => s + (Number(r.planned_hours) || 0), 0,
         )
-        // Faktiske timer siden sesongstart frem til i dag.
+        // Faktiske timer siden sesongstart frem til i dag. Hent activities så
+        // skyting ekskluderes via computeActivityTotals. Samme filter-utvidelse
+        // som ukentall (fanger dagbok-loggede uten is_completed=true).
         const { data: seasonActual } = await supabase
           .from('workouts')
-          .select('duration_minutes')
+          .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
           .eq('user_id', user.id)
-          .eq('is_completed', true)
+          .or('is_completed.eq.true,is_planned.eq.false')
           .gte('date', seasonRow.start_date)
           .lte('date', todayISO)
-        const actualHours = ((seasonActual ?? []) as { duration_minutes: number | null }[])
-          .reduce((s, w) => s + (w.duration_minutes ?? 0) / 60, 0)
+        type SeasonWorkout = {
+          duration_minutes: number | null
+          workout_activities?: ActivityLike[] | null
+        }
+        const actualHours = ((seasonActual ?? []) as SeasonWorkout[])
+          .reduce((s, w) => {
+            const acts = (w.workout_activities ?? []) as ActivityLike[]
+            if (acts.length > 0) {
+              return s + computeActivityTotals(acts, []).totalSeconds / 3600
+            }
+            return s + (w.duration_minutes ?? 0) / 60
+          }, 0)
 
         mainGoal = {
           season_id: seasonRow.id,
@@ -573,18 +616,25 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       const periods = (periodsRes.data ?? []) as {
         id: string; name: string; start_date: string; end_date: string; intensity: 'rolig' | 'medium' | 'hard'
       }[]
-      const active = periods.find(p => p.start_date <= todayISO && p.end_date >= todayISO) ?? null
-      if (active) {
-        const totalDays = daysBetween(active.start_date, active.end_date) + 1
-        const elapsed = daysBetween(active.start_date, todayISO) + 1
-        phase = {
-          id: active.id,
-          name: active.name,
-          start_date: active.start_date,
-          end_date: active.end_date,
-          intensity: active.intensity,
-          week_in_phase: Math.max(1, Math.ceil(elapsed / 7)),
-          phase_weeks_total: Math.max(1, Math.ceil(totalDays / 7)),
+      if (periods.length === 0) {
+        phaseStatus = 'no_periods'
+      } else {
+        const active = periods.find(p => p.start_date <= todayISO && p.end_date >= todayISO) ?? null
+        if (active) {
+          const totalDays = daysBetween(active.start_date, active.end_date) + 1
+          const elapsed = daysBetween(active.start_date, todayISO) + 1
+          phase = {
+            id: active.id,
+            name: active.name,
+            start_date: active.start_date,
+            end_date: active.end_date,
+            intensity: active.intensity,
+            week_in_phase: Math.max(1, Math.ceil(elapsed / 7)),
+            phase_weeks_total: Math.max(1, Math.ceil(totalDays / 7)),
+          }
+          phaseStatus = 'active'
+        } else {
+          phaseStatus = 'gap'
         }
       }
     }
@@ -651,6 +701,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       lastHardWorkout,
       mainGoal,
       phase,
+      phaseStatus,
       health,
       feed,
       focusPoints,

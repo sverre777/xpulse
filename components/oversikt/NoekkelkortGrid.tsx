@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type {
-  OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktHealthSummary,
+  OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus, OversiktHealthSummary,
 } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 
@@ -131,12 +131,17 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
   )
 }
 
-function PhaseCard({ phase }: { phase: OversiktPhase | null }) {
+function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseStatus: OversiktPhaseStatus }) {
   if (!phase) {
+    const meta =
+      phaseStatus === 'no_season'   ? 'Opprett en sesong i Årsplan.'
+      : phaseStatus === 'no_periods' ? 'Sesong satt, men ingen perioder. Legg til i Årsplan.'
+      : phaseStatus === 'gap'        ? 'Du har perioder, men ingen dekker dagens dato.'
+      : 'Definer perioder i årsplanen.'
     return (
       <Card kicker="Periode" accent="#1A6FD4" href="/app/periodisering">
         <CardTitle>Ingen aktiv fase</CardTitle>
-        <CardMeta>Definer perioder i årsplanen.</CardMeta>
+        <CardMeta>{meta}</CardMeta>
       </Card>
     )
   }
@@ -206,11 +211,12 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
 }
 
 export function NoekkelkortGrid({
-  lastHardWorkout, mainGoal, phase, health,
+  lastHardWorkout, mainGoal, phase, phaseStatus, health,
 }: {
   lastHardWorkout: OversiktWorkoutCard | null
   mainGoal: OversiktMainGoal | null
   phase: OversiktPhase | null
+  phaseStatus: OversiktPhaseStatus
   health: OversiktHealthSummary
 }) {
   return (
@@ -218,7 +224,7 @@ export function NoekkelkortGrid({
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
-      <PhaseCard phase={phase} />
+      <PhaseCard phase={phase} phaseStatus={phaseStatus} />
       <HealthCard h={health} />
     </section>
   )

@@ -216,6 +216,9 @@ export interface WorkoutFormData {
   is_important: boolean
   is_group_session: boolean
   group_session_label: string
+  // Read-only badge: settes av Strava/FIT-import. Vises som "Importert"-tag
+  // i workout-detalj. saveWorkout overstyrer ikke dette feltet.
+  imported_from?: string | null
   movements: MovementRow[]
   zones: ZoneRow[]
   exercises: ExerciseRow[]
@@ -889,6 +892,9 @@ export interface CalendarWorkoutSummary {
   is_important: boolean
   is_group_session?: boolean
   group_session_label?: string | null
+  // Kilde for badge-visning. 'strava' | 'fit' | null. Viser "Importert"-tag
+  // i kalender og workout-detalj.
+  imported_from?: string | null
   workout_type: WorkoutType
   // Sport på workouts-tabellen + utledet primær bevegelsesform fra
   // workout_activities (modus-mest-brukte movement_name).

@@ -120,12 +120,26 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
         {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
           style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
-          <span className="text-sm tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            {state.kind === 'edit'
-              ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
-              : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              {state.kind === 'edit'
+                ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
+                : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
+            </span>
+            {defaults?.imported_from === 'strava' && (
+              <span title="Importert fra Strava — felter overskrevet ved re-sync"
+                className="px-1.5 py-0.5 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  color: '#FC4C02',
+                  border: '1px solid #FC4C02',
+                  backgroundColor: 'rgba(252,76,2,0.08)',
+                }}>
+                ↻ Strava
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {state.kind === 'edit' && !readOnly && (
               <button type="button" onClick={handleDelete} disabled={deleting}

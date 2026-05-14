@@ -491,6 +491,7 @@ async function createWorkoutFromStrava(
       elevation_meters: Math.round(detail.total_elevation_gain),
       is_planned: false,
       is_completed: true,
+      imported_from: 'strava',
     })
     .select('id')
     .single()

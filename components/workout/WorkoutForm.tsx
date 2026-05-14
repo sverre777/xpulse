@@ -21,6 +21,7 @@ import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
+import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
@@ -677,9 +678,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
       </Section>
 
-      {/* ── KLOKKESYNC-DATA — komponent under utvikling (untracked filer i klokkesync-grenen).
-          Re-aktiveres når WorkoutKlokkesyncSection + WorkoutDetailChart + LapTable
-          + WorkoutDeepAnalysis + app/actions/workout-klokkesync.ts er klar for commit. ── */}
+      {/* ── KLOKKESYNC-DATA — pulskurve + fartsgraf + lap-tabell + dypere analyse.
+          Komponenten henter workout_samples + workout_activities for økten
+          og rendrer kun hvis det finnes sample-data eller laps fra import.
+          Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
+      {workoutId && !templateBuildingMode && (
+        <WorkoutKlokkesyncSection workoutId={workoutId} />
+      )}
 
       {/* ── SUBMIT ── */}
       <div className="pt-4 pb-8" hidden={readOnly}>

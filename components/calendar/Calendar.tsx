@@ -499,6 +499,10 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
               }}
             />
           )}
+          {w.imported_from === 'strava' && (
+            <span title="Importert fra Strava" aria-label="Strava-importert"
+              style={{ color: '#FC4C02', marginRight: '3px', fontSize: '10px' }}>↻</span>
+          )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.start_time && (
@@ -912,6 +916,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
+                                      {w.imported_from === 'strava' && (
+                                        <span title="Importert fra Strava" aria-label="Strava-importert"
+                                          style={{ color: '#FC4C02', marginRight: '4px', fontSize: '11px' }}>↻ Strava</span>
+                                      )}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
                                       {w.start_time && <span style={{ color: '#8A8A96', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
                                       {w.title}

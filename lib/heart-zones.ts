@@ -141,3 +141,34 @@ export function computeZoneMinutesFromSamples(
     I5: Math.round(seconds.I5 / 60),
   }
 }
+
+// Sekund-versjon — phase 64+ lagrer zones jsonb i sekunder, ikke minutter,
+// for å støtte sub-minutt-presisjon (1:30, 0:45) i UI. Strava-import +
+// backfill bruker denne; minutt-versjonen over beholdes for klokkesync-
+// arbeid (ennå ikke pushet) og fjernes når den er konvertert.
+export function computeZoneSecondsFromSamples(
+  hrSamples: Array<{ t: number; hr: number }>,
+  zones: HeartZone[],
+  windowStart?: number,
+  windowEnd?: number,
+): Record<ZoneName, number> {
+  const seconds: Record<ZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0 }
+  if (zones.length === 0 || hrSamples.length < 2) {
+    return seconds
+  }
+
+  for (let i = 1; i < hrSamples.length; i++) {
+    const cur = hrSamples[i]
+    const prev = hrSamples[i - 1]
+    if (windowStart != null && cur.t < windowStart) continue
+    if (windowEnd != null && cur.t > windowEnd) break
+
+    const dt = cur.t - prev.t
+    if (dt <= 0 || dt > 60) continue
+
+    const z = zoneForHeartRate(cur.hr, zones)
+    if (z) seconds[z] += dt
+  }
+
+  return seconds
+}

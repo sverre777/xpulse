@@ -69,7 +69,10 @@ const SHOOTING_TYPES = SHOOTING_ACTIVITY_TYPES
 
 const PAUSE_TYPES = new Set(['pause', 'aktiv_pause'])
 
-function zoneMinutes(zones: ActivityLike['zones'], k: ExtendedZoneName): number {
+// Returnerer sone-tid i SEKUNDER (phase 64+). Eldre kode kalte denne
+// "zoneMinutes" mens jsonb lagret minutter; etter phase 64 er jsonb-verdien
+// allerede i sekunder så ingen ekstra * 60 trengs i kalleren.
+function zoneSeconds(zones: ActivityLike['zones'], k: ExtendedZoneName): number {
   if (!zones) return 0
   const raw = zones[k]
   const n = typeof raw === 'string' ? parseInt(raw) : Number(raw)
@@ -104,9 +107,9 @@ export function computeActivityTotals(
     let hasExplicitHr = false  // kun I1-I5 styrer HR-fallback
     let hasExplicitAny = false
     for (const k of ALL_ZONE_NAMES) {
-      const m = zoneMinutes(a.zones, k)
-      if (m > 0) {
-        totals.zoneSeconds[k] += m * 60
+      const sec = zoneSeconds(a.zones, k)
+      if (sec > 0) {
+        totals.zoneSeconds[k] += sec
         hasExplicitAny = true
         if (k !== SPEED_ZONE) hasExplicitHr = true
       }

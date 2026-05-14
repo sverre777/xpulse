@@ -16,16 +16,18 @@ import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shootin
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
 
-// Serialiser sone-minutter til jsonb-format. Returnerer null hvis ingen soner har verdi.
-// Inkluderer Hurtighet — en 6. sone som føres manuelt (ikke fra puls).
+// Serialiser sone-tid til jsonb-format. Lagres som SEKUNDER fra phase 64
+// (tidligere heltall-minutter). Input fra UI er MM:SS-string (eller "60" =
+// 60 min) som parses via parseActivityDuration. Returnerer null hvis ingen
+// soner har verdi. Inkluderer Hurtighet — en 6. sone som føres manuelt.
 const ZONE_KEYS_ALL = ['I1','I2','I3','I4','I5','Hurtighet'] as const
 
 function serializeZones(z: ActivityZoneMinutes | null | undefined): Record<string, number> | null {
   if (!z) return null
   const out: Record<string, number> = {}
   for (const k of ZONE_KEYS_ALL) {
-    const n = parseInt(z[k])
-    if (Number.isFinite(n) && n > 0) out[k] = n
+    const sec = parseActivityDuration(z[k])
+    if (sec != null && sec > 0) out[k] = sec
   }
   return Object.keys(out).length > 0 ? out : null
 }
@@ -149,13 +151,14 @@ function testRowToForm(row: {
   }
 }
 
-// Les jsonb → string-form for input-binding.
+// Les jsonb → MM:SS-string-form for input-binding. Verdier er SEKUNDER fra
+// phase 64; eldre rader (rene minutter) blir konvertert via phase64-migrasjon.
 function deserializeZones(z: Record<string, number> | null | undefined): ActivityZoneMinutes {
   const base = emptyActivityZones()
   if (!z) return base
   for (const k of ZONE_KEYS_ALL) {
     const n = z[k]
-    if (typeof n === 'number' && n > 0) base[k] = String(n)
+    if (typeof n === 'number' && n > 0) base[k] = formatActivityDuration(n)
   }
   return base
 }

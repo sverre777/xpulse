@@ -14,7 +14,7 @@ import {
   type StravaLap,
   type StravaStreamSet,
 } from '@/lib/strava'
-import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
+import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
 
 // Server-actions for Strava-import. Tre nivåer:
@@ -367,12 +367,12 @@ async function backfillOneWorkout(
   for (const act of acts) {
     const dur = (act.duration_seconds as number | null) ?? 0
     const cumEnd = cumStart + dur
-    const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
-    const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+    const zoneSec = computeZoneSecondsFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+    const total = zoneSec.I1 + zoneSec.I2 + zoneSec.I3 + zoneSec.I4 + zoneSec.I5
     if (total > 0) {
       const { error } = await supabase
         .from('workout_activities')
-        .update({ zones: { ...minutes, Hurtighet: 0 } })
+        .update({ zones: { ...zoneSec, Hurtighet: 0 } })
         .eq('id', act.id)
       if (!error) updatedLaps++
     }
@@ -718,12 +718,12 @@ async function populateZonesForLaps(
     const cumEnd = cumStart + lap.elapsed_time
     const activityId = idBySortOrder.get(idx)
     if (activityId) {
-      const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
-      const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+      const zoneSec = computeZoneSecondsFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+      const total = zoneSec.I1 + zoneSec.I2 + zoneSec.I3 + zoneSec.I4 + zoneSec.I5
       if (total > 0) {
         const { error } = await supabase
           .from('workout_activities')
-          .update({ zones: { ...minutes, Hurtighet: 0 } })
+          .update({ zones: { ...zoneSec, Hurtighet: 0 } })
           .eq('id', activityId)
         if (error) {
           console.error(`[strava-sync] zone update FAILED for activity ${activityId}:`, error.message)

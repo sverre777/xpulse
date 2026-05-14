@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { formatDurationFromSeconds } from '@/lib/shooting-duration'
+import { formatActivityDuration } from '@/lib/activity-duration'
 import type {
   PlanTemplate, PlanTemplateData,
   PlanTemplateDayState, PlanTemplateFocusPoint, PlanTemplateWorkout,
@@ -475,12 +476,13 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
   })
 }
 
+// Konverter sone-jsonb (sekunder fra phase 64) til MM:SS-strenger for UI.
 function zoneRecordToStrings(z: Record<string, number> | null): ActivityRow['zones'] {
   const base: ActivityRow['zones'] = { I1: '', I2: '', I3: '', I4: '', I5: '', Hurtighet: '' }
   if (!z) return base
   for (const k of Object.keys(base) as (keyof typeof base)[]) {
     const n = z[k]
-    if (typeof n === 'number' && n > 0) base[k] = String(n)
+    if (typeof n === 'number' && n > 0) base[k] = formatActivityDuration(n)
   }
   return base
 }

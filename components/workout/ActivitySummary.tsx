@@ -153,12 +153,13 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
 
       // Sonefordeling — eksplisitte zones først (inkl. Hurtighet), ellers puls → sone.
       // Hurtighet regnes ikke fra puls og "blokkerer" heller ikke HR-fallback.
+      // a.zones-verdier er MM:SS-strenger som representerer sekunder (phase 64+).
       const explicitZones = ALL_ZONE_NAMES
-        .map(k => ({ k, m: parseInt(a.zones?.[k] ?? '') || 0 }))
-        .filter(z => z.m > 0)
+        .map(k => ({ k, sec: parseActivityDuration(a.zones?.[k] ?? '') ?? 0 }))
+        .filter(z => z.sec > 0)
       const hasExplicitHr = explicitZones.some(z => z.k !== SPEED_ZONE)
 
-      for (const z of explicitZones) zoneSeconds[z.k] += z.m * 60
+      for (const z of explicitZones) zoneSeconds[z.k] += z.sec
 
       if (!hasExplicitHr && durSec > 0 && !meta?.isShooting) {
         const hr = parseInt(a.avg_heart_rate)

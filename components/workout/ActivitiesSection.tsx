@@ -141,8 +141,10 @@ function emptySet(n: number): StrengthSetRow {
 
 const ZONE_KEYS: (keyof ActivityZoneMinutes)[] = ['I1','I2','I3','I4','I5','Hurtighet']
 
-function sumZoneMinutes(z: ActivityZoneMinutes): number {
-  return ZONE_KEYS.reduce((s, k) => s + (parseInt(z[k]) || 0), 0)
+// Summen av alle sone-tider i sekunder. Hver verdi i z[k] er en MM:SS-streng
+// (eller "60" som tolkes som 60 minutter via parseActivityDuration).
+function sumZoneSeconds(z: ActivityZoneMinutes): number {
+  return ZONE_KEYS.reduce((s, k) => s + (parseActivityDuration(z[k]) ?? 0), 0)
 }
 
 const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
@@ -684,10 +686,10 @@ function ActivityRowItem({
             <ZoneEditor
               zones={row.zones}
               onChange={z => {
-                const total = sumZoneMinutes(z)
+                const totalSec = sumZoneSeconds(z)
                 // Når soner summerer > 0, synk totaltid (MM:SS). Tomme soner → la manuell varighet stå.
                 const patch: Partial<ActivityRow> = { zones: z }
-                if (total > 0) patch.duration = formatActivityDuration(total * 60)
+                if (totalSec > 0) patch.duration = formatActivityDuration(totalSec)
                 onUpdate(patch)
               }}
             />
@@ -738,29 +740,29 @@ function ZoneEditor({
   onChange: (z: ActivityZoneMinutes) => void
 }) {
   const keys = ZONE_KEYS
-  const total = sumZoneMinutes(zones)
+  const totalSec = sumZoneSeconds(zones)
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Sonefordeling (min)
+          Sonefordeling
         </span>
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '15px', letterSpacing: '0.05em' }}>
-          Σ {total} min
+          Σ {formatActivityDuration(totalSec) || '0:00'}
         </span>
       </div>
 
       {/* Color bar — 6 segmenter når Hurtighet > 0, ellers 5 */}
       <div className="flex mb-2" style={{ height: '6px', border: '1px solid #1E1E22' }}>
         {keys.map(k => {
-          const m = parseInt(zones[k]) || 0
-          const w = total > 0 ? (m / total) * 100 : 0
+          const sec = parseActivityDuration(zones[k]) ?? 0
+          const w = totalSec > 0 ? (sec / totalSec) * 100 : 0
           return w > 0 ? (
             <div key={k} style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_BAR[k] }} />
           ) : null
         })}
-        {total === 0 && <div style={{ flex: 1, backgroundColor: '#1A1A1E' }} />}
+        {totalSec === 0 && <div style={{ flex: 1, backgroundColor: '#1A1A1E' }} />}
       </div>
 
       <div className="grid grid-cols-6 gap-2">
@@ -772,7 +774,7 @@ function ZoneEditor({
             </label>
             <input value={zones[k]}
               onChange={e => onChange({ ...zones, [k]: e.target.value })}
-              inputMode="numeric" placeholder="0"
+              inputMode="text" placeholder="MM:SS"
               style={{ ...iSt, textAlign: 'center' }} />
           </div>
         ))}
@@ -780,7 +782,7 @@ function ZoneEditor({
 
       <p className="mt-2 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Hurtighet føres manuelt — beregnes ikke fra puls.
+        Skriv "60" for 60 minutter, eller "1:30" for 1 min 30 sek. Hurtighet føres manuelt — beregnes ikke fra puls.
       </p>
     </div>
   )

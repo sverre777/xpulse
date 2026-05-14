@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
+import { parseActivityDuration } from '@/lib/activity-duration'
 import type { ActivityRow, Sport, WorkoutType } from '@/lib/types'
 import type {
   PlanTemplateData, PlanTemplateFocusPoint,
@@ -626,11 +627,12 @@ function addMonthsMonthKey(startKey: string, offset: number): string {
 }
 
 const ZONE_KEYS_ALL = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+// Zones-jsonb lagres som SEKUNDER fra phase 64. UI-input er MM:SS-string.
 function serializeZones(z: ActivityRow['zones']): Record<string, number> | null {
   const out: Record<string, number> = {}
   for (const k of ZONE_KEYS_ALL) {
-    const n = parseInt(z?.[k] ?? '')
-    if (Number.isFinite(n) && n > 0) out[k] = n
+    const sec = parseActivityDuration(z?.[k] ?? '')
+    if (sec != null && sec > 0) out[k] = sec
   }
   return Object.keys(out).length > 0 ? out : null
 }

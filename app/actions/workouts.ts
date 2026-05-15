@@ -815,9 +815,14 @@ export async function markUncompleted(workoutId: string, targetUserId?: string):
 
 // ── Plan ↔ faktisk kobling ──────────────────────────────────
 //
-// linked_workout_id sitter på den PLANLAGTE raden og peker til den faktisk
-// gjennomførte (typisk en Strava-importert økt). Begge retninger av kobling
-// (planlagt → synket eller synket → planlagt) ender opp her.
+// linked_workout_id sitter på SYNKET-raden (faktisk gjennomført, typisk
+// Strava-importert) og peker til den planlagte. Den synkede er den gjeldende
+// i Dagbok; planlagt forblir kun i Plan med stiplet visning. Begge retninger
+// av brukerens kobling-klikk (fra planlagt eller fra synket) ender opp i
+// samme update — vi setter feltet på synket og lar planlagt være urørt.
+//
+// Hvis planlagt tidligere var manuelt markert fullført (is_completed=true),
+// reverserer vi det ved kobling så den ikke duplikat-vises i Dagbok.
 
 export interface LinkCandidate {
   id: string
@@ -832,18 +837,26 @@ export interface LinkCandidate {
   is_completed: boolean
 }
 
-// Returnerer økter på samme dato som er kandidater for kobling FRA workoutId,
-// pluss reverse-link-info så UI vet om denne raden allerede er målet for
-// en annen rad sin linked_workout_id.
+// Returnerer kandidater for kobling samme dato + info om eksisterende kobling.
+//   - sourceIsPlanned + sourceLinkedFromId: en synket-rad samme dato peker hit
+//     (planlagt-rad er allerede koblet)
+//   - !sourceIsPlanned + sourceLinkedToId: source-radens egen linked_workout_id
+//     peker til en planlagt (synket-rad er allerede koblet)
 //
-// Hvis workoutId er planlagt: returnerer ikke-planlagte (typisk synket) som
-// ikke allerede er pekt til av en annen planlagt rad.
-// Hvis workoutId er synket/dagbok: returnerer planlagte uten linked_workout_id.
+// Kandidater filtreres for å unngå allerede-koblede:
+//   - For planlagt source: ikke-planlagte samme dato hvor linked_workout_id IKKE
+//     allerede peker mot en annen planlagt
+//   - For synket source: planlagte samme dato hvor INGEN annen synket peker hit
 export async function getSameDateLinkCandidates(
   workoutId: string,
   targetUserId?: string,
 ): Promise<
-  | { candidates: LinkCandidate[]; sourceIsPlanned: boolean; reverseLinkedFromId: string | null }
+  | {
+      candidates: LinkCandidate[]
+      sourceIsPlanned: boolean
+      sourceLinkedToId: string | null
+      sourceLinkedFromId: string | null
+    }
   | { error: string }
 > {
   const supabase = await createClient()
@@ -852,7 +865,7 @@ export async function getSameDateLinkCandidates(
 
   const { data: source } = await supabase
     .from('workouts')
-    .select('id, date, is_planned')
+    .select('id, date, is_planned, linked_workout_id')
     .eq('id', workoutId)
     .eq('user_id', resolved.userId)
     .maybeSingle()
@@ -871,32 +884,38 @@ export async function getSameDateLinkCandidates(
   type Row = LinkCandidate & { linked_workout_id: string | null }
   const all = (rows ?? []) as Row[]
 
-  // Allerede koblede planlagte rader skal ikke vises som kandidater for nye koblinger.
-  const linkedSyncedIds = new Set(
-    all.filter(r => r.is_planned && r.linked_workout_id).map(r => r.linked_workout_id!),
+  // Sett av planlagt-id-er som allerede har en synket peker mot seg.
+  const plannedAlreadyLinkedFromAnother = new Set(
+    all.filter(r => !r.is_planned && r.linked_workout_id).map(r => r.linked_workout_id!),
   )
 
-  // Reverse-lookup: er denne raden allerede målet for en annen rad sin link?
-  // Bare meningsfullt for ikke-planlagte (synket); planlagte sjekker sin
-  // egen linked_workout_id direkte i klienten.
-  const reverseLinkedFromId = !sourceIsPlanned
-    ? all.find(r => r.is_planned && r.linked_workout_id === workoutId)?.id ?? null
+  // Synket source: peker raden vår til en planlagt? (egen linked_workout_id)
+  const sourceLinkedToId = !sourceIsPlanned ? (source.linked_workout_id ?? null) : null
+  // Planlagt source: er det noen synket samme dato som peker hit?
+  const sourceLinkedFromId = sourceIsPlanned
+    ? all.find(r => !r.is_planned && r.linked_workout_id === workoutId)?.id ?? null
     : null
 
   const candidates = sourceIsPlanned
-    ? all.filter(r => !r.is_planned && !linkedSyncedIds.has(r.id))
-    : all.filter(r => r.is_planned && !r.linked_workout_id)
+    ? all.filter(r => !r.is_planned && (r.linked_workout_id == null || r.linked_workout_id === workoutId))
+    : all.filter(r => r.is_planned && !plannedAlreadyLinkedFromAnother.has(r.id))
 
   return {
     candidates: candidates.map(({ linked_workout_id: _, ...c }) => c),
     sourceIsPlanned,
-    reverseLinkedFromId,
+    sourceLinkedToId,
+    sourceLinkedFromId,
   }
 }
 
-// Knytt en planlagt rad til en faktisk gjennomført rad. Begge ID-er må være
-// brukerens egne (eller trener må ha can_edit_plan). Den planlagte raden får
-// linked_workout_id = actualId og is_completed=true + completed_at.
+// Knytt en planlagt rad til en faktisk gjennomført (synket) rad.
+// Semantikk (phase 67c+): linked_workout_id sitter på SYNKET-raden og peker
+// til den planlagte. Ingen ny rad opprettes — kun update. Hvis planlagt
+// tidligere var manuelt markert fullført (is_completed=true), reverseres
+// det så raden ikke duplikat-vises i Dagbok.
+//
+// Begge id-argumenter aksepteres uavhengig av rekkefølge — funksjonen
+// finner selv hvilken som er planlagt vs synket basert på is_planned.
 export async function linkPlannedToActual(
   plannedId: string,
   actualId: string,
@@ -909,12 +928,11 @@ export async function linkPlannedToActual(
   // Verifiser at begge eksisterer og tilhører samme bruker.
   const { data: both } = await supabase
     .from('workouts')
-    .select('id, is_planned, user_id')
+    .select('id, is_planned, is_completed, user_id')
     .in('id', [plannedId, actualId])
     .eq('user_id', resolved.userId)
   if (!both || both.length !== 2) return { error: 'Fant ikke begge økter' }
 
-  // Identifiser hvilken som er planlagt — kobling sitter alltid på planlagt-raden.
   const planned = both.find(r => r.is_planned)
   const actual  = both.find(r => !r.is_planned)
   if (!planned || !actual) {
@@ -922,24 +940,34 @@ export async function linkPlannedToActual(
   }
 
   const now = new Date().toISOString()
-  const { error } = await supabase.from('workouts')
-    .update({
-      linked_workout_id: actual.id,
-      is_completed: true,
-      completed_at: now,
-      updated_at: now,
-    })
-    .eq('id', planned.id)
+
+  // 1) Sett peker på synket-raden. Det er den koblings-bærende raden.
+  const { error: actualErr } = await supabase.from('workouts')
+    .update({ linked_workout_id: planned.id, updated_at: now })
+    .eq('id', actual.id)
     .eq('user_id', resolved.userId)
-  if (error) return { error: error.message }
+  if (actualErr) return { error: actualErr.message }
+
+  // 2) Hvis planlagt-raden tidligere var manuelt markert fullført, reverser
+  // is_completed så den ikke duplikat-vises i Dagbok ved siden av synket.
+  // (markCompleted setter ikke flagg på en separat rad — flagget sitter på
+  // planlagt-raden selv, så reversering er trygt og målrettet.)
+  if (planned.is_completed) {
+    const { error: plannedErr } = await supabase.from('workouts')
+      .update({ is_completed: false, completed_at: null, linked_workout_id: null, updated_at: now })
+      .eq('id', planned.id)
+      .eq('user_id', resolved.userId)
+    if (plannedErr) return { error: plannedErr.message }
+  }
+
   revalidateWorkoutPaths()
   return {}
 }
 
-// Fjern koblingen. Workouts-raden kan være enten den planlagte (har feltet
-// satt) eller den synkede (peker BAKOVER til planlagt via reverse-lookup).
-// Ved fjerning settes linked_workout_id=null på planlagt-raden, og
-// is_completed reverseres så planen fremstår "uberørt" igjen.
+// Fjern koblingen. Workout-raden kan være enten den synkede (har feltet
+// linked_workout_id satt) eller den planlagte (en synket samme dato peker
+// hit). I begge tilfeller nullstilles linked_workout_id på SYNKET-raden.
+// Planlagt-raden røres ikke (forblir planlagt og ikke fullført).
 export async function unlinkWorkout(
   workoutId: string,
   targetUserId?: string,
@@ -956,30 +984,25 @@ export async function unlinkWorkout(
     .maybeSingle()
   if (!row) return { error: 'Fant ikke økten' }
 
-  // Om kallet kommer fra synket-rad: finn planlagt-raden som peker hit.
-  let plannedId: string | null = null
-  if (row.is_planned && row.linked_workout_id) {
-    plannedId = row.id
-  } else {
-    const { data: parent } = await supabase
+  // Finn synket-raden hvor koblings-feltet sitter.
+  let syncedId: string | null = null
+  if (!row.is_planned && row.linked_workout_id) {
+    syncedId = row.id
+  } else if (row.is_planned) {
+    const { data: synced } = await supabase
       .from('workouts')
       .select('id')
       .eq('user_id', resolved.userId)
       .eq('linked_workout_id', workoutId)
       .maybeSingle()
-    plannedId = parent?.id ?? null
+    syncedId = synced?.id ?? null
   }
-  if (!plannedId) return { error: 'Ingen kobling å fjerne' }
+  if (!syncedId) return { error: 'Ingen kobling å fjerne' }
 
   const now = new Date().toISOString()
   const { error } = await supabase.from('workouts')
-    .update({
-      linked_workout_id: null,
-      is_completed: false,
-      completed_at: null,
-      updated_at: now,
-    })
-    .eq('id', plannedId)
+    .update({ linked_workout_id: null, updated_at: now })
+    .eq('id', syncedId)
     .eq('user_id', resolved.userId)
   if (error) return { error: error.message }
   revalidateWorkoutPaths()

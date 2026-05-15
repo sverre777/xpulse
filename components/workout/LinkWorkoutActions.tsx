@@ -40,7 +40,8 @@ export function LinkWorkoutActions({
   const [showPicker, setShowPicker] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
-  const [reverseLinkedFromId, setReverseLinkedFromId] = useState<string | null>(null)
+  const [linkedToId, setLinkedToId] = useState<string | null>(null)
+  const [linkedFromId, setLinkedFromId] = useState<string | null>(null)
   const [hasCandidates, setHasCandidates] = useState<boolean | null>(null)
 
   const todayStr = (() => {
@@ -53,7 +54,8 @@ export function LinkWorkoutActions({
   // synlighet uten flicker. Re-fetch ved endring av workout (date/id).
   useEffect(() => {
     setCandidates(null)
-    setReverseLinkedFromId(null)
+    setLinkedToId(null)
+    setLinkedFromId(null)
     setHasCandidates(null)
   }, [workoutId, date])
 
@@ -62,15 +64,19 @@ export function LinkWorkoutActions({
     getSameDateLinkCandidates(workoutId, targetUserId).then(res => {
       if (cancelled) return
       if ('error' in res) { setHasCandidates(false); return }
-      setReverseLinkedFromId(res.reverseLinkedFromId)
+      setLinkedToId(res.sourceLinkedToId)
+      setLinkedFromId(res.sourceLinkedFromId)
       setHasCandidates(res.candidates.length > 0)
       setCandidates(res.candidates)
     })
     return () => { cancelled = true }
   }, [workoutId, date, targetUserId])
 
-  // Synket-rader vet ikke selv om de er koblet — sjekk reverse-lookup.
-  const effectivelyLinked = alreadyLinked || (!isPlanned && reverseLinkedFromId !== null)
+  // Phase 67c+: linked_workout_id sitter på SYNKET-raden. Dermed:
+  // - Synket-rad er koblet hvis sourceLinkedToId !== null
+  // - Planlagt-rad er koblet hvis sourceLinkedFromId !== null (en synket peker hit)
+  // alreadyLinked-prop er nå mest historisk og kan beholdes som fallback.
+  const effectivelyLinked = linkedToId !== null || linkedFromId !== null || alreadyLinked
 
   const handleLink = async (otherId: string) => {
     setError(null)

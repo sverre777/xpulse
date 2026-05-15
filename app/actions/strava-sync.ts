@@ -300,8 +300,18 @@ export async function quickSyncNonConflicting(
 // + activities.duration_seconds (lap-vinduer) + brukerens heart-zones.
 // Returnerer per-workout detalj så vi ser HVORFOR enkelte ikke fikk zones
 // (ingen hr_samples, ingen activities, eller alle vinduer tomme).
-export async function backfillStravaZones(): Promise<
-  | { ok: true; checked: number; updated: number; details: BackfillDetail[] }
+export async function backfillStravaZones(opts: { batch?: number; offset?: number } = {}): Promise<
+  | {
+      ok: true
+      total: number
+      processed_in_batch: number
+      offset: number
+      processed_through: number
+      next_offset: number | null
+      is_done: boolean
+      updated_in_batch: number
+      details: BackfillDetail[]
+    }
   | { error: string }
 > {
   const supabase = await createClient()
@@ -319,21 +329,48 @@ export async function backfillStravaZones(): Promise<
     .eq('user_id', user.id)
     .eq('source', 'strava')
     .not('workout_id', 'is', null)
+    .order('imported_at', { ascending: true })
   if (impErr) return { error: `imported_activities-query: ${impErr.message}` }
 
-  const details: BackfillDetail[] = []
-  let updated = 0
+  // Stabil rekkefølge etter imported_at + indeks-basert paginering så samme
+  // workout aldri prosesseres to ganger på tvers av batches.
+  const batch = Math.max(1, Math.min(50, opts.batch ?? 20))
+  const offset = Math.max(0, opts.offset ?? 0)
+  const total = imports?.length ?? 0
+  const slice = (imports ?? []).slice(offset, offset + batch)
 
-  for (const imp of imports ?? []) {
+  const details: BackfillDetail[] = []
+  let updatedInBatch = 0
+
+  for (const imp of slice) {
     if (!imp.workout_id) continue
     const detail = await backfillOneWorkout(supabase, imp.workout_id, heartZones)
     details.push({ ...detail, external_id: imp.external_id })
-    if (detail.updated_laps > 0) updated++
+    if (detail.updated_laps > 0) updatedInBatch++
   }
 
-  revalidatePath('/app/dagbok')
-  revalidatePath('/app/oversikt')
-  return { ok: true, checked: imports?.length ?? 0, updated, details }
+  const processedThrough = offset + slice.length
+  const isDone = processedThrough >= total
+  const nextOffset = isDone ? null : processedThrough
+
+  // Kun revalidate når vi er ferdige — unngår unødvendige cache-invalidations
+  // mellom hver batch.
+  if (isDone) {
+    revalidatePath('/app/dagbok')
+    revalidatePath('/app/oversikt')
+  }
+
+  return {
+    ok: true,
+    total,
+    processed_in_batch: slice.length,
+    offset,
+    processed_through: processedThrough,
+    next_offset: nextOffset,
+    is_done: isDone,
+    updated_in_batch: updatedInBatch,
+    details,
+  }
 }
 
 interface BackfillDetail {

@@ -219,6 +219,9 @@ export interface WorkoutFormData {
   // Read-only badge: settes av Strava/FIT-import. Vises som "Importert"-tag
   // i workout-detalj. saveWorkout overstyrer ikke dette feltet.
   imported_from?: string | null
+  // Read-only kobling planlagt → faktisk gjennomført (typisk synket-økt).
+  // Bare meningsfull på planlagte rader. saveWorkout overstyrer ikke dette.
+  linked_workout_id?: string | null
   movements: MovementRow[]
   zones: ZoneRow[]
   exercises: ExerciseRow[]

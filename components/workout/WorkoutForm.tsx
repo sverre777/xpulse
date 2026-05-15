@@ -22,6 +22,7 @@ import { ActivitiesSection } from './ActivitiesSection'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
+import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
@@ -352,6 +353,24 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 py-4 space-y-0">
       <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minInlineSize: 'auto' }}>
+
+      {/* ── KOBLINGS-KNAPPER (høyt plassert: før tittel/dato/sport).
+          Kun for eksisterende økter (workoutId finnes), ikke i template-bygging.
+          "Marker som fullført" vises kun i Plan-modus — Dagbok-modus har egen
+          CTA lenger ned i samme form. Knappene skjuler seg selv hvis dato er
+          fremtidig eller ingen kandidater finnes. ── */}
+      {workoutId && !templateBuildingMode && defaultValues && (
+        <LinkWorkoutActions
+          workoutId={workoutId}
+          date={form.date}
+          isPlanned={form.is_planned}
+          isCompleted={form.is_completed}
+          importedFrom={defaultValues.imported_from ?? null}
+          alreadyLinked={!!defaultValues.linked_workout_id}
+          targetUserId={targetUserId}
+          formMode={formMode}
+        />
+      )}
 
       {/* ── MALER ── */}
       {templates.length > 0 && (

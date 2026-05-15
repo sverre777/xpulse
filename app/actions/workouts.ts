@@ -813,6 +813,179 @@ export async function markUncompleted(workoutId: string, targetUserId?: string):
   return {}
 }
 
+// ── Plan ↔ faktisk kobling ──────────────────────────────────
+//
+// linked_workout_id sitter på den PLANLAGTE raden og peker til den faktisk
+// gjennomførte (typisk en Strava-importert økt). Begge retninger av kobling
+// (planlagt → synket eller synket → planlagt) ender opp her.
+
+export interface LinkCandidate {
+  id: string
+  title: string
+  date: string
+  sport: string | null
+  workout_type: string
+  duration_minutes: number | null
+  distance_km: number | null
+  imported_from: string | null
+  is_planned: boolean
+  is_completed: boolean
+}
+
+// Returnerer økter på samme dato som er kandidater for kobling FRA workoutId,
+// pluss reverse-link-info så UI vet om denne raden allerede er målet for
+// en annen rad sin linked_workout_id.
+//
+// Hvis workoutId er planlagt: returnerer ikke-planlagte (typisk synket) som
+// ikke allerede er pekt til av en annen planlagt rad.
+// Hvis workoutId er synket/dagbok: returnerer planlagte uten linked_workout_id.
+export async function getSameDateLinkCandidates(
+  workoutId: string,
+  targetUserId?: string,
+): Promise<
+  | { candidates: LinkCandidate[]; sourceIsPlanned: boolean; reverseLinkedFromId: string | null }
+  | { error: string }
+> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const { data: source } = await supabase
+    .from('workouts')
+    .select('id, date, is_planned')
+    .eq('id', workoutId)
+    .eq('user_id', resolved.userId)
+    .maybeSingle()
+  if (!source) return { error: 'Fant ikke økten' }
+
+  // Hent alle workouts samme dato unntatt selve raden.
+  const { data: rows, error } = await supabase
+    .from('workouts')
+    .select('id, title, date, sport, workout_type, duration_minutes, distance_km, imported_from, is_planned, is_completed, linked_workout_id')
+    .eq('user_id', resolved.userId)
+    .eq('date', source.date)
+    .neq('id', workoutId)
+  if (error) return { error: error.message }
+
+  const sourceIsPlanned = source.is_planned
+  type Row = LinkCandidate & { linked_workout_id: string | null }
+  const all = (rows ?? []) as Row[]
+
+  // Allerede koblede planlagte rader skal ikke vises som kandidater for nye koblinger.
+  const linkedSyncedIds = new Set(
+    all.filter(r => r.is_planned && r.linked_workout_id).map(r => r.linked_workout_id!),
+  )
+
+  // Reverse-lookup: er denne raden allerede målet for en annen rad sin link?
+  // Bare meningsfullt for ikke-planlagte (synket); planlagte sjekker sin
+  // egen linked_workout_id direkte i klienten.
+  const reverseLinkedFromId = !sourceIsPlanned
+    ? all.find(r => r.is_planned && r.linked_workout_id === workoutId)?.id ?? null
+    : null
+
+  const candidates = sourceIsPlanned
+    ? all.filter(r => !r.is_planned && !linkedSyncedIds.has(r.id))
+    : all.filter(r => r.is_planned && !r.linked_workout_id)
+
+  return {
+    candidates: candidates.map(({ linked_workout_id: _, ...c }) => c),
+    sourceIsPlanned,
+    reverseLinkedFromId,
+  }
+}
+
+// Knytt en planlagt rad til en faktisk gjennomført rad. Begge ID-er må være
+// brukerens egne (eller trener må ha can_edit_plan). Den planlagte raden får
+// linked_workout_id = actualId og is_completed=true + completed_at.
+export async function linkPlannedToActual(
+  plannedId: string,
+  actualId: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  // Verifiser at begge eksisterer og tilhører samme bruker.
+  const { data: both } = await supabase
+    .from('workouts')
+    .select('id, is_planned, user_id')
+    .in('id', [plannedId, actualId])
+    .eq('user_id', resolved.userId)
+  if (!both || both.length !== 2) return { error: 'Fant ikke begge økter' }
+
+  // Identifiser hvilken som er planlagt — kobling sitter alltid på planlagt-raden.
+  const planned = both.find(r => r.is_planned)
+  const actual  = both.find(r => !r.is_planned)
+  if (!planned || !actual) {
+    return { error: 'Trenger én planlagt og én ikke-planlagt økt for å koble' }
+  }
+
+  const now = new Date().toISOString()
+  const { error } = await supabase.from('workouts')
+    .update({
+      linked_workout_id: actual.id,
+      is_completed: true,
+      completed_at: now,
+      updated_at: now,
+    })
+    .eq('id', planned.id)
+    .eq('user_id', resolved.userId)
+  if (error) return { error: error.message }
+  revalidateWorkoutPaths()
+  return {}
+}
+
+// Fjern koblingen. Workouts-raden kan være enten den planlagte (har feltet
+// satt) eller den synkede (peker BAKOVER til planlagt via reverse-lookup).
+// Ved fjerning settes linked_workout_id=null på planlagt-raden, og
+// is_completed reverseres så planen fremstår "uberørt" igjen.
+export async function unlinkWorkout(
+  workoutId: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const { data: row } = await supabase
+    .from('workouts')
+    .select('id, is_planned, linked_workout_id')
+    .eq('id', workoutId)
+    .eq('user_id', resolved.userId)
+    .maybeSingle()
+  if (!row) return { error: 'Fant ikke økten' }
+
+  // Om kallet kommer fra synket-rad: finn planlagt-raden som peker hit.
+  let plannedId: string | null = null
+  if (row.is_planned && row.linked_workout_id) {
+    plannedId = row.id
+  } else {
+    const { data: parent } = await supabase
+      .from('workouts')
+      .select('id')
+      .eq('user_id', resolved.userId)
+      .eq('linked_workout_id', workoutId)
+      .maybeSingle()
+    plannedId = parent?.id ?? null
+  }
+  if (!plannedId) return { error: 'Ingen kobling å fjerne' }
+
+  const now = new Date().toISOString()
+  const { error } = await supabase.from('workouts')
+    .update({
+      linked_workout_id: null,
+      is_completed: false,
+      completed_at: null,
+      updated_at: now,
+    })
+    .eq('id', plannedId)
+    .eq('user_id', resolved.userId)
+  if (error) return { error: error.message }
+  revalidateWorkoutPaths()
+  return {}
+}
+
 export async function deleteWorkout(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
@@ -1064,6 +1237,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       is_group_session: workout.is_group_session ?? false,
       group_session_label: workout.group_session_label ?? '',
       imported_from: (workout.imported_from as string | null | undefined) ?? null,
+      linked_workout_id: (workout.linked_workout_id as string | null | undefined) ?? null,
       notes:        snap.notes ?? '',
       day_form_physical: null,
       day_form_mental:   null,

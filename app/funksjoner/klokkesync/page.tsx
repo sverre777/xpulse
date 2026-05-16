@@ -61,6 +61,17 @@ export default function KlokkesyncPage() {
       />
 
       <SportFeatureSection
+        kicker="Hvordan vi håndterer dine data"
+        title="STRAVAS REGLER GJELDER STRAVA-DATA."
+        intro="Stravas API-vilkår krever at rå data slettes etter 7 dager og at all importert Strava-data slettes ved frakobling. Aggregerte verdier (varighet, distanse, sone-fordeling, lap-tider) beholdes så lenge tilkoblingen er aktiv. Bruker du .fit-opplasting eller direkte Garmin-synk? Da bestemmer du selv — ingen eksterne regler."
+        bullets={[
+          { title: 'Strava OAuth', body: 'Rå sample-data (sekund-puls, GPS, watt-strøm) slettes etter 7 dager. Aggregert vises permanent så lenge Strava er koblet. Ved frakobling: alt slettes innen 48t.' },
+          { title: '.fit-opplasting', body: 'Dine egne data, ingen eksterne regler. Permanent lagring av alt inkludert sekund-data.' },
+          { title: 'Garmin direkte (Q3 2026)', body: 'Direkte fra klokken via Garmin Connect. Du eier dataene fullt ut — vi sletter ikke automatisk.' },
+        ]}
+      />
+
+      <SportFeatureSection
         kicker="Hva blir mulig"
         title="NÅR SYNKEN ER PÅ PLASS."
         intro="Direkte-synk åpner ikke bare for raskere import — det gir oss tilgang til detaljer som .fit ikke alltid har. Effekt-balanse, løpe-dynamikk, sove-faser og temperatur kommer med."

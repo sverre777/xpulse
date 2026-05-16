@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function VilkarPage() {
   return (
-    <LegalLayout title="Brukervilkår" updatedAt="2026-04-29">
+    <LegalLayout title="Brukervilkår" updatedAt="2026-05-16">
       <LegalP>
         Disse vilkårene gjelder for din bruk av X-PULSE («tjenesten»). Ved å registrere
         deg eller bruke tjenesten godtar du vilkårene. Tjenesten leveres av
@@ -106,14 +106,33 @@ export default function VilkarPage() {
         forsett, eller annet som ikke kan begrenses etter ufravikelig lov.
       </LegalP>
 
-      <LegalH2>10. Endringer i vilkårene</LegalH2>
+      <LegalH2>10. Strava-integrasjon</LegalH2>
+      <LegalP>
+        Ved å bruke Strava-integrasjonen i X-PULSE samtykker du til{' '}
+        <a href="https://www.strava.com/legal/api" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>
+          Strava sin API Agreement
+        </a>{' '}
+        i tillegg til X-PULSE sine vilkår.
+      </LegalP>
+      <LegalP>Du forstår at:</LegalP>
+      <LegalUL>
+        <LegalLI>Stravas regler krever at vi sletter rå Strava-data etter 7 dager</LegalLI>
+        <LegalLI>Ved frakobling slettes ALL importert Strava-data innen 48 timer</LegalLI>
+        <LegalLI>Du kan beholde data permanent ved manuell .fit-fil-opplasting</LegalLI>
+      </LegalUL>
+      <LegalP>
+        Ved brudd på Strava sine vilkår fra vår side kan din tilgang til Strava-integrasjonen
+        begrenses eller fjernes.
+      </LegalP>
+
+      <LegalH2>11. Endringer i vilkårene</LegalH2>
       <LegalP>
         Vi kan endre vilkårene. Vesentlige endringer varsles på e-post eller i appen minst
         30 dager før de trer i kraft. Hvis du ikke godtar endringene, kan du si opp
         kontoen.
       </LegalP>
 
-      <LegalH2>11. Lovvalg og tvisteløsning</LegalH2>
+      <LegalH2>12. Lovvalg og tvisteløsning</LegalH2>
       <LegalP>
         Vilkårene reguleres av norsk rett. Tvister søkes løst i minnelighet. Hvis det
         ikke lykkes, er <strong>[Verneting]</strong> avtalt verneting.
@@ -123,7 +142,7 @@ export default function VilkarPage() {
         nettbaserte tvisteløsningsplattform.
       </LegalP>
 
-      <LegalH2>12. Kontakt</LegalH2>
+      <LegalH2>13. Kontakt</LegalH2>
       <LegalP>
         Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

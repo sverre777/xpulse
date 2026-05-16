@@ -23,6 +23,10 @@ export function PublicFooter() {
         <Link href="/cookies" className="transition-opacity hover:opacity-80" style={{ color: '#8A8A96' }}>
           Cookies
         </Link>
+        <span style={{ color: '#2A2A30' }}>·</span>
+        <Link href="/kontakt" className="transition-opacity hover:opacity-80" style={{ color: '#8A8A96' }}>
+          Kontakt
+        </Link>
       </div>
     </footer>
   )

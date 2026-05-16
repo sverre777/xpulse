@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PersonvernPage() {
   return (
-    <LegalLayout title="Personvernerklæring" updatedAt="2026-04-29">
+    <LegalLayout title="Personvernerklæring" updatedAt="2026-05-16">
       <LegalP>
         Denne personvernerklæringen forklarer hvordan X-PULSE samler inn, bruker og beskytter
         personopplysningene dine når du bruker tjenesten. Vi følger personopplysningsloven og
@@ -91,13 +91,58 @@ export default function PersonvernPage() {
         samtykke fra foresatte. Vi samler ikke bevisst inn data fra barn under 13 år.
       </LegalP>
 
-      <LegalH2>9. Endringer</LegalH2>
+      <LegalH2>9. Strava-integrasjon</LegalH2>
       <LegalP>
-        Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
-        i appen før de trer i kraft. Sist oppdatert: <strong>2026-04-29</strong>.
+        X-PULSE støtter import av treningsdata fra Strava. Ved å koble til Strava-kontoen
+        din samtykker du til følgende databehandling:
+      </LegalP>
+      <LegalP><strong>Hvilke data vi henter:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Treningsøkter: tittel, sport, varighet, distanse, dato</LegalLI>
+        <LegalLI>Puls-data: snittpuls, makspuls, sonefordeling</LegalLI>
+        <LegalLI>Aktivitet-data: lap-tider, watt, kadens, høydemeter</LegalLI>
+        <LegalLI>Posisjonsdata: GPS-koordinater og rute (slettes etter 7 dager)</LegalLI>
+        <LegalLI>Streams: sekund-for-sekund puls, watt, pace (slettes etter 7 dager)</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Strava-data vises KUN til den autentiserte brukeren</LegalLI>
+        <LegalLI>Trenere får tilgang kun med utøvers eksplisitte per-trener-samtykke</LegalLI>
+        <LegalLI>Strava-data brukes ALDRI til AI/ML-modelltrening</LegalLI>
+        <LegalLI>Strava-data deles ALDRI med tredjeparter, advertisers eller data brokers</LegalLI>
+        <LegalLI>Strava-data kombineres ALDRI med annen kundedata for aggregat-analyse</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Lagring og sletting:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Aggregerte verdier (varighet, distanse, sone-fordeling, lap-data) lagres så lenge Strava er koblet til</LegalLI>
+        <LegalLI>Rå Strava-data (samples, GPS) slettes automatisk etter 7 dager (Stravas API-krav)</LegalLI>
+        <LegalLI>Ved frakobling slettes ALL importert Strava-data innen 48 timer (Stravas API Agreement § 5.4)</LegalLI>
+        <LegalLI>Brukere kan eksportere .fit-filer manuelt fra Strava og laste opp til X-PULSE for permanent lagring av egne data</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Bruker-rettigheter:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Du kan frakoble Strava når som helst på <a href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>/app/innstillinger/klokkesync</a></LegalLI>
+        <LegalLI>Du kan be om sletting av alle dine data ved å kontakte <a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></LegalLI>
+        <LegalLI>Du kan eksportere dine X-PULSE-data via egen eksport-funksjon</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Sikkerhet:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>All Strava-kommunikasjon over HTTPS</LegalLI>
+        <LegalLI>OAuth 2.0-autentisering</LegalLI>
+        <LegalLI>Security breaches rapporteres til Strava innen 24 timer per § 2.8 i deres API Agreement</LegalLI>
+        <LegalLI>Vi følger Strava sine API Brand Guidelines og API Agreement i sin helhet</LegalLI>
+      </LegalUL>
+      <LegalP>
+        For Strava sin egen personvernpolicy: <a href="https://www.strava.com/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>strava.com/legal/privacy</a>.
       </LegalP>
 
-      <LegalH2>10. Kontakt</LegalH2>
+      <LegalH2>10. Endringer</LegalH2>
+      <LegalP>
+        Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
+        i appen før de trer i kraft. Sist oppdatert: <strong>2026-05-16</strong>.
+      </LegalP>
+
+      <LegalH2>11. Kontakt</LegalH2>
       <LegalP>
         For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

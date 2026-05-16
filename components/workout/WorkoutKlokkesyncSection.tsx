@@ -15,6 +15,10 @@ import { WorkoutDeepAnalysis } from './WorkoutDeepAnalysis'
 
 interface Props {
   workoutId: string
+  // Strava-importerte økter eldre enn 7 dager har fått samples slettet av
+  // /api/cron/cleanup-strava-samples (Strava API Agreement § 7). Vi viser
+  // info-tekst i stedet for grafen så brukeren forstår at grunndata er der.
+  importedFrom?: string | null
 }
 
 interface FetchState {
@@ -23,7 +27,7 @@ interface FetchState {
   loading: boolean
 }
 
-export function WorkoutKlokkesyncSection({ workoutId }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
   const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true })
   const [showDeep, setShowDeep] = useState(false)
 
@@ -50,7 +54,25 @@ export function WorkoutKlokkesyncSection({ workoutId }: Props) {
   const hasLaps = data.laps.length > 0
 
   // Ingenting å vise — eldre manuelle økter uten klokkesync-import.
-  if (!hasSamples && !hasLaps) return null
+  if (!hasSamples && !hasLaps) {
+    // Strava-import som har mistet samples pga 7d-cache: vis info-tekst.
+    if (importedFrom === 'strava') {
+      return (
+        <div className="my-4 p-4"
+          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: '3px solid #FC5200' }}>
+          <p className="text-xs tracking-widest uppercase mb-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FC5200' }}>
+            Sekund-data slettet
+          </p>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', lineHeight: 1.5 }}>
+            Sekund-for-sekund data og GPS-rute er slettet (Stravas 7-dagers regel).
+            Grunndata, sonefordeling og lap-tider er beholdt og vises i seksjonene over.
+          </p>
+        </div>
+      )
+    }
+    return null
+  }
 
   return (
     <div className="my-4 space-y-3">

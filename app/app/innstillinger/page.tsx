@@ -6,7 +6,15 @@ import type { Role } from '@/lib/types'
 const ATHLETE_ORANGE = '#FF4500'
 const COACH_BLUE = '#1A6FD4'
 
-export default async function InnstillingerPage() {
+interface Props {
+  searchParams?: Promise<{ strava_disconnect?: string; deleted?: string }>
+}
+
+export default async function InnstillingerPage({ searchParams }: Props) {
+  const sp = (await (searchParams ?? Promise.resolve({}))) as { strava_disconnect?: string; deleted?: string }
+  const stravaToast = sp?.strava_disconnect === 'ok'
+    ? `Strava frakoblet. ${sp?.deleted ?? 0} økter slettet.`
+    : null
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/app')
@@ -37,6 +45,19 @@ export default async function InnstillingerPage() {
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Trener-modus
           </p>
+        )}
+
+        {stravaToast && (
+          <div className="mb-4 p-3"
+            style={{
+              backgroundColor: 'rgba(40,168,110,0.08)',
+              border: '1px solid rgba(40,168,110,0.4)',
+              borderLeft: '3px solid #28A86E',
+            }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px' }}>
+              ✓ {stravaToast}
+            </p>
+          </div>
         )}
 
         <div className="space-y-3">

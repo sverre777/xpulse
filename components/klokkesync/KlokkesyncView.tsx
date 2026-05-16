@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ConnectWithStravaButton } from '@/components/strava/StravaBrand'
+import { StravaInfoBox } from '@/components/strava/StravaInfoBox'
+import { StravaDisconnectModal } from '@/components/strava/StravaDisconnectModal'
 import {
   listSyncableActivities,
   importStravaActivity,
@@ -97,6 +99,7 @@ function StravaSection({ conn }: { conn: StravaConn | null }) {
 function StravaDisconnected() {
   return (
     <>
+      <StravaInfoBox />
       <p style={{ fontSize: 14, color: 'rgba(242,240,236,0.7)', lineHeight: 1.7, marginBottom: 16 }}>
         Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.
         Vi henter aktiviteten, splittene/lapsene og puls/watt/pace-streamene.
@@ -171,13 +174,14 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
     })
   }
 
-  const handleDisconnect = () => {
-    if (!confirm('Er du sikker på at du vil frakoble Strava? Importerte økter beholdes.')) return
-    startTransition(async () => {
-      await disconnectStrava()
-      router.refresh()
-    })
-  }
+  // Strava API Agreement § 5.4 krever at frakobling sletter ALL importert
+  // Strava-data innen 48t. Vi viser dedikert modal med slettings-advarsel
+  // og kaller /api/strava/disconnect som gjør cascade-sletting + token-revoke.
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false)
+  const handleDisconnect = () => setShowDisconnectModal(true)
+  // disconnectStrava (eksisterende server-action) er nå legacy — beholdt for
+  // bakoverkomp med andre kallere, men UI bruker modalen + API-rute.
+  void disconnectStrava
 
   const handleAutoSyncToggle = () => {
     startTransition(async () => {
@@ -323,6 +327,11 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
           onCancel={() => setConflict(null)}
         />
       )}
+
+      <StravaDisconnectModal
+        open={showDisconnectModal}
+        onClose={() => setShowDisconnectModal(false)}
+      />
     </>
   )
 }

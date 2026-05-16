@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { ConnectWithStravaButton } from '@/components/strava/StravaBrand'
 import {
   listSyncableActivities,
   importStravaActivity,
@@ -100,15 +101,10 @@ function StravaDisconnected() {
         Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.
         Vi henter aktiviteten, splittene/lapsene og puls/watt/pace-streamene.
       </p>
-      <a href="/auth/strava/connect"
-        style={{
-          display: 'inline-block', padding: '12px 22px',
-          background: '#FC4C02', color: '#FFFFFF', textDecoration: 'none',
-          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-          fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase',
-        }}>
-        Koble til Strava
-      </a>
+      <ConnectWithStravaButton />
+      <p style={{ marginTop: '10px', fontSize: 12, color: 'rgba(242,240,236,0.5)', fontFamily: "'Barlow Condensed', sans-serif" }}>
+        Ved tilkobling samtykker du til Stravas API Agreement og X-PULSE sine vilkår.
+      </p>
     </>
   )
 }

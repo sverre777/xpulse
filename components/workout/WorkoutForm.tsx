@@ -23,6 +23,7 @@ import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
+import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
@@ -703,6 +704,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
       {workoutId && !templateBuildingMode && (
         <WorkoutKlokkesyncSection workoutId={workoutId} />
+      )}
+
+      {/* Strava API Agreement § 2.3 — synlig attribusjon for Strava-data. */}
+      {workoutId && defaultValues?.imported_from === 'strava' && (
+        <div className="my-4 flex justify-center">
+          <PoweredByStravaAttribution />
+        </div>
       )}
 
       {/* ── SUBMIT ── */}

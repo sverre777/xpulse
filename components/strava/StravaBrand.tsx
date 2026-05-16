@@ -18,7 +18,7 @@ const STRAVA_ORANGE = '#FC5200'
 // public/strava/ for full brand-compliance. SVG-en under fungerer som
 // placeholder med riktig farge og proporsjon mens vi venter på godkjente
 // assets.)
-function StravaLogo({ size = 22, color = '#FFFFFF' }: { size?: number; color?: string }) {
+export function StravaLogo({ size = 22, color = '#FFFFFF' }: { size?: number; color?: string }) {
   return (
     <svg
       width={size}

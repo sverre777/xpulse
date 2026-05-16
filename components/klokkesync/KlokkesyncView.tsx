@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ConnectWithStravaButton } from '@/components/strava/StravaBrand'
+import { ConnectWithStravaButton, StravaLogo, PoweredByStravaBadge } from '@/components/strava/StravaBrand'
 import { StravaInfoBox } from '@/components/strava/StravaInfoBox'
 import { StravaDisconnectModal } from '@/components/strava/StravaDisconnectModal'
 import { StravaCompactInfo } from '@/components/strava/StravaCompactInfo'
@@ -83,15 +83,18 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
 function StravaSection({ conn }: { conn: StravaConn | null }) {
   return (
     <section className="p-5"
-      style={{ background: '#13131A', border: '1px solid #1E1E22' }}>
-      <h2 className="mb-4 flex items-center gap-3"
-        style={{
-          fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-          letterSpacing: '0.06em', color: '#F0F0F2',
-        }}>
-        <span style={{ width: 16, height: 2, background: '#FC4C02' }} />
-        Strava
-      </h2>
+      style={{ background: '#13131A', border: '1px solid #1E1E22', borderTop: '3px solid #FC5200' }}>
+      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="flex items-center gap-2.5"
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
+            letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+          }}>
+          <StravaLogo size={26} color="#FC5200" />
+          Strava
+        </h2>
+        {conn && <PoweredByStravaBadge />}
+      </div>
       {conn ? <StravaConnected conn={conn} /> : <StravaDisconnected />}
     </section>
   )

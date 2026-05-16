@@ -2,6 +2,7 @@
 
 import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ActivityType, CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
@@ -10,7 +11,14 @@ import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDis
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts, reorderWorkouts } from '@/app/actions/workouts'
-import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
+import type { WorkoutModalState } from '@/components/workout/WorkoutModal'
+// WorkoutModal trekker WorkoutForm (~1000 linjer + tunge sub-komponenter)
+// inn i bundlet. Lazy-load så det først lastes når brukeren klikker på en
+// dato. ssr:false fordi modal aldri rendres på server (state er null initielt).
+const WorkoutModal = dynamic(
+  () => import('@/components/workout/WorkoutModal').then(m => ({ default: m.WorkoutModal })),
+  { ssr: false },
+)
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { RecoveryEntry, displayRecoveryLabel } from '@/lib/recovery-types'
 import { deleteRecoveryEntry } from '@/app/actions/recovery'
@@ -1673,18 +1681,20 @@ export function Calendar({
         <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />
       )}
     </div>
-    <WorkoutModal
-      state={modalState}
-      onClose={closeModal}
-      primarySport={primarySport}
-      userSports={userSports}
-      activityTypeFavorites={activityTypeFavorites}
-      templates={templates}
-      heartZones={heartZones}
-      readOnly={readOnly}
-      targetUserId={targetUserId}
-      athleteId={targetUserId ?? userId}
-    />
+    {modalState !== null && (
+      <WorkoutModal
+        state={modalState}
+        onClose={closeModal}
+        primarySport={primarySport}
+        userSports={userSports}
+        activityTypeFavorites={activityTypeFavorites}
+        templates={templates}
+        heartZones={heartZones}
+        readOnly={readOnly}
+        targetUserId={targetUserId}
+        athleteId={targetUserId ?? userId}
+      />
+    )}
     <RecoveryModal
       date={recoveryDate ?? ''}
       open={recoveryDate !== null}

@@ -121,7 +121,7 @@ export default function PersonvernPage() {
       </LegalUL>
       <LegalP><strong>Bruker-rettigheter:</strong></LegalP>
       <LegalUL>
-        <LegalLI>Du kan frakoble Strava når som helst på <a href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>/app/innstillinger/klokkesync</a></LegalLI>
+        <LegalLI>Du kan frakoble Strava når som helst på <Link href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>/app/innstillinger/klokkesync</Link></LegalLI>
         <LegalLI>Du kan be om sletting av alle dine data ved å kontakte <a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></LegalLI>
         <LegalLI>Du kan eksportere dine X-PULSE-data via egen eksport-funksjon</LegalLI>
       </LegalUL>
@@ -164,7 +164,7 @@ export default function PersonvernPage() {
       <LegalP>
         Du har til enhver tid rett til å eksportere alle dine personopplysninger lagret i X-PULSE.
         Eksport er tilgjengelig via{' '}
-        <a href="/app/innstillinger/data-eksport" style={{ color: '#FF4500' }}>/app/innstillinger/data-eksport</a>{' '}
+        <Link href="/app/innstillinger/data-eksport" style={{ color: '#FF4500' }}>/app/innstillinger/data-eksport</Link>{' '}
         i JSON-format.
       </LegalP>
       <LegalP><strong>Eksporten inkluderer:</strong></LegalP>

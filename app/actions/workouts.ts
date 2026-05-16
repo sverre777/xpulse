@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
@@ -38,20 +38,24 @@ function parseIntOrNull(s: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-// Revalider alle ruter som viser økt-data så endringer dukker opp uten manuell
-// refresh. Dekker både utøver- og trener-vinkler. For dynamiske trener-ruter
-// brukes route-literalen for å invalidere alle [athleteId]-instanser.
-function revalidateWorkoutPaths() {
+// Invalider workout-relatert cache etter mutasjon.
+//
+// Tag-basert (updateTag): fremtidssikret for når workout-queries får
+// cacheTag(`user-workouts-${userId}`). I dag er det no-op fordi ingen
+// queries er tagget, men hindrer at mutation-siden må re-refaktoreres
+// når vi senere migrerer queries til 'use cache' / unstable_cache.
+//
+// Page-cache (revalidatePath): bare hyppigste self-ruter. Tidligere
+// invaliderte vi 10 ruter samtidig — det tømte brukerens prefetch-cache
+// for hele appen ved hver økt-lagring, så all navigasjon etter en
+// lagring krevde fersk RSC-fetch. Analyse, historikk og trener-ruter
+// hentes på navigasjon uansett (eller cron-prefetches sjelden), så de
+// utelates her.
+function revalidateWorkoutPaths(userId: string) {
+  updateTag(`user-workouts-${userId}`)
   revalidatePath('/app/dagbok')
   revalidatePath('/app/plan')
   revalidatePath('/app/oversikt')
-  revalidatePath('/app/analyse')
-  revalidatePath('/app/historikk')
-  revalidatePath('/app/trener')
-  revalidatePath('/app/trener/[athleteId]/dagbok', 'page')
-  revalidatePath('/app/trener/[athleteId]/plan', 'page')
-  revalidatePath('/app/trener/[athleteId]/analyse', 'page')
-  revalidatePath('/app/trener/[athleteId]/historikk', 'page')
 }
 
 // Sjekk om konkurranse-modulen faktisk har innhold å lagre.
@@ -752,7 +756,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     )
   }
 
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return { id: savedId }
 }
 
@@ -793,7 +797,7 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
     .update({ is_completed: true, completed_at: now, updated_at: now })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return {}
 }
 
@@ -809,7 +813,7 @@ export async function markUncompleted(workoutId: string, targetUserId?: string):
     .update({ is_completed: false, completed_at: null, updated_at: new Date().toISOString() })
     .eq('id', workoutId).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return {}
 }
 
@@ -960,7 +964,7 @@ export async function linkPlannedToActual(
     if (plannedErr) return { error: plannedErr.message }
   }
 
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return {}
 }
 
@@ -1005,7 +1009,7 @@ export async function unlinkWorkout(
     .eq('id', syncedId)
     .eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return {}
 }
 
@@ -1015,7 +1019,7 @@ export async function deleteWorkout(id: string, targetUserId?: string): Promise<
   if ('error' in resolved) return { error: resolved.error }
   const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return {}
 }
 
@@ -1470,7 +1474,7 @@ export async function reorderWorkouts(
       .eq('user_id', resolved.userId)
     if (error) return { error: error.message }
   }
-  revalidateWorkoutPaths()
+  revalidateWorkoutPaths(resolved.userId)
   return { ok: true }
 }
 

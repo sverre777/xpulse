@@ -1,14 +1,5 @@
 import Link from 'next/link'
 import { getOversiktDashboard } from '@/app/actions/oversikt'
-
-// Tving server-render på hver request så Ukens-totaler/Hero/AktivitetsFeed
-// reflekterer siste workout-mutasjoner umiddelbart. Tidligere lå siden
-// cachet selv om revalidatePath('/app/oversikt') kjørte ved lagring av økt
-// (route-level cache hadde ikke alltid synlig effekt på den her sammensatte
-// dashbordet). force-dynamic er trygt — siden er allerede tung og krever
-// innlogget bruker, så ingen statisk gevinst går tapt.
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
 import { NesteOektKort } from '@/components/oversikt/NesteOektKort'

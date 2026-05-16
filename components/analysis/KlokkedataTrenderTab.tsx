@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Legend,
@@ -35,7 +36,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
           Koble til klokke (Strava eller .fit-fil-opplasting) for å se aerob effektivitet, cardiac drift,
           tid i sone, power curve og kadens-trender over tid.
         </p>
-        <a href="/app/innstillinger/klokkesync"
+        <Link href="/app/innstillinger/klokkesync"
           className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -43,7 +44,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
             textDecoration: 'none',
           }}>
           Koble til klokke →
-        </a>
+        </Link>
       </div>
     )
   }

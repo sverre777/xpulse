@@ -6,7 +6,8 @@ import type {
   WorkoutSamples, LapMarker, LactateMarker, NutritionMarker, ShootingMarker,
 } from '@/components/workout/WorkoutDetailChart'
 import type { LapRow } from '@/components/workout/LapTable'
-import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
+import { type HeartZone } from '@/lib/heart-zones'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -34,23 +35,41 @@ export async function getWorkoutKlokkesyncData(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Hent workout (kun for sport-felt og start-tid).
-  const { data: workout } = await supabase
-    .from('workouts')
-    .select('id, sport, time_of_day, date')
-    .eq('id', workoutId)
-    .maybeSingle()
+  // Parallellisér alle fetches som ikke avhenger av workout-feltet. Lactate
+  // trenger workout.date for å regne sek-fra-start, så den hentes etter at
+  // workout er resolvert.
+  const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
+    supabase.from('workouts')
+      .select('id, sport, time_of_day, date')
+      .eq('id', workoutId)
+      .maybeSingle(),
+    supabase.from('workout_samples')
+      .select('hr_samples, watt_samples, pace_samples, speed_samples, altitude_samples, cadence_samples, distance_samples, temperature_samples, source, created_at')
+      .eq('workout_id', workoutId)
+      .order('created_at', { ascending: false })
+      .limit(1),
+    supabase.from('workout_activities')
+      .select(`
+        id, sort_order, duration_seconds, distance_meters,
+        avg_heart_rate, max_hr, max_heart_rate,
+        avg_watts, max_watts, avg_speed_ms, max_speed_ms,
+        avg_cadence, max_cadence,
+        elevation_gain_m, rpe, lap_notes,
+        prone_hits, prone_shots, standing_hits, standing_shots,
+        activity_type, movement_name, movement_subcategory
+      `)
+      .eq('workout_id', workoutId)
+      .order('sort_order', { ascending: true }),
+    supabase.from('workout_nutrition_entries')
+      .select('time_offset_minutes, nutrition_type, carbs_g')
+      .eq('workout_id', workoutId),
+    getHeartZonesForUserCached(user.id),
+  ])
+
+  const workout = workoutRes.data
   if (!workout) return null
 
-  // Hent samples (kan være flere — typisk 1 per source). Ta nyeste.
-  const { data: samplesRows } = await supabase
-    .from('workout_samples')
-    .select('hr_samples, watt_samples, pace_samples, speed_samples, altitude_samples, cadence_samples, distance_samples, temperature_samples, source, created_at')
-    .eq('workout_id', workoutId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-
-  const samplesRow = samplesRows?.[0]
+  const samplesRow = samplesRowsRes.data?.[0]
   const samples: WorkoutSamples | null = samplesRow ? {
     hr_samples:       samplesRow.hr_samples ?? null,
     watt_samples:     samplesRow.watt_samples ?? null,
@@ -60,20 +79,7 @@ export async function getWorkoutKlokkesyncData(
     cadence_samples:  samplesRow.cadence_samples ?? null,
   } : null
 
-  // Hent per-lap aktiviteter sortert på sort_order.
-  const { data: activities } = await supabase
-    .from('workout_activities')
-    .select(`
-      id, sort_order, duration_seconds, distance_meters,
-      avg_heart_rate, max_hr, max_heart_rate,
-      avg_watts, max_watts, avg_speed_ms, max_speed_ms,
-      avg_cadence, max_cadence,
-      elevation_gain_m, rpe, lap_notes,
-      prone_hits, prone_shots, standing_hits, standing_shots,
-      activity_type, movement_name, movement_subcategory
-    `)
-    .eq('workout_id', workoutId)
-    .order('sort_order', { ascending: true })
+  const activities = activitiesRes.data
 
   const laps: LapRow[] = (activities ?? []).map((a, i) => ({
     id: a.id,
@@ -108,7 +114,8 @@ export async function getWorkoutKlokkesyncData(
     cum += laps[i].duration_seconds
   }
 
-  // Hent laktat-markører — t er sek-fra-økt-start.
+  // Hent laktat-markører — t er sek-fra-økt-start. Krever workout.date så
+  // hentes sekvensielt etter Promise.all over.
   const startEpoch = workoutStartEpoch(workout.date, workout.time_of_day)
   const { data: lactateRows } = await supabase
     .from('workout_lactate_measurements')
@@ -125,12 +132,7 @@ export async function getWorkoutKlokkesyncData(
     .filter((m): m is LactateMarker => m !== null)
 
   // Ernærings-markører — time_offset_minutes er allerede sek-fra-start.
-  const { data: nutritionRows } = await supabase
-    .from('workout_nutrition_entries')
-    .select('time_offset_minutes, nutrition_type, carbs_g')
-    .eq('workout_id', workoutId)
-
-  const nutrition: NutritionMarker[] = (nutritionRows ?? [])
+  const nutrition: NutritionMarker[] = (nutritionRowsRes.data ?? [])
     .filter(n => n.time_offset_minutes != null)
     .map(n => ({
       t: Number(n.time_offset_minutes) * 60,
@@ -160,10 +162,6 @@ export async function getWorkoutKlokkesyncData(
     }
     shotCum += a.duration_seconds ?? 0
   }
-
-  // Sone-grenser brukes i WorkoutDeepAnalysis for tid-i-sone og som referanse
-  // i grafen. Hentes fra user_heart_zones eller utledes fra profiles.max_heart_rate.
-  const heartZones = await getHeartZonesForUser(supabase, user.id)
 
   return {
     sport: (workout.sport ?? null) as Sport | null,

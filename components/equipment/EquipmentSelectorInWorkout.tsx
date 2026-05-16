@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   EQUIPMENT_CATEGORY_LABELS,
   type Equipment,
@@ -42,8 +43,8 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }:
           {activeAvailable.length === 0 ? (
             <p className="text-sm"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-              Du har ingen aktivt utstyr. Legg til på <a href="/app/utstyr"
-                style={{ color: '#FF4500', textDecoration: 'underline' }}>/app/utstyr</a>.
+              Du har ingen aktivt utstyr. Legg til på <Link href="/app/utstyr"
+                style={{ color: '#FF4500', textDecoration: 'underline' }}>/app/utstyr</Link>.
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">

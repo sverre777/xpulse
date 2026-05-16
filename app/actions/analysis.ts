@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
-import { getHeartZonesForUser, type HeartZone } from '@/lib/heart-zones'
+import { type HeartZone } from '@/lib/heart-zones'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
@@ -147,7 +148,7 @@ export async function getWorkoutStats(
 
   if (error) return { error: error.message }
 
-  const heartZones = await getHeartZonesForUser(supabase, userId)
+  const heartZones = await getHeartZonesForUserCached(userId)
   const skeleton = buildWeekSkeleton(fromDate, toDate)
   const weeksByKey = new Map(skeleton.map(w => [w.weekKey, w]))
   const movementNames = new Set<string>()
@@ -410,7 +411,7 @@ async function computeMetricsForRange(
   primarySport: Sport,
   sportFilter: Sport | null,
 ): Promise<OverviewMetrics> {
-  const heartZones = await getHeartZonesForUser(supabase, userId)
+  const heartZones = await getHeartZonesForUserCached(userId)
 
   let workoutsQuery = supabase
     .from('workouts')
@@ -804,7 +805,7 @@ async function computePlannedMetricsForRange(
   primarySport: Sport,
   sportFilter: Sport | null,
 ): Promise<OverviewMetrics> {
-  const heartZones = await getHeartZonesForUser(supabase, userId)
+  const heartZones = await getHeartZonesForUserCached(userId)
 
   let q = supabase
     .from('workouts')
@@ -1510,7 +1511,7 @@ export async function getMovementAnalysis(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
 
     // Hent alle unike bevegelsesformer brukeren har i perioden — for movement-velger.
     const { data: allMoves } = await supabase
@@ -2057,7 +2058,7 @@ export async function getTemplateAnalysis(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
 
     let wQuery = supabase
       .from('workouts')
@@ -2283,7 +2284,7 @@ export async function getWorkoutsForComparison(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
 
     // Inkluder ALLE økter i perioden — både gjennomførte og planlagte. UI
     // markerer dem ulikt slik at brukeren kan sammenligne plan vs faktisk.
@@ -2485,7 +2486,7 @@ export async function getIntensityDistribution(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
 
     let q = supabase
       .from('workouts')
@@ -2707,7 +2708,7 @@ export async function getBelastningAnalysis(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
 
     // 42-dagers warm-up før fromDate slik at CTL er stabil ved periodens start.
     const warmupStart = addDaysISO(fromDate, -42)
@@ -3531,7 +3532,7 @@ export async function getPeriodizationOverview(
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
     const today = new Date().toISOString().slice(0, 10)
 
     // Velg sesongen som overlapper brukerens periode — nyeste først.
@@ -3764,7 +3765,7 @@ export async function getCustomBreakdown(
 
     if (error) return { error: error.message }
 
-    const heartZones = await getHeartZonesForUser(supabase, userId)
+    const heartZones = await getHeartZonesForUserCached(userId)
     const buckets = new Map<string, CustomBreakdownBucket>()
     const enduranceInUse = new Set<string>()
     const nonEnduranceInUse = new Set<string>()

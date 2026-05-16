@@ -8,7 +8,7 @@ import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysis
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
-import { getHeartZonesForUser } from '@/lib/heart-zones'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import type { DayState } from '@/lib/day-state-types'
@@ -46,7 +46,13 @@ export async function DagbokPageView({ viewContext }: Props) {
 
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
-  const [rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones, weekNotes, monthNotes, dayStatesRes] = await Promise.all([
+  // Profil + favorittene har lavest avhengighet — parallelliser med resten
+  // av Promise.all så vi ikke serialiserer på dem etter at de andre er ferdige.
+  const [
+    rawWorkouts, weekData, healthRows, recoveryRows, templates, heartZones,
+    weekNotes, monthNotes, dayStatesRes,
+    profileRes, activityTypeFavorites,
+  ] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
     supabase.from('workouts')
       .select('duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters)')
@@ -58,11 +64,14 @@ export async function DagbokPageView({ viewContext }: Props) {
       .lte('date', monthEnd),
     getRecoveryEntriesForRange(userId, monthStart, monthEnd),
     getTemplates(targetId),
-    getHeartZonesForUser(supabase, userId),
+    getHeartZonesForUserCached(userId),
     getPeriodNotes('week', [weekKey], 'dagbok', targetId),
     getPeriodNotes('month', [monthKey], 'dagbok', targetId),
     getDayStatesForRange(monthStart, monthEnd, targetId),
+    supabase.from('profiles').select('full_name, primary_sport, secondary_sports').eq('id', userId).single(),
+    getActivityTypeFavorites(userId),
   ])
+  const profile = profileRes.data
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {
@@ -86,14 +95,9 @@ export async function DagbokPageView({ viewContext }: Props) {
     recoveryByDate[r.date].push(r)
   }
 
-  const { data: profile } = await supabase.from('profiles').select('full_name, primary_sport, secondary_sports').eq('id', userId).single()
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
   const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
-  // Topp 5 mest brukte aktivitetstyper siste 60 dager — vises øverst i
-  // Aktivitetstype-velgeren i WorkoutForm. Hentes server-side så Calendar/
-  // Modal/Form bare videreformidler en ferdig liste.
-  const activityTypeFavorites = await getActivityTypeFavorites(userId)
   type WeekActivityRow = { activity_type: string; duration_seconds: number | null; distance_meters: number | null }
   type WeekWorkoutRow = { duration_minutes: number | null; distance_km: number | null; workout_activities: WeekActivityRow[] | null }
   const weekWorkouts = (weekData.data ?? []) as WeekWorkoutRow[]

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserAndProfile } from '@/lib/profile-cache'
 import type { Sport, WorkoutType } from '@/lib/types'
 import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
 import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
@@ -240,9 +241,12 @@ function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
 
 export async function getOversiktDashboard(): Promise<OversiktData | { error: string }> {
   try {
+    // Bruk React.cache-dedupert auth+profil — layouten har allerede gjort
+    // dette kallet i samme request, så vi gjenbruker uten ny round-trip.
+    const ctx = await getCurrentUserAndProfile()
+    if (!ctx) return { error: 'Ikke innlogget' }
+    const user = { id: ctx.userId }
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Ikke innlogget' }
 
     const today = new Date()
     const todayISO = toISO(today)
@@ -259,12 +263,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       return thu.getFullYear()
     })()
 
-    // 1. Profil (fornavn).
-    const profilePromise = supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single()
+    // 1. Profil (fornavn) — gjenbruker React.cache-dedupert verdi fra layout.
 
     // 2. Dagens day_state.
     const dayStatePromise = supabase
@@ -398,19 +397,19 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .maybeSingle()
 
     const [
-      profileRes, dayStateRes, todayWorkoutsRes, futurePlannedRes,
+      dayStateRes, todayWorkoutsRes, futurePlannedRes,
       weekWorkoutsRes, prevWeekWorkoutsRes, keyDateRes, compWorkoutRes,
       recentCompletedRes, seasonRes, healthRes,
       dayFocusRes, weekFocusRes, reflectionRes,
     ] = await Promise.all([
-      profilePromise, dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
+      dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
       weekWorkoutsPromise, prevWeekWorkoutsPromise, upcomingKeyDatePromise,
       upcomingCompetitionWorkoutPromise, recentCompletedPromise, seasonPromise,
       healthPromise, dayFocusPromise, weekFocusPromise, reflectionPromise,
     ])
 
-    // Hero
-    const fullName = (profileRes.data?.full_name as string | null) ?? ''
+    // Hero — bruk navn fra cache-dedupert profil.
+    const fullName = ctx.profile?.full_name ?? ''
     const firstName = fullName.split(/\s+/)[0] || 'utøver'
 
     type WeekWorkout = {

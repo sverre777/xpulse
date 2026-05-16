@@ -6,7 +6,7 @@ import { Calendar } from '@/components/calendar/Calendar'
 import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
-import { getHeartZonesForUser } from '@/lib/heart-zones'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getPeriodizationForDateRange } from '@/app/actions/seasons'
 import { getDayStatesForRange } from '@/app/actions/day-states'
@@ -52,15 +52,19 @@ export async function PlanPageView({ viewContext }: Props) {
 
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
-  const [rawWorkouts, { data: profile }, templates, heartZones, weekNotes, monthNotes, periodization, dayStatesRes] = await Promise.all([
+  const [
+    rawWorkouts, { data: profile }, templates, heartZones,
+    weekNotes, monthNotes, periodization, dayStatesRes, activityTypeFavorites,
+  ] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
     supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', userId).single(),
     getTemplates(targetId),
-    getHeartZonesForUser(supabase, userId),
+    getHeartZonesForUserCached(userId),
     getPeriodNotes('week', [weekKey], 'plan', targetId),
     getPeriodNotes('month', [monthKey], 'plan', targetId),
     getPeriodizationForDateRange(overlayFromISO, overlayToISO, targetId),
     getDayStatesForRange(monthStart, monthEnd, targetId),
+    getActivityTypeFavorites(userId),
   ])
 
   const activeSeason = !('error' in periodization) ? periodization.season : null
@@ -69,7 +73,6 @@ export async function PlanPageView({ viewContext }: Props) {
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
   const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
-  const activityTypeFavorites = await getActivityTypeFavorites(userId)
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {

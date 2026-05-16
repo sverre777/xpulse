@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { ZONE_NAMES, ZoneName } from '@/lib/heart-zones'
 import type { PaceUnit } from '@/lib/pace-utils'
@@ -57,6 +57,8 @@ export async function saveHeartRateProfile(input: {
 
   const { error } = await supabase.from('profiles').update(payload).eq('id', user.id)
   if (error) return { error: error.message }
+  // max_heart_rate styrer auto-sone-beregningen — invalider cache.
+  updateTag(`heart-zones-${user.id}`)
   revalidatePath('/app/innstillinger')
   return {}
 }
@@ -103,6 +105,7 @@ export async function saveCustomHeartZones(zones: HeartZoneInput[]): Promise<{ e
     .from('user_heart_zones')
     .upsert(rows, { onConflict: 'user_id,zone_name' })
   if (error) return { error: error.message }
+  updateTag(`heart-zones-${user.id}`)
   revalidatePath('/app/innstillinger')
   return {}
 }
@@ -173,6 +176,8 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
     updated_at: new Date().toISOString(),
   }).eq('id', user.id)
   if (error) return { error: error.message }
+  // birth_year styrer auto-HFmax → påvirker auto-soner.
+  updateTag(`heart-zones-${user.id}`)
   revalidatePath('/app/innstillinger')
   return {}
 }
@@ -473,6 +478,7 @@ export async function resetHeartZonesToAuto(): Promise<{ error?: string }> {
     .delete()
     .eq('user_id', user.id)
   if (error) return { error: error.message }
+  updateTag(`heart-zones-${user.id}`)
   revalidatePath('/app/innstillinger')
   return {}
 }

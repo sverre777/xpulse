@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   getKlokkesyncStatus, type KlokkesyncBadge, type KlokkesyncStatus,
@@ -139,13 +140,13 @@ function KlokkesyncStatusPopup({
             }}>
               Siste import
             </div>
-            <a href={`/app/dagbok?edit=${status.lastWorkout.id}`}
+            <Link href={`/app/dagbok?edit=${status.lastWorkout.id}`}
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                 color: '#F0F0F2', textDecoration: 'none', display: 'block',
               }}>
               {status.lastWorkout.title}
-            </a>
+            </Link>
             <div style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
               color: '#555560',
@@ -168,7 +169,7 @@ function KlokkesyncStatusPopup({
             }}>
             {pending ? 'Synker …' : 'Synk nå'}
           </button>
-          <a href="/app/innstillinger/klokkesync"
+          <Link href="/app/innstillinger/klokkesync"
             onClick={onClose}
             style={{
               padding: '8px 12px', textDecoration: 'none',
@@ -178,7 +179,7 @@ function KlokkesyncStatusPopup({
               display: 'inline-flex', alignItems: 'center',
             }}>
             Innstillinger
-          </a>
+          </Link>
         </div>
       </div>
     </>

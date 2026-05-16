@@ -14,7 +14,8 @@ import {
   type StravaLap,
   type StravaStreamSet,
 } from '@/lib/strava'
-import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
+import { computeZoneSecondsFromSamples, type HeartZone } from '@/lib/heart-zones'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import type { Sport } from '@/lib/types'
 
 // Server-actions for Strava-import. Tre nivåer:
@@ -318,7 +319,7 @@ export async function backfillStravaZones(opts: { batch?: number; offset?: numbe
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  const heartZones = await getHeartZonesForUser(supabase, user.id)
+  const heartZones = await getHeartZonesForUserCached(user.id)
   if (heartZones.length === 0) {
     return { error: 'Heart-zones kunne ikke beregnes (mangler max_heart_rate/birth_year i profil)' }
   }
@@ -384,7 +385,7 @@ interface BackfillDetail {
 async function backfillOneWorkout(
   supabase: Awaited<ReturnType<typeof createClient>>,
   workoutId: string,
-  heartZones: Awaited<ReturnType<typeof getHeartZonesForUser>>,
+  heartZones: HeartZone[],
 ): Promise<BackfillDetail> {
   const [{ data: acts }, { data: samplesRow }] = await Promise.all([
     supabase
@@ -763,7 +764,7 @@ async function populateZonesForLaps(
   activityIds: Array<{ id: string; sort_order: number }>,
   streams: StravaStreamSet,
 ) {
-  const heartZones = await getHeartZonesForUser(supabase, userId)
+  const heartZones = await getHeartZonesForUserCached(userId)
   if (heartZones.length === 0) {
     console.warn(`[strava-sync] populateZonesForLaps: ingen heart zones for user ${userId} — hopper`)
     return

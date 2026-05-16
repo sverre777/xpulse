@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
@@ -19,23 +20,44 @@ import { DateRangePicker, type DateRange } from './DateRangePicker'
 import { FavoritesProvider, useFavorites } from './FavoritesContext'
 import { FavoriteChartsSection, sourceTabForChartKey } from './FavoriteChartsSection'
 import { OverviewTab } from './OverviewTab'
-import { CompetitionsTab } from './CompetitionsTab'
-import { MovementTab } from './MovementTab'
-import { HealthTab } from './HealthTab'
-import { TemplateAnalysisTab } from './TemplateAnalysisTab'
-import { CompareWorkoutsTab } from './CompareWorkoutsTab'
-import { IntensityTab } from './IntensityTab'
-import { BelastningTab } from './BelastningTab'
-import { TerskelTab } from './TerskelTab'
-import { SkytingTab } from './SkytingTab'
-import { PeriodiseringTab } from './PeriodiseringTab'
-import { TesterPRTab } from './TesterPRTab'
-import { SkiTesterTab } from './SkiTesterTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
-import { ErneringTab } from './ErneringTab'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
-import { KlokkedataTrenderTab } from './KlokkedataTrenderTab'
 import { getKlokkedataTrender, type KlokkedataTrender } from '@/app/actions/klokkedata-trender'
+
+// Lazy-load alle ikke-Oversikt-tabs. Hver tab importerer recharts som er
+// ~50-100 KB per chunk — eager import av alle 13 tabs sammen var den største
+// enkelt-bidragsyteren til /app/analyse first-load. ssr:false fordi parent
+// er 'use client' og tabene først rendres etter klikk.
+//
+// next/dynamic krever objektliteral som options (kompilerings-tids analyse).
+const CompetitionsTab = dynamic(() => import('./CompetitionsTab').then(m => ({ default: m.CompetitionsTab })),
+  { loading: () => <LoadingStub label="Laster konkurranser…" />, ssr: false })
+const MovementTab = dynamic(() => import('./MovementTab').then(m => ({ default: m.MovementTab })),
+  { loading: () => <LoadingStub label="Laster bevegelsesdata…" />, ssr: false })
+const HealthTab = dynamic(() => import('./HealthTab').then(m => ({ default: m.HealthTab })),
+  { loading: () => <LoadingStub label="Laster helsedata…" />, ssr: false })
+const TemplateAnalysisTab = dynamic(() => import('./TemplateAnalysisTab').then(m => ({ default: m.TemplateAnalysisTab })),
+  { loading: () => <LoadingStub label="Laster mal-analyse…" />, ssr: false })
+const CompareWorkoutsTab = dynamic(() => import('./CompareWorkoutsTab').then(m => ({ default: m.CompareWorkoutsTab })),
+  { loading: () => <LoadingStub label="Laster økter…" />, ssr: false })
+const IntensityTab = dynamic(() => import('./IntensityTab').then(m => ({ default: m.IntensityTab })),
+  { loading: () => <LoadingStub label="Laster intensitetsfordeling…" />, ssr: false })
+const BelastningTab = dynamic(() => import('./BelastningTab').then(m => ({ default: m.BelastningTab })),
+  { loading: () => <LoadingStub label="Laster belastning…" />, ssr: false })
+const TerskelTab = dynamic(() => import('./TerskelTab').then(m => ({ default: m.TerskelTab })),
+  { loading: () => <LoadingStub label="Laster terskel…" />, ssr: false })
+const SkytingTab = dynamic(() => import('./SkytingTab').then(m => ({ default: m.SkytingTab })),
+  { loading: () => <LoadingStub label="Laster skyting-dybde…" />, ssr: false })
+const PeriodiseringTab = dynamic(() => import('./PeriodiseringTab').then(m => ({ default: m.PeriodiseringTab })),
+  { loading: () => <LoadingStub label="Laster årsplan…" />, ssr: false })
+const TesterPRTab = dynamic(() => import('./TesterPRTab').then(m => ({ default: m.TesterPRTab })),
+  { loading: () => <LoadingStub label="Laster tester og PR…" />, ssr: false })
+const SkiTesterTab = dynamic(() => import('./SkiTesterTab').then(m => ({ default: m.SkiTesterTab })),
+  { loading: () => <LoadingStub label="Laster ski-tester…" />, ssr: false })
+const ErneringTab = dynamic(() => import('./ErneringTab').then(m => ({ default: m.ErneringTab })),
+  { loading: () => <LoadingStub label="Laster ernærings-data…" />, ssr: false })
+const KlokkedataTrenderTab = dynamic(() => import('./KlokkedataTrenderTab').then(m => ({ default: m.KlokkedataTrenderTab })),
+  { loading: () => <LoadingStub label="Laster klokkedata-trender…" />, ssr: false })
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.

@@ -7,9 +7,9 @@ import { WaitlistSignup } from '@/components/landing/WaitlistSignup'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'AI Coach',
+  title: 'AI-Coach',
   description:
-    'X-PULSE AI Coach (kommer Q3 2026): auto-tolkning av økter etter klokkesync, smart anbefalinger basert på dine data, anbefalte økter ut fra form og mål, ukesoppsummeringer og korrelasjons-innsikt.',
+    'X-PULSE AI-Coach (kommer Q4 2026): personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer engasjement-nivå — fra verktøy til full autopilot. Dagbok via chat, bilde-import, adaptive planer.',
   path: '/funksjoner/ai-coach',
 })
 
@@ -40,54 +40,63 @@ export default function AiCoachPage() {
   return (
     <LandingShell>
       <SportPageHero
-        kicker="AI Coach — kommer Q3 2026"
-        title={<>AI-DREVET<br/><span style={{ color: '#FF4500' }}>TRENINGS-INNSIKT.</span></>}
-        description="En AI som leser dine data, dine kommentarer og dine mønstre — og blir smartere for hver økt du logger. Modulen lanseres Q3 2026 sammen med direkte klokkesync. Bli varslet ved lansering."
+        kicker="AI-Coach 🟡 Kommer snart"
+        title={<>AI-COACH<br/><span style={{ color: '#FF4500' }}>SOM FORSTÅR DEG.</span></>}
+        description="Få en personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer hvor mye AI-en gjør for deg — fra enkelt verktøy til full autopilot. Du kan skrive en setning og få økten lagt inn i dagboken, eller la AI-en justere planen din automatisk basert på hvordan du føler deg. Personvernet ditt er alltid under din kontroll."
         icon={<AiCoachIcon />}
         backgroundImage="/photos/DSC09222_thumb.jpg"
       />
 
       <SportFeatureSection
-        kicker="Hva blir mulig"
-        title="AUTO-TOLKNING AV ØKTER."
-        intro="Etter klokkesync kommer dataene inn rå. AI-en tolker øktstrukturen — gjenkjenner intervaller, varierende intensitet, drag-mønster — og fyller ut lap-typer automatisk. Du bekrefter eller justerer."
+        kicker="Athlete Pro AI · 129 kr/mnd 🟡"
+        title="DET DU FÅR MED PRO AI."
+        intro="Claude Haiku gjør auto-tolkning av økter, gir korte innsikter og finner korrelasjoner i dataene dine. Ingen chat eller plangenerering — det får du i Ultimate."
         bullets={[
-          { title: 'Lap-type-deteksjon', body: 'Sone, varighet og puls-mønster avslører om dette var et 4×8-min I4-drag eller en jevn I2-langtur.' },
-          { title: 'Plan-match', body: 'Sammenligner gjennomføring mot planlagt økt — hvor traff du, hvor avvek du, og hvorfor (puls-rate, terreng).' },
-          { title: 'Subjektive notater', body: 'Brukeren-skrevne kommentarer parses for stikkord ("dårlig form", "kald", "presset for hardt") og kobles til datapunkter.' },
+          { title: 'Auto-tagging av lap', body: 'Oppvarming, intervall, pause, nedjogg — AI gjenkjenner mønsteret og merker hver lap.' },
+          { title: 'Ukentlig sammendrag', body: 'Hver søndag: hva du gjorde, hva som skiller seg fra forrige uke, hvilke trender tegner seg.' },
+          { title: 'Korrelasjon-analyse', body: 'HRV vs prestasjon, søvn vs energi, belastning vs sykdom — sammenhenger AI finner i dine egne tall.' },
         ]}
       />
 
       <SportFeatureSection
-        kicker="Smart anbefalinger"
-        title="ANBEFALTE ØKTER."
-        intro="Basert på din nåværende form (CTL/ATL/TSB), kommende konkurranser og søvn/HRV-trend foreslår AI-en hva neste økt bør være. Ikke generiske 'i dag bør du løpe lett'-tips — konkrete drag-strukturer i din typiske tone."
+        kicker="Athlete Ultimate AI · 399 kr/mnd 🟡"
+        title="DET DU FÅR MED ULTIMATE AI."
+        intro="Claude Sonnet/Opus med full long-term memory. Chat 24/7, dagbok via tekst eller bilde, komplett plangenerering, adaptive planer som justerer seg ved sykdom eller dårlige dager."
         bullets={[
-          { title: 'Form-tilpasset', body: 'Hvis TSB er negativ foreslås rolig økt; hvis du er på vei mot peak foreslås race-pace-drag.' },
-          { title: 'Mål-orientert', body: 'Sesong-mål påvirker forslaget — peaking mot Birken gir andre økter enn peaking mot 5K.' },
-          { title: 'Personlig terskel', body: 'AI-en lærer dine egne grenser — f.eks. "Sveco trenger 3 dager etter en hard I4-økt for å gå hardt igjen".' },
+          { title: 'Chat med AI-coach 24/7', body: 'Kun treningsrelatert — off-topic avvises høflig. AI husker hele treningshistorikken og samtaler.' },
+          { title: 'Dagbok via chat', body: 'Skriv "Var ute en time, kjente meg sliten" — økten kommer rett i dagboken. Hvis klokkesync har en økt samme dag, knyttes de automatisk.' },
+          { title: 'Bilde/PDF/lyd-import', body: 'Ta bilde av håndskrevet dagbok, send konkurransekalender som PDF, eller spill inn lyd-notat — AI tolker og legger inn.' },
+          { title: 'Komplett plangenerering', body: 'Skriv "Lag en 12-ukers plan mot Birken" — AI bygger basert på dine mål, sport, historikk og periodisering.' },
+          { title: 'Adaptiv plan', body: '"Jeg er forkjølet" → AI omorganiserer kommende uke. Justerer seg automatisk ved sykdom, dårlige dager, prestasjon-endring.' },
+          { title: 'Custom-grafer på forespørsel', body: '"Vis meg pace ved 150 bpm siste 3 mnd" — AI bygger grafen direkte. Pluss prestasjon-prediksjon og morgen-brief.' },
         ]}
       />
 
       <SportFeatureSection
-        kicker="Auto-rapport"
-        title="UKESOPPSUMMERINGER."
-        intro="Hver søndag får du (og treneren din, hvis du har en) en ukesoppsummering: hva du gjorde, hva som skiller seg ut fra forrige uke, og hvilke trender som tegner seg. Klar tekst, ikke bare tall."
+        kicker="Trener Ultimate AI · 999 kr/mnd 🟡"
+        title="DET TRENERE FÅR MED ULTIMATE."
+        intro="Premium AI bygd for trener-arbeid. Plan-bygging via chat eller bilde, lag-prediksjon, adaptive lag-planer, custom rapporter for sponsorer."
         bullets={[
-          { title: 'Volum og fordeling', body: 'Total tid, sonefordeling, sammenligning mot forrige uke og samme uke i fjor.' },
-          { title: 'Avvik fra plan', body: 'Hvor traff du, hvor falt du av — og om treneren bør justere fremover.' },
-          { title: 'Form-prognose', body: 'Hvor er du på vei? Estimat for TSB om 2-4 uker hvis treningen fortsetter som nå.' },
+          { title: 'Plan-bygging via chat eller bilde', body: 'Skriv "Lag 4-ukers grunnperiode for utøver X med 3 økter/uke" eller ta bilde av en håndskrevet plan — AI lager den og legger i utøverens plan.' },
+          { title: 'Velg hvem AI pusher til', body: '"Push denne planen til Anna, Per og Lise" — AI pusher kun til de tre, ikke hele laget.' },
+          { title: 'Lag-prediksjon', body: '"Hvem av utøverne mine bør jeg gi en hard intervalløkt i morgen?" — AI svarer basert på belastning, prestasjon, restitusjon.' },
+          { title: 'Adaptive lag-planer', body: 'AI justerer planer for hele laget basert på fellestreninger, konkurranser, sesongfase.' },
+          { title: 'Custom rapporter', body: '"Lag en rapport for sponsor om Annas utvikling siste 6 mnd" — AI genererer PDF.' },
         ]}
       />
 
       <SportFeatureSection
-        kicker="Korrelasjons-innsikt"
-        title="HVORFOR PRESTERER DU BEDRE?"
-        intro="AI-en finner sammenhenger i dine egne data over måneder. Ikke generiske råd — personlige terskler basert på dine tall."
+        kicker="Du er alltid i kontroll"
+        title="ENGASJEMENT-VELGER + PERSONVERN."
+        intro="Du bestemmer hvor mye AI gjør, og hva den ser. Bytt mellom Verktøy-, Coach- eller Autopilot-modus + granulære toggles per funksjon. Personvern-toggles for hver datakategori."
         bullets={[
-          { title: 'HRV-prestasjons-mønstre', body: 'F.eks. "dine beste dager er når HRV > 65 og du har sovet > 7.5 t to netter på rad".' },
-          { title: 'Belastnings-utbrenthets-grenser', body: 'AI-en finner din egen "for mye"-terskel basert på tidligere overtrenings-perioder.' },
-          { title: 'Sesong-til-sesong', body: 'Sammenligning av tilsvarende uker over år — er du foran eller bak fjorårets forberedelse?' },
+          { title: 'Verktøy-modus', body: 'AI svarer kun når du spør. Ingen auto-handlinger.' },
+          { title: 'Coach-modus', body: 'AI gir proaktive anbefalinger og kommentarer, men du må bekrefte alle endringer.' },
+          { title: 'Autopilot-modus', body: 'AI fører dagbok, justerer planen og tagger økter automatisk. Du kan overstyre når som helst.' },
+          { title: 'Granulære toggles', body: 'Slå av/på per funksjon: dagbok-skriving, plan-endring, morgen-brief, økt-kommentar, lap-tagging, klokkesync-kobling.' },
+          { title: 'Personvern per datakategori', body: 'Velg hva AI ser: treningsøkter, helsedata (HRV/søvn/vekt), notater, konkurranseresultater, fysiologiske tester.' },
+          { title: 'Trener-tilkobling', body: 'For Ultimate AI med trener: velg om treneren kan se AI-svar og chat-historikken (default: AV).' },
+          { title: 'Lovkrav', body: 'AI-data brukes ALDRI til modelltrening på Strava-data (Strava API Agreement § 2.14.4).' },
         ]}
       />
 
@@ -109,21 +118,21 @@ export default function AiCoachPage() {
               fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
               letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 18,
             }}>
-              GI BESKJED NÅR<br/>AI COACH ÅPNER.
+              GI BESKJED NÅR<br/>AI-COACH ÅPNER.
             </h2>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)', maxWidth: 460 }}>
-              Q3 2026 lanseres modulen for både utøvere (Athlete Pro AI · 129 kr/mnd) og
-              trenere (Trener Pro AI · 499 kr/mnd). Beta-tilgang prioriteres til de på listen.
+              Forventet lansering Q4 2026. Modulen kommer for utøvere (Pro AI · 129 og Ultimate AI · 399 kr/mnd)
+              og trenere (Pro AI · 499 og Ultimate AI · 999 kr/mnd). Beta-tilgang prioriteres til de på listen.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/xpulse.html#priser"
+              <Link href="/pris"
                 style={{
                   color: '#F2F0EC', padding: '10px 18px',
                   border: '1px solid #262629', textDecoration: 'none',
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                   fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
                 }}>
-                Se Pro AI-priser
+                Se alle priser
               </Link>
             </div>
           </div>

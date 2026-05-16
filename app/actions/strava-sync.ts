@@ -582,13 +582,16 @@ async function createWorkoutFromStrava(
     }
   }
 
-  // Lagre streams hvis tilgjengelig.
+  // Lagre streams hvis tilgjengelig. Phase 68: cache_expires_at = now + 7 days
+  // for Strava-samples (Strava API Agreement § 7 — rå data slettes innen 7d).
   if (hasStreamData(streams)) {
+    const expiresAt = new Date(Date.now() + 7 * 86400_000).toISOString()
     const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workout.id,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
+      cache_expires_at: expiresAt,
     })
     if (sampleErr) {
       console.error(`[strava-sync] workout_samples insert FAILED for ${detail.id}:`, sampleErr.message, sampleErr.details ?? '')
@@ -652,11 +655,13 @@ async function mergeIntoExisting(
   if (hasStreamData(streams)) {
     // Slett gamle samples (hvis Strava-import skjer flere ganger).
     await supabase.from('workout_samples').delete().eq('workout_id', workoutId).eq('source', 'strava')
+    const expiresAt = new Date(Date.now() + 7 * 86400_000).toISOString()
     const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workoutId,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
+      cache_expires_at: expiresAt,
     })
     if (sampleErr) {
       console.error(`[strava-sync] merge workout_samples insert FAILED for ${detail.id}:`, sampleErr.message)

@@ -9,9 +9,17 @@ import { stripe, priceIdForTier, isValidTier, type StripeTier } from '@/lib/stri
 // Henter eller oppretter Stripe Customer per bruker — customer_id lagres
 // midlertidig i subscriptions med status='incomplete' så vi kan koble webhook-
 // eventer tilbake selv om brukeren ikke fullfører checkout.
+//
+// promoCode (valgfri): hvis oppgitt slår vi opp aktiv promotion_code-ID via
+// Stripe og pre-fyller den i checkout. Da kan vi også sette
+// payment_method_collection='if_required' — Stripe hopper over kortinnsamling
+// hvis totalen blir 0 (100%-rabatt-kode). For vanlige brukere uten promo
+// LATER vi if_required være utelatt så Stripe krever kort som standard
+// (siden 30d trial ender med faktisk fakturering).
 
 export async function createCheckoutSession(
   tier: StripeTier,
+  promoCode?: string | null,
 ): Promise<{ url?: string; error?: string }> {
   if (!isValidTier(tier)) return { error: 'Ugyldig tier' }
   const priceId = priceIdForTier(tier)
@@ -43,10 +51,33 @@ export async function createCheckoutSession(
     }
   }
 
-  // 2. Opprett Checkout-session.
+  // 2. Hvis promo-kode oppgitt: slå opp Stripe promotion_code-ID basert på
+  // brukers kode-streng (BETA100 etc). Stripe Checkout krever promotion_code-ID
+  // i discounts-feltet, ikke kode-strengen.
+  let promotionCodeId: string | null = null
+  if (promoCode && promoCode.trim()) {
+    try {
+      const found = await stripe.promotionCodes.list({
+        code: promoCode.trim(),
+        active: true,
+        limit: 1,
+      })
+      promotionCodeId = found.data[0]?.id ?? null
+      if (!promotionCodeId) {
+        return { error: `Promo-kode "${promoCode}" finnes ikke eller er ikke aktiv` }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      return { error: `Promo-kode-oppslag feilet: ${msg}` }
+    }
+  }
+
+  // 3. Opprett Checkout-session.
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
   try {
-    const session = await stripe.checkout.sessions.create({
+    // Bygg session-params dynamisk. Vi setter discounts XOR
+    // allow_promotion_codes — Stripe tillater ikke begge samtidig.
+    const params: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -54,17 +85,24 @@ export async function createCheckoutSession(
         trial_period_days: 30,
         metadata: { tier, supabase_user_id: user.id },
       },
-      allow_promotion_codes: true,
-      // 'if_required' lar Stripe hoppe over kortinnsamling når totalen er 0
-      // (typisk 100%-promo-kode som BETA100). Brukere uten promo-kode må
-      // fortsatt oppgi kort siden trial er 30 dager og fakturering starter
-      // ved utløp — da MÅ Stripe ha betalingsmetode på fil.
-      payment_method_collection: 'if_required',
       success_url: `${baseUrl}/app/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pris?checkout=canceled`,
-      // For audit + idempotent webhook-håndtering.
       metadata: { tier, supabase_user_id: user.id },
-    })
+    }
+
+    if (promotionCodeId) {
+      // Promo-pre-fylt flow: tvinger discount, og hopper over kort hvis
+      // rabatten gjør totalen 0. Stripe sjekker amount-due selv —
+      // delvise rabatter krever fortsatt kort siden trial ender med betaling.
+      params.discounts = [{ promotion_code: promotionCodeId }]
+      params.payment_method_collection = 'if_required'
+    } else {
+      // Standard flow: tillat at brukeren skriver promo-kode på Stripe-siden,
+      // og krev kort (default) siden trial ender med faktisk fakturering.
+      params.allow_promotion_codes = true
+    }
+
+    const session = await stripe.checkout.sessions.create(params)
     if (!session.url) return { error: 'Stripe returnerte ingen checkout-URL' }
     return { url: session.url }
   } catch (e) {

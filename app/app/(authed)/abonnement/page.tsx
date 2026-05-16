@@ -7,7 +7,7 @@ import { ManageBillingButton } from './ManageBillingButton'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  searchParams: Promise<{ checkout?: string; expired?: string; session_id?: string }>
+  searchParams: Promise<{ checkout?: string; expired?: string; session_id?: string; error?: string }>
 }
 
 const STATUS_INFO: Record<string, { text: string; color: string }> = {
@@ -38,6 +38,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const sp = await searchParams
   const justCompleted = sp.checkout === 'success'
   const isExpired = sp.expired === 'true'
+  const portalError = sp.error ?? null
 
   const sub = await getActiveSubscription(supabase, user.id)
   const active = hasActiveAccess(sub)
@@ -60,6 +61,10 @@ export default async function AbonnementPage({ searchParams }: Props) {
         {isExpired && (
           <Toast color="#E11D48"
             text="Tilgangen din til X-PULSE er pauset. Aktiver eller endre abonnement under for å fortsette." />
+        )}
+
+        {portalError && (
+          <Toast color="#E11D48" text={portalError} />
         )}
 
         {!sub ? (

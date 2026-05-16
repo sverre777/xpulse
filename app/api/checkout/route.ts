@@ -15,6 +15,7 @@ import { isValidTier } from '@/lib/stripe'
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const tier = url.searchParams.get('tier') ?? ''
+  const promo = url.searchParams.get('promo')
 
   if (!isValidTier(tier)) {
     return NextResponse.redirect(new URL('/#priser', request.url))
@@ -24,11 +25,13 @@ export async function GET(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    const returnTo = encodeURIComponent(`/api/checkout?tier=${tier}`)
+    // Behold promo-koden i return_to slik at den brukes etter login.
+    const back = `/api/checkout?tier=${tier}${promo ? `&promo=${encodeURIComponent(promo)}` : ''}`
+    const returnTo = encodeURIComponent(back)
     return NextResponse.redirect(new URL(`/app?return_to=${returnTo}`, request.url))
   }
 
-  const res = await createCheckoutSession(tier)
+  const res = await createCheckoutSession(tier, promo)
   if (res.error || !res.url) {
     const msg = encodeURIComponent(res.error ?? 'Ukjent feil')
     return NextResponse.redirect(new URL(`/?checkout=error&msg=${msg}#priser`, request.url))

@@ -120,8 +120,12 @@ export async function register(prevState: AuthState, formData: FormData): Promis
     }
   }
 
+  void activeRole // unused etter onboarding-tvang — beholder fetch så profil-init kjører
   revalidatePath('/', 'layout')
-  redirect(activeRole === 'coach' ? '/app/trener' : '/app/dagbok')
+  // Ny bruker skal alltid velge abonnement før de slipper inn i appen.
+  // /onboarding/abonnement redirecter videre til /app/dagbok hvis brukeren
+  // allerede har en aktiv subscription (returkonto-tilfellet).
+  redirect('/onboarding/abonnement')
 }
 
 export async function logout() {

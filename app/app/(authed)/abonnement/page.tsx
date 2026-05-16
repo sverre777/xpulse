@@ -1,30 +1,22 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-
-// Placeholder for Fase F. Viser nåværende tier, status og perioder fra
-// subscriptions-tabellen. Full Customer Portal-integrasjon (endre tier,
-// betalingsmetode, faktura, kansellering) bygges i Fase F.
+import { getActiveSubscription, hasActiveAccess, tierLabel, tierPriceMonthly } from '@/lib/subscriptions'
+import { ManageBillingButton } from './ManageBillingButton'
 
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  searchParams: Promise<{ checkout?: string; session_id?: string }>
+  searchParams: Promise<{ checkout?: string; expired?: string; session_id?: string }>
 }
 
-const TIER_LABEL: Record<string, string> = {
-  athlete_pro: 'Athlete Pro · 59 kr/mnd',
-  trener_basic: 'Trener Basic · 199 kr/mnd',
-  trener_pro: 'Trener Pro · 279 kr/mnd',
-}
-
-const STATUS_LABEL: Record<string, { text: string; color: string }> = {
+const STATUS_INFO: Record<string, { text: string; color: string }> = {
   active:             { text: 'Aktiv',             color: '#28A86E' },
   trialing:           { text: 'Prøveperiode',      color: '#28A86E' },
-  past_due:           { text: 'Forfalt',           color: '#E11D48' },
+  past_due:           { text: 'Forfallet betaling', color: '#E11D48' },
   canceled:           { text: 'Kansellert',        color: '#8A8A96' },
   incomplete:         { text: 'Ufullført',         color: '#FFB300' },
-  incomplete_expired: { text: 'Utløpt ufullført',  color: '#8A8A96' },
+  incomplete_expired: { text: 'Utløpt',            color: '#8A8A96' },
   unpaid:             { text: 'Ubetalt',           color: '#E11D48' },
 }
 
@@ -45,16 +37,11 @@ export default async function AbonnementPage({ searchParams }: Props) {
 
   const sp = await searchParams
   const justCompleted = sp.checkout === 'success'
+  const isExpired = sp.expired === 'true'
 
-  const { data: sub } = await supabase
-    .from('subscriptions')
-    .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_subscription_id, created_at')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  const statusInfo = sub ? STATUS_LABEL[sub.status] ?? { text: sub.status, color: '#8A8A96' } : null
-  const tierLabel = sub ? TIER_LABEL[sub.tier] ?? sub.tier : null
-  const trialDaysLeft = sub?.status === 'trialing' ? daysUntil(sub.trial_end) : null
+  const sub = await getActiveSubscription(supabase, user.id)
+  const active = hasActiveAccess(sub)
+  const statusInfo = sub ? STATUS_INFO[sub.status] ?? { text: sub.status, color: '#8A8A96' } : null
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -67,16 +54,12 @@ export default async function AbonnementPage({ searchParams }: Props) {
         </div>
 
         {justCompleted && (
-          <div className="mb-4 p-3"
-            style={{
-              backgroundColor: 'rgba(40,168,110,0.08)',
-              border: '1px solid rgba(40,168,110,0.4)',
-              borderLeft: '3px solid #28A86E',
-            }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px' }}>
-              ✓ Abonnementet er aktivert. Webhook fra Stripe oppdaterer detaljene under når den ankommer.
-            </p>
-          </div>
+          <Toast color="#28A86E" text="✓ Abonnementet er aktivert. Detaljene under oppdateres når Stripe-webhook ankommer." />
+        )}
+
+        {isExpired && (
+          <Toast color="#E11D48"
+            text="Tilgangen din til X-PULSE er pauset. Aktiver eller endre abonnement under for å fortsette." />
         )}
 
         {!sub ? (
@@ -86,64 +69,81 @@ export default async function AbonnementPage({ searchParams }: Props) {
               Ingen aktivt abonnement
             </h2>
             <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px', lineHeight: 1.6 }}>
-              Du har 30 dagers gratis prøve på Athlete Pro, Trener Basic og Trener Pro.
-              Velg planen som passer deg.
+              30 dagers gratis prøve på Athlete Pro, Trener Basic og Trener Pro. Promo-kode kan brukes ved kassen.
             </p>
-            <Link href="/#priser"
+            <Link href="/onboarding/abonnement"
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: '#FF4500', color: '#FFFFFF', textDecoration: 'none',
               }}>
-              Se priser →
+              Velg abonnement →
             </Link>
           </section>
         ) : (
-          <section className="p-6"
-            style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-            <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em', margin: 0 }}>
-                {tierLabel}
-              </h2>
-              {statusInfo && (
-                <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    color: statusInfo.color,
-                    border: `1px solid ${statusInfo.color}`,
-                  }}>
-                  {statusInfo.text}
-                </span>
-              )}
-            </div>
+          <>
+            <section className="p-6"
+              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
+                  {tierLabel(sub.tier)} · {tierPriceMonthly(sub.tier)} kr/mnd
+                </h2>
+                {statusInfo && (
+                  <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      color: statusInfo.color,
+                      border: `1px solid ${statusInfo.color}`,
+                    }}>
+                    {sub.status === 'trialing' && daysUntil(sub.trial_end) != null
+                      ? `${statusInfo.text} — ${daysUntil(sub.trial_end)} dager igjen`
+                      : statusInfo.text}
+                  </span>
+                )}
+              </div>
 
-            <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-              {sub.status === 'trialing' && (
-                <Row label="Prøveperioden slutter"
-                  value={`${fmtDate(sub.trial_end)}${trialDaysLeft != null ? ` — ${trialDaysLeft} dager igjen` : ''}`} />
-              )}
-              {sub.status === 'active' && sub.current_period_end && (
-                <Row label={sub.cancel_at_period_end ? 'Abonnement kanselleres' : 'Neste fakturering'}
-                  value={fmtDate(sub.current_period_end)} />
-              )}
-              {sub.status === 'past_due' && (
-                <Row label="Status"
-                  value="Betaling feilet. Oppdater betalingsmetode for å unngå at tilgangen suspenderes." />
-              )}
-              {sub.status === 'canceled' && (
-                <Row label="Kansellert"
-                  value="Tilgang opphørte ved periodeslutt. Aktiver på nytt for å fortsette." />
-              )}
-            </dl>
+              <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                {sub.status === 'trialing' && (
+                  <Row label="Prøveperioden slutter" value={fmtDate(sub.trial_end)} />
+                )}
+                {sub.status === 'active' && sub.cancel_at_period_end && (
+                  <Row label="Abonnement kanselleres"
+                    value={`${fmtDate(sub.current_period_end)} — du beholder tilgang til denne datoen`} />
+                )}
+                {sub.status === 'active' && !sub.cancel_at_period_end && (
+                  <Row label="Neste fakturering" value={fmtDate(sub.current_period_end)} />
+                )}
+                {sub.status === 'past_due' && (
+                  <Row label="Betaling feilet"
+                    value="Oppdater betalingsmetode for å unngå at tilgangen suspenderes." />
+                )}
+                {(sub.status === 'canceled' || sub.status === 'incomplete_expired' || sub.status === 'unpaid') && (
+                  <Row label="Status"
+                    value={`Tilgang opphørt ${fmtDate(sub.current_period_end)}. Aktiver for å fortsette.`} />
+                )}
+              </dl>
+            </section>
 
-            <div className="mt-6 p-3"
-              style={{ backgroundColor: 'rgba(255,176,0,0.05)', border: '1px solid rgba(255,176,0,0.3)' }}>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FFB300', fontSize: '12px', letterSpacing: '0.04em' }}>
-                Endring av tier, betalingsmetode og kansellering via Stripe Customer Portal kommer i neste fase.
-                Inntil da: kontakt <a href="mailto:support@x-pulse.no" style={{ color: '#FFB300', textDecoration: 'underline' }}>support@x-pulse.no</a>.
+            <section className="mt-4 p-6"
+              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              <h3 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em', margin: 0 }}>
+                Administrer abonnement
+              </h3>
+              <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', lineHeight: 1.6 }}>
+                Endre tier, oppdater betalingsmetode, last ned faktura eller kanseller — alt via Stripe sin sikre kundeportal.
               </p>
-            </div>
-          </section>
+              <ManageBillingButton
+                label={
+                  sub.status === 'canceled' || sub.status === 'incomplete_expired'
+                    ? 'Aktiver abonnement på nytt'
+                    : sub.status === 'past_due'
+                      ? 'Oppdater betalingsmetode'
+                      : 'Administrer abonnement'
+                }
+                accent={active && sub.status !== 'past_due' ? '#FF4500' : '#E11D48'}
+              />
+            </section>
+          </>
         )}
       </div>
     </div>
@@ -157,6 +157,21 @@ function Row({ label, value }: { label: string; value: string }) {
         {label}:
       </dt>
       <dd style={{ margin: 0 }}>{value}</dd>
+    </div>
+  )
+}
+
+function Toast({ color, text }: { color: string; text: string }) {
+  return (
+    <div className="mb-4 p-3"
+      style={{
+        backgroundColor: `${color}14`,
+        border: `1px solid ${color}66`,
+        borderLeft: `3px solid ${color}`,
+      }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color, fontSize: '13px' }}>
+        {text}
+      </p>
     </div>
   )
 }

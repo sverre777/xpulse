@@ -157,9 +157,16 @@ async function handleSubscriptionDeleted(
   supabase: ReturnType<typeof getServiceSupabase>,
   sub: Stripe.Subscription,
 ) {
+  // Phase 72 grace-period: marker expired_at + planlegg datasletting om 90d.
+  const now = new Date()
+  const deletionDate = new Date(now.getTime() + 90 * 86400_000).toISOString()
   await supabase
     .from('subscriptions')
-    .update({ status: 'canceled' })
+    .update({
+      status: 'canceled',
+      expired_at: now.toISOString(),
+      data_deletion_scheduled_at: deletionDate,
+    })
     .eq('stripe_subscription_id', sub.id)
 }
 
@@ -206,6 +213,10 @@ async function upsertSubscription(
   const trialEnd = subRaw.trial_end
     ? new Date(subRaw.trial_end * 1000).toISOString() : null
 
+  // Reactivation: hvis status går fra canceled/past_due tilbake til active/trialing,
+  // nullstill grace-period-felter så brukeren får full tilgang igjen.
+  const clearGrace = sub.status === 'active' || sub.status === 'trialing'
+
   const { error } = await supabase
     .from('subscriptions')
     .upsert({
@@ -217,6 +228,7 @@ async function upsertSubscription(
       current_period_end: periodEnd,
       trial_end: trialEnd,
       cancel_at_period_end: subRaw.cancel_at_period_end ?? false,
+      ...(clearGrace ? { expired_at: null, data_deletion_scheduled_at: null } : {}),
     }, { onConflict: 'stripe_subscription_id' })
 
   if (error) throw new Error(`subscriptions-upsert: ${error.message}`)

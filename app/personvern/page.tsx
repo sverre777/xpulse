@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PersonvernPage() {
   return (
-    <LegalLayout title="Personvernerklæring" updatedAt="2026-05-16">
+    <LegalLayout title="Personvernerklæring" updatedAt="2026-05-18">
       <LegalP>
         Denne personvernerklæringen forklarer hvordan X-PULSE samler inn, bruker og beskytter
         personopplysningene dine når du bruker tjenesten. Vi følger personopplysningsloven og
@@ -136,13 +136,71 @@ export default function PersonvernPage() {
         For Strava sin egen personvernpolicy: <a href="https://www.strava.com/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>strava.com/legal/privacy</a>.
       </LegalP>
 
-      <LegalH2>10. Endringer</LegalH2>
+      <LegalH2 id="stripe">10. Stripe (betalingsbehandling)</LegalH2>
+      <LegalP>
+        X-PULSE bruker Stripe (Stripe Inc., USA / Stripe Ireland Limited, EU) for å håndtere abonnement og betalinger.
+      </LegalP>
+      <LegalP><strong>Stripe behandler:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Kortinformasjon (sikret med PCI-DSS, lagres aldri på våre servere)</LegalLI>
+        <LegalLI>E-post-adresse</LegalLI>
+        <LegalLI>Faktureringsadresse hvis du oppgir det</LegalLI>
+        <LegalLI>Transaksjonsinformasjon</LegalLI>
+      </LegalUL>
+      <LegalP>
+        Stripe sin databehandling:{' '}
+        <a href="https://stripe.com/legal/privacy-center" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>
+          stripe.com/legal/privacy-center
+        </a>
+      </LegalP>
+      <LegalP><strong>Vi mottar fra Stripe:</strong> subscription-status, tier, periode-dato. Vi mottar ALDRI kortnummer eller CVC.</LegalP>
+      <LegalP>
+        <strong>Sletting av Stripe-data:</strong> Når du sletter kontoen i X-PULSE, deaktiverer vi Stripe-abonnementet umiddelbart.
+        Stripe beholder transaksjonshistorikk for regnskap/skatte-purposes i henhold til deres retningslinjer (typisk 7 år).
+        Du kan be Stripe om sletting direkte hvis du ønsker det.
+      </LegalP>
+
+      <LegalH2 id="data-eksport">11. Data-eksport (Right to Data Portability)</LegalH2>
+      <LegalP>
+        Du har til enhver tid rett til å eksportere alle dine personopplysninger lagret i X-PULSE.
+        Eksport er tilgjengelig via{' '}
+        <a href="/app/innstillinger/data-eksport" style={{ color: '#FF4500' }}>/app/innstillinger/data-eksport</a>{' '}
+        i JSON-format.
+      </LegalP>
+      <LegalP><strong>Eksporten inkluderer:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Alle treningsøkter (egen og importert)</LegalLI>
+        <LegalLI>Alle planlagte økter og treningsplaner</LegalLI>
+        <LegalLI>Fysiologiske tester og laktat-målinger</LegalLI>
+        <LegalLI>Profil-data (eksklusivt passord og sensitive felt)</LegalLI>
+        <LegalLI>Maler og innstillinger</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Eksporten inkluderer IKKE:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Andre brukeres data (selv om du er trener)</LegalLI>
+        <LegalLI>Stripe fakturering-historikk (tilgjengelig i Stripe Customer Portal)</LegalLI>
+        <LegalLI>Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</LegalLI>
+      </LegalUL>
+
+      <LegalH2 id="sletting">12. Sletting av data (Right to Erasure)</LegalH2>
+      <LegalP>
+        Du kan slette kontoen og all data permanent når som helst ved å kontakte{' '}
+        <a href="mailto:support@x-pulse.no?subject=Sletting%20av%20konto" style={{ color: '#FF4500' }}>support@x-pulse.no</a>.
+        Slettingen er irreversibel.
+      </LegalP>
+      <LegalP>
+        Hvis ditt abonnement utløper og du ikke aktiverer det innen 90 dager, slettes all trenings-
+        og plan-data automatisk i tråd med GDPR Article 17. Du blir varslet på e-post 30, 7 og
+        1 dag før slettingen skjer, så du har full mulighet til å eksportere først eller reaktivere.
+      </LegalP>
+
+      <LegalH2>13. Endringer</LegalH2>
       <LegalP>
         Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
         i appen før de trer i kraft. Sist oppdatert: <strong>2026-05-16</strong>.
       </LegalP>
 
-      <LegalH2>11. Kontakt</LegalH2>
+      <LegalH2>14. Kontakt</LegalH2>
       <LegalP>
         For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

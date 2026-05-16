@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function VilkarPage() {
   return (
-    <LegalLayout title="Brukervilkår" updatedAt="2026-05-16">
+    <LegalLayout title="Brukervilkår" updatedAt="2026-05-18">
       <LegalP>
         Disse vilkårene gjelder for din bruk av X-PULSE («tjenesten»). Ved å registrere
         deg eller bruke tjenesten godtar du vilkårene. Tjenesten leveres av
@@ -106,7 +106,37 @@ export default function VilkarPage() {
         forsett, eller annet som ikke kan begrenses etter ufravikelig lov.
       </LegalP>
 
-      <LegalH2>10. Strava-integrasjon</LegalH2>
+      <LegalH2 id="abonnement">10. Abonnement og betaling</LegalH2>
+      <LegalP>X-PULSE tilbyr følgende abonnement-tiers:</LegalP>
+      <LegalUL>
+        <LegalLI>Athlete Pro 59 kr/mnd</LegalLI>
+        <LegalLI>Athlete Pro AI 129 kr/mnd (kommer)</LegalLI>
+        <LegalLI>Athlete Ultimate AI 399 kr/mnd (kommer)</LegalLI>
+        <LegalLI>Trener Basic 199 kr/mnd</LegalLI>
+        <LegalLI>Trener Pro 279 kr/mnd</LegalLI>
+        <LegalLI>Trener Pro AI 499 kr/mnd (kommer)</LegalLI>
+        <LegalLI>Trener Ultimate AI 999 kr/mnd (kommer)</LegalLI>
+      </LegalUL>
+
+      <LegalP><strong>Gratis prøveperiode:</strong> Alle nye brukere får 30 dagers gratis prøveperiode. Etter prøveperiodens utløp må aktivt abonnement være på plass for å fortsette å bruke /app-tjenestene.</LegalP>
+
+      <LegalP><strong>Fakturering:</strong> Abonnement fornyes automatisk månedlig via Stripe. Du kan kansellere når som helst via{' '}
+        <a href="/app/abonnement" style={{ color: '#FF4500' }}>/app/abonnement</a>. Etter kansellering har du tilgang ut betalingsperioden.
+      </LegalP>
+
+      <LegalP><strong>Data ved abonnement-utløp:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Du mister tilgang til /app-funksjonene umiddelbart</LegalLI>
+        <LegalLI>Dataen din BEHOLDES i 90 dager etter utløp</LegalLI>
+        <LegalLI>Du kan eksportere alle dine data når som helst via{' '}
+          <a href="/app/innstillinger/data-eksport" style={{ color: '#FF4500' }}>/app/innstillinger/data-eksport</a></LegalLI>
+        <LegalLI>Du kan aktivere abonnementet på nytt innen 90 dager for å gjenopprette tilgang med all data intakt</LegalLI>
+        <LegalLI>Etter 90 dager slettes all data automatisk i tråd med GDPR</LegalLI>
+      </LegalUL>
+
+      <LegalP><strong>Varsling:</strong> Vi sender e-post-varsler 30, 7 og 1 dag før data slettes.</LegalP>
+
+      <LegalH2>11. Strava-integrasjon</LegalH2>
       <LegalP>
         Ved å bruke Strava-integrasjonen i X-PULSE samtykker du til{' '}
         <a href="https://www.strava.com/legal/api" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>
@@ -125,14 +155,14 @@ export default function VilkarPage() {
         begrenses eller fjernes.
       </LegalP>
 
-      <LegalH2>11. Endringer i vilkårene</LegalH2>
+      <LegalH2>12. Endringer i vilkårene</LegalH2>
       <LegalP>
         Vi kan endre vilkårene. Vesentlige endringer varsles på e-post eller i appen minst
         30 dager før de trer i kraft. Hvis du ikke godtar endringene, kan du si opp
         kontoen.
       </LegalP>
 
-      <LegalH2>12. Lovvalg og tvisteløsning</LegalH2>
+      <LegalH2>13. Lovvalg og tvisteløsning</LegalH2>
       <LegalP>
         Vilkårene reguleres av norsk rett. Tvister søkes løst i minnelighet. Hvis det
         ikke lykkes, er <strong>[Verneting]</strong> avtalt verneting.
@@ -142,7 +172,7 @@ export default function VilkarPage() {
         nettbaserte tvisteløsningsplattform.
       </LegalP>
 
-      <LegalH2>13. Kontakt</LegalH2>
+      <LegalH2>14. Kontakt</LegalH2>
       <LegalP>
         Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

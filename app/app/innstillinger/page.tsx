@@ -82,6 +82,20 @@ export default async function InnstillingerPage({ searchParams }: Props) {
             description="Pace, distanse, vekt og temperatur"
             accent={accent}
           />
+          <SettingsCategoryCard
+            href="/app/abonnement"
+            glyph="◯"
+            title="Abonnement"
+            description="Tier, status, betalingsmetode og faktura"
+            accent={accent}
+          />
+          <SettingsCategoryCard
+            href="/app/innstillinger/data-eksport"
+            glyph="↓"
+            title="Data-eksport (GDPR)"
+            description="Last ned alle dine data i JSON-format"
+            accent={accent}
+          />
 
           {!isCoachMode && (
             <SettingsCategoryCard

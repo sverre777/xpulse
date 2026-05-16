@@ -452,7 +452,17 @@
   .pricing-section { padding:100px 56px; background:var(--dark); }
   .pricing-inner { max-width:1280px; }
   .pricing-lead { font-size:15px; line-height:1.7; color:rgba(242,240,236,0.55); max-width:560px; margin:-40px 0 56px; }
-  .pricing-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; margin-bottom:56px; }
+  .pricing-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; margin-bottom:24px; }
+  .pricing-grid-athlete { grid-template-columns:repeat(3, 1fr); margin-bottom:0; }
+  .pricing-grid-trainer { grid-template-columns:repeat(4, 1fr); margin-bottom:0; }
+  .pricing-group-label {
+    font-family:'Barlow Condensed', sans-serif; font-weight:700;
+    font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
+    margin:0 0 14px; display:flex; align-items:center; gap:12px;
+  }
+  .pricing-group-label::before {
+    content:''; display:inline-block; width:24px; height:2px; background:currentColor;
+  }
   .price-card {
     background:var(--surface); padding:32px 24px;
     display:flex; flex-direction:column; gap:16px; position:relative;
@@ -597,9 +607,8 @@
   @media (max-width:1100px) and (min-width:901px) {
     .sport-cards-grid { grid-template-columns:repeat(2, 1fr); }
     .trener-grid { grid-template-columns:repeat(2, 1fr); }
-    .pricing-grid { grid-template-columns:repeat(3, 1fr); }
-    .pricing-grid > .price-card:nth-child(4) { grid-column:1; }
-    .pricing-grid > .price-card:nth-child(5) { grid-column:2 / span 2; }
+    .pricing-grid-athlete { grid-template-columns:repeat(3, 1fr); }
+    .pricing-grid-trainer { grid-template-columns:repeat(2, 1fr); }
     .footer-grid { grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
   }
 
@@ -1051,48 +1060,67 @@
   <div class="pricing-inner">
     <div class="section-label">Pris</div>
     <h2 class="section-title">VELG PLANEN<br>SOM PASSER.</h2>
-    <p class="pricing-lead">30 dagers gratis prøve på Athlete Pro og Trener Pro. Vipps eller kort, ingen bindingstid. Si opp når som helst.</p>
+    <p class="pricing-lead">30 dagers gratis prøve. Vipps eller kort, ingen bindingstid. Si opp når som helst.</p>
 
-    <div class="pricing-grid">
+    <div class="pricing-group-label" style="color:var(--orange);">For utøvere</div>
+    <div class="pricing-grid pricing-grid-athlete">
       <article class="price-card">
         <div class="price-tier-label">Athlete Pro</div>
         <div class="price-amount"><span class="price-num">59</span><span class="price-cur">kr/mnd</span></div>
         <ul class="price-features">
-          <li>Klokkesync inkludert</li>
-          <li>Aktivitets-basert logging</li>
-          <li>Plan, Dagbok, Årsplan, Analyse</li>
-          <li>Tester og PR-historikk</li>
-          <li>Skipark og utstyrsstyring</li>
-          <li>Korrelasjoner (HRV, form, prestasjon)</li>
+          <li>Full klokkesync (Strava + .fit fra Garmin/Polar/Coros/Suunto/Wahoo)</li>
+          <li>Treningsplan med periodisering (årsplan, faser, samlinger)</li>
+          <li>Detaljert øktlogging — sport-spesifikk for alle utholdenhetsidretter</li>
+          <li>Pulskurve, sone-fordeling, lap-tabell, dyp øktanalyse</li>
+          <li>Belastning (ATL/CTL/TSB), trender, PR-er, tester og laktat</li>
+          <li>Plan vs gjennomført-sammenligning + maler</li>
         </ul>
-        <a href="/app/registrer" class="price-cta">Start 30 dagers gratis prøve</a>
+        <a href="/api/checkout?tier=athlete_pro" class="price-cta">Start 30 dagers gratis prøve</a>
       </article>
 
       <article class="price-card price-card-coming">
-        <div class="price-tier-label">Athlete Pro AI <span class="price-badge price-badge-coming">Kommer snart</span></div>
+        <div class="price-tier-label">Athlete Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
         <div class="price-amount"><span class="price-num">129</span><span class="price-cur">kr/mnd</span></div>
         <ul class="price-features">
-          <li>Alt i Pro</li>
-          <li>Dyp AI-analyse av treningsdata</li>
-          <li>Auto-tolkning av økter</li>
-          <li>Anbefalte økter</li>
-          <li>Personlige innsikter</li>
+          <li>Alt i Athlete Pro pluss AI-funksjoner (Claude Haiku)</li>
+          <li>Auto-tagging av lap (oppvarming, intervall, pause, nedjogg)</li>
+          <li>Ukentlig AI-sammendrag av treningsuken</li>
+          <li>Korrelasjon-analyse: HRV vs prestasjon, søvn vs energi</li>
+          <li>Dyp uke-, måned-, og årsanalyse med AI-tolkning</li>
+          <li>Ingen chat eller plangenerering — det får du i Ultimate</li>
         </ul>
-        <a href="/funksjoner/klokkesync#waitlist" class="price-cta price-cta-secondary">Bli varslet</a>
+        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Pro%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
       </article>
 
+      <article class="price-card price-card-coming">
+        <div class="price-tier-label">Athlete Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
+        <div class="price-amount"><span class="price-num">399</span><span class="price-cur">kr/mnd</span></div>
+        <ul class="price-features">
+          <li>Alt i Pro AI pluss premium AI (Claude Sonnet/Opus)</li>
+          <li>Chat med AI-coach 24/7 — kun treningsrelatert</li>
+          <li>Dagbok via chat + bilde/PDF/lyd-import</li>
+          <li>Komplett plangenerering basert på dine mål</li>
+          <li>Adaptiv plan: justerer seg ved sykdom og dårlige dager</li>
+          <li>Engasjement-velger: Verktøy- / Coach- / Autopilot-modus</li>
+        </ul>
+        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Ultimate%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
+      </article>
+    </div>
+
+    <div class="pricing-group-label" style="color:var(--blue); margin-top: 40px;">For trenere</div>
+    <div class="pricing-grid pricing-grid-trainer">
       <article class="price-card">
         <div class="price-tier-label">Trener Basic</div>
         <div class="price-amount"><span class="price-num">199</span><span class="price-cur">kr/mnd</span></div>
         <ul class="price-features">
-          <li>Trener-panel med utøveroversikt</li>
-          <li>Maks 10 utøvere</li>
-          <li>0 inkluderte lisenser</li>
-          <li>Plan- og årsplan-maler med push</li>
-          <li>Kommentarer og direktemeldinger</li>
-          <li>Grupper</li>
+          <li>Inntil 10 utøvere (utøvere betaler eget Athlete-tier)</li>
+          <li>Treningsplan-bygging + plan-maler (uker, måneder, sesonger)</li>
+          <li>Push planer/økter til utøvere</li>
+          <li>Trener-kalender med Delta-funksjon</li>
+          <li>Innboks/meldinger med utøvere</li>
+          <li>Trener-tilgang til utøvers analyse (med samtykke)</li>
         </ul>
-        <a href="/app/registrer?role=coach&amp;tier=basic" class="price-cta price-cta-secondary">Velg Basic</a>
+        <a href="/api/checkout?tier=trener_basic" class="price-cta">Start 30 dagers gratis prøve</a>
       </article>
 
       <article class="price-card price-card-featured">
@@ -1101,25 +1129,40 @@
         <div class="price-amount"><span class="price-num">279</span><span class="price-cur">kr/mnd</span></div>
         <ul class="price-features">
           <li>Alt i Trener Basic</li>
-          <li>Ubegrenset utøvere</li>
+          <li>Ubegrenset antall utøvere</li>
           <li>5 inkluderte Athlete Pro-lisenser</li>
-          <li>Egen Athlete Pro-profil for trener</li>
-          <li>Sammenligning av utøvere</li>
+          <li>Sammenligning på tvers av utøvere</li>
+          <li>Avansert gruppe-trening (felles økter)</li>
+          <li>Lag-statistikk</li>
         </ul>
-        <a href="/app/registrer?role=coach&amp;tier=pro" class="price-cta">Start 30 dagers gratis prøve</a>
+        <a href="/api/checkout?tier=trener_pro" class="price-cta">Start 30 dagers gratis prøve</a>
       </article>
 
       <article class="price-card price-card-coming">
-        <div class="price-tier-label">Trener Pro AI <span class="price-badge price-badge-coming">Kommer snart</span></div>
+        <div class="price-tier-label">Trener Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
         <div class="price-amount"><span class="price-num">499</span><span class="price-cur">kr/mnd</span></div>
         <ul class="price-features">
-          <li>Alt i Trener Pro</li>
-          <li>10 inkluderte lisenser</li>
-          <li>AI-analyse på alle utøveres data</li>
-          <li>Auto-genererte ukesoppsummeringer</li>
-          <li>AI-anbefalinger til hver utøver</li>
+          <li>Alt i Trener Pro pluss AI for trener og lag</li>
+          <li>Athlete Pro AI for treneren selv</li>
+          <li>AI-analyse på alle utøvere du følger</li>
+          <li>Auto-tagging og korrelasjon for hele laget</li>
+          <li>AI-sammendrag av lagets utvikling per uke</li>
         </ul>
-        <a href="/funksjoner/klokkesync#waitlist" class="price-cta price-cta-secondary">Bli varslet</a>
+        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Pro%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
+      </article>
+
+      <article class="price-card price-card-coming">
+        <div class="price-tier-label">Trener Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
+        <div class="price-amount"><span class="price-num">999</span><span class="price-cur">kr/mnd</span></div>
+        <ul class="price-features">
+          <li>Alt i Trener Pro AI pluss premium AI for trener-arbeid</li>
+          <li>Athlete Ultimate AI for trenerens egen trening</li>
+          <li>10 Athlete Pro AI-lisenser inkludert</li>
+          <li>Plan-bygging via chat eller bilde</li>
+          <li>Lag-prediksjon, adaptive lag-planer, custom rapporter (PDF)</li>
+          <li>Engasjement-velger med trener-perspektiv</li>
+        </ul>
+        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Ultimate%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
       </article>
     </div>
 
@@ -1131,26 +1174,34 @@
             <tr>
               <th class="pc-feat">Funksjon</th>
               <th>Athlete Pro</th>
-              <th>Athlete Pro AI</th>
+              <th>Athlete Pro AI 🟡</th>
+              <th>Athlete Ultimate AI 🟡</th>
               <th>Trener Basic</th>
               <th>Trener Pro</th>
-              <th>Trener Pro AI</th>
+              <th>Trener Pro AI 🟡</th>
+              <th>Trener Ultimate AI 🟡</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>Plan, Dagbok, Analyse</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Klokkesync</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Tester og PR-historikk</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Skipark og utstyrsstyring</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>HRV/form/prestasjon-korrelasjoner</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>AI-tolkning og anbefalte økter</td><td>–</td><td>✓</td><td>–</td><td>–</td><td>✓</td></tr>
-            <tr><td>Trener-panel med utøveroversikt</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Push av plan- og årsplan-maler</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Kommentarer og direktemeldinger</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Sammenligning av utøvere</td><td>–</td><td>–</td><td>–</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Maks utøvere</td><td>—</td><td>—</td><td>10</td><td>Ubegrenset</td><td>Ubegrenset</td></tr>
-            <tr><td>Inkluderte Athlete Pro-lisenser</td><td>—</td><td>—</td><td>0</td><td>5</td><td>10</td></tr>
-            <tr><td>AI-ukesoppsummeringer per utøver</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Plan, Dagbok, Analyse</td><td>✓</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Klokkesync (Strava + .fit)</td><td>✓</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Tester og PR-historikk</td><td>✓</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Skipark og utstyrsstyring</td><td>✓</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>HRV/form/prestasjon-korrelasjoner</td><td>✓</td><td>✓</td><td>✓</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Auto-tagging av lap + ukentlig AI-sammendrag</td><td>–</td><td>✓</td><td>✓</td><td>–</td><td>–</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Chat med AI-coach 24/7</td><td>–</td><td>–</td><td>✓</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Dagbok via chat + bilde/PDF/lyd-import</td><td>–</td><td>–</td><td>✓</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Adaptiv plan-generering (sykdom/restitusjon)</td><td>–</td><td>–</td><td>✓</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Engasjement-velger (Verktøy/Coach/Autopilot)</td><td>–</td><td>–</td><td>✓</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Trener-panel med utøveroversikt</td><td>–</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Push av plan- og årsplan-maler</td><td>–</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Kommentarer og direktemeldinger</td><td>–</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Sammenligning av utøvere</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Plan-bygging via chat eller bilde (trener)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Lag-prediksjon + adaptive lag-planer</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Custom rapporter (PDF for sponsor/forbund)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
+            <tr><td>Maks utøvere</td><td>—</td><td>—</td><td>—</td><td>10</td><td>Ubegrenset</td><td>Ubegrenset</td><td>Ubegrenset</td></tr>
+            <tr><td>Inkluderte Athlete-lisenser</td><td>—</td><td>—</td><td>—</td><td>0</td><td>5 Pro</td><td>5 Pro</td><td>10 Pro AI</td></tr>
           </tbody>
         </table>
       </div>

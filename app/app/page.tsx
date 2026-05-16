@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useActionState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import { login, AuthState } from '@/app/actions/auth'
 import { AuthCard } from '@/components/AuthCard'
 import { FormField } from '@/components/FormField'
@@ -10,7 +12,17 @@ import { PublicFooter } from '@/components/legal/PublicFooter'
 const initialState: AuthState = {}
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
+  )
+}
+
+function LoginInner() {
   const [state, formAction, pending] = useActionState(login, initialState)
+  const searchParams = useSearchParams()
+  const returnTo = searchParams?.get('return_to') ?? ''
 
   return (
     <>
@@ -20,6 +32,9 @@ export default function LoginPage() {
     >
       <AuthCard title="Logg inn" subtitle="Velkommen tilbake">
         <form action={formAction} className="flex flex-col gap-5">
+          {/* return_to videresendes til login-action via hidden input —
+              auth.ts validerer at det er en intern path (open-redirect-safe). */}
+          {returnTo && <input type="hidden" name="return_to" value={returnTo} />}
           <FormField
             label="E-post"
             name="email"

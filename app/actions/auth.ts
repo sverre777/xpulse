@@ -9,11 +9,20 @@ export type AuthState = {
   error?: string
 }
 
+// Trygg return_to-validering: kun interne paths (starter med /), ikke
+// protocol-relative (//) eller cross-origin (http*://). Forhindrer open-redirect.
+function safeReturnTo(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null
+  return raw
+}
+
 export async function login(prevState: AuthState, formData: FormData): Promise<AuthState> {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const returnTo = safeReturnTo(formData.get('return_to') as string | null)
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
@@ -25,6 +34,14 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
 
   if (!user) {
     return { error: 'Kunne ikke hente bruker' }
+  }
+
+  // Hvis brukeren kom hit fra checkout (?return_to=/api/checkout?tier=X) eller
+  // andre dyplenker: hopp dit i stedet for default-landingen. Trygt validert
+  // til kun interne paths over.
+  if (returnTo) {
+    revalidatePath('/', 'layout')
+    redirect(returnTo)
   }
 
   const { data: profile } = await supabase

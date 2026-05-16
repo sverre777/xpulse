@@ -5,13 +5,19 @@ import { createClient } from '@supabase/supabase-js'
 // Strava API Agreement § 7 krever sletting av rå data innen 7d.
 //
 // Aggregerte verdier på workouts og workout_activities beholdes — kun
-// workout_samples-radens sekund-data fjernes.
+// workout_samples-radens sekund-data fjernes (hr_samples, watt_samples,
+// pace_samples, altitude_samples, cadence_samples, distance_samples,
+// temperature_samples).
 //
-// Setup på Netlify Scheduled Functions (eksternt):
-//   schedule.add('0 3 * * *', '/api/cron/cleanup-strava-samples')
-// Authorization: Bearer ${CRON_SECRET}
+// Triggers:
+//   - Netlify Scheduled Function (netlify/functions/cleanup-strava-samples.ts):
+//     POST med Authorization: Bearer ${CRON_SECRET}, daglig 03:00.
+//   - Manuell test fra browser: GET fra https://x-pulse.no/api/cron/cleanup-strava-samples
+//     med samme Bearer-header.
+//
+// Begge HTTP-metoder bruker samme handler.
 
-export async function GET(request: Request) {
+async function handler(request: Request) {
   const auth = request.headers.get('authorization') ?? ''
   const expected = `Bearer ${process.env.CRON_SECRET ?? ''}`
   if (!process.env.CRON_SECRET || auth !== expected) {
@@ -45,3 +51,6 @@ export async function GET(request: Request) {
   console.log(`[cron cleanup-strava-samples] slettet ${count} forfalte Strava-samples`)
   return NextResponse.json({ ok: true, deleted_count: count, ran_at: nowIso })
 }
+
+export async function GET(request: Request) { return handler(request) }
+export async function POST(request: Request) { return handler(request) }

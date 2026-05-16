@@ -29,7 +29,7 @@ export default function KontaktPage() {
       <LegalH2>Personvern og data-sletting</LegalH2>
       <LegalP>
         Be om sletting av dine data:{' '}
-        <a href="mailto:privacy@x-pulse.no" style={{ color: '#FF4500' }}>privacy@x-pulse.no</a>
+        <a href="mailto:support@x-pulse.no?subject=Sletting%20av%20data" style={{ color: '#FF4500' }}>support@x-pulse.no</a>
       </LegalP>
 
       <LegalH2>Selskap</LegalH2>

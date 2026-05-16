@@ -55,6 +55,11 @@ export async function createCheckoutSession(
         metadata: { tier, supabase_user_id: user.id },
       },
       allow_promotion_codes: true,
+      // 'if_required' lar Stripe hoppe over kortinnsamling når totalen er 0
+      // (typisk 100%-promo-kode som BETA100). Brukere uten promo-kode må
+      // fortsatt oppgi kort siden trial er 30 dager og fakturering starter
+      // ved utløp — da MÅ Stripe ha betalingsmetode på fil.
+      payment_method_collection: 'if_required',
       success_url: `${baseUrl}/app/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pris?checkout=canceled`,
       // For audit + idempotent webhook-håndtering.

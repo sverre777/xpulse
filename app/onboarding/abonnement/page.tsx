@@ -75,7 +75,7 @@ const TRAINER_TIERS: Tier[] = [
     features: [
       'Alt i Trener Basic',
       'Ubegrenset antall utøvere',
-      '3 inkluderte Athlete Pro-lisenser',
+      'Egen Athlete Pro-profil for trener + 3 lisenser til utøvere',
     ],
   },
   {
@@ -83,7 +83,7 @@ const TRAINER_TIERS: Tier[] = [
     priceTier: null, status: 'soon',
     features: [
       'Alt i Trener Pro + AI for trener og lag',
-      '5 inkluderte Athlete Pro-lisenser',
+      'Egen Athlete Pro-profil for trener + 5 lisenser til utøvere',
       'AI-analyse på utøvere',
     ],
   },
@@ -92,7 +92,7 @@ const TRAINER_TIERS: Tier[] = [
     priceTier: null, status: 'soon',
     features: [
       'Alt i Trener Pro AI + premium AI',
-      '10 inkluderte Athlete Pro-lisenser',
+      'Egen Athlete Pro-profil for trener + 10 lisenser til utøvere',
       'Plan-bygging via chat eller bilde',
       'Lag-prediksjon, custom rapporter',
     ],

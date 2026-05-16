@@ -445,12 +445,16 @@ export const STRENGTH_SUBCATEGORIES = [
 ]
 
 // Utholdenhetsformer som får sone-fordeling inline.
+// Hybrid-formene (Hyrox/HIIT/Crossfit) regnes som utholdenhet for UI-formål
+// så pulssoner kan registreres — styrke-loggen kan i tillegg fylles ut via
+// separat rad eller eksterne øvelser. Hver hybrid-aktivitet kan ha begge.
 export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([
   'Løping', 'Langrenn', 'Rulleski', 'SkiErg', 'Sykling',
   'Svømming basseng 25m', 'Svømming basseng 50m', 'Svømming åpent vann',
   'Roing', 'Stairmaster', 'Ellipsemaskin',
   'Padling', 'Kajak/Padling', 'Fjellsport', 'Skøyter',
   'Orientering', 'Turgåing', 'Tur',
+  'Hyrox', 'HIIT', 'Crossfit',
 ])
 
 export function isEnduranceMovement(name: string | null | undefined): boolean {

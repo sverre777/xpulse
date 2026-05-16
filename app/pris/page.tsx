@@ -265,11 +265,11 @@ function TierCta({ tier, accent }: { tier: Tier; accent: string }) {
       </a>
     )
   }
-  // Stripe checkout aktiveres i Fase C — foreløpig peker knapp til
-  // /login med return_to slik at flyten er klar for kobling.
-  const returnTo = encodeURIComponent(`/api/checkout?tier=${tier.priceTier}`)
+  // Direkte til checkout-route: utlogget bruker blir sendt til /login av
+  // route-en selv (og redirected tilbake hit etter innlogging). Innlogget
+  // bruker går rett til Stripe Checkout.
   return (
-    <Link href={`/login?return_to=${returnTo}`}
+    <Link href={`/api/checkout?tier=${tier.priceTier}`}
       className="block text-center px-4 py-3 text-sm tracking-widest uppercase transition-opacity hover:opacity-90"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",

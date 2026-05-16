@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ConnectWithStravaButton } from '@/components/strava/StravaBrand'
 import { StravaInfoBox } from '@/components/strava/StravaInfoBox'
 import { StravaDisconnectModal } from '@/components/strava/StravaDisconnectModal'
+import { StravaCompactInfo } from '@/components/strava/StravaCompactInfo'
 import {
   listSyncableActivities,
   importStravaActivity,
@@ -249,6 +250,10 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         <input type="checkbox" checked={conn.auto_sync} onChange={handleAutoSyncToggle} disabled={pending} />
         Auto-synk nye aktiviteter (sjekkes hver 5. min)
       </label>
+
+      {/* Kompakt regel-påminnelse — vises etter tilkobling som lite-dominant
+          motvekt til StravaInfoBox-en (som vises før tilkobling). */}
+      <StravaCompactInfo />
 
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <select value={syncMode} onChange={e => setSyncMode(e.target.value as SyncMode)}

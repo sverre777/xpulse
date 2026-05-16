@@ -40,11 +40,12 @@ export function LegalLayout({
   )
 }
 
-export function LegalH2({ children }: { children: ReactNode }) {
+export function LegalH2({ children, id }: { children: ReactNode; id?: string }) {
   return (
     <h2
+      id={id}
       className="text-2xl mt-6 mb-1"
-      style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.05em' }}
+      style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.05em', scrollMarginTop: '80px' }}
     >
       {children}
     </h2>

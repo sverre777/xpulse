@@ -91,7 +91,7 @@ export default function PersonvernPage() {
         samtykke fra foresatte. Vi samler ikke bevisst inn data fra barn under 13 år.
       </LegalP>
 
-      <LegalH2>9. Strava-integrasjon</LegalH2>
+      <LegalH2 id="strava">9. Strava-integrasjon</LegalH2>
       <LegalP>
         X-PULSE støtter import av treningsdata fra Strava. Ved å koble til Strava-kontoen
         din samtykker du til følgende databehandling:

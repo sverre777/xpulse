@@ -238,6 +238,9 @@ export interface StravaActivitySummary {
 export interface StravaActivityDetail extends StravaActivitySummary {
   description: string | null
   laps: StravaLap[]
+  // Strava-eksklusive aggregater på activity-detail.
+  suffer_score?: number | null
+  calories?: number | null
 }
 
 export interface StravaLap {
@@ -251,7 +254,10 @@ export interface StravaLap {
   average_heartrate: number | null
   max_heartrate: number | null
   average_watts: number | null
+  max_watts?: number | null
   average_speed: number
+  max_speed?: number | null
+  average_cadence?: number | null
 }
 
 export interface StravaStream {
@@ -268,6 +274,8 @@ export interface StravaStreamSet {
   velocity_smooth?: StravaStream
   altitude?: StravaStream
   cadence?: StravaStream
+  distance?: StravaStream
+  temp?: StravaStream
 }
 
 // ── Sport-mapping Strava → X-PULSE bevegelsesform/underkategori ──
@@ -332,6 +340,7 @@ const STRAVA_SPORT_MAP: Record<string, StravaMovementMapping> = {
   WeightTraining:     { movement: 'Styrke',                  subcategory: null },
   Workout:            { movement: 'Styrke',                  subcategory: null },
   Crossfit:           { movement: 'Crossfit',                subcategory: null },
+  HighIntensityIntervalTraining: { movement: 'HIIT',           subcategory: null },
   Yoga:               { movement: 'Yoga',                    subcategory: null },
   // Pilates er ikke yoga (brukeren presisert) — fall tilbake til Annet
   // i stedet for å mappe feil. Egen Pilates-bevegelsesform finnes ikke.

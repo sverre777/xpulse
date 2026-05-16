@@ -10,6 +10,7 @@ import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { TrainerAttendanceSection } from './TrainerAttendanceSection'
+import { ImportSourceBadge } from './ImportSourceBadge'
 
 export type WorkoutModalState =
   | { kind: 'edit'; workoutId: string; formMode: 'plan' | 'dagbok' }
@@ -127,17 +128,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                 ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
                 : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
             </span>
-            {defaults?.imported_from === 'strava' && (
-              <span title="Importert fra Strava — felter overskrevet ved re-sync"
-                className="px-1.5 py-0.5 text-xs tracking-widest uppercase"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#FC4C02',
-                  border: '1px solid #FC4C02',
-                  backgroundColor: 'rgba(252,76,2,0.08)',
-                }}>
-                ↻ Strava
-              </span>
+            {defaults?.imported_from && (
+              <ImportSourceBadge source={defaults.imported_from} />
             )}
           </div>
           <div className="flex items-center gap-2">

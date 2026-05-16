@@ -10,6 +10,7 @@ import {
   type StravaStreamSet,
   type StravaLap,
 } from '@/lib/strava'
+import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
 
 // Cron-route for auto-synk fra Strava. Trigges av Netlify Scheduled
 // Function (se netlify/functions/strava-sync.ts) som kjøres */15 * * * *.
@@ -159,6 +160,8 @@ async function createWorkoutFromStrava(
       avg_heart_rate: detail.average_heartrate ?? null,
       max_heart_rate: detail.max_heartrate ?? null,
       elevation_meters: Math.round(detail.total_elevation_gain),
+      suffer_score: detail.suffer_score ?? null,
+      calories: detail.calories ?? null,
       is_planned: false,
       is_completed: true,
     })
@@ -166,6 +169,10 @@ async function createWorkoutFromStrava(
     .single()
   if (error || !workout) return null
 
+  // Aktiviteter per lap. Speil felter med server-actionen (max_hr, watt,
+  // speed, cadence) så cron-importerte økter har samme metadata som
+  // manuelt synkede. Eksplisitt error-logging fanger fase-51-mangler.
+  let activityIds: Array<{ id: string; sort_order: number }> = []
   if (detail.laps && detail.laps.length > 0) {
     const rows = detail.laps.map((lap: StravaLap, idx: number) => ({
       workout_id: workout.id,
@@ -173,21 +180,66 @@ async function createWorkoutFromStrava(
       duration_seconds: lap.elapsed_time,
       distance_meters: Math.round(lap.distance),
       avg_heart_rate: lap.average_heartrate ?? null,
+      max_hr: lap.max_heartrate ?? null,
+      avg_watts: lap.average_watts ?? null,
+      max_watts: lap.max_watts ?? null,
+      avg_speed_ms: lap.average_speed ?? null,
+      max_speed_ms: lap.max_speed ?? null,
+      avg_cadence: lap.average_cadence ?? null,
       elevation_gain_m: Math.round(lap.total_elevation_gain),
       sort_order: idx,
       strava_lap_index: lap.lap_index,
       external_id: `strava_lap_${lap.id}`,
     }))
-    await supabase.from('workout_activities').insert(rows)
+    const { data: inserted, error: lapErr } = await supabase
+      .from('workout_activities')
+      .insert(rows)
+      .select('id, sort_order')
+    if (lapErr) {
+      console.error(`[strava-cron] workout_activities insert FAILED for ${detail.id}:`, lapErr.message)
+    } else {
+      activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
+    }
   }
 
   if (hasStreamData(streams)) {
-    await supabase.from('workout_samples').insert({
+    const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workout.id,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
     })
+    if (sampleErr) {
+      console.error(`[strava-cron] workout_samples insert FAILED for ${detail.id}:`, sampleErr.message)
+    }
+  }
+
+  // Sone-fordeling per lap fra hr-streams.
+  if (streams.heartrate?.data && detail.laps && activityIds.length > 0) {
+    const heartZones = await getHeartZonesForUser(supabase, userId)
+    if (heartZones.length > 0) {
+      const time = streams.time?.data ?? []
+      const hr = streams.heartrate.data
+      const hrSamples = hr.map((v, i) => ({ t: time[i] ?? i, hr: v }))
+      const idBySortOrder = new Map(activityIds.map(a => [a.sort_order, a.id]))
+      let cumStart = 0
+      for (let idx = 0; idx < detail.laps.length; idx++) {
+        const lap = detail.laps[idx]
+        const cumEnd = cumStart + lap.elapsed_time
+        const aid = idBySortOrder.get(idx)
+        if (aid) {
+          const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+          const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+          if (total > 0) {
+            await supabase
+              .from('workout_activities')
+              .update({ zones: { ...minutes, Hurtighet: 0 } })
+              .eq('id', aid)
+          }
+        }
+        cumStart = cumEnd
+      }
+    }
   }
 
   await supabase.from('imported_activities').insert({
@@ -201,7 +253,8 @@ async function createWorkoutFromStrava(
 }
 
 function hasStreamData(s: StravaStreamSet): boolean {
-  return !!(s.heartrate || s.watts || s.velocity_smooth || s.altitude || s.cadence)
+  return !!(s.heartrate || s.watts || s.velocity_smooth || s.altitude ||
+    s.cadence || s.distance || s.temp)
 }
 
 function mapStreamsToSamples(streams: StravaStreamSet) {
@@ -211,11 +264,13 @@ function mapStreamsToSamples(streams: StravaStreamSet) {
     return s.data.map((val, i) => ({ t: time[i] ?? i, [key]: val }))
   }
   return {
-    hr_samples:       arr(streams.heartrate, 'hr'),
-    watt_samples:     arr(streams.watts, 'w'),
-    pace_samples:     arr(streams.velocity_smooth, 'mps'),
-    altitude_samples: arr(streams.altitude, 'alt'),
-    cadence_samples:  arr(streams.cadence, 'cad'),
+    hr_samples:          arr(streams.heartrate, 'hr'),
+    watt_samples:        arr(streams.watts, 'w'),
+    pace_samples:        arr(streams.velocity_smooth, 'mps'),
+    altitude_samples:    arr(streams.altitude, 'alt'),
+    cadence_samples:     arr(streams.cadence, 'cad'),
+    distance_samples:    arr(streams.distance, 'd'),
+    temperature_samples: arr(streams.temp, 'temp'),
   }
 }
 

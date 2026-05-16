@@ -7,7 +7,7 @@ import { ActivityType, CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, Worko
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
-import { PoweredByStravaBadge } from '@/components/strava/StravaBrand'
+import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { getCalendarWorkouts, reorderWorkouts } from '@/app/actions/workouts'
 import { WorkoutModal, WorkoutModalState } from '@/components/workout/WorkoutModal'
@@ -500,9 +500,9 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
               }}
             />
           )}
-          {w.imported_from === 'strava' && (
+          {w.imported_from && (
             <span style={{ marginRight: '3px', verticalAlign: 'middle' }}>
-              <PoweredByStravaBadge compact />
+              <ImportSourceBadge source={w.imported_from} compact />
             </span>
           )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
@@ -919,9 +919,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
-                                      {w.imported_from === 'strava' && (
+                                      {w.imported_from && (
                                         <span style={{ marginRight: '4px', verticalAlign: 'middle' }}>
-                                          <PoweredByStravaBadge compact />
+                                          <ImportSourceBadge source={w.imported_from} compact />
                                         </span>
                                       )}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}

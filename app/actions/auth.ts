@@ -134,3 +134,60 @@ export async function logout() {
   revalidatePath('/', 'layout')
   redirect('/app')
 }
+
+export type PasswordResetState = {
+  error?: string
+  sent?: boolean
+}
+
+// Sender Supabase sin "Reset password"-email. Lenken i e-posten peker til
+// /nytt-passord (vår side); Supabase setter en recovery-sesjon i cookies
+// før brukeren lander der, så `supabase.auth.updateUser({ password })` virker
+// uten ekstra token-håndtering.
+//
+// Vi returnerer alltid { sent: true } uavhengig av om e-posten faktisk fant
+// en bruker — så vi ikke lekker hvem som har konto via timing/feilmelding.
+export async function requestPasswordReset(
+  prevState: PasswordResetState,
+  formData: FormData,
+): Promise<PasswordResetState> {
+  const email = (formData.get('email') as string)?.trim()
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'Ugyldig e-postadresse' }
+  }
+  const supabase = await createClient()
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${baseUrl}/nytt-passord`,
+  })
+  // Logg evt. feil server-side, men ikke vis til klient (unngå user-enumeration).
+  if (error) console.warn('[requestPasswordReset]', error.message)
+  return { sent: true }
+}
+
+// Setter nytt passord på recovery-sesjonen som Supabase opprettet da
+// brukeren klikket på e-post-lenken. Hvis sesjonen er utløpt eller mangler,
+// returnerer Supabase feil — vi viser den uten transformering.
+export async function resetPassword(
+  prevState: PasswordResetState,
+  formData: FormData,
+): Promise<PasswordResetState> {
+  const password = formData.get('password') as string
+  const confirm = formData.get('confirm') as string
+  if (!password || password.length < 8) {
+    return { error: 'Passord må være minst 8 tegn' }
+  }
+  if (password !== confirm) {
+    return { error: 'Passordene matcher ikke' }
+  }
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) {
+    return { error: error.message }
+  }
+  // Logg ut recovery-sesjonen så brukeren må logge inn på nytt med det nye
+  // passordet — bekrefter at det fungerer og rydder opp etter en-gangs-token.
+  await supabase.auth.signOut()
+  revalidatePath('/', 'layout')
+  redirect('/app?reset=ok')
+}

@@ -52,6 +52,26 @@ function LoginInner() {
             autoComplete="current-password"
           />
 
+          <div className="-mt-2 text-right">
+            <Link href="/glemt-passord"
+              className="text-xs tracking-wide transition-opacity hover:opacity-80"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Glemt passord?
+            </Link>
+          </div>
+
+          {searchParams?.get('reset') === 'ok' && (
+            <p className="text-sm px-3 py-2"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#28A86E',
+                backgroundColor: 'rgba(40,168,110,0.1)',
+                border: '1px solid rgba(40,168,110,0.3)',
+              }}>
+              Passord oppdatert — logg inn med ditt nye passord.
+            </p>
+          )}
+
           {state?.error && (
             <p
               className="text-sm px-3 py-2"

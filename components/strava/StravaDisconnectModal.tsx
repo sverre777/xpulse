@@ -48,8 +48,12 @@ export function StravaDisconnectModal({ open, onClose }: Props) {
         setDisconnecting(false)
         return
       }
-      // Redirect til innstillinger med toast-melding.
-      router.push(`/app/innstillinger?strava_disconnect=ok&deleted=${data.deleted_workouts ?? 0}`)
+      // Redirect tilbake til klokkesync-siden — server-component re-fetcher
+      // strava_connections via revalidatePath i route-handleren, så UI viser
+      // "Koble til Strava" øyeblikkelig. router.refresh() i tillegg er forsikring
+      // hvis Router Cache holder fast på prefetched RSC payload.
+      router.push(`/app/innstillinger/klokkesync?strava=frakoblet&detail=Slettet+${data.deleted_workouts ?? 0}+%C3%B8kter`)
+      router.refresh()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
       setDisconnecting(false)

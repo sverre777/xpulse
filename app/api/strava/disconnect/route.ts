@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 // Strava API Agreement § 5.4 + § 2.14.6: ved frakobling MÅ ALL Strava-data
@@ -10,9 +11,12 @@ import { createClient } from '@/lib/supabase/server'
 //   3. workouts (Strava-importerte) — imported_from='strava'
 //   4. imported_activities-rader (source='strava')
 //   5. Revoke OAuth-token hos Strava via deauthorize-endepunktet
-//   6. Nullstill tokens + sett disconnected_at på strava_connections
+//   6. SLETT hele strava_connections-raden (ikke bare nullstill tokens)
 //
-// Returner antall slettede økter så UI kan vise "X økter slettet"-toast.
+// Tidligere oppdaterte vi bare access_token=null + disconnected_at=now, men
+// UI-en i /app/innstillinger/klokkesync sjekker rad-eksistens og viste fortsatt
+// "Frakoble"-knappen siden raden eksisterte. Manuell DELETE FROM strava_connections
+// løste det — så vi gjør det automatisk her i stedet.
 
 export async function POST() {
   const supabase = await createClient()
@@ -65,7 +69,7 @@ export async function POST() {
     .eq('user_id', user.id).eq('source', 'strava')
   const deletedImports = ic ?? 0
 
-  // 6. Hent access_token før revoke + nullstilling.
+  // 6. Hent access_token før revoke + rad-sletting.
   const { data: conn } = await supabase
     .from('strava_connections')
     .select('access_token')
@@ -91,16 +95,23 @@ export async function POST() {
     }
   }
 
-  // 8. Nullstill tokens + marker disconnected_at. Vi sletter ikke raden så
-  // brukeren ser at frakobling skjedde + når.
-  const now = new Date().toISOString()
-  await supabase.from('strava_connections')
-    .update({
-      access_token: null,
-      refresh_token: null,
-      disconnected_at: now,
-    })
+  // 8. SLETT hele strava_connections-raden. UI sjekker rad-eksistens, så
+  // soft-delete (nullstilling) lot "Frakoble"-knappen vises etter frakobling.
+  const { error: delErr } = await supabase
+    .from('strava_connections')
+    .delete()
     .eq('user_id', user.id)
+  if (delErr) {
+    console.error('[strava-disconnect] DELETE feilet:', delErr.message)
+    return NextResponse.json({
+      ok: false,
+      error: `Frakobling delvis fullført, men kunne ikke slette tilkoblings-rad: ${delErr.message}`,
+      deleted_workouts: deletedWorkouts,
+    }, { status: 500 })
+  }
+
+  // 9. Invalider klokkesync-siden så server-komponenten re-fetcher.
+  revalidatePath('/app/innstillinger/klokkesync')
 
   return NextResponse.json({
     ok: true,
@@ -109,6 +120,5 @@ export async function POST() {
     deleted_samples: deletedSamples,
     deleted_imports: deletedImports,
     oauth_revoked: revoked,
-    disconnected_at: now,
   })
 }

@@ -55,6 +55,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const tokens = await exchangeCodeForTokens(code)
+    // disconnected_at: null eksplisitt — hvis raden eksisterer fra en gammel
+    // soft-disconnect (før vi byttet til DELETE i disconnect-route), må vi
+    // overskrive feltet ellers ser den fortsatt "frakoblet" ut for noen kall.
     const { error: upsertErr } = await supabase
       .from('strava_connections')
       .upsert({
@@ -65,7 +68,8 @@ export async function GET(req: NextRequest) {
         token_expires_at: new Date(tokens.expires_at * 1000).toISOString(),
         scope: tokens.scope ?? null,
         auto_sync: true,
-      })
+        disconnected_at: null,
+      }, { onConflict: 'user_id' })
     if (upsertErr) {
       console.error('[strava-callback] upsert error:', upsertErr)
       return NextResponse.redirect(settingsUrl('lagring-feilet', upsertErr.message))

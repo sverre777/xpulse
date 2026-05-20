@@ -140,10 +140,10 @@ export type PasswordResetState = {
   sent?: boolean
 }
 
-// Sender Supabase sin "Reset password"-email. Lenken i e-posten peker til
-// /nytt-passord (vår side); Supabase setter en recovery-sesjon i cookies
-// før brukeren lander der, så `supabase.auth.updateUser({ password })` virker
-// uten ekstra token-håndtering.
+// Sender Supabase sin "Reset password"-email. Lenken peker via vår
+// /auth/confirm-route som bytter code/token mot en recovery-sesjon FØR
+// redirect til /nytt-passord. Uten /auth/confirm-steget har klienten ingen
+// sesjon når den lander, og updateUser feiler med "Auth session missing".
 //
 // Vi returnerer alltid { sent: true } uavhengig av om e-posten faktisk fant
 // en bruker — så vi ikke lekker hvem som har konto via timing/feilmelding.
@@ -158,7 +158,7 @@ export async function requestPasswordReset(
   const supabase = await createClient()
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/nytt-passord`,
+    redirectTo: `${baseUrl}/auth/confirm?next=/nytt-passord`,
   })
   // Logg evt. feil server-side, men ikke vis til klient (unngå user-enumeration).
   if (error) console.warn('[requestPasswordReset]', error.message)

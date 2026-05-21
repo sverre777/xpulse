@@ -1,20 +1,25 @@
-'use client'
-
 import Link from 'next/link'
-import { useActionState } from 'react'
-import { resetPassword, type PasswordResetState } from '@/app/actions/auth'
+import { createClient } from '@/lib/supabase/server'
 import { AuthCard } from '@/components/AuthCard'
-import { FormField } from '@/components/FormField'
 import { PublicFooter } from '@/components/legal/PublicFooter'
+import { NyttPassordForm } from './NyttPassordForm'
 
-const initialState: PasswordResetState = {}
+// Server-component: verifiserer at brukeren har en aktiv (recovery-)sesjon
+// FØR vi viser passord-feltene. Uten dette ville bruker kunne skrive inn
+// nytt passord på en side uten sesjon, klikke "Sett passord", og få en
+// stille feil — eller verre: tro at det fungerte fordi vi redirecter til
+// /app uansett.
+//
+// Sesjonen settes via /auth/confirm-routen som exchanger code/token-hash
+// fra Supabase email-lenken. Hvis brukeren kommer hit direkte uten den
+// flowen, eller hvis cookies ble strippet underveis: ingen sesjon →
+// vis tydelig "Lenken er utløpt"-melding med vei tilbake til /glemt-passord.
 
-// Bruker lander her etter klikk på reset-link fra e-post. Supabase har
-// allerede satt en recovery-sesjon i cookies, så `supabase.auth.updateUser`
-// virker uten manuell token-håndtering. Vi logger ut sesjonen etter
-// passord-save og sender brukeren tilbake til /app?reset=ok.
-export default function NyttPassordPage() {
-  const [state, formAction, pending] = useActionState(resetPassword, initialState)
+export const dynamic = 'force-dynamic'
+
+export default async function NyttPassordPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <>
@@ -22,62 +27,43 @@ export default function NyttPassordPage() {
       className="min-h-screen flex items-center justify-center px-4 py-12"
       style={{ backgroundColor: '#0A0A0B' }}
     >
-      <AuthCard title="Sett nytt passord" subtitle="Velg et passord på minst 8 tegn">
-        <form action={formAction} className="flex flex-col gap-5">
-          <FormField
-            label="Nytt passord"
-            name="password"
-            type="password"
-            placeholder="••••••••"
-            required
-            autoComplete="new-password"
-          />
-          <FormField
-            label="Bekreft nytt passord"
-            name="confirm"
-            type="password"
-            placeholder="••••••••"
-            required
-            autoComplete="new-password"
-          />
-
-          {state?.error && (
-            <p className="text-sm px-3 py-2"
+      {user ? (
+        <AuthCard title="Sett nytt passord" subtitle={`Logget inn som ${user.email ?? 'recovery-sesjon'}`}>
+          <NyttPassordForm />
+        </AuthCard>
+      ) : (
+        <AuthCard title="Lenken er utløpt" subtitle="Recovery-sesjon mangler">
+          <div className="flex flex-col gap-5">
+            <p className="text-sm"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+              Denne siden krever en aktiv recovery-sesjon fra reset-lenken i e-posten.
+              Vanlige årsaker til at den mangler:
+            </p>
+            <ul className="text-sm pl-5"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+              <li>Lenken ble klikket på en annen enhet enn der reset ble bedt om.</li>
+              <li>Lenken er allerede brukt (engangs-token).</li>
+              <li>Lenken er utløpt (vanligvis 1 time).</li>
+            </ul>
+            <Link href="/glemt-passord"
+              className="text-center text-sm tracking-widest uppercase py-3 transition-opacity hover:opacity-80"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#FF4500',
-                backgroundColor: 'rgba(255,69,0,0.1)',
-                border: '1px solid rgba(255,69,0,0.3)',
+                backgroundColor: '#FF4500', color: '#F0F0F2',
+                textDecoration: 'none',
               }}>
-              {state.error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: pending ? '#7A2200' : '#FF4500',
-              color: '#F0F0F2',
-              cursor: pending ? 'not-allowed' : 'pointer',
-              opacity: pending ? 0.7 : 1,
-              border: 'none',
-            }}
-          >
-            {pending ? 'Oppdaterer …' : 'Sett nytt passord'}
-          </button>
-
-          <div className="text-center">
-            <Link href="/app"
-              className="text-sm transition-opacity hover:opacity-80"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-              ← Tilbake til innlogging
+              Be om ny reset-link
             </Link>
+            <div className="text-center">
+              <Link href="/app"
+                className="text-sm transition-opacity hover:opacity-80"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                ← Tilbake til innlogging
+              </Link>
+            </div>
           </div>
-        </form>
-      </AuthCard>
+        </AuthCard>
+      )}
     </main>
     <PublicFooter />
     </>

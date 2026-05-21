@@ -166,8 +166,9 @@ export async function requestPasswordReset(
 }
 
 // Setter nytt passord på recovery-sesjonen som Supabase opprettet da
-// brukeren klikket på e-post-lenken. Hvis sesjonen er utløpt eller mangler,
-// returnerer Supabase feil — vi viser den uten transformering.
+// brukeren klikket på e-post-lenken. Vi sjekker sesjon EKSPLISITT først
+// så vi kan gi en konkret feilmelding hvis recovery-cookien mangler
+// (i stedet for å la updateUser feile stille med "Auth session missing").
 export async function resetPassword(
   prevState: PasswordResetState,
   formData: FormData,
@@ -181,12 +182,28 @@ export async function resetPassword(
     return { error: 'Passordene matcher ikke' }
   }
   const supabase = await createClient()
-  const { error } = await supabase.auth.updateUser({ password })
-  if (error) {
-    return { error: error.message }
+  // Verifiser at vi har en sesjon før vi prøver å oppdatere passordet.
+  // Uten dette kan updateUser feile med uklar melding eller stille "lykkes"
+  // på en utløpt sesjon — UI ser ok ut, men passordet ble aldri endret.
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      error: 'Recovery-sesjonen mangler eller er utløpt. Be om en ny reset-link på /glemt-passord.',
+    }
   }
+  const { error, data } = await supabase.auth.updateUser({ password })
+  if (error) {
+    console.warn('[resetPassword] updateUser failed:', error.message, 'user:', user.id)
+    return { error: `Kunne ikke endre passord: ${error.message}` }
+  }
+  if (!data.user) {
+    console.warn('[resetPassword] updateUser returned no user — sesjon antakelig ugyldig')
+    return { error: 'Passord-endring feilet. Be om en ny reset-link.' }
+  }
+  console.log('[resetPassword] success for user:', data.user.id)
   // Logg ut recovery-sesjonen så brukeren må logge inn på nytt med det nye
-  // passordet — bekrefter at det fungerer og rydder opp etter en-gangs-token.
+  // passordet — bekrefter at det faktisk fungerer og rydder opp etter
+  // en-gangs-token.
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/app?reset=ok')

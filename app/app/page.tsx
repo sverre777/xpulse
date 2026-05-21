@@ -72,6 +72,18 @@ function LoginInner() {
             </p>
           )}
 
+          {searchParams?.get('error') && (
+            <p className="text-sm px-3 py-2"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: '#FF4500',
+                backgroundColor: 'rgba(255,69,0,0.1)',
+                border: '1px solid rgba(255,69,0,0.3)',
+              }}>
+              {searchParams.get('error')}
+            </p>
+          )}
+
           {state?.error && (
             <p
               className="text-sm px-3 py-2"

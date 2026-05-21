@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
 import type { Role } from '@/lib/types'
 
 export type RoleActionState = {
@@ -38,6 +39,16 @@ export async function switchActiveRole(
   }
   if (target === 'coach' && !profile.has_coach_role) {
     return { error: 'Du har ikke trener-rolle. Legg den til først.' }
+  }
+  // Tier-gate på rolle-bytte: krever Trener Basic/Pro for å aktivere coach-modus.
+  // Uten dette kunne Athlete Pro-bruker med has_coach_role=true ende opp i
+  // coach-modus uten å betale, og UI ville rendres med blå farger på utøver-
+  // ruter (siden /app/trener er blokkert i middleware).
+  if (target === 'coach') {
+    const sub = await getActiveSubscription(supabase, user.id)
+    if (!hasCoachTier(sub)) {
+      return { error: 'Trener-modus krever Trener Basic eller Trener Pro. Bytt plan på /app/abonnement.' }
+    }
   }
 
   if (profile.active_role !== target) {

@@ -5,6 +5,7 @@ import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
 import { InboxTabs } from '@/components/inbox/InboxTabs'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
+import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
 import type { Role } from '@/lib/types'
 
 export default async function InboxLayout({ children }: { children: React.ReactNode }) {
@@ -12,16 +13,22 @@ export default async function InboxLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/app')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, has_athlete_role, has_coach_role, active_role, role')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, sub, unreadInboxCount] = await Promise.all([
+    supabase.from('profiles')
+      .select('full_name, has_athlete_role, has_coach_role, active_role, role')
+      .eq('id', user.id)
+      .single(),
+    getActiveSubscription(supabase, user.id),
+    getInboxUnreadCount(),
+  ])
 
-  const activeRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
+  const rawActiveRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
-  const unreadInboxCount = await getInboxUnreadCount()
+  // Coach-modus uten trener-tier → fall tilbake til athlete (oransje MainNav).
+  const activeRole: Role = (rawActiveRole === 'coach' && !hasCoachTier(sub))
+    ? 'athlete'
+    : rawActiveRole
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>

@@ -4,26 +4,33 @@ import { MainNav } from '@/components/layout/MainNav'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
+import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
 import type { Role } from '@/lib/types'
 
 // Innstillinger er en delt rute — tilgjengelig i både utøver- og trener-modus.
-// Layouten velger nav basert på active_role (samme mønster som /app/innboks).
+// Layouten velger nav basert på active_role, med fall-back til athlete hvis
+// brukeren mangler trener-tier (unngår blå styling på utøver-betalt konto).
 
 export default async function InnstillingerLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/app')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, has_athlete_role, has_coach_role, active_role, role')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, sub, unreadInboxCount] = await Promise.all([
+    supabase.from('profiles')
+      .select('full_name, has_athlete_role, has_coach_role, active_role, role')
+      .eq('id', user.id)
+      .single(),
+    getActiveSubscription(supabase, user.id),
+    getInboxUnreadCount(),
+  ])
 
-  const activeRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
+  const rawActiveRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
-  const unreadInboxCount = await getInboxUnreadCount()
+  const activeRole: Role = (rawActiveRole === 'coach' && !hasCoachTier(sub))
+    ? 'athlete'
+    : rawActiveRole
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>

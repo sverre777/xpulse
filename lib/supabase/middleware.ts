@@ -1,9 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { hasActiveAccess, type ActiveSubscription } from '@/lib/subscriptions'
+import { hasActiveAccess, hasCoachTier, type ActiveSubscription } from '@/lib/subscriptions'
 
 // Subscription-unntak: ruter brukeren må kunne nå selv uten aktivt abonnement
-// (administrer, eksporter data, GDPR-handlinger).
+// (administrer, eksporter data, GDPR-handlinger). Disse er også eksempte fra
+// tier-gating så Athlete Pro-bruker kan nå /app/abonnement uten loop.
 const SUB_EXEMPT_PREFIXES = [
   '/app/abonnement',
   '/app/innstillinger',
@@ -14,6 +15,13 @@ const SUB_EXEMPT_PREFIXES = [
 
 function isSubExempt(pathname: string): boolean {
   return SUB_EXEMPT_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
+}
+
+// Trener-prefix: ruter som krever Trener Basic eller Trener Pro tier.
+// Tier-gate gjøres I MIDDLEWARE — ikke layout — fordi layout→layout-redirects
+// kan skape sykluser (forrige forsøk på dette: 3a83319/15a0766 → rollback).
+function isCoachRoute(pathname: string): boolean {
+  return pathname === '/app/trener' || pathname.startsWith('/app/trener/')
 }
 
 export async function updateSession(request: NextRequest) {
@@ -99,6 +107,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Betalingsmur: sjekk subscription for /app/* (unntatt SUB_EXEMPT_PREFIXES).
+  // Tier-gate /app/trener/*: krever Trener Basic eller Pro.
   if (isAppRoute && !isSubExempt(pathname)) {
     const { data: sub } = await supabase
       .from('subscriptions')
@@ -115,6 +124,16 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = '/app/abonnement'
       url.searchParams.set('expired', 'true')
+      return NextResponse.redirect(url)
+    }
+    // Tier-gate: Athlete Pro-bruker som forsøker /app/trener/* sendes til
+    // abonnement-siden med oppfordring til å bytte plan via Stripe Customer
+    // Portal. /app/abonnement er i SUB_EXEMPT_PREFIXES (ikke isCoachRoute),
+    // så det blir aldri redirect-loop.
+    if (isCoachRoute(pathname) && !hasCoachTier(sub as ActiveSubscription)) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/app/abonnement'
+      url.searchParams.set('upgrade', 'trener')
       return NextResponse.redirect(url)
     }
   }

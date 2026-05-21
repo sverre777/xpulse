@@ -20,11 +20,11 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   if (!data) redirect('/app')
   const { profile } = data
 
-  // I utøver-modus skal trener-seksjonen hoppes over. active_role er kilden;
-  // fallback til legacy role for gamle profiler.
+  // Roller fra profil. All rolle/tier-baserte redirects gjøres i middleware
+  // (lib/supabase/middleware.ts) — layouts skal kun rendre UI, aldri redirecte
+  // basert på rolle. Tidligere "if activeRole=coach redirect /app/trener" her
+  // skapte sirkulær loop med /app/trener/layout, derfor flyttet ut.
   const activeRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
-  if (activeRole === 'coach') redirect('/app/trener')
-
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
 

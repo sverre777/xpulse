@@ -66,3 +66,11 @@ export function tierPriceMonthly(tier: SubscriptionTier): number {
     case 'trener_pro':   return 279
   }
 }
+
+// Tilgang til /app/trener/* krever Trener Basic eller Pro. has_coach_role
+// på profilen er KUN rolle-toggle, ikke betalingsbevis — så vi sjekker tier
+// eksplisitt i middleware (ikke layout, fordi layout→layout kan loope).
+export function hasCoachTier(sub: ActiveSubscription | null): boolean {
+  if (!hasActiveAccess(sub)) return false
+  return sub!.tier === 'trener_basic' || sub!.tier === 'trener_pro'
+}

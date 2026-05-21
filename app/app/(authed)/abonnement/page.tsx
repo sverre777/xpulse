@@ -7,7 +7,7 @@ import { ManageBillingButton } from './ManageBillingButton'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  searchParams: Promise<{ checkout?: string; expired?: string; session_id?: string; error?: string; upgrade?: string; switch?: string }>
+  searchParams: Promise<{ checkout?: string; expired?: string; session_id?: string; error?: string }>
 }
 
 const STATUS_INFO: Record<string, { text: string; color: string }> = {
@@ -39,14 +39,6 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const justCompleted = sp.checkout === 'success'
   const isExpired = sp.expired === 'true'
   const portalError = sp.error ?? null
-  // ?upgrade=trener: bruker prøvde å nå /app/trener uten trener-tier.
-  // ?switch=athlete_pro|trener_basic|trener_pro: bruker prøvde å starte ny
-  // checkout for et annet tier mens de allerede har et aktivt abonnement.
-  // Stripe Customer Portal håndterer plan-bytte med pro-rata automatisk.
-  const upgradeFlow = sp.upgrade === 'trener'
-  const switchTier = (sp.switch === 'athlete_pro' || sp.switch === 'trener_basic' || sp.switch === 'trener_pro')
-    ? sp.switch as 'athlete_pro' | 'trener_basic' | 'trener_pro'
-    : null
 
   const sub = await getActiveSubscription(supabase, user.id)
   const active = hasActiveAccess(sub)
@@ -73,16 +65,6 @@ export default async function AbonnementPage({ searchParams }: Props) {
 
         {portalError && (
           <Toast color="#E11D48" text={portalError} />
-        )}
-
-        {upgradeFlow && (
-          <Toast color="#FFB300"
-            text="Trener-funksjoner krever Trener Basic (199 kr/mnd) eller Trener Pro (279 kr/mnd). Klikk 'Administrer abonnement' under for å bytte plan — Stripe regner ut mellomlegg automatisk." />
-        )}
-
-        {switchTier && (
-          <Toast color="#FFB300"
-            text={`Du har allerede et aktivt abonnement. For å bytte til ${tierLabel(switchTier)} (${tierPriceMonthly(switchTier)} kr/mnd) klikk 'Administrer abonnement' under — Stripe håndterer pro-rata-justering for inneværende periode.`} />
         )}
 
         {!sub ? (

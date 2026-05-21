@@ -66,3 +66,12 @@ export function tierPriceMonthly(tier: SubscriptionTier): number {
     case 'trener_pro':   return 279
   }
 }
+
+// Tilgang til trener-ruter (/app/trener/*) krever Trener Basic eller Pro.
+// has_coach_role på profil er IKKE nok — det er bare rolle-toggle, ikke
+// betalingsbevis. Bruker med Athlete Pro + has_coach_role har historisk
+// kunne nådd trener-funksjoner uten å betale for trener-abonnement.
+export function hasCoachTier(sub: ActiveSubscription | null): boolean {
+  if (!hasActiveAccess(sub)) return false
+  return sub!.tier === 'trener_basic' || sub!.tier === 'trener_pro'
+}

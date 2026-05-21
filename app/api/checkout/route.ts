@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createCheckoutSession } from '@/app/actions/checkout'
 import { isValidTier } from '@/lib/stripe'
+import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
 
 // GET /api/checkout?tier=athlete_pro
 // - Ikke innlogget   → 302 til /app?return_to=/api/checkout?tier=X (login-side)
@@ -29,6 +30,19 @@ export async function GET(request: Request) {
     const back = `/api/checkout?tier=${tier}${promo ? `&promo=${encodeURIComponent(promo)}` : ''}`
     const returnTo = encodeURIComponent(back)
     return NextResponse.redirect(new URL(`/app?return_to=${returnTo}`, request.url))
+  }
+
+  // Hvis bruker allerede har aktivt abonnement: send dem til /app/abonnement
+  // med ?switch=tier i stedet for å lage en ny Checkout-session. Stripe
+  // Customer Portal håndterer plan-bytte med pro-rata-justering automatisk,
+  // så dobbel-fakturering eller utilsiktet gratis oppgradering unngås.
+  const sub = await getActiveSubscription(supabase, user.id)
+  if (sub && hasActiveAccess(sub) && sub.tier !== tier) {
+    return NextResponse.redirect(new URL(`/app/abonnement?switch=${tier}`, request.url))
+  }
+  // Samme tier som nåværende: ingen endring, bare send dem til abonnement-siden.
+  if (sub && hasActiveAccess(sub) && sub.tier === tier) {
+    return NextResponse.redirect(new URL(`/app/abonnement`, request.url))
   }
 
   const res = await createCheckoutSession(tier, promo)

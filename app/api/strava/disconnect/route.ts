@@ -21,17 +21,21 @@ import { createClient } from '@/lib/supabase/server'
 // telleren bare oppdateres når Strava sin egen API-call mot deauthorize
 // returnerer 2xx.
 
-// Strava deauthorize-endepunkter:
-//   - https://www.strava.com/oauth/deauthorize (offisielt per docs)
-//   - https://www.strava.com/api/v3/oauth/deauthorize (alternativ, kommer
-//     ofte opp ved spørringer mot Strava-backend)
+// Strava deauthorize per offisiell doc
+// (https://developers.strava.com/docs/authentication/#deauthorization):
 //
-// Vi har observert 404 "Record Not Found" + "resource:path:invalid" mot
-// /oauth/deauthorize — det er Strava sitt API-v3-format på feilmelding,
-// så requesten traff sannsynligvis API-handleren via intern redirect og
-// fant ikke matching route. Vi prøver derfor 4 kombinasjoner i prioritets-
-// rekkefølge og returnerer detaljert logg av hver attempt så vi kan se
-// hvilken som faktisk virker mot dagens Strava-API.
+//   POST https://www.strava.com/oauth/deauthorize
+//   access_token: required string, in query
+//
+// access_token MÅ være query-parameter — ikke Authorization-header, ikke
+// form-body. Tidligere fallback-kombinasjoner (Bearer/body × oauth/v3-oauth)
+// returnerte alle 404 "Record Not Found" + "resource:path:invalid" fordi
+// Strava sin route-handler ikke fant matching path uten access_token i
+// query-stringen.
+//
+// Beholder en sekundær fallback med Bearer-header (i tilfelle Strava
+// endrer format eller har dual support). Hvis begge feiler: returnerer
+// full attempts-logg så vi kan diagnostisere.
 async function deauthorizeOnStrava(accessToken: string): Promise<{
   ok: boolean
   status: number
@@ -40,49 +44,53 @@ async function deauthorizeOnStrava(accessToken: string): Promise<{
   attempts: Array<{ url: string; method: string; status: number; body: string }>
 }> {
   const attempts: Array<{ url: string; method: string; status: number; body: string }> = []
-  const endpoints = [
-    'https://www.strava.com/oauth/deauthorize',
-    'https://www.strava.com/api/v3/oauth/deauthorize',
-  ] as const
-  const methods = ['bearer', 'form-body'] as const
+  const variants: Array<{ label: string; build: () => { url: string; init: RequestInit } }> = [
+    {
+      label: 'query-param (offisiell per Strava docs)',
+      build: () => ({
+        url: `https://www.strava.com/oauth/deauthorize?access_token=${encodeURIComponent(accessToken)}`,
+        init: { method: 'POST' },
+      }),
+    },
+    {
+      label: 'bearer-header (fallback)',
+      build: () => ({
+        url: 'https://www.strava.com/oauth/deauthorize',
+        init: {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      }),
+    },
+  ]
 
-  for (const url of endpoints) {
-    for (const method of methods) {
-      try {
-        const init: RequestInit = method === 'bearer'
-          ? {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${accessToken}` },
-            }
-          : {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({ access_token: accessToken }).toString(),
-            }
-        const res = await fetch(url, init)
-        const body = (await res.text().catch(() => '')).slice(0, 300)
-        attempts.push({ url, method, status: res.status, body })
-        if (res.ok) {
-          return {
-            ok: true,
-            status: res.status,
-            format_used: `${method} @ ${url}`,
-            body,
-            attempts,
-          }
+  for (const { label, build } of variants) {
+    try {
+      const { url, init } = build()
+      const res = await fetch(url, init)
+      const body = (await res.text().catch(() => '')).slice(0, 300)
+      // Logg sanitized URL (uten token) i attempts-logg.
+      const safeUrl = url.replace(/access_token=[^&]+/, 'access_token=[REDACTED]')
+      attempts.push({ url: safeUrl, method: label, status: res.status, body })
+      if (res.ok) {
+        return {
+          ok: true,
+          status: res.status,
+          format_used: label,
+          body,
+          attempts,
         }
-      } catch (e) {
-        attempts.push({
-          url,
-          method,
-          status: 0,
-          body: e instanceof Error ? e.message : String(e),
-        })
       }
+    } catch (e) {
+      attempts.push({
+        url: 'fetch threw',
+        method: label,
+        status: 0,
+        body: e instanceof Error ? e.message : String(e),
+      })
     }
   }
 
-  // Alle 4 forsøk feilet — returner siste status + samlet logg.
   const last = attempts[attempts.length - 1]
   return {
     ok: false,
@@ -206,6 +214,7 @@ export async function POST() {
       ? 'Strava-tilgang trukket tilbake. Strava-telleren bør gå ned innen kort tid.'
       : 'Vi slettet alt lokalt, men Strava-deauthorize feilet (' +
         deauth.format_used + '). For å fjerne X-PULSE fra Strava sin athlete-teller, ' +
-        'gå til https://www.strava.com/settings/apps og fjern X-PULSE manuelt.',
+        'gå til https://www.strava.com/settings/apps og klikk "Revoke Access" på X-PULSE.',
+    manual_revoke_url: 'https://www.strava.com/settings/apps',
   })
 }

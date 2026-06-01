@@ -66,16 +66,50 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient()
 
+  // ── Password recovery håndteres EKSPLISITT ──────────────────────────────
+  // Recovery skal ALLTID lande på /nytt-passord (ikke /app), og vi foretrekker
+  // token_hash + verifyOtp framfor PKCE-koden: verifyOtp trenger IKKE
+  // code_verifier-cookien, så lenken fungerer også når den åpnes på en annen
+  // enhet/browser enn der reset ble bedt om (rotårsak til "feiler cross-device").
+  // exchangeCodeForSession beholdes kun som fallback hvis Supabase sender ?code=.
+  if (type === 'recovery') {
+    if (tokenHash) {
+      const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+      if (error) {
+        console.warn('[auth/confirm] recovery verifyOtp failed:', error.message, 'status:', error.status)
+        return errorRedirect(origin, `Reset-lenken er ugyldig eller utløpt (${error.message}). Be om ny.`, {
+          flow: 'recovery_token_hash', err: error.message,
+        })
+      }
+      console.log('[auth/confirm] recovery verifyOtp OK, user:', data.user?.id, '→ /nytt-passord')
+      return NextResponse.redirect(`${origin}/nytt-passord`)
+    }
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        console.warn('[auth/confirm] recovery exchangeCodeForSession failed:', error.message, error.status)
+        return errorRedirect(origin, `Reset-lenken er ugyldig eller utløpt (${error.message}). Be om ny.`, {
+          flow: 'recovery_pkce', err: error.message,
+        })
+      }
+      console.log('[auth/confirm] recovery exchangeCodeForSession OK, user:', data.user?.id, '→ /nytt-passord')
+      return NextResponse.redirect(`${origin}/nytt-passord`)
+    }
+    console.warn('[auth/confirm] recovery mangler både token_hash og code', { allParams: Object.fromEntries(searchParams.entries()) })
+    return errorRedirect(origin, 'Ugyldig reset-lenke (mangler token_hash/code). Be om ny passord-reset.')
+  }
+
+  // ── Øvrige flows (signup / email / magiclink / invite / email_change) ───
+  // Disse bekrefter en konto/e-post og slipper brukeren inn i appen (next).
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
       console.warn('[auth/confirm] exchangeCodeForSession failed:', error.message, error.status)
-      return errorRedirect(origin, `Lenken er ugyldig eller utløpt (${error.message}). Be om ny passord-reset.`, {
-        flow: 'pkce',
-        err: error.message,
+      return errorRedirect(origin, `Lenken er ugyldig eller utløpt (${error.message}). Be om en ny.`, {
+        flow: 'pkce', type, err: error.message,
       })
     }
-    console.log('[auth/confirm] exchangeCodeForSession OK, user:', data.user?.id, '→ redirecting to', next)
+    console.log('[auth/confirm] exchangeCodeForSession OK, type:', type, 'user:', data.user?.id, '→', next)
     return NextResponse.redirect(`${origin}${next}`)
   }
 
@@ -83,13 +117,11 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
     if (error) {
       console.warn('[auth/confirm] verifyOtp failed:', error.message, 'type:', type, 'status:', error.status)
-      return errorRedirect(origin, `Lenken er ugyldig eller utløpt (${error.message}). Be om ny passord-reset.`, {
-        flow: 'token_hash',
-        type,
-        err: error.message,
+      return errorRedirect(origin, `Lenken er ugyldig eller utløpt (${error.message}). Be om en ny.`, {
+        flow: 'token_hash', type, err: error.message,
       })
     }
-    console.log('[auth/confirm] verifyOtp OK, type:', type, 'user:', data.user?.id, '→ redirecting to', next)
+    console.log('[auth/confirm] verifyOtp OK, type:', type, 'user:', data.user?.id, '→', next)
     return NextResponse.redirect(`${origin}${next}`)
   }
 

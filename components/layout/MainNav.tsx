@@ -286,24 +286,16 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   klokkesyncBadge?: KlokkesyncBadge
   onClose: () => void
 }) {
-  const [touchStartY, setTouchStartY] = useState<number | null>(null)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY)
-  }
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY === null) return
-    const dy = e.touches[0].clientY - touchStartY
-    if (dy > 60) { onClose(); setTouchStartY(null) }
-  }
+  // Menyen skal KUN lukkes eksplisitt: klikk på X, klikk på et menyvalg, eller
+  // klikk utenfor innholdet (backdrop via onClick={onClose}). Tidligere fantes
+  // en swipe-ned-for-å-lukke (onTouchMove dy>60) som ble trigget når brukeren
+  // scrollet i menylista — menyen «forsvant» ved scroll. Fjernet bevisst.
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       onClick={onClose}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
         backgroundColor: '#0A0A0B',

@@ -497,7 +497,7 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
         border,
         padding: '1px 4px',
       }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px' }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
           {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '2px' }} aria-label="Fellestrening">👥</span>}
           {showCoachStyle && (
@@ -598,6 +598,10 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
       className="text-left border-l w-full min-h-[140px] sm:min-h-[150px] flex flex-col"
       style={{
+        // minWidth: 0 lar grid-cellen krympe under sitt innhold (default er
+        // min-width:auto = min-content) — sammen med minmax(0,1fr) på sporet
+        // hindrer dette at lange øktnavn presser cellen ut over skjermbredden.
+        minWidth: 0,
         borderColor: '#1A1A1E',
         borderLeftStyle: borderStyle ?? 'solid',
         background: stateBg ?? baseBg,
@@ -746,8 +750,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
 
-      {/* Column headers: week# + 7 days + totals */}
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+      {/* Column headers: week# + 7 days + totals.
+          minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
+          under sitt min-content — uten dette sprenger lange Strava-øktnavn
+          grid-bredden på mobil og dager sklir ut horisontalt. */}
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
@@ -791,7 +798,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 : undefined,
               scrollbarWidth: 'thin',
             }}>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
                 {/* Days */}
                 {week.map(date => {
                   const ds = toISO(date)

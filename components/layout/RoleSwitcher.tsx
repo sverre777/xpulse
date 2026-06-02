@@ -21,18 +21,6 @@ interface Props {
   hasCoachTier: boolean
 }
 
-// Felles stil for "+ Legg til trener-profil"-affordansen (button og Link).
-const ADD_PROFILE_STYLE: React.CSSProperties = {
-  fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#8A8A96',
-  background: 'none',
-  border: '1px solid #2A2A30',
-  cursor: 'pointer',
-  padding: '4px 10px',
-  textDecoration: 'none',
-  display: 'inline-block',
-}
-
 export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoachTier }: Props) {
   const [open, setOpen] = useState(false)
   const [modalRole, setModalRole] = useState<Role | null>(null)
@@ -59,38 +47,11 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
   //     inkluderer alltid utøver-funksjoner.
   const canSwitch = hasCoachTier && hasCoachRole && hasAthleteRole
 
-  if (!canSwitch) {
-    const needsUpgrade = !hasCoachTier
-    return (
-      <>
-        <div className="flex items-center gap-2">
-          <RoleBadge label={label} color={color} />
-          {needsUpgrade ? (
-            <Link
-              href="/app/abonnement?upgrade=trener"
-              className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-              style={ADD_PROFILE_STYLE}
-            >
-              + Legg til trener-profil
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setModalRole('coach')}
-              className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-              style={ADD_PROFILE_STYLE}
-            >
-              + Legg til trener-profil
-            </button>
-          )}
-        </div>
-        {modalRole && (
-          <RoleActivationModal role={modalRole} onClose={() => setModalRole(null)} />
-        )}
-      </>
-    )
-  }
-
+  // Felles dropdown for alle tilfeller — holder navbaren ren på desktop.
+  // Trigger = klikkbar rolle-badge med pil. Menyen viser tilgjengelige moduser,
+  // og for utøvere uten full trener-tilgang ligger "+ Legg til trener-profil"
+  // som en rad NEDERST i menyen (modal hvis allerede betalt, ellers lenke til
+  // abonnement-oppgradering) — i stedet for en frittstående knapp ved siden av.
   return (
     <div ref={rootRef} style={{ position: 'relative' }}>
       <button
@@ -128,7 +89,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             position: 'absolute',
             top: 'calc(100% + 4px)',
             right: 0,
-            minWidth: 180,
+            minWidth: 200,
             backgroundColor: '#1A1A22',
             border: '1px solid #1E1E22',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
@@ -142,41 +103,65 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             active={activeRole === 'athlete'}
             onPick={() => setOpen(false)}
           />
-          <RoleMenuItem
-            role="coach"
-            label="Trener-modus"
-            color={COACH_BLUE}
-            active={activeRole === 'coach'}
-            onPick={() => setOpen(false)}
-          />
+          {canSwitch ? (
+            <RoleMenuItem
+              role="coach"
+              label="Trener-modus"
+              color={COACH_BLUE}
+              active={activeRole === 'coach'}
+              onPick={() => setOpen(false)}
+            />
+          ) : (
+            <AddTrenerProfileMenuItem
+              needsUpgrade={!hasCoachTier}
+              onActivate={() => { setOpen(false); setModalRole('coach') }}
+            />
+          )}
         </div>
+      )}
+
+      {modalRole && (
+        <RoleActivationModal role={modalRole} onClose={() => setModalRole(null)} />
       )}
     </div>
   )
 }
 
-function RoleBadge({ label, color }: { label: string; color: string }) {
-  return (
+// "+ Legg til trener-profil"-rad nederst i rolle-menyen for utøvere uten full
+// trener-tilgang. Mangler tier → lenke til abonnement-oppgradering. Har tier
+// men ikke aktivert rollen → aktiver gratis via modal.
+function AddTrenerProfileMenuItem({
+  needsUpgrade, onActivate,
+}: {
+  needsUpgrade: boolean
+  onActivate: () => void
+}) {
+  const inner = (
     <span
-      className="flex items-center gap-2 px-3 py-1"
+      className="w-full flex items-center gap-2 px-3 py-2 text-left"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: '#F0F0F2',
-        border: `1px solid ${color}`,
-        height: '32px',
+        color: '#B0B0B8',
+        borderTop: '1px solid #1E1E22',
       }}
     >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          backgroundColor: color,
-          display: 'inline-block',
-        }}
-      />
-      <span className="text-xs tracking-widest uppercase">{label}</span>
+      <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
+      <span className="text-xs tracking-widest uppercase">+ Legg til trener-profil</span>
     </span>
+  )
+  if (needsUpgrade) {
+    return (
+      <Link href="/app/abonnement?upgrade=trener" role="menuitem"
+        style={{ display: 'block', textDecoration: 'none' }}>
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <button type="button" role="menuitem" onClick={onActivate}
+      style={{ display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+      {inner}
+    </button>
   )
 }
 

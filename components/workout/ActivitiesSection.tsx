@@ -500,10 +500,10 @@ function ActivityRowItem({
       {/* Expanded body */}
       {expanded && (
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid #262629' }}>
-          {/* 1 kolonne på mobil for å hindre at varighet/distanse/klokkeslett-
-              inputene kuttes på høyre side. 2 kolonner fra sm (640px), 3 fra
-              lg (1024px). */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+          {/* 2 kolonner på mobil (kortere liste enn én lang kolonne), 3 fra lg
+              (1024px) som på desktop. Field har minWidth:0 og inputene width:100%
+              + boxSizing:border-box, så de krymper innenfor cellen uten å kuttes. */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label="Aktivitetstype">
               <select value={row.activity_type}
                 onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })}
@@ -1395,8 +1395,10 @@ function computePct(shots: string, hits: string): number | null {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  // minWidth:0 lar grid-cellen krympe under innholdets min-content (default er
+  // auto) — nødvendig for at 2-kolonners mobil-layout ikke skal sprenge bredden.
   return (
-    <div>
+    <div style={{ minWidth: 0 }}>
       <Label>{label}</Label>
       {children}
     </div>

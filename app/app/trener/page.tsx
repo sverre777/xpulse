@@ -6,6 +6,7 @@ import { CoachGroupsSection } from '@/components/coach/CoachGroupsSection'
 import { CoachUpcomingCards } from '@/components/coach/CoachUpcomingCards'
 import { CoachUpcomingCalendarCard } from '@/components/coach/CoachUpcomingCalendarCard'
 import { NewGroupSessionButton } from '@/components/coach/NewGroupSessionButton'
+import { FeedbackCard } from '@/components/feedback/FeedbackCard'
 
 function ErrorBox({ message }: { message: string }) {
   return (
@@ -56,6 +57,8 @@ export default async function CoachDashboardPage() {
       <CoachAthleteList athletes={res.athletes} />
 
       <CoachGroupsSection groups={res.groups} />
+
+      <FeedbackCard accent="#1A6FD4" />
     </div>
   )
 }

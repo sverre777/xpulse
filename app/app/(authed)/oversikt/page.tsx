@@ -10,6 +10,7 @@ import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
 import { HelseMiniDashboard } from '@/components/analysis/HelseMiniDashboard'
+import { FeedbackCard } from '@/components/feedback/FeedbackCard'
 import type { DateRange } from '@/components/analysis/date-range'
 
 function rangeLast12Weeks(): DateRange {
@@ -145,6 +146,8 @@ export default async function OversiktPage() {
         <AktivitetsFeed feed={res.feed} />
 
         <AiCoachTeaser />
+
+        <FeedbackCard accent="#FF4500" />
 
       </div>
     </div>

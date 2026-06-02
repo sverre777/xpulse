@@ -85,7 +85,7 @@ export function PoweredByStravaBadge({
       display: 'inline-flex',
       alignItems: 'center',
       gap: compact ? '2px' : '5px',
-      padding: compact ? '0 3px' : '2px 7px',
+      padding: compact ? '0 2px' : '2px 7px',
       color: STRAVA_ORANGE,
       border: `1px solid ${STRAVA_ORANGE}`,
       backgroundColor: 'rgba(252,82,0,0.08)',
@@ -93,13 +93,13 @@ export function PoweredByStravaBadge({
       // Mindre tekst i compact (kalender-rad på mobil) så badgen ikke dytter
       // chip-innholdet over på to rader. Logo + padding holdes lave nok til at
       // hele badge-boksen får plass innenfor økt-chipens linjehøyde.
-      fontSize: compact ? '8px' : '11px',
+      fontSize: compact ? '7px' : '11px',
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
       lineHeight: 1,
       whiteSpace: 'nowrap',
     }}>
-      <StravaLogo size={compact ? 10 : 12} color={STRAVA_ORANGE} />
+      <StravaLogo size={compact ? 9 : 12} color={STRAVA_ORANGE} />
       {compact ? 'Strava' : 'Powered by Strava'}
     </span>
   )

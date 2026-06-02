@@ -10,6 +10,7 @@ import type {
   SavePlanTemplateInput,
 } from '@/lib/template-types'
 import type { ActivityRow } from '@/lib/types'
+import { addDaysISO, insertActivityTreeForWorkout } from '@/lib/workout-activity-insert'
 
 function rowToPlanTemplate(row: Record<string, unknown>): PlanTemplate {
   return {
@@ -183,6 +184,101 @@ export async function duplicatePlanTemplate(id: string): Promise<{ error?: strin
   revalidatePath('/app/maler')
   revalidatePath('/app/trener/planlegg')
   return { id: data.id as string }
+}
+
+// Materialiser en plan-mal inn i utøverens EGEN plan-kalender fra en startdato.
+// Speiler trener-flyten (pushPlanTemplateToAthlete) men for seg selv: hver økt
+// legges på startDate + day_offset som planlagt (is_planned=true), med full
+// aktivitets-tre (øvelser/sett/laktat) via den delte inserteren. Hviledager
+// (day_states) kopieres med merge — eksisterende dag-tilstander overskrives ikke.
+//
+// v1 kopierer økter + hviledager. Uke-/måned-notater og fokuspunkter tas ikke
+// med ennå (krever offset→periodenøkkel-remapping; kan utvides senere).
+export async function materializePlanTemplateAtDate(
+  templateId: string,
+  startDate: string,
+): Promise<{ error?: string; createdCount?: number; skippedDayStates?: number }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) return { error: 'Ugyldig startdato' }
+
+  // getPlanTemplate er RLS-scoped til user_id = auth.uid() → kun egne maler.
+  const tpl = await getPlanTemplate(templateId)
+  if (!tpl) return { error: 'Fant ikke plan-mal' }
+
+  const planData = tpl.plan_data ?? {
+    workouts: [], day_states: [], week_notes: {}, month_notes: {}, focus_points: [],
+  }
+
+  // ── Økter ──
+  const planWorkouts = planData.workouts ?? []
+  let createdCount = 0
+  if (planWorkouts.length > 0) {
+    const workoutRows = planWorkouts.map(w => ({
+      user_id: user.id,
+      date: addDaysISO(startDate, w.day_offset),
+      time_of_day: w.time_of_day ?? null,
+      title: w.title,
+      sport: w.sport,
+      workout_type: w.workout_type,
+      duration_minutes: w.duration_minutes ?? null,
+      distance_km: w.distance_km ?? null,
+      notes: w.notes ?? null,
+      tags: w.tags ?? [],
+      is_planned: true,
+      is_completed: false,
+    }))
+    const { data: inserted, error: wErr } = await supabase
+      .from('workouts')
+      .insert(workoutRows)
+      .select('id')
+    if (wErr) return { error: `Økter: ${wErr.message}` }
+    createdCount = inserted?.length ?? 0
+
+    // Aktivitets-tre per økt (parallell indeks med planWorkouts).
+    const ids = (inserted ?? []) as { id: string }[]
+    for (let i = 0; i < ids.length; i++) {
+      const wId = ids[i]?.id
+      const activities = planWorkouts[i]?.activities ?? []
+      if (!wId || activities.length === 0) continue
+      const actErr = await insertActivityTreeForWorkout(supabase, wId, activities)
+      if (actErr) return { error: `Aktiviteter: ${actErr}` }
+    }
+  }
+
+  // ── Hviledager (day_states) — merge: hopp over datoer som allerede har state ──
+  let skippedDayStates = 0
+  const dayStates = planData.day_states ?? []
+  if (dayStates.length > 0) {
+    const candidates = dayStates.map(s => ({
+      user_id: user.id,
+      date: addDaysISO(startDate, s.day_offset),
+      state_type: s.state_type,
+      is_planned: s.is_planned,
+      sub_type: s.sub_type,
+      notes: s.notes,
+    }))
+    const dates = Array.from(new Set(candidates.map(c => c.date)))
+    const { data: existing } = await supabase
+      .from('day_states')
+      .select('date')
+      .eq('user_id', user.id)
+      .in('date', dates)
+    const taken = new Set((existing ?? []).map(r => (r as { date: string }).date))
+    const toInsert = candidates.filter(c => {
+      if (taken.has(c.date)) { skippedDayStates++; return false }
+      return true
+    })
+    if (toInsert.length > 0) {
+      const { error: dsErr } = await supabase.from('day_states').insert(toInsert)
+      if (dsErr) return { error: `Hviledager: ${dsErr.message}` }
+    }
+  }
+
+  revalidatePath('/app/plan')
+  revalidatePath('/app/dagbok')
+  return { createdCount, skippedDayStates }
 }
 
 // Bygg plan_data-snapshot fra utøverens eksisterende plan i et datointervall.

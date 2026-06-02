@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteTemplate, duplicateTemplate, materializeOktmalAtDate } from '@/app/actions/templates'
-import { deletePlanTemplate, duplicatePlanTemplate } from '@/app/actions/plan-templates'
+import { deletePlanTemplate, duplicatePlanTemplate, materializePlanTemplateAtDate } from '@/app/actions/plan-templates'
 import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate, type Sport } from '@/lib/types'
 import type { PlanTemplate } from '@/lib/template-types'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
@@ -48,6 +48,7 @@ export function MalerClient({
   const [editingPlanmal, setEditingPlanmal] = useState<PlanTemplate | null>(null)
   // Bruk-på-dato: setter mal som skal materialiseres + dato-modal vises.
   const [bruktOktmal, setBruktOktmal] = useState<WorkoutTemplate | null>(null)
+  const [bruktPlanmal, setBruktPlanmal] = useState<PlanTemplate | null>(null)
 
   const setTab = (t: Tab) => {
     const url = new URL(window.location.href)
@@ -139,6 +140,18 @@ export function MalerClient({
         />
       )}
 
+      {bruktPlanmal && (
+        <BrukPlanPaaDatoModal
+          template={bruktPlanmal}
+          onClose={() => setBruktPlanmal(null)}
+          onMaterialized={(date) => {
+            setBruktPlanmal(null)
+            router.push(`/app/plan?date=${date}`)
+            router.refresh()
+          }}
+        />
+      )}
+
       {tab === 'okt' && (
         <WorkoutList
           templates={initialWorkoutTemplates}
@@ -172,6 +185,7 @@ export function MalerClient({
           query={query} category={category}
           pendingId={pendingId}
           onEdit={(t) => setEditingPlanmal(t)}
+          onUseDate={(t) => setBruktPlanmal(t)}
           onDelete={(id, name) => {
             if (!window.confirm(`Slett plan-mal "${name}"?`)) return
             setPendingId(id)
@@ -272,12 +286,13 @@ function WorkoutList({
 }
 
 function PlanList({
-  templates, query, category, pendingId, onEdit, onDelete, onDuplicate,
+  templates, query, category, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: PlanTemplate[]
   query: string; category: string
   pendingId: string | null
   onEdit: (t: PlanTemplate) => void
+  onUseDate: (t: PlanTemplate) => void
   onDelete: (id: string, name: string) => void
   onDuplicate: (id: string) => void
 }) {
@@ -303,6 +318,7 @@ function PlanList({
           ]}
           disabled={pendingId === t.id}
           onEdit={() => onEdit(t)}
+          onUseDate={() => onUseDate(t)}
           onDelete={() => onDelete(t.id, t.name)}
           onDuplicate={() => onDuplicate(t.id)}
         />
@@ -482,6 +498,105 @@ function BrukPaaDatoModal({
         <label className="block mb-1 text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Dato
+        </label>
+        <input type="date" value={date} min={today}
+          onChange={e => setDate(e.target.value)}
+          style={{ ...iSt, width: '100%', padding: '8px 12px' }} />
+
+        {error && (
+          <p className="mt-3 text-xs"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            {error}
+          </p>
+        )}
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button type="button" onClick={onClose} disabled={pending}
+            className="text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              background: 'none', border: '1px solid #262629',
+              padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
+            }}>
+            Avbryt
+          </button>
+          <button type="button" onClick={handleConfirm}
+            disabled={pending || !date}
+            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+              background: '#FF4500', border: 'none',
+              padding: '8px 14px',
+              cursor: (pending || !date) ? 'not-allowed' : 'pointer',
+              opacity: (pending || !date) ? 0.6 : 1,
+            }}>
+            {pending ? 'Setter inn…' : 'Bekreft'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Start-dato-velger for "Bruk på dato" på en PLAN-mal. Malens varighet
+// (duration_days) bestemmer perioden — brukeren velger kun startdato, og hele
+// plan-perioden kopieres inn fra den datoen via materializePlanTemplateAtDate.
+function BrukPlanPaaDatoModal({
+  template, onClose, onMaterialized,
+}: {
+  template: PlanTemplate
+  onClose: () => void
+  onMaterialized: (date: string) => void
+}) {
+  const today = new Date().toISOString().slice(0, 10)
+  const [date, setDate] = useState(today)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  const workoutCount = template.plan_data?.workouts?.length ?? 0
+
+  const handleConfirm = () => {
+    setError(null)
+    startTransition(async () => {
+      const res = await materializePlanTemplateAtDate(template.id, date)
+      if (res.error) {
+        setError(res.error)
+        return
+      }
+      onMaterialized(date)
+    })
+  }
+
+  return (
+    <div onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        paddingTop: '80px', paddingLeft: '12px', paddingRight: '12px',
+      }}>
+      <div onClick={e => e.stopPropagation()}
+        className="w-full max-w-md p-5"
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+          <span className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
+            Bruk plan-mal på dato
+          </span>
+        </div>
+
+        <p className="mb-4 text-sm"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', lineHeight: 1.6 }}>
+          Sett inn <strong style={{ color: '#F0F0F2' }}>{template.name}</strong>{' '}
+          ({template.duration_days} {template.duration_days === 1 ? 'dag' : 'dager'}
+          {workoutCount > 0 ? `, ${workoutCount} ${workoutCount === 1 ? 'økt' : 'økter'}` : ''})
+          som planlagte økter i din Plan-kalender, fra valgt startdato.
+        </p>
+
+        <label className="block mb-1 text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Startdato
         </label>
         <input type="date" value={date} min={today}
           onChange={e => setDate(e.target.value)}

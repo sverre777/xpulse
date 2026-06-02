@@ -22,6 +22,7 @@ interface MainNavProps {
   activeRole?: Role
   hasAthleteRole?: boolean
   hasCoachRole?: boolean
+  hasCoachTier?: boolean
   unreadInboxCount?: number
   klokkesyncBadge?: KlokkesyncBadge
 }
@@ -54,6 +55,7 @@ export function MainNav({
   activeRole = 'athlete',
   hasAthleteRole = true,
   hasCoachRole = false,
+  hasCoachTier = false,
   unreadInboxCount = 0,
   klokkesyncBadge,
 }: MainNavProps) {
@@ -150,6 +152,7 @@ export function MainNav({
             activeRole={activeRole}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            hasCoachTier={hasCoachTier}
             unreadInboxCount={unreadInboxCount}
             klokkesyncBadge={klokkesyncBadge}
             onClose={() => setMenuOpen(false)}
@@ -265,6 +268,7 @@ export function MainNav({
           activeRole={activeRole}
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
+          hasCoachTier={hasCoachTier}
         />
 
         <UserMenu userName={userName} accent={accent} />
@@ -273,7 +277,7 @@ export function MainNav({
   )
 }
 
-function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, unreadInboxCount, klokkesyncBadge, onClose }: {
+function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, hasCoachTier, unreadInboxCount, klokkesyncBadge, onClose }: {
   pathname: string
   userName: string | null
   logHref: string
@@ -282,6 +286,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   activeRole: Role
   hasAthleteRole: boolean
   hasCoachRole: boolean
+  hasCoachTier: boolean
   unreadInboxCount: number
   klokkesyncBadge?: KlokkesyncBadge
   onClose: () => void
@@ -458,6 +463,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
           activeRole={activeRole}
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
+          hasCoachTier={hasCoachTier}
         />
       </div>
 

@@ -26,7 +26,8 @@ export default async function InboxLayout({ children }: { children: React.ReactN
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
   // Coach-modus uten trener-tier → fall tilbake til athlete (oransje MainNav).
-  const activeRole: Role = (rawActiveRole === 'coach' && !hasCoachTier(sub))
+  const coachTier = hasCoachTier(sub)
+  const activeRole: Role = (rawActiveRole === 'coach' && !coachTier)
     ? 'athlete'
     : rawActiveRole
 
@@ -38,6 +39,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             userName={profile?.full_name ?? null}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
             unreadInboxCount={unreadInboxCount}
           />
         ) : (
@@ -46,6 +48,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             activeRole={activeRole}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
             unreadInboxCount={unreadInboxCount}
           />
         )}

@@ -118,11 +118,11 @@ export default function TrenerPage() {
           </h2>
           <div className="grid gap-px md:grid-cols-3" style={{ background: '#262629' }}>
             <TierCard tier="Basic" price="199 kr/mnd"
-              points={['Maks 10 utøvere', '0 inkluderte lisenser', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
+              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
             <TierCard tier="Pro" price="279 kr/mnd" featured
-              points={['Ubegrenset utøvere', 'Egen Athlete Pro-profil for trener', '+ 3 Athlete Pro-lisenser til utøvere', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
+              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '+ 3 Athlete Pro-lisenser til utøvere', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
             <TierCard tier="Pro AI" price="499 kr/mnd" coming
-              points={['Egen Athlete Pro-profil for trener', '+ 5 Athlete Pro-lisenser til utøvere', 'AI-analyse på utøveres data', 'Auto-ukesoppsummeringer', 'Alt i Pro']} />
+              points={['Inkluderer egen utøver-profil', '+ 5 Athlete Pro-lisenser til utøvere', 'AI-analyse på utøveres data', 'Auto-ukesoppsummeringer', 'Alt i Pro']} />
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/app/registrer?role=coach&amp;tier=pro"

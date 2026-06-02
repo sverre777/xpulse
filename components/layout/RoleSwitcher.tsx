@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { switchActiveRole } from '@/app/actions/roles'
@@ -13,10 +14,26 @@ interface Props {
   activeRole: Role
   hasAthleteRole: boolean
   hasCoachRole: boolean
+  // Betalingsbevis for trener-modus (Trener Basic/Pro). Styrer KUN visning:
+  // har-tier → full veksling; mangler-tier → "+ Legg til trener-profil" som
+  // leder til abonnement-oppgradering. Selve tilgangs-gaten ligger i middleware
+  // og switchActiveRole-action — RoleSwitcher gjør ingen redirects selv.
+  hasCoachTier: boolean
 }
 
-export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole }: Props) {
-  const hasBoth = hasAthleteRole && hasCoachRole
+// Felles stil for "+ Legg til trener-profil"-affordansen (button og Link).
+const ADD_PROFILE_STYLE: React.CSSProperties = {
+  fontFamily: "'Barlow Condensed', sans-serif",
+  color: '#8A8A96',
+  background: 'none',
+  border: '1px solid #2A2A30',
+  cursor: 'pointer',
+  padding: '4px 10px',
+  textDecoration: 'none',
+  display: 'inline-block',
+}
+
+export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoachTier }: Props) {
   const [open, setOpen] = useState(false)
   const [modalRole, setModalRole] = useState<Role | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -33,29 +50,39 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole }: Props
   const color = activeRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE
   const label = activeRole === 'coach' ? 'TRENER' : 'UTØVER'
 
-  // Singel-rolle: vis "+ Legg til [annen rolle]"-knapp.
-  if (!hasBoth) {
-    const otherRole: Role = activeRole === 'coach' ? 'athlete' : 'coach'
-    const otherLabel = otherRole === 'coach' ? 'trener' : 'utøver'
+  // Visning bestemmes av trener-TIER, ikke bare rolle-flagget:
+  //   - Mangler trener-tier  → utøver-modus + "+ Legg til trener-profil"
+  //     som leder til abonnement (IKKE tom/blank trener-modus).
+  //   - Har tier men ikke aktivert trener-rollen → samme affordans, men
+  //     aktiverer rollen gratis via modal (de har allerede betalt).
+  //   - Har tier OG trener-rolle OG utøver-rolle → full veksling. Trener-tier
+  //     inkluderer alltid utøver-funksjoner.
+  const canSwitch = hasCoachTier && hasCoachRole && hasAthleteRole
+
+  if (!canSwitch) {
+    const needsUpgrade = !hasCoachTier
     return (
       <>
         <div className="flex items-center gap-2">
           <RoleBadge label={label} color={color} />
-          <button
-            type="button"
-            onClick={() => setModalRole(otherRole)}
-            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96',
-              background: 'none',
-              border: '1px solid #2A2A30',
-              cursor: 'pointer',
-              padding: '4px 10px',
-            }}
-          >
-            + Legg til {otherLabel}
-          </button>
+          {needsUpgrade ? (
+            <Link
+              href="/app/abonnement?upgrade=trener"
+              className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+              style={ADD_PROFILE_STYLE}
+            >
+              + Legg til trener-profil
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setModalRole('coach')}
+              className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+              style={ADD_PROFILE_STYLE}
+            >
+              + Legg til trener-profil
+            </button>
+          )}
         </div>
         {modalRole && (
           <RoleActivationModal role={modalRole} onClose={() => setModalRole(null)} />

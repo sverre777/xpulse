@@ -154,13 +154,6 @@ export default async function InnstillingerPage({ searchParams }: Props) {
             description="Eksporter data eller slett kontoen"
             accent={accent}
           />
-          <SettingsCategoryCard
-            href="/app/innstillinger/abonnement"
-            glyph="₪"
-            title="Abonnement"
-            description="Plan og fakturering"
-            accent={accent}
-          />
 
           {isCoachMode && (
             <>

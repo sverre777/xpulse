@@ -62,6 +62,7 @@ const TRAINER_TIERS: Tier[] = [
     id: 'trener_basic', name: 'Trener Basic', priceMonthly: 199,
     priceTier: 'trener_basic', status: 'active',
     features: [
+      'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Inntil 10 utøvere',
       'Treningsplan-bygging + maler',
       'Push planer/økter til utøvere',
@@ -73,17 +74,19 @@ const TRAINER_TIERS: Tier[] = [
     id: 'trener_pro', name: 'Trener Pro', priceMonthly: 279,
     priceTier: 'trener_pro', status: 'active', highlight: true,
     features: [
+      'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Alt i Trener Basic',
       'Ubegrenset antall utøvere',
-      'Egen Athlete Pro-profil for trener + 3 lisenser til utøvere',
+      '+ 3 Athlete Pro-lisenser til utøvere',
     ],
   },
   {
     id: 'trener_pro_ai', name: 'Trener Pro AI', priceMonthly: 499,
     priceTier: null, status: 'soon',
     features: [
+      'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Alt i Trener Pro + AI for trener og lag',
-      'Egen Athlete Pro-profil for trener + 5 lisenser til utøvere',
+      '+ 5 Athlete Pro-lisenser til utøvere',
       'AI-analyse på utøvere',
     ],
   },
@@ -91,8 +94,9 @@ const TRAINER_TIERS: Tier[] = [
     id: 'trener_ultimate_ai', name: 'Trener Ultimate AI', priceMonthly: 999,
     priceTier: null, status: 'soon',
     features: [
+      'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Alt i Trener Pro AI + premium AI',
-      'Egen Athlete Pro-profil for trener + 10 lisenser til utøvere',
+      '+ 10 Athlete Pro-lisenser til utøvere',
       'Plan-bygging via chat eller bilde',
       'Lag-prediksjon, custom rapporter',
     ],

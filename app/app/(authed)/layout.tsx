@@ -38,7 +38,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   // Effective role for MainNav: hvis bruker er i coach-modus men mangler
   // trener-tier, behandle som athlete (oransje farger). Hindrer at utøver-
   // sider får blå styling fordi role-toggle står på coach uten tier.
-  const effectiveRole: Role = (rawActiveRole === 'coach' && !hasCoachTier(sub))
+  const coachTier = hasCoachTier(sub)
+  const effectiveRole: Role = (rawActiveRole === 'coach' && !coachTier)
     ? 'athlete'
     : rawActiveRole
 
@@ -51,6 +52,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           activeRole={effectiveRole}
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
+          hasCoachTier={coachTier}
           unreadInboxCount={unreadInboxCount}
           klokkesyncBadge={klokkesyncBadge}
         />

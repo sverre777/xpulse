@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getActiveSubscription, hasActiveAccess, tierLabel, tierPriceMonthly } from '@/lib/subscriptions'
+import { getActiveSubscription, hasActiveAccess, hasCoachTier, tierLabel, tierPriceMonthly } from '@/lib/subscriptions'
 import { ManageBillingButton } from './ManageBillingButton'
 
 export const dynamic = 'force-dynamic'
@@ -128,6 +128,19 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 )}
               </dl>
             </section>
+
+            {hasCoachTier(sub) && (
+              <div className="mt-4 p-4"
+                style={{
+                  backgroundColor: 'rgba(40,168,110,0.08)',
+                  border: '1px solid rgba(40,168,110,0.4)',
+                  borderLeft: '3px solid #28A86E',
+                }}>
+                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', lineHeight: 1.6 }}>
+                  ✓ Trener-abonnementet ditt inkluderer egen utøver-profil — du har også full tilgang til utøver-funksjonene (dagbok, plan, klokkesync og analyse). Bytt til utøver-modus øverst til høyre.
+                </p>
+              </div>
+            )}
 
             <section className="mt-4 p-6"
               style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>

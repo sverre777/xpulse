@@ -30,6 +30,10 @@ export default async function CoachLayout({ children }: { children: React.ReactN
         userName={profile?.full_name ?? null}
         hasAthleteRole={profile?.has_athlete_role ?? false}
         hasCoachRole={true}
+        // /app/trener er tier-gated i middleware (krever hasCoachTier) og denne
+        // layouten redirecter ut hvis ikke coach-modus — trener-tier er derfor
+        // garantert her, så RoleSwitcher viser full veksling.
+        hasCoachTier={true}
         unreadInboxCount={unreadInboxCount}
       />
       <div className="flex-1">

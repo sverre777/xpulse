@@ -17,6 +17,9 @@ interface CoachNavProps {
   userName: string | null
   hasAthleteRole: boolean
   hasCoachRole: boolean
+  // På trener-nav er dette alltid true (man når kun trener-modus med tier),
+  // men vi tråder det eksplisitt til RoleSwitcher for korrekt veksle-visning.
+  hasCoachTier?: boolean
   unreadInboxCount?: number
 }
 
@@ -40,7 +43,7 @@ const MOBILE_LINKS = [
 
 const BREAKPOINT = 900
 
-export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCount = 0 }: CoachNavProps) {
+export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier = true, unreadInboxCount = 0 }: CoachNavProps) {
   const pathname = usePathname()
   const [isMobile, setIsMobile] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -254,6 +257,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
                 activeRole="coach"
                 hasAthleteRole={hasAthleteRole}
                 hasCoachRole={hasCoachRole}
+                hasCoachTier={hasCoachTier}
               />
               {userName && (
                 <span style={{
@@ -379,6 +383,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, unreadInboxCo
           activeRole="coach"
           hasAthleteRole={hasAthleteRole}
           hasCoachRole={hasCoachRole}
+          hasCoachTier={hasCoachTier}
         />
 
         <UserMenu userName={userName} accent={COACH_BLUE} />

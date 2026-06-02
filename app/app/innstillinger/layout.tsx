@@ -28,7 +28,8 @@ export default async function InnstillingerLayout({ children }: { children: Reac
   const rawActiveRole: Role = (profile?.active_role ?? profile?.role ?? 'athlete') as Role
   const hasAthleteRole: boolean = profile?.has_athlete_role ?? true
   const hasCoachRole: boolean = profile?.has_coach_role ?? false
-  const activeRole: Role = (rawActiveRole === 'coach' && !hasCoachTier(sub))
+  const coachTier = hasCoachTier(sub)
+  const activeRole: Role = (rawActiveRole === 'coach' && !coachTier)
     ? 'athlete'
     : rawActiveRole
 
@@ -40,6 +41,7 @@ export default async function InnstillingerLayout({ children }: { children: Reac
             userName={profile?.full_name ?? null}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
             unreadInboxCount={unreadInboxCount}
           />
         ) : (
@@ -48,6 +50,7 @@ export default async function InnstillingerLayout({ children }: { children: Reac
             activeRole={activeRole}
             hasAthleteRole={hasAthleteRole}
             hasCoachRole={hasCoachRole}
+            hasCoachTier={coachTier}
             unreadInboxCount={unreadInboxCount}
           />
         )}

@@ -512,6 +512,18 @@
   }
   .price-card-featured .price-tier-label { margin-top:24px; }
   .price-badge-coming { background:rgba(245,197,66,0.18); color:#F5C542; border:1px solid rgba(245,197,66,0.4); }
+  /* Rolle-konsekvent farge: utøver-gruppen rød, trener-gruppen blå — ingen
+     miks. De delte .price-* klassene hardkoder oransje, så vi overstyrer per
+     gruppe-grid. */
+  .pricing-grid-trainer .price-card-featured { border-top-color:var(--blue); background:#161a22; }
+  .pricing-grid-trainer .price-card-featured:hover { background:#1a1f2a; }
+  .pricing-grid-trainer .price-features li::before { color:var(--blue); }
+  .pricing-grid-trainer .price-cta { background:var(--blue); }
+  .pricing-grid-trainer .price-cta:hover { background:#13518f; }
+  .pricing-grid-trainer .price-badge-recommended { background:var(--blue); }
+  /* Utøver-gruppens "kommer snart"-tiers skal beholde rød ✓ (global regel
+     over gjør alle kommer-kort blå). */
+  .pricing-grid-athlete .price-card-coming .price-features li::before { color:var(--orange); }
 
   .price-compare { background:var(--surface); border:1px solid var(--border); margin-bottom:40px; }
   .price-compare > summary {

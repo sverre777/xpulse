@@ -10,7 +10,7 @@ import { toggleAttendanceForWorkout } from '@/app/actions/trainer-calendar'
 import {
   WorkoutFormData, MovementRow, LactateRow,
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
-  getWorkoutTypes, WorkoutTemplate, TEMPLATE_CATEGORIES,
+  getWorkoutTypes, WorkoutType, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
   ActivityRow, ActivityType, emptyActivityZones, makeActivity,
@@ -29,6 +29,18 @@ import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
+
+// Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
+// felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
+// restitusjon/teknisk/annet) er fjernet fra valget: intensitet måles nå på
+// faktisk sonetid (analysis.ts), ikke på en manuell tag. competition/testlop/test
+// gir konkurranse-/test-felter; skiskyting-combos driver skiskyting-analysen
+// (CustomSkytingChartBuilder). «Vanlig økt» = 'other' (ingen synlig knapp).
+// Gamle økter med fjernede typer beholder sin lagrede verdi (ingen migrering).
+const MEANINGFUL_WORKOUT_TYPES: WorkoutType[] = [
+  'competition', 'testlop', 'test',
+  'hard_combo', 'easy_combo', 'basis_shooting',
+]
 
 interface WorkoutFormProps {
   initialSport?: Sport
@@ -156,7 +168,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     date:        defaultValues?.date ?? today,
     time_of_day: defaultValues?.time_of_day ?? '',
     sport:       defaultValues?.sport ?? initialSport,
-    workout_type: defaultValues?.workout_type ?? 'long_run',
+    // Nye økter er «vanlig økt» (other) som standard — økttype-velgeren tilbyr
+    // nå bare de funksjonelle taggene (konkurranse/testløp/test + skiskyting-
+    // combos). Gamle økter beholder sin lagrede type uendret.
+    workout_type: defaultValues?.workout_type ?? 'other',
     is_planned:  formMode === 'plan' ? true : (defaultValues?.is_planned ?? false),
     is_completed: defaultValues?.is_completed ?? false,
     is_important: defaultValues?.is_important ?? false,
@@ -417,21 +432,26 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               style={iSt} className="w-full px-4 py-3" />
           </div>
           <div className="md:col-span-2">
-            <Label>Økttype</Label>
+            <Label>Økttype (valgfritt)</Label>
             <div className="flex flex-wrap gap-1.5 mt-1">
-              {workoutTypeOptions.filter(t => t.value !== 'warmup_shooting').map(t => (
-                <button key={t.value} type="button" onClick={() => set('workout_type', t.value)}
-                  className="px-3 py-1.5 text-sm tracking-widest uppercase transition-colors"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: form.workout_type === t.value ? '#FF4500' : 'transparent',
-                    color: form.workout_type === t.value ? '#F0F0F2' : '#555560',
-                    border: `1px solid ${form.workout_type === t.value ? '#FF4500' : '#222228'}`,
-                    cursor: 'pointer',
-                  }}>
-                  {t.label}
-                </button>
-              ))}
+              {workoutTypeOptions.filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value)).map(t => {
+                const active = form.workout_type === t.value
+                // Klikk på aktiv tagg nullstiller til «vanlig økt» (other).
+                return (
+                  <button key={t.value} type="button"
+                    onClick={() => set('workout_type', active ? 'other' : t.value)}
+                    className="px-3 py-1.5 text-sm tracking-widest uppercase transition-colors"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      backgroundColor: active ? '#FF4500' : 'transparent',
+                      color: active ? '#F0F0F2' : '#555560',
+                      border: `1px solid ${active ? '#FF4500' : '#222228'}`,
+                      cursor: 'pointer',
+                    }}>
+                    {t.label}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>

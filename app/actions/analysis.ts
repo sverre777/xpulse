@@ -103,7 +103,12 @@ function buildWeekSkeleton(fromDate: string, toDate: string): WeekBucket[] {
   return Array.from(buckets.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
 
-const INTENSIVE_TYPES = new Set<WorkoutType>(['interval', 'threshold', 'hard_combo', 'testlop', 'competition'])
+// En økt regnes som intensiv basert på FAKTISK høyintensitets-sonetid (I4
+// «terskel» + I5), ikke på en manuell økttype-tag. Konkurranse/testløp teller
+// alltid som intensive (de er det per definisjon, selv uten registrerte soner).
+// Dette er mer korrekt enn den gamle workout_type-baserte tellingen, og gjør at
+// vi kan forenkle økttype-velgeren i skjemaet uten å miste analyse-signal.
+const RACE_TYPES = new Set<WorkoutType>(['competition', 'testlop'])
 
 // ── Hoved-action: uke-aggregert treningsstatistikk ─────
 
@@ -203,7 +208,8 @@ export async function getWorkoutStats(
       bucket.kmByMovement[a.movement_name] = (bucket.kmByMovement[a.movement_name] ?? 0) + km
     }
 
-    if (INTENSIVE_TYPES.has(w.workout_type)) bucket.intensiveCount += 1
+    const highIntensitySeconds = totals ? (totals.zoneSeconds.I4 + totals.zoneSeconds.I5) : 0
+    if (highIntensitySeconds > 0 || RACE_TYPES.has(w.workout_type)) bucket.intensiveCount += 1
   }
 
   return {

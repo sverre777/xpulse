@@ -136,6 +136,29 @@ export async function updateSession(request: NextRequest) {
       url.searchParams.set('upgrade', 'trener')
       return NextResponse.redirect(url)
     }
+
+    // Coach-modus på en UTØVER-only rute → send til trener-hjemmet.
+    // Utøver-rutene (dagbok/plan/analyse/maler/…) finnes kun i utøver-modus og
+    // skal aldri rendres med blå coach-farge i MainNav. Når active_role='coach'
+    // hører brukeren hjemme i /app/trener/* (CoachNav). Innboks er unntatt fordi
+    // den har egen CoachNav-variant; abonnement/innstillinger er SUB_EXEMPT og
+    // når aldri hit. Profil hentes KUN for trener-tier-brukere — vanlige utøvere
+    // (Athlete Pro) treffer aldri denne grenen, så ingen ekstra spørring for dem.
+    const isInbox = pathname === '/app/innboks' || pathname.startsWith('/app/innboks/')
+    if (!isCoachRoute(pathname) && !isInbox && hasCoachTier(sub as ActiveSubscription)) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('active_role, role')
+        .eq('id', user.id)
+        .maybeSingle()
+      const activeRole = profile?.active_role ?? profile?.role
+      if (activeRole === 'coach') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/app/trener'
+        url.search = ''
+        return NextResponse.redirect(url)
+      }
+    }
   }
 
   return supabaseResponse

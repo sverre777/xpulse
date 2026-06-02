@@ -524,6 +524,32 @@
   /* Utøver-gruppens "kommer snart"-tiers skal beholde rød ✓ (global regel
      over gjør alle kommer-kort blå). */
   .pricing-grid-athlete .price-card-coming .price-features li::before { color:var(--orange); }
+  /* ── Hvorfor X-PULSE — sammenligning ── */
+  .why-section { padding:100px 56px; background:var(--mid); border-top:1px solid var(--border); }
+  .why-inner { max-width:1240px; margin:0 auto; }
+  .why-section .section-title { margin-bottom:16px; }
+  .why-section .section-title .orange { color:var(--orange); }
+  .why-lead { font-size:15px; line-height:1.7; color:rgba(242,240,236,0.55); max-width:620px; margin-bottom:48px; }
+  .why-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); }
+  .why-table { width:100%; border-collapse:collapse; min-width:760px; font-family:'Barlow Condensed',sans-serif; }
+  .why-table th, .why-table td { padding:13px 16px; text-align:center; border-bottom:1px solid var(--border); font-size:13px; line-height:1.4; }
+  .why-table thead th { font-weight:700; letter-spacing:1.2px; text-transform:uppercase; font-size:10.5px; color:rgba(242,240,236,0.7); background:var(--surface); }
+  .why-feat-col { text-align:left !important; color:var(--white); font-weight:600; position:sticky; left:0; background:var(--mid); min-width:240px; z-index:1; }
+  .why-table thead .why-feat-col { background:var(--surface); z-index:2; }
+  .why-feat-sub { display:block; font-size:11px; font-weight:400; color:rgba(242,240,236,0.4); letter-spacing:0.3px; text-transform:none; margin-top:2px; }
+  .why-xp-col { background:rgba(255,69,0,0.07); border-left:1px solid rgba(255,69,0,0.3); border-right:1px solid rgba(255,69,0,0.3); color:var(--white); }
+  .why-table thead .why-xp-col { color:var(--orange); background:rgba(255,69,0,0.12); }
+  .why-table tbody tr:last-child td { border-bottom:none; }
+  .ck { color:#28A86E; font-weight:700; font-size:15px; }
+  .cx { color:rgba(242,240,236,0.22); font-size:14px; }
+  .cq { color:rgba(242,240,236,0.45); font-size:11px; letter-spacing:0.4px; text-transform:uppercase; }
+  .ck-soon { font-size:10px; color:rgba(242,240,236,0.45); letter-spacing:0.4px; text-transform:uppercase; margin-left:3px; }
+  .why-note { margin-top:32px; padding:24px 28px; background:var(--surface); border-left:3px solid var(--orange); font-size:15px; line-height:1.75; color:rgba(242,240,236,0.82); }
+  .why-disclaimer { margin-top:16px; font-size:12px; line-height:1.6; color:rgba(242,240,236,0.4); max-width:700px; }
+  @media (max-width:768px) {
+    .why-section { padding-left:24px; padding-right:24px; }
+    .why-table-wrap::after { content:'Bla horisontalt →'; display:block; text-align:right; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:rgba(242,240,236,0.35); padding:6px 10px; }
+  }
 
   .price-compare { background:var(--surface); border:1px solid var(--border); margin-bottom:40px; }
   .price-compare > summary {
@@ -1065,6 +1091,49 @@
       Les mer om trener-modulen
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg>
     </a>
+  </div>
+</section>
+
+<section class="why-section" id="hvorfor">
+  <div class="why-inner">
+    <h2 class="section-title">HVORFOR <span class="orange">X-PULSE?</span></h2>
+    <p class="why-lead">Vi samlet det beste fra treningsdagbøker, analyseplattformer og sosiale treningsplattformer — bygget for norske utholdenhetsutøvere.</p>
+    <div class="why-table-wrap">
+      <table class="why-table">
+        <thead>
+          <tr>
+            <th class="why-feat-col">Funksjon</th>
+            <th>Norsk dagbok</th>
+            <th>Analyse-plattform</th>
+            <th>Sosial treningsplattform</th>
+            <th class="why-xp-col">X-PULSE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="why-feat-col">Norsk språk + OLT-pulssoner</td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Dyp norsk periodisering<span class="why-feat-sub">samlinger, nøkkeldatoer, peak-target</span></td><td><span class="ck">✓</span></td><td><span class="cq">Generell</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Treningsplanlegging</td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Øktmaler + ukesmaler + planmaler</td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Klokkesync (Strava + .fit alle merker)</td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Dyp prestasjonsanalyse (ATL/CTL/TSB)</td><td><span class="cq">Begrenset</span></td><td><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Plan vs. gjennomført (tett koblet)</td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Skiskyting-analyse (treff-%, serier)</td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Ski-smøring/glid-tester m/ rangering</td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Utstyr-km (ski, staver, sko)</td><td><span class="cx">✗</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Delvis</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Laktat per aktivitet</td><td><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Detaljert styrke (øvelser/sett/reps/vekt)</td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Hybrid styrke + utholdenhet i samme økt</td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Egne/custom styrkeøvelser</td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Trener pusher plan til flere samtidig</td><td><span class="cx">✗</span></td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Dual rolle utøver+trener i én konto</td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Granulær trener-datadeling-kontroll</td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td class="why-xp-col"><span class="ck">✓</span></td></tr>
+          <tr><td class="why-feat-col">Sosial deling/segmenter/følge venner</td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td><td class="why-xp-col"><span class="cx">✗</span></td></tr>
+          <tr><td class="why-feat-col">AI-coach</td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cq">Begrenset</span></td><td class="why-xp-col"><span class="ck">✓</span><span class="ck-soon">(kommer)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="why-note">X-PULSE erstatter ikke den sosiale treningsplattformen du allerede bruker — vi henter treningsdataene dine derfra og gir deg planleggingen, periodiseringen og den dype analysen den ikke har. Behold det sosiale der, gjør det seriøse her.</div>
+    <p class="why-disclaimer">Sammenligningen er forenklet. Andre plattformer har sine styrker — vårt mål er å samle det som betyr mest for norske utholdenhetsutøvere på ett sted.</p>
   </div>
 </section>
 

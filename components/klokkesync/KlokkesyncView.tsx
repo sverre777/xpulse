@@ -16,7 +16,7 @@ import {
   type SyncMode,
   type ConflictResolution,
 } from '@/app/actions/strava-sync'
-import { uploadFitFile, type FitParsedPreview } from '@/app/actions/fit-upload'
+import { uploadFitFile } from '@/app/actions/fit-upload'
 import { ConflictModal } from './ConflictModal'
 
 interface StravaConn {
@@ -393,55 +393,135 @@ function ActivityRow({
   )
 }
 
-// ── .fit-fil-opplasting ──────────────────────────────────────
+// ── .fit-fil-opplasting (bulk) ───────────────────────────────
+
+type FileStatus = 'pending' | 'importing' | 'imported' | 'duplicate' | 'skipped' | 'failed'
+
+interface FileEntry {
+  file: File
+  name: string
+  status: FileStatus
+  detail?: string
+}
+
+// Hvor mange filer som lastes opp parallelt. Hver .fit-opplasting parser +
+// skriver til DB server-side; 3 om gangen gir god gjennomstrømning uten å
+// overbelaste (et helt år = 200-400 filer prosesseres i bolker på 3).
+const UPLOAD_BATCH = 3
+
+const STATUS_VISUAL: Record<FileStatus, { label: string; color: string }> = {
+  pending:   { label: 'Klar',                color: '#8A8A96' },
+  importing: { label: 'Importerer …',        color: '#F5C542' },
+  imported:  { label: '✓ Importert',         color: '#28A86E' },
+  duplicate: { label: '⊘ Allerede importert', color: '#8A8A96' },
+  skipped:   { label: '⊘ Duplikat — hoppet over', color: '#8A8A96' },
+  failed:    { label: '✗ Feilet',            color: '#E11D48' },
+}
 
 function FitUploadSection() {
   const router = useRouter()
-  const [pending, startTransition] = useTransition()
-  const [results, setResults] = useState<{ file: string; status: string; ok: boolean }[]>([])
-  const [conflictFile, setConflictFile] = useState<{ file: File; preview: FitParsedPreview } | null>(null)
+  const [entries, setEntries] = useState<FileEntry[]>([])
+  const [importing, setImporting] = useState(false)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [summary, setSummary] = useState<{ imported: number; duplicate: number; skipped: number; failed: number } | null>(null)
 
-  const handleFiles = async (files: FileList) => {
-    setResults([])
-    startTransition(async () => {
-      for (const file of Array.from(files)) {
-        const fd = new FormData()
-        fd.append('file', file)
-        const res = await uploadFitFile(fd)
-        if (res.preview) {
-          setConflictFile({ file, preview: res.preview })
-          setResults(prev => [...prev, { file: file.name, status: 'Konflikt — venter på avgjørelse', ok: false }])
-          break  // Stopper køen når konflikt — bruker må løse den først.
-        } else if (res.ok && res.workout_id) {
-          setResults(prev => [...prev, { file: file.name, status: '✓ Importert', ok: true }])
-        } else if (res.ok) {
-          setResults(prev => [...prev, { file: file.name, status: 'Allerede importert', ok: true }])
-        } else {
-          setResults(prev => [...prev, { file: file.name, status: res.error ?? 'Feilet', ok: false }])
-        }
+  // Legg til filer i kø (dedup på navn+størrelse så samme fil ikke står to
+  // ganger om brukeren slipper inn / velger overlappende sett). Nullstiller
+  // forrige oppsummering når nye filer legges til.
+  const addFiles = (files: FileList) => {
+    const fitFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.fit'))
+    if (fitFiles.length === 0) return
+    setSummary(null)
+    setEntries(prev => {
+      const seen = new Set(prev.map(e => `${e.name}:${e.file.size}`))
+      const additions = fitFiles
+        .filter(f => !seen.has(`${f.name}:${f.size}`))
+        .map<FileEntry>(f => ({ file: f, name: f.name, status: 'pending' }))
+      return [...prev, ...additions]
+    })
+  }
+
+  const removeEntry = (idx: number) => {
+    if (importing) return
+    setEntries(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const clearAll = () => {
+    if (importing) return
+    setEntries([])
+    setSummary(null)
+  }
+
+  const updateEntry = (idx: number, patch: Partial<FileEntry>) =>
+    setEntries(prev => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))
+
+  // Prosesser én fil. Returnerer endelig status så oppsummeringen kan telles
+  // uten å lese (potensielt stale) entries-state etter løkka.
+  const processOne = async (entry: FileEntry, idx: number, bump: () => void): Promise<FileStatus> => {
+    updateEntry(idx, { status: 'importing', detail: undefined })
+    let final: FileStatus = 'failed'
+    let detail: string | undefined
+    try {
+      const fd = new FormData()
+      fd.append('file', entry.file)
+      const res = await uploadFitFile(fd)
+      if (res.preview) {
+        // Konflikt (økt finnes på ~samme tid). I bulk spør vi ikke per fil —
+        // vi hopper over og markerer den som importert (skip) så den ikke
+        // dukker opp på nytt ved neste opplasting. Rapporteres i oppsummeringen.
+        await uploadFitFile(fd, {
+          conflictResolution: 'skip',
+          conflictWorkoutId: res.preview.conflict_workout_id ?? undefined,
+        })
+        final = 'skipped'
+        detail = 'Økt finnes allerede på samme tidspunkt'
+      } else if (res.ok && res.workout_id) {
+        final = 'imported'
+      } else if (res.ok) {
+        final = 'duplicate'
+      } else {
+        final = 'failed'
+        detail = res.error ?? 'Ukjent feil'
       }
-      router.refresh()
-    })
+    } catch {
+      final = 'failed'
+      detail = 'Uventet feil under opplasting'
+    } finally {
+      bump()
+    }
+    updateEntry(idx, { status: final, detail })
+    return final
   }
 
-  const handleResolveFitConflict = async (resolution: ConflictResolution) => {
-    if (!conflictFile) return
-    const { file, preview } = conflictFile
-    setConflictFile(null)
-    const fd = new FormData()
-    fd.append('file', file)
-    startTransition(async () => {
-      const res = await uploadFitFile(fd, {
-        conflictResolution: resolution,
-        conflictWorkoutId: preview.conflict_workout_id ?? undefined,
-      })
-      setResults(prev => [
-        ...prev.filter(r => r.file !== file.name),
-        { file: file.name, status: res.ok ? '✓ Importert' : (res.error ?? 'Feilet'), ok: res.ok },
-      ])
-      router.refresh()
-    })
+  const startImport = async () => {
+    if (importing || entries.length === 0) return
+    setImporting(true)
+    setSummary(null)
+    const total = entries.length
+    let done = 0
+    setProgress({ done, total })
+    const bump = () => { done += 1; setProgress({ done, total }) }
+
+    const tally = { imported: 0, duplicate: 0, skipped: 0, failed: 0 }
+    const indices = entries.map((_, i) => i)
+    for (let i = 0; i < indices.length; i += UPLOAD_BATCH) {
+      const chunk = indices.slice(i, i + UPLOAD_BATCH)
+      const statuses = await Promise.all(chunk.map(idx => processOne(entries[idx], idx, bump)))
+      for (const s of statuses) {
+        if (s === 'imported') tally.imported++
+        else if (s === 'duplicate') tally.duplicate++
+        else if (s === 'skipped') tally.skipped++
+        else if (s === 'failed') tally.failed++
+      }
+    }
+
+    setProgress(null)
+    setSummary(tally)
+    setImporting(false)
+    router.refresh()
   }
+
+  const pendingCount = entries.filter(e => e.status === 'pending').length
 
   return (
     <section className="p-5"
@@ -456,69 +536,200 @@ function FitUploadSection() {
       </h2>
       <p style={{ fontSize: 13, color: 'rgba(242,240,236,0.6)', lineHeight: 1.7, marginBottom: 16 }}>
         Last opp .fit-filer fra Garmin, Coros, Polar, Wahoo, Suunto eller andre.
-        Flere filer kan dras inn samtidig.
+        Velg eller dra inn flere filer samtidig — et helt år går fint på én gang.
       </p>
 
-      <FitDropZone onFiles={handleFiles} pending={pending} />
+      <FitHelpAccordion />
 
-      {results.length > 0 && (
-        <ul className="mt-4 space-y-2 list-none p-0">
-          {results.map((r, i) => (
-            <li key={i} className="p-3 flex items-center justify-between gap-3"
-              style={{
-                background: '#0F0F14', border: '1px solid #1E1E22',
-                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-              }}>
-              <span style={{ color: '#F0F0F2' }}>{r.file}</span>
-              <span style={{ color: r.ok ? '#28A86E' : '#F5C542' }}>{r.status}</span>
-            </li>
-          ))}
-        </ul>
+      <FitDropZone onFiles={addFiles} disabled={importing} />
+
+      {entries.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8A8A96' }}>
+              {entries.length} {entries.length === 1 ? 'fil' : 'filer'} valgt
+              {progress && ` · importerer ${progress.done} av ${progress.total} …`}
+            </span>
+            <div className="flex items-center gap-2">
+              {!importing && (
+                <button type="button" onClick={clearAll}
+                  style={{
+                    background: 'none', border: '1px solid #2A2A30', color: '#8A8A96',
+                    padding: '8px 14px', cursor: 'pointer',
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
+                    letterSpacing: '0.16em', textTransform: 'uppercase',
+                  }}>
+                  Tøm liste
+                </button>
+              )}
+              <button type="button" onClick={startImport} disabled={importing || pendingCount === 0}
+                style={{
+                  background: importing || pendingCount === 0 ? '#7A2200' : '#FF4500',
+                  color: '#F0F0F2', border: 'none',
+                  padding: '9px 18px', cursor: importing || pendingCount === 0 ? 'default' : 'pointer',
+                  opacity: importing || pendingCount === 0 ? 0.7 : 1,
+                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                  fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase',
+                }}>
+                {importing
+                  ? `Importerer ${progress?.done ?? 0}/${progress?.total ?? entries.length} …`
+                  : `Importer ${pendingCount > 0 ? pendingCount : entries.length} ${pendingCount === 1 ? 'fil' : 'filer'}`}
+              </button>
+            </div>
+          </div>
+
+          <ul className="space-y-2 list-none p-0" style={{ maxHeight: 360, overflowY: 'auto' }}>
+            {entries.map((e, i) => {
+              const v = STATUS_VISUAL[e.status]
+              return (
+                <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-center justify-between gap-3"
+                  style={{
+                    background: '#0F0F14', border: '1px solid #1E1E22',
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+                  }}>
+                  <span className="min-w-0 flex-1" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {e.name}
+                  </span>
+                  <span className="flex items-center gap-2 shrink-0">
+                    <span style={{ color: v.color }} title={e.detail}>{v.label}</span>
+                    {!importing && e.status === 'pending' && (
+                      <button type="button" onClick={() => removeEntry(i)}
+                        aria-label={`Fjern ${e.name}`}
+                        style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}>
+                        ×
+                      </button>
+                    )}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
 
-      {conflictFile && (
-        <ConflictModal
-          title={conflictFile.preview.title}
-          existingWorkoutId={conflictFile.preview.conflict_workout_id ?? ''}
-          newSourceLabel={`Fra ${conflictFile.file.name}`}
-          onResolve={handleResolveFitConflict}
-          onCancel={() => setConflictFile(null)}
-        />
+      {summary && (
+        <div className="mt-4 p-3"
+          style={{
+            background: summary.failed > 0 ? 'rgba(245,197,66,0.08)' : 'rgba(40,168,110,0.08)',
+            border: `1px solid ${summary.failed > 0 ? 'rgba(245,197,66,0.4)' : 'rgba(40,168,110,0.4)'}`,
+            borderLeft: `3px solid ${summary.failed > 0 ? '#F5C542' : '#28A86E'}`,
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+            color: '#F0F0F2', lineHeight: 1.6,
+          }}>
+          Ferdig: <strong>{summary.imported}</strong> importert
+          {summary.skipped > 0 && <> · <strong>{summary.skipped}</strong> duplikat hoppet over</>}
+          {summary.duplicate > 0 && <> · <strong>{summary.duplicate}</strong> allerede importert</>}
+          {summary.failed > 0 && <> · <strong>{summary.failed}</strong> feilet</>}.
+        </div>
       )}
     </section>
   )
 }
 
-function FitDropZone({ onFiles, pending }: {
+// Steg-for-steg per merke for å finne/eksportere .fit-fila. Native
+// <details>/<summary> — ingen JS-state, fungerer også uten hydrering.
+const BRAND_GUIDES: { brand: string; steps: string[] }[] = [
+  { brand: 'Strava', steps: [
+    'Åpne aktiviteten på strava.com (web, ikke app-en)',
+    'Klikk de tre prikkene (…) → «Export Original»',
+    'Last opp .fit-filen her',
+  ]},
+  { brand: 'Garmin', steps: [
+    'Logg inn på connect.garmin.com',
+    'Åpne aktiviteten → tannhjul-ikonet → «Export to FIT»',
+    'Last opp filen her',
+  ]},
+  { brand: 'Polar', steps: [
+    'Logg inn på flow.polar.com',
+    'Åpne treningsøkten → … → «Export session» → .fit/.tcx',
+    'Last opp her',
+  ]},
+  { brand: 'Coros', steps: [
+    'Åpne Coros-appen → aktiviteten → del/eksporter → .fit',
+    'Eller bruk traininghub.coros.com → eksporter',
+    'Last opp her',
+  ]},
+  { brand: 'Suunto', steps: [
+    'Logg inn på app.suunto.com',
+    'Åpne aktiviteten → … → eksporter .fit',
+    'Last opp her',
+  ]},
+  { brand: 'Wahoo', steps: [
+    'Åpne Wahoo-appen eller wahoofitness.com',
+    'Eksporter aktiviteten som .fit',
+    'Last opp her',
+  ]},
+]
+
+function FitHelpAccordion() {
+  return (
+    <details className="mb-4"
+      style={{ background: '#0F0F14', border: '1px solid #1E1E22' }}>
+      <summary
+        style={{
+          cursor: 'pointer', padding: '12px 14px', listStyle: 'none',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+          color: '#F0F0F2', letterSpacing: '0.04em',
+        }}>
+        ▸ Hvordan finne .fit-fil fra klokken din
+      </summary>
+      <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1E1E22' }}>
+        {BRAND_GUIDES.map(g => (
+          <details key={g.brand} style={{ marginTop: 10 }}>
+            <summary
+              style={{
+                cursor: 'pointer', listStyle: 'none',
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+                color: '#FF4500', letterSpacing: '0.08em', textTransform: 'uppercase',
+                fontWeight: 700,
+              }}>
+              {g.brand}
+            </summary>
+            <ol style={{
+              margin: '8px 0 4px', paddingLeft: 20,
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+              color: 'rgba(242,240,236,0.75)', lineHeight: 1.7,
+            }}>
+              {g.steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ol>
+          </details>
+        ))}
+      </div>
+    </details>
+  )
+}
+
+function FitDropZone({ onFiles, disabled }: {
   onFiles: (files: FileList) => void
-  pending: boolean
+  disabled: boolean
 }) {
   const [dragOver, setDragOver] = useState(false)
   return (
     <label
-      onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+      onDragOver={e => { e.preventDefault(); if (!disabled) setDragOver(true) }}
       onDragLeave={() => setDragOver(false)}
       onDrop={e => {
         e.preventDefault()
         setDragOver(false)
+        if (disabled) return
         if (e.dataTransfer.files.length > 0) onFiles(e.dataTransfer.files)
       }}
       style={{
         display: 'block', padding: '32px 24px', textAlign: 'center',
         background: dragOver ? 'rgba(255,69,0,0.1)' : '#0F0F14',
         border: `2px dashed ${dragOver ? '#FF4500' : '#262629'}`,
-        cursor: pending ? 'default' : 'pointer',
+        cursor: disabled ? 'default' : 'pointer',
         transition: 'background 0.15s, border-color 0.15s',
       }}>
       <input type="file" accept=".fit" multiple
-        onChange={e => { if (e.target.files) onFiles(e.target.files) }}
-        disabled={pending}
+        onChange={e => { if (e.target.files) onFiles(e.target.files); e.target.value = '' }}
+        disabled={disabled}
         style={{ display: 'none' }} />
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
-        color: pending ? '#555560' : '#F0F0F2', marginBottom: 6,
+        color: disabled ? '#555560' : '#F0F0F2', marginBottom: 6,
       }}>
-        {pending ? 'Behandler …' : 'Dra .fit-filer inn her, eller klikk for å velge'}
+        {disabled ? 'Behandler …' : 'Dra .fit-filer inn her, eller klikk for å velge (flere støttes)'}
       </div>
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,

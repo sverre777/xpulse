@@ -182,11 +182,11 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
           {isSoon && (
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#D4A017', border: '1px solid #D4A017',
+              color: accent, border: `1px solid ${accent}`,
               padding: '1px 6px', fontSize: '10px', letterSpacing: '0.08em',
-              textTransform: 'uppercase', whiteSpace: 'nowrap',
+              textTransform: 'uppercase', whiteSpace: 'nowrap', opacity: 0.85,
             }}>
-              🟡 Kommer
+              Kommer
             </span>
           )}
         </div>
@@ -209,7 +209,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
           className="block text-center px-4 py-3 text-xs tracking-widest uppercase transition-colors hover:bg-[#1A1A22]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#D4A017', border: '1px solid #D4A017', textDecoration: 'none',
+            color: accent, border: `1px solid ${accent}`, textDecoration: 'none', opacity: 0.85,
           }}>
           Bli varslet
         </a>

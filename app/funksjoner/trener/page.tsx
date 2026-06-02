@@ -127,7 +127,7 @@ export default function TrenerPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/app/registrer?role=coach&amp;tier=pro"
               style={{
-                background: '#FF4500', color: '#F2F0EC', padding: '14px 28px',
+                background: '#1A6FD4', color: '#F2F0EC', padding: '14px 28px',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
@@ -152,6 +152,7 @@ export default function TrenerPage() {
         subtitle="Trener Pro inkluderer 3 Athlete Pro-lisenser — egen profil for deg som trener og 2 utøvere."
         href="/app/registrer?role=coach&tier=pro"
         label="Start gratis prøve (Pro)"
+        accent="blue"
       />
     </LandingShell>
   )
@@ -164,9 +165,9 @@ function TierCard({
 }) {
   return (
     <div style={{
-      background: featured ? '#191317' : '#1A1A1E',
+      background: featured ? '#161A22' : '#1A1A1E',
       padding: 28, position: 'relative',
-      borderTop: featured ? '2px solid #FF4500' : '2px solid transparent',
+      borderTop: featured ? '2px solid #1A6FD4' : '2px solid transparent',
       opacity: coming ? 0.78 : 1,
     }}>
       <div style={{
@@ -200,7 +201,7 @@ function TierCard({
           }}>
             <span style={{
               position: 'absolute', left: 0,
-              color: featured ? '#FF4500' : '#1A6FD4', fontWeight: 700,
+              color: '#1A6FD4', fontWeight: 700,
             }}>✓</span>
             {p}
           </li>

@@ -104,19 +104,23 @@ export function SportPageCTA({
   subtitle = 'Ingen bindingstid. Kom i gang på minutter.',
   href = '/xpulse.html#priser',
   label = 'Start gratis prøve',
+  accent = 'orange',
 }: {
   title?: string
   subtitle?: string
   href?: string
   label?: string
+  accent?: 'orange' | 'blue'
 }) {
+  const accentColor = accent === 'blue' ? '#1A6FD4' : '#FF4500'
+  const glow = accent === 'blue' ? 'rgba(26,111,212,0.07)' : 'rgba(255,69,0,0.07)'
   return (
     <section className="px-6 lg:px-14 py-24 md:py-28 text-center relative overflow-hidden"
       style={{ borderTop: '1px solid #1A1A1E' }}>
       <div aria-hidden style={{
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%,-50%)', width: 700, height: 350,
-        background: 'radial-gradient(ellipse, rgba(255,69,0,0.07) 0%, transparent 65%)',
+        background: `radial-gradient(ellipse, ${glow} 0%, transparent 65%)`,
         pointerEvents: 'none',
       }} />
       <h2 style={{
@@ -135,7 +139,7 @@ export function SportPageCTA({
       </p>
       <Link href={href} className="inline-flex items-center gap-3"
         style={{
-          background: '#FF4500', color: '#F2F0EC',
+          background: accentColor, color: '#F2F0EC',
           padding: '16px 36px', position: 'relative',
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
           fontSize: 13, letterSpacing: '0.18em',

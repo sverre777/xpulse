@@ -242,6 +242,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     const freshActivities = (template.activities ?? []).map(normalizeActivityRowFromTemplate)
     setForm(f => ({
       ...f,
+      // Malens tittel følger med inn i økten (pre-fylt, redigerbar). Malens
+      // navn ER tittelen (settes fra øktens tittel når malen lagres).
+      title: template.name || f.title,
       sport: template.sport ?? d.sport ?? f.sport,
       workout_type: d.workout_type ?? f.workout_type,
       movements: (d.movements ?? []).map((m: MovementRow) => ({
@@ -263,7 +266,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   }
 
   const openTemplateModal = () => {
-    setTemplateName('')
+    // Forhåndsutfyll mal-navnet med øktens tittel — øktens overskrift blir
+    // mal-tittel (redigerbar). Tittelen følger så med tilbake når malen brukes.
+    setTemplateName(form.title.trim())
     setTemplateDescription('')
     setTemplateCategory('Annet')
     setTemplateError(null)

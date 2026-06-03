@@ -221,6 +221,13 @@
   .device-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:17px; letter-spacing:3px; text-transform:uppercase; color:rgba(242,240,236,0.22); transition:color 0.2s; white-space:nowrap; }
   .device-name:hover { color:rgba(242,240,236,0.55); }
   .device-name.device-soon { font-size:13px; letter-spacing:1.5px; color:rgba(242,240,236,0.4); }
+  /* Strava gradvis-utrulling-melding */
+  .sync-note { max-width:780px; margin:18px auto 0; padding:16px 22px; background:var(--surface); border:1px solid var(--border); border-left:3px solid #F5C542; }
+  .sync-note-head { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+  .sync-note p { font-size:13.5px; line-height:1.65; color:rgba(242,240,236,0.6); margin:0 0 6px; }
+  .sync-note p:last-child { margin-bottom:0; }
+  .sync-note .sync-note-fit { color:rgba(242,240,236,0.82); }
+  .sync-note .sync-note-fit strong { color:var(--orange); }
 
   /* PROBLEM */
   .problem-section { padding:100px 56px; background:var(--darker); }
@@ -828,10 +835,16 @@
 <div class="devices-bar">
   <div class="devices-label">Synker med</div>
   <div class="devices-list">
-    <span class="device-name">Strava (i dag)</span>
-    <span class="device-name">.fit-import</span>
+    <span class="device-name">.fit-import (alle, i dag)</span>
+    <span class="device-name">Strava (gradvis utrulling)</span>
     <span class="device-name device-soon">Garmin · Apple Health · Polar · Coros — Q3 2026</span>
   </div>
+</div>
+
+<div class="sync-note">
+  <div class="sync-note-head"><span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis</div>
+  <p>Direkte Strava-synkronisering er i utrulling og tilgjengelig for utvalgte brukere nå. Full tilgang for alle kommer snart — vi jobber med å utvide kapasiteten.</p>
+  <p class="sync-note-fit">I mellomtiden kan <strong>alle</strong> laste opp treningsfiler (.fit) fra Strava, Garmin, Polar, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sone-fordeling.</p>
 </div>
 
 <section class="problem-section">
@@ -951,7 +964,7 @@
       <div class="feature-num">04</div>
       <img src="data:image/png;base64,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" class="feature-icon-img">
       <div class="feature-title">Klokkesync</div>
-      <p class="feature-desc">Last opp .fit-filer fra Garmin, Coros, Polar eller Wahoo i dag. Strava-OAuth synker automatisk. Garmin og Apple Health direkte: Q3 2026.</p>
+      <p class="feature-desc">Last opp .fit-filer fra Garmin, Coros, Polar, Suunto eller Wahoo i dag — tilgjengelig for alle. Strava-OAuth ruller ut gradvis. Garmin og Apple Health direkte: Q3 2026.</p>
     </div>
     <div class="feature-card">
       <div class="feature-num">05</div>

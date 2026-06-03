@@ -62,6 +62,8 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
         </div>
       )}
 
+      {!stravaConnection && <StravaRolloutNote />}
+
       <StravaSection conn={stravaConnection} />
       <FitUploadSection />
 
@@ -74,6 +76,36 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
         <strong style={{ color: '#F0F0F2' }}>Direkte-synk for Garmin Connect, Apple Health, Polar og Coros</strong>
         {' '}lanseres Q3 2026. Inntil da: bruk Strava OAuth (auto-synk hvert 5. min) eller last opp .fit-filer manuelt.
       </div>
+    </div>
+  )
+}
+
+// Vises over Strava-tilkoblingen når brukeren ikke er koblet til ennå. Strava-
+// direktesync rulles ut gradvis (Strava API Standard Tier = 10 athletes inntil
+// Extended Access er godkjent), så ikke alle får koblet til med en gang. .fit-
+// opplasting er den fulle løsningen tilgjengelig for alle, derfor fremhevet.
+function StravaRolloutNote() {
+  return (
+    <div className="p-4"
+      style={{
+        background: 'rgba(245,197,66,0.06)',
+        border: '1px solid rgba(245,197,66,0.35)',
+        borderLeft: '3px solid #F5C542',
+        fontFamily: "'Barlow Condensed', sans-serif",
+      }}>
+      <div style={{ color: '#F0F0F2', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
+        📡 Strava-sync er i gradvis utrulling
+      </div>
+      <p style={{ color: 'rgba(242,240,236,0.62)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+        Direkte Strava-tilkobling er for øyeblikket tilgjengelig for et begrenset
+        antall brukere mens vi utvider kapasiteten. Får du ikke koblet til ennå?
+        Det kommer snart.
+      </p>
+      <p style={{ color: 'rgba(242,240,236,0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
+        <span style={{ color: '#28A86E' }}>✓</span>{' '}
+        Du kan alltid laste opp <strong style={{ color: '#FF4500' }}>.fit-filer</strong> manuelt
+        — fungerer for alle, fra alle klokkemerker, med full data.
+      </p>
     </div>
   )
 }

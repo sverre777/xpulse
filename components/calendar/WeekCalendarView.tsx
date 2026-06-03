@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarWorkoutSummary, TYPE_COLORS } from '@/lib/types'
 import { reorderWorkouts } from '@/app/actions/workouts'
+import {
+  DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
+  useDraggable, useDroppable, type DragStartEvent, type DragEndEvent,
+} from '@dnd-kit/core'
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
@@ -40,6 +44,9 @@ interface Props {
   targetUserId?: string
   readOnly?: boolean
   refreshCalendar?: () => Promise<void> | void
+  // Dra-og-slipp: flytt økt til ny dato (+ klokkeslett). newTime undefined =
+  // behold tid (all-day-kort); 'HH:MM' = sett tid (timed-kort i tidsrutenettet).
+  onMoveWorkout?: (workoutId: string, fromDate: string, toDate: string, newTime?: string | null) => void
 }
 
 const DAYS_NO = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -288,13 +295,19 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 // Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
 const COACH_BLUE = '#1A6FD4'
 
-function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
+function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
   pw: PlacedWorkout
   dateStr: string
   mode: Mode
   onEdit: (w: CalendarWorkoutSummary, dateStr: string) => void
+  draggable?: boolean
 }) {
   const { w, top, height, lane, laneCount } = pw
+  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
+    id: w.id,
+    data: { workout: w, fromDate: dateStr, top, kind: 'timed' },
+    disabled: !draggable,
+  })
   const comp = competitionStyle(w)
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
@@ -324,6 +337,9 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
 
   return (
     <button
+      ref={setNodeRef}
+      {...(draggable ? attributes : {})}
+      {...(draggable ? listeners : {})}
       type="button"
       onClick={e => { e.stopPropagation(); onEdit(w, dateStr) }}
       style={{
@@ -336,7 +352,9 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit }: {
         border,
         borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
         padding: '2px 4px',
-        cursor: 'pointer',
+        cursor: draggable ? 'grab' : 'pointer',
+        opacity: isDragging ? 0.4 : 1,
+        touchAction: 'manipulation',
         overflow: 'hidden',
         textAlign: 'left',
         fontFamily: "'Barlow Condensed', sans-serif",
@@ -423,6 +441,36 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
   )
 }
 
+// Dag-kolonne i tidsrutenettet som også er drop-sone for dra-og-slipp.
+function DroppableDayColumn({ ds, isToday, canClick, dndEnabled, onColumnClick, title, children }: {
+  ds: string; isToday: boolean; canClick: boolean; dndEnabled: boolean
+  onColumnClick: (e: React.MouseEvent<HTMLDivElement>) => void
+  title?: string
+  children: React.ReactNode
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `wd:${ds}`, data: { date: ds } })
+  const highlight = dndEnabled && isOver
+  return (
+    <div
+      ref={setNodeRef}
+      onClick={canClick ? onColumnClick : undefined}
+      style={{
+        position: 'relative',
+        borderLeft: '1px solid #1A1A1E',
+        backgroundColor: highlight ? 'rgba(255,69,0,0.10)' : (isToday ? '#0D0D14' : 'transparent'),
+        cursor: canClick ? 'pointer' : 'default',
+        minHeight: `${24 * HOUR_HEIGHT}px`,
+        outline: highlight ? '2px solid rgba(255,69,0,0.55)' : 'none',
+        outlineOffset: '-2px',
+        transition: 'background 0.1s',
+      }}
+      title={title}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function WeekCalendarView({
   weekDates, weekNum, byDate, mode,
   seasonPeriods, seasonKeyDates,
@@ -432,10 +480,42 @@ export function WeekCalendarView({
   targetUserId,
   readOnly = false,
   refreshCalendar,
+  onMoveWorkout,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
   const today = toISO(new Date())
+
+  // ── Dra-og-slipp (tidsrutenett): flytt økt til ny dag + klokkeslett ──────
+  const dndEnabled = !readOnly && !!onMoveWorkout
+  const dndSensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  )
+  const [activeDrag, setActiveDrag] = useState<{ workout: CalendarWorkoutSummary; fromDate: string } | null>(null)
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const d = e.active.data.current as { workout?: CalendarWorkoutSummary; fromDate?: string } | undefined
+    if (d?.workout && d.fromDate) setActiveDrag({ workout: d.workout, fromDate: d.fromDate })
+  }
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(null)
+    if (!onMoveWorkout) return
+    const { active, over, delta } = e
+    if (!over) return
+    const overId = String(over.id)
+    if (!overId.startsWith('wd:')) return
+    const toDate = overId.slice(3)
+    const data = active.data.current as { fromDate?: string; top?: number; kind?: string } | undefined
+    if (!data?.fromDate) return
+    // Timed-kort: ny tid fra opprinnelig topp + vertikal drag-delta (snappet til
+    // 15 min). All-day-kort: behold tid (newTime undefined → kun dato endres).
+    const newTime = data.kind === 'timed' && typeof data.top === 'number'
+      ? yToHHMM(data.top + delta.y)
+      : undefined
+    if (data.fromDate === toDate && newTime === undefined) return
+    onMoveWorkout(String(active.id), data.fromDate, toDate, newTime)
+  }
 
   // Scroll til default-timen på mount (06:00).
   useEffect(() => {
@@ -472,6 +552,12 @@ export function WeekCalendarView({
     mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
 
   return (
+    <DndContext
+      sensors={dndSensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveDrag(null)}
+    >
     <div>
       <WeekStatsBanner
         weekDates={weekDates} weekNum={weekNum} byDate={byDate}
@@ -827,15 +913,9 @@ export function WeekCalendarView({
                 const canClick = !readOnly && !(mode === 'dagbok' && ds > today)
                 const lay = layouts[ds]
                 return (
-                  <div key={ds}
-                    onClick={canClick ? (e => handleColumnClick(e, ds)) : undefined}
-                    style={{
-                      position: 'relative',
-                      borderLeft: '1px solid #1A1A1E',
-                      backgroundColor: isToday ? '#0D0D14' : 'transparent',
-                      cursor: canClick ? 'pointer' : 'default',
-                      minHeight: `${24 * HOUR_HEIGHT}px`,
-                    }}
+                  <DroppableDayColumn key={ds} ds={ds} isToday={isToday}
+                    canClick={canClick} dndEnabled={dndEnabled}
+                    onColumnClick={e => handleColumnClick(e, ds)}
                     title={canClick ? `Klikk for å ${mode === 'plan' ? 'planlegge' : 'logge'} økt` : undefined}
                   >
                     {/* Time-gridlines */}
@@ -859,9 +939,9 @@ export function WeekCalendarView({
                     ))}
                     {/* Økt-kort */}
                     {(lay?.timed ?? []).map(pw => (
-                      <TimedWorkoutCard key={pw.w.id} pw={pw} dateStr={ds} mode={mode} onEdit={onEditWorkout} />
+                      <TimedWorkoutCard key={pw.w.id} pw={pw} dateStr={ds} mode={mode} onEdit={onEditWorkout} draggable={dndEnabled} />
                     ))}
-                  </div>
+                  </DroppableDayColumn>
                 )
               })}
             </div>
@@ -869,5 +949,20 @@ export function WeekCalendarView({
         </div>
       </div>
     </div>
+
+    <DragOverlay dropAnimation={null}>
+      {activeDrag ? (
+        <div style={{
+          width: DAY_MIN_WIDTH - 8, padding: '2px 4px',
+          background: '#1A1A22', border: '1px solid #FF4500', borderLeft: '3px solid #FF4500',
+          fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px',
+          lineHeight: 1.2, cursor: 'grabbing', opacity: 0.95, overflow: 'hidden',
+          textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {activeDrag.workout.title}
+        </div>
+      ) : null}
+    </DragOverlay>
+    </DndContext>
   )
 }

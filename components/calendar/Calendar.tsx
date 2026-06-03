@@ -1804,6 +1804,7 @@ export function Calendar({
           targetUserId={targetUserId}
           readOnly={readOnly}
           refreshCalendar={refreshCalendar}
+          onMoveWorkout={handleMoveWorkout}
         />
       )}
       {view === 'år' && (

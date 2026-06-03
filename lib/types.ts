@@ -582,6 +582,7 @@ export interface ActivityRow {
   avg_heart_rate: string
   max_heart_rate: string
   avg_watts: string
+  max_watts: string
   // Motstand 1-10 — innendørs-maskiner (SkiErg, Romaskin, Stairmaster,
   // Ellipsemaskin, Spinning, Indoors/Ergo, Air bike). Tom streng = ikke satt.
   resistance_level: string
@@ -632,6 +633,7 @@ export interface WorkoutActivity {
   avg_heart_rate: number | null
   max_heart_rate: number | null
   avg_watts: number | null
+  max_watts: number | null
   // Motstand 1-10 — innendørs-maskiner.
   resistance_level: number | null
   // Pace per km — kanonisk lagring i sekunder. Splits er en jsonb-array av
@@ -1087,6 +1089,7 @@ export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: 
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
+    max_watts: '',
     resistance_level: '',
     avg_pace_seconds_per_km: '',
     pace_unit_preference: '',

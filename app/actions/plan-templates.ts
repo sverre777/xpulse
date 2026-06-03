@@ -480,7 +480,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
     id: string; activity_type: string; sort_order: number
     movement_name: string | null; movement_subcategory: string | null
     start_time: string | null; duration_seconds: number | null; distance_meters: number | null
-    avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null; max_watts: number | null
     resistance_level: number | null
     avg_pace_seconds_per_km: number | null
     splits_per_km: { km: number; seconds: number }[] | null
@@ -528,6 +528,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
       avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
       max_heart_rate: a.max_heart_rate?.toString() ?? '',
       avg_watts: a.avg_watts?.toString() ?? '',
+      max_watts: a.max_watts?.toString() ?? '',
       resistance_level: a.resistance_level?.toString() ?? '',
       avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
       pace_unit_preference: a.pace_unit_preference ?? '',

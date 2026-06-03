@@ -87,6 +87,7 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     avg_heart_rate: '',
     max_heart_rate: '',
     avg_watts: '',
+    max_watts: '',
     resistance_level: '',
     avg_pace_seconds_per_km: '',
     pace_unit_preference: '',
@@ -640,13 +641,24 @@ function ActivityRowItem({
                   </Field>
                 )}
 
-                {(isCycling || isResistanceMachine) && !meta?.isShooting && !isStrength && !isAnnet && (
-                  <Field label="Snittwatt">
-                    <input value={row.avg_watts}
-                      onChange={e => onUpdate({ avg_watts: e.target.value })}
-                      inputMode="numeric" placeholder="—"
-                      style={iSt} />
-                  </Field>
+                {/* Watt (snitt + maks) — sykling, motstands-maskiner OG utholdenhets-
+                    former (SkiErg, Ellipsemaskin, Roing osv. har watt-måling).
+                    Valgfritt, så det skader ikke å tilby det for løp/ski også. */}
+                {(isCycling || isResistanceMachine || isEndurance) && !meta?.isShooting && !isStrength && !isAnnet && (
+                  <>
+                    <Field label="Snittwatt">
+                      <input value={row.avg_watts}
+                        onChange={e => onUpdate({ avg_watts: e.target.value })}
+                        inputMode="numeric" placeholder="—"
+                        style={iSt} />
+                    </Field>
+                    <Field label="Makswatt">
+                      <input value={row.max_watts}
+                        onChange={e => onUpdate({ max_watts: e.target.value })}
+                        inputMode="numeric" placeholder="—"
+                        style={iSt} />
+                    </Field>
+                  </>
                 )}
 
                 {/* Motstand 1-10 — kun for innendørs-maskiner med motstand-skala

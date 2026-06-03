@@ -258,6 +258,7 @@ async function insertActivitiesWithChildren(
       avg_heart_rate: parseInt(a.avg_heart_rate) || null,
       max_heart_rate: parseInt(a.max_heart_rate) || null,
       avg_watts: parseInt(a.avg_watts) || null,
+      max_watts: parseInt(a.max_watts) || null,
       resistance_level: parseInt(a.resistance_level) || null,
       avg_pace_seconds_per_km: parseInt(a.avg_pace_seconds_per_km) || null,
       pace_unit_preference: a.pace_unit_preference || null,
@@ -404,6 +405,7 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       avg_heart_rate: a.avg_heart_rate ?? '',
       max_heart_rate: a.max_heart_rate ?? '',
       avg_watts: a.avg_watts ?? '',
+      max_watts: a.max_watts ?? '',
       resistance_level: a.resistance_level ?? '',
       avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? '',
       pace_unit_preference: a.pace_unit_preference ?? '',
@@ -1143,7 +1145,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     movement_name: string | null; movement_subcategory: string | null
     sort_order: number
     start_time: string | null; duration_seconds: number; distance_meters: number | null
-    avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null
+    avg_heart_rate: number | null; max_heart_rate: number | null; avg_watts: number | null; max_watts: number | null
     resistance_level: number | null
     avg_pace_seconds_per_km: number | null
     splits_per_km: { km: number; seconds: number }[] | null
@@ -1212,6 +1214,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_heart_rate: a.avg_heart_rate?.toString() ?? '',
         max_heart_rate: a.max_heart_rate?.toString() ?? '',
         avg_watts: a.avg_watts?.toString() ?? '',
+        max_watts: a.max_watts?.toString() ?? '',
         resistance_level: a.resistance_level?.toString() ?? '',
         avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
         pace_unit_preference: a.pace_unit_preference ?? '',

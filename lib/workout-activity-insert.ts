@@ -65,6 +65,7 @@ export async function insertActivityTreeForWorkout(
       avg_heart_rate: parseIntOrNull(a.avg_heart_rate),
       max_heart_rate: parseIntOrNull(a.max_heart_rate),
       avg_watts: parseIntOrNull(a.avg_watts),
+      max_watts: parseIntOrNull(a.max_watts),
       resistance_level: parseIntOrNull(a.resistance_level),
       prone_shots: parseIntOrNull(a.prone_shots),
       prone_hits: parseIntOrNull(a.prone_hits),

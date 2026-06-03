@@ -1446,6 +1446,37 @@ export async function getWorkoutsForDay(userId: string, date: string) {
 // Sett sort_order eksplisitt på en sekvens av økter (samme dag). Brukes når
 // utøveren bytter rekkefølge eller markerer to økter som "samme økt" (lik
 // sort_order). Validerer at alle økter tilhører samme bruker.
+// Flytt én økt til ny dato (og evt. nytt klokkeslett) — brukes av dra-og-slipp
+// i kalenderen. newTime: undefined = ikke endre tid (måneds-/uke-dato-drop);
+// '' / null = nullstill tid; 'HH:MM' = sett tid (uke-view tid-drop). Gjelder
+// både planlagte og gjennomførte økter (kalenderen posisjonerer på `date`).
+export async function moveWorkout(
+  workoutId: string,
+  newDate: string,
+  newTime?: string | null,
+  targetUserId?: string,
+): Promise<{ ok: true } | { error: string }> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return { error: 'Ugyldig dato' }
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const update: Record<string, unknown> = { date: newDate }
+  if (newTime !== undefined) {
+    update.time_of_day = newTime && /^\d{2}:\d{2}/.test(newTime) ? newTime.slice(0, 5) : null
+  }
+
+  const { error } = await supabase
+    .from('workouts')
+    .update(update)
+    .eq('id', workoutId)
+    .eq('user_id', resolved.userId)
+  if (error) return { error: error.message }
+
+  revalidateWorkoutPaths(resolved.userId)
+  return { ok: true }
+}
+
 export async function reorderWorkouts(
   workoutIds: string[],
   sortOrders: number[],

@@ -10,7 +10,11 @@ import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
-import { getCalendarWorkouts, reorderWorkouts } from '@/app/actions/workouts'
+import { getCalendarWorkouts, reorderWorkouts, moveWorkout } from '@/app/actions/workouts'
+import {
+  DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
+  useDraggable, useDroppable, type DragStartEvent, type DragEndEvent,
+} from '@dnd-kit/core'
 import type { WorkoutModalState } from '@/components/workout/WorkoutModal'
 // WorkoutModal trekker WorkoutForm (~1000 linjer + tunge sub-komponenter)
 // inn i bundlet. Lazy-load så det først lastes når brukeren klikker på en
@@ -103,6 +107,11 @@ interface CalendarActions {
   // ikke går gjennom WorkoutModal — f.eks. reorderWorkouts. Calendar holder
   // byDate i lokal state, så router.refresh() alene oppdaterer ikke UI.
   refreshCalendar: () => Promise<void> | void
+  // Dra-og-slipp: flytt en økt til ny dato (og evt. nytt klokkeslett i uke-view).
+  // Optimistisk UI-oppdatering skjer i Calendar; serverbekreftelse + refetch
+  // reconciler. newTime: undefined = behold tid (måned/uke-dato-drop); 'HH:MM'
+  // eller null = sett/nullstill tid (uke-view tid-drop).
+  moveWorkoutTo: (workoutId: string, fromDate: string, toDate: string, newTime?: string | null) => void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -442,7 +451,15 @@ function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
 // Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
 const COACH_BLUE = '#1A6FD4'
 
-function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
+function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging }: {
+  w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode
+  // Valgfrie dra-bindings fra DraggableChip-wrapperen. Når satt blir chip-en
+  // dragbar; ellers rendres den som vanlig (f.eks. i dag-detalj-modalen).
+  dragRef?: (el: HTMLElement | null) => void
+  dragListeners?: Record<string, unknown>
+  dragAttributes?: Record<string, unknown>
+  dragging?: boolean
+}) {
   const comp = competitionChipStyle(w, mode)
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
   const color = comp?.color ?? fallbackColor
@@ -483,12 +500,20 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
 
   return (
     <button
+      ref={dragRef}
+      {...dragAttributes}
+      {...dragListeners}
       type="button"
       onClick={e => { e.stopPropagation(); onEditWorkout(w, dateStr) }}
       title={[coachTitle, groupTitle].filter(Boolean).join(' · ') || undefined}
       style={{
         display: 'block', width: '100%', textAlign: 'left', marginBottom: '2px',
-        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+        background: 'none', border: 'none', padding: 0,
+        cursor: dragRef ? 'grab' : 'pointer',
+        opacity: dragging ? 0.4 : 1,
+        // La nettleseren håndtere vertikal scroll på touch; TouchSensor bruker
+        // long-press (delay) for å starte drag, så scroll funker fortsatt.
+        touchAction: 'manipulation',
       }}
     >
       <div style={{
@@ -528,6 +553,26 @@ function WorkoutChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr:
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>
     </button>
+  )
+}
+
+// Dra-bar wrapper rundt WorkoutChip — registrerer økten som draggable i
+// måneds-grid-ets DndContext. Deaktivert i read-only (trener-visning).
+function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
+  const { readOnly } = useCalendarActions()
+  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
+    id: w.id,
+    data: { workout: w, fromDate: dateStr },
+    disabled: readOnly,
+  })
+  return (
+    <WorkoutChip
+      w={w} dateStr={dateStr} mode={mode}
+      dragRef={setNodeRef}
+      dragListeners={listeners as unknown as Record<string, unknown>}
+      dragAttributes={attributes as unknown as Record<string, unknown>}
+      dragging={isDragging}
+    />
   )
 }
 
@@ -590,8 +635,12 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const borderStyle = stateBorderFor(states)
   const baseBg = isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : 'transparent'
 
+  // Drop-sone for dra-og-slipp: slippes en økt her flyttes den til denne dagen.
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `day:${dateStr}`, data: { date: dateStr } })
+
   return (
     <div
+      ref={setDropRef}
       role="button"
       tabIndex={0}
       onClick={onToggle}
@@ -604,16 +653,19 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         minWidth: 0,
         borderColor: '#1A1A1E',
         borderLeftStyle: borderStyle ?? 'solid',
-        background: stateBg ?? baseBg,
+        background: isOver ? 'rgba(255,69,0,0.14)' : (stateBg ?? baseBg),
         opacity: isCurrentMonth ? 1 : 0.3,
         padding: '4px',
         cursor: 'pointer',
-        outline: keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none',
-        outlineOffset: keyVisual ? `-${keyVisual.borderWidth}px` : 0,
+        outline: isOver
+          ? '2px solid #FF4500'
+          : (keyVisual ? `${keyVisual.borderWidth}px solid ${keyVisual.color}` : 'none'),
+        outlineOffset: isOver ? '-2px' : (keyVisual ? `-${keyVisual.borderWidth}px` : 0),
         boxShadow: isPeakTarget ? '0 0 8px rgba(212, 160, 23, 0.6)' : undefined,
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'background 0.12s, outline-color 0.12s',
       }}
       title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
     >
@@ -652,7 +704,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         if (filtered.length === 0) return null
         return (
           <div style={{ flex: 1, minHeight: 0 }}>
-            {filtered.map(w => <WorkoutChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
+            {filtered.map(w => <DraggableChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
           </div>
         )
       })()}
@@ -694,8 +746,33 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
+
+  // ── Dra-og-slipp (måneds-grid): flytt økt til ny dag ──────────────────
+  // Mus: drag etter 8px bevegelse (klikk forblir klikk → åpner edit). Touch:
+  // long-press (250ms) før drag, så vertikal scroll i kalenderen funker normalt.
+  const dndSensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  )
+  const [activeDrag, setActiveDrag] = useState<{ workout: CalendarWorkoutSummary; fromDate: string } | null>(null)
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const data = e.active.data.current as { workout?: CalendarWorkoutSummary; fromDate?: string } | undefined
+    if (data?.workout && data.fromDate) setActiveDrag({ workout: data.workout, fromDate: data.fromDate })
+  }
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(null)
+    const { active, over } = e
+    if (!over) return
+    const overId = String(over.id)
+    if (!overId.startsWith('day:')) return
+    const toDate = overId.slice(4)
+    const fromDate = (active.data.current as { fromDate?: string } | undefined)?.fromDate
+    if (!fromDate || fromDate === toDate) return
+    moveWorkoutTo(String(active.id), fromDate, toDate) // måned: behold tid (undefined)
+  }
   // Lazy-loadet ernæring per økt — kun hentet når dag-detalj-modal er åpen.
   // null = ikke lastet enda; tomt array = ingen rader registrert.
   const [nutritionByWorkout, setNutritionByWorkout] = useState<Record<string, import('@/lib/types').NutritionEntryRow[]>>({})
@@ -745,6 +822,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
     mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
 
   return (
+    <DndContext
+      sensors={dndSensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveDrag(null)}
+    >
     <div>
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
@@ -1207,6 +1290,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         )
       })}
     </div>
+
+    {/* Ghost-chip som følger markøren under draging (rendres via portal, så
+        den er synlig utenfor uke-radenes scroll-wrapper). */}
+    <DragOverlay dropAnimation={null}>
+      {activeDrag ? (
+        <div style={{ width: 160, cursor: 'grabbing', opacity: 0.95 }}>
+          <WorkoutChip w={activeDrag.workout} dateStr={activeDrag.fromDate} mode={mode} />
+        </div>
+      ) : null}
+    </DragOverlay>
+    </DndContext>
   )
 }
 
@@ -1437,6 +1531,33 @@ export function Calendar({
     await fetchData(start, end)
   }, [fetchData, view, refDate])
 
+  // Dra-og-slipp: flytt en økt til ny dato (+ evt. tid). Optimistisk flytting i
+  // byDate gir umiddelbar respons; server-kall + refetch reconciler etterpå.
+  // Ved feil reverteres via refetch (server-state er fasit).
+  const handleMoveWorkout = useCallback(async (
+    workoutId: string, fromDate: string, toDate: string, newTime?: string | null,
+  ) => {
+    if (readOnly) return
+    if (fromDate === toDate && newTime === undefined) return
+    setByDate(prev => {
+      const fromList = prev[fromDate] ?? []
+      const moving = fromList.find(w => w.id === workoutId)
+      if (!moving) return prev
+      const next = { ...prev }
+      next[fromDate] = fromList.filter(w => w.id !== workoutId)
+      const updated = newTime !== undefined ? { ...moving, start_time: newTime || null } : moving
+      next[toDate] = [...(next[toDate] ?? []), updated]
+      return next
+    })
+    const res = await moveWorkout(workoutId, toDate, newTime, targetUserId)
+    if ('error' in res) {
+      // Server avviste — refetch reverterer optimismen til server-state.
+      console.warn('[Calendar] moveWorkout feilet:', res.error)
+    }
+    // Reconciler uansett (sortering/aggregater/feil-revert).
+    await refreshCalendar()
+  }, [readOnly, targetUserId, refreshCalendar])
+
   // Fetch when view/refDate changes (skip initial load — data is passed in).
   // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
   // trigger nytt fetch (ellers beholder state kun forrige uke).
@@ -1540,6 +1661,7 @@ export function Calendar({
       targetUserId,
       readOnly,
       refreshCalendar,
+      moveWorkoutTo: handleMoveWorkout,
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}

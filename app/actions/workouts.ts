@@ -470,6 +470,7 @@ export async function getActivitiesForWorkout(workoutId: string): Promise<Workou
 }
 
 export async function saveWorkout(data: WorkoutFormData, workoutId?: string, targetUserId?: string): Promise<{ error?: string; id?: string }> {
+  const t0 = Date.now()  // måling av lagringstid — vises i server-loggene
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
   if ('error' in resolved) return { error: resolved.error }
@@ -617,42 +618,13 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   if (!savedId) return { error: 'Ingen ID returnert' }
 
+  // ── Child-tabeller: alle uavhengige (ulike tabeller, alle på workout_id) ──
+  // Kjøres PARALLELT i stedet for sekvensielt — kutter lagringstiden fra ~7-9
+  // serielle DB-rundturer ned mot ~1 (den tregeste). Hver thunk returnerer en
+  // feilmelding eller null; vi sjekker samlet etterpå.
   const movements = data.movements.filter(m => m.movement_name && (m.minutes || m.distance_km))
-  if (movements.length > 0) {
-    await supabase.from('workout_movements').insert(
-      movements.map((m, i) => ({
-        workout_id: savedId,
-        movement_name: m.movement_name,
-        minutes: parseInt(m.minutes) || null,
-        distance_km: parseFloat(m.distance_km) || null,
-        elevation_meters: parseInt(m.elevation_meters) || null,
-        avg_heart_rate: parseInt(m.avg_heart_rate) || null,
-        inline_zones: (m.zones ?? []).filter(z => parseInt(z.minutes) > 0).map(z => ({
-          zone_name: z.zone_name, minutes: parseInt(z.minutes),
-        })),
-        inline_exercises: (m.exercises ?? []).filter(e => e.exercise_name).map(e => ({
-          exercise_name: e.exercise_name,
-          sets: parseInt(e.sets) || null,
-          reps: parseInt(e.reps) || null,
-          weight_kg: parseFloat(e.weight_kg) || null,
-        })),
-        sort_order: i,
-      }))
-    )
-  }
 
-  // Flatten all movement zones into workout_zones for calendar/summary views.
-  // Child-raden workout_zones reflekterer hovedradens semantikk:
-  //  - Plan-save → plan-soner
-  //  - Completion/Dagbok → actual-soner
-  // Plan-visning leser planned_snapshot.zones i stedet for denne tabellen.
-  if (zoneAggregate.length > 0) {
-    await supabase.from('workout_zones').insert(
-      zoneAggregate.map((z, i) => ({ workout_id: savedId, ...z, sort_order: i }))
-    )
-  }
-
-  // Shooting series (top-level, kun for Skiskyting)
+  // Skyte-rader bygges synkront (ingen DB her).
   const shootingRows: {
     workout_id: string; movement_order: number; shooting_type: string
     prone_shots: number | null; prone_hits: number | null
@@ -676,52 +648,93 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
       sort_order: bi,
     })
   }
-  if (shootingRows.length > 0) {
-    await supabase.from('workout_shooting_blocks').insert(shootingRows)
-  }
 
-  // Fase 7: kronologisk aktivitetsliste — ny primær datamodell.
-  // Gamle workout_movements/zones/shooting_blocks beholdes midlertidig for bakoverkomp.
-  const activityErr = await insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [])
-  if (activityErr) return { error: activityErr }
-
-  // Fase 13: lær brukerens personlige øvelsesbibliotek fra styrke-øvelser.
-  // Hopper over rene plan-saves — times_used skal speile faktisk bruk.
-  if (!isPlanSave) {
-    await learnUserExercises(supabase, resolved.userId, data.activities ?? [])
-  }
-
-  // Fase 8: konkurranse-data — egen tabell, upsert per workout_id.
-  // Skrives kun når økttype er competition/testlop OG det finnes faktisk data.
   const isCompetitionWorkout = data.workout_type === 'competition' || data.workout_type === 'testlop'
-  if (isCompetitionWorkout && data.competition_data && hasCompetitionContent(data.competition_data)) {
-    const row = competitionRowFor(savedId!, data.competition_data)
-    const { error: cErr } = await supabase
-      .from('workout_competition_data')
-      .upsert(row, { onConflict: 'workout_id' })
-    if (cErr) return { error: cErr.message }
-  } else {
-    // Rens ut gammel konkurranse-data hvis brukeren har byttet bort fra competition/testlop
-    // eller tømt modulen. Trygt å kalle også når det ikke finnes noen rad.
-    await supabase.from('workout_competition_data').delete().eq('workout_id', savedId!)
+  const isTestWorkout = data.workout_type === 'test'
+  const lactate = data.lactate.filter(l => l.mmol && parseFloat(l.mmol) > 0)
+
+  const childOps: Promise<string | null>[] = []
+
+  // Movements (legacy bakoverkomp)
+  if (movements.length > 0) {
+    childOps.push((async () => {
+      const { error } = await supabase.from('workout_movements').insert(
+        movements.map((m, i) => ({
+          workout_id: savedId,
+          movement_name: m.movement_name,
+          minutes: parseInt(m.minutes) || null,
+          distance_km: parseFloat(m.distance_km) || null,
+          elevation_meters: parseInt(m.elevation_meters) || null,
+          avg_heart_rate: parseInt(m.avg_heart_rate) || null,
+          inline_zones: (m.zones ?? []).filter(z => parseInt(z.minutes) > 0).map(z => ({
+            zone_name: z.zone_name, minutes: parseInt(z.minutes),
+          })),
+          inline_exercises: (m.exercises ?? []).filter(e => e.exercise_name).map(e => ({
+            exercise_name: e.exercise_name,
+            sets: parseInt(e.sets) || null,
+            reps: parseInt(e.reps) || null,
+            weight_kg: parseFloat(e.weight_kg) || null,
+          })),
+          sort_order: i,
+        }))
+      )
+      return error?.message ?? null
+    })())
   }
 
-  // Fase 31/32: test-data — egen tabell, upsert per workout_id.
-  // Test/PR-sport (TestPRSport) lagres i sport-kolonnen sammen med
-  // subcategory + custom_label. test_type avledes for bakoverkompatibilitet.
-  const isTestWorkout = data.workout_type === 'test'
-  if (isTestWorkout && data.test_data && (data.test_data.subcategory || data.test_data.custom_label || data.test_data.primary_result)) {
-    const td = data.test_data
-    const primary = td.primary_result.trim()
-    const derivedTestType =
-      td.test_type
-      || (td.sport === 'annet' ? td.custom_label.trim() : '')
-      || (td.subcategory === 'Egen' ? td.custom_label.trim() : '')
-      || td.subcategory
-      || 'annet'
-    const { error: tErr } = await supabase
-      .from('workout_test_data')
-      .upsert({
+  // Soner (calendar/summary — speiler hovedradens plan/actual-semantikk;
+  // plan-visning leser planned_snapshot.zones i stedet for denne tabellen).
+  if (zoneAggregate.length > 0) {
+    childOps.push((async () => {
+      const { error } = await supabase.from('workout_zones').insert(
+        zoneAggregate.map((z, i) => ({ workout_id: savedId, ...z, sort_order: i }))
+      )
+      return error?.message ?? null
+    })())
+  }
+
+  // Skyte-serier (kun Skiskyting)
+  if (shootingRows.length > 0) {
+    childOps.push((async () => {
+      const { error } = await supabase.from('workout_shooting_blocks').insert(shootingRows)
+      return error?.message ?? null
+    })())
+  }
+
+  // Fase 7: kronologisk aktivitetsliste (intern parent→child-sekvensering).
+  childOps.push(insertActivitiesWithChildren(supabase, savedId!, data.activities ?? []))
+
+  // Fase 13: lær personlig øvelsesbibliotek (kun faktisk bruk, ikke plan-save).
+  if (!isPlanSave) {
+    childOps.push((async () => {
+      await learnUserExercises(supabase, resolved.userId, data.activities ?? [])
+      return null
+    })())
+  }
+
+  // Fase 8: konkurranse-data — upsert ved innhold, ellers rens ut gammel.
+  childOps.push((async () => {
+    if (isCompetitionWorkout && data.competition_data && hasCompetitionContent(data.competition_data)) {
+      const row = competitionRowFor(savedId!, data.competition_data)
+      const { error } = await supabase.from('workout_competition_data').upsert(row, { onConflict: 'workout_id' })
+      return error?.message ?? null
+    }
+    await supabase.from('workout_competition_data').delete().eq('workout_id', savedId!)
+    return null
+  })())
+
+  // Fase 31/32: test-data — upsert ved innhold, ellers rens ut gammel.
+  childOps.push((async () => {
+    if (isTestWorkout && data.test_data && (data.test_data.subcategory || data.test_data.custom_label || data.test_data.primary_result)) {
+      const td = data.test_data
+      const primary = td.primary_result.trim()
+      const derivedTestType =
+        td.test_type
+        || (td.sport === 'annet' ? td.custom_label.trim() : '')
+        || (td.subcategory === 'Egen' ? td.custom_label.trim() : '')
+        || td.subcategory
+        || 'annet'
+      const { error } = await supabase.from('workout_test_data').upsert({
         workout_id: savedId!,
         user_id: resolved.userId,
         sport: td.sport || 'annet',
@@ -735,30 +748,42 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
         equipment: td.equipment || null,
         conditions: td.conditions || null,
       }, { onConflict: 'workout_id' })
-    if (tErr) return { error: tErr.message }
-  } else {
+      return error?.message ?? null
+    }
     await supabase.from('workout_test_data').delete().eq('workout_id', savedId!)
-  }
+    return null
+  })())
 
+  // Tags
   if (data.tags.length > 0) {
-    await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
+    childOps.push((async () => {
+      const { error } = await supabase.from('workout_tags').insert(data.tags.map(tag => ({ workout_id: savedId, tag })))
+      return error?.message ?? null
+    })())
   }
 
-  const lactate = data.lactate.filter(l => l.mmol && parseFloat(l.mmol) > 0)
+  // Topp-nivå laktatmålinger
   if (lactate.length > 0) {
-    await supabase.from('workout_lactate_measurements').insert(
-      lactate.map((l, i) => ({
-        workout_id: savedId,
-        measured_at_time: l.measured_at_time || null,
-        mmol: parseFloat(l.mmol),
-        heart_rate: parseInt(l.heart_rate) || null,
-        feeling: l.feeling,
-        sort_order: i,
-      }))
-    )
+    childOps.push((async () => {
+      const { error } = await supabase.from('workout_lactate_measurements').insert(
+        lactate.map((l, i) => ({
+          workout_id: savedId,
+          measured_at_time: l.measured_at_time || null,
+          mmol: parseFloat(l.mmol),
+          heart_rate: parseInt(l.heart_rate) || null,
+          feeling: l.feeling,
+          sort_order: i,
+        }))
+      )
+      return error?.message ?? null
+    })())
   }
+
+  const childErrors = (await Promise.all(childOps)).filter((e): e is string => !!e)
+  if (childErrors.length > 0) return { error: childErrors[0] }
 
   revalidateWorkoutPaths(resolved.userId)
+  console.log(`[saveWorkout] ${workoutId ? 'oppdatert' : 'opprettet'} ${savedId} på ${Date.now() - t0}ms (${childOps.length} parallelle child-skrivinger)`)
   return { id: savedId }
 }
 

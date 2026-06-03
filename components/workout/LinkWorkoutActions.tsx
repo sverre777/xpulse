@@ -118,9 +118,12 @@ export function LinkWorkoutActions({
     startBusy(async () => {
       const res = await markCompleted(workoutId, targetUserId)
       if (res.error) { setError(res.error); return }
-      setSuccessMsg('Markert som fullført')
+      // Hold økten ÅPEN i redigeringsmodus i stedet for full reload: naviger til
+      // dagbok-redigering for samme økt, så bruker kan fylle inn faktiske data
+      // (varighet, puls, soner, RPE, notat) med en gang. linked_workout_id
+      // bevares av markCompleted; is_planned beholdes så planen fortsatt vises.
+      router.push(`/app/dagbok?edit=${workoutId}`)
       router.refresh()
-      setTimeout(() => { window.location.reload() }, 600)
     })
   }
 

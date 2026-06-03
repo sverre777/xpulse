@@ -48,16 +48,17 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
           </div>
         </div>
 
-        {/* Title — alltid synlig, men trunkert med ellipsis hvis for lang
-            (lange Strava-titler ødela ellers kort-layouten). Full tittel i
-            title-attributtet → tooltip ved hover. Stats-raden under presses
-            aldri ut. */}
+        {/* Title — alltid synlig, men trunkert med ellipsis hvis lengre enn
+            2 linjer (lange Strava-titler ødela ellers kort-layouten). Full
+            tittel i title-attributtet → tooltip ved hover. Stats-raden (sport/
+            tid/km) er en egen rad under og presses aldri ut. */}
         <h4 className="text-sm font-semibold leading-tight mt-1.5"
           title={workout.title ?? undefined}
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
             fontSize: compact ? '13px' : '14px',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden', overflowWrap: 'anywhere',
           }}>
           {workout.title}
         </h4>

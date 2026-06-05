@@ -1127,12 +1127,15 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
   if ('error' in resolved) return null
+  // Henter kun embeds som faktisk brukes i return-mappingen nedenfor. Droppet
+  // workout_zones + workout_exercises (return setter zones:[]/exercises:[] —
+  // den nye aktivitets-modellen erstatter dem), så queryen blir lettere.
   const { data: workout, error } = await supabase
     .from('workouts')
     .select(`
       *,
-      workout_movements(*), workout_zones(*), workout_tags(*),
-      workout_exercises(*), workout_lactate_measurements(*), workout_shooting_blocks(*),
+      workout_movements(*), workout_tags(*),
+      workout_lactate_measurements(*), workout_shooting_blocks(*),
       workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
       workout_competition_data(*),
       workout_test_data(*),

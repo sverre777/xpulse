@@ -1368,8 +1368,18 @@ export function Calendar({
 }: CalendarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [view, setView] = useState<CalendarView>(initialView)
-  const [refDate, setRefDate] = useState<Date>(() => initialDate ? new Date(initialDate + 'T12:00:00') : new Date())
+  // Persistert kalender-posisjon i URL (cv=visning, cd=dato). Ved side-refresh
+  // (samme URL) lander man der man var; frisk navigasjon til /app/dagbok uten
+  // params → nåtid som før. Initialiseres fra URL, faller tilbake til props/nå.
+  const urlView = searchParams.get('cv')
+  const urlDate = searchParams.get('cd')
+  const [view, setView] = useState<CalendarView>(
+    (urlView === 'uke' || urlView === 'måned' || urlView === 'år') ? urlView : initialView
+  )
+  const [refDate, setRefDate] = useState<Date>(() => {
+    const d = urlDate ?? initialDate
+    return d ? new Date(d + 'T12:00:00') : new Date()
+  })
   const [byDate, setByDate] = useState(initialWorkoutsByDate)
   const healthData = initialHealthData
   const healthDates = new Set(Object.keys(healthData))
@@ -1566,6 +1576,18 @@ export function Calendar({
     if (!mounted) { setMounted(true); return }
     const { start, end } = getDateRange(view, refDate)
     fetchData(start, end)
+  }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
+
+  // Speil gjeldende visning + dato i URL-en (cv/cd) så en side-refresh lander
+  // samme sted. router.replace → ingen ny history-entry, beholder andre params
+  // (edit/new ryddes av egen effekt). Kjøres også på mount så URL-en stemples.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    params.set('cv', view)
+    params.set('cd', toISO(refDate))
+    // Transiente modal-params skal ikke persisteres med posisjonen.
+    params.delete('edit'); params.delete('new'); params.delete('time')
+    router.replace(`${window.location.pathname}?${params.toString()}`, { scroll: false })
   }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
 
   // Kommentar per periode — egen tekst for uke og måned, per Plan/Dagbok.

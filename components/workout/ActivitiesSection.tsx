@@ -215,10 +215,12 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   const addRow = () => {
     const last = rows[rows.length - 1]
     // Default: hovedaktivitet med sport-ens hovedbevegelsesform. Subsequent rader
-    // kopierer type + bevegelsesform fra forrige (så serier av like økter blir raske).
+    // kopierer type + bevegelsesform + underkategori fra forrige (så serier av
+    // like økter blir raske). Bruker kan endre underkategori manuelt etterpå.
     const type: ActivityType = last ? last.activity_type : 'aktivitet'
     const movement = last ? last.movement_name : defaultMovementForSport(sport)
     const newRow = emptyRow(type, movement)
+    if (last) newRow.movement_subcategory = last.movement_subcategory
     onChange([...rows, newRow])
     // Nye rader åpnes ekspandert så brukeren kan fylle inn umiddelbart.
     setExpandedId(newRow.id)

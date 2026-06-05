@@ -36,6 +36,25 @@ export default function KlokkesyncPage() {
         icon={<ClockIcon />}
       />
 
+      {/* Strava gradvis-utrulling — ærlig melding, .fit fremhevet for alle. */}
+      <div style={{ padding: '0 24px', marginTop: '-8px', marginBottom: 8 }}>
+        <div style={{
+          maxWidth: 780, margin: '0 auto', padding: '16px 22px',
+          background: '#1A1A1E', border: '1px solid #262629', borderLeft: '3px solid #F5C542',
+          fontFamily: "'Barlow Condensed', sans-serif",
+        }}>
+          <div style={{ color: '#F2F0EC', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis
+          </div>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.6)', margin: '0 0 6px' }}>
+            Direkte Strava-synkronisering er i utrulling og tilgjengelig for et begrenset antall brukere nå mens vi utvider kapasiteten. Full tilgang for alle kommer snart.
+          </p>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.82)', margin: 0 }}>
+            I mellomtiden kan <strong style={{ color: '#FF4500' }}>alle</strong> laste opp .fit-filer fra Strava, Garmin, Polar, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sone-fordeling.
+          </p>
+        </div>
+      </div>
+
       <SportFeatureSection
         kicker="Hvilke klokker"
         title="ALLE STORE LEVERANDØRER."

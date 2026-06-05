@@ -539,13 +539,16 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       }
     }
 
-    // Siste hardøkt — ≥15 min i I3+ (900s) ELLER konkurranse-type.
+    // Siste hardøkt — tagget som hardøkt (intervall/terskel/hard-kombo/konkurranse/
+    // testløp) ELLER ≥15 min i I3+ (900s). Begge signaler: manuell tagg + faktisk
+    // sonetid (sone-basert beholdt som supplement).
     const recentCompleted = (recentCompletedRes.data ?? []) as WorkoutRow[]
+    const HARD_WORKOUT_TYPES = ['interval', 'threshold', 'hard_combo', 'competition', 'testlop']
     // Unngå dobbeltvisning av dagens økt om den er den hardøkta vi viser i seksjon 2.
     const todayCardId = todayCompleted?.id ?? todayPlanned?.id ?? null
     const hardCandidates = recentCompleted.filter(w => {
       if (w.id === todayCardId) return false
-      if (w.workout_type === 'competition' || w.workout_type === 'testlop') return true
+      if (HARD_WORKOUT_TYPES.includes(w.workout_type)) return true
       const hardSec = hardSecondsForWorkout(w.workout_activities ?? [])
       return hardSec >= 15 * 60
     })

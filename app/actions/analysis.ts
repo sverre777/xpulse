@@ -103,12 +103,12 @@ function buildWeekSkeleton(fromDate: string, toDate: string): WeekBucket[] {
   return Array.from(buckets.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
 }
 
-// En økt regnes som intensiv basert på FAKTISK høyintensitets-sonetid (I4
-// «terskel» + I5), ikke på en manuell økttype-tag. Konkurranse/testløp teller
-// alltid som intensive (de er det per definisjon, selv uten registrerte soner).
-// Dette er mer korrekt enn den gamle workout_type-baserte tellingen, og gjør at
-// vi kan forenkle økttype-velgeren i skjemaet uten å miste analyse-signal.
-const RACE_TYPES = new Set<WorkoutType>(['competition', 'testlop'])
+// En økt regnes som intensiv hvis den har FAKTISK høyintensitets-sonetid (I4
+// «terskel» + I5) ELLER er manuelt tagget som hardøkt. Begge signaler brukes:
+// sonetid fanger faktisk intensitet (også på utaggede økter), mens tagger
+// (intervall/terskel/hard-kombo/konkurranse/testløp) fanger økter der bruker
+// ikke har registrert soner. Komplementære, ikke konkurrerende.
+const HARD_TYPES = new Set<WorkoutType>(['interval', 'threshold', 'hard_combo', 'competition', 'testlop'])
 
 // ── Hoved-action: uke-aggregert treningsstatistikk ─────
 
@@ -209,7 +209,7 @@ export async function getWorkoutStats(
     }
 
     const highIntensitySeconds = totals ? (totals.zoneSeconds.I4 + totals.zoneSeconds.I5) : 0
-    if (highIntensitySeconds > 0 || RACE_TYPES.has(w.workout_type)) bucket.intensiveCount += 1
+    if (highIntensitySeconds > 0 || HARD_TYPES.has(w.workout_type)) bucket.intensiveCount += 1
   }
 
   return {
@@ -3212,9 +3212,10 @@ type RawShootingWorkout = {
 }
 
 const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
-  long_run: 'Langtur', interval: 'Intervall', threshold: 'Terskel', easy: 'Rolig',
+  long_run: 'Langtur', interval: 'Intervall / hardøkt', threshold: 'Terskel',
+  technical: 'Teknikk', strength: 'Styrke', easy: 'Rolig',
   competition: 'Konkurranse', testlop: 'Testløp', test: 'Test / protokoll',
-  recovery: 'Restitusjon', technical: 'Teknisk', other: 'Annet',
+  recovery: 'Restitusjon', other: 'Annet',
   hard_combo: 'Hard kombinasjon', easy_combo: 'Rolig kombinasjon',
   basis_shooting: 'Basisskyting', warmup_shooting: 'Innskyting',
 }

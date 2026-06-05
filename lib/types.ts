@@ -4,7 +4,7 @@ export type Sport =
   | 'triathlon' | 'cycling' | 'long_distance_skiing' | 'endurance'
 
 export type WorkoutType =
-  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'testlop' | 'test' | 'recovery' | 'technical' | 'other'
+  | 'long_run' | 'interval' | 'threshold' | 'easy' | 'competition' | 'testlop' | 'test' | 'recovery' | 'technical' | 'strength' | 'other'
   | 'hard_combo' | 'easy_combo' | 'basis_shooting' | 'warmup_shooting'
 
 // ── Lookup arrays ──────────────────────────────────────────
@@ -21,14 +21,15 @@ export const SPORTS: { value: Sport; label: string }[] = [
 
 export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [
   { value: 'long_run',    label: 'Langtur' },
-  { value: 'interval',    label: 'Intervall' },
+  { value: 'interval',    label: 'Intervall / hardøkt' },
   { value: 'threshold',   label: 'Terskel' },
+  { value: 'technical',   label: 'Teknikk' },
+  { value: 'strength',    label: 'Styrke' },
   { value: 'easy',        label: 'Rolig' },
   { value: 'competition', label: 'Konkurranse' },
   { value: 'testlop',     label: 'Testløp' },
   { value: 'test',        label: 'Test / protokoll' },
   { value: 'recovery',    label: 'Restitusjon' },
-  { value: 'technical',   label: 'Teknisk' },
   { value: 'other',       label: 'Annet' },
 ]
 

@@ -37,7 +37,12 @@ import { HeartZone } from '@/lib/heart-zones'
 // gir konkurranse-/test-felter; skiskyting-combos driver skiskyting-analysen
 // (CustomSkytingChartBuilder). «Vanlig økt» = 'other' (ingen synlig knapp).
 // Gamle økter med fjernede typer beholder sin lagrede verdi (ingen migrering).
+// Valgbare økttype-tagger i nedtrekkslista (i tillegg til «Vanlig økt» = other).
+// Generiske trenings-tagger (intervall/terskel/teknikk/styrke/rolig) brukes til
+// manuell klassifisering + analyse-gruppering; competition/testlop/test trigger
+// egne felter. Sone-basert intensiv-analyse beholdes som SUPPLEMENT (analysis.ts).
 const MEANINGFUL_WORKOUT_TYPES: WorkoutType[] = [
+  'interval', 'threshold', 'technical', 'strength', 'easy',
   'competition', 'testlop', 'test',
   'hard_combo', 'easy_combo', 'basis_shooting',
 ]
@@ -439,26 +444,17 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
           <div className="md:col-span-2">
             <Label>Økttype (valgfritt)</Label>
-            <div className="flex flex-wrap gap-1.5 mt-1">
-              {workoutTypeOptions.filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value)).map(t => {
-                const active = form.workout_type === t.value
-                // Klikk på aktiv tagg nullstiller til «vanlig økt» (other).
-                return (
-                  <button key={t.value} type="button"
-                    onClick={() => set('workout_type', active ? 'other' : t.value)}
-                    className="px-3 py-1.5 text-sm tracking-widest uppercase transition-colors"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: active ? '#FF4500' : 'transparent',
-                      color: active ? '#F0F0F2' : '#555560',
-                      border: `1px solid ${active ? '#FF4500' : '#222228'}`,
-                      cursor: 'pointer',
-                    }}>
-                    {t.label}
-                  </button>
-                )
-              })}
-            </div>
+            {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
+                brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
+            <select
+              value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
+              onChange={e => set('workout_type', e.target.value as WorkoutType)}
+              style={iSt} className="w-full px-4 py-3">
+              <option value="other">Vanlig økt</option>
+              {workoutTypeOptions
+                .filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value))
+                .map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
           </div>
         </div>
 

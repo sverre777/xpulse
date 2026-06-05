@@ -62,7 +62,7 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
         </div>
       )}
 
-      {!stravaConnection && <StravaRolloutNote />}
+      <StravaRolloutNote />{/* alltid synlig — info om gradvis utrulling + at .fit alltid fungerer */}
 
       <StravaSection conn={stravaConnection} />
       <FitUploadSection />

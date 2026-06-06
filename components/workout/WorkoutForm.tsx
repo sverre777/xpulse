@@ -14,7 +14,7 @@ import {
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
   TestData, emptyTestData,
   ActivityRow, ActivityType, emptyActivityZones, makeActivity,
-  NutritionEntryRow,
+  NutritionEntryRow, emptyWeatherData,
 } from '@/lib/types'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
@@ -27,6 +27,7 @@ import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
+import { WeatherSection } from './WeatherSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
 
@@ -215,6 +216,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     template_name: defaultValues?.template_name ?? null,
     test_data:     defaultValues?.test_data,
     nutrition_entries: defaultValues?.nutrition_entries ?? [],
+    weather: defaultValues?.weather ?? emptyWeatherData(),
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -616,6 +618,17 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               )
               return sec > 0 ? Math.round(sec / 60) : null
             })()}
+            readOnly={readOnly}
+          />
+        </Section>
+      )}
+
+      {/* ── VÆR OG FØRE — vises i dagbok-modus (gjennomført økt), alle sporter ── */}
+      {showExecutionFields && (
+        <Section label="Vær og føre">
+          <WeatherSection
+            value={form.weather ?? emptyWeatherData()}
+            onChange={next => set('weather', next)}
             readOnly={readOnly}
           />
         </Section>

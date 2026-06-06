@@ -11,6 +11,7 @@ import {
   ActivityLactateMeasurement,
   CompetitionData, CompetitionType,
   TestData, TestPRSport,
+  WeatherData,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
@@ -754,6 +755,33 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     return null
   })())
 
+  // Fase 74: vær og føre — 1:1, upsert ved innhold, ellers rens ut gammel rad.
+  childOps.push((async () => {
+    const w = data.weather
+    const hasContent = !!w && (
+      w.temperature.trim() !== '' || !!w.weather_type || !!w.wind_strength ||
+      (w.surface_conditions?.length ?? 0) > 0 || (w.notes?.trim() ?? '') !== ''
+    )
+    if (hasContent && w) {
+      const tempStr = w.temperature.trim().replace(',', '.')
+      const temp = tempStr !== '' && Number.isFinite(parseFloat(tempStr)) ? parseFloat(tempStr) : null
+      const { error } = await supabase.from('workout_weather').upsert({
+        workout_id: savedId!,
+        user_id: resolved.userId,
+        temperature: temp,
+        weather_type: w.weather_type || null,
+        wind_strength: w.wind_strength || null,
+        surface_conditions: w.surface_conditions ?? [],
+        season_context: w.season_context || null,
+        notes: w.notes?.trim() || null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'workout_id' })
+      return error?.message ?? null
+    }
+    await supabase.from('workout_weather').delete().eq('workout_id', savedId!)
+    return null
+  })())
+
   // Tags
   if (data.tags.length > 0) {
     childOps.push((async () => {
@@ -1139,6 +1167,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
       workout_competition_data(*),
       workout_test_data(*),
+      workout_weather(*),
       workout_nutrition_entries(*)
     `)
     .eq('id', id).single()
@@ -1154,6 +1183,22 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     ? workout.workout_test_data[0] ?? null
     : workout.workout_test_data ?? null
   const test_data = testRaw ? testRowToForm(testRaw) : undefined
+
+  // Fase 74: vær og føre (0..1 rad pga workout_id PK).
+  const weatherRaw = (Array.isArray(workout.workout_weather)
+    ? workout.workout_weather[0] ?? null
+    : workout.workout_weather ?? null) as {
+      temperature: number | null; weather_type: string | null; wind_strength: string | null
+      season_context: string | null; surface_conditions: string[] | null; notes: string | null
+    } | null
+  const weather: WeatherData | undefined = weatherRaw ? {
+    temperature: weatherRaw.temperature != null ? String(weatherRaw.temperature) : '',
+    weather_type: weatherRaw.weather_type ?? '',
+    wind_strength: weatherRaw.wind_strength ?? '',
+    season_context: weatherRaw.season_context ?? '',
+    surface_conditions: Array.isArray(weatherRaw.surface_conditions) ? weatherRaw.surface_conditions : [],
+    notes: weatherRaw.notes ?? '',
+  } : undefined
 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
   type DbSet = {
@@ -1388,6 +1433,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     planned_activities: snapshotActivities.length > 0 ? snapshotActivities : undefined,
     competition_data,
     test_data,
+    weather,
     nutrition_entries: ((workout.workout_nutrition_entries ?? []) as {
       id: string
       time_offset_minutes: number | null

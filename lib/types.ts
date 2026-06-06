@@ -257,6 +257,9 @@ export interface WorkoutFormData {
   // Sortert på time_offset_minutes ved visning. Valgfritt for å beholde
   // bakoverkompatibilitet med eksisterende kode som ikke kjenner feltet.
   nutrition_entries?: NutritionEntryRow[]
+  // Fase 74: vær og føre per økt (manuell). 1:1, lagres i samme save-flyt.
+  // Valgfritt for bakoverkomp med kode som ikke kjenner feltet.
+  weather?: WeatherData
 }
 
 // ── Test-økter (Fase 31) ───────────────────────────────────
@@ -531,6 +534,66 @@ export function emptyNutritionEntryRow(): NutritionEntryRow {
     notes: '',
   }
 }
+
+// ── Vær og føre (per økt, manuell innføring — Nivå 1) ──────────
+// Form-side: tall som string for input-binding. Føre er multi-select (text[]).
+export interface WeatherData {
+  temperature: string        // °C, kan være negativ
+  weather_type: string       // '' eller en av WEATHER_TYPES
+  wind_strength: string      // '' eller en av WIND_STRENGTHS
+  season_context: string     // '' | 'sommer' | 'vinter' — styrer føre-valg
+  surface_conditions: string[]  // multi-select føre
+  notes: string
+}
+
+export function emptyWeatherData(): WeatherData {
+  return {
+    temperature: '', weather_type: '', wind_strength: '',
+    season_context: '', surface_conditions: [], notes: '',
+  }
+}
+
+export const WEATHER_TYPES: { value: string; label: string }[] = [
+  { value: 'sol',          label: 'Sol/klart' },
+  { value: 'delvis_skyet', label: 'Delvis skyet' },
+  { value: 'skyet',        label: 'Skyet/overskyet' },
+  { value: 'yr',           label: 'Regn (yr/lett)' },
+  { value: 'regn',         label: 'Regn' },
+  { value: 'kraftig_regn', label: 'Kraftig regn' },
+  { value: 'sno',          label: 'Snø' },
+  { value: 'sludd',        label: 'Sludd' },
+]
+
+export const WIND_STRENGTHS: { value: string; label: string }[] = [
+  { value: 'vindstille',  label: 'Vindstille' },
+  { value: 'lett_bris',   label: 'Lett bris' },
+  { value: 'frisk_bris',  label: 'Frisk bris' },
+  { value: 'sterk_vind',  label: 'Sterk vind' },
+  { value: 'storm',       label: 'Storm' },
+]
+
+export const SURFACE_SUMMER: { value: string; label: string }[] = [
+  { value: 'tort',   label: 'Tørt' },
+  { value: 'fuktig', label: 'Fuktig' },
+  { value: 'vatt',   label: 'Vått' },
+]
+
+export const SURFACE_WINTER: { value: string; label: string }[] = [
+  { value: 'finkornet',  label: 'Finkornet' },
+  { value: 'grovkornet', label: 'Grovkornet' },
+  { value: 'omdannet',   label: 'Omdannet' },
+  { value: 'vat_sno',    label: 'Våt' },
+  { value: 'kram',       label: 'Kram' },
+  { value: 'nysno',      label: 'Nysnø' },
+  { value: 'hardpakket', label: 'Hardpakket/skare' },
+  { value: 'kunstsno',   label: 'Kunstsnø' },
+]
+
+// Verdi → etikett for visning (vær/vind/føre på tvers av grupper).
+export const WEATHER_LABELS: Record<string, string> = Object.fromEntries(
+  [...WEATHER_TYPES, ...WIND_STRENGTHS, ...SURFACE_SUMMER, ...SURFACE_WINTER]
+    .map(o => [o.value, o.label]),
+)
 
 // Styrke-øvelse med sett.
 export interface StrengthSetRow {

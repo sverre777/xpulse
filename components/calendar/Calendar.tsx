@@ -1571,9 +1571,18 @@ export function Calendar({
   // Fetch when view/refDate changes (skip initial load — data is passed in).
   // Viktig: inkluder refDate.getDate() slik at navigasjon mellom uker i uke-view
   // trigger nytt fetch (ellers beholder state kun forrige uke).
+  // Server-en leverer initialWorkoutsByDate KUN for default-perioden (nåtid).
+  // Hvis posisjonen ble gjenopprettet fra URL (cv/cd ved refresh) til en annen
+  // periode, matcher ikke server-dataene refDate — da MÅ vi hente på mount,
+  // ellers viser kalenderen feil måneds økter (analysen henter selv på refDate).
+  // Fersk last uten URL-posisjon: server-data stemmer → hopp over mount-fetch.
+  const restoredFromUrl = !!(urlDate || urlView)
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    if (!mounted) { setMounted(true); return }
+    if (!mounted) {
+      setMounted(true)
+      if (!restoredFromUrl) return
+    }
     const { start, end } = getDateRange(view, refDate)
     fetchData(start, end)
   }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line

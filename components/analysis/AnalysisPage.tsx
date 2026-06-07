@@ -15,7 +15,7 @@ import {
   type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis, type PeriodizationOverview,
   type TestsAndPRs,
 } from '@/app/actions/analysis'
-import { SPORTS, type Sport } from '@/lib/types'
+import { SPORTS, SURFACE_SUMMER, SURFACE_WINTER, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from './DateRangePicker'
 import { FavoritesProvider, useFavorites } from './FavoritesContext'
 import { FavoriteChartsSection, sourceTabForChartKey } from './FavoriteChartsSection'
@@ -189,6 +189,8 @@ function AnalysisPageInner({
   const [stats, setStats] = useState<WorkoutStats>(initialStats)
   const [overview, setOverview] = useState<AnalysisOverview>(initialOverview)
   const [sportFilter, setSportFilterState] = useState<Sport | null>(null)
+  // Fase 16b: føre-filter for belastning/intensitet-fanene (klient-valgt).
+  const [surfaceFilter, setSurfaceFilterState] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -229,6 +231,9 @@ function AnalysisPageInner({
 
   const setRange = (r: DateRange) => { resetLazyCache(); setRangeState(r) }
   const setSportFilter = (s: Sport | null) => { resetLazyCache(); setSportFilterState(s) }
+  const setSurfaceFilter = (s: string | null) => { resetLazyCache(); setSurfaceFilterState(s) }
+  // Føre-filteret gjelder kun belastning/intensitet (der vi har bygd det inn).
+  const surfaceFilterApplies = tab === 'belastning' || tab === 'intensitet'
 
   const isInitial = range.from === initialRange.from && range.to === initialRange.to
 
@@ -327,7 +332,7 @@ function AnalysisPageInner({
     if (tab === 'intensitet' && intensityDist === null) {
       startTransition(async () => {
         setError(null)
-        const res = await getIntensityDistribution(range.from, range.to, sportFilter)
+        const res = await getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
         if ('error' in res) { setError(res.error); return }
         setIntensityDist(res)
       })
@@ -335,7 +340,7 @@ function AnalysisPageInner({
     if (tab === 'belastning' && belastning === null) {
       startTransition(async () => {
         setError(null)
-        const res = await getBelastningAnalysis(range.from, range.to, sportFilter)
+        const res = await getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
         if ('error' in res) { setError(res.error); return }
         setBelastning(res)
       })
@@ -402,7 +407,7 @@ function AnalysisPageInner({
     }
     if (neededTabs.has('belastning') && belastning === null) {
       startTransition(async () => {
-        const res = await getBelastningAnalysis(range.from, range.to, sportFilter)
+        const res = await getBelastningAnalysis(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
         if (!('error' in res)) setBelastning(res)
       })
     }
@@ -426,7 +431,7 @@ function AnalysisPageInner({
     }
     if (neededTabs.has('intensitet') && intensityDist === null) {
       startTransition(async () => {
-        const res = await getIntensityDistribution(range.from, range.to, sportFilter)
+        const res = await getIntensityDistribution(range.from, range.to, sportFilter, targetUserId, surfaceFilter)
         if (!('error' in res)) setIntensityDist(res)
       })
     }
@@ -520,6 +525,36 @@ function AnalysisPageInner({
               ))}
             </select>
           </div>
+          {surfaceFilterApplies && (
+            <div className="md:min-w-[180px]">
+              <p className="text-xs tracking-widest uppercase mb-2"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Føre
+              </p>
+              <select
+                value={surfaceFilter ?? ''}
+                onChange={e => setSurfaceFilter(e.target.value === '' ? null : e.target.value)}
+                className="w-full px-3 py-2 text-sm"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  backgroundColor: '#0A0A0B', color: '#F0F0F2',
+                  border: '1px solid #1E1E22', minHeight: '44px',
+                }}
+              >
+                <option value="">Alle</option>
+                <optgroup label="Barmark">
+                  {SURFACE_SUMMER.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Snø">
+                  {SURFACE_WINTER.map(s => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+          )}
         </div>
 
         {error && (

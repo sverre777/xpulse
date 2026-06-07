@@ -2467,9 +2467,21 @@ export interface IntensityDistribution {
   hasData: boolean
 }
 
+type SurfaceEmbed = { surface_conditions: string[] | null }
+type RawWeatherEmbed = SurfaceEmbed[] | SurfaceEmbed | null
+
+// Fase 75/16b: klient-side føre-filter. PostgREST embed-filter på text[] er
+// skjørt, så vi henter surface_conditions inn og filtrerer radene her.
+function matchesSurface(wx: RawWeatherEmbed | undefined, surface?: string | null): boolean {
+  if (!surface) return true
+  const row = Array.isArray(wx) ? wx[0] : wx
+  return Array.isArray(row?.surface_conditions) && row!.surface_conditions!.includes(surface)
+}
+
 type RawIntensityRow = {
   id: string
   date: string
+  workout_weather?: RawWeatherEmbed
   workout_activities: {
     activity_type: string
     movement_name: string | null
@@ -2485,6 +2497,7 @@ export async function getIntensityDistribution(
   toDate: string,
   sportFilter?: Sport | null,
   targetUserId?: string,
+  surfaceFilter?: string | null,
 ): Promise<IntensityDistribution | { error: string }> {
   try {
     const supabase = await createClient()
@@ -2496,7 +2509,7 @@ export async function getIntensityDistribution(
 
     let q = supabase
       .from('workouts')
-      .select('id,date,workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .select('id,date,workout_weather(surface_conditions),workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', fromDate)
@@ -2524,6 +2537,7 @@ export async function getIntensityDistribution(
     const movementMap = new Map<string, IntensityMovementRow>()
 
     for (const w of (data ?? []) as RawIntensityRow[]) {
+      if (!matchesSurface(w.workout_weather, surfaceFilter)) continue
       const dt = new Date(w.date)
       const { weekKey } = isoWeekKey(dt)
       const bucket = weeksByKey.get(weekKey)
@@ -2693,6 +2707,7 @@ function daysBetweenISO(fromIso: string, toIso: string): number {
 type RawBelastningRow = {
   id: string
   date: string
+  workout_weather?: RawWeatherEmbed
   workout_activities: {
     activity_type: string
     duration_seconds: number | null
@@ -2707,6 +2722,7 @@ export async function getBelastningAnalysis(
   toDate: string,
   sportFilter?: Sport | null,
   targetUserId?: string,
+  surfaceFilter?: string | null,
 ): Promise<BelastningAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
@@ -2721,7 +2737,7 @@ export async function getBelastningAnalysis(
 
     let q = supabase
       .from('workouts')
-      .select('id,date,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .select('id,date,workout_weather(surface_conditions),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', userId)
       .eq('is_completed', true)
       .gte('date', warmupStart)
@@ -2735,6 +2751,7 @@ export async function getBelastningAnalysis(
     // Aggreger daglig TSS over hele warm-up-rangen.
     const tssByDate = new Map<string, number>()
     for (const w of (data ?? []) as RawBelastningRow[]) {
+      if (!matchesSurface(w.workout_weather, surfaceFilter)) continue
       const acts: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
         activity_type: a.activity_type,
         duration_seconds: a.duration_seconds,

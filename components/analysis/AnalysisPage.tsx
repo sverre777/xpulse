@@ -8,8 +8,8 @@ import {
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
   getTemplateAnalysis, getWorkoutsForComparison, getIntensityDistribution,
   getBelastningAnalysis, getTerskelAnalysis, getShootingDepthAnalysis, getPeriodizationOverview,
-  getTestsAndPRs,
-  type WorkoutStats, type AnalysisOverview,
+  getTestsAndPRs, getWeatherAnalysis,
+  type WorkoutStats, type AnalysisOverview, type WeatherAnalysis,
   type CompetitionAnalysis, type MovementAnalysis, type HealthCorrelations,
   type TemplateAnalysis, type WorkoutsForComparison, type IntensityDistribution,
   type BelastningAnalysis, type TerskelAnalysis, type ShootingDepthAnalysis, type PeriodizationOverview,
@@ -58,6 +58,8 @@ const ErneringTab = dynamic(() => import('./ErneringTab').then(m => ({ default: 
   { loading: () => <LoadingStub label="Laster ernærings-data…" />, ssr: false })
 const KlokkedataTrenderTab = dynamic(() => import('./KlokkedataTrenderTab').then(m => ({ default: m.KlokkedataTrenderTab })),
   { loading: () => <LoadingStub label="Laster klokkedata-trender…" />, ssr: false })
+const WeatherTab = dynamic(() => import('./WeatherTab').then(m => ({ default: m.WeatherTab })),
+  { loading: () => <LoadingStub label="Laster vær/føre-analyse…" />, ssr: false })
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -74,6 +76,7 @@ type Tab =
   | 'ski_tester'
   | 'helse'
   | 'ernering'
+  | 'vaer'
   | 'per_bevegelsesform'
   | 'intensitet'
   | 'periodisering'
@@ -103,6 +106,7 @@ const TABS: [Tab, string][] = [
   ['ski_tester', 'Ski-tester'],
   ['helse', 'Helse'],
   ['ernering', 'Ernæring'],
+  ['vaer', 'Vær/føre'],
   ['per_bevegelsesform', 'Per bevegelsesform'],
   ['intensitet', 'Intensitetsfordeling'],
 ]
@@ -192,6 +196,7 @@ function AnalysisPageInner({
   const [competitionsAnalysis, setCompetitionsAnalysis] = useState<CompetitionAnalysis | null>(null)
   const [movementAnalysis, setMovementAnalysis] = useState<MovementAnalysis | null>(null)
   const [healthCorrelations, setHealthCorrelations] = useState<HealthCorrelations | null>(null)
+  const [weatherAnalysis, setWeatherAnalysis] = useState<WeatherAnalysis | null>(null)
   const [templateAnalysis, setTemplateAnalysis] = useState<TemplateAnalysis | null>(null)
   const [compareWorkouts, setCompareWorkouts] = useState<WorkoutsForComparison | null>(null)
   const [intensityDist, setIntensityDist] = useState<IntensityDistribution | null>(null)
@@ -208,6 +213,7 @@ function AnalysisPageInner({
     setCompetitionsAnalysis(null)
     setMovementAnalysis(null)
     setHealthCorrelations(null)
+    setWeatherAnalysis(null)
     setTemplateAnalysis(null)
     setCompareWorkouts(null)
     setIntensityDist(null)
@@ -275,6 +281,14 @@ function AnalysisPageInner({
         const res = await getNutritionAnalysis(range.from, range.to, targetUserId)
         if ('error' in res) { setError(res.error); return }
         setNutritionAnalysis(res)
+      })
+    }
+    if (tab === 'vaer' && weatherAnalysis === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getWeatherAnalysis(range.from, range.to, targetUserId)
+        if ('error' in res) { setError(res.error); return }
+        setWeatherAnalysis(res)
       })
     }
     if (tab === 'mal_analyse' && templateAnalysis === null) {
@@ -374,7 +388,7 @@ function AnalysisPageInner({
       })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, weatherAnalysis, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -558,6 +572,7 @@ function AnalysisPageInner({
             ? <ErneringTab data={nutritionAnalysis} />
             : <LoadingStub label="Laster ernærings-data…" />
         )}
+        {tab === 'vaer' && <WeatherTab data={weatherAnalysis} />}
         {tab === 'mal_analyse' && (
           // Beholdt for backward compat — FavoriteChartsSection og dypkoblinger
           // kan navigere hit. Innholdet er duplisert i sammenlign-fanen.

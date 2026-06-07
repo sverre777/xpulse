@@ -6,7 +6,7 @@ import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
-import { ENDURANCE_ACTIVITY_MOVEMENTS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
+import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
 
 // ── Typer ──────────────────────────────────────────
 
@@ -3999,5 +3999,130 @@ export async function getTestsAndPRs(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getTestsAndPRs: ${msg}` }
+  }
+}
+
+// ── Fase 74: Vær/føre-korrelasjoner ────────────────────────────
+// Lar utøver skille ytre forhold fra form: snittpuls vs temperatur, RPE per
+// værtype, pace per føre. Henter gjennomførte økter med registrert vær i
+// perioden, beregner per-økt-punkter (for scatter) + gruppe-snitt.
+
+export interface WeatherAnalysisPoint {
+  id: string
+  date: string
+  title: string
+  temperature: number | null
+  avg_heart_rate: number | null
+  rpe: number | null
+  pace_seconds_per_km: number | null
+  weather_type: string | null
+  surface_conditions: string[]
+}
+
+export interface WeatherGroupStat {
+  key: string
+  label: string
+  count: number
+  avg_hr: number | null
+  avg_rpe: number | null
+  avg_pace: number | null
+}
+
+export interface WeatherAnalysis {
+  points: WeatherAnalysisPoint[]
+  byWeatherType: WeatherGroupStat[]
+  bySurface: WeatherGroupStat[]
+  hasData: boolean
+}
+
+export async function getWeatherAnalysis(
+  fromDate: string,
+  toDate: string,
+  targetUserId?: string,
+): Promise<WeatherAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { data, error } = await supabase
+      .from('workouts')
+      .select(`
+        id, title, date, avg_heart_rate, rpe, distance_km, duration_minutes,
+        workout_weather!inner ( temperature, weather_type, surface_conditions ),
+        workout_activities ( duration_seconds, distance_meters, avg_pace_seconds_per_km )
+      `)
+      .eq('user_id', resolved.userId)
+      .eq('is_completed', true)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date')
+    if (error) return { error: error.message }
+
+    type Row = {
+      id: string; title: string; date: string
+      avg_heart_rate: number | null; rpe: number | null
+      distance_km: number | null; duration_minutes: number | null
+      workout_weather: { temperature: number | null; weather_type: string | null; surface_conditions: string[] | null }
+        | { temperature: number | null; weather_type: string | null; surface_conditions: string[] | null }[]
+      workout_activities: { duration_seconds: number | null; distance_meters: number | null; avg_pace_seconds_per_km: number | null }[] | null
+    }
+
+    const points: WeatherAnalysisPoint[] = ((data ?? []) as Row[]).map(w => {
+      const wx = Array.isArray(w.workout_weather) ? w.workout_weather[0] : w.workout_weather
+      // Vektet snitt-pace fra aktiviteter (sekunder/km), fallback til total dist/tid.
+      const acts = w.workout_activities ?? []
+      let paceSec: number | null = null
+      const withPace = acts.filter(a => a.avg_pace_seconds_per_km != null && (a.distance_meters ?? 0) > 0)
+      if (withPace.length > 0) {
+        const totM = withPace.reduce((s, a) => s + (a.distance_meters ?? 0), 0)
+        const totS = withPace.reduce((s, a) => s + (a.avg_pace_seconds_per_km ?? 0) * ((a.distance_meters ?? 0) / 1000), 0)
+        paceSec = totM > 0 ? Math.round(totS / (totM / 1000)) : null
+      } else {
+        const km = Number(w.distance_km) || 0
+        const min = Number(w.duration_minutes) || 0
+        if (km > 0 && min > 0) paceSec = Math.round((min * 60) / km)
+      }
+      return {
+        id: w.id, date: w.date, title: w.title,
+        temperature: wx?.temperature ?? null,
+        avg_heart_rate: w.avg_heart_rate ?? null,
+        rpe: w.rpe ?? null,
+        pace_seconds_per_km: paceSec,
+        weather_type: wx?.weather_type ?? null,
+        surface_conditions: Array.isArray(wx?.surface_conditions) ? wx!.surface_conditions! : [],
+      }
+    })
+
+    // Gruppér: per værtype (én verdi) og per føre-type (multi → økt teller i hver).
+    const avg = (xs: number[]) => xs.length > 0 ? Math.round((xs.reduce((s, x) => s + x, 0) / xs.length) * 10) / 10 : null
+    const groupStat = (key: string, items: WeatherAnalysisPoint[]): WeatherGroupStat => ({
+      key, label: WEATHER_LABELS[key] ?? key, count: items.length,
+      avg_hr: avg(items.filter(p => p.avg_heart_rate != null).map(p => p.avg_heart_rate as number)),
+      avg_rpe: avg(items.filter(p => p.rpe != null).map(p => p.rpe as number)),
+      avg_pace: avg(items.filter(p => p.pace_seconds_per_km != null).map(p => p.pace_seconds_per_km as number)),
+    })
+
+    const byWeatherMap = new Map<string, WeatherAnalysisPoint[]>()
+    for (const p of points) {
+      if (!p.weather_type) continue
+      ;(byWeatherMap.get(p.weather_type) ?? byWeatherMap.set(p.weather_type, []).get(p.weather_type)!).push(p)
+    }
+    const bySurfaceMap = new Map<string, WeatherAnalysisPoint[]>()
+    for (const p of points) {
+      for (const s of p.surface_conditions) {
+        ;(bySurfaceMap.get(s) ?? bySurfaceMap.set(s, []).get(s)!).push(p)
+      }
+    }
+
+    return {
+      points,
+      byWeatherType: Array.from(byWeatherMap.entries()).map(([k, v]) => groupStat(k, v)).sort((a, b) => b.count - a.count),
+      bySurface: Array.from(bySurfaceMap.entries()).map(([k, v]) => groupStat(k, v)).sort((a, b) => b.count - a.count),
+      hasData: points.length > 0,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getWeatherAnalysis: ${msg}` }
   }
 }

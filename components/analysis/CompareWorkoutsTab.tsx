@@ -9,7 +9,7 @@ import {
 import {
   getTemplateOptions, getWorkoutsByTemplate, compareWorkoutsDetailed,
   getMyComparisons, saveComparison, deleteComparison,
-  type TemplateOption, type DetailedWorkout, type SavedComparison,
+  type TemplateOption, type DetailedWorkout, type SavedComparison, type WorkoutFromTemplate,
 } from '@/app/actions/compare-workouts'
 import { SPORTS, WORKOUT_TYPES_BIATHLON, WEATHER_LABELS, type Sport, type WorkoutType } from '@/lib/types'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
@@ -66,6 +66,7 @@ export function CompareWorkoutsTab({
   const [templateFilter, setTemplateFilter] = useState<string | null>(null)
   const [templateOptions, setTemplateOptions] = useState<TemplateOption[]>([])
   const [templateWorkoutIds, setTemplateWorkoutIds] = useState<Set<string> | null>(null)
+  const [templateTrend, setTemplateTrend] = useState<WorkoutFromTemplate[] | null>(null)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [showCompare, setShowCompare] = useState(false)
@@ -134,11 +135,14 @@ export function CompareWorkoutsTab({
 
   // Last økter for valgt mal — gir filter-set som UI-listen krysses mot.
   useEffect(() => {
-    if (!templateFilter) { setTemplateWorkoutIds(null); return }
+    if (!templateFilter) { setTemplateWorkoutIds(null); setTemplateTrend(null); return }
     let cancelled = false
     getWorkoutsByTemplate(templateFilter).then(res => {
       if (cancelled) return
-      if (Array.isArray(res)) setTemplateWorkoutIds(new Set(res.map(w => w.id)))
+      if (Array.isArray(res)) {
+        setTemplateWorkoutIds(new Set(res.map(w => w.id)))
+        setTemplateTrend(res)
+      }
     })
     return () => { cancelled = true }
   }, [templateFilter])
@@ -298,6 +302,10 @@ export function CompareWorkoutsTab({
             ]} />
         </div>
       </div>
+
+      {templateFilter && templateTrend && templateTrend.length > 0 && (
+        <TemplateTrendTable rows={templateTrend} />
+      )}
 
       {savedComparisons.length > 0 && (
         <div className="p-3 flex flex-wrap items-center gap-2"
@@ -551,7 +559,10 @@ function WorkoutRow({
 
 // Vær/føre-kontekst per økt i den detaljerte sammenligningen — lar bruker se om
 // f.eks. en tregere økt skyldes forhold (vått føre/motvind) heller enn form.
-function rawWeatherSummary(w: DetailedWorkout['weather']): string | null {
+function rawWeatherSummary(w: {
+  temperature: number | null; weather_type: string | null
+  wind_strength: string | null; surface_conditions: string[]
+} | null): string | null {
   if (!w) return null
   const parts: string[] = []
   if (w.temperature != null) parts.push(`🌡️ ${w.temperature}°C`)
@@ -589,6 +600,52 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// Utvikling over tid for én standard-økt (samme mal/rute/test), MED vær/føre ved
+// siden av hvert resultat — så bruker kan vurdere form vs forhold (#4).
+function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
+  const fmtPace = (sec: number | null) => sec == null ? '—' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
+  const th: React.CSSProperties = { padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
+  const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }
+  return (
+    <div style={{ background: '#13131A', border: '1px solid #1E1E22', padding: '14px 16px' }}>
+      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: '0 0 2px' }}>
+        Utvikling over tid
+      </h3>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '0 0 10px' }}>
+        {rows.length} {rows.length === 1 ? 'gjennomføring' : 'gjennomføringer'} — vurder form vs forhold (vær/føre).
+      </p>
+      <div className="overflow-x-auto">
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+              <th style={{ ...th, textAlign: 'left' }}>Dato</th>
+              <th style={th}>Snittpuls</th>
+              <th style={th}>Pace</th>
+              <th style={th}>RPE</th>
+              <th style={{ ...th, textAlign: 'left' }}>Vær / føre</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.id} style={{ borderBottom: '1px solid #14141A' }}>
+                <td style={{ ...td, textAlign: 'left', color: '#F0F0F2' }}>
+                  {new Date(r.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: '2-digit' })}
+                </td>
+                <td style={{ ...td, textAlign: 'center' }}>{r.avg_heart_rate != null ? `${r.avg_heart_rate} bpm` : '—'}</td>
+                <td style={{ ...td, textAlign: 'center' }}>{fmtPace(r.pace_seconds_per_km)}</td>
+                <td style={{ ...td, textAlign: 'center' }}>{r.rpe != null ? r.rpe : '—'}</td>
+                <td style={{ ...td, textAlign: 'left', color: rawWeatherSummary(r.weather) ? '#C0C0CC' : '#444' }}>
+                  {rawWeatherSummary(r.weather) ?? '— ikke registrert'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   )

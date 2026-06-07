@@ -45,6 +45,17 @@ export interface WorkoutFromTemplate {
   date: string
   title: string
   sport: string
+  // Nøkkeltall + vær/føre-kontekst for utvikling-over-tid (samme rute/test):
+  // lar bruker vurdere om dårligere resultat skyldes form eller forhold.
+  avg_heart_rate: number | null
+  pace_seconds_per_km: number | null
+  rpe: number | null
+  weather: {
+    temperature: number | null
+    weather_type: string | null
+    wind_strength: string | null
+    surface_conditions: string[]
+  } | null
 }
 
 export async function getWorkoutsByTemplate(templateId: string): Promise<WorkoutFromTemplate[] | { error: string }> {
@@ -54,15 +65,44 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
 
   const { data, error } = await supabase
     .from('workouts')
-    .select('id, date, title, sport')
+    .select(`
+      id, date, title, sport, avg_heart_rate, rpe, distance_km, duration_minutes,
+      workout_weather ( temperature, weather_type, wind_strength, surface_conditions ),
+      workout_activities ( duration_seconds, distance_meters, avg_pace_seconds_per_km )
+    `)
     .eq('user_id', user.id)
     .eq('template_id', templateId)
     .eq('is_completed', true)
     .order('date', { ascending: false })
   if (error) return { error: error.message }
-  return (data ?? []).map(w => ({
-    id: w.id, date: w.date, title: w.title, sport: w.sport,
-  }))
+  return (data ?? []).map(w => {
+    const wx = (Array.isArray(w.workout_weather) ? w.workout_weather[0] : w.workout_weather) as {
+      temperature: number | null; weather_type: string | null; wind_strength: string | null; surface_conditions: string[] | null
+    } | null | undefined
+    const acts = (w.workout_activities ?? []) as { duration_seconds: number | null; distance_meters: number | null; avg_pace_seconds_per_km: number | null }[]
+    const withPace = acts.filter(a => a.avg_pace_seconds_per_km != null && (a.distance_meters ?? 0) > 0)
+    let paceSec: number | null = null
+    if (withPace.length > 0) {
+      const totKm = withPace.reduce((s, a) => s + (a.distance_meters ?? 0) / 1000, 0)
+      const totS = withPace.reduce((s, a) => s + (a.avg_pace_seconds_per_km ?? 0) * ((a.distance_meters ?? 0) / 1000), 0)
+      paceSec = totKm > 0 ? Math.round(totS / totKm) : null
+    } else {
+      const km = Number(w.distance_km) || 0, min = Number(w.duration_minutes) || 0
+      if (km > 0 && min > 0) paceSec = Math.round((min * 60) / km)
+    }
+    return {
+      id: w.id, date: w.date, title: w.title, sport: w.sport,
+      avg_heart_rate: w.avg_heart_rate ?? null,
+      pace_seconds_per_km: paceSec,
+      rpe: w.rpe ?? null,
+      weather: wx ? {
+        temperature: wx.temperature ?? null,
+        weather_type: wx.weather_type ?? null,
+        wind_strength: wx.wind_strength ?? null,
+        surface_conditions: Array.isArray(wx.surface_conditions) ? wx.surface_conditions : [],
+      } : null,
+    }
+  })
 }
 
 // ── Detaljert sammenligning: tidsserie-data for grafer ─────────

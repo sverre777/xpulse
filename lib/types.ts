@@ -250,6 +250,13 @@ export interface WorkoutFormData {
   // denormalisert for enklere lesing uten join.
   template_id?: string | null
   template_name?: string | null
+  // Fase 76: standardøkt-tagging. Kobler en gjennomført økt til malen/standard-
+  // økten den REPRESENTERER (fast test/rute), uavhengig av om den ble opprettet
+  // fra malen. Settes automatisk ved «Bruk mal», eller manuelt via «Marker som
+  // standardøkt» (f.eks. for klokkesynk-økter). Navnet resolves fra
+  // workout_templates ved lesing (ikke denormalisert) — kun for visning i form.
+  standard_workout_template_id?: string | null
+  standard_workout_template_name?: string | null
   // Fase 31: strukturert test-resultat (kun relevant når workout_type='test').
   // Lagres i workout_test_data som egen rad per workout.
   test_data?: TestData

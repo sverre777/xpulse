@@ -19,24 +19,35 @@ export async function getTemplateOptions(): Promise<TemplateOption[] | { error: 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  // Aggreger antall økter per mal-id basert på workouts.template_id og
-  // template_name som denormaliseres ved lagring av økt.
+  // Fase 76: en standardøkt (mal) "representeres" av en økt enten fordi den ble
+  // OPPRETTET fra malen (template_id) eller fordi den ble TAGGET som standardøkten
+  // (standard_workout_template_id). Tell hver mal-id én gang per økt.
   const { data, error } = await supabase
     .from('workouts')
-    .select('template_id, template_name')
+    .select('template_id, template_name, standard_workout_template_id')
     .eq('user_id', user.id)
-    .not('template_id', 'is', null)
+    .or('template_id.not.is.null,standard_workout_template_id.not.is.null')
   if (error) return { error: error.message }
 
-  const counts = new Map<string, { name: string; count: number }>()
+  // Navn resolves fra workout_templates (ikke stale), med denormalisert
+  // template_name som fallback for slettede maler.
+  const { data: tpls } = await supabase
+    .from('workout_templates')
+    .select('id, name')
+    .eq('user_id', user.id)
+  const nameById = new Map((tpls ?? []).map(t => [t.id as string, t.name as string]))
+  const fallbackName = new Map<string, string>()
+
+  const counts = new Map<string, number>()
   for (const w of data ?? []) {
-    if (!w.template_id) continue
-    const existing = counts.get(w.template_id)
-    if (existing) existing.count += 1
-    else counts.set(w.template_id, { name: w.template_name ?? 'Uten navn', count: 1 })
+    if (w.template_id && w.template_name) fallbackName.set(w.template_id, w.template_name)
+    const idsForW = new Set<string>()
+    if (w.template_id) idsForW.add(w.template_id)
+    if (w.standard_workout_template_id) idsForW.add(w.standard_workout_template_id)
+    for (const id of idsForW) counts.set(id, (counts.get(id) ?? 0) + 1)
   }
   return Array.from(counts.entries())
-    .map(([id, v]) => ({ id, name: v.name, count: v.count }))
+    .map(([id, count]) => ({ id, name: nameById.get(id) ?? fallbackName.get(id) ?? 'Uten navn', count }))
     .sort((a, b) => b.count - a.count)
 }
 
@@ -71,7 +82,9 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
       workout_activities ( duration_seconds, distance_meters, avg_pace_seconds_per_km )
     `)
     .eq('user_id', user.id)
-    .eq('template_id', templateId)
+    // Fase 76: følg standardøkten — match både økter opprettet FRA malen
+    // (template_id) og økter TAGGET som standardøkten (standard_workout_template_id).
+    .or(`template_id.eq.${templateId},standard_workout_template_id.eq.${templateId}`)
     .eq('is_completed', true)
     .order('date', { ascending: false })
   if (error) return { error: error.message }

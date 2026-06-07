@@ -294,7 +294,7 @@ export function CompareWorkoutsTab({
           <FilterSelect label="Økttype" value={typeFilter ?? ''}
             onChange={v => setTypeFilter(v === '' ? null : v as WorkoutType)}
             options={[{ value: '', label: 'Alle' }, ...WORKOUT_TYPES_BIATHLON.map(t => ({ value: t.value, label: t.label }))]} />
-          <FilterSelect label="Fra mal" value={templateFilter ?? ''}
+          <FilterSelect label="Standardøkt" value={templateFilter ?? ''}
             onChange={v => setTemplateFilter(v === '' ? null : v)}
             options={[
               { value: '', label: 'Alle' },

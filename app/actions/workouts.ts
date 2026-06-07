@@ -570,6 +570,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     // workouts.tags[] gir GIN-indeks for filter i analyse-visninger.
     template_id: data.template_id ?? null,
     template_name: data.template_name ?? null,
+    // Fase 76: standardøkt-tagg (navnet resolves fra workout_templates ved lesing).
+    standard_workout_template_id: data.standard_workout_template_id ?? null,
     tags: data.tags.length > 0 ? data.tags : null,
     updated_at: new Date().toISOString(),
   }
@@ -1201,6 +1203,19 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     notes: weatherRaw.notes ?? '',
   } : undefined
 
+  // Fase 76: standardøkt-tagg — id ligger på workout, navnet resolves med et eget
+  // lett oppslag (isolert fra hoved-queryen så en feil her aldri bryter edit-last).
+  const standard_workout_template_id = (workout.standard_workout_template_id as string | null) ?? null
+  let standard_workout_template_name: string | null = null
+  if (standard_workout_template_id) {
+    const { data: stdTpl } = await supabase
+      .from('workout_templates')
+      .select('name')
+      .eq('id', standard_workout_template_id)
+      .maybeSingle()
+    standard_workout_template_name = (stdTpl?.name as string | null) ?? null
+  }
+
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
   type DbSet = {
     id: string; set_number: number; reps: number | null; weight_kg: number | null
@@ -1357,6 +1372,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       location:     (workout.location as string | null) ?? '',
       template_id:   (workout.template_id as string | null) ?? null,
       template_name: (workout.template_name as string | null) ?? null,
+      standard_workout_template_id,
+      standard_workout_template_name,
     }
   }
 
@@ -1461,6 +1478,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     })),
     template_id:   (workout.template_id as string | null) ?? null,
     template_name: (workout.template_name as string | null) ?? null,
+    standard_workout_template_id,
+    standard_workout_template_name,
   }
 }
 

@@ -214,6 +214,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     competition_data: defaultValues?.competition_data,
     template_id:   defaultValues?.template_id ?? null,
     template_name: defaultValues?.template_name ?? null,
+    standard_workout_template_id:   defaultValues?.standard_workout_template_id ?? null,
+    standard_workout_template_name: defaultValues?.standard_workout_template_name ?? null,
     test_data:     defaultValues?.test_data,
     nutrition_entries: defaultValues?.nutrition_entries ?? [],
     weather: defaultValues?.weather ?? emptyWeatherData(),
@@ -222,6 +224,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
+
+  // «Marker som standardøkt»-velger: åpner mal-listen i tagge-modus.
+  const [standardPickerOpen, setStandardPickerOpen] = useState(false)
 
   // Utstyr-valg for økten. Endres uavhengig av form-state; lagres separat etter saveWorkout.
   const [equipmentIds, setEquipmentIds] = useState<string[]>(initialEquipmentIds)
@@ -271,7 +276,25 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       location: d.location ?? f.location,
       template_id: template.id,
       template_name: template.name,
+      // «Bruk mal» tagger automatisk økten som denne standardøkten.
+      standard_workout_template_id: template.id,
+      standard_workout_template_name: template.name,
     }))
+  }
+
+  // «Marker som standardøkt»: tagg økten som å representere malen UTEN å hente
+  // mal-data (økten beholder egne data, f.eks. fra klokkesynk). Brukes til å
+  // følge utviklingen av samme standardøkt over tid i analyse.
+  const tagAsStandard = (template: WorkoutTemplate) => {
+    setForm(f => ({
+      ...f,
+      standard_workout_template_id: template.id,
+      standard_workout_template_name: template.name,
+    }))
+    setStandardPickerOpen(false)
+  }
+  const clearStandard = () => {
+    setForm(f => ({ ...f, standard_workout_template_id: null, standard_workout_template_name: null }))
   }
 
   const openTemplateModal = () => {
@@ -422,7 +445,56 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {t.name}
               </button>
             ))}
+            <button type="button" onClick={() => setStandardPickerOpen(o => !o)}
+              className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                color: standardPickerOpen ? '#FF4500' : '#555560', background: 'none',
+                border: `1px solid ${standardPickerOpen ? '#FF4500' : '#222228'}`, cursor: 'pointer',
+              }}>
+              + Marker som standardøkt
+            </button>
           </div>
+
+          {/* Tagge-modus: velg mal KUN for å tagge (henter ikke mal-data). */}
+          {standardPickerOpen && (
+            <div className="mt-3 p-3" style={{ background: '#0E0E12', border: '1px solid #1E1E22' }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
+                Velg standardøkten denne økten representerer. Henter <b>ikke</b> mal-data —
+                økten beholder sine egne tall (f.eks. fra klokkesynk).
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {templates.map(t => (
+                  <button key={t.id} type="button" onClick={() => tagAsStandard(t)}
+                    className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      color: form.standard_workout_template_id === t.id ? '#FF4500' : '#8A8A96',
+                      background: 'none',
+                      border: `1px solid ${form.standard_workout_template_id === t.id ? '#FF4500' : '#222228'}`,
+                      cursor: 'pointer',
+                    }}>
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Aktiv standardøkt-tagg + fjern-knapp. */}
+          {form.standard_workout_template_id && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', border: '1px solid #3A2418', background: '#1A0F08' }}>
+                ⟳ Standardøkt: {form.standard_workout_template_name ?? 'mal'}
+              </span>
+              <button type="button" onClick={clearStandard}
+                className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Fjern tagg ✕
+              </button>
+            </div>
+          )}
         </div>
       )}
 

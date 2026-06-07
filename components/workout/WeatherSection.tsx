@@ -38,25 +38,12 @@ export function WeatherSection({ value, onChange, readOnly = false }: {
     const has = value.surface_conditions.includes(v)
     set({ surface_conditions: has ? value.surface_conditions.filter(x => x !== v) : [...value.surface_conditions, v] })
   }
-  const summary = weatherSummaryLine(value)
   // Hvilke føre-grupper vises — styrt av sesong-toggle; ingen valgt → begge.
   const showSummer = value.season_context === '' || value.season_context === 'sommer'
   const showWinter = value.season_context === '' || value.season_context === 'vinter'
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3 flex-wrap">
-        <span style={{ width: 16, height: 2, background: '#FF4500' }} />
-        <h3 className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          Vær og føre
-        </h3>
-        <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: summary ? '#C0C0CC' : '#555560' }}>
-          {summary ?? '— ikke satt'}
-        </span>
-      </div>
-
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <Field label="Temperatur (°C)">
           <input type="number" inputMode="decimal" step="0.1" value={value.temperature}

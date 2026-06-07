@@ -11,7 +11,7 @@ import {
   getMyComparisons, saveComparison, deleteComparison,
   type TemplateOption, type DetailedWorkout, type SavedComparison,
 } from '@/app/actions/compare-workouts'
-import { SPORTS, WORKOUT_TYPES_BIATHLON, type Sport, type WorkoutType } from '@/lib/types'
+import { SPORTS, WORKOUT_TYPES_BIATHLON, WEATHER_LABELS, type Sport, type WorkoutType } from '@/lib/types'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { MultiWorkoutTimeSeriesChart } from './MultiWorkoutTimeSeriesChart'
 import { TreffPercentageDisplay } from './TreffPercentageDisplay'
@@ -240,6 +240,7 @@ export function CompareWorkoutsTab({
 
         {detailed ? (
           <div className="space-y-4">
+            <WeatherCompareRow workouts={detailed} />
             <MultiWorkoutTimeSeriesChart workouts={detailed} metric="hr"
               title="Pulskurve over økten" yLabel="bpm" />
             {showWatts && (
@@ -545,6 +546,51 @@ function WorkoutRow({
         </p>
       </div>
     </label>
+  )
+}
+
+// Vær/føre-kontekst per økt i den detaljerte sammenligningen — lar bruker se om
+// f.eks. en tregere økt skyldes forhold (vått føre/motvind) heller enn form.
+function rawWeatherSummary(w: DetailedWorkout['weather']): string | null {
+  if (!w) return null
+  const parts: string[] = []
+  if (w.temperature != null) parts.push(`🌡️ ${w.temperature}°C`)
+  if (w.weather_type) parts.push(WEATHER_LABELS[w.weather_type] ?? w.weather_type)
+  if (w.surface_conditions.length > 0) parts.push(w.surface_conditions.map(s => WEATHER_LABELS[s] ?? s).join(' + '))
+  if (w.wind_strength) parts.push(WEATHER_LABELS[w.wind_strength] ?? w.wind_strength)
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
+  if (!workouts.some(w => rawWeatherSummary(w.weather))) return null
+  return (
+    <div style={{ background: '#13131A', border: '1px solid #1E1E22', padding: '12px 14px' }}>
+      <div className="flex items-center gap-2 mb-2">
+        <span style={{ width: 14, height: 2, background: '#FF4500', display: 'inline-block' }} />
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Vær og føre
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${workouts.length}, minmax(0, 1fr))`, gap: 8 }}>
+        {workouts.map(w => {
+          const s = rawWeatherSummary(w.weather)
+          return (
+            <div key={w.id} style={{ minWidth: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <div style={{ color: '#555560', fontSize: 11, letterSpacing: '0.04em', marginBottom: 2 }}>
+                {new Date(w.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}
+              </div>
+              <div style={{ color: s ? '#C0C0CC' : '#444', fontSize: 13, lineHeight: 1.4 }}>
+                {s ?? '— ikke registrert'}
+              </div>
+              {w.weather?.notes && (
+                <div style={{ color: '#777', fontSize: 12, marginTop: 2, fontStyle: 'italic' }}>{w.weather.notes}</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

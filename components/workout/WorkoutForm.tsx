@@ -27,7 +27,7 @@ import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
-import { WeatherSection } from './WeatherSection'
+import { WeatherSection, weatherSummaryLine } from './WeatherSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
 
@@ -623,9 +623,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </Section>
       )}
 
-      {/* ── VÆR OG FØRE — vises i dagbok-modus (gjennomført økt), alle sporter ── */}
+      {/* ── VÆR OG FØRE — kollapset som standard; alle sporter, dagbok-modus ── */}
       {showExecutionFields && (
-        <Section label="Vær og føre">
+        <Section label="Vær og føre" collapsible defaultCollapsed
+          summary={weatherSummaryLine(form.weather)}>
           <WeatherSection
             value={form.weather ?? emptyWeatherData()}
             onChange={next => set('weather', next)}
@@ -1051,16 +1052,48 @@ const iSt: React.CSSProperties = {
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function Section({ label, children, collapsible = false, defaultCollapsed = false, summary }: {
+  label: string
+  children: React.ReactNode
+  collapsible?: boolean
+  defaultCollapsed?: boolean
+  summary?: string | null
+}) {
+  const [open, setOpen] = useState(!defaultCollapsed)
+  const header = (
+    <div className="flex items-center gap-3 py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
+      <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block', flexShrink: 0 }} />
+      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.1em', flexShrink: 0 }}>
+        {label}
+      </h3>
+      {collapsible && (
+        <>
+          <span className="text-xs" style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+            flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {summary || '— ikke satt'}
+          </span>
+          <span style={{ color: '#8A8A96', fontSize: 12, flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
+        </>
+      )}
+    </div>
+  )
+  if (!collapsible) {
+    return (
+      <div className="mb-1">
+        {header}
+        <div className="py-5">{children}</div>
+      </div>
+    )
+  }
   return (
     <div className="mb-1">
-      <div className="flex items-center gap-3 py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
-        <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.1em' }}>
-          {label}
-        </h3>
-      </div>
-      <div className="py-5">{children}</div>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className="w-full text-left" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+        {header}
+      </button>
+      {open && <div className="py-5">{children}</div>}
     </div>
   )
 }

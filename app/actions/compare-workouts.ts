@@ -89,6 +89,14 @@ export interface DetailedWorkout {
   activities: DetailedActivity[]
   // Laktat-målinger med klokkeslett og verdi (mmol).
   lactates: { activity_idx: number; mmol: number; minute_offset: number | null }[]
+  // Fase 74: vær/føre-kontekst (for å skille forhold fra form i sammenligning).
+  weather: {
+    temperature: number | null
+    weather_type: string | null
+    wind_strength: string | null
+    surface_conditions: string[]
+    notes: string | null
+  } | null
 }
 
 interface RawActivity {
@@ -117,6 +125,7 @@ export async function compareWorkoutsDetailed(
     .from('workouts')
     .select(`
       id, date, title, sport, duration_minutes, distance_km, avg_heart_rate,
+      workout_weather ( temperature, weather_type, wind_strength, surface_conditions, notes ),
       workout_activities (
         sort_order, duration_seconds, distance_meters, avg_heart_rate,
         avg_watts, avg_pace_seconds_per_km, movement_name, splits_per_km,
@@ -153,6 +162,17 @@ export async function compareWorkoutsDetailed(
       || (Number(w.duration_minutes) || 0) * 60
     const total_meters = activities.reduce((s, a) => s + (a.distance_meters ?? 0), 0)
       || ((Number(w.distance_km) || 0) * 1000)
+    const wRaw = (Array.isArray(w.workout_weather) ? w.workout_weather[0] : w.workout_weather) as {
+      temperature: number | null; weather_type: string | null; wind_strength: string | null
+      surface_conditions: string[] | null; notes: string | null
+    } | null | undefined
+    const weather = wRaw ? {
+      temperature: wRaw.temperature ?? null,
+      weather_type: wRaw.weather_type ?? null,
+      wind_strength: wRaw.wind_strength ?? null,
+      surface_conditions: Array.isArray(wRaw.surface_conditions) ? wRaw.surface_conditions : [],
+      notes: wRaw.notes ?? null,
+    } : null
     return {
       id: w.id,
       date: w.date,
@@ -163,6 +183,7 @@ export async function compareWorkoutsDetailed(
       avg_heart_rate: w.avg_heart_rate,
       activities,
       lactates,
+      weather,
     }
   })
 

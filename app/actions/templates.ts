@@ -234,6 +234,7 @@ export async function materializeOktmalAtDate(
       date,
       notes: td.notes ?? null,
       tags: td.tags ?? [],
+      location: td.location ?? null,
       is_planned: true,
       is_completed: false,
       template_id: template.id,

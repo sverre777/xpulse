@@ -217,6 +217,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     test_data:     defaultValues?.test_data,
     nutrition_entries: defaultValues?.nutrition_entries ?? [],
     weather: defaultValues?.weather ?? emptyWeatherData(),
+    location: defaultValues?.location ?? '',
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -267,6 +268,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       notes: d.notes ?? f.notes,
       tags: d.tags ?? [],
       activities: freshActivities.length > 0 ? freshActivities : f.activities,
+      location: d.location ?? f.location,
       template_id: template.id,
       template_name: template.name,
     }))
@@ -300,6 +302,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         notes: form.notes,
         tags: form.tags,
         strength_type: form.strength_type,
+        location: form.location,
       },
     })
     setSavingTemplate(false)
@@ -443,6 +446,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <Label>Klokkeslett (valgfritt)</Label>
             <input type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
               style={iSt} className="w-full px-4 py-3" />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Sted (valgfritt)</Label>
+            <input value={form.location ?? ''} onChange={e => set('location', e.target.value)}
+              placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
+              className="w-full px-4 py-3"
+              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
+              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
           </div>
           <div className="md:col-span-2">
             <Label>Økttype (valgfritt)</Label>

@@ -260,6 +260,9 @@ export interface WorkoutFormData {
   // Fase 74: vær og føre per økt (manuell). 1:1, lagres i samme save-flyt.
   // Valgfritt for bakoverkomp med kode som ikke kjenner feltet.
   weather?: WeatherData
+  // Fase 75: fritekst-sted for økten (hvor den ble/skal gjennomføres).
+  // Lagres på workouts.location + følger med i øktmaler via template_data.
+  location?: string
 }
 
 // ── Test-økter (Fase 31) ───────────────────────────────────

@@ -560,6 +560,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     is_important: data.is_important,
     is_group_session: data.is_group_session,
     group_session_label: data.is_group_session ? (data.group_session_label || null) : null,
+    location: data.location?.trim() || null,
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
     rpe: data.rpe,
@@ -1353,6 +1354,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       activities:   planActivities,
       competition_data,
       test_data,
+      location:     (workout.location as string | null) ?? '',
       template_id:   (workout.template_id as string | null) ?? null,
       template_name: (workout.template_name as string | null) ?? null,
     }
@@ -1434,6 +1436,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     competition_data,
     test_data,
     weather,
+    location: (workout.location as string | null) ?? '',
     nutrition_entries: ((workout.workout_nutrition_entries ?? []) as {
       id: string
       time_offset_minutes: number | null

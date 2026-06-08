@@ -4143,3 +4143,143 @@ export async function getWeatherAnalysis(
     return { error: `getWeatherAnalysis: ${msg}` }
   }
 }
+
+// ── Høyde & varme (Fase 77) ───────────────────────────────
+// Egen analyse-flate med fokus på FORM rundt høyde-/varmeopphold (nøytral
+// overflate — vis data, ingen tolkning). Per høyde-periode sammenlignes snitt-
+// puls/pace UNDER perioden mot de 3 ukene ETTER (klassisk høyderespons-vindu).
+
+export interface AltitudePeriodStat {
+  id: string
+  name: string
+  start_date: string
+  end_date: string
+  altitude_meters: number | null
+  days: number
+  during_count: number
+  during_avg_hr: number | null
+  during_avg_pace: number | null
+  after_count: number
+  after_avg_hr: number | null
+  after_avg_pace: number | null
+}
+
+export interface HeatWorkoutStat {
+  id: string
+  date: string
+  title: string
+  body_temperature: number | null
+  avg_heart_rate: number | null
+}
+
+export interface AltitudeHeatAnalysis {
+  hasData: boolean
+  altitudePeriods: AltitudePeriodStat[]
+  heatWorkouts: HeatWorkoutStat[]
+  altitudeWorkoutCount: number
+}
+
+const ALTITUDE_RESPONSE_DAYS = 21
+
+export async function getAltitudeHeatAnalysis(
+  fromDate: string,
+  toDate: string,
+  targetUserId?: string,
+): Promise<AltitudeHeatAnalysis | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
+
+    // Hent fullførte økter i perioden + et 3-ukers haleslepp så «etter»-vinduet
+    // nær slutten av perioden fortsatt har data.
+    const workoutsTo = addDaysISO(toDate, ALTITUDE_RESPONSE_DAYS)
+    const [periodsRes, workoutsRes] = await Promise.all([
+      supabase
+        .from('season_periods')
+        .select('id, name, start_date, end_date, altitude_meters, seasons!inner(user_id)')
+        .eq('seasons.user_id', userId)
+        .eq('is_altitude_period', true)
+        .lte('start_date', toDate)
+        .gte('end_date', fromDate)
+        .order('start_date', { ascending: true }),
+      supabase
+        .from('workouts')
+        .select('id, title, date, avg_heart_rate, is_altitude_training, is_heat_training, body_temperature, distance_km, duration_minutes, workout_activities(distance_meters, avg_pace_seconds_per_km)')
+        .eq('user_id', userId)
+        .eq('is_completed', true)
+        .gte('date', fromDate)
+        .lte('date', workoutsTo)
+        .order('date', { ascending: true }),
+    ])
+    if (periodsRes.error) return { error: periodsRes.error.message }
+    if (workoutsRes.error) return { error: workoutsRes.error.message }
+
+    type WRow = {
+      id: string; title: string; date: string
+      avg_heart_rate: number | null
+      is_altitude_training: boolean | null; is_heat_training: boolean | null
+      body_temperature: number | null
+      distance_km: number | null; duration_minutes: number | null
+      workout_activities: { distance_meters: number | null; avg_pace_seconds_per_km: number | null }[] | null
+    }
+    const workouts = (workoutsRes.data ?? []) as WRow[]
+
+    const paceOf = (w: WRow): number | null => {
+      const acts = w.workout_activities ?? []
+      const withPace = acts.filter(a => a.avg_pace_seconds_per_km != null && (a.distance_meters ?? 0) > 0)
+      if (withPace.length > 0) {
+        const totM = withPace.reduce((s, a) => s + (a.distance_meters ?? 0), 0)
+        const totS = withPace.reduce((s, a) => s + (a.avg_pace_seconds_per_km ?? 0) * ((a.distance_meters ?? 0) / 1000), 0)
+        return totM > 0 ? Math.round(totS / (totM / 1000)) : null
+      }
+      const km = Number(w.distance_km) || 0, min = Number(w.duration_minutes) || 0
+      return km > 0 && min > 0 ? Math.round((min * 60) / km) : null
+    }
+    const avg = (nums: (number | null)[]): number | null => {
+      const v = nums.filter((n): n is number => n != null)
+      return v.length > 0 ? Math.round(v.reduce((s, n) => s + n, 0) / v.length) : null
+    }
+
+    const altitudePeriods: AltitudePeriodStat[] = ((periodsRes.data ?? []) as {
+      id: string; name: string; start_date: string; end_date: string; altitude_meters: number | null
+    }[]).map(p => {
+      const during = workouts.filter(w => w.is_altitude_training && w.date >= p.start_date && w.date <= p.end_date)
+      const afterEnd = addDaysISO(p.end_date, ALTITUDE_RESPONSE_DAYS)
+      const after = workouts.filter(w => w.date > p.end_date && w.date <= afterEnd)
+      return {
+        id: p.id, name: p.name, start_date: p.start_date, end_date: p.end_date,
+        altitude_meters: p.altitude_meters ?? null,
+        days: daysBetweenISO(p.start_date, p.end_date) + 1,
+        during_count: during.length,
+        during_avg_hr: avg(during.map(w => w.avg_heart_rate)),
+        during_avg_pace: avg(during.map(paceOf)),
+        after_count: after.length,
+        after_avg_hr: avg(after.map(w => w.avg_heart_rate)),
+        after_avg_pace: avg(after.map(paceOf)),
+      }
+    })
+
+    // Varmeøkter (kun innenfor selve perioden, ikke haleslepp).
+    const heatWorkouts: HeatWorkoutStat[] = workouts
+      .filter(w => w.is_heat_training && w.date >= fromDate && w.date <= toDate)
+      .map(w => ({
+        id: w.id, date: w.date, title: w.title,
+        body_temperature: w.body_temperature ?? null,
+        avg_heart_rate: w.avg_heart_rate ?? null,
+      }))
+
+    const altitudeWorkoutCount = workouts.filter(w => w.is_altitude_training && w.date >= fromDate && w.date <= toDate).length
+
+    return {
+      hasData: altitudePeriods.length > 0 || heatWorkouts.length > 0 || altitudeWorkoutCount > 0,
+      altitudePeriods,
+      heatWorkouts,
+      altitudeWorkoutCount,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getAltitudeHeatAnalysis: ${msg}` }
+  }
+}

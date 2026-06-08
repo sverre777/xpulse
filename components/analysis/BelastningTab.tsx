@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ResponsiveContainer, LineChart, Line, ComposedChart, Bar, BarChart,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ReferenceLine,
@@ -136,17 +136,37 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
     CTL: d.ctl, ATL: d.atl, TSB: d.tsb,
   })), [data.daily])
 
+  // Fase 17b: høyde-perioder som båndmarkeringer over kurvene (valgbart).
+  const altBands = useMemo(() => {
+    if (!data.altitudePeriods?.length) return []
+    return data.altitudePeriods
+      .map(p => {
+        const inRange = rows.filter(r => r.date >= p.start_date && r.date <= p.end_date)
+        if (inRange.length === 0) return null
+        return { x1: inRange[0].label, x2: inRange[inRange.length - 1].label, name: p.name, moh: p.altitude_meters }
+      })
+      .filter((b): b is { x1: string; x2: string; name: string; moh: number | null } => b !== null)
+  }, [data.altitudePeriods, rows])
+  const [showAlt, setShowAlt] = useState(true)
+
   // Dynamisk X-tick-hopp: maks ~10 ticks slik at etiketter ikke kolliderer.
   const tickInterval = Math.max(0, Math.floor(rows.length / 10) - 1)
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-2 flex-wrap">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
           Fitness / Fatigue / Form
         </p>
+        {altBands.length > 0 && (
+          <label className="flex items-center gap-1.5 ml-auto cursor-pointer text-xs"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF' }}>
+            <input type="checkbox" checked={showAlt} onChange={e => setShowAlt(e.target.checked)} />
+            🏔️ Vis høyde-perioder
+          </label>
+        )}
       </div>
       <ChartWrapper chartKey="belastning_fitness_fatigue_form" title="Belastningskurver"
         subtitle="CTL (blå) bygger form over tid · ATL (rød) reflekterer akutt tretthet · TSB (grønn) = form i dag. Bakgrunnsfarge viser form-sone for TSB."
@@ -162,6 +182,11 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
               domain={[-50, 50]} />
             {FORM_ZONES.map(z => (
               <ReferenceArea key={z.label} yAxisId="tsb" y1={z.from} y2={z.to} fill={z.color} stroke="none" />
+            ))}
+            {showAlt && altBands.map((b, i) => (
+              <ReferenceArea key={`alt-${i}`} yAxisId="ctl" x1={b.x1} x2={b.x2}
+                fill="rgba(91, 141, 239, 0.14)" stroke="#5B8DEF" strokeOpacity={0.4} strokeDasharray="3 3"
+                label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
             ))}
             <ReferenceLine yAxisId="tsb" y={0} stroke="#555560" strokeDasharray="2 2" />
             <Tooltip contentStyle={TOOLTIP_STYLE}

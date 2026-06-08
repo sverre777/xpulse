@@ -2678,6 +2678,9 @@ export interface BelastningAnalysis {
   hasData: boolean
   weeklyReflections: BelastningWeeklyReflectionPoint[]
   restStats: BelastningRestStats
+  // Fase 77/17b: høyde-perioder som overlapper [from,to] — valgbar overlay på
+  // belastningskurvene (marker høydeopphold visuelt).
+  altitudePeriods: { name: string; start_date: string; end_date: string; altitude_meters: number | null }[]
 }
 
 const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'Hurtighet', number> = {
@@ -2893,6 +2896,19 @@ export async function getBelastningAnalysis(
       by_subtype: bySubtype,
     }
 
+    // Høyde-perioder som overlapper visningsvinduet (for overlay på kurvene).
+    const { data: altRows } = await supabase
+      .from('season_periods')
+      .select('name, start_date, end_date, altitude_meters, seasons!inner(user_id)')
+      .eq('seasons.user_id', userId)
+      .eq('is_altitude_period', true)
+      .lte('start_date', toDate)
+      .gte('end_date', fromDate)
+      .order('start_date', { ascending: true })
+    const altitudePeriods = ((altRows ?? []) as {
+      name: string; start_date: string; end_date: string; altitude_meters: number | null
+    }[]).map(p => ({ name: p.name, start_date: p.start_date, end_date: p.end_date, altitude_meters: p.altitude_meters ?? null }))
+
     return {
       daily,
       current: {
@@ -2904,6 +2920,7 @@ export async function getBelastningAnalysis(
       hasData: daily.some(d => d.tss > 0) || currentCtl > 0,
       weeklyReflections,
       restStats,
+      altitudePeriods,
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

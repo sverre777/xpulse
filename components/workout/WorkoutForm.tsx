@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout } from '@/app/actions/workouts'
+import { getAltitudePeriodForDate } from '@/app/actions/seasons'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
 import { replaceWorkoutNutrition } from '@/app/actions/nutrition'
@@ -231,6 +232,30 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // «Marker som standardøkt»-velger: åpner mal-listen i tagge-modus.
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
+
+  // Fase 77: arv av høyde fra årsplan-periode. Når øktens dato faller i en
+  // høyde-periode, arver nye økter automatisk høydetrening + periodens moh
+  // (kan overstyres per økt). Eksisterende økter mutéres ikke — men vi viser
+  // kontekst-hintet uansett.
+  const [inheritedAltitude, setInheritedAltitude] = useState<{ altitude_meters: number | null; period_name: string } | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    if (!form.date) { setInheritedAltitude(null); return }
+    getAltitudePeriodForDate(form.date, targetUserId).then(res => {
+      if (cancelled) return
+      setInheritedAltitude(res)
+      if (res && !workoutId) {
+        // Auto-arv kun for nye økter, og kun om de ikke alt er markert.
+        setForm(f => f.is_altitude_training ? f : {
+          ...f,
+          is_altitude_training: true,
+          altitude_meters: f.altitude_meters ?? res.altitude_meters,
+        })
+      }
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.date, targetUserId, workoutId])
 
   // Utstyr-valg for økten. Endres uavhengig av form-state; lagres separat etter saveWorkout.
   const [equipmentIds, setEquipmentIds] = useState<string[]>(initialEquipmentIds)
@@ -567,13 +592,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </Chip>
         </div>
 
+        {inheritedAltitude && (
+          <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', lineHeight: 1.5 }}>
+            🏔️ Datoen er i høyde­perioden «{inheritedAltitude.period_name}»
+            {inheritedAltitude.altitude_meters ? ` (${inheritedAltitude.altitude_meters} moh)` : ''}.
+            {form.is_altitude_training && form.altitude_meters != null && form.altitude_meters !== inheritedAltitude.altitude_meters
+              ? ` Egen høyde for økten: ${form.altitude_meters} moh (overstyrer perioden).`
+              : ' Økten arver høyden fra perioden — sett egen moh under for å overstyre.'}
+          </p>
+        )}
+
         {(form.is_altitude_training || form.is_heat_training) && (
           <div className="flex flex-wrap gap-4 mt-3">
             {form.is_altitude_training && (
               <div>
                 <label className="text-xs tracking-widest uppercase block mb-1"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                  Høyde (moh)
+                  Høyde (moh){inheritedAltitude && form.altitude_meters == null ? ' — arvet' : ''}
                 </label>
                 <input
                   type="number" inputMode="numeric" min={0} max={9000} step={50}

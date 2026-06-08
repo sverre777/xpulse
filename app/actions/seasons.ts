@@ -34,6 +34,10 @@ export interface SeasonPeriod {
   notes: string | null
   sort_order: number
   created_at: string
+  // Fase 77: høyde-periode. Når true arver øktene i perioden høydetrening +
+  // denne moh som default (kan overstyres per økt). Varme er kun på økt-nivå.
+  is_altitude_period?: boolean
+  altitude_meters?: number | null
 }
 
 export interface SeasonKeyDate {
@@ -318,6 +322,8 @@ export interface PeriodInput {
   intensity: Intensity
   notes?: string | null
   sort_order?: number
+  is_altitude_period?: boolean
+  altitude_meters?: number | null
   targetUserId?: string
 }
 
@@ -362,6 +368,36 @@ async function checkPeriodConstraints(
   return null
 }
 
+// Fase 77: arv-oppslag — finn høyde-perioden som dekker en gitt dato (om noen),
+// så øktskjemaet kan default-arve høydetrening + periodens moh. Per-økt moh
+// overstyrer ved lagring. Returnerer null når datoen ikke er i en høyde-periode.
+export async function getAltitudePeriodForDate(
+  date: string,
+  targetUserId?: string,
+): Promise<{ altitude_meters: number | null; period_name: string } | null> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId)
+    if ('error' in resolved) return null
+    const { data } = await supabase
+      .from('season_periods')
+      .select('name, altitude_meters, seasons!inner(user_id)')
+      .eq('seasons.user_id', resolved.userId)
+      .eq('is_altitude_period', true)
+      .lte('start_date', date)
+      .gte('end_date', date)
+      .limit(1)
+      .maybeSingle()
+    if (!data) return null
+    return {
+      altitude_meters: (data.altitude_meters as number | null) ?? null,
+      period_name: data.name as string,
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function createPeriod(
   input: PeriodInput,
 ): Promise<{ id?: string; error?: string }> {
@@ -387,6 +423,8 @@ export async function createPeriod(
         intensity: input.intensity,
         notes: input.notes?.trim() || null,
         sort_order: input.sort_order ?? 0,
+        is_altitude_period: input.is_altitude_period ?? false,
+        altitude_meters: input.is_altitude_period ? (input.altitude_meters ?? null) : null,
       })
       .select('id')
       .single()
@@ -425,6 +463,8 @@ export async function updatePeriod(
         intensity: input.intensity,
         notes: input.notes?.trim() || null,
         sort_order: input.sort_order ?? 0,
+        is_altitude_period: input.is_altitude_period ?? false,
+        altitude_meters: input.is_altitude_period ? (input.altitude_meters ?? null) : null,
       })
       .eq('id', id)
 

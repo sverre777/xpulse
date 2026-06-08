@@ -32,6 +32,8 @@ export function PeriodModal({
   const [endDate, setEndDate] = useState(editing?.end_date ?? seasonStart)
   const [intensity, setIntensity] = useState<Intensity>(editing?.intensity ?? 'medium')
   const [notes, setNotes] = useState(editing?.notes ?? '')
+  const [isAltitude, setIsAltitude] = useState(editing?.is_altitude_period ?? false)
+  const [altitudeMeters, setAltitudeMeters] = useState(editing?.altitude_meters != null ? String(editing.altitude_meters) : '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +46,8 @@ export function PeriodModal({
     const payload = {
       season_id: seasonId, name, focus, start_date: startDate, end_date: endDate, intensity, notes,
       sort_order: editing?.sort_order ?? 0,
+      is_altitude_period: isAltitude,
+      altitude_meters: isAltitude && altitudeMeters !== '' ? Math.round(Number(altitudeMeters)) : null,
       targetUserId,
     }
     const res = editing
@@ -99,6 +103,24 @@ export function PeriodModal({
               <option key={i.value} value={i.value}>{i.label}</option>
             ))}
           </select>
+        </div>
+        <div className="mb-3" style={{ borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
+          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            <input type="checkbox" checked={isAltitude} onChange={e => setIsAltitude(e.target.checked)} />
+            <span>🏔️ Høydetreningsperiode</span>
+          </label>
+          {isAltitude && (
+            <div className="mt-2">
+              <FieldLabel>Høyde for perioden (moh)</FieldLabel>
+              <input type="number" inputMode="numeric" min={0} max={9000} step={50}
+                value={altitudeMeters} onChange={e => setAltitudeMeters(e.target.value)}
+                style={INPUT_STYLE} placeholder="f.eks. 1800" />
+              <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1.5 }}>
+                Øktene i perioden arver høydetrening + denne høyden automatisk. Du kan
+                overstyre høyden per økt (f.eks. om du trener høyere enn du bor).
+              </p>
+            </div>
+          )}
         </div>
         <div className="mb-1">
           <FieldLabel>Notat</FieldLabel>

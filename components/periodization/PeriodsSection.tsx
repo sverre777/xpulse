@@ -85,6 +85,13 @@ export function PeriodsSection({
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: INTENSITY_COLOR[p.intensity], border: `1px solid ${INTENSITY_COLOR[p.intensity]}` }}>
                     {INTENSITY_LABEL[p.intensity]}
                   </span>
+                  {p.is_altitude_period && (
+                    <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', border: '1px solid #2A3A55' }}
+                      title={p.altitude_meters ? `Høydetrening · ${p.altitude_meters} moh` : 'Høydetrening'}>
+                      🏔️ Høyde{p.altitude_meters ? ` · ${p.altitude_meters} moh` : ''}
+                    </span>
+                  )}
                 </div>
                 {p.focus && (
                   <p className="text-sm mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>

@@ -524,6 +524,8 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
+          {w.is_altitude_training && <span aria-label="Høydetrening" style={{ marginRight: '2px' }}>🏔️</span>}
+          {w.is_heat_training && <span aria-label="Varmetrening" style={{ marginRight: '2px' }}>🌡️</span>}
           {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '2px' }} aria-label="Fellestrening">👥</span>}
           {showCoachStyle && (
             <span aria-hidden="true"
@@ -1016,6 +1018,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
+                                      {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
+                                      {w.is_heat_training && <span title="Varmetrening" style={{ marginRight: '4px' }}>🌡️</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
                                       {w.imported_from && (
                                         <span style={{ marginRight: '4px', verticalAlign: 'middle' }}>

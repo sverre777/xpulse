@@ -561,6 +561,11 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     is_group_session: data.is_group_session,
     group_session_label: data.is_group_session ? (data.group_session_label || null) : null,
     location: data.location?.trim() || null,
+    // Fase 77: høyde-/varmetrening.
+    is_altitude_training: data.is_altitude_training ?? false,
+    altitude_meters: data.is_altitude_training ? (data.altitude_meters ?? null) : null,
+    is_heat_training: data.is_heat_training ?? false,
+    body_temperature: data.is_heat_training ? (data.body_temperature ?? null) : null,
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
     rpe: data.rpe,
@@ -1110,7 +1115,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
@@ -1125,7 +1130,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,prone_shots,prone_hits,standing_shots,standing_hits),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
@@ -1370,6 +1375,10 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       competition_data,
       test_data,
       location:     (workout.location as string | null) ?? '',
+      is_altitude_training: (workout.is_altitude_training as boolean | null) ?? false,
+      altitude_meters: (workout.altitude_meters as number | null) ?? null,
+      is_heat_training: (workout.is_heat_training as boolean | null) ?? false,
+      body_temperature: (workout.body_temperature as number | null) ?? null,
       template_id:   (workout.template_id as string | null) ?? null,
       template_name: (workout.template_name as string | null) ?? null,
       standard_workout_template_id,
@@ -1476,6 +1485,10 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       custom_label: n.custom_label ?? '',
       notes: n.notes ?? '',
     })),
+    is_altitude_training: (workout.is_altitude_training as boolean | null) ?? false,
+    altitude_meters: (workout.altitude_meters as number | null) ?? null,
+    is_heat_training: (workout.is_heat_training as boolean | null) ?? false,
+    body_temperature: (workout.body_temperature as number | null) ?? null,
     template_id:   (workout.template_id as string | null) ?? null,
     template_name: (workout.template_name as string | null) ?? null,
     standard_workout_template_id,

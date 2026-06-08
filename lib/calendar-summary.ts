@@ -28,6 +28,8 @@ export type RawCalendarActivity = {
 export type RawCalendarWorkout = {
   id: string; title: string; date: string; workout_type: string
   is_planned: boolean; is_completed: boolean; is_important: boolean
+  is_altitude_training?: boolean | null
+  is_heat_training?: boolean | null
   is_group_session?: boolean | null
   group_session_label?: string | null
   imported_from?: string | null
@@ -266,6 +268,8 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     is_completed: w.is_completed,
     is_important: w.is_important,
     is_group_session: w.is_group_session ?? false,
+    is_altitude_training: w.is_altitude_training ?? false,
+    is_heat_training: w.is_heat_training ?? false,
     group_session_label: w.group_session_label ?? null,
     imported_from: w.imported_from ?? null,
     workout_type: w.workout_type as CalendarWorkoutSummary['workout_type'],

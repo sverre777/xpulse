@@ -40,6 +40,8 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
           </span>
           <div className="flex items-center gap-2">
             {workout.is_important && <span style={{ color: '#FF4500', fontSize: '12px' }}>★</span>}
+            {workout.is_altitude_training && <span title={workout.altitude_meters ? `Høydetrening · ${workout.altitude_meters} moh` : 'Høydetrening'} style={{ fontSize: '12px' }}>🏔️</span>}
+            {workout.is_heat_training && <span title={workout.body_temperature ? `Varmetrening · ${workout.body_temperature}°C` : 'Varmetrening'} style={{ fontSize: '12px' }}>🌡️</span>}
             {workout.is_planned && !workout.is_completed && (
               <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
                 Planlagt

@@ -270,6 +270,12 @@ export interface WorkoutFormData {
   // Fase 75: fritekst-sted for økten (hvor den ble/skal gjennomføres).
   // Lagres på workouts.location + følger med i øktmaler via template_data.
   location?: string
+  // Fase 77: høyde-/varmetrening-markering. Høyde kan arves fra årsplan-periode
+  // (default-moh) men overstyres per økt. Varme er kun på økt-nivå.
+  is_altitude_training?: boolean
+  altitude_meters?: number | null
+  is_heat_training?: boolean
+  body_temperature?: number | null
 }
 
 // ── Test-økter (Fase 31) ───────────────────────────────────
@@ -881,6 +887,10 @@ export interface Workout {
   is_planned: boolean
   is_completed: boolean
   is_important: boolean
+  is_altitude_training?: boolean
+  is_heat_training?: boolean
+  altitude_meters?: number | null
+  body_temperature?: number | null
   planned_workout_id: string | null
   day_form_physical: number | null
   day_form_mental: number | null
@@ -976,6 +986,8 @@ export interface CalendarWorkoutSummary {
   is_completed: boolean
   is_important: boolean
   is_group_session?: boolean
+  is_altitude_training?: boolean
+  is_heat_training?: boolean
   group_session_label?: string | null
   // Kilde for badge-visning. 'strava' | 'fit' | null. Viser "Importert"-tag
   // i kalender og workout-detalj.

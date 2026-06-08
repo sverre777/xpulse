@@ -220,6 +220,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     nutrition_entries: defaultValues?.nutrition_entries ?? [],
     weather: defaultValues?.weather ?? emptyWeatherData(),
     location: defaultValues?.location ?? '',
+    is_altitude_training: defaultValues?.is_altitude_training ?? false,
+    altitude_meters: defaultValues?.altitude_meters ?? null,
+    is_heat_training: defaultValues?.is_heat_training ?? false,
+    body_temperature: defaultValues?.body_temperature ?? null,
   }))
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
@@ -555,7 +559,50 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               👥 Skal delta
             </Chip>
           )}
+          <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
+            🏔️ Høydetrening
+          </Chip>
+          <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
+            🌡️ Varmetrening
+          </Chip>
         </div>
+
+        {(form.is_altitude_training || form.is_heat_training) && (
+          <div className="flex flex-wrap gap-4 mt-3">
+            {form.is_altitude_training && (
+              <div>
+                <label className="text-xs tracking-widest uppercase block mb-1"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  Høyde (moh)
+                </label>
+                <input
+                  type="number" inputMode="numeric" min={0} max={9000} step={50}
+                  value={form.altitude_meters ?? ''}
+                  onChange={e => set('altitude_meters', e.target.value === '' ? null : Math.round(Number(e.target.value)))}
+                  placeholder="f.eks. 1800"
+                  className="px-3 py-2 text-sm w-40"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#F0F0F2', outline: 'none' }}
+                />
+              </div>
+            )}
+            {form.is_heat_training && (
+              <div>
+                <label className="text-xs tracking-widest uppercase block mb-1"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  Kroppstemperatur (°C)
+                </label>
+                <input
+                  type="number" inputMode="decimal" min={34} max={43} step={0.1}
+                  value={form.body_temperature ?? ''}
+                  onChange={e => set('body_temperature', e.target.value === '' ? null : Number(e.target.value))}
+                  placeholder="f.eks. 38.5"
+                  className="px-3 py-2 text-sm w-40"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#F0F0F2', outline: 'none' }}
+                />
+              </div>
+            )}
+          </div>
+        )}
         {form.is_group_session && (
           <div className="mt-3">
             <label className="text-xs tracking-widest uppercase block mb-1"

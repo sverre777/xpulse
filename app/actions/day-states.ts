@@ -93,13 +93,21 @@ export async function deleteDayState(
     const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
     if ('error' in resolved) return { error: resolved.error }
 
-    const { error } = await supabase
+    // .select() etter delete så vi KAN se om en rad faktisk ble slettet. Uten
+    // dette returnerer en delete som treffer 0 rader (manglende DELETE-grant
+    // eller RLS) «success» — UI lukker da modalen uten at noe forsvinner
+    // («ingenting skjer»). Nå får brukeren en tydelig feilmelding i stedet.
+    const { data: deleted, error } = await supabase
       .from('day_states')
       .delete()
       .eq('id', id)
       .eq('user_id', resolved.userId)
+      .select('id')
 
     if (error) return { error: error.message }
+    if (!deleted || deleted.length === 0) {
+      return { error: 'Sletting traff ingen rad. Dette skyldes vanligvis manglende DELETE-rettighet på day_states i databasen — kjør migreringen phase78_day_states_delete.sql.' }
+    }
     revalidatePath('/app/dagbok')
     revalidatePath('/app/plan')
     revalidatePath('/app/periodisering')

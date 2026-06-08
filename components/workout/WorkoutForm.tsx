@@ -43,10 +43,18 @@ import { HeartZone } from '@/lib/heart-zones'
 // Generiske trenings-tagger (intervall/terskel/teknikk/styrke/rolig) brukes til
 // manuell klassifisering + analyse-gruppering; competition/testlop/test trigger
 // egne felter. Sone-basert intensiv-analyse beholdes som SUPPLEMENT (analysis.ts).
+// Generiske tagger i nedtrekkslista. Test/Testløp/Konkurranse er FLYTTET ut til
+// egne chips (de endrer skjema: test-/konkurranse-felter) for å skille rene
+// kategori-tagger fra de funksjonelle. Verdien lagres fortsatt i workout_type.
 const MEANINGFUL_WORKOUT_TYPES: WorkoutType[] = [
   'interval', 'threshold', 'technical', 'strength', 'easy',
-  'competition', 'testlop', 'test',
   'hard_combo', 'easy_combo', 'basis_shooting',
+]
+// Spesialtyper med egne skjema-felter — vises som chips, ikke i nedtrekkslista.
+const SPECIAL_WORKOUT_TYPES: { value: WorkoutType; label: string; color: string }[] = [
+  { value: 'competition', label: '🏁 Konkurranse', color: '#E11D48' },
+  { value: 'testlop', label: '⏱️ Testløp', color: '#F59E0B' },
+  { value: 'test', label: '🧪 Test', color: '#8B5CF6' },
 ]
 
 interface WorkoutFormProps {
@@ -590,6 +598,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
             🌡️ Varmetrening
           </Chip>
+          {SPECIAL_WORKOUT_TYPES.map(s => (
+            <Chip key={s.value} active={form.workout_type === s.value}
+              onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
+              color={s.color}>
+              {s.label}
+            </Chip>
+          ))}
         </div>
 
         {inheritedAltitude && (

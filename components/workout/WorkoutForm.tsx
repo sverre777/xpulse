@@ -754,8 +754,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             data={form.test_data ?? emptyTestData()}
             onChange={d => set('test_data', d)}
             mode={isPlanMode ? 'plan' : 'dagbok'}
-            workoutSport={form.sport}
-            onWorkoutSportChange={s => handleSportChange(s)}
           />
         </div>
       )}

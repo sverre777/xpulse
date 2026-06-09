@@ -178,13 +178,14 @@ async function learnUserExercises(
   activities: ActivityRow[],
 ): Promise<void> {
   const now = new Date().toISOString()
+  // Dedup per navn (siste verdier vinner). Unngår mange sekvensielle rundturer.
+  const byName = new Map<string, { category: string | null; reps: number | null; weight: number | null }>()
   for (const a of activities) {
     if (a.movement_name !== 'Styrke') continue
     const category = a.movement_subcategory || null
     for (const ex of a.exercises ?? []) {
       const name = ex.exercise_name.trim()
       if (!name) continue
-      // Siste sett med meningsfull reps/vekt blir default.
       let defaultReps: number | null = null
       let defaultWeight: number | null = null
       for (let i = ex.sets.length - 1; i >= 0; i--) {
@@ -197,41 +198,46 @@ async function learnUserExercises(
           break
         }
       }
-
-      const { data: existing } = await supabase
-        .from('user_exercises')
-        .select('id, times_used')
-        .eq('user_id', userId)
-        .eq('name', name)
-        .maybeSingle()
-
-      if (existing) {
-        await supabase
-          .from('user_exercises')
-          .update({
-            category,
-            default_reps: defaultReps,
-            default_weight_kg: defaultWeight,
-            times_used: (existing.times_used ?? 0) + 1,
-            last_used_at: now,
-            updated_at: now,
-          })
-          .eq('id', existing.id)
-          .eq('user_id', userId)
-      } else {
-        await supabase.from('user_exercises').insert({
-          user_id: userId,
-          name,
-          kind: 'strength',
-          category,
-          default_reps: defaultReps,
-          default_weight_kg: defaultWeight,
-          times_used: 1,
-          last_used_at: now,
-        })
-      }
+      byName.set(name, { category, reps: defaultReps, weight: defaultWeight })
     }
   }
+  if (byName.size === 0) return
+
+  const names = Array.from(byName.keys())
+  // Ett oppslag for alle navn, deretter parallelle skrivinger.
+  const { data: existing } = await supabase
+    .from('user_exercises')
+    .select('id, name, times_used')
+    .eq('user_id', userId)
+    .in('name', names)
+  const existingByName = new Map(
+    ((existing ?? []) as { id: string; name: string; times_used: number | null }[]).map(e => [e.name, e]),
+  )
+
+  const ops: PromiseLike<unknown>[] = []
+  const inserts: Record<string, unknown>[] = []
+  for (const [name, v] of byName) {
+    const ex = existingByName.get(name)
+    if (ex) {
+      ops.push(
+        supabase.from('user_exercises').update({
+          category: v.category,
+          default_reps: v.reps,
+          default_weight_kg: v.weight,
+          times_used: (ex.times_used ?? 0) + 1,
+          last_used_at: now,
+          updated_at: now,
+        }).eq('id', ex.id).eq('user_id', userId),
+      )
+    } else {
+      inserts.push({
+        user_id: userId, name, kind: 'strength', category: v.category,
+        default_reps: v.reps, default_weight_kg: v.weight, times_used: 1, last_used_at: now,
+      })
+    }
+  }
+  if (inserts.length > 0) ops.push(supabase.from('user_exercises').insert(inserts))
+  await Promise.all(ops)
 }
 
 // 2-pass insert av hele aktivitet-treet (aktiviteter → øvelser+sett → laktatmålinger).

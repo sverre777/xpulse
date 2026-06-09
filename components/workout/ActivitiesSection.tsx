@@ -864,19 +864,25 @@ function StrengthEditor({
   useEffect(() => {
     const missing = exerciseNames.filter(n => !(n.toLowerCase() in lastByName))
     if (missing.length === 0) return
+    let cancelled = false
+    // Marker alle forsøkte navn som hentet (success ELLER feil) så vi ALDRI
+    // re-fyrer på samme navn — ellers kan en treg/feilende spørring gi en
+    // refire-loop som flommer serveren og gjør alt tregt.
+    const settle = (map: Record<string, LastSessionForExercise>) => {
+      if (cancelled) return
+      setLastByName(prev => {
+        const next = { ...prev }
+        for (const n of missing) {
+          const k = n.toLowerCase()
+          next[k] = map[k] ?? null
+        }
+        return next
+      })
+    }
     const t = setTimeout(() => {
-      getLastSessionForExercises(missing).then(map => {
-        setLastByName(prev => {
-          const next = { ...prev }
-          for (const n of missing) {
-            const k = n.toLowerCase()
-            next[k] = map[k] ?? null
-          }
-          return next
-        })
-      }).catch(() => {})
-    }, 400)
-    return () => clearTimeout(t)
+      getLastSessionForExercises(missing).then(settle).catch(() => settle({}))
+    }, 500)
+    return () => { cancelled = true; clearTimeout(t) }
   }, [exerciseNames, lastByName])
 
   const presets = presetsForCategory(category)

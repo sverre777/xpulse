@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
-import type { StrengthExerciseRow } from '@/lib/types'
+import type { StrengthExerciseRow, ActivityRow } from '@/lib/types'
 
 // Fase 80: forrige-økt-oppslag for styrkeøvelser. Øvelser nøkles på fritekst-
 // navn (lower(trim)), så «sist» hentes uavhengig av hvilken økt/sport øvelsen
@@ -42,38 +42,36 @@ export async function getLastSessionForExercises(
   const fromDate = cutoff.toISOString().slice(0, 10)
 
   // Målrettet: hent KUN øvelses-radene som matcher de etterspurte navnene
-  // (med settene + økt-dato), ikke hele historikken. Stort ytelsesløft.
+  // (med settene + økt-kontekst). RLS begrenser allerede til egne rader; vi
+  // filtrerer bruker/fullført/dato i JS for å unngå skjøre nøstede embed-filtre.
   const { data, error } = await supabase
     .from('workout_activity_exercises')
     .select('exercise_name, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe), workout_activities!inner(workouts!inner(date, user_id, is_completed))')
     .in('exercise_name', Array.from(new Set(names.map(n => n.trim()).filter(Boolean))))
-    .eq('workout_activities.workouts.user_id', resolved.userId)
-    .eq('workout_activities.workouts.is_completed', true)
-    .gte('workout_activities.workouts.date', fromDate)
     .limit(500)
   if (error || !data) return {}
 
-  type WkRef = { date: string } | { date: string }[] | null
+  type WkRef = { date: string; user_id: string; is_completed: boolean }
   type ExRow = {
     exercise_name: string | null
     workout_activity_exercise_sets: LastSessionSet[] | null
-    workout_activities: { workouts: WkRef } | { workouts: WkRef }[] | null
+    workout_activities: { workouts: WkRef | WkRef[] | null } | { workouts: WkRef | WkRef[] | null }[] | null
   }
-  const dateOf = (r: ExRow): string | null => {
+  const workoutOf = (r: ExRow): WkRef | null => {
     const wa = Array.isArray(r.workout_activities) ? r.workout_activities[0] : r.workout_activities
     if (!wa) return null
     const wk = Array.isArray(wa.workouts) ? wa.workouts[0] : wa.workouts
-    return wk?.date ?? null
+    return wk ?? null
   }
 
   const result: Record<string, LastSessionForExercise> = {}
   for (const r of data as ExRow[]) {
     const key = (r.exercise_name ?? '').trim().toLowerCase()
     if (!key || !wanted.has(key)) continue
-    const date = dateOf(r)
-    if (!date) continue
+    const wk = workoutOf(r)
+    if (!wk || wk.user_id !== resolved.userId || !wk.is_completed || wk.date < fromDate) continue
     const existing = result[key]
-    if (existing && existing.date >= date) continue   // behold nyeste
+    if (existing && existing.date >= wk.date) continue   // behold nyeste
     const sets = (r.workout_activity_exercise_sets ?? [])
       .map(s => ({
         set_number: s.set_number,
@@ -84,9 +82,86 @@ export async function getLastSessionForExercises(
       }))
       .sort((x, y) => x.set_number - y.set_number)
     if (sets.length === 0) continue
-    result[key] = { date, sets }
+    result[key] = { date: wk.date, sets }
   }
   return result
+}
+
+// ── Lett loader for økt-modus ─────────────────────────────
+// Henter KUN styrke-øvelsene (faktiske + plan-hint) i ÉN lett spørring, i
+// stedet for to tunge getWorkoutForEdit-kall. Mye raskere → unngår timeout
+// («could not load») på live-ruten.
+export interface LiveSessionLoad {
+  exercises: StrengthExerciseRow[]
+  plannedByName: Record<string, string>
+}
+
+function summarizePlannedSetsStr(sets: { reps: string; weight_kg: string }[]): string {
+  if (sets.length === 0) return ''
+  const r = sets[0].reps, w = sets[0].weight_kg
+  const sameR = sets.every(s => s.reps === r), sameW = sets.every(s => s.weight_kg === w)
+  const wPart = w ? ` @ ${w} kg` : ''
+  if (sameR && r) return `${sets.length}×${r}${sameW ? wPart : ''}`
+  return `${sets.length} sett`
+}
+
+export async function getStrengthForLiveSession(
+  workoutId: string,
+  targetUserId?: string,
+): Promise<LiveSessionLoad> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  if ('error' in resolved) return { exercises: [], plannedByName: {} }
+
+  const { data } = await supabase
+    .from('workouts')
+    .select('planned_snapshot, workout_activities(movement_name, sort_order, workout_activity_exercises(exercise_name, superset_group, sort_order, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
+    .eq('id', workoutId).eq('user_id', resolved.userId)
+    .maybeSingle()
+  if (!data) return { exercises: [], plannedByName: {} }
+
+  type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
+  type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
+  type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
+  const acts = (data.workout_activities ?? []) as ActRow[]
+  const strengthAct = acts.find(a => a.movement_name === 'Styrke')
+    ?? acts.find(a => (a.workout_activity_exercises?.length ?? 0) > 0)
+
+  const actualExercises: StrengthExerciseRow[] = (strengthAct?.workout_activity_exercises ?? [])
+    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map((ex, ei) => ({
+      id: `ex-${ei}`,
+      exercise_name: ex.exercise_name ?? '',
+      notes: '',
+      superset_group: ex.superset_group ?? null,
+      sets: (ex.workout_activity_exercise_sets ?? [])
+        .slice().sort((a, b) => a.set_number - b.set_number)
+        .map((s, si) => ({
+          id: `ex-${ei}-set-${si}`,
+          set_number: String(s.set_number ?? si + 1),
+          reps: s.reps != null ? String(s.reps) : '',
+          weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
+          duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
+          rpe: s.rpe != null ? String(s.rpe) : '',
+          notes: '',
+        })),
+    }))
+
+  // Plan-hint (+ seed når ingen faktiske) fra planned_snapshot.
+  const snap = data.planned_snapshot as { activities?: ActivityRow[] } | null
+  const plannedExercises = (snap?.activities ?? [])
+    .filter(a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke')
+    .flatMap(a => a.exercises ?? [])
+  const plannedByName: Record<string, string> = {}
+  for (const ex of plannedExercises) {
+    const key = ex.exercise_name.trim().toLowerCase()
+    if (key && !plannedByName[key]) {
+      plannedByName[key] = summarizePlannedSetsStr((ex.sets ?? []).map(s => ({ reps: s.reps, weight_kg: s.weight_kg })))
+    }
+  }
+
+  const exercises = actualExercises.length > 0 ? actualExercises : plannedExercises
+  return { exercises, plannedByName }
 }
 
 // ── Live økt-modus ────────────────────────────────────────

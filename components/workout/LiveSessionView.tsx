@@ -74,7 +74,9 @@ export function LiveSessionView({
   )
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null)
   const [nowMs, setNowMs] = useState<number>(() => Date.now())
-  const [lastLogMs, setLastLogMs] = useState<number | null>(null)
+  const [lastLogMs, setLastLogMs] = useState<number | null>(null)   // hvile-base (etter Logg)
+  const [activeSetId, setActiveSetId] = useState<string | null>(null)
+  const [workStartMs, setWorkStartMs] = useState<number | null>(null) // arbeids-base (etter Start)
   const [doneSets, setDoneSets] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
 
@@ -92,7 +94,9 @@ export function LiveSessionView({
   }, [])
 
   const elapsedSec = startedAtMs != null ? (nowMs - startedAtMs) / 1000 : 0
-  const restSec = lastLogMs != null ? (nowMs - lastLogMs) / 1000 : null
+  // Arbeidstid vises på det aktive settet; hviletid mellom Logg og neste Start.
+  const workSec = activeSetId != null && workStartMs != null ? (nowMs - workStartMs) / 1000 : null
+  const restSec = activeSetId == null && lastLogMs != null ? (nowMs - lastLogMs) / 1000 : null
 
   // ── Wake lock (skjermen sovner ikke under økt) ───────────
   useEffect(() => {
@@ -192,8 +196,19 @@ export function LiveSessionView({
   }
   const unlinkExercise = (id: string) =>
     setExercises(exercises.map(e => e.id === id ? { ...e, superset_group: null } : e))
+  // Start et sett: timer på selve settet starter, hvile stopper. Ett aktivt om
+  // gangen. Tapper du Start på et logget sett, redoes det.
+  const startSet = (setId: string) => {
+    setDoneSets(prev => { const n = new Set(prev); n.delete(setId); return n })
+    setActiveSetId(setId)
+    setWorkStartMs(Date.now())
+    setLastLogMs(null)
+  }
+  // Logg et sett: markeres ferdig, hvile-telleren starter mot neste Start.
   const logSet = (setId: string) => {
     setDoneSets(prev => new Set(prev).add(setId))
+    setActiveSetId(null)
+    setWorkStartMs(null)
     setLastLogMs(Date.now())
   }
   const repeatLast = (ex: StrengthExerciseRow) => {
@@ -249,7 +264,7 @@ export function LiveSessionView({
           </span>
           {restSec != null && (
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', fontSize: 14 }}>
-              pause {fmtClock(restSec)}
+              hvile {fmtClock(restSec)}
             </span>
           )}
         </div>
@@ -317,9 +332,10 @@ export function LiveSessionView({
 
               {ex.sets.map((s, si) => {
                 const done = doneSets.has(s.id)
+                const active = s.id === activeSetId
                 return (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid #14141A' }}>
-                    <span style={{ width: 22, color: done ? '#28A86E' : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
+                    <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
                       {done ? '✓' : si + 1}
                     </span>
                     <Stepper label="reps" value={s.reps} step={1}
@@ -327,10 +343,22 @@ export function LiveSessionView({
                     <Stepper label="kg" value={s.weight_kg} step={2.5}
                       onChange={v => updateSet(ex.id, s.id, { weight_kg: v })} />
                     <RpePicker value={s.rpe} onChange={v => updateSet(ex.id, s.id, { rpe: v })} />
-                    <button type="button" onClick={() => logSet(s.id)}
-                      style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                      {done ? 'logget' : '✓ logg'}
-                    </button>
+                    {active ? (
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, fontSize: 13 }}>
+                          jobber {fmtClock(workSec ?? 0)}
+                        </span>
+                        <button type="button" onClick={() => logSet(s.id)}
+                          style={{ background: '#28A86E', color: '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                          ✓ logg
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => startSet(s.id)}
+                        style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : '#0A0A0B', border: done ? '1px solid #1E4A38' : 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                        {done ? '✓ logget' : 'Start'}
+                      </button>
+                    )}
                     <button type="button" onClick={() => removeSet(ex.id, s.id)} title="Fjern sett" style={btnIcon}>×</button>
                   </div>
                 )

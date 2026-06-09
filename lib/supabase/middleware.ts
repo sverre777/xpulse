@@ -24,6 +24,20 @@ function isCoachRoute(pathname: string): boolean {
   return pathname === '/app/trener' || pathname.startsWith('/app/trener/')
 }
 
+// Defensiv: middleware kjører som Edge Function med streng tidsgrense. Hvis et
+// Supabase-kall henger (treg/utilgjengelig DB/auth), MÅ vi ikke henge til
+// edge-timeout (= hele siten nede). withTimeout kaster etter `ms`, og kalleren
+// faller tilbake til å slippe requesten gjennom — sidene self-guarder (kaller
+// selv auth/getUser) og RLS beskytter data uansett.
+class TimeoutError extends Error {}
+function withTimeout<T>(p: PromiseLike<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p as Promise<T>,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new TimeoutError('supabase-timeout')), ms)),
+  ])
+}
+const MW_TIMEOUT_MS = 3000
+
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -55,9 +69,16 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']
+  try {
+    const { data } = await withTimeout(supabase.auth.getUser(), MW_TIMEOUT_MS)
+    user = data.user
+  } catch {
+    // Supabase auth treg/utilgjengelig → IKKE heng edge-funksjonen. Slipp
+    // requesten gjennom; sidene self-guarder (egen auth-sjekk) og RLS beskytter
+    // data. Bedre degradert enn hele siten nede.
+    return supabaseResponse
+  }
 
   const isAppRoute = pathname === '/app' || pathname.startsWith('/app/')
   const isAuthPage = pathname === '/app' || pathname === '/app/register'
@@ -80,25 +101,30 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Alle gjenstående Supabase-spørringer (abonnement/profil) er timeout-guardet.
+  // Hvis noen henger/feiler slipper vi requesten gjennom i stedet for å henge
+  // edge-funksjonen til timeout (= site down). Betalingsmur degraderes da kort-
+  // varig; RLS beskytter fortsatt data.
+  try {
   // Authenticated: /app root og /app/register bounce til dagbok eller onboarding.
   if (isAuthPage) {
     // Sjekk subscription først — ny bruker uten sub skal til onboarding.
-    const { data: sub } = await supabase
+    const { data: sub } = await withTimeout(supabase
       .from('subscriptions')
       .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_customer_id, stripe_subscription_id')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .maybeSingle(), MW_TIMEOUT_MS)
     if (!sub || !hasActiveAccess(sub as ActiveSubscription)) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding/abonnement'
       return NextResponse.redirect(url)
     }
 
-    const { data: profile } = await supabase
+    const { data: profile } = await withTimeout(supabase
       .from('profiles')
       .select('active_role, role')
       .eq('id', user.id)
-      .single()
+      .single(), MW_TIMEOUT_MS)
 
     const activeRole = profile?.active_role ?? profile?.role
     const url = request.nextUrl.clone()
@@ -109,11 +135,11 @@ export async function updateSession(request: NextRequest) {
   // Betalingsmur: sjekk subscription for /app/* (unntatt SUB_EXEMPT_PREFIXES).
   // Tier-gate /app/trener/*: krever Trener Basic eller Pro.
   if (isAppRoute && !isSubExempt(pathname)) {
-    const { data: sub } = await supabase
+    const { data: sub } = await withTimeout(supabase
       .from('subscriptions')
       .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_customer_id, stripe_subscription_id')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .maybeSingle(), MW_TIMEOUT_MS)
 
     if (!sub) {
       const url = request.nextUrl.clone()
@@ -146,11 +172,11 @@ export async function updateSession(request: NextRequest) {
     // (Athlete Pro) treffer aldri denne grenen, så ingen ekstra spørring for dem.
     const isInbox = pathname === '/app/innboks' || pathname.startsWith('/app/innboks/')
     if (!isCoachRoute(pathname) && !isInbox && hasCoachTier(sub as ActiveSubscription)) {
-      const { data: profile } = await supabase
+      const { data: profile } = await withTimeout(supabase
         .from('profiles')
         .select('active_role, role')
         .eq('id', user.id)
-        .maybeSingle()
+        .maybeSingle(), MW_TIMEOUT_MS)
       const activeRole = profile?.active_role ?? profile?.role
       if (activeRole === 'coach') {
         const url = request.nextUrl.clone()
@@ -159,6 +185,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
       }
     }
+  }
+  } catch {
+    // Supabase treg/utilgjengelig under gating → slipp gjennom, ikke heng edge.
+    return supabaseResponse
   }
 
   return supabaseResponse

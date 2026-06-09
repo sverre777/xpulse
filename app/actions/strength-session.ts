@@ -41,43 +41,50 @@ export async function getLastSessionForExercises(
   cutoff.setMonth(cutoff.getMonth() - 6)
   const fromDate = cutoff.toISOString().slice(0, 10)
 
+  // Målrettet: hent KUN øvelses-radene som matcher de etterspurte navnene
+  // (med settene + økt-dato), ikke hele historikken. Stort ytelsesløft.
   const { data, error } = await supabase
-    .from('workouts')
-    .select('date, workout_activities(workout_activity_exercises(exercise_name, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
-    .eq('user_id', resolved.userId)
-    .eq('is_completed', true)
-    .gte('date', fromDate)
-    .order('date', { ascending: false })
-    .limit(400)
+    .from('workout_activity_exercises')
+    .select('exercise_name, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe), workout_activities!inner(workouts!inner(date, user_id, is_completed))')
+    .in('exercise_name', Array.from(new Set(names.map(n => n.trim()).filter(Boolean))))
+    .eq('workout_activities.workouts.user_id', resolved.userId)
+    .eq('workout_activities.workouts.is_completed', true)
+    .gte('workout_activities.workouts.date', fromDate)
+    .limit(500)
   if (error || !data) return {}
 
+  type WkRef = { date: string } | { date: string }[] | null
   type ExRow = {
     exercise_name: string | null
     workout_activity_exercise_sets: LastSessionSet[] | null
+    workout_activities: { workouts: WkRef } | { workouts: WkRef }[] | null
   }
-  type ActRow = { workout_activity_exercises: ExRow[] | null }
-  type WRow = { date: string; workout_activities: ActRow[] | null }
+  const dateOf = (r: ExRow): string | null => {
+    const wa = Array.isArray(r.workout_activities) ? r.workout_activities[0] : r.workout_activities
+    if (!wa) return null
+    const wk = Array.isArray(wa.workouts) ? wa.workouts[0] : wa.workouts
+    return wk?.date ?? null
+  }
 
   const result: Record<string, LastSessionForExercise> = {}
-  // Økter kommer dato-synkende → første treff per navn = nyeste.
-  for (const w of data as WRow[]) {
-    for (const a of w.workout_activities ?? []) {
-      for (const ex of a.workout_activity_exercises ?? []) {
-        const key = (ex.exercise_name ?? '').trim().toLowerCase()
-        if (!key || !wanted.has(key) || result[key]) continue
-        const sets = (ex.workout_activity_exercise_sets ?? [])
-          .map(s => ({
-            set_number: s.set_number,
-            reps: s.reps ?? null,
-            weight_kg: s.weight_kg ?? null,
-            duration_seconds: s.duration_seconds ?? null,
-            rpe: s.rpe ?? null,
-          }))
-          .sort((x, y) => x.set_number - y.set_number)
-        if (sets.length === 0) continue
-        result[key] = { date: w.date, sets }
-      }
-    }
+  for (const r of data as ExRow[]) {
+    const key = (r.exercise_name ?? '').trim().toLowerCase()
+    if (!key || !wanted.has(key)) continue
+    const date = dateOf(r)
+    if (!date) continue
+    const existing = result[key]
+    if (existing && existing.date >= date) continue   // behold nyeste
+    const sets = (r.workout_activity_exercise_sets ?? [])
+      .map(s => ({
+        set_number: s.set_number,
+        reps: s.reps ?? null,
+        weight_kg: s.weight_kg ?? null,
+        duration_seconds: s.duration_seconds ?? null,
+        rpe: s.rpe ?? null,
+      }))
+      .sort((x, y) => x.set_number - y.set_number)
+    if (sets.length === 0) continue
+    result[key] = { date, sets }
   }
   return result
 }

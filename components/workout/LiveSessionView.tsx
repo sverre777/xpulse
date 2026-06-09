@@ -60,13 +60,14 @@ export function LiveSessionView({
 }) {
   const router = useRouter()
   // Sikre stabile klient-id-er på øvelser/sett (for React-keys + redigering).
+  // Indeks-basert fallback (ikke crypto) så initialiseringen er trygg under SSR.
   const [exercises, setExercises] = useState<StrengthExerciseRow[]>(() =>
-    initialExercises.map(ex => ({
+    initialExercises.map((ex, ei) => ({
       ...ex,
-      id: ex.id || crypto.randomUUID(),
+      id: ex.id || `ex-${ei}`,
       sets: (ex.sets ?? []).map((s, i) => ({
         ...s,
-        id: s.id || crypto.randomUUID(),
+        id: s.id || `ex-${ei}-set-${i}`,
         set_number: s.set_number || String(i + 1),
       })),
     })),

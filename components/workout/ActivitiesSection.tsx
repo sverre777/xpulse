@@ -20,6 +20,7 @@ import {
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { getUserExercises } from '@/app/actions/user-exercises'
+import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import type { UserExercise } from '@/lib/user-exercise-types'
 import {
   getUserMovementTypes, createUserMovementType,
@@ -809,6 +810,33 @@ function ZoneEditor({
 // Quick-add-knappene over "+ Legg til øvelse" hopper rett til en ny rad med navnet
 // forhåndsutfylt.
 
+// «for X dager siden» fra en YYYY-MM-DD-dato.
+function daysAgoLabel(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  const diff = Math.round((Date.now() - d.getTime()) / 86400000)
+  if (diff <= 0) return 'i dag'
+  if (diff === 1) return 'i går'
+  if (diff < 7) return `for ${diff} dager siden`
+  if (diff < 14) return 'for 1 uke siden'
+  if (diff < 60) return `for ${Math.round(diff / 7)} uker siden`
+  return `for ${Math.round(diff / 30)} mnd siden`
+}
+
+// Kompakt sammendrag av forrige økts sett, f.eks. «4×5 @ 82.5 kg» når uniformt,
+// ellers «4 sett · 5/5/3 @ 82.5».
+function summarizeLastSession(ls: LastSessionForExercise): string {
+  const sets = ls.sets
+  if (sets.length === 0) return '—'
+  const w = sets[0].weight_kg
+  const allSameW = sets.every(s => s.weight_kg === w)
+  const r = sets[0].reps
+  const allSameR = sets.every(s => s.reps === r)
+  const wPart = w != null ? ` @ ${w} kg` : ''
+  if (allSameR && r != null) return `${sets.length}×${r}${allSameW ? wPart : ''}`
+  const reps = sets.map(s => s.reps ?? '–').join('/')
+  return `${sets.length} sett · ${reps}${allSameW ? wPart : ''}`
+}
+
 function StrengthEditor({
   exercises, onChange, category,
 }: {
@@ -817,6 +845,8 @@ function StrengthEditor({
   category: string
 }) {
   const [library, setLibrary] = useState<UserExercise[]>([])
+  // Forrige-økt per øvelsesnavn (lower). null = hentet, ingen historikk.
+  const [lastByName, setLastByName] = useState<Record<string, LastSessionForExercise | null>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -825,6 +855,29 @@ function StrengthEditor({
     }).catch(() => {})
     return () => { cancelled = true }
   }, [])
+
+  // Hent forrige-økt for øvelser vi ikke har slått opp ennå (debounced).
+  const exerciseNames = useMemo(
+    () => exercises.map(e => e.exercise_name.trim()).filter(Boolean),
+    [exercises],
+  )
+  useEffect(() => {
+    const missing = exerciseNames.filter(n => !(n.toLowerCase() in lastByName))
+    if (missing.length === 0) return
+    const t = setTimeout(() => {
+      getLastSessionForExercises(missing).then(map => {
+        setLastByName(prev => {
+          const next = { ...prev }
+          for (const n of missing) {
+            const k = n.toLowerCase()
+            next[k] = map[k] ?? null
+          }
+          return next
+        })
+      }).catch(() => {})
+    }, 400)
+    return () => clearTimeout(t)
+  }, [exerciseNames, lastByName])
 
   const presets = presetsForCategory(category)
   const libraryNames = useMemo(
@@ -877,6 +930,7 @@ function StrengthEditor({
             library={library}
             presets={presets}
             libraryNames={libraryNames}
+            lastSession={ex.exercise_name.trim() ? (lastByName[ex.exercise_name.trim().toLowerCase()] ?? null) : null}
           />
         ))}
       </div>
@@ -916,7 +970,7 @@ function StrengthEditor({
 }
 
 function ExerciseBlock({
-  exercise, onUpdate, onDelete, library, presets, libraryNames,
+  exercise, onUpdate, onDelete, library, presets, libraryNames, lastSession,
 }: {
   exercise: StrengthExerciseRow
   onUpdate: (patch: Partial<StrengthExerciseRow>) => void
@@ -924,9 +978,24 @@ function ExerciseBlock({
   library: UserExercise[]
   presets: string[]
   libraryNames: Set<string>
+  lastSession: LastSessionForExercise | null
 }) {
   const updateSet = (id: string, patch: Partial<StrengthSetRow>) =>
     onUpdate({ sets: exercise.sets.map(s => s.id === id ? { ...s, ...patch } : s) })
+
+  // «Gjenta forrige»: fyll alle sett med forrige økts verdier på ett tap.
+  const repeatLast = () => {
+    if (!lastSession || lastSession.sets.length === 0) return
+    onUpdate({
+      sets: lastSession.sets.map((s, i) => ({
+        ...emptySet(i + 1),
+        reps: s.reps != null ? String(s.reps) : '',
+        weight_kg: s.weight_kg != null ? String(s.weight_kg) : '',
+        duration: s.duration_seconds != null ? String(s.duration_seconds) : '',
+        rpe: s.rpe != null ? String(s.rpe) : '',
+      })),
+    })
+  }
   const addSet = () => {
     const n = exercise.sets.length + 1
     onUpdate({ sets: [...exercise.sets, emptySet(n)] })
@@ -969,6 +1038,21 @@ function ExerciseBlock({
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '16px', padding: '0 6px' }}
           title="Slett øvelse">×</button>
       </div>
+
+      {/* Forrige-økt-hint på samme øvelse (nøkles på navn, kontekst-uavhengig)
+          + «Gjenta forrige» som fyller alle sett med forrige verdier på ett tap. */}
+      {lastSession && (
+        <div className="flex items-center gap-2 flex-wrap mb-2" style={{ marginTop: '-2px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#6E6E78', fontSize: '12px', fontStyle: 'italic' }}>
+            Sist: {summarizeLastSession(lastSession)} ({daysAgoLabel(lastSession.date)})
+          </span>
+          <button type="button" onClick={repeatLast}
+            className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', background: 'none', border: '1px solid #3A2418', padding: '2px 8px', cursor: 'pointer' }}>
+            ↺ Gjenta forrige
+          </button>
+        </div>
+      )}
 
       {/* Set rows — Tid-kolonnen er for isometriske hold (planke, statisk
           muskeldraining). Bruker kan fylle reps/kg/tid uavhengig. */}

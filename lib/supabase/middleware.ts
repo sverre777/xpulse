@@ -32,6 +32,20 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request })
   }
 
+  // Ytelse: Next.js PREFETCH-requests (nav-baren prefetcher alle lenker samtidig)
+  // skal IKKE betale full middleware (auth.getUser + subscriptions-spørring +
+  // tier-gating). Selve navigasjonen kjører full middleware, og hver side
+  // self-guarder via resolveSelfContext/getUser, så ingen data lekker. Dette
+  // fjerner en stor mengde per-request-kostnad (to Supabase-rundturer per
+  // prefetch × ~6 lenker per sidelast).
+  const isPrefetch =
+    request.headers.get('next-router-prefetch') === '1' ||
+    request.headers.get('purpose') === 'prefetch' ||
+    (request.headers.get('sec-purpose')?.includes('prefetch') ?? false)
+  if (isPrefetch) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(

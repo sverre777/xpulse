@@ -241,6 +241,19 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // «Marker som standardøkt»-velger: åpner mal-listen i tagge-modus.
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
 
+  // Live økt-modus: vises kun for utøvers egne styrkeøkter (ikke trener).
+  const [startingLive, setStartingLive] = useState(false)
+  const isStrengthWorkout = (form.activities ?? []).some(
+    a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke',
+  )
+  const startLiveFlow = async () => {
+    if (!workoutId || startingLive) return
+    setStartingLive(true)
+    const res = await saveWorkout(form, workoutId, targetUserId)
+    if (res.error) { setStartingLive(false); window.alert(res.error); return }
+    router.push(`/app/okt/${workoutId}`)
+  }
+
   // Fase 77: arv av høyde fra årsplan-periode. Når øktens dato faller i en
   // høyde-periode, arver nye økter automatisk høydetrening + periodens moh
   // (kan overstyres per økt). Eksisterende økter mutéres ikke — men vi viser
@@ -462,6 +475,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           targetUserId={targetUserId}
           formMode={formMode}
         />
+      )}
+
+      {/* ── START ØKT (live styrkeøkt) ──
+          Kun utøver (ikke trener/targetUserId), eksisterende styrkeøkt som ikke
+          er fullført. Lagrer skjemaet først, så åpnes økt-modus. Fullfør der =
+          marker som fullført. ── */}
+      {workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
+        && !readOnly && !form.is_completed && isStrengthWorkout && (
+        <button type="button" onClick={startLiveFlow} disabled={startingLive}
+          className="w-full mb-4 transition-opacity hover:opacity-90"
+          style={{
+            background: '#FF4500', color: '#0A0A0B', border: 'none',
+            fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em',
+            padding: '12px', cursor: startingLive ? 'default' : 'pointer', opacity: startingLive ? 0.6 : 1,
+          }}>
+          {startingLive ? 'Starter…' : '▶ Start økt (live)'}
+        </button>
       )}
 
       {/* ── MALER ── */}

@@ -632,6 +632,9 @@ export interface StrengthExerciseRow {
   exercise_name: string
   notes: string
   sets: StrengthSetRow[]
+  // Fase 80: supersett-gruppe (øvelser med samme nr logges rundebasert).
+  // null/undefined = vanlig øvelse. Settes i live økt-modus.
+  superset_group?: number | null
 }
 
 // Form-row — alle tall-felt som string for input-binding.

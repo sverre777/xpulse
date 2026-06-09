@@ -15,7 +15,7 @@ const EVENT_TYPES: { value: KeyEventType; label: string; icon: string }[] = [
   { value: 'competition_b', label: 'B-konkurranse', icon: '🏅' },
   { value: 'competition_c', label: 'C-konkurranse', icon: '📊' },
   { value: 'test',          label: 'Testløp',       icon: '📊' },
-  { value: 'camp',          label: 'Samling',       icon: '📍' },
+  // 'camp' (Samling) er flyttet til periode-markering (PeriodModal) — fjernet her.
   { value: 'other',         label: 'Annet',         icon: '⚑' },
 ]
 

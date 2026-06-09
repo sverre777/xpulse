@@ -34,6 +34,8 @@ export function PeriodModal({
   const [notes, setNotes] = useState(editing?.notes ?? '')
   const [isAltitude, setIsAltitude] = useState(editing?.is_altitude_period ?? false)
   const [altitudeMeters, setAltitudeMeters] = useState(editing?.altitude_meters != null ? String(editing.altitude_meters) : '')
+  const [isCamp, setIsCamp] = useState(editing?.is_training_camp ?? false)
+  const [campLocation, setCampLocation] = useState(editing?.location ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,6 +50,8 @@ export function PeriodModal({
       sort_order: editing?.sort_order ?? 0,
       is_altitude_period: isAltitude,
       altitude_meters: isAltitude && altitudeMeters !== '' ? Math.round(Number(altitudeMeters)) : null,
+      is_training_camp: isCamp,
+      location: isCamp ? (campLocation.trim() || null) : null,
       targetUserId,
     }
     const res = editing
@@ -104,6 +108,23 @@ export function PeriodModal({
             ))}
           </select>
         </div>
+        <div className="mb-3" style={{ borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
+          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            <input type="checkbox" checked={isCamp} onChange={e => setIsCamp(e.target.checked)} />
+            <span>📍 Treningssamling</span>
+          </label>
+          {isCamp && (
+            <div className="mt-2">
+              <FieldLabel>Sted</FieldLabel>
+              <input type="text" value={campLocation} onChange={e => setCampLocation(e.target.value)}
+                style={INPUT_STYLE} placeholder="f.eks. Sjusjøen, Sierra Nevada" />
+              <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1.5 }}>
+                Tittelen på samlingen er periodens navn (over). Stedet vises i årsplanen.
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="mb-3" style={{ borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
           <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
             <input type="checkbox" checked={isAltitude} onChange={e => setIsAltitude(e.target.checked)} />

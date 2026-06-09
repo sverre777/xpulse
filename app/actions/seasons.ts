@@ -38,6 +38,10 @@ export interface SeasonPeriod {
   // denne moh som default (kan overstyres per økt). Varme er kun på økt-nivå.
   is_altitude_period?: boolean
   altitude_meters?: number | null
+  // Fase 79: treningssamling-periode. Når true er perioden en samling med sted
+  // (location). Tittel = name. Uavhengig av høyde-markeringen.
+  is_training_camp?: boolean
+  location?: string | null
 }
 
 export interface SeasonKeyDate {
@@ -324,6 +328,8 @@ export interface PeriodInput {
   sort_order?: number
   is_altitude_period?: boolean
   altitude_meters?: number | null
+  is_training_camp?: boolean
+  location?: string | null
   targetUserId?: string
 }
 
@@ -425,6 +431,8 @@ export async function createPeriod(
         sort_order: input.sort_order ?? 0,
         is_altitude_period: input.is_altitude_period ?? false,
         altitude_meters: input.is_altitude_period ? (input.altitude_meters ?? null) : null,
+        is_training_camp: input.is_training_camp ?? false,
+        location: input.is_training_camp ? (input.location?.trim() || null) : null,
       })
       .select('id')
       .single()
@@ -465,6 +473,8 @@ export async function updatePeriod(
         sort_order: input.sort_order ?? 0,
         is_altitude_period: input.is_altitude_period ?? false,
         altitude_meters: input.is_altitude_period ? (input.altitude_meters ?? null) : null,
+        is_training_camp: input.is_training_camp ?? false,
+        location: input.is_training_camp ? (input.location?.trim() || null) : null,
       })
       .eq('id', id)
 

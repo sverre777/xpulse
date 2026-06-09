@@ -85,6 +85,13 @@ export function PeriodsSection({
                     style={{ fontFamily: "'Barlow Condensed', sans-serif", color: INTENSITY_COLOR[p.intensity], border: `1px solid ${INTENSITY_COLOR[p.intensity]}` }}>
                     {INTENSITY_LABEL[p.intensity]}
                   </span>
+                  {p.is_training_camp && (
+                    <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', border: '1px solid #1E4A38' }}
+                      title={p.location ? `Treningssamling · ${p.location}` : 'Treningssamling'}>
+                      📍 Samling{p.location ? ` · ${p.location}` : ''}
+                    </span>
+                  )}
                   {p.is_altitude_period && (
                     <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', border: '1px solid #2A3A55' }}

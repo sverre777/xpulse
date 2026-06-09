@@ -18,6 +18,7 @@ import {
   paceFromDistanceDuration, type PaceUnit,
 } from '@/lib/pace-utils'
 import { presetsForCategory } from '@/lib/exercise-presets'
+import { searchStandardExercises } from '@/lib/standard-exercises'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import type { UserExercise } from '@/lib/user-exercise-types'
 import {
@@ -1034,6 +1035,7 @@ function ExerciseBlock({
 type SuggestionItem =
   | { kind: 'library'; name: string; item: UserExercise }
   | { kind: 'preset'; name: string }
+  | { kind: 'standard'; name: string; category: string }
 
 function ExerciseNameAutocomplete({
   value, onChange, onPickLibrary, library, presets, libraryNames,
@@ -1061,7 +1063,18 @@ function ExerciseNameAutocomplete({
       .slice(0, 8)
       .map<SuggestionItem>(name => ({ kind: 'preset', name }))
 
-    return [...libMatches, ...presetMatches]
+    // Standardbiblioteket søkes kun når man har skrevet noe — ekskluder navn
+    // som allerede vises fra eget bibliotek eller kategoriforslag.
+    const shown = new Set<string>([
+      ...libMatches.map(s => s.name.toLowerCase()),
+      ...presetMatches.map(s => s.name.toLowerCase()),
+    ])
+    const standardMatches = q
+      ? searchStandardExercises(q, shown, 8)
+          .map<SuggestionItem>(ex => ({ kind: 'standard', name: ex.name, category: ex.category }))
+      : []
+
+    return [...libMatches, ...presetMatches, ...standardMatches]
   }, [library, presets, libraryNames, q])
 
   useEffect(() => {
@@ -1115,7 +1128,9 @@ function ExerciseNameAutocomplete({
               }}>
                 {s.kind === 'library'
                   ? `brukt ${s.item.times_used}×`
-                  : 'forslag'}
+                  : s.kind === 'standard'
+                    ? 'bibliotek'
+                    : 'forslag'}
               </span>
             </button>
           ))}

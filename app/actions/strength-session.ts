@@ -29,6 +29,7 @@ export async function getLastSessionForExercises(
   names: string[],
   targetUserId?: string,
 ): Promise<Record<string, LastSessionForExercise>> {
+  const t0 = Date.now()
   const wanted = new Set(names.map(n => n.trim().toLowerCase()).filter(Boolean))
   if (wanted.size === 0) return {}
 
@@ -49,6 +50,7 @@ export async function getLastSessionForExercises(
     .select('exercise_name, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe), workout_activities!inner(workouts!inner(date, user_id, is_completed))')
     .in('exercise_name', Array.from(new Set(names.map(n => n.trim()).filter(Boolean))))
     .limit(500)
+  console.log(`[getLastSession] ${wanted.size} navn · ${Date.now() - t0}ms${error ? ' · ERR ' + error.message : ''}`)
   if (error || !data) return {}
 
   type WkRef = { date: string; user_id: string; is_completed: boolean }
@@ -109,6 +111,7 @@ export async function getStrengthForLiveSession(
   workoutId: string,
   targetUserId?: string,
 ): Promise<LiveSessionLoad> {
+  const t0 = Date.now()
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
   if ('error' in resolved) return { exercises: [], plannedByName: {} }
@@ -118,16 +121,20 @@ export async function getStrengthForLiveSession(
     .select('planned_snapshot, workout_activities(movement_name, sort_order, workout_activity_exercises(exercise_name, superset_group, sort_order, workout_activity_exercise_sets(set_number, reps, weight_kg, duration_seconds, rpe)))')
     .eq('id', workoutId).eq('user_id', resolved.userId)
     .maybeSingle()
+  console.log(`[getStrengthForLive] query ${Date.now() - t0}ms`)
   if (!data) return { exercises: [], plannedByName: {} }
 
   type SetRow = { set_number: number; reps: number | null; weight_kg: number | null; duration_seconds: number | null; rpe: number | null }
   type ExRow = { exercise_name: string | null; superset_group: number | null; sort_order: number | null; workout_activity_exercise_sets: SetRow[] | null }
   type ActRow = { movement_name: string | null; sort_order: number | null; workout_activity_exercises: ExRow[] | null }
   const acts = (data.workout_activities ?? []) as ActRow[]
-  const strengthAct = acts.find(a => a.movement_name === 'Styrke')
-    ?? acts.find(a => (a.workout_activity_exercises?.length ?? 0) > 0)
+  // Samle øvelser fra ALLE aktiviteter (robust mot flere/feil-merkede
+  // styrke-aktiviteter), sortert.
+  const actualExRows = acts
+    .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .flatMap(a => (a.workout_activity_exercises ?? []))
 
-  const actualExercises: StrengthExerciseRow[] = (strengthAct?.workout_activity_exercises ?? [])
+  const actualExercises: StrengthExerciseRow[] = actualExRows
     .slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     .map((ex, ei) => ({
       id: `ex-${ei}`,

@@ -1166,9 +1166,11 @@ export async function getWorkout(id: string) {
 }
 
 export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' = 'dagbok', targetUserId?: string): Promise<Partial<WorkoutFormData> | null> {
+  const t0 = Date.now()
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
   if ('error' in resolved) return null
+  const tAuth = Date.now()
   // Henter kun embeds som faktisk brukes i return-mappingen nedenfor. Droppet
   // workout_zones + workout_exercises (return setter zones:[]/exercises:[] —
   // den nye aktivitets-modellen erstatter dem), så queryen blir lettere.
@@ -1185,6 +1187,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       workout_nutrition_entries(*)
     `)
     .eq('id', id).single()
+  // Midlertidig timing-logg for å pinpointe treghet ved åpning av økt.
+  console.log(`[getWorkoutForEdit] ${formMode} auth ${tAuth - t0}ms · query ${Date.now() - tAuth}ms · total ${Date.now() - t0}ms`)
   if (error || !workout || workout.user_id !== resolved.userId) return null
 
   // workout_competition_data lastes som array (0..1 rad pga unique workout_id).

@@ -11,6 +11,7 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getDayStatesForRange } from '@/app/actions/day-states'
+import { ResumeSessionBanner } from '@/components/workout/ResumeSessionBanner'
 import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
 
@@ -134,6 +135,8 @@ export async function DagbokPageView({ viewContext }: Props) {
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
+
+        <ResumeSessionBanner />
 
         <div className="mb-6">
           <p className="text-sm tracking-widest uppercase mb-0.5"

@@ -51,11 +51,12 @@ function summarizeLast(ls: LastSessionForExercise): string {
 }
 
 export function LiveSessionView({
-  workoutId, initialExercises, lastByName,
+  workoutId, initialExercises, lastByName, plannedByName = {},
 }: {
   workoutId: string
   initialExercises: StrengthExerciseRow[]
   lastByName: Record<string, LastSessionForExercise>
+  plannedByName?: Record<string, string>
 }) {
   const router = useRouter()
   // Sikre stabile klient-id-er på øvelser/sett (for React-keys + redigering).
@@ -168,6 +169,28 @@ export function LiveSessionView({
     if (!name.trim()) return
     setExercises([...exercises, makeExercise(name.trim())])
   }
+
+  // ── Supersett: gruppér øvelser (logges sammen). Membership-basert via
+  // superset_group; lett å koble med forrige / løse opp. ──
+  const groupLetters = useMemo(() => {
+    const map = new Map<number, string>()
+    let n = 0
+    for (const e of exercises) {
+      if (e.superset_group != null && !map.has(e.superset_group)) {
+        map.set(e.superset_group, String.fromCharCode(65 + n)); n++
+      }
+    }
+    return map
+  }, [exercises])
+  const linkWithPrevious = (id: string) => {
+    const i = exercises.findIndex(e => e.id === id)
+    if (i <= 0) return
+    const existing = exercises.map(e => e.superset_group).filter((g): g is number => g != null)
+    const g = exercises[i - 1].superset_group ?? ((existing.length ? Math.max(...existing) : 0) + 1)
+    setExercises(exercises.map((e, idx) => (idx === i || idx === i - 1) ? { ...e, superset_group: g } : e))
+  }
+  const unlinkExercise = (id: string) =>
+    setExercises(exercises.map(e => e.id === id ? { ...e, superset_group: null } : e))
   const logSet = (setId: string) => {
     setDoneSets(prev => new Set(prev).add(setId))
     setLastLogMs(Date.now())
@@ -240,13 +263,27 @@ export function LiveSessionView({
 
         {exercises.map((ex, idx) => {
           const ls = lastByName[ex.exercise_name.trim().toLowerCase()]
+          const plan = plannedByName[ex.exercise_name.trim().toLowerCase()]
+          const ssLetter = ex.superset_group != null ? groupLetters.get(ex.superset_group) : undefined
+          const accent = ssLetter ? '#5B8DEF' : ORANGE
           return (
-            <div key={ex.id} style={{ background: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${ORANGE}`, padding: '12px', marginBottom: 12 }}>
+            <div key={ex.id} style={{ background: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, padding: '12px', marginBottom: 12 }}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 19, letterSpacing: '0.03em' }}>
+                  {ssLetter && (
+                    <span style={{ color: '#5B8DEF', fontSize: 14, marginRight: 6 }}>⛓ SS {ssLetter}</span>
+                  )}
                   {idx + 1}. {ex.exercise_name || 'Øvelse'}
                 </span>
                 <div className="flex items-center gap-1">
+                  {idx > 0 && ssLetter == null && (
+                    <button type="button" onClick={() => linkWithPrevious(ex.id)} title="Supersett med forrige"
+                      style={btnIcon}>⛓</button>
+                  )}
+                  {ssLetter != null && (
+                    <button type="button" onClick={() => unlinkExercise(ex.id)} title="Løs opp supersett"
+                      style={{ ...btnIcon, color: '#5B8DEF' }}>⛓✕</button>
+                  )}
                   <button type="button" onClick={() => moveExercise(ex.id, -1)} title="Flytt opp"
                     style={btnIcon}>▲</button>
                   <button type="button" onClick={() => moveExercise(ex.id, 1)} title="Flytt ned"
@@ -256,15 +293,24 @@ export function LiveSessionView({
                 </div>
               </div>
 
-              {ls && (
+              {(plan || ls) && (
                 <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#6E6E78', fontSize: 12, fontStyle: 'italic' }}>
-                    Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})
-                  </span>
-                  <button type="button" onClick={() => repeatLast(ex)}
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, background: 'none', border: '1px solid #3A2418', padding: '2px 8px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                    ↺ Gjenta forrige
-                  </button>
+                  {plan && (
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', fontSize: 12, fontStyle: 'italic' }}>
+                      Plan: {plan}
+                    </span>
+                  )}
+                  {ls && (
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#6E6E78', fontSize: 12, fontStyle: 'italic' }}>
+                      Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})
+                    </span>
+                  )}
+                  {ls && (
+                    <button type="button" onClick={() => repeatLast(ex)}
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE, background: 'none', border: '1px solid #3A2418', padding: '2px 8px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                      ↺ Gjenta forrige
+                    </button>
+                  )}
                 </div>
               )}
 

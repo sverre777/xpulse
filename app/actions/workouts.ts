@@ -933,7 +933,7 @@ export async function getSameDateLinkCandidates(
   | { error: string }
 > {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: source } = await supabase
@@ -1117,7 +1117,7 @@ async function attachCoachNames<T extends { created_by_coach_id?: string | null 
 
 export async function getCalendarWorkouts(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
@@ -1130,7 +1130,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
 
 export async function getWorkoutsForMonth(userId: string, year: number, month: number) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
   const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
@@ -1145,7 +1145,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
 
 export async function getWorkoutsForWeek(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
@@ -1168,7 +1168,8 @@ export async function getWorkout(id: string) {
 export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' = 'dagbok', targetUserId?: string): Promise<Partial<WorkoutFormData> | null> {
   const t0 = Date.now()
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  // Ren lesebane (åpne økt for redigering) — header-identitet, ingen Auth-rundtur.
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan', 'read')
   if ('error' in resolved) return null
   const tAuth = Date.now()
   // Henter kun embeds som faktisk brukes i return-mappingen nedenfor. Droppet
@@ -1516,7 +1517,7 @@ export async function getActivityTypeFavorites(
   limit = 5,
 ): Promise<ActivityType[]> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
 
   const cutoff = new Date()
@@ -1552,7 +1553,7 @@ export async function getActivityTypeFavorites(
 
 export async function getWorkoutsForDay(userId: string, date: string) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
@@ -1635,7 +1636,7 @@ export async function searchWorkouts(userId: string, query: string, filters: {
   sport?: string; workout_type?: string; from?: string; to?: string
 }) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
   let req = supabase
     .from('workouts')

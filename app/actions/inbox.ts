@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 
 // ── Felles typer ────────────────────────────────────────────
 
@@ -76,11 +77,15 @@ export interface InboxViewerContext {
 
 // ── Hjelpere ────────────────────────────────────────────────
 
-async function getViewer(): Promise<
+async function getViewer(authMode: 'mutate' | 'read' = 'mutate'): Promise<
   { ok: true; viewer: InboxViewerContext } | { ok: false; error: string }
 > {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // 'read' = header-identitet fra middleware (lib/auth.ts), ingen Auth-rundtur.
+  // Brukes for unread-badgen som hentes på HVER sidelast i layout.
+  const user = authMode === 'read'
+    ? await getAuthUser()
+    : (await supabase.auth.getUser()).data.user
   if (!user) return { ok: false, error: 'Ikke innlogget' }
 
   const { data: profile } = await supabase
@@ -779,7 +784,7 @@ export async function createCoachGroup(
 // Brukes av MainNav/CoachNav for å vise badge ved Innboks-lenken.
 // Returnerer 0 ved feil — badge er ikke kritisk for funksjonalitet.
 export async function getInboxUnreadCount(): Promise<number> {
-  const res = await getViewer()
+  const res = await getViewer('read')
   if (!res.ok) return 0
   const viewer = res.viewer
   const supabase = await createClient()

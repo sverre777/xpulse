@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 
 // To server-actions for topbar-status:
 //
@@ -29,7 +30,8 @@ export interface KlokkesyncStatus extends KlokkesyncBadge {
 // side så ikonet vises samtidig med de andre topbar-ikonene.
 export async function getKlokkesyncBadge(): Promise<KlokkesyncBadge> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Ren lesebane på hver sidelast — header-identitet, ingen Auth-rundtur.
+  const user = await getAuthUser()
   if (!user) {
     return { connected: false, lastSyncAt: null, hasError: false }
   }
@@ -53,7 +55,8 @@ export async function getKlokkesyncBadge(): Promise<KlokkesyncBadge> {
 
 export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Ren lesebane — header-identitet, ingen Auth-rundtur.
+  const user = await getAuthUser()
   if (!user) {
     return { connected: false, lastSyncAt: null, lastWorkout: null, hasError: false }
   }

@@ -6,6 +6,7 @@ import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
+import { getAuthUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
 import type { Role } from '@/lib/types'
@@ -24,7 +25,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     getInboxUnreadCount(),
     getKlokkesyncBadge(),
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getAuthUser()
       return user ? getActiveSubscription(supabase, user.id) : null
     })(),
   ])

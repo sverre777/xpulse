@@ -34,7 +34,7 @@ export async function getLastSessionForExercises(
   if (wanted.size === 0) return {}
 
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return {}
 
   // Begrens til siste ~6 måneder for å holde datamengden nede.
@@ -113,7 +113,7 @@ export async function getStrengthForLiveSession(
 ): Promise<LiveSessionLoad> {
   const t0 = Date.now()
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return { exercises: [], plannedByName: {} }
 
   const { data } = await supabase

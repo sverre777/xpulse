@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 
 // Request-scoped dedupe av auth + profil-fetch. Brukes fra layout, oversikt
 // og andre server-komponenter som trenger samme profil-rad — React.cache()
@@ -26,13 +27,15 @@ export const getCurrentUserAndProfile = cache(async (): Promise<{
   email: string | null
   profile: CurrentProfile | null
 } | null> => {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Identitet fra middleware-validert header (lib/auth.ts) — ingen ekstra
+  // Auth-API-rundtur. Fallback til getUser hvis middleware var degradert.
+  const user = await getAuthUser()
   if (!user) return null
+  const supabase = await createClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('id, full_name, primary_sport, secondary_sports, active_role, role, has_athlete_role, has_coach_role, birth_year, max_heart_rate')
     .eq('id', user.id)
     .single()
-  return { userId: user.id, email: user.email ?? null, profile: profile as CurrentProfile | null }
+  return { userId: user.id, email: user.email, profile: profile as CurrentProfile | null }
 })

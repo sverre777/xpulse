@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getAuthUser } from '@/lib/auth'
 
 export type PermissionKey =
   | 'can_edit_plan'
@@ -16,13 +17,21 @@ export interface TargetUserResult {
  * Resolve target user id for a server action. If targetUserId is undefined or equal
  * to the authed user, returns self. Otherwise verifies an active coach-athlete relation
  * with the required permission before returning the athlete id.
+ *
+ * authMode: 'mutate' (default) validerer mot Auth-API (getUser) — bruk for alt
+ * som skriver. 'read' leser identiteten fra middleware-validert header
+ * (lib/auth.ts) uten ny Auth-rundtur — bruk KUN for rene lese-actions
+ * (hot paths: åpne økt, analyse, hint). RLS beskytter data uansett.
  */
 export async function resolveTargetUser(
   supabase: SupabaseClient,
   targetUserId: string | undefined,
   required?: PermissionKey,
+  authMode: 'mutate' | 'read' = 'mutate',
 ): Promise<TargetUserResult | { error: string }> {
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = authMode === 'read'
+    ? await getAuthUser()
+    : (await supabase.auth.getUser()).data.user
   if (!user) return { error: 'Ikke innlogget' }
 
   if (!targetUserId || targetUserId === user.id) {

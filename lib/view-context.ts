@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 
 export interface ViewPermissions {
   can_edit_plan: boolean
@@ -24,8 +25,8 @@ export const FULL_PERMISSIONS: ViewPermissions = {
 }
 
 export async function resolveSelfContext(): Promise<ViewContext | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Lesebane: identitet fra middleware-validert header — ingen Auth-rundtur.
+  const user = await getAuthUser()
   if (!user) return null
   return {
     mode: 'self',
@@ -38,7 +39,9 @@ export async function resolveCoachContext(
   athleteId: string,
 ): Promise<ViewContext | { error: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Lesebane (coach SER utøver-data): identitet fra middleware-validert
+  // header; relasjon + permissions verifiseres uansett mot DB under.
+  const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   const [relRes, profileRes] = await Promise.all([

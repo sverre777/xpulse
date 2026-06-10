@@ -1,9 +1,18 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
+import { SUB_CACHE_COOKIE } from '@/lib/supabase/middleware'
 import type { Role } from '@/lib/types'
+
+// Middleware cacher subscription/rolle kort i en signert cookie. Ved
+// rollebytte MÅ den slettes, ellers kan middleware redirecte på stale rolle
+// i opptil 60s (f.eks. athlete-rute → /app/trener etter bytte til utøver).
+async function clearSubCacheCookie() {
+  (await cookies()).delete(SUB_CACHE_COOKIE)
+}
 
 export type RoleActionState = {
   error?: string
@@ -59,6 +68,7 @@ export async function switchActiveRole(
     if (error) return { error: error.message }
   }
 
+  await clearSubCacheCookie()
   revalidatePath('/', 'layout')
   return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }
@@ -86,6 +96,7 @@ export async function addRole(
   const { error } = await supabase.from('profiles').update(update).eq('id', user.id)
   if (error) return { error: error.message }
 
+  await clearSubCacheCookie()
   revalidatePath('/', 'layout')
   return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }

@@ -138,7 +138,7 @@ export async function getWorkoutStats(
 ): Promise<WorkoutStats | { error: string }> {
   try {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
   if ('error' in resolved) return { error: resolved.error }
   const userId = resolved.userId
 
@@ -686,7 +686,7 @@ export async function getAnalysisOverview(
 ): Promise<AnalysisOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -904,7 +904,7 @@ export async function getPlannedOverview(
 ): Promise<AnalysisOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -984,7 +984,7 @@ export async function getCompetitionStats(
 ): Promise<CompetitionStats | { error: string }> {
   try {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
   if ('error' in resolved) return { error: resolved.error }
   const userId = resolved.userId
 
@@ -1139,7 +1139,7 @@ export async function getCompetitionAnalysis(
 ): Promise<CompetitionAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -1513,7 +1513,7 @@ export async function getMovementAnalysis(
 ): Promise<MovementAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -1680,7 +1680,7 @@ export async function getHealthCorrelations(
 ): Promise<HealthCorrelations | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -2060,7 +2060,7 @@ export async function getTemplateAnalysis(
 ): Promise<TemplateAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -2286,7 +2286,7 @@ export async function getWorkoutsForComparison(
 ): Promise<WorkoutsForComparison | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -2501,7 +2501,7 @@ export async function getIntensityDistribution(
 ): Promise<IntensityDistribution | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -2729,7 +2729,7 @@ export async function getBelastningAnalysis(
 ): Promise<BelastningAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3022,7 +3022,7 @@ export async function getTerskelAnalysis(
 ): Promise<TerskelAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3273,7 +3273,7 @@ export async function getShootingDepthAnalysis(
 ): Promise<ShootingDepthAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3569,7 +3569,7 @@ export async function getPeriodizationOverview(
 ): Promise<PeriodizationOverview | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3787,7 +3787,7 @@ export async function getCustomBreakdown(
 ): Promise<CustomBreakdown | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -3940,7 +3940,7 @@ export async function getTestsAndPRs(
 ): Promise<TestsAndPRs | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 
@@ -4076,7 +4076,7 @@ export async function getWeatherAnalysis(
 ): Promise<WeatherAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
 
     const { data, error } = await supabase
@@ -4205,7 +4205,7 @@ export async function getAltitudeHeatAnalysis(
 ): Promise<AltitudeHeatAnalysis | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis')
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
     if ('error' in resolved) return { error: resolved.error }
     const userId = resolved.userId
 

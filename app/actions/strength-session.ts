@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
+import { getAuthUser } from '@/lib/auth'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import type { StrengthExerciseRow, ActivityRow } from '@/lib/types'
 
@@ -203,6 +204,15 @@ export async function saveLiveStrength(
     .from('workouts').select('id').eq('id', workoutId).eq('user_id', resolved.userId).single()
   if (wErr || !w) return { error: wErr?.message ?? 'Fant ikke økten' }
 
+  // KRITISK GUARD: autosave skal ALDRI skrive en tom øvelsesliste over en med
+  // øvelser. En treg/avbrutt last kan gi tomt UI; uten denne guarden ville den
+  // påfølgende autosaven slette + reinserte ingenting → øvelsene forsvinner fra
+  // DB ved reload. Tom liste = «ingenting å persistere ennå» → no-op (den
+  // destruktive delete-en hoppes helt over). Brukeren sletter en økt via
+  // dagbok hvis de faktisk vil tømme den.
+  const validExercises = exercises.filter(ex => ex.exercise_name.trim())
+  if (validExercises.length === 0) return {}
+
   // Finn eller opprett styrke-aktiviteten.
   const { data: acts } = await supabase
     .from('workout_activities')
@@ -225,7 +235,7 @@ export async function saveLiveStrength(
     .from('workout_activity_exercises').delete().eq('activity_id', activityId)
   if (delErr) return { error: delErr.message }
 
-  const valid = exercises.filter(ex => ex.exercise_name.trim())
+  const valid = validExercises
   for (let i = 0; i < valid.length; i++) {
     const ex = valid[i]
     const { data: insEx, error: exErr } = await supabase
@@ -334,9 +344,11 @@ export async function cancelLiveSession(
 
 // Finn en pågående live-økt (for «gjenoppta»-banner). Egen bruker, ikke trener.
 export async function getActiveLiveSession(): Promise<ActiveLiveSession | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Ren lesebane (gjenoppta-banner, hentes på dagbok-last) — header-identitet,
+  // ingen ekstra Auth-rundtur. Var supabase.auth.getUser() = «gjenoppta tregt».
+  const user = await getAuthUser()
   if (!user) return null
+  const supabase = await createClient()
   const { data } = await supabase
     .from('workouts')
     .select('id, title, date, live_started_at')

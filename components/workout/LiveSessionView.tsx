@@ -122,10 +122,20 @@ export function LiveSessionView({
   const dirtyRef = useRef(false)
   const doSave = useCallback(() => {
     if (!dirtyRef.current) return
+    // KLIENT-GUARD: aldri autosave en tom/blank øvelsesliste. Sammen med server-
+    // guarden i saveLiveStrength hindrer dette at en treg/avbrutt last (tomt UI)
+    // wiper øvelsene i DB. Tom = ikke lastet ennå / ingenting å persistere.
+    if (!exRef.current.some(ex => ex.exercise_name.trim())) return
     dirtyRef.current = false
     saveLiveStrength(workoutId, exRef.current).catch(() => {})
   }, [workoutId])
+  // Hopp over mount-kjøringen: vi vil bare autosave faktiske BRUKER-endringer,
+  // ikke skrive seedede øvelser tilbake umiddelbart (Fullfør/Avbryt persisterer
+  // uansett eksplisitt). Hindrer også en race der mount-save fyrer før last er
+  // ferdig.
+  const mountedRef = useRef(false)
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return }
     dirtyRef.current = true
     const t = setTimeout(doSave, 2500)
     return () => clearTimeout(t)

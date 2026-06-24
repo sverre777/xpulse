@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import {
@@ -241,10 +241,18 @@ function AnalysisPageInner({
   // Føre-filteret gjelder kun belastning/intensitet (der vi har bygd det inn).
   const surfaceFilterApplies = tab === 'belastning' || tab === 'intensitet'
 
-  const isInitial = range.from === initialRange.from && range.to === initialRange.to
+  // Hopp KUN over refetch på første render (mount) — server-data er allerede
+  // lastet for initialRange. Tidligere hoppet vi over hver gang range tilfeldigvis
+  // var lik initialRange, noe som ga STALE tall når man byttet periode og så
+  // TILBAKE til startperioden (f.eks. 30d→7d→30d viste fortsatt 7d-tallene).
+  const didMountRef = useRef(false)
 
   useEffect(() => {
-    if (isInitial && sportFilter === null) return
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      // Hopp over kun hvis vi fortsatt står på utgangspunktet (ingen filter satt).
+      if (range.from === initialRange.from && range.to === initialRange.to && sportFilter === null) return
+    }
     startTransition(async () => {
       setError(null)
       const [s, o] = await Promise.all([
@@ -593,7 +601,7 @@ function AnalysisPageInner({
               analysisRange={range}
               onNavigate={(t) => setTab(t)}
             />
-            <OverviewTab stats={stats} overview={overview} analysisRange={range} canSeeHealthData={canSeeHealthData} />
+            <OverviewTab stats={stats} overview={overview} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
           </div>
         )}
         {tab === 'konkurranser' && (

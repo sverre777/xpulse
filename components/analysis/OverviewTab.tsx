@@ -127,12 +127,13 @@ interface OverviewTabProps {
   stats: WorkoutStats
   overview?: AnalysisOverview | null
   analysisRange: DateRange
+  targetUserId?: string
   // Trener-view: false hvis utøver ikke har opt'et inn på helsedata-deling.
   // Skjuler helse-KPI-raden (HRV/RHR/søvn/vekt). Default true for self-view.
   canSeeHealthData?: boolean
 }
 
-export function OverviewTab({ stats, overview, analysisRange, canSeeHealthData = true }: OverviewTabProps) {
+export function OverviewTab({ stats, overview, analysisRange, targetUserId, canSeeHealthData = true }: OverviewTabProps) {
   const [volumePlans, setVolumePlans] = useState<MonthlyVolumePlan[]>([])
 
   useEffect(() => {
@@ -161,7 +162,7 @@ export function OverviewTab({ stats, overview, analysisRange, canSeeHealthData =
       {plannedHours > 0 && (
         <VolumeProgressBar plannedHours={plannedHours} actualSeconds={actualSeconds} />
       )}
-      <PlanVsActualCard range={analysisRange} />
+      <PlanVsActualCard range={analysisRange} targetUserId={targetUserId} />
       {/* Metric cards — hovedtall for valgt periode, med sammenligning forrige tilsvarende periode. */}
       {overview && (
         <>

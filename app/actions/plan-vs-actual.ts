@@ -1,15 +1,26 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { resolveTargetUser } from '@/lib/target-user'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
+import { snapshotActivityToLike } from '@/lib/calendar-summary'
 
 // Plan vs faktisk-aggregering for valgt periode. Brukes i Oversikt-fanen
 // i Analyse for å vise hvor godt utøveren har truffet planen.
 //
 // Logikk:
-// - planned = workouts.is_planned=true: planned_minutes + planned_zones
-// - actual  = workouts.is_completed=true: duration_minutes + workout_zones
+// - planned = workouts.is_planned=true: tid/soner fra planned_snapshot.activities
+// - actual  = workouts.is_completed=true: tid/soner fra workout_activities
 // - Samme rad kan bidra til begge (planlagt+gjennomført) når den er logget
 //   som komplettering av en planlagt økt.
+//
+// VIKTIG: tid summeres via computeActivityTotals — SAMME kilde som kalender,
+// hjem og resten av analysen. Tidligere leste denne actionen rå
+// workouts.duration_minutes/planned_minutes, men de feltene er ~null for den
+// moderne aktivitets-modellen (tid ligger i workout_activities/snapshot), så
+// plan-vs-faktisk viste 0 for nyere økter. computeActivityTotals ekskluderer
+// dessuten skytetid og teller hver økt én gang (ingen dobbelttelling).
 
 interface Bucket {
   totalMinutes: number
@@ -36,23 +47,41 @@ function emptyBucket(): Bucket {
   }
 }
 
+type PlanVsActualRow = {
+  sport: string | null
+  is_planned: boolean | null
+  is_completed: boolean | null
+  duration_minutes: number | null
+  planned_snapshot: {
+    duration_minutes?: number | null
+    activities?: unknown[] | null
+  } | null
+  workout_activities: {
+    activity_type: string
+    duration_seconds: number | null
+    distance_meters: number | null
+    avg_heart_rate: number | null
+    zones: Record<string, number | string | null> | null
+  }[] | null
+}
+
 export async function getPlanVsActual(
   fromDate: string,
   toDate: string,
   targetUserId?: string,
 ): Promise<PlanVsActualResult | { error: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+  if ('error' in resolved) return { error: resolved.error }
+  const userId = resolved.userId
 
-  const userId = targetUserId ?? user.id
+  const heartZones = await getHeartZonesForUserCached(userId)
 
   const { data, error } = await supabase
     .from('workouts')
     .select(`
-      id, sport, is_planned, is_completed, duration_minutes,
-      planned_minutes, planned_zones,
-      workout_zones (zone_name, minutes)
+      sport, is_planned, is_completed, duration_minutes, planned_snapshot,
+      workout_activities (activity_type, duration_seconds, distance_meters, avg_heart_rate, zones)
     `)
     .eq('user_id', userId)
     .gte('date', fromDate)
@@ -62,60 +91,61 @@ export async function getPlanVsActual(
   const planned = emptyBucket()
   const actual = emptyBucket()
 
-  for (const row of data ?? []) {
-    const sport = (row.sport as string) ?? 'other'
-
-    if (row.is_planned) {
-      const mins = Number(row.planned_minutes) || Number(row.duration_minutes) || 0
-      if (mins > 0) {
-        planned.totalMinutes += mins
-        planned.sessions += 1
-        planned.perSport[sport] = (planned.perSport[sport] ?? 0) + mins
-
-        const pz = parsePlannedZones(row.planned_zones)
-        for (const z of ZONE_NAMES) planned.perZone[z] += pz[z] ?? 0
-        planned.i3i4Minutes += (pz.I3 ?? 0) + (pz.I4 ?? 0)
-      }
-    }
-
-    if (row.is_completed) {
-      const mins = Number(row.duration_minutes) || 0
-      if (mins > 0) {
-        actual.totalMinutes += mins
-        actual.sessions += 1
-        actual.perSport[sport] = (actual.perSport[sport] ?? 0) + mins
-
-        const zones = (row.workout_zones ?? []) as { zone_name: string; minutes: number }[]
-        for (const z of zones) {
-          if (ZONE_NAMES.includes(z.zone_name as (typeof ZONE_NAMES)[number])) {
-            actual.perZone[z.zone_name] = (actual.perZone[z.zone_name] ?? 0) + (Number(z.minutes) || 0)
-          }
-        }
+  const addToBucket = (
+    bucket: Bucket,
+    sport: string,
+    sessionSeconds: number,
+    zoneSeconds: Record<string, number> | null,
+  ) => {
+    const mins = Math.round(sessionSeconds / 60)
+    if (mins <= 0) return
+    bucket.totalMinutes += mins
+    bucket.sessions += 1
+    bucket.perSport[sport] = (bucket.perSport[sport] ?? 0) + mins
+    if (zoneSeconds) {
+      for (const z of ZONE_NAMES) {
+        bucket.perZone[z] += Math.round((zoneSeconds[z] ?? 0) / 60)
       }
     }
   }
-  // i3i4 beregnes fra akkumulert perZone på slutten — enkelt og deterministisk.
+
+  for (const row of (data ?? []) as PlanVsActualRow[]) {
+    const sport = row.sport ?? 'other'
+
+    // ── Planlagt: tid/soner fra planned_snapshot.activities ──
+    if (row.is_planned) {
+      const snapActs = row.planned_snapshot?.activities ?? []
+      const activities: ActivityLike[] = []
+      for (const raw of snapActs) {
+        const like = snapshotActivityToLike(raw)
+        if (like) activities.push(like)
+      }
+      const totals = activities.length > 0 ? computeActivityTotals(activities, heartZones) : null
+      const sessionSeconds = totals && totals.totalSeconds > 0
+        ? totals.totalSeconds
+        : (Number(row.planned_snapshot?.duration_minutes) || Number(row.duration_minutes) || 0) * 60
+      addToBucket(planned, sport, sessionSeconds, totals ? totals.zoneSeconds : null)
+    }
+
+    // ── Faktisk: tid/soner fra workout_activities ──
+    if (row.is_completed) {
+      const activities: ActivityLike[] = (row.workout_activities ?? []).map(a => ({
+        activity_type: a.activity_type,
+        duration_seconds: a.duration_seconds,
+        distance_meters: a.distance_meters,
+        avg_heart_rate: a.avg_heart_rate,
+        zones: a.zones,
+      }))
+      const totals = activities.length > 0 ? computeActivityTotals(activities, heartZones) : null
+      const sessionSeconds = totals && totals.totalSeconds > 0
+        ? totals.totalSeconds
+        : (Number(row.duration_minutes) || 0) * 60
+      addToBucket(actual, sport, sessionSeconds, totals ? totals.zoneSeconds : null)
+    }
+  }
+
+  planned.i3i4Minutes = (planned.perZone.I3 ?? 0) + (planned.perZone.I4 ?? 0)
   actual.i3i4Minutes = (actual.perZone.I3 ?? 0) + (actual.perZone.I4 ?? 0)
 
   return { planned, actual }
-}
-
-function parsePlannedZones(raw: unknown): Record<string, number> {
-  if (!raw || typeof raw !== 'object') return {}
-  const out: Record<string, number> = {}
-  // planned_zones kan være enten { I1: 10, I2: 20 } eller [{ zone_name, minutes }]
-  if (Array.isArray(raw)) {
-    for (const z of raw) {
-      if (typeof z === 'object' && z && 'zone_name' in z && 'minutes' in z) {
-        const r = z as { zone_name: string; minutes: number | string }
-        out[r.zone_name] = (out[r.zone_name] ?? 0) + (Number(r.minutes) || 0)
-      }
-    }
-  } else {
-    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-      const n = Number(v)
-      if (Number.isFinite(n)) out[k] = n
-    }
-  }
-  return out
 }

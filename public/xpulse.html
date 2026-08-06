@@ -651,15 +651,25 @@
   /* Disiplin-rad (kompakt, én linje på desktop) */
   .sport-chips { display:grid; grid-template-columns:repeat(6,1fr); gap:2px; }
   .sport-chip {
-    display:flex; align-items:center; gap:12px; background:var(--surface);
-    padding:18px 20px; text-decoration:none; position:relative; overflow:hidden;
+    display:flex; align-items:center; gap:14px; background:var(--surface);
+    padding:12px 16px; text-decoration:none; position:relative; overflow:hidden;
     transition:background 0.3s;
   }
   .sport-chip:hover { background:#1e1e23; }
   .sport-chip::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--orange); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
   .sport-chip:hover::after { transform:scaleX(1); }
-  .sport-chip-icon { width:26px; height:26px; object-fit:contain; filter:grayscale(1) brightness(1.4); opacity:0.8; }
-  .sport-chip:hover .sport-chip-icon { filter:none; opacity:1; }
+  .sport-chip-thumb {
+    width:46px; height:46px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    background-size:cover; background-position:center; overflow:hidden;
+  }
+  .sport-chip-thumb-langrenn   { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/DSC09859_thumb.jpg'); }
+  .sport-chip-thumb-skiskyting { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/IMG_4578_thumb.jpg'); }
+  .sport-chip-thumb-langlop    { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/DJI_0062_thumb.jpg'); }
+  .sport-chip-thumb-loping     { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/DSC07271_thumb.jpg'); }
+  .sport-chip-thumb-sykling    { background-image:linear-gradient(135deg, rgba(26,111,212,0.25), rgba(40,168,110,0.2)); }
+  .sport-chip-thumb-triatlon   { background-image:linear-gradient(135deg, rgba(176,77,230,0.25), rgba(26,111,212,0.2)); }
+  .sport-chip-icon { width:20px; height:20px; object-fit:contain; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6)); opacity:0.95; }
+  .sport-chip:hover .sport-chip-icon { opacity:1; }
   .sport-chip-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); flex:1; }
   .sport-chip svg { color:var(--muted); flex-shrink:0; transition:color 0.2s, transform 0.2s; }
   .sport-chip:hover svg { color:var(--orange); transform:translateX(3px); }
@@ -935,12 +945,12 @@
   <div class="section-label">Bygget for din idrett</div>
   <h2 class="section-title">VELG DIN <span class="orange">DISIPLIN.</span></h2>
   <div class="sport-chips">
-    <a class="sport-chip" href="/funksjoner/langrenn"><img class="sport-chip-icon" alt="" src="/sport-icons/langrenn.png"><span class="sport-chip-name">Langrenn</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
-    <a class="sport-chip" href="/funksjoner/skiskyting"><img class="sport-chip-icon" alt="" src="/sport-icons/skiskyting.png"><span class="sport-chip-name">Skiskyting</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
-    <a class="sport-chip" href="/funksjoner/langlop"><img class="sport-chip-icon" alt="" src="/sport-icons/langlop.png"><span class="sport-chip-name">Langløp</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
-    <a class="sport-chip" href="/funksjoner/loping"><img class="sport-chip-icon" alt="" src="/sport-icons/loping.png"><span class="sport-chip-name">Løping</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
-    <a class="sport-chip" href="/funksjoner/sykling"><img class="sport-chip-icon" alt="" src="/sport-icons/sykling.png"><span class="sport-chip-name">Sykling</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
-    <a class="sport-chip" href="/funksjoner/triatlon"><img class="sport-chip-icon" alt="" src="/sport-icons/triatlon.png"><span class="sport-chip-name">Triatlon</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/langrenn"><span class="sport-chip-thumb sport-chip-thumb-langrenn" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/langrenn.png"></span><span class="sport-chip-name">Langrenn</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/skiskyting"><span class="sport-chip-thumb sport-chip-thumb-skiskyting" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/skiskyting.png"></span><span class="sport-chip-name">Skiskyting</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/langlop"><span class="sport-chip-thumb sport-chip-thumb-langlop" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/langlop.png"></span><span class="sport-chip-name">Langløp</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/loping"><span class="sport-chip-thumb sport-chip-thumb-loping" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/loping.png"></span><span class="sport-chip-name">Løping</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/sykling"><span class="sport-chip-thumb sport-chip-thumb-sykling" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/sykling.png"></span><span class="sport-chip-name">Sykling</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/triatlon"><span class="sport-chip-thumb sport-chip-thumb-triatlon" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/triatlon.png"></span><span class="sport-chip-name">Triatlon</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
   </div>
 </section>
 
@@ -949,12 +959,14 @@
   <h2 class="section-title">FRA ØKTPLAN<br>TIL TOPPFORM.</h2>
   <ul class="features-list">
     <li><span class="fl-num">01</span><div><span class="fl-title">Sesongplanlegger</span><span class="fl-desc">Legg inn mål-konkurransene og bygg periodiseringen rundt dem — flytt økter med dra-og-slipp rett i kalenderen.</span></div></li>
-    <li><span class="fl-num">02</span><div><span class="fl-title">Treningsdagbok</span><span class="fl-desc">Økter, notater og subjektiv følelse — med tagger og smart søk i hele historikken.</span></div></li>
+    <li><span class="fl-num">02</span><div><span class="fl-title">Treningsdagbok</span><span class="fl-desc">Marker planlagte økter som gjennomført, logg notater og følelse — med tagger og smart søk i hele historikken.</span></div></li>
     <li><span class="fl-num">03</span><div><span class="fl-title">Live styrkeøkt <span class="fl-badge-new">NY</span></span><span class="fl-desc">Før økten sett for sett mens du trener — timer, supersett, «sist gang»-hint og øvelsesbibliotek.</span></div></li>
     <li><span class="fl-num">04</span><div><span class="fl-title">Klokkesync</span><span class="fl-desc">Strava-synk og .fit-import fra Garmin, Coros, Polar, Suunto og Wahoo. Direkte-synk kommer snart.</span></div></li>
     <li><span class="fl-num">05</span><div><span class="fl-title">Dyp analyse</span><span class="fl-desc">ATL/CTL/TSB, HRV, laktat, vær/føre og høydetrening — grafer du selv setter sammen.</span></div></li>
     <li><span class="fl-num">06</span><div><span class="fl-title">Utøver &amp; Trener</span><span class="fl-desc">Utøveren eier dataene. Treneren følger hele troppen i ett panel og justerer planer i sanntid.</span></div></li>
-    <li><span class="fl-num">07</span><div><span class="fl-title"><span class="blue">AI</span> Coach <span class="feature-badge-soon">Kommer snart</span></span><span class="fl-desc">Auto-tolkning av økter og anbefalinger fra dine egne mønstre. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet →</a></span></div></li>
+    <li><span class="fl-num">07</span><div><span class="fl-title">Lagre som mal</span><span class="fl-desc">Gjør en økt, uke eller hel planperiode til mal — og bruk den igjen med ett klikk, når du vil.</span></div></li>
+    <li><span class="fl-num">08</span><div><span class="fl-title">Utstyr &amp; Skipark</span><span class="fl-desc">Følg kilometer på ski, staver og sko — og hold skiparken oppdatert med tester, smøring og rangering per føre.</span></div></li>
+    <li><span class="fl-num">09</span><div><span class="fl-title"><span class="blue">AI</span> Coach <span class="feature-badge-soon">Kommer snart</span></span><span class="fl-desc">Auto-tolkning av økter og anbefalinger fra dine egne mønstre. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet →</a></span></div></li>
   </ul>
 </section>
 
@@ -1368,7 +1380,7 @@
         <li><a href="/cookies">Cookies</a></li>
       </ul>
       <div class="footer-social" aria-label="Sosiale lenker">
-        <a href="#" aria-label="Instagram (kommer)" class="footer-social-link">
+        <a href="https://www.instagram.com/xpulse.no" target="_blank" rel="noopener" aria-label="Instagram" class="footer-social-link">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="5"/>
             <circle cx="12" cy="12" r="4"/>

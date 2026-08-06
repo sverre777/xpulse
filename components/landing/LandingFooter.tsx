@@ -1,8 +1,7 @@
 import Link from 'next/link'
 
 // Footer brukt på alle funksjoner-undersider. Speiler xpulse.html-footeren
-// i innhold men er trimmet ned (ingen sosiale ikoner, kompakt layout) så
-// undersidene ikke blir for tunge nederst.
+// i innhold, i kompakt layout så undersidene ikke blir for tunge nederst.
 
 function XLogo({ size = 28 }: { size?: number }) {
   return (
@@ -69,12 +68,33 @@ export function LandingFooter() {
           { href: '/xpulse.html#faq',           label: 'FAQ' },
         ]} />
 
-        <FooterCol label="Selskap" items={[
-          { href: 'mailto:support@x-pulse.no', label: 'Kontakt' },
-          { href: '/personvern',               label: 'Personvern' },
-          { href: '/vilkar',                   label: 'Vilkår' },
-          { href: '/cookies',                  label: 'Cookies' },
-        ]} />
+        <div>
+          <FooterCol label="Selskap" items={[
+            { href: 'mailto:support@x-pulse.no', label: 'Kontakt' },
+            { href: '/personvern',               label: 'Personvern' },
+            { href: '/vilkar',                   label: 'Vilkår' },
+            { href: '/cookies',                  label: 'Cookies' },
+          ]} />
+          <div className="flex gap-2.5 mt-4" aria-label="Sosiale lenker">
+            <a
+              href="https://www.instagram.com/xpulse.no"
+              target="_blank" rel="noopener"
+              aria-label="Instagram"
+              style={socialStyle}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="0.7" fill="currentColor" />
+              </svg>
+            </a>
+            <a href="#" aria-label="X / Twitter (kommer)" style={socialStyle}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 4 L20 20" /><path d="M20 4 L4 20" />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
 
       <div className="max-w-[1240px] mx-auto pt-5 mt-8 flex flex-col sm:flex-row justify-between items-center gap-3"
@@ -88,6 +108,17 @@ export function LandingFooter() {
       </div>
     </footer>
   )
+}
+
+const socialStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 32,
+  height: 32,
+  border: '1px solid #262629',
+  color: '#8A8A96',
+  transition: 'color 0.15s, border-color 0.15s',
 }
 
 function FooterCol({ label, items }: { label: string; items: { href: string; label: string }[] }) {

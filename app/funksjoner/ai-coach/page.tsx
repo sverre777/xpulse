@@ -9,7 +9,7 @@ import { buildFeatureMetadata } from '@/lib/landing-meta'
 export const metadata: Metadata = buildFeatureMetadata({
   title: 'AI-Coach',
   description:
-    'X-PULSE AI-Coach (kommer Q4 2026): personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer engasjement-nivå — fra verktøy til full autopilot. Dagbok via chat, bilde-import, adaptive planer.',
+    'X-PULSE AI-Coach (kommer snart): personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer engasjement-nivå — fra verktøy til full autopilot. Dagbok via chat, bilde-import, adaptive planer.',
   path: '/funksjoner/ai-coach',
 })
 
@@ -121,7 +121,7 @@ export default function AiCoachPage() {
               GI BESKJED NÅR<br/>AI-COACH ÅPNER.
             </h2>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)', maxWidth: 460 }}>
-              Forventet lansering Q4 2026. Modulen kommer for utøvere (Pro AI · 129 og Ultimate AI · 399 kr/mnd)
+              Lanseres snart. Modulen kommer for utøvere (Pro AI · 129 og Ultimate AI · 399 kr/mnd)
               og trenere (Pro AI · 499 og Ultimate AI · 999 kr/mnd). Beta-tilgang prioriteres til de på listen.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">

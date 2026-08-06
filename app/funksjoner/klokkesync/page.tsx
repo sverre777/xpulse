@@ -8,7 +8,7 @@ import { buildFeatureMetadata } from '@/lib/landing-meta'
 export const metadata: Metadata = buildFeatureMetadata({
   title: 'Klokkesync',
   description:
-    'X-PULSE klokkesync (Q3 2026): .fit-import for alle, Strava OAuth-synk, Garmin Connect direkte. Auto-import, soner, splittinger og AI-tolkning når synken er på plass.',
+    'X-PULSE klokkesync: .fit-import for alle, Strava OAuth-synk, Garmin Connect direkte kommer snart. Auto-import, soner, splittinger og AI-tolkning når synken er på plass.',
   path: '/funksjoner/klokkesync',
 })
 
@@ -30,9 +30,9 @@ export default function KlokkesyncPage() {
   return (
     <LandingShell>
       <SportPageHero
-        kicker="Strava + .fit i dag · direkte Q3 2026"
+        kicker="Strava + .fit i dag · direkte-synk kommer snart"
         title={<>STRAVA OG <span style={{ color: '#FF4500' }}>.FIT-OPPLASTING<br/>VIRKER NÅ.</span></>}
-        description="Du er på lufta i dag — koble Strava OAuth med ett klikk eller last opp .fit-filer fra hvilken som helst klokke. Direkte-synk for Garmin, Apple Health, Polar og Coros åpner Q3 2026."
+        description="Du er på lufta i dag — koble Strava OAuth med ett klikk eller last opp .fit-filer fra hvilken som helst klokke. Direkte-synk for Garmin, Apple Health, Polar og Coros kommer snart."
         icon={<ClockIcon />}
       />
 
@@ -58,12 +58,12 @@ export default function KlokkesyncPage() {
       <SportFeatureSection
         kicker="Hvilke klokker"
         title="ALLE STORE LEVERANDØRER."
-        intro="Vi tar støtte for hele bredden av endurance-klokker. Per i dag fungerer .fit-opplasting og Strava OAuth; direkte-synk via Garmin Connect og Apple Health legger seg på Q3 2026, med Polar og Coros like etter."
+        intro="Vi tar støtte for hele bredden av endurance-klokker. Per i dag fungerer .fit-opplasting og Strava OAuth; direkte-synk via Garmin Connect og Apple Health kommer snart, med Polar og Coros like etter."
         bullets={[
-          { title: 'Garmin', body: 'Connect-API direkte-synk Q3 2026. .fit-import virker i dag for alle Garmin-modeller.' },
-          { title: 'Apple Watch', body: 'Apple Health-eksport via iOS-app. Direkte-synk i Q3 2026.' },
-          { title: 'Polar', body: 'Polar Flow-eksport som .fit fungerer; direkte-synk vurderes Q3-Q4 2026.' },
-          { title: 'Coros', body: '.fit-import via Coros-app eller direkte fra klokken. Direkte-synk Q4 2026.' },
+          { title: 'Garmin', body: 'Connect-API direkte-synk kommer snart. .fit-import virker i dag for alle Garmin-modeller.' },
+          { title: 'Apple Watch', body: 'Apple Health-eksport via iOS-app. Direkte-synk kommer snart.' },
+          { title: 'Polar', body: 'Polar Flow-eksport som .fit fungerer; direkte-synk vurderes fortløpende.' },
+          { title: 'Coros', body: '.fit-import via Coros-app eller direkte fra klokken. Direkte-synk kommer snart.' },
           { title: 'Wahoo', body: '.fit-import fra Wahoo Element-serien. Strava-omveien fungerer også.' },
         ]}
       />
@@ -75,7 +75,7 @@ export default function KlokkesyncPage() {
         bullets={[
           { title: '.fit-opplasting (alle)', body: 'Last opp .fit-filer manuelt eller drag-drop. Auto-detekterer aktivitet, sone-tid og høydemeter.' },
           { title: 'Strava OAuth (auto)', body: 'Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.' },
-          { title: 'Garmin direkte (Q3 2026)', body: 'Direkte API-tilgang så data kommer uten Strava-omvei og inkluderer alle felter (ikke bare det Strava eksponerer).' },
+          { title: 'Garmin direkte (kommer snart)', body: 'Direkte API-tilgang så data kommer uten Strava-omvei og inkluderer alle felter (ikke bare det Strava eksponerer).' },
         ]}
       />
 
@@ -86,7 +86,7 @@ export default function KlokkesyncPage() {
         bullets={[
           { title: 'Strava OAuth', body: 'Rå sample-data (sekund-puls, GPS, watt-strøm) slettes etter 7 dager. Aggregert vises permanent så lenge Strava er koblet. Ved frakobling: alt slettes innen 48t.' },
           { title: '.fit-opplasting', body: 'Dine egne data, ingen eksterne regler. Permanent lagring av alt inkludert sekund-data.' },
-          { title: 'Garmin direkte (Q3 2026)', body: 'Direkte fra klokken via Garmin Connect. Du eier dataene fullt ut — vi sletter ikke automatisk.' },
+          { title: 'Garmin direkte (kommer snart)', body: 'Direkte fra klokken via Garmin Connect. Du eier dataene fullt ut — vi sletter ikke automatisk.' },
         ]}
       />
 

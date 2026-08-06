@@ -126,7 +126,7 @@ export function LandingNav() {
                       color: '#F5C542', fontSize: 9, letterSpacing: '1.5px',
                       verticalAlign: 'middle',
                     }}>
-                      Q3 2026
+                      Kommer snart
                     </span>
                   )}
                 </Link>

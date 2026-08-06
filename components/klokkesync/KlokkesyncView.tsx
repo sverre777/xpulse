@@ -74,7 +74,7 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
           color: '#8A8A96', lineHeight: 1.7,
         }}>
         <strong style={{ color: '#F0F0F2' }}>Direkte-synk for Garmin Connect, Apple Health, Polar og Coros</strong>
-        {' '}lanseres Q3 2026. Inntil da: bruk Strava OAuth (auto-synk hvert 5. min) eller last opp .fit-filer manuelt.
+        {' '}kommer snart. Inntil da: bruk Strava OAuth (auto-synk hvert 5. min) eller last opp .fit-filer manuelt.
       </div>
     </div>
   )

@@ -460,8 +460,8 @@
   .pricing-inner { max-width:1280px; }
   .pricing-lead { font-size:15px; line-height:1.7; color:rgba(242,240,236,0.55); max-width:560px; margin:-40px 0 56px; }
   .pricing-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:2px; margin-bottom:24px; }
-  .pricing-grid-athlete { grid-template-columns:repeat(3, 1fr); margin-bottom:0; }
-  .pricing-grid-trainer { grid-template-columns:repeat(4, 1fr); margin-bottom:0; }
+  .pricing-grid-athlete { grid-template-columns:minmax(0, 480px); margin-bottom:0; }
+  .pricing-grid-trainer { grid-template-columns:repeat(2, minmax(0, 480px)); margin-bottom:0; }
   .pricing-group-label {
     font-family:'Barlow Condensed', sans-serif; font-weight:700;
     font-size:11px; letter-spacing:0.28em; text-transform:uppercase;
@@ -647,12 +647,76 @@
   .footer-copy { color:var(--muted); }
   .footer-contact { color:var(--muted); }
 
+
+  /* Disiplin-rad (kompakt, én linje på desktop) */
+  .sport-chips { display:grid; grid-template-columns:repeat(6,1fr); gap:2px; }
+  .sport-chip {
+    display:flex; align-items:center; gap:12px; background:var(--surface);
+    padding:18px 20px; text-decoration:none; position:relative; overflow:hidden;
+    transition:background 0.3s;
+  }
+  .sport-chip:hover { background:#1e1e23; }
+  .sport-chip::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--orange); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+  .sport-chip:hover::after { transform:scaleX(1); }
+  .sport-chip-icon { width:26px; height:26px; object-fit:contain; filter:grayscale(1) brightness(1.4); opacity:0.8; }
+  .sport-chip:hover .sport-chip-icon { filter:none; opacity:1; }
+  .sport-chip-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); flex:1; }
+  .sport-chip svg { color:var(--muted); flex-shrink:0; transition:color 0.2s, transform 0.2s; }
+  .sport-chip:hover svg { color:var(--orange); transform:translateX(3px); }
+
+  /* Kompakt funksjonsliste */
+  .features-list { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+  .features-list li { background:var(--surface); padding:22px 26px; display:flex; gap:16px; align-items:flex-start; transition:background 0.3s; }
+  .features-list li:hover { background:#1e1e23; }
+  .features-list li:last-child:nth-child(odd) { grid-column:1 / -1; }
+  .fl-num { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:1px; color:var(--orange); line-height:1.5; }
+  .features-list li > div { display:flex; flex-direction:column; gap:5px; }
+  .fl-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
+  .fl-title .blue { color:var(--blue); }
+  .fl-desc { font-size:13px; line-height:1.65; color:rgba(242,240,236,0.55); }
+  .fl-badge-new { display:inline-block; padding:1px 7px; margin-left:8px; background:rgba(40,168,110,0.15); border:1px solid rgba(40,168,110,0.45); color:#28A86E; font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
+
+  /* Testimonials (skjult til sitater er klare) */
+  .testimonials-section { padding:100px 56px; background:var(--darker); }
+  .testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin-top:24px; }
+  .testimonial-card { background:var(--surface); padding:32px 28px; display:flex; flex-direction:column; gap:18px; border-top:2px solid var(--orange); }
+  .testimonial-quote { font-size:15px; line-height:1.75; color:rgba(242,240,236,0.75); font-style:italic; flex:1; }
+  .testimonial-who { font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .testimonial-who strong { display:block; color:var(--white); font-size:13px; margin-bottom:2px; }
+
+  /* Hvorfor-tabell: fold */
+  .why-table tr.why-row-more { display:none; }
+  .why-table.why-expanded tr.why-row-more { display:table-row; }
+  .why-toggle {
+    margin-top:14px; background:transparent; border:1px solid var(--border); color:var(--white);
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px;
+    letter-spacing:2.5px; text-transform:uppercase; padding:12px 26px; cursor:none;
+    transition:background 0.2s, border-color 0.2s;
+  }
+  .why-toggle:hover { background:var(--surface); border-color:var(--muted); }
+
+  /* Pris: kompakte "Kommer snart"-rader */
+  .price-coming-strip { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+  .price-coming-row { display:flex; align-items:center; gap:20px; flex-wrap:wrap; background:var(--surface); opacity:0.85; padding:16px 24px; }
+  .price-coming-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
+  .price-coming-price { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:rgba(242,240,236,0.55); }
+  .price-coming-desc { font-size:12.5px; line-height:1.6; color:rgba(242,240,236,0.5); flex:1; min-width:220px; }
+  .price-coming-link {
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px; letter-spacing:2px;
+    text-transform:uppercase; color:var(--white); text-decoration:none;
+    border:1px solid var(--border); padding:9px 18px; white-space:nowrap;
+    transition:background 0.2s, border-color 0.2s;
+  }
+  .price-coming-link:hover { background:var(--mid); border-color:var(--muted); }
+
+  /* CTA-seksjon: primær prøve-knapp over nyhetsbrev-skjema */
+  .cta-actions { margin-bottom:36px; }
+
   @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
 
   @media (max-width:1100px) and (min-width:901px) {
-    .sport-cards-grid { grid-template-columns:repeat(2, 1fr); }
+    .sport-chips { grid-template-columns:repeat(3, 1fr); }
     .trener-grid { grid-template-columns:repeat(2, 1fr); }
-    .pricing-grid-athlete { grid-template-columns:repeat(3, 1fr); }
     .pricing-grid-trainer { grid-template-columns:repeat(2, 1fr); }
     .footer-grid { grid-template-columns:1.4fr 1fr 1fr 1fr; gap:32px; }
   }
@@ -670,8 +734,7 @@
     .hero { align-items:flex-start; }
     .hero-content { padding:max(120px, calc(env(safe-area-inset-top) + 100px)) 24px 80px; }
     .devices-bar,.problem-section,.section,.ai-section,.roles-section,.preview-section,.builtby-section,.sport-cards-section,.trener-section,.pricing-section,.faq-section { padding-left:24px; padding-right:24px; }
-    .sport-cards-grid { grid-template-columns:1fr; }
-    .sport-card-img { height:140px; }
+    .sport-chips { grid-template-columns:repeat(2, 1fr); }
     .trener-grid { grid-template-columns:1fr; }
     .preview-cta { justify-content:center; }
     .hero-scroll { display:none; }
@@ -683,7 +746,11 @@
     .footer-brand { grid-column:1 / -1; }
     .footer-bottom { flex-direction:column; align-items:center; text-align:center; }
     .problems-grid { grid-template-columns:1fr; }
-    .features-grid { grid-template-columns:1fr; gap:2px; }
+    .features-list { grid-template-columns:1fr; }
+    .features-list li:last-child:nth-child(odd) { grid-column:auto; }
+    .testimonials-grid { grid-template-columns:1fr; }
+    .price-coming-row { padding:16px 18px; gap:12px; }
+    .price-coming-desc { min-width:100%; order:4; }
     .image-strip { grid-template-columns:1fr; height:auto; }
     .strip-img { height:260px; }
     .strip-img:nth-child(2),.strip-img:nth-child(3) { display:none; }
@@ -732,7 +799,7 @@
         <a href="/funksjoner/analyse" role="menuitem">Analyse</a>
         <a href="/funksjoner/trener" role="menuitem">Trener</a>
         <a href="/funksjoner/klokkesync" role="menuitem">Klokkesync</a>
-        <a href="/funksjoner/ai-coach" role="menuitem">AI Coach <span class="dropdown-soon">Q3 2026</span></a>
+        <a href="/funksjoner/ai-coach" role="menuitem">AI Coach <span class="dropdown-soon">Kommer snart</span></a>
       </div>
     </li>
     <li><a href="#priser">Priser</a></li>
@@ -796,7 +863,7 @@
         <a href="/funksjoner/analyse">Analyse</a>
         <a href="/funksjoner/trener">Trener</a>
         <a href="/funksjoner/klokkesync">Klokkesync</a>
-        <a href="/funksjoner/ai-coach">AI Coach <span class="dropdown-soon">Q3 2026</span></a>
+        <a href="/funksjoner/ai-coach">AI Coach <span class="dropdown-soon">Kommer snart</span></a>
       </div>
     </details>
     <a href="#priser">Priser</a>
@@ -819,7 +886,7 @@
       <div class="hero-beta">BETA</div>
     </div>
     <h1>BYGGET FOR<br><span class="h1-orange">ELITEN.</span><br>ENKEL FOR <span class="h1-blue">ALLE.</span></h1>
-    <p class="hero-desc">Treningsdagbok og planlegger med dype analyseverktøy, enkel klokketilkobling og AI som faktisk forstår dataene dine — alt på ett sted.</p>
+    <p class="hero-desc">Treningsplan, dagbok og dyp analyse med enkel klokketilkobling — og live styrkeøkt-føring. Alt på ett sted. AI-coach på vei.</p>
     <div class="hero-actions">
       <a href="#priser" class="btn-primary">Start 30 dagers gratis prøve</a>
       <a href="#sports" class="btn-secondary">Se funksjoner ↓</a>
@@ -837,14 +904,13 @@
   <div class="devices-list">
     <span class="device-name">.fit-import (alle, i dag)</span>
     <span class="device-name">Strava (gradvis utrulling)</span>
-    <span class="device-name device-soon">Garmin · Apple Health · Polar · Coros — Q3 2026</span>
+    <span class="device-name device-soon">Garmin · Apple Health · Polar · Coros — kommer snart</span>
   </div>
 </div>
 
 <div class="sync-note">
   <div class="sync-note-head"><span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis</div>
-  <p>Direkte Strava-synkronisering er i utrulling og tilgjengelig for utvalgte brukere nå. Full tilgang for alle kommer snart — vi jobber med å utvide kapasiteten.</p>
-  <p class="sync-note-fit">I mellomtiden kan <strong>alle</strong> laste opp treningsfiler (.fit) fra Strava, Garmin, Polar, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sone-fordeling.</p>
+  <p class="sync-note-fit">Direkte Strava-synk er i utrulling — full tilgang kommer snart. I mellomtiden kan <strong>alle</strong> laste opp .fit-filer fra Strava, Garmin, Polar, Coros, Suunto og Wahoo med full pulskurve, lap-data og sone-fordeling.</p>
 </div>
 
 <section class="problem-section">
@@ -868,117 +934,28 @@
 <section class="sport-cards-section" id="sports">
   <div class="section-label">Bygget for din idrett</div>
   <h2 class="section-title">VELG DIN <span class="orange">DISIPLIN.</span></h2>
-  <div class="sport-cards-grid">
-    <a class="sport-card" href="/funksjoner/langrenn">
-      <div class="sport-card-img sport-card-img-langrenn" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/langrenn.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Langrenn</div>
-        <p class="sport-card-desc">Klassisk, skøyting og staking. Skipark, ski-tester og bevegelsesform-spesifikk analyse.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
-    <a class="sport-card" href="/funksjoner/skiskyting">
-      <div class="sport-card-img sport-card-img-skiskyting" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/skiskyting.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Skiskyting</div>
-        <p class="sport-card-desc">Eneste plattformen med dyp skyting-analyse. Auto-konkurransestruktur og treff% per posisjon.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
-    <a class="sport-card" href="/funksjoner/langlop">
-      <div class="sport-card-img sport-card-img-langlop" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/langlop.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Langløp</div>
-        <p class="sport-card-desc">Bygd for Birken og Vasaloppet. Lange utholdenhetsøkter med terreng, ernæring og pacing.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
-    <a class="sport-card" href="/funksjoner/loping">
-      <div class="sport-card-img sport-card-img-loping" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/loping.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Løping</div>
-        <p class="sport-card-desc">Fra intervall på bane til langløp i terreng. Sone-styrt plan og pace-utvikling.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
-    <a class="sport-card" href="/funksjoner/sykling">
-      <div class="sport-card-img sport-card-img-sykling" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/sykling.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Sykling</div>
-        <p class="sport-card-desc">Landevei og terreng. Effekt-soner, høydemeter og sammenligning over sesong.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
-    <a class="sport-card" href="/funksjoner/triatlon">
-      <div class="sport-card-img sport-card-img-triatlon" aria-hidden="true"></div>
-      <div class="sport-card-icon" aria-hidden="true">
-        <img class="sport-card-icon-img" alt="" src="/sport-icons/triatlon.png">
-      </div>
-      <div class="sport-card-body">
-        <div class="sport-card-name">Triatlon</div>
-        <p class="sport-card-desc">Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurranse.</p>
-        <span class="sport-card-link">Les mer <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></span>
-      </div>
-    </a>
+  <div class="sport-chips">
+    <a class="sport-chip" href="/funksjoner/langrenn"><img class="sport-chip-icon" alt="" src="/sport-icons/langrenn.png"><span class="sport-chip-name">Langrenn</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/skiskyting"><img class="sport-chip-icon" alt="" src="/sport-icons/skiskyting.png"><span class="sport-chip-name">Skiskyting</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/langlop"><img class="sport-chip-icon" alt="" src="/sport-icons/langlop.png"><span class="sport-chip-name">Langløp</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/loping"><img class="sport-chip-icon" alt="" src="/sport-icons/loping.png"><span class="sport-chip-name">Løping</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/sykling"><img class="sport-chip-icon" alt="" src="/sport-icons/sykling.png"><span class="sport-chip-name">Sykling</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="/funksjoner/triatlon"><img class="sport-chip-icon" alt="" src="/sport-icons/triatlon.png"><span class="sport-chip-name">Triatlon</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
   </div>
 </section>
 
 <section class="section" id="features">
   <div class="section-label">Funksjoner</div>
   <h2 class="section-title">FRA ØKTPLAN<br>TIL TOPPFORM.</h2>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-num">01</div>
-      <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title">Sesongplanlegger</div>
-      <p class="feature-desc">Legg inn mål-konkurranser og bygg periodeiseringen rundt dem. Grunntrening, spesifikk fase og peaking — strukturert fra dag én. Du bestemmer, appen støtter.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-num">02</div>
-      <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title">Treningsdagbok</div>
-      <p class="feature-desc">Logger økter, notater og subjektiv følelse. Sett tagger på alt — underlag, intensitetssone, humør. Søk tilbake og forstå hva som skapte toppformen din.</p>
-    </div>
-    <div class="feature-card ai-card">
-      <div class="feature-num">03</div>
-      <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title"><span class="blue">AI</span> Coach <span class="feature-badge-soon">Q3 2026</span></div>
-      <p class="feature-desc">Foreslår justeringer fra dine mønstre og kommentarer. Auto-tolkning av økter etter klokkesync, anbefalte økter ut fra form og mål. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet ved lansering →</a></p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-num">04</div>
-      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAM2klEQVR4nO2be0xUVxrAv3PvMAMyoMCgghVfCEJ9VcZIQJeHS61F7LLExgftrqt1WxvdSNzEulRMdFdFrY9dYzaooRHStY2Voq5CKYKKtAWdoLDolEWDYMtDGXnO3HvP/fYPPfQu5e0wgJlfchLmcc93zpnvfK9zALBjx44dO3bs2LFjx44dW0OGQijHccBx3Av3I8syyLJshRGNIKyxcIPZX3+xqQZyHAeyLMOsWbMc161bt1Sn040nhHCEkD6PA58h19bW1pw4cSKrvLzcwvp9qWGasmHDhgBKqYhWwGw2P12zZs1kZf+2xiYayPM8UEohLCxsTF5eXqPFYmlKS0vbnJKScralpUVExD73RQgBV1dX9caNG9fEx8cfBwDQ6/XON2/ebHtpNVGlUgEAQGJi4kJZlmlKSsq71uj38uXLf0VETExMXKiUY0tsovdMw3x8fKYAAOTk5OTxPA8ajabDI/ensefOnDmTiojy/PnzwwDg5dQ+gGfbjuM4KCkp+QIRce7cuU4AA7dbPM8DAMDChQtdZVmmFRUVua6uroQQAv3wRyMDtkheXl6c2Wx+ajKZqlxcXAgADHiyrE9PT0+uvb29ERHRy8uLU35mKwZdGtMKX19fF41G42owGM5aLBZUq9XAcRzwPN/vRggBBwcHePr0qVxaWnoeEeXAwMAxQ6GBg7qAbKKICLNmzZoIAGA0Gm8KggCCIACldMBNFEUQBAGuX7/+JSGE8/Pz80JEcHBwsOkiDprbYiGF2WyGUaNGQXh4eJQkSeampiZTVFSUB8/zhFLa9/ilE+x5QggRRbEtNjb2ndOnT3/U0tKCSvkjEmbkPTw8SHJycnR1dXWxNQLn3nj48OH3u3fv/vWECRN45TgGE6vrOguaIyMj3VJSUs5NnTo1DACgtLQ049q1a2dMJtMTNmFryOM4juN5XhUZGblSr9e/AwBQW1tbGhsbG1JYWNjMxjMiYB5w8eLF7i0tLbWIiLm5uZ8sWrRotC3kR0ZGup0/f34HIqLJZKoKCQlxUY5rWMNxHBBCYPTo0aS+vv4eIuL+/fuXMYNOCAGVSjVoTek4Dh48uBwRsbq6utjd3X1kxIfM3mzfvj0EEbG4uPi0Wq3uWDhbjYHJOnfu3DZExCNHjvxWOb5hCyEEnJycwGg0ZkuSZFmyZIkOwPb5KdNGvV7vjIhYU1Nza9hnKczG+Pn5qRER6+vr72m12n4NmuO4jskrG9MqZT9Mq7uybSxtVKvVUFZWlomIOH36dAeVSjUoWmhV6ypJEiKiXFxc/HlbWxtyHAe9OVtWIJBlGSRJAkT8v0Yp7XifLQAigiRJXcZ5TJ4gCFBVVVWCiPKMGTPcJUmy5lQ7sPr+IoRwkiSJsiz3+osrQ4yZM2c6xsTEvBYdHf2uVqv1IIQQSZKEoqKif9+4cePbM2fO/NdisQAhBFxcXEhCQkJYVlbWzcLCwubugmaNRuNMCOHWrl37ey8vr8xPP/20nFIKhJBef1ibwrbS1KlTHRARL1y4kATQs+FmttHf31+dkZHxUeeg2GKxNCtfl5aWZrz33nszAABeffVVDSLiN998c4Dl012NJy8v74iyj6ysrL85Ojp2RAzDhv4uIHs/Li5uQlNT0yNExLt3715KSkoKe/PNNz19fHxULi4uJCgoaFRsbKw3i+0QES9durQrMDBQU1lZmV9fX3+P9alcEDae3NzcTxARc3Jy9rNsaNWqVZMAhqb42i39WUD23RUrVrwiyzJFRDxw4ECMk5NTjzIiIiLcDAbDvxARm5ubf2ptba1vamp6NHnyZJWyX+XfX3/99T5ExKioKI8TJ078jlIqbtq0aQ6A9RbQpiE6z/MgyzIEBARo0tLSygkh3JYtW+Zt3br1fHt7OzBPybYY88wAAFeuXGmMjo5ec/Xq1b9rtdpxGo3G1cXFxWvatGmuAD3XFrVarYbjOJ7jOJUoiqI152TzHIfneTh27NgetVqt3bt37xuHDx82sIBbkiSglIIsyx1GnlIK4eHhY8rKyjINBsNtf3//CFEU2wRBaBFFsW3p0qWhvcmUFR6mP0eofcFmhoB53ODgYG1ERMSWO3fufJmUlJTF8zyIotilV+Q4DiRJAr1ePz0wMDBG+ZmDg8MoAIDFixevAYDzPXlV8hwrTwkAbLiAbPxxcXHhAADJyclbBUEAlUrVbUjBYrfDhw8XZWZmagAA9Hq9t06nG00plXme54qKiip7ky2KIqWUSrIsSyNSA9n2BACIiYn5sLW1te7SpUsPAPp2kiZJEhiNRgEAwGg0PujqOz314+np6erk5KR9bgOtGlHbbAERESZOnMj7+/u/UV1dXWQymbA/AS3zrEpv21t2oVKp1AAAx48fL3J0dBxTVVX1bWZmppEQYrUaoU2ciCzLQAiBmpoaumrVqklvv/32YvZeXxeQ3cRiKRylFOLi4iasX7/eH6BnL0wpFbKzs/dERET8qra2Vn4pMhFloYC1vhQ+WZHByckJ2traHkuSZBk3bhynLFx0jgM3btw4U/m8NRmycJwVCvoL057x48erOI5TVVZW5j958kRmfXaFyWRqYTGlIAgvNvBO2NwLu7u7k5MnT27z8fGZdffu3Rv379+/J0mSRAghWVlZxQUFBU09naix0CYuLu41jUbjeuvWrYuiKEJPZx88z3PD+jJmX7Yw+3v58uXjf3Gc9pzs7Oy9AN2nWSxLcXNzI1VVVd+Kotg+e/Zsx86yOhcTpkyZ8ot0z1rYTAPZ9jIYDPVNTU01zs7OnpRS4ccff7ydnp6+k1JK09PTrwNAl5qkUqk6vO7Ro0f/OHHixAWfffbZptu3b5u70z4W87W1tQ1T1XtOXzSQGXm1Wg0//PBDDtO6tra2x9u3bw9R9tXZubDtr9VqyaFDh37DqjceHh6EXfXoajz5+flHEYfu3kyf6asXZlvz7Nmzf0ZETEtL+4BdDrp3715WVFSUR3cy4uLiJrBqjMlkqgoODtYqZXc1HraA3t7efHfffVGGxAsXFhbmxcbGynl5ebn79u3zSk1NPTlv3rzV2dnZDTdu3PhnQUHB+bKysrsAAPPnzw8KDg6OCQoKigcAuHz58u6EhITd/bkbLQjCMAr6uqCzBl68eHEnQPcauGTJEh0i4rZt24IBABwdHSE+Pn7K9evXj3fnYPLy8o6winRXfXc1nitXrhxCRAwNDXXt7ZmBYlUNfD5XWRRFS1efS5IEhBDIyclpCA0Nda2oqGjlOA7MZjOkpaXdT0tL+8DPz+9P4eHh0ziOY3cISVFR0YPi4uLW56+hr6mY2WxuAQDw9fX1LCgoaBpWZXwl7Bf39/dXIyJWVFTkOjo69jnqZ8eUvX2/L1VkpbNix5pdVa2HFWziOp2Oa2hoMIqi2B4YGKgB6PlcpKsFYxmDsvVn67FYkR2sP336tHrs2LHD2wsD/LxQp06d+gMiYnp6+ocAAKzabCs0Gg0AACQnJ0cjIn711Vd/UY5v2MI0asaMGWp2WLRixYpX2OdMkwarKYsRb7311vjm5uafBEFo1ev1zgDDXPsYbJAff/zxInZ6tmPHjl85OzvbRD4hBDZv3jxHEIRWRMSEhIQg5bgGRaa1O2QpV1JSUtjOnTvzAACMRmN2RkbGkWvXrt1sbGxsB3jmsa0hjxBCeJ4nr7/++vxly5ZtmDNnzgoAgNTU1PVr1649yU4Ch1X9rzeYvYmPj59y//79a93FdoNBRUVFLqv/2eLwfNCsO8sSnJ2dYeHChbpjx459Pnny5NC6urr/NDc31xFCyItoIXteq9V6jh07NqCysvJqYmLiugsXLlS3t7eP7EvmDGWowrzz+++/H8j+/aHzVbb+NBY37tq1azEiIivtd3VXZjAZVNdEKe3wvvn5+fmIKC9atCgCETvs0kAbpRQQEUJCQpYCADQ2NrYwjzxiLpX3BeYBAwICNIiIJSUlXyhvSA2ksWd1Oh1XV1dXLssynTRp0vDONgYKm7Sbmxt59OiRQZIki6enJ8c+GwhskXx8fFSIiI8fP67Q6XQv5//KMT/R2NiIVVVVt3ieV8+ePXvMi9gq9uzcuXN1iCiXlJRkNjQ0yEPhOGzyc7Etd+fOnXxKqeDv7+/9ohOllEJAQMBkAACDwZAHYP0jy2EDi8dWrlzpg4j44MGDggULFmhfpM+wsLAxNTU1txARly1bNg5gaPJdm/xkyhv3qampH65evfofAADl5eUXKaX9vq/HcRzPbmt99913p0JDQ9cxz/7Sotxee/bsWVJeXn7xRTKOhw8ffn/w4MHlnW8l2HxeQyIVntlFX19ftbe39yiAvl18REQkhJDm5mahtLS01Ww2D/5AhyPWslXdFWVtyZBJVwbGA2HEVVjs2LFjx44dO3bs2LHzM/8DmYlbpzoXPSMAAAAASUVORK5CYII=" class="feature-icon-img">
-      <div class="feature-title">Klokkesync</div>
-      <p class="feature-desc">Last opp .fit-filer fra Garmin, Coros, Polar, Suunto eller Wahoo i dag — tilgjengelig for alle. Strava-OAuth ruller ut gradvis. Garmin og Apple Health direkte: Q3 2026.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-num">05</div>
-      <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title">Dyp analyse</div>
-      <p class="feature-desc">ATL/CTL/TSB form-modell. HRV og søvn-trend. Multiple laktat-målinger per økt plottet mot puls. Skreddersydde grafer du selv bygger.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-num">06</div>
-      <img src="data:image/png;base64,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" class="feature-icon-img">
-      <div class="feature-title">Utøver & Trener</div>
-      <p class="feature-desc">Utøver eier egne data. Trener ser hele troppen i ett panel — kommenterer, justerer planer og reagerer på recovery og belastning i sanntid.</p>
-    </div>
-  </div>
+  <ul class="features-list">
+    <li><span class="fl-num">01</span><div><span class="fl-title">Sesongplanlegger</span><span class="fl-desc">Legg inn mål-konkurransene og bygg periodiseringen rundt dem — flytt økter med dra-og-slipp rett i kalenderen.</span></div></li>
+    <li><span class="fl-num">02</span><div><span class="fl-title">Treningsdagbok</span><span class="fl-desc">Økter, notater og subjektiv følelse — med tagger og smart søk i hele historikken.</span></div></li>
+    <li><span class="fl-num">03</span><div><span class="fl-title">Live styrkeøkt <span class="fl-badge-new">NY</span></span><span class="fl-desc">Før økten sett for sett mens du trener — timer, supersett, «sist gang»-hint og øvelsesbibliotek.</span></div></li>
+    <li><span class="fl-num">04</span><div><span class="fl-title">Klokkesync</span><span class="fl-desc">Strava-synk og .fit-import fra Garmin, Coros, Polar, Suunto og Wahoo. Direkte-synk kommer snart.</span></div></li>
+    <li><span class="fl-num">05</span><div><span class="fl-title">Dyp analyse</span><span class="fl-desc">ATL/CTL/TSB, HRV, laktat, vær/føre og høydetrening — grafer du selv setter sammen.</span></div></li>
+    <li><span class="fl-num">06</span><div><span class="fl-title">Utøver &amp; Trener</span><span class="fl-desc">Utøveren eier dataene. Treneren følger hele troppen i ett panel og justerer planer i sanntid.</span></div></li>
+    <li><span class="fl-num">07</span><div><span class="fl-title"><span class="blue">AI</span> Coach <span class="feature-badge-soon">Kommer snart</span></span><span class="fl-desc">Auto-tolkning av økter og anbefalinger fra dine egne mønstre. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet →</a></span></div></li>
+  </ul>
 </section>
 
 <div class="image-strip">
@@ -998,7 +975,8 @@
         <li><span class="bullet-dot"></span>HRV-trend mot prestasjons-PR</li>
         <li><span class="bullet-dot"></span>Multiple laktat-målinger per økt — terskel-utvikling spores</li>
         <li><span class="bullet-dot"></span>Sone-fordeling per sport, polarisert vs no man's land</li>
-        <li><span class="bullet-dot"></span>Custom-grafer du markerer som favoritt</li>
+        <li><span class="bullet-dot"></span>Vær, føre og høydetrening som egne analyse-dimensjoner</li>
+        <li><span class="bullet-dot"></span>Standardøkter over tid — se terskeltesten utvikle seg</li>
       </ul>
     </div>
     <div class="mock-dashboard">
@@ -1034,10 +1012,10 @@
 <section class="ai-section" id="ai">
   <div class="ai-inner">
     <div>
-      <div class="section-label">AI Coach <span class="feature-badge-soon">Q3 2026</span></div>
+      <div class="section-label">AI Coach <span class="feature-badge-soon">Kommer snart</span></div>
       <h2 class="section-title" style="margin-bottom:20px;">EN COACH SOM<br>LÆRER SEG DEG.</h2>
       <p style="font-size:15px;line-height:1.8;color:rgba(242,240,236,0.55);max-width:400px;">Ikke generiske råd. En AI som leser dine data, dine kommentarer og dine mønstre — og blir smartere for hver økt du logger. Du velger selv hvor mye hjelp du vil ha.</p>
-      <p style="font-size:13px;line-height:1.7;color:rgba(242,240,236,0.45);max-width:400px;margin-top:14px;">Modulen lanseres Q3 2026 sammen med direkte klokkesync. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet ved lansering →</a></p>
+      <p style="font-size:13px;line-height:1.7;color:rgba(242,240,236,0.45);max-width:400px;margin-top:14px;">Modulen lanseres snart, sammen med direkte klokkesync. <a href="/funksjoner/klokkesync#waitlist" class="feature-link">Bli varslet ved lansering →</a></p>
     </div>
     <div class="ai-slider-visual">
       <div class="section-label" style="margin-bottom:8px;">Velg ditt nivå</div>
@@ -1058,6 +1036,20 @@
     <div class="builtby-text"><strong>Bygget av aktive utøvere</strong> som savnet ett verktøy som faktisk holdt følge med hvordan vi trener — ikke ett for planen, ett for dataene og ett for analysen.</div>
   </div>
 </div>
+
+<!--
+  TESTIMONIALS: skjult til ekte sitater er klare.
+  Aktiveres ved å bytte inn ekte sitat + navn under og fjerne kommentar-taggene rundt seksjonen.
+<section class="testimonials-section" id="testimonials">
+  <div class="section-label">Fra brukerne</div>
+  <h2 class="section-title">HVA UTØVERNE <span class="orange">SIER.</span></h2>
+  <div class="testimonials-grid">
+    <div class="testimonial-card"><p class="testimonial-quote">«Sitat 1 her.»</p><div class="testimonial-who"><strong>Navn Navnesen</strong>Idrett · nivå</div></div>
+    <div class="testimonial-card"><p class="testimonial-quote">«Sitat 2 her.»</p><div class="testimonial-who"><strong>Navn Navnesen</strong>Idrett · nivå</div></div>
+    <div class="testimonial-card"><p class="testimonial-quote">«Sitat 3 her.»</p><div class="testimonial-who"><strong>Navn Navnesen</strong>Idrett · nivå</div></div>
+  </div>
+</section>
+-->
 
 <section class="roles-section" id="roles">
   <div class="section-label">To roller</div>
@@ -1125,26 +1117,27 @@
         <tbody>
           <tr><td class="why-feat-col">Norsk språk + OLT-pulssoner</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Dyp norsk periodisering<span class="why-feat-sub">samlinger, nøkkeldatoer, peak-target</span></td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cq">Generell</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Treningsplanlegging</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Øktmaler + ukesmaler + planmaler</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Klokkesync (Strava + .fit alle merker)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
-          <tr><td class="why-feat-col">Dyp prestasjonsanalyse (ATL/CTL/TSB)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td><td><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td></tr>
-          <tr><td class="why-feat-col">Plan vs. gjennomført (tett koblet)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Skiskyting-analyse (treff-%, serier)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Ski-smøring/glid-tester m/ rangering</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Utstyr-km (ski, staver, sko)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Delvis</span></td></tr>
+          <tr><td class="why-feat-col">Live styrkeøkt-føring<span class="why-feat-sub">sett/reps/vekt, supersett, «sist gang»-hint</span></td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Laktat per aktivitet</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Detaljert styrke (øvelser/sett/reps/vekt)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Hybrid styrke + utholdenhet i samme økt</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Egne/custom styrkeøvelser</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Trener pusher plan til flere samtidig</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Dual rolle utøver+trener i én konto</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
           <tr><td class="why-feat-col">Granulær trener-datadeling-kontroll</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
-          <tr><td class="why-feat-col">Sosial deling/segmenter/følge venner</td><td class="why-xp-col"><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td></tr>
-          <tr><td class="why-feat-col">AI-coach</td><td class="why-xp-col"><span class="ck">✓</span><span class="ck-soon">(kommer)</span></td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cq">Begrenset</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Treningsplanlegging</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Øktmaler + ukesmaler + planmaler</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Klokkesync (Strava + .fit alle merker)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td><td><span class="ck">✓</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Dyp prestasjonsanalyse (ATL/CTL/TSB)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td><td><span class="ck">✓</span></td><td><span class="cq">Begrenset</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Plan vs. gjennomført (tett koblet)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Utstyr-km (ski, staver, sko)</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Delvis</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Hybrid styrke + utholdenhet i samme økt</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cq">Delvis</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Egne/custom styrkeøvelser</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Dual rolle utøver+trener i én konto</td><td class="why-xp-col"><span class="ck">✓</span></td><td><span class="ck">✓</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">Sosial deling/segmenter/følge venner</td><td class="why-xp-col"><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="ck">✓</span></td></tr>
+          <tr class="why-row-more"><td class="why-feat-col">AI-coach</td><td class="why-xp-col"><span class="ck">✓</span><span class="ck-soon">(kommer)</span></td><td><span class="cx">✗</span></td><td><span class="cq">Begrenset</span></td><td><span class="cq">Begrenset</span></td></tr>
         </tbody>
       </table>
     </div>
+    <button type="button" class="why-toggle" id="whyToggle" aria-expanded="false">Vis hele sammenligningen (11 rader til)</button>
     <div class="why-note">X-PULSE erstatter ikke den sosiale treningsplattformen du allerede bruker — vi henter treningsdataene dine derfra og gir deg planleggingen, periodiseringen og den dype analysen den ikke har. Behold det sosiale der, gjør det seriøse her.</div>
     <p class="why-disclaimer">Sammenligningen er forenklet. Andre plattformer har sine styrker — vårt mål er å samle det som betyr mest for norske utholdenhetsutøvere på ett sted.</p>
   </div>
@@ -1172,33 +1165,11 @@
         <a href="/api/checkout?tier=athlete_pro" class="price-cta">Start 30 dagers gratis prøve</a>
       </article>
 
-      <article class="price-card price-card-coming">
-        <div class="price-tier-label">Athlete Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
-        <div class="price-amount"><span class="price-num">129</span><span class="price-cur">kr/mnd</span></div>
-        <ul class="price-features">
-          <li>Alt i Athlete Pro pluss AI-funksjoner (Claude Haiku)</li>
-          <li>Auto-tagging av lap (oppvarming, intervall, pause, nedjogg)</li>
-          <li>Ukentlig AI-sammendrag av treningsuken</li>
-          <li>Korrelasjon-analyse: HRV vs prestasjon, søvn vs energi</li>
-          <li>Dyp uke-, måned-, og årsanalyse med AI-tolkning</li>
-          <li>Ingen chat eller plangenerering — det får du i Ultimate</li>
-        </ul>
-        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Pro%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
-      </article>
 
-      <article class="price-card price-card-coming">
-        <div class="price-tier-label">Athlete Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
-        <div class="price-amount"><span class="price-num">399</span><span class="price-cur">kr/mnd</span></div>
-        <ul class="price-features">
-          <li>Alt i Pro AI pluss premium AI (Claude Sonnet/Opus)</li>
-          <li>Chat med AI-coach 24/7 — kun treningsrelatert</li>
-          <li>Dagbok via chat + bilde/PDF/lyd-import</li>
-          <li>Komplett plangenerering basert på dine mål</li>
-          <li>Adaptiv plan: justerer seg ved sykdom og dårlige dager</li>
-          <li>Engasjement-velger: Verktøy- / Coach- / Autopilot-modus</li>
-        </ul>
-        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Ultimate%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
-      </article>
+    </div>
+    <div class="price-coming-strip">
+      <div class="price-coming-row"><span class="price-coming-name">Athlete Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">129 kr/mnd</span><span class="price-coming-desc">Alt i Pro pluss auto-tagging av lap, ukentlig AI-sammendrag og korrelasjonsanalyse.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Pro%20AI%20er%20klar">Bli varslet</a></div>
+      <div class="price-coming-row"><span class="price-coming-name">Athlete Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">399 kr/mnd</span><span class="price-coming-desc">AI-chat 24/7, komplett plangenerering og adaptiv plan som justerer seg etter dagsform.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Ultimate%20AI%20er%20klar">Bli varslet</a></div>
     </div>
 
     <div class="pricing-group-label" style="color:var(--blue); margin-top: 40px;">For trenere</div>
@@ -1232,33 +1203,11 @@
         <a href="/api/checkout?tier=trener_pro" class="price-cta">Start 30 dagers gratis prøve</a>
       </article>
 
-      <article class="price-card price-card-coming">
-        <div class="price-tier-label">Trener Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
-        <div class="price-amount"><span class="price-num">499</span><span class="price-cur">kr/mnd</span></div>
-        <ul class="price-features">
-          <li>Alt i Trener Pro pluss AI for trener og lag</li>
-          <li>Athlete Pro AI for treneren selv</li>
-          <li>Egen Athlete Pro-profil for trener + 5 lisenser til utøvere</li>
-          <li>AI-analyse på alle utøvere du følger</li>
-          <li>Auto-tagging og korrelasjon for hele laget</li>
-          <li>AI-sammendrag av lagets utvikling per uke</li>
-        </ul>
-        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Pro%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
-      </article>
 
-      <article class="price-card price-card-coming">
-        <div class="price-tier-label">Trener Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></div>
-        <div class="price-amount"><span class="price-num">999</span><span class="price-cur">kr/mnd</span></div>
-        <ul class="price-features">
-          <li>Alt i Trener Pro AI pluss premium AI for trener-arbeid</li>
-          <li>Athlete Ultimate AI for trenerens egen trening</li>
-          <li>Egen Athlete Pro-profil for trener + 10 lisenser til utøvere</li>
-          <li>Plan-bygging via chat eller bilde</li>
-          <li>Lag-prediksjon, adaptive lag-planer, custom rapporter (PDF)</li>
-          <li>Engasjement-velger med trener-perspektiv</li>
-        </ul>
-        <a href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Ultimate%20AI%20er%20klar" class="price-cta price-cta-secondary">Bli varslet</a>
-      </article>
+    </div>
+    <div class="price-coming-strip">
+      <div class="price-coming-row"><span class="price-coming-name">Trener Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">499 kr/mnd</span><span class="price-coming-desc">Alt i Trener Pro pluss AI-analyse, auto-tagging og ukentlige AI-sammendrag for hele laget.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Pro%20AI%20er%20klar">Bli varslet</a></div>
+      <div class="price-coming-row"><span class="price-coming-name">Trener Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">999 kr/mnd</span><span class="price-coming-desc">Premium AI for trener-arbeid — plan via chat, lag-prediksjon og custom rapporter.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Ultimate%20AI%20er%20klar">Bli varslet</a></div>
     </div>
 
     <details class="price-compare">
@@ -1321,7 +1270,7 @@
     <h2 class="section-title">FAQ.</h2>
     <div class="faq-list">
       <details class="faq-item"><summary>Hvordan kobler jeg klokken min? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
-        <div class="faq-answer">Du kan importere .fit-filer direkte (alle klokker), koble til Strava med ett klikk for automatisk synk, eller bruke Garmin-direkte-koblingen som åpner Q3 2026. Apple Health, Polar og Coros får støtte i samme runde — meld deg på <a href="/funksjoner/klokkesync">klokkesync-listen</a> så får du beskjed.</div>
+        <div class="faq-answer">Du kan importere .fit-filer direkte (alle klokker), koble til Strava med ett klikk for automatisk synk, eller bruke Garmin-direkte-koblingen som kommer snart. Apple Health, Polar og Coros får støtte i samme runde — meld deg på <a href="/funksjoner/klokkesync">klokkesync-listen</a> så får du beskjed.</div>
       </details>
       <details class="faq-item"><summary>Hva skjer etter prøveperioden? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
         <div class="faq-answer">Du får en e-post 5 dager før prøven utløper. Hvis du ikke sier opp før prøveperioden er ute fortsetter abonnementet automatisk og første belastning skjer dag 31. Sier du opp i prøveperioden mister du ingenting — abonnementet stopper og du beholder tilgang til read-only-historikk i 6 måneder.</div>
@@ -1336,19 +1285,19 @@
         <div class="faq-answer">Vi gir full refusjon de første 14 dagene etter første betaling hvis du ombestemmer deg. Send en e-post til support@x-pulse.no så fikser vi det.</div>
       </details>
       <details class="faq-item"><summary>Hva er forskjellen på Pro og AI? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
-        <div class="faq-answer">Pro gir deg alle verktøyene — plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer Q3 2026.</div>
+        <div class="faq-answer">Pro gir deg alle verktøyene — plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer snart.</div>
       </details>
       <details class="faq-item"><summary>Hvor mange utøvere kan en trener ha? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
         <div class="faq-answer">Trener Basic har en grense på 10 aktive utøvere uten inkluderte lisenser. Trener Pro og oppover har ingen øvre grense og gir treneren en egen Athlete Pro-profil + lisenser til utøvere: Pro 3, Pro AI 5, Ultimate AI 10. Alle inkluderte lisenser er Athlete Pro (uten AI) — flere kan kjøpes ved behov.</div>
       </details>
       <details class="faq-item"><summary>Når kommer AI-funksjonene? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
-        <div class="faq-answer">Q3 2026, sammen med Garmin-direkte-synk. Du kan melde deg på <a href="/funksjoner/klokkesync#waitlist">varslingslisten</a> for å bli prioritert i beta-tilgangen.</div>
+        <div class="faq-answer">Snart — sammen med Garmin-direkte-synk. Du kan melde deg på <a href="/funksjoner/klokkesync#waitlist">varslingslisten</a> for å bli prioritert i beta-tilgangen.</div>
       </details>
       <details class="faq-item"><summary>Kan jeg endre plan senere? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
         <div class="faq-answer">Ja — du oppgraderer eller nedgraderer fra Innstillinger → Abonnement. Endringen gjelder fra neste fakturaperiode. Trener-til-utøver-bytting beholder all eksisterende dagbok og plan.</div>
       </details>
       <details class="faq-item"><summary>Hvilke klokker støttes? <svg class="dropdown-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg></summary>
-        <div class="faq-answer">.fit-import virker i dag for alle store leverandører (Garmin, Coros, Wahoo, Polar, Suunto). Direkte-synk via Strava er live. Garmin Connect-, Apple Health-, Coros- og Polar-direkte-synk åpner Q3 2026 — se <a href="/funksjoner/klokkesync">klokkesync-siden</a> for full liste.</div>
+        <div class="faq-answer">.fit-import virker i dag for alle store leverandører (Garmin, Coros, Wahoo, Polar, Suunto). Direkte-synk via Strava er live. Garmin Connect-, Apple Health-, Coros- og Polar-direkte-synk kommer snart — se <a href="/funksjoner/klokkesync">klokkesync-siden</a> for full liste.</div>
       </details>
     </div>
   </div>
@@ -1358,11 +1307,12 @@
   <div class="section-label">Bli med</div>
   <h2 class="cta-title">KLAR TIL Å<br><span class="orange">TREN</span><span class="blue">E SMARTERE?</span></h2>
   <div class="cta-free"><span>30 dagers gratis prøve</span> — Vipps eller kort, ingen bindingstid</div>
-  <p class="cta-sub">Start 30 dagers gratis prøve i dag. Norske utøvere og trenere først — Vipps eller kort, ingen bindingstid.</p>
+  <div class="cta-actions"><a href="#priser" class="btn-primary">Start 30 dagers gratis prøve</a></div>
+  <p class="cta-sub">Ikke klar ennå? Meld deg på nyhetsbrevet og få beskjed om lansering, nye funksjoner og klokkesync.</p>
   <form name="waitlist" netlify data-netlify="true" class="cta-form" onsubmit="handleSubmit(event)">
     <input type="hidden" name="form-name" value="waitlist">
     <input type="email" name="email" class="cta-input" placeholder="Din e-postadresse" id="emailInput" required>
-    <button type="submit" class="cta-btn" id="ctaBtn">Start gratis prøve</button>
+    <button type="submit" class="cta-btn" id="ctaBtn">Meld på nyhetsbrev</button>
   </form>
 </section>
 
@@ -1448,7 +1398,7 @@
   setTimeout(()=>document.getElementById('heroBg').classList.add('loaded'),100);
 
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.08});
-  document.querySelectorAll('.feature-card,.problem-card,.sport-card,.role-card,.trener-card,.price-card,.strip-img,.slider-level,.faq-item').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
+  document.querySelectorAll('.problem-card,.sport-chip,.features-list li,.role-card,.trener-card,.price-card,.price-coming-row,.strip-img,.slider-level,.faq-item,.testimonial-card').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
 
   window.addEventListener('scroll',()=>{
     let cur='';
@@ -1466,10 +1416,23 @@
     });
   });
 
+
+  // "Hvorfor X-PULSE": vis/skjul de foldede radene.
+  (function initWhyToggle(){
+    const btn=document.getElementById('whyToggle');
+    const tbl=document.querySelector('.why-table');
+    if(!btn||!tbl) return;
+    btn.addEventListener('click',()=>{
+      const open=tbl.classList.toggle('why-expanded');
+      btn.setAttribute('aria-expanded',String(open));
+      btn.textContent=open?'Vis færre rader':'Vis hele sammenligningen (11 rader til)';
+    });
+  })();
+
   function handleSubmit(e){
     e.preventDefault();
     const inp=document.getElementById('emailInput'),btn=document.getElementById('ctaBtn');
-    if(inp.value.includes('@')){btn.textContent='✓ Du er på listen!';btn.style.background='#1459aa';inp.value='';}
+    if(inp.value.includes('@')){btn.textContent='✓ Du er påmeldt!';btn.style.background='#1459aa';inp.value='';}
   }
 
   // Hamburger-meny: toggle åpen/lukket, lås body-scroll, ESC-lukker.

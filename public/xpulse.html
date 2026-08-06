@@ -670,6 +670,12 @@
   .sport-chip-thumb-triatlon   { background-image:linear-gradient(135deg, rgba(176,77,230,0.25), rgba(26,111,212,0.2)); }
   .sport-chip-icon { width:20px; height:20px; object-fit:contain; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6)); opacity:0.95; }
   .sport-chip:hover .sport-chip-icon { opacity:1; }
+  .sport-note { margin-top:18px; padding:16px 22px; background:var(--surface); border-left:3px solid var(--orange); }
+  .sport-note p { font-size:13.5px; line-height:1.65; color:rgba(242,240,236,0.6); margin:0 0 6px; }
+  .sport-note p:last-child { margin-bottom:0; }
+  .sport-note strong { color:rgba(242,240,236,0.85); }
+  .sport-note a { color:var(--orange); text-decoration:none; border-bottom:1px solid rgba(255,69,0,0.4); }
+  .sport-note a:hover { border-bottom-color:var(--orange); }
   .sport-chip-name { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:15px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); flex:1; }
   .sport-chip svg { color:var(--muted); flex-shrink:0; transition:color 0.2s, transform 0.2s; }
   .sport-chip:hover svg { color:var(--orange); transform:translateX(3px); }
@@ -951,6 +957,10 @@
     <a class="sport-chip" href="/funksjoner/loping"><span class="sport-chip-thumb sport-chip-thumb-loping" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/loping.png"></span><span class="sport-chip-name">Løping</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
     <a class="sport-chip" href="/funksjoner/sykling"><span class="sport-chip-thumb sport-chip-thumb-sykling" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/sykling.png"></span><span class="sport-chip-name">Sykling</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
     <a class="sport-chip" href="/funksjoner/triatlon"><span class="sport-chip-thumb sport-chip-thumb-triatlon" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/triatlon.png"></span><span class="sport-chip-name">Triatlon</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+  </div>
+  <div class="sport-note">
+    <p><strong>Hver idrett har sine egne verktøy</strong> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
+    <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> — vi bygger X-PULSE sammen med utøverne.</p>
   </div>
 </section>
 

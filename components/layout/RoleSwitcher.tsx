@@ -38,20 +38,11 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
   const color = activeRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE
   const label = activeRole === 'coach' ? 'TRENER' : 'UTØVER'
 
-  // Visning bestemmes av trener-TIER, ikke bare rolle-flagget:
-  //   - Mangler trener-tier  → utøver-modus + "+ Legg til trener-profil"
-  //     som leder til abonnement (IKKE tom/blank trener-modus).
-  //   - Har tier men ikke aktivert trener-rollen → samme affordans, men
-  //     aktiverer rollen gratis via modal (de har allerede betalt).
-  //   - Har tier OG trener-rolle OG utøver-rolle → full veksling. Trener-tier
-  //     inkluderer alltid utøver-funksjoner.
-  const canSwitch = hasCoachTier && hasCoachRole && hasAthleteRole
+  // Kan brukeren veksle fritt mellom begge roller?
+  const canSwitchToCoach = hasCoachTier && hasCoachRole && hasAthleteRole
+  // Vises utøver-modus-alternativet som aktiv veksling eller som aktivering?
+  const canSwitchToAthlete = hasAthleteRole
 
-  // Felles dropdown for alle tilfeller — holder navbaren ren på desktop.
-  // Trigger = klikkbar rolle-badge med pil. Menyen viser tilgjengelige moduser,
-  // og for utøvere uten full trener-tilgang ligger "+ Legg til trener-profil"
-  // som en rad NEDERST i menyen (modal hvis allerede betalt, ellers lenke til
-  // abonnement-oppgradering) — i stedet for en frittstående knapp ved siden av.
   return (
     <div ref={rootRef} style={{ position: 'relative' }}>
       <button
@@ -96,14 +87,20 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             zIndex: 60,
           }}
         >
-          <RoleMenuItem
-            role="athlete"
-            label="Utøver-modus"
-            color={ATHLETE_ORANGE}
-            active={activeRole === 'athlete'}
-            onPick={() => setOpen(false)}
-          />
-          {canSwitch ? (
+          {canSwitchToAthlete ? (
+            <RoleMenuItem
+              role="athlete"
+              label="Utøver-modus"
+              color={ATHLETE_ORANGE}
+              active={activeRole === 'athlete'}
+              onPick={() => setOpen(false)}
+            />
+          ) : (
+            <AddAthleteProfileMenuItem
+              onActivate={() => { setOpen(false); setModalRole('athlete') }}
+            />
+          )}
+          {canSwitchToCoach ? (
             <RoleMenuItem
               role="coach"
               label="Trener-modus"
@@ -127,8 +124,33 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
   )
 }
 
-// "+ Legg til trener-profil"-rad nederst i rolle-menyen for utøvere uten full
-// trener-tilgang. Mangler tier → lenke til abonnement-oppgradering. Har tier
+// "+ Aktiver utøver-modus"-rad for trenere som ikke har utøver-rollen enda.
+// Åpner RoleActivationModal med role='athlete', som kaller addRole og
+// switcher brukeren direkte inn i utøver-modus.
+function AddAthleteProfileMenuItem({ onActivate }: { onActivate: () => void }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onActivate}
+      style={{ display: 'block', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+    >
+      <span
+        className="w-full flex items-center gap-2 px-3 py-2 text-left"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          color: '#B0B0B8',
+        }}
+      >
+        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: ATHLETE_ORANGE, display: 'inline-block' }} />
+        <span className="text-xs tracking-widest uppercase">+ Aktiver utøver-modus</span>
+      </span>
+    </button>
+  )
+}
+
+// "+ Legg til trener-profil"-rad for utøvere uten full trener-tilgang.
+// Mangler tier → lenke til abonnement-oppgradering. Har tier
 // men ikke aktivert rollen → aktiver gratis via modal.
 function AddTrenerProfileMenuItem({
   needsUpgrade, onActivate,

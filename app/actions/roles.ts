@@ -73,6 +73,45 @@ export async function switchActiveRole(
   return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }
 
+// Slår utøver-rollen av/på for en bruker som primært er trener.
+// Endrer IKKE active_role — brukeren forblir i trener-modus og kan
+// deretter veksle manuelt via RoleSwitcher.
+export async function toggleAthleteRole(
+  prevState: RoleActionState,
+  formData: FormData,
+): Promise<RoleActionState> {
+  const enable = formData.get('enable') === 'true'
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('has_coach_role, active_role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.has_coach_role) return { error: 'Kun trenere kan bruke denne innstillingen' }
+
+  const update: Record<string, unknown> = {
+    has_athlete_role: enable,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Deaktiveres utøver-rollen mens brukeren er i utøver-modus → bytt til trener.
+  if (!enable && profile.active_role === 'athlete') {
+    update.active_role = 'coach'
+  }
+
+  const { error } = await supabase.from('profiles').update(update).eq('id', user.id)
+  if (error) return { error: error.message }
+
+  await clearSubCacheCookie()
+  revalidatePath('/', 'layout')
+  return {}
+}
+
 // Legger til en rolle brukeren ikke har fra før. Setter samtidig active_role
 // slik at brukeren hopper rett inn i den nye modusen.
 export async function addRole(

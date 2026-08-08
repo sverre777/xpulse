@@ -57,7 +57,8 @@ export async function DagbokPageView({ viewContext }: Props) {
     getWorkoutsForMonth(userId, year, month),
     supabase.from('workouts')
       .select('duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters)')
-      .eq('user_id', userId).eq('is_planned', false)
+      .eq('user_id', userId)
+      .or('is_completed.eq.true,is_planned.eq.false')
       .gte('date', weekStart).lte('date', weekEnd),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', userId)

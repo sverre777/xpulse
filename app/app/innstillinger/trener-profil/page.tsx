@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { TrenerProfilSection } from '@/components/settings/coach/TrenerProfilSection'
+import { AlsoAthleteToggle } from '@/components/settings/coach/AlsoAthleteToggle'
 import { getCoachProfile } from '@/app/actions/coach-settings'
 
 const COACH_BLUE = '#1A6FD4'
@@ -13,11 +14,12 @@ export default async function TrenerProfilPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('active_role, role, has_coach_role')
+    .select('active_role, role, has_coach_role, has_athlete_role')
     .eq('id', user.id)
     .single()
   const activeRole = profile?.active_role ?? profile?.role ?? 'athlete'
   const hasCoachRole = profile?.has_coach_role ?? false
+  const hasAthleteRole = profile?.has_athlete_role ?? false
   if (activeRole !== 'coach' || !hasCoachRole) redirect('/app/innstillinger')
 
   const res = await getCoachProfile()
@@ -46,6 +48,15 @@ export default async function TrenerProfilPage() {
         )}
 
         <TrenerProfilSection initial={initial} />
+
+        <div className="mt-10">
+          <SettingsPageHeader
+            title="Utøver-tilgang"
+            description="Aktiver utøver-modus for å trene og logge din egen aktivitet, i tillegg til trener-panelet."
+            accent={COACH_BLUE}
+          />
+          <AlsoAthleteToggle hasAthleteRole={hasAthleteRole} />
+        </div>
       </div>
     </div>
   )

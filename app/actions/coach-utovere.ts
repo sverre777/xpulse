@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getActiveSubscription, getCurrentTier } from '@/lib/subscriptions'
 import type { Sport } from '@/lib/types'
 
 // Datalag for /app/trener/utovere — utvider trener-dashboard-kortet med
@@ -47,7 +48,7 @@ function deriveStatus(lastIso: string | null, today: Date): UtoverStatus {
 }
 
 export async function getCoachUtovere(): Promise<
-  { athletes: UtoverCard[] } | { error: string }
+  { athletes: UtoverCard[]; athleteLimit: number | null } | { error: string }
 > {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -61,6 +62,10 @@ export async function getCoachUtovere(): Promise<
   if (profErr || !profile) return { error: 'Fant ikke profil' }
   if (!profile.has_coach_role) return { error: 'Brukeren har ikke trener-rolle' }
 
+  // Trener Basic viser «X av 10» i UI; Pro har ingen grense (null).
+  const sub = await getActiveSubscription(supabase, user.id)
+  const athleteLimit = getCurrentTier(sub) === 'trener_basic' ? 10 : null
+
   const { data: relationsRaw, error: relErr } = await supabase
     .from('coach_athlete_relations')
     .select('athlete_id')
@@ -69,7 +74,7 @@ export async function getCoachUtovere(): Promise<
   if (relErr) return { error: relErr.message }
 
   const athleteIds = (relationsRaw ?? []).map(r => r.athlete_id)
-  if (athleteIds.length === 0) return { athletes: [] }
+  if (athleteIds.length === 0) return { athletes: [], athleteLimit }
 
   const today = new Date()
   const horizon30 = new Date(today); horizon30.setDate(today.getDate() - 29)
@@ -169,5 +174,5 @@ export async function getCoachUtovere(): Promise<
     }
   })
 
-  return { athletes }
+  return { athletes, athleteLimit }
 }

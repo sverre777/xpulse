@@ -50,7 +50,9 @@ export default async function CoachUtoverePage() {
           <span style={{ width: '24px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            {res.athletes.length} aktive
+            {res.athleteLimit != null
+              ? `${res.athletes.length} av ${res.athleteLimit} aktive`
+              : `${res.athletes.length} aktive`}
           </span>
         </div>
       </div>

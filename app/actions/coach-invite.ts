@@ -2,11 +2,15 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveSubscription, getCurrentTier } from '@/lib/subscriptions'
 
 // Unngå forvekslbare tegn: I, O, 0, 1
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const CODE_LENGTH = 8
 const CODE_TTL_DAYS = 7
+
+// Trener Basic: maks antall aktive utøvere. Trener Pro har ingen grense.
+const BASIC_MAX_ATHLETES = 10
 
 function randomCode(): string {
   let out = ''
@@ -236,6 +240,25 @@ export async function redeemInviteCode(
     .eq('coach_id', user.id)
     .eq('athlete_id', invite.athlete_id)
     .maybeSingle()
+
+  // Trener Basic har en grense på aktive utøvere. Sjekkes kun når
+  // innløsningen faktisk opptar en ny plass (ny relasjon eller reaktivering)
+  // — en allerede aktiv kobling passerer uendret. Trener Pro: ingen grense.
+  const needsSlot = !existing || existing.status !== 'active'
+  if (needsSlot) {
+    const sub = await getActiveSubscription(supabase, user.id)
+    if (getCurrentTier(sub) === 'trener_basic') {
+      const { count, error: cntErr } = await supabase
+        .from('coach_athlete_relations')
+        .select('id', { count: 'exact', head: true })
+        .eq('coach_id', user.id)
+        .eq('status', 'active')
+      if (cntErr) return { error: cntErr.message }
+      if ((count ?? 0) >= BASIC_MAX_ATHLETES) {
+        return { error: `Trener Basic har en grense på ${BASIC_MAX_ATHLETES} aktive utøvere. Oppgrader til Trener Pro for ubegrenset antall — eller avslutt en eksisterende kobling først.` }
+      }
+    }
+  }
 
   let relationId: string
   let alreadyConnected = false

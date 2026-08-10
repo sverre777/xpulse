@@ -12,7 +12,6 @@ import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
 import { HelseMiniDashboard } from '@/components/analysis/HelseMiniDashboard'
 import { FeedbackCard } from '@/components/feedback/FeedbackCard'
-import { StartStyrkeoktKort } from '@/components/oversikt/StartStyrkeoktKort'
 import type { DateRange } from '@/components/analysis/date-range'
 
 function rangeLast12Weeks(): DateRange {
@@ -104,8 +103,6 @@ export default async function OversiktPage() {
           phaseStatus={res.phaseStatus}
           health={res.health}
         />
-
-        <StartStyrkeoktKort />
 
         {/* Helse-mini + trener-kort side om side. Om utøver ikke har trener
             vises trener-kortet som koble-knapp (ingen full bredde-fallback —

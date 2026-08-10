@@ -492,7 +492,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em',
             padding: '12px', cursor: startingLive ? 'default' : 'pointer', opacity: startingLive ? 0.6 : 1,
           }}>
-          {startingLive ? 'Starter…' : '▶ Start økt (live)'}
+          {startingLive ? 'Starter…' : '▶ Start live'}
         </button>
       )}
 

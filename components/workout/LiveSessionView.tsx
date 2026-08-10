@@ -284,9 +284,26 @@ export function LiveSessionView({
 
       <div style={{ padding: '12px 12px 0' }}>
         {exercises.length === 0 && (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textAlign: 'center', padding: '24px 0' }}>
-            Ingen øvelser ennå. Legg til nederst for å starte loggingen.
-          </p>
+          <div style={{ textAlign: 'center', padding: '32px 16px', background: '#13131A', border: '1px dashed #333340', marginBottom: 16 }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 15, margin: 0 }}>
+              Ingen øvelser lagt til — legg til øvelser for å begynne.
+            </p>
+            <button type="button"
+              onClick={() => {
+                const el = document.getElementById('xp-live-add-exercise')
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                ;(el as HTMLInputElement | null)?.focus({ preventScroll: true })
+              }}
+              className="mt-4 transition-opacity hover:opacity-90"
+              style={{
+                background: ORANGE, color: '#0A0A0B', border: 'none',
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em',
+                padding: '10px 20px', cursor: 'pointer',
+              }}>
+              + Legg til øvelse
+            </button>
+          </div>
         )}
 
         {exercises.map((ex, idx) => {
@@ -468,7 +485,7 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: 'flex', gap: 8 }}>
-        <input value={q} onChange={e => setQ(e.target.value)}
+        <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)}
           placeholder="Legg til øvelse (søk eller skriv eget)"
           style={{ flex: 1, background: '#13131A', border: '1px solid #262629', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
         <button type="button" onClick={() => commit(q)} disabled={!q.trim()}

@@ -1001,8 +1001,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const notes = (w.notes ?? '').trim()
                           const dayIdx = orderedIds.indexOf(w.id)
                           const showArrows = canReorder
+                          const isStrengthRow = !readOnly && !w.is_completed
+                            && (w.workout_type === 'strength' || w.primary_movement === 'Styrke')
                           return (
-                            <div key={w.id} className="flex items-stretch gap-1">
+                            <div key={w.id}>
+                            <div className="flex items-stretch gap-1">
                               <button type="button" onClick={() => onEditWorkout(w, ds)}
                                 style={{ display: 'block', flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-3" style={{
@@ -1139,6 +1142,20 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     }}>↓</button>
                                 </div>
                               )}
+                            </div>
+                            {isStrengthRow && (
+                              <button type="button"
+                                onClick={() => router.push(`/app/okt/${w.id}`)}
+                                className="w-full transition-opacity hover:opacity-90"
+                                style={{
+                                  marginTop: '2px', background: '#FF4500', color: '#0A0A0B',
+                                  border: 'none', fontFamily: "'Bebas Neue', sans-serif",
+                                  fontSize: 16, letterSpacing: '0.06em', padding: '9px',
+                                  cursor: 'pointer',
+                                }}>
+                                ▶ Start live
+                              </button>
+                            )}
                             </div>
                           )
                         })

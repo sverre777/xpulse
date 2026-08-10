@@ -32,6 +32,7 @@ import { WeatherSection, weatherSummaryLine } from './WeatherSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
 // felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
@@ -251,7 +252,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     if (!workoutId || startingLive) return
     setStartingLive(true)
     const res = await saveWorkout(form, workoutId, targetUserId)
-    if (res.error) { setStartingLive(false); window.alert(res.error); return }
+    if (res.error) { setStartingLive(false); void xpAlert(res.error); return }
     router.push(`/app/okt/${workoutId}`)
   }
 
@@ -799,13 +800,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             onSportChange={s => handleSportChange(s)}
             mode={isPlanMode ? 'plan' : 'dagbok'}
             activityCount={form.activities.length}
-            onRequestGenerate={(format, replaceExisting) => {
+            onRequestGenerate={async (format, replaceExisting) => {
               const generated = generateCompetitionActivities(form.sport, format)
               if (generated.length === 0) return
               const confirmMsg = replaceExisting
                 ? `Erstatt eksisterende aktiviteter med auto-generert struktur for ${format}?`
                 : `Auto-generer aktivitets-struktur for ${format}?`
-              if (!window.confirm(confirmMsg)) return
+              if (!await xpConfirm(confirmMsg)) return
               set('activities', generated)
             }}
           />

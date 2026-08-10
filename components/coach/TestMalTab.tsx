@@ -7,6 +7,7 @@ import {
   type TestTemplate, type TestTemplateInput,
 } from '@/app/actions/tests'
 import { SPORTS, TEST_TYPES_BY_SPORT, type Sport } from '@/lib/types'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
@@ -130,9 +131,9 @@ function TestMalEditModal({
     })
   }
 
-  const remove = () => {
+  const remove = async () => {
     if (!template) return
-    if (!confirm('Slette denne test-malen?')) return
+    if (!await xpConfirm('Slette denne test-malen?')) return
     startTransition(async () => {
       const res = await deleteTestTemplate(template.id)
       if ('error' in res) { setError(res.error); return }

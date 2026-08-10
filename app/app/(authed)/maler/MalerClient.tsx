@@ -8,6 +8,7 @@ import { SPORTS, TEMPLATE_CATEGORIES, WorkoutTemplate, type Sport } from '@/lib/
 import type { PlanTemplate } from '@/lib/template-types'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
+import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
@@ -159,12 +160,12 @@ export function MalerClient({
           pendingId={pendingId}
           onEdit={(t) => setEditingOktmal(t)}
           onUseDate={(t) => setBruktOktmal(t)}
-          onDelete={(id, name) => {
-            if (!window.confirm(`Slett mal "${name}"?`)) return
+          onDelete={async (id, name) => {
+            if (!await xpConfirm(`Slett mal "${name}"?`)) return
             setPendingId(id)
             startTransition(async () => {
               const r = await deleteTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
+              if (r.error) void xpAlert(r.error); else router.refresh()
               setPendingId(null)
             })
           }}
@@ -172,7 +173,7 @@ export function MalerClient({
             setPendingId(id)
             startTransition(async () => {
               const r = await duplicateTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
+              if (r.error) void xpAlert(r.error); else router.refresh()
               setPendingId(null)
             })
           }}
@@ -186,12 +187,12 @@ export function MalerClient({
           pendingId={pendingId}
           onEdit={(t) => setEditingPlanmal(t)}
           onUseDate={(t) => setBruktPlanmal(t)}
-          onDelete={(id, name) => {
-            if (!window.confirm(`Slett plan-mal "${name}"?`)) return
+          onDelete={async (id, name) => {
+            if (!await xpConfirm(`Slett plan-mal "${name}"?`)) return
             setPendingId(id)
             startTransition(async () => {
               const r = await deletePlanTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
+              if (r.error) void xpAlert(r.error); else router.refresh()
               setPendingId(null)
             })
           }}
@@ -199,7 +200,7 @@ export function MalerClient({
             setPendingId(id)
             startTransition(async () => {
               const r = await duplicatePlanTemplate(id)
-              if (r.error) window.alert(r.error); else router.refresh()
+              if (r.error) void xpAlert(r.error); else router.refresh()
               setPendingId(null)
             })
           }}

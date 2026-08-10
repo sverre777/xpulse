@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
+import { DialogHost } from "@/components/ui/ConfirmDialog";
 
 export const metadata: Metadata = {
   title: "X-PULSE — Treningsapp for seriøse utøvere",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
         {children}
         <CookieConsentBanner />
+        <DialogHost />
       </body>
     </html>
   );

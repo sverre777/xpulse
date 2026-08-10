@@ -26,6 +26,7 @@ import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-
 import { NewSkiTestModal } from './NewSkiTestModal'
 import type { SkiEquipment } from '@/lib/equipment-types'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -87,8 +88,8 @@ export function EquipmentDetailView({
     })
   }
 
-  const handleDelete = () => {
-    if (!confirm(`Slette «${equipment.name}»? Dette kan ikke angres.`)) return
+  const handleDelete = async () => {
+    if (!await xpConfirm(`Slette «${equipment.name}»? Dette kan ikke angres.`)) return
     startTransition(async () => {
       const result = await deleteEquipment(equipment.id)
       if (result.error) { setError(result.error); return }

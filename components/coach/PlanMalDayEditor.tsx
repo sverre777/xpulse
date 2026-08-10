@@ -6,6 +6,7 @@ import type { Sport, WorkoutFormData, WorkoutTemplate, ActivityRow } from '@/lib
 import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -133,8 +134,8 @@ export function PlanMalDayEditor({
                 initialDefaults: planWorkoutToFormDefaults(w),
               })
             }}
-            onRemoveWorkout={(i) => {
-              if (!window.confirm('Fjerne denne økten fra malen?')) return
+            onRemoveWorkout={async (i) => {
+              if (!await xpConfirm('Fjerne denne økten fra malen?')) return
               onRemoveWorkout(i)
               if (existingWorkouts.length === 1 && !existingState) onClose()
             }}

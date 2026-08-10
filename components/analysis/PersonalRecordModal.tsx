@@ -10,6 +10,7 @@ import {
   emptyTestPRFormValue, type TestPRFormValue,
 } from '@/components/test-pr/TestPRInputForm'
 import { LogToDagbokToggle } from '@/components/test-pr/LogToDagbokToggle'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const GOLD = '#D4A017'
 
@@ -103,9 +104,9 @@ export function PersonalRecordModal({ existing, preset, targetUserId, onClose, o
     })
   }
 
-  const remove = () => {
+  const remove = async () => {
     if (!existing) return
-    if (!confirm('Slette denne Test/PR-en?')) return
+    if (!await xpConfirm('Slette denne Test/PR-en?')) return
     setError(null)
     startTransition(async () => {
       const res = await deletePersonalRecord(existing.id, targetUserId)

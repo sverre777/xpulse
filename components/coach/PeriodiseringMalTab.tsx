@@ -10,6 +10,7 @@ import { PERIOD_SPORT_CATEGORIES, type Sport } from '@/lib/types'
 import { PeriodiseringMalBuilder } from '@/components/coach/PeriodiseringMalBuilder'
 import { PeriodiseringMalEditModal } from '@/components/coach/PeriodiseringMalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
+import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -114,16 +115,16 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
                         setPendingId(t.id)
                         startTransition(async () => {
                           const r = await duplicatePeriodizationTemplate(t.id)
-                          if (r.error) window.alert(r.error); else router.refresh()
+                          if (r.error) void xpAlert(r.error); else router.refresh()
                           setPendingId(null)
                         })
                       }}
-                      onDelete={() => {
-                        if (!window.confirm(`Slett mal "${t.name}"?`)) return
+                      onDelete={async () => {
+                        if (!await xpConfirm(`Slett mal "${t.name}"?`)) return
                         setPendingId(t.id)
                         startTransition(async () => {
                           const r = await deletePeriodizationTemplate(t.id)
-                          if (r.error) window.alert(r.error); else router.refresh()
+                          if (r.error) void xpAlert(r.error); else router.refresh()
                           setPendingId(null)
                         })
                       }}

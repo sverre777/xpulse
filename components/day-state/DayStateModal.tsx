@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { upsertDayState, deleteDayState } from '@/app/actions/day-states'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import {
   REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS,
   type DayState, type DayStateType,
@@ -74,7 +75,7 @@ export function DayStateModal({
     const label = isRest ? 'hviledag-markeringen'
       : isInjury ? 'skade-markeringen'
       : 'sykdom-markeringen'
-    if (!confirm(`Fjern ${label} for ${date}?`)) return
+    if (!await xpConfirm(`Fjern ${label} for ${date}?`)) return
     setBusy(true); setError(null)
     const res = await deleteDayState(editing.id, targetUserId)
     if (res.error) { setError(res.error); setBusy(false); return }

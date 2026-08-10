@@ -43,6 +43,7 @@ import {
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { NutritionSummary } from '@/components/workout/NutritionSummary'
+import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
@@ -978,7 +979,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
                             if ('error' in res) {
                               console.error('reorderWorkouts:', res.error)
-                              alert(`Kunne ikke endre rekkefølge: ${res.error}`)
+                              void xpAlert(`Kunne ikke endre rekkefølge: ${res.error}`)
                               return
                             }
                             await refreshCalendar()

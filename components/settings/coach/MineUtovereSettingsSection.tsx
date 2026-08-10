@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import {
   updateAthletePermissions,
   endAthleteRelation,
@@ -98,8 +99,8 @@ function RelationCard({
     })
   }
 
-  const handleEnd = () => {
-    if (!confirm(`Avslutte koblingen til ${relation.athleteName ?? 'utøver'}?`)) return
+  const handleEnd = async () => {
+    if (!await xpConfirm(`Avslutte koblingen til ${relation.athleteName ?? 'utøver'}?`)) return
     startTransition(async () => {
       const res = await endAthleteRelation(relation.id)
       if (res.error) { setError(res.error); return }

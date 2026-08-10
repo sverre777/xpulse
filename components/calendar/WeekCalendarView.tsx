@@ -12,6 +12,7 @@ import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
 import type { DayState } from '@/lib/day-state-types'
+import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
@@ -686,7 +687,7 @@ export function WeekCalendarView({
                   const res = await reorderWorkouts(nextOrder, sortOrders, targetUserId)
                   if ('error' in res) {
                     console.error('reorderWorkouts:', res.error)
-                    alert(`Kunne ikke endre rekkefølge: ${res.error}`)
+                    void xpAlert(`Kunne ikke endre rekkefølge: ${res.error}`)
                     return
                   }
                   if (refreshCalendar) await refreshCalendar()

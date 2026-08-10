@@ -9,6 +9,7 @@ import {
 } from '@/app/actions/strength-session'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
 // Live styrkeøkt-modus (Fase 80). Tynt lag oppå WorkoutFormData: redigerer
 // styrke-aktivitetens øvelser/sett live, autosaver via saveWorkout, og Fullfør =
@@ -241,14 +242,14 @@ export function LiveSessionView({
     if (busy) return
     setBusy(true)
     const saved = await saveLiveStrength(workoutId, exercises)
-    if (saved.error) { setBusy(false); window.alert(saved.error); return }
+    if (saved.error) { setBusy(false); void xpAlert(saved.error); return }
     const res = await finishLiveSession(workoutId, Math.round(elapsedSec))
-    if (res.error) { setBusy(false); window.alert(res.error); return }
+    if (res.error) { setBusy(false); void xpAlert(res.error); return }
     router.push('/app/dagbok')
   }
   const cancel = async () => {
     if (busy) return
-    if (!window.confirm('Avbryte økt-modus? Loggede sett beholdes, men økten markeres ikke som fullført.')) return
+    if (!await xpConfirm('Avbryte økt-modus? Loggede sett beholdes, men økten markeres ikke som fullført.')) return
     setBusy(true)
     await saveLiveStrength(workoutId, exercises).catch(() => {})
     await cancelLiveSession(workoutId).catch(() => {})

@@ -18,6 +18,7 @@ import {
 } from '@/app/actions/strava-sync'
 import { uploadFitFile } from '@/app/actions/fit-upload'
 import { ConflictModal } from './ConflictModal'
+import { xpAlert } from '@/components/ui/ConfirmDialog'
 
 interface StravaConn {
   athlete_id: number
@@ -169,7 +170,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   const handleSync = () => {
     startTransition(async () => {
       const res = await listSyncableActivities(syncMode)
-      if ('error' in res) { alert(res.error); return }
+      if ('error' in res) { void xpAlert(res.error); return }
       setPreviewList(res.activities)
     })
   }
@@ -178,7 +179,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
     if (!previewList) return
     const todo = previewList.filter(a => !a.already_imported && !a.conflict_workout_id)
     if (todo.length === 0) {
-      alert('Ingen aktiviteter å importere automatisk (alle har konflikt eller er importert tidligere).')
+      void xpAlert('Ingen aktiviteter å importere automatisk (alle har konflikt eller er importert tidligere).')
       return
     }
     setProgress({ done: 0, total: todo.length })

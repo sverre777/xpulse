@@ -8,6 +8,7 @@ import type { PlanTemplate } from '@/lib/template-types'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 import { PlanMalEditModal } from '@/components/coach/PlanMalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
+import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -89,16 +90,16 @@ export function PlanMalTab({ initialTemplates, primarySport, workoutTemplates }:
                 setPendingId(t.id)
                 startTransition(async () => {
                   const r = await duplicatePlanTemplate(t.id)
-                  if (r.error) window.alert(r.error); else router.refresh()
+                  if (r.error) void xpAlert(r.error); else router.refresh()
                   setPendingId(null)
                 })
               }}
-              onDelete={() => {
-                if (!window.confirm(`Slett plan-mal "${t.name}"?`)) return
+              onDelete={async () => {
+                if (!await xpConfirm(`Slett plan-mal "${t.name}"?`)) return
                 setPendingId(t.id)
                 startTransition(async () => {
                   const r = await deletePlanTemplate(t.id)
-                  if (r.error) window.alert(r.error); else router.refresh()
+                  if (r.error) void xpAlert(r.error); else router.refresh()
                   setPendingId(null)
                 })
               }}

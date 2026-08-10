@@ -22,9 +22,12 @@ export default function VilkarPage() {
         treningen og dele data med trener.
       </LegalP>
       <LegalP>
-        <strong>Beta:</strong> tjenesten er for tiden i beta. Det kan forekomme feil,
-        nedetid og endringer i funksjonalitet. Ikke bruk tjenesten som eneste lagring av
-        kritiske data — ta egne sikkerhetskopier.
+        <strong>Aktiv utvikling:</strong> tjenesten er i aktiv utvikling. Vi jobber
+        kontinuerlig med nye funksjoner og forbedringer, og det kan forekomme feil,
+        nedetid eller endringer i funksjonalitet. Ikke bruk tjenesten som eneste lagring
+        av kritiske data — ta egne sikkerhetskopier. Opplever du feil, eller ønsker du
+        funksjoner tilpasset din idrett, setter vi stor pris på at du sender oss en
+        beskjed på support@x-pulse.no.
       </LegalP>
 
       <LegalH2>2. Konto og ansvar</LegalH2>

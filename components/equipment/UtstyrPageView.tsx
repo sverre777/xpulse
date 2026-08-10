@@ -8,6 +8,7 @@ import {
   CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import { saveEquipment } from '@/app/actions/equipment'
+import { parseDecimal } from '@/lib/parse-decimal'
 import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_LABELS,
@@ -269,7 +270,7 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
         model: form.model,
         sport: form.sport,
         purchase_date: form.purchase_date || null,
-        price_kr: form.price_kr ? parseFloat(form.price_kr) : null,
+        price_kr: form.price_kr ? parseDecimal(form.price_kr) : null,
         notes: form.notes,
       })
       if (result.error) { setError(result.error); return }

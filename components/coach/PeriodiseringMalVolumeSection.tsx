@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
 import { addMonths, formatNorskMaaned } from '@/lib/template-dates'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -114,7 +115,7 @@ function NumField({
         onChange={e => {
           const v = e.target.value
           if (v === '') { onChange(null); return }
-          const n = parseFloat(v)
+          const n = parseDecimal(v)
           onChange(Number.isFinite(n) && n >= 0 ? n : null)
         }}
         style={iSt}

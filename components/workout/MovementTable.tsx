@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from 'react'
 import { MovementRow, ZoneRow, ExerciseRow, MOVEMENT_CATEGORIES, INTENSITY_ZONES, getSubcategories } from '@/lib/types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 interface MovementTableProps {
   rows: MovementRow[]
@@ -22,8 +23,8 @@ function zoneTotalMinutes(zones: { minutes: string }[] | undefined): number {
 }
 
 function formatPace(minutes: string, km: string): string | null {
-  const m = parseFloat(minutes)
-  const k = parseFloat(km)
+  const m = parseDecimal(minutes)
+  const k = parseDecimal(km)
   if (!m || !k || k === 0) return null
   const secPerKm = (m * 60) / k
   const min = Math.floor(secPerKm / 60)
@@ -32,8 +33,8 @@ function formatPace(minutes: string, km: string): string | null {
 }
 
 function formatSpeed(minutes: string, km: string): string | null {
-  const m = parseFloat(minutes)
-  const k = parseFloat(km)
+  const m = parseDecimal(minutes)
+  const k = parseDecimal(km)
   if (!m || !k || m === 0) return null
   const kmh = (k / m) * 60
   return `${kmh.toFixed(1)} km/t`
@@ -221,7 +222,7 @@ export function MovementTable({ rows, onChange, defaultMovements = [] }: Movemen
   const selSt: React.CSSProperties = { ...iSt, cursor: 'pointer' }
 
   const totalMin  = rows.reduce((s, r) => s + (parseInt(r.minutes) || 0), 0)
-  const totalKm   = rows.reduce((s, r) => s + (parseFloat(r.distance_km) || 0), 0)
+  const totalKm   = rows.reduce((s, r) => s + (parseDecimal(r.distance_km) || 0), 0)
   const totalElev = rows.reduce((s, r) => s + (parseInt(r.elevation_meters) || 0), 0)
 
   return (

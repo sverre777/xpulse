@@ -8,6 +8,7 @@ import {
   type LastSessionForExercise,
 } from '@/app/actions/strength-session'
 import { searchStandardExercises } from '@/lib/standard-exercises'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Live styrkeøkt-modus (Fase 80). Tynt lag oppå WorkoutFormData: redigerer
 // styrke-aktivitetens øvelser/sett live, autosaver via saveWorkout, og Fullfør =
@@ -155,7 +156,7 @@ export function LiveSessionView({
     let v = 0
     for (const ex of exercises) {
       for (const s of ex.sets) {
-        const r = parseFloat(s.reps), w = parseFloat(s.weight_kg)
+        const r = parseDecimal(s.reps), w = parseDecimal(s.weight_kg)
         if (!isNaN(r) && !isNaN(w)) v += r * w
       }
     }
@@ -413,7 +414,7 @@ function Stepper({ label, value, step, onChange }: {
   label: string; value: string; step: number; onChange: (v: string) => void
 }) {
   const bump = (d: number) => {
-    const cur = parseFloat(value)
+    const cur = parseDecimal(value)
     const base = isNaN(cur) ? 0 : cur
     const next = Math.max(0, Math.round((base + d * step) * 100) / 100)
     onChange(next === 0 && d < 0 ? '' : String(next))

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 export async function saveDailyHealth(data: {
   date: string
@@ -22,10 +23,10 @@ export async function saveDailyHealth(data: {
     user_id: resolved.userId,
     date: data.date,
     resting_hr: parseInt(data.resting_hr) || null,
-    hrv_ms: parseFloat(data.hrv_ms) || null,
-    sleep_hours: parseFloat(data.sleep_hours) || null,
+    hrv_ms: parseDecimal(data.hrv_ms) || null,
+    sleep_hours: parseDecimal(data.sleep_hours) || null,
     sleep_quality: data.sleep_quality,
-    body_weight_kg: parseFloat(data.body_weight_kg) || null,
+    body_weight_kg: parseDecimal(data.body_weight_kg) || null,
     notes: data.notes || null,
     updated_at: new Date().toISOString(),
   }

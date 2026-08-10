@@ -16,6 +16,7 @@ import {
   type PlanTemplatePushPreview,
 } from '@/app/actions/coach-push'
 import { addDays, formatNorskKortDato } from '@/lib/template-dates'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -258,7 +259,7 @@ function WorkoutPushForm({
       const res = await pushWorkoutToAthlete({
         athleteId, date, title: title.trim(), sport, workoutType,
         durationMinutes: durationMinutes ? parseInt(durationMinutes) : null,
-        distanceKm: distanceKm ? parseFloat(distanceKm) : null,
+        distanceKm: distanceKm ? parseDecimal(distanceKm) : null,
       })
       if (res.error) { onError(res.error); return }
       onDone(`Økt sendt til utøver (${date})`)

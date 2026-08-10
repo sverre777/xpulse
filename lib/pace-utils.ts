@@ -53,13 +53,13 @@ export function parsePaceInput(text: string, unit: PaceUnit): number | null {
   if (!trimmed) return null
 
   if (unit === 'km_per_h') {
-    const v = parseFloat(trimmed)
+    const v = parseDecimal(trimmed)
     if (!Number.isFinite(v) || v <= 0) return null
     return kmPerHourToSecondsPerKm(v)
   }
 
   if (trimmed.includes(':')) {
-    const parts = trimmed.split(':').map(p => parseFloat(p))
+    const parts = trimmed.split(':').map(p => parseDecimal(p))
     if (parts.some(p => !Number.isFinite(p) || p < 0)) return null
     let sec = 0
     if (parts.length === 2) sec = parts[0]! * 60 + parts[1]!
@@ -69,7 +69,7 @@ export function parsePaceInput(text: string, unit: PaceUnit): number | null {
   }
 
   // Heltall/desimal uten kolon: tolkes som sekunder direkte.
-  const v = parseFloat(trimmed)
+  const v = parseDecimal(trimmed)
   if (!Number.isFinite(v) || v <= 0) return null
   return v
 }
@@ -118,6 +118,7 @@ export function bestSplit(splits: SplitEntry[]): SplitEntry | null {
 // Holdt her i pace-utils — ikke i en client-component-fil — slik at server actions
 // trygt kan importere disse.
 import type { SplitRow } from './types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 export function serializeSplits(rows: SplitRow[]): SplitEntry[] | null {
   if (!rows || rows.length === 0) return null
@@ -155,13 +156,13 @@ function parseSplitDuration(text: string): number {
   const trimmed = text.trim()
   if (!trimmed) return 0
   if (trimmed.includes(':')) {
-    const parts = trimmed.split(':').map(p => parseFloat(p))
+    const parts = trimmed.split(':').map(p => parseDecimal(p))
     if (parts.some(p => !Number.isFinite(p) || p < 0)) return 0
     if (parts.length === 2) return parts[0]! * 60 + parts[1]!
     if (parts.length === 3) return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!
     return 0
   }
-  const v = parseFloat(trimmed.replace(',', '.'))
+  const v = parseDecimal(trimmed.replace(',', '.'))
   return Number.isFinite(v) && v > 0 ? v : 0
 }
 

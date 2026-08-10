@@ -15,6 +15,7 @@ import {
   formatPace, paceFromDistanceDuration, type PaceUnit,
 } from '@/lib/pace-utils'
 import { resolvePaceUnit } from '@/components/pace/PaceDisplay'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 interface Props {
   activities: ActivityRow[]
@@ -102,7 +103,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
 
       // Laktat — samle alle målinger
       for (const m of a.lactate_measurements ?? []) {
-        const v = parseFloat(m.value_mmol)
+        const v = parseDecimal(m.value_mmol)
         if (Number.isFinite(v) && v > 0) {
           lactateCount += 1
           if (lactateMax == null || v > lactateMax) lactateMax = v
@@ -119,11 +120,11 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
       } else {
         // Totaltid + distanse (pauser OG skyting ekskludert)
         totalSeconds += durSec
-        const kmTrain = parseFloat(a.distance_km)
+        const kmTrain = parseDecimal(a.distance_km)
         if (Number.isFinite(kmTrain) && kmTrain > 0) totalMeters += kmTrain * 1000
       }
 
-      const km = parseFloat(a.distance_km)
+      const km = parseDecimal(a.distance_km)
       // Bevegelsesform-fordeling
       const label = meta?.isShooting
         ? 'Skyting'

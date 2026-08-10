@@ -16,6 +16,7 @@ import {
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Serialiser sone-tid til jsonb-format. Lagres som SEKUNDER fra phase 64
 // (tidligere heltall-minutter). Input fra UI er MM:SS-string (eller "60" =
@@ -191,7 +192,7 @@ async function learnUserExercises(
       for (let i = ex.sets.length - 1; i >= 0; i--) {
         const s = ex.sets[i]
         const r = parseInt(s.reps)
-        const w = parseFloat(s.weight_kg)
+        const w = parseDecimal(s.weight_kg)
         if (Number.isFinite(r) || Number.isFinite(w)) {
           defaultReps = Number.isFinite(r) ? r : null
           defaultWeight = Number.isFinite(w) ? w : null
@@ -252,7 +253,7 @@ async function insertActivitiesWithChildren(
 
   const activityRows = activities.map((a, ai) => {
     const durSec = parseActivityDuration(a.duration) ?? 0
-    const km = parseFloat(a.distance_km)
+    const km = parseDecimal(a.distance_km)
     return {
       workout_id: workoutId,
       activity_type: a.activity_type,
@@ -278,14 +279,14 @@ async function insertActivitiesWithChildren(
       elevation_gain_m: parseInt(a.elevation_gain_m) || null,
       elevation_loss_m: parseInt(a.elevation_loss_m) || null,
       incline_percent: (() => {
-        const v = parseFloat(a.incline_percent)
+        const v = parseDecimal(a.incline_percent)
         return Number.isFinite(v) ? v : null
       })(),
-      pack_weight_kg: parseFloat(a.pack_weight_kg) || null,
-      sled_weight_kg: parseFloat(a.sled_weight_kg) || null,
+      pack_weight_kg: parseDecimal(a.pack_weight_kg) || null,
+      sled_weight_kg: parseDecimal(a.sled_weight_kg) || null,
       weather: a.weather || null,
       temperature_c: (() => {
-        const v = parseFloat(a.temperature_c)
+        const v = parseDecimal(a.temperature_c)
         return Number.isFinite(v) ? v : null
       })(),
       zones: serializeZones(a.zones),
@@ -336,7 +337,7 @@ async function insertActivitiesWithChildren(
       if (!exerciseId) continue
       for (const [si, s] of ex.sets.entries()) {
         const reps = parseInt(s.reps)
-        const weight = parseFloat(s.weight_kg)
+        const weight = parseDecimal(s.weight_kg)
         const rpe = parseInt(s.rpe)
         // Tid aksepterer både "90" og "1:30" — parser til total sekunder.
         // Gjenbruker shooting-duration sin parser for konsistens.
@@ -373,7 +374,7 @@ async function insertActivitiesWithChildren(
     const activityId = idBySortOrder.get(ai)
     if (!activityId) continue
     const measurements = (a.lactate_measurements ?? [])
-      .map(m => ({ ...m, parsed: parseFloat(m.value_mmol) }))
+      .map(m => ({ ...m, parsed: parseDecimal(m.value_mmol) }))
       .filter(m => Number.isFinite(m.parsed) && m.parsed > 0)
     for (const [mi, m] of measurements.entries()) {
       lactateRows.push({
@@ -483,7 +484,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   if ('error' in resolved) return { error: resolved.error }
 
   const movementMinutes = data.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
-  const movementKm      = data.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
+  const movementKm      = data.movements.reduce((s, m) => s + (parseDecimal(m.distance_km) || 0), 0)
   const totalElev       = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
   // Hurtigføring (simple_duration_minutes/simple_distance_km) er fjernet.
   // Aktivitets-summen er nå primær kilde — fallback til movements-aggregatet for
@@ -525,7 +526,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     .map(m => ({
       movement_name: m.movement_name,
       minutes: parseInt(m.minutes) || null,
-      distance_km: parseFloat(m.distance_km) || null,
+      distance_km: parseDecimal(m.distance_km) || null,
     }))
 
   // Plan-save: brukeren redigerer planen (Plan-modal, ikke gjennomført ennå).
@@ -666,7 +667,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   const isCompetitionWorkout = data.workout_type === 'competition' || data.workout_type === 'testlop'
   const isTestWorkout = data.workout_type === 'test'
-  const lactate = data.lactate.filter(l => l.mmol && parseFloat(l.mmol) > 0)
+  const lactate = data.lactate.filter(l => l.mmol && parseDecimal(l.mmol) > 0)
 
   const childOps: Promise<string | null>[] = []
 
@@ -678,7 +679,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
           workout_id: savedId,
           movement_name: m.movement_name,
           minutes: parseInt(m.minutes) || null,
-          distance_km: parseFloat(m.distance_km) || null,
+          distance_km: parseDecimal(m.distance_km) || null,
           elevation_meters: parseInt(m.elevation_meters) || null,
           avg_heart_rate: parseInt(m.avg_heart_rate) || null,
           inline_zones: (m.zones ?? []).filter(z => parseInt(z.minutes) > 0).map(z => ({
@@ -688,7 +689,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
             exercise_name: e.exercise_name,
             sets: parseInt(e.sets) || null,
             reps: parseInt(e.reps) || null,
-            weight_kg: parseFloat(e.weight_kg) || null,
+            weight_kg: parseDecimal(e.weight_kg) || null,
           })),
           sort_order: i,
         }))
@@ -756,7 +757,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
         subcategory: td.subcategory || null,
         custom_label: td.custom_label || null,
         test_type: derivedTestType,
-        primary_result: primary ? parseFloat(primary.replace(',', '.')) : null,
+        primary_result: primary ? parseDecimal(primary.replace(',', '.')) : null,
         primary_unit: td.primary_unit || null,
         secondary_results: td.secondary_results ?? {},
         protocol_notes: td.protocol_notes || null,
@@ -778,7 +779,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     )
     if (hasContent && w) {
       const tempStr = w.temperature.trim().replace(',', '.')
-      const temp = tempStr !== '' && Number.isFinite(parseFloat(tempStr)) ? parseFloat(tempStr) : null
+      const temp = tempStr !== '' && Number.isFinite(parseDecimal(tempStr)) ? parseDecimal(tempStr) : null
       const { error } = await supabase.from('workout_weather').upsert({
         workout_id: savedId!,
         user_id: resolved.userId,
@@ -811,7 +812,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
         lactate.map((l, i) => ({
           workout_id: savedId,
           measured_at_time: l.measured_at_time || null,
-          mmol: parseFloat(l.mmol),
+          mmol: parseDecimal(l.mmol),
           heart_rate: parseInt(l.heart_rate) || null,
           feeling: l.feeling,
           sort_order: i,

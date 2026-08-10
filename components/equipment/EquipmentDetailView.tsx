@@ -25,6 +25,7 @@ import {
 import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
 import type { SkiEquipment } from '@/lib/equipment-types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -76,7 +77,7 @@ export function EquipmentDetailView({
         model: form.model,
         sport: form.sport,
         purchase_date: form.purchase_date || null,
-        price_kr: form.price_kr ? parseFloat(form.price_kr) : null,
+        price_kr: form.price_kr ? parseDecimal(form.price_kr) : null,
         status: form.status,
         notes: form.notes,
       })

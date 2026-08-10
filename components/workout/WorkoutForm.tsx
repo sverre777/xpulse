@@ -31,6 +31,7 @@ import { NutritionSection } from './NutritionSection'
 import { WeatherSection, weatherSummaryLine } from './WeatherSection'
 import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSelectorInWorkout'
 import { HeartZone } from '@/lib/heart-zones'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
 // felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
@@ -1186,7 +1187,7 @@ function SaveAsTemplateModal({
 
 function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
   const totalMinutes = plan.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
-  const totalKm = plan.movements.reduce((s, m) => s + (parseFloat(m.distance_km) || 0), 0)
+  const totalKm = plan.movements.reduce((s, m) => s + (parseDecimal(m.distance_km) || 0), 0)
   const zoneTotals: Record<string, number> = {}
   for (const m of plan.movements) {
     for (const z of m.zones ?? []) {

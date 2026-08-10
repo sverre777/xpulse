@@ -6,6 +6,7 @@ import {
   createUserExerciseManual, updateUserExercise, deleteUserExercise,
 } from '@/app/actions/user-exercises'
 import type { UserExercise } from '@/lib/user-exercise-types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 interface Props {
   initial: UserExercise[]
@@ -222,7 +223,7 @@ function ExerciseForm({
     return Number.isFinite(v) && v > 0 ? v : null
   }
   const parseWeight = () => {
-    const v = parseFloat(defaultWeight)
+    const v = parseDecimal(defaultWeight)
     return Number.isFinite(v) && v >= 0 ? v : null
   }
 

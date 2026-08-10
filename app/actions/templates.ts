@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { ActivityRow, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Mal-server-actions (fase 14). Se phase14_templates_tagging.sql.
 // Eksisterende saveTemplate/getTemplates/useTemplate/deleteTemplate i
@@ -252,7 +253,7 @@ export async function materializeOktmalAtDate(
   if (activities.length > 0) {
     const activityRows = activities.map((a, ai) => {
       const durSec = parseInt(a.duration) || 0
-      const km = parseFloat(a.distance_km)
+      const km = parseDecimal(a.distance_km)
       return {
         workout_id: workout.id,
         activity_type: a.activity_type,

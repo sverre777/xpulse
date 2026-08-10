@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { ActivityRow } from '@/lib/types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Delt logikk for å materialisere en aktivitets-liste (string-baserte
 // ActivityRow fra mal-/skjema-data) til hele DB-treet under en workout:
@@ -20,7 +21,7 @@ export function parseIntOrNull(s: string | null | undefined): number | null {
 
 export function parseFloatOrNull(s: string | null | undefined): number | null {
   if (!s) return null
-  const n = parseFloat(s)
+  const n = parseDecimal(s)
   return Number.isFinite(n) ? n : null
 }
 

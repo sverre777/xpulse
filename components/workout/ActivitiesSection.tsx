@@ -26,6 +26,7 @@ import {
   getUserMovementTypes, createUserMovementType,
   type UserMovementType, type UserMovementTypeKind,
 } from '@/app/actions/user-movement-types'
+import { parseDecimal } from '@/lib/parse-decimal'
 import {
   resolveMovementKind, isEnduranceFor, isStrengthFor, isTurFor,
   subcategoriesFor,
@@ -1304,8 +1305,8 @@ function TurFields({
   onUpdate: (patch: Partial<ActivityRow>) => void
 }) {
   const showSled = TUR_SUBCATEGORIES_WITH_SLED.has(row.movement_subcategory)
-  const pack = parseFloat(row.pack_weight_kg)
-  const sled = parseFloat(row.sled_weight_kg)
+  const pack = parseDecimal(row.pack_weight_kg)
+  const sled = parseDecimal(row.sled_weight_kg)
   const total =
     (Number.isFinite(pack) ? pack : 0) +
     (showSled && Number.isFinite(sled) ? sled : 0)
@@ -1710,7 +1711,7 @@ function PaceField({
   const unit = resolvePaceUnit(row.pace_unit_preference, defaultPaceUnit)
 
   // Auto-forslag: distance × duration → s/km. Tomme felt ⇒ ingen forslag.
-  const km = parseFloat(row.distance_km)
+  const km = parseDecimal(row.distance_km)
   const durSec = parseActivityDuration(row.duration) ?? 0
   const computed = paceFromDistanceDuration(km, durSec)
   const computedRounded = computed != null ? Math.round(computed) : null

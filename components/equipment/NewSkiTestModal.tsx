@@ -9,6 +9,7 @@ import {
   type UserConditionsTemplate,
 } from '@/lib/ski-test-types'
 import type { SkiEquipment } from '@/lib/equipment-types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -94,8 +95,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
       const result = await saveSkiTest({
         test_date: test.test_date,
         location: test.location || null,
-        air_temp: test.air_temp ? parseFloat(test.air_temp) : null,
-        snow_temp: test.snow_temp ? parseFloat(test.snow_temp) : null,
+        air_temp: test.air_temp ? parseDecimal(test.air_temp) : null,
+        snow_temp: test.snow_temp ? parseDecimal(test.snow_temp) : null,
         snow_type: test.snow_type || null,
         conditions: test.conditions || null,
         notes: test.notes || null,

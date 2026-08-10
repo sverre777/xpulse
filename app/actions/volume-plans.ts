@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 export interface MonthlyVolumePlan {
   id: string
@@ -24,7 +25,7 @@ export interface VolumePlanInput {
 
 function parseNum(v: string | number | null | undefined): number | null {
   if (v === null || v === undefined || v === '') return null
-  const n = typeof v === 'number' ? v : parseFloat(v)
+  const n = typeof v === 'number' ? v : parseDecimal(v)
   return Number.isFinite(n) ? n : null
 }
 

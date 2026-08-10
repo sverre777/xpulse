@@ -1,4 +1,5 @@
 import type { NutritionEntryRow } from './types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Aggregeringer for ernærings-visning. Sync-funksjoner — kan kalles fra
 // både client- og server-komponenter. Holdes utenfor 'use server'-filen
@@ -19,7 +20,7 @@ function parseNumOrNull(s: string): number | null {
   if (!s) return null
   const t = s.replace(',', '.').trim()
   if (t === '') return null
-  const n = parseFloat(t)
+  const n = parseDecimal(t)
   return Number.isFinite(n) ? n : null
 }
 

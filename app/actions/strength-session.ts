@@ -6,6 +6,7 @@ import { resolveTargetUser } from '@/lib/target-user'
 import { getAuthUser } from '@/lib/auth'
 import { parseDurationToSeconds } from '@/lib/shooting-duration'
 import type { StrengthExerciseRow, ActivityRow } from '@/lib/types'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 // Fase 80: forrige-økt-oppslag for styrkeøvelser. Øvelser nøkles på fritekst-
 // navn (lower(trim)), så «sist» hentes uavhengig av hvilken økt/sport øvelsen
@@ -249,7 +250,7 @@ export async function saveLiveStrength(
     if (exErr || !insEx) return { error: exErr?.message ?? 'Feil ved lagring av øvelse' }
 
     const setRows = ex.sets.map((s, si) => {
-      const reps = parseInt(s.reps), weight = parseFloat(s.weight_kg), rpe = parseInt(s.rpe)
+      const reps = parseInt(s.reps), weight = parseDecimal(s.weight_kg), rpe = parseInt(s.rpe)
       const duration = parseDurationToSeconds(s.duration)
       if (!Number.isFinite(reps) && !Number.isFinite(weight) && duration === null && !Number.isFinite(rpe) && !s.notes) return null
       return {

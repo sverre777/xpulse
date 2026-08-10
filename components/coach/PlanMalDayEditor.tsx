@@ -5,6 +5,7 @@ import { WorkoutForm } from '@/components/workout/WorkoutForm'
 import type { Sport, WorkoutFormData, WorkoutTemplate, ActivityRow } from '@/lib/types'
 import type { PlanTemplateWorkout, PlanTemplateDayState } from '@/lib/template-types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -342,7 +343,7 @@ function parseIntOrNull(s: string | null | undefined): number | null {
 }
 function parseFloatOrNull(s: string | null | undefined): number | null {
   if (!s) return null
-  const n = parseFloat(s)
+  const n = parseDecimal(s)
   return Number.isFinite(n) ? n : null
 }
 

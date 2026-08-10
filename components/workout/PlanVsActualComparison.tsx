@@ -2,6 +2,7 @@
 
 import { ActivityRow, findActivityType } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
+import { parseDecimal } from '@/lib/parse-decimal'
 
 interface Props {
   plan: ActivityRow[]
@@ -47,7 +48,7 @@ function extras(a: ActivityRow): string[] {
   if (a.avg_heart_rate) out.push(`${a.avg_heart_rate} bpm`)
   if (a.distance_km) out.push(`${a.distance_km} km`)
   const lactate = (a.lactate_measurements ?? [])
-    .map(m => parseFloat(m.value_mmol))
+    .map(m => parseDecimal(m.value_mmol))
     .filter(v => Number.isFinite(v) && v > 0)
   if (lactate.length > 0) {
     out.push(`Laktat: ${lactate.map(v => v.toFixed(1)).join(', ')}`)

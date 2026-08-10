@@ -123,7 +123,7 @@ export function MainNav({
                 padding: '1px 6px',
               }}
             >
-              Beta 2.0
+              v1.0
             </span>
           </Link>
           <button
@@ -198,7 +198,7 @@ export function MainNav({
               padding: '1px 6px',
             }}
           >
-            Beta 2.0
+            v1.0
           </span>
         </Link>
 
@@ -330,7 +330,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               padding: '1px 6px',
             }}
           >
-            Beta 2.0
+            v1.0
           </span>
         </div>
         <button

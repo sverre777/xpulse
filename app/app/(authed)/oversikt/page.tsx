@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
 import { getOversiktDashboard } from '@/app/actions/oversikt'
 import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
@@ -68,6 +69,8 @@ export default async function OversiktPage() {
   ])
 
   if ('error' in res) {
+    // Død/utløpt sesjon: send til innlogging i stedet for feilboks.
+    if (res.error === 'Ikke innlogget') redirect('/app')
     return (
       <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
         <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">

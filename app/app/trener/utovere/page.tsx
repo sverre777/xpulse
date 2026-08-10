@@ -1,4 +1,5 @@
 import { getCoachUtovere } from '@/app/actions/coach-utovere'
+import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
 import { UtovereGrid } from '@/components/coach/UtovereGrid'
 
@@ -9,6 +10,8 @@ export default async function CoachUtoverePage() {
   const res = await getCoachUtovere()
 
   if ('error' in res) {
+    // Død/utløpt sesjon: send til innlogging i stedet for feilboks.
+    if (res.error === 'Ikke innlogget') redirect('/app')
     return (
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <LoadError what="utøverne" detail={res.error} />

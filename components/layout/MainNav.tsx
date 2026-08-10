@@ -126,6 +126,24 @@ export function MainNav({
               v1.0
             </span>
           </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {activeRole === 'athlete' && (
+              <Link
+                href={logHref}
+                aria-label={logLabel}
+                title={logLabel}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '38px', height: '38px',
+                  backgroundColor: accent, color: '#F0F0F2',
+                  textDecoration: 'none',
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600, fontSize: '24px', lineHeight: 1,
+                }}
+              >
+                +
+              </Link>
+            )}
           <button
             type="button"
             onClick={() => setMenuOpen(o => !o)}
@@ -140,6 +158,7 @@ export function MainNav({
           >
             <HamburgerIcon open={menuOpen} />
           </button>
+          </div>
         </nav>
 
         {menuOpen && (

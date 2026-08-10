@@ -367,3 +367,45 @@ export async function getActiveLiveSession(): Promise<ActiveLiveSession | null> 
     live_started_at: data.live_started_at as string,
   }
 }
+
+// Hurtigstart fra hjem-siden: opprett en tom styrkeøkt for i dag, merk den
+// som i gang, og la live-visningen ta resten (øvelser legges til der — tom
+// økt er trygt pga. tom-liste-guarden i saveLiveStrength). Kun selv-kontekst:
+// trener-modus har ingen slik inngang.
+export async function startQuickStrengthSession(): Promise<{ workoutId?: string; error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, undefined, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const d = new Date()
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+  const { data: profile } = await supabase
+    .from('profiles').select('primary_sport').eq('id', resolved.userId).single()
+
+  const { data: inserted, error } = await supabase
+    .from('workouts')
+    .insert({
+      user_id: resolved.userId,
+      title: 'Styrkeøkt',
+      sport: profile?.primary_sport ?? 'running',
+      workout_type: 'strength',
+      date,
+      is_planned: false,
+      is_completed: false,
+      live_started_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single()
+  if (error || !inserted) return { error: error?.message ?? 'Kunne ikke opprette økten' }
+
+  // Styrke-aktiviteten opprettes med en gang så økten er merket som styrke i
+  // dagboken selv før første autosave fra live-visningen.
+  await supabase.from('workout_activities').insert({
+    workout_id: inserted.id, activity_type: 'aktivitet', movement_name: 'Styrke', sort_order: 0,
+  })
+
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/oversikt')
+  return { workoutId: inserted.id as string }
+}

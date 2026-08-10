@@ -484,7 +484,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           er fullført. Lagrer skjemaet først, så åpnes økt-modus. Fullfør der =
           marker som fullført. ── */}
       {workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
-        && !readOnly && !form.is_completed && isStrengthWorkout && (
+        && !readOnly && form.is_planned && !form.is_completed && isStrengthWorkout && (
         <button type="button" onClick={startLiveFlow} disabled={startingLive}
           className="w-full mb-4 transition-opacity hover:opacity-90"
           style={{

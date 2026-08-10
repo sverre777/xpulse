@@ -1001,7 +1001,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const notes = (w.notes ?? '').trim()
                           const dayIdx = orderedIds.indexOf(w.id)
                           const showArrows = canReorder
-                          const isStrengthRow = !readOnly && !w.is_completed
+                          // Kun PLANLAGTE styrkeøkter: en ført dagbok-økt er
+                          // allerede gjennomført — å «starte» den gir ikke mening.
+                          const isStrengthRow = !readOnly && w.is_planned && !w.is_completed
                             && (w.workout_type === 'strength' || w.primary_movement === 'Styrke')
                           return (
                             <div key={w.id}>

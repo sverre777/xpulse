@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useActionState, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { switchActiveRole } from '@/app/actions/roles'
 import type { Role } from '@/lib/types'
 import { RoleActivationModal } from './RoleActivationModal'
@@ -179,14 +178,17 @@ function RoleMenuItem({
   onPick: () => void
 }) {
   const [state, formAction, pending] = useActionState(switchActiveRole, {})
-  const router = useRouter()
 
   useEffect(() => {
     if (state?.redirectTo) {
-      router.push(state.redirectTo)
-      router.refresh()
+      // HARD navigasjon med vilje: router.push kan konsumere en prefetch av
+      // /app/trener som ble cachet FØR rollebyttet (CoachLayout redirect'et
+      // da tilbake til utøver-flaten — forgiftet cache). Full sidelast omgår
+      // router-cachen helt og lar middleware se fersk rolle. Rollebytte er
+      // sjeldent nok til at en reload er riktig pris.
+      window.location.assign(state.redirectTo)
     }
-  }, [state, router])
+  }, [state])
 
   return (
     <form

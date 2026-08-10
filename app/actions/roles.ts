@@ -4,14 +4,27 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasCoachTier } from '@/lib/subscriptions'
-import { SUB_CACHE_COOKIE } from '@/lib/supabase/middleware'
+import { SUB_CACHE_COOKIE, makeSubCacheToken } from '@/lib/supabase/middleware'
 import type { Role } from '@/lib/types'
 
 // Middleware cacher subscription/rolle kort i en signert cookie. Ved
-// rollebytte MÅ den slettes, ellers kan middleware redirecte på stale rolle
-// i opptil 60s (f.eks. athlete-rute → /app/trener etter bytte til utøver).
-async function clearSubCacheCookie() {
-  (await cookies()).delete(SUB_CACHE_COOKIE)
+// rollebytte skrives cookien med den NYE rollen (ikke bare slettes): en ren
+// sletting kan tapes i race mot andre responser, og da redirecter middleware
+// på stale rolle i opptil 60s (blå utøver-flate-regresjonen). Med fersk
+// signert rolle ser middleware riktig tilstand umiddelbart. Uten HMAC-secret
+// er caching av — da holder sletting.
+async function writeRoleToSubCache(uid: string, coach: boolean, role: Role) {
+  const store = await cookies()
+  const token = await makeSubCacheToken(uid, coach, role)
+  if (token) {
+    store.set(SUB_CACHE_COOKIE, token.value, {
+      httpOnly: true, sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/', maxAge: token.maxAge,
+    })
+  } else {
+    store.delete(SUB_CACHE_COOKIE)
+  }
 }
 
 export type RoleActionState = {
@@ -53,11 +66,10 @@ export async function switchActiveRole(
   // Uten dette kunne Athlete Pro-bruker med has_coach_role=true ende opp i
   // coach-modus uten å betale, og UI ville rendres med blå farger på utøver-
   // ruter (siden /app/trener er blokkert i middleware).
-  if (target === 'coach') {
-    const sub = await getActiveSubscription(supabase, user.id)
-    if (!hasCoachTier(sub)) {
-      return { error: 'Trener-modus krever Trener Basic eller Trener Pro. Bytt plan på /app/abonnement.' }
-    }
+  const sub = await getActiveSubscription(supabase, user.id)
+  const coachTier = hasCoachTier(sub)
+  if (target === 'coach' && !coachTier) {
+    return { error: 'Trener-modus krever Trener Basic eller Trener Pro. Bytt plan på /app/abonnement.' }
   }
 
   if (profile.active_role !== target) {
@@ -68,7 +80,7 @@ export async function switchActiveRole(
     if (error) return { error: error.message }
   }
 
-  await clearSubCacheCookie()
+  await writeRoleToSubCache(user.id, coachTier, target)
   revalidatePath('/', 'layout')
   return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }
@@ -96,7 +108,8 @@ export async function addRole(
   const { error } = await supabase.from('profiles').update(update).eq('id', user.id)
   if (error) return { error: error.message }
 
-  await clearSubCacheCookie()
+  const addSub = await getActiveSubscription(supabase, user.id)
+  await writeRoleToSubCache(user.id, hasCoachTier(addSub), target)
   revalidatePath('/', 'layout')
   return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
 }

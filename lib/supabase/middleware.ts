@@ -89,6 +89,21 @@ async function signSubCache(v: SubCache): Promise<string | null> {
   return `${payload}.${sig}`
 }
 
+// Brukes av rollebytte-actionen (app/actions/roles.ts) til å skrive FERSK
+// rolle i cache-cookien umiddelbart etter bytte — i stedet for bare å slette
+// den. Da kan ikke en stale «athlete»-rolle overleve i opptil 60s og blokkere
+// coach-redirecten (regresjonen fra 723ff9a-buggen). Null hvis secret mangler
+// (caching er da av og sletting holder).
+export async function makeSubCacheToken(
+  uid: string,
+  coach: boolean,
+  role: string,
+): Promise<{ value: string; maxAge: number } | null> {
+  const exp = Math.floor(Date.now() / 1000) + SUB_CACHE_TTL_S
+  const token = await signSubCache({ uid, coach, role, exp })
+  return token ? { value: token, maxAge: SUB_CACHE_TTL_S } : null
+}
+
 async function readSubCache(raw: string | undefined, uid: string, nowS: number): Promise<SubCache | null> {
   if (!raw) return null
   const keyP = getHmacKey()
@@ -239,6 +254,10 @@ export async function updateSession(request: NextRequest) {
   // Betalingsmur: sjekk subscription for /app/* (unntatt SUB_EXEMPT_PREFIXES).
   // Tier-gate /app/trener/*: krever Trener Basic eller Pro.
   if (isAppRoute && !isSubExempt(pathname)) {
+    // Server-action-POST-er (f.eks. rollebytte) muterer tilstanden cookien
+    // cacher. Skriv aldri cache-cookie på ikke-GET — actionens egen
+    // Set-Cookie skal være eneste kilde på slike responser. Lesing er OK.
+    const canWriteCache = request.method === 'GET'
     const nowS = Math.floor(Date.now() / 1000)
     const cached = await readSubCache(request.cookies.get(SUB_CACHE_COOKIE)?.value, user.id, nowS)
 
@@ -271,7 +290,7 @@ export async function updateSession(request: NextRequest) {
       coach = hasCoachTier(sub as ActiveSubscription)
       cachedRole = ''
       cacheExp = nowS + SUB_CACHE_TTL_S
-      const token = await signSubCache({ uid: user.id, coach, role: '', exp: cacheExp })
+      const token = canWriteCache ? await signSubCache({ uid: user.id, coach, role: '', exp: cacheExp }) : null
       if (token) {
         pendingCookies.push({
           name: SUB_CACHE_COOKIE,
@@ -310,7 +329,7 @@ export async function updateSession(request: NextRequest) {
           .eq('id', user.id)
           .maybeSingle(), MW_TIMEOUT_MS)
         activeRole = profile?.active_role ?? profile?.role ?? 'athlete'
-        const token = await signSubCache({ uid: user.id, coach: true, role: activeRole, exp: cacheExp })
+        const token = canWriteCache ? await signSubCache({ uid: user.id, coach: true, role: activeRole, exp: cacheExp }) : null
         if (token) {
           pendingCookies.push({
             name: SUB_CACHE_COOKIE,

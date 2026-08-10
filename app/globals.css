@@ -116,3 +116,18 @@ input::placeholder {
   transition: background-color 0.2s;
 }
 .landing-cta:hover { background: #cc3700; }
+
+/* Mobil-hint på brede tabeller med horisontal scroll — matcher forsiden. */
+@media (max-width: 767px) {
+  .xp-hscroll::after {
+    content: 'Bla horisontalt \2192';
+    display: block;
+    text-align: right;
+    padding: 6px 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #55555F;
+  }
+}

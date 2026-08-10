@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LoadError } from '@/components/ui/LoadError'
 import { getOversiktDashboard } from '@/app/actions/oversikt'
 import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
@@ -22,21 +23,6 @@ function rangeLast12Weeks(): DateRange {
   return { from: fmt(from), to: fmt(today), preset: 'custom' }
 }
 
-function ErrorBox({ message }: { message: string }) {
-  return (
-    <div className="p-4 mb-6"
-      style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-      <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
-        Kunne ikke laste oversikt
-      </p>
-      <pre className="whitespace-pre-wrap break-words"
-        style={{ fontFamily: 'ui-monospace, monospace', color: '#F0F0F2', fontSize: '13px' }}>
-        {message}
-      </pre>
-    </div>
-  )
-}
 
 function SectionHeader({ label }: { label: string }) {
   return (
@@ -85,7 +71,7 @@ export default async function OversiktPage() {
     return (
       <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
         <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
-          <ErrorBox message={res.error} />
+          <LoadError what="oversikten" detail={res.error} />
         </div>
       </div>
     )

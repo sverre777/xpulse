@@ -619,7 +619,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '0 0 10px' }}>
         {rows.length} {rows.length === 1 ? 'gjennomføring' : 'gjennomføringer'} — vurder form vs forhold (vær/føre).
       </p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto xp-hscroll">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -664,7 +664,7 @@ function ComparisonGrid({ workouts }: { workouts: ComparableWorkout[] }) {
 
   return (
     <div className="space-y-5">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto xp-hscroll">
         <div style={gridStyle}>
           {workouts.map(w => <WorkoutColumn key={w.id} workout={w} />)}
         </div>

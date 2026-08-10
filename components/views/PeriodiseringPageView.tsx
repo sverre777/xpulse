@@ -1,3 +1,4 @@
+import { LoadError } from '@/components/ui/LoadError'
 import {
   getSeasons, getSeasonCalendarData,
   type Season, type SeasonPeriod, type SeasonKeyDate, type PlannedWorkoutDot,
@@ -22,23 +23,6 @@ interface Props {
   searchParams?: { s?: string; view?: string }
 }
 
-function ErrorBox({ message }: { message: string }) {
-  return (
-    <div className="p-4 mb-6" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-      <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
-        Kunne ikke laste årsplan-data
-      </p>
-      <pre className="whitespace-pre-wrap break-words"
-        style={{ fontFamily: 'ui-monospace, monospace', color: '#F0F0F2', fontSize: '13px' }}>
-        {message}
-      </pre>
-      <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        Kjør migrasjonene supabase/phase10_seasons.sql og supabase/phase19_peak_target.sql hvis tabellene/kolonnene mangler.
-      </p>
-    </div>
-  )
-}
 
 function resolveView(v: string | undefined): CalendarView {
   if (v === 'måned' || v === 'maaned') return 'måned'
@@ -66,7 +50,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               Årsplan
             </h1>
           </div>
-          <ErrorBox message={seasonsResult.error} />
+          <LoadError what="årsplanen" detail={seasonsResult.error} />
         </div>
       </div>
     )
@@ -132,7 +116,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
           </div>
         </div>
 
-        {calendarError && <ErrorBox message={calendarError} />}
+        {calendarError && <LoadError what="årsplanen" detail={calendarError} />}
 
         {!activeSeason ? (
           <div className="p-12 text-center" style={{ border: '1px dashed #1E1E22' }}>

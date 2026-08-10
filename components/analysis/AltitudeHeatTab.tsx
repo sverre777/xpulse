@@ -47,7 +47,7 @@ export function AltitudeHeatTab({ data }: { data: AltitudeHeatAnalysis | null })
       {/* Varmeøkter */}
       <Section title="Varmetrening" hint="Kroppstemperatur + snittpuls per varmeøkt — følg akklimatisering over tid.">
         {data.heatWorkouts.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto xp-hscroll">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Barlow Condensed', sans-serif", minWidth: 420 }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #1E1E22' }}>

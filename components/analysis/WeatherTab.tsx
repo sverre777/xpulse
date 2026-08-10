@@ -73,7 +73,7 @@ export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
 function GroupTable({ groups, showPace = false }: { groups: WeatherGroupStat[]; showPace?: boolean }) {
   if (groups.length === 0) return <Empty>Ingen data ennå.</Empty>
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto xp-hscroll">
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Barlow Condensed', sans-serif", minWidth: 420 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid #1E1E22' }}>

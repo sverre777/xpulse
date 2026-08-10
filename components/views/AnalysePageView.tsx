@@ -1,4 +1,5 @@
 import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
+import { LoadError } from '@/components/ui/LoadError'
 import { getFavoriteCharts } from '@/app/actions/favorites'
 import { getCoachCanSeeHealthDataForAthlete } from '@/app/actions/coach-data-permissions'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
@@ -19,22 +20,7 @@ function ErrorPanel({ title, message, stack }: { title: string; message: string;
             Analyse — feil
           </h1>
         </div>
-        <div className="p-5" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-          <p className="text-xs tracking-widest uppercase mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>
-            {title}
-          </p>
-          <pre className="whitespace-pre-wrap break-words"
-            style={{ fontFamily: 'ui-monospace, monospace', color: '#F0F0F2', fontSize: '13px', marginBottom: stack ? 12 : 0 }}>
-            {message}
-          </pre>
-          {stack && (
-            <pre className="whitespace-pre-wrap break-words"
-              style={{ fontFamily: 'ui-monospace, monospace', color: '#8A8A96', fontSize: '12px' }}>
-              {stack}
-            </pre>
-          )}
-        </div>
+        <LoadError what="analysen" detail={[title, message, stack].filter(Boolean).join('\n\n')} />
       </div>
     </div>
   )

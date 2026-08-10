@@ -268,7 +268,7 @@ export function CompetitionsTab({
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
             Kommende planlagte ({data.upcomingPlanned.length})
           </p>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto xp-hscroll">
             <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               <thead>
                 <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
@@ -309,7 +309,7 @@ export function CompetitionsTab({
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
               Gjennomførte konkurranser i perioden ({rows.length})
             </p>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto xp-hscroll">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 <thead>
                   <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">

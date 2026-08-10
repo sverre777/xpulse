@@ -185,7 +185,7 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
           Fordeling per bevegelsesform
         </p>
       </div>
-      <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>

@@ -26,6 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="no" className="h-full">
+      <head>
+        {/* Preload av de to mest brukte fontfilene — resten hentes ved behov
+            via @font-face i globals.css (self-hostet, samme familienavn). */}
+        <link rel="preload" href="/fonts/barlow-condensed-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/bebas-neue-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
         {children}
         <CookieConsentBanner />

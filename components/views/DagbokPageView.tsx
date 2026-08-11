@@ -14,6 +14,7 @@ import { getDayStatesForRange } from '@/app/actions/day-states'
 import { ResumeSessionBanner } from '@/components/workout/ResumeSessionBanner'
 import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
   viewContext: ViewContext
@@ -112,6 +113,19 @@ export async function DagbokPageView({ viewContext }: Props) {
             {firstName}
           </h1>
         </div>
+
+        {!isCoachView && Object.values(workoutsByDate).every(w => w.length === 0) && (
+          <div className="mb-6">
+            <EmptyState
+              title="Ingen økter i denne måneden ennå"
+              body="Logg en økt manuelt, eller koble klokken — da kommer øktene inn av seg selv."
+              ctaLabel="+ Logg økt"
+              ctaHref={`/app/dagbok?new=${today}`}
+              secondaryLabel="Koble klokke"
+              secondaryHref="/app/innstillinger/klokkesync"
+            />
+          </div>
+        )}
 
         <div className="flex items-center gap-3 mb-4">
           <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />

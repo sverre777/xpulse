@@ -9,6 +9,7 @@ import {
 } from 'recharts'
 import { saveEquipment } from '@/app/actions/equipment'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { EmptyState } from '@/components/ui/EmptyState'
 import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_LABELS,
@@ -151,11 +152,20 @@ export function UtstyrPageView({ initialEquipment }: Props) {
         )}
 
         {filtered.length === 0 ? (
-          <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
-              Ingen utstyr matcher filtrene. Klikk «+ Nytt utstyr» for å starte.
-            </p>
-          </div>
+          initialEquipment.length === 0 ? (
+            <EmptyState
+              title="Ingen utstyr registrert"
+              body="Legg inn ski, sko, staver eller sykkel — X-PULSE teller kilometer per utstyr automatisk fra øktene dine."
+              ctaLabel="+ Nytt utstyr"
+              ctaOnClick={() => setShowNew(true)}
+            />
+          ) : (
+            <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+                Ingen utstyr matcher filtrene.
+              </p>
+            </div>
+          )
         ) : (
           EQUIPMENT_CATEGORIES.map(cat => {
             const items = grouped.get(cat) ?? []

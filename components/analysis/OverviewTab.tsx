@@ -14,6 +14,7 @@ import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
 import { PlanVsActualCard } from './PlanVsActualCard'
 import type { DateRange } from './date-range'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 // Palett for bevegelsesform-stack. Stabil rekkefølge via modulo.
 const MOVEMENT_PALETTE = [
@@ -62,11 +63,14 @@ const SPORT_LABELS: Record<string, string> = {
 }
 
 const EMPTY = (
-  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
-      Ingen økter logget i valgt periode. Prøv et annet intervall eller fjern sport-filter.
-    </p>
-  </div>
+  <EmptyState
+    title="Ingen økter i valgt periode"
+    body="Analysen våkner når det finnes økter — logg en økt, koble klokken, eller juster periode/sport-filteret over."
+    ctaLabel="+ Logg økt"
+    ctaHref="/app/dagbok"
+    secondaryLabel="Koble klokke"
+    secondaryHref="/app/innstillinger/klokkesync"
+  />
 )
 
 // Mini horisontal sone-bar (render inne i MetricCard).

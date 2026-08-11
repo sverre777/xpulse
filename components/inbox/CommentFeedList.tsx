@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { InboxCommentItem } from '@/app/actions/inbox'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const COACH_BLUE = '#1A6FD4'
 const ATHLETE_ORANGE = '#FF4500'
@@ -25,13 +26,7 @@ const CONTEXT_LABEL: Record<InboxCommentItem['context'], string> = {
 export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) {
   if (comments.length === 0) {
     return (
-      <p className="p-5 text-xs"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#13131A', border: '1px solid #1E1E22',
-        }}>
-        Ingen kommentarer ennå.
-      </p>
+      <EmptyState compact title="Ingen kommentarer ennå" body="Kommentarer på øktene dine dukker opp her, med lenke rett til økten." />
     )
   }
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import type { UtoverCard, UtoverStatus } from '@/app/actions/coach-utovere'
 import { SPORTS, type Sport } from '@/lib/types'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const COACH_BLUE = '#1A6FD4'
 
@@ -164,12 +165,20 @@ export function UtovereGrid({ athletes }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="px-4 py-6 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          {athletes.length === 0
-            ? 'Ingen utøvere koblet til ennå.'
-            : 'Ingen utøvere matcher filteret.'}
-        </p>
+        athletes.length === 0 ? (
+          <EmptyState
+            accent="#1A6FD4"
+            title="Ingen utøvere koblet ennå"
+            body="Utøveren lager en invitasjonskode i sin app (Innstillinger → Trener). Løs inn koden på trener-hjemmet, så dukker utøveren opp her."
+            ctaLabel="Løs inn invitasjonskode"
+            ctaHref="/app/trener"
+          />
+        ) : (
+          <p className="px-4 py-6 text-xs"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Ingen utøvere matcher filteret.
+          </p>
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filtered.map(a => <AthleteCard key={a.id} athlete={a} />)}

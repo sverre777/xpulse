@@ -9,6 +9,7 @@ import type { PlanTemplate } from '@/lib/template-types'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
@@ -333,10 +334,20 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
     kind === 'økt'
       ? 'Du har ingen økt-maler ennå. Lag en ved å trykke "Lagre som mal" nederst i en økt.'
       : 'Du har ingen plan-maler ennå. Lag en ved å trykke "Lagre som mal" i Plan-kalenderen.'
+  if (empty) {
+    return (
+      <EmptyState
+        title="Ingen maler ennå"
+        body={emptyText}
+        ctaLabel={kind === 'økt' ? 'Gå til dagboken' : 'Gå til planen'}
+        ctaHref={kind === 'økt' ? '/app/dagbok' : '/app/plan'}
+      />
+    )
+  }
   return (
     <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        {empty ? emptyText : 'Ingen maler matcher filtrene.'}
+        Ingen maler matcher filtrene.
       </p>
     </div>
   )

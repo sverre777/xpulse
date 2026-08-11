@@ -12,6 +12,7 @@ import {
 } from '@/lib/types'
 import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 import { PersonalRecordModal, type PRPreset } from './PersonalRecordModal'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 // Forhåndsutfylte PR-kategorier. Dekker de vanligste PR-typene på tvers
 // av utholdenhet, styrke og laboratorie-tester. Bruker den nye
@@ -80,11 +81,10 @@ function formatValue(v: number, unit: string | null): string {
 }
 
 const EMPTY = (
-  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
-      Ingen tester eller PR-er i valgt periode.
-    </p>
-  </div>
+  <EmptyState
+    title="Ingen tester eller PR-er ennå"
+    body="Tester og personlige rekorder du registrerer dukker opp her med progresjon over tid — registrer via denne fanen, eller merk en økt som test i dagboken."
+  />
 )
 
 function ProgressionChart({ series }: { series: TestProgressionSeries }) {

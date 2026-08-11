@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ConversationSummary } from '@/app/actions/inbox'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 const COACH_BLUE = '#1A6FD4'
 const ATHLETE_ORANGE = '#FF4500'
@@ -25,13 +26,7 @@ interface Props {
 export function ConversationList({ conversations }: Props) {
   if (conversations.length === 0) {
     return (
-      <p className="p-5 text-xs"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#13131A', border: '1px solid #1E1E22',
-        }}>
-        Ingen samtaler ennå.
-      </p>
+      <EmptyState compact title="Ingen samtaler ennå" body="Meldinger mellom deg og treneren/utøverne dine samles her — start en med «Ny melding»." />
     )
   }
 

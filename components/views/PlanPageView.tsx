@@ -16,6 +16,7 @@ import { PlanGoalsSection } from '@/components/plan/PlanGoalsSection'
 import { PlanPhasesSection } from '@/components/plan/PlanPhasesSection'
 import { SavePlanTemplateButton } from '@/components/plan/SavePlanTemplateButton'
 import type { ViewContext } from '@/lib/view-context'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
   viewContext: ViewContext
@@ -105,6 +106,19 @@ export async function PlanPageView({ viewContext }: Props) {
         </div>
 
         <SeasonContextStrip periods={seasonPeriods} keyDates={seasonKeyDates} todayISO={today} />
+
+        {!isCoachView && Object.values(workoutsByDate).every(w => w.length === 0) && (
+          <div className="mb-6">
+            <EmptyState
+              title="Ingenting planlagt denne måneden"
+              body="Planlegg uken din i kalenderen under — eller sett inn en ferdig mal."
+              ctaLabel="+ Planlegg økt"
+              ctaHref={`/app/plan?new=${today}`}
+              secondaryLabel="Bruk mal"
+              secondaryHref="/app/maler"
+            />
+          </div>
+        )}
 
         <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11', marginBottom: '32px' }}>
           <Suspense fallback={null}>

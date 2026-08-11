@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
+import { EmptyState } from '@/components/ui/EmptyState'
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -62,13 +63,7 @@ export function NotificationList({ notifications }: Props) {
 
   if (notifications.length === 0) {
     return (
-      <p className="p-5 text-xs"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#13131A', border: '1px solid #1E1E22',
-        }}>
-        Ingen varsler ennå.
-      </p>
+      <EmptyState compact title="Ingen varsler ennå" body="Varsler om planer, kommentarer og koblinger samles her." />
     )
   }
 

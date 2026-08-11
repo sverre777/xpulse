@@ -6,7 +6,7 @@ import { WaitlistSignup } from '@/components/landing/WaitlistSignup'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Klokkesync',
+  title: 'Klokkesync – Strava-synk og .fit-import fra alle klokker',
   description:
     'X-PULSE klokkesync: .fit-import for alle, Strava OAuth-synk, Garmin Connect direkte kommer snart. Auto-import, soner, splittinger og AI-tolkning når synken er på plass.',
   path: '/funksjoner/klokkesync',

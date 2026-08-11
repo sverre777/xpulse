@@ -53,41 +53,50 @@ export interface FeatureSport {
   label: string
   description: string
   priority: boolean
+  // Søkeords-rik tittel brukt i <title>/OG — norske søk («treningsdagbok
+  // for skiskyting» osv.). label brukes fortsatt i UI-kort og nav.
+  seoTitle?: string
 }
 
 export const FEATURE_SPORTS: FeatureSport[] = [
   {
     slug: 'langrenn',
+    seoTitle: 'Treningsdagbok for langrenn – skipark, ski-tester og analyse',
     label: 'Langrenn',
     description: 'Klassisk, skøyting og staking. Skipark, ski-tester og bevegelsesform-spesifikk analyse.',
     priority: true,
   },
   {
     slug: 'skiskyting',
+    seoTitle: 'Treningsdagbok for skiskyting – skyteanalyse og treff%',
     label: 'Skiskyting',
     description: 'Eneste plattformen med dyp skyting-analyse. Auto-konkurransestruktur og treff% per posisjon.',
     priority: true,
   },
   {
     slug: 'langlop',
+    seoTitle: 'Treningsdagbok for langløp – Birken, Vasaloppet og pacing',
     label: 'Langløp',
     description: 'Bygd for Birken og Vasaloppet. Lange utholdenhetsøkter med terreng, ernæring og pacing.',
     priority: true,
   },
   {
     slug: 'loping',
+    seoTitle: 'Treningsdagbok for løping – soner, intervaller og pace',
     label: 'Løping',
     description: 'Fra intervall på bane til langløp i terreng. Sone-styrt plan og pace-utvikling.',
     priority: false,
   },
   {
     slug: 'sykling',
+    seoTitle: 'Treningsdagbok for sykling – watt og effekt-soner',
     label: 'Sykling',
     description: 'Landevei og terreng. Effekt-soner, høydemeter og sammenligning over sesong.',
     priority: false,
   },
   {
     slug: 'triatlon',
+    seoTitle: 'Treningsdagbok for triatlon – tre disipliner, én plan',
     label: 'Triatlon',
     description: 'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurranse.',
     priority: false,

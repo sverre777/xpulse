@@ -4,6 +4,8 @@ import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { DialogHost } from "@/components/ui/ConfirmDialog";
 
 export const metadata: Metadata = {
+  // Absolutt base for canonical/OG-URLer på alle sider (Metadata API).
+  metadataBase: new URL("https://x-pulse.no"),
   title: "X-PULSE — Treningsapp for seriøse utøvere",
   description: "Avansert treningsapp for utholdenhetsidretter. Løping, langrenn, skiskyting, triatlon.",
   icons: {

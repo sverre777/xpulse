@@ -5,7 +5,7 @@ import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFea
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Dagbok og plan',
+  title: 'Treningsdagbok og treningsplanlegger – plan og logg i ett',
   description:
     'Slik logger du og planlegger i X-PULSE. Aktivitets-basert dagbok med drag/pause/skyting, plan-modus for fremtid, dagbok-modus for tilbakeblikk, felles notater og trener-kommentarer integrert.',
   path: '/funksjoner/dagbok-og-plan',

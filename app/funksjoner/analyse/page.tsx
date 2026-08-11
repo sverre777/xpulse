@@ -5,7 +5,7 @@ import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFea
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Analyse',
+  title: 'Treningsanalyse – belastning, HRV, laktat og soner',
   description:
     'X-PULSE analyse-modul: ATL/CTL/TSB belastningsmodell, sonefordeling per sport, korrelasjoner mellom HRV og prestasjon, laktat-profil over tid og custom grafer du kan markere som favoritt.',
   path: '/funksjoner/analyse',

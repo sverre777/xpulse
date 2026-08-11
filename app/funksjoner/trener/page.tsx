@@ -6,7 +6,7 @@ import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFea
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Trener',
+  title: 'Trenerplattform for utholdenhetsidrett – hele troppen i ett panel',
   description:
     'X-PULSE trener-modul: utøveroversikt, plan- og årsplan-maler med push, kommentarer og direktemeldinger, sammenligning av utøvere, skipark-tilsyn og fleksibel pristier (Basic / Pro / Pro AI).',
   path: '/funksjoner/trener',

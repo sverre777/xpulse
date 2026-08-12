@@ -505,8 +505,9 @@ function AnalysisPageInner({
               className="px-4 py-2 text-sm tracking-widest uppercase whitespace-nowrap"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: tab === key ? '#1A1A22' : 'transparent',
-                borderBottom: tab === key ? '2px solid #FF4500' : '2px solid transparent',
+                backgroundColor: tab === key ? 'var(--accent)' : 'transparent',
+                border: `1px solid ${tab === key ? 'var(--accent)' : 'var(--line2)'}`,
+                borderRadius: 999,
                 color: tab === key ? '#F0F0F2' : '#555560',
                 minHeight: '44px',
               }}
@@ -518,7 +519,7 @@ function AnalysisPageInner({
 
         {/* Periode + sport-filter. Filter gjelder alle faner. */}
         <div className="mb-6 p-4 flex flex-col md:flex-row md:items-end md:gap-6 gap-4"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>

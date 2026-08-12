@@ -102,7 +102,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   return (
     <div
       onClick={onClose}
-      className="px-2 md:px-3"
+      className="px-2 md:px-3 xp-fade-in"
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',

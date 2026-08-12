@@ -587,6 +587,8 @@ function AnalysisPageInner({
           </div>
         )}
 
+        {/* key={tab} remonter innholdet ved fanebytte → kort fade-inn. */}
+        <div key={tab} className="xp-tab-in">
         {tab === 'oversikt' && (
           <div className="space-y-5">
             <FavoriteChartsSection
@@ -699,6 +701,7 @@ function AnalysisPageInner({
             ? <KlokkedataTrenderTab data={klokkedata} />
             : <LoadingStub label="Laster klokkedata-trender…" />
         )}
+        </div>
       </div>
     </div>
   )

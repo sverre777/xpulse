@@ -10,6 +10,7 @@ import {
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { hapticTap, showCompletionCheck } from '@/lib/interactions'
 
 // Live styrkeøkt-modus (Fase 80). Tynt lag oppå WorkoutFormData: redigerer
 // styrke-aktivitetens øvelser/sett live, autosaver via saveWorkout, og Fullfør =
@@ -218,6 +219,7 @@ export function LiveSessionView({
   }
   // Logg et sett: markeres ferdig, hvile-telleren starter mot neste Start.
   const logSet = (setId: string) => {
+    hapticTap(15)
     setDoneSets(prev => new Set(prev).add(setId))
     setActiveSetId(null)
     setWorkStartMs(null)
@@ -245,6 +247,8 @@ export function LiveSessionView({
     if (saved.error) { setBusy(false); void xpAlert(saved.error); return }
     const res = await finishLiveSession(workoutId, Math.round(elapsedSec))
     if (res.error) { setBusy(false); void xpAlert(res.error); return }
+    hapticTap([15, 60, 20])
+    showCompletionCheck()
     router.push('/app/dagbok')
   }
   const cancel = async () => {

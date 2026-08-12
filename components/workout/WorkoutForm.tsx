@@ -33,6 +33,7 @@ import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSele
 import { HeartZone } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { showCompletionCheck } from '@/lib/interactions'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
 // felter/analyse/visning. Generiske kategorier (langtur/intervall/terskel/rolig/
@@ -439,6 +440,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       if (savedId && showCoachAttendChip && coachWillAttend) {
         await toggleAttendanceForWorkout(savedId)
       }
+      if (markingCompleted) showCompletionCheck()
       if (onSaved) onSaved()
       else router.push(isPlanMode ? '/app/plan' : '/app/dagbok')
       router.refresh()

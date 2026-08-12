@@ -71,6 +71,7 @@ export function DialogHost() {
       role={current.kind === 'confirm' ? 'alertdialog' : 'alert'}
       aria-modal="true"
       onClick={() => answer(false)}
+      className="xp-fade-in"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         backgroundColor: 'rgba(0,0,0,0.72)',

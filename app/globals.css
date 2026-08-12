@@ -441,3 +441,32 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-form { counter-reset: xpsec; }
 .xp-card-form { counter-increment: xpsec; }
 .xp-form .xp-num-auto::before { content: counter(xpsec, decimal-leading-zero); }
+
+/* ═══ FASE 2: KALENDER-MØNSTRE (design/xpulse-kalender-design.html) ═══ */
+.xp-calcard { border: 1px solid var(--line); border-radius: 16px; background: var(--card); overflow: hidden; }
+.xp-calhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 14px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(16,16,20,.97); backdrop-filter: blur(8px); z-index: 20; }
+.xp-seg-pill { display: flex; border: 1px solid var(--line2); border-radius: 999px; overflow: hidden; }
+.xp-seg-pill button { border: none; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: .15s; }
+.xp-seg-pill button.on { background: var(--accent); color: #fff; }
+.xp-mnav { display: flex; align-items: center; gap: 8px; }
+.xp-mnav-btn { width: 36px; height: 36px; border: 1px solid var(--line2); border-radius: 8px; background: none; color: var(--mut); cursor: pointer; font-size: 15px; transition: .15s; }
+.xp-mnav-btn:hover { color: var(--ink); border-color: var(--mut); }
+.xp-day { background: #0D0D11; border: 1px solid var(--line); border-radius: 10px; transition: border-color .15s; }
+.xp-day:hover { border-color: var(--line2); }
+.xp-day.xp-dead { opacity: .28; }
+.xp-day.xp-today { border-color: var(--accent); }
+.xp-daynum { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--mut); letter-spacing: .05em; line-height: 1; }
+.xp-today .xp-daynum { color: #fff; background: var(--accent); border-radius: 6px; padding: 2px 6px 0; }
+.xp-pill { border-radius: 7px; padding: 5px 7px 6px; font-size: 13px; line-height: 1.25; cursor: pointer; border: 1px solid var(--line); border-left: 3px solid var(--green); background: var(--card2); transition: .12s; overflow: hidden; }
+.xp-pill:hover { border-color: var(--line2); }
+.xp-pill.xp-planned { border-left-color: var(--blue); background: var(--blue-soft); }
+.xp-pill.xp-race { border-left-color: var(--gold); }
+.xp-pill-name { color: var(--ink); font-weight: 600; letter-spacing: .01em; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; font-family: 'Barlow Condensed', sans-serif; }
+.xp-pill-dur { color: var(--accent); font-weight: 700; font-size: 12.5px; font-family: 'Barlow Condensed', sans-serif; }
+.xp-wsum { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); }
+.xp-wsum-big { font-family: 'Bebas Neue', sans-serif; font-size: 21px; color: var(--accent); letter-spacing: .04em; }
+.xp-wbar { flex: 1; min-width: 90px; display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--line); }
+.xp-mini-card { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 16px 18px; }
+.xp-ghostbtn { border: 1.5px dashed var(--line2); border-radius: 9px; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 10px; width: 100%; cursor: pointer; transition: .15s; }
+.xp-ghostbtn:hover { color: var(--accent); border-color: var(--accent-50); }
+@media (prefers-reduced-motion: reduce) { .xp-seg-pill button, .xp-mnav-btn, .xp-day, .xp-pill, .xp-ghostbtn { transition: none; } }

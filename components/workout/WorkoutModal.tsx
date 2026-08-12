@@ -112,7 +112,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--bg-primary)', border: '1px solid var(--line)',
+          borderRadius: 'var(--r-card)',
           maxWidth: '820px', width: '100%', position: 'relative',
           margin: '0 auto', marginBottom: '24px',
           overflowX: 'hidden',

@@ -83,8 +83,9 @@ export function DialogHost() {
         onClick={e => e.stopPropagation()}
         className="w-full"
         style={{
-          maxWidth: 420, backgroundColor: '#13131A',
-          border: '1px solid #262629', borderTop: '2px solid #E11D48',
+          maxWidth: 420, backgroundColor: 'var(--card)',
+          border: '1px solid var(--line2)', borderTop: '2px solid #E11D48',
+          borderRadius: 'var(--r-card)',
           padding: '22px 24px',
         }}
       >
@@ -118,6 +119,7 @@ export function DialogHost() {
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                 backgroundColor: 'transparent', color: '#F0F0F2',
                 border: '1px solid #333340', cursor: 'pointer',
+                borderRadius: 'var(--r-field)',
               }}
             >
               {current.cancelLabel ?? 'Avbryt'}
@@ -132,6 +134,7 @@ export function DialogHost() {
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
               backgroundColor: current.kind === 'confirm' ? '#E11D48' : '#333340',
               color: '#F0F0F2', border: 'none', cursor: 'pointer',
+              borderRadius: 'var(--r-field)',
             }}
           >
             {current.confirmLabel ?? (current.kind === 'confirm' ? 'Bekreft' : 'OK')}

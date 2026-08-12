@@ -28,7 +28,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
 
   if (!hasAnything) {
     return (
-      <div className="py-12 px-6 text-center" style={{ border: '1px dashed #1E1E22', backgroundColor: '#13131A' }}>
+      <div className="py-12 px-6 text-center" style={{ border: '1px dashed #1E1E22', backgroundColor: 'var(--card)' }}>
         <p className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em' }}>
           Ingen klokkesync-data i perioden
         </p>
@@ -117,7 +117,7 @@ function Summary({ data }: { data: KlokkedataTrender }) {
     ? Math.round((data.workoutsWithKlokkesync / data.workoutsTotal) * 100)
     : 0
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Klokkesync-dekning

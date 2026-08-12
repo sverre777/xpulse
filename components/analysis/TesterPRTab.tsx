@@ -268,7 +268,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: sportTab === 'all' ? TEST_BLUE + '33' : 'transparent',
-              border: `1px solid ${sportTab === 'all' ? TEST_BLUE : '#1E1E22'}`,
+              border: `1px solid ${sportTab === 'all' ? TEST_BLUE : 'var(--line)'}`,
               color: sportTab === 'all' ? TEST_BLUE : '#8A8A96',
               minHeight: '36px',
             }}>
@@ -280,7 +280,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: sportTab === s ? TEST_BLUE + '33' : 'transparent',
-                border: `1px solid ${sportTab === s ? TEST_BLUE : '#1E1E22'}`,
+                border: `1px solid ${sportTab === s ? TEST_BLUE : 'var(--line)'}`,
                 color: sportTab === s ? TEST_BLUE : '#8A8A96',
                 minHeight: '36px',
               }}>
@@ -376,7 +376,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
                 }} />
                 {labelSport(sport)}
               </p>
-              <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
                 {groups.map(g => (
                   <div key={`${g.sport}::${g.subcategory}`}>
                     <p className="px-4 py-2 text-xs tracking-widest uppercase"
@@ -423,7 +423,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
               Test-tidslinje
             </h2>
           </div>
-          <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+          <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             {filteredTests.map(t => <TestRowItem key={t.id} row={t} />)}
           </div>
         </section>

@@ -98,7 +98,7 @@ function SummaryCards({ data }: { data: ShootingDepthAnalysis }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
     <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
@@ -176,7 +176,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
             <XAxis dataKey="zone" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
               formatter={(v, k, p) => {
                 if (k === 'accuracy') {
                   const payload = p && typeof p === 'object' && 'payload' in p ? (p as { payload: { shots: number } }).payload : null
@@ -212,7 +212,7 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
         </p>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <InlineStat label="Første serie — treff%" value={fmtPct(firstVsLast.first_accuracy_pct)}
           sub={firstVsLast.first_avg_hr != null ? `snittpuls ${firstVsLast.first_avg_hr}` : undefined} />
         <InlineStat label="Siste serie — treff%" value={fmtPct(firstVsLast.last_accuracy_pct)}
@@ -303,7 +303,7 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
             <XAxis dataKey="kategori" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
               formatter={(v, k, p) => {
                 if (k === 'Treff') {
                   const payload = p && typeof p === 'object' && 'payload' in p ? (p as { payload: { serier: number; skudd: number } }).payload : null
@@ -333,7 +333,7 @@ function PerWorkoutType({ data }: { data: ShootingDepthAnalysis }) {
           Skyting per økt-type
         </p>
       </div>
-      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
@@ -384,7 +384,7 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

@@ -36,7 +36,7 @@ function labelWorkoutType(t: WorkoutType): string {
 
 function ZoneBar({ zones, height = 14 }: { zones: OverviewZoneSeconds; height?: number }) {
   const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet
-  if (total === 0) return <div style={{ height, backgroundColor: '#1E1E22' }} />
+  if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   return (
     <div style={{ display: 'flex', width: '100%', height, backgroundColor: '#0A0A0B' }}>
@@ -271,7 +271,7 @@ export function CompareWorkoutsTab({
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="p-4 space-y-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-4 space-y-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <input
           type="text"
           value={search}
@@ -309,7 +309,7 @@ export function CompareWorkoutsTab({
 
       {savedComparisons.length > 0 && (
         <div className="p-3 flex flex-wrap items-center gap-2"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <span className="text-xs tracking-widest uppercase mr-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             Mine sammenligninger:
@@ -373,7 +373,7 @@ export function CompareWorkoutsTab({
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               color: selected.length < 2 ? '#555560' : '#0A0A0B',
-              backgroundColor: selected.length < 2 ? '#1E1E22' : '#FF4500',
+              backgroundColor: selected.length < 2 ? 'var(--line)' : '#FF4500',
               border: 'none', cursor: selected.length < 2 ? 'not-allowed' : 'pointer',
               minHeight: '44px',
             }}>
@@ -501,7 +501,7 @@ function WorkoutRow({
     <label
       className="flex items-center gap-3 p-3"
       style={{
-        backgroundColor: selected ? '#1E1E22' : isPlannedOnly ? '#100F0A' : '#13131A',
+        backgroundColor: selected ? 'var(--line)' : isPlannedOnly ? '#100F0A' : 'var(--card)',
         border: borderStyle,
         cursor: isPlannedOnly ? 'default' : (disabled ? 'not-allowed' : 'pointer'),
         opacity: isPlannedOnly ? 0.75 : (disabled ? 0.5 : 1),
@@ -575,7 +575,7 @@ function rawWeatherSummary(w: {
 function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
   if (!workouts.some(w => rawWeatherSummary(w.weather))) return null
   return (
-    <div style={{ background: '#13131A', border: '1px solid #1E1E22', padding: '12px 14px' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '12px 14px' }}>
       <div className="flex items-center gap-2 mb-2">
         <span style={{ width: 14, height: 2, background: '#FF4500', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
@@ -612,7 +612,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
   const th: React.CSSProperties = { padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
   const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }
   return (
-    <div style={{ background: '#13131A', border: '1px solid #1E1E22', padding: '14px 16px' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '14px 16px' }}>
       <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: '0 0 2px' }}>
         Utvikling over tid
       </h3>
@@ -677,7 +677,7 @@ function ComparisonGrid({ workouts }: { workouts: ComparableWorkout[] }) {
 
 function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
   return (
-    <div className="p-4 space-y-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4 space-y-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
           {workout.date}
@@ -932,7 +932,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
     return `${m}:${String(s).padStart(2, '0')}`
   }
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         Splits per km
@@ -978,7 +978,7 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
   }).filter(s => s.points.length > 0)
   if (series.length === 0) return null
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         Laktat-utvikling

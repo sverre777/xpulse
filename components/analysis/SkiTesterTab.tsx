@@ -232,7 +232,7 @@ export function SkiTesterTab({ data }: Props) {
                 className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left transition-colors"
                 style={{
                   backgroundColor: isSelected ? '#1A0E08' : '#0F0F12',
-                  border: `1px solid ${isSelected ? '#FF4500' : '#1E1E22'}`,
+                  border: `1px solid ${isSelected ? '#FF4500' : 'var(--line)'}`,
                   cursor: 'pointer',
                 }}>
                 <div className="min-w-0">

@@ -263,7 +263,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.06em' }}>
               UKE {weekNum}:
             </span>
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '24px', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--accent)', fontSize: '24px', letterSpacing: '0.06em' }}>
               {fmtDurationMin(totalMins)}
             </span>
             {km && (
@@ -352,7 +352,8 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
         background: bg,
         border,
         borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
-        padding: '2px 4px',
+        borderRadius: 7,
+        padding: '2px 5px',
         cursor: draggable ? 'grab' : 'pointer',
         opacity: isDragging ? 0.4 : 1,
         touchAction: 'manipulation',
@@ -421,7 +422,8 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         background: bg,
         border,
         borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
-        padding: '2px 4px',
+        borderRadius: 7,
+        padding: '2px 5px',
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#C0C0CC',
         fontSize: '13px',
@@ -584,7 +586,10 @@ export function WeekCalendarView({
                   </span>
                   <span style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    color: isToday ? '#FF4500' : '#F0F0F2',
+                    color: isToday ? '#fff' : '#F0F0F2',
+                    background: isToday ? 'var(--accent)' : 'none',
+                    borderRadius: isToday ? 6 : 0,
+                    padding: isToday ? '2px 6px 1px' : 0,
                     fontSize: '20px', letterSpacing: '0.04em', lineHeight: 1,
                   }}>
                     {d.getDate()}. {MONTHS_SHORT_NO[d.getMonth()]}
@@ -723,7 +728,8 @@ export function WeekCalendarView({
                         style={{
                           display: 'flex', alignItems: 'center', gap: '10px',
                           padding: '10px 12px',
-                          backgroundColor: '#13131A',
+                          backgroundColor: 'var(--card2)',
+                          borderRadius: 7,
                           border: showCoachStyle
                             ? `1px dashed ${COACH_BLUE}`
                             : planned ? `1px dashed ${accent}` : `1px solid ${accent}55`,

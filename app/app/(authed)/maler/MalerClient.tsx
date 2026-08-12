@@ -372,7 +372,7 @@ function TemplateRow({
   return (
     <div className="p-4 transition-colors hover:bg-[#1A1A22] cursor-pointer"
       onClick={onEdit}
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div style={{
@@ -492,7 +492,7 @@ function BrukPaaDatoModal({
       }}>
       <div onClick={e => e.stopPropagation()}
         className="w-full max-w-md p-5"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
         <div className="flex items-center gap-2 mb-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
@@ -589,7 +589,7 @@ function BrukPlanPaaDatoModal({
       }}>
       <div onClick={e => e.stopPropagation()}
         className="w-full max-w-md p-5"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
         <div className="flex items-center gap-2 mb-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"

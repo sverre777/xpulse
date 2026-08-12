@@ -252,6 +252,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
         </p>
       )}
 
+      <div className="xp-tl">
       {rows.map((row, idx) => (
         <ActivityRowItem
           key={row.id}
@@ -271,20 +272,14 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
           defaultPaceUnit={defaultPaceUnit}
         />
       ))}
+      </div>
 
       <div className="mt-3 flex flex-col sm:flex-row gap-2">
         <button
           type="button"
           onClick={addRow}
-          className="px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#FF4500',
-            background: 'none',
-            border: '1px dashed #FF4500',
-            cursor: 'pointer',
-            flex: 1,
-          }}
+          className="xp-add"
+          style={{ flex: 1 }}
         >
           + Legg til aktivitet
         </button>
@@ -292,15 +287,8 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
           <button
             type="button"
             onClick={addShootingRow}
-            className="px-4 py-2 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#FF4500',
-              background: 'none',
-              border: '1px dashed #FF4500',
-              cursor: 'pointer',
-              flex: 1,
-            }}
+            className="xp-add"
+            style={{ flex: 1 }}
           >
             🎯 + Legg til skyting
           </button>
@@ -423,7 +411,7 @@ function ActivityRowItem({
   const displayIcon = isStrength ? '🏋' : (meta?.icon ?? '•')
 
   return (
-    <div style={{ border: '1px solid #262629', backgroundColor: '#1A1A1E' }}>
+    <div className="xp-act">
       {/* Compact row — flex-wrap så label/bevegelsesform kan gå på linje 2 på smal skjerm,
           mens ikon+type, varighet og kontroller forblir på topp-raden. */}
       <div
@@ -759,7 +747,7 @@ function ZoneEditor({
   const keys = ZONE_KEYS
   const totalSec = sumZoneSeconds(zones)
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -771,7 +759,7 @@ function ZoneEditor({
       </div>
 
       {/* Color bar — 6 segmenter når Hurtighet > 0, ellers 5 */}
-      <div className="flex mb-2" style={{ height: '6px', border: '1px solid #1E1E22' }}>
+      <div className="flex mb-2" style={{ height: '8px', border: '1px solid var(--line)', borderRadius: 4, overflow: 'hidden' }}>
         {keys.map(k => {
           const sec = parseActivityDuration(zones[k]) ?? 0
           const w = totalSec > 0 ? (sec / totalSec) * 100 : 0
@@ -916,7 +904,7 @@ function StrengthEditor({
     onChange(exercises.filter(e => e.id !== id))
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Øvelser
@@ -1246,7 +1234,7 @@ function LactateMeasurementsEditor({
     onChange(measurements.filter(m => m.id !== id))
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Laktat
@@ -1315,7 +1303,7 @@ function TurFields({
     (showSled && Number.isFinite(sled) && sled > 0)
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Tur
@@ -1395,7 +1383,7 @@ function ShootingFields({
                    'Skyting'
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
         <div className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -1535,9 +1523,10 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
-  color: '#F0F0F2',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
+  color: 'var(--ink)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '6px 10px',
@@ -1722,7 +1711,7 @@ function PaceField({
   })()
 
   return (
-    <div className="mt-3 p-3" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <PaceInput
         value={currentSeconds}
         onChange={next => onUpdate({

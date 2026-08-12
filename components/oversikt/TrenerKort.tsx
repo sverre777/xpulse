@@ -20,8 +20,7 @@ function fmtRelative(iso: string): string {
 export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
   if (!overview.hasCoach || !overview.coach) {
     return (
-      <section className="p-5"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <section className="p-5 xp-edge-blue" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', borderRadius: 16 }}>
         <div className="flex items-center gap-3 mb-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
@@ -41,11 +40,8 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
         </p>
         <div className="mt-4">
           <Link href="/app/innstillinger/trener"
-            className="inline-block px-3 py-2 text-xs tracking-widest uppercase hover:opacity-90"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: COACH_BLUE, border: `1px solid ${COACH_BLUE}`, textDecoration: 'none',
-            }}>
+            className="xp-hbtn xp-hbtn-outline"
+            style={{ color: COACH_BLUE }}>
             Finn trener →
           </Link>
         </div>
@@ -57,8 +53,8 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
   const initials = (c.name ?? '?').split(' ').map(s => s[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
 
   return (
-    <section className="p-5"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <section className="p-5 xp-edge-blue"
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderLeft: '3px solid var(--blue)', borderRadius: 16 }}>
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"

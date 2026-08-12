@@ -24,7 +24,9 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
     <section className="p-5 h-full"
       style={{
         backgroundColor: '#14110A',
-        border: `1px solid ${gold}`,
+        border: '1px solid var(--line)',
+        borderLeft: `3px solid ${gold}`,
+        borderRadius: 16,
         boxShadow: '0 0 20px rgba(212, 160, 23, 0.15)',
       }}>
       <div className="flex items-center gap-3 mb-3">

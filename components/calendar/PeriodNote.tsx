@@ -25,7 +25,7 @@ export function PeriodNote({
   if (readOnly) {
     const hasNote = initialNote.trim().length > 0
     return (
-      <div className="px-4 md:px-6 py-2" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#0E0E10' }}>
+      <div className="xp-mini-card mx-4 md:mx-6 my-3">
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           {label}
@@ -89,14 +89,17 @@ export function PeriodNote({
 
   if (!open) {
     return (
-      <div className="px-4 md:px-6 py-2" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#0E0E10' }}>
+      <div className="xp-mini-card mx-4 md:mx-6 my-3">
+        <div className="flex items-center gap-2 mb-2">
+          <span style={{ width: '18px', height: '3px', borderRadius: 2, background: 'var(--accent)', display: 'inline-block' }} />
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--ink)', fontSize: 17, letterSpacing: '.1em' }}>{label.toUpperCase()}</span>
+        </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          className="xp-ghostbtn"
         >
-          + {label}
+          + Legg til notat
         </button>
       </div>
     )
@@ -104,7 +107,7 @@ export function PeriodNote({
 
   const planNoteTrimmed = (planNote ?? '').trim()
   return (
-    <div className="px-4 md:px-6 py-2" style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#0E0E10' }}>
+    <div className="xp-mini-card mx-4 md:mx-6 my-3">
       {planNoteTrimmed.length > 0 && (
         <div className="mb-2 px-3 py-2"
           style={{

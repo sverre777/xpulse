@@ -73,14 +73,14 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
 
   return (
     <section
-      className="mt-4"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}
+      className="mt-4 xp-mini-card"
+      style={{ backgroundColor: 'var(--card)' }}
     >
       <div
         className="flex items-center gap-3 px-4 py-2"
         style={{ borderBottom: '1px solid #1E1E22' }}
       >
-        <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
+        <span style={{ width: '18px', height: '3px', borderRadius: 2, backgroundColor: COACH_BLUE, display: 'inline-block' }} />
         <span
           className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}

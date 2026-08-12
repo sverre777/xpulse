@@ -115,7 +115,7 @@ export default async function OversiktPage() {
           <TrenerKort overview={coachOverview} />
         </div>
 
-        <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        <section className="p-5 mb-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
           <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <SectionHeader label="Volum siste 12 uker" />
             <Link href="/app/analyse"

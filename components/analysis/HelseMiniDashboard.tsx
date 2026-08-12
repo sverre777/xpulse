@@ -47,7 +47,7 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
 
   if (loading) {
     return (
-      <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Helse over tid … laster
@@ -70,7 +70,7 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
   if (hrv.length === 0 && rhr.length === 0 && sleep.length === 0) return null
 
   return (
-    <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '16px', height: '2px', backgroundColor: COLOR_HRV, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"

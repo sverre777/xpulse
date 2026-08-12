@@ -10,8 +10,9 @@ export function FeedbackCard({ accent }: { accent: string }) {
       className="mt-6"
       style={{
         position: 'relative',
-        backgroundColor: '#13131A',
-        border: '1px solid #1E1E22',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 16,
         borderTop: `2px solid ${accent}`,
         padding: '22px 26px',
       }}

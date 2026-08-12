@@ -533,8 +533,7 @@ function YearView({
         const grid = buildMonthGrid(year, monthNum)
         return (
           <div key={mi}
-            className="p-3"
-            className="xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
+            className="p-3 xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
             <div className="text-xs tracking-widest uppercase mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {MONTHS_SHORT[mi]}

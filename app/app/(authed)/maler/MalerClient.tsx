@@ -511,7 +511,7 @@ function BrukPaaDatoModal({
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Dato
         </label>
-        <input type="date" value={date} min={today}
+        <input type="date" className="xp-input" value={date} min={today}
           onChange={e => setDate(e.target.value)}
           style={{ ...iSt, width: '100%', padding: '8px 12px' }} />
 
@@ -610,7 +610,7 @@ function BrukPlanPaaDatoModal({
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Startdato
         </label>
-        <input type="date" value={date} min={today}
+        <input type="date" className="xp-input" value={date} min={today}
           onChange={e => setDate(e.target.value)}
           style={{ ...iSt, width: '100%', padding: '8px 12px' }} />
 

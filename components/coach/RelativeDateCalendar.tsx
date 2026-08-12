@@ -108,8 +108,9 @@ function DayCell({
       className="text-left px-2 py-1.5 transition-colors hover:bg-[#1A1A22]"
       style={{
         minHeight: '88px',
-        backgroundColor: hasContent ? '#13131A' : '#0D0D11',
+        backgroundColor: hasContent ? 'var(--card2)' : '#0D0D11',
         border: 'none',
+        borderRadius: 6,
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',

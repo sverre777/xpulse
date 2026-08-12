@@ -139,8 +139,9 @@ export function PeriodNote({
         className="w-full px-2 py-1.5 text-sm resize-none"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#0A0A0B',
-          border: '1px solid #1E1E22',
+          backgroundColor: 'var(--card2)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--r-field)',
           color: '#F0F0F2',
           outline: 'none',
         }}

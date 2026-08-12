@@ -26,20 +26,17 @@ function Card({
 }) {
   const body = (
     <>
-      <div className="flex items-center gap-2 mb-2">
-        <span style={{ width: '14px', height: '2px', backgroundColor: accent, display: 'inline-block' }} />
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {kicker}
-        </span>
+      <div className="xp-kh">
+        <span className="xp-beam" style={{ background: accent }} />
+        <h2 className="xp-kh-t">{kicker}</h2>
       </div>
       {children}
     </>
   )
-  const cls = 'p-4 h-full'
+  const cls = 'p-4 h-full xp-keycard'
   const style: React.CSSProperties = {
-    backgroundColor: '#13131A', border: '1px solid #1E1E22',
-    textDecoration: 'none', display: 'block',
+    backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16,
+    textDecoration: 'none', display: 'flex',
   }
   if (href) {
     return <Link href={href} className={cls + ' hover:border-[#2A2A30] transition-colors'} style={style}>{body}</Link>
@@ -49,10 +46,7 @@ function Card({
 
 function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{
-      fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-      fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1,
-    }}>
+    <p className="xp-key-h3">
       {children}
     </p>
   )
@@ -60,8 +54,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 
 function CardMeta({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-1 text-xs"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+    <p className="mt-1 xp-key-p" style={{ marginBottom: 0 }}>
       {children}
     </p>
   )

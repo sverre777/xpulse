@@ -98,7 +98,7 @@ export function PlanMalDayEditor({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--bg-primary)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
           maxWidth: '820px', width: '100%',
           margin: '0 auto', marginBottom: '24px',
         }}
@@ -205,7 +205,7 @@ function MenuView({
           </p>
           {existingWorkouts.map((w, i) => (
             <div key={i} className="p-3 flex items-start justify-between gap-3"
-              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
               <div className="flex-1 min-w-0">
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
                   {w.title || '(uten tittel)'}
@@ -267,7 +267,7 @@ function FromTemplateView({
           <button key={t.id} type="button" onClick={() => onPick(t)}
             className="text-left p-3 transition-colors hover:bg-[#1A1A22]"
             style={{
-              backgroundColor: '#13131A', border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)',
               cursor: 'pointer',
             }}>
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>

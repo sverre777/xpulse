@@ -434,3 +434,10 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   .xp-chev, .xp-star, .xp-chip, .xp-add, .xp-input, .xp-mal, .xp-btn { transition: none; }
 }
+
+/* Auto-nummerering av seksjonskort (01, 02, …) — CSS-countere teller kun
+   seksjoner som faktisk rendres, så plan/dagbok/mal får riktig rekkefølge
+   uten logikk. */
+.xp-form { counter-reset: xpsec; }
+.xp-card-form { counter-increment: xpsec; }
+.xp-form .xp-num-auto::before { content: counter(xpsec, decimal-leading-zero); }

@@ -460,7 +460,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const showMarkCompletedCTA = !isPlanMode && isPlanned && !isCompleted && !isFutureDate && !markingCompleted
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 py-4 space-y-0">
+    <form onSubmit={handleSubmit} className="xp-form max-w-3xl mx-auto px-4 py-4 space-y-0">
       <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minInlineSize: 'auto' }}>
 
       {/* ── KOBLINGS-KNAPPER (høyt plassert: før tittel/dato/sport).
@@ -500,36 +500,24 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── MALER ── */}
       {templates.length > 0 && (
-        <div className="mb-4 pb-4" style={{ borderBottom: '1px solid #1A1A1E' }}>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-              Fra mal:
-            </span>
+        <div className="mb-2">
+          <div className="xp-malrow">
+            <span className="xp-mal-label">Fra mal</span>
             {templates.map(t => (
-              <button key={t.id} type="button" onClick={() => loadTemplate(t)}
-                className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#8A8A96', background: 'none',
-                  border: '1px solid #222228', cursor: 'pointer',
-                }}>
+              <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal">
                 {t.name}
               </button>
             ))}
             <button type="button" onClick={() => setStandardPickerOpen(o => !o)}
-              className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: standardPickerOpen ? '#FF4500' : '#555560', background: 'none',
-                border: `1px solid ${standardPickerOpen ? '#FF4500' : '#222228'}`, cursor: 'pointer',
-              }}>
-              + Marker som standardøkt
+              className="xp-mal xp-ghost"
+              style={standardPickerOpen ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}>
+              + Standardøkt
             </button>
           </div>
 
           {/* Tagge-modus: velg mal KUN for å tagge (henter ikke mal-data). */}
           {standardPickerOpen && (
-            <div className="mt-3 p-3" style={{ background: '#0E0E12', border: '1px solid #1E1E22' }}>
+            <div className="mt-1 mb-3 p-3" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
               <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
                 Velg standardøkten denne økten representerer. Henter <b>ikke</b> mal-data —
                 økten beholder sine egne tall (f.eks. fra klokkesynk).
@@ -578,7 +566,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               placeholder="F.eks. 5×5min terskelintervall" required
               className="w-full px-4 py-3"
               style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
+              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
           </div>
           <div>
             <Label>Dato</Label>
@@ -596,7 +584,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
               className="w-full px-4 py-3"
               style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1E1E22')} />
+              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
           </div>
           <div className="md:col-span-2">
             <Label>Økttype (valgfritt)</Label>
@@ -817,7 +805,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── ERNÆRING — vises i dagbok-modus (gjennomført økt) ── */}
       {showExecutionFields && (
-        <Section label="Ernæring">
+        <Section label="Ernæring" collapsible
+          defaultCollapsed={(form.nutrition_entries?.length ?? 0) === 0}
+          summary={(form.nutrition_entries?.length ?? 0) > 0 ? `${form.nutrition_entries?.length} rader` : 'Ingen rader'}>
           <NutritionSection
             entries={form.nutrition_entries ?? []}
             onChange={(next: NutritionEntryRow[]) => set('nutrition_entries', next)}
@@ -961,46 +951,31 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </div>
       )}
 
-      {/* ── SUBMIT ── */}
-      <div className="pt-4 pb-8" hidden={readOnly}>
+      {/* ── SUBMIT — sticky savebar i modalens scroll-container ── */}
+      <div className="pt-2 pb-2" hidden={readOnly}>
         {error && (
           <p className="mb-3 px-3 py-2 text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)', borderRadius: 'var(--r-field)' }}>
             {error}
           </p>
         )}
 
-        {/* Mobil: full-bredde primær øverst, avbryt under. Desktop: side om side. */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-3">
+        <div className="xp-savebar">
+          <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
+            className="xp-btn xp-ghost">
+            Avbryt
+          </button>
           {templateBuildingMode ? (
-            <button type="button" onClick={openTemplateModal}
-              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none',
-                cursor: 'pointer',
-              }}>
+            <button type="button" onClick={openTemplateModal} className="xp-btn xp-primary">
               Lagre som mal
             </button>
           ) : captureOnlyMode ? (
-            <button type="submit"
-              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A6FD4', color: '#F0F0F2', border: 'none',
-                cursor: 'pointer',
-              }}>
+            <button type="submit" className="xp-btn xp-primary"
+              style={{ backgroundColor: 'var(--blue)', borderColor: 'var(--blue)', boxShadow: '0 6px 24px var(--blue-soft)' }}>
               {captureSubmitLabel ?? 'Lagre til mal'}
             </button>
           ) : (
-            <button type="submit" disabled={saving}
-              className="flex-1 py-4 text-lg font-semibold tracking-widest uppercase transition-opacity"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: saving ? '#7A2200' : '#FF4500',
-                color: '#F0F0F2', border: 'none',
-                cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
-              }}>
+            <button type="submit" disabled={saving} className="xp-btn xp-primary">
               {saving
                 ? 'Lagrer...'
                 : markingCompleted
@@ -1012,29 +987,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 : 'Lagre økt'}
             </button>
           )}
-          <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
-            className="w-full sm:w-auto px-6 py-4 text-lg tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',
-            }}>
-            Avbryt
-          </button>
+          {/* Save as template — sekundær CTA; skjules i template-building/capture-modus. */}
+          {!templateBuildingMode && !captureOnlyMode && (
+            <button type="button" onClick={openTemplateModal}
+              className="xp-btn xp-icon" title="Lagre som mal" aria-label="Lagre som mal">
+              🔖
+            </button>
+          )}
         </div>
-
-        {/* Save as template — sekundær CTA; skjules i template-building/capture-modus. */}
-        {!templateBuildingMode && !captureOnlyMode && (
-          <button type="button" onClick={openTemplateModal}
-            className="w-full flex items-center justify-center gap-2 py-3 text-base tracking-widest uppercase transition-colors hover:bg-[rgba(255,69,0,0.08)]"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-              background: 'transparent', border: '1px solid #FF4500',
-              cursor: 'pointer',
-            }}>
-            <span aria-hidden="true" style={{ fontSize: '16px', lineHeight: 1 }}>🔖</span>
-            Lagre som mal
-          </button>
-        )}
       </div>
 
       {showTemplateModal && (
@@ -1260,8 +1220,9 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '15px', outline: 'none',
+  backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
+  color: 'var(--ink)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px', outline: 'none',
 }
 
 function Section({ label, children, collapsible = false, defaultCollapsed = false, summary }: {
@@ -1273,50 +1234,43 @@ function Section({ label, children, collapsible = false, defaultCollapsed = fals
 }) {
   const [open, setOpen] = useState(!defaultCollapsed)
   const header = (
-    <div className="flex items-center gap-3 py-4" style={{ borderBottom: '1px solid #1E1E22' }}>
-      <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block', flexShrink: 0 }} />
-      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.1em', flexShrink: 0 }}>
-        {label}
-      </h3>
+    <div className="xp-card-h">
+      <span className="xp-num xp-num-auto" aria-hidden="true" />
+      <h3 className="xp-card-title" style={{ flexShrink: 0 }}>{label}</h3>
       {collapsible && (
         <>
-          <span className="text-xs" style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-            flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          <span className="xp-card-hint" style={{
+            flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap', textAlign: 'right',
           }}>
             {summary || '— ikke satt'}
           </span>
-          <span style={{ color: '#8A8A96', fontSize: 12, flexShrink: 0 }}>{open ? '▾' : '▸'}</span>
+          <span className="xp-chev">▶</span>
         </>
       )}
     </div>
   )
   if (!collapsible) {
     return (
-      <div className="mb-1">
+      <div className="xp-card xp-card-form open">
         {header}
-        <div className="py-5">{children}</div>
+        <div className="xp-card-b">{children}</div>
       </div>
     )
   }
   return (
-    <div className="mb-1">
+    <div className={`xp-card xp-card-form${open ? ' open' : ''}`}>
       <button type="button" onClick={() => setOpen(o => !o)}
-        className="w-full text-left" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+        className="w-full text-left" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}>
         {header}
       </button>
-      {open && <div className="py-5">{children}</div>}
+      {open && <div className="xp-card-b">{children}</div>}
     </div>
   )
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <label className="block mb-1.5 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-      {children}
-    </label>
-  )
+  return <label className="xp-label" style={{ marginTop: 0 }}>{children}</label>
 }
 
 function StarRating({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
@@ -1324,7 +1278,7 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
     <div className="flex gap-0.5 mt-1">
       {[1,2,3,4,5].map(n => (
         <button key={n} type="button" onClick={() => onChange(value === n ? null : n)}
-          style={{ fontSize: '22px', color: (value ?? 0) >= n ? '#FF4500' : '#2A2A30', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}>
+          style={{ fontSize: '26px', color: (value ?? 0) >= n ? 'var(--i3)' : 'var(--line2)', textShadow: (value ?? 0) >= n ? '0 0 12px rgba(232,185,60,.35)' : 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}>
           ★
         </button>
       ))}
@@ -1332,17 +1286,22 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
   )
 }
 
+const RPE_COLORS = ['#28A86E', '#3BA45C', '#63A94A', '#8FAC3C', '#BCA735', '#E8B93C', '#F09A2E', '#FF8C00', '#F0592B', '#E23A5A']
+
 function RPESelector({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   return (
-    <div className="flex gap-0.5 flex-wrap mt-1">
+    <div className="flex gap-1.5 flex-wrap mt-1">
       {[1,2,3,4,5,6,7,8,9,10].map(n => (
         <button key={n} type="button" onClick={() => onChange(value === n ? null : n)}
-          className="w-7 h-7 text-xs font-semibold"
+          className="w-8 h-8 text-sm font-bold"
           style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            backgroundColor: value === n ? '#FF4500' : '#1C1C21',
-            color: value === n ? '#F0F0F2' : '#555560',
-            border: `1px solid ${value === n ? '#FF4500' : '#222228'}`, cursor: 'pointer',
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: value === n ? RPE_COLORS[n - 1] : 'var(--card2)',
+            color: value === n ? '#fff' : 'var(--mut)',
+            border: `1px solid ${value === n ? 'transparent' : 'var(--line2)'}`,
+            borderRadius: 8,
+            boxShadow: value === n ? '0 0 14px var(--accent-soft)' : 'none',
+            cursor: 'pointer',
           }}>
           {n}
         </button>
@@ -1356,12 +1315,14 @@ function Chip({ active, onClick, children, color = '#555560' }: {
 }) {
   return (
     <button type="button" onClick={onClick}
-      className="px-3 py-1 text-sm tracking-widest uppercase transition-colors"
+      className="text-sm uppercase transition-colors inline-flex items-center gap-2"
       style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
         backgroundColor: active ? `${color}22` : 'transparent',
-        color: active ? color : '#555560',
-        border: `1px solid ${active ? color : '#222228'}`, cursor: 'pointer',
+        color: active ? color : 'var(--mut)',
+        border: `1px solid ${active ? color : 'var(--line2)'}`,
+        borderRadius: 999, padding: '9px 14px', letterSpacing: '.09em',
+        cursor: 'pointer',
       }}>
       {children}
     </button>

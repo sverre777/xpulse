@@ -226,7 +226,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
       </div>
 
       {/* Totaltid + Distanse + (eventuelt) Skyting */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 mb-3 divide-x" style={{ borderColor: "var(--line)", columnGap: 0 }}>
         <Metric label="Treningstid" value={formatTotalTime(summary.totalSeconds)} />
         <Metric label="Distanse" value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'} />
         {summary.shootingSeconds > 0 && (
@@ -363,9 +363,9 @@ function ZoneBar({
 
 function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div>
-      <Label>{label}</Label>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.05em', lineHeight: 1.1 }}>
+    <div style={{ padding: '2px 18px 2px 0', paddingLeft: 12 }} className="first:pl-0">
+      <span className="xp-k">{label}</span>
+      <p className="xp-v" style={{ fontSize: '30px', lineHeight: 1.1 }}>
         {value}
       </p>
       {sub && (

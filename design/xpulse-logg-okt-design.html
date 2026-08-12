@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Logg økt (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B;
+  --card:#101014;
+  --card2:#15151B;
+  --line:#1F1F26;
+  --line2:#2A2A33;
+  --ink:#F2F2F0;
+  --mut:#8B8B95;
+  --dim:#5A5A64;
+  --orange:#FF4500;
+  --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E;
+  --blue:#1A6FD4;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
+  --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:17px;
+  letter-spacing:.01em;
+  padding-bottom:96px; /* plass til sticky bar */
+}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+/* ============ TOPP ============ */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,rgba(10,10,11,.97) 70%,rgba(10,10,11,0));
+  backdrop-filter:blur(8px);
+  padding:18px 0 10px;
+}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between}
+h1{font-family:'Bebas Neue';font-size:30px;letter-spacing:.06em;font-weight:400}
+h1 .beam{display:inline-block;width:26px;height:4px;background:var(--orange);vertical-align:middle;margin-right:12px;border-radius:2px}
+.close{
+  width:38px;height:38px;border:1px solid var(--line2);border-radius:8px;
+  background:none;color:var(--mut);font-size:18px;cursor:pointer;transition:.15s;
+}
+.close:hover{color:var(--ink);border-color:var(--mut)}
+
+/* ============ MAL-CHIPS ============ */
+.malrow{display:flex;gap:8px;overflow-x:auto;padding:6px 0 18px;scrollbar-width:none}
+.malrow::-webkit-scrollbar{display:none}
+.mal{
+  flex:0 0 auto;padding:9px 16px;border-radius:999px;
+  border:1px solid var(--line2);background:var(--card);
+  color:var(--mut);font-size:14.5px;font-weight:600;letter-spacing:.10em;
+  text-transform:uppercase;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.mal:hover{color:var(--ink);border-color:var(--mut)}
+.mal.ghost{border-style:dashed;color:var(--dim)}
+.mal-label{flex:0 0 auto;align-self:center;font-size:13px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;padding-right:4px}
+
+/* ============ SEKSJONSKORT ============ */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  margin-bottom:14px;
+  overflow:hidden;
+}
+.card-h{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 18px;
+  cursor:default;user-select:none;
+}
+.card-h.clickable{cursor:pointer}
+.card-h .num{
+  font-family:'Bebas Neue';font-size:15px;color:var(--dim);letter-spacing:.08em;
+  border:1px solid var(--line2);border-radius:6px;padding:3px 8px 1px;min-width:34px;text-align:center;
+}
+.card-h h2{
+  font-family:'Bebas Neue';font-size:21px;letter-spacing:.09em;font-weight:400;flex:1;
+}
+.card-h .hint{font-size:14px;color:var(--dim);letter-spacing:.04em}
+.card-h .chev{color:var(--dim);transition:transform .2s;font-size:13px}
+.card.open .card-h .chev{transform:rotate(90deg)}
+.card-b{padding:4px 18px 20px;display:none}
+.card.open .card-b{display:block}
+.card.static .card-b{display:block}
+
+/* ============ FELTER ============ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 .full{grid-column:1/-1}
+label.f{
+  display:block;font-size:12.5px;letter-spacing:.16em;color:var(--mut);
+  text-transform:uppercase;margin:14px 0 6px;
+}
+label.f .opt{color:var(--dim);letter-spacing:.06em;text-transform:none;font-size:12px}
+input.t,select.t,textarea.t{
+  width:100%;background:var(--card2);border:1px solid var(--line);
+  border-radius:var(--r);color:var(--ink);font:inherit;font-size:16.5px;
+  padding:12px 14px;transition:border-color .15s, box-shadow .15s;
+  appearance:none;
+}
+input.t::placeholder,textarea.t::placeholder{color:var(--dim)}
+input.t:focus,select.t:focus,textarea.t:focus{
+  outline:none;border-color:var(--orange);
+  box-shadow:0 0 0 3px var(--orange-soft);
+}
+.selwrap{position:relative}
+.selwrap::after{
+  content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:var(--dim);pointer-events:none;font-size:13px;
+}
+
+/* ============ FLAGG-CHIPS ============ */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 14px;border-radius:999px;border:1px solid var(--line2);
+  background:none;color:var(--mut);font:inherit;font-size:14px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:.15s;
+}
+.chip:hover{color:var(--ink)}
+.chip.on{
+  border-color:var(--orange);color:var(--orange);background:var(--orange-soft);
+}
+
+/* ============ UTSTYR ============ */
+.gear{display:flex;flex-wrap:wrap;gap:8px}
+.gearcard{
+  border:1px solid var(--line2);border-radius:var(--r);
+  padding:10px 16px;cursor:pointer;transition:.15s;background:none;color:inherit;font:inherit;text-align:left;
+}
+.gearcard .k{font-size:11.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;display:block}
+.gearcard .v{font-size:16px;color:var(--mut)}
+.gearcard.on{border-color:var(--orange)}
+.gearcard.on .v{color:var(--ink)}
+
+/* ============ OPPSUMMERING-STRIPE ============ */
+.pulse-strip{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  border:1px solid var(--line);border-radius:14px;
+  background:linear-gradient(135deg,#131318 0%, #0E0E12 100%);
+  margin-bottom:14px;overflow:hidden;
+}
+.pulse-strip .cell{padding:16px 18px;border-right:1px solid var(--line)}
+.pulse-strip .cell:last-child{border-right:none}
+.pulse-strip .k{font-size:11.5px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.pulse-strip .v{font-family:'Bebas Neue';font-size:32px;letter-spacing:.03em;margin-top:2px}
+.pulse-strip .v .u{font-size:16px;color:var(--dim);letter-spacing:.06em}
+.pulse-strip .v.empty{color:var(--dim)}
+
+/* ============ AKTIVITETS-TIDSLINJE ============ */
+.tl{position:relative;padding-left:26px}
+.tl::before{
+  content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;
+  background:linear-gradient(180deg,var(--orange),rgba(255,69,0,.15));
+  border-radius:2px;
+}
+.act{
+  position:relative;margin-bottom:12px;
+  border:1px solid var(--line);border-radius:12px;background:var(--card2);
+}
+.act::before{
+  content:'';position:absolute;left:-23px;top:22px;width:12px;height:12px;border-radius:50%;
+  background:var(--bg);border:3px solid var(--orange);
+}
+.act-h{
+  display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;user-select:none;
+}
+.act-h .ico{font-size:16px}
+.act-h .t{font-weight:700;font-size:16.5px;letter-spacing:.02em;flex:1}
+.act-h .t small{color:var(--mut);font-weight:500}
+.act-h .mini{color:var(--dim);font-size:14px;letter-spacing:.05em}
+.act-h .x{border:none;background:none;color:var(--dim);cursor:pointer;font-size:15px;padding:4px}
+.act-h .x:hover{color:var(--i5)}
+.act-b{padding:0 14px 16px;border-top:1px solid var(--line);display:none}
+.act.open .act-b{display:block}
+
+/* pace-toggle */
+.pace{display:flex;gap:10px;align-items:stretch}
+.pace input{flex:1}
+.seg{display:flex;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.seg button{
+  border:none;background:none;color:var(--mut);font:inherit;font-size:13.5px;font-weight:700;
+  letter-spacing:.1em;padding:0 14px;cursor:pointer;
+}
+.seg button.on{background:var(--orange-soft);color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange)}
+
+.splits{
+  margin-top:12px;font-size:14px;color:var(--dim);letter-spacing:.12em;
+  text-transform:uppercase;cursor:pointer;background:none;border:none;font-weight:600;
+}
+.splits:hover{color:var(--mut)}
+
+/* soner */
+.sonebox{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.sonebox .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.sonebox .top .k{font-size:12px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.sonebox .top .sum{font-family:'Bebas Neue';font-size:19px;letter-spacing:.04em}
+.sonebar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex;margin-bottom:12px}
+.sonebar i{display:block;height:100%}
+.sgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.scol .sl{font-size:13px;font-weight:700;letter-spacing:.06em;text-align:center;margin-bottom:4px}
+.scol input{
+  width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  color:var(--ink);font:inherit;font-size:14px;padding:8px 4px;text-align:center;
+}
+.scol input:focus{outline:none;border-color:var(--orange)}
+.sonehint{font-size:13.5px;color:var(--dim);margin-top:10px;letter-spacing:.03em}
+
+/* add-knapper */
+.addrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.add{
+  border:1.5px dashed rgba(255,69,0,.45);border-radius:var(--r);
+  background:none;color:var(--orange);font:inherit;font-size:14.5px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;padding:14px;cursor:pointer;transition:.15s;
+}
+.add:hover{background:var(--orange-soft);border-style:solid}
+.add.grey{border-color:var(--line2);color:var(--mut)}
+.add.grey:hover{background:var(--card2)}
+
+/* ============ DAGSFORM ============ */
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
+.stars{display:flex;gap:6px;margin-top:6px}
+.star{font-size:26px;color:var(--line2);cursor:pointer;transition:.1s;background:none;border:none;padding:2px}
+.star.on{color:var(--i3);text-shadow:0 0 12px rgba(232,185,60,.35)}
+.rpe{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:8px}
+.rpe button{
+  aspect-ratio:1;border-radius:8px;border:1px solid var(--line2);background:var(--card2);
+  color:var(--mut);font:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:.12s;
+}
+.rpe button:hover{border-color:var(--mut)}
+.rpe button.on{color:#fff;border-color:transparent;box-shadow:0 0 14px rgba(255,69,0,.35)}
+
+/* ============ NOTATER ============ */
+textarea.t{min-height:110px;resize:vertical}
+.tagrow{display:flex;gap:10px;margin-top:12px}
+.tagrow input{flex:1}
+.tagbtn{
+  border:1px solid var(--line2);background:none;border-radius:var(--r);color:var(--mut);
+  font:inherit;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:0 18px;cursor:pointer;transition:.15s;
+}
+.tagbtn:hover{color:var(--orange);border-color:var(--orange)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.tag{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
+  background:var(--orange-soft);color:var(--orange);font-size:14px;font-weight:600;letter-spacing:.04em;
+}
+.tag b{cursor:pointer;font-weight:700;opacity:.7}
+.tag b:hover{opacity:1}
+
+/* ============ STICKY LAGRE-BAR ============ */
+.savebar{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:linear-gradient(0deg,rgba(10,10,11,.98) 60%,rgba(10,10,11,0));
+  padding:18px 0 20px;
+}
+.savebar .wrap{display:flex;gap:10px}
+.btn{
+  border-radius:12px;font:inherit;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  cursor:pointer;transition:.15s;padding:16px 10px;font-size:15.5px;
+}
+.btn.primary{
+  flex:2.2;background:var(--orange);border:1px solid var(--orange);color:#fff;
+  box-shadow:0 6px 24px rgba(255,69,0,.35);
+}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{flex:1;background:rgba(16,16,20,.9);border:1px solid var(--line2);color:var(--mut)}
+.btn.ghost:hover{color:var(--ink)}
+.btn.mal-save{
+  flex:0 0 54px;background:rgba(16,16,20,.9);border:1px solid rgba(255,69,0,.5);color:var(--orange);font-size:19px;
+}
+.btn.mal-save:hover{background:var(--orange-soft)}
+
+/* mobil */
+@media (max-width:560px){
+  .grid2{grid-template-columns:1fr 1fr;gap:10px}
+  .formgrid{grid-template-columns:1fr}
+  .sgrid{grid-template-columns:repeat(3,1fr);row-gap:12px}
+  .pulse-strip .v{font-size:26px}
+  h1{font-size:26px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ TOPP ============ -->
+<header class="topbar">
+  <div class="wrap">
+    <h1><span class="beam"></span>LOGG ØKT</h1>
+    <button class="close" aria-label="Lukk">✕</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Maler -->
+  <div class="malrow">
+    <span class="mal-label">Fra mal</span>
+    <button class="mal">2T Langtur Løp</button>
+    <button class="mal">Test Økt Styrke</button>
+    <button class="mal">Styrke Test</button>
+    <button class="mal ghost">+ Standardøkt</button>
+  </div>
+
+  <!-- 01 GRUNNINFO -->
+  <section class="card static">
+    <div class="card-h">
+      <span class="num">01</span>
+      <h2>GRUNNINFO</h2>
+    </div>
+    <div class="card-b">
+      <div class="grid2">
+        <div class="full">
+          <label class="f" for="tittel">Tittel</label>
+          <input class="t" id="tittel" placeholder="F.eks. 5×5min terskelintervall">
+        </div>
+        <div>
+          <label class="f" for="dato">Dato</label>
+          <input class="t" id="dato" value="12. aug. 2026">
+        </div>
+        <div>
+          <label class="f" for="klokke">Klokkeslett <span class="opt">(valgfritt)</span></label>
+          <input class="t" id="klokke" placeholder="—">
+        </div>
+        <div>
+          <label class="f" for="sted">Sted <span class="opt">(valgfritt)</span></label>
+          <input class="t" id="sted" placeholder="F.eks. Sognsvann, Trysil">
+        </div>
+        <div>
+          <label class="f" for="okttype">Økttype <span class="opt">(valgfritt)</span></label>
+          <div class="selwrap">
+            <select class="t" id="okttype">
+              <option>Vanlig økt</option>
+              <option>Langtur</option><option>Intervall</option><option>Terskel</option>
+              <option>Rolig</option><option>Konkurranse</option><option>Testløp</option>
+              <option>Test / protokoll</option><option>Restitusjon</option><option>Teknisk</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <label class="f" style="margin-top:20px">Merking</label>
+      <div class="chips">
+        <button class="chip on">★ Viktig økt</button>
+        <button class="chip">👥 Fellestrening</button>
+        <button class="chip">🏔 Høydetrening</button>
+        <button class="chip">🌡 Varmetrening</button>
+        <button class="chip">🏁 Konkurranse</button>
+        <button class="chip">⏱ Testløp</button>
+        <button class="chip">🧪 Test</button>
+      </div>
+
+      <label class="f" style="margin-top:20px">Utstyr brukt</label>
+      <div class="gear">
+        <button class="gearcard on"><span class="k">Ski</span><span class="v">Test</span></button>
+        <button class="gearcard" style="border-style:dashed"><span class="k">&nbsp;</span><span class="v">+ Legg til</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE OPPSUMMERING -->
+  <div class="pulse-strip" aria-label="Oppsummering">
+    <div class="cell"><span class="k">Treningstid</span><div class="v" id="sumTid">45<span class="u">:30</span></div></div>
+    <div class="cell"><span class="k">Distanse</span><div class="v" id="sumKm">10,5 <span class="u">km</span></div></div>
+    <div class="cell"><span class="k">Aktiviteter</span><div class="v">1</div></div>
+  </div>
+
+  <!-- 02 AKTIVITETER -->
+  <section class="card static">
+    <div class="card-h">
+      <span class="num">02</span>
+      <h2>AKTIVITETER</h2>
+      <span class="hint">Kronologisk — trykk for å utvide</span>
+    </div>
+    <div class="card-b">
+
+      <div class="tl">
+        <!-- Aktivitet 1 -->
+        <article class="act open">
+          <div class="act-h" onclick="this.parentElement.classList.toggle('open')">
+            <span class="ico">⚡</span>
+            <span class="t">Aktivitet <small>· Rulleski — Skøyting</small></span>
+            <span class="mini">45:30 · 10,5 km</span>
+            <button class="x" aria-label="Fjern">✕</button>
+          </div>
+          <div class="act-b">
+            <div class="grid2">
+              <div>
+                <label class="f">Aktivitetstype</label>
+                <div class="selwrap"><select class="t">
+                  <option>⚡ Aktivitet</option><option>Oppvarming</option><option>Pause</option>
+                  <option>Aktiv pause</option><option>Nedjogg</option><option>Annet</option>
+                </select></div>
+              </div>
+              <div>
+                <label class="f">Bevegelsesform</label>
+                <div class="selwrap"><select class="t"><option>Rulleski</option><option>Løping</option><option>Langrenn</option><option>Sykkel</option></select></div>
+              </div>
+              <div>
+                <label class="f">Underkategori</label>
+                <div class="selwrap"><select class="t"><option>Skøyting</option><option>Klassisk</option></select></div>
+              </div>
+              <div>
+                <label class="f">Klokkeslett start</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Varighet (mm:ss)</label>
+                <input class="t" value="45:30">
+              </div>
+              <div>
+                <label class="f">Distanse (km)</label>
+                <input class="t" value="10,5" inputmode="decimal">
+              </div>
+              <div>
+                <label class="f">Høydemeter opp (m)</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Høydemeter ned (m)</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Snittpuls (bpm)</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Maks puls (bpm)</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Snittwatt</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div>
+                <label class="f">Makswatt</label>
+                <input class="t" placeholder="—">
+              </div>
+              <div class="full">
+                <label class="f">Snittpace</label>
+                <div class="pace">
+                  <input class="t" value="13,5" inputmode="decimal">
+                  <div class="seg">
+                    <button type="button">MIN/KM</button>
+                    <button type="button" class="on">KM/T</button>
+                  </div>
+                </div>
+                <button class="splits">▸ Splits per km</button>
+              </div>
+            </div>
+
+            <!-- Sonefordeling -->
+            <div class="sonebox">
+              <div class="top">
+                <span class="k">Sonefordeling</span>
+                <span class="sum">Σ 45:30</span>
+              </div>
+              <div class="sonebar">
+                <i style="width:55%;background:var(--i1)"></i>
+                <i style="width:20%;background:var(--i2)"></i>
+                <i style="width:15%;background:var(--i3)"></i>
+                <i style="width:10%;background:var(--i4)"></i>
+              </div>
+              <div class="sgrid">
+                <div class="scol"><div class="sl" style="color:var(--i1)">I1</div><input value="25:00" placeholder="MM:SS"></div>
+                <div class="scol"><div class="sl" style="color:var(--i2)">I2</div><input value="9:00" placeholder="MM:SS"></div>
+                <div class="scol"><div class="sl" style="color:var(--i3)">I3</div><input value="7:00" placeholder="MM:SS"></div>
+                <div class="scol"><div class="sl" style="color:var(--i4)">I4</div><input value="4:30" placeholder="MM:SS"></div>
+                <div class="scol"><div class="sl" style="color:var(--i5)">I5</div><input placeholder="MM:SS"></div>
+                <div class="scol"><div class="sl" style="color:var(--hurt)">HURT.</div><input placeholder="MM:SS"></div>
+              </div>
+              <p class="sonehint">Skriv «60» for 60 min, eller «1:30» for 1 min 30 sek. Hurtighet føres manuelt — beregnes ikke fra puls.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="addrow">
+        <button class="add">+ Legg til aktivitet</button>
+        <button class="add">🎯 + Legg til skyting</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 ERNÆRING (kollapset) -->
+  <section class="card">
+    <div class="card-h clickable" onclick="this.parentElement.classList.toggle('open')">
+      <span class="num">03</span>
+      <h2>ERNÆRING</h2>
+      <span class="hint">Ingen rader</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="card-b">
+      <button class="add grey" style="width:100%">+ Legg til ernæring</button>
+    </div>
+  </section>
+
+  <!-- 04 VÆR OG FØRE (kollapset) -->
+  <section class="card">
+    <div class="card-h clickable" onclick="this.parentElement.classList.toggle('open')">
+      <span class="num">04</span>
+      <h2>VÆR OG FØRE</h2>
+      <span class="hint">Ikke satt</span>
+      <span class="chev">▶</span>
+    </div>
+    <div class="card-b">
+      <div class="grid2">
+        <div><label class="f">Vær</label><input class="t" placeholder="F.eks. sol, -4°"></div>
+        <div><label class="f">Føre</label><input class="t" placeholder="F.eks. hardt, nysnø"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 DAGSFORM OG BELASTNING -->
+  <section class="card static">
+    <div class="card-h">
+      <span class="num">05</span>
+      <h2>DAGSFORM OG BELASTNING</h2>
+    </div>
+    <div class="card-b">
+      <div class="formgrid">
+        <div>
+          <label class="f" style="margin-top:0">Fysisk form</label>
+          <div class="stars" data-group="fys">
+            <button class="star">★</button><button class="star">★</button><button class="star">★</button><button class="star">★</button><button class="star">★</button>
+          </div>
+        </div>
+        <div>
+          <label class="f" style="margin-top:0">Mental form</label>
+          <div class="stars" data-group="men">
+            <button class="star">★</button><button class="star">★</button><button class="star">★</button><button class="star">★</button><button class="star">★</button>
+          </div>
+        </div>
+      </div>
+      <label class="f" style="margin-top:22px">RPE (1–10)</label>
+      <div class="rpe" id="rpe">
+        <button>1</button><button>2</button><button>3</button><button>4</button><button>5</button>
+        <button>6</button><button>7</button><button>8</button><button>9</button><button>10</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 NOTATER OG TAGGER -->
+  <section class="card static">
+    <div class="card-h">
+      <span class="num">06</span>
+      <h2>NOTATER OG TAGGER</h2>
+    </div>
+    <div class="card-b">
+      <textarea class="t" placeholder="Kommentar, observasjoner, følelse…"></textarea>
+      <div class="tagrow">
+        <input class="t" placeholder="Legg til tagg…">
+        <button class="tagbtn">+ Legg til</button>
+      </div>
+      <div class="tags">
+        <span class="tag">rulleski <b>✕</b></span>
+        <span class="tag">teknikk <b>✕</b></span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- STICKY LAGRE -->
+<div class="savebar">
+  <div class="wrap">
+    <button class="btn ghost">Avbryt</button>
+    <button class="btn primary">Lagre økt</button>
+    <button class="btn mal-save" title="Lagre som mal" aria-label="Lagre som mal">🏷</button>
+  </div>
+</div>
+
+<script>
+// chips toggle
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+// stjerner
+document.querySelectorAll('.stars').forEach(g=>{
+  const st=[...g.querySelectorAll('.star')];
+  st.forEach((s,i)=>s.addEventListener('click',()=>{
+    st.forEach((x,j)=>x.classList.toggle('on',j<=i));
+  }));
+});
+// RPE med fargeskala grønn->rød
+const rpeCols=['#28A86E','#3BA45C','#63A94A','#8FAC3C','#BCA735','#E8B93C','#F09A2E','#FF8C00','#F0592B','#E23A5A'];
+document.querySelectorAll('#rpe button').forEach((b,i)=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#rpe button').forEach(x=>{x.classList.remove('on');x.style.background='';});
+    b.classList.add('on');b.style.background=rpeCols[i];
+  });
+});
+// pace-toggle
+document.querySelectorAll('.seg').forEach(s=>{
+  s.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    s.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  }));
+});
+</script>
+</body>
+</html>

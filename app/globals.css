@@ -284,3 +284,153 @@ input::placeholder {
   .xp-tab-in, .xp-fade-in { animation: none; }
   .xp-check-pop { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DESIGN-TOKENS + BASISKLASSER — føring-flyten (fase 1)
+   Kilde: design/xpulse-logg-okt-design.html (+ kalender-utkastet for
+   helheten). Alle klasser bruker var(--accent) slik at trener-flater
+   blir blå med én wrapper: <div class="xp-coach">…</div>.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --card: #101014;
+  --card2: #15151B;
+  --line: #1F1F26;
+  --line2: #2A2A33;
+  --ink: #F2F2F0;
+  --mut: #8B8B95;
+  --dim: #5A5A64;
+  --orange: #FF4500;
+  --orange-soft: rgba(255, 69, 0, .12);
+  --green: #28A86E;
+  --green-soft: rgba(40, 168, 110, .12);
+  --blue: #1A6FD4;
+  --blue-soft: rgba(26, 111, 212, .10);
+  --gold: #F5C542;
+  --i1: #28A86E; --i2: #1A6FD4; --i3: #E8B93C; --i4: #FF8C00; --i5: #E23A5A;
+  --hurt: #8B5CF6;
+  --r-field: 10px;
+  --r-card: 14px;
+  --accent: var(--orange);
+  --accent-soft: var(--orange-soft);
+  --accent-45: rgba(255, 69, 0, .45);
+  --accent-50: rgba(255, 69, 0, .5);
+}
+.xp-coach {
+  --accent: var(--blue);
+  --accent-soft: var(--blue-soft);
+  --accent-45: rgba(26, 111, 212, .45);
+  --accent-50: rgba(26, 111, 212, .5);
+}
+
+/* ── Seksjonskort (01, 02, …) ── */
+.xp-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); margin-bottom: 14px; overflow: hidden; }
+.xp-card-h { display: flex; align-items: center; gap: 14px; padding: 16px 18px; user-select: none; }
+.xp-card-h.xp-clickable { cursor: pointer; }
+.xp-num { font-family: 'Bebas Neue', sans-serif; font-size: 15px; color: var(--dim); letter-spacing: .08em; border: 1px solid var(--line2); border-radius: 6px; padding: 3px 8px 1px; min-width: 34px; text-align: center; }
+.xp-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 21px; letter-spacing: .09em; font-weight: 400; flex: 1; color: var(--ink); margin: 0; }
+.xp-card-hint { font-size: 14px; color: var(--dim); letter-spacing: .04em; font-family: 'Barlow Condensed', sans-serif; }
+.xp-chev { color: var(--dim); transition: transform .2s; font-size: 13px; }
+.xp-card.open .xp-chev { transform: rotate(90deg); }
+.xp-card-b { padding: 4px 18px 20px; }
+
+/* ── Felter ── */
+.xp-label { display: block; font-size: 12.5px; letter-spacing: .16em; color: var(--mut); text-transform: uppercase; margin: 14px 0 6px; font-family: 'Barlow Condensed', sans-serif; }
+.xp-label .xp-opt { color: var(--dim); letter-spacing: .06em; text-transform: none; font-size: 12px; }
+.xp-input { width: 100%; background: var(--card2); border: 1px solid var(--line); border-radius: var(--r-field); color: var(--ink); font-family: 'Barlow Condensed', sans-serif; font-size: 16.5px; padding: 12px 14px; transition: border-color .15s, box-shadow .15s; appearance: none; }
+.xp-input::placeholder { color: var(--dim); }
+.xp-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea.xp-input { min-height: 110px; resize: vertical; }
+.xp-selwrap { position: relative; }
+.xp-selwrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; font-size: 13px; }
+.xp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.xp-grid2 .xp-full { grid-column: 1 / -1; }
+
+/* ── Flagg-chips ── */
+.xp-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line2); background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; cursor: pointer; transition: .15s; }
+.xp-chip:hover { color: var(--ink); }
+.xp-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.xp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+
+/* ── Mal-chips-rad ── */
+.xp-malrow { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0 18px; scrollbar-width: none; }
+.xp-malrow::-webkit-scrollbar { display: none; }
+.xp-mal { flex: 0 0 auto; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--line2); background: var(--card); color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 14.5px; font-weight: 600; letter-spacing: .10em; text-transform: uppercase; cursor: pointer; transition: .15s; white-space: nowrap; }
+.xp-mal:hover { color: var(--ink); border-color: var(--mut); }
+.xp-mal.xp-ghost { border-style: dashed; color: var(--dim); }
+.xp-mal-label { flex: 0 0 auto; align-self: center; font-size: 13px; letter-spacing: .18em; color: var(--dim); text-transform: uppercase; padding-right: 4px; font-family: 'Barlow Condensed', sans-serif; }
+
+/* ── Pulse-strip (live-oppsummering) ── */
+.xp-pulse-strip { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--r-card); background: linear-gradient(135deg, #131318 0%, #0E0E12 100%); margin-bottom: 14px; overflow: hidden; }
+.xp-pulse-strip .xp-cell { padding: 16px 18px; border-right: 1px solid var(--line); }
+.xp-pulse-strip .xp-cell:last-child { border-right: none; }
+.xp-k { font-size: 11.5px; letter-spacing: .18em; color: var(--mut); text-transform: uppercase; font-family: 'Barlow Condensed', sans-serif; }
+.xp-v { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: .03em; margin-top: 2px; color: var(--ink); }
+.xp-v .xp-u { font-size: 16px; color: var(--dim); letter-spacing: .06em; }
+.xp-v.xp-empty { color: var(--dim); }
+
+/* ── Aktivitets-tidslinje ── */
+.xp-tl { position: relative; padding-left: 26px; }
+.xp-tl::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent-soft)); border-radius: 2px; }
+.xp-act { position: relative; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); }
+.xp-act::before { content: ''; position: absolute; left: -23px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg-primary); border: 3px solid var(--accent); }
+.xp-act-h { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; user-select: none; }
+.xp-act-t { font-weight: 700; font-size: 16.5px; letter-spacing: .02em; flex: 1; color: var(--ink); font-family: 'Barlow Condensed', sans-serif; }
+.xp-act-t small { color: var(--mut); font-weight: 500; }
+.xp-act-mini { color: var(--dim); font-size: 14px; letter-spacing: .05em; font-family: 'Barlow Condensed', sans-serif; }
+.xp-act-b { padding: 0 14px 16px; border-top: 1px solid var(--line); }
+
+/* ── Sonefordeling ── */
+.xp-sonebox { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--r-field); padding: 14px; }
+.xp-sonebar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; display: flex; }
+.xp-sonebar i { display: block; height: 100%; }
+.xp-zone-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; padding: 8px 4px; text-align: center; }
+.xp-zone-input:focus { outline: none; border-color: var(--accent); }
+.xp-sonehint { font-size: 13.5px; color: var(--dim); margin-top: 10px; letter-spacing: .03em; font-family: 'Barlow Condensed', sans-serif; }
+
+/* ── Add-knapper (dashed) ── */
+.xp-add { border: 1.5px dashed var(--accent-45); border-radius: var(--r-field); background: none; color: var(--accent); font-family: 'Barlow Condensed', sans-serif; font-size: 14.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 14px; cursor: pointer; transition: .15s; }
+.xp-add:hover { background: var(--accent-soft); border-style: solid; }
+.xp-add.xp-grey { border-color: var(--line2); color: var(--mut); }
+.xp-add.xp-grey:hover { background: var(--card2); }
+
+/* ── Segment-toggle (pace-enhet o.l.) ── */
+.xp-seg { display: flex; border: 1px solid var(--line2); border-radius: var(--r-field); overflow: hidden; }
+.xp-seg button { border: none; background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .1em; padding: 0 14px; cursor: pointer; }
+.xp-seg button.on { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* ── Dagsform: stjerner + RPE ── */
+.xp-stars { display: flex; gap: 6px; margin-top: 6px; }
+.xp-star { font-size: 26px; color: var(--line2); cursor: pointer; transition: .1s; background: none; border: none; padding: 2px; }
+.xp-star.on { color: var(--i3); text-shadow: 0 0 12px rgba(232, 185, 60, .35); }
+.xp-rpe { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 8px; }
+.xp-rpe button { aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--line2); background: var(--card2); color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; transition: .12s; }
+.xp-rpe button:hover { border-color: var(--mut); }
+.xp-rpe button.on { color: #fff; border-color: transparent; box-shadow: 0 0 14px var(--accent-soft); }
+
+/* ── Tag-pills ── */
+.xp-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.xp-tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 600; letter-spacing: .04em; font-family: 'Barlow Condensed', sans-serif; }
+.xp-tag b { cursor: pointer; font-weight: 700; opacity: .7; }
+.xp-tag b:hover { opacity: 1; }
+
+/* ── Sticky savebar — sticky i modalens SCROLL-CONTAINER, ikke viewport ── */
+.xp-savebar { position: sticky; bottom: 0; z-index: 40; background: linear-gradient(0deg, rgba(10, 10, 11, .98) 60%, rgba(10, 10, 11, 0)); padding: 18px 0 14px; display: flex; gap: 10px; }
+.xp-btn { border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: .15s; padding: 16px 10px; font-size: 15.5px; }
+.xp-btn.xp-primary { flex: 2.2; background: var(--accent); border: 1px solid var(--accent); color: #fff; box-shadow: 0 6px 24px var(--accent-soft); }
+.xp-btn.xp-primary:hover { filter: brightness(1.08); }
+.xp-btn.xp-primary:disabled { opacity: .6; cursor: default; }
+.xp-btn.xp-ghost { flex: 1; background: rgba(16, 16, 20, .9); border: 1px solid var(--line2); color: var(--mut); }
+.xp-btn.xp-ghost:hover { color: var(--ink); }
+.xp-btn.xp-icon { flex: 0 0 54px; background: rgba(16, 16, 20, .9); border: 1px solid var(--accent-50); color: var(--accent); font-size: 19px; }
+.xp-btn.xp-icon:hover { background: var(--accent-soft); }
+
+/* ── Mobil + reduced motion ── */
+@media (max-width: 560px) {
+  .xp-grid2 { gap: 10px; }
+  .xp-pulse-strip .xp-v { font-size: 26px; }
+  .xp-card-b { padding: 4px 14px 16px; }
+  .xp-card-h { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xp-chev, .xp-star, .xp-chip, .xp-add, .xp-input, .xp-mal, .xp-btn { transition: none; }
+}

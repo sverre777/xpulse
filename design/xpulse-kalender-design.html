@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Kalender (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B;
+  --card:#101014;
+  --card2:#15151B;
+  --cell:#0D0D11;
+  --line:#1F1F26;
+  --line2:#2A2A33;
+  --ink:#F2F2F0;
+  --mut:#8B8B95;
+  --dim:#55555F;
+  --orange:#FF4500;
+  --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E;
+  --green-soft:rgba(40,168,110,.12);
+  --blue:#1A6FD4;
+  --blue-soft:rgba(26,111,212,.10);
+  --i1:#28A86E; --i3:#E8B93C; --i5:#E23A5A;
+  --gold:#F5C542;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Barlow Condensed',sans-serif;font-size:17px;letter-spacing:.01em;
+  padding-bottom:60px;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+
+/* ===== HILSNING ===== */
+.hello{padding:26px 0 4px}
+.hello .k{font-size:13px;letter-spacing:.28em;color:var(--mut);text-transform:uppercase}
+.hello h1{font-family:'Bebas Neue';font-size:52px;letter-spacing:.03em;font-weight:400;line-height:1}
+
+/* ===== SEKSJONSTITTEL ===== */
+.sect{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+.sect .beam{width:26px;height:4px;background:var(--orange);border-radius:2px}
+.sect h2{font-family:'Bebas Neue';font-size:23px;letter-spacing:.09em;font-weight:400}
+
+/* ===== KALENDER-HODE ===== */
+.calcard{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.calhead{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 14px 12px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:rgba(16,16,20,.97);backdrop-filter:blur(8px);z-index:20;
+}
+.seg{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.seg button{
+  border:none;background:none;color:var(--mut);font:inherit;font-size:13.5px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:.15s;
+}
+.seg button.on{background:var(--orange);color:#fff}
+.mnav{display:flex;align-items:center;gap:8px}
+.mnav .m{font-family:'Bebas Neue';font-size:22px;letter-spacing:.08em;min-width:120px;text-align:center}
+.mnav button{
+  width:36px;height:36px;border:1px solid var(--line2);border-radius:8px;background:none;
+  color:var(--mut);cursor:pointer;font-size:15px;transition:.15s;
+}
+.mnav button:hover{color:var(--ink);border-color:var(--mut)}
+
+/* ===== ANALYSE-PANEL ===== */
+.ana{border-bottom:1px solid var(--line)}
+.ana-h{
+  display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;user-select:none;
+}
+.ana-h .tri{color:var(--orange);font-size:11px;transition:transform .2s}
+.ana.open .ana-h .tri{transform:rotate(90deg)}
+.ana-h .t{font-size:14px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
+.ana-h .hide{margin-left:auto;font-size:13px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.ana-b{display:none;padding:2px 16px 18px}
+.ana.open .ana-b{display:block}
+
+.statrow{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#131318,#0E0E12)}
+.statrow .cell{padding:13px 16px;border-right:1px solid var(--line)}
+.statrow .cell:last-child{border-right:none}
+.statrow .k{font-size:11px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.statrow .v{font-family:'Bebas Neue';font-size:30px;letter-spacing:.03em;margin-top:1px}
+.statrow .v .u{font-size:15px;color:var(--dim)}
+.delta{font-size:14px;font-weight:600;margin-top:2px}
+.delta.neg{color:var(--i5)} .delta.pos{color:var(--green)}
+
+.sonewrap{margin-top:14px}
+.sonewrap .k{font-size:11.5px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.sonebar{height:8px;border-radius:4px;overflow:hidden;display:flex;background:var(--line);margin-top:7px}
+.sonebar i{height:100%}
+.sportchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sportchip{
+  font-size:14px;color:var(--mut);border:1px solid var(--line2);border-radius:8px;padding:6px 12px;
+}
+.sportchip b{color:var(--ink);font-weight:600}
+.ana-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.linkbtn{
+  border:1px solid var(--orange);border-radius:10px;background:none;color:var(--orange);
+  font:inherit;font-size:14px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  padding:11px 18px;cursor:pointer;transition:.15s;
+}
+.linkbtn:hover{background:var(--orange-soft)}
+.linkbtn.grey{border-color:var(--line2);color:var(--mut)}
+.linkbtn.grey:hover{color:var(--ink)}
+
+/* ===== GRID ===== */
+.dow{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  padding:10px 10px 8px;gap:6px;
+}
+.dow span{font-size:11.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;text-align:center}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:0 10px}
+.day{
+  background:var(--cell);border:1px solid var(--line);border-radius:10px;
+  min-height:96px;padding:7px 7px 8px;position:relative;transition:border-color .15s;
+  display:flex;flex-direction:column;gap:5px;
+}
+.day:hover{border-color:var(--line2)}
+.day.dead{opacity:.28}
+.day .dh{display:flex;align-items:center;justify-content:space-between}
+.day .dn{font-family:'Bebas Neue';font-size:16px;color:var(--mut);letter-spacing:.05em;line-height:1}
+.day.today{border-color:var(--orange)}
+.day.today .dn{
+  color:#fff;background:var(--orange);border-radius:6px;padding:2px 6px 0;
+}
+.day .plus{
+  border:none;background:none;color:var(--dim);font-size:14px;cursor:pointer;line-height:1;
+  opacity:0;transition:.15s;padding:2px;
+}
+.day:hover .plus{opacity:1}
+.day .plus:hover{color:var(--orange)}
+
+/* økt-piller */
+.pill{
+  border-radius:7px;padding:5px 7px 6px;font-size:13px;line-height:1.25;cursor:pointer;
+  border:1px solid var(--line);border-left:3px solid var(--green);
+  background:var(--card2);transition:.12s;overflow:hidden;
+}
+.pill:hover{border-color:var(--line2);border-left-color:var(--green)}
+.pill .r1{display:flex;align-items:center;gap:5px;color:var(--mut);font-size:12px}
+.pill .r1 .ok{color:var(--green);font-size:11px}
+.pill .r1 .strava{color:var(--orange);font-size:10px}
+.pill .name{
+  color:var(--ink);font-weight:600;letter-spacing:.01em;
+  white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+}
+.pill .dur{color:var(--orange);font-weight:700;font-size:12.5px}
+.pill.planned{border-left-color:var(--blue);background:var(--blue-soft)}
+.pill.planned .r1 .ok{display:none}
+.pill.race{border-left-color:var(--gold)}
+
+/* ukeoppsummering */
+.wsum{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:8px 10px 14px;padding:10px 14px;
+  border:1px solid var(--line);border-radius:10px;background:var(--card2);
+}
+.wsum .wk{font-size:12px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.wsum .big{font-family:'Bebas Neue';font-size:21px;color:var(--orange);letter-spacing:.04em}
+.wsum .s{font-size:15px;color:var(--mut)}
+.wsum .s b{color:var(--ink);font-weight:600}
+.wbar{flex:1;min-width:90px;display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line)}
+.wbar i{height:100%}
+.wsum .pct{font-size:12.5px;color:var(--dim);letter-spacing:.03em;white-space:nowrap}
+
+/* ===== NOTAT + DISKUSJON ===== */
+.underrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mini{
+  border:1px solid var(--line);border-radius:14px;background:var(--card);padding:16px 18px;
+}
+.mini .mh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.mini .beam{width:18px;height:3px;border-radius:2px;background:var(--orange)}
+.mini.coach .beam{background:var(--blue)}
+.mini h3{font-family:'Bebas Neue';font-size:17px;letter-spacing:.1em;font-weight:400;flex:1}
+.mini .cnt{font-size:13px;color:var(--dim)}
+.mini p{color:var(--dim);font-size:15px}
+.mini .ghostbtn{
+  margin-top:10px;border:1.5px dashed var(--line2);border-radius:9px;background:none;color:var(--mut);
+  font:inherit;font-size:13.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:10px;width:100%;cursor:pointer;transition:.15s;
+}
+.mini .ghostbtn:hover{color:var(--orange);border-color:rgba(255,69,0,.5)}
+
+@media (max-width:640px){
+  .hello h1{font-size:40px}
+  .calhead{flex-wrap:wrap;justify-content:center}
+  .day{min-height:78px;padding:5px 5px 6px}
+  .pill{padding:4px 5px 5px}
+  .pill .name{display:none}           /* mobil: ikon + tid holder */
+  .pill .r1{font-size:11px}
+  .underrow{grid-template-columns:1fr}
+  .wsum{gap:10px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+
+  <div class="hello">
+    <div class="k">God dag</div>
+    <h1>SVERRE</h1>
+  </div>
+
+  <div class="sect"><span class="beam"></span><h2>KALENDER</h2></div>
+
+  <div class="calcard">
+
+    <!-- hode: visning + månedsnav -->
+    <div class="calhead">
+      <div class="seg">
+        <button>UKE</button><button class="on">MÅNED</button><button>ÅR</button>
+      </div>
+      <div class="mnav">
+        <button aria-label="Forrige">←</button>
+        <span class="m">JUNI 2026</span>
+        <button aria-label="Neste">→</button>
+      </div>
+    </div>
+
+    <!-- analyse -->
+    <div class="ana open">
+      <div class="ana-h" onclick="this.parentElement.classList.toggle('open')">
+        <span class="tri">▶</span><span class="t">Analyse juni</span>
+        <span class="hide">Skjul</span>
+      </div>
+      <div class="ana-b">
+        <div class="statrow">
+          <div class="cell">
+            <span class="k">Total tid</span>
+            <div class="v">6T 35MIN</div>
+            <div class="delta neg">▼ 66% vs. forrige</div>
+          </div>
+          <div class="cell"><span class="k">KM</span><div class="v">43,8</div></div>
+          <div class="cell"><span class="k">Økter</span><div class="v">9</div></div>
+        </div>
+        <div class="sonewrap">
+          <span class="k">Soner</span>
+          <div class="sonebar">
+            <i style="width:94%;background:var(--i1)"></i>
+            <i style="width:6%;background:var(--blue)"></i>
+          </div>
+        </div>
+        <div class="sportchips">
+          <span class="sportchip">Løping · <b>5t 35min</b></span>
+          <span class="sportchip">Styrke · <b>34min</b></span>
+        </div>
+        <div class="ana-actions">
+          <button class="linkbtn">Se full analyse →</button>
+          <button class="linkbtn grey">+ Notat for juni</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ukedager -->
+    <div class="dow">
+      <span>Man</span><span>Tir</span><span>Ons</span><span>Tor</span><span>Fre</span><span>Lør</span><span>Søn</span>
+    </div>
+
+    <!-- UKE 23 -->
+    <div class="week">
+      <div class="day"><div class="dh"><span class="dn">1</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">2</span><button class="plus">＋</button></div></div>
+      <div class="day">
+        <div class="dh"><span class="dn">3</span><button class="plus">＋</button></div>
+        <div class="pill">
+          <div class="r1"><span class="ok">✓</span><span class="strava">▲</span>17:14</div>
+          <div class="name">Evening Weight Training</div>
+          <div class="dur">34min</div>
+        </div>
+        <div class="pill">
+          <div class="r1"><span class="ok">✓</span>19:02</div>
+          <div class="name">Rolig jogg</div>
+          <div class="dur">2t 05min</div>
+        </div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">4</span><button class="plus">＋</button></div></div>
+      <div class="day">
+        <div class="dh"><span class="dn">5</span><button class="plus">＋</button></div>
+        <div class="pill">
+          <div class="r1"><span class="ok">✓</span><span class="strava">▲</span>14:51</div>
+          <div class="name">Afternoon Run</div>
+          <div class="dur">1t 20min</div>
+        </div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">6</span><button class="plus">＋</button></div></div>
+      <div class="day">
+        <div class="dh"><span class="dn">7</span><button class="plus">＋</button></div>
+        <div class="pill">
+          <div class="r1"><span class="ok">✓</span><span class="strava">▲</span>08:47</div>
+          <div class="name">Terrengløp</div>
+          <div class="dur">2t 15min</div>
+        </div>
+      </div>
+    </div>
+    <div class="wsum">
+      <span class="wk">Uke 23</span>
+      <span class="big">6T 9M</span>
+      <span class="s"><b>43,8</b> km</span>
+      <span class="s"><b>4</b> økter</span>
+      <div class="wbar"><i style="width:100%;background:var(--i1)"></i></div>
+      <span class="pct">I1–2 <b style="color:var(--i1)">100%</b> · I3 0% · I4–5+ 0%</span>
+    </div>
+
+    <!-- UKE 24 -->
+    <div class="week">
+      <div class="day">
+        <div class="dh"><span class="dn">8</span><button class="plus">＋</button></div>
+        <div class="pill"><div class="r1"><span class="ok">✓</span></div><div class="name">Styrke test</div><div class="dur">4min</div></div>
+      </div>
+      <div class="day">
+        <div class="dh"><span class="dn">9</span><button class="plus">＋</button></div>
+        <div class="pill"><div class="r1"><span class="ok">✓</span></div><div class="name">Styrke test</div><div class="dur">1min</div></div>
+      </div>
+      <div class="day">
+        <div class="dh"><span class="dn">10</span><button class="plus">＋</button></div>
+        <div class="pill"><div class="r1"><span class="ok">✓</span></div><div class="name">Test økt styrke</div><div class="dur">19min</div></div>
+      </div>
+      <div class="day">
+        <div class="dh"><span class="dn">11</span><button class="plus">＋</button></div>
+        <div class="pill"><div class="r1"><span class="ok">✓</span></div><div class="name">Test økt styrke</div><div class="dur">1min</div></div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">12</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">13</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">14</span><button class="plus">＋</button></div></div>
+    </div>
+    <div class="wsum">
+      <span class="wk">Uke 24</span>
+      <span class="big">25M</span>
+      <span class="s"><b>4</b> økter</span>
+      <div class="wbar"><i style="width:100%;background:var(--i1)"></i></div>
+      <span class="pct">I1–2 <b style="color:var(--i1)">100%</b></span>
+    </div>
+
+    <!-- UKE 25 (med "i dag" + planlagt eksempel) -->
+    <div class="week">
+      <div class="day">
+        <div class="dh"><span class="dn">15</span><button class="plus">＋</button></div>
+        <div class="pill"><div class="r1"><span class="ok">✓</span></div><div class="name">Test økt styrke</div><div class="dur">1min</div></div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">16</span><button class="plus">＋</button></div></div>
+      <div class="day today">
+        <div class="dh"><span class="dn">17</span><button class="plus">＋</button></div>
+        <div class="pill planned">
+          <div class="r1">18:00</div>
+          <div class="name">5×5min terskel</div>
+          <div class="dur">1t 10min</div>
+        </div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">18</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">19</span><button class="plus">＋</button></div></div>
+      <div class="day">
+        <div class="dh"><span class="dn">20</span><button class="plus">＋</button></div>
+        <div class="pill race">
+          <div class="r1">🏁 10:00</div>
+          <div class="name">Moseby Invitational</div>
+          <div class="dur">3 km</div>
+        </div>
+      </div>
+      <div class="day"><div class="dh"><span class="dn">21</span><button class="plus">＋</button></div></div>
+    </div>
+    <div class="wsum">
+      <span class="wk">Uke 25</span>
+      <span class="big">1M</span>
+      <span class="s"><b>1</b> økt</span>
+      <div class="wbar"><i style="width:100%;background:var(--i1)"></i></div>
+      <span class="pct">I1–2 <b style="color:var(--i1)">100%</b></span>
+    </div>
+
+    <!-- UKE 26 (tom) -->
+    <div class="week" style="margin-bottom:14px">
+      <div class="day"><div class="dh"><span class="dn">22</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">23</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">24</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">25</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">26</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">27</span><button class="plus">＋</button></div></div>
+      <div class="day"><div class="dh"><span class="dn">28</span><button class="plus">＋</button></div></div>
+    </div>
+
+  </div><!-- /calcard -->
+
+  <!-- Notat + trenerdiskusjon -->
+  <div class="underrow">
+    <div class="mini">
+      <div class="mh"><span class="beam"></span><h3>NOTAT FOR JUNI</h3></div>
+      <p>Ingen notater ennå.</p>
+      <button class="ghostbtn">+ Legg til notat</button>
+    </div>
+    <div class="mini coach">
+      <div class="mh"><span class="beam"></span><h3>DISKUSJON MED TRENER</h3><span class="cnt">Juni (0)</span></div>
+      <p>Ingen kommentarer ennå.</p>
+      <button class="ghostbtn">+ Skriv kommentar</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  b.closest('.seg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+}));
+</script>
+</body>
+</html>

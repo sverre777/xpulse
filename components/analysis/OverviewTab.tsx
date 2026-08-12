@@ -355,7 +355,7 @@ export function OverviewTab({ stats, overview, analysisRange, targetUserId, canS
 
           {/* Konkurranseliste — kompakt. Full analyse finnes i Konkurranser-fanen. */}
           {overview.current.competitions.length > 0 && (
-            <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+            <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <p className="text-xs tracking-widest uppercase mb-3"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
                 Konkurranser i perioden
@@ -427,7 +427,7 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} allowDecimals={false} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
             <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
             <Bar dataKey="training_days" stackId="days" fill="#FF4500" name="Trening" />
             <Bar dataKey="rest_days" stackId="days" fill="#28A86E" name="Hvile" />
@@ -449,7 +449,7 @@ export function OverviewHoursPerWeek({ stats }: { stats: WorkoutStats }) {
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
           <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
           <Bar dataKey="hours" name="Timer" fill="#FF4500" />
         </BarChart>
       </ResponsiveContainer>
@@ -475,7 +475,7 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
           <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
           <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
           {ZONE_KEYS.map(z => (
             <Bar key={z} dataKey={z} stackId="zones" fill={ZONE_COLORS_V2[z]} />
@@ -508,7 +508,7 @@ export function OverviewKmPerMovement({ stats }: { stats: WorkoutStats }) {
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
             <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
             {stats.movementNames.map((name, i) => (
               <Bar key={name} dataKey={name} stackId="km" fill={paletteFor(i)} />
@@ -530,7 +530,7 @@ export function OverviewIntensiveSessions({ stats }: { stats: WorkoutStats }) {
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
           <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} allowDecimals={false} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: '#1E1E22' }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: 'var(--line)' }} />
           <Line type="monotone" dataKey="intensiveCount" name="Økter" stroke="#FF4500" strokeWidth={2} dot={{ fill: '#FF4500', r: 3 }} />
         </LineChart>
       </ResponsiveContainer>

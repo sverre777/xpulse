@@ -95,7 +95,7 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
       <StatCard label="Form (TSB)"    value={(tsb >= 0 ? '+' : '') + tsb.toFixed(0)}
                 sub="CTL − ATL" accent={COLOR_TSB} />
       <div className="p-4 flex flex-col gap-1"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Formstatus
@@ -114,7 +114,7 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
     <div className="p-4 flex flex-col gap-1"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         {label}
@@ -241,7 +241,7 @@ export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
               interval={tickInterval} minTickGap={8} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]} />
             <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
             <Bar dataKey="TSS" fill={COLOR_TSS} name="TSS" />
@@ -379,7 +379,7 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
                 <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
                 <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={150} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
                 <Bar dataKey="count" fill="#28A86E" name="Antall" />
               </BarChart>
             </ResponsiveContainer>
@@ -430,7 +430,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>

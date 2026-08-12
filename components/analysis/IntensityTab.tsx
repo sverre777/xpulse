@@ -54,7 +54,7 @@ export function IntensityTab({ data }: { data: IntensityDistribution }) {
 function PeriodSummary({ data }: { data: IntensityDistribution }) {
   const total = data.totalSeconds
   return (
-    <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
         Total tid i soner
@@ -154,7 +154,7 @@ function WeeklyStack({
               <CartesianGrid stroke={GRID_COLOR} vertical={false} />
               <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
               <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }}
+              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
                 formatter={(v, k) => [`${v}${unitSuffix}`, String(k)]} />
               <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
               {ZONE_KEYS.map(k => (
@@ -185,7 +185,7 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
           Fordeling per bevegelsesform
         </p>
       </div>
-      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
             <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
@@ -284,7 +284,7 @@ export function PolarizedStack({ data, unit }: { data: IntensityDistribution; un
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
             <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }}
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
               formatter={(v, k) => [`${v}${suffix}`, String(k)]} />
             <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
             <Bar dataKey="Lav" stackId="pol" fill="#28A86E" />

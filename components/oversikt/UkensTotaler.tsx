@@ -52,8 +52,7 @@ function ZoneBar({ zones }: { zones: OversiktZoneSeconds }) {
   const total = ZONE_KEYS.reduce((s, k) => s + zones[k], 0)
   if (total <= 0) {
     return (
-      <div className="mt-4 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+      <div className="xp-zonempty">
         Ingen sone-data for denne uken.
       </div>
     )
@@ -91,15 +90,11 @@ function ZoneBar({ zones }: { zones: OversiktZoneSeconds }) {
 
 function StatCell({ label, value, delta }: { label: string; value: string; delta?: number | null }) {
   return (
-    <div className="flex flex-col">
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+    <div className="xp-cell flex flex-col">
+      <span className="xp-k">
         {label}
       </span>
-      <span style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-        fontSize: '28px', letterSpacing: '0.04em', lineHeight: 1.1,
-      }}>
+      <span className="xp-v" style={{ fontSize: '31px', lineHeight: 1.1 }}>
         {value}
       </span>
       {delta !== undefined && <div className="mt-0.5"><DeltaBadge pct={delta} /></div>}
@@ -114,16 +109,14 @@ export function UkensTotaler({
   weekNumber: number
 }) {
   return (
-    <section className="p-5 h-full" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <div className="flex items-center gap-3 mb-3">
-        <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          Ukens totaler · Uke {weekNumber}
-        </span>
+    <section className="p-5 h-full" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
+      <div className="xp-kh">
+        <span className="xp-beam" />
+        <h2 className="xp-kh-t">Ukens totaler</h2>
+        <span className="xp-kh-tag">Uke {weekNumber}</span>
       </div>
 
-      <div className="flex flex-wrap gap-x-10 gap-y-4">
+      <div className="xp-statgrid">
         <StatCell label="Tid" value={fmtHM(totals.current.total_seconds)} delta={totals.percent_change_seconds} />
         <StatCell label="Distanse" value={fmtKm(totals.current.total_meters)} delta={totals.percent_change_meters} />
         <StatCell label="Økter" value={String(totals.current.workout_count)} />

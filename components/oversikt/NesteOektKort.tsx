@@ -43,20 +43,20 @@ function CardShell({
   ctaLabel?: string
 }) {
   return (
-    <div className="p-5 h-full" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <div className="flex items-center gap-3 mb-3">
-        <span style={{ width: '16px', height: '2px', backgroundColor: accent, display: 'inline-block' }} />
-        <Label text={kicker} />
+    <div className="p-5 h-full" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
+      <div className="xp-kh">
+        <span className="xp-beam" style={{ background: accent }} />
+        <h2 className="xp-kh-t">I dag</h2>
       </div>
+      <span className="xp-status-badge" style={{ color: accent, backgroundColor: `${accent}1f`, borderColor: `${accent}59` }}>
+        <span className="xp-pulse-dot" />
+        {kicker}
+      </span>
       {children}
       {ctaHref && ctaLabel && (
         <div className="mt-4">
-          <Link href={ctaHref}
-            className="inline-block px-3 py-1 text-xs tracking-widest uppercase hover:opacity-90"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: accent, color: '#F0F0F2', textDecoration: 'none',
-            }}>
+          <Link href={ctaHref} className="xp-hbtn"
+            style={{ backgroundColor: accent, color: '#fff' }}>
             {ctaLabel}
           </Link>
         </div>
@@ -70,7 +70,7 @@ function WorkoutBody({ w }: { w: OversiktWorkoutCard }) {
     <>
       <h2 style={{
         fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-        fontSize: '26px', letterSpacing: '0.04em', lineHeight: 1.1,
+        fontSize: '34px', letterSpacing: '0.03em', lineHeight: 1.05,
       }}>
         {w.title}
       </h2>

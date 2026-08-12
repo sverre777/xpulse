@@ -35,10 +35,9 @@ export function OversiktHero({
 
   return (
     <section className="mb-8">
-      <div className="flex items-center gap-3 mb-3">
-        <span style={{ width: '28px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+      <div className="xp-eyebrow">
+        <span className="xp-beam" />
+        <span>
           {capitalizedDate} · Uke {hero.weekNumber}
         </span>
         {hero.unreadCoachComments > 0 && (
@@ -53,15 +52,15 @@ export function OversiktHero({
       </div>
 
       <h1 style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-        fontSize: '44px', letterSpacing: '0.06em', lineHeight: 1.0,
+        fontFamily: "'Bebas Neue', sans-serif", color: 'var(--ink)',
+        fontSize: 'clamp(40px, 6vw, 54px)', letterSpacing: '0.03em', lineHeight: 1.02,
       }}>
         {greeting()}, {hero.firstName}
       </h1>
 
-      <p className="mt-2 text-sm"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        Uke {hero.weekNumber} · {hero.weekWorkoutCount} {hero.weekWorkoutCount === 1 ? 'økt' : 'økter'} · {formatHoursMin(hero.weekTotalSeconds)}
+      <p className="mt-2"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 17 }}>
+        Uke {hero.weekNumber} · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{hero.weekWorkoutCount} {hero.weekWorkoutCount === 1 ? 'økt' : 'økter'}</b> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{formatHoursMin(hero.weekTotalSeconds)}</b>
       </p>
 
       {todayState && (() => {

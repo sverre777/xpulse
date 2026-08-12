@@ -38,7 +38,7 @@ export function SeasonSelector({
           className="px-3 py-2 text-sm"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#13131A',
+            backgroundColor: 'var(--card)',
             border: '1px solid #1E1E22',
             color: '#F0F0F2',
             minWidth: '240px',

@@ -77,12 +77,12 @@ export function SeasonWeeksStrip({
         </div>
       </div>
 
-      <div className="p-4 overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-4 overflow-x-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <div className="flex items-stretch gap-[2px]" style={{ minWidth: `${weeks.length * 20}px` }}>
           {weeks.map(w => {
             const p = periodForDate(periods, w.monday)
             const bg = p ? INTENSITY_TINT[p.intensity] : 'transparent'
-            const accent = p ? INTENSITY_COLOR[p.intensity] : '#1E1E22'
+            const accent = p ? INTENSITY_COLOR[p.intensity] : 'var(--line)'
             const events = eventsByWeekStart[w.monday] ?? []
             // Inneværende uke: tykk aksent-ramme.
             const isCurrent = w.monday <= todayISO && todayISO < (weeks.find((_, i) => weeks[i].monday > w.monday)?.monday ?? season.end_date)

@@ -38,7 +38,7 @@ export function MonthlyVolumeSection({
 
   return (
     <section className="mb-6"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <button type="button" onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3"
         style={{

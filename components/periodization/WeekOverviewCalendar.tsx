@@ -107,7 +107,7 @@ export function WeekOverviewCalendar({
           const isToday = iso === todayISO
           const isPeak = events.some(e => e.is_peak_target)
           const bg = period ? INTENSITY_TINT[period.intensity] : 'transparent'
-          const accent = period ? INTENSITY_COLOR[period.intensity] : '#1E1E22'
+          const accent = period ? INTENSITY_COLOR[period.intensity] : 'var(--line)'
 
           return (
             <button key={iso}

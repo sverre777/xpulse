@@ -4,6 +4,7 @@ import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
 import { AppFooter } from '@/components/layout/AppFooter'
+import { InstallHint } from '@/components/pwa/InstallHint'
 
 export default async function CoachLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -40,6 +41,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
         {children}
       </div>
       <AppFooter />
+      <InstallHint />
     </div>
   )
 }

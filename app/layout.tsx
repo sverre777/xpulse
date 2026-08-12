@@ -1,7 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { DialogHost } from "@/components/ui/ConfirmDialog";
+
+export const viewport: Viewport = {
+  themeColor: "#0A0A0B",
+};
 
 export const metadata: Metadata = {
   // Absolutt base for canonical/OG-URLer på alle sider (Metadata API).

@@ -5,6 +5,7 @@ import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
 import { AppFooter } from '@/components/layout/AppFooter'
+import { InstallHint } from '@/components/pwa/InstallHint'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
 import { getAuthUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -61,6 +62,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           {children}
         </div>
         <AppFooter />
+        <InstallHint />
       </div>
     </RoleProvider>
   )

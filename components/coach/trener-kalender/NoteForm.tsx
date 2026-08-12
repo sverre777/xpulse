@@ -68,7 +68,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
 
   return (
     <div className="p-4"
-      style={{ backgroundColor: '#13131A', border: `1px solid ${COACH_BLUE}` }}>
+      style={{ backgroundColor: 'var(--card)', border: `1px solid ${COACH_BLUE}`, borderRadius: 'var(--r-card)' }}>
       <div className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
         {isEdit ? 'Rediger notat' : 'Nytt notat'}
@@ -196,8 +196,9 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

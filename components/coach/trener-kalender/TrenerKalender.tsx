@@ -271,7 +271,7 @@ function MonthView({
   const today = new Date()
 
   return (
-    <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
+    <div className="xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
       {/* Ukedag-header */}
       <div className="grid grid-cols-7"
         style={{ borderBottom: '1px solid #1E1E22' }}>
@@ -359,7 +359,7 @@ function WeekView({
   const today = new Date()
 
   return (
-    <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
+    <div className="xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
       {/* Header med ukedag + dato */}
       <div className="grid"
         style={{
@@ -534,7 +534,7 @@ function YearView({
         return (
           <div key={mi}
             className="p-3"
-            style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
+            className="xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
             <div className="text-xs tracking-widest uppercase mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {MONTHS_SHORT[mi]}
@@ -606,7 +606,7 @@ function DayEventsModal({
       }}>
       <div onClick={e => e.stopPropagation()}
         className="w-full max-w-lg p-5"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
         <div className="flex items-baseline justify-between mb-3">
           <span style={{
             fontFamily: "'Bebas Neue', sans-serif",

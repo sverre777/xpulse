@@ -120,7 +120,7 @@ export async function PlanPageView({ viewContext }: Props) {
           </div>
         )}
 
-        <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11', marginBottom: '32px' }}>
+        <div className="xp-calcard" style={{ marginBottom: '32px' }}>
           <Suspense fallback={null}>
             <Calendar
               mode="plan"

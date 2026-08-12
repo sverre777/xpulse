@@ -355,7 +355,7 @@ function WeekAnalysisStripe({
         </span>
       ) : (
         <>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '17px', lineHeight: 1, letterSpacing: '0.02em' }}>
+          <span className="xp-wsum-big" style={{ fontSize: '17px', lineHeight: 1 }}>
             {fmtDuration(totalMins)}
           </span>
           {km > 0 && (
@@ -518,10 +518,12 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
       }}
     >
       <div style={{
-        borderLeft: `2px solid ${w.is_important ? '#FF4500' : color}`,
+        borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
         backgroundColor: bg,
         border,
-        padding: '1px 4px',
+        borderRadius: 7,
+        overflow: 'hidden',
+        padding: '2px 5px',
       }}>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
@@ -676,7 +678,10 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       <div className="flex items-center justify-between mb-1">
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', lineHeight: 1,
-          color: isToday ? '#FF4500' : '#F0F0F2',
+          color: isToday ? '#fff' : '#F0F0F2',
+          background: isToday ? 'var(--accent)' : 'none',
+          borderRadius: isToday ? 6 : 0,
+          padding: isToday ? '2px 5px 1px' : 0,
         }}>
           {date.getDate()}
         </span>
@@ -692,7 +697,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {(mode === 'plan' || mode === 'dagbok') && !readOnly && (
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
-              style={{ color: '#FF4500', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
+              style={{ color: 'var(--accent)', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
               title={mode === 'plan' ? 'Legg til planlagt økt eller hviledag' : 'Logg økt eller marker dag'}>+</button>
           )}
         </div>
@@ -1723,17 +1728,11 @@ export function Calendar({
       {/* Mobil: stablet kolonne med sentrert nav. Desktop: view-switcher + nav side om side. */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
         {/* View switcher */}
-        <div className="flex items-center justify-center md:justify-start gap-0">
+        <div className="xp-seg-pill self-center md:self-auto">
           {(['uke', 'måned', 'år'] as CalendarView[]).map(v => (
             <button key={v} type="button" onClick={() => setView(v)}
-              className="px-4 py-2 text-sm tracking-widest uppercase transition-colors"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: view === v ? '#F0F0F2' : '#555560',
-                background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: view === v ? '2px solid #FF4500' : '2px solid transparent',
-                minHeight: '44px',
-              }}>
+              className={view === v ? 'on' : undefined}
+              style={{ minHeight: '44px' }}>
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </button>
           ))}
@@ -1742,11 +1741,8 @@ export function Calendar({
         {/* Navigation + title — sentrert på mobil, høyre på desktop */}
         <div className="flex items-center justify-center gap-2 relative">
           <button type="button" onClick={prev} aria-label="Forrige periode"
-            style={{
-              color: '#8A8A96', background: 'none', border: '1px solid #222228',
-              cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
-              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
-            }}>
+            className="xp-mnav-btn"
+            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', fontSize: '16px' }}>
             ←
           </button>
           <button type="button" onClick={() => setShowPicker(p => !p)}
@@ -1761,11 +1757,8 @@ export function Calendar({
             {titleLabel}
           </button>
           <button type="button" onClick={next} aria-label="Neste periode"
-            style={{
-              color: '#8A8A96', background: 'none', border: '1px solid #222228',
-              cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
-              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
-            }}>
+            className="xp-mnav-btn"
+            style={{ width: 'auto', height: 'auto', padding: '8px 14px', minHeight: '44px', minWidth: '44px', fontSize: '16px' }}>
             →
           </button>
           {showPicker && (

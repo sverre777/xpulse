@@ -134,7 +134,7 @@ export async function DagbokPageView({ viewContext }: Props) {
           </h2>
         </div>
 
-        <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
+        <div className="xp-calcard">
           <Suspense fallback={null}>
             <Calendar
               mode="dagbok"

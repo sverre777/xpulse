@@ -91,8 +91,9 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
           className="text-xs tracking-widest uppercase px-3 py-2 transition-colors hover:bg-[rgba(255,69,0,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#FF4500',
-            border: '1px solid #FF4500',
+            color: 'var(--accent)',
+            border: '1px solid var(--accent)',
+            borderRadius: 'var(--r-field)',
             textDecoration: 'none',
           }}
         >
@@ -112,8 +113,9 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '6px 12px',
-                border: `1px solid ${active ? '#FF4500' : '#1E1E22'}`,
-                backgroundColor: active ? '#FF4500' : 'transparent',
+                border: `1px solid ${active ? 'var(--accent)' : 'var(--line2)'}`,
+                borderRadius: 999,
+                backgroundColor: active ? 'var(--accent)' : 'transparent',
                 color: active ? '#0A0A0B' : '#8A8A96',
                 cursor: 'pointer',
               }}
@@ -128,7 +130,7 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
               className="text-sm px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+                backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)',
                 color: '#F0F0F2', outline: 'none',
               }} />
             <span style={{ color: '#555560' }}>—</span>
@@ -136,7 +138,7 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
               className="text-sm px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+                backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)',
                 color: '#F0F0F2', outline: 'none',
               }} />
           </div>
@@ -146,7 +148,7 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
       <div className="space-y-5">
         <PlanVsActualCard range={range} targetUserId={targetUserId} />
 
-        <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        <div className="p-5" style={{ background: 'linear-gradient(135deg, #131318 0%, #0E0E12 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
           <div className="flex items-center gap-3 mb-3">
             <span style={{ width: '16px', height: '2px', backgroundColor: '#1A6FD4', display: 'inline-block' }} />
             <span className="text-xs tracking-widest uppercase"

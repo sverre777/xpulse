@@ -35,7 +35,8 @@ export function ModalShell({
         onClick={e => e.stopPropagation()}
         style={{
           backgroundColor: 'var(--card)',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
+          borderRadius: 14,
           maxWidth: '560px',
           width: '100%',
           maxHeight: '90vh',

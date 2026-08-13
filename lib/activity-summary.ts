@@ -7,14 +7,15 @@ import {
   zoneForHeartRate,
 } from './heart-zones'
 
-// Ny sone-palett (delt med ActivitySummary). Hurtighet bruker lilla for å skille
-// den tydelig fra puls-sonene I1-I5.
+// Sone-palett — SAMME hexer som tokens --i1..--i5/--hurt i globals.css og
+// chart-theme.tsx. Hurtighet bruker lilla for å skille den tydelig fra
+// puls-sonene I1-I5. I1 = grønn alltid.
 export const ZONE_COLORS_V2: Record<ExtendedZoneName, string> = {
   I1: '#28A86E',
   I2: '#1A6FD4',
-  I3: '#D4A017',
-  I4: '#FF4500',
-  I5: '#E11D48',
+  I3: '#E8B93C',
+  I4: '#FF8C00',
+  I5: '#E23A5A',
   Hurtighet: '#8B5CF6',
 }
 

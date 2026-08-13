@@ -10,6 +10,7 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { getDayStatesForRange } from '@/app/actions/day-states'
+import { getPeriodizationForDateRange } from '@/app/actions/seasons'
 import { ResumeSessionBanner } from '@/components/workout/ResumeSessionBanner'
 import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
@@ -34,6 +35,13 @@ export async function DagbokPageView({ viewContext }: Props) {
   const monthStart = localISODate(new Date(year, month - 1, 1))
   const monthEnd = localISODate(new Date(year, month, 0))
 
+  // Periodisering-overlay (samme vindu som plan-siden): periodefarger på
+  // ukerader + nøkkeldato-ikoner skal også vises i dagboken.
+  const overlayFrom = new Date(now); overlayFrom.setMonth(overlayFrom.getMonth() - 6)
+  const overlayTo = new Date(now); overlayTo.setMonth(overlayTo.getMonth() + 6)
+  const overlayFromISO = localISODate(overlayFrom)
+  const overlayToISO = localISODate(overlayTo)
+
   const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
   isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))
   const isoYearStart = new Date(Date.UTC(isoTmp.getUTCFullYear(), 0, 1))
@@ -48,7 +56,7 @@ export async function DagbokPageView({ viewContext }: Props) {
   const [
     rawWorkouts, prevRawWorkouts, healthRows, recoveryRows, templates, heartZones,
     weekNotes, monthNotes, dayStatesRes,
-    profileRes, activityTypeFavorites,
+    profileRes, activityTypeFavorites, periodization,
   ] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
     getWorkoutsForMonth(userId, month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1),
@@ -64,8 +72,11 @@ export async function DagbokPageView({ viewContext }: Props) {
     getDayStatesForRange(monthStart, monthEnd, targetId),
     supabase.from('profiles').select('full_name, primary_sport, secondary_sports').eq('id', userId).single(),
     getActivityTypeFavorites(userId),
+    getPeriodizationForDateRange(overlayFromISO, overlayToISO, targetId),
   ])
   const profile = profileRes.data
+  const seasonPeriods = !('error' in periodization) ? periodization.periods : []
+  const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {
@@ -159,6 +170,8 @@ export async function DagbokPageView({ viewContext }: Props) {
               initialMonthNote={monthNotes[monthKey] ?? ''}
               readOnly={isCoachView}
               targetUserId={targetId}
+              seasonPeriods={seasonPeriods}
+              seasonKeyDates={seasonKeyDates}
             />
           </Suspense>
         </div>

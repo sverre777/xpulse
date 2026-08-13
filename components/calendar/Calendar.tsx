@@ -319,7 +319,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -327,6 +327,8 @@ function WeekAnalysisStripe({
   sessions: number
   zoneSeconds: Record<ExtendedZoneName, number>
   accent: string | null
+  // Periodiserings-perioden uken ligger i — for samling-/høyde-markering.
+  period?: import('@/app/actions/seasons').SeasonPeriod | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -356,6 +358,19 @@ function WeekAnalysisStripe({
       >
         Uke {weekNumber}
       </span>
+      {/* Samling/høyde-markering fra periodiseringen — emoji + moh ved høyde. */}
+      {period?.is_training_camp && (
+        <span className="text-xs" title={period.location ? `Samling: ${period.location}` : 'Samling'}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: accent ?? '#8A8A96' }}>
+          📍 {period.location || 'Samling'}
+        </span>
+      )}
+      {period?.is_altitude_period && (
+        <span className="text-xs" title="Høydeperiode"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF' }}>
+          🏔️{period.altitude_meters ? ` ${period.altitude_meters} moh` : ''}
+        </span>
+      )}
       {empty ? (
         <span
           className="text-xs"
@@ -480,25 +495,20 @@ function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
 const COACH_BLUE = '#1A6FD4'
 
 // Intensitets-basert accent-farge på økt-chipen (brukerens regel):
-// høyeste sone med ≥10 min vinner (Hurtighet > I5 > I4 > I3), ellers den
-// av I1/I2 med mest tid. Uten sonedata → null (fall tilbake til type-farge).
-const ACCENT_MIN_MINUTES = 10
-
+// terskler per sone — I5 (og Hurtighet) ≥ 5 min, I4 ≥ 10 min, I3 ≥ 20 min;
+// under det: den av I1/I2 med mest tid. Leser zoneSecondsFor — SAMME kilde
+// som ukestripene aggregerer fra (workout_zones-radene alene er ofte tomme).
+// Uten sonedata → null (fall tilbake til type-farge).
 function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string | null {
-  const zones = zonesFor(w, mode)
-  if (!zones || zones.length === 0) return null
-  const mins = emptyZoneSec()
-  let total = 0
-  for (const z of zones) {
-    const name = z.zone_name as ExtendedZoneName
-    if (name in mins) { mins[name] += z.minutes ?? 0; total += z.minutes ?? 0 }
-  }
+  const zs = zoneSecondsFor(w, mode)
+  if (!zs) return null
+  const total = ALL_ZONE_NAMES.reduce((s, k) => s + (zs[k] ?? 0), 0)
   if (total <= 0) return null
-  if (mins.Hurtighet >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.Hurtighet
-  if (mins.I5 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I5
-  if (mins.I4 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I4
-  if (mins.I3 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I3
-  return mins.I2 > mins.I1 ? ZONE_COLORS_V2.I2 : ZONE_COLORS_V2.I1
+  if ((zs.I5 ?? 0) >= 5 * 60) return ZONE_COLORS_V2.I5
+  if ((zs.Hurtighet ?? 0) >= 5 * 60) return ZONE_COLORS_V2.Hurtighet
+  if ((zs.I4 ?? 0) >= 10 * 60) return ZONE_COLORS_V2.I4
+  if ((zs.I3 ?? 0) >= 20 * 60) return ZONE_COLORS_V2.I3
+  return (zs.I2 ?? 0) > (zs.I1 ?? 0) ? ZONE_COLORS_V2.I2 : ZONE_COLORS_V2.I1
 }
 
 function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging }: {
@@ -1219,6 +1229,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               sessions={weekAgg.sessions}
               zoneSeconds={weekAgg.zoneSeconds}
               accent={weekOverlay.period ? rowAccent : null}
+              period={weekOverlay.period}
             />
 
             {/* Inline day expansion */}

@@ -100,7 +100,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 padding: '1px 7px',
               }}
             >
-              v1.0
+              v1.1
             </span>
           </Link>
           <button
@@ -151,7 +151,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                     padding: '1px 6px',
                   }}
                 >
-                  v1.0
+                  v1.1
                 </span>
               </div>
               <button
@@ -323,7 +323,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               padding: '1px 7px',
             }}
           >
-            v1.0
+            v1.1
           </span>
           <span
             className="text-xs tracking-widest uppercase"

@@ -7,7 +7,11 @@ import {
 } from 'recharts'
 import type { CompetitionStats } from '@/app/actions/analysis'
 import { SPORTS, COMPETITION_TYPES, type Sport, type CompetitionType } from '@/lib/types'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+  CHART_CURSOR, BAR_RADIUS,
+} from './chart-theme'
 
 function formatDuration(sec: number): string {
   if (sec <= 0) return '—'
@@ -97,7 +101,7 @@ export function CompetitionTab({
     }))
   }, [rows])
 
-  const FORMAT_PALETTE = ['#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#8B5CF6', '#E11D48']
+  const FORMAT_PALETTE = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#8B5CF6', '#E23A5A']
 
   // Biathlon-spesifikk aggregering.
   const biathlonRows = isBiathlon ? rows.filter(r => r.sport === 'biathlon') : []
@@ -239,19 +243,19 @@ export function CompetitionTab({
             ) : (
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <ScatterChart>
-                  <CartesianGrid stroke={GRID_COLOR} />
+                  <CartesianGrid stroke={CHART_GRID} />
                   <XAxis
                     type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                    tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                    axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                    tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                    axisLine={CHART_AXIS_LINE} tickLine={false}
                   />
                   <YAxis
                     type="number" dataKey="y" reversed
-                    tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                    tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                     width={36} allowDecimals={false}
                   />
                   <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
+                    content={<XpTooltip />}
                     cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
                     formatter={(value, key) => {
                       if (key === 'x') return [formatEpochAxis(Number(value)), 'Dato']
@@ -276,22 +280,22 @@ export function CompetitionTab({
             ) : (
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <LineChart>
-                  <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                  <CartesianGrid stroke={CHART_GRID} vertical={false} />
                   <XAxis
                     type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                    tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                    axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                    tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                    axisLine={CHART_AXIS_LINE} tickLine={false}
                   />
                   <YAxis
-                    tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+                    tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
                     tickFormatter={(v) => `${Math.round(Number(v) / 60)}min`}
                   />
                   <Tooltip
-                    contentStyle={TOOLTIP_STYLE}
+                    content={<XpTooltip />}
                     labelFormatter={(v) => formatEpochAxis(Number(v))}
                     formatter={(value) => [formatDuration(Number(value)), 'Tid']}
                   />
-                  <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                  <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   {formatGroups.map((g, i) => (
                     <Line
                       key={g.format}
@@ -323,14 +327,14 @@ export function CompetitionTab({
               <ChartWrapper title="Treffprosent over tid" subtitle="Liggende, stående, totalt">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <LineChart data={hitPctTrend}>
-                    <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-                    <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+                    <CartesianGrid stroke={CHART_GRID} vertical={false} />
+                    <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
                     <YAxis
-                      domain={[0, 100]} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                      domain={[0, 100]} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                       width={36} tickFormatter={(v) => `${v}%`}
                     />
-                    <Tooltip contentStyle={TOOLTIP_STYLE} />
-                    <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                    <Tooltip content={<XpTooltip />} />
+                    <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                     <Line type="monotone" dataKey="prone" name="Liggende" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} />
                     <Line type="monotone" dataKey="standing" name="Stående" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} />
                     <Line type="monotone" dataKey="total" name="Totalt" stroke="#F0F0F2" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="4 4" />
@@ -349,11 +353,11 @@ export function CompetitionTab({
                   ) : (
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <BarChart data={biathlonShootingTimes}>
-                        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-                        <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                        <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} formatter={(v) => [`${v}s`, 'Snitt/serie']} />
-                        <Bar dataKey="avgPerSeries" name="Snitt/serie" fill="#FF4500" />
+                        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+                        <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+                        <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} formatter={(v) => [`${v}s`, 'Snitt/serie']} />
+                        <Bar dataKey="avgPerSeries" name="Snitt/serie" fill="#FF4500" radius={BAR_RADIUS} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -369,11 +373,11 @@ export function CompetitionTab({
                   ) : (
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={biathlonAvgHr}>
-                        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-                        <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                        <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v) => [`${v} bpm`, 'Puls']} />
-                        <Line type="monotone" dataKey="avgHr" name="Puls" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} />
+                        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+                        <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+                        <Tooltip content={<XpTooltip />} formatter={(v) => [`${v} bpm`, 'Puls']} />
+                        <Line type="monotone" dataKey="avgHr" name="Puls" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   )}

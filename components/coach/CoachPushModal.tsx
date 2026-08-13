@@ -224,13 +224,13 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
           maxWidth: '640px', width: '100%',
           margin: '0 auto',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
           <div>
             <div className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
@@ -340,15 +340,15 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
               <div>
                 <Label>Utøvere ({selectedAthleteIds.size}/{athletes.length} valgt)</Label>
                 <div className="flex flex-col gap-1 max-h-[40vh] overflow-y-auto"
-                  style={{ border: '1px solid #1E1E22' }}>
+                  style={{ border: '1px solid var(--line)' }}>
                   {athletes.map(a => {
                     const checked = selectedAthleteIds.has(a.id)
                     return (
                       <label key={a.id}
                         className="flex items-center gap-3 px-3 py-2 cursor-pointer"
                         style={{
-                          backgroundColor: checked ? '#1A1A22' : '#0D0D11',
-                          borderBottom: '1px solid #13131A',
+                          backgroundColor: checked ? 'var(--card2)' : '#0D0D11',
+                          borderBottom: '1px solid var(--card)',
                         }}>
                         <input type="checkbox" checked={checked}
                           onChange={() => toggleAthlete(a.id)}
@@ -380,7 +380,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: o.ok ? '#7DD87D' : '#E11D48',
-                      backgroundColor: '#13131A', border: '1px solid #1E1E22',
+                      backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
                     }}>
                     <span>{o.ok ? '✓' : '✕'}</span>
                     <span className="flex-1" style={{ color: '#F0F0F2' }}>{o.athleteName}</span>
@@ -411,7 +411,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     <div key={aid} className="text-xs px-2 py-1"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#13131A', color: '#C0C0CC',
+                        backgroundColor: 'var(--card)', color: '#C0C0CC',
                       }}>
                       <span style={{ color: '#F0F0F2' }}>{a?.name ?? 'Utøver'}</span>
                       <span style={{ color: '#8A8A96' }}>
@@ -437,7 +437,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
@@ -514,8 +514,8 @@ function labelForKind(kind: PushKind, hasTargets: boolean, n: number): string {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

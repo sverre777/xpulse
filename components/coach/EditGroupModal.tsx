@@ -144,13 +144,13 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
         className="w-full max-w-xl flex flex-col"
         style={{
           backgroundColor: '#0E0E10',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
           maxHeight: 'calc(100vh - 80px)',
         }}
       >
         <div
           className="flex items-center justify-between px-5 py-3"
-          style={{ borderBottom: '1px solid #1E1E22' }}
+          style={{ borderBottom: '1px solid var(--line)' }}
         >
           <span
             className="text-xs tracking-widest uppercase"
@@ -203,7 +203,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   className="px-3 py-2 text-sm"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+                    backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
                     color: '#F0F0F2', outline: 'none',
                   }}
                 />
@@ -218,7 +218,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   className="px-3 py-2 text-sm"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+                    backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
                     color: '#F0F0F2', outline: 'none', resize: 'vertical',
                   }}
                 />
@@ -263,7 +263,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                 {showAddPanel && (
                   <div
                     className="px-3 py-2 flex flex-col gap-1"
-                    style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
+                    style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}
                   >
                     {availableCandidates.length === 0 ? (
                       <p className="text-xs"
@@ -312,7 +312,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
               </section>
 
               <section className="flex flex-col gap-2 pt-2"
-                style={{ borderTop: '1px solid #1E1E22' }}
+                style={{ borderTop: '1px solid var(--line)' }}
               >
                 {confirmDelete ? (
                   <div className="flex items-center gap-2">
@@ -339,7 +339,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                       className="px-3 py-1.5 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#8A8A96', border: '1px solid #1E1E22',
+                        color: '#8A8A96', border: '1px solid var(--line)',
                         background: 'none', cursor: 'pointer',
                       }}
                     >
@@ -380,7 +380,7 @@ function MemberRow({
   return (
     <li
       className="flex items-center justify-between py-2"
-      style={{ borderTop: '1px solid #1E1E22' }}
+      style={{ borderTop: '1px solid var(--line)' }}
     >
       <div className="min-w-0 flex-1">
         <span className="text-sm"
@@ -402,7 +402,7 @@ function MemberRow({
           className="text-xs px-2 py-1"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
             color: '#F0F0F2', outline: 'none',
           }}
         >

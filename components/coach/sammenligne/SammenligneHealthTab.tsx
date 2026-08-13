@@ -18,7 +18,7 @@ export function SammenligneHealthTab({ data }: { data: MultipleAthletesAnalysis 
 
   if (valid.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen utøvere har helsedata i valgt periode.
@@ -77,7 +77,7 @@ function MultiLine({
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} minTickGap={20} />
         <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: '#1E1E22' }} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: 'var(--line)' }} />
         <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
         {rows.map((r, i) => {
           const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)
@@ -91,10 +91,10 @@ function MultiLine({
 
 function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--line)' }}>
             <Th>Utøver</Th>
             <Th>HRV snitt</Th>
             <Th>Hvilepuls snitt</Th>
@@ -109,7 +109,7 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             const h = r.health
             if (!h?.hasHealthData) {
               return (
-                <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                   <td colSpan={5} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen helsedata'}
@@ -122,7 +122,7 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             const slp = avg(h.daily.map(d => d.sleep_hours))
             const form = avg(h.daily.map(d => d.day_form))
             return (
-              <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                 <Td>{hrv ? hrv.toFixed(0) : '—'}</Td>
                 <Td>{rhr ? rhr.toFixed(0) : '—'}</Td>

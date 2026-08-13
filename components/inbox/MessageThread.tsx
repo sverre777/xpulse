@@ -104,7 +104,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
 
       <div
         className="px-4 py-3 flex items-center gap-3"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderBottom: 'none' }}
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderBottom: 'none' }}
       >
         <span
           style={{
@@ -133,7 +133,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         className="flex-1 px-4 py-3 flex flex-col gap-3 overflow-y-auto"
         style={{
           backgroundColor: '#0E0E10',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
           borderTop: 'none',
           minHeight: '320px',
           maxHeight: '55vh',
@@ -202,12 +202,12 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: '#F0F0F2',
-                      backgroundColor: mine ? 'transparent' : '#13131A',
-                      border: '1px solid #1E1E22',
+                      backgroundColor: mine ? 'transparent' : 'var(--card)',
+                      border: '1px solid var(--line)',
                       borderLeftWidth: mine ? '1px' : '3px',
-                      borderLeftColor: mine ? '#1E1E22' : bubbleAccent,
+                      borderLeftColor: mine ? 'var(--line)' : bubbleAccent,
                       borderRightWidth: mine ? '3px' : '1px',
-                      borderRightColor: mine ? bubbleAccent : '#1E1E22',
+                      borderRightColor: mine ? bubbleAccent : 'var(--line)',
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
                     }}
@@ -223,7 +223,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
 
       <div
         className="flex items-end gap-2 p-3"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderTop: 'none' }}
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderTop: 'none' }}
       >
         <textarea
           value={draft}
@@ -239,9 +239,9 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
           className="flex-1 p-2 text-sm resize-none"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#1A1A22',
+            backgroundColor: 'var(--card2)',
             color: '#F0F0F2',
-            border: '1px solid #1E1E22',
+            border: '1px solid var(--line)',
             outline: 'none',
           }}
         />

@@ -34,7 +34,7 @@ export function AthleteTabsNav({ athleteId, permissions }: Props) {
   return (
     <div
       className="flex overflow-x-auto mb-4"
-      style={{ borderBottom: '1px solid #1E1E22' }}
+      style={{ borderBottom: '1px solid var(--line)' }}
     >
       {tabs.map(tab => {
         const href = `${base}/${tab.slug}`

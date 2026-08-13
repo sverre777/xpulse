@@ -43,7 +43,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-px mb-1" style={{ backgroundColor: '#1E1E22' }}>
+      <div className="grid grid-cols-7 gap-px mb-1" style={{ backgroundColor: 'var(--line)' }}>
         {dayNames.map(n => (
           <div key={n} className="px-2 py-1 text-center text-xs tracking-widest uppercase"
             style={{
@@ -67,7 +67,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
               {weekRangeLabel}
             </div>
-            <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: '#1E1E22' }}>
+            <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: 'var(--line)' }}>
               {Array.from({ length: 7 }).map((_, di) => {
                 const day = row[di]
                 if (day === undefined) {
@@ -105,7 +105,7 @@ function DayCell({
   const hasContent = workouts.length > 0 || state != null
   return (
     <button type="button" onClick={onClick}
-      className="text-left px-2 py-1.5 transition-colors hover:bg-[#1A1A22]"
+      className="text-left px-2 py-1.5 transition-colors hover:bg-[var(--card2)]"
       style={{
         minHeight: '88px',
         backgroundColor: hasContent ? 'var(--card2)' : '#0D0D11',

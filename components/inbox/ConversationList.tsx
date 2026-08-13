@@ -31,13 +31,13 @@ export function ConversationList({ conversations }: Props) {
   }
 
   return (
-    <ul style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <ul style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       {conversations.map(c => {
         const accent = c.kind === 'dm'
           ? (c.counterpartIsCoach ? COACH_BLUE : ATHLETE_ORANGE)
           : '#8A8A96'
         return (
-          <li key={c.key} style={{ borderTop: '1px solid #1E1E22' }}>
+          <li key={c.key} style={{ borderTop: '1px solid var(--line)' }}>
             <Link
               href={`/app/innboks/meldinger?thread=${encodeURIComponent(c.key)}`}
               className="flex items-center gap-3 px-4 py-3 transition-opacity hover:opacity-90"

@@ -80,7 +80,7 @@ export function NotificationList({ notifications }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'transparent',
               color: '#8A8A96',
-              border: '1px solid #1E1E22',
+              border: '1px solid var(--line)',
               cursor: isPending ? 'not-allowed' : 'pointer',
             }}
           >
@@ -88,7 +88,7 @@ export function NotificationList({ notifications }: Props) {
           </button>
         </div>
       )}
-      <ul style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <ul style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         {notifications.map(n => {
           const accent = colorFor(n.type)
           const content = (
@@ -131,8 +131,8 @@ export function NotificationList({ notifications }: Props) {
             <li
               key={n.id}
               style={{
-                borderTop: '1px solid #1E1E22',
-                borderLeft: `3px solid ${n.isRead ? '#1E1E22' : accent}`,
+                borderTop: '1px solid var(--line)',
+                borderLeft: `3px solid ${n.isRead ? 'var(--line)' : accent}`,
               }}
             >
               {n.linkUrl ? (

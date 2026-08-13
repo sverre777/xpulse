@@ -121,7 +121,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
         <AthletePicker athletes={athletes} selected={selected} onToggle={toggle} />
 
         <div className="my-5 p-4 flex flex-col md:flex-row md:items-end md:gap-6 gap-4"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -144,7 +144,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: '#0A0A0B', color: '#F0F0F2',
-                border: '1px solid #1E1E22', minHeight: '44px',
+                border: '1px solid var(--line)', minHeight: '44px',
               }}>
               <option value="">Alle</option>
               {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -170,7 +170,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               className="px-4 py-2 text-sm tracking-widest uppercase whitespace-nowrap"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: tab === t.key ? '#1A1A22' : 'transparent',
+                backgroundColor: tab === t.key ? 'var(--card2)' : 'transparent',
                 borderBottom: tab === t.key ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                 color: tab === t.key ? '#F0F0F2' : '#555560',
                 minHeight: '44px',
@@ -189,7 +189,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
         )}
 
         {!hasValidSelection && (
-          <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
+          <div className="py-16 text-center" style={{ border: '1px dashed var(--line)' }}>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
               Velg minst én utøver å sammenligne.
             </p>
@@ -224,7 +224,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
 
 function Stub({ label }: { label: string }) {
   return (
-    <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+    <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
       <p className="text-sm tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
         {label}
@@ -242,7 +242,7 @@ function AthletePicker({
 }) {
   if (athletes.length === 0) {
     return (
-      <div className="p-6 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="p-6 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
           Ingen aktive utøvere.
         </p>
@@ -267,7 +267,7 @@ function AthletePicker({
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: active ? COACH_BLUE + '33' : 'transparent',
-                border: `1px solid ${active ? COACH_BLUE : '#1E1E22'}`,
+                border: `1px solid ${active ? COACH_BLUE : 'var(--line)'}`,
                 color: disabled ? '#2A2A30' : active ? COACH_BLUE : '#8A8A96',
                 minHeight: '36px',
                 cursor: disabled ? 'not-allowed' : 'pointer',

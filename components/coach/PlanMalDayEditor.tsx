@@ -104,7 +104,7 @@ export function PlanMalDayEditor({
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {title}
@@ -265,7 +265,7 @@ function FromTemplateView({
       <div className="flex flex-col gap-1.5 max-h-[60vh] overflow-y-auto">
         {templates.map(t => (
           <button key={t.id} type="button" onClick={() => onPick(t)}
-            className="text-left p-3 transition-colors hover:bg-[#1A1A22]"
+            className="text-left p-3 transition-colors hover:bg-[var(--card2)]"
             style={{
               backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)',
               cursor: 'pointer',

@@ -32,7 +32,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
 
   if (valid.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen utøvere har analyse-data i valgt periode.
@@ -63,7 +63,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
             <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
             <Bar dataKey="timer" name="Timer">
               {volumeData.map((d, i) => (
                 <Cell key={i} fill={d.color} />
@@ -79,7 +79,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
             <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
             <Bar dataKey="km" name="Km" fill="#1A6FD4" />
           </BarChart>
         </ResponsiveContainer>
@@ -99,10 +99,10 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
 
 function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--line)' }}>
             <Th>Utøver</Th>
             <Th>Tid</Th>
             <Th>Distanse</Th>
@@ -120,7 +120,7 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
             const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)
             if (!o) {
               return (
-                <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td>
                     <span style={{ color: colorFor(i) }}>● </span>
                     <span style={{ color: '#F0F0F2' }}>{name}</span>
@@ -133,7 +133,7 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
               )
             }
             return (
-              <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td>
                   <span style={{ color: colorFor(i) }}>● </span>
                   <span style={{ color: '#F0F0F2' }}>{name}</span>
@@ -196,7 +196,7 @@ function WeeklyTrainingDaysChart({ rows }: { rows: MultipleAthletesAnalysis['ath
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis dataKey="week" tick={AXIS_STYLE} stroke={GRID_COLOR} />
         <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
         <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
         {rows.filter(r => r.overview).map((r, i) => {
           const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)

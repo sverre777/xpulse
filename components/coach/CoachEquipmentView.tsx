@@ -39,7 +39,7 @@ export function CoachEquipmentView({
 
   if (equipment.length === 0) {
     return (
-      <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      <div className="p-12 text-center" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
           Ingen utstyr registrert av utøveren.
         </p>
@@ -92,7 +92,7 @@ export function CoachEquipmentView({
         <p className="p-4 text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-            backgroundColor: '#13131A', border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
           }}>
           Ingen ski-tester registrert enda — trykk "+ Legg til ski-test" for å logge dagens forhold.
         </p>
@@ -114,7 +114,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
   const subtitle = [equipment.brand, equipment.model].filter(Boolean).join(' ')
   return (
     <div className="p-4"
-      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {EQUIPMENT_CATEGORY_LABELS[equipment.category]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
@@ -156,7 +156,7 @@ function SkiTestsBlock({
           const winnerSki = winner ? skiById.get(winner.ski_id) : null
           return (
             <div key={test.id} className="p-4"
-              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
               <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                 <div>
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
@@ -188,7 +188,7 @@ function SkiTestsBlock({
                     if (typeof en.time_seconds === 'number') stats.push(`${en.time_seconds}s`)
                     return (
                       <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
-                        style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+                        style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)' }}>
                         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
                           {ski?.name ?? '—'}
                         </span>
@@ -230,7 +230,7 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
         fontFamily: "'Barlow Condensed', sans-serif",
         color: active ? '#F0F0F2' : '#8A8A96',
         background: 'none',
-        border: active ? `1px solid ${COACH_BLUE}` : '1px solid #1E1E22',
+        border: active ? `1px solid ${COACH_BLUE}` : '1px solid var(--line)',
         cursor: 'pointer',
       }}>
       {children}

@@ -20,7 +20,7 @@ export function InboxTabs({ activeRole }: { activeRole: Role }) {
   return (
     <nav
       className="flex items-center gap-0"
-      style={{ borderBottom: '1px solid #1E1E22' }}
+      style={{ borderBottom: '1px solid var(--line)' }}
     >
       {TABS.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(href + '/')

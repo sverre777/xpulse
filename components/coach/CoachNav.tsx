@@ -171,7 +171,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             <div
               className="flex items-center justify-around px-6 py-3"
               onClick={e => e.stopPropagation()}
-              style={{ borderBottom: '1px solid #1E1E22' }}
+              style={{ borderBottom: '1px solid var(--line)' }}
             >
               <div onClick={() => setMenuOpen(false)}>
                 <SearchIconButton mode="coach" accent={COACH_BLUE} />
@@ -235,7 +235,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                       letterSpacing: '0.1em',
                       color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
                       textDecoration: 'none',
-                      backgroundColor: active ? '#1A1A22' : 'transparent',
+                      backgroundColor: active ? 'var(--card2)' : 'transparent',
                       borderLeft: active ? `3px solid ${COACH_BLUE}` : '3px solid transparent',
                       textTransform: 'uppercase',
                     }}
@@ -251,7 +251,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             <div
               className="flex flex-col items-center gap-3 px-6 pt-4 pb-6"
               onClick={e => e.stopPropagation()}
-              style={{ borderTop: '1px solid #1E1E22' }}
+              style={{ borderTop: '1px solid var(--line)' }}
             >
               <RoleSwitcher
                 activeRole="coach"

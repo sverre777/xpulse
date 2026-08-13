@@ -18,7 +18,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
 
   if (valid.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen utøvere har tester eller PR registrert.
@@ -51,8 +51,8 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
       <SummaryTable rows={data.athletes} />
 
       {prKeys.length > 0 && (
-        <div style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
-          <div className="px-4 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+        <div style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
               Personlige rekorder
@@ -61,7 +61,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
           <div className="overflow-x-auto">
             <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr style={{ borderBottom: '1px solid var(--line)' }}>
                   <Th>Type</Th>
                   {valid.map((r, i) => (
                     <Th key={r.athlete.id}>
@@ -73,7 +73,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
               </thead>
               <tbody>
                 {prKeys.map(([key, meta]) => (
-                  <tr key={key} style={{ borderBottom: '1px solid #1E1E22' }}>
+                  <tr key={key} style={{ borderBottom: '1px solid var(--line)' }}>
                     <Td>
                       <span style={{ color: '#F0F0F2' }}>{meta.record_type}</span>{' '}
                       <span style={{ color: '#555560', fontSize: '13px' }}>{meta.sport}</span>
@@ -109,7 +109,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
                 <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                 <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} minTickGap={20} />
                 <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: '#1E1E22' }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: 'var(--line)' }} />
                 <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
                 {valid.map((r, i) => {
                   const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)
@@ -161,10 +161,10 @@ function buildProgressionData(
 
 function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--line)' }}>
             <Th>Utøver</Th>
             <Th>Tester</Th>
             <Th>PR</Th>
@@ -177,7 +177,7 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
             const t = r.tests
             if (!t) {
               return (
-                <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                   <td colSpan={3} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
@@ -187,7 +187,7 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
             }
             const types = Array.from(new Set(t.tests.map(x => x.test_type))).join(', ')
             return (
-              <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                 <Td>{t.tests.length}</Td>
                 <Td>{t.personalRecords.length}</Td>

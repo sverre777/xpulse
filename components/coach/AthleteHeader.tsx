@@ -16,7 +16,7 @@ function PermissionIcon({ label, granted }: { label: string; granted: boolean })
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: granted ? '#F0F0F2' : '#555560',
-        border: `1px solid ${granted ? COACH_BLUE : '#1E1E22'}`,
+        border: `1px solid ${granted ? COACH_BLUE : 'var(--line)'}`,
         backgroundColor: granted ? 'rgba(26,111,212,0.1)' : 'transparent',
       }}
     >
@@ -40,7 +40,7 @@ export function AthleteHeader({ context }: Props) {
     : null
 
   return (
-    <section className="mb-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <section className="mb-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       {/* På mobil: avatar+navn på én linje, knappene stables under (2 knapper
           ved siden av hverandre, full bredde). På sm+: alt på samme linje med
           knappene høyre-justert. Tidligere overlapp på mobil ved lange navn
@@ -54,7 +54,7 @@ export function AthleteHeader({ context }: Props) {
             className="shrink-0 flex items-center justify-center"
             style={{
               width: '56px', height: '56px',
-              backgroundColor: '#1A1A22',
+              backgroundColor: 'var(--card2)',
               border: `2px solid ${COACH_BLUE}`,
             }}
           >
@@ -129,7 +129,7 @@ export function AthleteHeader({ context }: Props) {
       {/* Permissions-rad */}
       <div
         className="px-5 py-3 flex flex-wrap items-center gap-2"
-        style={{ borderTop: '1px solid #1E1E22' }}
+        style={{ borderTop: '1px solid var(--line)' }}
       >
         <span
           className="text-xs tracking-widest uppercase mr-2"

@@ -94,7 +94,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: 'test', label: 'Test-maler' },
   ]
   return (
-    <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #1E1E22' }}>
+    <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid var(--line)' }}>
       {tabs.map(t => {
         const active = t.key === tab
         return (

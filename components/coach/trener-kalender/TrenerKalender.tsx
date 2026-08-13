@@ -274,13 +274,13 @@ function MonthView({
     <div className="xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
       {/* Ukedag-header */}
       <div className="grid grid-cols-7"
-        style={{ borderBottom: '1px solid #1E1E22' }}>
+        style={{ borderBottom: '1px solid var(--line)' }}>
         {DAYS_NO.map(d => (
           <div key={d}
             className="px-2 py-2 text-xs tracking-widest uppercase text-center"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-              borderRight: '1px solid #1E1E22',
+              borderRight: '1px solid var(--line)',
             }}>
             {d}
           </div>
@@ -290,7 +290,7 @@ function MonthView({
       {/* Uker */}
       {grid.map((week, wi) => (
         <div key={wi} className="grid grid-cols-7"
-          style={{ borderBottom: wi < grid.length - 1 ? '1px solid #1E1E22' : 'none' }}>
+          style={{ borderBottom: wi < grid.length - 1 ? '1px solid var(--line)' : 'none' }}>
           {week.map(d => {
             const ds = toISO(d)
             const dayEvents = eventsByDate.get(ds) ?? []
@@ -298,9 +298,9 @@ function MonthView({
             const isToday = isSameDay(d, today)
             return (
               <button key={ds} type="button" onClick={() => onSelectDate(d)}
-                className="px-2 py-2 text-left transition-colors hover:bg-[#1A1A22]"
+                className="px-2 py-2 text-left transition-colors hover:bg-[var(--card2)]"
                 style={{
-                  borderRight: '1px solid #1E1E22',
+                  borderRight: '1px solid var(--line)',
                   background: 'none',
                   cursor: 'pointer',
                   minHeight: '90px',
@@ -364,7 +364,7 @@ function WeekView({
       <div className="grid"
         style={{
           gridTemplateColumns: '60px repeat(7, 1fr)',
-          borderBottom: '1px solid #1E1E22',
+          borderBottom: '1px solid var(--line)',
         }}>
         <div />
         {weekDates.map(d => {
@@ -373,7 +373,7 @@ function WeekView({
             <div key={toISO(d)}
               className="px-2 py-2 text-center"
               style={{
-                borderRight: '1px solid #1E1E22',
+                borderRight: '1px solid var(--line)',
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: isToday ? COACH_BLUE : '#8A8A96',
               }}>
@@ -390,7 +390,7 @@ function WeekView({
       <div className="grid"
         style={{
           gridTemplateColumns: '60px repeat(7, 1fr)',
-          borderBottom: '1px solid #1E1E22',
+          borderBottom: '1px solid var(--line)',
           backgroundColor: '#0F0F14',
         }}>
         <div className="px-2 py-2 text-xs"
@@ -403,7 +403,7 @@ function WeekView({
           return (
             <div key={ds}
               className="px-1 py-1 flex flex-col gap-0.5"
-              style={{ borderRight: '1px solid #1E1E22', minHeight: '40px' }}>
+              style={{ borderRight: '1px solid var(--line)', minHeight: '40px' }}>
               {dayEvents.map((e, i) => (
                 <button key={`${ds}-allday-${i}`} type="button" onClick={() => onSelectEvent(e)}
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
@@ -422,7 +422,7 @@ function WeekView({
           height: `${TOTAL_PX}px`,
         }}>
         {/* Tid-kolonnen */}
-        <div style={{ position: 'relative', borderRight: '1px solid #1E1E22' }}>
+        <div style={{ position: 'relative', borderRight: '1px solid var(--line)' }}>
           {HOURS.slice(0, -1).map((h, i) => (
             <div key={h}
               className="px-2 text-xs text-right"
@@ -445,17 +445,17 @@ function WeekView({
           const dayEvents = (eventsByDate.get(ds) ?? []).filter(e => timeToMinutes(e.startTime) != null)
           return (
             <div key={ds}
-              style={{ position: 'relative', borderRight: '1px solid #1E1E22' }}>
+              style={{ position: 'relative', borderRight: '1px solid var(--line)' }}>
               {/* Bakgrunn-grid: time-streker. Klikk på tom celle åpner notat. */}
               {HOURS.slice(0, -1).map((h, i) => (
                 <button key={h} type="button"
                   onClick={() => onCreateNote(ds, `${String(h).padStart(2, '0')}:00`)}
-                  className="absolute left-0 right-0 cursor-pointer transition-colors hover:bg-[#1A1A22]"
+                  className="absolute left-0 right-0 cursor-pointer transition-colors hover:bg-[var(--card2)]"
                   style={{
                     top: `${i * HOUR_PX}px`,
                     height: `${HOUR_PX}px`,
                     background: 'none', border: 'none',
-                    borderTop: '1px dashed #1E1E22',
+                    borderTop: '1px dashed var(--line)',
                     padding: 0,
                   }}
                   aria-label={`Opprett notat ${ds} kl. ${String(h).padStart(2, '0')}:00`}
@@ -634,8 +634,8 @@ function DayEventsModal({
               const isNote = e.kind === 'note'
               const noteId = isNote ? e.href.split('note=')[1] : null
               const inner = (
-                <div className="flex items-start gap-3 p-3 transition-colors hover:bg-[#1A1A22] cursor-pointer"
-                  style={{ background: '#0F0F14', border: '1px solid #1E1E22' }}>
+                <div className="flex items-start gap-3 p-3 transition-colors hover:bg-[var(--card2)] cursor-pointer"
+                  style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
                   <span aria-hidden style={{ fontSize: '18px', flexShrink: 0 }}>
                     {kindIcon(e.kind)}
                   </span>

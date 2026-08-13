@@ -62,7 +62,7 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
               key={r.key}
               className="p-3 flex items-center gap-3"
               style={{
-                backgroundColor: '#1A1A22',
+                backgroundColor: 'var(--card2)',
                 border: `1px dashed ${color}`,
                 opacity: 0.85,
               }}
@@ -103,11 +103,11 @@ export function AthleteWorkoutsList({ workouts, dayStates, emptyLabel, mode }: P
             key={r.key}
             className="p-3"
             style={{
-              backgroundColor: '#1A1A22',
-              border: '1px solid #1E1E22',
-              borderTop: byCoach ? `3px solid ${COACH_BLUE}` : '1px solid #1E1E22',
+              backgroundColor: 'var(--card2)',
+              border: '1px solid var(--line)',
+              borderTop: byCoach ? `3px solid ${COACH_BLUE}` : '1px solid var(--line)',
               borderStyle: isPlannedOnly ? 'dashed' : 'solid',
-              borderColor: isPlannedOnly ? '#D4A017' : (byCoach ? '#1E1E22' : '#1E1E22'),
+              borderColor: isPlannedOnly ? '#D4A017' : (byCoach ? 'var(--line)' : 'var(--line)'),
             }}
           >
             <div className="flex items-center gap-3 flex-wrap">

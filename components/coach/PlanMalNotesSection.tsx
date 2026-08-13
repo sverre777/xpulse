@@ -64,13 +64,13 @@ function CollapsibleSection({
 }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ border: '1px solid #1E1E22' }}>
+    <div style={{ border: '1px solid var(--line)' }}>
       <button type="button" onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-3 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: '#C0C0CC',
-          background: '#13131A',
+          background: 'var(--card)',
           border: 'none',
           cursor: 'pointer',
         }}>
@@ -180,7 +180,7 @@ function FocusPointsEditor({
         <div className="flex flex-col gap-2">
           {focusPoints.map((f, i) => (
             <div key={i} className="p-3 flex flex-col gap-2"
-              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <div>
                   <label className="block mb-1 text-xs tracking-widest uppercase"
@@ -269,8 +269,8 @@ function AddBtn({ onClick, children }: { onClick: () => void; children: React.Re
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

@@ -11,7 +11,7 @@ import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
@@ -43,18 +43,18 @@ export function TestMalTab({ initialTemplates, primarySport }: Props) {
       </div>
 
       {initialTemplates.length === 0 ? (
-        <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
+        <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Ingen test-maler ennå. Trykk «+ Ny test-mal» for å bygge din første.
           </p>
         </div>
       ) : (
-        <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           {initialTemplates.map(t => (
             <button key={t.id} type="button"
               onClick={() => setEditing(t)}
               className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
-              style={{ borderBottom: '1px solid #1E1E22' }}>
+              style={{ borderBottom: '1px solid var(--line)' }}>
               <div>
                 <p className="text-sm"
                   style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
@@ -146,7 +146,7 @@ function TestMalEditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={onClose}>
       <div className="w-full max-w-xl p-5"
-        style={{ backgroundColor: '#13131A', border: `1px solid ${COACH_BLUE}55` }}
+        style={{ backgroundColor: 'var(--card)', border: `1px solid ${COACH_BLUE}55` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">

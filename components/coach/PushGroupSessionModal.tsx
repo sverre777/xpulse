@@ -134,12 +134,12 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
         className="w-full max-w-2xl flex flex-col"
         style={{
           backgroundColor: '#0E0E10',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
           maxHeight: 'calc(100vh - 80px)',
         }}
       >
         <div className="flex items-center justify-between px-5 py-3"
-          style={{ borderBottom: '1px solid #1E1E22' }}>
+          style={{ borderBottom: '1px solid var(--line)' }}>
           <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             👥 Ny fellestrening
@@ -223,7 +223,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                   className="text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
-                    background: 'none', border: '1px solid #1E1E22', cursor: 'pointer', padding: '4px 8px',
+                    background: 'none', border: '1px solid var(--line)', cursor: 'pointer', padding: '4px 8px',
                   }}>
                   Alle utøvere
                 </button>
@@ -231,7 +231,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                   className="text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                    background: 'none', border: '1px solid #1E1E22', cursor: 'pointer', padding: '4px 8px',
+                    background: 'none', border: '1px solid var(--line)', cursor: 'pointer', padding: '4px 8px',
                   }}>
                   Tøm
                 </button>
@@ -263,7 +263,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                               fontFamily: "'Barlow Condensed', sans-serif",
                               color: all ? '#0A0A0B' : '#F0F0F2',
                               backgroundColor: all ? COACH_BLUE : (some ? 'rgba(26,111,212,0.2)' : 'transparent'),
-                              border: `1px solid ${all || some ? COACH_BLUE : '#1E1E22'}`,
+                              border: `1px solid ${all || some ? COACH_BLUE : 'var(--line)'}`,
                               cursor: 'pointer',
                             }}>
                             {g.name} ({g.athleteIds.length})
@@ -286,7 +286,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                         className="flex items-center gap-2 px-2 py-1.5"
                         style={{
                           backgroundColor: checked ? 'rgba(26,111,212,0.1)' : 'transparent',
-                          border: '1px solid #1E1E22',
+                          border: '1px solid var(--line)',
                           cursor: 'pointer',
                         }}>
                         <input type="checkbox" checked={checked} onChange={() => toggleAthlete(a.id)} />
@@ -304,12 +304,12 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
         </div>
 
         <div className="px-5 py-3 flex justify-end gap-2"
-          style={{ borderTop: '1px solid #1E1E22' }}>
+          style={{ borderTop: '1px solid var(--line)' }}>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase px-3 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
+              background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
             }}>
             Avbryt
           </button>
@@ -331,8 +331,8 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   outline: 'none',
 }

@@ -33,7 +33,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
 
   if (valid.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen utøvere har aktiv sesong eller årsplan-data.
@@ -51,9 +51,9 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
         const p = r.periodization!
         const season = p.season
         return (
-          <div key={r.athlete.id} style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+          <div key={r.athlete.id} style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <div className="px-4 py-3 flex items-center gap-2"
-              style={{ borderBottom: '1px solid #1E1E22' }}>
+              style={{ borderBottom: '1px solid var(--line)' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
               <p className="text-sm tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
@@ -67,7 +67,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
             </div>
 
             {season?.goal_main && (
-              <div className="px-4 py-2" style={{ borderBottom: '1px solid #1E1E22' }}>
+              <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--line)' }}>
                 <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                   Hovedmål
@@ -82,7 +82,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+                    <tr style={{ borderBottom: '1px solid var(--line)' }}>
                       <Th>Periode</Th>
                       <Th>Status</Th>
                       <Th>Datoer</Th>
@@ -95,7 +95,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
                   </thead>
                   <tbody>
                     {p.periods.map(period => (
-                      <tr key={period.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                      <tr key={period.id} style={{ borderBottom: '1px solid var(--line)' }}>
                         <Td>{period.name}{period.focus && <span style={{ color: '#555560' }}> · {period.focus}</span>}</Td>
                         <Td>
                           <span style={{ color: period.status === 'current' ? '#1A6FD4' : '#8A8A96' }}>
@@ -120,7 +120,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
             )}
 
             {p.keyDates.length > 0 && (
-              <div className="px-4 py-3" style={{ borderTop: '1px solid #1E1E22' }}>
+              <div className="px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
                 <p className="text-xs tracking-widest uppercase mb-2"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                   Nøkkeldatoer ({p.keyDates.length})
@@ -130,7 +130,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
                     <span key={k.id} className="px-2 py-1 text-xs"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+                        backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
                         color: '#F0F0F2',
                       }}>
                       {k.event_date} · {KEY_LABEL[k.event_type] ?? k.event_type} · {k.name}
@@ -148,10 +148,10 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
 
 function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--line)' }}>
             <Th>Utøver</Th>
             <Th>Sesong</Th>
             <Th>Perioder</Th>
@@ -166,7 +166,7 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
             const p = r.periodization
             if (!p?.hasData) {
               return (
-                <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                   <td colSpan={5} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen aktiv sesong'}
@@ -175,7 +175,7 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
               )
             }
             return (
-              <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                 <Td>{p.season?.name ?? '—'}</Td>
                 <Td>{p.periods.length}</Td>

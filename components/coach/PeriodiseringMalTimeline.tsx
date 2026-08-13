@@ -26,12 +26,12 @@ export function PeriodiseringMalTimeline({
     .sort((a, b) => a.start_offset - b.start_offset || a.sort_order - b.sort_order)
 
   return (
-    <div style={{ border: '1px solid #1E1E22', backgroundColor: '#0D0D11' }}>
+    <div style={{ border: '1px solid var(--line)', backgroundColor: '#0D0D11' }}>
       <div className="px-3 py-2 flex items-center justify-between text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: '#8A8A96',
-          borderBottom: '1px solid #1E1E22',
+          borderBottom: '1px solid var(--line)',
         }}>
         <span>Tidslinje</span>
         <span style={{ color: '#555560' }}>
@@ -44,7 +44,7 @@ export function PeriodiseringMalTimeline({
 
         <div className="mt-3" style={{ position: 'relative' }}>
           {/* Week ruler */}
-          <div className="flex" style={{ borderBottom: '1px solid #1E1E22' }}>
+          <div className="flex" style={{ borderBottom: '1px solid var(--line)' }}>
             {Array.from({ length: totalWeeks }, (_, i) => (
               <div key={i}
                 className="flex items-center justify-center text-xs"
@@ -82,7 +82,7 @@ export function PeriodiseringMalTimeline({
 
           {/* Key dates row */}
           {keyDates.length > 0 && (
-            <div className="mt-3 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+            <div className="mt-3 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
               <p className="text-xs tracking-widest uppercase mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Nøkkel-datoer
@@ -168,7 +168,7 @@ function KeyDateChip({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: '#F0F0F2',
-        backgroundColor: '#13131A',
+        backgroundColor: 'var(--card)',
         border: `${visual.borderWidth}px solid ${visual.color}`,
         boxShadow: isPeak ? `0 0 6px ${GOLD}AA` : undefined,
       }}>

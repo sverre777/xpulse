@@ -85,13 +85,13 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
           maxWidth: '820px', width: '100%', position: 'relative',
           margin: '0 auto', marginBottom: '24px',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {editing ? 'Rediger øktmal' : 'Ny øktmal'}

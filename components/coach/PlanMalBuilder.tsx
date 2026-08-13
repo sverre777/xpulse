@@ -195,13 +195,13 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
           maxWidth: '960px', width: '100%',
           margin: '0 auto', marginBottom: '24px',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {editing ? 'Rediger plan-mal' : 'Ny plan-mal'}
@@ -283,7 +283,7 @@ export function PlanMalBuilder({ primarySport, workoutTemplates, editing, onClos
             onChange={setData}
           />
 
-          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
@@ -339,8 +339,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

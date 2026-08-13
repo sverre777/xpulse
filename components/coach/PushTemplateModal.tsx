@@ -69,12 +69,12 @@ export function PushTemplateModal({
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: '560px',
-          backgroundColor: '#13131A', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
         }}
       >
         <div
           className="px-5 py-3 flex items-center justify-between"
-          style={{ borderBottom: '1px solid #1E1E22' }}
+          style={{ borderBottom: '1px solid var(--line)' }}
         >
           <div>
             <div className="text-xs tracking-widest uppercase"
@@ -94,7 +94,7 @@ export function PushTemplateModal({
             className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'transparent', border: '1px solid #1E1E22',
+              color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -102,7 +102,7 @@ export function PushTemplateModal({
           </button>
         </div>
 
-        <div className="flex items-center" style={{ borderBottom: '1px solid #1E1E22' }}>
+        <div className="flex items-center" style={{ borderBottom: '1px solid var(--line)' }}>
           <TabButton label="Økt"           active={tab === 'okt'}          onClick={() => setTab('okt')} disabled={!canEditPlan} />
           <TabButton label="Konkurranse"   active={tab === 'konkurranse'}  onClick={() => setTab('konkurranse')} disabled={!canEditPlan} />
           <TabButton label="Plan-mal"      active={tab === 'plan'}         onClick={() => setTab('plan')} disabled={!canEditPlan} />
@@ -193,9 +193,9 @@ function TabButton({ label, active, onClick, disabled }: {
 function inputStyle(): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
-    backgroundColor: '#1A1A22',
+    backgroundColor: 'var(--card2)',
     color: '#F0F0F2',
-    border: '1px solid #1E1E22',
+    border: '1px solid var(--line)',
     padding: '6px 8px',
     width: '100%',
     outline: 'none',
@@ -476,7 +476,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
                 background: 'transparent',
-                border: `1px solid ${usingOriginalStart ? '#1E1E22' : COACH_BLUE}`,
+                border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',
               }}
             >
@@ -501,7 +501,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
             className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'transparent', border: '1px solid #1E1E22',
+              color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -510,11 +510,11 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
           {showDateTable && (
             <div className="mt-2"
               style={{
-                border: '1px solid #1E1E22', maxHeight: '260px', overflowY: 'auto',
+                border: '1px solid var(--line)', maxHeight: '260px', overflowY: 'auto',
               }}>
               <table className="w-full text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-                <thead style={{ backgroundColor: '#1A1A22' }}>
+                <thead style={{ backgroundColor: 'var(--card2)' }}>
                   <tr>
                     <Th>Økt</Th>
                     <Th>Original dag</Th>
@@ -528,7 +528,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                     const value = overrides[w.index] ?? computed
                     const isOverride = !!overrides[w.index] && overrides[w.index] !== computed
                     return (
-                      <tr key={w.index} style={{ borderTop: '1px solid #1E1E22' }}>
+                      <tr key={w.index} style={{ borderTop: '1px solid var(--line)' }}>
                         <Td>
                           <span className="block truncate" style={{ maxWidth: '160px' }}>
                             {w.title}
@@ -559,7 +559,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                             style={{
                               ...inputStyle(),
                               padding: '4px 6px',
-                              borderColor: isOverride ? COACH_BLUE : '#1E1E22',
+                              borderColor: isOverride ? COACH_BLUE : 'var(--line)',
                             }}
                           />
                         </Td>
@@ -675,7 +675,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
                 background: 'transparent',
-                border: `1px solid ${usingOriginalStart ? '#1E1E22' : COACH_BLUE}`,
+                border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',
               }}
             >

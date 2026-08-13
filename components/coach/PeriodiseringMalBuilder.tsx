@@ -254,13 +254,13 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
           maxWidth: '960px', width: '100%',
           margin: '0 auto', marginBottom: '24px',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {editing ? 'Rediger årsplan-mal' : 'Ny årsplan-mal'}
@@ -442,7 +442,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
             />
           </section>
 
-          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+          <div className="flex justify-end gap-2 pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
@@ -481,7 +481,7 @@ function PeriodRow({
   const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <Field label="Navn">
           <input value={period.name}
@@ -541,7 +541,7 @@ function KeyDateRow({
   const max = durationDays - 1
   return (
     <div className="p-3 flex flex-col gap-2"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <Field label="Tittel">
           <input value={keyDate.title}
@@ -698,7 +698,7 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
     <p className="p-4 text-xs text-center"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-        border: '1px dashed #1E1E22',
+        border: '1px dashed var(--line)',
       }}>
       {children}
     </p>
@@ -727,8 +727,8 @@ function offsetToWeekDayLabel(offset: number): string {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

@@ -98,7 +98,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
         onClick={e => e.stopPropagation()}
         style={{
           backgroundColor: '#0E0E10',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
           width: '100%',
           maxWidth: '520px',
           maxHeight: '80vh',
@@ -107,7 +107,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
         }}
       >
         <div className="px-4 py-3 flex items-center justify-between"
-          style={{ borderBottom: '1px solid #1E1E22' }}>
+          style={{ borderBottom: '1px solid var(--line)' }}>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>
             Ny melding
           </h2>
@@ -131,8 +131,8 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                 className="px-3 py-1.5 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: mode === m ? '#1A1A22' : 'transparent',
-                  border: `1px solid ${mode === m ? COACH_BLUE : '#1E1E22'}`,
+                  backgroundColor: mode === m ? 'var(--card2)' : 'transparent',
+                  border: `1px solid ${mode === m ? COACH_BLUE : 'var(--line)'}`,
                   color: mode === m ? '#F0F0F2' : '#8A8A96',
                   cursor: 'pointer',
                 }}
@@ -153,9 +153,9 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
               className="px-3 py-2 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A1A22',
+                backgroundColor: 'var(--card2)',
                 color: '#F0F0F2',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--line)',
                 outline: 'none',
               }}
             />
@@ -169,14 +169,14 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
             className="px-3 py-2 text-sm"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22',
+              backgroundColor: 'var(--card2)',
               color: '#F0F0F2',
-              border: '1px solid #1E1E22',
+              border: '1px solid var(--line)',
               outline: 'none',
             }}
           />
 
-          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             {loading && (
               <p className="p-4 text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
@@ -201,13 +201,13 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                 const selected = selectedIds.has(r.id)
                 const isDmMode = mode === 'dm'
                 return (
-                  <li key={r.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                  <li key={r.id} style={{ borderBottom: '1px solid var(--line)' }}>
                     <button
                       type="button"
                       onClick={() => (isDmMode ? handleDmSelect(r.id) : toggle(r.id))}
                       className="w-full px-4 py-3 flex items-center gap-3 text-left transition-opacity hover:opacity-90"
                       style={{
-                        background: selected ? '#1A1A22' : 'transparent',
+                        background: selected ? 'var(--card2)' : 'transparent',
                         border: 'none',
                         cursor: 'pointer',
                       }}

@@ -31,14 +31,14 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
   }
 
   return (
-    <ul style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <ul style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       {comments.map(c => {
         const accent = c.authorIsCoach ? COACH_BLUE : ATHLETE_ORANGE
         return (
           <li
             key={c.id}
             style={{
-              borderTop: '1px solid #1E1E22',
+              borderTop: '1px solid var(--line)',
               borderLeft: `3px solid ${accent}`,
             }}
           >

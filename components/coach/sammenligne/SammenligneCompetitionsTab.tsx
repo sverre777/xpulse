@@ -25,7 +25,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
 
   if (valid.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Ingen utøvere har konkurranser i valgt periode.
@@ -43,9 +43,9 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
         const c = r.competitions
         if (!c?.hasData) return null
         return (
-          <div key={r.athlete.id} style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+          <div key={r.athlete.id} style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <div className="px-4 py-3 flex items-center gap-2"
-              style={{ borderBottom: '1px solid #1E1E22' }}>
+              style={{ borderBottom: '1px solid var(--line)' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
               <p className="text-sm tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
@@ -55,7 +55,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
             <div className="overflow-x-auto">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+                  <tr style={{ borderBottom: '1px solid var(--line)' }}>
                     <Th>Dato</Th>
                     <Th>Tittel</Th>
                     <Th>Sport</Th>
@@ -66,7 +66,7 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
                 </thead>
                 <tbody>
                   {c.rows.slice(0, 10).map(row => (
-                    <tr key={row.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                    <tr key={row.id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <Td>{row.date}</Td>
                       <Td>{row.title || row.name || '—'}</Td>
                       <Td>{row.sport}</Td>
@@ -91,10 +91,10 @@ export function SammenligneCompetitionsTab({ data }: { data: MultipleAthletesAna
 
 function SummaryTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--line)' }}>
             <Th>Utøver</Th>
             <Th>Antall</Th>
             <Th>Kommende</Th>
@@ -107,7 +107,7 @@ function SummaryTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) 
             const c = r.competitions
             if (!c) {
               return (
-                <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+                <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                   <td colSpan={3} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
@@ -116,7 +116,7 @@ function SummaryTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) 
               )
             }
             return (
-              <tr key={r.athlete.id} style={{ borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
                 <Td>{c.rows.length}</Td>
                 <Td>{c.upcomingPlanned.length}</Td>

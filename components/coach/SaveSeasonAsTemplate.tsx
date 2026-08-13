@@ -80,12 +80,12 @@ export function SaveSeasonAsTemplate({
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+              backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
               maxWidth: '520px', width: '100%', margin: '0 16px',
             }}
           >
             <div className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: '1px solid #1E1E22' }}>
+              style={{ borderBottom: '1px solid var(--line)' }}>
               <span className="text-sm tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
                 Lagre sesong som mal
@@ -169,7 +169,7 @@ export function SaveSeasonAsTemplate({
                     </p>
                   )}
 
-                  <div className="flex gap-2 justify-end pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+                  <div className="flex gap-2 justify-end pt-2" style={{ borderTop: '1px solid var(--line)' }}>
                     <button type="button" onClick={() => setOpen(false)}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
@@ -201,8 +201,8 @@ export function SaveSeasonAsTemplate({
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

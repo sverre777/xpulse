@@ -303,7 +303,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .from('workouts')
       .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', user.id)
-      .or('is_completed.eq.true,is_planned.eq.false')
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .gte('date', weekStart).lte('date', todayISO)
 
     // 6. Forrige ukes økter — samme filter-utvidelse.
@@ -311,7 +311,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .from('workouts')
       .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
       .eq('user_id', user.id)
-      .or('is_completed.eq.true,is_planned.eq.false')
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .gte('date', prevWeekStart).lte('date', prevWeekEnd)
 
     // 7. Kommende konkurranse — fra season_key_dates først, fallback til workouts.
@@ -341,7 +341,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .from('workouts')
       .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed, workout_activities(zones)')
       .eq('user_id', user.id)
-      .or('is_completed.eq.true,is_planned.eq.false')
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .lte('date', todayISO)
       .order('date', { ascending: false })
       .order('time_of_day', { ascending: false, nullsFirst: false })
@@ -588,7 +588,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
           .from('workouts')
           .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
           .eq('user_id', user.id)
-          .or('is_completed.eq.true,is_planned.eq.false')
+          .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
           .gte('date', seasonRow.start_date)
           .lte('date', todayISO)
         type SeasonWorkout = {

@@ -240,7 +240,10 @@ function includeInSum(w: CalendarWorkoutSummary, mode: CalendarMode): boolean {
   // (is_completed=true) slik at WeekStatsBanner og AnalysisOverlay rapporterer
   // samme økt-telling.
   if (mode === 'plan') return w.is_planned
-  return w.is_completed
+  // Dagbok: gjennomførte + ekte dagbok-økter der is_completed-flagget mangler
+  // (samme regel som hjem/analyse — F1-samkjøring). Abandonerte live-drafts
+  // (startet, aldri fullført) telles IKKE.
+  return w.is_completed || (!w.is_planned && !w.is_live_draft)
 }
 
 interface AggregateTotals {

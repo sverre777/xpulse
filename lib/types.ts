@@ -987,6 +987,8 @@ export interface CalendarWorkoutSummary {
   title: string
   is_planned: boolean
   is_completed: boolean
+  /** Live-økt startet men aldri fullført — telles IKKE som gjennomført. */
+  is_live_draft?: boolean
   is_important: boolean
   is_group_session?: boolean
   is_altitude_training?: boolean

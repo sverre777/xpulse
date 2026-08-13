@@ -6,13 +6,16 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ZAxis, ReferenceLine,
 } from 'recharts'
 import type { TerskelAnalysis, LactatePoint } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
 
 const COLOR_PTS = '#FF4500'
 const COLOR_REG = '#38BDF8'
 const COLOR_LT1 = '#28A86E'
-const COLOR_LT2 = '#E11D48'
-const COLOR_PROFILE = '#D4A017'
+const COLOR_LT2 = '#E23A5A'
+const COLOR_PROFILE = '#E8B93C'
 
 function formatDateShort(iso: string): string {
   const d = new Date(iso + 'T00:00:00Z')
@@ -146,24 +149,24 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
         height={340}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} />
+            <CartesianGrid stroke={CHART_GRID} />
             <XAxis type="number" dataKey="x" name="mmol/L" domain={[0, 'auto']}
-              tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-              label={{ value: 'mmol/L', position: 'insideBottom', offset: -2, style: AXIS_STYLE }} />
+              tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+              label={{ value: 'mmol/L', position: 'insideBottom', offset: -2, style: CHART_AXIS_TICK }} />
             <YAxis type="number" dataKey="y" name="Puls" domain={['auto', 'auto']}
-              tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
-              label={{ value: 'Puls', angle: -90, position: 'insideLeft', style: AXIS_STYLE }} />
+              tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
+              label={{ value: 'Puls', angle: -90, position: 'insideLeft', style: CHART_AXIS_TICK }} />
             <ZAxis range={[40, 40]} />
             <ReferenceLine x={2} stroke={COLOR_LT1} strokeDasharray="3 3" label={{ value: 'LT1', position: 'top', fill: COLOR_LT1, fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif" }} />
             <ReferenceLine x={4} stroke={COLOR_LT2} strokeDasharray="3 3" label={{ value: 'LT2', position: 'top', fill: COLOR_LT2, fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif" }} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ strokeDasharray: '3 3', stroke: '#555560' }}
+            <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#555560' }}
               formatter={(v, k) => {
                 if (k === 'x') return [`${v} mmol/L`, 'Laktat']
                 if (k === 'y') return [`${v}`, 'Puls']
                 return [String(v ?? ''), String(k)]
               }}
               labelFormatter={() => ''} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Scatter name="Målinger" data={scatterData} fill={COLOR_PTS} />
             {regression && regressionLine.length === 2 && (
               <Scatter name={`Regresjon (R²=${Math.round(regression.r2 * 100)}%)`}
@@ -200,14 +203,14 @@ export function LactateTrend({ data }: { data: TerskelAnalysis }) {
       <ChartWrapper chartKey="terskel_lactate_trend" title="Alle målinger" subtitle="Sjekk om laktat synker ved tilsvarende intensitet (= aerob forbedring)." height={240}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 'auto']} />
             <ReferenceLine y={2} stroke={COLOR_LT1} strokeDasharray="3 3" label={{ value: 'LT1 (2 mmol)', position: 'right', fill: COLOR_LT1, fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif" }} />
             <ReferenceLine y={4} stroke={COLOR_LT2} strokeDasharray="3 3" label={{ value: 'LT2 (4 mmol)', position: 'right', fill: COLOR_LT2, fontSize: 10, fontFamily: "'Barlow Condensed', sans-serif" }} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v) => [typeof v === 'number' ? `${v.toFixed(1)} mmol/L` : String(v ?? ''), 'Laktat']} />
             <Line type="monotone" dataKey="mmol" stroke={COLOR_PTS} strokeWidth={2} dot={{ r: 3, fill: COLOR_PTS }} name="mmol/L" />
           </LineChart>

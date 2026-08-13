@@ -6,7 +6,9 @@ import {
 } from 'recharts'
 import type { NutritionAnalysis, NutritionAnalysisWorkout } from '@/app/actions/nutrition'
 import { NUTRITION_TYPES } from '@/lib/types'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_TOOLTIP_BOX,
+} from './chart-theme'
 
 // Ernærings-fanen: viser hvordan brukerens fueling-strategi henger sammen
 // med øktens lengde og intensitet. Fokus er det mest aktuelle spørsmålet
@@ -34,7 +36,7 @@ const SPORT_COLOR: Record<string, string> = {
   biathlon:              '#28A86E',
   cycling:               '#F5C542',
   triathlon:             '#B04DE6',
-  long_distance_skiing:  '#E11D48',
+  long_distance_skiing:  '#E23A5A',
   endurance:             '#8A8A96',
 }
 
@@ -204,27 +206,25 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
     <div style={{ width: '100%', height: 320, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
-          <CartesianGrid stroke={GRID_COLOR} />
+          <CartesianGrid stroke={CHART_GRID} />
           <XAxis type="number" dataKey="hours" name="Varighet"
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-            label={{ value: 'Varighet (timer)', position: 'insideBottom', offset: -10, style: AXIS_STYLE }} />
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+            label={{ value: 'Varighet (timer)', position: 'insideBottom', offset: -10, style: CHART_AXIS_TICK }} />
           <YAxis type="number" dataKey="cph" name="Karbo/time"
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-            label={{ value: 'g karbo/time', angle: -90, position: 'insideLeft', style: AXIS_STYLE }} />
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+            label={{ value: 'g karbo/time', angle: -90, position: 'insideLeft', style: CHART_AXIS_TICK }} />
           <ReferenceLine y={REF_LOW}  stroke="#555560" strokeDasharray="2 4"
             label={{ value: '30', position: 'right', fill: '#555560', fontSize: 10 }} />
           <ReferenceLine y={REF_MID}  stroke="#8A8A96" strokeDasharray="2 4"
             label={{ value: '60', position: 'right', fill: '#8A8A96', fontSize: 10 }} />
           <ReferenceLine y={REF_HIGH} stroke="#FF4500" strokeDasharray="2 4"
             label={{ value: '90', position: 'right', fill: '#FF4500', fontSize: 10 }} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
-            formatter={(value, name) => [`${value}`, name]}
-            labelFormatter={() => ''}
+          <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null
               const p = payload[0].payload as { hours: number; cph: number; title: string; date: string }
               return (
-                <div style={{ ...TOOLTIP_STYLE, padding: '8px 10px' }}>
+                <div style={CHART_TOOLTIP_BOX}>
                   <div style={{ color: '#F0F0F2', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
                   <div style={{ color: '#8A8A96', fontSize: 11 }}>{p.date}</div>
                   <div style={{ color: '#FF4500', marginTop: 6 }}>
@@ -261,19 +261,19 @@ function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }
     <div style={{ width: '100%', height: 320, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 12, right: 16, bottom: 28, left: 0 }}>
-          <CartesianGrid stroke={GRID_COLOR} />
+          <CartesianGrid stroke={CHART_GRID} />
           <XAxis type="number" dataKey="hr" name="Snittpuls"
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-            label={{ value: 'Snittpuls (bpm)', position: 'insideBottom', offset: -10, style: AXIS_STYLE }} />
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+            label={{ value: 'Snittpuls (bpm)', position: 'insideBottom', offset: -10, style: CHART_AXIS_TICK }} />
           <YAxis type="number" dataKey="cph" name="Karbo/time"
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
-            label={{ value: 'g karbo/time', angle: -90, position: 'insideLeft', style: AXIS_STYLE }} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
+            label={{ value: 'g karbo/time', angle: -90, position: 'insideLeft', style: CHART_AXIS_TICK }} />
+          <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload || payload.length === 0) return null
               const p = payload[0].payload as { hr: number; cph: number; title: string; date: string }
               return (
-                <div style={{ ...TOOLTIP_STYLE, padding: '8px 10px' }}>
+                <div style={CHART_TOOLTIP_BOX}>
                   <div style={{ color: '#F0F0F2', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
                   <div style={{ color: '#8A8A96', fontSize: 11 }}>{p.date}</div>
                   <div style={{ color: '#FF4500', marginTop: 6 }}>
@@ -304,19 +304,19 @@ function TypeDistribution({ data }: { data: NutritionAnalysis['type_distribution
     <div style={{ width: '100%', height: 280, minWidth: 0, overflow: 'hidden' }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={rows} layout="vertical" margin={{ top: 6, right: 16, bottom: 6, left: 24 }}>
-          <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
-          <XAxis type="number" tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis type="category" dataKey="label" tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={90} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+          <CartesianGrid stroke={CHART_GRID} horizontal={false} />
+          <XAxis type="number" tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis type="category" dataKey="label" tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE} tickLine={false} width={90} />
+          <Tooltip content={<XpTooltip />}
             formatter={(v, n) => {
               if (n === 'count') return [`${v}`, 'Antall']
               if (n === 'carbs_g') return [`${v} g`, 'Karbo']
               return [`${v}`, String(n)]
             }} />
-          <Bar dataKey="count" fill="#FF4500" name="count" />
-          <Bar dataKey="carbs_g" fill="#1A6FD4" name="carbs_g" />
+          <Bar dataKey="count" fill="#FF4500" name="count" radius={[0, 8, 8, 0]} />
+          <Bar dataKey="carbs_g" fill="#1A6FD4" name="carbs_g" radius={[0, 8, 8, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

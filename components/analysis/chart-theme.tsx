@@ -84,6 +84,20 @@ type XpTooltipFormatter = (
   index: number,
 ) => ReactNode | [ReactNode, ReactNode]
 
+// Eksportert boks-stil for grafer med EGNE custom tooltips (f.eks. Ernering)
+// — samme visuelle språk som XpTooltip, men innholdet styres av grafen selv
+// slik at eksisterende felter bevares nøyaktig.
+export const CHART_TOOLTIP_BOX = {
+  minWidth: 150,
+  backgroundColor: '#0C0C0F',
+  border: '1px solid #2A2A33',
+  borderRadius: 12,
+  padding: '12px 14px',
+  boxShadow: '0 12px 34px rgba(0,0,0,0.55)',
+  fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: 14,
+} as const
+
 const TIP_BOX = {
   minWidth: 150,
   backgroundColor: '#0C0C0F',

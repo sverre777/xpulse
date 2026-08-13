@@ -63,7 +63,8 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0D0D11', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--card)', border: '1px solid var(--line)',
+          borderRadius: 'var(--r-card)',
           maxWidth: '560px', width: '100%', maxHeight: '90vh', overflowY: 'auto',
           padding: '24px',
         }}
@@ -130,7 +131,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
           </div>
 
           {error && (
-            <p style={{ color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)',
+            <p style={{ color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)', borderRadius: 8,
               fontFamily: "'Barlow Condensed', sans-serif", padding: '8px 12px', fontSize: '13px' }}>
               {error}
             </p>
@@ -141,8 +142,8 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
               className="flex-1 py-3 text-base tracking-widest uppercase font-semibold"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: canSubmit ? '#FF4500' : '#3A1A0A', color: '#F0F0F2',
-                border: 'none', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.7,
+                backgroundColor: canSubmit ? 'var(--accent)' : '#3A1A0A', color: '#fff',
+                border: 'none', borderRadius: 12, cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.7,
               }}>
               {saving ? 'Lagrer...' : 'Lagre'}
             </button>
@@ -150,7 +151,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
               className="px-6 py-3 text-base tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',
+                backgroundColor: 'transparent', border: '1px solid var(--line2)', borderRadius: 12, cursor: 'pointer',
               }}>
               Avbryt
             </button>
@@ -162,7 +163,8 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
   color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', padding: '10px 12px', outline: 'none', width: '100%',
 }

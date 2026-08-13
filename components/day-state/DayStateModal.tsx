@@ -43,31 +43,53 @@ export function DayStateModal({
   const [symptoms, setSymptoms] = useState(editing?.symptoms ?? '')
   const [notes, setNotes] = useState(editing?.notes ?? '')
   const [expectedDaysOff, setExpectedDaysOff] = useState<number | ''>(editing?.expected_days_off ?? '')
+  // Flerdags-markering (kun ved NY markering): til-og-med-dato → alle dager
+  // i spennet markeres i én operasjon. Hviledag kan planlegges frem i tid;
+  // syk/skade kan kun markeres på inntrufne dager (maks i dag).
+  const [toDate, setToDate] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const canSubmit = !busy
+
+  // Datoene som markeres: valgt dag + evt. spennet frem til toDate (maks 62).
+  const datesToMark = (() => {
+    if (editing || !toDate || toDate <= date) return [date]
+    const out: string[] = []
+    const d = new Date(date + 'T00:00:00')
+    const stop = new Date(toDate + 'T00:00:00')
+    while (d <= stop && out.length < 62) {
+      out.push(localISODate(d))
+      d.setDate(d.getDate() + 1)
+    }
+    return out
+  })()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
     setBusy(true); setError(null)
 
-    const res = await upsertDayState({
-      date,
-      state_type: stateType,
-      is_planned: isPlanned,
-      sub_type: subType || null,
-      feeling: feeling === '' ? null : Number(feeling),
-      // Symptomer er kun relevant for sykdom (infeksjon). Skade bruker
-      // notes-feltet til å beskrive type/grad og kroppsdel ligger i sub_type.
-      symptoms: isSick ? symptoms : null,
-      notes,
-      // Antatt dager utenfor trening gjelder både sykdom og skade.
-      expected_days_off: isRest ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
-      targetUserId,
-    })
-    if (res.error) { setError(res.error); setBusy(false); return }
+    for (const ds of datesToMark) {
+      const res = await upsertDayState({
+        date: ds,
+        state_type: stateType,
+        // Per-dag: hviledag frem i tid = planlagt; syk/skade planlegges aldri.
+        is_planned: datesToMark.length > 1
+          ? (isRest ? ds > today : false)
+          : isPlanned,
+        sub_type: subType || null,
+        feeling: feeling === '' ? null : Number(feeling),
+        // Symptomer er kun relevant for sykdom (infeksjon). Skade bruker
+        // notes-feltet til å beskrive type/grad og kroppsdel ligger i sub_type.
+        symptoms: isSick ? symptoms : null,
+        notes,
+        // Antatt dager utenfor trening gjelder både sykdom og skade.
+        expected_days_off: isRest ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
+        targetUserId,
+      })
+      if (res.error) { setError(`${ds}: ${res.error}`); setBusy(false); return }
+    }
     router.refresh()
     setBusy(false)
     onSaved?.()
@@ -109,6 +131,24 @@ export function DayStateModal({
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {date}{isPlanned ? ' (planlagt)' : ''} — teller ikke som økt i totaler.
         </p>
+
+        {/* Flerdags-markering — kun ved ny markering. */}
+        {!editing && (
+          <div className="mb-3">
+            <FieldLabel>Til og med (valgfritt — marker flere dager)</FieldLabel>
+            <input type="date" value={toDate} min={date}
+              max={isRest ? undefined : today}
+              onChange={e => setToDate(e.target.value)}
+              style={INPUT_STYLE} />
+            {datesToMark.length > 1 && (
+              <p className="text-xs mt-1"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)' }}>
+                {datesToMark.length} dager markeres ({date} → {toDate})
+                {isRest && toDate > today ? ' — fremtidige dager blir planlagte' : ''}
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="mb-3">
           <FieldLabel>{subTypeLabel}</FieldLabel>

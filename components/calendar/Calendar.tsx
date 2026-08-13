@@ -104,6 +104,9 @@ interface CalendarActions {
   onCreateWorkout: (dateStr: string, time?: string) => void
   onAddRecovery: (dateStr: string) => void
   onEditDayState: (state: DayState) => void
+  // Åpne dag-tilstand-modalen direkte for en dato/type (hviledag/sykdom/skade)
+  // — redigerer eksisterende markering hvis den finnes.
+  onMarkDayState: (dateStr: string, type: 'hviledag' | 'sykdom' | 'skade') => void
   dayStatesByDate: Record<string, DayState[]>
   targetUserId?: string
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
@@ -1030,7 +1033,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // ── Dra-og-slipp (måneds-grid): flytt økt til ny dag ──────────────────
@@ -1607,26 +1610,54 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       </div>
                     )}
 
-                    {!readOnly && (
-                      <div className="flex gap-3 flex-wrap">
-                        <button type="button" onClick={() => onCreateWorkout(ds)}
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                          {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
-                        </button>
-                        {mode !== 'plan' && !healthData[ds] && (
-                          <Link href={`/app/health/${ds}`}
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid #222228', textDecoration: 'none', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                            + Helse
-                          </Link>
-                        )}
-                        {mode !== 'plan' && !isFuture && (
-                          <button type="button" onClick={() => onAddRecovery(ds)}
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer', padding: '6px 16px', fontSize: '13px', letterSpacing: '0.1em' }}>
-                            + Legg til recovery
+                    {!readOnly && (() => {
+                      // Felles knappestiler for dag-popupens handlingsrad (xp-stil).
+                      const primaryBtn: React.CSSProperties = {
+                        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                        backgroundColor: 'var(--accent)', color: '#fff',
+                        border: '1px solid var(--accent)', borderRadius: 9, cursor: 'pointer',
+                        padding: '7px 14px', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase',
+                      }
+                      const ghostBtn: React.CSSProperties = {
+                        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+                        color: '#A9A9B5', backgroundColor: 'transparent',
+                        border: '1px solid var(--line2)', borderRadius: 9, cursor: 'pointer',
+                        padding: '7px 12px', fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase',
+                        textDecoration: 'none',
+                      }
+                      return (
+                        <div className="flex gap-2 flex-wrap">
+                          <button type="button" onClick={() => onCreateWorkout(ds)} style={primaryBtn}>
+                            {mode === 'plan' || isFuture ? '+ Planlegg' : '+ Logg'}
                           </button>
-                        )}
-                      </div>
-                    )}
+                          {/* Dag-tilstander: hviledag kan planlegges (også fremtid);
+                              syk/skade markeres kun på inntrufne dager. */}
+                          <button type="button" onClick={() => onMarkDayState(ds, 'hviledag')} style={ghostBtn}>
+                            🛌 Hviledag
+                          </button>
+                          {!isFuture && (
+                            <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} style={ghostBtn}>
+                              🤒 Syk
+                            </button>
+                          )}
+                          {!isFuture && (
+                            <button type="button" onClick={() => onMarkDayState(ds, 'skade')} style={ghostBtn}>
+                              🩹 Skade
+                            </button>
+                          )}
+                          {mode !== 'plan' && !healthData[ds] && (
+                            <Link href={`/app/health/${ds}`} style={ghostBtn}>
+                              + Helse
+                            </Link>
+                          )}
+                          {mode !== 'plan' && !isFuture && (
+                            <button type="button" onClick={() => onAddRecovery(ds)} style={ghostBtn}>
+                              + Recovery
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })()}
                     </div>
                   </div>
                 </div>
@@ -1824,6 +1855,12 @@ export function Calendar({
     if (readOnly) return
     setRecoveryDate(dateStr)
   }, [readOnly])
+
+  const handleMarkDayState = useCallback((dateStr: string, type: 'hviledag' | 'sykdom' | 'skade') => {
+    if (readOnly) return
+    const existing = (dayStatesByDate[dateStr] ?? []).find(s => s.state_type === type) ?? null
+    setDayStateModal({ date: dateStr, stateType: type, editing: existing })
+  }, [readOnly, dayStatesByDate])
 
   const closeModal = useCallback(() => {
     setModalState(null)
@@ -2054,6 +2091,7 @@ export function Calendar({
       onCreateWorkout: handleCreateWorkout,
       onAddRecovery: handleAddRecovery,
       onEditDayState: handleEditDayState,
+      onMarkDayState: handleMarkDayState,
       dayStatesByDate,
       targetUserId,
       readOnly,

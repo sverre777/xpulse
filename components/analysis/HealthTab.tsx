@@ -5,7 +5,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, ComposedChart,
 } from 'recharts'
 import type { HealthCorrelations, HealthDailyPoint, CorrelationPoint } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE,
+  CHART_LEGEND_STYLE, CHART_CURSOR,
+} from './chart-theme'
 
 function dateToEpoch(iso: string): number { return new Date(iso).getTime() }
 function formatEpochAxis(ms: number): string {
@@ -110,16 +114,16 @@ function TrendChart({
     <ChartWrapper chartKey={chartKey} title={title} subtitle={subtitle}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-            tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
             domain={yDomain} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+          <Tooltip content={<XpTooltip />}
             labelFormatter={(v) => formatEpochAxis(Number(v))}
             formatter={(value) => [`${value} ${unit}`, title]} />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Line data={points} type="monotone" dataKey="y" name="Daglig" stroke={color} strokeWidth={1} dot={{ r: 2 }} />
           <Line data={smoothed} type="monotone" dataKey="y" name="7d snitt" stroke="#F0F0F2" strokeWidth={2} dot={false} />
           {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
@@ -158,14 +162,14 @@ function CorrelationScatter({
     <ChartWrapper chartKey={chartKey} title={title} subtitle={`${subtitle} · ${formatR(r)}`} height={280}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart>
-          <CartesianGrid stroke={GRID_COLOR} />
+          <CartesianGrid stroke={CHART_GRID} />
           <XAxis type="number" dataKey="x" name={xLabel}
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
             label={{ value: xLabel, position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
           <YAxis type="number" dataKey="y" name={yLabel}
-            tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+          <Tooltip content={<XpTooltip />}
             cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
             formatter={(value, key) => {
               if (key === 'x') return [String(value), xLabel]
@@ -207,9 +211,9 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {hasHrv && <TrendChart chartKey="helse_hrv" title="HRV" subtitle="millisekunder" daily={data.daily} field="hrv_ms" color="#8B5CF6" unit="ms" />}
-        {hasRhr && <TrendChart chartKey="helse_resting_hr" title="Hvilepuls" subtitle="bpm" daily={data.daily} field="resting_hr" color="#E11D48" unit="bpm" />}
+        {hasRhr && <TrendChart chartKey="helse_resting_hr" title="Hvilepuls" subtitle="bpm" daily={data.daily} field="resting_hr" color="#E23A5A" unit="bpm" />}
         {hasSleep && <TrendChart chartKey="helse_sleep_hours" title="Søvn" subtitle="timer" daily={data.daily} field="sleep_hours" color="#1A6FD4" unit="t" />}
-        {hasWeight && <TrendChart chartKey="helse_body_weight" title="Vekt" subtitle="kg" daily={data.daily} field="body_weight_kg" color="#D4A017" unit="kg" />}
+        {hasWeight && <TrendChart chartKey="helse_body_weight" title="Vekt" subtitle="kg" daily={data.daily} field="body_weight_kg" color="#E8B93C" unit="kg" />}
         {hasDayForm && <TrendChart chartKey="helse_day_form" title="Dagsform" subtitle="1-5 skala" daily={data.daily} field="day_form" color="#28A86E" unit="" yDomain={[1, 5]} />}
       </div>
 
@@ -262,7 +266,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           points={data.correlations.stressVs7dLoad}
           xLabel="Timer (7d)"
           yLabel="Stress"
-          color="#E11D48"
+          color="#E23A5A"
           emptyMessage="Logg ukesrefleksjon for å se denne grafen."
         />
         <CorrelationScatter
@@ -312,18 +316,18 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           <ChartWrapper chartKey="health_lactate_per_template" title="Laktat ved samme mal" subtitle="Kun maler kjørt ≥3 ganger" height={320}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                  axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+                  tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                  axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
                   tickFormatter={(v) => `${v}`} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                <Tooltip content={<XpTooltip />}
                   labelFormatter={(v) => formatEpochAxis(Number(v))}
                   formatter={(v) => [`${v} mmol`, 'Laktat']} />
-                <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                 {data.templateLactate.map((t, i) => {
-                  const palette = ['#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#8B5CF6', '#E11D48']
+                  const palette = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#8B5CF6', '#E23A5A']
                   return (
                     <Line key={t.template_id}
                       data={t.points.map(p => ({ x: dateToEpoch(p.date), y: p.mean_mmol }))}
@@ -364,11 +368,11 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
             <ChartWrapper chartKey="health_recovery_distribution" title="Recovery-fordeling" subtitle="Antall per type" height={220}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={data.recovery.by_type} layout="vertical">
-                  <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
-                  <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
-                  <YAxis type="category" dataKey="type" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={110} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-                  <Bar dataKey="count" fill="#28A86E" name="Antall" />
+                  <CartesianGrid stroke={CHART_GRID} horizontal={false} />
+                  <XAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} allowDecimals={false} />
+                  <YAxis type="category" dataKey="type" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={110} />
+                  <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+                  <Bar dataKey="count" fill="#28A86E" name="Antall" radius={[0, 8, 8, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartWrapper>
@@ -524,15 +528,15 @@ export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
-            <Line type="monotone" dataKey="stress" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
-            <Line type="monotone" dataKey="perceived_load" stroke="#D4A017" strokeWidth={2} dot={{ r: 3 }} name="Opplevd belastning" connectNulls />
+            <Line type="monotone" dataKey="stress" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
+            <Line type="monotone" dataKey="perceived_load" stroke="#E8B93C" strokeWidth={2} dot={{ r: 3 }} name="Opplevd belastning" connectNulls />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -572,18 +576,18 @@ export function HealthInjuriesTimeline({ data }: { data: HealthCorrelations }) {
       height={160}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart margin={{ top: 8, right: 24, bottom: 8, left: 24 }}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} horizontal={false} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} horizontal={false} />
           <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-            tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+            tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE} tickLine={false} />
           <YAxis type="number" dataKey="y" hide domain={[0, 2]} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+          <Tooltip content={<XpTooltip />}
             cursor={false}
             formatter={(_v, _k, entry) => {
               const p = entry?.payload as { label?: string; notes?: string }
               return [p?.notes ?? '', p?.label ?? '']
             }} />
-          <Scatter data={points} shape="diamond" fill="#E11D48" />
+          <Scatter data={points} shape="diamond" fill="#E23A5A" />
         </ScatterChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -608,15 +612,15 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="monthLabel" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis yAxisId="sick" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="monthLabel" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis yAxisId="sick" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32}
               allowDecimals={false} />
-            <YAxis yAxisId="load" orientation="right" tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
-            <Bar yAxisId="sick" dataKey="sickness_days" fill="#E11D48" name="Sykdomsdager" />
+            <YAxis yAxisId="load" orientation="right" tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+            <Bar yAxisId="sick" dataKey="sickness_days" fill="#E23A5A" name="Sykdomsdager" />
             <Line yAxisId="load" type="monotone" dataKey="avg_load_hours" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} name="Snitt timer/treningsdag" />
           </ComposedChart>
         </ResponsiveContainer>

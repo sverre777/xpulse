@@ -70,7 +70,7 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
 
       <div className="p-4"
         style={{
-          background: '#13131A', border: '1px solid #1E1E22',
+          background: 'var(--card)', border: '1px solid var(--line)',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
           color: '#8A8A96', lineHeight: 1.7,
         }}>
@@ -116,7 +116,7 @@ function StravaRolloutNote() {
 function StravaSection({ conn }: { conn: StravaConn | null }) {
   return (
     <section className="p-5"
-      style={{ background: '#13131A', border: '1px solid #1E1E22', borderTop: '3px solid #FC5200' }}>
+      style={{ background: 'var(--card)', border: '1px solid var(--line)', borderTop: '3px solid #FC5200' }}>
       <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
         <h2 className="flex items-center gap-2.5"
           style={{
@@ -294,7 +294,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <select value={syncMode} onChange={e => setSyncMode(e.target.value as SyncMode)}
           style={{
-            background: '#0F0F14', border: '1px solid #1E1E22',
+            background: '#0F0F14', border: '1px solid var(--line)',
             color: '#F0F0F2', padding: '8px 10px', fontSize: 13,
             fontFamily: "'Barlow', sans-serif",
           }}>
@@ -316,7 +316,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {progress && (
         <div className="p-3 mb-3"
-          style={{ background: '#0F0F14', border: '1px solid #1E1E22', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
+          style={{ background: '#0F0F14', border: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
           Importerer … {progress.done}/{progress.total}
         </div>
       )}
@@ -354,7 +354,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {previewList && previewList.length === 0 && (
         <div className="p-3 mt-3"
-          style={{ background: '#0F0F14', border: '1px solid #1E1E22', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560' }}>
+          style={{ background: '#0F0F14', border: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560' }}>
           Ingen nye aktiviteter funnet i valgt periode.
         </div>
       )}
@@ -390,7 +390,7 @@ function ActivityRow({
   return (
     <div className="flex items-center justify-between gap-3 p-3"
       style={{
-        background: '#0F0F14', border: '1px solid #1E1E22',
+        background: '#0F0F14', border: '1px solid var(--line)',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
       <div className="flex-1 min-w-0">
@@ -558,7 +558,7 @@ function FitUploadSection() {
 
   return (
     <section className="p-5"
-      style={{ background: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
       <h2 className="mb-2 flex items-center gap-3"
         style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
@@ -617,7 +617,7 @@ function FitUploadSection() {
               return (
                 <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-center justify-between gap-3"
                   style={{
-                    background: '#0F0F14', border: '1px solid #1E1E22',
+                    background: '#0F0F14', border: '1px solid var(--line)',
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                   }}>
                   <span className="min-w-0 flex-1" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -697,7 +697,7 @@ const BRAND_GUIDES: { brand: string; steps: string[] }[] = [
 function FitHelpAccordion() {
   return (
     <details className="mb-4"
-      style={{ background: '#0F0F14', border: '1px solid #1E1E22' }}>
+      style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
       <summary
         style={{
           cursor: 'pointer', padding: '12px 14px', listStyle: 'none',
@@ -706,7 +706,7 @@ function FitHelpAccordion() {
         }}>
         ▸ Hvordan finne .fit-fil fra klokken din
       </summary>
-      <div style={{ padding: '0 14px 12px', borderTop: '1px solid #1E1E22' }}>
+      <div style={{ padding: '0 14px 12px', borderTop: '1px solid var(--line)' }}>
         {BRAND_GUIDES.map(g => (
           <details key={g.brand} style={{ marginTop: 10 }}>
             <summary

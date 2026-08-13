@@ -69,7 +69,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
 
         {!sub ? (
           <section className="p-6"
-            style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+            style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             <h2 className="mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>
               Ingen aktivt abonnement
             </h2>
@@ -88,7 +88,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
         ) : (
           <>
             <section className="p-6"
-              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
                 <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
                   {tierLabel(sub.tier)} · {tierPriceMonthly(sub.tier)} kr/mnd
@@ -143,7 +143,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
             )}
 
             <section className="mt-4 p-6"
-              style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <h3 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em', margin: 0 }}>
                 Administrer abonnement
               </h3>

@@ -106,7 +106,7 @@ function KlokkesyncStatusPopup({
         style={{
           position: 'absolute', top: 'calc(100% + 8px)', right: 0,
           minWidth: 280, zIndex: 100,
-          background: '#13131A', border: '1px solid #262629',
+          background: 'var(--card)', border: '1px solid #262629',
           padding: 16,
         }}>
         <div className="mb-2"
@@ -132,7 +132,7 @@ function KlokkesyncStatusPopup({
 
         {status.lastWorkout && (
           <div className="p-2 mb-3"
-            style={{ background: '#0F0F14', border: '1px solid #1E1E22' }}>
+            style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
             <div style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',

@@ -52,7 +52,7 @@ export function StravaImportConflictModal({ planned, imported, onChoose, onCance
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
           maxWidth: '560px', width: '100%', padding: '20px',
         }}>
         <h2 className="mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em' }}>
@@ -93,7 +93,7 @@ export function StravaImportConflictModal({ planned, imported, onChoose, onCance
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
+              background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
             }}>
             Avbryt
           </button>
@@ -113,7 +113,7 @@ export function StravaImportConflictModal({ planned, imported, onChoose, onCance
 
 function PreviewCard({ label, accent, title, sub }: { label: string; accent: string; title: string; sub: string }) {
   return (
-    <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', padding: '12px' }}>
+    <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: accent }}>
         {label}
@@ -142,8 +142,8 @@ function ChoiceRow({
     <button type="button" onClick={() => onSelect(value)}
       className="w-full text-left p-3 transition-colors"
       style={{
-        backgroundColor: active ? 'rgba(255,69,0,0.08)' : '#13131A',
-        border: `1px solid ${active ? '#FF4500' : '#1E1E22'}`,
+        backgroundColor: active ? 'rgba(255,69,0,0.08)' : 'var(--card)',
+        border: `1px solid ${active ? '#FF4500' : 'var(--line)'}`,
         cursor: 'pointer',
       }}>
       <div className="flex items-start gap-2">

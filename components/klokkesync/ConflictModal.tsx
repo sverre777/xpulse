@@ -28,7 +28,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
         className="w-full"
         style={{
           maxWidth: 480, background: '#0F0F16',
-          border: '1px solid #1E1E22', borderTop: '2px solid #F5C542',
+          border: '1px solid var(--line)', borderTop: '2px solid #F5C542',
         }}>
         <div className="p-5">
           <div style={{
@@ -95,8 +95,8 @@ function ResolveButton({
     <button type="button" onClick={onClick}
       style={{
         display: 'block', width: '100%', textAlign: 'left',
-        padding: '12px 14px', background: '#1A1A22',
-        border: `1px solid #1E1E22`, borderLeft: `3px solid ${color}`,
+        padding: '12px 14px', background: 'var(--card2)',
+        border: `1px solid var(--line)`, borderLeft: `3px solid ${color}`,
         cursor: 'pointer',
       }}>
       <div style={{

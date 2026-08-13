@@ -170,8 +170,8 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
   return (
     <div className="p-5 flex flex-col gap-4"
       style={{
-        backgroundColor: '#13131A',
-        border: `1px solid ${tier.highlight ? accent : '#1E1E22'}`,
+        backgroundColor: 'var(--card)',
+        border: `1px solid ${tier.highlight ? accent : 'var(--line)'}`,
         borderTop: `3px solid ${tier.highlight ? accent : 'transparent'}`,
       }}>
       <div>
@@ -206,7 +206,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
 
       {isSoon ? (
         <a href={`mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20${encodeURIComponent(tier.name)}%20er%20klar`}
-          className="block text-center px-4 py-3 text-xs tracking-widest uppercase transition-colors hover:bg-[#1A1A22]"
+          className="block text-center px-4 py-3 text-xs tracking-widest uppercase transition-colors hover:bg-[var(--card2)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             color: accent, border: `1px solid ${accent}`, textDecoration: 'none', opacity: 0.85,

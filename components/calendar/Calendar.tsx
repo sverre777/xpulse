@@ -552,7 +552,16 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
         overflow: 'hidden',
         padding: '2px 5px',
       }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px', lineHeight: '14px', overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
+        {/* Tittel-blokk: maks 3 linjer, ord brekkes KUN som siste utvei
+            (aldri 'anywhere' — den brakk ord midt i på smale mobilceller).
+            Varighet/bev.form ligger alltid i meta-linjen under. */}
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
+          fontSize: '13px', lineHeight: '14px',
+          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          overflowWrap: 'break-word', wordBreak: 'normal',
+        }}>
           {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
           {w.is_altitude_training && <span aria-label="Høydetrening" style={{ marginRight: '2px' }}>🏔️</span>}
           {w.is_heat_training && <span aria-label="Varmetrening" style={{ marginRight: '2px' }}>🌡️</span>}
@@ -576,12 +585,22 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             <span style={{ color: '#8A8A96', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
           )}
           {w.title}
-          {w.position_overall != null && mode !== 'plan' && (
-            <span style={{ color, marginLeft: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
-          )}
-          {durationLabel ? <span style={{ color: '#FF4500', marginLeft: '4px' }}>{durationLabel}</span> : null}
-          {shootingLabel ? <span style={{ color: '#8A8A96', marginLeft: '4px', fontSize: '11px' }}>{shootingLabel}</span> : null}
         </span>
+        {/* Meta-linje: alltid synlig uansett tittel-lengde. */}
+        {(durationLabel || w.primary_movement || shootingLabel || (w.position_overall != null && mode !== 'plan')) && (
+          <span style={{
+            display: 'block', fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: '11px', lineHeight: '13px', marginTop: '1px',
+            overflowWrap: 'break-word', wordBreak: 'normal',
+          }}>
+            {w.position_overall != null && mode !== 'plan' && (
+              <span style={{ color, marginRight: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
+            )}
+            {durationLabel ? <span style={{ color: '#FF4500', marginRight: '4px' }}>{durationLabel}</span> : null}
+            {w.primary_movement ? <span style={{ color: '#8A8A96', marginRight: '4px' }}>{w.primary_movement}</span> : null}
+            {shootingLabel ? <span style={{ color: '#8A8A96' }}>{shootingLabel}</span> : null}
+          </span>
+        )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>
     </button>

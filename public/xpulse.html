@@ -147,7 +147,7 @@
     display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
     gap:8px; flex-shrink:0;
   }
-  .nav-panel-icon-btn {
+  .nav-panel-icon-btn { border-radius:10px;
     padding:14px 8px; background:var(--surface); border:1px solid var(--border);
     display:flex; flex-direction:column; align-items:center; gap:8px;
     color:var(--white); text-decoration:none;
@@ -157,6 +157,17 @@
     min-width:0;
   }
   .nav-panel-icon-btn:hover { background:var(--mid); border-color:var(--orange); }
+  .nav-panel.open .nav-panel-links > a,
+  .nav-panel.open .nav-panel-group { opacity:0; animation:panelIn .26s ease-out forwards; }
+  .nav-panel.open .nav-panel-links > :nth-child(1) { animation-delay:.03s }
+  .nav-panel.open .nav-panel-links > :nth-child(2) { animation-delay:.07s }
+  .nav-panel.open .nav-panel-links > :nth-child(3) { animation-delay:.11s }
+  .nav-panel.open .nav-panel-links > :nth-child(4) { animation-delay:.15s }
+  @keyframes panelIn { from { opacity:0; transform:translateX(10px) } to { opacity:1; transform:none } }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-panel.open .nav-panel-links > a,
+    .nav-panel.open .nav-panel-group { animation:none; opacity:1; }
+  }
 
   /* Lenke-blokken: rene cards med åpenbar separasjon. 4px gap så hvert
      element er en tydelig flate, ikke en sammenhengende stripe.
@@ -172,7 +183,8 @@
   }
   .nav-panel-group { display:block; width:100%; }
   .nav-panel-links > a, .nav-panel-group > summary {
-    padding:16px 18px; background:var(--surface);
+    padding:16px 18px; background:var(--surface); border-radius:12px;
+    border-left:3px solid transparent;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:14px; letter-spacing:2px; text-transform:uppercase;
     color:var(--white); text-decoration:none;
@@ -181,13 +193,13 @@
     transition:background 0.15s;
     width:100%; box-sizing:border-box;
   }
-  .nav-panel-links > a:hover, .nav-panel-group > summary:hover { background:#22222A; }
+  .nav-panel-links > a:hover, .nav-panel-group > summary:hover { background:#22222A; border-left-color:var(--orange); }
   .nav-panel-group > summary::-webkit-details-marker { display:none; }
   .nav-panel-group > summary::marker { display:none; content:''; }
   .nav-panel-group[open] > summary .dropdown-chev { transform:rotate(180deg); }
   .nav-panel-sublinks { display:flex; flex-direction:column; gap:1px; margin-top:1px; width:100%; }
   .nav-panel-sublinks a {
-    padding:13px 18px 13px 32px; background:var(--mid);
+    padding:13px 18px 13px 32px; background:var(--mid); border-radius:10px;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
     color:rgba(242,240,236,0.65); text-decoration:none;
@@ -196,7 +208,7 @@
   }
   .nav-panel-sublinks a:hover { color:var(--white); background:var(--surface); }
   .nav-panel-cta {
-    margin-top:auto; padding:18px;
+    margin-top:auto; padding:18px; border-radius:12px;
     background:var(--orange); color:var(--white);
     text-align:center; text-decoration:none;
     font-family:'Barlow Condensed',sans-serif; font-weight:700;

@@ -333,11 +333,14 @@ function WeekAnalysisStripe({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1"
       style={{
-        backgroundColor: CALENDAR_TOKENS.weekStripeBg,
-        borderBottom: CALENDAR_TOKENS.weekDivider,
-        borderLeft: accent ? `3px solid ${accent}` : '3px solid transparent',
+        backgroundColor: 'var(--card2)',
+        border: '1px solid var(--line)',
+        borderLeft: accent ? `3px solid ${accent}` : '1px solid var(--line)',
+        borderRadius: 10,
+        margin: '8px 10px 12px',
+        padding: '10px 14px',
       }}
     >
       <span
@@ -368,8 +371,8 @@ function WeekAnalysisStripe({
           </span>
           {totalZoneSec > 0 && (
             <>
-              <div className="hidden md:block flex-1 min-w-[120px] max-w-[260px]">
-                <AggZoneBar zoneSeconds={zoneSeconds} height={6} />
+              <div className="hidden md:block flex-1 min-w-[120px]">
+                <AggZoneBar zoneSeconds={zoneSeconds} height={7} />
               </div>
               <span
                 className="text-xs tracking-wide"
@@ -400,7 +403,7 @@ function AggZoneBar({
   if (total <= 0) return null
   return (
     <div className="flex w-full overflow-hidden"
-      style={{ height: `${height}px`, backgroundColor: '#1A1A1E', borderRadius: '1px' }}>
+      style={{ height: `${height}px`, backgroundColor: 'var(--line)', borderRadius: `${height / 2}px` }}>
       {ALL_ZONE_NAMES.map(k => {
         const w = (zoneSeconds[k] / total) * 100
         if (w <= 0) return null

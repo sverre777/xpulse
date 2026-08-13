@@ -6,8 +6,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { IntensityDistribution, OverviewZoneSeconds } from '@/app/actions/analysis'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
+  CHART_LEGEND_STYLE, CHART_CURSOR, CHART_LINE_WIDTH,
+} from './chart-theme'
 
 const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
 type ZoneKey = typeof ZONE_KEYS[number]
@@ -67,13 +70,13 @@ function PeriodSummary({ data }: { data: IntensityDistribution }) {
           {ZONE_KEYS.map(k => {
             const p = pct(data.totalZones[k], total)
             if (p <= 0) return null
-            return <div key={k} style={{ width: `${p}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+            return <div key={k} style={{ width: `${p}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
           })}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 mt-3">
           {ZONE_KEYS.map(k => (
             <div key={k} className="flex items-center gap-2">
-              <span style={{ width: 12, height: 12, backgroundColor: ZONE_COLORS_V2[k] }} />
+              <span style={{ width: 12, height: 12, backgroundColor: CHART_ZONE_COLORS[k] }} />
               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
                 {k}: {pct(data.totalZones[k], total)}% ({formatDuration(data.totalZones[k])})
               </span>
@@ -137,28 +140,28 @@ function WeeklyStack({
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           {unit === 'pct' ? (
             <AreaChart data={rows} stackOffset="expand">
-              <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-              <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+              <CartesianGrid stroke={CHART_GRID} vertical={false} />
+              <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
               <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`}
-                tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={44} />
-              <Tooltip contentStyle={TOOLTIP_STYLE}
+                tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} />
+              <Tooltip content={<XpTooltip />}
                 formatter={(v, k) => [`${v}${unitSuffix}`, String(k)]} />
-              <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+              <Legend wrapperStyle={CHART_LEGEND_STYLE} />
               {ZONE_KEYS.map(k => (
                 <Area key={k} type="monotone" dataKey={k} stackId="zones"
-                  stroke={ZONE_COLORS_V2[k]} fill={ZONE_COLORS_V2[k]} fillOpacity={0.85} />
+                  stroke={CHART_ZONE_COLORS[k]} fill={CHART_ZONE_COLORS[k]} fillOpacity={0.85} />
               ))}
             </AreaChart>
           ) : (
             <BarChart data={rows}>
-              <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-              <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-              <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+              <CartesianGrid stroke={CHART_GRID} vertical={false} />
+              <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+              <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+              <Tooltip content={<XpTooltip showTotal totalFormatter={t => `${t} min`} />} cursor={CHART_CURSOR}
                 formatter={(v, k) => [`${v}${unitSuffix}`, String(k)]} />
-              <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+              <Legend wrapperStyle={CHART_LEGEND_STYLE} />
               {ZONE_KEYS.map(k => (
-                <Bar key={k} dataKey={k} stackId="zones" fill={ZONE_COLORS_V2[k]} />
+                <Bar key={k} dataKey={k} stackId="zones" fill={CHART_ZONE_COLORS[k]} />
               ))}
             </BarChart>
           )}
@@ -192,7 +195,7 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Bevegelse</th>
               {ZONE_KEYS.map(k => (
                 <th key={k} className="text-right px-3 py-2 text-xs tracking-widest uppercase"
-                  style={{ color: ZONE_COLORS_V2[k] }}>
+                  style={{ color: CHART_ZONE_COLORS[k] }}>
                   {k}
                 </th>
               ))}
@@ -236,12 +239,12 @@ export function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution })
       <ChartWrapper chartKey="intensity_high_sessions_per_week" title="Antall økter med I4/I5/Hurtighet per uke" subtitle="Én tellet per økt med >0 sek i høy intensitet" height={220}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis allowDecimals={false} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={30} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis allowDecimals={false} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={30} />
+            <Tooltip content={<XpTooltip />}
               formatter={(v) => [`${v} økter`, 'Antall']} />
-            <Line type="monotone" dataKey="count" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="count" stroke="#FF4500" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -281,15 +284,15 @@ export function PolarizedStack({ data, unit }: { data: IntensityDistribution; un
       <ChartWrapper chartKey="intensity_polarization_per_week" title="Polarisering per uke" subtitle="Lav = I1+I2 · Medium = I3 · Høy = I4+I5+Hurtighet" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <Tooltip content={<XpTooltip showTotal={unit === 'min'} totalFormatter={t => `${t} min`} />} cursor={CHART_CURSOR}
               formatter={(v, k) => [`${v}${suffix}`, String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Bar dataKey="Lav" stackId="pol" fill="#28A86E" />
-            <Bar dataKey="Medium" stackId="pol" fill="#D4A017" />
-            <Bar dataKey="Høy" stackId="pol" fill="#E11D48" />
+            <Bar dataKey="Medium" stackId="pol" fill="#E8B93C" />
+            <Bar dataKey="Høy" stackId="pol" fill="#E23A5A" />
           </BarChart>
         </ResponsiveContainer>
       </ChartWrapper>

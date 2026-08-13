@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  type LegendProps,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ReferenceLine, LabelList,
 } from 'recharts'
 import {
   getCustomBreakdown,
@@ -11,14 +11,18 @@ import {
 } from '@/app/actions/analysis'
 import type { DateRange } from './date-range'
 import { rangeFromPreset, PRESETS, type PresetKey } from './date-range'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { ChartWrapper } from './ChartWrapper'
+import { localISODate } from '@/lib/local-date'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
+  CHART_CURSOR, CHART_AVG_LINE,
+} from './chart-theme'
 
 const CHART_KEY = 'overview_custom_breakdown'
 
 // Ikke-utholdenhet palett — skal skille tydelig fra sone-fargene.
 const NON_ENDURANCE_COLORS: Record<string, string> = {
-  Styrke: '#4A4A4A',
+  Styrke: '#6E6E78',
   Spenst: '#8B4513',
   Yoga: '#2A6A5A',
   Klatring: '#6B6F2A',
@@ -53,6 +57,104 @@ const PRESETS_FOR_OVERRIDE: { key: PresetKey | 'inherit'; label: string }[] = [
   { key: 'inherit', label: 'Analyse-periode' },
   ...PRESETS.map(p => ({ key: p.key, label: p.label })),
 ]
+
+// ── Presentasjonshjelpere fra designutkastet (xpulse-graf-design.html) ──
+
+const NB_MONTHS_TICK = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des']
+
+// Kompakt Bebas-format for total over søylene: «3T 8M».
+function formatMinutesCompact(mins: number): string {
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  if (h > 0 && m > 0) return `${h}T ${m}M`
+  if (h > 0) return `${h}T`
+  return `${m}M`
+}
+
+// «1.–7. jun» under uke-labelen (kun visning — selve labelen er uendret).
+function weekPeriodLabel(startIso: string): string {
+  const [y, m, d] = startIso.split('-').map(Number)
+  const start = new Date(y, m - 1, d)
+  const end = new Date(y, m - 1, d + 6)
+  const sm = NB_MONTHS_TICK[start.getMonth()]
+  const em = NB_MONTHS_TICK[end.getMonth()]
+  if (sm === em) return `${start.getDate()}.–${end.getDate()}. ${em}`
+  return `${start.getDate()}. ${sm} – ${end.getDate()}. ${em}`
+}
+
+// Total-tall over øverste synlige stack-segment. Rendres via LabelList —
+// leser KUN ferdig beregnede totaler per bucket-indeks.
+function BarTotalLabel({ totals, x, y, width, index }: {
+  totals: number[]
+  x?: number | string
+  y?: number | string
+  width?: number | string
+  index?: number
+}) {
+  if (index == null || x == null || y == null || width == null) return null
+  const total = totals[index] ?? 0
+  if (total <= 0) return null
+  return (
+    <text
+      x={Number(x) + Number(width) / 2}
+      y={Number(y) - 6}
+      textAnchor="middle"
+      fill="#F2F2F0"
+      style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, letterSpacing: '0.05em', opacity: 0.95 }}
+    >
+      {formatMinutesCompact(total)}
+    </text>
+  )
+}
+
+// Snitt-badge på snittlinjen (høyre ende), som utkastets «SNITT …»-pille.
+function AvgBadge({ viewBox, text }: {
+  viewBox?: { x?: number; y?: number; width?: number }
+  text: string
+}) {
+  if (!viewBox || viewBox.x == null || viewBox.y == null || viewBox.width == null) return null
+  const right = viewBox.x + viewBox.width
+  const w = text.length * 6.5 + 16
+  return (
+    <g>
+      <rect x={right - w} y={viewBox.y - 22} width={w} height={18} rx={6}
+        fill="rgba(255,69,0,0.12)" stroke="rgba(255,69,0,0.35)" />
+      <text x={right - w / 2} y={viewBox.y - 9} textAnchor="middle" fill="#FF4500"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.08em' }}>
+        {text}
+      </text>
+    </g>
+  )
+}
+
+// X-akse-tick: samme label-verdi som før (Bebas), inneværende periode i
+// oransje, og valgfri datoperiode-linje under (uke-gruppering).
+function XpWeekTick({ x, y, payload, periods, nowIndex, showPeriod }: {
+  x?: number
+  y?: number
+  payload?: { value?: string | number; index?: number }
+  periods: string[]
+  nowIndex: number
+  showPeriod: boolean
+}) {
+  if (x == null || y == null || payload == null) return null
+  const idx = payload.index ?? -1
+  const isNow = idx === nowIndex
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text dy={12} textAnchor="middle" fill={isNow ? '#FF4500' : '#8B8B95'}
+        style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: '0.08em' }}>
+        {payload.value}
+      </text>
+      {showPeriod && idx >= 0 && periods[idx] && (
+        <text dy={26} textAnchor="middle" fill="#55555F"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11 }}>
+          {periods[idx]}
+        </text>
+      )}
+    </g>
+  )
+}
 
 interface Props {
   analysisRange: DateRange
@@ -156,6 +258,52 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
     })
   }
 
+  // ── Presentasjonslag fra utkastet: totaler, snittlinje, tick-metadata ──
+  // Alt under leser KUN chartData/buckets som allerede er beregnet over.
+
+  const allSeriesKeys = useMemo<string[]>(() => [
+    ...(anyEnduranceSelected ? [...ZONE_KEYS] : []),
+    ...activeNonEnduranceKeys,
+  ], [anyEnduranceSelected, activeNonEnduranceKeys])
+
+  const visibleKeys = useMemo(
+    () => allSeriesKeys.filter(k => !hiddenSeries.has(k)),
+    [allSeriesKeys, hiddenSeries],
+  )
+  const lastVisibleKey = visibleKeys[visibleKeys.length - 1]
+
+  // Total per bucket over synlige serier (minutter) — til tall over søylene.
+  const visibleTotals = useMemo(
+    () => chartData.map(row => visibleKeys.reduce((s, k) => s + (Number(row[k]) || 0), 0)),
+    [chartData, visibleKeys],
+  )
+
+  const avgTotal = useMemo(() => {
+    if (visibleTotals.length < 2) return 0
+    return visibleTotals.reduce((s, v) => s + v, 0) / visibleTotals.length
+  }, [visibleTotals])
+
+  // Datoperiode under uke-labels + inneværende periode (oransje).
+  const tickPeriods = useMemo(() => {
+    if (!data || grouping !== 'week') return []
+    return data.buckets.map(b => weekPeriodLabel(b.startDate))
+  }, [data, grouping])
+
+  const nowIndex = useMemo(() => {
+    if (!data) return -1
+    const today = localISODate()
+    return data.buckets.findIndex(b => {
+      if (grouping === 'year') return b.bucketKey === today.slice(0, 4)
+      if (grouping === 'month') return b.bucketKey === today.slice(0, 7)
+      const [y, m, d] = b.startDate.split('-').map(Number)
+      const end = new Date(y, m - 1, d + 6)
+      const endIso = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
+      return b.startDate <= today && today <= endIso
+    })
+  }, [data, grouping])
+
+  const showTickPeriod = grouping === 'week' && chartData.length <= 16
+
   return (
     <ChartWrapper
       chartKey={CHART_KEY}
@@ -199,54 +347,101 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
               </p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <BarChart data={chartData}>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-                <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis
-                  tick={AXIS_STYLE}
-                  axisLine={{ stroke: GRID_COLOR }}
-                  tickLine={false}
-                  width={40}
-                  label={{ value: 'min', angle: -90, position: 'insideLeft', style: { ...AXIS_STYLE, textAnchor: 'middle' } }}
-                />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  cursor={{ fill: '#1E1E22' }}
-                  formatter={(value, name) => {
-                    const mins = Number(value) || 0
-                    return [formatMinutes(mins * 60), String(name)]
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }}
-                  onClick={(e: Parameters<NonNullable<LegendProps['onClick']>>[0]) => {
-                    const id = (e as { dataKey?: string }).dataKey
-                    if (typeof id === 'string') toggleLegend(id)
-                  }}
-                />
-                {anyEnduranceSelected && ZONE_KEYS.map(z => (
-                  <Bar
-                    key={z}
-                    dataKey={z}
-                    stackId="breakdown"
-                    fill={ZONE_COLORS_V2[z]}
-                    name={z}
-                    hide={hiddenSeries.has(z)}
-                  />
-                ))}
-                {activeNonEnduranceKeys.map(m => (
-                  <Bar
-                    key={m}
-                    dataKey={m}
-                    stackId="breakdown"
-                    fill={colorForNonEndurance(m)}
-                    name={m}
-                    hide={hiddenSeries.has(m)}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="flex flex-col h-full">
+              {/* Legend som toggle-chips (utkastets .lg-piller) — samme
+                  hiddenSeries-state som før, bare ny drakt. */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                {allSeriesKeys.map(k => {
+                  const off = hiddenSeries.has(k)
+                  const color = (CHART_ZONE_COLORS as Record<string, string>)[k] ?? colorForNonEndurance(k)
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => toggleLegend(k)}
+                      className="inline-flex items-center"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        gap: 7, padding: '5px 11px', borderRadius: 999,
+                        border: '1px solid #2A2A33', background: 'none',
+                        color: '#8B8B95', fontSize: 13, fontWeight: 600,
+                        letterSpacing: '0.06em', cursor: 'pointer',
+                        opacity: off ? 0.32 : 1,
+                      }}
+                    >
+                      <span style={{ width: 9, height: 9, borderRadius: 3, background: color }} />
+                      {k}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex-1 min-h-0">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <BarChart data={chartData} margin={{ top: 18 }}>
+                    <CartesianGrid stroke={CHART_GRID} vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      tick={<XpWeekTick periods={tickPeriods} nowIndex={nowIndex} showPeriod={showTickPeriod} />}
+                      axisLine={CHART_AXIS_LINE}
+                      tickLine={false}
+                      height={showTickPeriod ? 42 : 30}
+                    />
+                    <YAxis
+                      tick={CHART_AXIS_TICK}
+                      axisLine={CHART_AXIS_LINE}
+                      tickLine={false}
+                      width={40}
+                      label={{ value: 'min', angle: -90, position: 'insideLeft', style: { ...CHART_AXIS_TICK, textAnchor: 'middle' } }}
+                    />
+                    <Tooltip
+                      content={<XpTooltip showTotal totalFormatter={t => formatMinutes(t * 60)} />}
+                      cursor={CHART_CURSOR}
+                      formatter={(value, name) => {
+                        const mins = Number(value) || 0
+                        return [formatMinutes(mins * 60), String(name)]
+                      }}
+                    />
+                    {avgTotal > 0 && (
+                      <ReferenceLine
+                        y={avgTotal}
+                        stroke={CHART_AVG_LINE.stroke}
+                        strokeDasharray={CHART_AVG_LINE.strokeDasharray}
+                        strokeWidth={CHART_AVG_LINE.strokeWidth}
+                        label={<AvgBadge text={`SNITT ${formatMinutesCompact(Math.round(avgTotal))}`} />}
+                      />
+                    )}
+                    {anyEnduranceSelected && ZONE_KEYS.map(z => (
+                      <Bar
+                        key={z}
+                        dataKey={z}
+                        stackId="breakdown"
+                        fill={CHART_ZONE_COLORS[z]}
+                        name={z}
+                        hide={hiddenSeries.has(z)}
+                      >
+                        {z === lastVisibleKey && (
+                          <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
+                        )}
+                      </Bar>
+                    ))}
+                    {activeNonEnduranceKeys.map(m => (
+                      <Bar
+                        key={m}
+                        dataKey={m}
+                        stackId="breakdown"
+                        fill={colorForNonEndurance(m)}
+                        name={m}
+                        hide={hiddenSeries.has(m)}
+                      >
+                        {m === lastVisibleKey && (
+                          <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
+                        )}
+                      </Bar>
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           )}
         </div>
       </div>

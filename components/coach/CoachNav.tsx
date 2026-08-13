@@ -236,7 +236,8 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                       letterSpacing: '0.1em',
                       color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
                       textDecoration: 'none',
-                      backgroundColor: active ? 'var(--card2)' : 'transparent',
+                      backgroundColor: active ? 'var(--blue-soft)' : 'transparent',
+                      borderRadius: 12,
                       borderLeft: active ? `3px solid ${COACH_BLUE}` : '3px solid transparent',
                       textTransform: 'uppercase',
                     }}

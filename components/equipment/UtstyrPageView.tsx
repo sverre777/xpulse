@@ -111,7 +111,7 @@ export function UtstyrPageView({ initialEquipment }: Props) {
         </div>
 
         {topUsage.length > 0 && (
-          <div className="mb-8 p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+          <div className="mb-8 p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Totalbruk — topp {topUsage.length}
@@ -160,7 +160,7 @@ export function UtstyrPageView({ initialEquipment }: Props) {
               ctaOnClick={() => setShowNew(true)}
             />
           ) : (
-            <div className="p-12 text-center" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+            <div className="p-12 text-center" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
                 Ingen utstyr matcher filtrene.
               </p>
@@ -195,7 +195,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
   return (
     <Link href={`/app/utstyr/${equipment.id}`}
       className="flex items-center gap-3 p-4 transition-opacity hover:opacity-80"
-      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', textDecoration: 'none' }}>
+      style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12, textDecoration: 'none' }}>
       <div style={{
         width: '52px', height: '52px',
         backgroundColor: '#0F0F12',

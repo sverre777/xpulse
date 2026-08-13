@@ -6,7 +6,9 @@ import {
   Tooltip, Legend, ReferenceLine, ReferenceDot,
 } from 'recharts'
 import type { Sport } from '@/lib/types'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from '@/components/analysis/ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+} from '@/components/analysis/chart-theme'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -138,42 +140,38 @@ export function WorkoutDetailChart({
       <div style={{ width: '100%', height }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={merged} margin={{ top: 10, right: 28, bottom: 4, left: -8 }}>
-            <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis
               dataKey="t"
               type="number"
               domain={[0, totalSeconds]}
               ticks={xTicks}
               tickFormatter={fmtTime}
-              tick={AXIS_STYLE}
-              stroke={GRID_COLOR}
+              tick={CHART_AXIS_TICK}
+              stroke={CHART_GRID_ZERO}
             />
             {/* Venstre y-akse: puls + cadence (begge i samme bpm/spm-range). */}
             <YAxis
               yAxisId="left"
-              tick={AXIS_STYLE}
-              stroke={GRID_COLOR}
+              tick={CHART_AXIS_TICK}
+              stroke={CHART_GRID_ZERO}
               width={36}
             />
             {/* Høyre y-akse: watt eller m/s afhengig av synlighet. */}
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={AXIS_STYLE}
-              stroke={GRID_COLOR}
+              tick={CHART_AXIS_TICK}
+              stroke={CHART_GRID_ZERO}
               width={42}
             />
             <Tooltip
-              contentStyle={TOOLTIP_STYLE}
+              content={<XpTooltip />}
               labelFormatter={(v) => `Tid: ${fmtTime(Number(v))}`}
               formatter={(value, name) => formatTooltipValue(value, String(name), sport)}
             />
             <Legend
-              wrapperStyle={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: '11px',
-                color: '#8A8A96',
-              }}
+              wrapperStyle={CHART_LEGEND_STYLE}
             />
 
             {/* Lap-grenser: vertikale stiplete linjer på venstre y-akse. */}
@@ -200,7 +198,7 @@ export function WorkoutDetailChart({
                   y={hrAt}
                   yAxisId="left"
                   r={5}
-                  fill="#E11D48"
+                  fill="#E23A5A"
                   stroke="#0A0A0B"
                   strokeWidth={1.5}
                   ifOverflow="visible"
@@ -362,7 +360,7 @@ function MarkerLegend({
     <div className="flex gap-4 mt-2 flex-wrap text-xs"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
       {hasLaps && <span>┊ Lap-grense</span>}
-      {hasLactate && <span style={{ color: '#E11D48' }}>● Laktat</span>}
+      {hasLactate && <span style={{ color: '#E23A5A' }}>● Laktat</span>}
       {hasNutrition && <span style={{ color: '#FFB300' }}>● Ernæring</span>}
       {hasShooting && <span><span style={{ color: '#3DD68C' }}>●</span>/<span style={{ color: '#FF4500' }}>●</span> Skyting (treff/bom)</span>}
     </div>

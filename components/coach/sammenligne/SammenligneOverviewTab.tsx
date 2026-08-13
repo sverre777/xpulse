@@ -2,9 +2,13 @@
 
 import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import type { MultipleAthletesAnalysis } from '@/app/actions/comparison'
-import { ChartWrapper, AXIS_STYLE, GRID_COLOR, TOOLTIP_STYLE } from '@/components/analysis/ChartWrapper'
+import { ChartWrapper } from '@/components/analysis/ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+  CHART_CURSOR,
+} from '@/components/analysis/chart-theme'
 
-const PALETTE = ['#1A6FD4', '#FF4500', '#D4A017', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
+const PALETTE = ['#1A6FD4', '#FF4500', '#E8B93C', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
 
 function colorFor(idx: number): string {
   return PALETTE[idx % PALETTE.length]!
@@ -60,10 +64,10 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
       <ChartWrapper title="Total treningstid (timer)" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={volumeData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
             <Bar dataKey="timer" name="Timer">
               {volumeData.map((d, i) => (
                 <Cell key={i} fill={d.color} />
@@ -76,10 +80,10 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
       <ChartWrapper title="Total distanse (km)" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={distanceData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
             <Bar dataKey="km" name="Km" fill="#1A6FD4" />
           </BarChart>
         </ResponsiveContainer>
@@ -193,11 +197,11 @@ function WeeklyTrainingDaysChart({ rows }: { rows: MultipleAthletesAnalysis['ath
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={chartData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-        <XAxis dataKey="week" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-        <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="week" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
         {rows.filter(r => r.overview).map((r, i) => {
           const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)
           return <Bar key={r.athlete.id} dataKey={name} fill={colorFor(i)} />

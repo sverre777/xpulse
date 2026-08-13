@@ -7,6 +7,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend,
 } from 'recharts'
+import { XpTooltip, CHART_LEGEND_STYLE } from '@/components/analysis/chart-theme'
 import { saveEquipment } from '@/app/actions/equipment'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -119,28 +120,25 @@ export function UtstyrPageView({ initialEquipment }: Props) {
             <div style={{ width: '100%', height: 240 }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={topUsage} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-                  <CartesianGrid stroke="#1E1E22" strokeDasharray="3 3" />
+                  <CartesianGrid stroke="#1F1F26" />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: '#555560' }}
-                    stroke="#1E1E22"
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: '#55555F' }}
+                    stroke="#2A2A33"
                     interval={0}
                     tickFormatter={(n: string) => n.length > 12 ? `${n.slice(0, 12)}…` : n}
                   />
                   <YAxis
-                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fill: '#555560' }}
-                    stroke="#1E1E22"
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: '#55555F' }}
+                    stroke="#2A2A33"
                     width={36}
                   />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
-                      fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px', color: '#F0F0F2',
-                    }}
+                    content={<XpTooltip />}
                     formatter={(val, key) => [val as number, String(key) === 'km' ? 'Km' : 'Timer']}
                   />
                   <Legend
-                    wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }}
+                    wrapperStyle={CHART_LEGEND_STYLE}
                     formatter={(key: string) => key === 'km' ? 'Distanse (km)' : 'Tid (timer)'}
                   />
                   <Bar dataKey="km" fill={ATHLETE_ORANGE} isAnimationActive={false} />

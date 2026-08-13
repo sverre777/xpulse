@@ -2,9 +2,13 @@
 
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import type { MultipleAthletesAnalysis } from '@/app/actions/comparison'
-import { ChartWrapper, AXIS_STYLE, GRID_COLOR, TOOLTIP_STYLE } from '@/components/analysis/ChartWrapper'
+import { ChartWrapper } from '@/components/analysis/ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+  CHART_CURSOR,
+} from '@/components/analysis/chart-theme'
 
-const PALETTE = ['#1A6FD4', '#FF4500', '#D4A017', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
+const PALETTE = ['#1A6FD4', '#FF4500', '#E8B93C', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
 function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
 
 function fmtHours(seconds: number): string { return `${(seconds / 3600).toFixed(1)} t` }
@@ -53,10 +57,10 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
       <ChartWrapper title="Tid i hovedbevegelse" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={tidData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
             <Bar dataKey="timer" name="Timer" fill="#1A6FD4" />
           </BarChart>
         </ResponsiveContainer>
@@ -65,11 +69,11 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
       <ChartWrapper title="Distanse i hovedbevegelse" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={distData} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-            <Bar dataKey="km" name="Km" fill="#D4A017" />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Bar dataKey="km" name="Km" fill="#E8B93C" />
           </BarChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -102,11 +106,11 @@ function ZoneStackChart({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-        <XAxis dataKey="name" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-        <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="name" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
         <Bar dataKey="I1" stackId="z" fill={ZONE_COLORS.I1} />
         <Bar dataKey="I2" stackId="z" fill={ZONE_COLORS.I2} />
         <Bar dataKey="I3" stackId="z" fill={ZONE_COLORS.I3} />

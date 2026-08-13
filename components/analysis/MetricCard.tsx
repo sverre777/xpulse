@@ -34,14 +34,15 @@ export function MetricCard({
   const isNegative = deltaPercent !== null && deltaPercent !== undefined && deltaPercent < 0
   const good = (positiveIsGood ? isPositive : isNegative)
   const bad = (positiveIsGood ? isNegative : isPositive)
-  const deltaColor = good ? '#28A86E' : bad ? '#E11D48' : '#8A8A96'
+  const deltaColor = good ? '#28A86E' : bad ? '#E23A5A' : '#8A8A96'
 
   return (
     <div
       className="p-4 flex flex-col gap-1 relative"
       style={{
-        backgroundColor: '#13131A',
-        border: '1px solid #1E1E22',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: 14,
         borderLeft: `3px solid ${accent}`,
         minHeight: '110px',
       }}
@@ -72,7 +73,7 @@ export function MetricCard({
         {delta && (
           <span
             className="text-xs tracking-wider"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: deltaColor }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: deltaColor, fontWeight: 600 }}
           >
             {delta}
           </span>

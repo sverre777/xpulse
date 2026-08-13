@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ZAxis,
 } from 'recharts'
 import type { WeatherAnalysis, WeatherGroupStat } from '@/app/actions/analysis'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from './chart-theme'
 
 // Vær/føre-korrelasjoner — del av analyse-flaten (ikke egen silo). Lar utøver
 // skille ytre forhold fra form: puls vs temperatur, RPE/puls per værtype, pace
@@ -42,12 +42,12 @@ export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
         {hrTempPoints.length >= 2 ? (
           <ResponsiveContainer width="100%" height={260}>
             <ScatterChart margin={{ top: 8, right: 12, bottom: 28, left: 4 }}>
-              <CartesianGrid stroke={GRID_COLOR} strokeDasharray="2 2" />
-              <XAxis type="number" dataKey="x" name="Temp" unit="°C" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+              <CartesianGrid stroke={CHART_GRID} strokeDasharray="2 2" />
+              <XAxis type="number" dataKey="x" name="Temp" unit="°C" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                 label={{ value: 'Temperatur (°C)', position: 'bottom', offset: 12, fill: '#555560', fontSize: 11 }} />
-              <YAxis type="number" dataKey="y" name="Puls" unit=" bpm" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={44} domain={['dataMin - 5', 'dataMax + 5']} />
+              <YAxis type="number" dataKey="y" name="Puls" unit=" bpm" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} domain={['dataMin - 5', 'dataMax + 5']} />
               <ZAxis range={[60, 60]} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ strokeDasharray: '3 3', stroke: '#FF4500' }}
+              <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#FF4500' }}
                 formatter={(value, name) => [name === 'Temp' ? `${value}°C` : `${value} bpm`, String(name)]} />
               <Scatter data={hrTempPoints} fill="#FF4500" fillOpacity={0.75} />
             </ScatterChart>

@@ -2,9 +2,12 @@
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts'
 import type { MultipleAthletesAnalysis } from '@/app/actions/comparison'
-import { ChartWrapper, AXIS_STYLE, GRID_COLOR, TOOLTIP_STYLE } from '@/components/analysis/ChartWrapper'
+import { ChartWrapper } from '@/components/analysis/ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+} from '@/components/analysis/chart-theme'
 
-const PALETTE = ['#1A6FD4', '#FF4500', '#D4A017', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
+const PALETTE = ['#1A6FD4', '#FF4500', '#E8B93C', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
 
 function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
 
@@ -77,11 +80,11 @@ function MultiLineChart({
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-        <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} minTickGap={20} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: 'var(--line)' }} />
-        <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px' }} />
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} minTickGap={20} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <Tooltip content={<XpTooltip />} cursor={{ stroke: 'var(--line)' }} />
+        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
         {withZeroLine && <ReferenceLine y={0} stroke="#555560" strokeDasharray="3 3" />}
         {rows.map((r, i) => {
           const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)

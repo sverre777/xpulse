@@ -6,12 +6,16 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceArea, ReferenceLine,
 } from 'recharts'
 import type { BelastningAnalysis, FormStatus } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE,
+  CHART_LEGEND_STYLE, CHART_CURSOR,
+} from './chart-theme'
 import { REST_SUBTYPE_LABELS } from '@/lib/day-state-types'
 
 // Farger for CTL / ATL / TSB-linjene.
 const COLOR_CTL = '#38BDF8'  // Fitness (blå)
-const COLOR_ATL = '#E11D48'  // Fatigue (rød)
+const COLOR_ATL = '#E23A5A'  // Fatigue (rød)
 const COLOR_TSB = '#28A86E'  // Form (grønn)
 const COLOR_TSS = '#FF4500'  // Daglig TSS (oransje)
 const COLOR_TSS_AVG = '#F0F0F2'  // 7-dagers snitt
@@ -22,16 +26,16 @@ const FORM_ZONES: { from: number; to: number; color: string; label: string }[] =
   { from: 25,  to: 50,  color: 'rgba(138, 138, 150, 0.10)', label: 'Uttrent' },
   { from: 10,  to: 25,  color: 'rgba(40, 168, 110, 0.18)',  label: 'Optimal' },
   { from: -10, to: 10,  color: 'rgba(138, 138, 150, 0.08)', label: 'Nøytral' },
-  { from: -30, to: -10, color: 'rgba(212, 160, 23, 0.18)',  label: 'Høy belastning' },
-  { from: -50, to: -30, color: 'rgba(225, 29, 72, 0.22)',   label: 'Overtrent' },
+  { from: -30, to: -10, color: 'rgba(232, 185, 60, 0.18)',  label: 'Høy belastning' },
+  { from: -50, to: -30, color: 'rgba(226, 58, 90, 0.22)',   label: 'Overtrent' },
 ]
 
 const FORM_LABELS: Record<FormStatus, { label: string; color: string; desc: string }> = {
   detrained:      { label: 'Uttrent',          color: '#8A8A96', desc: 'TSB > 20 — for lite belastning, form synker.' },
   optimal:        { label: 'Optimal form',     color: '#28A86E', desc: 'TSB 10–20 — uthvilt og god form for konkurranse.' },
   neutral:        { label: 'Nøytral',          color: '#8A8A96', desc: 'TSB −10 til 10 — balansert trening.' },
-  hoy_belastning: { label: 'Høy belastning',   color: '#D4A017', desc: 'TSB −30 til −10 — kropp jobber, monitorér restitusjon.' },
-  overtrent:      { label: 'Overbelastet',     color: '#E11D48', desc: 'TSB < −30 — akutt overbelastning, trappa ned.' },
+  hoy_belastning: { label: 'Høy belastning',   color: '#E8B93C', desc: 'TSB −30 til −10 — kropp jobber, monitorér restitusjon.' },
+  overtrent:      { label: 'Overbelastet',     color: '#E23A5A', desc: 'TSB < −30 — akutt overbelastning, trappa ned.' },
 }
 
 function formatDateShort(iso: string): string {
@@ -173,12 +177,12 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
         height={360}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis yAxisId="ctl" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <YAxis yAxisId="tsb" orientation="right" tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <YAxis yAxisId="ctl" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <YAxis yAxisId="tsb" orientation="right" tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[-50, 50]} />
             {FORM_ZONES.map(z => (
               <ReferenceArea key={z.label} yAxisId="tsb" y1={z.from} y2={z.to} fill={z.color} stroke="none" />
@@ -189,10 +193,10 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
                 label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
             ))}
             <ReferenceLine yAxisId="tsb" y={0} stroke="#555560" strokeDasharray="2 2" />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]}
               labelFormatter={(l) => String(l)} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line yAxisId="ctl" type="monotone" dataKey="CTL" stroke={COLOR_CTL} strokeWidth={2.5} dot={false} name="Fitness (CTL)" />
             <Line yAxisId="ctl" type="monotone" dataKey="ATL" stroke={COLOR_ATL} strokeWidth={2} dot={false} name="Fatigue (ATL)" />
             <Line yAxisId="tsb" type="monotone" dataKey="TSB" stroke={COLOR_TSB} strokeWidth={2} dot={false} name="Form (TSB)" />
@@ -237,13 +241,13 @@ export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
         height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ComposedChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Bar dataKey="TSS" fill={COLOR_TSS} name="TSS" />
             <Line type="monotone" dataKey="snitt" stroke={COLOR_TSS_AVG} strokeWidth={2} dot={false} name="7-dagers snitt" />
           </ComposedChart>
@@ -276,16 +280,16 @@ export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis 
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis yAxisId="atl" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <YAxis yAxisId="perceived" orientation="right" tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis yAxisId="atl" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <YAxis yAxisId="perceived" orientation="right" tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line yAxisId="atl" type="monotone" dataKey="atl" stroke={COLOR_ATL} strokeWidth={2} dot={{ r: 3 }} name="ATL (snitt)" connectNulls />
-            <Line yAxisId="perceived" type="monotone" dataKey="perceived" stroke="#D4A017" strokeWidth={2.5} dot={{ r: 3 }} name="Opplevd (1–10)" connectNulls />
+            <Line yAxisId="perceived" type="monotone" dataKey="perceived" stroke="#E8B93C" strokeWidth={2.5} dot={{ r: 3 }} name="Opplevd (1–10)" connectNulls />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -316,14 +320,14 @@ export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} domain={[0, 10]} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} domain={[0, 10]} />
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? '—'), String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="energy" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} name="Overskudd 🙂" connectNulls />
-            <Line type="monotone" dataKey="stress" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
+            <Line type="monotone" dataKey="stress" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} name="Stress 😰" connectNulls />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -376,11 +380,11 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={r.by_subtype.map(s => ({ label: subLabel(s.sub_type), count: s.count }))} layout="vertical"
                 margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
-                <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={150} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-                <Bar dataKey="count" fill="#28A86E" name="Antall" />
+                <CartesianGrid stroke={CHART_GRID} horizontal={false} />
+                <XAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} allowDecimals={false} />
+                <YAxis type="category" dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={150} />
+                <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+                <Bar dataKey="count" fill="#28A86E" name="Antall" radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

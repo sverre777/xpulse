@@ -6,7 +6,9 @@ import {
   ReferenceLine,
 } from 'recharts'
 import { getBelastningAnalysis, type BelastningAnalysis } from '@/app/actions/analysis'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
 import type { DateRange } from './date-range'
 
 // Lett-vekt CTL/ATL/TSB-mini for Plan-snippets. Gjenbruker eksisterende
@@ -15,7 +17,7 @@ import type { DateRange } from './date-range'
 // snippet under kalenderen.
 
 const COLOR_CTL = '#1A6FD4'
-const COLOR_ATL = '#E11D48'
+const COLOR_ATL = '#E23A5A'
 const COLOR_TSB = '#28A86E'
 
 function formatDateShort(iso: string): string {
@@ -77,17 +79,17 @@ export function BelastningTrendMini({ range, targetUserId }: Props) {
       <div style={{ width: '100%', height: 220 }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis yAxisId="ctl" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-            <YAxis yAxisId="tsb" orientation="right" tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36}
+            <YAxis yAxisId="ctl" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+            <YAxis yAxisId="tsb" orientation="right" tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} width={36}
               domain={[-50, 50]} />
             <ReferenceLine yAxisId="tsb" y={0} stroke="#555560" strokeDasharray="2 2" />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line yAxisId="ctl" type="monotone" dataKey="CTL" stroke={COLOR_CTL} strokeWidth={2} dot={false} name="Fitness (CTL)" />
             <Line yAxisId="ctl" type="monotone" dataKey="ATL" stroke={COLOR_ATL} strokeWidth={1.5} dot={false} name="Fatigue (ATL)" />
             <Line yAxisId="tsb" type="monotone" dataKey="TSB" stroke={COLOR_TSB} strokeWidth={2} dot={false} name="Form (TSB)" />

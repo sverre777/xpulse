@@ -32,7 +32,10 @@ export function DayStateModal({
   const isRest = stateType === 'hviledag'
   const isInjury = stateType === 'skade'
   const isSick = stateType === 'sykdom'
-  const isPlanned = editing?.is_planned ?? (date > today)
+  // Planlagt KUN for fremtidige datoer. Redigeres en tidligere planlagt
+  // hviledag på/etter dagen, normaliseres den til faktisk ved lagring —
+  // brukeren skal aldri måtte «markere som gjennomført» manuelt.
+  const isPlanned = (editing?.is_planned ?? true) && date > today
 
   const [subType, setSubType] = useState<string>(editing?.sub_type ?? '')
   const [feeling, setFeeling] = useState<number | ''>(editing?.feeling ?? '')
@@ -116,6 +119,8 @@ export function DayStateModal({
           </select>
         </div>
 
+        {/* Følelse føres kun på faktiske dager (dagbok) — ikke ved planlegging. */}
+        {!isPlanned && (
         <div className="mb-3">
           <FieldLabel>Følelse</FieldLabel>
           <select value={feeling} onChange={e => setFeeling(e.target.value === '' ? '' : Number(e.target.value))}
@@ -126,6 +131,7 @@ export function DayStateModal({
             ))}
           </select>
         </div>
+        )}
 
         {isSick && (
           <div className="mb-3">

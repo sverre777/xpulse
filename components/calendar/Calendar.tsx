@@ -41,7 +41,7 @@ import {
   CreateChoiceModal, type CreateChoice,
 } from '@/components/day-state/CreateChoiceModal'
 import {
-  DayStateIndicator, stateBgFor, stateBorderFor,
+  DayStateIndicator, restStillPlanned, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
 import { CommentSection } from '@/components/coach/CommentSection'
@@ -1324,7 +1324,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const color = isRest ? '#28A86E' : '#E11D48'
                           const icon = isRest ? '🛌' : '🤒'
                           const label = isRest
-                            ? (s.is_planned ? 'Planlagt hviledag' : 'Hviledag')
+                            ? (restStillPlanned(s) ? 'Planlagt hviledag' : 'Hviledag')
                             : 'Sykdom'
                           const meta: string[] = []
                           if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))

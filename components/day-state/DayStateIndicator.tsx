@@ -7,6 +7,15 @@ export const SICK_BG = 'rgba(225, 29, 72, 0.14)'
 export const INJURY_BG = 'rgba(255, 140, 0, 0.14)'
 export const REST_PLANNED_BG = 'rgba(40, 168, 110, 0.06)'
 
+// En planlagt hviledag regnes automatisk som gjennomført når dagen er nådd —
+// brukeren skal ikke måtte «markere den som gjennomført». All visning som
+// skiller planlagt/faktisk går gjennom denne.
+export function restStillPlanned(s: DayState): boolean {
+  if (!s.is_planned) return false
+  const today = new Date().toISOString().slice(0, 10)
+  return s.date > today
+}
+
 export function stateBgFor(states: DayState[]): string | undefined {
   if (states.length === 0) return undefined
   const hasSick = states.some(s => s.state_type === 'sykdom')
@@ -25,12 +34,12 @@ export function stateBgFor(states: DayState[]): string | undefined {
   if (hasSick) return SICK_BG
   if (hasInjury) return INJURY_BG
   const rest = states.find(s => s.state_type === 'hviledag')!
-  return rest.is_planned ? REST_PLANNED_BG : REST_BG
+  return restStillPlanned(rest) ? REST_PLANNED_BG : REST_BG
 }
 
 export function stateBorderFor(states: DayState[]): 'dashed' | undefined {
   const rest = states.find(s => s.state_type === 'hviledag')
-  if (rest?.is_planned) return 'dashed'
+  if (rest && restStillPlanned(rest)) return 'dashed'
   return undefined
 }
 
@@ -47,7 +56,7 @@ export function DayStateIndicator({
     if (s.state_type === 'hviledag') {
       icons.push({
         icon: '🛌',
-        title: `Hviledag${s.is_planned ? ' (planlagt)' : ''}${s.sub_type ? ` · ${s.sub_type}` : ''}`,
+        title: `Hviledag${restStillPlanned(s) ? ' (planlagt)' : ''}${s.sub_type ? ` · ${s.sub_type}` : ''}`,
         color: '#28A86E',
       })
     } else if (s.state_type === 'skade') {

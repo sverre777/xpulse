@@ -7,10 +7,13 @@ import {
 } from 'recharts'
 import type { SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { SKI_TYPE_LABELS, type SkiType } from '@/lib/equipment-types'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+} from './chart-theme'
 
 // Stabile farger for opp til 8 ski; resten faller tilbake til grå.
-const SKI_LINE_COLORS = ['#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#A855F7', '#E11D48', '#0EA5E9', '#F97316']
+const SKI_LINE_COLORS = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7', '#E23A5A', '#0EA5E9', '#F97316']
 
 interface Props {
   data: SkiTestAnalysisData
@@ -185,11 +188,11 @@ export function SkiTesterTab({ data }: Props) {
         >
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={timeChart.points} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-              <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-              <YAxis domain={[0, 10]} tick={AXIS_STYLE} stroke={GRID_COLOR} width={28} />
+              <CartesianGrid stroke={CHART_GRID} />
+              <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+              <YAxis domain={[0, 10]} tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={28} />
               <Tooltip
-                contentStyle={TOOLTIP_STYLE}
+                content={<XpTooltip />}
                 labelStyle={{ color: '#F0F0F2' }}
                 formatter={(val, key) => {
                   const info = skiById.get(String(key))
@@ -197,7 +200,7 @@ export function SkiTesterTab({ data }: Props) {
                 }}
               />
               <Legend
-                wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }}
+                wrapperStyle={CHART_LEGEND_STYLE}
                 formatter={(key: string) => skiById.get(key)?.name ?? key}
               />
               {timeChart.skiIds.map((id, i) => (

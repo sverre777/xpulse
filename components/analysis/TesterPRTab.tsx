@@ -10,7 +10,10 @@ import type { TestsAndPRs, TestResultRow, TestProgressionSeries, PersonalRecordR
 import {
   SPORTS, TEST_PR_SPORTS_AND_SUBCATEGORIES, findTestPRSport,
 } from '@/lib/types'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
+} from './chart-theme'
 import { PersonalRecordModal, type PRPreset } from './PersonalRecordModal'
 import { EmptyState } from '@/components/ui/EmptyState'
 
@@ -37,18 +40,18 @@ const SPORT_COLOR: Record<string, string> = {
   // Sport (eldre rader)
   running: '#FF4500',
   cross_country_skiing: '#1A6FD4',
-  biathlon: '#E11D48',
+  biathlon: '#E23A5A',
   triathlon: '#8B5CF6',
   cycling: '#28A86E',
-  long_distance_skiing: '#D4A017',
+  long_distance_skiing: '#E8B93C',
   endurance: '#8A8A96',
   // TestPRSport (ny modell)
   lop: '#FF4500',
   sykling: '#28A86E',
   svomming: '#1A6FD4',
   langrenn: '#1A6FD4',
-  skiskyting: '#E11D48',
-  styrke: '#D4A017',
+  skiskyting: '#E23A5A',
+  styrke: '#6E6E78',
   spenst: '#A855F7',
   skyting: '#0EA5E9',
   annet: '#8A8A96',
@@ -101,15 +104,15 @@ function ProgressionChart({ series }: { series: TestProgressionSeries }) {
     >
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-          <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" />
-          <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-          <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR}
+          <CartesianGrid stroke={CHART_GRID} />
+          <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+          <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO}
             tickFormatter={(v: number) => formatValue(v, series.unit)} />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            content={<XpTooltip />}
             formatter={(v) => [formatValue(Number(v), series.unit), series.unit ?? 'verdi']}
           />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Line type="monotone" dataKey="value" name={series.test_type}
             stroke={color} strokeWidth={2} dot={{ r: 4, fill: color }} />
         </LineChart>

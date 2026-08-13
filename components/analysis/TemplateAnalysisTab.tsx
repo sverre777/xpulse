@@ -7,8 +7,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { TemplateAnalysis, TemplateSummary, TemplateExecution, OverviewZoneSeconds } from '@/app/actions/analysis'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+  CHART_ZONE_COLORS,
+} from './chart-theme'
 import { MetricCard } from './MetricCard'
 import { SPORTS } from '@/lib/types'
 
@@ -45,7 +48,7 @@ function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: 
       {keys.map(k => {
         const pct = (zones[k] / total) * 100
         if (pct <= 0) return null
-        return <div key={k} style={{ width: `${pct}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+        return <div key={k} style={{ width: `${pct}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
       })}
     </div>
   )
@@ -190,7 +193,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {(['I1','I2','I3','I4','I5','Hurtighet'] as const).map(k => (
             <div key={k} className="flex items-center gap-1">
-              <span style={{ width: 10, height: 10, backgroundColor: ZONE_COLORS_V2[k] }} />
+              <span style={{ width: 10, height: 10, backgroundColor: CHART_ZONE_COLORS[k] }} />
               <span>{k}: {formatDuration(template.avg_zones[k])}</span>
             </div>
           ))}
@@ -203,14 +206,14 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           <ChartWrapper chartKey="mal_analyse_avg_hr" title="Snittpuls over tid" subtitle="Per gjennomføring">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={hrPoints}>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                  tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+                <Tooltip content={<XpTooltip />}
                   labelFormatter={(v) => formatEpochAxis(Number(v))}
                   formatter={(v) => [`${v} bpm`, 'Snittpuls']} />
-                <Line type="monotone" dataKey="y" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="y" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </ChartWrapper>
@@ -219,11 +222,11 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           <ChartWrapper chartKey="mal_analyse_total_time" title="Total tid over tid" subtitle="Minutter per gjennomføring">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={timePoints}>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                  tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+                <Tooltip content={<XpTooltip />}
                   labelFormatter={(v) => formatEpochAxis(Number(v))}
                   formatter={(v) => [`${v} min`, 'Tid']} />
                 <Line type="monotone" dataKey="y" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} />
@@ -235,11 +238,11 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           <ChartWrapper chartKey="mal_analyse_total_km" title="Total km over tid" subtitle="Kilometer per gjennomføring">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={kmPoints}>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                  tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+                <Tooltip content={<XpTooltip />}
                   labelFormatter={(v) => formatEpochAxis(Number(v))}
                   formatter={(v) => [`${v} km`, 'Distanse']} />
                 <Line type="monotone" dataKey="y" stroke="#28A86E" strokeWidth={2} dot={{ r: 3 }} />
@@ -251,15 +254,15 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
           <ChartWrapper chartKey="mal_analyse_lactate_progression" title="Laktat-progresjon" subtitle="Snitt laktat per gjennomføring">
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <ScatterChart>
-                <CartesianGrid stroke={GRID_COLOR} />
+                <CartesianGrid stroke={CHART_GRID} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis type="number" dataKey="y" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+                  tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis type="number" dataKey="y" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
                   label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                <Tooltip content={<XpTooltip />}
                   formatter={(v, k) => k === 'x' ? [formatEpochAxis(Number(v)), 'Dato'] : [`${v} mmol`, 'Laktat']} />
-                <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
-                <Scatter data={lactatePoints} fill="#D4A017" name="Laktat" line={{ stroke: '#D4A017', strokeWidth: 1 }} />
+                <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+                <Scatter data={lactatePoints} fill="#E8B93C" name="Laktat" line={{ stroke: '#E8B93C', strokeWidth: 1 }} />
               </ScatterChart>
             </ResponsiveContainer>
           </ChartWrapper>

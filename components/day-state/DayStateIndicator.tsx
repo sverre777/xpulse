@@ -1,6 +1,7 @@
 'use client'
 
 import type { DayState } from '@/lib/day-state-types'
+import { localISODate } from '@/lib/local-date'
 
 export const REST_BG = 'rgba(40, 168, 110, 0.12)'
 export const SICK_BG = 'rgba(225, 29, 72, 0.14)'
@@ -12,8 +13,7 @@ export const REST_PLANNED_BG = 'rgba(40, 168, 110, 0.06)'
 // skiller planlagt/faktisk går gjennom denne.
 export function restStillPlanned(s: DayState): boolean {
   if (!s.is_planned) return false
-  const today = new Date().toISOString().slice(0, 10)
-  return s.date > today
+  return s.date > localISODate()
 }
 
 export function stateBgFor(states: DayState[]): string | undefined {

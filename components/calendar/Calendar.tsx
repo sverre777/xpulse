@@ -14,6 +14,9 @@ import { getCalendarWorkouts, reorderWorkouts, moveWorkout } from '@/app/actions
 import {
   DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
   useDraggable, useDroppable, type DragStartEvent, type DragEndEvent,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import type { WorkoutModalState } from '@/components/workout/WorkoutModal'
 // WorkoutModal trekker WorkoutForm (~1000 linjer + tunge sub-komponenter)
@@ -572,6 +575,18 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
   )
 }
 
+// Kollisjon for måneds-grid-et: chip-dropmål ligger INNI dagcelle-dropmål,
+// og standard rectIntersection kan velge den store cellen selv når pekeren
+// står på en chip. Denne prioriterer chip-mål når pekeren er innenfor et,
+// deretter pointer-treff ellers, med rectIntersection som fallback.
+const chipFirstCollision: CollisionDetection = (args) => {
+  const within = pointerWithin(args)
+  const chip = within.find(c => String(c.id).startsWith('chip:'))
+  if (chip) return [chip]
+  if (within.length > 0) return within
+  return rectIntersection(args)
+}
+
 // Dra-bar wrapper rundt WorkoutChip — registrerer økten som draggable i
 // måneds-grid-ets DndContext. Deaktivert i read-only (trener-visning).
 function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
@@ -887,6 +902,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   return (
     <DndContext
       sensors={dndSensors}
+      collisionDetection={chipFirstCollision}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveDrag(null)}

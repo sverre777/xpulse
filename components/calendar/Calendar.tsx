@@ -2015,10 +2015,6 @@ export function Calendar({
         <div className="hidden md:block" style={{ minWidth: '120px' }} />
       </div>
 
-      {/* ── Analyse-overlay: samme layout i Dagbok og Plan; mode styrer datakilde og labels. ── */}
-      {(mode === 'dagbok' || mode === 'plan') && (
-      )}
-
       {/* ── Content ── */}
       {/* I coach-view (readOnly) + dagbok vises utøverens notat som grå read-only.
           Plan-notater forblir redigerbare i coach-view slik at trener kan skrive plan-kommentarer. */}

@@ -380,9 +380,9 @@
   /* ROLES */
   .roles-section { padding:100px 56px; background:var(--dark); }
   .roles-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; margin-top:60px; }
-  .role-card { padding:56px; position:relative; overflow:hidden; }
-  .role-card.athlete { background:var(--surface); }
-  .role-card.coach { background:var(--mid); }
+  .role-card { padding:56px; position:relative; overflow:hidden; border:1px solid var(--line); border-radius:16px; }
+  .role-card.athlete { background:var(--card); border-left:3px solid var(--orange); }
+  .role-card.coach { background:var(--card); border-left:3px solid var(--blue); }
   .role-card-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--orange); margin-bottom:14px; }
   .role-card.coach .role-card-label { color:var(--blue); }
   .role-title { font-family:'Bebas Neue',sans-serif; font-size:44px; letter-spacing:2px; margin-bottom:18px; line-height:1; }
@@ -483,7 +483,7 @@
   .trener-section .section-title { line-height:0.95; margin-bottom:16px; }
   .trener-lead { font-size:16px; line-height:1.7; color:rgba(242,240,236,0.55); max-width:560px; margin-bottom:48px; }
   .trener-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:2px; margin-bottom:48px; }
-  .trener-card {
+  .trener-card { border-radius:var(--r-card);
     background:var(--surface); padding:32px 28px; position:relative; overflow:hidden;
     transition:background 0.3s;
   }
@@ -583,7 +583,7 @@
   .why-section .section-title { margin-bottom:16px; }
   .why-section .section-title .orange { color:var(--orange); }
   .why-lead { font-size:15px; line-height:1.7; color:rgba(242,240,236,0.55); max-width:620px; margin-bottom:48px; }
-  .why-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); }
+  .why-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--line); border-radius:var(--r-card); background:var(--card); }
   .why-table { width:100%; border-collapse:collapse; min-width:760px; font-family:'Barlow Condensed',sans-serif; }
   .why-table th, .why-table td { padding:13px 16px; text-align:center; border-bottom:1px solid var(--border); font-size:13px; line-height:1.4; }
   .why-table thead th { font-weight:700; letter-spacing:1.2px; text-transform:uppercase; font-size:10.5px; color:rgba(242,240,236,0.7); background:var(--surface); }
@@ -597,7 +597,7 @@
   .cx { color:rgba(242,240,236,0.22); font-size:14px; }
   .cq { color:rgba(242,240,236,0.45); font-size:11px; letter-spacing:0.4px; text-transform:uppercase; }
   .ck-soon { font-size:10px; color:rgba(242,240,236,0.45); letter-spacing:0.4px; text-transform:uppercase; margin-left:3px; }
-  .why-note { margin-top:32px; padding:24px 28px; background:var(--surface); border-left:3px solid var(--orange); font-size:15px; line-height:1.75; color:rgba(242,240,236,0.82); }
+  .why-note { margin-top:32px; padding:24px 28px; background:var(--card); border:1px solid var(--line); border-left:3px solid var(--orange); border-radius:var(--r-sm); font-size:15px; line-height:1.75; color:rgba(242,240,236,0.82); }
   .why-disclaimer { margin-top:16px; font-size:12px; line-height:1.6; color:rgba(242,240,236,0.4); max-width:700px; }
   @media (max-width:768px) {
     .why-section { padding-left:24px; padding-right:24px; }
@@ -749,7 +749,7 @@
   /* Hvorfor-tabell: fold */
   .why-table tr.why-row-more { display:none; }
   .why-table.why-expanded tr.why-row-more { display:table-row; }
-  .why-toggle {
+  .why-toggle { border-radius:var(--r-sm);
     margin-top:14px; background:transparent; border:1px solid var(--border); color:var(--white);
     font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px;
     letter-spacing:2.5px; text-transform:uppercase; padding:12px 26px; cursor:none;

@@ -8,7 +8,7 @@ export default function AiCoachPage() {
             AI Coach
           </h1>
         </div>
-        <div className="p-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
+        <div className="p-12 text-center" style={{ border: '1px dashed var(--line2)', borderRadius: 14 }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '16px', letterSpacing: '0.05em' }}>
             Kommer snart
           </p>

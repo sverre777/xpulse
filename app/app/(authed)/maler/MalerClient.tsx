@@ -218,7 +218,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: 'plan', label: 'Plan-maler' },
   ]
   return (
-    <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid #1E1E22' }}>
+    <div className="flex gap-2 mb-6">
       {tabs.map(t => {
         const active = t.key === tab
         return (
@@ -226,12 +226,11 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? '#FF4500' : '#8A8A96',
-              background: 'none',
-              border: 'none',
-              borderBottom: `2px solid ${active ? '#FF4500' : 'transparent'}`,
+              color: active ? '#fff' : '#8A8A96',
+              background: active ? 'var(--accent)' : 'none',
+              border: `1px solid ${active ? 'var(--accent)' : 'var(--line2)'}`,
+              borderRadius: 999,
               cursor: 'pointer',
-              marginBottom: '-1px',
             }}>
             {t.label}
           </button>
@@ -345,7 +344,7 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
     )
   }
   return (
-    <div className="p-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
+    <div className="p-8 text-center" style={{ border: '1px dashed var(--line2)', borderRadius: 14 }}>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Ingen maler matcher filtrene.
       </p>
@@ -445,8 +444,9 @@ function ActionBtn({
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

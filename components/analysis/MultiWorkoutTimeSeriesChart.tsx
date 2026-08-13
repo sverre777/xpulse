@@ -2,7 +2,9 @@
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import type { DetailedWorkout } from '@/app/actions/compare-workouts'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
 
 // Multi-line tidsserie for sammenligning av økter. Hver økt blir én linje
 // hvor x-aksen er minutter inn i økten (kumulativ varighet av aktiviteter)
@@ -12,8 +14,8 @@ import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
 // ikke per-sekund. Det er det vi har av data uten GPX/FIT-import.
 
 const PALETTE = [
-  '#FF4500', '#1A6FD4', '#28A86E', '#D4A017',
-  '#A855F7', '#E11D48', '#0EA5E9', '#F97316',
+  '#FF4500', '#1A6FD4', '#28A86E', '#E8B93C',
+  '#A855F7', '#E23A5A', '#0EA5E9', '#F97316',
   '#10B981', '#8B5CF6', '#EC4899', '#06B6D4',
 ]
 
@@ -92,17 +94,17 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
       <div style={{ width: '100%', height }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" domain={[0, 'dataMax']}
-              tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+              tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               label={{ value: 'minutter inn i økten', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
-            <YAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={48} reversed={metric === 'pace'} tickFormatter={formatY}
               label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v) => [typeof v === 'number' ? formatY(v) : '—', yLabel]}
               labelFormatter={(v) => `${Math.round(Number(v))} min`} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {series.map(s => (
               <Line
                 key={s.id}

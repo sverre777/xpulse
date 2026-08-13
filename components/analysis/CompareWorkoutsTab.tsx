@@ -12,7 +12,6 @@ import {
   type TemplateOption, type DetailedWorkout, type SavedComparison, type WorkoutFromTemplate,
 } from '@/app/actions/compare-workouts'
 import { SPORTS, WORKOUT_TYPES_BIATHLON, WEATHER_LABELS, type Sport, type WorkoutType } from '@/lib/types'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { MultiWorkoutTimeSeriesChart } from './MultiWorkoutTimeSeriesChart'
 import { TreffPercentageDisplay } from './TreffPercentageDisplay'
 
@@ -43,7 +42,7 @@ function ZoneBar({ zones, height = 14 }: { zones: OverviewZoneSeconds; height?: 
       {keys.map(k => {
         const pct = (zones[k] / total) * 100
         if (pct <= 0) return null
-        return <div key={k} style={{ width: `${pct}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+        return <div key={k} style={{ width: `${pct}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
       })}
     </div>
   )
@@ -887,7 +886,7 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
 function colorForDelta(diff: number, positiveIsGood: boolean): string {
   if (diff === 0) return '#8A8A96'
   const good = positiveIsGood ? diff > 0 : diff < 0
-  return good ? '#28A86E' : '#E11D48'
+  return good ? '#28A86E' : '#E23A5A'
 }
 function formatDeltaDuration(sec: number): string {
   if (sec === 0) return '±0'
@@ -903,11 +902,14 @@ function formatDeltaDuration(sec: number): string {
 // ── Multi-line splits per km ───────────────────────────────────
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+  CHART_ZONE_COLORS,
+} from './chart-theme'
 
 const PALETTE = [
-  '#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#A855F7',
-  '#E11D48', '#0EA5E9', '#F97316', '#10B981', '#8B5CF6',
+  '#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#A855F7',
+  '#E23A5A', '#0EA5E9', '#F97316', '#10B981', '#8B5CF6',
 ]
 
 function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
@@ -940,15 +942,15 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
       <div style={{ width: '100%', height: 260 }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               label={{ value: 'km', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
-            <YAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={48} reversed tickFormatter={fmt} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v) => [typeof v === 'number' ? fmt(v) : '—', 'Tid']}
               labelFormatter={(v) => `Km ${v}`} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {series.map(s => (
               <Line key={s.id} data={s.points.map(p => ({ x: p.x, y: p.y }))}
                 type="monotone" dataKey="y" name={s.name}
@@ -986,14 +988,14 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
       <div style={{ width: '100%', height: 240 }}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               label={{ value: 'minutter / aktivitet', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
-            <YAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={40}
               label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Tooltip content={<XpTooltip />} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {series.map(s => (
               <Line key={s.id} data={s.points.map(p => ({ x: p.x, y: p.y }))}
                 type="monotone" dataKey="y" name={s.name}

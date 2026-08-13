@@ -6,7 +6,10 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Cell,
 } from 'recharts'
 import type { PeriodizationOverview, PeriodLoadRow, PeriodKeyDate } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_CURSOR,
+} from './chart-theme'
 
 // Fargelegging for intensitet (matcher Plan/Periodisering-overlay).
 const INTENSITY_COLORS: Record<PeriodLoadRow['intensity'], string> = {
@@ -284,11 +287,11 @@ export function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
         subtitle="Farge = intensitet (rolig/medium/hard)" height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={0} angle={-20} textAnchor="end" height={60} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={48} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
               formatter={(v, k, p) => {
                 if (k === 'TSS') {
                   const payload = p && typeof p === 'object' && 'payload' in p ? (p as { payload: { timer: number } }).payload : null
@@ -324,11 +327,11 @@ export function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview })
         height={220}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="name" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="name" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={0} angle={-20} textAnchor="end" height={60} />
-            <YAxis allowDecimals={false} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={30} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <YAxis allowDecimals={false} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={30} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
               formatter={(v) => [`${v} konkurranser`, 'Antall']} />
             <Bar dataKey="Konkurranser" fill="#E11D48" />
           </BarChart>

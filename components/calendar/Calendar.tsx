@@ -38,9 +38,6 @@ import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
 import {
-  CreateChoiceModal, type CreateChoice,
-} from '@/components/day-state/CreateChoiceModal'
-import {
   DayStateIndicator, restStillPlanned, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
 import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
@@ -974,7 +971,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             <button type="button"
               onClick={e => { e.stopPropagation(); onCreateWorkout(dateStr) }}
               style={{ color: 'var(--accent)', fontSize: '12px', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, lineHeight: 1, padding: 0 }}
-              title={mode === 'plan' ? 'Legg til planlagt økt eller hviledag' : 'Logg økt eller marker dag'}>+</button>
+              title={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}>+</button>
           )}
         </div>
       </div>
@@ -1931,7 +1928,6 @@ export function Calendar({
   const [modalState, setModalState] = useState<WorkoutModalState | null>(null)
   const [recoveryDate, setRecoveryDate] = useState<string | null>(null)
   const [dayStatesByDate, setDayStatesByDate] = useState<Record<string, DayState[]>>(initialDayStates)
-  const [choiceModal, setChoiceModal] = useState<{ date: string; time?: string } | null>(null)
   const [dayStateModal, setDayStateModal] = useState<
     { date: string; stateType: DayStateType; editing: DayState | null } | null
   >(null)
@@ -1987,13 +1983,10 @@ export function Calendar({
 
   const handleCreateWorkout = useCallback((dateStr: string, time?: string) => {
     if (readOnly) return
-    // Vis valg-modal i plan/dagbok: trening eller dag-tilstand.
-    if (mode === 'plan' || mode === 'dagbok') {
-      setChoiceModal({ date: dateStr, time })
-      return
-    }
+    // Rett inn i økt-skjemaet (plan og dagbok). Hviledag/syk/skade har egne
+    // knapper i dag-popupen — valg-modalen er fjernet fra Logg-flyten.
     openWorkoutCreate(dateStr, time)
-  }, [mode, openWorkoutCreate, readOnly])
+  }, [openWorkoutCreate, readOnly])
 
   const handleEditDayState = useCallback((state: DayState) => {
     if (readOnly) return
@@ -2002,18 +1995,6 @@ export function Calendar({
     })
   }, [readOnly])
 
-  const handleChoicePick = useCallback((choice: CreateChoice) => {
-    const c = choiceModal
-    if (!c) return
-    setChoiceModal(null)
-    if (choice === 'workout') {
-      openWorkoutCreate(c.date, c.time)
-      return
-    }
-    // Åpne eksisterende tilstand hvis den finnes, ellers opprett ny.
-    const existing = (dayStatesByDate[c.date] ?? []).find(s => s.state_type === choice) ?? null
-    setDayStateModal({ date: c.date, stateType: choice, editing: existing })
-  }, [choiceModal, openWorkoutCreate, dayStatesByDate])
 
   const handleAddRecovery = useCallback((dateStr: string) => {
     if (readOnly) return
@@ -2437,13 +2418,6 @@ export function Calendar({
       date={recoveryDate ?? ''}
       open={recoveryDate !== null}
       onClose={() => setRecoveryDate(null)}
-    />
-    <CreateChoiceModal
-      open={choiceModal !== null}
-      onClose={() => setChoiceModal(null)}
-      date={choiceModal?.date ?? ''}
-      mode={mode === 'plan' ? 'plan' : 'dagbok'}
-      onPick={handleChoicePick}
     />
     {dayStateModal && (
       <DayStateModal

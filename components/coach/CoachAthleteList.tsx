@@ -49,10 +49,10 @@ export function CoachAthleteList({ athletes }: Props) {
   }, [athletes, query, sportFilter])
 
   return (
-    <section className="mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <section className="mb-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div
         className="flex flex-wrap items-center gap-3 px-5 py-3"
-        style={{ borderBottom: '1px solid #1E1E22' }}
+        style={{ borderBottom: '1px solid var(--line)' }}
       >
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
@@ -71,8 +71,8 @@ export function CoachAthleteList({ athletes }: Props) {
           placeholder="Søk"
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
             minWidth: '160px',
@@ -83,8 +83,8 @@ export function CoachAthleteList({ athletes }: Props) {
           onChange={e => setSportFilter(e.target.value as 'all' | Sport)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
@@ -103,7 +103,7 @@ export function CoachAthleteList({ athletes }: Props) {
       ) : (
         <ul>
           {filtered.map(a => (
-            <li key={a.id} style={{ borderTop: '1px solid #1E1E22' }} className="first:border-t-0">
+            <li key={a.id} style={{ borderTop: '1px solid var(--line)' }} className="first:border-t-0">
               <div className="flex items-center gap-4 px-5 py-4">
                 {/* Status-prikk */}
                 <span

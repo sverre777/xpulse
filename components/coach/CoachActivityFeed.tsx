@@ -34,8 +34,8 @@ function typeColor(type: CoachFeedItem['type']): string {
 
 export function CoachActivityFeed({ items }: Props) {
   return (
-    <section className="mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
-      <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+    <section className="mb-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+      <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
@@ -56,12 +56,12 @@ export function CoachActivityFeed({ items }: Props) {
           {items.map(it => (
             <li
               key={it.id}
-              style={{ borderTop: '1px solid #1E1E22' }}
+              style={{ borderTop: '1px solid var(--line)' }}
               className="first:border-t-0"
             >
               <Link
                 href={it.href}
-                className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-[#1A1A22]"
+                className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-[var(--card2)]"
                 style={{ textDecoration: 'none' }}
               >
                 <span

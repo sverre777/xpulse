@@ -36,10 +36,10 @@ export function CoachGroupsSection({ groups }: Props) {
   }
 
   return (
-    <section className="mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <section className="mb-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div
         className="flex items-center justify-between px-5 py-3"
-        style={{ borderBottom: '1px solid #1E1E22' }}
+        style={{ borderBottom: '1px solid var(--line)' }}
       >
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
@@ -70,7 +70,7 @@ export function CoachGroupsSection({ groups }: Props) {
         <form
           onSubmit={handleSubmit}
           className="px-5 py-4 flex flex-col gap-2"
-          style={{ borderBottom: '1px solid #1E1E22' }}
+          style={{ borderBottom: '1px solid var(--line)' }}
         >
           <input
             type="text"
@@ -81,7 +81,7 @@ export function CoachGroupsSection({ groups }: Props) {
             required
             className="px-2 py-2 text-sm"
             style={{
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
               color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
@@ -93,7 +93,7 @@ export function CoachGroupsSection({ groups }: Props) {
             maxLength={200}
             className="px-2 py-2 text-sm"
             style={{
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
               color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
@@ -121,7 +121,7 @@ export function CoachGroupsSection({ groups }: Props) {
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', border: '1px solid #1E1E22',
+                color: '#8A8A96', border: '1px solid var(--line)',
                 background: 'none', cursor: 'pointer',
               }}
             >
@@ -141,11 +141,11 @@ export function CoachGroupsSection({ groups }: Props) {
       ) : (
         <ul>
           {groups.map(g => (
-            <li key={g.id} style={{ borderTop: '1px solid #1E1E22' }} className="first:border-t-0">
+            <li key={g.id} style={{ borderTop: '1px solid var(--line)' }} className="first:border-t-0">
               <button
                 type="button"
                 onClick={() => setEditingGroupId(g.id)}
-                className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-[#1A1A22]"
+                className="w-full flex items-center justify-between px-5 py-3 transition-colors hover:bg-[var(--card2)]"
                 style={{ background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
               >
                 <span

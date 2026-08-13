@@ -37,9 +37,9 @@ interface Props {
 export function CoachUpcomingCalendarCard({ events }: Props) {
   return (
     <section className="mb-6"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div className="flex items-center justify-between px-5 py-3"
-        style={{ borderBottom: '1px solid #1E1E22' }}>
+        style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
@@ -65,12 +65,12 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
           Ingen kommende konkurranser eller fellestreninger registrert.
         </p>
       ) : (
-        <ul className="divide-y" style={{ borderColor: '#1E1E22' }}>
+        <ul className="divide-y" style={{ borderColor: 'var(--line)' }}>
           {events.map((e, i) => (
             <li key={`${e.kind}-${e.date}-${i}`}
-              style={{ borderTop: i === 0 ? 'none' : '1px solid #1E1E22' }}>
+              style={{ borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
               <Link href={e.href}
-                className="block px-5 py-3 transition-colors hover:bg-[#1A1A22]"
+                className="block px-5 py-3 transition-colors hover:bg-[var(--card2)]"
                 style={{ textDecoration: 'none' }}>
                 <div className="flex items-start gap-3">
                   <span aria-hidden style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0 }}>

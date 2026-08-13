@@ -96,7 +96,7 @@ export function UtovereGrid({ athletes }: Props) {
       {/* Filtre */}
       <div
         className="flex flex-wrap items-center gap-3 px-4 py-3 mb-4"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}
       >
         <input
           type="text"
@@ -105,8 +105,8 @@ export function UtovereGrid({ athletes }: Props) {
           placeholder="Søk navn"
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
             minWidth: '160px',
@@ -117,8 +117,8 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setSportFilter(e.target.value as 'all' | Sport)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
@@ -133,8 +133,8 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setStatusFilter(e.target.value as 'all' | UtoverStatus)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
@@ -150,8 +150,8 @@ export function UtovereGrid({ athletes }: Props) {
           onChange={e => setSortKey(e.target.value as SortKey)}
           className="px-2 py-1 text-sm"
           style={{
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
             color: '#F0F0F2',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
@@ -192,8 +192,8 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
   return (
     <div
       style={{
-        backgroundColor: '#13131A',
-        border: '1px solid #1E1E22',
+        backgroundColor: 'var(--card)',
+        border: '1px solid var(--line)',
         borderLeft: `3px solid ${STATUS_COLOR[athlete.status]}`,
       }}
     >
@@ -252,13 +252,13 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
       </div>
 
       <div className="grid grid-cols-2 gap-px"
-        style={{ backgroundColor: '#1E1E22', borderTop: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--line)', borderTop: '1px solid var(--line)' }}>
         <PeriodStats label="Siste 7 dager" stats={athlete.stats7d} />
         <PeriodStats label="Siste 30 dager" stats={athlete.stats30d} />
       </div>
 
       <div className="px-4 py-3 flex items-center gap-2 flex-wrap"
-        style={{ borderTop: '1px solid #1E1E22' }}>
+        style={{ borderTop: '1px solid var(--line)' }}>
         <Link
           href={`/app/innboks?to=${athlete.id}`}
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"

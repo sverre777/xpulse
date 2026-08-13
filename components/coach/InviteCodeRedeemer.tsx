@@ -81,12 +81,12 @@ export function InviteCodeRedeemer() {
             onClick={e => e.stopPropagation()}
             style={{
               width: '100%', maxWidth: '460px',
-              backgroundColor: '#13131A', border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
             }}
           >
             <div
               className="px-5 py-3 flex items-center justify-between"
-              style={{ borderBottom: '1px solid #1E1E22' }}
+              style={{ borderBottom: '1px solid var(--line)' }}
             >
               <div
                 className="text-lg"
@@ -100,7 +100,7 @@ export function InviteCodeRedeemer() {
                 className="text-xs tracking-widest uppercase px-2 py-1"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#8A8A96', background: 'transparent', border: '1px solid #1E1E22',
+                  color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
                   cursor: 'pointer',
                 }}
               >
@@ -122,9 +122,9 @@ export function InviteCodeRedeemer() {
                 autoComplete="off"
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
-                  backgroundColor: '#1A1A22',
+                  backgroundColor: 'var(--card2)',
                   color: '#F0F0F2',
-                  border: '1px solid #1E1E22',
+                  border: '1px solid var(--line)',
                   padding: '10px 12px',
                   fontSize: '20px',
                   letterSpacing: '0.18em',

@@ -1002,6 +1002,8 @@ export interface CalendarWorkoutSummary {
   // workout_activities (modus-mest-brukte movement_name).
   sport?: Sport | null
   primary_movement?: string | null
+  // Underkategori for den dominerende bevegelsesformen (chip-meta).
+  primary_subcategory?: string | null
   // Workouts-tabellen (raden selv). avg/max-puls vises i dag-detalj-modal.
   avg_heart_rate?: number | null
   max_heart_rate?: number | null

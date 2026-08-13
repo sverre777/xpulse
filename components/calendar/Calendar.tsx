@@ -599,7 +599,17 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
               <span style={{ color, marginRight: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
             )}
             {durationLabel ? <span style={{ color: '#FF4500', marginRight: '4px' }}>{durationLabel}</span> : null}
-            {w.primary_movement ? <span style={{ color: '#A9A9B5', marginRight: '4px' }}>{w.primary_movement}</span> : null}
+            {/* Underkategori + bev.form — på mobil kun én av de to (plassen). */}
+            {(w.primary_subcategory || w.primary_movement) ? (
+              <span style={{ color: '#A9A9B5', marginRight: '4px' }}>
+                {w.primary_subcategory && w.primary_movement && w.primary_subcategory !== w.primary_movement ? (
+                  <>
+                    {w.primary_subcategory}
+                    <span className="hidden md:inline"> · {w.primary_movement}</span>
+                  </>
+                ) : (w.primary_subcategory ?? w.primary_movement)}
+              </span>
+            ) : null}
             {shootingLabel ? <span style={{ color: '#A9A9B5' }}>{shootingLabel}</span> : null}
           </span>
         )}

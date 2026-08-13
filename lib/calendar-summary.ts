@@ -19,6 +19,7 @@ export type RawCalendarActivity = {
   start_time?: string | null
   sort_order?: number | null
   movement_name?: string | null
+  movement_subcategory?: string | null
   prone_shots?: number | null
   prone_hits?: number | null
   standing_shots?: number | null
@@ -306,8 +307,30 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     rpe: w.rpe ?? null,
     notes: w.notes ?? null,
     primary_movement: extractPrimaryMovement(w.workout_activities),
+    primary_subcategory: extractPrimarySubcategory(w.workout_activities),
     shooting: extractShootingTotals(w.workout_activities),
   }
+}
+
+// Underkategori for den dominerende bevegelsesformen (samme varighetsvekting
+// som extractPrimaryMovement) — brukes i chip-meta i kalenderen.
+function extractPrimarySubcategory(acts: RawCalendarWorkout['workout_activities']): string | null {
+  if (!acts || acts.length === 0) return null
+  const primary = extractPrimaryMovement(acts)
+  if (!primary) return null
+  const counts = new Map<string, number>()
+  for (const a of acts) {
+    if (a.movement_name?.trim() !== primary) continue
+    const s = a.movement_subcategory?.trim()
+    if (!s) continue
+    counts.set(s, (counts.get(s) ?? 0) + (a.duration_seconds ?? 0))
+  }
+  let top: string | null = null
+  let topVal = 0
+  for (const [name, val] of counts) {
+    if (val > topVal) { top = name; topVal = val }
+  }
+  return top
 }
 
 function extractPrimaryMovement(acts: RawCalendarWorkout['workout_activities']): string | null {

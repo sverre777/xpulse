@@ -127,6 +127,80 @@ function AvgBadge({ viewBox, text }: {
   )
 }
 
+// Tooltip for «Begge»-visningen: gjennomført og plan SIDE OM SIDE per sone/
+// bevegelse i stedet for én lang liste. Rader der begge er 0 skjules.
+// Leser samme payload-verdier som standard-tooltipen (minutter).
+function PlanDoneTooltip({ active, payload, label }: {
+  active?: boolean
+  payload?: Array<{ dataKey?: string | number; value?: number | string; color?: string }>
+  label?: string | number
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  const rows = new Map<string, { color?: string; done: number; plan: number }>()
+  for (const e of payload) {
+    const dk = String(e.dataKey ?? '')
+    if (!dk) continue
+    const isPlan = dk.startsWith('p_')
+    const base = isPlan ? dk.slice(2) : dk
+    let r = rows.get(base)
+    if (!r) { r = { done: 0, plan: 0 }; rows.set(base, r) }
+    if (e.color && (r.color == null || !isPlan)) r.color = e.color
+    const v = typeof e.value === 'number' ? e.value : Number(e.value) || 0
+    if (isPlan) r.plan = v
+    else r.done = v
+  }
+  const visible = Array.from(rows.entries()).filter(([, r]) => r.done > 0 || r.plan > 0)
+  if (visible.length === 0) return null
+  const doneTotal = visible.reduce((s, [, r]) => s + r.done, 0)
+  const planTotal = visible.reduce((s, [, r]) => s + r.plan, 0)
+  const cell = { textAlign: 'right' as const, paddingLeft: 14, color: '#F2F2F0', fontWeight: 600 }
+  return (
+    <div style={{
+      minWidth: 220, backgroundColor: '#0C0C0F', border: '1px solid #2A2A33',
+      borderRadius: 12, padding: '12px 14px', boxShadow: '0 12px 34px rgba(0,0,0,0.55)',
+      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
+    }}>
+      {label != null && label !== '' && (
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
+          {label}
+        </div>
+      )}
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <thead>
+          <tr style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#55555F' }}>
+            <th style={{ textAlign: 'left', fontWeight: 400, paddingBottom: 3 }} />
+            <th style={{ textAlign: 'right', fontWeight: 400, paddingBottom: 3, paddingLeft: 14 }}>Gjennomført</th>
+            <th style={{ textAlign: 'right', fontWeight: 400, paddingBottom: 3, paddingLeft: 14 }}>Plan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map(([base, r]) => (
+            <tr key={base} style={{ color: '#8B8B95', lineHeight: 1.6 }}>
+              <td style={{ whiteSpace: 'nowrap' }}>
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: r.color ?? '#8B8B95', marginRight: 7 }} />
+                {base}
+              </td>
+              <td style={cell}>{r.done > 0 ? formatMinutes(r.done * 60) : '—'}</td>
+              <td style={cell}>{r.plan > 0 ? formatMinutes(r.plan * 60) : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr style={{ color: '#8B8B95' }}>
+            <td style={{ borderTop: '1px solid #1F1F26', paddingTop: 5 }}>Totalt</td>
+            <td style={{ ...cell, borderTop: '1px solid #1F1F26', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+              {formatMinutes(doneTotal * 60)}
+            </td>
+            <td style={{ ...cell, borderTop: '1px solid #1F1F26', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+              {formatMinutes(planTotal * 60)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  )
+}
+
 // X-akse-tick: samme label-verdi som før (Bebas), inneværende periode i
 // oransje, og valgfri datoperiode-linje under (uke-gruppering).
 function XpWeekTick({ x, y, payload, periods, nowIndex, showPeriod }: {
@@ -436,7 +510,9 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
                       label={{ value: 'min', angle: -90, position: 'insideLeft', style: { ...CHART_AXIS_TICK, textAnchor: 'middle' } }}
                     />
                     <Tooltip
-                      content={<XpTooltip showTotal={viewMode !== 'both'} totalFormatter={t => formatMinutes(t * 60)} />}
+                      content={viewMode === 'both'
+                        ? <PlanDoneTooltip />
+                        : <XpTooltip showTotal totalFormatter={t => formatMinutes(t * 60)} />}
                       cursor={CHART_CURSOR}
                       formatter={(value, name) => {
                         const mins = Number(value) || 0

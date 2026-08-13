@@ -1289,7 +1289,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               }}>
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
+                                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px', fontWeight: 600 }}>
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
                                       {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
@@ -1301,15 +1301,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                         </span>
                                       )}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
-                                      {w.start_time && <span style={{ color: '#8A8A96', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
+                                      {w.start_time && <span style={{ color: '#A9A9B5', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
                                       {w.title}
                                       {w.position_overall != null && mode !== 'plan' && (
                                         <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
                                       )}
                                     </div>
                                     {sportLine && (
-                                      <div className="text-xs tracking-widest uppercase mt-0.5"
-                                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                                      <div className="tracking-widest uppercase mt-0.5"
+                                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A9A9B5', fontSize: '13px' }}>
                                         {sportLine}
                                       </div>
                                     )}
@@ -1322,7 +1322,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     {isPlanned && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))
-                                      return lbl ? <span style={{ color: '#FF4500', fontSize: '14px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
+                                      return lbl ? <span style={{ color: '#FF4500', fontSize: '15px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
                                     })()}
                                   </div>
                                 </div>
@@ -1330,7 +1330,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 {/* Stats-rad: km, snittpuls, maks-puls, RPE */}
                                 {(km !== null || hr != null || maxHr != null || rpe != null) && (
                                   <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5"
-                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A9A9B5', fontSize: '14px' }}>
                                     {km !== null && <span>{km.toLocaleString('nb-NO')} km</span>}
                                     {hr != null && <span>Snitt {hr} bpm</span>}
                                     {maxHr != null && <span>Maks {maxHr} bpm</span>}

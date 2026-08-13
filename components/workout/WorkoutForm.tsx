@@ -458,6 +458,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const showExecutionFields = !isPlanMode && !isFutureDate && (isCompleted || markingCompleted || !isPlanned)
   // "Merk som gjennomført"-CTA vises når en planlagt økt åpnes i Dagbok, i dag eller tidligere, og ikke allerede gjennomført
   const showMarkCompletedCTA = !isPlanMode && isPlanned && !isCompleted && !isFutureDate && !markingCompleted
+  // Start live (styrke): samme vilkår som før — utøver, eksisterende planlagt
+  // styrkeøkt som ikke er fullført.
+  const showStartLive = !!workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
+    && !readOnly && form.is_planned && !form.is_completed && isStrengthWorkout
 
   return (
     <form onSubmit={handleSubmit} className="xp-form max-w-3xl mx-auto px-4 py-4 space-y-0">
@@ -481,21 +485,50 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         />
       )}
 
-      {/* ── START ØKT (live styrkeøkt) ──
-          Kun utøver (ikke trener/targetUserId), eksisterende styrkeøkt som ikke
-          er fullført. Lagrer skjemaet først, så åpnes økt-modus. Fullfør der =
-          marker som fullført. ── */}
-      {workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
-        && !readOnly && form.is_planned && !form.is_completed && isStrengthWorkout && (
-        <button type="button" onClick={startLiveFlow} disabled={startingLive}
-          className="w-full mb-4 transition-opacity hover:opacity-90"
-          style={{
-            background: '#FF4500', color: '#0A0A0B', border: 'none',
-            fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em',
-            padding: '12px', cursor: startingLive ? 'default' : 'pointer', opacity: startingLive ? 0.6 : 1,
-          }}>
-          {startingLive ? 'Starter…' : '▶ Start live'}
-        </button>
+      {/* ── TOPP-CTA-RAD: Merk som gjennomført + Start live (styrke) ──
+          Side om side øverst når begge gjelder; ellers alene i full bredde.
+          Samme handlere/vilkår som før — kun plassering og stil. ── */}
+      {(showMarkCompletedCTA || showStartLive) && (
+        <div className="mb-4">
+          <div className="flex gap-2">
+            {showMarkCompletedCTA && (
+              <button type="button"
+                onClick={() => { setPlanReference(form); setMarkingCompleted(true) }}
+                className="transition-opacity hover:opacity-90"
+                style={{
+                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
+                  textTransform: 'uppercase', backgroundColor: '#28A86E',
+                  color: '#fff', border: '1px solid #28A86E', borderRadius: 12,
+                  padding: '13px 10px', cursor: 'pointer',
+                  boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
+                }}>
+                ✓ Merk som gjennomført
+              </button>
+            )}
+            {showStartLive && (
+              <button type="button" onClick={startLiveFlow} disabled={startingLive}
+                className="transition-opacity hover:opacity-90"
+                style={{
+                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
+                  textTransform: 'uppercase', backgroundColor: 'var(--accent)',
+                  color: '#fff', border: '1px solid var(--accent)', borderRadius: 12,
+                  padding: '13px 10px',
+                  cursor: startingLive ? 'default' : 'pointer',
+                  opacity: startingLive ? 0.6 : 1,
+                  boxShadow: '0 6px 24px var(--accent-soft)',
+                }}>
+                {startingLive ? 'Starter…' : '▶ Start live'}
+              </button>
+            )}
+          </div>
+          {showMarkCompletedCTA && (
+            <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Planinnholdet forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
+            </p>
+          )}
+        </div>
       )}
 
       {/* ── MALER ── */}
@@ -843,27 +876,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       )}
 
       {/* ── MERK SOM GJENNOMFØRT — CTA for planlagt økt åpnet i Dagbok (i dag / tidligere) ── */}
-      {showMarkCompletedCTA && (
-        <div className="my-4 p-5" style={{ backgroundColor: 'rgba(40, 168, 110, 0.08)', border: '1px solid #28A86E' }}>
-          <p className="text-xs tracking-widest uppercase mb-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E' }}>
-            Planlagt økt
-          </p>
-          <button type="button"
-            onClick={() => { setPlanReference(form); setMarkingCompleted(true) }}
-            className="w-full py-4 text-lg font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#FF4500', color: '#F0F0F2',
-              border: 'none', cursor: 'pointer',
-            }}>
-            ✓ Merk som gjennomført
-          </button>
-          <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-            Planinnholdet nedenfor forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
-          </p>
-        </div>
-      )}
+      {/* «Merk som gjennomført» ligger nå i topp-CTA-raden øverst i skjemaet. */}
 
       {/* Allerede gjennomført — vis status */}
       {isPlanned && isCompleted && !isPlanMode && (

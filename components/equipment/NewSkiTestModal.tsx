@@ -126,11 +126,12 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+          borderRadius: 14,
           width: '94%', maxWidth: '720px',
         }}>
         <div className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: '1px solid #1E1E22' }}>
+          style={{ borderBottom: '1px solid var(--line)' }}>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.08em' }}>
             Ny ski-test
           </h2>
@@ -184,7 +185,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               className="w-full px-4 py-3" style={inputStyle} />
           </Field>
 
-          <div className="pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+          <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase mt-4 mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Ski i testen ({entries.length}/10)
@@ -194,7 +195,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               const skiInfo = ski.find(s => s.id === en.ski_id)
               return (
                 <div key={idx} className="p-3 mb-2"
-                  style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+                  style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)' }}>
                   <div className="flex items-center justify-between mb-2">
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
                       {skiInfo?.name ?? '—'}
@@ -258,7 +259,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               className="px-4 py-2 text-sm tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
+                color: '#8A8A96', background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
               }}>
               Avbryt
             </button>
@@ -318,7 +319,7 @@ function ComboInput({
               className="px-3 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
+                color: '#8A8A96', background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
               }}>
               Lagre som mal
             </button>
@@ -337,7 +338,7 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
   color: '#F0F0F2',
   backgroundColor: '#0F0F12',
-  border: '1px solid #1E1E22',
+  border: '1px solid var(--line)',
   fontSize: '15px',
 }
 

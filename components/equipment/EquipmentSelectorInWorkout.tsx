@@ -58,7 +58,7 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }:
                       fontFamily: "'Barlow Condensed', sans-serif",
                       color: selected ? '#F0F0F2' : '#8A8A96',
                       background: selected ? '#1A0E08' : 'none',
-                      border: selected ? '1px solid #FF4500' : '1px solid #1E1E22',
+                      border: selected ? '1px solid #FF4500' : '1px solid var(--line)',
                       cursor: 'pointer',
                       textAlign: 'left',
                     }}>

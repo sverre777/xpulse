@@ -8,6 +8,7 @@ import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/typ
 import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
 import { WorkoutForm } from './WorkoutForm'
+import { WorkoutOverview } from './WorkoutOverview'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { TrainerAttendanceSection } from './TrainerAttendanceSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
@@ -43,8 +44,12 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   const [deleting, startDelete] = useTransition()
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [equipmentIds, setEquipmentIds] = useState<string[]>([])
+  // Øktoversikt (kø #40): gjennomført økt i dagbok åpnes som read-only
+  // oversikt; «✎ Rediger» bytter til skjemaet. Nullstilles per åpning.
+  const [showEditForm, setShowEditForm] = useState(false)
 
   useEffect(() => {
+    setShowEditForm(false)
     if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); return }
     if (state.kind === 'create') {
       setDefaults({
@@ -88,6 +93,11 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
     onClose()
     router.refresh()
   }
+
+  // Gjennomført dagbok-økt → oversikt først (planlagt/ikke gjennomført →
+  // skjemaet direkte, som før).
+  const showOverview = state.kind === 'edit' && state.formMode === 'dagbok'
+    && !!defaults?.is_completed && !showEditForm
 
   const handleDelete = () => {
     if (state.kind !== 'edit') return
@@ -140,6 +150,17 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             )}
           </div>
           <div className="flex items-center gap-2">
+            {showOverview && !readOnly && (
+              <button type="button" onClick={() => setShowEditForm(true)}
+                className="px-3 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)',
+                  background: 'none', border: '1px solid var(--accent)', borderRadius: 9,
+                  minHeight: '36px', cursor: 'pointer', fontWeight: 700,
+                }}>
+                ✎ Rediger
+              </button>
+            )}
             {state.kind === 'edit' && !readOnly && (
               <button type="button" onClick={handleDelete} disabled={deleting}
                 className="px-3 text-xs tracking-widest uppercase"
@@ -167,6 +188,29 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           <div style={{ padding: 60, textAlign: 'center', color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>
             Laster...
           </div>
+        ) : showOverview ? (
+          <>
+            <WorkoutOverview
+              data={defaults}
+              onEdit={() => setShowEditForm(true)}
+              canEdit={!readOnly}
+              equipment={equipment}
+              equipmentIds={equipmentIds}
+              heartZones={heartZones}
+            />
+            {state.kind === 'edit' && athleteId && (
+              <div className="px-4 pb-4">
+                <CommentSection
+                  athleteId={athleteId}
+                  context={state.formMode}
+                  scope="workout"
+                  periodKey={state.workoutId}
+                  viewerRole={readOnly ? 'coach' : 'athlete'}
+                  title={`Diskusjon med ${readOnly ? 'utøver' : 'trener'} — denne økta`}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <>
             <WorkoutForm

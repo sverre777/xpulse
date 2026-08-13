@@ -641,7 +641,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const states = dayStatesByDate[dateStr] ?? []
   const stateBg = stateBgFor(states)
   const borderStyle = stateBorderFor(states)
-  const baseBg = isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : 'transparent'
+  const baseBg = isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : '#0D0D11'
 
   // Drop-sone for dra-og-slipp: slippes en økt her flyttes den til denne dagen.
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `day:${dateStr}`, data: { date: dateStr } })
@@ -653,13 +653,14 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       tabIndex={0}
       onClick={onToggle}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
-      className="text-left border-l w-full min-h-[140px] sm:min-h-[150px] flex flex-col"
+      className="text-left w-full min-h-[140px] sm:min-h-[150px] flex flex-col"
       style={{
         // minWidth: 0 lar grid-cellen krympe under sitt innhold (default er
         // min-width:auto = min-content) — sammen med minmax(0,1fr) på sporet
         // hindrer dette at lange øktnavn presser cellen ut over skjermbredden.
         minWidth: 0,
-        borderColor: '#1A1A1E',
+        border: `1px solid ${isToday ? 'var(--accent)' : 'var(--line)'}`,
+        borderRadius: 10,
         borderLeftStyle: borderStyle ?? 'solid',
         background: isOver ? 'rgba(255,69,0,0.14)' : (stateBg ?? baseBg),
         opacity: isCurrentMonth ? 1 : 0.3,
@@ -892,7 +893,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 : undefined,
               scrollbarWidth: 'thin',
             }}>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '3px 8px' }}>
                 {/* Days */}
                 {week.map(date => {
                   const ds = toISO(date)

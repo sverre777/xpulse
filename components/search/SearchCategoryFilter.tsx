@@ -30,7 +30,7 @@ export function SearchCategoryFilter({ options, active, onChange, accent }: Prop
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               padding: '6px 12px',
-              border: `1px solid ${isActive ? accent : '#1E1E22'}`,
+              border: `1px solid ${isActive ? accent : 'var(--line)'}`,
               backgroundColor: isActive ? accent : 'transparent',
               color: isActive ? '#F0F0F2' : '#8A8A96',
               cursor: 'pointer',

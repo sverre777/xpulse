@@ -61,7 +61,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
   return (
     <div
       className="px-4 py-3 flex flex-col gap-3"
-      style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0B0B0D' }}
+      style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0B0B0D' }}
     >
       <div>
         <p
@@ -80,7 +80,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '4px 10px',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--line)',
                 backgroundColor: 'transparent',
                 color: '#8A8A96',
                 cursor: 'pointer',
@@ -98,8 +98,8 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
             className="text-sm px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22',
-              border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card2)',
+              border: '1px solid var(--line)',
               color: '#F0F0F2',
               outline: 'none',
             }}
@@ -112,8 +112,8 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
             className="text-sm px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22',
-              border: '1px solid #1E1E22',
+              backgroundColor: 'var(--card2)',
+              border: '1px solid var(--line)',
               color: '#F0F0F2',
               outline: 'none',
             }}
@@ -140,7 +140,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   padding: '4px 10px',
-                  border: `1px solid ${active ? accent : '#1E1E22'}`,
+                  border: `1px solid ${active ? accent : 'var(--line)'}`,
                   backgroundColor: active ? accent : 'transparent',
                   color: active ? '#F0F0F2' : '#8A8A96',
                   cursor: 'pointer',

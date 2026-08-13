@@ -37,7 +37,7 @@ export function SearchActiveFiltersChips({ filters, onChange }: Props) {
   if (chips.length === 0) return null
 
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-2" style={{ borderBottom: '1px solid #1E1E22' }}>
+    <div className="flex flex-wrap gap-2 px-4 py-2" style={{ borderBottom: '1px solid var(--line)' }}>
       {chips.map(c => (
         <button
           key={c.key}
@@ -47,8 +47,8 @@ export function SearchActiveFiltersChips({ filters, onChange }: Props) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             padding: '4px 8px',
-            border: '1px solid #1E1E22',
-            backgroundColor: '#1A1A22',
+            border: '1px solid var(--line)',
+            backgroundColor: 'var(--card2)',
             color: '#F0F0F2',
             cursor: 'pointer',
           }}

@@ -130,13 +130,13 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
         className="w-full max-w-2xl flex flex-col"
         style={{
           backgroundColor: '#0E0E10',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
           maxHeight: 'calc(100vh - 96px)',
         }}
       >
         <div
           className="flex items-center gap-2 px-4 py-3"
-          style={{ borderBottom: '1px solid #1E1E22' }}
+          style={{ borderBottom: '1px solid var(--line)' }}
         >
           <SearchGlyph color="#8A8A96" />
           <input
@@ -167,7 +167,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           </button>
         </div>
 
-        <div className="px-4 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--line)' }}>
           <SearchCategoryFilter
             options={options}
             active={activeCategory}
@@ -178,7 +178,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
 
         <div
           className="flex items-center justify-between gap-3 px-4 py-2"
-          style={{ borderBottom: '1px solid #1E1E22' }}
+          style={{ borderBottom: '1px solid var(--line)' }}
         >
           <SearchSortDropdown value={sort} onChange={setSort} />
           <button
@@ -189,7 +189,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               padding: '4px 10px',
-              border: `1px solid ${filterCount > 0 ? accent : '#1E1E22'}`,
+              border: `1px solid ${filterCount > 0 ? accent : 'var(--line)'}`,
               backgroundColor: 'transparent',
               color: filterCount > 0 ? accent : '#8A8A96',
               cursor: 'pointer',

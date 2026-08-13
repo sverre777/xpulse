@@ -64,8 +64,10 @@ export function UserMenu({ userName, accent }: Props) {
             top: 'calc(100% + 8px)',
             right: 0,
             minWidth: '200px',
-            backgroundColor: '#0E0E10',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
+            borderRadius: 12,
+            overflow: 'hidden',
             zIndex: 50,
             display: 'flex',
             flexDirection: 'column',
@@ -75,7 +77,7 @@ export function UserMenu({ userName, accent }: Props) {
             <div
               style={{
                 padding: '12px 14px',
-                borderBottom: '1px solid #1E1E22',
+                borderBottom: '1px solid var(--line)',
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#F0F0F2',
                 fontSize: '14px',

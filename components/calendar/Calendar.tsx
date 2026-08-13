@@ -10,6 +10,7 @@ import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
+import { XpTooltip } from '@/components/analysis/chart-theme'
 import { getCalendarWorkouts, reorderWorkouts, moveWorkout } from '@/app/actions/workouts'
 import {
   DndContext, DragOverlay, MouseSensor, TouchSensor, useSensor, useSensors,
@@ -1680,37 +1681,204 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
 // ── Year view ──────────────────────────────────────────────
 
-function YearView({ year, byDate, mode, onSelectMonth }: {
+// Antall konkurranser i et datospenn — samme tellings-/modusregler som resten
+// (filterByMode + includeInSum), kun workout_type 'competition'.
+function countCompetitions(
+  byDate: Record<string, CalendarWorkoutSummary[]>,
+  dates: string[],
+  mode: CalendarMode,
+): number {
+  let n = 0
+  for (const ds of dates) {
+    for (const w of filterByMode(byDate[ds] ?? [], mode)) {
+      if (includeInSum(w, mode) && w.workout_type === 'competition') n++
+    }
+  }
+  return n
+}
+
+// Delta-pil mot forrige år (grønn/rød) — vises kun når forrige år har data.
+function YearDelta({ current, previous }: { current: number; previous: number }) {
+  if (previous <= 0) return null
+  const delta = pctChange(current, previous)
+  if (delta == null) return null
+  return (
+    <span style={{
+      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fontWeight: 600,
+      color: delta >= 0 ? '#28A86E' : '#E23A5A', marginLeft: 6,
+    }}>
+      {delta >= 0 ? '↑' : '↓'} {Math.abs(delta)}%
+    </span>
+  )
+}
+
+function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
   year: number
   byDate: Record<string, CalendarWorkoutSummary[]>
+  prevByDate: Record<string, CalendarWorkoutSummary[]>
   mode: CalendarMode
   onSelectMonth: (m: number) => void
 }) {
+  const [hoverMonth, setHoverMonth] = useState<number | null>(null)
+
+  const yearDates = rangeDates(new Date(year, 0, 1), new Date(year, 11, 31))
+  const prevYearDates = rangeDates(new Date(year - 1, 0, 1), new Date(year - 1, 11, 31))
+  const yearAgg = aggregateRange(byDate, yearDates, mode)
+  // prevByDate holder forrige ÅR kun i års-visning (getPrevRange) — datoene
+  // under slår uansett bare opp i fjorårets nøkler, så feil periode gir 0.
+  const prevAgg = aggregateRange(prevByDate, prevYearDates, mode)
+  const yearSports = sportBreakdown(byDate, yearDates, mode)
+  const compCount = countCompetitions(byDate, yearDates, mode)
+  const prevCompCount = countCompetitions(prevByDate, prevYearDates, mode)
+  const yearZoneTotal = ALL_ZONE_NAMES.reduce((s, k) => s + (yearAgg.zoneSeconds[k] ?? 0), 0)
+  const yearKm = yearAgg.meters > 0 ? Math.round((yearAgg.meters / 1000) * 10) / 10 : 0
+  const fmtSec = (secs: number) => fmtDuration(Math.round(secs / 60)) ?? '0m'
+
   return (
     <div>
-      {/* Ingen års-banner her: Analyse-overlay øverst dekker både Dagbok og Plan,
-          og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
+      {/* ── Årssammendrag — samme statstripe-språk som analysepanelet ── */}
+      <div className="px-4 md:px-6 pt-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,#131318,#0E0E12)', borderColor: 'var(--line)' }}>
+          <div style={{ padding: '12px 16px' }}>
+            <span className="xp-k">Total tid</span>
+            <div className="xp-v" style={{ fontSize: 26 }}>
+              {yearAgg.seconds > 0 ? fmtSec(yearAgg.seconds) : '—'}
+              <YearDelta current={yearAgg.seconds} previous={prevAgg.seconds} />
+            </div>
+          </div>
+          <div style={{ padding: '12px 16px' }}>
+            <span className="xp-k">Km</span>
+            <div className="xp-v" style={{ fontSize: 26 }}>
+              {yearKm > 0 ? yearKm.toLocaleString('nb-NO') : '—'}
+              <YearDelta current={yearAgg.meters} previous={prevAgg.meters} />
+            </div>
+          </div>
+          <div style={{ padding: '12px 16px' }}>
+            <span className="xp-k">Økter</span>
+            <div className="xp-v" style={{ fontSize: 26 }}>
+              {yearAgg.sessions}
+              <YearDelta current={yearAgg.sessions} previous={prevAgg.sessions} />
+            </div>
+          </div>
+          <div style={{ padding: '12px 16px' }}>
+            <span className="xp-k">Konkurranser</span>
+            <div className="xp-v" style={{ fontSize: 26 }}>
+              {compCount}
+              <YearDelta current={compCount} previous={prevCompCount} />
+            </div>
+          </div>
+        </div>
+
+        {yearAgg.seconds > 0 && (
+          <div className="mt-3">
+            <span className="xp-k">Soner {year}</span>
+            <div className="mt-1">
+              <AggZoneBar zoneSeconds={yearAgg.zoneSeconds} height={8} otherSeconds={yearAgg.seconds - yearZoneTotal} />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              {ALL_ZONE_NAMES.map(k => {
+                const secs = yearAgg.zoneSeconds[k] ?? 0
+                if (secs <= 0) return null
+                const pct = yearZoneTotal > 0 ? Math.round((secs / yearZoneTotal) * 100) : 0
+                return (
+                  <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#C9C9D4' }}>
+                    <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: ZONE_COLORS_V2[k], marginRight: 5 }} />
+                    {k} <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtSec(secs)}</b>
+                    <span style={{ color: '#55555F' }}> {pct}%</span>
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {yearSports.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {yearSports.slice(0, 6).map(sp => (
+              <span key={sp.label}
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 8, padding: '4px 10px' }}>
+                {sp.label} · <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtSec(sp.seconds)}</b>
+              </span>
+            ))}
+            {yearSports.length > 6 && (
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#55555F', padding: '4px 4px' }}>
+                +{yearSports.length - 6} andre
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Månedsceller: 1 kol mobil, 3 tablet, 4 desktop ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
       {MONTHS_NO.map((name, mi) => {
-        const agg = aggregateRange(byDate, iterMonthDates(year, mi + 1), mode)
+        const dates = iterMonthDates(year, mi + 1)
+        const agg = aggregateRange(byDate, dates, mode)
         const mins = Math.round(agg.seconds / 60)
         const km = fmtKm(agg.meters)
+        const monthSports = mins > 0 ? sportBreakdown(byDate, dates, mode) : []
+        const zoneTotal = ALL_ZONE_NAMES.reduce((s, k) => s + (agg.zoneSeconds[k] ?? 0), 0)
         return (
           <button key={name} type="button" onClick={() => onSelectMonth(mi + 1)}
-            className="text-left p-3 transition-colors hover:opacity-80"
-            style={{ backgroundColor: '#0D0D11', border: 'none', cursor: 'pointer' }}>
+            className="text-left p-3 transition-colors hover:opacity-90"
+            style={{ backgroundColor: '#0D0D11', border: 'none', cursor: 'pointer', opacity: mins > 0 ? 1 : 0.45, position: 'relative' }}>
             <div className="text-xs tracking-widest uppercase mb-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{name}</div>
             {mins > 0 ? (
               <>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '20px', lineHeight: 1 }}>{fmtDuration(mins)}</div>
-                {km && (
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>{km}</div>
-                )}
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px' }}>{agg.sessions} økt{agg.sessions !== 1 ? 'er' : ''}</div>
-                <div className="mt-1.5">
-                  <AggZoneBar zoneSeconds={agg.zoneSeconds} height={4} />
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '22px', lineHeight: 1 }}>{fmtDuration(mins)}</span>
+                  {km && (
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C9C9D4', fontSize: '13px' }}>{km}</span>
+                  )}
                 </div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>{agg.sessions} økt{agg.sessions !== 1 ? 'er' : ''}</div>
+                {/* Sonebar m/ hover-tooltip (XpTooltip fra graf-temaet) */}
+                <div className="mt-1.5"
+                  onMouseEnter={() => setHoverMonth(mi)}
+                  onMouseLeave={() => setHoverMonth(h => (h === mi ? null : h))}>
+                  <AggZoneBar zoneSeconds={agg.zoneSeconds} height={5} otherSeconds={agg.seconds - zoneTotal} />
+                  {hoverMonth === mi && zoneTotal > 0 && (
+                    <div style={{ position: 'absolute', zIndex: 30, left: 8, bottom: '55%', pointerEvents: 'none' }}>
+                      <XpTooltip active label={`${name} ${year}`}
+                        payload={ALL_ZONE_NAMES.filter(k => (agg.zoneSeconds[k] ?? 0) > 0).map(k => ({
+                          name: k,
+                          value: fmtSec(agg.zoneSeconds[k] ?? 0),
+                          color: ZONE_COLORS_V2[k],
+                        }))} />
+                    </div>
+                  )}
+                </div>
+                {/* Kompakte sonetider under baren */}
+                {zoneTotal > 0 && (
+                  <div className="flex flex-wrap gap-x-2 mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', lineHeight: '15px' }}>
+                    {ALL_ZONE_NAMES.map(k => {
+                      const secs = agg.zoneSeconds[k] ?? 0
+                      if (secs <= 0) return null
+                      return (
+                        <span key={k} style={{ color: '#A9A9B5' }}>
+                          <span style={{ color: ZONE_COLORS_V2[k], fontWeight: 600 }}>{k}</span> {fmtSec(secs)}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+                {/* Topp 3 bevegelsesformer */}
+                {monthSports.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {monthSports.slice(0, 3).map(sp => (
+                      <span key={sp.label}
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#A9A9B5', border: '1px solid var(--line2)', borderRadius: 6, padding: '1px 6px' }}>
+                        {sp.label} {fmtSec(sp.seconds)}
+                      </span>
+                    ))}
+                    {monthSports.length > 3 && (
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#55555F', padding: '1px 2px' }}>
+                        +{monthSports.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#2A2A30', fontSize: '13px' }}>—</div>
@@ -2034,6 +2202,10 @@ export function Calendar({
       const p = new Date(ref.getFullYear(), ref.getMonth() - 1, 15)
       return getDateRange('måned', p)
     }
+    // År: forrige kalenderår — driver årssammendragets delta i YearView.
+    if (v === 'år') {
+      return getDateRange('år', new Date(ref.getFullYear() - 1, 5, 15))
+    }
     return null
   }
 
@@ -2244,7 +2416,7 @@ export function Calendar({
         />
       )}
       {view === 'år' && (
-        <YearView year={year} byDate={byDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />
+        <YearView year={year} byDate={byDate} prevByDate={prevByDate} mode={mode} onSelectMonth={m => goToMonth(year, m)} />
       )}
     </div>
     {modalState !== null && (

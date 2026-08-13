@@ -15,6 +15,8 @@ import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
 import { localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
+import { rangeFromPreset } from '@/components/analysis/date-range'
 
 interface Props {
   viewContext: ViewContext
@@ -160,6 +162,22 @@ export async function DagbokPageView({ viewContext }: Props) {
             />
           </Suspense>
         </div>
+
+        {/* Plan vs. gjennomført — custom-grafen under kalenderen. Starter i
+            «Begge»/måned/siste 12 mnd; brukeren kan endre alt selv. */}
+        <div className="flex items-center gap-3 mb-4 mt-8">
+          <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+            Plan vs. gjennomført
+          </h2>
+        </div>
+        <CustomBreakdownChart
+          analysisRange={rangeFromPreset('12m')}
+          initialView="both"
+          initialGrouping="month"
+          initialPreset="12m"
+          targetUserId={targetId}
+        />
 
       </div>
     </div>

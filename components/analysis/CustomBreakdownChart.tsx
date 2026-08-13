@@ -235,18 +235,26 @@ interface Props {
   // 'completed' (default) viser gjennomførte økter; 'planned' viser
   // planlagte økter (is_planned=true) — brukes i Plan-side-snippets.
   mode?: 'completed' | 'planned'
+  // Startvalg for kontrollene — brukeren kan endre alt selv etterpå.
+  // Dagbok-kalenderen bruker begge/måned/12m.
+  initialView?: 'completed' | 'planned' | 'both'
+  initialGrouping?: CustomBreakdownGrouping
+  initialPreset?: PresetKey | 'inherit'
+  // Trener-drilldown: hent utøverens data (resolveTargetUser sjekker tilgang).
+  targetUserId?: string
 }
 
 type BreakdownViewMode = 'completed' | 'planned' | 'both'
 
-export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Props) {
-  const [grouping, setGrouping] = useState<CustomBreakdownGrouping>('week')
-  const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>('inherit')
+export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId }: Props) {
+  const [grouping, setGrouping] = useState<CustomBreakdownGrouping>(initialGrouping ?? 'week')
+  const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>(initialPreset ?? 'inherit')
   const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(null)
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
   // Visning: gjennomført, planlagt eller begge (delte søyler side ved side).
-  // Init fra mode-propen så eksisterende brukssteder oppfører seg som før.
-  const [viewMode, setViewMode] = useState<BreakdownViewMode>(mode === 'planned' ? 'planned' : 'completed')
+  // Init fra initialView, ellers mode-propen så eksisterende brukssteder
+  // oppfører seg som før.
+  const [viewMode, setViewMode] = useState<BreakdownViewMode>(initialView ?? (mode === 'planned' ? 'planned' : 'completed'))
   const [dataCompleted, setDataCompleted] = useState<CustomBreakdown | null>(null)
   const [dataPlanned, setDataPlanned] = useState<CustomBreakdown | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -265,10 +273,10 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
       const wantPlanned = viewMode !== 'completed'
       const [resC, resP] = await Promise.all([
         wantCompleted
-          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, 'completed')
+          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, targetUserId, 'completed')
           : Promise.resolve(null),
         wantPlanned
-          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, 'planned')
+          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, targetUserId, 'planned')
           : Promise.resolve(null),
       ])
       if (resC && 'error' in resC) { setError(resC.error); return }
@@ -276,7 +284,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
       setDataCompleted(resC && !('error' in resC) ? resC : null)
       setDataPlanned(resP && !('error' in resP) ? resP : null)
     })
-  }, [effectiveRange.from, effectiveRange.to, grouping, viewMode])
+  }, [effectiveRange.from, effectiveRange.to, grouping, viewMode, targetUserId])
 
   // Primærdatasett for selektorer/lister (planlagt-visning bruker plan-data).
   const data = viewMode === 'planned' ? dataPlanned : dataCompleted

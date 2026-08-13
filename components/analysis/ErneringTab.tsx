@@ -43,7 +43,7 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
     return (
       <div className="p-8 text-center"
         style={{
-          background: '#13131A', border: '1px solid #1E1E22',
+          background: 'var(--card)', border: '1px solid #1E1E22',
           fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
         }}>
         <p style={{ fontSize: 16, marginBottom: 6, color: '#F0F0F2' }}>
@@ -129,7 +129,7 @@ function SummaryCards({ summary }: { summary: NutritionAnalysis['summary'] }) {
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
       {cards.map(c => (
         <div key={c.label} className="p-4"
-          style={{ background: '#13131A', border: '1px solid #1E1E22' }}>
+          style={{ background: 'var(--card)', border: '1px solid #1E1E22' }}>
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 11, letterSpacing: '0.16em',
@@ -166,7 +166,7 @@ function ChartCard({
 }) {
   return (
     <section className="p-5"
-      style={{ background: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ background: 'var(--card)', border: '1px solid #1E1E22' }}>
       <div className="flex items-center gap-3 mb-1">
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         <h3 style={{

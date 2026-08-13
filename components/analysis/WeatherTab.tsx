@@ -98,7 +98,7 @@ function GroupTable({ groups, showPace = false }: { groups: WeatherGroupStat[]; 
 
 function Section({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: '#13131A', border: '1px solid #1E1E22', padding: '16px 18px' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '16px 18px' }}>
       <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: 0 }}>{title}</h3>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '2px 0 12px', lineHeight: 1.5 }}>{hint}</p>
       {children}

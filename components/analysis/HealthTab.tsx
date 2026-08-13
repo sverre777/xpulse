@@ -166,7 +166,7 @@ function CorrelationScatter({
             tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
           <Tooltip contentStyle={TOOLTIP_STYLE}
-            cursor={{ stroke: '#1E1E22', strokeDasharray: '3 3' }}
+            cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
             formatter={(value, key) => {
               if (key === 'x') return [String(value), xLabel]
               if (key === 'y') return [String(value), yLabel]
@@ -348,7 +348,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5">
-            <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+            <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <p className="text-xs tracking-widest uppercase mb-2"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
                 Antall recovery-tiltak
@@ -367,7 +367,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
                   <CartesianGrid stroke={GRID_COLOR} horizontal={false} />
                   <XAxis type="number" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} allowDecimals={false} />
                   <YAxis type="category" dataKey="type" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={110} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
                   <Bar dataKey="count" fill="#28A86E" name="Antall" />
                 </BarChart>
               </ResponsiveContainer>
@@ -448,7 +448,7 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
 
   return (
     <div className="p-4 flex items-center justify-between gap-4 flex-wrap"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
@@ -614,7 +614,7 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
               allowDecimals={false} />
             <YAxis yAxisId="load" orientation="right" tick={AXIS_STYLE}
               axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
             <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
             <Bar yAxisId="sick" dataKey="sickness_days" fill="#E11D48" name="Sykdomsdager" />
             <Line yAxisId="load" type="monotone" dataKey="avg_load_hours" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} name="Snitt timer/treningsdag" />

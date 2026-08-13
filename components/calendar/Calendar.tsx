@@ -372,7 +372,7 @@ function WeekAnalysisStripe({
           {totalZoneSec > 0 && (
             <>
               <div className="hidden md:block flex-1 min-w-[120px]">
-                <AggZoneBar zoneSeconds={zoneSeconds} height={7} />
+                <AggZoneBar zoneSeconds={zoneSeconds} height={7} otherSeconds={totalSeconds - totalZoneSec} />
               </div>
               <span
                 className="text-xs tracking-wide"
@@ -394,12 +394,15 @@ function WeekAnalysisStripe({
 
 // Kompakt sonebar basert på aggregerte sekunder per sone (6 segmenter inkl. Hurtighet).
 function AggZoneBar({
-  zoneSeconds, height = 3,
+  zoneSeconds, height = 3, otherSeconds = 0,
 }: {
   zoneSeconds: Record<ExtendedZoneName, number>
   height?: number
+  // Treningstid uten sone-fordeling (styrke o.l.) — grått segment sist.
+  otherSeconds?: number
 }) {
-  const total = ALL_ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
+  const zoneTotal = ALL_ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
+  const total = zoneTotal + Math.max(0, otherSeconds)
   if (total <= 0) return null
   return (
     <div className="flex w-full overflow-hidden"
@@ -413,6 +416,11 @@ function AggZoneBar({
             style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
         )
       })}
+      {otherSeconds > 0 && (
+        <div
+          title={`Uten soner (styrke o.l.): ${Math.round(otherSeconds / 60)}min`}
+          style={{ width: `${(otherSeconds / total) * 100}%`, backgroundColor: '#3A3A42' }} />
+      )}
     </div>
   )
 }
@@ -892,7 +900,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
           under sitt min-content — uten dette sprenger lange Strava-øktnavn
           grid-bredden på mobil og dager sklir ut horisontalt. */}
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>

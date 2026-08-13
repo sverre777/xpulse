@@ -106,7 +106,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       style={{
         position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-        paddingTop: '12px', paddingBottom: '12px', overflowY: 'auto',
+        // Ingen paddingTop: sticky-headeren skal pinne HELT i toppen ved
+        // scroll (padding ga gap der siden bak skinte gjennom). Avstanden i
+        // ro-tilstand ligger som marginTop på kortet i stedet.
+        paddingBottom: '12px', overflowY: 'auto',
       }}
     >
       <div
@@ -115,7 +118,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           backgroundColor: 'var(--bg-primary)', border: '1px solid var(--line)',
           borderRadius: 'var(--r-card)',
           maxWidth: '820px', width: '100%', position: 'relative',
-          margin: '0 auto', marginBottom: '24px',
+          margin: '0 auto', marginTop: '12px', marginBottom: '24px',
           // 'clip' (ikke 'hidden'): hidden gjør kortet til scroll-container og
           // dreper sticky header/savebar — de skal feste seg til overlayens
           // scrollport. clip kutter horisontal bleed uten den bivirkningen.

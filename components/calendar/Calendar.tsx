@@ -740,7 +740,7 @@ function CalendarAnalysisPanel({
                 {agg.seconds - zoneTotal > 0 && (
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#C9C9D4' }}>
                     <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: '#3A3A44', marginRight: 5 }} />
-                    Uten soner <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(agg.seconds - zoneTotal)}</b>
+                    Annet <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(agg.seconds - zoneTotal)}</b>
                   </span>
                 )}
               </div>

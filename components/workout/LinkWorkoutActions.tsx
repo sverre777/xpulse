@@ -163,17 +163,20 @@ export function LinkWorkoutActions({
         </button>
       )}
 
+      {/* Koble-knappene holdes bevisst diskrete (bruker-ønske): små, dempet
+          ghost-stil — funksjonen finnes, men skal ikke konkurrere med
+          hoved-CTA-ene. */}
       {showLinkButton && hasCandidates === true && (
         <button type="button"
           onClick={() => setShowPicker(true)}
           disabled={busy}
-          className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[#8A8A96]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent', color: '#1A6FD4',
-            border: '1px solid #1A6FD4',
+            backgroundColor: 'transparent', color: '#55555F',
+            border: '1px solid var(--line2)', borderRadius: 8,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-            minHeight: '38px',
+            minHeight: '30px', fontSize: '11px',
           }}>
           {linkButtonLabel}
         </button>
@@ -183,13 +186,13 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={handleUnlink}
           disabled={busy}
-          className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[#8A8A96]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent', color: '#8A8A96',
-            border: '1px solid #8A8A96',
+            backgroundColor: 'transparent', color: '#55555F',
+            border: '1px solid var(--line2)', borderRadius: 8,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-            minHeight: '38px',
+            minHeight: '30px', fontSize: '11px',
           }}>
           ↺ Fjern kobling
         </button>

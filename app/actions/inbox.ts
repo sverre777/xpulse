@@ -653,16 +653,17 @@ export async function getAvailableRecipients(): Promise<
 
   // Samle ider fra tre kilder i parallell.
   const [coachesRes, athletesRes, groupMembershipRes] = await Promise.all([
-    // Mine trenere (hvis jeg er utøver)
-    viewer.hasAthleteRole
+    // Mine trenere — kun i UTØVER-modus (innboksen er per aktiv rolle;
+    // dual-rolle-brukere skal ikke se trener-relasjonene sine her).
+    viewer.activeRole === 'athlete'
       ? supabase
           .from('coach_athlete_relations')
           .select('coach_id')
           .eq('athlete_id', viewer.userId)
           .eq('status', 'active')
       : Promise.resolve({ data: [], error: null } as const),
-    // Mine utøvere (hvis jeg er trener)
-    viewer.hasCoachRole
+    // Mine utøvere — kun i TRENER-modus.
+    viewer.activeRole === 'coach'
       ? supabase
           .from('coach_athlete_relations')
           .select('athlete_id')

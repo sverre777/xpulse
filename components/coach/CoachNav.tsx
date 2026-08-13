@@ -41,7 +41,8 @@ const MOBILE_LINKS = [
   ...NAV_LINKS,
 ]
 
-const BREAKPOINT = 900
+// Hamburger litt tidligere enn før (900) — samme terskel som MainNav.
+const BREAKPOINT = 1000
 
 export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier = true, unreadInboxCount = 0 }: CoachNavProps) {
   const pathname = usePathname()
@@ -350,7 +351,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 key={href}
                 href={href}
                 title={label}
-                className="px-3 xl:px-4 flex items-center gap-2 text-sm uppercase transition-colors"
+                className="px-3 min-[1400px]:px-4 flex items-center gap-2 text-sm uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
@@ -364,8 +365,8 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 }}
               >
                 {Glyph ? <Glyph size={18} /> : null}
-                <span className="hidden xl:inline">{label}</span>
-                <span className="xl:hidden sr-only">{label}</span>
+                <span className="hidden min-[1400px]:inline">{label}</span>
+                <span className="min-[1400px]:hidden sr-only">{label}</span>
               </Link>
             )
           })}

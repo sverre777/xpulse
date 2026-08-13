@@ -137,6 +137,7 @@ export function MainNav({
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '38px', height: '38px',
                   backgroundColor: accent, color: '#F0F0F2',
+                  borderRadius: 999,
                   textDecoration: 'none',
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600, fontSize: '24px', lineHeight: 1,

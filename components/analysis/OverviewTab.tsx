@@ -6,9 +6,12 @@ import {
   LineChart, Line, Legend,
 } from 'recharts'
 import type { WorkoutStats, AnalysisOverview, OverviewZoneSeconds, MovementBreakdownRow, OverviewWeekDistribution } from '@/app/actions/analysis'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { getMyVolumePlansForDateRange, type MonthlyVolumePlan } from '@/app/actions/volume-plans'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
+  CHART_LEGEND_STYLE, CHART_CURSOR, BAR_RADIUS, CHART_LINE_WIDTH,
+} from './chart-theme'
 import { MetricCard } from './MetricCard'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
@@ -85,7 +88,7 @@ function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
         {keys.map(k => {
           const pct = (zones[k] / total) * 100
           if (pct <= 0) return null
-          return <div key={k} style={{ width: `${pct}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+          return <div key={k} style={{ width: `${pct}%`, backgroundColor: CHART_ZONE_COLORS[k] }} />
         })}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
@@ -95,7 +98,7 @@ function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
           return (
             <span key={k} className="text-xs tracking-wider"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-              <span style={{ display: 'inline-block', width: 8, height: 8, backgroundColor: ZONE_COLORS_V2[k], marginRight: 4 }} />
+              <span style={{ display: 'inline-block', width: 8, height: 8, backgroundColor: CHART_ZONE_COLORS[k], marginRight: 4 }} />
               {k} {Math.round(pct)}%
             </span>
           )
@@ -424,14 +427,14 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={weekly}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} allowDecimals={false} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} allowDecimals={false} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Bar dataKey="training_days" stackId="days" fill="#FF4500" name="Trening" />
             <Bar dataKey="rest_days" stackId="days" fill="#28A86E" name="Hvile" />
-            <Bar dataKey="sickness_days" stackId="days" fill="#E11D48" name="Sykdom" />
+            <Bar dataKey="sickness_days" stackId="days" fill="#E23A5A" name="Sykdom" />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -446,11 +449,11 @@ export function OverviewHoursPerWeek({ stats }: { stats: WorkoutStats }) {
       subtitle={`Totalt: ${secondsToHours(stats.totalSeconds)} t · ${stats.totalSessions} økter`}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={timeData}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-          <Bar dataKey="hours" name="Timer" fill="#FF4500" />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} />
+          <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+          <Bar dataKey="hours" name="Timer" fill="#FF4500" radius={BAR_RADIUS} />
         </BarChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -472,13 +475,13 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
     <ChartWrapper chartKey="overview_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter — OLT I-skala">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={zoneData}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+          <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           {ZONE_KEYS.map(z => (
-            <Bar key={z} dataKey={z} stackId="zones" fill={ZONE_COLORS_V2[z]} />
+            <Bar key={z} dataKey={z} stackId="zones" fill={CHART_ZONE_COLORS[z]} />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -505,11 +508,11 @@ export function OverviewKmPerMovement({ stats }: { stats: WorkoutStats }) {
       ) : (
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={movementData}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {stats.movementNames.map((name, i) => (
               <Bar key={name} dataKey={name} stackId="km" fill={paletteFor(i)} />
             ))}
@@ -527,11 +530,11 @@ export function OverviewIntensiveSessions({ stats }: { stats: WorkoutStats }) {
       subtitle="Intervall, terskel, hard komb, testløp, konkurranse">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={intensityData}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32} allowDecimals={false} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: 'var(--line)' }} />
-          <Line type="monotone" dataKey="intensiveCount" name="Økter" stroke="#FF4500" strokeWidth={2} dot={{ fill: '#FF4500', r: 3 }} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} allowDecimals={false} />
+          <Tooltip content={<XpTooltip />} cursor={{ stroke: 'var(--line)' }} />
+          <Line type="monotone" dataKey="intensiveCount" name="Økter" stroke="#FF4500" strokeWidth={CHART_LINE_WIDTH} dot={{ fill: '#FF4500', r: 3 }} />
         </LineChart>
       </ResponsiveContainer>
     </ChartWrapper>

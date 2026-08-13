@@ -249,7 +249,7 @@ export function CompetitionsTab({
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: typeFilter.has(t.value) ? '#1E1E22' : '#0A0A0B',
+                backgroundColor: typeFilter.has(t.value) ? 'var(--line)' : '#0A0A0B',
                 border: '1px solid #1E1E22',
                 color: typeFilter.has(t.value) ? '#F0F0F2' : '#555560',
                 minHeight: '36px',
@@ -368,7 +368,7 @@ export function CompetitionsTab({
                     tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
                     width={36} allowDecimals={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE}
-                    cursor={{ stroke: '#1E1E22', strokeDasharray: '3 3' }}
+                    cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
                     formatter={(value, key) => {
                       if (key === 'x') return [formatEpochAxis(Number(value)), 'Dato']
                       if (key === 'y') return [String(value), 'Plass']

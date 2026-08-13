@@ -38,7 +38,7 @@ function formatEpochAxis(ms: number): string {
 // Stacked mini zone bar showing % distribution across zones.
 function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: number }) {
   const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet
-  if (total === 0) return <div style={{ height, backgroundColor: '#1E1E22' }} />
+  if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   return (
     <div style={{ display: 'flex', width: '100%', height, backgroundColor: '#0A0A0B' }}>
@@ -89,7 +89,7 @@ function TemplateRow({
   onToggle: () => void
 }) {
   return (
-    <div style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <button
         type="button"
         onClick={onToggle}
@@ -180,7 +180,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
       </div>
 
       {/* Avg zones bar */}
-      <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <p className="text-xs tracking-widest uppercase mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Snitt-sonefordeling (per gjennomføring)
@@ -296,7 +296,7 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
   }
 
   return (
-    <div className="overflow-x-auto" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
           <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>

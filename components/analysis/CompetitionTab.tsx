@@ -175,7 +175,7 @@ export function CompetitionTab({
               className="px-3 py-1 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: typeFilter.has(t.value) ? '#1E1E22' : '#0A0A0B',
+                backgroundColor: typeFilter.has(t.value) ? 'var(--line)' : '#0A0A0B',
                 border: '1px solid #1E1E22',
                 color: typeFilter.has(t.value) ? '#F0F0F2' : '#555560',
               }}
@@ -252,7 +252,7 @@ export function CompetitionTab({
                   />
                   <Tooltip
                     contentStyle={TOOLTIP_STYLE}
-                    cursor={{ stroke: '#1E1E22', strokeDasharray: '3 3' }}
+                    cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
                     formatter={(value, key) => {
                       if (key === 'x') return [formatEpochAxis(Number(value)), 'Dato']
                       if (key === 'y') return [String(value), 'Plass']
@@ -352,7 +352,7 @@ export function CompetitionTab({
                         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
                         <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
                         <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} formatter={(v) => [`${v}s`, 'Snitt/serie']} />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} formatter={(v) => [`${v}s`, 'Snitt/serie']} />
                         <Bar dataKey="avgPerSeries" name="Snitt/serie" fill="#FF4500" />
                       </BarChart>
                     </ResponsiveContainer>

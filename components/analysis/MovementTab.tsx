@@ -273,7 +273,7 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
           <CartesianGrid stroke={GRID_COLOR} vertical={false} />
           <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
           <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: '#1E1E22' }} />
+          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
           <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
           {ZONE_KEYS.map(z => (
             <Bar key={z} dataKey={z} stackId="zones" fill={ZONE_COLORS_V2[z]} />
@@ -303,7 +303,7 @@ function MovementBest({ data, movement }: { data: MovementAnalysis; movement: st
   if (rows.length === 0) return null
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         Beste prestasjoner i perioden
@@ -414,7 +414,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
 
   if (ELEVATION_MOVEMENTS.has(movement)) {
     return (
-      <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <p className="text-xs tracking-widest uppercase mb-2"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Høydemeter / sekkvekt

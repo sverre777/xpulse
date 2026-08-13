@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
-import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
@@ -54,10 +53,11 @@ export async function PlanPageView({ viewContext }: Props) {
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
   const [
-    rawWorkouts, { data: profile }, templates, heartZones,
+    rawWorkouts, prevRawWorkouts, { data: profile }, templates, heartZones,
     weekNotes, monthNotes, periodization, dayStatesRes, activityTypeFavorites,
   ] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
+    getWorkoutsForMonth(userId, month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1),
     supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', userId).single(),
     getTemplates(targetId),
     getHeartZonesForUserCached(userId),
@@ -84,6 +84,7 @@ export async function PlanPageView({ viewContext }: Props) {
   }
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
+  const prevWorkoutsByDate = parseWorkoutsByDate(prevRawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh', overflowX: 'hidden' }}>
@@ -133,6 +134,7 @@ export async function PlanPageView({ viewContext }: Props) {
               initialView="måned"
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}
+              initialPrevWorkoutsByDate={prevWorkoutsByDate}
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
               initialDayStates={dayStatesByDate}
@@ -147,8 +149,6 @@ export async function PlanPageView({ viewContext }: Props) {
           <PlanGoalsSection season={activeSeason} keyDates={seasonKeyDates} todayISO={today} />
           <PlanPhasesSection season={activeSeason} periods={seasonPeriods} todayISO={today} />
         </div>
-
-        <CalendarAnalysisSnippets mode="plan" targetUserId={targetId} />
 
       </div>
     </div>

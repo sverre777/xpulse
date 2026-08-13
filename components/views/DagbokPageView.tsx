@@ -4,7 +4,6 @@ import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/wor
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
-import { CalendarAnalysisSnippets } from '@/components/analysis/CalendarAnalysisSnippets'
 import { Sport, WorkoutTemplate } from '@/lib/types'
 import { RecoveryEntry } from '@/lib/recovery-types'
 import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
@@ -44,11 +43,12 @@ export async function DagbokPageView({ viewContext }: Props) {
   // Profil + favorittene har lavest avhengighet — parallelliser med resten
   // av Promise.all så vi ikke serialiserer på dem etter at de andre er ferdige.
   const [
-    rawWorkouts, healthRows, recoveryRows, templates, heartZones,
+    rawWorkouts, prevRawWorkouts, healthRows, recoveryRows, templates, heartZones,
     weekNotes, monthNotes, dayStatesRes,
     profileRes, activityTypeFavorites,
   ] = await Promise.all([
     getWorkoutsForMonth(userId, year, month),
+    getWorkoutsForMonth(userId, month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', userId)
       .gte('date', monthStart)
@@ -73,6 +73,7 @@ export async function DagbokPageView({ viewContext }: Props) {
   }
 
   const workoutsByDate = parseWorkoutsByDate(rawWorkouts as unknown as RawCalendarWorkout[], heartZones)
+  const prevWorkoutsByDate = parseWorkoutsByDate(prevRawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
   type HealthRow = { date: string; hrv_ms: number | null; resting_hr: number | null; sleep_hours: number | null; body_weight_kg: number | null }
   const healthData: Record<string, { hrv_ms?: number | null; resting_hr?: number | null; sleep_hours?: number | null; body_weight_kg?: number | null }> = {}
@@ -147,6 +148,7 @@ export async function DagbokPageView({ viewContext }: Props) {
               initialView="måned"
               initialDate={today}
               initialWorkoutsByDate={workoutsByDate}
+              initialPrevWorkoutsByDate={prevWorkoutsByDate}
               initialHealthData={healthData}
               initialRecoveryData={recoveryByDate}
               initialDayStates={dayStatesByDate}
@@ -157,8 +159,6 @@ export async function DagbokPageView({ viewContext }: Props) {
             />
           </Suspense>
         </div>
-
-        <CalendarAnalysisSnippets mode="dagbok" targetUserId={targetId} />
 
       </div>
     </div>

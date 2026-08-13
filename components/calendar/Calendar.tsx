@@ -79,6 +79,8 @@ export interface CalendarProps {
   initialView?: CalendarView
   initialDate?: string
   initialWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
+  /** Forrige periode (for analyse-panelets delta) — SSR-hydrert fra page-view. */
+  initialPrevWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
   initialHealthData?: Record<string, HealthSummary>
   initialRecoveryData?: Record<string, RecoveryEntry[]>
   heartZones?: HeartZone[]
@@ -594,6 +596,147 @@ const chipFirstCollision: CollisionDetection = (args) => {
   if (chip) return [chip]
   if (within.length > 0) return within
   return rectIntersection(args)
+}
+
+// ── Analyse-panel under kalenderen (del a av CC-kø #28) ──────────────
+// Samme aggregate()-kilde som ukestripene → tallene matcher EKSAKT.
+
+function rangeDates(start: Date, end: Date): string[] {
+  const out: string[] = []
+  const d = new Date(start)
+  while (d <= end) { out.push(toISO(d)); d.setDate(d.getDate() + 1) }
+  return out
+}
+
+function isoWeekNum(ref: Date): number {
+  const t = new Date(Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate()))
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7))
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1))
+  return Math.ceil((((t.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
+}
+
+// Samme delta-definisjon som hjem-siden (getOversiktDashboard.percentChange).
+function pctChange(current: number, previous: number): number | null {
+  if (previous <= 0) return current > 0 ? 100 : null
+  return Math.round(((current - previous) / previous) * 100)
+}
+
+function sportBreakdown(
+  byDate: Record<string, CalendarWorkoutSummary[]>,
+  dates: string[],
+  mode: CalendarMode,
+): { label: string; seconds: number }[] {
+  const acc = new Map<string, number>()
+  for (const ds of dates) {
+    for (const w of filterByMode(byDate[ds] ?? [], mode)) {
+      if (!includeInSum(w, mode)) continue
+      const label = w.primary_movement
+        ?? (SPORTS.find(sp => sp.value === w.sport)?.label ?? 'Annet')
+      acc.set(label, (acc.get(label) ?? 0) + secondsFor(w, mode))
+    }
+  }
+  return Array.from(acc.entries())
+    .map(([label, seconds]) => ({ label, seconds }))
+    .filter(x => x.seconds > 0)
+    .sort((a, b) => b.seconds - a.seconds)
+}
+
+function CalendarAnalysisPanel({
+  label, agg, prevSeconds, sports, analyseHref, showNoteButton,
+}: {
+  label: string
+  agg: AggregateTotals
+  prevSeconds: number | null
+  sports: { label: string; seconds: number }[]
+  analyseHref: string
+  showNoteButton: boolean
+}) {
+  const [open, setOpen] = useState(true)
+  const totalMins = Math.round(agg.seconds / 60)
+  const km = agg.meters > 0 ? Math.round((agg.meters / 1000) * 10) / 10 : 0
+  const zoneTotal = ALL_ZONE_NAMES.reduce((sum, k) => sum + (agg.zoneSeconds[k] ?? 0), 0)
+  const delta = prevSeconds != null ? pctChange(agg.seconds, prevSeconds) : null
+  const fmtT = (secs: number) => {
+    const m = Math.round(secs / 60)
+    const h = Math.floor(m / 60)
+    return h > 0 ? `${h}t ${m % 60 > 0 ? `${m % 60}min` : ''}`.trim() : `${m}min`
+  }
+
+  return (
+    <div style={{ margin: '14px 10px', border: '1px solid var(--line)', borderRadius: 'var(--r-card)', background: 'var(--card)', padding: '14px 16px' }}>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <span style={{ color: 'var(--accent)', fontSize: 11, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform .2s' }}>▼</span>
+        <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: '#F0F0F2' }}>
+          Analyse {label}
+        </span>
+        <span className="ml-auto text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          {open ? 'Skjul' : 'Vis'}
+        </span>
+      </button>
+
+      {open && (
+        <div className="mt-3">
+          <div className="grid grid-cols-3 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,#131318,#0E0E12)', borderColor: 'var(--line)' }}>
+            <div style={{ padding: '12px 16px' }}>
+              <span className="xp-k">Total tid</span>
+              <div className="xp-v" style={{ fontSize: 28 }}>{agg.seconds > 0 ? fmtT(agg.seconds) : '—'}</div>
+              {delta != null && (
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 600, color: delta >= 0 ? 'var(--green)' : '#E23A5A' }}>
+                  {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}% vs. forrige
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '12px 16px' }}>
+              <span className="xp-k">Km</span>
+              <div className="xp-v" style={{ fontSize: 28 }}>{km > 0 ? km.toLocaleString('nb-NO') : '—'}</div>
+            </div>
+            <div style={{ padding: '12px 16px' }}>
+              <span className="xp-k">Økter</span>
+              <div className="xp-v" style={{ fontSize: 28 }}>{agg.sessions}</div>
+            </div>
+          </div>
+
+          {agg.seconds > 0 && (
+            <div className="mt-3">
+              <span className="xp-k">Soner</span>
+              <div className="mt-1">
+                <AggZoneBar zoneSeconds={agg.zoneSeconds} height={8} otherSeconds={agg.seconds - zoneTotal} />
+              </div>
+            </div>
+          )}
+
+          {sports.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {sports.map(sp => (
+                <span key={sp.label}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 8, padding: '6px 12px' }}>
+                  {sp.label} · <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(sp.seconds)}</b>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2 mt-4 flex-wrap">
+            <Link href={analyseHref}
+              className="text-xs tracking-widest uppercase px-4 py-2"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 10, textDecoration: 'none' }}>
+              Se full analyse →
+            </Link>
+            {showNoteButton && (
+              <button type="button"
+                onClick={() => document.getElementById('xp-period-notat')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="text-xs tracking-widest uppercase px-4 py-2"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, cursor: 'pointer' }}>
+                + Notat for {label}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 // Dra-bar wrapper rundt WorkoutChip — registrerer økten som draggable i
@@ -1464,7 +1607,7 @@ function YearView({ year, byDate, mode, onSelectMonth }: {
 export function Calendar({
   mode, userId, primarySport, userSports, activityTypeFavorites, templates,
   initialView = 'måned', initialDate,
-  initialWorkoutsByDate = {}, initialHealthData = {},
+  initialWorkoutsByDate = {}, initialPrevWorkoutsByDate = {}, initialHealthData = {},
   initialRecoveryData = {},
   heartZones = [],
   initialWeekNote = '',
@@ -1490,6 +1633,7 @@ export function Calendar({
     return d ? new Date(d + 'T12:00:00') : new Date()
   })
   const [byDate, setByDate] = useState(initialWorkoutsByDate)
+  const [prevByDate, setPrevByDate] = useState(initialPrevWorkoutsByDate)
   const healthData = initialHealthData
   const healthDates = new Set(Object.keys(healthData))
   const recoveryData = initialRecoveryData
@@ -1615,13 +1759,17 @@ export function Calendar({
     }
   }, [searchParams, mode])
 
-  const fetchData = useCallback(async (start: Date, end: Date) => {
+  const fetchData = useCallback(async (start: Date, end: Date, prevStart?: Date, prevEnd?: Date) => {
     setLoading(true)
-    const [raw, statesRes] = await Promise.all([
+    const [raw, statesRes, prevRaw] = await Promise.all([
       getCalendarWorkouts(userId, toISO(start), toISO(end)),
       getDayStatesForRange(toISO(start), toISO(end), targetUserId),
+      prevStart && prevEnd
+        ? getCalendarWorkouts(userId, toISO(prevStart), toISO(prevEnd))
+        : Promise.resolve(null),
     ])
     setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[], heartZones))
+    if (prevRaw) setPrevByDate(parseWorkoutsByDate(prevRaw as unknown as RawCalendarWorkout[], heartZones))
     if (!('error' in statesRes)) {
       const map: Record<string, DayState[]> = {}
       for (const s of statesRes) {
@@ -1647,7 +1795,8 @@ export function Calendar({
 
   const refreshCalendar = useCallback(async () => {
     const { start, end } = getDateRange(view, refDate)
-    await fetchData(start, end)
+    const pr = getPrevRange(view, refDate)
+    await fetchData(start, end, pr?.start, pr?.end)
   }, [fetchData, view, refDate])
 
   // Dra-og-slipp: flytt en økt til ny dato (+ evt. tid). Optimistisk flytting i
@@ -1693,7 +1842,8 @@ export function Calendar({
       if (!restoredFromUrl) return
     }
     const { start, end } = getDateRange(view, refDate)
-    fetchData(start, end)
+    const pr = getPrevRange(view, refDate)
+    fetchData(start, end, pr?.start, pr?.end)
   }, [view, refDate.getFullYear(), refDate.getMonth(), refDate.getDate()]) // eslint-disable-line
 
   // Speil gjeldende visning + dato i URL-en (cv/cd) så en side-refresh lander
@@ -1746,6 +1896,19 @@ export function Calendar({
     })()
     return () => { cancelled = true }
   }, [mounted, showNotes, view, weekPeriodKey, monthPeriodKey, noteContext, targetUserId])
+
+  // Forrige periode for analyse-panelets delta (uke-7d / forrige måned).
+  function getPrevRange(v: CalendarView, ref: Date) {
+    if (v === 'uke') {
+      const p = new Date(ref); p.setDate(ref.getDate() - 7)
+      return getDateRange('uke', p)
+    }
+    if (v === 'måned') {
+      const p = new Date(ref.getFullYear(), ref.getMonth() - 1, 15)
+      return getDateRange('måned', p)
+    }
+    return null
+  }
 
   function getDateRange(v: CalendarView, ref: Date) {
     if (v === 'uke') {
@@ -1858,6 +2021,28 @@ export function Calendar({
       {/* ── Content ── */}
       {/* I coach-view (readOnly) + dagbok vises utøverens notat som grå read-only.
           Plan-notater forblir redigerbare i coach-view slik at trener kan skrive plan-kommentarer. */}
+      {view !== 'år' && (() => {
+        const range = getDateRange(view, refDate)
+        const prevRange = getPrevRange(view, refDate)
+        const dates = rangeDates(range.start, range.end)
+        const agg = aggregateRange(byDate, dates, mode)
+        const prevAgg = prevRange
+          ? aggregateRange(prevByDate, rangeDates(prevRange.start, prevRange.end), mode)
+          : null
+        const label = view === 'uke' ? `uke ${isoWeekNum(refDate)}` : MONTHS_NO[refDate.getMonth()].toLowerCase()
+        return (
+          <CalendarAnalysisPanel
+            label={label}
+            agg={agg}
+            prevSeconds={prevAgg?.seconds ?? null}
+            sports={sportBreakdown(byDate, dates, mode)}
+            analyseHref={targetUserId ? `/app/trener/${targetUserId}/analyse` : '/app/analyse'}
+            showNoteButton={showNotes}
+          />
+        )
+      })()}
+
+      <div id="xp-period-notat" />
       {showNotes && view === 'måned' && (
         <>
           <PeriodNote

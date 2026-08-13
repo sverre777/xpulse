@@ -479,6 +479,28 @@ function competitionChipStyle(w: CalendarWorkoutSummary, mode: CalendarMode):
 // Blå ramme-farge for trener-endringer — matcher CoachChangeIndicator.
 const COACH_BLUE = '#1A6FD4'
 
+// Intensitets-basert accent-farge på økt-chipen (brukerens regel):
+// høyeste sone med ≥10 min vinner (Hurtighet > I5 > I4 > I3), ellers den
+// av I1/I2 med mest tid. Uten sonedata → null (fall tilbake til type-farge).
+const ACCENT_MIN_MINUTES = 10
+
+function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string | null {
+  const zones = zonesFor(w, mode)
+  if (!zones || zones.length === 0) return null
+  const mins = emptyZoneSec()
+  let total = 0
+  for (const z of zones) {
+    const name = z.zone_name as ExtendedZoneName
+    if (name in mins) { mins[name] += z.minutes ?? 0; total += z.minutes ?? 0 }
+  }
+  if (total <= 0) return null
+  if (mins.Hurtighet >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.Hurtighet
+  if (mins.I5 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I5
+  if (mins.I4 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I4
+  if (mins.I3 >= ACCENT_MIN_MINUTES) return ZONE_COLORS_V2.I3
+  return mins.I2 > mins.I1 ? ZONE_COLORS_V2.I2 : ZONE_COLORS_V2.I1
+}
+
 function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging }: {
   w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode
   // Valgfrie dra-bindings fra DraggableChip-wrapperen. Når satt blir chip-en
@@ -490,7 +512,11 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
 }) {
   const comp = competitionChipStyle(w, mode)
   const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
-  const color = comp?.color ?? fallbackColor
+  // Accent følger intensitet (sone-regelen over); konkurranse/testløp
+  // beholder sine farger, styrke får design-grå, uten sonedata → type-farge.
+  const isStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
+  const color = comp?.color
+    ?? (isStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? fallbackColor))
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
   // Trener-markering vises kun i planlagt tilstand (plan-kalender alltid, dagbok
@@ -1267,7 +1293,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           }
                           return dayWorkouts.map(w => {
                           const comp = competitionChipStyle(w, mode)
-                          const color = comp?.color ?? TYPE_COLORS[w.workout_type] ?? '#555'
+                          // Samme accent-regel som måneds-chipen (intensitet).
+                          const wIsStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
+                          const color = comp?.color
+                            ?? (wIsStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? '#555'))
                           const isPlanned = planVisual(w, mode)
                           const isCoachEdited = !!w.created_by_coach_id
                           const showCoachStyle = isCoachEdited && isPlanned

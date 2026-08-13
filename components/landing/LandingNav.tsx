@@ -19,6 +19,7 @@ const SPORT_LINKS = [
   { slug: 'loping',     label: 'Løping' },
   { slug: 'sykling',    label: 'Sykling' },
   { slug: 'triatlon',   label: 'Triatlon' },
+  { slug: 'multisport', label: 'Multisport' },
 ] as const
 
 const MODULE_LINKS = [

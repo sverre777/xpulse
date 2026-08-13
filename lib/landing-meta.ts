@@ -47,6 +47,7 @@ export type FeatureSportSlug =
   | 'loping'
   | 'sykling'
   | 'triatlon'
+  | 'multisport'
 
 export interface FeatureSport {
   slug: FeatureSportSlug
@@ -99,6 +100,13 @@ export const FEATURE_SPORTS: FeatureSport[] = [
     seoTitle: 'Treningsdagbok for triatlon – tre disipliner, én plan',
     label: 'Triatlon',
     description: 'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurranse.',
+    priority: false,
+  },
+  {
+    slug: 'multisport',
+    label: 'Multisport',
+    seoTitle: 'Treningsdagbok for multisport – all trening i én app',
+    description: 'Løping, sykling, ski, styrke — alt du gjør, samlet i én plan og én dagbok.',
     priority: false,
   },
 ]

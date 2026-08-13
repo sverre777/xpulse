@@ -21,6 +21,7 @@ const ICONS = {
   loping: LopingIcon,
   sykling: SyklingIcon,
   triatlon: TriatlonIcon,
+  multisport: TriatlonIcon,
 } as const
 
 export async function generateStaticParams() {

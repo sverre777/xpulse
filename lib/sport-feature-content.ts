@@ -362,6 +362,55 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
     ],
   },
 
+  multisport: {
+    slug: 'multisport',
+    hero: {
+      kicker: 'X-PULSE for multisport',
+      titleLines: ['Løp. Sykle. Ski.', 'Styrke. Alt teller.'],
+      description:
+        'For deg som trener variert — eller bare vil komme i gang. All trening i én dagbok, én plan og én belastningsmodell, uansett hvor mange idretter du blander.',
+    },
+    metaDescription:
+      'X-PULSE for multisport: løping, sykling, ski, styrke og alt annet i én treningsdagbok. Felles belastning, soner per sport og hybrid-økter.',
+    sections: [
+      {
+        id: 'alt-samlet',
+        kicker: 'Én dagbok for alt',
+        title: 'ALT DU GJØR — SAMLET.',
+        intro:
+          'Logg løpeturen, sykkeløkten, skituren og styrken i samme dagbok. Hver bevegelsesform får sine egne felter, og totalbelastningen regnes på tvers av alt.',
+        bullets: [
+          { title: 'Alle bevegelsesformer', body: 'Løp, sykkel, ski, rulleski, svømming, roing, fjellsport, styrke — og egne du definerer selv.' },
+          { title: 'Felles belastning', body: 'CTL/ATL/TSB summerer alt du gjør — formen din er én kurve, ikke fem.' },
+          { title: 'Soner per sport', body: 'Maks-puls og terskler kan settes per idrett — løpepuls er ikke sykkelpuls.' },
+        ],
+      },
+      {
+        id: 'hybrid',
+        kicker: 'Hybrid-økter',
+        title: 'STYRKE OG KONDISJON I SAMME ØKT.',
+        intro:
+          'En økt kan inneholde flere aktiviteter i sekvens — intervaller etterfulgt av styrke logges som ÉN økt med egne tall per del. Styrken føres sett for sett, gjerne live mens du trener.',
+        bullets: [
+          { title: 'Multi-aktivitet', body: 'Oppvarming, hoveddel og styrke i én økt — hver del med egne data.' },
+          { title: 'Live styrkeøkt', body: 'Timer, supersett og «sist gang»-hint mens du står i rekkene.' },
+          { title: 'Utstyr på tvers', body: 'Sko, ski og sykkel får kilometerne sine automatisk uansett økt-type.' },
+        ],
+      },
+      {
+        id: 'kom-i-gang',
+        kicker: 'Fra enkel logg til full struktur',
+        title: 'START ENKELT. VOKS NÅR DU VIL.',
+        intro:
+          'Du trenger ikke være seriøs utøver for å ha nytte av struktur. Start med å logge det du gjør — planlegging, soner, tester og analyse ligger klare den dagen du vil ta det videre.',
+        bullets: [
+          { title: 'Lav terskel', body: 'Logg en økt på under ett minutt — tittel, tid, følelse. Resten er valgfritt.' },
+          { title: 'Koble klokken', body: 'Strava-synk eller .fit-import fyller dagboken automatisk.' },
+          { title: 'Sekundæridretter', body: 'Velg idrett nummer to og tre i profilen — feltene følger etter (skiskyting gir f.eks. skyteanalyse).' },
+        ],
+      },
+    ],
+  },
   triatlon: {
     slug: 'triatlon',
     hero: {

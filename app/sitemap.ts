@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     page('/funksjoner/loping', 0.9),
     page('/funksjoner/sykling', 0.9),
     page('/funksjoner/triatlon', 0.9),
+    page('/funksjoner/multisport', 0.9),
     page('/funksjoner/dagbok-og-plan', 0.8),
     page('/funksjoner/analyse', 0.8),
     page('/funksjoner/trener', 0.8),

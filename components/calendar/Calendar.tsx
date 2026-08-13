@@ -556,8 +556,8 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             (aldri 'anywhere' — den brakk ord midt i på smale mobilceller).
             Varighet/bev.form ligger alltid i meta-linjen under. */}
         <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
-          fontSize: '13px', lineHeight: '14px',
+          fontFamily: "'Barlow Condensed', sans-serif", color: '#DEDEE6',
+          fontSize: '14px', lineHeight: '15px',
           display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
           overflowWrap: 'break-word', wordBreak: 'normal',
@@ -582,7 +582,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.start_time && (
-            <span style={{ color: '#8A8A96', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
+            <span style={{ color: '#A9A9B5', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
           )}
           {w.title}
         </span>
@@ -590,15 +590,15 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
         {(durationLabel || w.primary_movement || shootingLabel || (w.position_overall != null && mode !== 'plan')) && (
           <span style={{
             display: 'block', fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: '11px', lineHeight: '13px', marginTop: '1px',
+            fontSize: '12px', lineHeight: '14px', marginTop: '1px',
             overflowWrap: 'break-word', wordBreak: 'normal',
           }}>
             {w.position_overall != null && mode !== 'plan' && (
               <span style={{ color, marginRight: '4px', fontWeight: 600 }}>#{w.position_overall}</span>
             )}
             {durationLabel ? <span style={{ color: '#FF4500', marginRight: '4px' }}>{durationLabel}</span> : null}
-            {w.primary_movement ? <span style={{ color: '#8A8A96', marginRight: '4px' }}>{w.primary_movement}</span> : null}
-            {shootingLabel ? <span style={{ color: '#8A8A96' }}>{shootingLabel}</span> : null}
+            {w.primary_movement ? <span style={{ color: '#A9A9B5', marginRight: '4px' }}>{w.primary_movement}</span> : null}
+            {shootingLabel ? <span style={{ color: '#A9A9B5' }}>{shootingLabel}</span> : null}
           </span>
         )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
@@ -724,6 +724,25 @@ function CalendarAnalysisPanel({
               <span className="xp-k">Soner</span>
               <div className="mt-1">
                 <AggZoneBar zoneSeconds={agg.zoneSeconds} height={8} otherSeconds={agg.seconds - zoneTotal} />
+              </div>
+              {/* Tid per sone under linjen — samme aggregat som baren. */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                {ALL_ZONE_NAMES.map(k => {
+                  const secs = agg.zoneSeconds[k] ?? 0
+                  if (secs <= 0) return null
+                  return (
+                    <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#C9C9D4' }}>
+                      <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: ZONE_COLORS_V2[k], marginRight: 5 }} />
+                      {k} <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(secs)}</b>
+                    </span>
+                  )
+                })}
+                {agg.seconds - zoneTotal > 0 && (
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#C9C9D4' }}>
+                    <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: '#3A3A44', marginRight: 5 }} />
+                    Uten soner <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(agg.seconds - zoneTotal)}</b>
+                  </span>
+                )}
               </div>
             </div>
           )}

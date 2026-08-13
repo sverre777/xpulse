@@ -70,7 +70,7 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
 
       <div className="p-4"
         style={{
-          background: 'var(--card)', border: '1px solid var(--line)',
+          background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
           color: '#8A8A96', lineHeight: 1.7,
         }}>
@@ -90,7 +90,7 @@ function StravaRolloutNote() {
     <div className="p-4"
       style={{
         background: 'rgba(245,197,66,0.06)',
-        border: '1px solid rgba(245,197,66,0.35)',
+        border: '1px solid rgba(245,197,66,0.35)', borderRadius: 10,
         borderLeft: '3px solid #F5C542',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
@@ -116,7 +116,7 @@ function StravaRolloutNote() {
 function StravaSection({ conn }: { conn: StravaConn | null }) {
   return (
     <section className="p-5"
-      style={{ background: 'var(--card)', border: '1px solid var(--line)', borderTop: '3px solid #FC5200' }}>
+      style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderTop: '3px solid #FC5200' }}>
       <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
         <h2 className="flex items-center gap-2.5"
           style={{
@@ -233,7 +233,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         <div className="p-3 mb-3"
           style={{
             background: 'rgba(225,29,72,0.1)',
-            border: '1px solid rgba(225,29,72,0.5)',
+            border: '1px solid rgba(225,29,72,0.5)', borderRadius: 10,
             color: '#E11D48',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           }}>
@@ -246,7 +246,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         <div className="p-3 mb-3"
           style={{
             background: 'rgba(245,197,66,0.08)',
-            border: '1px solid rgba(245,197,66,0.4)',
+            border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
             color: '#F5C542',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
           }}>
@@ -272,7 +272,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         </div>
         <button type="button" onClick={handleDisconnect} disabled={pending}
           style={{
-            background: 'none', border: '1px solid #2A2A30',
+            background: 'none', border: '1px solid #2A2A30', borderRadius: 10,
             padding: '8px 14px', cursor: 'pointer', color: '#8A8A96',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
             letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -294,7 +294,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <select value={syncMode} onChange={e => setSyncMode(e.target.value as SyncMode)}
           style={{
-            background: '#0F0F14', border: '1px solid var(--line)',
+            background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
             color: '#F0F0F2', padding: '8px 10px', fontSize: 13,
             fontFamily: "'Barlow', sans-serif",
           }}>
@@ -305,7 +305,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         </select>
         <button type="button" onClick={handleSync} disabled={pending}
           style={{
-            background: '#FC4C02', color: '#FFFFFF', border: 'none',
+            background: '#FC4C02', color: '#FFFFFF', border: 'none', borderRadius: 10,
             padding: '9px 18px', cursor: pending ? 'default' : 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -316,7 +316,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {progress && (
         <div className="p-3 mb-3"
-          style={{ background: '#0F0F14', border: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
+          style={{ background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
           Importerer … {progress.done}/{progress.total}
         </div>
       )}
@@ -329,7 +329,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
             </span>
             <button type="button" onClick={handleQuickSyncAll} disabled={pending}
               style={{
-                background: '#FF4500', color: '#F0F0F2', border: 'none',
+                background: '#FF4500', color: '#F0F0F2', border: 'none', borderRadius: 10,
                 padding: '8px 16px', cursor: pending ? 'default' : 'pointer',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -354,7 +354,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {previewList && previewList.length === 0 && (
         <div className="p-3 mt-3"
-          style={{ background: '#0F0F14', border: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560' }}>
+          style={{ background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560' }}>
           Ingen nye aktiviteter funnet i valgt periode.
         </div>
       )}
@@ -390,7 +390,7 @@ function ActivityRow({
   return (
     <div className="flex items-center justify-between gap-3 p-3"
       style={{
-        background: '#0F0F14', border: '1px solid var(--line)',
+        background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
       <div className="flex-1 min-w-0">
@@ -406,7 +406,7 @@ function ActivityRow({
       ) : conflict ? (
         <button type="button" onClick={onResolveConflict}
           style={{
-            background: 'rgba(245,197,66,0.15)', border: '1px solid rgba(245,197,66,0.5)',
+            background: 'rgba(245,197,66,0.15)', border: '1px solid rgba(245,197,66,0.5)', borderRadius: 999,
             color: '#F5C542', padding: '6px 12px', cursor: 'pointer',
             fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
@@ -415,7 +415,7 @@ function ActivityRow({
       ) : (
         <button type="button" onClick={onImport}
           style={{
-            background: 'transparent', border: '1px solid #FF4500',
+            background: 'transparent', border: '1px solid #FF4500', borderRadius: 10,
             color: '#FF4500', padding: '6px 12px', cursor: 'pointer',
             fontWeight: 700, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
@@ -587,7 +587,7 @@ function FitUploadSection() {
               {!importing && (
                 <button type="button" onClick={clearAll}
                   style={{
-                    background: 'none', border: '1px solid #2A2A30', color: '#8A8A96',
+                    background: 'none', border: '1px solid #2A2A30', borderRadius: 10, color: '#8A8A96',
                     padding: '8px 14px', cursor: 'pointer',
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
                     letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -617,7 +617,7 @@ function FitUploadSection() {
               return (
                 <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-center justify-between gap-3"
                   style={{
-                    background: '#0F0F14', border: '1px solid var(--line)',
+                    background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                   }}>
                   <span className="min-w-0 flex-1" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

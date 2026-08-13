@@ -430,7 +430,7 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
             <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32} allowDecimals={false} />
-            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Tooltip content={<XpTooltip showTotal totalLabel="Dager totalt" />} cursor={CHART_CURSOR} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Bar dataKey="training_days" stackId="days" fill="#FF4500" name="Trening" />
             <Bar dataKey="rest_days" stackId="days" fill="#28A86E" name="Hvile" />
@@ -478,7 +478,7 @@ export function OverviewZonesPerWeek({ stats }: { stats: WorkoutStats }) {
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
           <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
-          <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+          <Tooltip content={<XpTooltip showTotal />} cursor={CHART_CURSOR} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           {ZONE_KEYS.map(z => (
             <Bar key={z} dataKey={z} stackId="zones" fill={CHART_ZONE_COLORS[z]} />
@@ -511,7 +511,7 @@ export function OverviewKmPerMovement({ stats }: { stats: WorkoutStats }) {
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
             <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
-            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR} />
+            <Tooltip content={<XpTooltip showTotal totalFormatter={t => `${Math.round(t * 10) / 10} km`} />} cursor={CHART_CURSOR} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {stats.movementNames.map((name, i) => (
               <Bar key={name} dataKey={name} stackId="km" fill={paletteFor(i)} />

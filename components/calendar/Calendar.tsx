@@ -545,9 +545,11 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
       }}
     >
       <div style={{
-        borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
         backgroundColor: bg,
         border,
+        // MÅ stå ETTER border-shorthanden — ellers nullstilles accent-kanten
+        // (det var buggen som gjorde at fargen på siden av øktene forsvant).
+        borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
         borderRadius: 7,
         overflow: 'hidden',
         padding: '2px 5px',
@@ -1280,12 +1282,14 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 style={{ display: 'block', flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-3" style={{
                                 backgroundColor: comp && !isPlanned ? `${color}22` : '#1A1A22',
-                                borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 border: showCoachStyle
                                   ? `1px dashed ${COACH_BLUE}`
                                   : (comp
                                       ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
                                       : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`)),
+                                // Etter border-shorthanden så accent-kanten vinner.
+                                borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
+                                borderRadius: 8,
                               }}>
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">

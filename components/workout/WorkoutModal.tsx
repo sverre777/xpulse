@@ -44,12 +44,15 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   const [deleting, startDelete] = useTransition()
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [equipmentIds, setEquipmentIds] = useState<string[]>([])
-  // Øktoversikt (kø #40): gjennomført økt i dagbok åpnes som read-only
-  // oversikt; «✎ Rediger» bytter til skjemaet. Nullstilles per åpning.
+  // Øktoversikt (kø #40): eksisterende økter (gjennomført OG planlagt) åpnes
+  // som oversikt; «✎ Rediger» bytter til skjemaet. For planlagt økt kan
+  // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
   const [showEditForm, setShowEditForm] = useState(false)
+  const [autoMark, setAutoMark] = useState(false)
 
   useEffect(() => {
     setShowEditForm(false)
+    setAutoMark(false)
     if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); return }
     if (state.kind === 'create') {
       setDefaults({
@@ -94,10 +97,17 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
     router.refresh()
   }
 
-  // Gjennomført dagbok-økt → oversikt først (planlagt/ikke gjennomført →
-  // skjemaet direkte, som før).
-  const showOverview = state.kind === 'edit' && state.formMode === 'dagbok'
-    && !!defaults?.is_completed && !showEditForm
+  // Alle eksisterende økter → oversikt først (create → skjemaet direkte).
+  const showOverview = state.kind === 'edit' && !!defaults && !showEditForm
+  const overviewStatus: 'completed' | 'planned' = defaults?.is_completed ? 'completed' : 'planned'
+  const todayIso = (() => {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })()
+  const overviewIsFuture = !!defaults?.date && defaults.date > todayIso
+  const overviewIsStrength = (defaults?.activities ?? []).some(
+    a => (a.exercises?.length ?? 0) > 0 || a.movement_name === 'Styrke',
+  )
 
   const handleDelete = () => {
     if (state.kind !== 'edit') return
@@ -198,6 +208,13 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               equipmentIds={equipmentIds}
               heartZones={heartZones}
               workoutId={state.workoutId}
+              status={overviewStatus}
+              onMarkCompleted={overviewStatus === 'planned' && !overviewIsFuture && !readOnly
+                ? () => { setAutoMark(state.formMode === 'dagbok'); setShowEditForm(true) }
+                : undefined}
+              onStartLive={overviewStatus === 'planned' && overviewIsStrength && !readOnly && !targetUserId
+                ? () => router.push(`/app/okt/${state.workoutId}`)
+                : undefined}
             />
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">
@@ -216,6 +233,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           <>
             <WorkoutForm
               workoutId={state.kind === 'edit' ? state.workoutId : undefined}
+              autoMarkCompleted={autoMark}
               defaultValues={defaults}
               formMode={state.formMode}
               templates={templates}

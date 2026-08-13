@@ -83,7 +83,7 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
   )
 }
 
-export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId }: {
+export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
   canEdit: boolean
@@ -91,7 +91,13 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   equipmentIds: string[]
   heartZones?: HeartZone[]
   workoutId?: string
+  // 'planned': samme oversikt for planlagt økt — handlingsknappene
+  // (Marker som gjennomført / Start live / Rediger) ligger øverst.
+  status?: 'completed' | 'planned'
+  onMarkCompleted?: () => void
+  onStartLive?: () => void
 }) {
+  const isPlannedView = status === 'planned'
   const activities: ActivityRow[] = data.activities ?? []
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
@@ -184,10 +190,46 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
 
   return (
     <div className="px-4 py-4 max-w-3xl mx-auto">
+      {/* ── HANDLINGSRAD (planlagt økt): marker/live/rediger øverst ── */}
+      {isPlannedView && canEdit && (onMarkCompleted || onStartLive) && (
+        <div className="flex gap-2 mb-4">
+          {onMarkCompleted && (
+            <button type="button" onClick={onMarkCompleted}
+              className="transition-opacity hover:opacity-90"
+              style={{
+                flex: 1, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                fontSize: 15, letterSpacing: '0.13em', textTransform: 'uppercase',
+                backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E',
+                borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
+                boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
+              }}>
+              ✓ Marker som gjennomført
+            </button>
+          )}
+          {onStartLive && (
+            <button type="button" onClick={onStartLive}
+              className="transition-opacity hover:opacity-90"
+              style={{
+                flex: 1, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                fontSize: 15, letterSpacing: '0.13em', textTransform: 'uppercase',
+                backgroundColor: 'var(--accent)', color: '#fff', border: '1px solid var(--accent)',
+                borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
+                boxShadow: '0 6px 24px var(--accent-soft)',
+              }}>
+              ▶ Start live
+            </button>
+          )}
+        </div>
+      )}
+
       {/* ── HERO ── */}
       <div className="pb-4">
         <div className="flex flex-wrap gap-2 mb-3">
-          <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
+          {isPlannedView ? (
+            <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>🕒 Planlagt</span>
+          ) : (
+            <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
+          )}
           {data.imported_from === 'strava' && (
             <span style={pillStyle('var(--accent)', 'var(--accent-soft)', 'var(--accent-50)')}>▲ Strava-synk</span>
           )}

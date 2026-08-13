@@ -79,6 +79,9 @@ interface WorkoutFormProps {
   onSaved?: () => void
   onCancel?: () => void
   readOnly?: boolean
+  // Fra øktoversikten: start «Merk som gjennomført»-flyten automatisk når
+  // skjemaet åpnes (planlagt dagbok-økt, i dag/passert).
+  autoMarkCompleted?: boolean
   // Mal-bygging: fjerner "Lagre økt"-knappen og gjør "Lagre som mal" til primær CTA.
   // Trener-bruk i /app/trener/planlegg.
   templateBuildingMode?: boolean
@@ -157,7 +160,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   }
 }
 
-export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
@@ -470,6 +473,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // samme vilkår som der — planlagt, ikke koblet, ikke fullført, ikke fremtid.
   const showPlanMarkCTA = isPlanMode && !!workoutId && !templateBuildingMode && !captureOnlyMode
     && !readOnly && form.is_planned && !form.is_completed && !isFutureDate && planLinked === false
+
+  // Auto-start markeringsflyten når skjemaet åpnes fra øktoversiktens
+  // «Marker som gjennomført» (samme handling som CTA-knappen — én gang).
+  useEffect(() => {
+    if (!autoMarkCompleted) return
+    if (isPlanMode || !isPlanned || isCompleted || isFutureDate || markingCompleted) return
+    setPlanReference(form)
+    setMarkingCompleted(true)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoMarkCompleted])
 
   const handlePlanMarkCompleted = async () => {
     if (markingBusy || !workoutId) return

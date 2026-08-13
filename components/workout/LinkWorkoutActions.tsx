@@ -29,10 +29,16 @@ interface Props {
   targetUserId?: string
   formMode?: 'plan' | 'dagbok'
   onMarkCompletedRequested?: () => void
+  // Skjul marker-knappen her (WorkoutForm løfter den til topp-CTA-raden i
+  // plan-modus). Synlighetslogikken bor fortsatt her — status rapporteres
+  // opp via onLinkStateChange.
+  hideMarkCompleted?: boolean
+  onLinkStateChange?: (effectivelyLinked: boolean) => void
 }
 
 export function LinkWorkoutActions({
   workoutId, date, isPlanned, isCompleted, importedFrom, alreadyLinked, targetUserId, formMode = 'dagbok', onMarkCompletedRequested,
+  hideMarkCompleted = false, onLinkStateChange,
 }: Props) {
   const router = useRouter()
   const [busy, startBusy] = useTransition()
@@ -68,8 +74,10 @@ export function LinkWorkoutActions({
       setLinkedFromId(res.sourceLinkedFromId)
       setHasCandidates(res.candidates.length > 0)
       setCandidates(res.candidates)
+      onLinkStateChange?.(res.sourceLinkedToId !== null || res.sourceLinkedFromId !== null || alreadyLinked)
     })
     return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutId, date, targetUserId])
 
   // Phase 67c+: linked_workout_id sitter på SYNKET-raden. Dermed:
@@ -131,7 +139,7 @@ export function LinkWorkoutActions({
   // - "Marker som fullført": planlagt + ikke koblet + ikke fullført + Plan-modus
   // - "Knytt": ikke koblet + har kandidater
   // - "Fjern kobling": koblet (overstyrer alle andre)
-  const showMarkCompleted = isPlanned && !effectivelyLinked && !isCompleted && formMode === 'plan'
+  const showMarkCompleted = isPlanned && !effectivelyLinked && !isCompleted && formMode === 'plan' && !hideMarkCompleted
   const showLinkButton = !effectivelyLinked
   const linkButtonLabel = isPlanned ? '🔄 Knytt til synket økt' : '📋 Knytt til planlagt økt'
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { saveWorkout } from '@/app/actions/workouts'
+import { saveWorkout, markCompleted } from '@/app/actions/workouts'
 import { getAltitudePeriodForDate } from '@/app/actions/seasons'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
@@ -178,6 +178,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Viser full dagbok-utfylling med plan-verdier forhåndsutfylt. Ved lagring settes is_completed=true.
   // planReference: frosset kopi av planen som vises read-only øverst mens bruker redigerer actuals.
   const [markingCompleted, setMarkingCompleted] = useState(false)
+  // Plan-modus: koblings-status fra LinkWorkoutActions (null = ukjent ennå).
+  // Marker-knappen i topp-CTA-raden vises kun når økten IKKE er koblet.
+  const [planLinked, setPlanLinked] = useState<boolean | null>(null)
+  const [markingBusy, setMarkingBusy] = useState(false)
   const [planReference, setPlanReference] = useState<WorkoutFormData | null>(null)
 
   const today = initialDate ?? new Date().toISOString().split('T')[0]
@@ -462,6 +466,22 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // styrkeøkt som ikke er fullført.
   const showStartLive = !!workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
     && !readOnly && form.is_planned && !form.is_completed && isStrengthWorkout
+  // Plan-modusens «Marker som fullført» (løftet fra LinkWorkoutActions):
+  // samme vilkår som der — planlagt, ikke koblet, ikke fullført, ikke fremtid.
+  const showPlanMarkCTA = isPlanMode && !!workoutId && !templateBuildingMode && !captureOnlyMode
+    && !readOnly && form.is_planned && !form.is_completed && !isFutureDate && planLinked === false
+
+  const handlePlanMarkCompleted = async () => {
+    if (markingBusy || !workoutId) return
+    setMarkingBusy(true)
+    setError(null)
+    const res = await markCompleted(workoutId, targetUserId)
+    if (res.error) { setError(res.error); setMarkingBusy(false); return }
+    // Samme oppfølging som LinkWorkoutActions: åpne dagbok-redigering så
+    // faktiske verdier kan fylles inn med en gang.
+    router.push(`/app/dagbok?edit=${workoutId}`)
+    router.refresh()
+  }
 
   return (
     <form onSubmit={handleSubmit} className="xp-form max-w-3xl mx-auto px-4 py-4 space-y-0">
@@ -482,15 +502,33 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           alreadyLinked={!!defaultValues.linked_workout_id}
           targetUserId={targetUserId}
           formMode={formMode}
+          hideMarkCompleted={isPlanMode}
+          onLinkStateChange={setPlanLinked}
         />
       )}
 
       {/* ── TOPP-CTA-RAD: Merk som gjennomført + Start live (styrke) ──
           Side om side øverst når begge gjelder; ellers alene i full bredde.
           Samme handlere/vilkår som før — kun plassering og stil. ── */}
-      {(showMarkCompletedCTA || showStartLive) && (
+      {(showMarkCompletedCTA || showStartLive || showPlanMarkCTA) && (
         <div className="mb-4">
           <div className="flex gap-2">
+            {showPlanMarkCTA && (
+              <button type="button" onClick={handlePlanMarkCompleted} disabled={markingBusy}
+                className="transition-opacity hover:opacity-90"
+                style={{
+                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
+                  textTransform: 'uppercase', backgroundColor: '#28A86E',
+                  color: '#fff', border: '1px solid #28A86E', borderRadius: 12,
+                  padding: '13px 10px',
+                  cursor: markingBusy ? 'default' : 'pointer',
+                  opacity: markingBusy ? 0.6 : 1,
+                  boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
+                }}>
+                {markingBusy ? 'Markerer…' : '✓ Marker som fullført'}
+              </button>
+            )}
             {showMarkCompletedCTA && (
               <button type="button"
                 onClick={() => { setPlanReference(form); setMarkingCompleted(true) }}

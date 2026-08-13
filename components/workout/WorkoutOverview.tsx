@@ -20,6 +20,7 @@ import {
 } from '@/lib/types'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
+import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
 import { computeActivityTotals, ZONE_COLORS_V2, type ActivityLike } from '@/lib/activity-summary'
@@ -82,13 +83,14 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
   )
 }
 
-export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds }: {
+export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
   canEdit: boolean
   equipment: Equipment[]
   equipmentIds: string[]
   heartZones?: HeartZone[]
+  workoutId?: string
 }) {
   const activities: ActivityRow[] = data.activities ?? []
 
@@ -489,6 +491,31 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             </div>
           )}
         </Card>
+      )}
+
+      {/* ── KLOKKEDATA (nedtonet — kollapset, kun for importerte økter).
+          Gjenbruker WorkoutKlokkesyncSection: pulskurve/hoyde/watt via
+          WorkoutDetailChart (graf-temaet) + laps, m/ egen data-finnes-sjekk. ── */}
+      {workoutId && data.imported_from && (
+        <details className="mb-3.5" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card)' }}>
+          <summary className="px-4 py-3" style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, letterSpacing: '0.14em',
+            textTransform: 'uppercase', color: '#8B8B95', cursor: 'pointer', listStyle: 'none',
+          }}>
+            ⌚ Klokkedata fra synk <span style={{ color: '#55555F' }}>— pulskurve, laps m.m.</span>
+          </summary>
+          <div className="px-2 pb-2">
+            <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? null} />
+          </div>
+        </details>
+      )}
+
+      {/* ── Sync-fot (diskret) ── */}
+      {data.imported_from && (
+        <div className="flex items-center gap-2.5 mb-3.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#55555F' }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
+          Importert fra {data.imported_from === 'strava' ? 'Strava' : data.imported_from}
+        </div>
       )}
 
       {/* ── Rediger-CTA nederst (i tillegg til toppbaren i modalen) ── */}

@@ -197,6 +197,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               equipment={equipment}
               equipmentIds={equipmentIds}
               heartZones={heartZones}
+              workoutId={state.workoutId}
             />
             {state.kind === 'edit' && athleteId && (
               <div className="px-4 pb-4">

@@ -33,7 +33,6 @@ import { RecoveryModal } from '@/components/recovery/RecoveryModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
 import { WeekCalendarView } from './WeekCalendarView'
-import { AnalysisOverlay } from '@/components/analysis/AnalysisOverlay'
 import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
@@ -2018,7 +2017,6 @@ export function Calendar({
 
       {/* ── Analyse-overlay: samme layout i Dagbok og Plan; mode styrer datakilde og labels. ── */}
       {(mode === 'dagbok' || mode === 'plan') && (
-        <AnalysisOverlay view={view} refDate={refDate} mode={mode} targetUserId={targetUserId} />
       )}
 
       {/* ── Content ── */}

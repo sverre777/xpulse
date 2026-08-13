@@ -7,8 +7,11 @@ import {
 } from 'recharts'
 import Link from 'next/link'
 import { getMovementAnalysis, type MovementAnalysis, type MovementActivityPoint } from '@/app/actions/analysis'
-import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
+  CHART_LEGEND_STYLE, CHART_CURSOR, CHART_LINE_WIDTH,
+} from './chart-theme'
 import { MetricCard } from './MetricCard'
 
 function formatDuration(sec: number): string {
@@ -209,16 +212,16 @@ function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
     <ChartWrapper chartKey="bevegelse_time_and_km" title="Tid og km per uke" subtitle="Venstre: timer · høyre: km">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={data}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis yAxisId="left" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32}
-            label={{ value: 't', angle: 0, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-          <YAxis yAxisId="right" orientation="right" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={32}
-            label={{ value: 'km', angle: 0, position: 'insideRight', fill: '#555560', fontSize: 11 }} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
-          <Line yAxisId="left" type="monotone" dataKey="hours" name="Timer" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} />
-          <Line yAxisId="right" type="monotone" dataKey="km" name="Km" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis yAxisId="left" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32}
+            label={{ value: 't', angle: 0, position: 'insideLeft', fill: '#55555F', fontSize: 12 }} />
+          <YAxis yAxisId="right" orientation="right" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32}
+            label={{ value: 'km', angle: 0, position: 'insideRight', fill: '#55555F', fontSize: 12 }} />
+          <Tooltip content={<XpTooltip />} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+          <Line yAxisId="left" type="monotone" dataKey="hours" name="Timer" stroke="#FF4500" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
+          <Line yAxisId="right" type="monotone" dataKey="km" name="Km" stroke="#1A6FD4" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
         </LineChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -236,15 +239,15 @@ function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }
     <ChartWrapper chartKey="bevegelse_avg_hr" title="Snittpuls over tid" subtitle="Per aktivitet · med trendlinje">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-            tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-          <Tooltip contentStyle={TOOLTIP_STYLE}
+            tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+          <Tooltip content={<XpTooltip />}
             labelFormatter={(v) => formatEpochAxis(Number(v))}
             formatter={(value) => [`${value} bpm`, 'Puls']} />
-          <Line data={points} type="monotone" dataKey="y" name="Snittpuls" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} />
+          <Line data={points} type="monotone" dataKey="y" name="Snittpuls" stroke="#E23A5A" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
           {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
         </LineChart>
       </ResponsiveContainer>
@@ -270,13 +273,13 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
     <ChartWrapper chartKey="bevegelse_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={data}>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-          <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }} />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+          <Tooltip content={<XpTooltip showTotal />} cursor={CHART_CURSOR} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           {ZONE_KEYS.map(z => (
-            <Bar key={z} dataKey={z} stackId="zones" fill={ZONE_COLORS_V2[z]} />
+            <Bar key={z} dataKey={z} stackId="zones" fill={CHART_ZONE_COLORS[z]} />
           ))}
         </BarChart>
       </ResponsiveContainer>
@@ -338,17 +341,17 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
       <ChartWrapper chartKey="bevegelse_pace_running" title="Snittempo over tid" subtitle="Min/km · aktiviteter ≥10 min">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-              tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={56}
+              tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={56}
               reversed
               tickFormatter={(v) => formatPace(Number(v))} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(value) => [formatPace(Number(value)), 'Tempo']} />
-            <Line data={points} type="monotone" dataKey="y" name="Tempo" stroke="#D4A017" strokeWidth={2} dot={{ r: 3 }} />
+            <Line data={points} type="monotone" dataKey="y" name="Tempo" stroke="#E8B93C" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
             {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>
@@ -368,15 +371,15 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
       <ChartWrapper chartKey="bevegelse_watts" title="Snittwatt over tid" subtitle="Per aktivitet · med trendlinje">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-              tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+              tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <Tooltip content={<XpTooltip />}
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(v) => [`${v} W`, 'Watt']} />
-            <Line data={points} type="monotone" dataKey="y" name="Watt" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3 }} />
+            <Line data={points} type="monotone" dataKey="y" name="Watt" stroke="#8B5CF6" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
             {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>
@@ -396,15 +399,15 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
       <ChartWrapper chartKey="bevegelse_speed_skiing" title="Snitthastighet over tid" subtitle="km/t per aktivitet">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-              tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-              axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+              tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+              axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+            <Tooltip content={<XpTooltip />}
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(v) => [`${v} km/t`, 'Fart']} />
-            <Line data={points} type="monotone" dataKey="y" name="Fart" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} />
+            <Line data={points} type="monotone" dataKey="y" name="Fart" stroke="#1A6FD4" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
             {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>

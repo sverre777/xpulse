@@ -16,7 +16,7 @@ export const SPORTS: { value: Sport; label: string }[] = [
   { value: 'triathlon',            label: 'Triatlon' },
   { value: 'cycling',              label: 'Sykling' },
   { value: 'long_distance_skiing', label: 'Langløp' },
-  { value: 'endurance',            label: 'Utholdenhet (generelt)' },
+  { value: 'endurance',            label: 'Multisport' },
 ]
 
 export const WORKOUT_TYPES_BASE: { value: WorkoutType; label: string }[] = [

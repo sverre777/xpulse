@@ -695,7 +695,7 @@
 
 
   /* Disiplin-rad (kompakt, én linje på desktop) */
-  .sport-chips { display:grid; grid-template-columns:repeat(6,1fr); gap:2px; }
+  .sport-chips { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
   .sport-chip {
     display:flex; align-items:center; gap:14px; background:var(--surface);
     padding:12px 16px; text-decoration:none; position:relative; overflow:hidden;
@@ -714,6 +714,7 @@
   .sport-chip-thumb-loping     { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/DSC07271_thumb.jpg'); }
   .sport-chip-thumb-sykling    { background-image:linear-gradient(135deg, rgba(26,111,212,0.25), rgba(40,168,110,0.2)); }
   .sport-chip-thumb-triatlon   { background-image:linear-gradient(135deg, rgba(176,77,230,0.25), rgba(26,111,212,0.2)); }
+  .sport-chip-thumb-multisport { background-image:linear-gradient(180deg, rgba(10,10,11,0.25), rgba(10,10,11,0.5)), url('/photos/DSC07345_thumb.jpg'); }
   .sport-chip-icon { width:20px; height:20px; object-fit:contain; filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6)); opacity:0.95; }
   .sport-chip:hover .sport-chip-icon { opacity:1; }
   .sport-note { margin-top:18px; padding:16px 22px; background:var(--surface); border-left:3px solid var(--orange); }
@@ -1009,6 +1010,7 @@
     <a class="sport-chip" href="/funksjoner/loping"><span class="sport-chip-thumb sport-chip-thumb-loping" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/loping.png"></span><span class="sport-chip-name">Løping</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
     <a class="sport-chip" href="/funksjoner/sykling"><span class="sport-chip-thumb sport-chip-thumb-sykling" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/sykling.png"></span><span class="sport-chip-name">Sykling</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
     <a class="sport-chip" href="/funksjoner/triatlon"><span class="sport-chip-thumb sport-chip-thumb-triatlon" aria-hidden="true"><img class="sport-chip-icon" alt="" src="/sport-icons/triatlon.png"></span><span class="sport-chip-name">Triatlon</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
+    <a class="sport-chip" href="#funksjoner"><span class="sport-chip-thumb sport-chip-thumb-multisport" aria-hidden="true"></span><span class="sport-chip-name">Multisport</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12 H19"/><path d="M13 6 L19 12 L13 18"/></svg></a>
   </div>
   <div class="sport-note">
     <p><strong>Hver idrett har sine egne verktøy</strong> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>

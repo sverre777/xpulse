@@ -951,8 +951,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </div>
       )}
 
-      {/* ── SUBMIT — sticky savebar i modalens scroll-container ── */}
-      <div className="pt-2 pb-2" hidden={readOnly}>
+      {/* ── SUBMIT — sticky savebar i modalens scroll-container ──
+          Sticky MÅ ligge på denne wrapperen: containing block er da hele
+          <form>-en, så baren følger med i bunnen av viewporten gjennom hele
+          skjemaet. (.xp-savebar sin egen sticky er virkningsløs alene fordi
+          forelderen er like høy som baren selv.) ── */}
+      <div className="pt-2 pb-2" hidden={readOnly}
+        style={{ position: 'sticky', bottom: 0, zIndex: 40 }}>
         {error && (
           <p className="mb-3 px-3 py-2 text-sm"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', backgroundColor: 'rgba(255,69,0,0.1)', border: '1px solid rgba(255,69,0,0.3)', borderRadius: 'var(--r-field)' }}>

@@ -116,7 +116,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           borderRadius: 'var(--r-card)',
           maxWidth: '820px', width: '100%', position: 'relative',
           margin: '0 auto', marginBottom: '24px',
-          overflowX: 'hidden',
+          // 'clip' (ikke 'hidden'): hidden gjør kortet til scroll-container og
+          // dreper sticky header/savebar — de skal feste seg til overlayens
+          // scrollport. clip kutter horisontal bleed uten den bivirkningen.
+          overflowX: 'clip',
         }}
       >
         {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}

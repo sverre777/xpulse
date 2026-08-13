@@ -14,9 +14,11 @@
 
 import type { ReactNode } from 'react'
 import {
-  WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES,
+  WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES, WEATHER_TYPES, WIND_STRENGTHS,
+  NUTRITION_TYPES,
   type WorkoutFormData, type ActivityRow,
 } from '@/lib/types'
+import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -310,6 +312,182 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               )
             })}
           </div>
+        </Card>
+      )}
+
+      {/* ── SKYTING (fase 2 — kun når skyte-data finnes) ── */}
+      {(() => {
+        let pShots = 0, pHits = 0, sShots = 0, sHits = 0, series = 0
+        for (const a of activities) {
+          if (!SHOOTING_TYPES.has(a.activity_type)) continue
+          const ps = num(a.prone_shots), ss = num(a.standing_shots)
+          if (ps + ss > 0) series++
+          pShots += ps; pHits += num(a.prone_hits)
+          sShots += ss; sHits += num(a.standing_hits)
+        }
+        const shots = pShots + sShots
+        if (shots <= 0) return null
+        const hits = pHits + sHits
+        const pct = (h: number, s: number) => s > 0 ? `${Math.round((h / s) * 100)}%` : ''
+        const dots = (h: number, s: number) => s > 0 && s <= 20 ? (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {Array.from({ length: s }, (_, i) => (
+              <span key={i} style={{ width: 11, height: 11, borderRadius: '50%', background: i < h ? '#28A86E' : 'var(--line2)' }} />
+            ))}
+          </div>
+        ) : null
+        const box = (k: string, h: number, s: number) => (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
+            <span style={K_STYLE}>{k}</span>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
+              {h}/{s} <span style={{ fontSize: 14, color: '#55555F' }}>{pct(h, s)}</span>
+            </div>
+            {dots(h, s)}
+          </div>
+        )
+        return (
+          <Card title="SKYTING" beamColor="#E23A5A" aux={`${series} serie${series !== 1 ? 'r' : ''} · ${shots} skudd`}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {box('Totalt', hits, shots)}
+              {pShots > 0 && box('Liggende', pHits, pShots)}
+              {sShots > 0 && box('Stående', sHits, sShots)}
+            </div>
+          </Card>
+        )
+      })()}
+
+      {/* ── SPLITS PER KM (fase 2 — kun når splits finnes) ── */}
+      {(() => {
+        const rows: { km: string; sec: number }[] = []
+        for (const a of activities) {
+          for (const s of a.splits_per_km ?? []) {
+            const sec = parseActivityDuration(s.duration) ?? 0
+            if (sec > 0) rows.push({ km: s.km, sec })
+          }
+        }
+        if (rows.length === 0) return null
+        const best = Math.min(...rows.map(r => r.sec))
+        return (
+          <Card title="SPLITS PER KM" aux={`${rows.length} km`}>
+            <div className="flex flex-col gap-1.5">
+              {rows.map((r, i) => (
+                <div key={i} className="grid items-center gap-2.5" style={{ gridTemplateColumns: '44px 1fr 64px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5 }}>
+                  <span style={{ color: '#55555F', letterSpacing: '0.05em' }}>{r.km}</span>
+                  <div style={{ height: 7, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${Math.round((best / r.sec) * 100)}%`, background: 'linear-gradient(90deg, var(--accent), rgba(255,69,0,.6))', borderRadius: 4 }} />
+                  </div>
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em', textAlign: 'right', color: '#F2F2F0' }}>
+                    {fmtZoneTime(r.sec)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+      })()}
+
+      {/* ── DAGSFORM OG BELASTNING (fase 2 — hvis ført) ── */}
+      {(data.day_form_physical != null || data.day_form_mental != null || data.rpe != null) && (
+        <Card title="DAGSFORM OG BELASTNING" beamColor="#F5C542">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {data.day_form_physical != null && (
+              <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
+                <div style={{ ...K_STYLE, marginBottom: 6 }}>Fysisk form</div>
+                <div style={{ color: 'var(--line2)', fontSize: 19, letterSpacing: 2 }}>
+                  <b style={{ color: '#E8B93C', textShadow: '0 0 10px rgba(232,185,60,.35)', fontWeight: 400 }}>{'★'.repeat(data.day_form_physical)}</b>
+                  {'★'.repeat(Math.max(0, 5 - data.day_form_physical))}
+                </div>
+              </div>
+            )}
+            {data.day_form_mental != null && (
+              <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
+                <div style={{ ...K_STYLE, marginBottom: 6 }}>Mental form</div>
+                <div style={{ color: 'var(--line2)', fontSize: 19, letterSpacing: 2 }}>
+                  <b style={{ color: '#E8B93C', textShadow: '0 0 10px rgba(232,185,60,.35)', fontWeight: 400 }}>{'★'.repeat(data.day_form_mental)}</b>
+                  {'★'.repeat(Math.max(0, 5 - data.day_form_mental))}
+                </div>
+              </div>
+            )}
+            {data.rpe != null && (
+              <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
+                <div style={{ ...K_STYLE, marginBottom: 6 }}>RPE</div>
+                <span style={{
+                  display: 'inline-block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 24,
+                  letterSpacing: '0.04em', color: '#fff', borderRadius: 9, padding: '4px 14px 2px',
+                  background: data.rpe >= 8 ? '#E23A5A' : data.rpe >= 6 ? '#FF8C00' : data.rpe >= 4 ? '#E8B93C' : '#28A86E',
+                }}>
+                  {data.rpe}
+                </span>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#55555F', marginTop: 4 }}>av 10</div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* ── VÆR/FØRE + ERNÆRING side ved side (fase 2 — hvis ført) ── */}
+      {(() => {
+        const w = data.weather
+        const hasWeather = !!w && !!(w.temperature || w.weather_type || w.wind_strength || (w.surface_conditions?.length ?? 0) > 0 || w.notes)
+        const nutrition = (data.nutrition_entries ?? []).filter(n => n.nutrition_type || num(n.carbs_g) > 0 || n.custom_label)
+        if (!hasWeather && nutrition.length === 0) return null
+        const wLabel = (list: { value: string; label: string }[], v: string) => list.find(o => o.value === v)?.label ?? v
+        const lineStyle: React.CSSProperties = { fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 15.5 }
+        const bStyle: React.CSSProperties = { color: '#F2F2F0', fontWeight: 600 }
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5" style={{ marginBottom: 0 }}>
+            {hasWeather && w && (
+              <Card title="VÆR OG FØRE" beamColor="#28A86E">
+                <div className="flex flex-wrap gap-x-5 gap-y-2" style={lineStyle}>
+                  {(w.weather_type || w.temperature) && (
+                    <span><b style={bStyle}>{[wLabel(WEATHER_TYPES, w.weather_type), w.temperature ? `${w.temperature}°` : ''].filter(Boolean).join(', ')}</b></span>
+                  )}
+                  {w.wind_strength && <span>Vind <b style={bStyle}>{wLabel(WIND_STRENGTHS, w.wind_strength)}</b></span>}
+                  {(w.surface_conditions?.length ?? 0) > 0 && <span>Føre <b style={bStyle}>{w.surface_conditions.join(', ')}</b></span>}
+                  {w.notes && <span style={{ width: '100%', color: '#8B8B95' }}>{w.notes}</span>}
+                </div>
+              </Card>
+            )}
+            {nutrition.length > 0 && (
+              <Card title="ERNÆRING" aux={`${nutrition.length} rad${nutrition.length !== 1 ? 'er' : ''}`}>
+                <div className="flex flex-col gap-1.5" style={lineStyle}>
+                  {nutrition.map(n => {
+                    const label = n.custom_label || NUTRITION_TYPES.find(t => t.value === n.nutrition_type)?.label || n.nutrition_type
+                    const parts = [
+                      num(n.carbs_g) > 0 ? `${fmtNo(num(n.carbs_g), 0)} g karbo` : '',
+                      num(n.protein_g) > 0 ? `${fmtNo(num(n.protein_g), 0)} g protein` : '',
+                    ].filter(Boolean).join(' · ')
+                    return (
+                      <span key={n.id}>
+                        {n.time_offset_minutes && <span style={{ color: '#55555F' }}>{n.time_offset_minutes} min · </span>}
+                        <b style={bStyle}>{label}</b>{parts ? ` · ${parts}` : ''}
+                      </span>
+                    )
+                  })}
+                </div>
+              </Card>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ── NOTATER + tagger (fase 2 — hvis ført) ── */}
+      {(data.notes || (data.tags?.length ?? 0) > 0) && (
+        <Card title="NOTATER">
+          {data.notes && (
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16.5, lineHeight: 1.55, color: '#F2F2F0', whiteSpace: 'pre-wrap' }}>
+              {data.notes}
+            </p>
+          )}
+          {(data.tags?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {data.tags!.map(t => (
+                <span key={t} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 600, color: 'var(--accent)', background: 'var(--accent-soft)', borderRadius: 999, padding: '5px 12px' }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 

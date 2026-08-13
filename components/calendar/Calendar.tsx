@@ -573,10 +573,19 @@ function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateSt
     data: { workout: w, fromDate: dateStr },
     disabled: readOnly,
   })
+  // Chip-en er OGSÅ drop-mål: slippes en annen økt fra SAMME dag på den,
+  // legges den dragde økten FØR denne (rekkefølge innen dagen). Fra annen
+  // dag behandles den som dag-flytt (samme som å slippe på cellen).
+  const { setNodeRef: setDropRef } = useDroppable({
+    id: `chip:${dateStr}:${w.id}`,
+    data: { date: dateStr, workoutId: w.id },
+    disabled: readOnly,
+  })
+  const combinedRef = (node: HTMLElement | null) => { setNodeRef(node); setDropRef(node) }
   return (
     <WorkoutChip
       w={w} dateStr={dateStr} mode={mode}
-      dragRef={setNodeRef}
+      dragRef={combinedRef}
       dragListeners={listeners as unknown as Record<string, unknown>}
       dragAttributes={attributes as unknown as Record<string, unknown>}
       dragging={isDragging}
@@ -779,10 +788,44 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
     const { active, over } = e
     if (!over) return
     const overId = String(over.id)
+    const fromDate = (active.data.current as { fromDate?: string } | undefined)?.fromDate
+    if (!fromDate) return
+
+    // Slipp på en annen økt-chip: samme dag = endre rekkefølge (legges før
+    // mål-chippen); annen dag = vanlig dag-flytt. Rekkefølge styres kun når
+    // minst én av dagens økter mangler klokkeslett (samme regel som
+    // opp/ned-pilene i dag-detalj — økter med tid sorteres av klokka).
+    if (overId.startsWith('chip:')) {
+      const [, chipDate, targetId] = overId.split(':')
+      const activeId = String(active.id)
+      if (chipDate !== fromDate) {
+        moveWorkoutTo(activeId, fromDate, chipDate)
+        return
+      }
+      if (targetId === activeId) return
+      const dayWorkouts = filterByMode(byDate[fromDate] ?? [], mode)
+      if (dayWorkouts.length < 2) return
+      if (!dayWorkouts.some(w => !w.start_time)) return
+      const ids = dayWorkouts.map(w => w.id)
+      if (!ids.includes(activeId) || !ids.includes(targetId)) return
+      const without = ids.filter(id => id !== activeId)
+      const insertAt = without.indexOf(targetId)
+      const nextOrder = [...without.slice(0, insertAt), activeId, ...without.slice(insertAt)]
+      void (async () => {
+        const res = await reorderWorkouts(nextOrder, nextOrder.map((_, i) => i), targetUserId)
+        if ('error' in res) {
+          void xpAlert(`Kunne ikke endre rekkefølge: ${res.error}`)
+          return
+        }
+        await refreshCalendar()
+        router.refresh()
+      })()
+      return
+    }
+
     if (!overId.startsWith('day:')) return
     const toDate = overId.slice(4)
-    const fromDate = (active.data.current as { fromDate?: string } | undefined)?.fromDate
-    if (!fromDate || fromDate === toDate) return
+    if (fromDate === toDate) return
     moveWorkoutTo(String(active.id), fromDate, toDate) // måned: behold tid (undefined)
   }
   // Lazy-loadet ernæring per økt — kun hentet når dag-detalj-modal er åpen.

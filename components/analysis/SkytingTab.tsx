@@ -6,14 +6,18 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell,
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+  CHART_CURSOR, BAR_RADIUS,
+} from './chart-theme'
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
 
 const COLOR_PRONE = '#38BDF8'      // liggende (blå)
 const COLOR_STANDING = '#FF4500'   // stående (oransje)
 const COLOR_TOTAL = '#F0F0F2'
 const COLOR_TRAIN = '#28A86E'
-const COLOR_COMP = '#E11D48'
+const COLOR_COMP = '#E23A5A'
 
 function formatDateShort(iso: string): string {
   const d = new Date(iso + 'T00:00:00Z')
@@ -135,14 +139,14 @@ export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
       <ChartWrapper chartKey="skyting_accuracy_over_time" title="Utvikling per dag" subtitle="Én verdi per dag — aggregert på tvers av alle serier i økten." height={280}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? `${v.toFixed(1)}%` : '—', String(k)]} />
-            <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8A8A96' }} />
+            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             <Line type="monotone" dataKey="Liggende" stroke={COLOR_PRONE} strokeWidth={2} dot={{ r: 3 }} connectNulls />
             <Line type="monotone" dataKey="Stående" stroke={COLOR_STANDING} strokeWidth={2} dot={{ r: 3 }} connectNulls />
             <Line type="monotone" dataKey="Total" stroke={COLOR_TOTAL} strokeWidth={1.5} strokeDasharray="4 4" dot={false} connectNulls />
@@ -172,11 +176,11 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
         height={260}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="zone" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="zone" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
               formatter={(v, k, p) => {
                 if (k === 'accuracy') {
                   const payload = p && typeof p === 'object' && 'payload' in p ? (p as { payload: { shots: number } }).payload : null
@@ -184,7 +188,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
                 }
                 return [String(v ?? ''), String(k)]
               }} />
-            <Bar dataKey="accuracy" fill={COLOR_STANDING} name="Treff%" />
+            <Bar dataKey="accuracy" fill={COLOR_STANDING} name="Treff%" radius={BAR_RADIUS} />
           </BarChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -219,7 +223,7 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
           sub={firstVsLast.last_avg_hr != null ? `snittpuls ${firstVsLast.last_avg_hr}` : undefined} />
         <InlineStat label="Endring treff%"
           value={delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(1) + '%'}
-          color={delta != null ? (delta >= 0 ? '#28A86E' : '#E11D48') : '#F0F0F2'}
+          color={delta != null ? (delta >= 0 ? '#28A86E' : '#E23A5A') : '#F0F0F2'}
           sub="siste minus første" />
         <InlineStat label="Endring puls"
           value={deltaHr == null ? '—' : (deltaHr > 0 ? '+' : '') + deltaHr.toString()}
@@ -264,12 +268,12 @@ export function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
         height={240}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               interval={tickInterval} minTickGap={8} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 'auto']} tickFormatter={(v) => `${v}s`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE}
+            <Tooltip content={<XpTooltip />}
               formatter={(v) => [`${v} s`, 'Snittid']} />
             <Line type="monotone" dataKey="sekunder" stroke={COLOR_STANDING} strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
@@ -299,11 +303,11 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
         height={220}>
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-            <XAxis dataKey="kategori" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-            <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40}
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
+            <XAxis dataKey="kategori" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+            <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
               domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'var(--line)' }}
+            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
               formatter={(v, k, p) => {
                 if (k === 'Treff') {
                   const payload = p && typeof p === 'object' && 'payload' in p ? (p as { payload: { serier: number; skudd: number } }).payload : null
@@ -311,7 +315,7 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
                 }
                 return [String(v ?? ''), String(k)]
               }} />
-            <Bar dataKey="Treff" name="Treff%">
+            <Bar dataKey="Treff" name="Treff%" radius={BAR_RADIUS}>
               <Cell fill={COLOR_TRAIN} />
               <Cell fill={COLOR_COMP} />
             </Bar>

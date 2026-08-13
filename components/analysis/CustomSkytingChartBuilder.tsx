@@ -6,7 +6,10 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
 
 // Custom skyting-graf-bygger — filtrer skyting-data og velg akser fritt.
 // Kjører helt klient-side på `series`-arrayet som allerede er lastet av
@@ -48,7 +51,7 @@ const COLOR_PRONE = '#38BDF8'
 const COLOR_STANDING = '#FF4500'
 const COLOR_TOTAL = '#F0F0F2'
 const COLOR_FIRST = '#28A86E'
-const COLOR_LAST = '#E11D48'
+const COLOR_LAST = '#E23A5A'
 
 function applyWorkoutTypeFilter(rows: ShootingSeriesRow[], key: WorkoutTypeKey): ShootingSeriesRow[] {
   switch (key) {
@@ -347,24 +350,24 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
     return (
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart>
-          <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis
             type={data.xType}
             dataKey="x"
             allowDuplicatedCategory={false}
-            tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }}
+            tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE}
             tickLine={false}
           />
           <YAxis
-            tick={AXIS_STYLE}
-            axisLine={{ stroke: GRID_COLOR }}
+            tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE}
             tickLine={false}
             width={48}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
           />
-          <Tooltip contentStyle={TOOLTIP_STYLE} />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+          <Tooltip content={<XpTooltip />} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Line data={firstPoints} type="monotone" dataKey="y" name="Første" stroke={COLOR_FIRST} strokeWidth={2} dot={{ r: 3 }} />
           <Line data={lastPoints} type="monotone" dataKey="y" name="Siste" stroke={COLOR_LAST} strokeWidth={2} dot={{ r: 3 }} />
         </LineChart>
@@ -377,12 +380,12 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
     return (
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <ScatterChart>
-          <CartesianGrid stroke={GRID_COLOR} />
-          <XAxis type="number" dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-          <YAxis type="number" dataKey="y" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={48}
+          <CartesianGrid stroke={CHART_GRID} />
+          <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+          <YAxis type="number" dataKey="y" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            content={<XpTooltip />}
             formatter={(v, k) => k === 'y' ? [String(v) + ' ' + yLabel, 'Y'] : [String(v), 'X']}
           />
           <Scatter data={data.points} fill={positionColor} />
@@ -394,11 +397,11 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={data.points}>
-        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
-        <XAxis dataKey="x" tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-        <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={48}
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
+        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
           label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-        <Tooltip contentStyle={TOOLTIP_STYLE} />
+        <Tooltip content={<XpTooltip />} />
         <Line type="monotone" dataKey="y" stroke={positionColor} strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>

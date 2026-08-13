@@ -8,16 +8,19 @@ import {
 } from 'recharts'
 import type { CompetitionAnalysis, CompetitionTypeFilter, ShootingSeriesPoint } from '@/app/actions/analysis'
 import { SPORTS, COMPETITION_TYPES, type Sport, type CompetitionType } from '@/lib/types'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+} from './chart-theme'
 import { TreffPercentageDisplay } from './TreffPercentageDisplay'
 
 const SPORT_COLOR: Record<Sport, string> = {
   running: '#FF4500',
   cross_country_skiing: '#1A6FD4',
-  biathlon: '#E11D48',
+  biathlon: '#E23A5A',
   triathlon: '#8B5CF6',
   cycling: '#28A86E',
-  long_distance_skiing: '#D4A017',
+  long_distance_skiing: '#E8B93C',
   endurance: '#8A8A96',
 }
 
@@ -70,7 +73,7 @@ function buildSeriesLines(shooting: ShootingSeriesPoint[]) {
   const firstProne: Line = { name: 'Første liggende', color: '#1A6FD4', points: [] }
   const firstStanding: Line = { name: 'Første stående', color: '#FF4500', points: [] }
   const secondProne: Line = { name: 'Andre liggende', color: '#28A86E', points: [] }
-  const secondStanding: Line = { name: 'Andre stående', color: '#D4A017', points: [] }
+  const secondStanding: Line = { name: 'Andre stående', color: '#E8B93C', points: [] }
   const avg: Line = { name: 'Samlet snitt', color: '#F0F0F2', dashed: true, points: [] }
 
   for (const [date, series] of byDate) {
@@ -168,7 +171,7 @@ export function CompetitionsTab({
     return latest
   }, [formatGroups])
 
-  const FORMAT_PALETTE = ['#FF4500', '#1A6FD4', '#28A86E', '#D4A017', '#8B5CF6', '#E11D48']
+  const FORMAT_PALETTE = ['#FF4500', '#1A6FD4', '#28A86E', '#E8B93C', '#8B5CF6', '#E23A5A']
 
   // Skiskyting-seksjon — vis hvis sport-filter inkluderer biathlon eller data har skyting.
   const showShooting = (sportFilter === null || sportFilter === 'biathlon') && data.hasShooting
@@ -360,21 +363,21 @@ export function CompetitionsTab({
             ) : (
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <ScatterChart>
-                  <CartesianGrid stroke={GRID_COLOR} />
+                  <CartesianGrid stroke={CHART_GRID} />
                   <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                    tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                    axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
+                    tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                    axisLine={CHART_AXIS_LINE} tickLine={false} />
                   <YAxis type="number" dataKey="y" reversed
-                    tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                    tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                     width={36} allowDecimals={false} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE}
+                  <Tooltip content={<XpTooltip />}
                     cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
                     formatter={(value, key) => {
                       if (key === 'x') return [formatEpochAxis(Number(value)), 'Dato']
                       if (key === 'y') return [String(value), 'Plass']
                       return [String(value), String(key)]
                     }} />
-                  <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                  <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   {positionBySport.map(([sport, pts]) => (
                     <Scatter key={sport} name={labelSport(sport)} data={pts} fill={SPORT_COLOR[sport]} />
                   ))}
@@ -401,16 +404,16 @@ export function CompetitionsTab({
               </div>
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart>
-                  <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                  <CartesianGrid stroke={CHART_GRID} vertical={false} />
                   <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                    tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                    axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                  <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={48}
+                    tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                    axisLine={CHART_AXIS_LINE} tickLine={false} />
+                  <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
                     tickFormatter={(v) => `${Math.round(Number(v) / 60)}min`} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE}
+                  <Tooltip content={<XpTooltip />}
                     labelFormatter={(v) => formatEpochAxis(Number(v))}
                     formatter={(value) => [formatDuration(Number(value)), 'Tid']} />
-                  <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                  <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                   {formatGroups.map((g, i) => (
                     <Line key={g.format} data={g.points} type="monotone" dataKey="sec" name={g.format}
                       stroke={FORMAT_PALETTE[i % FORMAT_PALETTE.length]} strokeWidth={2} dot={{ r: 3 }} />
@@ -465,16 +468,16 @@ export function CompetitionsTab({
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart>
-                      <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                      <CartesianGrid stroke={CHART_GRID} vertical={false} />
                       <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                        tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                        axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                      <YAxis domain={[0, 100]} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                        tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                        axisLine={CHART_AXIS_LINE} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                         width={40} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE}
+                      <Tooltip content={<XpTooltip />}
                         labelFormatter={(v) => formatEpochAxis(Number(v))}
                         formatter={(value) => [`${value}%`, 'Treff']} />
-                      <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                      <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                       {seriesLines.map(l => (
                         <Line key={l.name} data={l.points} type="monotone" dataKey="y" name={l.name}
                           stroke={l.color} strokeWidth={2} dot={{ r: 3 }}
@@ -496,17 +499,17 @@ export function CompetitionsTab({
                 ) : (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={compVsTrainingAcc}>
-                      <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                      <CartesianGrid stroke={CHART_GRID} vertical={false} />
                       <XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']}
-                        tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                        axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                      <YAxis domain={[0, 100]} tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false}
+                        tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                        axisLine={CHART_AXIS_LINE} tickLine={false} />
+                      <YAxis domain={[0, 100]} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
                         width={40} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip contentStyle={TOOLTIP_STYLE}
+                      <Tooltip content={<XpTooltip />}
                         labelFormatter={(v) => formatEpochAxis(Number(v))}
                         formatter={(value) => [`${value}%`, 'Treff']} />
-                      <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
-                      <Line type="monotone" dataKey="inComp" name="I konkurranse" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                      <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+                      <Line type="monotone" dataKey="inComp" name="I konkurranse" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} connectNulls />
                       <Line type="monotone" dataKey="inTrain" name="I trening" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} connectNulls />
                     </LineChart>
                   </ResponsiveContainer>
@@ -525,15 +528,15 @@ export function CompetitionsTab({
                   ) : (
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart>
-                        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                        <CartesianGrid stroke={CHART_GRID} vertical={false} />
                         <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                          tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                          axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                        <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={36} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE}
+                          tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                          axisLine={CHART_AXIS_LINE} tickLine={false} />
+                        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={36} />
+                        <Tooltip content={<XpTooltip />}
                           labelFormatter={(v) => formatEpochAxis(Number(v))}
                           formatter={(value) => [`${value}s`, 'Snitt']} />
-                        <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#555560' }} />
+                        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
                         <Line data={shootingTimeSeries.prone} type="monotone" dataKey="y" name="Liggende" stroke="#1A6FD4" strokeWidth={2} dot={{ r: 3 }} />
                         <Line data={shootingTimeSeries.standing} type="monotone" dataKey="y" name="Stående" stroke="#FF4500" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
@@ -551,15 +554,15 @@ export function CompetitionsTab({
                   ) : (
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                       <LineChart data={shootingHrSeries}>
-                        <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                        <CartesianGrid stroke={CHART_GRID} vertical={false} />
                         <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                          tickFormatter={formatEpochAxis} tick={AXIS_STYLE}
-                          axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                        <YAxis tick={AXIS_STYLE} axisLine={{ stroke: GRID_COLOR }} tickLine={false} width={40} />
-                        <Tooltip contentStyle={TOOLTIP_STYLE}
+                          tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK}
+                          axisLine={CHART_AXIS_LINE} tickLine={false} />
+                        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40} />
+                        <Tooltip content={<XpTooltip />}
                           labelFormatter={(v) => formatEpochAxis(Number(v))}
                           formatter={(v) => [`${v} bpm`, 'Puls']} />
-                        <Line type="monotone" dataKey="y" name="Puls" stroke="#E11D48" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="y" name="Puls" stroke="#E23A5A" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   )}

@@ -413,10 +413,10 @@
   .cta-free span { color:var(--orange); }
   .cta-sub { font-size:15px; color:rgba(242,240,236,0.4); max-width:400px; margin:0 auto 40px; line-height:1.7; }
   .cta-form { display:flex; max-width:440px; margin:0 auto; }
-  .cta-input { flex:1; background:var(--surface); border:1px solid var(--border); border-right:none; padding:16px 18px; font-family:'Barlow',sans-serif; font-size:14px; color:var(--white); outline:none; transition:border-color 0.2s; }
+  .cta-input { border-radius:var(--r-sm) 0 0 var(--r-sm); flex:1; background:var(--surface); border:1px solid var(--border); border-right:none; padding:16px 18px; font-family:'Barlow',sans-serif; font-size:14px; color:var(--white); outline:none; transition:border-color 0.2s; }
   .cta-input::placeholder { color:var(--muted); }
   .cta-input:focus { border-color:rgba(255,69,0,0.4); }
-  .cta-btn { background:var(--orange); color:var(--white); border:none; padding:16px 28px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; cursor:none; transition:background 0.2s; white-space:nowrap; }
+  .cta-btn { border-radius:0 var(--r-sm) var(--r-sm) 0; background:var(--orange); color:var(--white); border:none; padding:16px 28px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:12px; letter-spacing:2.5px; text-transform:uppercase; cursor:none; transition:background 0.2s; white-space:nowrap; }
   .cta-btn:hover { background:var(--orange-dark); }
 
   /* SPORT CARDS */
@@ -516,7 +516,7 @@
   .pricing-group-label::before {
     content:''; display:inline-block; width:24px; height:2px; background:currentColor;
   }
-  .price-card {
+  .price-card { border-radius:16px;
     background:var(--surface); padding:32px 24px;
     display:flex; flex-direction:column; gap:16px; position:relative;
     border-top:2px solid transparent; transition:background 0.25s, border-color 0.25s;
@@ -544,7 +544,7 @@
     color:var(--orange); font-weight:700; font-size:12px;
   }
   .price-card-coming .price-features li::before { color:var(--blue); }
-  .price-cta {
+  .price-cta { border-radius:var(--r-sm);
     display:block; padding:13px 16px; text-align:center;
     background:var(--orange); color:var(--white); text-decoration:none;
     font-family:'Barlow Condensed',sans-serif; font-weight:700;
@@ -554,7 +554,7 @@
   .price-cta:hover { background:var(--orange-dark); }
   .price-cta-secondary { background:transparent; color:var(--white); border:1px solid var(--border); }
   .price-cta-secondary:hover { background:var(--surface); border-color:var(--muted); }
-  .price-badge {
+  .price-badge { border-radius:999px;
     display:inline-block; padding:2px 8px; font-family:'Barlow Condensed',sans-serif;
     font-weight:700; font-size:9px; letter-spacing:2px; text-transform:uppercase;
   }
@@ -604,7 +604,7 @@
     .why-table-wrap::after { content:'Bla horisontalt →'; display:block; text-align:right; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:rgba(242,240,236,0.35); padding:6px 10px; }
   }
 
-  .price-compare { background:var(--surface); border:1px solid var(--border); margin:20px 0 40px; }
+  .price-compare { border-radius:var(--r-card); overflow:hidden; background:var(--surface); border:1px solid var(--border); margin:20px 0 40px; }
   .price-compare > summary {
     cursor:none; padding:18px 24px; list-style:none;
     font-family:'Barlow Condensed',sans-serif; font-weight:700;
@@ -640,7 +640,7 @@
   .faq-section { padding:100px 56px; background:var(--mid); }
   .faq-inner { max-width:880px; }
   .faq-list { display:flex; flex-direction:column; gap:2px; margin-top:24px; }
-  .faq-item { background:var(--surface); border-left:3px solid transparent; transition:border-color 0.2s, background 0.2s; }
+  .faq-item { border-radius:var(--r-sm); overflow:hidden; margin-bottom:2px; background:var(--surface); border-left:3px solid transparent; transition:border-color 0.2s, background 0.2s; }
   .faq-item:hover { background:#1e1e23; }
   .faq-item[open] { border-left-color:var(--orange); }
   .faq-item > summary {
@@ -759,11 +759,11 @@
 
   /* Pris: kompakte "Kommer snart"-rader */
   .price-coming-strip { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
-  .price-coming-row { display:flex; align-items:center; gap:20px; flex-wrap:wrap; background:var(--surface); opacity:0.85; padding:16px 24px; }
+  .price-coming-row { border-radius:var(--r-sm); display:flex; align-items:center; gap:20px; flex-wrap:wrap; background:var(--surface); opacity:0.85; padding:16px 24px; }
   .price-coming-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
   .price-coming-price { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:rgba(242,240,236,0.55); }
   .price-coming-desc { font-size:12.5px; line-height:1.6; color:rgba(242,240,236,0.5); flex:1; min-width:220px; }
-  .price-coming-link {
+  .price-coming-link { border-radius:var(--r-sm);
     font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px; letter-spacing:2px;
     text-transform:uppercase; color:var(--white); text-decoration:none;
     border:1px solid var(--border); padding:9px 18px; white-space:nowrap;

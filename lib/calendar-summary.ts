@@ -121,7 +121,11 @@ export function snapshotActivityToLike(raw: unknown): ActivityLike | null {
   if (zonesRaw) {
     for (const k of ALL_ZONE_NAMES) {
       const v = zonesRaw[k]
-      const n = typeof v === 'string' ? parseInt(v) : Number(v)
+      // Skjema-strenger har minutt-semantikk («60» = 60 min, «1:30» = 1m30s)
+      // — samme parser som serializeZones. parseInt her tolket «300» som 300
+      // SEKUNDER og gjorde planlagte soner 60× for små (grønn flik-buggen).
+      // Tall (allerede serialiserte snapshots) er sekunder og beholdes.
+      const n = typeof v === 'string' ? (parseActivityDuration(v) ?? 0) : Number(v)
       if (Number.isFinite(n) && n > 0) zones[k] = n
     }
   }

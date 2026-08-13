@@ -263,7 +263,7 @@ export function LiveSessionView({
   return (
     <div style={{ minHeight: '100dvh', background: '#0A0A0B', paddingBottom: 96 }}>
       {/* Topp: avbryt + tittel + total tid */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#0E0E12', borderBottom: '1px solid #1E1E22', padding: '10px 14px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between">
           <button type="button" onClick={cancel}
             style={{ background: 'none', border: 'none', color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
@@ -288,7 +288,7 @@ export function LiveSessionView({
 
       <div style={{ padding: '12px 12px 0' }}>
         {exercises.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '32px 16px', background: '#13131A', border: '1px dashed #333340', marginBottom: 16 }}>
+          <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 14, marginBottom: 16 }}>
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 15, margin: 0 }}>
               Ingen øvelser lagt til — legg til øvelser for å begynne.
             </p>
@@ -316,7 +316,7 @@ export function LiveSessionView({
           const ssLetter = ex.superset_group != null ? groupLetters.get(ex.superset_group) : undefined
           const accent = ssLetter ? '#5B8DEF' : ORANGE
           return (
-            <div key={ex.id} style={{ background: '#13131A', border: '1px solid #1E1E22', borderLeft: `3px solid ${accent}`, padding: '12px', marginBottom: 12 }}>
+            <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${accent}`, borderRadius: 12, padding: '12px', marginBottom: 12 }}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 19, letterSpacing: '0.03em' }}>
                   {ssLetter && (
@@ -409,7 +409,7 @@ export function LiveSessionView({
       </div>
 
       {/* Bunn: volum + Fullfør */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0E0E12', borderTop: '1px solid #1E1E22', padding: '10px 14px' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between mb-2">
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
             Volum: <b style={{ color: '#F0F0F2' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>
@@ -419,7 +419,7 @@ export function LiveSessionView({
           </span>
         </div>
         <button type="button" onClick={finish} disabled={busy}
-          style={{ width: '100%', background: '#28A86E', color: '#0A0A0B', border: 'none', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+          style={{ width: '100%', background: '#28A86E', color: '#0A0A0B', border: 'none', borderRadius: 12, boxShadow: '0 6px 24px rgba(40,168,110,.3)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           Fullfør økt ✓
         </button>
       </div>
@@ -447,14 +447,14 @@ function Stepper({ label, value, step, onChange }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <button type="button" onClick={() => bump(-1)} style={stepBtn}>−</button>
         <input value={value} onChange={e => onChange(e.target.value)} inputMode="decimal"
-          style={{ width: 46, textAlign: 'center', background: '#1A1A22', border: '1px solid #262629', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '6px 0', outline: 'none' }} />
+          style={{ width: 46, textAlign: 'center', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '6px 0', outline: 'none' }} />
         <button type="button" onClick={() => bump(1)} style={stepBtn}>+</button>
       </div>
     </div>
   )
 }
 const stepBtn: React.CSSProperties = {
-  background: '#1A1A22', border: '1px solid #262629', color: '#F0F0F2',
+  background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: '#F0F0F2',
   width: 30, height: 34, fontSize: 18, cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
 }
 
@@ -464,11 +464,11 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>RPE</span>
       <button type="button" onClick={() => setOpen(o => !o)}
-        style={{ width: 38, height: 34, background: '#1A1A22', border: '1px solid #262629', color: value ? '#F0F0F2' : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
+        style={{ width: 38, height: 34, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: value ? '#F0F0F2' : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
         {value || '–'}
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: '100%', zIndex: 20, background: '#1A1A22', border: '1px solid #262629', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 2 }}>
+        <div style={{ position: 'absolute', top: '100%', zIndex: 20, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', marginTop: 2 }}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
             <button key={n} type="button"
               onClick={() => { onChange(String(n)); setOpen(false) }}
@@ -491,14 +491,14 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
       <div style={{ display: 'flex', gap: 8 }}>
         <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)}
           placeholder="Legg til øvelse (søk eller skriv eget)"
-          style={{ flex: 1, background: '#13131A', border: '1px solid #262629', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
+          style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
         <button type="button" onClick={() => commit(q)} disabled={!q.trim()}
           style={{ background: ORANGE, color: '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 16px', textTransform: 'uppercase', cursor: q.trim() ? 'pointer' : 'default', opacity: q.trim() ? 1 : 0.5 }}>
           Legg til
         </button>
       </div>
       {matches.length > 0 && (
-        <div style={{ background: '#1A1A22', border: '1px solid #262629', borderTop: 'none' }}>
+        <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
           {matches.map(m => (
             <button key={m.name} type="button" onClick={() => commit(m.name)}
               style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #14141A', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 12px', cursor: 'pointer' }}>

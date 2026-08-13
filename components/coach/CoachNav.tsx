@@ -94,9 +94,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               className="text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: COACH_BLUE,
-                border: `1px solid ${COACH_BLUE}`,
-                padding: '1px 6px',
+                color: 'var(--dim)',
+                border: '1px solid var(--line2)',
+                borderRadius: 999,
+                padding: '1px 7px',
               }}
             >
               v1.0
@@ -315,9 +316,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             className="text-xs tracking-widest uppercase ml-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: COACH_BLUE,
-              border: `1px solid ${COACH_BLUE}`,
-              padding: '1px 6px',
+              color: 'var(--dim)',
+              border: '1px solid var(--line2)',
+              borderRadius: 999,
+              padding: '1px 7px',
             }}
           >
             v1.0
@@ -326,9 +328,10 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             className="text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: COACH_BLUE,
-              border: `1px solid ${COACH_BLUE}`,
-              padding: '1px 6px',
+              color: 'var(--dim)',
+              border: '1px solid var(--line2)',
+              borderRadius: 999,
+              padding: '1px 7px',
             }}
           >
             Trener
@@ -346,14 +349,16 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 key={href}
                 href={href}
                 title={label}
-                className="px-3 xl:px-4 py-0 flex items-center gap-2 text-sm uppercase transition-colors"
+                className="px-3 xl:px-4 flex items-center gap-2 text-sm uppercase transition-colors"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
                   letterSpacing: '0.16em',
-                  color: active ? '#F0F0F2' : 'rgba(242,240,236,0.55)',
-                  height: '52px',
-                  borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
+                  color: active ? COACH_BLUE : 'rgba(242,240,236,0.55)',
+                  height: '36px',
+                  alignSelf: 'center',
+                  borderRadius: 999,
+                  backgroundColor: active ? 'var(--blue-soft)' : 'transparent',
                   textDecoration: 'none',
                 }}
               >

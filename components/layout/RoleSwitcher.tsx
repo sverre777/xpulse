@@ -58,27 +58,45 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-2 px-3 py-1 transition-colors"
+        className="flex items-center gap-0 transition-colors"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           color: '#F0F0F2',
           background: 'none',
-          border: `1px solid ${color}`,
+          border: '1px solid var(--line2)',
+          borderRadius: 999,
           cursor: 'pointer',
           height: '32px',
+          padding: '2px',
+          overflow: 'hidden',
         }}
       >
-        <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: color,
-            display: 'inline-block',
-          }}
-        />
-        <span className="text-xs tracking-widest uppercase">{label}</span>
-        <span style={{ color: '#8A8A96', fontSize: 10 }}>▾</span>
+        {hasAthleteRole && hasCoachRole && hasCoachTier ? (
+          <>
+            <span className="text-xs tracking-widest uppercase"
+              style={{
+                padding: '4px 12px', borderRadius: 999,
+                backgroundColor: activeRole === 'athlete' ? ATHLETE_ORANGE : 'transparent',
+                color: activeRole === 'athlete' ? '#fff' : '#8A8A96',
+              }}>
+              Utøver
+            </span>
+            <span className="text-xs tracking-widest uppercase"
+              style={{
+                padding: '4px 12px', borderRadius: 999,
+                backgroundColor: activeRole === 'coach' ? COACH_BLUE : 'transparent',
+                color: activeRole === 'coach' ? '#fff' : '#8A8A96',
+              }}>
+              Trener
+            </span>
+          </>
+        ) : (
+          <>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: color, display: 'inline-block', marginLeft: 10 }} />
+            <span className="text-xs tracking-widest uppercase" style={{ padding: '4px 10px 4px 8px' }}>{label}</span>
+          </>
+        )}
+        <span style={{ color: '#8A8A96', fontSize: 10, paddingRight: 8 }}>▾</span>
       </button>
 
       {open && (
@@ -89,8 +107,10 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             top: 'calc(100% + 4px)',
             right: 0,
             minWidth: 200,
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
+            borderRadius: 12,
+            overflow: 'hidden',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
             zIndex: 60,
           }}

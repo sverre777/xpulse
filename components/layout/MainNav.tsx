@@ -437,6 +437,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               color: '#F0F0F2',
               textDecoration: 'none',
               padding: '10px 24px',
+              borderRadius: 10,
             }}
           >
             {logLabel}
@@ -446,7 +447,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
 
       {/* Nav-rute-liste med ikon + tekst */}
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1">
-        {MOBILE_LINKS.map(({ href, label }) => {
+        {MOBILE_LINKS.map(({ href, label }, i) => {
           const active = href === HOME_HREF
             ? pathname === href
             : pathname === href || pathname.startsWith(href + '/')
@@ -456,19 +457,22 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               key={href}
               href={href}
               onClick={onClose}
+              className="xp-menu-item"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '14px',
-                padding: '14px 12px',
+                padding: '14px 14px',
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: '17px',
                 letterSpacing: '0.1em',
-                color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
+                color: active ? accent : 'rgba(242,240,236,0.7)',
                 textDecoration: 'none',
-                backgroundColor: active ? '#1A1A22' : 'transparent',
+                backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
+                borderRadius: 12,
                 borderLeft: active ? `3px solid ${accent}` : '3px solid transparent',
                 textTransform: 'uppercase',
+                animationDelay: `${i * 35}ms`,
               }}
             >
               {Glyph ? <span style={{ color: active ? accent : '#8A8A96', display: 'inline-flex' }}><Glyph size={22} /></span> : null}

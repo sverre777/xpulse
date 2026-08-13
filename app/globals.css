@@ -527,3 +527,13 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   .xp-pulse-dot { animation: none; }
   .xp-hbtn, .xp-status-badge { transition: none; }
 }
+
+/* Hamburgermeny: subtil stagger på menypunkter ved åpning. */
+@keyframes xpMenuIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: none; }
+}
+.xp-menu-item { opacity: 0; animation: xpMenuIn .26s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .xp-menu-item { animation: none; opacity: 1; }
+}

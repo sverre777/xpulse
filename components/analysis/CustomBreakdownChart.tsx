@@ -163,12 +163,18 @@ interface Props {
   mode?: 'completed' | 'planned'
 }
 
+type BreakdownViewMode = 'completed' | 'planned' | 'both'
+
 export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Props) {
   const [grouping, setGrouping] = useState<CustomBreakdownGrouping>('week')
   const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>('inherit')
   const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(null)
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
-  const [data, setData] = useState<CustomBreakdown | null>(null)
+  // Visning: gjennomført, planlagt eller begge (delte søyler side ved side).
+  // Init fra mode-propen så eksisterende brukssteder oppfører seg som før.
+  const [viewMode, setViewMode] = useState<BreakdownViewMode>(mode === 'planned' ? 'planned' : 'completed')
+  const [dataCompleted, setDataCompleted] = useState<CustomBreakdown | null>(null)
+  const [dataPlanned, setDataPlanned] = useState<CustomBreakdown | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -181,11 +187,25 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
   useEffect(() => {
     startTransition(async () => {
       setError(null)
-      const res = await getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, mode)
-      if ('error' in res) { setError(res.error); return }
-      setData(res)
+      const wantCompleted = viewMode !== 'planned'
+      const wantPlanned = viewMode !== 'completed'
+      const [resC, resP] = await Promise.all([
+        wantCompleted
+          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, 'completed')
+          : Promise.resolve(null),
+        wantPlanned
+          ? getCustomBreakdown(effectiveRange.from, effectiveRange.to, grouping, undefined, 'planned')
+          : Promise.resolve(null),
+      ])
+      if (resC && 'error' in resC) { setError(resC.error); return }
+      if (resP && 'error' in resP) { setError(resP.error); return }
+      setDataCompleted(resC && !('error' in resC) ? resC : null)
+      setDataPlanned(resP && !('error' in resP) ? resP : null)
     })
-  }, [effectiveRange.from, effectiveRange.to, grouping, mode])
+  }, [effectiveRange.from, effectiveRange.to, grouping, viewMode])
+
+  // Primærdatasett for selektorer/lister (planlagt-visning bruker plan-data).
+  const data = viewMode === 'planned' ? dataPlanned : dataCompleted
 
   // Initialiser multi-select til alle tilgjengelige bevegelser første gang data kommer.
   useEffect(() => {
@@ -221,33 +241,53 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
   }, [data, selectedMovements])
 
   const activeNonEnduranceKeys = useMemo<string[]>(() => {
-    if (!data) return []
-    return data.nonEnduranceMovementsInUse.filter(m => isMovementSelected(m))
+    // Union av in-use fra begge datasett så «Begge»-visningen fanger
+    // bevegelser som kun finnes i plan eller kun i dagbok.
+    const s = new Set<string>()
+    if (viewMode !== 'planned') dataCompleted?.nonEnduranceMovementsInUse.forEach(m => s.add(m))
+    if (viewMode !== 'completed') dataPlanned?.nonEnduranceMovementsInUse.forEach(m => s.add(m))
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb')).filter(m => isMovementSelected(m))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, selectedMovements])
+  }, [dataCompleted, dataPlanned, viewMode, selectedMovements])
+
+  // Union av buckets fra vist(e) datasett, nøklet på bucketKey — i «Begge»
+  // legges plan-tallene i p_-prefiksede felter (egen stack ved siden av).
+  const displayBuckets = useMemo(() => {
+    const map = new Map<string, { bucketKey: string; label: string; startDate: string; done?: CustomBreakdownBucket; plan?: CustomBreakdownBucket }>()
+    const add = (b: CustomBreakdownBucket, slot: 'done' | 'plan') => {
+      let e = map.get(b.bucketKey)
+      if (!e) { e = { bucketKey: b.bucketKey, label: b.label, startDate: b.startDate }; map.set(b.bucketKey, e) }
+      e[slot] = b
+    }
+    if (viewMode !== 'planned') dataCompleted?.buckets.forEach(b => add(b, 'done'))
+    if (viewMode !== 'completed') dataPlanned?.buckets.forEach(b => add(b, 'plan'))
+    return Array.from(map.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
+  }, [dataCompleted, dataPlanned, viewMode])
 
   const chartData = useMemo(() => {
-    if (!data) return []
-    return data.buckets.map(b => {
-      const row: Record<string, string | number> = { label: b.label }
-      if (anyEnduranceSelected) {
-        for (const k of ZONE_KEYS) {
-          row[k] = Math.round((b.endurance_zone_seconds[k] / 60))
+    return displayBuckets.map(e => {
+      const row: Record<string, string | number> = { label: e.label }
+      const fill = (b: CustomBreakdownBucket | undefined, prefix: string) => {
+        if (anyEnduranceSelected) {
+          for (const k of ZONE_KEYS) {
+            row[prefix + k] = b ? Math.round((b.endurance_zone_seconds[k] / 60)) : 0
+          }
+        } else {
+          for (const k of ZONE_KEYS) row[prefix + k] = 0
         }
-      } else {
-        for (const k of ZONE_KEYS) row[k] = 0
+        for (const k of activeNonEnduranceKeys) {
+          row[prefix + k] = b ? Math.round((b.non_endurance_seconds[k] ?? 0) / 60) : 0
+        }
       }
-      for (const k of activeNonEnduranceKeys) {
-        row[k] = Math.round((b.non_endurance_seconds[k] ?? 0) / 60)
-      }
+      if (viewMode === 'completed') fill(e.done, '')
+      else if (viewMode === 'planned') fill(e.plan, '')
+      else { fill(e.done, ''); fill(e.plan, 'p_') }
       return row
     })
-  }, [data, anyEnduranceSelected, activeNonEnduranceKeys])
+  }, [displayBuckets, anyEnduranceSelected, activeNonEnduranceKeys, viewMode])
 
-  const hasAny = !!data && chartData.some(d => {
-    const sum = [...ZONE_KEYS, ...activeNonEnduranceKeys].reduce((s, k) => s + (Number(d[k]) || 0), 0)
-    return sum > 0
-  })
+  const hasAny = displayBuckets.length > 0 && chartData.some(d =>
+    Object.entries(d).some(([k, v]) => k !== 'label' && (Number(v) || 0) > 0))
 
   const toggleLegend = (seriesKey: string) => {
     setHiddenSeries(prev => {
@@ -273,26 +313,27 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
   const lastVisibleKey = visibleKeys[visibleKeys.length - 1]
 
   // Total per bucket over synlige serier (minutter) — til tall over søylene.
+  // I «Begge»-visning skjules totaler + snittlinje (to stacker per bucket
+  // gjør ett tall/en linje tvetydig).
   const visibleTotals = useMemo(
     () => chartData.map(row => visibleKeys.reduce((s, k) => s + (Number(row[k]) || 0), 0)),
     [chartData, visibleKeys],
   )
 
   const avgTotal = useMemo(() => {
-    if (visibleTotals.length < 2) return 0
+    if (viewMode === 'both' || visibleTotals.length < 2) return 0
     return visibleTotals.reduce((s, v) => s + v, 0) / visibleTotals.length
-  }, [visibleTotals])
+  }, [visibleTotals, viewMode])
 
   // Datoperiode under uke-labels + inneværende periode (oransje).
   const tickPeriods = useMemo(() => {
-    if (!data || grouping !== 'week') return []
-    return data.buckets.map(b => weekPeriodLabel(b.startDate))
-  }, [data, grouping])
+    if (grouping !== 'week') return []
+    return displayBuckets.map(b => weekPeriodLabel(b.startDate))
+  }, [displayBuckets, grouping])
 
   const nowIndex = useMemo(() => {
-    if (!data) return -1
     const today = localISODate()
-    return data.buckets.findIndex(b => {
+    return displayBuckets.findIndex(b => {
       if (grouping === 'year') return b.bucketKey === today.slice(0, 4)
       if (grouping === 'month') return b.bucketKey === today.slice(0, 7)
       const [y, m, d] = b.startDate.split('-').map(Number)
@@ -300,7 +341,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
       const endIso = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
       return b.startDate <= today && today <= endIso
     })
-  }, [data, grouping])
+  }, [displayBuckets, grouping])
 
   const showTickPeriod = grouping === 'week' && chartData.length <= 16
 
@@ -315,6 +356,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
         {/* Kontroll-rad: gruppering + periode-override + multi-select */}
         <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
           <GroupingSelector value={grouping} onChange={setGrouping} />
+          <ViewModeSelector value={viewMode} onChange={setViewMode} />
           <RangeSelector value={localPreset} onChange={setLocalPreset} />
           {data && (
             <MovementMultiSelect
@@ -334,13 +376,13 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
                 {error}
               </p>
             </div>
-          ) : isPending && !data ? (
+          ) : isPending && !dataCompleted && !dataPlanned ? (
             <div className="flex items-center justify-center h-full">
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
                 Laster…
               </p>
             </div>
-          ) : !data || !hasAny ? (
+          ) : !hasAny ? (
             <div className="flex items-center justify-center h-full" style={{ border: '1px dashed #1E1E22' }}>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 13 }}>
                 Velg bevegelsesformer og tidsintervall for å se grafen
@@ -394,7 +436,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
                       label={{ value: 'min', angle: -90, position: 'insideLeft', style: { ...CHART_AXIS_TICK, textAnchor: 'middle' } }}
                     />
                     <Tooltip
-                      content={<XpTooltip showTotal totalFormatter={t => formatMinutes(t * 60)} />}
+                      content={<XpTooltip showTotal={viewMode !== 'both'} totalFormatter={t => formatMinutes(t * 60)} />}
                       cursor={CHART_CURSOR}
                       formatter={(value, name) => {
                         const mins = Number(value) || 0
@@ -416,10 +458,10 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
                         dataKey={z}
                         stackId="breakdown"
                         fill={CHART_ZONE_COLORS[z]}
-                        name={z}
+                        name={viewMode === 'both' ? `${z} (gjennomført)` : z}
                         hide={hiddenSeries.has(z)}
                       >
-                        {z === lastVisibleKey && (
+                        {viewMode !== 'both' && z === lastVisibleKey && (
                           <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
                         )}
                       </Bar>
@@ -430,13 +472,41 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed' }: Prop
                         dataKey={m}
                         stackId="breakdown"
                         fill={colorForNonEndurance(m)}
-                        name={m}
+                        name={viewMode === 'both' ? `${m} (gjennomført)` : m}
                         hide={hiddenSeries.has(m)}
                       >
-                        {m === lastVisibleKey && (
+                        {viewMode !== 'both' && m === lastVisibleKey && (
                           <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
                         )}
                       </Bar>
+                    ))}
+                    {/* Planlagt-stacken (kun «Begge»): samme sonefarger, stiplet
+                        omriss + svak fyll så plan skilles tydelig fra fasit. */}
+                    {viewMode === 'both' && anyEnduranceSelected && ZONE_KEYS.map(z => (
+                      <Bar
+                        key={`p_${z}`}
+                        dataKey={`p_${z}`}
+                        stackId="breakdown_plan"
+                        fill={CHART_ZONE_COLORS[z]}
+                        fillOpacity={0.18}
+                        stroke={CHART_ZONE_COLORS[z]}
+                        strokeDasharray="4 3"
+                        name={`${z} (plan)`}
+                        hide={hiddenSeries.has(z)}
+                      />
+                    ))}
+                    {viewMode === 'both' && activeNonEnduranceKeys.map(m => (
+                      <Bar
+                        key={`p_${m}`}
+                        dataKey={`p_${m}`}
+                        stackId="breakdown_plan"
+                        fill={colorForNonEndurance(m)}
+                        fillOpacity={0.18}
+                        stroke={colorForNonEndurance(m)}
+                        strokeDasharray="4 3"
+                        name={`${m} (plan)`}
+                        hide={hiddenSeries.has(m)}
+                      />
                     ))}
                   </BarChart>
                 </ResponsiveContainer>
@@ -466,6 +536,44 @@ function GroupingSelector({
       <span className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Gruppering
+      </span>
+      <div className="flex gap-1">
+        {options.map(o => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onChange(o.value)}
+            className="px-3 py-1.5 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              backgroundColor: value === o.value ? '#FF4500' : '#0A0A0B',
+              border: value === o.value ? '1px solid #FF4500' : '1px solid #1E1E22',
+              color: value === o.value ? '#FFFFFF' : '#F0F0F2',
+              cursor: 'pointer',
+              minHeight: 32,
+            }}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ViewModeSelector({
+  value, onChange,
+}: { value: BreakdownViewMode; onChange: (v: BreakdownViewMode) => void }) {
+  const options: { value: BreakdownViewMode; label: string }[] = [
+    { value: 'completed', label: 'Gjennomført' },
+    { value: 'planned', label: 'Planlagt' },
+    { value: 'both', label: 'Begge' },
+  ]
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        Visning
       </span>
       <div className="flex gap-1">
         {options.map(o => (

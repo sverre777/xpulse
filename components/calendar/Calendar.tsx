@@ -546,18 +546,14 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
     : null
   const { onEditWorkout } = useCalendarActions()
 
-  // Konkurranse/testløp bruker tykkere ramme (2px) og solid gull/blå-fyll når gjennomført.
-  // Trener-planlagt økt: stiplet blå-ramme så plan-stil bevares.
+  // Fargen bor KUN på venstre kant (accent) — rammen rundt er nøytral
+  // hvitaktig: stiplet for planlagt, solid for gjennomført. Trener-planlagt
+  // beholder blå stiplet ramme (attribusjon). Konkurranse/testløp markeres
+  // med accent-kant + ikon, ikke lenger farget ramme/fyll.
   const border = showCoachStyle
     ? `1px dashed ${COACH_BLUE}`
-    : (comp
-        ? (isPlanned
-            ? `${comp.thickBorder ? 2 : 1}px ${comp.thickBorder ? 'solid' : 'solid'} ${color}`
-            : `${comp.thickBorder ? 2 : 1}px solid ${color}`)
-        : (isPlanned ? `1px dashed ${color}` : `1px solid ${color}55`))
-  const bg = comp
-    ? (isPlanned ? 'transparent' : `${color}55`)
-    : (isPlanned ? 'transparent' : `${color}33`)
+    : (isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid rgba(242,240,236,0.16)')
+  const bg = isPlanned ? 'transparent' : 'var(--card2)'
   const coachTitle = showCoachStyle
     ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`
     : undefined
@@ -1334,12 +1330,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               <button type="button" onClick={() => onEditWorkout(w, ds)}
                                 style={{ display: 'block', flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-3" style={{
-                                backgroundColor: comp && !isPlanned ? `${color}22` : '#1A1A22',
+                                backgroundColor: '#1A1A22',
+                                // Nøytral hvitaktig ramme (stiplet plan / solid dagbok) —
+                                // fargen bor kun på accent-kanten. Trener beholder blå.
                                 border: showCoachStyle
                                   ? `1px dashed ${COACH_BLUE}`
-                                  : (comp
-                                      ? `${comp.thickBorder ? 2 : 1}px solid ${color}`
-                                      : (isPlanned ? `1px dashed #444` : `1px solid #1E1E22`)),
+                                  : (isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid rgba(242,240,236,0.16)'),
                                 // Etter border-shorthanden så accent-kanten vinner.
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 borderRadius: 8,

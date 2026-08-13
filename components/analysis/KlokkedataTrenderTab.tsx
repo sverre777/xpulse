@@ -6,7 +6,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Legend,
 } from 'recharts'
 import type { KlokkedataTrender, TrendPoint, ZoneWeekPoint } from '@/app/actions/klokkedata-trender'
-import { ChartWrapper, TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { ChartWrapper } from './ChartWrapper'
+import {
+  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_ZONE_COLORS,
+  CHART_LEGEND_STYLE, BAR_RADIUS,
+} from './chart-theme'
 
 // Aggregert klokkedata over perioden — samme komponent uavhengig av sport.
 // Enkelte serier vises bare hvis data finnes (f.eks. watt-trend kun for
@@ -97,7 +101,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
         <ChartWrapper title="Suffer score"
           subtitle="Strava sin estimering av øktbelastning"
           chartKey="klokke_suffer_score">
-          <SimpleLineChart points={data.sufferScore} unitLabel="poeng" color="#E11D48" />
+          <SimpleLineChart points={data.sufferScore} unitLabel="poeng" color="#E23A5A" />
         </ChartWrapper>
       )}
 
@@ -142,11 +146,11 @@ function EfficiencyChart({ points, unitLabel }: { points: TrendPoint[]; unitLabe
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={points}>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} width={48} />
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={48} />
         <Tooltip
-          contentStyle={TOOLTIP_STYLE}
+          content={<XpTooltip />}
           formatter={(v, name, item) => {
             const p = item.payload as TrendPoint
             return [
@@ -169,12 +173,12 @@ function DriftChart({ points }: { points: TrendPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={points}>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} width={42}
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42}
           tickFormatter={v => `${v}%`} />
         <Tooltip
-          contentStyle={TOOLTIP_STYLE}
+          content={<XpTooltip />}
           formatter={(v, _name, item) => {
             const p = item.payload as TrendPoint
             return [`${Number(v).toFixed(1)}%`, p.title]
@@ -182,7 +186,7 @@ function DriftChart({ points }: { points: TrendPoint[] }) {
         />
         {/* 5%-grense — over dette er drift markant. */}
         <ReferenceLine y={5} stroke="#FFB300" strokeDasharray="4 4" />
-        <ReferenceLine y={0} stroke={GRID_COLOR} />
+        <ReferenceLine y={0} stroke={CHART_GRID_ZERO} />
         <Line type="monotone" dataKey="value" stroke="#FF4500" strokeWidth={1.5}
           dot={{ r: 3, fill: '#FF4500' }} isAnimationActive={false} />
       </LineChart>
@@ -196,11 +200,11 @@ function SimpleLineChart({
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={points}>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="date" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} width={42} />
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42} />
         <Tooltip
-          contentStyle={TOOLTIP_STYLE}
+          content={<XpTooltip />}
           formatter={(v, _name, item) => {
             const p = item.payload as TrendPoint
             return [`${v} ${unitLabel}`, p.title]
@@ -213,14 +217,9 @@ function SimpleLineChart({
   )
 }
 
-const ZONE_COLORS: Record<string, string> = {
-  I1: '#28A86E',     // grønn
-  I2: '#6FBF5E',     // lysere grønn
-  I3: '#D4B500',     // gul
-  I4: '#FF9500',     // oransje
-  I5: '#FF4500',     // rød
-  Hurtighet: '#8B5CF6',  // lilla
-}
+// Sonefarger fra det delte graf-temaet. Lokal palett fjernet — den brøt
+// token-fasiten (I2 var lysegrønn, I4/I5 feil hexer).
+const ZONE_COLORS = CHART_ZONE_COLORS
 
 function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
   const avgPolarized = points.length > 0
@@ -235,19 +234,19 @@ function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
       </p>
       <ResponsiveContainer width="100%" height={260} minWidth={0}>
         <BarChart data={points}>
-          <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="week" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-          <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} width={42}
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis dataKey="week" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+          <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42}
             tickFormatter={v => `${v}t`} />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            content={<XpTooltip />}
             formatter={(v, name) => [`${v} t`, name]}
             labelFormatter={(l, payload) => {
               const row = payload?.[0]?.payload as ZoneWeekPoint | undefined
               return row ? `${l} · ${row.polarized_pct}% I1+I2` : l
             }}
           />
-          <Legend wrapperStyle={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12px', color: '#8A8A96' }} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Bar dataKey="I1" stackId="z" fill={ZONE_COLORS.I1} />
           <Bar dataKey="I2" stackId="z" fill={ZONE_COLORS.I2} />
           <Bar dataKey="I3" stackId="z" fill={ZONE_COLORS.I3} />
@@ -266,15 +265,15 @@ function PowerCurveChart({
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={points}>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="duration_label" tick={AXIS_STYLE} stroke={GRID_COLOR} />
-        <YAxis tick={AXIS_STYLE} stroke={GRID_COLOR} width={42}
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis dataKey="duration_label" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
+        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42}
           tickFormatter={v => `${v} W`} />
         <Tooltip
-          contentStyle={TOOLTIP_STYLE}
+          content={<XpTooltip />}
           formatter={(v) => [`${v} W`, 'Beste snitt']}
         />
-        <Bar dataKey="watts" fill="#FFB300" />
+        <Bar dataKey="watts" fill="#FFB300" radius={BAR_RADIUS} />
       </BarChart>
     </ResponsiveContainer>
   )

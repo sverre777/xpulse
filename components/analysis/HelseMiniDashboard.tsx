@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import { getHealthCorrelations, type HealthCorrelations, type HealthDailyPoint } from '@/app/actions/analysis'
-import { TOOLTIP_STYLE, AXIS_STYLE, GRID_COLOR } from './ChartWrapper'
+import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from './chart-theme'
 import type { DateRange } from './date-range'
 
 // Mini-dashboard for Dagbok-snippets: HRV, hvilepuls og søvn vist som tre
@@ -13,7 +13,7 @@ import type { DateRange } from './date-range'
 // getHealthCorrelations — null-verdier filtreres bort i hver serie.
 
 const COLOR_HRV = '#8B5CF6'
-const COLOR_RHR = '#E11D48'
+const COLOR_RHR = '#E23A5A'
 const COLOR_SLEEP = '#1A6FD4'
 
 function dateToEpoch(iso: string): number { return new Date(iso).getTime() }
@@ -126,13 +126,13 @@ function MiniChart({
           <div style={{ width: '100%', height: 80 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={points} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke={GRID_COLOR} vertical={false} />
+                <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
-                  tickFormatter={formatEpochAxis} tick={{ ...AXIS_STYLE, fontSize: 10 }}
-                  axisLine={{ stroke: GRID_COLOR }} tickLine={false} />
-                <YAxis tick={{ ...AXIS_STYLE, fontSize: 10 }} axisLine={{ stroke: GRID_COLOR }}
+                  tickFormatter={formatEpochAxis} tick={{ ...CHART_AXIS_TICK, fontSize: 10 }}
+                  axisLine={CHART_AXIS_LINE} tickLine={false} />
+                <YAxis tick={{ ...CHART_AXIS_TICK, fontSize: 10 }} axisLine={CHART_AXIS_LINE}
                   tickLine={false} width={28} domain={['auto', 'auto']} />
-                <Tooltip contentStyle={TOOLTIP_STYLE}
+                <Tooltip content={<XpTooltip />}
                   labelFormatter={(v) => formatEpochAxis(Number(v))}
                   formatter={(value) => [`${value} ${unit}`, title]} />
                 <Line type="monotone" dataKey="y" stroke={color} strokeWidth={2} dot={false} />

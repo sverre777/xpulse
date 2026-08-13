@@ -33,6 +33,7 @@ export function SearchSortDropdown({ value, onChange }: Props) {
           fontFamily: "'Barlow Condensed', sans-serif",
           backgroundColor: 'var(--card2)',
           border: '1px solid var(--line)',
+          borderRadius: 10,
           color: '#F0F0F2',
           outline: 'none',
         }}

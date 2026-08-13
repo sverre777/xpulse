@@ -131,6 +131,8 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
         style={{
           backgroundColor: '#0E0E10',
           border: '1px solid var(--line)',
+          borderRadius: 14,
+          overflow: 'hidden',
           maxHeight: 'calc(100vh - 96px)',
         }}
       >
@@ -190,6 +192,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif",
               padding: '4px 10px',
               border: `1px solid ${filterCount > 0 ? accent : 'var(--line)'}`,
+              borderRadius: 10,
               backgroundColor: 'transparent',
               color: filterCount > 0 ? accent : '#8A8A96',
               cursor: 'pointer',

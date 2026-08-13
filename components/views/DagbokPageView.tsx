@@ -13,6 +13,7 @@ import { getDayStatesForRange } from '@/app/actions/day-states'
 import { ResumeSessionBanner } from '@/components/workout/ResumeSessionBanner'
 import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
+import { localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
@@ -28,8 +29,8 @@ export async function DagbokPageView({ viewContext }: Props) {
   const month = now.getMonth() + 1
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-  const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
-  const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
+  const monthStart = localISODate(new Date(year, month - 1, 1))
+  const monthEnd = localISODate(new Date(year, month, 0))
 
   const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
   isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))

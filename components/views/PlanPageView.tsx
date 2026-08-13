@@ -15,6 +15,7 @@ import { PlanGoalsSection } from '@/components/plan/PlanGoalsSection'
 import { PlanPhasesSection } from '@/components/plan/PlanPhasesSection'
 import { SavePlanTemplateButton } from '@/components/plan/SavePlanTemplateButton'
 import type { ViewContext } from '@/lib/view-context'
+import { localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
@@ -39,11 +40,11 @@ export async function PlanPageView({ viewContext }: Props) {
 
   const overlayFrom = new Date(now); overlayFrom.setMonth(overlayFrom.getMonth() - 6)
   const overlayTo = new Date(now); overlayTo.setMonth(overlayTo.getMonth() + 6)
-  const overlayFromISO = overlayFrom.toISOString().split('T')[0]
-  const overlayToISO = overlayTo.toISOString().split('T')[0]
+  const overlayFromISO = localISODate(overlayFrom)
+  const overlayToISO = localISODate(overlayTo)
 
-  const monthStart = new Date(year, month - 1, 1).toISOString().split('T')[0]
-  const monthEnd = new Date(year, month, 0).toISOString().split('T')[0]
+  const monthStart = localISODate(new Date(year, month - 1, 1))
+  const monthEnd = localISODate(new Date(year, month, 0))
 
   const dow = now.getDay()
   const mondayOffset = dow === 0 ? -6 : 1 - dow

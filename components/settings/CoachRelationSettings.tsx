@@ -24,7 +24,7 @@ export function CoachRelationSettings({ relations, initialHealthPermissions = {}
       <p className="p-5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
         }}>
         Ingen aktive trenerkoblinger ennå. Del trener-koden over for å koble til en trener.
       </p>
@@ -104,7 +104,7 @@ function RelationRow({
   }
 
   return (
-    <li className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <li className="p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <div className="flex items-center gap-3 flex-wrap">
         <span
           style={{
@@ -149,7 +149,7 @@ function RelationRow({
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent', color: '#8A8A96',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--line)',
                 cursor: 'pointer',
               }}
             >
@@ -174,7 +174,7 @@ function RelationRow({
       </div>
 
       <div className="mt-3 pt-3 grid grid-cols-2 gap-2"
-        style={{ borderTop: '1px solid #1E1E22' }}>
+        style={{ borderTop: '1px solid var(--line)' }}>
         <PermissionToggle
           label="Plan (se + endre)"
           checked={perm.can_edit_plan}
@@ -205,7 +205,7 @@ function RelationRow({
           hvilepuls er privat-data som krever eksplisitt opt-in per trener.
           Default AV. Når av skjules helse-fane og helse-KPIer i analysen. */}
       <div className="mt-3 pt-3"
-        style={{ borderTop: '1px solid #1E1E22' }}>
+        style={{ borderTop: '1px solid var(--line)' }}>
         <PermissionToggle
           label={`Vis helsedata (HRV, søvn, vekt, hvilepuls) til ${relation.coachName ?? 'treneren'}`}
           checked={canSeeHealthData}
@@ -238,7 +238,7 @@ function PermissionToggle({
       className="flex items-center gap-2 px-2 py-1.5"
       style={{
         cursor: disabled ? 'not-allowed' : 'pointer',
-        border: '1px solid #1E1E22',
+        border: '1px solid var(--line)',
         backgroundColor: checked ? 'rgba(26,111,212,0.1)' : 'transparent',
       }}
     >

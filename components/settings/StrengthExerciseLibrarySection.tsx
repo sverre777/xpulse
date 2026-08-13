@@ -49,7 +49,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
   }, [items, filter])
 
   return (
-    <div className="p-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="p-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -396,8 +396,8 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
   color: '#F0F0F2',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',

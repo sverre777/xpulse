@@ -53,7 +53,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
   }
 
   return (
-    <section className="p-6" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <section className="p-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-3"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Trener-kode
@@ -84,7 +84,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent',
                 color: '#F0F0F2',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--line)',
                 cursor: 'pointer',
               }}
             >
@@ -99,7 +99,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent',
                 color: '#8A8A96',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--line)',
                 cursor: isPending ? 'not-allowed' : 'pointer',
               }}
             >

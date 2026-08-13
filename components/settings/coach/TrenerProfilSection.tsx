@@ -38,7 +38,7 @@ export function TrenerProfilSection({ initial }: Props) {
 
   const inputStyle = {
     backgroundColor: '#0F0F12',
-    border: '1px solid #1E1E22',
+    border: '1px solid var(--line)',
     color: '#F0F0F2',
     fontFamily: "'Barlow Condensed', sans-serif",
   } as const
@@ -52,7 +52,7 @@ export function TrenerProfilSection({ initial }: Props) {
     <form
       action={formAction}
       className="p-5 flex flex-col gap-4"
-      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}
+      style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}
     >
       <div className="flex flex-col gap-1">
         <label htmlFor="bio" className="text-xs tracking-widest uppercase" style={labelStyle}>
@@ -122,7 +122,7 @@ export function TrenerProfilSection({ initial }: Props) {
         className="flex items-center gap-2 px-3 py-2"
         style={{
           cursor: 'pointer',
-          border: '1px solid #1E1E22',
+          border: '1px solid var(--line)',
         }}
       >
         <input

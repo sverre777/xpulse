@@ -15,13 +15,13 @@ export function SettingsCategoryCard({ href, glyph, title, description, accent =
     <Link href={href}
       className="flex items-center gap-4 p-5 transition-colors hover:bg-[#1A1A1F]"
       style={{
-        backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
+        backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
         textDecoration: 'none',
       }}>
       <div style={{
         width: '40px', height: '40px', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: '#0F0F12', border: '1px solid #1E1E22',
+        backgroundColor: '#0F0F12', border: '1px solid var(--line)',
         color: accent, fontSize: '18px',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>

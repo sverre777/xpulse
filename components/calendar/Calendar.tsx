@@ -372,21 +372,30 @@ function WeekAnalysisStripe({
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
             {sessions} økt{sessions !== 1 ? 'er' : ''}
           </span>
-          {totalZoneSec > 0 && (
+          {totalSeconds > 0 && (
             <>
               <div className="hidden md:block flex-1 min-w-[120px]">
                 <AggZoneBar zoneSeconds={zoneSeconds} height={7} otherSeconds={totalSeconds - totalZoneSec} />
               </div>
-              <span
-                className="text-xs tracking-wide"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
-              >
-                <span style={{ color: ZONE_COLORS_V2.I1 }}>I1-2: {i12}%</span>
-                <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
-                <span style={{ color: ZONE_COLORS_V2.I3 }}>I3: {i3}%</span>
-                <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
-                <span style={{ color: ZONE_COLORS_V2.I5 }}>I4-5+: {i45}%</span>
-              </span>
+              {totalZoneSec > 0 ? (
+                <span
+                  className="text-xs tracking-wide"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                >
+                  <span style={{ color: ZONE_COLORS_V2.I1 }}>I1-2: {i12}%</span>
+                  <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                  <span style={{ color: ZONE_COLORS_V2.I3 }}>I3: {i3}%</span>
+                  <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                  <span style={{ color: ZONE_COLORS_V2.I5 }}>I4-5+: {i45}%</span>
+                </span>
+              ) : (
+                <span
+                  className="text-xs tracking-wide"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                >
+                  Uten soner (styrke o.l.): <b style={{ color: '#C0C0CC' }}>100%</b>
+                </span>
+              )}
             </>
           )}
         </>

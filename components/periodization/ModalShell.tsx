@@ -78,12 +78,13 @@ export function FieldLabel({ children }: { children: React.ReactNode }) {
 
 export const INPUT_STYLE: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  backgroundColor: '#0A0A0B',
-  border: '1px solid #1E1E22',
-  color: '#F0F0F2',
+  backgroundColor: 'var(--card2)',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--r-field)',
+  color: 'var(--ink)',
   outline: 'none',
-  padding: '8px 10px',
-  fontSize: '14px',
+  padding: '10px 12px',
+  fontSize: '15px',
   width: '100%',
   colorScheme: 'dark',
 }
@@ -117,6 +118,7 @@ export function ModalFooter({
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'transparent',
             border: '1px solid #E11D48',
+            borderRadius: 'var(--r-field)',
             color: '#E11D48',
             cursor: busy ? 'not-allowed' : 'pointer',
           }}
@@ -132,8 +134,9 @@ export function ModalFooter({
           className="px-3 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#1A1A22',
-            border: '1px solid #1E1E22',
+            backgroundColor: 'var(--card2)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--r-field)',
             color: '#F0F0F2',
             cursor: busy ? 'not-allowed' : 'pointer',
           }}
@@ -150,7 +153,7 @@ export function ModalFooter({
             border: `1px solid ${disabled ? '#3A1A0F' : '#FF4500'}`,
             color: '#FFFFFF',
             cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
+            borderRadius: 'var(--r-field)',}}
         >
           {busy ? 'Lagrer…' : submitLabel}
         </button>

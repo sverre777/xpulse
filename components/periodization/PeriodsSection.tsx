@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Season, SeasonPeriod, Intensity } from '@/app/actions/seasons'
 import { PeriodModal } from './PeriodModal'
+import { SeasonCanvas } from './SeasonCanvas'
 
 const INTENSITY_COLOR: Record<Intensity, string> = {
   rolig: '#28A86E',
@@ -29,6 +30,16 @@ export function PeriodsSection({
 
   return (
     <section className="mb-8">
+      {/* «Mal sesongen»-lerretet (kø #39 fase 1). ✋ Velg åpner samme
+          PeriodModal som liste-radene — full feltparitet. */}
+      <SeasonCanvas
+        season={season}
+        periods={periods}
+        targetUserId={targetUserId}
+        canEdit={canEdit}
+        onPickPeriod={p => setEditing(p)}
+      />
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span style={{ width: '20px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />

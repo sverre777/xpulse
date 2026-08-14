@@ -26,7 +26,10 @@ export interface TargetUserResult {
 export async function resolveTargetUser(
   supabase: SupabaseClient,
   targetUserId: string | undefined,
-  required?: PermissionKey,
+  // Enkel nøkkel = flagget kreves. Array = MINST ETT av flaggene kreves
+  // (brukes der en hvilken som helst reell tilgang er nok, f.eks.
+  // periodiserings-overlay). Uten required: kun aktiv relasjon kreves.
+  required?: PermissionKey | PermissionKey[],
   authMode: 'mutate' | 'read' = 'mutate',
 ): Promise<TargetUserResult | { error: string }> {
   const user = authMode === 'read'
@@ -48,8 +51,11 @@ export async function resolveTargetUser(
   if (error) return { error: error.message }
   if (!data) return { error: 'Ingen aktiv relasjon til denne utøveren' }
 
-  if (required && !data[required]) {
-    return { error: 'Mangler tillatelse for denne handlingen' }
+  if (required) {
+    const keys = Array.isArray(required) ? required : [required]
+    if (!keys.some(k => data[k])) {
+      return { error: 'Mangler tillatelse for denne handlingen' }
+    }
   }
 
   return { userId: targetUserId, isCoachImpersonating: true, coachId: user.id }

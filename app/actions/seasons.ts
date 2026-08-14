@@ -164,7 +164,12 @@ export async function getPeriodizationForDateRange(
 ): Promise<PeriodizationOverlay | { error: string }> {
   try {
     const supabase = await createClient()
-    const resolved = await resolveTargetUser(supabase, targetUserId)
+    // Overlay-lesing på vegne av utøver krever aktiv relasjon + MINST ETT
+    // reelt tilgangsflagg — relasjoner med alt avslått stenges, mens f.eks.
+    // ren analyse-tilgang beholder høydeperiode-overlay i belastningsgrafen.
+    const resolved = await resolveTargetUser(supabase, targetUserId, [
+      'can_view_dagbok', 'can_view_analysis', 'can_edit_plan', 'can_edit_periodization',
+    ])
     if ('error' in resolved) return { error: resolved.error }
 
     const { data: seasonRows, error: seasonErr } = await supabase

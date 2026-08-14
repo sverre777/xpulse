@@ -129,6 +129,7 @@ function useCalendarActions(): CalendarActions {
 // ── Constants ──────────────────────────────────────────────
 
 const DAYS_NO = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
+const DAYS_NO_LONG = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag']
 const MONTHS_NO = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember']
 const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Des']
 
@@ -1082,6 +1083,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
+  // Mobil-listen (bolk 2, kun dagbok): utvidede tomrom — sesjonslokal,
+  // nullstilles ved månedsbytte.
+  const [expandedGaps, setExpandedGaps] = useState<Set<string>>(new Set())
+  useEffect(() => { setExpandedGaps(new Set()) }, [year, month])
+
   // Mobil-listen: auto-scroll til inneværende uke ved åpning — kun når
   // måneden er dagens måned (og kun under md-bruddpunktet).
   useEffect(() => {
@@ -1323,8 +1329,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     </span>
                   )}
                 </div>
-                {/* Dag-rader — kun dager i inneværende måned. */}
-                {week.filter(d => d.getMonth() === month - 1).map(date => {
+                {/* Dag-rader — kun dager i inneværende måned. Dagbok
+                    kollapser tomme PASSERTE dager (bolk 2, variant B);
+                    plan viser alle (variant A). */}
+                {(() => {
+                  const daysInMonth = week.filter(d => d.getMonth() === month - 1)
+                  const renderDayRow = (date: Date) => {
                   const ds = toISO(date)
                   const isToday = ds === todayISOm
                   const dayWorkouts = filterByMode(byDate[ds] ?? [], mode)
@@ -1395,7 +1405,74 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       )}
                     </div>
                   )
-                })}
+                  }
+
+                  // Variant A (plan): alle dager synlige.
+                  if (mode !== 'dagbok') return daysInMonth.map(renderDayRow)
+
+                  // Variant B (dagbok): kollapser KUN helt tomme, passerte
+                  // dager — dager med tilstand/nøkkeldato/helse-dot vises
+                  // alltid (ingen data gjemmes). I dag + fremtid kollapses
+                  // aldri (planleggingsflate).
+                  const collapsible = (d: Date) => {
+                    const dsx = toISO(d)
+                    if (dsx >= todayISOm) return false
+                    return filterByMode(byDate[dsx] ?? [], mode).length === 0
+                      && (dayStatesByDate[dsx] ?? []).length === 0
+                      && keyDatesForDate(seasonKeyDates, dsx).length === 0
+                      && !healthDates.has(dsx)
+                  }
+                  const out: React.ReactNode[] = []
+                  let i = 0
+                  while (i < daysInMonth.length) {
+                    if (!collapsible(daysInMonth[i])) { out.push(renderDayRow(daysInMonth[i])); i++; continue }
+                    let j = i
+                    while (j < daysInMonth.length && collapsible(daysInMonth[j])) j++
+                    const gapDays = daysInMonth.slice(i, j)
+                    const gapKey = toISO(gapDays[0])
+                    if (expandedGaps.has(gapKey)) {
+                      gapDays.forEach(d => out.push(renderDayRow(d)))
+                    } else {
+                      const first = gapDays[0]
+                      const last = gapDays[gapDays.length - 1]
+                      const single = gapDays.length === 1
+                      out.push(
+                        <div key={`gap-${gapKey}`} className="flex items-start gap-2.5" style={{ padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
+                          <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3, opacity: 0.75 }}>
+                            <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                              {single
+                                ? DAYS_NO[(first.getDay() + 6) % 7]
+                                : `${DAYS_NO[(first.getDay() + 6) % 7]}–${DAYS_NO[(last.getDay() + 6) % 7]}`}
+                            </span>
+                            <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, lineHeight: 1.3, color: '#8B8B95' }}>
+                              {single ? first.getDate() : `${first.getDate()}–${last.getDate()}`}
+                            </span>
+                          </div>
+                          <button type="button"
+                            onClick={() => single
+                              ? (!readOnly && onCreateWorkout(gapKey))
+                              : setExpandedGaps(prev => new Set(prev).add(gapKey))}
+                            className="flex-1 flex items-center gap-2.5 text-left"
+                            style={{
+                              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+                              border: '1px dashed var(--line2)', borderRadius: 9,
+                              padding: '8px 12px', color: '#55555F', background: 'none',
+                              cursor: 'pointer', minWidth: 0,
+                            }}>
+                            {single ? (
+                              <><b style={{ color: '#8B8B95', fontWeight: 600, letterSpacing: '0.04em' }}>{DAYS_NO_LONG[(first.getDay() + 6) % 7]} {first.getDate()}.</b> ingen økter</>
+                            ) : (
+                              <><b style={{ color: '#8B8B95', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter — trykk for å utvide</>
+                            )}
+                            <span style={{ marginLeft: 'auto', color: '#55555F' }}>{single ? '＋' : '▾'}</span>
+                          </button>
+                        </div>
+                      )
+                    }
+                    i = j
+                  }
+                  return out
+                })()}
               </div>
               <WeekAnalysisStripe
                 weekNumber={wn}

@@ -1,13 +1,15 @@
 'use client'
 
-// «Mal sesongen»-lerret (kø #39, fase 1 — design/xpulse-aarsplan-design.html).
-// Belastningspensler males med dra over uke-celler; sammenhengende uker blir
-// én periode (mandag første uke → søndag siste uke) via EKSISTERENDE
-// createPeriod/updatePeriod/deletePeriod. Maling over eksisterende perioder
-// trimmer/splitter — aldri stille datatap: sletting/splitt bekreftes.
-// ✋ Velg åpner eksisterende PeriodModal (detaljpanel m/ ALLE felter).
-// Lerretet genereres fra sesongens faktiske lengde. Server-respons er
-// sannhet: router.refresh() etter lagring.
+// «Mal sesongen»-lerret (kø #39 — design/xpulse-aarsplan-design.html).
+// A1: DAG-PRESIS maling. Granularitets-velger UKE/DAG i verktøykassa:
+//  - UKE: rask maling som snapper man–søn (fase 1-oppførsel).
+//  - DAG: ukecellene viser 7 dag-ticks og penselen maler enkeltdager.
+// ÉN kodebane: all mutasjon går via applyPaint(rangeStartISO, rangeEndISO)
+// på DAGSgrenser — uke-modus er kun snapping av seleksjonen.
+// Trim/splitt/merge som før (dag-presis); destruktivt bekreftes alltid.
+// ✋ i dag-modus: dra start-/sluttkant av en periode dag-for-dag (håndtak);
+// klikk uten dra åpner detaljpanelet (eksisterende PeriodModal).
+// Server er sannhet: router.refresh() etter hver operasjon.
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -23,6 +25,7 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
 }
 
 type Brush = 'pick' | 'erase' | Intensity
+type Granularity = 'uke' | 'dag'
 
 const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DES']
 
@@ -43,13 +46,15 @@ function isoWeekNo(d: Date): number {
   const ys = new Date(Date.UTC(t.getUTCFullYear(), 0, 1))
   return Math.ceil((((t.getTime() - ys.getTime()) / 86400000) + 1) / 7)
 }
+function minISO(a: string, b: string): string { return a < b ? a : b }
+function maxISO(a: string, b: string): string { return a > b ? a : b }
 
 interface WeekCell {
   idx: number
   mondayISO: string
   sundayISO: string
   weekNo: number
-  monthIdx: number // måned for mandagen — brukes til rad-gruppering
+  monthIdx: number
 }
 
 function buildWeeks(startISO: string, endISO: string): WeekCell[] {
@@ -72,13 +77,17 @@ function buildWeeks(startISO: string, endISO: string): WeekCell[] {
   return out
 }
 
-// Perioden som dekker flest dager av uka (uker kan straddle to perioder).
+function periodForDay(iso: string, periods: SeasonPeriod[]): SeasonPeriod | null {
+  return periods.find(p => p.start_date <= iso && p.end_date >= iso) ?? null
+}
+
+// Perioden som dekker flest dager av uka (til uke-modusens celle-farge).
 function periodForWeek(w: WeekCell, periods: SeasonPeriod[]): SeasonPeriod | null {
   let best: SeasonPeriod | null = null
   let bestDays = 0
   for (const p of periods) {
-    const s = p.start_date > w.mondayISO ? p.start_date : w.mondayISO
-    const e = p.end_date < w.sundayISO ? p.end_date : w.sundayISO
+    const s = maxISO(p.start_date, w.mondayISO)
+    const e = minISO(p.end_date, w.sundayISO)
     if (s > e) continue
     const days = (parseISO(e).getTime() - parseISO(s).getTime()) / 86400000 + 1
     if (days > bestDays) { best = p; bestDays = days }
@@ -110,12 +119,17 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
   periods: SeasonPeriod[]
   targetUserId?: string
   canEdit: boolean
-  // ✋ Velg: åpner eksisterende PeriodModal i PeriodsSection (detaljpanelet).
   onPickPeriod: (p: SeasonPeriod) => void
 }) {
   const router = useRouter()
   const [brush, setBrush] = useState<Brush>('pick')
-  const [drag, setDrag] = useState<{ start: number; end: number } | null>(null)
+  const [granularity, setGranularity] = useState<Granularity>('uke')
+  // Seleksjon under maling — alltid som dag-spenn (uke-modus snapper).
+  const [sel, setSel] = useState<{ anchorISO: string; headISO: string } | null>(null)
+  // ✋ + dag-modus: kant-dra av eksisterende periode.
+  const [edgeDrag, setEdgeDrag] = useState<{
+    period: SeasonPeriod; edge: 'start' | 'end'; dateISO: string; moved: boolean
+  } | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -123,7 +137,6 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
   const weeks = buildWeeks(season.start_date, season.end_date)
   const todayISO = toISO(new Date())
 
-  // Rad-gruppering: uker samlet per måned (mandagens måned), som i utkastet.
   const rows: { label: string; cells: WeekCell[] }[] = []
   for (const w of weeks) {
     const last = rows[rows.length - 1]
@@ -131,20 +144,30 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     else rows.push({ label: MONTHS_SHORT[w.monthIdx], cells: [w] })
   }
 
-  const selMin = drag ? Math.min(drag.start, drag.end) : -1
-  const selMax = drag ? Math.max(drag.start, drag.end) : -1
+  // Effektivt seleksjonsspenn (ISO), snapper til man–søn i uke-modus.
+  const selRange = (() => {
+    if (!sel) return null
+    let lo = minISO(sel.anchorISO, sel.headISO)
+    let hi = maxISO(sel.anchorISO, sel.headISO)
+    if (granularity === 'uke') {
+      const loWeek = weeks.find(w => lo >= w.mondayISO && lo <= w.sundayISO)
+      const hiWeek = weeks.find(w => hi >= w.mondayISO && hi <= w.sundayISO)
+      if (loWeek) lo = loWeek.mondayISO
+      if (hiWeek) hi = hiWeek.sundayISO
+    }
+    return { lo: maxISO(lo, season.start_date), hi: minISO(hi, season.end_date) }
+  })()
 
-  // ── Maling: sammenhengende uker → én periode. Overlapp trimmes/splittes. ──
-  const applyPaint = async (startIdx: number, endIdx: number, paint: Intensity | 'erase') => {
-    if (busy) return
-    const lo = Math.min(startIdx, endIdx)
-    const hi = Math.max(startIdx, endIdx)
-    // Mandag første uke → søndag siste uke, klemt til sesongen.
-    let rangeStart = weeks[lo].mondayISO
-    let rangeEnd = weeks[hi].sundayISO
-    if (rangeStart < season.start_date) rangeStart = season.start_date
-    if (rangeEnd > season.end_date) rangeEnd = season.end_date
-    if (rangeStart > rangeEnd) return
+  // Perioder m/ kant-dra-preview lagt oppå (kun visning under drag).
+  const effectivePeriods = edgeDrag
+    ? periods.map(p => p.id === edgeDrag.period.id
+        ? { ...p, [edgeDrag.edge === 'start' ? 'start_date' : 'end_date']: edgeDrag.dateISO }
+        : p)
+    : periods
+
+  // ── ÉN kodebane: all maling på dag-presise ISO-spenn. ──
+  const applyPaint = async (rangeStart: string, rangeEnd: string, paint: Intensity | 'erase') => {
+    if (busy || rangeStart > rangeEnd) return
 
     const overlaps = periods
       .filter(p => p.start_date <= rangeEnd && p.end_date >= rangeStart)
@@ -152,7 +175,6 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
 
     const fullyCovered = overlaps.filter(p => p.start_date >= rangeStart && p.end_date <= rangeEnd)
     const splits = overlaps.filter(p => p.start_date < rangeStart && p.end_date > rangeEnd)
-    // Samme intensitet som penselen absorberes uten videre (blir del av ny/utvidet).
     const deletions = paint === 'erase'
       ? fullyCovered
       : fullyCovered.filter(p => p.intensity !== paint || p.name || p.notes)
@@ -160,7 +182,7 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     if (splits.length > 0 || deletions.length > 0) {
       const parts: string[] = []
       if (splits.length > 0) parts.push(`«${splits.map(p => p.name).join('», «')}» deles i to`)
-      if (deletions.length > 0) parts.push(`${deletions.length === 1 ? `«${deletions[0].name}» slettes` : `${deletions.length} perioder slettes`}`)
+      if (deletions.length > 0) parts.push(deletions.length === 1 ? `«${deletions[0].name}» slettes` : `${deletions.length} perioder slettes`)
       const ok = await xpConfirm(`Maling over eksisterende: ${parts.join(' og ')}. Fortsette?`)
       if (!ok) return
     }
@@ -168,12 +190,10 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     setBusy(true)
     setError(null)
     try {
-      // 1) Fjern helt dekkede perioder.
       for (const p of fullyCovered) {
         const res = await deletePeriod(p.id, targetUserId)
         if (res.error) throw new Error(res.error)
       }
-      // 2) Splitt perioder som omslutter hele spennet.
       for (const p of splits) {
         const origEnd = p.end_date
         const resA = await updatePeriod(p.id, periodToInput(p, { end_date: addDaysISO(rangeStart, -1) }, targetUserId))
@@ -185,7 +205,6 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
         }, targetUserId))
         if (resB.error) throw new Error(resB.error)
       }
-      // 3) Trim delvis overlapp (venstre/høyre).
       let leftNeighbor: SeasonPeriod | null = null
       let rightNeighbor: SeasonPeriod | null = null
       for (const p of overlaps) {
@@ -201,8 +220,6 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
         }
       }
       if (paint !== 'erase') {
-        // 4) Nabo-sammenslåing: tilstøtende periode med SAMME belastning
-        //    utvides i stedet for å opprette ny (sammenhengende = én periode).
         const leftAdj = leftNeighbor && leftNeighbor.intensity === paint
           ? leftNeighbor
           : periods.find(p => p.intensity === paint && p.end_date === addDaysISO(rangeStart, -1) && !fullyCovered.includes(p) && !splits.includes(p)) ?? null
@@ -221,9 +238,13 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
           const res = await updatePeriod(rightAdj.id, periodToInput(rightAdj, { start_date: rangeStart }, targetUserId))
           if (res.error) throw new Error(res.error)
         } else {
+          const wLo = weeks.find(w => rangeStart >= w.mondayISO && rangeStart <= w.sundayISO)
+          const wHi = weeks.find(w => rangeEnd >= w.mondayISO && rangeEnd <= w.sundayISO)
           const res = await createPeriod({
             season_id: season.id,
-            name: `${INTENSITY_LABEL[paint]} uke ${weeks[lo].weekNo}–${weeks[hi].weekNo}`,
+            name: wLo && wHi
+              ? (wLo.weekNo === wHi.weekNo ? `${INTENSITY_LABEL[paint]} uke ${wLo.weekNo}` : `${INTENSITY_LABEL[paint]} uke ${wLo.weekNo}–${wHi.weekNo}`)
+              : INTENSITY_LABEL[paint],
             start_date: rangeStart,
             end_date: rangeEnd,
             intensity: paint,
@@ -240,38 +261,118 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     }
   }
 
-  // ── Pointer-håndtering (pointerdown/move/up — fungerer på touch) ──
-  const cellFromPoint = (x: number, y: number): number | null => {
+  // ── Kant-dra (✋ + dag-modus): lagre ny start-/sluttdato. ──
+  const applyEdgeDrag = async (drag: NonNullable<typeof edgeDrag>) => {
+    const p = drag.period
+    const override = drag.edge === 'start'
+      ? { start_date: drag.dateISO }
+      : { end_date: drag.dateISO }
+    setBusy(true)
+    setError(null)
+    const res = await updatePeriod(p.id, periodToInput(p, override, targetUserId))
+    if (res.error) setError(res.error)
+    else router.refresh()
+    setBusy(false)
+  }
+
+  // Klem kant-dra til nabo-grenser og sesongen (aldri sluk naboer via dra).
+  const clampEdge = (p: SeasonPeriod, edge: 'start' | 'end', iso: string): string => {
+    let lo: string
+    let hi: string
+    if (edge === 'start') {
+      const prev = periods.filter(x => x.id !== p.id && x.end_date < p.end_date && x.end_date < p.start_date)
+        .sort((a, b) => b.end_date.localeCompare(a.end_date))[0]
+      lo = prev ? addDaysISO(prev.end_date, 1) : season.start_date
+      hi = p.end_date
+    } else {
+      const next = periods.filter(x => x.id !== p.id && x.start_date > p.start_date && x.start_date > p.end_date)
+        .sort((a, b) => a.start_date.localeCompare(b.start_date))[0]
+      lo = p.start_date
+      hi = next ? addDaysISO(next.start_date, -1) : season.end_date
+    }
+    return maxISO(lo, minISO(hi, iso))
+  }
+
+  // ── Pointer-håndtering (pointerdown/move/up + elementFromPoint = touch-klar) ──
+  const dayFromPoint = (x: number, y: number): string | null => {
+    const el = document.elementFromPoint(x, y)?.closest('[data-day]')
+    return el ? String((el as HTMLElement).dataset.day) : null
+  }
+  const weekFromPoint = (x: number, y: number): WeekCell | null => {
     const el = document.elementFromPoint(x, y)?.closest('[data-wk]')
     if (!el) return null
     const v = Number((el as HTMLElement).dataset.wk)
-    return Number.isFinite(v) ? v : null
+    return weeks[v] ?? null
+  }
+  const pointToISO = (x: number, y: number): string | null => {
+    if (granularity === 'dag') return dayFromPoint(x, y)
+    const w = weekFromPoint(x, y)
+    return w ? w.mondayISO : null
   }
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!canEdit || busy) return
-    const idx = cellFromPoint(e.clientX, e.clientY)
-    if (idx == null) return
+    const iso = pointToISO(e.clientX, e.clientY)
+    if (!iso) return
     if (brush === 'pick') {
-      const p = periodForWeek(weeks[idx], periods)
+      // Dag-modus: pointerdown på en periodekant starter kant-dra;
+      // klikk uten bevegelse åpner detaljpanelet (håndteres på pointerup).
+      if (granularity === 'dag') {
+        const p = periodForDay(iso, periods)
+        if (p && (iso === p.start_date || iso === p.end_date)) {
+          e.preventDefault()
+          containerRef.current?.setPointerCapture(e.pointerId)
+          setEdgeDrag({ period: p, edge: iso === p.start_date ? 'start' : 'end', dateISO: iso, moved: false })
+          return
+        }
+        if (p) onPickPeriod(p)
+        return
+      }
+      const w = weekFromPoint(e.clientX, e.clientY)
+      const p = w ? periodForWeek(w, periods) : null
       if (p) onPickPeriod(p)
       return
     }
     e.preventDefault()
     containerRef.current?.setPointerCapture(e.pointerId)
-    setDrag({ start: idx, end: idx })
+    setSel({ anchorISO: iso, headISO: iso })
   }
+
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!drag) return
-    const idx = cellFromPoint(e.clientX, e.clientY)
-    if (idx != null && idx !== drag.end) setDrag(d => d ? { ...d, end: idx } : d)
+    if (edgeDrag) {
+      const iso = dayFromPoint(e.clientX, e.clientY)
+      if (iso) {
+        const clamped = clampEdge(edgeDrag.period, edgeDrag.edge, iso)
+        if (clamped !== edgeDrag.dateISO) setEdgeDrag({ ...edgeDrag, dateISO: clamped, moved: true })
+        else if (!edgeDrag.moved && clamped !== (edgeDrag.edge === 'start' ? edgeDrag.period.start_date : edgeDrag.period.end_date)) {
+          setEdgeDrag({ ...edgeDrag, moved: true })
+        }
+      }
+      return
+    }
+    if (!sel) return
+    const iso = pointToISO(e.clientX, e.clientY)
+    if (iso && iso !== sel.headISO) setSel(s => s ? { ...s, headISO: iso } : s)
   }
+
   const handlePointerUp = () => {
-    if (!drag) return
-    const { start, end } = drag
-    setDrag(null)
+    if (edgeDrag) {
+      const drag = edgeDrag
+      setEdgeDrag(null)
+      const orig = drag.edge === 'start' ? drag.period.start_date : drag.period.end_date
+      if (!drag.moved || drag.dateISO === orig) {
+        // Klikk uten dra → detaljpanel.
+        if (!drag.moved) onPickPeriod(drag.period)
+        return
+      }
+      void applyEdgeDrag(drag)
+      return
+    }
+    if (!sel || !selRange) { setSel(null); return }
+    const { lo, hi } = selRange
+    setSel(null)
     if (brush === 'rolig' || brush === 'medium' || brush === 'hard' || brush === 'erase') {
-      void applyPaint(start, end, brush === 'erase' ? 'erase' : brush)
+      void applyPaint(lo, hi, brush === 'erase' ? 'erase' : brush)
     }
   }
 
@@ -291,6 +392,21 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     </button>
   )
 
+  const granBtn = (g: Granularity, label: string): React.ReactNode => (
+    <button key={g} type="button" onClick={() => { setGranularity(g); setSel(null); setEdgeDrag(null) }}
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: '12.5px',
+        letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 9,
+        padding: '8px 13px', cursor: 'pointer', border: '1px solid var(--line2)',
+        color: granularity === g ? '#fff' : '#8B8B95',
+        background: granularity === g ? 'var(--accent)' : 'none',
+      }}>
+      {label}
+    </button>
+  )
+
+  const inSel = (iso: string) => selRange != null && iso >= selRange.lo && iso <= selRange.hi
+
   return (
     <div className="mb-6 p-5" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="flex items-start gap-3 mb-2">
@@ -301,7 +417,9 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
           </h2>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: '#55555F', marginTop: 2 }}>
             {canEdit
-              ? 'Velg pensel → dra over ukene. Sammenhengende uker blir én periode. ✋ Velg åpner detaljer.'
+              ? granularity === 'uke'
+                ? 'Velg pensel → dra over ukene (snapper man–søn). ✋ Velg åpner detaljer. Bytt til Dag for enkeltdager.'
+                : 'Dag-modus: mal enkeltdager. ✋ på en periodekant = dra start/slutt dag for dag; klikk = detaljer.'
               : 'Sesongens belastningsprofil uke for uke.'}
           </p>
         </div>
@@ -321,6 +439,11 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
             {toolBtn('hard', 'Hard', INTENSITY_COLOR.hard)}
           </div>
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Presisjon</span>
+            {granBtn('uke', 'Uke')}
+            {granBtn('dag', 'Dag')}
+          </div>
+          <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
             {toolBtn('pick', '✋ Velg')}
             {toolBtn('erase', '⌫ Visk')}
           </div>
@@ -338,8 +461,11 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={() => setDrag(null)}
-        style={{ touchAction: canEdit && brush !== 'pick' ? 'none' : 'auto', opacity: busy ? 0.6 : 1, userSelect: 'none' }}>
+        onPointerCancel={() => { setSel(null); setEdgeDrag(null) }}
+        style={{
+          touchAction: canEdit && (brush !== 'pick' || granularity === 'dag') ? 'none' : 'auto',
+          opacity: busy ? 0.6 : 1, userSelect: 'none',
+        }}>
         {rows.map((row, ri) => (
           <div key={ri} className="flex items-stretch gap-2 mb-1.5">
             <div style={{
@@ -351,21 +477,21 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
             </div>
             <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${row.cells.length}, 1fr)` }}>
               {row.cells.map(w => {
-                const p = periodForWeek(w, periods)
+                const p = periodForWeek(w, effectivePeriods)
                 const color = p ? INTENSITY_COLOR[p.intensity] : null
                 const isStartWeek = p != null && p.start_date >= w.mondayISO && p.start_date <= w.sundayISO
                 const isToday = todayISO >= w.mondayISO && todayISO <= w.sundayISO
-                const selected = drag != null && w.idx >= selMin && w.idx <= selMax
+                const weekSelected = granularity === 'uke' && inSel(w.mondayISO)
                 return (
                   <div key={w.idx} data-wk={w.idx}
                     style={{
-                      position: 'relative', minHeight: 46, borderRadius: 9,
-                      border: `1px solid ${color ? `${color}8C` : 'var(--line)'}`,
-                      background: color ? `${color}42` : 'var(--card2)',
+                      position: 'relative', minHeight: granularity === 'dag' ? 52 : 46, borderRadius: 9,
+                      border: `1px solid ${granularity === 'uke' && color ? `${color}8C` : 'var(--line)'}`,
+                      background: granularity === 'uke' && color ? `${color}42` : 'var(--card2)',
                       cursor: canEdit ? 'pointer' : 'default',
-                      outline: selected ? '2px solid var(--accent)' : (isToday ? '2px solid var(--accent)' : 'none'),
+                      outline: weekSelected ? '2px solid var(--accent)' : (isToday ? '2px solid var(--accent)' : 'none'),
                       outlineOffset: 1,
-                      opacity: selected ? 0.85 : 1,
+                      opacity: weekSelected ? 0.85 : 1,
                       padding: '4px 6px', overflow: 'visible',
                     }}>
                     <span style={{
@@ -375,6 +501,35 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
                     }}>
                       U{w.weekNo}
                     </span>
+                    {/* DAG-modus: 7 dag-ticks — dag-presis farge + kant-håndtak. */}
+                    {granularity === 'dag' && (
+                      <div className="flex mt-1" style={{ gap: 2 }}>
+                        {Array.from({ length: 7 }, (_, di) => {
+                          const iso = addDaysISO(w.mondayISO, di)
+                          const outside = iso < season.start_date || iso > season.end_date
+                          if (outside) {
+                            return <span key={di} style={{ flex: 1, height: 16, borderRadius: 3, background: 'var(--line)', opacity: 0.25 }} />
+                          }
+                          const dp = periodForDay(iso, effectivePeriods)
+                          const dc = dp ? INTENSITY_COLOR[dp.intensity] : null
+                          const isEdge = dp != null && (iso === dp.start_date || iso === dp.end_date)
+                          const daySel = inSel(iso)
+                          return (
+                            <span key={di} data-day={iso}
+                              title={`${iso}${dp ? ` · ${dp.name}` : ''}`}
+                              style={{
+                                flex: 1, height: 16, borderRadius: 3,
+                                background: dc ? `${dc}B3` : 'var(--line)',
+                                outline: daySel ? '2px solid var(--accent)' : (iso === todayISO ? '1.5px solid var(--accent)' : 'none'),
+                                outlineOffset: 0,
+                                // Håndtak-hint: kant-dager markeres i ✋-modus.
+                                boxShadow: isEdge && brush === 'pick' && canEdit ? 'inset 0 0 0 1.5px rgba(242,242,240,0.75)' : 'none',
+                                cursor: isEdge && brush === 'pick' && canEdit ? 'ew-resize' : undefined,
+                              }} />
+                          )
+                        })}
+                      </div>
+                    )}
                     {isStartWeek && p && (
                       <span style={{
                         position: 'absolute', top: -9, left: 5, zIndex: 2,
@@ -399,6 +554,12 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
           </div>
         ))}
       </div>
+
+      {edgeDrag && (
+        <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--accent)' }}>
+          {edgeDrag.edge === 'start' ? 'Ny start' : 'Ny slutt'}: {edgeDrag.dateISO} — slipp for å lagre
+        </p>
+      )}
     </div>
   )
 }

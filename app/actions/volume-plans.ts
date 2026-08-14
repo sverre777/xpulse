@@ -108,6 +108,37 @@ export async function upsertMonthlyVolumePlan(
   }
 }
 
+// Kø #39 del D: månedsvolum-overlay i kalenderen (mål-linje i PLAN,
+// veiledende ukesnitt i ukevisningen). Samme flaggkrav som periodedata-
+// overlayet: aktiv relasjon + MINST ETT reelt tilgangsflagg, så trener-
+// drilldown ser det samme som periodene tillater.
+export async function getVolumePlanForMonth(
+  year: number,
+  month: number,
+  targetUserId?: string,
+): Promise<MonthlyVolumePlan | null | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, [
+      'can_view_dagbok', 'can_view_analysis', 'can_edit_plan', 'can_edit_periodization',
+    ])
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { data, error } = await supabase
+      .from('monthly_volume_plans')
+      .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
+      .eq('user_id', resolved.userId)
+      .eq('year', year)
+      .eq('month', month)
+      .maybeSingle()
+
+    if (error) return { error: error.message }
+    return (data as MonthlyVolumePlan | null) ?? null
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
 // Hent månedsplaner for brukeren som overlapper et datointervall.
 // Brukes av OverviewTab for å beregne planlagt volum i gjeldende analyse-periode.
 export async function getMyVolumePlansForDateRange(

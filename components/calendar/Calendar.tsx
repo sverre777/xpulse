@@ -324,7 +324,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, markings,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, markings, plannedSeconds,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -335,6 +335,9 @@ function WeekAnalysisStripe({
   // B2 (kø #39): samling-/høyde-badges fra MARKERINGSLAGET (dag-presist,
   // uavhengig av belastningsperiodene) — markeringer som overlapper uka.
   markings?: import('@/app/actions/seasons').SeasonMarking[]
+  // Del D: dagbok — ukens PLANLAGTE tid, vist som «15t / 18t plan».
+  // null/undefined = ikke i dagbok eller ingenting planlagt.
+  plannedSeconds?: number | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -378,12 +381,19 @@ function WeekAnalysisStripe({
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
         >
           Ingen aktivitet
+          {plannedSeconds != null && ` · ${fmtDuration(Math.round(plannedSeconds / 60))} planlagt`}
         </span>
       ) : (
         <>
           <span className="xp-wsum-big" style={{ fontSize: '17px', lineHeight: 1 }}>
             {fmtDuration(totalMins)}
           </span>
+          {plannedSeconds != null && (
+            <span title="Gjennomført av planlagt denne uka"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13.5px' }}>
+              / {fmtDuration(Math.round(plannedSeconds / 60))} plan
+            </span>
+          )}
           {km > 0 && (
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
               {km.toLocaleString('nb-NO')} km
@@ -1231,6 +1241,20 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const weeks = buildMonthGrid(year, month)
   const today = toISO(new Date())
 
+  // Del D (kø #39): årsplanens månedsvolum — synlig KUN i Plan. Én kilde
+  // (monthly_volume_plans); måneder uten volum viser ingenting.
+  const [monthVolume, setMonthVolume] = useState<import('@/app/actions/volume-plans').MonthlyVolumePlan | null>(null)
+  useEffect(() => {
+    if (mode !== 'plan') { setMonthVolume(null); return }
+    let cancelled = false
+    ;(async () => {
+      const { getVolumePlanForMonth } = await import('@/app/actions/volume-plans')
+      const res = await getVolumePlanForMonth(year, month, targetUserId)
+      if (!cancelled) setMonthVolume(res && typeof res === 'object' && 'error' in res ? null : res)
+    })()
+    return () => { cancelled = true }
+  }, [mode, year, month, targetUserId])
+
   const monthPeriodKey = `${year}-${String(month).padStart(2, '0')}`
   const focusContext: 'plan' | 'dagbok' | null =
     mode === 'plan' ? 'plan' : mode === 'dagbok' ? 'dagbok' : null
@@ -1247,6 +1271,33 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
+
+      {/* Del D: mål-linje fra årsplanens månedsvolum — KUN i Plan. Diff mot
+          PLANLAGT (dempet oransje ved manko, aldri rød); klikk → årsplanens
+          volum-seksjon. Dagbok viser ikke årsplan-timene (får 15/18 i wsum). */}
+      {mode === 'plan' && monthVolume?.planned_hours != null && (() => {
+        const goalMins = Math.round(monthVolume.planned_hours * 60)
+        const plannedMins = Math.round(aggregateRange(byDate, iterMonthDates(year, month), 'plan').seconds / 60)
+        const diffMins = goalMins - plannedMins
+        const volHref = targetUserId ? `/app/trener/${targetUserId}/periodisering` : '/app/periodisering'
+        return (
+          <a href={volHref} title="Åpne årsplanens volum-seksjon"
+            className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 md:px-6 py-2"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: '#8A8A96',
+              borderBottom: CALENDAR_TOKENS.headerDivider, textDecoration: 'none',
+            }}>
+            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: '#55555F' }}>
+              Mål fra årsplan
+            </span>
+            <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtDuration(goalMins) ?? '0m'}</b>
+            <span>· {fmtDuration(plannedMins) ?? '0m'} planlagt</span>
+            {diffMins > 0
+              ? <span style={{ color: '#FF8C00' }}>→ {fmtDuration(diffMins)} igjen</span>
+              : <span style={{ color: '#28A86E' }}>· i mål ✓</span>}
+          </a>
+        )
+      })()}
 
       {/* Column headers: week# + 7 days + totals.
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
@@ -1272,6 +1323,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '90deg')
         // B2: markeringer (📍/🏔) som overlapper uka — badges i wsum + mobil.
         const weekMarkings = seasonMarkings.filter(m => m.start_date <= toISO(week[6]) && m.end_date >= toISO(week[0]))
+        // Del D: dagbok viser gjennomført MOT planlagt («15/18») i wsum.
+        const weekPlannedSeconds = mode === 'dagbok'
+          ? aggregateRange(byDate, week.map(toISO), 'plan').seconds
+          : 0
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1357,6 +1412,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               zoneSeconds={weekAgg.zoneSeconds}
               accent={weekOverlay.period ? rowAccent : null}
               markings={weekMarkings}
+              plannedSeconds={weekPlannedSeconds > 0 ? weekPlannedSeconds : null}
             />
             </div>
 
@@ -1604,6 +1660,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 zoneSeconds={weekAgg.zoneSeconds}
                 accent={weekOverlay.period ? rowAccent : null}
                 markings={weekMarkings}
+                plannedSeconds={weekPlannedSeconds > 0 ? weekPlannedSeconds : null}
               />
             </div>
 

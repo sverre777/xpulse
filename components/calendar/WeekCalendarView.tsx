@@ -180,7 +180,7 @@ function layoutDay(workouts: CalendarWorkoutSummary[], mode: Mode): {
   return { timed, allDay }
 }
 
-function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [] }: {
+function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], targetUserId }: {
   weekDates: Date[]
   weekNum: number
   byDate: Record<string, CalendarWorkoutSummary[]>
@@ -188,7 +188,31 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
   seasonPeriods: SeasonPeriod[]
   seasonKeyDates: SeasonKeyDate[]
   seasonMarkings?: SeasonMarking[]
+  targetUserId?: string
 }) {
+  // Del D (kø #39): veiledende ukesnitt fra årsplanens månedsvolum — KUN i
+  // Plan, merket «~». Én kilde (monthly_volume_plans); uker uten månedsvolum
+  // viser ingenting. Måneden bestemmes av ukas mandag.
+  const [monthGoalHours, setMonthGoalHours] = useState<number | null>(null)
+  const mondayISO = toISO(weekDates[0])
+  useEffect(() => {
+    if (mode !== 'plan') { setMonthGoalHours(null); return }
+    const monday = new Date(mondayISO + 'T12:00:00')
+    let cancelled = false
+    ;(async () => {
+      const { getVolumePlanForMonth } = await import('@/app/actions/volume-plans')
+      const res = await getVolumePlanForMonth(monday.getFullYear(), monday.getMonth() + 1, targetUserId)
+      if (cancelled) return
+      setMonthGoalHours(res && typeof res === 'object' && 'error' in res ? null : res?.planned_hours ?? null)
+    })()
+    return () => { cancelled = true }
+  }, [mode, mondayISO, targetUserId])
+  const weeklyGuideMins = (() => {
+    if (monthGoalHours == null) return null
+    const monday = new Date(mondayISO + 'T12:00:00')
+    const daysInMonth = new Date(monday.getFullYear(), monday.getMonth() + 1, 0).getDate()
+    return Math.round((monthGoalHours * 60 * 7) / daysInMonth)
+  })()
   const weekOverlay = weekOverlayFor(seasonPeriods, toISO(weekDates[0]))
   const weekKeyDates = seasonKeyDates.filter(k => {
     const s = toISO(weekDates[0]); const e = toISO(weekDates[6])
@@ -219,7 +243,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 
   return (
     <>
-      {(weekOverlay.period || weekKeyDates.length > 0 || secondaryPeriods.length > 0 || weekMarkings.length > 0) && (
+      {(weekOverlay.period || weekKeyDates.length > 0 || secondaryPeriods.length > 0 || weekMarkings.length > 0 || weeklyGuideMins != null) && (
         <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
           style={{
             borderBottom: '1px solid #1A1A1E',
@@ -263,6 +287,13 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
               {m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
             </span>
           ))}
+          {weeklyGuideMins != null && (
+            <span className="text-xs ml-auto"
+              title={`Veiledende ukesnitt fra årsplanens månedsvolum (${monthGoalHours} t denne måneden)`}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              ~{fmtDurationMin(weeklyGuideMins)}/uke veiledende
+            </span>
+          )}
           {weekKeyDates.length > 0 && (
             <div className="flex items-center gap-2 ml-auto flex-wrap">
               {weekKeyDates.map(k => {
@@ -588,7 +619,7 @@ export function WeekCalendarView({
       <WeekStatsBanner
         weekDates={weekDates} weekNum={weekNum} byDate={byDate}
         mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates}
-        seasonMarkings={seasonMarkings}
+        seasonMarkings={seasonMarkings} targetUserId={targetUserId}
       />
 
 

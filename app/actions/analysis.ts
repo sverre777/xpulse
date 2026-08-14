@@ -2896,12 +2896,13 @@ export async function getBelastningAnalysis(
       by_subtype: bySubtype,
     }
 
-    // Høyde-perioder som overlapper visningsvinduet (for overlay på kurvene).
+    // Høyde-opphold som overlapper visningsvinduet (overlay på kurvene).
+    // B2 (kø #39): leses fra markeringslaget (season_markings), dag-presist.
     const { data: altRows } = await supabase
-      .from('season_periods')
+      .from('season_markings')
       .select('name, start_date, end_date, altitude_meters, seasons!inner(user_id)')
       .eq('seasons.user_id', userId)
-      .eq('is_altitude_period', true)
+      .eq('is_altitude', true)
       .lte('start_date', toDate)
       .gte('end_date', fromDate)
       .order('start_date', { ascending: true })
@@ -4213,11 +4214,12 @@ export async function getAltitudeHeatAnalysis(
     // nær slutten av perioden fortsatt har data.
     const workoutsTo = addDaysISO(toDate, ALTITUDE_RESPONSE_DAYS)
     const [periodsRes, workoutsRes] = await Promise.all([
+      // B2 (kø #39): høyde-opphold fra markeringslaget (season_markings).
       supabase
-        .from('season_periods')
+        .from('season_markings')
         .select('id, name, start_date, end_date, altitude_meters, seasons!inner(user_id)')
         .eq('seasons.user_id', userId)
-        .eq('is_altitude_period', true)
+        .eq('is_altitude', true)
         .lte('start_date', toDate)
         .gte('end_date', fromDate)
         .order('start_date', { ascending: true }),

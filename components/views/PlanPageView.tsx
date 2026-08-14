@@ -72,6 +72,7 @@ export async function PlanPageView({ viewContext }: Props) {
   const activeSeason = !('error' in periodization) ? periodization.season : null
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
+  const seasonMarkings = !('error' in periodization) ? periodization.markings : []
   const primarySport = (profile?.primary_sport as Sport) ?? 'running'
   const secondarySports = (profile?.secondary_sports as Sport[] | null) ?? []
   const userSports: Sport[] = Array.from(new Set<Sport>([primarySport, ...secondarySports]))
@@ -138,6 +139,7 @@ export async function PlanPageView({ viewContext }: Props) {
               initialPrevWorkoutsByDate={prevWorkoutsByDate}
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
+              seasonMarkings={seasonMarkings}
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}

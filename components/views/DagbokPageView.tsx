@@ -77,6 +77,7 @@ export async function DagbokPageView({ viewContext }: Props) {
   const profile = profileRes.data
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
   const seasonKeyDates = !('error' in periodization) ? periodization.keyDates : []
+  const seasonMarkings = !('error' in periodization) ? periodization.markings : []
 
   const dayStatesByDate: Record<string, DayState[]> = {}
   if (!('error' in dayStatesRes)) {
@@ -172,6 +173,7 @@ export async function DagbokPageView({ viewContext }: Props) {
               targetUserId={targetId}
               seasonPeriods={seasonPeriods}
               seasonKeyDates={seasonKeyDates}
+              seasonMarkings={seasonMarkings}
             />
           </Suspense>
         </div>

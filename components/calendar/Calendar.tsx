@@ -88,6 +88,8 @@ export interface CalendarProps {
   // Periodiseringsoverlay (valgfritt — tom array = ingen overlay).
   seasonPeriods?: import('@/app/actions/seasons').SeasonPeriod[]
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
+  // B2 (kø #39): markeringslaget (📍 samling / 🏔 høyde) — dag-presist.
+  seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
   // Dag-tilstander (hviledag/sykdom) indeksert etter dato.
   initialDayStates?: Record<string, DayState[]>
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
@@ -322,7 +324,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, markings,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -330,8 +332,9 @@ function WeekAnalysisStripe({
   sessions: number
   zoneSeconds: Record<ExtendedZoneName, number>
   accent: string | null
-  // Periodiserings-perioden uken ligger i — for samling-/høyde-markering.
-  period?: import('@/app/actions/seasons').SeasonPeriod | null
+  // B2 (kø #39): samling-/høyde-badges fra MARKERINGSLAGET (dag-presist,
+  // uavhengig av belastningsperiodene) — markeringer som overlapper uka.
+  markings?: import('@/app/actions/seasons').SeasonMarking[]
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -360,19 +363,15 @@ function WeekAnalysisStripe({
       >
         Uke {weekNumber}
       </span>
-      {/* Samling/høyde-markering fra periodiseringen — emoji + moh ved høyde. */}
-      {period?.is_training_camp && (
-        <span className="text-xs" title={period.location ? `Samling: ${period.location}` : 'Samling'}
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: accent ?? '#8A8A96' }}>
-          📍 {period.location || 'Samling'}
+      {/* Samling/høyde-badges fra markeringslaget — emoji + sted/moh. */}
+      {markings?.map(m => (
+        <span key={m.id} className="text-xs" title={`${m.name} (${m.start_date} → ${m.end_date})`}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: m.is_training_camp ? '#D4A017' : '#5B8DEF' }}>
+          {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔️ ' : ''}
+          {m.is_training_camp ? (m.location || m.name) : m.name}
+          {m.is_altitude && m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
         </span>
-      )}
-      {period?.is_altitude_period && (
-        <span className="text-xs" title="Høydeperiode"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF' }}>
-          🏔️{period.altitude_meters ? ` ${period.altitude_meters} moh` : ''}
-        </span>
-      )}
+      ))}
       {empty ? (
         <span
           className="text-xs"
@@ -1079,7 +1078,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, layout = 'grid' }: {
+function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [], layout = 'grid' }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
@@ -1090,6 +1089,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   // (stablet, samme som mobil — 2 kolonner over ~1100px). Mobil er alltid liste.
   layout?: 'grid' | 'list'
   seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
+  seasonMarkings?: import('@/app/actions/seasons').SeasonMarking[]
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
@@ -1250,8 +1250,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
-        // A2d: horisontal periodelinje (wsum) — start/stopp paa riktig dag.
+        // A2e: horisontal periodelinje over uka — start/stopp på riktig dag.
         const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '90deg')
+        // B2: markeringer (📍/🏔) som overlapper uka — badges i wsum + mobil.
+        const weekMarkings = seasonMarkings.filter(m => m.start_date <= toISO(week[6]) && m.end_date >= toISO(week[0]))
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1325,7 +1327,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               sessions={weekAgg.sessions}
               zoneSeconds={weekAgg.zoneSeconds}
               accent={weekOverlay.period ? rowAccent : null}
-              period={weekOverlay.period}
+              markings={weekMarkings}
             />
             </div>
 
@@ -1348,12 +1350,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px', letterSpacing: '0.22em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
                     Uke {wn}
                   </span>
-                  {(weekOverlay.period?.is_training_camp || weekOverlay.period?.is_altitude_period) && (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
-                      {weekOverlay.period?.is_training_camp ? `📍${weekOverlay.period.location ? ` ${weekOverlay.period.location}` : ' Samling'}` : ''}
-                      {weekOverlay.period?.is_altitude_period ? ` 🏔${weekOverlay.period.altitude_meters ? ` ${weekOverlay.period.altitude_meters} moh` : ''}` : ''}
+                  {/* B2: samling/høyde-chips fra markeringslaget. */}
+                  {weekMarkings.map(m => (
+                    <span key={m.id} title={`${m.name} (${m.start_date} → ${m.end_date})`}
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
+                      {m.is_training_camp ? `📍 ${m.location || m.name}` : ''}
+                      {m.is_training_camp && m.is_altitude ? ' ' : ''}
+                      {m.is_altitude ? `🏔${m.altitude_meters ? ` ${m.altitude_meters} moh` : !m.is_training_camp ? ` ${m.name}` : ''}` : ''}
                     </span>
-                  )}
+                  ))}
                 </div>
                 {/* Dag-rader — kun dager i inneværende måned. Dagbok
                     kollapser tomme PASSERTE dager (bolk 2, variant B);
@@ -1546,7 +1551,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 sessions={weekAgg.sessions}
                 zoneSeconds={weekAgg.zoneSeconds}
                 accent={weekOverlay.period ? rowAccent : null}
-                period={weekOverlay.period}
+                markings={weekMarkings}
               />
             </div>
 
@@ -1589,6 +1594,37 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
                     </div>
 
+                    {/* B2 (kø #39): dagens periodiserings-kontekst — belastnings-
+                        periode + markeringer (📍/🏔) fra markeringslaget, med
+                        eksplisitt grensedag-info (starter/slutter i dag). */}
+                    {(() => {
+                      const dp = periodForDate(seasonPeriods, ds)
+                      const dm = seasonMarkings.filter(m => m.start_date <= ds && m.end_date >= ds)
+                      if (!dp && dm.length === 0) return null
+                      const edge = (start: string, end: string) =>
+                        start === ds && end === ds ? ' · kun i dag'
+                        : start === ds ? ' · starter i dag'
+                        : end === ds ? ' · slutter i dag' : ''
+                      return (
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          {dp && (
+                            <span title={`${dp.start_date} → ${dp.end_date}`}
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: INTENSITY_COLOR[dp.intensity], border: `1px solid ${INTENSITY_COLOR[dp.intensity]}55`, borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em' }}>
+                              ● {dp.name}{edge(dp.start_date, dp.end_date)}
+                            </span>
+                          )}
+                          {dm.map(m => (
+                            <span key={m.id} title={`${m.start_date} → ${m.end_date}`}
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em' }}>
+                              {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
+                              {m.location ? ` · ${m.location}` : ''}
+                              {m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
+                              {edge(m.start_date, m.end_date)}
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    })()}
 
                     {dayWorkouts.length === 0 ? (
                       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
@@ -2237,6 +2273,7 @@ export function Calendar({
   initialMonthNote = '',
   seasonPeriods = [],
   seasonKeyDates = [],
+  seasonMarkings = [],
   initialDayStates = {},
   readOnly = false,
   targetUserId,
@@ -2749,7 +2786,7 @@ export function Calendar({
         </>
       )}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} layout={monthLayout} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} seasonMarkings={seasonMarkings} layout={monthLayout} />
       )}
       {view === 'uke' && (
         <WeekCalendarView

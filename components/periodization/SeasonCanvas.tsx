@@ -603,11 +603,8 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         {p.name}
                       </span>
                     )}
-                    {(p?.is_training_camp || p?.is_altitude_period) && isStartWeek && (
-                      <span style={{ position: 'absolute', top: 3, right: 5, fontSize: 10 }}>
-                        {p?.is_training_camp ? '📍' : ''}{p?.is_altitude_period ? '🏔' : ''}
-                      </span>
-                    )}
+                    {/* B2: 📍/🏔 vises av markeringsbåndene — periode-flaggene
+                        leses ikke lenger i lerretet. */}
                   </div>
                 )
               })}

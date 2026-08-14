@@ -406,9 +406,11 @@ async function checkPeriodConstraints(
   return null
 }
 
-// Fase 77: arv-oppslag — finn høyde-perioden som dekker en gitt dato (om noen),
-// så øktskjemaet kan default-arve høydetrening + periodens moh. Per-økt moh
-// overstyrer ved lagring. Returnerer null når datoen ikke er i en høyde-periode.
+// Fase 77 → B2 (kø #39): arv-oppslaget leser nå MARKERINGSLAGET — finn
+// høyde-markeringen som dekker en gitt dato (dag-presis: torsdag i oppholdet
+// arver, mandagen før ikke). Øktskjemaet default-arver høydetrening + moh;
+// per-økt moh overstyrer ved lagring. Ved overlappende markeringer vinner
+// den som starter sist (innerst). Returnerer null utenfor høyde-markering.
 export async function getAltitudePeriodForDate(
   date: string,
   targetUserId?: string,
@@ -418,12 +420,13 @@ export async function getAltitudePeriodForDate(
     const resolved = await resolveTargetUser(supabase, targetUserId)
     if ('error' in resolved) return null
     const { data } = await supabase
-      .from('season_periods')
+      .from('season_markings')
       .select('name, altitude_meters, seasons!inner(user_id)')
       .eq('seasons.user_id', resolved.userId)
-      .eq('is_altitude_period', true)
+      .eq('is_altitude', true)
       .lte('start_date', date)
       .gte('end_date', date)
+      .order('start_date', { ascending: false })
       .limit(1)
       .maybeSingle()
     if (!data) return null

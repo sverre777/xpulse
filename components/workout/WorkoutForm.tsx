@@ -713,13 +713,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           ))}
         </div>
 
+        {/* B2 (kø #39): arven kommer fra MARKERINGSLAGET (dag-presis) —
+            teksten sier «høyde-oppholdet», ikke belastningsperioden. */}
         {inheritedAltitude && (
           <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#5B8DEF', lineHeight: 1.5 }}>
-            🏔️ Datoen er i høyde­perioden «{inheritedAltitude.period_name}»
+            🏔️ Datoen er i høyde-oppholdet «{inheritedAltitude.period_name}»
             {inheritedAltitude.altitude_meters ? ` (${inheritedAltitude.altitude_meters} moh)` : ''}.
             {form.is_altitude_training && form.altitude_meters != null && form.altitude_meters !== inheritedAltitude.altitude_meters
-              ? ` Egen høyde for økten: ${form.altitude_meters} moh (overstyrer perioden).`
-              : ' Økten arver høyden fra perioden — sett egen moh under for å overstyre.'}
+              ? ` Egen høyde for økten: ${form.altitude_meters} moh (overstyrer oppholdet).`
+              : ' Økten arver høyden fra oppholdet — sett egen moh under for å overstyre.'}
           </p>
         )}
 

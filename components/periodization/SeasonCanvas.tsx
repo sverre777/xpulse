@@ -15,7 +15,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   createPeriod, updatePeriod, deletePeriod,
-  type Season, type SeasonPeriod, type Intensity, type PeriodInput,
+  type Season, type SeasonPeriod, type SeasonMarking, type Intensity, type PeriodInput,
 } from '@/app/actions/seasons'
 import { INTENSITY_COLOR, weekIntensityGradient } from '@/lib/periodization-overlay'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -24,8 +24,14 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
   rolig: 'Rolig', medium: 'Medium', hard: 'Hard',
 }
 
-type Brush = 'pick' | 'erase' | Intensity
+type Brush = 'pick' | 'erase' | 'samling' | Intensity
 type Granularity = 'uke' | 'dag'
+
+// Del B: markeringsbånd (📍 samling / 🏔 høyde) — gull-aktig overlay OVER
+// cellene, aldri cellebakgrunn. Egen farge-identitet, skilles fra medium-
+// belastning ved posisjon (tynt bånd) + ramme.
+const MARKING_BAND_BG = 'rgba(212, 160, 23, 0.30)'
+const MARKING_BAND_BORDER = 'rgba(212, 160, 23, 0.8)'
 
 const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAI', 'JUN', 'JUL', 'AUG', 'SEP', 'OKT', 'NOV', 'DES']
 
@@ -114,12 +120,17 @@ function periodToInput(p: SeasonPeriod, overrides: Partial<PeriodInput>, targetU
   }
 }
 
-export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPeriod }: {
+export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking }: {
   season: Season
   periods: SeasonPeriod[]
+  markings: SeasonMarking[]
   targetUserId?: string
   canEdit: boolean
   onPickPeriod: (p: SeasonPeriod) => void
+  // ✋ på et markeringsbånd → detaljpanel (rediger/slett).
+  onPickMarking: (m: SeasonMarking) => void
+  // Samling-verktøy: dra grovt spenn → forhåndsutfylt modal.
+  onDrawMarking: (startISO: string, endISO: string) => void
 }) {
   const router = useRouter()
   const [brush, setBrush] = useState<Brush>('pick')
@@ -312,6 +323,15 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!canEdit || busy) return
+    // ✋ på et markeringsbånd åpner rediger/slett — sjekkes FØR celle-logikk
+    // (båndet har pointer-events kun i ✋-modus).
+    if (brush === 'pick') {
+      const mEl = (e.target as HTMLElement).closest?.('[data-marking]')
+      if (mEl) {
+        const m = markings.find(x => x.id === (mEl as HTMLElement).dataset.marking)
+        if (m) { onPickMarking(m); return }
+      }
+    }
     const iso = pointToISO(e.clientX, e.clientY)
     if (!iso) return
     if (brush === 'pick') {
@@ -371,6 +391,11 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
     if (!sel || !selRange) { setSel(null); return }
     const { lo, hi } = selRange
     setSel(null)
+    if (brush === 'samling') {
+      // Grovt spenn tegnet → forhåndsutfylt modal (dag-presis finjustering der).
+      onDrawMarking(lo, hi)
+      return
+    }
     if (brush === 'rolig' || brush === 'medium' || brush === 'hard' || brush === 'erase') {
       void applyPaint(lo, hi, brush === 'erase' ? 'erase' : brush)
     }
@@ -418,8 +443,8 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: '#55555F', marginTop: 2 }}>
             {canEdit
               ? granularity === 'uke'
-                ? 'Velg pensel → dra over ukene (snapper man–søn). ✋ Velg åpner detaljer. Bytt til Dag for enkeltdager.'
-                : 'Dag-modus: mal enkeltdager. ✋ på en periodekant = dra start/slutt dag for dag; klikk = detaljer.'
+                ? 'Velg pensel → dra over ukene (snapper man–søn). 📍 tegner samling/høyde-bånd over lagene. ✋ Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
+                : 'Dag-modus: mal enkeltdager. 📍 tegner samling/høyde-bånd. ✋ på en periodekant = dra start/slutt dag for dag; klikk = detaljer (også på bånd).'
               : 'Sesongens belastningsprofil uke for uke.'}
           </p>
         </div>
@@ -437,6 +462,10 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
             {toolBtn('rolig', 'Rolig', INTENSITY_COLOR.rolig)}
             {toolBtn('medium', 'Medium', INTENSITY_COLOR.medium)}
             {toolBtn('hard', 'Hard', INTENSITY_COLOR.hard)}
+          </div>
+          <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Markering</span>
+            {toolBtn('samling', '📍 Samling/høyde', '#D4A017')}
           </div>
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Presisjon</span>
@@ -535,6 +564,33 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
                         })}
                       </div>
                     )}
+                    {/* Del B: markeringsbånd (📍/🏔) — overlay OVER cellen,
+                        dag-presis bredde (delvis uke = delvis bånd), kapsel-
+                        avrunding der markeringen starter/slutter. ✋ = rediger. */}
+                    {markings
+                      .filter(m => m.start_date <= w.sundayISO && m.end_date >= w.mondayISO)
+                      .map((m, mi) => {
+                        const s = maxISO(m.start_date, w.mondayISO)
+                        const e = minISO(m.end_date, w.sundayISO)
+                        const startIdx = Math.round((parseISO(s).getTime() - parseISO(w.mondayISO).getTime()) / 86400000)
+                        const len = Math.round((parseISO(e).getTime() - parseISO(s).getTime()) / 86400000) + 1
+                        const startsHere = m.start_date >= w.mondayISO
+                        const endsHere = m.end_date <= w.sundayISO
+                        const pickable = canEdit && brush === 'pick'
+                        return (
+                          <span key={m.id} data-marking={m.id}
+                            title={`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} (${m.start_date} → ${m.end_date})`}
+                            style={{
+                              position: 'absolute', bottom: 2 + mi * 9, height: 7, zIndex: 2,
+                              left: `${(startIdx / 7) * 100}%`, width: `${(len / 7) * 100}%`,
+                              background: MARKING_BAND_BG,
+                              border: `1px solid ${MARKING_BAND_BORDER}`,
+                              borderRadius: startsHere && endsHere ? 4 : startsHere ? '4px 0 0 4px' : endsHere ? '0 4px 4px 0' : 0,
+                              pointerEvents: pickable ? 'auto' : 'none',
+                              cursor: pickable ? 'pointer' : undefined,
+                            }} />
+                        )
+                      })}
                     {isStartWeek && p && (
                       <span style={{
                         position: 'absolute', top: -9, left: 5, zIndex: 2,

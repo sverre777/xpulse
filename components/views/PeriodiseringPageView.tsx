@@ -2,6 +2,7 @@ import { LoadError } from '@/components/ui/LoadError'
 import {
   getSeasons, getSeasonCalendarData,
   type Season, type SeasonPeriod, type SeasonKeyDate, type PlannedWorkoutDot,
+  type SeasonMarking,
 } from '@/app/actions/seasons'
 import {
   getVolumePlansForSeason, type MonthlyVolumePlan,
@@ -73,6 +74,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   let periods: SeasonPeriod[] = []
   let keyDates: SeasonKeyDate[] = []
   let plannedWorkouts: PlannedWorkoutDot[] = []
+  let markings: SeasonMarking[] = []
   let volumePlans: MonthlyVolumePlan[] = []
 
   if (activeSeason) {
@@ -83,6 +85,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
       periods = data.periods
       keyDates = data.keyDates
       plannedWorkouts = data.plannedWorkouts
+      markings = data.markings
     }
     const vp = await getVolumePlansForSeason(userId, activeSeason.start_date, activeSeason.end_date)
     if (!('error' in vp)) volumePlans = vp
@@ -178,7 +181,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
             </div>
 
-            <PeriodsSection season={activeSeason} periods={periods} targetUserId={targetId} canEdit={canEdit} />
+            <PeriodsSection season={activeSeason} periods={periods} markings={markings} targetUserId={targetId} canEdit={canEdit} />
             <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
           </>
         )}

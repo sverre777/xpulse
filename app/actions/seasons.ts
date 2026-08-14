@@ -59,10 +59,30 @@ export interface SeasonKeyDate {
   created_at: string
 }
 
+// Kø #39 del B (fase 82): MARKERINGSLAG — samlinger/høyde som eget
+// dag-presist lag, uavhengig av belastningsperiodene. Fri overlapp begge
+// veier; lagene rører aldri hverandre. source_period_id sporer migrerte
+// flagg fra season_periods (flaggene beholdes der for rollback til B2).
+export interface SeasonMarking {
+  id: string
+  season_id: string
+  is_training_camp: boolean
+  is_altitude: boolean
+  name: string
+  location: string | null
+  altitude_meters: number | null
+  notes: string | null
+  start_date: string
+  end_date: string
+  source_period_id: string | null
+  created_at: string
+}
+
 export interface PeriodizationOverlay {
   season: Season | null
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
+  markings: SeasonMarking[]
 }
 
 export async function getSeasons(targetUserId?: string): Promise<Season[] | { error: string }> {
@@ -184,9 +204,9 @@ export async function getPeriodizationForDateRange(
     if (seasonErr) return { error: seasonErr.message }
     const season = ((seasonRows ?? [])[0] as Season | undefined) ?? null
 
-    if (!season) return { season: null, periods: [], keyDates: [] }
+    if (!season) return { season: null, periods: [], keyDates: [], markings: [] }
 
-    const [periodsRes, keyDatesRes] = await Promise.all([
+    const [periodsRes, keyDatesRes, markingsRes] = await Promise.all([
       supabase
         .from('season_periods')
         .select('*')
@@ -197,15 +217,22 @@ export async function getPeriodizationForDateRange(
         .select('*')
         .eq('season_id', season.id)
         .order('event_date', { ascending: true }),
+      supabase
+        .from('season_markings')
+        .select('*')
+        .eq('season_id', season.id)
+        .order('start_date', { ascending: true }),
     ])
 
     if (periodsRes.error) return { error: periodsRes.error.message }
     if (keyDatesRes.error) return { error: keyDatesRes.error.message }
+    if (markingsRes.error) return { error: markingsRes.error.message }
 
     return {
       season,
       periods: (periodsRes.data ?? []) as SeasonPeriod[],
       keyDates: (keyDatesRes.data ?? []) as SeasonKeyDate[],
+      markings: (markingsRes.data ?? []) as SeasonMarking[],
     }
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }
@@ -515,6 +542,144 @@ export async function deletePeriod(
   }
 }
 
+// ── Kø #39 del B: markeringsperioder (📍 samling / 🏔 høyde) ──
+// Eget lag i season_markings (fase 82) — fri overlapp med belastnings-
+// periodene og hverandre; eneste grense er sesongens datospenn.
+
+export interface MarkingInput {
+  season_id: string
+  name: string
+  is_training_camp: boolean
+  is_altitude: boolean
+  location?: string | null
+  altitude_meters?: number | null
+  notes?: string | null
+  start_date: string
+  end_date: string
+  targetUserId?: string
+}
+
+function validateMarkingInput(input: MarkingInput): string | null {
+  if (!input.name.trim()) return 'Navn er påkrevd'
+  if (!input.start_date) return 'Startdato er påkrevd'
+  if (!input.end_date) return 'Sluttdato er påkrevd'
+  if (input.end_date < input.start_date) return 'Sluttdato må være lik eller etter startdato'
+  if (!input.is_training_camp && !input.is_altitude) return 'Velg samling, høyde eller begge'
+  return null
+}
+
+async function checkMarkingInSeason(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  input: MarkingInput,
+): Promise<string | null> {
+  const { data: season, error } = await supabase
+    .from('seasons')
+    .select('start_date,end_date')
+    .eq('id', input.season_id)
+    .single()
+  if (error) return `Fant ikke sesongen: ${error.message}`
+  if (!season) return 'Fant ikke sesongen'
+  if (input.start_date < (season.start_date as string) || input.end_date > (season.end_date as string)) {
+    return 'Markeringen må være innenfor sesongen'
+  }
+  return null
+}
+
+function markingRow(input: MarkingInput) {
+  return {
+    season_id: input.season_id,
+    is_training_camp: input.is_training_camp,
+    is_altitude: input.is_altitude,
+    name: input.name.trim(),
+    location: input.is_training_camp ? (input.location?.trim() || null) : null,
+    altitude_meters: input.is_altitude ? (input.altitude_meters ?? null) : null,
+    notes: input.notes?.trim() || null,
+    start_date: input.start_date,
+    end_date: input.end_date,
+  }
+}
+
+export async function createMarking(
+  input: MarkingInput,
+): Promise<{ id?: string; error?: string }> {
+  try {
+    const err = validateMarkingInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const constraintErr = await checkMarkingInSeason(supabase, input)
+    if (constraintErr) return { error: constraintErr }
+
+    const { data, error } = await supabase
+      .from('season_markings')
+      .insert(markingRow(input))
+      .select('id')
+      .single()
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return { id: data.id as string }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function updateMarking(
+  id: string,
+  input: MarkingInput,
+): Promise<{ error?: string }> {
+  try {
+    const err = validateMarkingInput(input)
+    if (err) return { error: err }
+
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const constraintErr = await checkMarkingInSeason(supabase, input)
+    if (constraintErr) return { error: constraintErr }
+
+    const { error } = await supabase
+      .from('season_markings')
+      .update(markingRow(input))
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+export async function deleteMarking(
+  id: string,
+  targetUserId?: string,
+): Promise<{ error?: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { error } = await supabase
+      .from('season_markings')
+      .delete()
+      .eq('id', id)
+
+    if (error) return { error: error.message }
+    revalidatePath('/app/periodisering')
+    revalidatePath('/app/plan')
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
 export interface KeyDateInput {
   season_id: string
   event_type: KeyEventType
@@ -728,6 +893,7 @@ export interface SeasonCalendarData {
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
   plannedWorkouts: PlannedWorkoutDot[]
+  markings: SeasonMarking[]
 }
 
 export async function getSeasonCalendarData(
@@ -750,7 +916,7 @@ export async function getSeasonCalendarData(
 
     const s = season as Season
 
-    const [periodsRes, keyDatesRes, workoutsRes] = await Promise.all([
+    const [periodsRes, keyDatesRes, markingsRes, workoutsRes] = await Promise.all([
       supabase
         .from('season_periods')
         .select('*')
@@ -761,6 +927,11 @@ export async function getSeasonCalendarData(
         .select('*')
         .eq('season_id', seasonId)
         .order('event_date', { ascending: true }),
+      supabase
+        .from('season_markings')
+        .select('*')
+        .eq('season_id', seasonId)
+        .order('start_date', { ascending: true }),
       supabase
         .from('workouts')
         .select('id,date,title,workout_type,sport,is_planned')
@@ -773,6 +944,7 @@ export async function getSeasonCalendarData(
 
     if (periodsRes.error) return { error: periodsRes.error.message }
     if (keyDatesRes.error) return { error: keyDatesRes.error.message }
+    if (markingsRes.error) return { error: markingsRes.error.message }
     if (workoutsRes.error) return { error: workoutsRes.error.message }
 
     const plannedWorkouts = ((workoutsRes.data ?? []) as {
@@ -790,6 +962,7 @@ export async function getSeasonCalendarData(
       periods: (periodsRes.data ?? []) as SeasonPeriod[],
       keyDates: (keyDatesRes.data ?? []) as SeasonKeyDate[],
       plannedWorkouts,
+      markings: (markingsRes.data ?? []) as SeasonMarking[],
     }
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) }

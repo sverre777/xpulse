@@ -652,6 +652,58 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
   )
 }
 
+// ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──
+// Gjenbruker chip-fargekodingen 1:1: typefarge på venstre kant (konkurranse/
+// styrke/intensitet), stiplet ramme for planlagt, ✓ grønn, ▲ for import.
+function MobileWorkoutPill({ w, mode, onClick }: {
+  w: CalendarWorkoutSummary
+  mode: CalendarMode
+  onClick: () => void
+}) {
+  const comp = competitionChipStyle(w, mode)
+  const isStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
+  const color = comp?.color
+    ?? (isStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? '#555'))
+  const isPlanned = planVisual(w, mode)
+  const durationLabel = formatDurationShort(secondsFor(w, mode))
+  return (
+    <button type="button"
+      onClick={e => { e.stopPropagation(); onClick() }}
+      className="flex items-center gap-2 text-left w-full"
+      style={{
+        border: isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid var(--line)',
+        borderLeft: `4px solid ${w.is_important ? '#FF4500' : color}`,
+        background: isPlanned ? 'transparent' : 'var(--card2)',
+        borderRadius: 9, padding: '8px 11px', minWidth: 0, cursor: 'pointer',
+      }}>
+      {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
+      {w.imported_from && <span style={{ color: 'var(--accent)', fontSize: 10, flexShrink: 0 }} title="Klokkesynk">▲</span>}
+      {comp && <span style={{ fontSize: 12, flexShrink: 0 }}>{comp.icon}</span>}
+      {w.is_important && <span style={{ color: '#FF4500', fontSize: 12, flexShrink: 0 }}>★</span>}
+      {w.start_time && (
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: '12.5px', flexShrink: 0 }}>
+          {w.start_time.slice(0, 5)}
+        </span>
+      )}
+      <span style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 15,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        minWidth: 0, color: '#F2F2F0',
+      }}>
+        {w.title}
+      </span>
+      {durationLabel && (
+        <span style={{
+          marginLeft: 'auto', fontFamily: "'Barlow Condensed', sans-serif",
+          color: 'var(--accent)', fontWeight: 700, fontSize: '13.5px', flexShrink: 0,
+        }}>
+          {durationLabel}
+        </span>
+      )}
+    </button>
+  )
+}
+
 // Kollisjon for måneds-grid-et: chip-dropmål ligger INNI dagcelle-dropmål,
 // og standard rectIntersection kan velge den store cellen selv når pekeren
 // står på en chip. Denne prioriterer chip-mål når pekeren er innenfor et,
@@ -1030,6 +1082,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
+  // Mobil-listen: auto-scroll til inneværende uke ved åpning — kun når
+  // måneden er dagens måned (og kun under md-bruddpunktet).
+  useEffect(() => {
+    const t = new Date()
+    if (t.getFullYear() !== year || t.getMonth() + 1 !== month) return
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return
+    document.querySelector('[data-week-current="1"]')?.scrollIntoView({ block: 'start' })
+  }, [year, month])
+
   // ── Dra-og-slipp (måneds-grid): flytt økt til ny dag ──────────────────
   // Mus: drag etter 8px bevegelse (klikk forblir klikk → åpner edit). Touch:
   // long-press (250ms) før drag, så vertikal scroll i kalenderen funker normalt.
@@ -1153,7 +1214,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
           under sitt min-content — uten dette sprenger lange Strava-øktnavn
           grid-bredden på mobil og dager sklir ut horisontalt. */}
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+      <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
@@ -1178,8 +1239,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         }, 0)
         const hasOverflow = maxWorkoutsInWeek > 3
 
+        const todayISOm = toISO(new Date())
+        const weekHasToday = week.some(d => toISO(d) === todayISOm)
+
         return (
           <Fragment key={wi}>
+            {/* ── DESKTOP (≥768px): 7-kolonners grid — uendret ── */}
+            <div className="hidden md:block">
             {/* Hele uke-raden scroller som én enhet. Alle 7 celler har samme
                 høyde via grid-stretch (default) — den lengste cellens
                 naturlige høyde bestemmer rad-høyden. Wrapperen kapper på
@@ -1228,6 +1294,119 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               accent={weekOverlay.period ? rowAccent : null}
               period={weekOverlay.period}
             />
+            </div>
+
+            {/* ── MOBIL (<768px): stablet ukeblokk (design/xpulse-mobil-mnd-
+                design.html, bolk 1 variant A). SAMME datakilder som griden:
+                byDate + filterByMode, dayStates, keyDates, health — kun
+                layouten er ny. ── */}
+            <div className="md:hidden px-3"
+              data-week-current={weekHasToday ? '1' : undefined}
+              style={{ scrollMarginTop: 96 }}>
+              <div style={{ position: 'relative', paddingLeft: 13 }}>
+                {/* Periodestripe: KUN belastningsfarge fra årsplanen. */}
+                {weekOverlay.period && (
+                  <span aria-hidden style={{ position: 'absolute', left: 0, top: 6, bottom: 6, width: 4, borderRadius: 2, background: rowAccent }} />
+                )}
+                {/* Ukelabel. (Sticky-ukelabel droppet: hovednav + to-raders
+                    månedsheader er allerede sticky — tre nivåer blir skjørt.
+                    Avvik notert; kan finjusteres etter live-test.) */}
+                <div className="flex items-center gap-2"
+                  style={{ margin: '0 0 4px', padding: '4px 0' }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px', letterSpacing: '0.22em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Uke {wn}
+                  </span>
+                  {(weekOverlay.period?.is_training_camp || weekOverlay.period?.is_altitude_period) && (
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
+                      {weekOverlay.period?.is_training_camp ? `📍${weekOverlay.period.location ? ` ${weekOverlay.period.location}` : ' Samling'}` : ''}
+                      {weekOverlay.period?.is_altitude_period ? ` 🏔${weekOverlay.period.altitude_meters ? ` ${weekOverlay.period.altitude_meters} moh` : ''}` : ''}
+                    </span>
+                  )}
+                </div>
+                {/* Dag-rader — kun dager i inneværende måned. */}
+                {week.filter(d => d.getMonth() === month - 1).map(date => {
+                  const ds = toISO(date)
+                  const isToday = ds === todayISOm
+                  const dayWorkouts = filterByMode(byDate[ds] ?? [], mode)
+                    .slice()
+                    .sort((a, b) => (a.start_time ?? '99').localeCompare(b.start_time ?? '99') || (a.sort_order - b.sort_order))
+                  const states = dayStatesByDate[ds] ?? []
+                  const keyDatesOnDay = keyDatesForDate(seasonKeyDates, ds)
+                  const empty = dayWorkouts.length === 0
+                  return (
+                    <div key={ds}
+                      onClick={() => setExpandedDay(prev => prev === ds ? null : ds)}
+                      className="flex items-start gap-2.5"
+                      style={{ padding: empty ? '4px 0' : '7px 0', borderBottom: '1px solid var(--line)', cursor: 'pointer' }}>
+                      <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3 }}>
+                        <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: isToday ? 'var(--accent)' : '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                          {DAYS_NO[(date.getDay() + 6) % 7]}
+                        </span>
+                        <span style={{
+                          display: 'block', fontFamily: "'Bebas Neue', sans-serif",
+                          fontSize: empty ? 17 : 21, lineHeight: 1.15,
+                          color: isToday ? '#fff' : '#8B8B95',
+                          opacity: empty && !isToday ? 0.7 : 1,
+                          background: isToday ? 'var(--accent)' : 'transparent',
+                          borderRadius: isToday ? 8 : 0, margin: isToday ? '1px 6px 0' : 0,
+                        }}>
+                          {date.getDate()}
+                        </span>
+                        {/* Paritet med grid-cellen: tilstander/nøkkeldatoer/helse. */}
+                        {(states.length > 0 || keyDatesOnDay.length > 0 || healthDates.has(ds)) && (
+                          <span className="flex items-center justify-center gap-0.5" style={{ marginTop: 2, fontSize: 11 }}>
+                            <DayStateIndicator states={states} size={10} />
+                            {keyDatesOnDay.slice(0, 2).map(k => (
+                              <span key={k.id} aria-hidden>{KEY_EVENT_VISUALS[k.event_type].icon}</span>
+                            ))}
+                            {healthDates.has(ds) && <span style={{ color: '#28A86E', fontSize: 6 }}>●</span>}
+                          </span>
+                        )}
+                      </div>
+                      {empty ? (
+                        <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
+                      ) : (
+                        <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
+                          {dayWorkouts.map(w => (
+                            <div key={w.id}>
+                              <MobileWorkoutPill w={w} mode={mode} onClick={() => onEditWorkout(w, ds)} />
+                              {/* Meta-linje m/ full dataparitet mot grid-chipen:
+                                  underkategori · bev.form · skyting · plassering. */}
+                              {(w.primary_subcategory || w.primary_movement || w.position_overall != null) && (
+                                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#A9A9B5', padding: '2px 2px 0 15px' }}>
+                                  {w.position_overall != null && mode !== 'plan' && (
+                                    <span style={{ fontWeight: 600, marginRight: 6 }}>#{w.position_overall}</span>
+                                  )}
+                                  {[w.primary_subcategory, w.primary_movement].filter(Boolean).join(' · ')}
+                                  {shootingSecondsFor(w, mode) > 0 ? ` · 🎯 ${Math.round(shootingSecondsFor(w, mode) / 60)}min` : ''}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {!readOnly && (
+                        <button type="button"
+                          onClick={e => { e.stopPropagation(); onCreateWorkout(ds) }}
+                          aria-label={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}
+                          style={{ flexShrink: 0, color: '#55555F', fontSize: 15, padding: '6px 2px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
+                          ＋
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              <WeekAnalysisStripe
+                weekNumber={wn}
+                totalSeconds={weekAgg.seconds}
+                totalMeters={weekAgg.meters}
+                sessions={weekAgg.sessions}
+                zoneSeconds={weekAgg.zoneSeconds}
+                accent={weekOverlay.period ? rowAccent : null}
+                period={weekOverlay.period}
+              />
+            </div>
 
             {/* Inline day expansion */}
             {expandedInWeek && expandedDate && (() => {
@@ -1660,6 +1839,22 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           </Fragment>
         )
       })}
+
+      {/* Flytende + (kun mobil-listen): dagens dato rett i økt-skjemaet. */}
+      {!readOnly && (
+        <button type="button"
+          className="md:hidden"
+          onClick={() => onCreateWorkout(toISO(new Date()))}
+          aria-label={mode === 'plan' ? 'Planlegg økt i dag' : 'Logg økt i dag'}
+          style={{
+            position: 'fixed', bottom: 18, right: 16, width: 50, height: 50,
+            borderRadius: '50%', background: 'var(--accent)', color: '#fff',
+            fontSize: 24, lineHeight: 1, border: 'none', cursor: 'pointer',
+            boxShadow: '0 10px 30px rgba(255,69,0,.45)', zIndex: 40,
+          }}>
+          ＋
+        </button>
+      )}
     </div>
 
     {/* Ghost-chip som følger markøren under draging (rendres via portal, så
@@ -2249,8 +2444,12 @@ export function Calendar({
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
-      {/* Mobil: stablet kolonne med sentrert nav. Desktop: view-switcher + nav side om side. */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3" style={{ borderBottom: '1px solid #1E1E22' }}>
+      {/* Mobil: stablet kolonne med sentrert nav. Desktop: view-switcher + nav side om side.
+          I måneds-visning pinnes headeren øverst på mobil (mobil-listen);
+          bakgrunn satt så innholdet ikke skinner gjennom under scroll. */}
+      <div
+        className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3 ${view === 'måned' ? 'sticky top-[52px] z-20 md:static' : ''}`}
+        style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
         {/* View switcher */}
         <div className="xp-seg-pill self-center md:self-auto">
           {(['uke', 'måned', 'år'] as CalendarView[]).map(v => (

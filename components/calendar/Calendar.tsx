@@ -1299,6 +1299,51 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         )
       })()}
 
+      {/* Del E: «tenkt fordeling» fra årsplanens månedsvolum — ren
+          informasjon ved siden av faktisk (sonefarger, 2px gap +
+          etiketter), ingen alarmer. Vises kun i Plan når satt. */}
+      {mode === 'plan' && monthVolume && (monthVolume.zone_hours || monthVolume.movement_hours) && (() => {
+        const zh = monthVolume.zone_hours ?? {}
+        const order = ['I1', 'I1-2', 'I2', 'I3', 'I4', 'I4-5', 'I5']
+        const colorFor = (k: string) =>
+          k === 'I1-2' ? ZONE_COLORS_V2.I1
+          : k === 'I4-5' ? ZONE_COLORS_V2.I5
+          : (ZONE_COLORS_V2 as Record<string, string>)[k] ?? '#8B8B95'
+        const zoneEntries = order
+          .filter(k => (zh[k] ?? 0) > 0)
+          .map(k => [k, zh[k] as number] as const)
+        const zoneTotal = zoneEntries.reduce((s, [, v]) => s + v, 0)
+        const movEntries = Object.entries(monthVolume.movement_hours ?? {}).filter(([, v]) => v > 0)
+        if (zoneEntries.length === 0 && movEntries.length === 0) return null
+        const fmtN = (n: number) => n.toLocaleString('nb-NO', { maximumFractionDigits: 1 })
+        return (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 md:px-6 py-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12.5px', color: '#8A8A96', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: '#55555F' }}>
+              Tenkt fordeling
+            </span>
+            {zoneEntries.length > 0 && (
+              <span className="flex" style={{ gap: 2, height: 6, width: 110, borderRadius: 3, overflow: 'hidden' }}>
+                {zoneEntries.map(([k, v]) => (
+                  <span key={k} style={{ width: `${(v / zoneTotal) * 100}%`, background: colorFor(k) }} />
+                ))}
+              </span>
+            )}
+            {zoneEntries.map(([k, v]) => (
+              <span key={k} className="inline-flex items-center gap-1">
+                <span style={{ width: 7, height: 7, borderRadius: 2, background: colorFor(k) }} />
+                {k} {fmtN(v)}t
+              </span>
+            ))}
+            {movEntries.map(([name, v]) => (
+              <span key={name} style={{ border: '1px solid var(--line2)', borderRadius: 999, padding: '1px 8px' }}>
+                {name} {fmtN(v)}t
+              </span>
+            ))}
+          </div>
+        )
+      })()}
+
       {/* Column headers: week# + 7 days + totals.
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
           under sitt min-content — uten dette sprenger lange Strava-øktnavn

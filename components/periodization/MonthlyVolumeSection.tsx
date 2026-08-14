@@ -94,6 +94,8 @@ export function MonthlyVolumeSection({
                 initialHours={existing?.planned_hours ?? null}
                 initialKm={existing?.planned_km ?? null}
                 initialNotes={existing?.notes ?? null}
+                initialZoneHours={existing?.zone_hours ?? null}
+                initialMovementHours={existing?.movement_hours ?? null}
               />
             )
           })}
@@ -107,6 +109,13 @@ export function MonthlyVolumeSection({
                 {existing?.planned_hours != null && <span>{existing.planned_hours} t · </span>}
                 {existing?.planned_km != null && <span>{existing.planned_km} km</span>}
                 {existing?.notes && <span> · {existing.notes}</span>}
+                {/* Del E: valgfri fordeling — vises også read-only. */}
+                {existing?.zone_hours && Object.keys(existing.zone_hours).length > 0 && (
+                  <span> · {Object.entries(existing.zone_hours).map(([k, v]) => `${k} ${v}t`).join(' / ')}</span>
+                )}
+                {existing?.movement_hours && Object.keys(existing.movement_hours).length > 0 && (
+                  <span> · {Object.entries(existing.movement_hours).map(([k, v]) => `${k} ${v}t`).join(' / ')}</span>
+                )}
                 {!hasData && <span>—</span>}
               </div>
             )

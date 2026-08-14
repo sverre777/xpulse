@@ -14,6 +14,11 @@ export interface MonthlyVolumePlan {
   planned_hours: number | null
   planned_km: number | null
   notes: string | null
+  // Kø #39 del E (fase 83): VALGFRI nedbryting — {etikett: timer}.
+  // zone_hours: {"I1-2": 30, "I3": 8, "I4-5": 8} eller detaljert I1..I5.
+  // movement_hours: {"Løping": 20, "Rulleski": 15}. null/undefined = ikke satt.
+  zone_hours?: Record<string, number> | null
+  movement_hours?: Record<string, number> | null
 }
 
 export interface VolumePlanInput {
@@ -21,6 +26,23 @@ export interface VolumePlanInput {
   planned_hours?: string | number | null
   planned_km?: string | number | null
   notes?: string | null
+  // Del E: sendes KUN når fordelings-editoren er brukt (utelates ellers,
+  // så totaltimer-lagring virker også før fase 83-migreringen er kjørt).
+  zone_hours?: Record<string, string | number> | null
+  movement_hours?: Record<string, string | number> | null
+}
+
+// Rens en fordeling: behold kun endelige, positive timer. Tomt → null.
+function cleanBreakdown(
+  v: Record<string, string | number> | null | undefined,
+): Record<string, number> | null {
+  if (!v) return null
+  const out: Record<string, number> = {}
+  for (const [k, raw] of Object.entries(v)) {
+    const n = parseNum(raw as string | number)
+    if (n !== null && n > 0) out[k.trim()] = n
+  }
+  return Object.keys(out).length > 0 ? out : null
 }
 
 function parseNum(v: string | number | null | undefined): number | null {
@@ -41,7 +63,7 @@ export async function getMonthlyVolumePlans(
 
     const { data, error } = await supabase
       .from('monthly_volume_plans')
-      .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
+      .select('*')
       .eq('user_id', resolved.userId)
       .eq('year', year)
       .order('month', { ascending: true })
@@ -71,9 +93,16 @@ export async function upsertMonthlyVolumePlan(
     const km = parseNum(data.planned_km)
     const notes = data.notes?.trim() || null
     const seasonId = data.season_id ?? null
+    // Del E: fordeling renses; undefined = editor ikke brukt (rør ikke
+    // kolonnen — pre-fase-83-trygt), null/tom = eksplisitt tøm.
+    const zoneProvided = data.zone_hours !== undefined
+    const movementProvided = data.movement_hours !== undefined
+    const zoneHours = cleanBreakdown(data.zone_hours)
+    const movementHours = cleanBreakdown(data.movement_hours)
 
-    // Tomme verdier → slett eventuell eksisterende rad.
-    if (hours === null && km === null && !notes) {
+    // Tomme verdier → slett eventuell eksisterende rad (kun når heller
+    // ingen fordeling er igjen).
+    if (hours === null && km === null && !notes && zoneHours === null && movementHours === null) {
       const { error } = await supabase
         .from('monthly_volume_plans')
         .delete()
@@ -96,6 +125,10 @@ export async function upsertMonthlyVolumePlan(
         planned_hours: hours,
         planned_km: km,
         notes,
+        // Kolonnene sendes KUN når fordelings-editoren er brukt — utelatt
+        // ellers, så totaltimer-lagring virker også før fase 83 er kjørt.
+        ...(zoneProvided ? { zone_hours: zoneHours } : {}),
+        ...(movementProvided ? { movement_hours: movementHours } : {}),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id,year,month' })
 
@@ -126,7 +159,7 @@ export async function getVolumePlanForMonth(
 
     const { data, error } = await supabase
       .from('monthly_volume_plans')
-      .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
+      .select('*')
       .eq('user_id', resolved.userId)
       .eq('year', year)
       .eq('month', month)
@@ -158,7 +191,7 @@ export async function getMyVolumePlansForDateRange(
 
     const { data, error } = await supabase
       .from('monthly_volume_plans')
-      .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
+      .select('*')
       .eq('user_id', resolved.userId)
       .gte('year', startYear)
       .lte('year', endYear)
@@ -200,7 +233,7 @@ export async function getVolumePlansForSeason(
 
     const { data, error } = await supabase
       .from('monthly_volume_plans')
-      .select('id,user_id,season_id,year,month,planned_hours,planned_km,notes')
+      .select('*')
       .eq('user_id', resolved.userId)
       .gte('year', startYear)
       .lte('year', endYear)

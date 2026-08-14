@@ -2571,15 +2571,19 @@ export function Calendar({
             ))}
           </div>
           {view === 'måned' && (
-            <div className="hidden md:flex xp-seg-pill" role="group" aria-label="Måneds-layout">
-              <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
-                onClick={() => setMonthLayoutPersist('grid')}
-                className={monthLayout === 'grid' ? 'on' : undefined}
-                style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
-              <button type="button" aria-label="Liste (stablet)" title="Liste"
-                onClick={() => setMonthLayoutPersist('list')}
-                className={monthLayout === 'list' ? 'on' : undefined}
-                style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+            /* Ren wrapper for skjuling under md: xp-seg-pill setter egen
+               display og kan overstyre Tailwinds hidden på samme element. */
+            <div className="hidden md:block">
+              <div className="xp-seg-pill" role="group" aria-label="Måneds-layout">
+                <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
+                  onClick={() => setMonthLayoutPersist('grid')}
+                  className={monthLayout === 'grid' ? 'on' : undefined}
+                  style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+                <button type="button" aria-label="Liste (stablet)" title="Liste"
+                  onClick={() => setMonthLayoutPersist('list')}
+                  className={monthLayout === 'list' ? 'on' : undefined}
+                  style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+              </div>
             </div>
           )}
         </div>

@@ -200,8 +200,8 @@ export function MonthlyVolumeInput({
                 className="text-xs"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0',
-                  letterSpacing: '0.06em',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0',
+                  letterSpacing: '0.06em', minHeight: 36,
                 }}>
                 {showBreakdown ? '▾' : '▸'} Fordeling
                 {!showBreakdown && (zoneSum > 0 || movSum > 0) && (
@@ -263,7 +263,7 @@ export function MonthlyVolumeInput({
                           placeholder="t" inputMode="decimal" style={{ ...iSt, width: 64 }} />
                         <button type="button" aria-label="Fjern"
                           onClick={() => { setMovRows(rows => rows.filter((_, xi) => xi !== i)); touch(); doSave() }}
-                          style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>
+                          style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
                           ✕
                         </button>
                       </div>

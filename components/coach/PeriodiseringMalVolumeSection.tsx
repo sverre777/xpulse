@@ -166,7 +166,7 @@ function MalVolumeBreakdown({
     <div>
       <button type="button" onClick={() => setOpen(!open)}
         className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', letterSpacing: '0.06em' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0', letterSpacing: '0.06em', minHeight: 36 }}>
         {open ? '▾' : '▸'} Fordeling
         {!open && (zoneSum > 0 || movSum > 0) && (
           <span style={{ color: '#555560' }}>
@@ -231,7 +231,7 @@ function MalVolumeBreakdown({
                   placeholder="t" style={{ ...iSt, width: 72 }} />
                 <button type="button" aria-label="Fjern"
                   onClick={() => setMov(movEntries.filter((_, xi) => xi !== i))}
-                  style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}>
+                  style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
                   ✕
                 </button>
               </div>

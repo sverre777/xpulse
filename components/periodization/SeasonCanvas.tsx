@@ -455,6 +455,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
         letterSpacing: '0.06em', borderRadius: 9, padding: '8px 13px', cursor: 'pointer',
+        minHeight: 40,
         border: '1px solid var(--line2)',
         color: brush === b ? '#fff' : '#8B8B95',
         background: brush === b ? (sw ?? '#26262E') : 'none',
@@ -471,6 +472,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: '12.5px',
         letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 9,
         padding: '8px 13px', cursor: 'pointer', border: '1px solid var(--line2)',
+        minHeight: 40,
         color: granularity === g ? '#fff' : '#8B8B95',
         background: granularity === g ? 'var(--accent)' : 'none',
       }}>
@@ -543,16 +545,24 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           touchAction: canEdit && (brush !== 'pick' || granularity === 'dag') ? 'none' : 'auto',
           opacity: busy ? 0.6 : 1, userSelect: 'none',
         }}>
+        {/* G1 (mobil): celler har MINSTE bredde (44px i dag-modus for
+            treffbare ticks, 30px i uke) — rader bredere enn skjermen
+            scroller horisontalt (relativ modus: 13 celler/rad). paddingTop
+            hindrer at pname-badges (top:-9) klippes av scroll-containeren;
+            radetiketten er sticky venstre. Maling låser scroll via
+            touchAction:none over. */}
+        <div style={{ overflowX: 'auto', paddingTop: 12 }}>
         {rows.map((row, ri) => (
           <div key={ri} className="flex items-stretch gap-2 mb-1.5">
             <div style={{
               flex: '0 0 40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: "'Bebas Neue', sans-serif", fontSize: 14, letterSpacing: '0.1em',
+              fontFamily: "'Bebas Neue', sans-serif", fontSize: relative ? 12 : 14, letterSpacing: '0.06em',
               color: '#55555F', borderRight: '1px solid var(--line)',
+              position: 'sticky', left: 0, zIndex: 3, background: 'var(--card)',
             }}>
               {row.label}
             </div>
-            <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${row.cells.length}, 1fr)` }}>
+            <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${row.cells.length}, minmax(${granularity === 'dag' ? 44 : 30}px, 1fr))` }}>
               {row.cells.map(w => {
                 const p = periodForWeek(w, effectivePeriods)
                 const color = p ? INTENSITY_COLOR[p.intensity] : null
@@ -659,6 +669,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {edgeDrag && (

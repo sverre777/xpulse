@@ -368,7 +368,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         </Card>
       )}
 
-      {/* ── SKYTING (fase 2 — kun når skyte-data finnes) ── */}
+      {/* ── SKYTING ── Vises når skyte-data finnes ELLER økta er skiskyting
+          (også uten førte skudd): etter #40 åpner alle eksisterende økter som
+          oversikt, og uten en synlig inngang her var treff-føringen «borte»
+          for skiskyttere — skjemaets skytefelter lå gjemt bak ✎ Rediger. ── */}
       {(() => {
         let pShots = 0, pHits = 0, sShots = 0, sHits = 0, series = 0
         for (const a of activities) {
@@ -379,7 +382,9 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           sShots += ss; sHits += num(a.standing_hits)
         }
         const shots = pShots + sShots
-        if (shots <= 0) return null
+        const hasShootingRows = activities.some(a => SHOOTING_TYPES.has(a.activity_type))
+        const offerEntry = canEdit && !isPlannedView && (hasShootingRows || data.sport === 'biathlon')
+        if (shots <= 0 && !offerEntry) return null
         const hits = pHits + sHits
         const pct = (h: number, s: number) => s > 0 ? `${Math.round((h / s) * 100)}%` : ''
         const dots = (h: number, s: number) => s > 0 && s <= 20 ? (
@@ -399,12 +404,30 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           </div>
         )
         return (
-          <Card title="SKYTING" beamColor="#E23A5A" aux={`${series} serie${series !== 1 ? 'r' : ''} · ${shots} skudd`}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {box('Totalt', hits, shots)}
-              {pShots > 0 && box('Liggende', pHits, pShots)}
-              {sShots > 0 && box('Stående', sHits, sShots)}
-            </div>
+          <Card title="SKYTING" beamColor="#E23A5A" aux={shots > 0 ? `${series} serie${series !== 1 ? 'r' : ''} · ${shots} skudd` : undefined}>
+            {shots > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {box('Totalt', hits, shots)}
+                {pShots > 0 && box('Liggende', pHits, pShots)}
+                {sShots > 0 && box('Stående', sHits, sShots)}
+              </div>
+            ) : (
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#8B8B95' }}>
+                Ingen skudd ført på denne økta ennå.
+              </p>
+            )}
+            {offerEntry && (
+              <button type="button" onClick={onEdit}
+                className="transition-opacity hover:opacity-90"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13.5,
+                  letterSpacing: '0.12em', textTransform: 'uppercase',
+                  color: '#E23A5A', background: 'none', border: '1px solid rgba(226,58,90,0.55)',
+                  borderRadius: 10, padding: '9px 14px', cursor: 'pointer', marginTop: 12,
+                }}>
+                🎯 {shots > 0 ? 'Rediger treff' : 'Før treff'}
+              </button>
+            )}
           </Card>
         )
       })()}

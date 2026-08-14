@@ -1069,13 +1069,16 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
 
 // ── Month view ─────────────────────────────────────────────
 
-function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates }: {
+function MonthView({ year, month, byDate, healthDates, healthData, recoveryData, mode, seasonPeriods, seasonKeyDates, layout = 'grid' }: {
   year: number; month: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   healthDates: Set<string>
   healthData: Record<string, HealthSummary>
   recoveryData: Record<string, RecoveryEntry[]>
   mode: CalendarMode
+  // Desktop-layout: 'grid' (7-kolonners kalender, default) eller 'list'
+  // (stablet, samme som mobil — 2 kolonner over ~1100px). Mobil er alltid liste.
+  layout?: 'grid' | 'list'
   seasonPeriods: import('@/app/actions/seasons').SeasonPeriod[]
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
@@ -1088,14 +1091,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   const [expandedGaps, setExpandedGaps] = useState<Set<string>>(new Set())
   useEffect(() => { setExpandedGaps(new Set()) }, [year, month])
 
-  // Mobil-listen: auto-scroll til inneværende uke ved åpning — kun når
-  // måneden er dagens måned (og kun under md-bruddpunktet).
+  // Liste-visning: auto-scroll til inneværende uke ved åpning — kun når
+  // måneden er dagens måned. Mobil er alltid liste; desktop kun i 'list'.
   useEffect(() => {
     const t = new Date()
     if (t.getFullYear() !== year || t.getMonth() + 1 !== month) return
-    if (typeof window === 'undefined' || window.innerWidth >= 768) return
+    if (typeof window === 'undefined') return
+    if (window.innerWidth >= 768 && layout !== 'list') return
     document.querySelector('[data-week-current="1"]')?.scrollIntoView({ block: 'start' })
-  }, [year, month])
+  }, [year, month, layout])
 
   // ── Dra-og-slipp (måneds-grid): flytt økt til ny dag ──────────────────
   // Mus: drag etter 8px bevegelse (klikk forblir klikk → åpner edit). Touch:
@@ -1211,7 +1215,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveDrag(null)}
     >
-    <div>
+    <div className={layout === 'list' ? 'md:grid md:grid-cols-1 min-[1100px]:grid-cols-2 md:gap-x-6 md:items-start md:px-3 md:pt-3' : undefined}>
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
@@ -1220,7 +1224,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           minmax(0, 1fr) (ikke 1fr = minmax(auto, 1fr)) lar kolonnene krympe
           under sitt min-content — uten dette sprenger lange Strava-øktnavn
           grid-bredden på mobil og dager sklir ut horisontalt. */}
-      <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+      <div className={layout === 'grid' ? 'hidden md:grid' : 'hidden'} style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
@@ -1250,8 +1254,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
         return (
           <Fragment key={wi}>
-            {/* ── DESKTOP (≥768px): 7-kolonners grid — uendret ── */}
-            <div className="hidden md:block">
+            {/* ── DESKTOP (≥768px): 7-kolonners grid — uendret (skjules helt
+                når Liste-layout er valgt) ── */}
+            <div className={layout === 'grid' ? 'hidden md:block' : 'hidden'}>
             {/* Hele uke-raden scroller som én enhet. Alle 7 celler har samme
                 høyde via grid-stretch (default) — den lengste cellens
                 naturlige høyde bestemmer rad-høyden. Wrapperen kapper på
@@ -1306,7 +1311,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 design.html, bolk 1 variant A). SAMME datakilder som griden:
                 byDate + filterByMode, dayStates, keyDates, health — kun
                 layouten er ny. ── */}
-            <div className="md:hidden px-3"
+            <div className={layout === 'grid' ? 'md:hidden px-3' : 'px-3'}
               data-week-current={weekHasToday ? '1' : undefined}
               style={{ scrollMarginTop: 96 }}>
               <div style={{ position: 'relative', paddingLeft: 13 }}>
@@ -1343,11 +1348,24 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   const states = dayStatesByDate[ds] ?? []
                   const keyDatesOnDay = keyDatesForDate(seasonKeyDates, ds)
                   const empty = dayWorkouts.length === 0
+                  // Paritet med grid-cellen: hviledag/syk/skade farger HELE
+                  // raden (samme stateBgFor/stateBorderFor som DayCell).
+                  const stateBg = stateBgFor(states)
+                  const stateDashed = stateBorderFor(states)
                   return (
                     <div key={ds}
                       onClick={() => setExpandedDay(prev => prev === ds ? null : ds)}
                       className="flex items-start gap-2.5"
-                      style={{ padding: empty ? '4px 0' : '7px 0', borderBottom: '1px solid var(--line)', cursor: 'pointer' }}>
+                      style={{
+                        padding: empty ? '4px 0' : '7px 0',
+                        cursor: 'pointer',
+                        background: stateBg,
+                        borderRadius: stateBg ? 10 : 0,
+                        paddingLeft: stateBg ? 6 : 0,
+                        paddingRight: stateBg ? 6 : 0,
+                        ...(stateDashed ? { border: '1px dashed rgba(40,168,110,0.45)' } : {}),
+                        borderBottom: '1px solid var(--line)',
+                      }}>
                       <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3 }}>
                         <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: isToday ? 'var(--accent)' : '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
                           {DAYS_NO[(date.getDay() + 6) % 7]}
@@ -2183,6 +2201,20 @@ export function Calendar({
   // params → nåtid som før. Initialiseres fra URL, faller tilbake til props/nå.
   const urlView = searchParams.get('cv')
   const urlDate = searchParams.get('cd')
+  // Måneds-layout på desktop: Kalender (grid) eller Liste — persistert per
+  // bruker og delt mellom plan/dagbok (samme localStorage-nøkkel). Default
+  // grid; leses i effekt (ikke initializer) for å unngå hydration-avvik.
+  const [monthLayout, setMonthLayout] = useState<'grid' | 'list'>('grid')
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem('xp-mnd-layout') === 'list') setMonthLayout('list')
+    } catch { /* localStorage utilgjengelig (privat modus o.l.) */ }
+  }, [])
+  const setMonthLayoutPersist = (l: 'grid' | 'list') => {
+    setMonthLayout(l)
+    try { window.localStorage.setItem('xp-mnd-layout', l) } catch { /* ignorer */ }
+  }
+
   const [view, setView] = useState<CalendarView>(
     (urlView === 'uke' || urlView === 'måned' || urlView === 'år') ? urlView : initialView
   )
@@ -2527,15 +2559,29 @@ export function Calendar({
       <div
         className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3 ${view === 'måned' ? 'sticky top-[52px] z-20 md:static' : ''}`}
         style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
-        {/* View switcher */}
-        <div className="xp-seg-pill self-center md:self-auto">
-          {(['uke', 'måned', 'år'] as CalendarView[]).map(v => (
-            <button key={v} type="button" onClick={() => setView(v)}
-              className={view === v ? 'on' : undefined}
-              style={{ minHeight: '44px' }}>
-              {v.charAt(0).toUpperCase() + v.slice(1)}
-            </button>
-          ))}
+        {/* View switcher + (måned, desktop) layout-toggle Kalender/Liste */}
+        <div className="flex items-center gap-2 self-center md:self-auto">
+          <div className="xp-seg-pill">
+            {(['uke', 'måned', 'år'] as CalendarView[]).map(v => (
+              <button key={v} type="button" onClick={() => setView(v)}
+                className={view === v ? 'on' : undefined}
+                style={{ minHeight: '44px' }}>
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+          {view === 'måned' && (
+            <div className="hidden md:flex xp-seg-pill" role="group" aria-label="Måneds-layout">
+              <button type="button" aria-label="Kalender (rutenett)" title="Kalender"
+                onClick={() => setMonthLayoutPersist('grid')}
+                className={monthLayout === 'grid' ? 'on' : undefined}
+                style={{ minHeight: '44px', fontSize: '15px' }}>▦</button>
+              <button type="button" aria-label="Liste (stablet)" title="Liste"
+                onClick={() => setMonthLayoutPersist('list')}
+                className={monthLayout === 'list' ? 'on' : undefined}
+                style={{ minHeight: '44px', fontSize: '15px' }}>☰</button>
+            </div>
+          )}
         </div>
 
         {/* Navigation + title — sentrert på mobil, høyre på desktop */}
@@ -2652,7 +2698,7 @@ export function Calendar({
         </>
       )}
       {view === 'måned' && (
-        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} />
+        <MonthView year={year} month={month} byDate={byDate} healthDates={healthDates} healthData={healthData} recoveryData={recoveryData} mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates} layout={monthLayout} />
       )}
       {view === 'uke' && (
         <WeekCalendarView

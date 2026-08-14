@@ -1,6 +1,6 @@
 'use client'
 
-import type { SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot } from '@/app/actions/seasons'
+import type { SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot, SeasonMarking } from '@/app/actions/seasons'
 import {
   INTENSITY_TINT, INTENSITY_COLOR, KEY_EVENT_VISUALS,
 } from '@/lib/periodization-overlay'
@@ -14,6 +14,7 @@ export function MonthMiniCalendar({
   seasonStart, seasonEnd,
   onSelectMonth, onSelectWeek, onSelectDay,
   compact = false,
+  markings = [],
 }: {
   year: number
   month0: number
@@ -26,6 +27,9 @@ export function MonthMiniCalendar({
   onSelectWeek?: (mondayISO: string) => void
   onSelectDay?: (dateISO: string) => void
   compact?: boolean
+  // Kø #39 punkt 8: markeringslaget (📍 samling / 🏔 høyde) som gull-bånd
+  // i bunnen av dagcellene — dag-presist, kapsel-innrykk ved start/slutt.
+  markings?: SeasonMarking[]
 }) {
   const weeks = buildMonthGrid(year, month0)
   const todayISO = toISO(new Date())
@@ -101,8 +105,13 @@ export function MonthMiniCalendar({
               const bg = period ? INTENSITY_TINT[period.intensity] : 'transparent'
               const accent = period ? INTENSITY_COLOR[period.intensity] : 'transparent'
 
+              const dayMarkings = within ? markings.filter(m => m.start_date <= iso && m.end_date >= iso) : []
+
               const titleParts: string[] = [iso]
               if (period) titleParts.push(period.name)
+              for (const m of dayMarkings) {
+                titleParts.push(`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}`)
+              }
               for (const e of events) titleParts.push(`${KEY_EVENT_VISUALS[e.event_type].icon} ${e.name}${e.is_peak_target ? ' ★' : ''}`)
               if (workouts.length) titleParts.push(`${workouts.length} planlagt økt${workouts.length === 1 ? '' : 'er'}`)
 
@@ -131,6 +140,21 @@ export function MonthMiniCalendar({
                   }}
                 >
                   <span>{d.getDate()}</span>
+                  {/* Markeringsbånd (samme gull-identitet som lerretet) —
+                      kapsel-innrykk på markeringens første/siste dag. */}
+                  {inMonth && dayMarkings.length > 0 && (() => {
+                    const m = dayMarkings[0]
+                    const startsHere = m.start_date === iso
+                    const endsHere = m.end_date === iso
+                    return (
+                      <span aria-hidden style={{
+                        position: 'absolute', bottom: 0, height: 2.5,
+                        left: startsHere ? 2 : 0, right: endsHere ? 2 : 0,
+                        background: 'rgba(212, 160, 23, 0.85)',
+                        borderRadius: startsHere || endsHere ? 2 : 0,
+                      }} />
+                    )
+                  })()}
                   {topEvent && (
                     <span aria-hidden
                       style={{ position: 'absolute', bottom: 0, right: 1, fontSize: '8px', lineHeight: 1 }}>

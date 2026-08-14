@@ -2,19 +2,21 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import type {
-  Season, SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot,
+  Season, SeasonPeriod, SeasonKeyDate, PlannedWorkoutDot, SeasonMarking,
 } from '@/app/actions/seasons'
 import { INTENSITY_COLOR, INTENSITY_LABEL, KEY_EVENT_VISUALS } from '@/lib/periodization-overlay'
 import { monthsForSeason, indexByDate, toISO } from '@/lib/season-calendar'
 import { MonthMiniCalendar } from './MonthMiniCalendar'
 
 export function YearCalendarView({
-  season, periods, keyDates, plannedWorkouts,
+  season, periods, keyDates, plannedWorkouts, markings = [],
 }: {
   season: Season
   periods: SeasonPeriod[]
   keyDates: SeasonKeyDate[]
   plannedWorkouts: PlannedWorkoutDot[]
+  // Kø #39 punkt 8: markeringslaget som gull-bånd i minikalenderne.
+  markings?: SeasonMarking[]
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -64,6 +66,10 @@ export function YearCalendarView({
           <span aria-hidden>{KEY_EVENT_VISUALS.camp.icon}</span> Samling
         </span>
         <span className="flex items-center gap-1">
+          <span style={{ width: 12, height: 3, borderRadius: 2, backgroundColor: 'rgba(212, 160, 23, 0.85)', display: 'inline-block' }} />
+          Samling/høyde-opphold
+        </span>
+        <span className="flex items-center gap-1">
           <span style={{
             width: 8, height: 8, display: 'inline-block',
             boxShadow: '0 0 4px rgba(212, 160, 23, 0.8)',
@@ -85,6 +91,7 @@ export function YearCalendarView({
             workoutsByDate={workoutsByDate}
             seasonStart={season.start_date}
             seasonEnd={season.end_date}
+            markings={markings}
             onSelectMonth={goToMonth}
             onSelectWeek={goToWeek}
             onSelectDay={goToDay}

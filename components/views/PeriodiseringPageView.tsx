@@ -161,6 +161,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
                   periods={periods}
                   keyDates={keyDates}
                   plannedWorkouts={plannedWorkouts}
+                  markings={markings}
                 />
               )}
               {view === 'måned' && (

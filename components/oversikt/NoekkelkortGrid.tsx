@@ -162,13 +162,41 @@ function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseS
   )
 }
 
+// Liten grønn logg-knapp + dim analyse-lenke — brukes i begge helse-tilstander.
+function HealthCardActions({ today }: { today: string }) {
+  const linkBase: React.CSSProperties = {
+    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
+    letterSpacing: '0.13em', textTransform: 'uppercase', textDecoration: 'none',
+    borderRadius: 9, padding: '7px 12px', display: 'inline-block',
+  }
+  return (
+    <div className="flex gap-2 mt-3 flex-wrap">
+      <Link href={`/app/health/${today}`}
+        style={{ ...linkBase, backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E' }}>
+        + Logg helse
+      </Link>
+      <Link href="/app/analyse?tab=helse"
+        style={{ ...linkBase, color: '#8A8A96', border: '1px solid var(--line2)' }}>
+        Analyse →
+      </Link>
+    </div>
+  )
+}
+
+function todayLocalISO(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function HealthCard({ h }: { h: OversiktHealthSummary }) {
   const hasAny = h.last_entry_date !== null
+  const today = todayLocalISO()
   if (!hasAny) {
     return (
-      <Card kicker="Helse" accent="#28A86E" href="/app/analyse?tab=helse">
+      <Card kicker="Helse" accent="#28A86E">
         <CardTitle>Ingen data</CardTitle>
         <CardMeta>Logg hvilepuls, HRV og søvn for å følge form.</CardMeta>
+        <HealthCardActions today={today} />
       </Card>
     )
   }
@@ -178,7 +206,7 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
   if (h.sleep_hours !== null) pairs.push({ label: 'Søvn', value: `${h.sleep_hours.toFixed(1)} t` })
 
   return (
-    <Card kicker="Helse" accent="#28A86E" href="/app/analyse?tab=helse">
+    <Card kicker="Helse" accent="#28A86E">
       <div className="flex flex-wrap gap-x-5 gap-y-2">
         {pairs.map(p => (
           <div key={p.label} className="flex flex-col">
@@ -199,6 +227,7 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
         Sist: {fmtDate(h.last_entry_date!)}
         {h.avg_resting_hr_7d !== null ? ` · 7d snitt HR ${h.avg_resting_hr_7d}` : ''}
       </CardMeta>
+      <HealthCardActions today={today} />
     </Card>
   )
 }

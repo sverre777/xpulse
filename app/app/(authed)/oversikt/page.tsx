@@ -10,6 +10,8 @@ import { KonkurranseNedtelling } from '@/components/oversikt/KonkurranseNedtelli
 import { NoekkelkortGrid } from '@/components/oversikt/NoekkelkortGrid'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
+import { KlokkesyncMiniKort } from '@/components/oversikt/KlokkesyncMiniKort'
+import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
 import { HelseMiniDashboard } from '@/components/analysis/HelseMiniDashboard'
 import { FeedbackCard } from '@/components/feedback/FeedbackCard'
@@ -63,9 +65,10 @@ function AiCoachTeaser() {
 }
 
 export default async function OversiktPage() {
-  const [res, coachOverviewRaw] = await Promise.all([
+  const [res, coachOverviewRaw, klokkesyncBadge] = await Promise.all([
     getOversiktDashboard(),
     getAthleteCoachOverview(),
+    getKlokkesyncBadge(),
   ])
 
   if ('error' in res) {
@@ -113,6 +116,8 @@ export default async function OversiktPage() {
         <div className="grid gap-4 md:grid-cols-2 mb-6">
           <HelseMiniDashboard range={range} />
           <TrenerKort overview={coachOverview} />
+          {/* Kort liten klokkesync-boks: koble / synk nå + sist synket. */}
+          <KlokkesyncMiniKort badge={klokkesyncBadge} />
         </div>
 
         <section className="p-5 mb-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>

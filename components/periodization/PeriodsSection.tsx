@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import type { Season, SeasonPeriod, SeasonMarking, Intensity } from '@/app/actions/seasons'
+import type { Season, SeasonPeriod, SeasonMarking, SeasonKeyDate, KeyEventType, Intensity } from '@/app/actions/seasons'
 import { PeriodModal } from './PeriodModal'
 import { MarkingModal } from './MarkingModal'
+import { KeyDateModal } from './KeyDateModal'
 import { SeasonCanvas } from './SeasonCanvas'
 
 const INTENSITY_COLOR: Record<Intensity, string> = {
@@ -19,11 +20,12 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
 }
 
 export function PeriodsSection({
-  season, periods, markings, targetUserId, canEdit = true,
+  season, periods, markings, keyDates = [], targetUserId, canEdit = true,
 }: {
   season: Season
   periods: SeasonPeriod[]
   markings: SeasonMarking[]
+  keyDates?: SeasonKeyDate[]
   targetUserId?: string
   canEdit?: boolean
 }) {
@@ -32,6 +34,9 @@ export function PeriodsSection({
   // Del B: markeringslag — nytt spenn tegnet i lerretet / rediger via ✋.
   const [newMarkingRange, setNewMarkingRange] = useState<{ start: string; end: string } | null>(null)
   const [editingMarking, setEditingMarking] = useState<SeasonMarking | null>(null)
+  // G2: stemple-verktøyet → KeyDateModal forhåndsutfylt / ✋ på stempel.
+  const [stampInit, setStampInit] = useState<{ date: string; type: KeyEventType; peak: boolean } | null>(null)
+  const [editingKeyDate, setEditingKeyDate] = useState<SeasonKeyDate | null>(null)
 
   return (
     <section className="mb-8">
@@ -41,11 +46,14 @@ export function PeriodsSection({
         season={season}
         periods={periods}
         markings={markings}
+        keyDates={keyDates}
         targetUserId={targetUserId}
         canEdit={canEdit}
         onPickPeriod={p => setEditing(p)}
         onPickMarking={m => setEditingMarking(m)}
         onDrawMarking={(start, end) => setNewMarkingRange({ start, end })}
+        onStampDay={(date, type, peak) => setStampInit({ date, type, peak })}
+        onPickKeyDate={k => setEditingKeyDate(k)}
       />
 
       <div className="flex items-center justify-between mb-4">
@@ -248,6 +256,34 @@ export function PeriodsSection({
               seasonStart={season.start_date}
               seasonEnd={season.end_date}
               editing={editingMarking}
+              targetUserId={targetUserId}
+            />
+          )}
+          {/* G2: stempel → ny nøkkeldato forhåndsutfylt (dato/type/peak);
+              ✋ på stempel → rediger. Samme flyt/kilde som KeyDatesSection —
+              kalendere og nedtelling plukker den opp automatisk. */}
+          {stampInit && (
+            <KeyDateModal
+              open
+              onClose={() => setStampInit(null)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              initialDate={stampInit.date}
+              initialType={stampInit.type}
+              initialPeak={stampInit.peak}
+              targetUserId={targetUserId}
+            />
+          )}
+          {editingKeyDate && (
+            <KeyDateModal
+              key={editingKeyDate.id}
+              open
+              onClose={() => setEditingKeyDate(null)}
+              seasonId={season.id}
+              seasonStart={season.start_date}
+              seasonEnd={season.end_date}
+              editing={editingKeyDate}
               targetUserId={targetUserId}
             />
           )}

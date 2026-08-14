@@ -24,6 +24,7 @@ const AUTO_WORKOUT_TYPES: KeyEventType[] = ['competition_a', 'competition_b', 'c
 
 export function KeyDateModal({
   open, onClose, seasonId, seasonStart, seasonEnd, editing, targetUserId,
+  initialDate, initialType, initialPeak,
 }: {
   open: boolean
   onClose: () => void
@@ -32,16 +33,21 @@ export function KeyDateModal({
   seasonEnd: string
   editing?: SeasonKeyDate | null
   targetUserId?: string
+  // G2 (kø #39): stemple-verktøyet på lerretet forhåndsutfyller dato/type/
+  // peak — kun brukt ved NY nøkkeldato (editing overstyrer).
+  initialDate?: string
+  initialType?: KeyEventType
+  initialPeak?: boolean
 }) {
   const router = useRouter()
-  const [eventType, setEventType] = useState<KeyEventType>(editing?.event_type ?? 'competition_a')
-  const [eventDate, setEventDate] = useState(editing?.event_date ?? seasonStart)
+  const [eventType, setEventType] = useState<KeyEventType>(editing?.event_type ?? initialType ?? 'competition_a')
+  const [eventDate, setEventDate] = useState(editing?.event_date ?? initialDate ?? seasonStart)
   const [name, setName] = useState(editing?.name ?? '')
   const [sport, setSport] = useState<Sport | ''>(editing?.sport ?? '')
   const [location, setLocation] = useState(editing?.location ?? '')
   const [distanceFormat, setDistanceFormat] = useState(editing?.distance_format ?? '')
   const [notes, setNotes] = useState(editing?.notes ?? '')
-  const [isPeakTarget, setIsPeakTarget] = useState<boolean>(editing?.is_peak_target ?? false)
+  const [isPeakTarget, setIsPeakTarget] = useState<boolean>(editing?.is_peak_target ?? initialPeak ?? false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

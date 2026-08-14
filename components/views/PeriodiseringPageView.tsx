@@ -182,7 +182,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
               )}
             </div>
 
-            <PeriodsSection season={activeSeason} periods={periods} markings={markings} targetUserId={targetId} canEdit={canEdit} />
+            <PeriodsSection season={activeSeason} periods={periods} markings={markings} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
             <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
           </>
         )}

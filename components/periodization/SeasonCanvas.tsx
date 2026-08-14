@@ -15,7 +15,8 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   createPeriod, updatePeriod, deletePeriod,
-  type Season, type SeasonPeriod, type SeasonMarking, type Intensity, type PeriodInput,
+  type Season, type SeasonPeriod, type SeasonMarking, type SeasonKeyDate,
+  type KeyEventType, type Intensity, type PeriodInput,
 } from '@/app/actions/seasons'
 import { INTENSITY_COLOR, weekIntensityGradient } from '@/lib/periodization-overlay'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -24,8 +25,23 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
   rolig: 'Rolig', medium: 'Medium', hard: 'Hard',
 }
 
-type Brush = 'pick' | 'erase' | 'samling' | Intensity
+type StampBrush = 'stamp_a' | 'stamp_b' | 'stamp_c' | 'stamp_test' | 'stamp_peak'
+type Brush = 'pick' | 'erase' | 'samling' | StampBrush | Intensity
 type Granularity = 'uke' | 'dag'
+
+// G2: stempel → nøkkeldato-type (⭐ peak = A-konkurranse m/ form-topp-flagg).
+const STAMPS: { brush: StampBrush; icon: string; label: string; eventType: KeyEventType; peak: boolean }[] = [
+  { brush: 'stamp_a',    icon: '🏆', label: 'A',    eventType: 'competition_a', peak: false },
+  { brush: 'stamp_b',    icon: '🏅', label: 'B',    eventType: 'competition_b', peak: false },
+  { brush: 'stamp_c',    icon: '📊', label: 'C',    eventType: 'competition_c', peak: false },
+  { brush: 'stamp_test', icon: '🧪', label: 'Test', eventType: 'test',          peak: false },
+  { brush: 'stamp_peak', icon: '⭐', label: 'Peak', eventType: 'competition_a', peak: true },
+]
+const KEY_ICON: Record<string, string> = {
+  competition_a: '🏆', competition_b: '🏅', competition_c: '📊',
+  test: '🧪', camp: '📍', other: '⚑',
+}
+const PEAK_CELL_GLOW = '0 0 8px rgba(212, 160, 23, 0.6)'
 
 // Del B: markeringsbånd (📍 samling / 🏔 høyde) — gull-aktig overlay OVER
 // cellene, aldri cellebakgrunn. Egen farge-identitet, skilles fra medium-
@@ -131,7 +147,7 @@ export interface CanvasPeriodMutators {
 
 const REL_DAYS = ['man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn']
 
-export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking, relative = false, mutators }: {
+export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking, relative = false, mutators, keyDates = [], onStampDay, onPickKeyDate }: {
   season: Season
   periods: SeasonPeriod[]
   markings: SeasonMarking[]
@@ -146,6 +162,12 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
   // ingen «i dag»-markering; datoene er syntetiske (anker-mandag).
   relative?: boolean
   mutators?: CanvasPeriodMutators
+  // G2: nøkkeldato-stempler. Vises/aktiveres kun når onStampDay er satt —
+  // mal-lerretet (relativ) sender den ikke (nøkkeldatoer redigeres der som
+  // relative rader; KeyDateModal er dato-bundet/server-koblet).
+  keyDates?: SeasonKeyDate[]
+  onStampDay?: (dateISO: string, eventType: KeyEventType, peak: boolean) => void
+  onPickKeyDate?: (k: SeasonKeyDate) => void
 }) {
   const router = useRouter()
   const createP = mutators
@@ -371,9 +393,14 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!canEdit || busy) return
-    // ✋ på et markeringsbånd åpner rediger/slett — sjekkes FØR celle-logikk
-    // (båndet har pointer-events kun i ✋-modus).
+    // ✋ på stempel/markeringsbånd åpner rediger — sjekkes FØR celle-logikk
+    // (elementene har pointer-events kun i ✋-modus).
     if (brush === 'pick') {
+      const kEl = (e.target as HTMLElement).closest?.('[data-keydate]')
+      if (kEl && onPickKeyDate) {
+        const k = keyDates.find(x => x.id === (kEl as HTMLElement).dataset.keydate)
+        if (k) { onPickKeyDate(k); return }
+      }
       const mEl = (e.target as HTMLElement).closest?.('[data-marking]')
       if (mEl) {
         const m = markings.find(x => x.id === (mEl as HTMLElement).dataset.marking)
@@ -382,6 +409,13 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     }
     const iso = pointToISO(e.clientX, e.clientY)
     if (!iso) return
+    // G2: stempel-pensel — ett klikk på dag/uke → KeyDateModal forhåndsutfylt
+    // (uke-modus bruker mandagen; datoen justeres i modalen).
+    const stamp = STAMPS.find(s => s.brush === brush)
+    if (stamp) {
+      onStampDay?.(iso, stamp.eventType, stamp.peak)
+      return
+    }
     if (brush === 'pick') {
       // Dag-modus: pointerdown på en periodekant starter kant-dra;
       // klikk uten bevegelse åpner detaljpanelet (håndteres på pointerup).
@@ -517,6 +551,12 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Markering</span>
             {toolBtn('samling', '📍 Samling/høyde', '#D4A017')}
           </div>
+          {onStampDay && (
+            <div className="flex gap-2 items-center p-2 flex-wrap" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Nøkkeldato</span>
+              {STAMPS.map(s => toolBtn(s.brush, `${s.icon} ${s.label}`))}
+            </div>
+          )}
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Presisjon</span>
             {granBtn('uke', 'Uke')}
@@ -574,6 +614,9 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                 const isStartWeek = p != null && p.start_date >= w.mondayISO && p.start_date <= w.sundayISO
                 const isToday = todayISO >= w.mondayISO && todayISO <= w.sundayISO
                 const weekSelected = granularity === 'uke' && inSel(w.mondayISO)
+                // G2: nøkkeldato-stempler i uka + gull-glød ved form-topp-mål.
+                const weekKeyDates = keyDates.filter(k => k.event_date >= w.mondayISO && k.event_date <= w.sundayISO)
+                const hasPeak = weekKeyDates.some(k => k.is_peak_target)
                 return (
                   <div key={w.idx} data-wk={w.idx}
                     style={{
@@ -585,6 +628,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                       outlineOffset: 1,
                       opacity: weekSelected ? 0.85 : 1,
                       padding: '4px 6px', overflow: 'visible',
+                      boxShadow: hasPeak ? PEAK_CELL_GLOW : undefined,
                     }}>
                     <span style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px',
@@ -593,6 +637,28 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                     }}>
                       U{weekLabel(w)}
                     </span>
+                    {/* G2: stempler (🏆/🏅/📊/🧪, ⭐ = peak) — ✋ åpner
+                        KeyDateModal for redigering. */}
+                    {weekKeyDates.length > 0 && (
+                      <span style={{ position: 'absolute', top: 2, right: 4, display: 'flex', gap: 1, zIndex: 2, fontSize: 10, lineHeight: 1 }}>
+                        {weekKeyDates.slice(0, 3).map(k => (
+                          <span key={k.id} data-keydate={k.id}
+                            title={`${k.is_peak_target ? '⭐ ' : ''}${KEY_ICON[k.event_type] ?? '⚑'} ${k.name} · ${k.event_date}`}
+                            style={{
+                              cursor: canEdit && brush === 'pick' ? 'pointer' : undefined,
+                              pointerEvents: canEdit && brush === 'pick' ? 'auto' : 'none',
+                              filter: k.is_peak_target ? 'drop-shadow(0 0 3px rgba(212,160,23,0.9))' : undefined,
+                            }}>
+                            {k.is_peak_target ? '⭐' : (KEY_ICON[k.event_type] ?? '⚑')}
+                          </span>
+                        ))}
+                        {weekKeyDates.length > 3 && (
+                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 9 }}>
+                            +{weekKeyDates.length - 3}
+                          </span>
+                        )}
+                      </span>
+                    )}
                     {/* DAG-modus: 7 dag-ticks — dag-presis farge + kant-håndtak. */}
                     {granularity === 'dag' && (
                       <div className="flex mt-1" style={{ gap: 2 }}>

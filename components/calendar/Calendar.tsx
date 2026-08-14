@@ -48,7 +48,7 @@ import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
   keyDatesForDate, weekOverlayFor, weekIntensitySegments, weekIntensityGradient,
-  periodForDate,
+  periodForDate, formatSpanNO,
 } from '@/lib/periodization-overlay'
 
 // ── Types ──────────────────────────────────────────────────
@@ -941,7 +941,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
 
 // ── Day cell ────────────────────────────────────────────────
 
-function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, periodEdges }: {
+function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, periodEdges, periodStart }: {
   date: Date
   workouts: CalendarWorkoutSummary[]
   healthDate: boolean
@@ -951,7 +951,10 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   onToggle: () => void
   keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
   // Tynn strek på dagen der en periode starter (venstre) / slutter (høyre).
-  periodEdges?: { side: 'start' | 'end'; color: string }[]
+  // title = navn + datospenn (Del C: hover-tooltip).
+  periodEdges?: { side: 'start' | 'end'; color: string; title: string }[]
+  // Del C: pname-badge ÉN gang — på dagen perioden starter.
+  periodStart?: { name: string; color: string; title: string } | null
 }) {
   const { onCreateWorkout, dayStatesByDate, readOnly } = useCalendarActions()
   const dateStr = toISO(date)
@@ -1002,6 +1005,15 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       }}
       title={keyDatesOnDay.map(k => `${KEY_EVENT_VISUALS[k.event_type].icon} ${k.name}`).join('\n') || undefined}
     >
+      {/* Periode-kantstreker — absolutt mot cellens rot (dagen der en
+          periode starter/slutter); title gir navn + datospenn på hover. */}
+      {periodEdges?.map((edge, ei) => (
+        <span key={ei} title={edge.title} style={{
+          position: 'absolute', top: 5, bottom: 5, width: 2.5, borderRadius: 2,
+          background: edge.color, zIndex: 1,
+          ...(edge.side === 'start' ? { left: -1 } : { right: -1 }),
+        }} />
+      ))}
       {/* Date number + key-date icons + health dot */}
       <div className="flex items-center justify-between mb-1">
         <span style={{
@@ -1011,13 +1023,6 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           borderRadius: isToday ? 6 : 0,
           padding: isToday ? '2px 5px 1px' : 0,
         }}>
-      {periodEdges?.map((edge, ei) => (
-        <span key={ei} aria-hidden style={{
-          position: 'absolute', top: 5, bottom: 5, width: 2.5, borderRadius: 2,
-          background: edge.color, zIndex: 1,
-          ...(edge.side === 'start' ? { left: -1 } : { right: -1 }),
-        }} />
-      ))}
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
@@ -1037,6 +1042,19 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           )}
         </div>
       </div>
+
+      {/* Del C: pname-badge ÉN gang, på dagen perioden starter. */}
+      {periodStart && (
+        <div title={periodStart.title} style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: '10.5px', fontWeight: 700,
+          letterSpacing: '0.07em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+          overflow: 'hidden', textOverflow: 'ellipsis', color: periodStart.color,
+          border: `1px solid ${periodStart.color}55`, borderRadius: 5,
+          padding: '0 4px', marginBottom: 2, alignSelf: 'flex-start', maxWidth: '100%',
+        }}>
+          {periodStart.name}
+        </div>
+      )}
 
       {/* Workouts (mode-filtered) — vokser cellen naturlig. Hele uke-raden
           har en felles scroll-wrapper i MonthView som tar over når én eller
@@ -1309,10 +1327,21 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       isExpanded={expandedDay === ds}
                       onToggle={() => setExpandedDay(prev => prev === ds ? null : ds)}
                       keyDatesOnDay={keyDatesForDate(seasonKeyDates, ds)}
-                      periodEdges={seasonPeriods.flatMap(p => [
-                        ...(p.start_date === ds ? [{ side: 'start' as const, color: INTENSITY_COLOR[p.intensity] }] : []),
-                        ...(p.end_date === ds ? [{ side: 'end' as const, color: INTENSITY_COLOR[p.intensity] }] : []),
-                      ])}
+                      periodEdges={seasonPeriods.flatMap(p => {
+                        const title = `${p.name} · ${formatSpanNO(p.start_date, p.end_date)}`
+                        return [
+                          ...(p.start_date === ds ? [{ side: 'start' as const, color: INTENSITY_COLOR[p.intensity], title }] : []),
+                          ...(p.end_date === ds ? [{ side: 'end' as const, color: INTENSITY_COLOR[p.intensity], title }] : []),
+                        ]
+                      })}
+                      periodStart={(() => {
+                        const p = seasonPeriods.find(x => x.start_date === ds)
+                        return p ? {
+                          name: p.name,
+                          color: INTENSITY_COLOR[p.intensity],
+                          title: `${p.name} · ${formatSpanNO(p.start_date, p.end_date)}`,
+                        } : null
+                      })()}
                     />
                   )
                 })}
@@ -1380,8 +1409,30 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   const stateDashed = stateBorderFor(states)
                   // A2e: dagens periode → vertikal side-strek (dag-presis).
                   const dayPeriod = periodForDate(seasonPeriods, ds)
+                  // Del C: tynn markørrad der periode/markering STARTER —
+                  // «● Hard blokk · 21.–29. aug» / «📍 Samling · Sted · spenn».
+                  const periodStartsHere = seasonPeriods.filter(p => p.start_date === ds)
+                  const markingStartsHere = seasonMarkings.filter(m => m.start_date === ds)
                   return (
-                    <div key={ds}
+                    <Fragment key={ds}>
+                    {(periodStartsHere.length > 0 || markingStartsHere.length > 0) && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5"
+                        style={{ padding: '6px 0 3px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.05em', fontWeight: 700 }}>
+                        {periodStartsHere.map(p => (
+                          <span key={p.id} style={{ color: INTENSITY_COLOR[p.intensity] }}>
+                            ● {p.name} · {formatSpanNO(p.start_date, p.end_date)}
+                          </span>
+                        ))}
+                        {markingStartsHere.map(m => (
+                          <span key={m.id} style={{ color: '#D4A017' }}>
+                            {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
+                            {m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
+                            {' · '}{formatSpanNO(m.start_date, m.end_date)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div
                       onClick={() => setExpandedDay(prev => prev === ds ? null : ds)}
                       className="flex items-start gap-2.5"
                       style={{
@@ -1396,7 +1447,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         borderBottom: '1px solid var(--line)',
                       }}>
                       {dayPeriod && (
-                        <span aria-hidden style={{
+                        <span title={`${dayPeriod.name} · ${formatSpanNO(dayPeriod.start_date, dayPeriod.end_date)}`} style={{
                           position: 'absolute', left: -13, width: 4,
                           background: INTENSITY_COLOR[dayPeriod.intensity],
                           // Start/stopp: kapsel-innrykk + avrunding på
@@ -1462,6 +1513,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         </button>
                       )}
                     </div>
+                    </Fragment>
                   )
                   }
 
@@ -2796,6 +2848,7 @@ export function Calendar({
           mode={mode}
           seasonPeriods={seasonPeriods}
           seasonKeyDates={seasonKeyDates}
+          seasonMarkings={seasonMarkings}
           onEditWorkout={handleEditWorkout}
           onCreateWorkout={handleCreateWorkout}
           dayStatesByDate={dayStatesByDate}

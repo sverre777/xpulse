@@ -192,6 +192,19 @@ export function weekIntensityGradient(
   return `linear-gradient(${axis}, ${stops.join(', ')})`
 }
 
+// Kompakt norsk datospenn for markørrader/tooltips (Del C): «21.–29. aug»,
+// «28. aug – 3. sep», «21. aug» (én dag).
+export function formatSpanNO(startISO: string, endISO: string): string {
+  const s = new Date(startISO + 'T12:00:00')
+  const e = new Date(endISO + 'T12:00:00')
+  const m = (d: Date) => d.toLocaleDateString('nb-NO', { month: 'short' })
+  if (startISO === endISO) return `${s.getDate()}. ${m(s)}`
+  const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()
+  return sameMonth
+    ? `${s.getDate()}.–${e.getDate()}. ${m(e)}`
+    : `${s.getDate()}. ${m(s)} – ${e.getDate()}. ${m(e)}`
+}
+
 function addDays(isoDate: string, days: number): string {
   const d = new Date(isoDate + 'T00:00:00')
   d.setDate(d.getDate() + days)

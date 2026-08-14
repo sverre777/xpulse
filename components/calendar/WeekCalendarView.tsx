@@ -10,13 +10,13 @@ import {
 } from '@dnd-kit/core'
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
-import type { SeasonPeriod, SeasonKeyDate } from '@/app/actions/seasons'
+import type { SeasonPeriod, SeasonKeyDate, SeasonMarking } from '@/app/actions/seasons'
 import type { DayState } from '@/lib/day-state-types'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
   INTENSITY_COLOR, INTENSITY_LABEL,
   KEY_EVENT_VISUALS,
-  weekOverlayFor,
+  weekOverlayFor, formatSpanNO,
 } from '@/lib/periodization-overlay'
 
 function isoWeekKey(date: Date): string {
@@ -36,6 +36,8 @@ interface Props {
   mode: Mode
   seasonPeriods: SeasonPeriod[]
   seasonKeyDates: SeasonKeyDate[]
+  // B2/C (kø #39): markeringslaget (📍 samling / 🏔 høyde).
+  seasonMarkings?: SeasonMarking[]
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
   // Hviledag/sykdom-merker per dato — vises som egne rader i mobil-listen
@@ -178,19 +180,27 @@ function layoutDay(workouts: CalendarWorkoutSummary[], mode: Mode): {
   return { timed, allDay }
 }
 
-function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyDates }: {
+function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seasonKeyDates, seasonMarkings = [] }: {
   weekDates: Date[]
   weekNum: number
   byDate: Record<string, CalendarWorkoutSummary[]>
   mode: Mode
   seasonPeriods: SeasonPeriod[]
   seasonKeyDates: SeasonKeyDate[]
+  seasonMarkings?: SeasonMarking[]
 }) {
   const weekOverlay = weekOverlayFor(seasonPeriods, toISO(weekDates[0]))
   const weekKeyDates = seasonKeyDates.filter(k => {
     const s = toISO(weekDates[0]); const e = toISO(weekDates[6])
     return k.event_date >= s && k.event_date <= e
   })
+  // Del C: delt uke viser ALLE periodene (sekundære m/ datospenn), og
+  // markeringslaget (📍/🏔) vises som egne chips.
+  const weekStartISO = toISO(weekDates[0])
+  const weekEndISO = toISO(weekDates[6])
+  const secondaryPeriods = seasonPeriods.filter(p =>
+    p.start_date <= weekEndISO && p.end_date >= weekStartISO && p.id !== weekOverlay.period?.id)
+  const weekMarkings = seasonMarkings.filter(m => m.start_date <= weekEndISO && m.end_date >= weekStartISO)
   let seconds = 0, sessions = 0, meters = 0
   const zoneSec: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
   for (const d of weekDates) {
@@ -209,7 +219,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 
   return (
     <>
-      {(weekOverlay.period || weekKeyDates.length > 0) && (
+      {(weekOverlay.period || weekKeyDates.length > 0 || secondaryPeriods.length > 0 || weekMarkings.length > 0) && (
         <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
           style={{
             borderBottom: '1px solid #1A1A1E',
@@ -240,6 +250,19 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
               )}
             </>
           )}
+          {secondaryPeriods.map(p => (
+            <span key={p.id} className="text-xs" title={`${p.name} · ${formatSpanNO(p.start_date, p.end_date)}`}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: INTENSITY_COLOR[p.intensity], fontWeight: 700 }}>
+              ● {p.name} · {formatSpanNO(p.start_date, p.end_date)}
+            </span>
+          ))}
+          {weekMarkings.map(m => (
+            <span key={m.id} className="text-xs" title={`${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017', fontWeight: 700 }}>
+              {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
+              {m.location ? ` · ${m.location}` : ''}{m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
+            </span>
+          ))}
           {weekKeyDates.length > 0 && (
             <div className="flex items-center gap-2 ml-auto flex-wrap">
               {weekKeyDates.map(k => {
@@ -476,7 +499,7 @@ function DroppableDayColumn({ ds, isToday, canClick, dndEnabled, onColumnClick, 
 
 export function WeekCalendarView({
   weekDates, weekNum, byDate, mode,
-  seasonPeriods, seasonKeyDates,
+  seasonPeriods, seasonKeyDates, seasonMarkings = [],
   onEditWorkout, onCreateWorkout,
   dayStatesByDate,
   onEditDayState,
@@ -565,6 +588,7 @@ export function WeekCalendarView({
       <WeekStatsBanner
         weekDates={weekDates} weekNum={weekNum} byDate={byDate}
         mode={mode} seasonPeriods={seasonPeriods} seasonKeyDates={seasonKeyDates}
+        seasonMarkings={seasonMarkings}
       />
 
 

@@ -47,7 +47,7 @@ import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
-  keyDatesForDate, weekOverlayFor,
+  keyDatesForDate, weekOverlayFor, weekIntensityGradient,
 } from '@/lib/periodization-overlay'
 
 // ── Types ──────────────────────────────────────────────────
@@ -321,7 +321,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period, accentGradient,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -331,6 +331,8 @@ function WeekAnalysisStripe({
   accent: string | null
   // Periodiserings-perioden uken ligger i — for samling-/høyde-markering.
   period?: import('@/app/actions/seasons').SeasonPeriod | null
+  // A2: segmentert venstrekant når uka har flere belastninger.
+  accentGradient?: string | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -348,7 +350,10 @@ function WeekAnalysisStripe({
       style={{
         backgroundColor: 'var(--card2)',
         border: '1px solid var(--line)',
-        borderLeft: accent ? `3px solid ${accent}` : '1px solid var(--line)',
+        borderLeft: accent || accentGradient ? '3px solid transparent' : '1px solid var(--line)',
+        ...(accentGradient
+          ? { borderImage: `${accentGradient} 1` }
+          : accent ? { borderLeftColor: accent } : {}),
         borderRadius: 10,
         margin: '8px 10px 12px',
         padding: '10px 14px',
@@ -1240,6 +1245,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
+        // A2: uker m/ flere belastninger får proporsjonalt segmentert stripe.
+        const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '180deg')
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1265,7 +1272,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               maxHeight: '190px',
               overflowY: 'auto',
               overflowX: 'hidden',
-              borderLeft: weekOverlay.period ? `3px solid ${rowAccent}` : '3px solid transparent',
+              borderLeft: '3px solid transparent',
+              // Segmentert kant via border-image (dag-presise belastninger).
+              ...(rowGradient ? { borderImage: `${rowGradient} 1` } : {}),
               maskImage: hasOverflow
                 ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
                 : undefined,
@@ -1303,6 +1312,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               sessions={weekAgg.sessions}
               zoneSeconds={weekAgg.zoneSeconds}
               accent={weekOverlay.period ? rowAccent : null}
+              accentGradient={rowGradient}
               period={weekOverlay.period}
             />
             </div>
@@ -1316,8 +1326,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               style={{ scrollMarginTop: 96 }}>
               <div style={{ position: 'relative', paddingLeft: 13 }}>
                 {/* Periodestripe: KUN belastningsfarge fra årsplanen. */}
-                {weekOverlay.period && (
-                  <span aria-hidden style={{ position: 'absolute', left: 0, top: 6, bottom: 6, width: 4, borderRadius: 2, background: rowAccent }} />
+                {(weekOverlay.period || rowGradient) && (
+                  <span aria-hidden style={{ position: 'absolute', left: 0, top: 6, bottom: 6, width: 4, borderRadius: 2, background: rowGradient ?? rowAccent }} />
                 )}
                 {/* Ukelabel. (Sticky-ukelabel droppet: hovednav + to-raders
                     månedsheader er allerede sticky — tre nivåer blir skjørt.
@@ -1499,6 +1509,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 sessions={weekAgg.sessions}
                 zoneSeconds={weekAgg.zoneSeconds}
                 accent={weekOverlay.period ? rowAccent : null}
+                accentGradient={rowGradient}
                 period={weekOverlay.period}
               />
             </div>

@@ -130,6 +130,51 @@ export function weekOverlayFor(
   }
 }
 
+// ── A2 (kø #39): proporsjonalt segmenterte uke-striper ──
+// En uke kan ha flere belastninger (dag-presise perioder). Segmentene
+// beregnes dag for dag (man–søn) og slås sammen ved lik intensitet.
+
+export interface WeekIntensitySegment {
+  intensity: Intensity | null
+  days: number
+}
+
+export function weekIntensitySegments(
+  periods: SeasonPeriod[], mondayISO: string,
+): WeekIntensitySegment[] {
+  const out: WeekIntensitySegment[] = []
+  for (let i = 0; i < 7; i++) {
+    const p = periodForDate(periods, addDays(mondayISO, i))
+    const intensity = p?.intensity ?? null
+    const last = out[out.length - 1]
+    if (last && last.intensity === intensity) last.days++
+    else out.push({ intensity, days: 1 })
+  }
+  return out
+}
+
+// CSS-gradient med harde stopp for ukens segmenter — null når uka ikke har
+// noen periode. axis: '180deg' = vertikal stripe (kalender-kant),
+// '90deg' = horisontal (lerret-celle). alphaHex legges på fargene (f.eks.
+// '42' for ~26 % dekk i celle-bakgrunner).
+export function weekIntensityGradient(
+  periods: SeasonPeriod[], mondayISO: string,
+  axis: '180deg' | '90deg' = '180deg', alphaHex = '',
+): string | null {
+  const segments = weekIntensitySegments(periods, mondayISO)
+  if (!segments.some(s => s.intensity)) return null
+  let acc = 0
+  const stops: string[] = []
+  for (const s of segments) {
+    const from = (acc / 7) * 100
+    acc += s.days
+    const to = (acc / 7) * 100
+    const c = s.intensity ? `${INTENSITY_COLOR[s.intensity]}${alphaHex}` : 'transparent'
+    stops.push(`${c} ${from}%`, `${c} ${to}%`)
+  }
+  return `linear-gradient(${axis}, ${stops.join(', ')})`
+}
+
 function addDays(isoDate: string, days: number): string {
   const d = new Date(isoDate + 'T00:00:00')
   d.setDate(d.getDate() + days)

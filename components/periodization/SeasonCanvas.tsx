@@ -17,7 +17,7 @@ import {
   createPeriod, updatePeriod, deletePeriod,
   type Season, type SeasonPeriod, type Intensity, type PeriodInput,
 } from '@/app/actions/seasons'
-import { INTENSITY_COLOR } from '@/lib/periodization-overlay'
+import { INTENSITY_COLOR, weekIntensityGradient } from '@/lib/periodization-overlay'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const INTENSITY_LABEL: Record<Intensity, string> = {
@@ -479,6 +479,11 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
               {row.cells.map(w => {
                 const p = periodForWeek(w, effectivePeriods)
                 const color = p ? INTENSITY_COLOR[p.intensity] : null
+                // A2: horisontalt segmentert celle-bakgrunn ved flere
+                // belastninger i samme uke (dag-presis, ~26 % dekk).
+                const cellGradient = granularity === 'uke'
+                  ? weekIntensityGradient(effectivePeriods, w.mondayISO, '90deg', '42')
+                  : null
                 const isStartWeek = p != null && p.start_date >= w.mondayISO && p.start_date <= w.sundayISO
                 const isToday = todayISO >= w.mondayISO && todayISO <= w.sundayISO
                 const weekSelected = granularity === 'uke' && inSel(w.mondayISO)
@@ -487,7 +492,7 @@ export function SeasonCanvas({ season, periods, targetUserId, canEdit, onPickPer
                     style={{
                       position: 'relative', minHeight: granularity === 'dag' ? 52 : 46, borderRadius: 9,
                       border: `1px solid ${granularity === 'uke' && color ? `${color}8C` : 'var(--line)'}`,
-                      background: granularity === 'uke' && color ? `${color}42` : 'var(--card2)',
+                      background: cellGradient ?? 'var(--card2)',
                       cursor: canEdit ? 'pointer' : 'default',
                       outline: weekSelected ? '2px solid var(--accent)' : (isToday ? '2px solid var(--accent)' : 'none'),
                       outlineOffset: 1,

@@ -82,7 +82,7 @@ export function MainNav({
   useEffect(() => { setMenuOpen(false) }, [pathname])
 
   const onPlan = pathname === '/app/plan' || pathname.startsWith('/app/plan/')
-  const logLabel = onPlan ? '+ Planlegg økt' : '+ Logg økt'
+  const logLabel = onPlan ? '+ Planlegg' : '+ Logg'
   const today = (() => {
     const n = new Date()
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`

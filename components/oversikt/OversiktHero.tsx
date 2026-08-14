@@ -1,4 +1,7 @@
 import type { OversiktHero as HeroData, OversiktTodayState } from '@/app/actions/oversikt'
+import {
+  REST_SUBTYPE_LABELS, SICK_SUBTYPE_LABELS, INJURY_SUBTYPE_LABELS,
+} from '@/lib/day-state-types'
 
 function formatHoursMin(seconds: number): string {
   if (seconds <= 0) return '0t'
@@ -64,22 +67,33 @@ export function OversiktHero({
       </p>
 
       {todayState && (() => {
-        const accent = todayState.kind === 'sickness' ? '#E11D48'
-          : todayState.kind === 'injury' ? '#FF8C00'
-          : '#8A8A96'
-        const label = todayState.kind === 'sickness' ? 'Sykdom'
-          : todayState.kind === 'injury' ? 'Skade'
-          : 'Hviledag'
+        // Dagens tilstand som status-pille (à la «Gjennomført»-pillene):
+        // hviledag grønn, sykdom rød, skade oransje — med LESBAR undertype
+        // (før sto rå slug, f.eks. «PASSIV_HVILE»).
+        const kind = todayState.kind
+        const accent = kind === 'sickness' ? '#E23A5A'
+          : kind === 'injury' ? '#FF8C00'
+          : '#28A86E'
+        const softBg = kind === 'sickness' ? 'rgba(226,58,90,.12)'
+          : kind === 'injury' ? 'rgba(255,140,0,.12)'
+          : 'rgba(40,168,110,.12)'
+        const icon = kind === 'sickness' ? '🤒' : kind === 'injury' ? '🩹' : '🛌'
+        const label = kind === 'sickness' ? 'Syk i dag' : kind === 'injury' ? 'Skade' : 'Hviledag i dag'
+        const subLabels: Record<string, string> = kind === 'sickness' ? SICK_SUBTYPE_LABELS
+          : kind === 'injury' ? INJURY_SUBTYPE_LABELS
+          : REST_SUBTYPE_LABELS
+        const sub = todayState.sub_type ? (subLabels[todayState.sub_type] ?? todayState.sub_type) : null
         return (
-          <div className="mt-3 inline-block px-3 py-1"
+          <div className="mt-3 inline-flex items-center gap-2"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              border: `1px solid ${accent}`,
-              color: todayState.kind === 'rest' ? '#F0F0F2' : accent,
-              fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase',
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              border: `1px solid ${accent}66`, backgroundColor: softBg,
+              color: accent, borderRadius: 999, padding: '6px 14px',
+              fontSize: '12.5px', letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
+              <span aria-hidden>{icon}</span>
               {label}
-              {todayState.sub_type ? ` · ${todayState.sub_type}` : ''}
+              {sub && <span style={{ color: '#C9C9D4', fontWeight: 600 }}>· {sub}</span>}
           </div>
         )
       })()}

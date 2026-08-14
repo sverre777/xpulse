@@ -137,20 +137,37 @@ export function weekOverlayFor(
 export interface WeekIntensitySegment {
   intensity: Intensity | null
   days: number
+  // Endekapsler (Del C): true når PERIODEN starter/slutter innenfor uka —
+  // avrundet kapsel i visningen; false = fortsetter over ukegrensen (rett
+  // kant). Segmenteres per PERIODE-identitet (ikke bare intensitet) så to
+  // naboperioder med lik belastning fortsatt får kapsler mellom seg.
+  startsHere: boolean
+  endsHere: boolean
 }
 
 export function weekIntensitySegments(
   periods: SeasonPeriod[], mondayISO: string,
 ): WeekIntensitySegment[] {
-  const out: WeekIntensitySegment[] = []
+  const out: (WeekIntensitySegment & { pid: string | null })[] = []
   for (let i = 0; i < 7; i++) {
-    const p = periodForDate(periods, addDays(mondayISO, i))
-    const intensity = p?.intensity ?? null
+    const iso = addDays(mondayISO, i)
+    const p = periodForDate(periods, iso)
+    const pid = p?.id ?? null
     const last = out[out.length - 1]
-    if (last && last.intensity === intensity) last.days++
-    else out.push({ intensity, days: 1 })
+    if (last && last.pid === pid) {
+      last.days++
+      if (p && iso === p.end_date) last.endsHere = true
+    } else {
+      out.push({
+        pid,
+        intensity: p?.intensity ?? null,
+        days: 1,
+        startsHere: p != null && iso === p.start_date,
+        endsHere: p != null && iso === p.end_date,
+      })
+    }
   }
-  return out
+  return out.map(({ pid: _pid, ...seg }) => seg)
 }
 
 // CSS-gradient med harde stopp for ukens segmenter — null når uka ikke har

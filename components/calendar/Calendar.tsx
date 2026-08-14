@@ -47,7 +47,8 @@ import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
   INTENSITY_COLOR,
   KEY_EVENT_VISUALS,
-  keyDatesForDate, weekOverlayFor, weekIntensityGradient,
+  keyDatesForDate, weekOverlayFor, weekIntensitySegments,
+  type WeekIntensitySegment,
 } from '@/lib/periodization-overlay'
 
 // ── Types ──────────────────────────────────────────────────
@@ -321,7 +322,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period, accentGradient,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, period, accentSegments,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -331,8 +332,8 @@ function WeekAnalysisStripe({
   accent: string | null
   // Periodiserings-perioden uken ligger i — for samling-/høyde-markering.
   period?: import('@/app/actions/seasons').SeasonPeriod | null
-  // A2: segmentert venstrekant når uka har flere belastninger.
-  accentGradient?: string | null
+  // A2/Del C: segmentert venstrekant m/ endekapsler.
+  accentSegments?: WeekIntensitySegment[] | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -350,15 +351,16 @@ function WeekAnalysisStripe({
       style={{
         backgroundColor: 'var(--card2)',
         border: '1px solid var(--line)',
-        borderLeft: accent || accentGradient ? '3px solid transparent' : '1px solid var(--line)',
-        ...(accentGradient
-          ? { borderImage: `${accentGradient} 1` }
-          : accent ? { borderLeftColor: accent } : {}),
+        position: 'relative',
+        overflow: 'hidden',
+        borderLeft: accent || accentSegments?.some(s => s.intensity) ? '3px solid transparent' : '1px solid var(--line)',
+        ...(accent && !accentSegments?.some(s => s.intensity) ? { borderLeftColor: accent } : {}),
         borderRadius: 10,
         margin: '8px 10px 12px',
         padding: '10px 14px',
       }}
     >
+      {accentSegments && <WeekSegmentBar segments={accentSegments} width={3} style={{ left: 0, top: 0, bottom: 0 }} />}
       <span
         className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minWidth: '52px' }}
@@ -655,6 +657,32 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
       </div>
     </button>
+  )
+}
+
+// ── Periodestripe m/ ENDEKAPSLER (Del C): vertikale segmenter der avrundet
+// kapsel = perioden starter/slutter i uka, rett kant = fortsetter. ──
+function WeekSegmentBar({ segments, width = 4, style }: {
+  segments: WeekIntensitySegment[]
+  width?: number
+  style?: React.CSSProperties
+}) {
+  if (!segments.some(s => s.intensity)) return null
+  return (
+    <span aria-hidden
+      style={{ position: 'absolute', left: 0, top: 6, bottom: 6, width, display: 'flex', flexDirection: 'column', ...style }}>
+      {segments.map((s, i) => (
+        <span key={i} style={{
+          flex: s.days,
+          background: s.intensity ? INTENSITY_COLOR[s.intensity] : 'transparent',
+          borderTopLeftRadius: s.startsHere ? width : 0,
+          borderTopRightRadius: s.startsHere ? width : 0,
+          borderBottomLeftRadius: s.endsHere ? width : 0,
+          borderBottomRightRadius: s.endsHere ? width : 0,
+          marginTop: i > 0 && s.intensity && segments[i - 1].intensity ? 1 : 0,
+        }} />
+      ))}
+    </span>
   )
 }
 
@@ -1245,8 +1273,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
-        // A2: uker m/ flere belastninger får proporsjonalt segmentert stripe.
-        const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '180deg')
+        // A2/Del C: dag-presise segmenter m/ endekapsler for ukens striper.
+        const rowSegments = weekIntensitySegments(seasonPeriods, toISO(week[0]))
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1272,9 +1300,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               maxHeight: '190px',
               overflowY: 'auto',
               overflowX: 'hidden',
+              position: 'relative',
               borderLeft: '3px solid transparent',
-              // Segmentert kant via border-image (dag-presise belastninger).
-              ...(rowGradient ? { borderImage: `${rowGradient} 1` } : {}),
               maskImage: hasOverflow
                 ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
                 : undefined,
@@ -1283,6 +1310,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 : undefined,
               scrollbarWidth: 'thin',
             }}>
+              <WeekSegmentBar segments={rowSegments} width={3} style={{ left: -3, top: 2, bottom: 2 }} />
               <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '3px 8px' }}>
                 {/* Days */}
                 {week.map(date => {
@@ -1312,7 +1340,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               sessions={weekAgg.sessions}
               zoneSeconds={weekAgg.zoneSeconds}
               accent={weekOverlay.period ? rowAccent : null}
-              accentGradient={rowGradient}
+              accentSegments={rowSegments}
               period={weekOverlay.period}
             />
             </div>
@@ -1326,9 +1354,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               style={{ scrollMarginTop: 96 }}>
               <div style={{ position: 'relative', paddingLeft: 13 }}>
                 {/* Periodestripe: KUN belastningsfarge fra årsplanen. */}
-                {(weekOverlay.period || rowGradient) && (
-                  <span aria-hidden style={{ position: 'absolute', left: 0, top: 6, bottom: 6, width: 4, borderRadius: 2, background: rowGradient ?? rowAccent }} />
-                )}
+                <WeekSegmentBar segments={rowSegments} width={4} />
                 {/* Ukelabel. (Sticky-ukelabel droppet: hovednav + to-raders
                     månedsheader er allerede sticky — tre nivåer blir skjørt.
                     Avvik notert; kan finjusteres etter live-test.) */}
@@ -1509,7 +1535,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 sessions={weekAgg.sessions}
                 zoneSeconds={weekAgg.zoneSeconds}
                 accent={weekOverlay.period ? rowAccent : null}
-                accentGradient={rowGradient}
+                accentSegments={rowSegments}
                 period={weekOverlay.period}
               />
             </div>

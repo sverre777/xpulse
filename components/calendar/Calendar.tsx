@@ -331,7 +331,8 @@ function WeekAnalysisStripe({
   accent: string | null
   // Periodiserings-perioden uken ligger i — for samling-/høyde-markering.
   period?: import('@/app/actions/seasons').SeasonPeriod | null
-  // A2: gradient-kant når uka er delt (full styrke); ellers solid accent.
+  // A2d: horisontal periodelinje øverst i raden — skiftende farge m/
+  // start/stopp på riktig dag-posisjon (90°-segmentgradient).
   accentGradient?: string | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
@@ -350,15 +351,16 @@ function WeekAnalysisStripe({
       style={{
         backgroundColor: 'var(--card2)',
         border: '1px solid var(--line)',
-        borderLeft: accent || accentGradient ? '3px solid transparent' : '1px solid var(--line)',
-        ...(accentGradient
-          ? { borderImage: `${accentGradient} 1` }
-          : accent ? { borderLeftColor: accent } : {}),
+        position: 'relative',
+        overflow: 'hidden',
         borderRadius: 10,
         margin: '8px 10px 12px',
         padding: '10px 14px',
       }}
     >
+      {accentGradient && (
+        <span aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2.5, background: accentGradient }} />
+      )}
       <span
         className="text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minWidth: '52px' }}
@@ -1255,10 +1257,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
         const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
-        // A2: delt uke -> gradient-overgang i full styrke; ellers solid farge.
-        const rowSegments = weekIntensitySegments(seasonPeriods, toISO(week[0]))
-        const rowSplit = rowSegments.length > 1 && rowSegments.some(s => s.intensity)
-        const rowGradient = rowSplit ? weekIntensityGradient(seasonPeriods, toISO(week[0]), '180deg') : null
+        // A2d: horisontal periodelinje (wsum) — start/stopp paa riktig dag.
+        const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '90deg')
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1285,9 +1285,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               overflowY: 'auto',
               overflowX: 'hidden',
               borderLeft: '3px solid transparent',
-              ...(rowGradient
-                ? { borderImage: `${rowGradient} 1` }
-                : weekOverlay.period ? { borderLeftColor: rowAccent } : {}),
               maskImage: hasOverflow
                 ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
                 : undefined,

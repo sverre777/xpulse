@@ -222,6 +222,46 @@ export async function buildPeriodizationTemplateFromSeason(
     .eq('season_id', seasonId)
   if (kErr) return { error: `season_key_dates: ${kErr.message}` }
 
+  // Del F2 (kø #39): markeringslaget (📍/🏔) fanges også — relative offsets.
+  const { data: markings, error: mErr } = await supabase
+    .from('season_markings')
+    .select('name, is_training_camp, is_altitude, location, altitude_meters, notes, start_date, end_date')
+    .eq('season_id', seasonId)
+    .order('start_date', { ascending: true })
+  if (mErr) return { error: `season_markings: ${mErr.message}` }
+
+  // Volum-planer m/ ev. nedbryting (select * er tolerant før fase 83) —
+  // month_offset relativt til sesongstartens måned.
+  const startY = start.getFullYear()
+  const startM = start.getMonth() + 1
+  const { data: volumeRows, error: vErr } = await supabase
+    .from('monthly_volume_plans')
+    .select('*')
+    .eq('user_id', user.id)
+    .gte('year', startY)
+    .lte('year', end.getFullYear())
+  if (vErr) return { error: `monthly_volume_plans: ${vErr.message}` }
+  const seasonStartKey = `${season.start_date}`.slice(0, 7)
+  const seasonEndKey = `${season.end_date}`.slice(0, 7)
+  const volumePlans = ((volumeRows ?? []) as {
+    year: number; month: number
+    planned_hours: number | null; planned_km: number | null; notes: string | null
+    zone_hours?: Record<string, number> | null; movement_hours?: Record<string, number> | null
+  }[])
+    .filter(v => {
+      const key = `${v.year}-${String(v.month).padStart(2, '0')}`
+      return key >= seasonStartKey && key <= seasonEndKey
+    })
+    .map(v => ({
+      month_offset: (v.year * 12 + (v.month - 1)) - (startY * 12 + (startM - 1)),
+      planned_hours: v.planned_hours,
+      planned_km: v.planned_km,
+      notes: v.notes,
+      ...(v.zone_hours && Object.keys(v.zone_hours).length > 0 ? { zone_hours: v.zone_hours } : {}),
+      ...(v.movement_hours && Object.keys(v.movement_hours).length > 0 ? { movement_hours: v.movement_hours } : {}),
+    }))
+    .sort((a, b) => a.month_offset - b.month_offset)
+
   return {
     data: {
       season: {
@@ -258,6 +298,21 @@ export async function buildPeriodizationTemplateFromSeason(
         notes: k.notes,
         is_peak_target: k.is_peak_target ?? false,
       })),
+      markings: ((markings ?? []) as {
+        name: string; is_training_camp: boolean | null; is_altitude: boolean | null
+        location: string | null; altitude_meters: number | null; notes: string | null
+        start_date: string; end_date: string
+      }[]).map(m => ({
+        start_offset: dayOffset(m.start_date),
+        end_offset: dayOffset(m.end_date),
+        is_training_camp: m.is_training_camp ?? false,
+        is_altitude: m.is_altitude ?? false,
+        name: m.name,
+        location: m.location ?? null,
+        altitude_meters: m.altitude_meters ?? null,
+        notes: m.notes ?? null,
+      })),
+      volume_plans: volumePlans,
     },
     duration_days,
   }

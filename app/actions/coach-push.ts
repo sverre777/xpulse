@@ -980,6 +980,31 @@ export async function pushPeriodizationTemplateToAthlete(
     }
   }
 
+  // Del F2 (kø #39): markeringslaget (📍 samling / 🏔 høyde) følger med —
+  // relative offsets → reelle datoer fra utøverens sesongstart (dag-presis;
+  // delvise uker/start midt i uka påvirker ikke offset-aritmetikken).
+  // RLS («Coach writes athlete markings») krever can_edit_periodization.
+  const markingRows = (data.markings ?? [])
+    .filter(m => m.is_training_camp || m.is_altitude)
+    .map(m => ({
+      season_id: season.id,
+      is_training_camp: m.is_training_camp,
+      is_altitude: m.is_altitude,
+      name: m.name || 'Samling',
+      location: m.location ?? null,
+      altitude_meters: m.altitude_meters ?? null,
+      notes: m.notes ?? null,
+      start_date: addDaysISO(input.startDate, Math.max(0, m.start_offset)),
+      end_date: addDaysISO(input.startDate, Math.max(m.start_offset, m.end_offset)),
+    }))
+  if (markingRows.length > 0) {
+    const { error: mErr } = await supabase.from('season_markings').insert(markingRows)
+    if (mErr) {
+      await supabase.from('seasons').delete().eq('id', season.id)
+      return { error: `season_markings: ${mErr.message}` }
+    }
+  }
+
   // Volum-planer: konverter month_offset → (year, month) basert på startDate.
   // Hopp over måneder som allerede har en plan for denne brukeren (merge-strategi).
   let volumePlanCount = 0
@@ -988,6 +1013,12 @@ export async function pushPeriodizationTemplateToAthlete(
   if (tplVolumePlans.length > 0) {
     const startY = parseInt(input.startDate.slice(0, 4))
     const startM = parseInt(input.startDate.slice(5, 7))
+    // Del F2: nedbrytinger (zone_hours/movement_hours) følger med — men
+    // kolonnene sendes KUN når minst én mal-måned faktisk har fordeling,
+    // så push uten nedbryting virker også før fase 83 er kjørt.
+    const anyBreakdown = tplVolumePlans.some(v =>
+      (v.zone_hours && Object.keys(v.zone_hours).length > 0)
+      || (v.movement_hours && Object.keys(v.movement_hours).length > 0))
     const candidates = tplVolumePlans.map(v => {
       const totalMonths = (startY * 12 + (startM - 1)) + v.month_offset
       const year = Math.floor(totalMonths / 12)
@@ -1000,6 +1031,11 @@ export async function pushPeriodizationTemplateToAthlete(
         planned_hours: v.planned_hours,
         planned_km: v.planned_km,
         notes: v.notes,
+        // Batch-insert krever uniforme kolonner — null der fordeling mangler.
+        ...(anyBreakdown ? {
+          zone_hours: v.zone_hours && Object.keys(v.zone_hours).length > 0 ? v.zone_hours : null,
+          movement_hours: v.movement_hours && Object.keys(v.movement_hours).length > 0 ? v.movement_hours : null,
+        } : {}),
       }
     })
     const { data: existing, error: vLookupErr } = await supabase
@@ -1035,6 +1071,7 @@ export async function pushPeriodizationTemplateToAthlete(
       template_name: tpl.name,
       periods: periodRows.length,
       key_dates: keyDateRows.length,
+      markings: markingRows.length,
       volume_plans: volumePlanCount,
       volume_plans_skipped: volumePlanSkipped,
     },

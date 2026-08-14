@@ -3723,6 +3723,9 @@ export interface CustomBreakdownBucket {
   endurance_zone_seconds: { I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number }
   // Nøkkel = bevegelsesnavn (f.eks. 'Styrke'), verdi = sekunder.
   non_endurance_seconds: Record<string, number>
+  // G4 (kø #47): true = perioden hadde ingen økter — utfylt server-side
+  // så x-aksen viser hullet eksplisitt (ghost-kolonne i grafen).
+  ghost?: boolean
 }
 
 export interface CustomBreakdown {
@@ -3857,6 +3860,33 @@ export async function getCustomBreakdown(
           bucket.non_endurance_seconds[cls.name] = (bucket.non_endurance_seconds[cls.name] ?? 0) + sec
           nonEnduranceInUse.add(cls.name)
         }
+      }
+    }
+
+    // G4 (kø #47): ghost-utfylling — uker/måneder/år uten økter i intervallet
+    // returneres som TOMME datapunkter (ghost: true) i stedet for å utelates.
+    // Additivt: buckets MED data er urørt. Stegging: +7 dager treffer hver
+    // ISO-uke nøyaktig én gang; måned/år hopper til neste periodegrense.
+    {
+      const cursor = new Date(fromDate + 'T00:00:00')
+      const rangeEnd = new Date(toDate + 'T00:00:00')
+      let guard = 0
+      while (cursor <= rangeEnd && guard < 800) {
+        guard++
+        const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`
+        const { bucketKey, label, startDate } = bucketKeyFor(iso, grouping)
+        if (!buckets.has(bucketKey)) {
+          buckets.set(bucketKey, {
+            bucketKey, label, startDate,
+            total_seconds: 0,
+            endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+            non_endurance_seconds: {},
+            ghost: true,
+          })
+        }
+        if (grouping === 'year') cursor.setFullYear(cursor.getFullYear() + 1, 0, 1)
+        else if (grouping === 'month') cursor.setMonth(cursor.getMonth() + 1, 1)
+        else cursor.setDate(cursor.getDate() + 7)
       }
     }
 

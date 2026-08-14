@@ -203,24 +203,32 @@ function PlanDoneTooltip({ active, payload, label }: {
 
 // X-akse-tick: samme label-verdi som før (Bebas), inneværende periode i
 // oransje, og valgfri datoperiode-linje under (uke-gruppering).
-function XpWeekTick({ x, y, payload, periods, nowIndex, showPeriod }: {
+function XpWeekTick({ x, y, payload, periods, nowIndex, showPeriod, ghosts }: {
   x?: number
   y?: number
   payload?: { value?: string | number; index?: number }
   periods: string[]
   nowIndex: number
   showPeriod: boolean
+  // G4: ghost-bucket → dempet label + «ingen økter»-linje under.
+  ghosts?: boolean[]
 }) {
   if (x == null || y == null || payload == null) return null
   const idx = payload.index ?? -1
   const isNow = idx === nowIndex
+  const isGhost = idx >= 0 && !!ghosts?.[idx]
   return (
     <g transform={`translate(${x},${y})`}>
-      <text dy={12} textAnchor="middle" fill={isNow ? '#FF4500' : '#8B8B95'}
+      <text dy={12} textAnchor="middle" fill={isNow ? '#FF4500' : isGhost ? '#3A3A44' : '#8B8B95'}
         style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: '0.08em' }}>
         {payload.value}
       </text>
-      {showPeriod && idx >= 0 && periods[idx] && (
+      {isGhost ? (
+        <text dy={26} textAnchor="middle" fill="#3A3A44"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10 }}>
+          ingen økter
+        </text>
+      ) : showPeriod && idx >= 0 && periods[idx] && (
         <text dy={26} textAnchor="middle" fill="#55555F"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11 }}>
           {periods[idx]}
@@ -368,6 +376,29 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
     })
   }, [displayBuckets, anyEnduranceSelected, activeNonEnduranceKeys, viewMode])
 
+  // G4 (kø #47): ghost-kolonner — buckets uten en eneste verdi > 0 (server
+  // fyller nå hull i intervallet). Ghost-verdien er en lav stiplet markør i
+  // SAMME stack som dataene (0 for buckets m/ data → piksel-identisk der).
+  const ghostFlags = useMemo(
+    () => chartData.map(row =>
+      !Object.entries(row).some(([k, v]) => k !== 'label' && (Number(v) || 0) > 0)),
+    [chartData],
+  )
+  const ghostCount = ghostFlags.filter(Boolean).length
+  const chartDataWithGhost = useMemo(() => {
+    if (ghostCount === 0) return chartData
+    const maxTotal = Math.max(0, ...chartData.map(row =>
+      Object.entries(row).reduce((s, [k, v]) => k === 'label' ? s : s + (Number(v) || 0), 0)))
+    return chartData.map((row, i) => ({
+      ...row,
+      __ghost: ghostFlags[i] ? Math.max(1, Math.round(maxTotal * 0.045)) : 0,
+    }))
+  }, [chartData, ghostFlags, ghostCount])
+  const ghostLabelSet = useMemo(
+    () => new Set(chartData.filter((_, i) => ghostFlags[i]).map(r => String(r.label))),
+    [chartData, ghostFlags],
+  )
+
   const hasAny = displayBuckets.length > 0 && chartData.some(d =>
     Object.entries(d).some(([k, v]) => k !== 'label' && (Number(v) || 0) > 0))
 
@@ -403,9 +434,12 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
   )
 
   const avgTotal = useMemo(() => {
-    if (viewMode === 'both' || visibleTotals.length < 2) return 0
-    return visibleTotals.reduce((s, v) => s + v, 0) / visibleTotals.length
-  }, [visibleTotals, viewMode])
+    // G4-paritet: snittet regnes KUN over buckets m/ data — ghost-nullene
+    // skal ikke dra linja ned (før utfyllingen fantes ikke tomme buckets).
+    const withData = visibleTotals.filter((_, i) => !ghostFlags[i])
+    if (viewMode === 'both' || withData.length < 2) return 0
+    return withData.reduce((s, v) => s + v, 0) / withData.length
+  }, [visibleTotals, viewMode, ghostFlags])
 
   // Datoperiode under uke-labels + inneværende periode (oransje).
   const tickPeriods = useMemo(() => {
@@ -502,14 +536,14 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
               </div>
               <div style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                  <BarChart data={chartData} margin={{ top: 18 }}>
+                  <BarChart data={chartDataWithGhost} margin={{ top: 18 }}>
                     <CartesianGrid stroke={CHART_GRID} vertical={false} />
                     <XAxis
                       dataKey="label"
-                      tick={<XpWeekTick periods={tickPeriods} nowIndex={nowIndex} showPeriod={showTickPeriod} />}
+                      tick={<XpWeekTick periods={tickPeriods} nowIndex={nowIndex} showPeriod={showTickPeriod} ghosts={ghostFlags} />}
                       axisLine={CHART_AXIS_LINE}
                       tickLine={false}
-                      height={showTickPeriod ? 42 : 30}
+                      height={showTickPeriod || ghostCount > 0 ? 42 : 30}
                     />
                     <YAxis
                       tick={CHART_AXIS_TICK}
@@ -519,15 +553,47 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                       label={{ value: 'min', angle: -90, position: 'insideLeft', style: { ...CHART_AXIS_TICK, textAnchor: 'middle' } }}
                     />
                     <Tooltip
-                      content={viewMode === 'both'
-                        ? <PlanDoneTooltip />
-                        : <XpTooltip showTotal totalFormatter={t => formatMinutes(t * 60)} />}
+                      // G4: ghost-bucket → egen «Ingen økter»-tekst; ellers
+                      // uendret tooltip (PlanDone i «Begge», XpTooltip ellers).
+                      content={(props: { active?: boolean; label?: string | number }) => {
+                        if (props.active && ghostLabelSet.has(String(props.label ?? ''))) {
+                          return (
+                            <div style={{
+                              backgroundColor: '#0C0C0F', border: '1px solid #2A2A33', borderRadius: 12,
+                              padding: '10px 14px', fontFamily: "'Barlow Condensed', sans-serif",
+                              fontSize: 14, color: '#8B8B95',
+                            }}>
+                              Ingen økter {grouping === 'week' ? 'denne uka' : grouping === 'month' ? 'denne måneden' : 'dette året'}
+                            </div>
+                          )
+                        }
+                        return viewMode === 'both'
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          ? <PlanDoneTooltip {...(props as any)} />
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          : <XpTooltip {...(props as any)} showTotal totalFormatter={(t: number) => formatMinutes(t * 60)} />
+                      }}
                       cursor={CHART_CURSOR}
                       formatter={(value, name) => {
                         const mins = Number(value) || 0
                         return [formatMinutes(mins * 60), String(name)]
                       }}
                     />
+                    {/* G4: stiplet ghost-markør — 0 for buckets m/ data (samme
+                        stack → piksel-identisk der), lav dashed kolonne der
+                        perioden er tom. Utenfor tooltip/legend. */}
+                    {ghostCount > 0 && (
+                      <Bar
+                        dataKey="__ghost"
+                        stackId="breakdown"
+                        fill="rgba(139, 139, 149, 0.06)"
+                        stroke="#3A3A44"
+                        strokeDasharray="3 3"
+                        legendType="none"
+                        tooltipType="none"
+                        isAnimationActive={false}
+                      />
+                    )}
                     {avgTotal > 0 && (
                       <ReferenceLine
                         y={avgTotal}

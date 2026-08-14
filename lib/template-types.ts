@@ -100,6 +100,24 @@ export interface PeriodizationTemplateVolumePlan {
   planned_hours: number | null
   planned_km: number | null
   notes: string | null
+  // Kø #39 del E/F: valgfri nedbryting ({etikett: timer}) — følger med
+  // ved push til utøverens monthly_volume_plans (krever fase 83 der).
+  zone_hours?: Record<string, number> | null
+  movement_hours?: Record<string, number> | null
+}
+
+// Kø #39 del F: markeringslag (📍 samling / 🏔 høyde) i malen — relative
+// dag-offsets, materialiseres til season_markings ved push. Fri overlapp
+// med periodene, som i det virkelige laget.
+export interface PeriodizationTemplateMarking {
+  start_offset: number
+  end_offset: number
+  is_training_camp: boolean
+  is_altitude: boolean
+  name: string
+  location: string | null
+  altitude_meters: number | null
+  notes: string | null
 }
 
 export interface PeriodizationTemplateData {
@@ -108,6 +126,8 @@ export interface PeriodizationTemplateData {
   key_dates: PeriodizationTemplateKeyDate[]
   // Optional for backwards compat — gamle maler har ingen volum-plan.
   volume_plans?: PeriodizationTemplateVolumePlan[]
+  // Optional for backwards compat — gamle maler har ingen markeringslag.
+  markings?: PeriodizationTemplateMarking[]
 }
 
 export interface PeriodizationTemplate {

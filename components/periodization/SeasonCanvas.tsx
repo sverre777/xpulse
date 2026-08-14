@@ -120,7 +120,18 @@ function periodToInput(p: SeasonPeriod, overrides: Partial<PeriodInput>, targetU
   }
 }
 
-export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking }: {
+// Del F: injiserbare mutasjoner — samme lerret/logikk (maling, trim/splitt/
+// merge, kant-dra) kan operere på server-actions (sesong) ELLER lokal
+// mal-tilstand (relativ modus i mal-byggeren). Én kodebane.
+export interface CanvasPeriodMutators {
+  create: (input: PeriodInput) => Promise<{ id?: string; error?: string }>
+  update: (id: string, input: PeriodInput) => Promise<{ error?: string }>
+  remove: (id: string) => Promise<{ error?: string }>
+}
+
+const REL_DAYS = ['man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn']
+
+export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking, relative = false, mutators }: {
   season: Season
   periods: SeasonPeriod[]
   markings: SeasonMarking[]
@@ -131,8 +142,23 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
   onPickMarking: (m: SeasonMarking) => void
   // Samling-verktøy: dra grovt spenn → forhåndsutfylt modal.
   onDrawMarking: (startISO: string, endISO: string) => void
+  // Del F: relativ modus (mal) — U1..UN i stedet for ISO-uker/månedsnavn,
+  // ingen «i dag»-markering; datoene er syntetiske (anker-mandag).
+  relative?: boolean
+  mutators?: CanvasPeriodMutators
 }) {
   const router = useRouter()
+  const createP = mutators
+    ? mutators.create
+    : (input: PeriodInput) => createPeriod(input)
+  const updateP = mutators
+    ? mutators.update
+    : (id: string, input: PeriodInput) => updatePeriod(id, input)
+  const removeP = mutators
+    ? mutators.remove
+    : (id: string) => deletePeriod(id, targetUserId)
+  // Server er sannhet i sesong-modus; mal-modus eier egen tilstand.
+  const commit = () => { if (!mutators) router.refresh() }
   const [brush, setBrush] = useState<Brush>('pick')
   const [granularity, setGranularity] = useState<Granularity>('uke')
   // Seleksjon under maling — alltid som dag-spenn (uke-modus snapper).
@@ -146,14 +172,36 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
   const containerRef = useRef<HTMLDivElement>(null)
 
   const weeks = buildWeeks(season.start_date, season.end_date)
-  const todayISO = toISO(new Date())
+  // Relativ modus: ingen «i dag» (syntetisk tidslinje).
+  const todayISO = relative ? '0000-00-00' : toISO(new Date())
 
   const rows: { label: string; cells: WeekCell[] }[] = []
-  for (const w of weeks) {
-    const last = rows[rows.length - 1]
-    if (last && last.cells[0].monthIdx === w.monthIdx) last.cells.push(w)
-    else rows.push({ label: MONTHS_SHORT[w.monthIdx], cells: [w] })
+  if (relative) {
+    // U1..UN i kvartalsrader (13 uker per rad) i stedet for månedsnavn.
+    for (const w of weeks) {
+      const last = rows[rows.length - 1]
+      if (last && last.cells.length < 13) {
+        last.cells.push(w)
+        last.label = `U${last.cells[0].idx + 1}–${w.idx + 1}`
+      } else {
+        rows.push({ label: `U${w.idx + 1}`, cells: [w] })
+      }
+    }
+  } else {
+    for (const w of weeks) {
+      const last = rows[rows.length - 1]
+      if (last && last.cells[0].monthIdx === w.monthIdx) last.cells.push(w)
+      else rows.push({ label: MONTHS_SHORT[w.monthIdx], cells: [w] })
+    }
   }
+  const weekLabel = (w: WeekCell) => relative ? w.idx + 1 : w.weekNo
+  // Relativ dag-etikett («U3 ons») — ankeret er mandag, så offset%7 = ukedag.
+  const dayLabel = (iso: string) => {
+    if (!relative) return iso
+    const o = Math.round((parseISO(iso).getTime() - parseISO(season.start_date).getTime()) / 86400000)
+    return `U${Math.floor(o / 7) + 1} ${REL_DAYS[((o % 7) + 7) % 7]}`
+  }
+  const spanLabel = (a: string, b: string) => relative ? `${dayLabel(a)} – ${dayLabel(b)}` : `${a} → ${b}`
 
   // Effektivt seleksjonsspenn (ISO), snapper til man–søn i uke-modus.
   const selRange = (() => {
@@ -202,14 +250,14 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
     setError(null)
     try {
       for (const p of fullyCovered) {
-        const res = await deletePeriod(p.id, targetUserId)
+        const res = await removeP(p.id)
         if (res.error) throw new Error(res.error)
       }
       for (const p of splits) {
         const origEnd = p.end_date
-        const resA = await updatePeriod(p.id, periodToInput(p, { end_date: addDaysISO(rangeStart, -1) }, targetUserId))
+        const resA = await updateP(p.id, periodToInput(p, { end_date: addDaysISO(rangeStart, -1) }, targetUserId))
         if (resA.error) throw new Error(resA.error)
-        const resB = await createPeriod(periodToInput(p, {
+        const resB = await createP(periodToInput(p, {
           name: `${p.name} (forts.)`,
           start_date: addDaysISO(rangeEnd, 1),
           end_date: origEnd,
@@ -221,11 +269,11 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       for (const p of overlaps) {
         if (fullyCovered.includes(p) || splits.includes(p)) continue
         if (p.start_date < rangeStart) {
-          const res = await updatePeriod(p.id, periodToInput(p, { end_date: addDaysISO(rangeStart, -1) }, targetUserId))
+          const res = await updateP(p.id, periodToInput(p, { end_date: addDaysISO(rangeStart, -1) }, targetUserId))
           if (res.error) throw new Error(res.error)
           leftNeighbor = p
         } else {
-          const res = await updatePeriod(p.id, periodToInput(p, { start_date: addDaysISO(rangeEnd, 1) }, targetUserId))
+          const res = await updateP(p.id, periodToInput(p, { start_date: addDaysISO(rangeEnd, 1) }, targetUserId))
           if (res.error) throw new Error(res.error)
           rightNeighbor = p
         }
@@ -239,22 +287,22 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           : periods.find(p => p.intensity === paint && p.start_date === addDaysISO(rangeEnd, 1) && !fullyCovered.includes(p) && !splits.includes(p)) ?? null
         if (leftAdj) {
           const newEnd = rightAdj ? rightAdj.end_date : rangeEnd
-          const res = await updatePeriod(leftAdj.id, periodToInput(leftAdj, { end_date: newEnd }, targetUserId))
+          const res = await updateP(leftAdj.id, periodToInput(leftAdj, { end_date: newEnd }, targetUserId))
           if (res.error) throw new Error(res.error)
           if (rightAdj) {
-            const res2 = await deletePeriod(rightAdj.id, targetUserId)
+            const res2 = await removeP(rightAdj.id)
             if (res2.error) throw new Error(res2.error)
           }
         } else if (rightAdj) {
-          const res = await updatePeriod(rightAdj.id, periodToInput(rightAdj, { start_date: rangeStart }, targetUserId))
+          const res = await updateP(rightAdj.id, periodToInput(rightAdj, { start_date: rangeStart }, targetUserId))
           if (res.error) throw new Error(res.error)
         } else {
           const wLo = weeks.find(w => rangeStart >= w.mondayISO && rangeStart <= w.sundayISO)
           const wHi = weeks.find(w => rangeEnd >= w.mondayISO && rangeEnd <= w.sundayISO)
-          const res = await createPeriod({
+          const res = await createP({
             season_id: season.id,
             name: wLo && wHi
-              ? (wLo.weekNo === wHi.weekNo ? `${INTENSITY_LABEL[paint]} uke ${wLo.weekNo}` : `${INTENSITY_LABEL[paint]} uke ${wLo.weekNo}–${wHi.weekNo}`)
+              ? (weekLabel(wLo) === weekLabel(wHi) ? `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}` : `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}–${weekLabel(wHi)}`)
               : INTENSITY_LABEL[paint],
             start_date: rangeStart,
             end_date: rangeEnd,
@@ -264,7 +312,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
           if (res.error) throw new Error(res.error)
         }
       }
-      router.refresh()
+      commit()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -280,9 +328,9 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       : { end_date: drag.dateISO }
     setBusy(true)
     setError(null)
-    const res = await updatePeriod(p.id, periodToInput(p, override, targetUserId))
+    const res = await updateP(p.id, periodToInput(p, override, targetUserId))
     if (res.error) setError(res.error)
-    else router.refresh()
+    else commit()
     setBusy(false)
   }
 
@@ -533,7 +581,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                       letterSpacing: '0.06em', color: isToday ? 'var(--accent)' : '#55555F',
                       fontWeight: isToday ? 700 : 400,
                     }}>
-                      U{w.weekNo}
+                      U{weekLabel(w)}
                     </span>
                     {/* DAG-modus: 7 dag-ticks — dag-presis farge + kant-håndtak. */}
                     {granularity === 'dag' && (
@@ -550,7 +598,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                           const daySel = inSel(iso)
                           return (
                             <span key={di} data-day={iso}
-                              title={`${iso}${dp ? ` · ${dp.name}` : ''}`}
+                              title={`${relative ? `U${weekLabel(w)} ${REL_DAYS[di]}` : iso}${dp ? ` · ${dp.name}` : ''}`}
                               style={{
                                 flex: 1, height: 16, borderRadius: 3,
                                 background: dc ? `${dc}B3` : 'var(--line)',
@@ -579,7 +627,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         const pickable = canEdit && brush === 'pick'
                         return (
                           <span key={m.id} data-marking={m.id}
-                            title={`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} (${m.start_date} → ${m.end_date})`}
+                            title={`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} (${spanLabel(m.start_date, m.end_date)})`}
                             style={{
                               position: 'absolute', bottom: 2 + mi * 9, height: 7, zIndex: 2,
                               left: `${(startIdx / 7) * 100}%`, width: `${(len / 7) * 100}%`,
@@ -615,7 +663,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
 
       {edgeDrag && (
         <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--accent)' }}>
-          {edgeDrag.edge === 'start' ? 'Ny start' : 'Ny slutt'}: {edgeDrag.dateISO} — slipp for å lagre
+          {edgeDrag.edge === 'start' ? 'Ny start' : 'Ny slutt'}: {dayLabel(edgeDrag.dateISO)} — slipp for å lagre
         </p>
       )}
     </div>

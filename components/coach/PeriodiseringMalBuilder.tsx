@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   savePeriodizationTemplate, updatePeriodizationTemplate,
@@ -8,6 +8,7 @@ import {
 import type {
   PeriodizationTemplate, PeriodizationTemplateData,
   PeriodizationTemplateKeyDate, PeriodizationTemplatePeriod,
+  PeriodizationTemplateMarking,
 } from '@/lib/template-types'
 import { SPORTS, type Sport, PERIOD_SPORT_CATEGORIES, sportToCategory } from '@/lib/types'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
@@ -15,6 +16,16 @@ import { addDays, deriveEndDate, diffDays, formatNorskKortDato } from '@/lib/tem
 import { PeriodiseringMalTimeline } from '@/components/coach/PeriodiseringMalTimeline'
 import { PeriodiseringMalVolumeSection } from '@/components/coach/PeriodiseringMalVolumeSection'
 import type { PeriodizationTemplateVolumePlan } from '@/lib/template-types'
+import { SeasonCanvas, type CanvasPeriodMutators } from '@/components/periodization/SeasonCanvas'
+import type { Season, SeasonPeriod, SeasonMarking, Intensity, PeriodInput } from '@/app/actions/seasons'
+
+// Del F: malens lerret tegner på en SYNTETISK tidslinje forankret i en
+// mandag — U1 = anker-uka; offsets ⇄ datoer er ren aritmetikk. Anvendelse
+// på utøver skjer via offsets (push), aldri via disse datoene.
+const MAL_ANCHOR = '2001-01-01' // mandag
+
+type MalPeriod = PeriodizationTemplatePeriod & { uid: string }
+type MalMarking = PeriodizationTemplateMarking & { uid: string }
 
 const COACH_BLUE = '#1A6FD4'
 const GOLD = '#D4A017'
@@ -59,6 +70,7 @@ const EMPTY_DATA: PeriodizationTemplateData = {
   periods: [],
   key_dates: [],
   volume_plans: [],
+  markings: [],
 }
 
 export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Props) {
@@ -88,17 +100,41 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  // ── Del F: perioder + markeringer i CANVAS-format (mutable bokser m/
+  // stabile uid-er) — lerretets sekvensielle mutasjoner (trim/splitt/merge)
+  // trenger synkron tilstand; ver-bump trigger re-render. ──
+  const uidSeq = useRef(0)
+  const nextUid = (prefix: string) => `${prefix}${uidSeq.current++}`
+  const [periodsBox] = useState(() => ({
+    list: (editing?.periodization_data?.periods ?? []).map(p => ({ ...p, uid: `p${uidSeq.current++}` })) as MalPeriod[],
+  }))
+  const [markingsBox] = useState(() => ({
+    list: (editing?.periodization_data?.markings ?? []).map(m => ({ ...m, uid: `m${uidSeq.current++}` })) as MalMarking[],
+  }))
+  const [ver, bump] = useReducer((x: number) => x + 1, 0)
+
+  const stripPeriod = ({ uid: _uid, ...rest }: MalPeriod): PeriodizationTemplatePeriod => rest
+  const stripMarking = ({ uid: _uid, ...rest }: MalMarking): PeriodizationTemplateMarking => rest
+
   const [initialSnapshot] = useState<string>(() => JSON.stringify({
     name: editing?.name ?? '',
     description: editing?.description ?? '',
     category: defaultCat,
     durationDays: editing?.duration_days ?? 210,
     startDate: editing?.start_date ?? '',
-    data: editing?.periodization_data ?? EMPTY_DATA,
+    data: { ...(editing?.periodization_data ?? EMPTY_DATA), periods: undefined, markings: undefined },
+    periods: editing?.periodization_data?.periods ?? [],
+    markings: editing?.periodization_data?.markings ?? [],
   }))
   const dirty = useMemo(
-    () => JSON.stringify({ name, description, category, durationDays, startDate, data }) !== initialSnapshot,
-    [name, description, category, durationDays, startDate, data, initialSnapshot],
+    () => JSON.stringify({
+      name, description, category, durationDays, startDate,
+      data: { ...data, periods: undefined, markings: undefined },
+      periods: periodsBox.list.map(stripPeriod),
+      markings: markingsBox.list.map(stripMarking),
+    }) !== initialSnapshot,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [name, description, category, durationDays, startDate, data, initialSnapshot, ver],
   )
 
   const requestClose = useCallback(() => {
@@ -125,29 +161,127 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
     setData(d => ({ ...d, season: { ...d.season, ...patch } }))
   }
 
+  const clampOff = (n: number) => Math.max(0, Math.min(durationDays - 1, n))
+  const offOf = (iso: string) => clampOff(diffDays(MAL_ANCHOR, iso))
+
   const addPeriod = () => {
-    setData(d => ({
-      ...d,
-      periods: [...d.periods, {
-        start_offset: 0,
-        end_offset: Math.min(durationDays - 1, 13),
-        name: 'Ny periode',
-        phase_type: 'base',
-        intensity: 'medium',
-        notes: null,
-        sort_order: d.periods.length,
-      }],
-    }))
+    periodsBox.list = [...periodsBox.list, {
+      uid: nextUid('p'),
+      start_offset: 0,
+      end_offset: Math.min(durationDays - 1, 13),
+      name: 'Ny periode',
+      phase_type: 'base',
+      intensity: 'medium',
+      notes: null,
+      sort_order: periodsBox.list.length,
+    }]
+    bump()
   }
-  const updatePeriod = (i: number, patch: Partial<PeriodizationTemplatePeriod>) => {
-    setData(d => {
-      const next = d.periods.slice()
-      next[i] = { ...next[i], ...patch }
-      return { ...d, periods: next }
-    })
+  const updatePeriod = (uid: string, patch: Partial<PeriodizationTemplatePeriod>) => {
+    periodsBox.list = periodsBox.list.map(p => p.uid === uid ? { ...p, ...patch } : p)
+    bump()
   }
-  const removePeriod = (i: number) => {
-    setData(d => ({ ...d, periods: d.periods.filter((_, idx) => idx !== i) }))
+  const removePeriod = (uid: string) => {
+    periodsBox.list = periodsBox.list.filter(p => p.uid !== uid)
+    bump()
+  }
+
+  // ── Del F: markeringslag (📍/🏔) i malen. ──
+  const addMarking = (startOff = 0, endOff = 6) => {
+    const uid = nextUid('m')
+    markingsBox.list = [...markingsBox.list, {
+      uid,
+      start_offset: clampOff(startOff),
+      end_offset: clampOff(endOff),
+      is_training_camp: true,
+      is_altitude: false,
+      name: 'Samling',
+      location: null,
+      altitude_meters: null,
+      notes: null,
+    }]
+    bump()
+    return uid
+  }
+  const updateMarking = (uid: string, patch: Partial<PeriodizationTemplateMarking>) => {
+    markingsBox.list = markingsBox.list.map(m => m.uid === uid ? { ...m, ...patch } : m)
+    bump()
+  }
+  const removeMarking = (uid: string) => {
+    markingsBox.list = markingsBox.list.filter(m => m.uid !== uid)
+    bump()
+  }
+
+  // ── Del F: SAMME lerret som utøver-årsplanen, i relativ modus. Lokale
+  // mutasjoner (én kodebane for maling/trim/splitt/merge/kant-dra). ──
+  const [selectedPeriodUid, setSelectedPeriodUid] = useState<string | null>(null)
+  const [selectedMarkingUid, setSelectedMarkingUid] = useState<string | null>(null)
+
+  const malMutators: CanvasPeriodMutators = {
+    create: async (input: PeriodInput) => {
+      const uid = nextUid('p')
+      periodsBox.list = [...periodsBox.list, {
+        uid,
+        name: input.name,
+        phase_type: input.focus ?? '',
+        intensity: input.intensity,
+        notes: input.notes ?? null,
+        sort_order: periodsBox.list.length,
+        start_offset: offOf(input.start_date),
+        end_offset: offOf(input.end_date),
+      }]
+      bump()
+      return { id: uid }
+    },
+    update: async (id: string, input: PeriodInput) => {
+      periodsBox.list = periodsBox.list.map(p => p.uid === id ? {
+        ...p,
+        name: input.name,
+        phase_type: input.focus ?? '',
+        intensity: input.intensity,
+        notes: input.notes ?? null,
+        start_offset: offOf(input.start_date),
+        end_offset: offOf(input.end_date),
+      } : p)
+      bump()
+      return {}
+    },
+    remove: async (id: string) => {
+      periodsBox.list = periodsBox.list.filter(p => p.uid !== id)
+      bump()
+      return {}
+    },
+  }
+
+  const malSeason = useMemo<Season>(() => ({
+    id: '__mal__', user_id: '',
+    name: name || 'Årsplan-mal',
+    start_date: MAL_ANCHOR,
+    end_date: addDays(MAL_ANCHOR, Math.max(0, durationDays - 1)),
+    goal_main: null, goal_details: null, kpi_notes: null,
+    created_at: '', updated_at: '',
+  }), [name, durationDays])
+
+  const canvasPeriods: SeasonPeriod[] = periodsBox.list.map(p => ({
+    id: p.uid, season_id: '__mal__',
+    name: p.name, focus: p.phase_type || null,
+    start_date: addDays(MAL_ANCHOR, clampOff(p.start_offset)),
+    end_date: addDays(MAL_ANCHOR, clampOff(p.end_offset)),
+    intensity: (p.intensity === 'rolig' || p.intensity === 'hard' ? p.intensity : 'medium') as Intensity,
+    notes: p.notes, sort_order: p.sort_order, created_at: '',
+  }))
+  const canvasMarkings: SeasonMarking[] = markingsBox.list.map(m => ({
+    id: m.uid, season_id: '__mal__',
+    is_training_camp: m.is_training_camp, is_altitude: m.is_altitude,
+    name: m.name, location: m.location, altitude_meters: m.altitude_meters,
+    notes: m.notes,
+    start_date: addDays(MAL_ANCHOR, clampOff(m.start_offset)),
+    end_date: addDays(MAL_ANCHOR, clampOff(m.end_offset)),
+    source_period_id: null, created_at: '',
+  }))
+
+  const scrollToRow = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   const addKeyDate = () => {
@@ -180,12 +314,24 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
   const handleSave = () => {
     if (!name.trim()) { setErr('Navn er påkrevd'); return }
     if (durationDays < 1) { setErr('Varighet må være minst én dag'); return }
-    for (const p of data.periods) {
+    for (const p of periodsBox.list) {
       if (p.end_offset < p.start_offset) {
         setErr(`Periode "${p.name}" har sluttdag før startdag`); return
       }
       if (p.start_offset < 0 || p.end_offset >= durationDays) {
         setErr(`Periode "${p.name}" er utenfor varigheten`); return
+      }
+    }
+    for (const m of markingsBox.list) {
+      if (!m.name.trim()) { setErr('En markering mangler navn'); return }
+      if (m.end_offset < m.start_offset) {
+        setErr(`Markering "${m.name}" har sluttdag før startdag`); return
+      }
+      if (m.start_offset < 0 || m.end_offset >= durationDays) {
+        setErr(`Markering "${m.name}" er utenfor varigheten`); return
+      }
+      if (!m.is_training_camp && !m.is_altitude) {
+        setErr(`Markering "${m.name}": velg samling, høyde eller begge`); return
       }
     }
     for (const k of data.key_dates) {
@@ -200,14 +346,17 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
         ...data.season,
         name: data.season.name || name.trim(),
       },
-      periods: data.periods
-        .slice()
+      periods: periodsBox.list
+        .map(stripPeriod)
         .sort((a, b) => a.start_offset - b.start_offset)
         .map((p, i) => ({ ...p, sort_order: i })),
       key_dates: data.key_dates.slice().sort((a, b) => a.day_offset - b.day_offset),
       volume_plans: (data.volume_plans ?? [])
         .slice()
         .sort((a, b) => a.month_offset - b.month_offset),
+      markings: markingsBox.list
+        .map(stripMarking)
+        .sort((a, b) => a.start_offset - b.start_offset),
     }
 
     const start = startDate || null
@@ -375,11 +524,29 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
           </section>
 
           <section>
-            <SectionTitle>Forhåndsvisning</SectionTitle>
+            <SectionTitle>Mal sesongen — relative uker (U1–U{totalWeeks})</SectionTitle>
+            {/* Del F: SAMME lerret som utøverens årsplan (dag-presis maling,
+                trim/splitt/merge, kant-dra, samlingslag) — i relativ modus.
+                ✋ på periode/bånd hopper til raden under for detaljer. */}
+            <SeasonCanvas
+              season={malSeason}
+              periods={canvasPeriods}
+              markings={canvasMarkings}
+              canEdit
+              relative
+              mutators={malMutators}
+              onPickPeriod={p => { setSelectedPeriodUid(p.id); scrollToRow(`malperiode-${p.id}`) }}
+              onPickMarking={m => { setSelectedMarkingUid(m.id); scrollToRow(`malmarkering-${m.id}`) }}
+              onDrawMarking={(startISO, endISO) => {
+                const uid = addMarking(offOf(startISO), offOf(endISO))
+                setSelectedMarkingUid(uid)
+                window.setTimeout(() => scrollToRow(`malmarkering-${uid}`), 50)
+              }}
+            />
             <PeriodiseringMalTimeline
               durationDays={durationDays}
               startDate={startDate || null}
-              periods={data.periods}
+              periods={periodsBox.list.map(stripPeriod)}
               keyDates={data.key_dates}
             />
           </section>
@@ -389,19 +556,46 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
               <SectionTitle compact>Perioder</SectionTitle>
               <BtnSm onClick={addPeriod}>+ Ny periode</BtnSm>
             </div>
-            {data.periods.length === 0 ? (
-              <EmptyHint>Ingen perioder ennå.</EmptyHint>
+            {periodsBox.list.length === 0 ? (
+              <EmptyHint>Ingen perioder ennå — mal med penslene i lerretet over, eller legg til manuelt.</EmptyHint>
             ) : (
               <div className="flex flex-col gap-2">
-                {data.periods.map((p, i) => (
-                  <PeriodRow
-                    key={i}
-                    period={p}
-                    durationDays={durationDays}
-                    startDate={startDate || null}
-                    onChange={(patch) => updatePeriod(i, patch)}
-                    onRemove={() => removePeriod(i)}
-                  />
+                {periodsBox.list.map(p => (
+                  <div key={p.uid} id={`malperiode-${p.uid}`}
+                    style={selectedPeriodUid === p.uid ? { outline: '2px solid var(--accent)', outlineOffset: 2, borderRadius: 14 } : undefined}>
+                    <PeriodRow
+                      period={p}
+                      durationDays={durationDays}
+                      startDate={startDate || null}
+                      onChange={(patch) => updatePeriod(p.uid, patch)}
+                      onRemove={() => removePeriod(p.uid)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <SectionTitle compact>Samlinger & høyde (markeringslag)</SectionTitle>
+              <BtnSm onClick={() => { const uid = addMarking(); setSelectedMarkingUid(uid) }}>+ Samling/høyde</BtnSm>
+            </div>
+            {markingsBox.list.length === 0 ? (
+              <EmptyHint>Ingen markeringer ennå — bruk 📍-verktøyet i lerretet, eller legg til manuelt. Laget ligger fritt over periodene.</EmptyHint>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {markingsBox.list.map(m => (
+                  <div key={m.uid} id={`malmarkering-${m.uid}`}
+                    style={selectedMarkingUid === m.uid ? { outline: '2px solid #D4A017', outlineOffset: 2, borderRadius: 14 } : undefined}>
+                    <MarkingRow
+                      marking={m}
+                      durationDays={durationDays}
+                      startDate={startDate || null}
+                      onChange={(patch) => updateMarking(m.uid, patch)}
+                      onRemove={() => removeMarking(m.uid)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -524,6 +718,91 @@ function PeriodRow({
       </div>
       <div className="flex justify-end">
         <BtnSm onClick={onRemove} danger>Fjern periode</BtnSm>
+      </div>
+    </div>
+  )
+}
+
+// Del F: rediger-rad for en markering (📍 samling / 🏔 høyde) i malen —
+// relative dag-offsets, fri overlapp med periodene (ingen trim/splitt).
+function MarkingRow({
+  marking, durationDays, startDate, onChange, onRemove,
+}: {
+  marking: PeriodizationTemplateMarking
+  durationDays: number
+  startDate: string | null
+  onChange: (patch: Partial<PeriodizationTemplateMarking>) => void
+  onRemove: () => void
+}) {
+  const max = durationDays - 1
+  return (
+    <div className="p-3 flex flex-col gap-2"
+      style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderLeft: '3px solid #D4A017', borderRadius: 14 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <Field label="Navn">
+          <input value={marking.name}
+            onChange={e => onChange({ name: e.target.value })}
+            placeholder="Sjusjøen-samling, Høydeopphold …"
+            style={iSt} />
+        </Field>
+        <div className="flex items-end gap-4 pb-1">
+          <label className="flex items-center gap-2 cursor-pointer"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 14 }}>
+            <input type="checkbox" checked={marking.is_training_camp}
+              onChange={e => onChange({ is_training_camp: e.target.checked })} />
+            <span>📍 Samling</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 14 }}>
+            <input type="checkbox" checked={marking.is_altitude}
+              onChange={e => onChange({ is_altitude: e.target.checked })} />
+            <span>🏔️ Høyde</span>
+          </label>
+        </div>
+        <DateOrDayField
+          label="Start"
+          offset={marking.start_offset}
+          startDate={startDate}
+          maxOffset={max}
+          onChange={v => onChange({ start_offset: v })}
+        />
+        <DateOrDayField
+          label="Slutt"
+          offset={marking.end_offset}
+          startDate={startDate}
+          maxOffset={max}
+          onChange={v => onChange({ end_offset: v })}
+        />
+        {marking.is_training_camp && (
+          <Field label="Sted">
+            <input value={marking.location ?? ''}
+              onChange={e => onChange({ location: e.target.value || null })}
+              placeholder="f.eks. Sjusjøen, Sierra Nevada"
+              style={iSt} />
+          </Field>
+        )}
+        {marking.is_altitude && (
+          <Field label="Høyde (moh)">
+            <input type="number" min={0} max={9000} step={50}
+              value={marking.altitude_meters ?? ''}
+              onChange={e => onChange({ altitude_meters: e.target.value === '' ? null : Math.round(Number(e.target.value)) })}
+              placeholder="f.eks. 1800"
+              style={iSt} />
+          </Field>
+        )}
+        <Field label="Notat">
+          <input value={marking.notes ?? ''}
+            onChange={e => onChange({ notes: e.target.value || null })}
+            style={iSt} />
+        </Field>
+      </div>
+      {!marking.is_training_camp && !marking.is_altitude && (
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E8B93C' }}>
+          Velg samling, høyde eller begge.
+        </p>
+      )}
+      <div className="flex justify-end">
+        <BtnSm onClick={onRemove} danger>Fjern markering</BtnSm>
       </div>
     </div>
   )

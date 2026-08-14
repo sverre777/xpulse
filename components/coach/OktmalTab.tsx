@@ -9,7 +9,8 @@ import { OktmalEditModal } from '@/components/coach/OktmalEditModal'
 import { CoachPushModal } from '@/components/coach/CoachPushModal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 
-const COACH_BLUE = '#1A6FD4'
+// Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
+const COACH_BLUE = 'var(--accent)'
 
 interface Props {
   initialTemplates: WorkoutTemplate[]

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { updateTemplate } from '@/app/actions/templates'
 import { SPORTS, TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
 
-const COACH_BLUE = '#1A6FD4'
+// Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
+const COACH_BLUE = 'var(--accent)'
 
 interface Props {
   template: WorkoutTemplate

@@ -13,7 +13,8 @@ import { PlanMalNotesSection } from '@/components/coach/PlanMalNotesSection'
 import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { deriveEndDate } from '@/lib/template-dates'
 
-const COACH_BLUE = '#1A6FD4'
+// Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
+const COACH_BLUE = 'var(--accent)'
 
 interface Props {
   primarySport: Sport

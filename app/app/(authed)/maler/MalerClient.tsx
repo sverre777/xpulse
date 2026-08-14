@@ -36,6 +36,20 @@ export function MalerClient({
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('')
   const [sport, setSport] = useState<string>('')
+  const [movement, setMovement] = useState<string>('')
+  const [sortBy, setSortBy] = useState<'sist' | 'nyest' | 'navn' | 'mest'>('sist')
+
+  // Bevegelsesform-valg: union fra øktmalenes aktiviteter.
+  const movementOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of initialWorkoutTemplates) {
+      for (const a of (t.activities ?? [])) {
+        const m = a.movement_name?.trim()
+        if (m) s.add(m)
+      }
+    }
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb'))
+  }, [initialWorkoutTemplates])
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [_isPending, startTransition] = useTransition()
   void _isPending
@@ -104,9 +118,9 @@ export function MalerClient({
         />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
         <input value={query} onChange={e => setQuery(e.target.value)}
-          placeholder="Søk etter navn..."
+          placeholder="Søk navn eller tagg..."
           style={iSt} className="w-full px-3 py-2" />
 
         <select value={category} onChange={e => setCategory(e.target.value)}
@@ -126,8 +140,29 @@ export function MalerClient({
             ))}
           </select>
         ) : (
-          <span />
+          <span className="hidden md:block" />
         )}
+
+        {/* Bev.form-filter — unionen av bevegelsesformer i øktmalene. */}
+        {tab === 'okt' ? (
+          <select value={movement} onChange={e => setMovement(e.target.value)}
+            style={iSt} className="w-full px-3 py-2">
+            <option value="">Alle bev.former</option>
+            {movementOptions.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        ) : (
+          <span className="hidden md:block" />
+        )}
+
+        <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
+          style={iSt} className="w-full px-3 py-2">
+          <option value="sist">Sist brukt</option>
+          <option value="nyest">Nyest</option>
+          <option value="navn">Navn A–Å</option>
+          {tab === 'okt' && <option value="mest">Mest brukt</option>}
+        </select>
       </div>
 
       {bruktOktmal && (
@@ -156,7 +191,7 @@ export function MalerClient({
 
       {tab === 'okt' && (
         <WorkoutList
-          templates={initialWorkoutTemplates}
+movement={movement} sortBy={sortBy}           templates={initialWorkoutTemplates}
           query={query} category={category} sport={sport}
           pendingId={pendingId}
           onEdit={(t) => setEditingOktmal(t)}
@@ -183,7 +218,7 @@ export function MalerClient({
 
       {tab === 'plan' && (
         <PlanList
-          templates={initialPlanTemplates}
+sortBy={sortBy}           templates={initialPlanTemplates}
           query={query} category={category}
           pendingId={pendingId}
           onEdit={(t) => setEditingPlanmal(t)}
@@ -241,10 +276,12 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
 }
 
 function WorkoutList({
-  templates, query, category, sport, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
+  templates, query, category, sport, movement, sortBy, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: WorkoutTemplate[]
   query: string; category: string; sport: string
+  movement: string
+  sortBy: 'sist' | 'nyest' | 'navn' | 'mest'
   pendingId: string | null
   onEdit: (t: WorkoutTemplate) => void
   onUseDate: (t: WorkoutTemplate) => void
@@ -253,13 +290,24 @@ function WorkoutList({
 }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return templates.filter(t => {
+    const list = templates.filter(t => {
       if (category && t.category !== category) return false
       if (sport && t.sport !== sport) return false
-      if (q && !t.name.toLowerCase().includes(q)) return false
+      if (movement && !(t.activities ?? []).some(a => a.movement_name === movement)) return false
+      if (q) {
+        const inName = t.name.toLowerCase().includes(q)
+        const inTags = (t.template_data?.tags ?? []).some(tag => tag.toLowerCase().includes(q))
+        if (!inName && !inTags) return false
+      }
       return true
     })
-  }, [templates, query, category, sport])
+    // Sortering — 'sist' beholder serverens rekkefølge (last_used_at desc).
+    const sorted = [...list]
+    if (sortBy === 'nyest') sorted.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    else if (sortBy === 'navn') sorted.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+    else if (sortBy === 'mest') sorted.sort((a, b) => (b.times_used ?? 0) - (a.times_used ?? 0))
+    return sorted
+  }, [templates, query, category, sport, movement, sortBy])
   if (filtered.length === 0) {
     return <EmptyBox empty={templates.length === 0} kind="økt" />
   }
@@ -287,10 +335,11 @@ function WorkoutList({
 }
 
 function PlanList({
-  templates, query, category, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
+  templates, query, category, sortBy, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: PlanTemplate[]
   query: string; category: string
+  sortBy: 'sist' | 'nyest' | 'navn' | 'mest'
   pendingId: string | null
   onEdit: (t: PlanTemplate) => void
   onUseDate: (t: PlanTemplate) => void
@@ -299,12 +348,16 @@ function PlanList({
 }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return templates.filter(t => {
+    const out = templates.filter(t => {
       if (category && t.category !== category) return false
       if (q && !t.name.toLowerCase().includes(q)) return false
       return true
     })
-  }, [templates, query, category])
+      const sorted = [...out]
+    if (sortBy === 'nyest') sorted.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    else if (sortBy === 'navn') sorted.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+    return sorted
+  }, [templates, query, category, sortBy])
   if (filtered.length === 0) {
     return <EmptyBox empty={templates.length === 0} kind="plan" />
   }

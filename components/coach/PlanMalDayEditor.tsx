@@ -8,7 +8,8 @@ import { confirmDiscardIfDirty, useBeforeUnloadGuard } from '@/lib/dirty-guard'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
-const COACH_BLUE = '#1A6FD4'
+// Rolle-accent: oransje for utøver, blå i .xp-coach-kontekst (trener).
+const COACH_BLUE = 'var(--accent)'
 
 type Mode =
   | { kind: 'menu' }

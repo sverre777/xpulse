@@ -9,7 +9,9 @@ export function ChartWrapper({
   title: string
   subtitle?: string
   children: ReactNode
-  height?: number
+  // 'auto': innholdet styrer høyden (for kort med dynamiske kontroller over
+  // grafen — fast høyde kollapser graf-området når kontrollene stables på mobil).
+  height?: number | 'auto'
   chartKey?: string
 }) {
   return (
@@ -33,7 +35,7 @@ export function ChartWrapper({
           </div>
         )}
       </div>
-      <div style={{ width: '100%', height }}>
+      <div style={{ width: '100%', height: height === 'auto' ? undefined : height }}>
         {children}
       </div>
     </div>

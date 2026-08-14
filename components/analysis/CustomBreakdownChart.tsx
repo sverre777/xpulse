@@ -432,9 +432,9 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
       chartKey={CHART_KEY}
       title="Custom graf — fleksibel nedbryting"
       subtitle={`${grouping === 'week' ? 'Uke' : grouping === 'month' ? 'Måned' : 'År'}-gruppering · ${formatRangeLabel(effectiveRange)}`}
-      height={360}
+      height="auto"
     >
-      <div className="flex flex-col gap-3 h-full">
+      <div className="flex flex-col gap-3">
         {/* Kontroll-rad: gruppering + periode-override + multi-select */}
         <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
           <GroupingSelector value={grouping} onChange={setGrouping} />
@@ -450,28 +450,29 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
           )}
         </div>
 
-        {/* Graf-container — fyller resten av høyden */}
-        <div className="flex-1 min-h-0">
+        {/* Graf-container — egen fast høyde, uavhengig av kontrollene over
+            (flex-1 mot fast kort-høyde kollapset til 0 på mobil). */}
+        <div>
           {error ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center" style={{ minHeight: 220 }}>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48', fontSize: 13 }}>
                 {error}
               </p>
             </div>
           ) : isPending && !dataCompleted && !dataPlanned ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center" style={{ minHeight: 220 }}>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
                 Laster…
               </p>
             </div>
           ) : !hasAny ? (
-            <div className="flex items-center justify-center h-full" style={{ border: '1px dashed #1E1E22' }}>
+            <div className="flex items-center justify-center" style={{ minHeight: 220, border: '1px dashed #1E1E22' }}>
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 13 }}>
                 Velg bevegelsesformer og tidsintervall for å se grafen
               </p>
             </div>
           ) : (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
               {/* Legend som toggle-chips (utkastets .lg-piller) — samme
                   hiddenSeries-state som før, bare ny drakt. */}
               <div className="flex flex-wrap gap-2 mb-2">
@@ -499,7 +500,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                   )
                 })}
               </div>
-              <div className="flex-1 min-h-0">
+              <div style={{ height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={chartData} margin={{ top: 18 }}>
                     <CartesianGrid stroke={CHART_GRID} vertical={false} />

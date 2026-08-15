@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPolarWebhook, deletePolarWebhook, getPolarWebhook } from '@/lib/polar'
+import {
+  createPolarWebhook, deletePolarWebhook, getPolarWebhook, updatePolarWebhook,
+  POLAR_WEBHOOK_EVENTS,
+} from '@/lib/polar'
 
 // Administrasjon av Polar-webhooken. Polar har ÉN webhook per klient (ikke
 // per bruker), så dette er en klient-operasjon — ikke noe en vanlig bruker
@@ -77,6 +80,37 @@ export async function POST(req: NextRequest) {
       signature_secret_key: res.signature_secret_key,
       note: 'Lagre signature_secret_key som POLAR_WEBHOOK_SECRET i Netlify og redeploy. ' +
         'Dette er eneste gang Polar viser den.',
+    })
+  } catch (e) {
+    return NextResponse.json({
+      ok: false, error: e instanceof Error ? e.message : String(e),
+    }, { status: 500 })
+  }
+}
+
+// PATCH ?id=<webhookId> — oppdaterer event-typene på en EKSISTERENDE webhook.
+// Brukes til å legge til SLEEP (kø #52) uten å opprette webhooken på nytt.
+// Viktig: signature_secret_key beholdes, så POLAR_WEBHOOK_SECRET i Netlify
+// forblir gyldig og ingen redeploy er nødvendig.
+export async function PATCH(req: NextRequest) {
+  if (!authorized(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const id = new URL(req.url).searchParams.get('id')
+  if (!id) {
+    return NextResponse.json({ ok: false, error: 'Mangler ?id=<webhookId>' }, { status: 400 })
+  }
+  try {
+    const res = await updatePolarWebhook(id, [...POLAR_WEBHOOK_EVENTS])
+    const ok = res.status >= 200 && res.status < 300
+    return NextResponse.json({
+      ok,
+      status: res.status,
+      events: POLAR_WEBHOOK_EVENTS,
+      body: res.body,
+      note: ok
+        ? 'Webhooken abonnerer nå på EXERCISE og SLEEP. Hemmeligheten er uendret — ingen redeploy nødvendig.'
+        : 'Oppdateringen gikk ikke igjennom. Sjekk id-en med GET på samme rute.',
     })
   } catch (e) {
     return NextResponse.json({

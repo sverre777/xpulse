@@ -6,6 +6,7 @@ import {
   type PolarConnection,
 } from '@/lib/polar'
 import { importPolarExercises } from '@/lib/polar-import'
+import { importPolarHealth } from '@/lib/polar-health-import'
 
 // Cron-fallback for Polar. Webhooken (/api/polar/webhook) er PRIMÆRKANALEN —
 // denne ruta er sikkerhetsnett og kjøres derfor sjeldnere enn Strava-cronen
@@ -43,6 +44,12 @@ interface UserResult {
   duplicates?: number
   conflicts?: number
   failed?: number
+  /** Netter skrevet til sleep_records. */
+  sleep_rows?: number
+  /** Dager skrevet til health_metrics. */
+  health_rows?: number
+  /** Antall felter som ble stående fordi brukeren hadde ført dem manuelt. */
+  kept_manual?: number
   error?: string
   notes?: string[]
 }
@@ -128,6 +135,19 @@ export async function GET(req: NextRequest) {
     const reason: UserResult['reason'] = isFlagged ? 'notification' : 'webhook-stille'
     try {
       const summary = await importPolarExercises(supabase, conn)
+
+      // Helse og søvn i samme runde: webhooken (SLEEP) er primærkanalen, dette
+      // er sikkerhetsnettet. Feiler helse-importen, skal øktene likevel telle
+      // som synket — derfor egen try/catch.
+      let health: Awaited<ReturnType<typeof importPolarHealth>> | null = null
+      try {
+        health = await importPolarHealth(supabase, conn)
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        console.error(`[polar-cron] helse-synk feilet for polar-bruker ${conn.polar_user_id}:`, msg)
+        summary.notes.push(`helse: ${msg}`)
+      }
+
       results.push({
         user_id: conn.user_id,
         polar_user_id: conn.polar_user_id,
@@ -136,7 +156,10 @@ export async function GET(req: NextRequest) {
         duplicates: summary.duplicates,
         conflicts: summary.conflicts,
         failed: summary.failed,
-        notes: summary.notes.length > 0 ? summary.notes : undefined,
+        sleep_rows: health?.sleep_rows_written ?? 0,
+        health_rows: health?.recharge_rows_written ?? 0,
+        kept_manual: health && health.kept_manual.length > 0 ? health.kept_manual.length : undefined,
+        notes: [...summary.notes, ...(health?.notes ?? [])].slice(0, 10),
       })
     } catch (e) {
       if (e instanceof PolarRateLimitError) {

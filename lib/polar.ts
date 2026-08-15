@@ -579,6 +579,238 @@ export async function fetchPolarExerciseDetail(
   return await res.json() as PolarExerciseDetail
 }
 
+// ── Søvn og Nightly Recharge (kø #52) ────────────────────────
+//
+// VERIFISERT MOT SWAGGEREN:
+//  · GET /v3/users/sleep                  → { nights: [...] }    siste 28 dager
+//  · GET /v3/users/sleep/{date}           → ett døgn (404 = ingen data)
+//  · GET /v3/users/nightly-recharge       → { recharges: [...] } siste 28 dager
+//  · GET /v3/users/nightly-recharge/{date}
+//
+// Alle varigheter er i SEKUNDER. `date` er datoen søvnen ENDTE (du våknet),
+// som er nøyaktig hvordan sleep_records.date er definert i fase 91.
+//
+// Vi henter KUN søvn og Nightly Recharge i denne puljen (Polars § 5(f): hent
+// bare data vi faktisk bruker). Ikke biosensing, ikke hrv_samples, ikke
+// continuous heart rate, ikke kartdata.
+
+export interface PolarSleep {
+  date: string
+  sleep_start_time?: string
+  sleep_end_time?: string
+  device_id?: string
+  continuity?: number
+  continuity_class?: number
+  light_sleep?: number                 // sekunder
+  deep_sleep?: number                  // sekunder
+  rem_sleep?: number                   // sekunder
+  unrecognized_sleep_stage?: number    // sekunder
+  sleep_score?: number                 // 1–100
+  total_interruption_duration?: number // sekunder våken
+  sleep_charge?: number                // 1–5 mot eget snitt
+  sleep_goal?: number                  // sekunder
+  sleep_rating?: number                // 1–5 gitt av brukeren, 0 = ikke gitt
+  short_interruption_duration?: number
+  long_interruption_duration?: number
+  sleep_cycles?: number
+  group_duration_score?: number
+  group_solidity_score?: number
+  group_regeneration_score?: number
+}
+
+export interface PolarNightlyRecharge {
+  date: string
+  heart_rate_avg?: number                // bpm, 4t fra 30 min etter innsovning
+  beat_to_beat_avg?: number              // ms
+  heart_rate_variability_avg?: number    // ms (RMSSD)
+  breathing_rate_avg?: number
+  nightly_recharge_status?: number       // 1–6
+  ans_charge?: number                    // -10.0 … +10.0
+  ans_charge_status?: number             // 1–5
+}
+
+export async function fetchPolarSleep(
+  supabase: SupabaseClient,
+  conn: PolarConnection,
+): Promise<PolarSleep[]> {
+  const token = await refreshTokenIfExpired(supabase, conn)
+  const res = await polarGet(token, '/users/sleep', 'sleep')
+  if (res.status === 204) return []
+  if (!res.ok) throw new Error(`Polar sleep-henting feilet: ${res.status}`)
+  const data = await res.json().catch(() => null) as { nights?: PolarSleep[] } | null
+  return data?.nights ?? []
+}
+
+export async function fetchPolarSleepForDate(
+  supabase: SupabaseClient,
+  conn: PolarConnection,
+  date: string,
+): Promise<PolarSleep | null> {
+  const token = await refreshTokenIfExpired(supabase, conn)
+  const res = await polarGet(token, `/users/sleep/${encodeURIComponent(date)}`, `sleep ${date}`)
+  if (res.status === 404 || res.status === 204) return null
+  if (!res.ok) throw new Error(`Polar sleep-henting (${date}) feilet: ${res.status}`)
+  return await res.json() as PolarSleep
+}
+
+export async function fetchPolarNightlyRecharge(
+  supabase: SupabaseClient,
+  conn: PolarConnection,
+): Promise<PolarNightlyRecharge[]> {
+  const token = await refreshTokenIfExpired(supabase, conn)
+  const res = await polarGet(token, '/users/nightly-recharge', 'nightly-recharge')
+  if (res.status === 204) return []
+  if (!res.ok) throw new Error(`Polar nightly-recharge-henting feilet: ${res.status}`)
+  const data = await res.json().catch(() => null) as { recharges?: PolarNightlyRecharge[] } | null
+  return data?.recharges ?? []
+}
+
+export async function fetchPolarNightlyRechargeForDate(
+  supabase: SupabaseClient,
+  conn: PolarConnection,
+  date: string,
+): Promise<PolarNightlyRecharge | null> {
+  const token = await refreshTokenIfExpired(supabase, conn)
+  const res = await polarGet(token, `/users/nightly-recharge/${encodeURIComponent(date)}`, `recharge ${date}`)
+  if (res.status === 404 || res.status === 204) return null
+  if (!res.ok) throw new Error(`Polar nightly-recharge (${date}) feilet: ${res.status}`)
+  return await res.json() as PolarNightlyRecharge
+}
+
+// ── Parsing: Polar → fellesfelt + merkespesifikt ─────────────
+
+export interface ParsedSleepCommon {
+  sleep_start: string | null
+  sleep_end: string | null
+  total_sleep_minutes: number | null
+  awake_minutes: number | null
+  deep_minutes: number | null
+  light_minutes: number | null
+  rem_minutes: number | null
+  perceived_quality: number | null
+}
+
+export interface ParsedPolarSleep {
+  date: string
+  common: ParsedSleepCommon
+  brand: Record<string, unknown>
+  notes: string[]
+}
+
+const secToMin = (s: number | undefined | null): number | null =>
+  typeof s === 'number' && s >= 0 ? Math.round(s / 60) : null
+
+// Verdier utenfor kolonnens check-constraint droppes med merknad i stedet for
+// å la hele inserten feile. Samme prinsipp som kryssjekken i økt-importen:
+// heller ingen verdi enn en verdi vi ikke stoler på.
+function inRange(v: number | null, min: number, max: number, label: string, notes: string[]): number | null {
+  if (v == null) return null
+  if (v < min || v > max) {
+    notes.push(`${label}=${v} er utenfor forventet område ${min}–${max} — hoppet over`)
+    return null
+  }
+  return v
+}
+
+export function parsePolarSleep(s: PolarSleep): ParsedPolarSleep {
+  const notes: string[] = []
+
+  const deep = secToMin(s.deep_sleep)
+  const light = secToMin(s.light_sleep)
+  const rem = secToMin(s.rem_sleep)
+  const unrecognized = secToMin(s.unrecognized_sleep_stage)
+  const awake = secToMin(s.total_interruption_duration)
+
+  // Polar oppgir ingen «total søvntid» direkte. Vi summerer fasene (det er
+  // faktisk sovetid), og KRYSSJEKKER mot tid-i-seng minus avbrudd. Spriker de
+  // mer enn 20 minutter, sier vi fra i stedet for å velge blindt.
+  const stageSum = [deep, light, rem, unrecognized].some(v => v != null)
+    ? [deep, light, rem, unrecognized].reduce<number>((sum, v) => sum + (v ?? 0), 0)
+    : null
+
+  let inBedMinutes: number | null = null
+  if (s.sleep_start_time && s.sleep_end_time) {
+    const ms = new Date(s.sleep_end_time).getTime() - new Date(s.sleep_start_time).getTime()
+    if (Number.isFinite(ms) && ms > 0) inBedMinutes = Math.round(ms / 60000)
+  }
+  const fromBed = inBedMinutes != null ? inBedMinutes - (awake ?? 0) : null
+
+  if (stageSum != null && fromBed != null && Math.abs(stageSum - fromBed) > 20) {
+    notes.push(
+      `søvnfaser (${stageSum} min) og tid i seng minus avbrudd (${fromBed} min) spriker — bruker fase-summen`,
+    )
+  }
+  const totalSleep = stageSum ?? fromBed
+
+  // sleep_rating er brukerens EGEN vurdering, gitt i Polar Flow. 0 = ikke gitt.
+  const rating = typeof s.sleep_rating === 'number' && s.sleep_rating >= 1 && s.sleep_rating <= 5
+    ? s.sleep_rating
+    : null
+
+  const common: ParsedSleepCommon = {
+    sleep_start: s.sleep_start_time ?? null,
+    sleep_end: s.sleep_end_time ?? null,
+    total_sleep_minutes: inRange(totalSleep, 0, 1440, 'total søvntid', notes),
+    awake_minutes: inRange(awake, 0, 1440, 'våkentid', notes),
+    deep_minutes: inRange(deep, 0, 1440, 'dyp søvn', notes),
+    light_minutes: inRange(light, 0, 1440, 'lett søvn', notes),
+    rem_minutes: inRange(rem, 0, 1440, 'REM-søvn', notes),
+    perceived_quality: rating,
+  }
+
+  // Merkespesifikt: Polars egne sammensatte skårer. Egne skalaer, egne
+  // algoritmer — holdes utenfor fellesfeltene og felles trendlinjer.
+  const brand: Record<string, unknown> = {}
+  const put = (k: string, v: unknown) => { if (v != null) brand[k] = v }
+  put('sleep_score', s.sleep_score)
+  put('sleep_charge', s.sleep_charge)
+  put('continuity', s.continuity)
+  put('continuity_class', s.continuity_class)
+  put('sleep_cycles', s.sleep_cycles)
+  put('sleep_goal_minutes', secToMin(s.sleep_goal))
+  put('unrecognized_minutes', unrecognized)
+  put('short_interruption_minutes', secToMin(s.short_interruption_duration))
+  put('long_interruption_minutes', secToMin(s.long_interruption_duration))
+  put('group_duration_score', s.group_duration_score)
+  put('group_solidity_score', s.group_solidity_score)
+  put('group_regeneration_score', s.group_regeneration_score)
+
+  return { date: s.date, common, brand, notes }
+}
+
+export interface ParsedPolarRecharge {
+  date: string
+  common: { resting_hr: number | null; hrv_ms: number | null }
+  brand: Record<string, unknown>
+  notes: string[]
+}
+
+export function parsePolarRecharge(r: PolarNightlyRecharge): ParsedPolarRecharge {
+  const notes: string[] = []
+
+  // heart_rate_avg er snittpuls i et 4-timers vindu som starter 30 min etter
+  // innsovning — det er nettopp slik klokker regner hvilepuls. hrv er RMSSD,
+  // samme mål som HRV-feltet vårt betyr i praksis.
+  const restingHr = inRange(
+    typeof r.heart_rate_avg === 'number' ? r.heart_rate_avg : null,
+    20, 150, 'hvilepuls', notes,
+  )
+  const hrv = inRange(
+    typeof r.heart_rate_variability_avg === 'number' ? r.heart_rate_variability_avg : null,
+    0, 500, 'HRV', notes,
+  )
+
+  const brand: Record<string, unknown> = {}
+  const put = (k: string, v: unknown) => { if (v != null) brand[k] = v }
+  put('nightly_recharge_status', r.nightly_recharge_status)
+  put('ans_charge', r.ans_charge)
+  put('ans_charge_status', r.ans_charge_status)
+  put('breathing_rate_avg', r.breathing_rate_avg)
+  put('beat_to_beat_avg', r.beat_to_beat_avg)
+
+  return { date: r.date, common: { resting_hr: restingHr, hrv_ms: hrv }, brand, notes }
+}
+
 // ── Pull-notifications (cron-fallback) ───────────────────────
 
 export interface PolarAvailableUserData {
@@ -635,7 +867,15 @@ export async function getPolarWebhook(): Promise<{ status: number; body: unknown
   return { status: res.status, body }
 }
 
-export async function createPolarWebhook(url: string): Promise<{
+// Standard event-typer: økter OG søvn. SLEEP kom til med kø #52 — en
+// eksisterende webhook oppdateres med updatePolarWebhook (behold hemmeligheten)
+// i stedet for å opprettes på nytt.
+export const POLAR_WEBHOOK_EVENTS = ['EXERCISE', 'SLEEP'] as const
+
+export async function createPolarWebhook(
+  url: string,
+  events: readonly string[] = POLAR_WEBHOOK_EVENTS,
+): Promise<{
   status: number
   id?: string
   signature_secret_key?: string
@@ -648,7 +888,7 @@ export async function createPolarWebhook(url: string): Promise<{
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify({ events: ['EXERCISE'], url }),
+    body: JSON.stringify({ events, url }),
   })
   const body = await res.json().catch(() => null) as
     { data?: { id?: string; signature_secret_key?: string } } | null
@@ -658,6 +898,30 @@ export async function createPolarWebhook(url: string): Promise<{
     signature_secret_key: body?.data?.signature_secret_key,
     body,
   }
+}
+
+// PATCH /v3/webhooks/{id} — endrer event-typer og/eller url uten å opprette
+// på nytt. Viktig: signature_secret_key beholdes, så en oppdatering krever
+// ingen ny hemmelighet i env. Endres url-en, sender Polar en ny PING dit som
+// må besvares 200 (vår webhook-rute svarer alltid 200 på PING).
+export async function updatePolarWebhook(
+  webhookId: string,
+  events: string[],
+  url?: string,
+): Promise<{ status: number; body: unknown }> {
+  const payload: Record<string, unknown> = { events }
+  if (url) payload.url = url
+  const res = await fetch(`${POLAR_API}/webhooks/${encodeURIComponent(webhookId)}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: polarBasicAuthHeader(),
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+  const body = await res.json().catch(() => null)
+  return { status: res.status, body }
 }
 
 export async function deletePolarWebhook(webhookId: string): Promise<{ status: number }> {

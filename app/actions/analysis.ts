@@ -7,6 +7,7 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
+import { findStandardTest } from '@/lib/shooting-test-templates'
 
 // ── Typer ──────────────────────────────────────────
 
@@ -3665,6 +3666,140 @@ export async function getShootingDepthAnalysis(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return { error: `getShootingDepthAnalysis: ${msg}` }
+  }
+}
+
+// ── Kø #49 bolk 5: TEST-SAMMENLIGNING ────────────────────────
+// Gjennomføringer av SAMME skytetest-mal (NSSF-kodenøkkel eller egen uuid i
+// shooting_test_ref) grupperes for sammenligning. Rå serier sendes til
+// klienten som bruker den DELTE kun-førte-funksjonen (shootingSummary) —
+// ingen lokale treff %-beregninger. Grupperingsnøkkelen er generisk
+// (test-mal-ref nå; #48 kobler standardøkt-serier på samme mønster).
+
+export interface TestExecutionSeries {
+  series_no: number
+  position: 'L' | 'S'
+  shots: number
+  hits: number | null
+  time_seconds: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  points: number | null
+  vind_retning: 'V' | 'H' | null
+  vind_styrke: number | null
+  sikt: 'god' | 'lett_taake' | 'taake' | 'tett_taake' | null
+}
+
+export interface TestExecution {
+  workout_id: string
+  date: string
+  surface: string | null
+  series: TestExecutionSeries[]
+}
+
+export interface ShootingTestGroup {
+  ref: string
+  name: string
+  source: 'nssf' | 'egen'
+  scoring: 'treff' | 'ring'
+  executions: TestExecution[]      // kronologisk stigende
+}
+
+export async function getShootingTestComparison(
+  targetUserId?: string,
+): Promise<ShootingTestGroup[] | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
+
+    type Raw = {
+      id: string; date: string
+      workout_activities: {
+        shooting_test_ref: string | null
+        shooting_is_test: boolean | null
+        shooting_surface: string | null
+        sort_order: number | null
+        workout_shooting_series?: {
+          series_no: number; position: string
+          shots: number | null; hits: number | null; time_seconds: number | null
+          avg_heart_rate: number | null; max_heart_rate: number | null
+          points: number | null
+          vind_retning: string | null; vind_styrke: number | null; sikt: string | null
+        }[] | null
+      }[] | null
+    }
+    const { data, error } = await supabase
+      .from('workouts')
+      .select('id,date,workout_activities(shooting_test_ref,shooting_is_test,shooting_surface,sort_order,workout_shooting_series(series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,points,vind_retning,vind_styrke,sikt))')
+      .eq('user_id', userId)
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+      .eq('sport', 'biathlon')
+      .order('date', { ascending: true })
+    if (error) return { error: error.message }
+
+    const byRef = new Map<string, TestExecution[]>()
+    for (const w of (data ?? []) as Raw[]) {
+      for (const a of (w.workout_activities ?? [])) {
+        const ref = (a.shooting_test_ref ?? '').trim()
+        if (!ref) continue
+        const series: TestExecutionSeries[] = (a.workout_shooting_series ?? [])
+          .filter(s => (s.shots ?? 0) > 0)
+          .sort((x, y) => x.series_no - y.series_no)
+          .map(s => ({
+            series_no: s.series_no,
+            position: s.position === 'S' ? 'S' : 'L',
+            shots: s.shots ?? 0,
+            hits: s.hits,
+            time_seconds: s.time_seconds,
+            avg_heart_rate: s.avg_heart_rate,
+            max_heart_rate: s.max_heart_rate,
+            points: s.points ?? null,
+            vind_retning: s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+            vind_styrke: s.vind_styrke ?? null,
+            sikt: (s.sikt as TestExecutionSeries['sikt']) ?? null,
+          }))
+        if (series.length === 0) continue
+        const arr = byRef.get(ref) ?? []
+        arr.push({ workout_id: w.id, date: w.date, surface: a.shooting_surface, series })
+        byRef.set(ref, arr)
+      }
+    }
+    if (byRef.size === 0) return []
+
+    // Navn: NSSF-standardene fra det låste kodebiblioteket; egne maler fra
+    // shooting_test_templates. NB: egne maler er RLS-private — når en trener
+    // ser en utøver resolves ikke navnet (vises som «Egen test-mal»).
+    const ownIds = Array.from(byRef.keys()).filter(r => !findStandardTest(r))
+    const ownNames = new Map<string, { name: string; scoring: 'treff' | 'ring' }>()
+    if (ownIds.length > 0) {
+      const { data: own } = await supabase
+        .from('shooting_test_templates')
+        .select('id, name, config')
+        .in('id', ownIds)
+      for (const t of (own ?? [])) {
+        const cfg = (t.config ?? {}) as { scoring?: 'treff' | 'ring' }
+        ownNames.set(t.id as string, { name: t.name as string, scoring: cfg.scoring ?? 'treff' })
+      }
+    }
+
+    return Array.from(byRef.entries())
+      .map(([ref, executions]) => {
+        const std = findStandardTest(ref)
+        const own = ownNames.get(ref)
+        return {
+          ref,
+          name: std?.name ?? own?.name ?? 'Egen test-mal',
+          source: (std ? 'nssf' : 'egen') as 'nssf' | 'egen',
+          scoring: std?.scoring ?? own?.scoring ?? 'treff',
+          executions,
+        }
+      })
+      .sort((a, b) => b.executions.length - a.executions.length)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getShootingTestComparison: ${msg}` }
   }
 }
 

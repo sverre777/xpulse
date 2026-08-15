@@ -14,6 +14,7 @@ import {
   CHART_CURSOR, BAR_RADIUS,
 } from './chart-theme'
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
+import { TestComparison } from './TestComparison'
 import { ShotVolumeChart } from './ShotVolumeChart'
 import type { DateRange } from './date-range'
 import { windShort, sightLabel } from '@/lib/shooting'
@@ -87,6 +88,9 @@ export function SkytingTab({ data, range, targetUserId }: {
       {range && (
         <ShotVolumeChart range={range} targetUserId={targetUserId} title="Skudd per uke" />
       )}
+      {/* Kø #49 bolk 5: test-sammenligning — gjennomføringer av samme
+          skytetest-mal side om side + trend (selvskjulende uten tester). */}
+      <TestComparison targetUserId={targetUserId} />
       <CustomSkytingChartBuilder data={data} />
       <AccuracyTrend data={data} />
       <HrZoneAccuracy data={data} />

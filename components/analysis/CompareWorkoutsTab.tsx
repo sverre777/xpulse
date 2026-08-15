@@ -297,7 +297,7 @@ export function CompareWorkoutsTab({
             onChange={v => setTemplateFilter(v === '' ? null : v)}
             options={[
               { value: '', label: 'Alle' },
-              ...templateOptions.map(t => ({ value: t.id, label: `${t.name} (${t.count})` })),
+              ...templateOptions.map(t => ({ value: t.id, label: `${t.is_test ? '🧪 ' : ''}${t.name} (${t.count})` })),
             ]} />
         </div>
       </div>

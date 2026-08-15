@@ -12,6 +12,9 @@ export interface TemplateOption {
   id: string
   name: string
   count: number
+  // Kø #49: test-mal (workout_templates.is_test) — vises m/ 🧪 i filteret.
+  // Sammenligning av test-økter (alle idretter) GJENBRUKER denne flaten.
+  is_test: boolean
 }
 
 export async function getTemplateOptions(): Promise<TemplateOption[] | { error: string }> {
@@ -33,9 +36,10 @@ export async function getTemplateOptions(): Promise<TemplateOption[] | { error: 
   // template_name som fallback for slettede maler.
   const { data: tpls } = await supabase
     .from('workout_templates')
-    .select('id, name')
+    .select('id, name, is_test')
     .eq('user_id', user.id)
   const nameById = new Map((tpls ?? []).map(t => [t.id as string, t.name as string]))
+  const testById = new Map((tpls ?? []).map(t => [t.id as string, (t.is_test as boolean | null) ?? false]))
   const fallbackName = new Map<string, string>()
 
   const counts = new Map<string, number>()
@@ -47,7 +51,12 @@ export async function getTemplateOptions(): Promise<TemplateOption[] | { error: 
     for (const id of idsForW) counts.set(id, (counts.get(id) ?? 0) + 1)
   }
   return Array.from(counts.entries())
-    .map(([id, count]) => ({ id, name: nameById.get(id) ?? fallbackName.get(id) ?? 'Uten navn', count }))
+    .map(([id, count]) => ({
+      id,
+      name: nameById.get(id) ?? fallbackName.get(id) ?? 'Uten navn',
+      count,
+      is_test: testById.get(id) ?? false,
+    }))
     .sort((a, b) => b.count - a.count)
 }
 

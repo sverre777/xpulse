@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   getKlokkesyncStatus, type KlokkesyncBadge, type KlokkesyncStatus,
 } from '@/app/actions/klokkesync-status'
-import { quickSyncNonConflicting } from '@/app/actions/strava-sync'
+import { syncConnectedWatches } from '@/app/actions/klokkesync-sync'
 
 // Topbar-ikon for klokkesync. Rendres umiddelbart med initialBadge fra
 // server-side layout-fetch — ingen useEffect-blink ved første render.
@@ -51,7 +51,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
 
   const handleSyncNow = async () => {
     setPopupOpen(false)
-    const fresh = await quickSyncNonConflicting('last_30d')
+    const fresh = await syncConnectedWatches()
     if (!fresh.error) {
       const next = await getKlokkesyncStatus()
       setFullStatus(next)

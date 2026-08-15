@@ -114,6 +114,13 @@ async function processExerciseEvent(polarUserId: number, entityId: string) {
     .update({ last_webhook_at: new Date().toISOString() })
     .eq('user_id', (conn as PolarConnection).user_id)
 
+  // Auto-synk avslått = ingen automatisk import. Webhook-tidsstempelet over
+  // settes likevel, for det er overvåkningsdata: leveransen KOM fram.
+  if (!(conn as PolarConnection).auto_sync) {
+    console.log(`[polar-webhook] auto_sync er av for polar-bruker ${polarUserId} — importerer ikke`)
+    return
+  }
+
   const summary = await importPolarExercises(supabase, conn as PolarConnection, {
     onlyExerciseId: entityId,
   })

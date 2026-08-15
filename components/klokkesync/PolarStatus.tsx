@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
+import { setPolarAutoSync } from '@/app/actions/polar-sync'
 import { PolarDisconnectModal } from './PolarDisconnectModal'
 
 // Polar-flatene som hører til bolk 2 (OAuth + registrering):
@@ -224,6 +225,21 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
             </div>
           )}
         </div>
+      )}
+
+      {conn.registered_at && (
+        <label className="flex items-center gap-2 mt-4"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2', minHeight: 44 }}>
+          <input type="checkbox" checked={conn.auto_sync} disabled={pending}
+            onChange={() => {
+              startTransition(async () => {
+                const res = await setPolarAutoSync(!conn.auto_sync)
+                if ('error' in res) void xpAlert(res.error)
+                router.refresh()
+              })
+            }} />
+          Auto-synk nye Polar-økter (varsles direkte, sikkerhetsnett hver 6. time)
+        </label>
       )}
 
       <p style={{

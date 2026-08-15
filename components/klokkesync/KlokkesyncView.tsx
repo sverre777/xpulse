@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ConnectWithStravaButton, StravaLogo, PoweredByStravaBadge } from '@/components/strava/StravaBrand'
-import { StravaInfoBox } from '@/components/strava/StravaInfoBox'
+import { StravaLogo, PoweredByStravaBadge } from '@/components/strava/StravaBrand'
 import { StravaDisconnectModal } from '@/components/strava/StravaDisconnectModal'
 import { StravaCompactInfo } from '@/components/strava/StravaCompactInfo'
 import {
@@ -18,6 +17,7 @@ import {
 } from '@/app/actions/strava-sync'
 import { uploadFitFile } from '@/app/actions/fit-upload'
 import { ConflictModal } from './ConflictModal'
+import { KlokkesyncBrandPicker } from './KlokkesyncBrandPicker'
 import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 
@@ -51,6 +51,11 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 export function KlokkesyncView({
   stravaConnection, status, detail, polarConnection = null, polarStatus = null,
 }: Props) {
+  const hasConnection = !!stravaConnection || !!polarConnection
+  const connectedSlugs = [
+    ...(stravaConnection ? ['strava'] : []),
+    ...(polarConnection ? ['polar'] : []),
+  ]
   return (
     <div className="space-y-8">
       <PolarStatusBanner status={polarStatus} detail={detail} />
@@ -74,19 +79,28 @@ export function KlokkesyncView({
 
       <StravaRolloutNote />{/* alltid synlig — info om gradvis utrulling + at .fit alltid fungerer */}
 
-      <StravaSection conn={stravaConnection} />
-      {polarConnection && <PolarConnectionBlock conn={polarConnection} />}
-      <FitUploadSection />
+      {/* Inngangen forgrenes: har du minst én tilkobling, er dette synk-
+          visningen med ett kort per merke, og merkevelgeren ligger under som
+          «Koble til flere». Har du ingen, er merkevelgeren hovedinngangen —
+          vi sender deg ikke rett inn i ett enkelt merkes flyt. */}
+      {hasConnection ? (
+        <>
+          {stravaConnection && <StravaSection conn={stravaConnection} />}
+          {polarConnection && <PolarConnectionBlock conn={polarConnection} />}
+          <KlokkesyncBrandPicker
+            title="Koble til flere"
+            intro="Du kan ha flere klokkemerker koblet til samtidig."
+            connectedSlugs={connectedSlugs}
+            showFitHint={false}
+          />
+        </>
+      ) : (
+        <KlokkesyncBrandPicker
+          intro="Velg merket klokka di synker til. Du kan koble til flere senere."
+        />
+      )}
 
-      <div className="p-4"
-        style={{
-          background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
-          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-          color: '#8A8A96', lineHeight: 1.7,
-        }}>
-        <strong style={{ color: '#F0F0F2' }}>Direkte-synk for Garmin Connect, Apple Health, Polar og Coros</strong>
-        {' '}kommer snart. Inntil da: bruk Strava OAuth (auto-synk hvert 5. min) eller last opp .fit-filer manuelt.
-      </div>
+      <FitUploadSection />
     </div>
   )
 }
@@ -123,7 +137,10 @@ function StravaRolloutNote() {
 
 // ── Strava-seksjonen ─────────────────────────────────────────
 
-function StravaSection({ conn }: { conn: StravaConn | null }) {
+// Vises kun når Strava ER tilkoblet. Tilkoblings-flyten (info-boks, Stravas
+// egen knapp, samtykke-teksten) ligger nå på merkesiden
+// /app/innstillinger/klokkesync/strava — se StravaConnectPanel.
+function StravaSection({ conn }: { conn: StravaConn }) {
   return (
     <section className="p-5"
       style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderTop: '3px solid #FC5200' }}>
@@ -136,26 +153,10 @@ function StravaSection({ conn }: { conn: StravaConn | null }) {
           <StravaLogo size={26} color="#FC5200" />
           Strava
         </h2>
-        {conn && <PoweredByStravaBadge />}
+        <PoweredByStravaBadge />
       </div>
-      {conn ? <StravaConnected conn={conn} /> : <StravaDisconnected />}
+      <StravaConnected conn={conn} />
     </section>
-  )
-}
-
-function StravaDisconnected() {
-  return (
-    <>
-      <StravaInfoBox />
-      <p style={{ fontSize: 14, color: 'rgba(242,240,236,0.7)', lineHeight: 1.7, marginBottom: 16 }}>
-        Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.
-        Vi henter aktiviteten, splittene/lapsene og puls/watt/pace-streamene.
-      </p>
-      <ConnectWithStravaButton />
-      <p style={{ marginTop: '10px', fontSize: 12, color: 'rgba(242,240,236,0.5)', fontFamily: "'Barlow Condensed', sans-serif" }}>
-        Ved tilkobling samtykker du til Stravas API Agreement og X-PULSE sine vilkår.
-      </p>
-    </>
   )
 }
 

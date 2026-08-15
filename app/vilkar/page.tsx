@@ -158,14 +158,36 @@ export default function VilkarPage() {
         begrenses eller fjernes.
       </LegalP>
 
-      <LegalH2>12. Endringer i vilkårene</LegalH2>
+      <LegalH2>12. Polar-integrasjon</LegalH2>
+      <LegalP>
+        Ved å bruke Polar-integrasjonen i X-PULSE samtykker du til{' '}
+        <a href="https://www.polar.com/en/legal/privacy-notice" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>
+          Polar sine vilkår og personvernerklæring
+        </a>{' '}
+        i tillegg til X-PULSE sine vilkår. Data hentes via Polar AccessLink, og datakilden
+        krediteres som «Polar Ecosystem» der Polar-data vises.
+      </LegalP>
+      <LegalP>Du forstår at:</LegalP>
+      <LegalUL>
+        <LegalLI>Polar gir kun tilgang til økter fra de siste 30 dagene</LegalLI>
+        <LegalLI>Kun økter lastet opp til Polar Flow ETTER at du koblet til er tilgjengelige — eldre historikk må lastes opp som .fit-filer</LegalLI>
+        <LegalLI>Alle obligatoriske samtykker må være godtatt hos Polar, ellers nekter Polar oss datatilgang</LegalLI>
+        <LegalLI>Ved frakobling slettes ALL importert Polar-data, og X-PULSE avregistreres hos Polar slik at tilgangen trekkes tilbake</LegalLI>
+        <LegalLI>Du kan beholde data permanent ved manuell .fit-fil-opplasting</LegalLI>
+      </LegalUL>
+      <LegalP>
+        Ved brudd på Polar sine vilkår fra vår side kan din tilgang til Polar-integrasjonen
+        begrenses eller fjernes.
+      </LegalP>
+
+      <LegalH2>13. Endringer i vilkårene</LegalH2>
       <LegalP>
         Vi kan endre vilkårene. Vesentlige endringer varsles på e-post eller i appen minst
         30 dager før de trer i kraft. Hvis du ikke godtar endringene, kan du si opp
         kontoen.
       </LegalP>
 
-      <LegalH2>13. Lovvalg og tvisteløsning</LegalH2>
+      <LegalH2>14. Lovvalg og tvisteløsning</LegalH2>
       <LegalP>
         Vilkårene reguleres av norsk rett. Tvister søkes løst i minnelighet. Hvis det
         ikke lykkes, er <strong>[Verneting]</strong> avtalt verneting.
@@ -175,7 +197,7 @@ export default function VilkarPage() {
         nettbaserte tvisteløsningsplattform.
       </LegalP>
 
-      <LegalH2>14. Kontakt</LegalH2>
+      <LegalH2>15. Kontakt</LegalH2>
       <LegalP>
         Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

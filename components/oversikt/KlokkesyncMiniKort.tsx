@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
-import { quickSyncNonConflicting } from '@/app/actions/strava-sync'
+import { syncConnectedWatches } from '@/app/actions/klokkesync-sync'
 
 // Kort liten klokkesync-boks på Hjem (ved trener-kortet):
 //  - Ikke koblet: «Koble klokke» → synk-siden.
@@ -38,7 +38,7 @@ export function KlokkesyncMiniKort({ badge }: { badge: KlokkesyncBadge }) {
   const handleSyncNow = async () => {
     if (syncing) return
     setSyncing(true)
-    const res = await quickSyncNonConflicting('last_30d')
+    const res = await syncConnectedWatches()
     if (!res.error) {
       setLastSyncAt(new Date().toISOString())
       router.refresh()

@@ -136,7 +136,59 @@ export default function PersonvernPage() {
         For Strava sin egen personvernpolicy: <a href="https://www.strava.com/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>strava.com/legal/privacy</a>.
       </LegalP>
 
-      <LegalH2 id="stripe">10. Stripe (betalingsbehandling)</LegalH2>
+      <LegalH2 id="polar">10. Polar-integrasjon</LegalH2>
+      <LegalP>
+        X-PULSE støtter import av treningsdata fra Polar (Polar AccessLink). Ved å koble til
+        Polar-kontoen din samtykker du til følgende databehandling. Datakilden krediteres som
+        «Polar Ecosystem» der Polar-data vises.
+      </LegalP>
+      <LegalP><strong>Hvilke data vi henter:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Treningsøkter: sport, varighet, distanse, dato og klokkeslett</LegalLI>
+        <LegalLI>Puls-data: snittpuls, makspuls og sekund-for-sekund puls der klokka har lagret det</LegalLI>
+        <LegalLI>Fart, kadens og høyde der Polar leverer det</LegalLI>
+        <LegalLI>Polars bruker-id (x_user_id), som er nødvendig for å vite hvilke data som er dine</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hva vi IKKE henter:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Vi lagrer ingen personopplysninger fra Polar-profilen din — ikke navn, fødselsdato, kjønn eller vekt</LegalLI>
+        <LegalLI>Vi henter ikke søvn-, døgnpuls- eller aktivitetsdata utenfor trening</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Polar-data vises KUN til den autentiserte brukeren</LegalLI>
+        <LegalLI>Trenere får tilgang kun med utøvers eksplisitte per-trener-samtykke</LegalLI>
+        <LegalLI>Polar-data brukes ALDRI til AI/ML-modelltrening</LegalLI>
+        <LegalLI>Polar-data deles ALDRI med tredjeparter, advertisers eller data brokers</LegalLI>
+        <LegalLI>Polar-data kombineres ALDRI med annen kundedata for aggregat-analyse</LegalLI>
+        <LegalLI>Sonefordeling regnes ut hos oss fra din egen pulsskala — vi bruker ikke Polars soner</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Lagring og sletting:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Polar gir kun tilgang til økter fra de siste 30 dagene, og kun økter lastet opp etter at du koblet til</LegalLI>
+        <LegalLI>Importerte økter og tilhørende data lagres så lenge Polar er koblet til</LegalLI>
+        <LegalLI>Ved frakobling slettes ALL importert Polar-data umiddelbart: økter, aktiviteter, rå sekund-data og import-sporing</LegalLI>
+        <LegalLI>Ved frakobling avregistreres X-PULSE hos Polar og tilgangen (tokenet) trekkes tilbake, slik Polars API-lisensavtale krever</LegalLI>
+        <LegalLI>Brukere kan eksportere .fit-filer manuelt fra Polar Flow og laste opp til X-PULSE for permanent lagring av egne data</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Bruker-rettigheter:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Du kan frakoble Polar når som helst på <Link href="/app/innstillinger/klokkesync" style={{ color: '#FF4500' }}>/app/innstillinger/klokkesync</Link></LegalLI>
+        <LegalLI>Du kan be om sletting av alle dine data ved å kontakte <a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></LegalLI>
+        <LegalLI>Du kan eksportere dine X-PULSE-data via egen eksport-funksjon</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Sikkerhet:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>All Polar-kommunikasjon over HTTPS</LegalLI>
+        <LegalLI>OAuth 2.0-autentisering; tokens lagres kun server-side og er utilgjengelige for nettleseren</LegalLI>
+        <LegalLI>Varsler fra Polar signeres med HMAC-SHA256 og verifiseres før de behandles</LegalLI>
+        <LegalLI>Vi følger Polar sin API-lisensavtale, inkludert kravet om å stanse tilgang og slette tokens ved frakobling</LegalLI>
+      </LegalUL>
+      <LegalP>
+        For Polar sin egen personvernerklæring: <a href="https://www.polar.com/en/legal/privacy-notice" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>polar.com/legal/privacy-notice</a>.
+      </LegalP>
+
+      <LegalH2 id="stripe">11. Stripe (betalingsbehandling)</LegalH2>
       <LegalP>
         X-PULSE bruker Stripe (Stripe Inc., USA / Stripe Ireland Limited, EU) for å håndtere abonnement og betalinger.
       </LegalP>
@@ -160,7 +212,7 @@ export default function PersonvernPage() {
         Du kan be Stripe om sletting direkte hvis du ønsker det.
       </LegalP>
 
-      <LegalH2 id="data-eksport">11. Data-eksport (Right to Data Portability)</LegalH2>
+      <LegalH2 id="data-eksport">12. Data-eksport (Right to Data Portability)</LegalH2>
       <LegalP>
         Du har til enhver tid rett til å eksportere alle dine personopplysninger lagret i X-PULSE.
         Eksport er tilgjengelig via{' '}
@@ -182,7 +234,7 @@ export default function PersonvernPage() {
         <LegalLI>Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</LegalLI>
       </LegalUL>
 
-      <LegalH2 id="sletting">12. Sletting av data (Right to Erasure)</LegalH2>
+      <LegalH2 id="sletting">13. Sletting av data (Right to Erasure)</LegalH2>
       <LegalP>
         Du kan slette kontoen og all data permanent når som helst ved å kontakte{' '}
         <a href="mailto:support@x-pulse.no?subject=Sletting%20av%20konto" style={{ color: '#FF4500' }}>support@x-pulse.no</a>.
@@ -194,13 +246,13 @@ export default function PersonvernPage() {
         1 dag før slettingen skjer, så du har full mulighet til å eksportere først eller reaktivere.
       </LegalP>
 
-      <LegalH2>13. Endringer</LegalH2>
+      <LegalH2>14. Endringer</LegalH2>
       <LegalP>
         Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
         i appen før de trer i kraft. Sist oppdatert: <strong>2026-05-16</strong>.
       </LegalP>
 
-      <LegalH2>14. Kontakt</LegalH2>
+      <LegalH2>15. Kontakt</LegalH2>
       <LegalP>
         For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

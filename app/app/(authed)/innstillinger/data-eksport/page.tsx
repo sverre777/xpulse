@@ -32,7 +32,8 @@ export default async function DataEksportPage() {
             <li>✓ Planlagte økter, perioder og nøkkeldatoer</li>
             <li>✓ Maler (økt + plan)</li>
             <li>✓ Profil-data (sport, max_heart_rate — IKKE passord)</li>
-            <li>✓ Tilkoblings-tracking (imported_activities)</li>
+            <li>✓ Tilkoblings-tracking (imported_activities) — kilde per økt: Strava, Polar, .fit-opplasting</li>
+            <li>✓ Polar-importerte økter med rå sekund-data (ingen 7-dagers-grense som for Strava)</li>
           </ul>
         </section>
 
@@ -53,6 +54,15 @@ export default async function DataEksportPage() {
               Strava → Aktiviteter
             </a>{' '}
             og last opp som .fit i X-PULSE.
+          </p>
+          <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', lineHeight: 1.5 }}>
+            Polar: eksporten inneholder alt vi har importert, men Polar selv gir oss kun de
+            siste 30 dagene. Eldre Polar-økter må eksporteres som .fit fra{' '}
+            <a href="https://flow.polar.com" target="_blank" rel="noopener noreferrer"
+              style={{ color: '#FF4500', textDecoration: 'underline' }}>
+              Polar Flow
+            </a>{' '}
+            og lastes opp i X-PULSE.
           </p>
         </section>
 

@@ -9,6 +9,7 @@ import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
+import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import { XpTooltip } from '@/components/analysis/chart-theme'
 import { getCalendarWorkouts, reorderWorkouts, moveWorkout } from '@/app/actions/workouts'
@@ -50,6 +51,8 @@ import {
   keyDatesForDate, weekOverlayFor, weekIntensitySegments, weekIntensityGradient,
   periodForDate, formatSpanNO,
 } from '@/lib/periodization-overlay'
+import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
+import type { ShotStats } from '@/lib/types'
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -270,6 +273,23 @@ function aggregate(workouts: CalendarWorkoutSummary[], mode: CalendarMode): Aggr
   return out
 }
 
+// Kø #47 bolk 5: skudd-statistikk over et datospenn (delt kilde:
+// shot_stats/planned_shot_stats fra calendar-summary).
+function aggregateShotRange(
+  byDate: Record<string, CalendarWorkoutSummary[]>,
+  dates: Iterable<string>,
+  mode: CalendarMode,
+): ShotStats {
+  const out = emptyShotStats()
+  for (const key of dates) {
+    for (const w of filterByMode(byDate[key] ?? [], mode)) {
+      if (!includeInSum(w, mode)) continue
+      addShotStats(out, mode === 'plan' ? w.planned_shot_stats : w.shot_stats)
+    }
+  }
+  return out
+}
+
 function aggregateRange(
   byDate: Record<string, CalendarWorkoutSummary[]>,
   dates: Iterable<string>,
@@ -324,7 +344,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
 // høyrekolonnen — viser uke-nummer, tid, km, økter og sonefordeling som én
 // kompakt linje. Bryter til 2 linjer på mobil hvis innholdet ikke får plass.
 function WeekAnalysisStripe({
-  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, markings, plannedSeconds,
+  weekNumber, totalSeconds, totalMeters, sessions, zoneSeconds, accent, markings, plannedSeconds, shotStats, plannedShotsTotal,
 }: {
   weekNumber: number
   totalSeconds: number
@@ -338,6 +358,9 @@ function WeekAnalysisStripe({
   // Del D: dagbok — ukens PLANLAGTE tid, vist som «15t / 18t plan».
   // null/undefined = ikke i dagbok eller ingenting planlagt.
   plannedSeconds?: number | null
+  // Kø #47 bolk 5: ukens skudd-statistikk (🎯-chip + typefordelings-bar).
+  shotStats?: ShotStats | null
+  plannedShotsTotal?: number | null
 }) {
   const totalMins = Math.round(totalSeconds / 60)
   const km = totalMeters > 0 ? Math.round((totalMeters / 1000) * 10) / 10 : 0
@@ -366,6 +389,12 @@ function WeekAnalysisStripe({
       >
         Uke {weekNumber}
       </span>
+      {/* Kø #47 bolk 5: 🎯 skudd-chip (aldri borte på mobil — baren
+          bryter til egen linje) — kun uker m/ skyting. */}
+      {shotStats && (
+        <ShotWeekChip stats={shotStats}
+          plannedShots={plannedShotsTotal && plannedShotsTotal > 0 ? plannedShotsTotal : null} />
+      )}
       {/* Samling/høyde-badges fra markeringslaget — emoji + sted/moh. */}
       {markings?.map(m => (
         <span key={m.id} className="text-xs" title={`${m.name} (${m.start_date} → ${m.end_date})`}
@@ -1446,6 +1475,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const weekPlannedSeconds = mode === 'dagbok'
           ? aggregateRange(byDate, week.map(toISO), 'plan').seconds
           : 0
+        // Kø #47 bolk 5: ukens skudd (reelle; tørr = tid i tooltip) +
+        // planlagte skudd for «184/200»-visning i dagbok.
+        const weekShots = aggregateShotRange(byDate, week.map(toISO), mode)
+        const weekPlannedShots = mode === 'dagbok'
+          ? aggregateShotRange(byDate, week.map(toISO), 'plan').shots
+          : 0
 
         // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
         // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
@@ -1532,6 +1567,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
               accent={weekOverlay.period ? rowAccent : null}
               markings={weekMarkings}
               plannedSeconds={weekPlannedSeconds > 0 ? weekPlannedSeconds : null}
+              shotStats={weekShots}
+              plannedShotsTotal={weekPlannedShots}
             />
             </div>
 
@@ -1781,6 +1818,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 accent={weekOverlay.period ? rowAccent : null}
                 markings={weekMarkings}
                 plannedSeconds={weekPlannedSeconds > 0 ? weekPlannedSeconds : null}
+                shotStats={weekShots}
+                plannedShotsTotal={weekPlannedShots}
               />
             </div>
 

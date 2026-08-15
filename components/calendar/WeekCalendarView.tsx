@@ -11,6 +11,8 @@ import {
 import { ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate, SeasonMarking } from '@/app/actions/seasons'
+import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
+import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
 import type { DayState } from '@/lib/day-state-types'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
@@ -227,14 +229,24 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
   const weekMarkings = seasonMarkings.filter(m => m.start_date <= weekEndISO && m.end_date >= weekStartISO)
   let seconds = 0, sessions = 0, meters = 0
   const zoneSec: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  // Kø #47 bolk 5: ukens skudd-statistikk (delt kilde/aggregering).
+  const shotAgg = emptyShotStats()
+  let plannedShotsTotal = 0
   for (const d of weekDates) {
     for (const w of filterByMode(byDate[toISO(d)] ?? [], mode)) {
       if (!includeInSum(w, mode)) continue
       sessions += 1
       seconds += secondsFor(w, mode)
       meters += metersFor(w, mode)
+      addShotStats(shotAgg, mode === 'plan' ? w.planned_shot_stats : w.shot_stats)
       const zs = zoneSecondsFor(w, mode)
       for (const k of Object.keys(zoneSec) as ExtendedZoneName[]) zoneSec[k] += zs[k] ?? 0
+    }
+    if (mode === 'dagbok') {
+      for (const w of filterByMode(byDate[toISO(d)] ?? [], 'plan')) {
+        if (!includeInSum(w, 'plan')) continue
+        plannedShotsTotal += w.planned_shot_stats?.shots ?? 0
+      }
     }
   }
   const totalMins = Math.round(seconds / 60)
@@ -328,6 +340,8 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
               {sessions} økt{sessions !== 1 ? 'er' : ''}
             </span>
+            <ShotWeekChip stats={shotAgg}
+              plannedShots={plannedShotsTotal > 0 ? plannedShotsTotal : null} />
           </div>
           {totalZoneSec > 0 && (
             <div className="flex w-full overflow-hidden"

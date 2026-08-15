@@ -1011,6 +1011,20 @@ export interface TrainingPhase {
 
 // ── Calendar helpers ────────────────────────────────────────
 
+// Kø #47 bolk 5: skudd-statistikk per økt for uke-/mnd-aggregater.
+// Reelle skudd (tørrtrening ALDRI med i shots — den telles i TID via
+// drySeconds, jf. brukerpresisering). recorded* følger den globale
+// «kun førte»-regelen (hits ført på siden/serien).
+export interface ShotStats {
+  shots: number
+  recordedShots: number
+  recordedHits: number
+  // Skudd per blokk-type: basisskyting/rolig_komb/hurtighet_komb/hard_komb
+  // + 'ukjent' for migrerte blokker uten satt type.
+  byType: Record<string, number>
+  drySeconds: number
+}
+
 export interface CalendarWorkoutSummary {
   id: string
   title: string
@@ -1040,6 +1054,9 @@ export interface CalendarWorkoutSummary {
   rpe?: number | null
   // Notat på selve økten — kuttes med ellipsis i UI.
   notes?: string | null
+  // Kø #47 bolk 5: skudd-statistikk (dagbok/faktisk + planlagt).
+  shot_stats?: ShotStats | null
+  planned_shot_stats?: ShotStats | null
   // Aggregert skyting fra workout_activities (sum prone/standing hits+shots).
   // null hvis ingen skyting registrert.
   shooting?: {

@@ -1,4 +1,4 @@
-import { CalendarWorkoutSummary, CompetitionType } from './types'
+import { CalendarWorkoutSummary, CompetitionType, ShotStats } from './types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
 import {
   ActivityLike,
@@ -24,6 +24,9 @@ export type RawCalendarActivity = {
   prone_hits?: number | null
   standing_shots?: number | null
   standing_hits?: number | null
+  // Kø #47: blokk-type + tørr-flagg for skudd-per-type-statistikk.
+  shooting_type?: string | null
+  is_dry_training?: boolean | null
 }
 
 export type RawCalendarWorkout = {
@@ -226,6 +229,93 @@ function earliestActivityStart(
   return null
 }
 
+// ── Kø #47 bolk 5: skudd-statistikk (delt aggregering — aldri kopier). ──
+export function emptyShotStats(): ShotStats {
+  return { shots: 0, recordedShots: 0, recordedHits: 0, byType: {}, drySeconds: 0 }
+}
+
+export function addShotStats(into: ShotStats, add: ShotStats | null | undefined): ShotStats {
+  if (!add) return into
+  into.shots += add.shots
+  into.recordedShots += add.recordedShots
+  into.recordedHits += add.recordedHits
+  into.drySeconds += add.drySeconds
+  for (const [k, v] of Object.entries(add.byType)) {
+    into.byType[k] = (into.byType[k] ?? 0) + v
+  }
+  return into
+}
+
+// Type-oppslag: shooting_type der satt; tørr-flagg → torrtrening;
+// skyting_basis → basisskyting; ellers 'ukjent' (migrerte uten type).
+function resolveShotType(activityType: string, shootingType?: string | null, isDry?: boolean | null): string {
+  if (shootingType) return shootingType
+  if (isDry) return 'torrtrening'
+  if (activityType === 'skyting_basis') return 'basisskyting'
+  return 'ukjent'
+}
+
+function shotStatsFromActivities(acts: RawCalendarWorkout['workout_activities']): ShotStats | null {
+  if (!acts || acts.length === 0) return null
+  const out = emptyShotStats()
+  let any = false
+  for (const a of acts) {
+    if (!isShootingActivityType(a.activity_type)) continue
+    any = true
+    const type = resolveShotType(a.activity_type, a.shooting_type, a.is_dry_training)
+    if (type === 'torrtrening') {
+      out.drySeconds += Number(a.duration_seconds) || 0
+      continue
+    }
+    const p = Number(a.prone_shots) || 0
+    const s = Number(a.standing_shots) || 0
+    const shots = p + s
+    if (shots <= 0) continue
+    out.shots += shots
+    out.byType[type] = (out.byType[type] ?? 0) + shots
+    if (a.prone_hits != null && p > 0) {
+      out.recordedShots += p
+      out.recordedHits += Math.min(Number(a.prone_hits) || 0, p)
+    }
+    if (a.standing_hits != null && s > 0) {
+      out.recordedShots += s
+      out.recordedHits += Math.min(Number(a.standing_hits) || 0, s)
+    }
+  }
+  return any ? out : null
+}
+
+// Planlagt: snapshot-aktiviteter (rå ActivityRow-jsonb) — serier foretrekkes
+// (nye planer har tomme prone/standing-strenger), fallback til aggregatene.
+function shotStatsFromSnapshot(snap: RawCalendarWorkout['planned_snapshot']): ShotStats | null {
+  const raw = snap?.activities
+  if (!Array.isArray(raw) || raw.length === 0) return null
+  const out = emptyShotStats()
+  let any = false
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const a = item as Record<string, unknown>
+    const at = typeof a.activity_type === 'string' ? a.activity_type : ''
+    if (!isShootingActivityType(at)) continue
+    any = true
+    const type = resolveShotType(at,
+      typeof a.shooting_type === 'string' ? a.shooting_type : null,
+      a.is_dry_training === true)
+    if (type === 'torrtrening') continue
+    const series = Array.isArray(a.shooting_series) ? a.shooting_series as Record<string, unknown>[] : []
+    let shots = 0
+    if (series.length > 0) {
+      for (const s of series) shots += parseInt(String(s.shots ?? '')) || 0
+    } else {
+      shots = (parseInt(String(a.prone_shots ?? '')) || 0) + (parseInt(String(a.standing_shots ?? '')) || 0)
+    }
+    if (shots <= 0) continue
+    out.shots += shots
+    out.byType[type] = (out.byType[type] ?? 0) + shots
+  }
+  return any && out.shots > 0 ? out : null
+}
+
 export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[] = []): CalendarWorkoutSummary {
   const snap = w.planned_snapshot ?? null
   const plannedZones = snapshotZones(snap)
@@ -306,6 +396,8 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     max_heart_rate: w.max_heart_rate ?? null,
     rpe: w.rpe ?? null,
     notes: w.notes ?? null,
+    shot_stats: shotStatsFromActivities(w.workout_activities),
+    planned_shot_stats: shotStatsFromSnapshot(snap),
     primary_movement: extractPrimaryMovement(w.workout_activities),
     primary_subcategory: extractPrimarySubcategory(w.workout_activities),
     shooting: extractShootingTotals(w.workout_activities),

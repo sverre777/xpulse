@@ -5,7 +5,7 @@ import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncView } from '@/components/klokkesync/KlokkesyncView'
 
 interface Props {
-  searchParams: Promise<{ strava?: string; detail?: string }>
+  searchParams: Promise<{ strava?: string; polar?: string; detail?: string }>
 }
 
 export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
@@ -22,11 +22,21 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
     .eq('user_id', user.id)
     .maybeSingle()
 
+  // Polar-tilkoblingen (fase 89). Vises kun når raden finnes — det fulle
+  // Polar-kortet kommer i bolk 5, etter at frakoblingen (bolk 3) er på plass.
+  const { data: polarConn } = await supabase
+    .from('polar_connections')
+    .select('polar_user_id, auto_sync, last_sync_at, registered_at, created_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
   // Henter Strava-athlete-navn fra profile-table om vi har det. (Strava
   // returnerer firstname/lastname i athlete-objektet ved OAuth, men vi
   // lagrer ikke det enda — viser bare athlete_id som fallback.)
   const sp = await searchParams
   const stravaStatus = sp.strava ?? null
+  const polarStatus = sp.polar ?? null
+  // detail deles av begge flytene — kun én av dem redirecter av gangen.
   const stravaDetail = sp.detail ?? null
 
   return (
@@ -43,6 +53,14 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
           } : null}
           status={stravaStatus}
           detail={stravaDetail}
+          polarConnection={polarConn ? {
+            polar_user_id: polarConn.polar_user_id,
+            auto_sync: polarConn.auto_sync,
+            last_sync_at: polarConn.last_sync_at,
+            registered_at: polarConn.registered_at,
+            connected_at: polarConn.created_at,
+          } : null}
+          polarStatus={polarStatus}
         />
       </div>
     </div>

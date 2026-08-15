@@ -18,6 +18,7 @@ import {
 } from '@/app/actions/strava-sync'
 import { uploadFitFile } from '@/app/actions/fit-upload'
 import { ConflictModal } from './ConflictModal'
+import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 
 interface StravaConn {
@@ -32,6 +33,10 @@ interface Props {
   stravaConnection: StravaConn | null
   status: string | null
   detail?: string | null
+  // Polar (fase 89 / bolk 2). Tilkoblings-blokken vises kun når raden finnes;
+  // status-banneret vises når callbacken har redirectet hit med ?polar=…
+  polarConnection?: PolarConn | null
+  polarStatus?: string | null
 }
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
@@ -43,9 +48,13 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   'token-feilet':   { label: 'Token-utveksling feilet — prøv igjen',       color: '#E11D48' },
 }
 
-export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
+export function KlokkesyncView({
+  stravaConnection, status, detail, polarConnection = null, polarStatus = null,
+}: Props) {
   return (
     <div className="space-y-8">
+      <PolarStatusBanner status={polarStatus} detail={detail} />
+
       {status && STATUS_LABEL[status] && (
         <div className="p-4"
           style={{
@@ -66,6 +75,7 @@ export function KlokkesyncView({ stravaConnection, status, detail }: Props) {
       <StravaRolloutNote />{/* alltid synlig — info om gradvis utrulling + at .fit alltid fungerer */}
 
       <StravaSection conn={stravaConnection} />
+      {polarConnection && <PolarConnectionBlock conn={polarConnection} />}
       <FitUploadSection />
 
       <div className="p-4"

@@ -138,29 +138,33 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
 // Polar er logobruk eksplisitt begrenset i lisensavtalen.
 export function BrandMark({ brand, size = 40 }: { brand: KlokkesyncBrand; size?: number }) {
   const live = brand.status === 'live'
-  const color = live ? brand.accent : '#8A8A96'
   const letter = brand.mark ?? brand.name.slice(0, 1).toUpperCase()
+
+  // Live merker får FYLT flis i merkefargen med utsparet bokstav — det leser
+  // som et bevisst designelement, ikke som en logo som ikke lastet. Merker
+  // som ikke er live får dempet omriss, så de trer tydelig tilbake.
+  const style: React.CSSProperties = live
+    ? { background: brand.accent, border: 'none' }
+    : { background: 'transparent', border: '1px solid #2A2A30' }
+  const inkColor = live ? '#0A0A0B' : '#555560'
 
   return (
     <span
       aria-hidden="true"
       className="shrink-0 inline-flex items-center justify-center"
-      style={{
-        width: size, height: size, borderRadius: size * 0.26,
-        background: `${color}1F`,
-        border: `1px solid ${color}59`,
-      }}>
+      style={{ width: size, height: size, borderRadius: size * 0.26, ...style }}>
       {brand.logoSrc ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={brand.logoSrc} alt="" width={size * 0.6} height={size * 0.6}
+        <img src={brand.logoSrc} alt="" width={size * 0.62} height={size * 0.62}
           style={{ objectFit: 'contain' }} />
       ) : brand.branding === 'strava' ? (
-        <StravaLogo size={size * 0.55} color={color} />
+        // Stravas egen logo, hvit på merkefargen — slik brand guidelines viser den.
+        <StravaLogo size={size * 0.58} color="#FFFFFF" />
       ) : (
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: size * 0.5, lineHeight: 1, color,
-          letterSpacing: '0.02em',
+          fontSize: size * 0.52, lineHeight: 1, color: inkColor,
+          letterSpacing: '0.02em', paddingTop: size * 0.04,
         }}>
           {letter}
         </span>

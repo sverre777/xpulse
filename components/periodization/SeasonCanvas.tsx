@@ -127,10 +127,6 @@ function periodToInput(p: SeasonPeriod, overrides: Partial<PeriodInput>, targetU
     intensity: p.intensity,
     notes: p.notes,
     sort_order: p.sort_order,
-    is_altitude_period: p.is_altitude_period ?? false,
-    altitude_meters: p.altitude_meters ?? null,
-    is_training_camp: p.is_training_camp ?? false,
-    location: p.location ?? null,
     targetUserId,
     ...overrides,
   }

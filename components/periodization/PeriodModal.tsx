@@ -44,13 +44,8 @@ export function PeriodModal({
     const payload = {
       season_id: seasonId, name, focus, start_date: startDate, end_date: endDate, intensity, notes,
       sort_order: editing?.sort_order ?? 0,
-      // B2 (kø #39): samling/høyde bor i MARKERINGSLAGET (season_markings,
-      // egen modal). Legacy-flaggene på perioden røres ikke ved redigering
-      // (beholdes uendret for rollback av fase 82-migreringen).
-      is_altitude_period: editing?.is_altitude_period ?? false,
-      altitude_meters: editing?.altitude_meters ?? null,
-      is_training_camp: editing?.is_training_camp ?? false,
-      location: editing?.location ?? null,
+      // G5 (kø #47): samling/høyde bor i MARKERINGSLAGET (season_markings) —
+      // legacy-flaggene på perioden er fjernet fra datamodellen (fase 84).
       targetUserId,
     }
     const res = editing

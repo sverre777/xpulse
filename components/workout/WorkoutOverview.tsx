@@ -244,6 +244,12 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           {fromTemplate && (
             <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
           )}
+          {/* Kø #48: standardøkt-serie — diskret pille i heroen. */}
+          {data.standard_session_series_name && (
+            <span style={pillStyle('#FF8A5C', 'rgba(255,69,0,.08)', 'rgba(255,69,0,.35)')}>
+              ⟳ Standardøkt: {data.standard_session_series_name}
+            </span>
+          )}
         </div>
         <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: '0.03em', lineHeight: 1.05, color: '#F2F2F0', fontWeight: 400 }}>
           {data.title || 'Økt'}

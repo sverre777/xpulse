@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout, markCompleted } from '@/app/actions/workouts'
+import { listMySessionSeries, createSessionSeries, type StandardSessionSeries } from '@/app/actions/standard-sessions'
 import { getAltitudePeriodForDate } from '@/app/actions/seasons'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
@@ -248,6 +249,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     template_name: defaultValues?.template_name ?? null,
     standard_workout_template_id:   defaultValues?.standard_workout_template_id ?? null,
     standard_workout_template_name: defaultValues?.standard_workout_template_name ?? null,
+    standard_session_series_id:     defaultValues?.standard_session_series_id ?? null,
+    standard_session_series_name:   defaultValues?.standard_session_series_name ?? null,
     test_data:     defaultValues?.test_data,
     nutrition_entries: defaultValues?.nutrition_entries ?? [],
     weather: defaultValues?.weather ?? emptyWeatherData(),
@@ -261,8 +264,33 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
 
-  // «Marker som standardøkt»-velger: åpner mal-listen i tagge-modus.
+  // Kø #48 bolk 2: standardøkt-SERIE-velger (erstatter mal-tagge-modusen).
+  // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
+  const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
+  const [serieSearch, setSerieSearch] = useState('')
+  const [newSerieName, setNewSerieName] = useState<string | null>(null)
+  const [newSerieSted, setNewSerieSted] = useState('')
+  const [serieSuggestionDismissed, setSerieSuggestionDismissed] = useState(false)
+  useEffect(() => {
+    if (readOnly) return
+    let cancelled = false
+    listMySessionSeries()
+      .then(res => { if (!cancelled) setSeriesList(Array.isArray(res) ? res : []) })
+      .catch(() => { if (!cancelled) setSeriesList([]) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  // Smart forslag (kjerneprinsipp 2): mal og/eller sted matcher en serie →
+  // FORESLÅ, aldri auto-koble. Vises én gang per åpnet skjema.
+  const serieSuggestion = useMemo(() => {
+    if (!seriesList || form.standard_session_series_id || serieSuggestionDismissed) return null
+    const loc = form.location?.trim().toLowerCase()
+    return seriesList.find(s =>
+      (form.template_id && s.template_id === form.template_id)
+      || (loc && s.location && s.location.trim().toLowerCase() === loc)
+    ) ?? null
+  }, [seriesList, form.standard_session_series_id, form.template_id, form.location, serieSuggestionDismissed])
 
   // Mal-kategorisering: filtrer «Fra mal»-lista på bevegelsesform og
   // kategori når lista er stor (>4). Union-opsjoner fra malene selv —
@@ -374,25 +402,41 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       location: d.location ?? f.location,
       template_id: template.id,
       template_name: template.name,
-      // «Bruk mal» tagger automatisk økten som denne standardøkten.
-      standard_workout_template_id: template.id,
-      standard_workout_template_name: template.name,
+      // Kø #48 (kjerneprinsipp 2): mal-bruk gjør ALDRI økta automatisk til
+      // standardøkt — en matchende serie FORESLÅS i stedet (serieSuggestion).
     }))
   }
 
-  // «Marker som standardøkt»: tagg økten som å representere malen UTEN å hente
-  // mal-data (økten beholder egne data, f.eks. fra klokkesynk). Brukes til å
-  // følge utviklingen av samme standardøkt over tid i analyse.
-  const tagAsStandard = (template: WorkoutTemplate) => {
-    setForm(f => ({
-      ...f,
-      standard_workout_template_id: template.id,
-      standard_workout_template_name: template.name,
-    }))
+  // Kø #48 bolk 2: serie-kobling — aldri automatikk, alltid aktivt valg.
+  const selectSerie = (s: StandardSessionSeries) => {
+    setForm(f => ({ ...f, standard_session_series_id: s.id, standard_session_series_name: s.name }))
     setStandardPickerOpen(false)
   }
-  const clearStandard = () => {
-    setForm(f => ({ ...f, standard_workout_template_id: null, standard_workout_template_name: null }))
+  const clearSerie = () => {
+    setForm(f => ({ ...f, standard_session_series_id: null, standard_session_series_name: null }))
+  }
+  const createSerie = async () => {
+    const name = (newSerieName ?? '').trim()
+    if (!name) return
+    const res = await createSessionSeries({
+      name,
+      location: newSerieSted,
+      sport: form.sport,
+      template_id: form.template_id ?? null,
+    })
+    if (res.id) {
+      setSeriesList(null)
+      const created: StandardSessionSeries = {
+        id: res.id, name, sport: form.sport, movement_name: null,
+        location: newSerieSted.trim() || null,
+        template_id: form.template_id ?? null, description: null,
+        workout_count: 0, last_date: null,
+      }
+      listMySessionSeries().then(r => setSeriesList(Array.isArray(r) ? r : [created]))
+      selectSerie(created)
+      setNewSerieName(null)
+      setNewSerieSted('')
+    }
   }
 
   const openTemplateModal = () => {
@@ -668,49 +712,134 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </button>
             ))}
             <button type="button" onClick={() => setStandardPickerOpen(o => !o)}
-              className="xp-mal xp-ghost"
-              style={standardPickerOpen ? { color: 'var(--accent)', borderColor: 'var(--accent)' } : undefined}>
-              + Standardøkt
+              className="xp-mal"
+              style={{
+                color: form.standard_session_series_id || standardPickerOpen ? '#FF8A5C' : undefined,
+                borderColor: form.standard_session_series_id || standardPickerOpen ? '#FF450088' : undefined,
+                background: form.standard_session_series_id ? '#1A0F08' : undefined,
+                borderRadius: 999,
+              }}>
+              ⟳ Standardøkt
             </button>
           </div>
 
-          {/* Tagge-modus: velg mal KUN for å tagge (henter ikke mal-data). */}
+          {/* Kø #48 bolk 2: smart forslag — mal/sted matcher en serie.
+              Aldri automatikk; dismissbart, vises én gang per skjema. */}
+          {serieSuggestion && !standardPickerOpen && (
+            <div className="mt-2 mb-1 p-3 flex flex-wrap items-center gap-2"
+              style={{ background: '#1A0F08', border: '1px solid #3A2418', borderRadius: 'var(--r-field)' }}>
+              <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C' }}>
+                ⟳ Legg til i serien «{serieSuggestion.name}»?
+              </span>
+              <button type="button" onClick={() => selectSerie(serieSuggestion)}
+                className="text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontWeight: 700 }}>
+                Ja
+              </button>
+              <button type="button" onClick={() => setSerieSuggestionDismissed(true)}
+                className="text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
+                Nei takk
+              </button>
+            </div>
+          )}
+
+          {/* Serie-velgeren: søkbar liste + opprett ny inline. */}
           {standardPickerOpen && (
             <div className="mt-1 mb-3 p-3" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
               <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
-                Velg standardøkten denne økten representerer. Henter <b>ikke</b> mal-data —
-                økten beholder sine egne tall (f.eks. fra klokkesynk).
+                Koble økta til en <b>standardøkt-serie</b> — samme økt over tid, sammenlignbar i analysen.
+                Henter <b>ikke</b> mal-data; økta beholder sine egne tall.
               </p>
+              {(seriesList?.length ?? 0) > 4 && (
+                <input value={serieSearch} onChange={e => setSerieSearch(e.target.value)}
+                  placeholder="Søk i serier…"
+                  className="mb-2 px-3 py-2 w-full text-sm"
+                  style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", outline: 'none' }} />
+              )}
               <div className="flex items-center gap-2 flex-wrap">
-                {visibleTemplates.map(t => (
-                  <button key={t.id} type="button" onClick={() => tagAsStandard(t)}
-                    className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      color: form.standard_workout_template_id === t.id ? '#FF4500' : '#8A8A96',
-                      background: 'none',
-                      border: `1px solid ${form.standard_workout_template_id === t.id ? '#FF4500' : '#222228'}`,
-                      cursor: 'pointer',
-                    }}>
-                    {t.name}
+                {seriesList === null && (
+                  <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Laster serier…</span>
+                )}
+                {(seriesList ?? [])
+                  .filter(s => !serieSearch.trim() || s.name.toLowerCase().includes(serieSearch.trim().toLowerCase()))
+                  .map(s => (
+                    <button key={s.id} type="button" onClick={() => selectSerie(s)}
+                      className="px-3 py-1.5 text-sm transition-opacity hover:opacity-80"
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        color: form.standard_session_series_id === s.id ? '#FF8A5C' : '#C0C0CC',
+                        background: form.standard_session_series_id === s.id ? '#1A0F08' : 'none',
+                        border: `1px solid ${form.standard_session_series_id === s.id ? '#FF450088' : '#222228'}`,
+                        borderRadius: 999, cursor: 'pointer', minHeight: 36,
+                      }}>
+                      {s.name}
+                      <span style={{ color: '#555560', marginLeft: 6, fontSize: 12 }}>
+                        {s.workout_count}×{s.location ? ` · ${s.location}` : ''}
+                      </span>
+                    </button>
+                  ))}
+                {newSerieName === null ? (
+                  <button type="button" onClick={() => setNewSerieName(form.title.trim())}
+                    className="px-3 py-1.5 text-sm"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer', minHeight: 36 }}>
+                    + Ny serie
                   </button>
-                ))}
+                ) : (
+                  <span className="flex items-center gap-2 flex-wrap">
+                    <input value={newSerieName} onChange={e => setNewSerieName(e.target.value)}
+                      placeholder="Navn på serien"
+                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 170, outline: 'none' }} />
+                    <input value={newSerieSted} onChange={e => setNewSerieSted(e.target.value)}
+                      placeholder="Sted (valgfritt)"
+                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 140, outline: 'none' }} />
+                    <button type="button" onClick={() => { void createSerie() }}
+                      disabled={!(newSerieName ?? '').trim()}
+                      className="text-xs tracking-widest uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer', fontWeight: 700 }}>
+                      Opprett
+                    </button>
+                    <button type="button" onClick={() => { setNewSerieName(null); setNewSerieSted('') }} aria-label="Avbryt"
+                      style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', minHeight: 36, minWidth: 32 }}>✕</button>
+                  </span>
+                )}
               </div>
             </div>
           )}
 
-          {/* Aktiv standardøkt-tagg + fjern-knapp. */}
-          {form.standard_workout_template_id && (
+          {/* Aktiv serie-kobling: fjern / bytt / hopp til sammenligning. */}
+          {form.standard_session_series_id && (
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', border: '1px solid #3A2418', background: '#1A0F08' }}>
-                ⟳ Standardøkt: {form.standard_workout_template_name ?? 'mal'}
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', border: '1px solid #3A2418', background: '#1A0F08', borderRadius: 999 }}>
+                ⟳ Standardøkt: {form.standard_session_series_name ?? 'serie'}
               </span>
-              <button type="button" onClick={clearStandard}
+              <button type="button" onClick={() => setStandardPickerOpen(true)}
+                className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Bytt serie
+              </button>
+              <button type="button" onClick={clearSerie}
                 className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer' }}>
-                Fjern tagg ✕
+                Fjern kobling ✕
               </button>
+              <a href="/app/analyse"
+                className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none' }}>
+                Se utvikling →
+              </a>
+            </div>
+          )}
+
+          {/* Legacy-tagg (før serie-modellen) uten serie-kobling — vises
+              lesbart til bolk 6-oppryddingen; ny kobling via velgeren over. */}
+          {!form.standard_session_series_id && form.standard_workout_template_id && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid var(--line2)', background: 'none', borderRadius: 999 }}>
+                ⟳ Standardøkt (gammel tagg): {form.standard_workout_template_name ?? 'mal'}
+              </span>
             </div>
           )}
         </div>

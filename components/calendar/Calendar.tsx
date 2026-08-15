@@ -683,6 +683,11 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
               </span>
             ) : null}
             {shootingLabel ? <span style={{ color: '#A9A9B5' }}>{shootingLabel}</span> : null}
+            {/* Kø #48: diskret standardøkt-markør (serienavn i title). */}
+            {w.standard_session_name ? (
+              <span title={`Standardøkt: ${w.standard_session_name}`}
+                style={{ color: '#FF8A5C', marginLeft: '4px' }}>⟳</span>
+            ) : null}
           </span>
         )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}

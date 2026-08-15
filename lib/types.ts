@@ -283,6 +283,10 @@ export interface WorkoutFormData {
   // workout_templates ved lesing (ikke denormalisert) — kun for visning i form.
   standard_workout_template_id?: string | null
   standard_workout_template_name?: string | null
+  // Kø #48 (fase 88): standardøkt-SERIE — egen entitet, mange-til-én.
+  // Navnet er display-only (resolves fra standard_session_series ved lasting).
+  standard_session_series_id?: string | null
+  standard_session_series_name?: string | null
   // Fase 31: strukturert test-resultat (kun relevant når workout_type='test').
   // Lagres i workout_test_data som egen rad per workout.
   test_data?: TestData
@@ -1053,6 +1057,8 @@ export interface CalendarWorkoutSummary {
   // Kilde for badge-visning. 'strava' | 'fit' | null. Viser "Importert"-tag
   // i kalender og workout-detalj.
   imported_from?: string | null
+  // Kø #48: standardøkt-serie — navn for diskret ⟳-markør (null = ukoblet).
+  standard_session_name?: string | null
   workout_type: WorkoutType
   // Sport på workouts-tabellen + utledet primær bevegelsesform fra
   // workout_activities (modus-mest-brukte movement_name).

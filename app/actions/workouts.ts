@@ -716,6 +716,19 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     template_name: data.template_name ?? null,
     // Fase 76: standardøkt-tagg (navnet resolves fra workout_templates ved lesing).
     standard_workout_template_id: data.standard_workout_template_id ?? null,
+    // Kø #48 (fase 88): standardøkt-serie. Vakt: serien må tilhøre øktas
+    // eier (trener som redigerer utøver kan ellers koble egen serie feil).
+    standard_session_series_id: await (async () => {
+      const sid = data.standard_session_series_id ?? null
+      if (!sid) return null
+      const { data: ok } = await supabase
+        .from('standard_session_series')
+        .select('id')
+        .eq('id', sid)
+        .eq('user_id', resolved.userId)
+        .maybeSingle()
+      return ok ? sid : null
+    })(),
     tags: data.tags.length > 0 ? data.tags : null,
     updated_at: new Date().toISOString(),
   }
@@ -1255,7 +1268,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
@@ -1270,7 +1283,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
@@ -1364,6 +1377,18 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       .eq('id', standard_workout_template_id)
       .maybeSingle()
     standard_workout_template_name = (stdTpl?.name as string | null) ?? null
+  }
+
+  // Kø #48 (fase 88): standardøkt-serie — samme isolerte navne-oppslag.
+  const standard_session_series_id = (workout.standard_session_series_id as string | null) ?? null
+  let standard_session_series_name: string | null = null
+  if (standard_session_series_id) {
+    const { data: serie } = await supabase
+      .from('standard_session_series')
+      .select('name')
+      .eq('id', standard_session_series_id)
+      .maybeSingle()
+    standard_session_series_name = (serie?.name as string | null) ?? null
   }
 
   // Map DB workout_activities → ActivityRow-format (strings for form-binding)
@@ -1572,6 +1597,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       template_name: (workout.template_name as string | null) ?? null,
       standard_workout_template_id,
       standard_workout_template_name,
+      standard_session_series_id,
+      standard_session_series_name,
     }
   }
 
@@ -1682,6 +1709,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     template_name: (workout.template_name as string | null) ?? null,
     standard_workout_template_id,
     standard_workout_template_name,
+    standard_session_series_id,
+    standard_session_series_name,
   }
 }
 

@@ -38,6 +38,9 @@ export type RawCalendarWorkout = {
   is_group_session?: boolean | null
   group_session_label?: string | null
   imported_from?: string | null
+  // Kø #48 (fase 88): standardøkt-serie — diskret ⟳-markør i kalenderen.
+  standard_session_series_id?: string | null
+  standard_session_series?: { name: string } | { name: string }[] | null
   sport?: string | null
   avg_heart_rate?: number | null
   max_heart_rate?: number | null
@@ -368,6 +371,11 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     is_altitude_training: w.is_altitude_training ?? false,
     is_heat_training: w.is_heat_training ?? false,
     group_session_label: w.group_session_label ?? null,
+    standard_session_name: (() => {
+      const s = w.standard_session_series
+      if (!s) return null
+      return Array.isArray(s) ? (s[0]?.name ?? null) : s.name
+    })(),
     imported_from: w.imported_from ?? null,
     workout_type: w.workout_type as CalendarWorkoutSummary['workout_type'],
     duration_minutes: w.duration_minutes,

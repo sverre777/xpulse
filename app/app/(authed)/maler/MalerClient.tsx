@@ -87,7 +87,7 @@ export function MalerClient({
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
-            backgroundColor: '#FF4500', border: 'none',
+            backgroundColor: '#FF4500', border: 'none', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
           + Ny øktmal
@@ -96,7 +96,7 @@ export function MalerClient({
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-            background: 'none', border: '1px solid #FF4500',
+            background: 'none', border: '1px solid #FF4500', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
           + Ny planmal
@@ -135,6 +135,7 @@ export function MalerClient({
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '7px 14px', minHeight: 36, cursor: 'pointer',
+                borderRadius: 999,
                 color: quick === c.key ? '#F0F0F2' : '#8A8A96',
                 backgroundColor: quick === c.key
                   ? (c.key === 'test' ? '#D4A01722' : '#FF450022')
@@ -537,7 +538,7 @@ function ActionBtn({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         color: danger ? '#FF4500' : '#8A8A96',
-        background: 'none',
+        background: 'none', borderRadius: 999,
         border: `1px solid ${danger ? '#FF450066' : '#222228'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -631,7 +632,7 @@ function BrukPaaDatoModal({
             className="text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              background: 'none', border: '1px solid #262629', borderRadius: 999,
               padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -641,7 +642,7 @@ function BrukPaaDatoModal({
             className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
-              background: '#FF4500', border: 'none',
+              background: '#FF4500', border: 'none', borderRadius: 999,
               padding: '8px 14px',
               cursor: (pending || !date) ? 'not-allowed' : 'pointer',
               opacity: (pending || !date) ? 0.6 : 1,
@@ -730,7 +731,7 @@ function BrukPlanPaaDatoModal({
             className="text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              background: 'none', border: '1px solid #262629', borderRadius: 999,
               padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -740,7 +741,7 @@ function BrukPlanPaaDatoModal({
             className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
-              background: '#FF4500', border: 'none',
+              background: '#FF4500', border: 'none', borderRadius: 999,
               padding: '8px 14px',
               cursor: (pending || !date) ? 'not-allowed' : 'pointer',
               opacity: (pending || !date) ? 0.6 : 1,

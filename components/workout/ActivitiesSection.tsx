@@ -1860,11 +1860,12 @@ function ShootingFields({
               Bruk serie-summen som total skytetid: {autoSumLabel}
             </button>
           )}
-          {/* Bulk-plotting: alle serier i samme popup m/ farge per serie. */}
+          {/* Bulk-plotting: alle serier i samme popup m/ farge per serie.
+              Fylt + synlig (brukerønske 2026-08-16) — plott-oransje aksent. */}
           {!planMode && series.filter(s => (parseInt(s.shots) || 0) > 0).length > 1 && (
             <button type="button" onClick={() => setPlotTarget('all')}
               className="mt-1 text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed var(--line2)', borderRadius: 8, cursor: 'pointer', padding: '8px 12px', minHeight: 36, letterSpacing: '0.05em' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: '#FF8C00', background: '#2A1E10', border: '1px solid #FF8C0066', borderRadius: 8, cursor: 'pointer', padding: '9px 14px', minHeight: 40, letterSpacing: '0.06em' }}>
               🎯 Plott alle serier
             </button>
           )}

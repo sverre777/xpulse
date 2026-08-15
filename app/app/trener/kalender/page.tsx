@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getCoachCalendarEvents } from '@/app/actions/coach-dashboard'
 import { getTrainerNotesForRange } from '@/app/actions/trainer-calendar'
 import { TrenerKalender } from '@/components/coach/trener-kalender/TrenerKalender'
@@ -10,7 +11,7 @@ import { TrenerKalender } from '@/components/coach/trener-kalender/TrenerKalende
 
 export default async function CoachCalendarPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   // Hent et rommelig intervall (ett år bakover, to år frem) så bruker kan

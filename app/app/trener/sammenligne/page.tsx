@@ -1,11 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { SammenligneLayout, type AthleteOption } from '@/components/coach/SammenligneLayout'
 import type { Sport } from '@/lib/types'
 
 export default async function TrenerSammenlignePage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: rels } = await supabase

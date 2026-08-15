@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getAthleteCoachSetup } from '@/app/actions/coach-invite'
 import { getMyCoachDataPermissions } from '@/app/actions/coach-data-permissions'
 import { InviteCodeGenerator } from '@/components/settings/InviteCodeGenerator'
@@ -8,7 +9,7 @@ import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 
 export default async function TrenerInnstillingerPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const [res, healthPermissions] = await Promise.all([

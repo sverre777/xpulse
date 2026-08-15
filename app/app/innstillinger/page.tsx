@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { SettingsCategoryCard } from '@/components/settings/SettingsCategoryCard'
 import type { Role } from '@/lib/types'
 
@@ -16,7 +17,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
     ? `Strava frakoblet. ${sp?.deleted ?? 0} økter slettet.`
     : null
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: profile } = await supabase

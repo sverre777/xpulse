@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncView } from '@/components/klokkesync/KlokkesyncView'
 
@@ -9,7 +10,10 @@ interface Props {
 
 export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Lesebane: header-basert auth (29026a9-mønsteret). Direkte auth.getUser
+  // her var rate-limit-utsatt (AuthRetryableFetchError) og ga intermitterende
+  // heng — «trykker på klokkesynk og den åpner ikke».
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: stravaConn } = await supabase

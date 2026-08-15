@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getTemplates } from '@/app/actions/templates'
 import { getPlanTemplates } from '@/app/actions/plan-templates'
 import { getPeriodizationTemplates } from '@/app/actions/periodization-templates'
@@ -13,7 +14,7 @@ interface Props {
 
 export default async function TrenerPlanleggRoute({ searchParams }: Props) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const sp = await searchParams

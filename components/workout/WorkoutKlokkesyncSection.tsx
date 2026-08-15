@@ -25,28 +25,57 @@ interface FetchState {
   workoutId: string
   data: WorkoutKlokkesyncData | null
   loading: boolean
+  // Nettverks-/action-feil (mobil, deploy-race): uten denne ble en avvist
+  // promise stående i loading for alltid → seksjonen «åpnet aldri».
+  error: boolean
 }
 
 export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
-  const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true })
+  const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true, error: false })
   const [showDeep, setShowDeep] = useState(false)
+  const [retryTick, setRetryTick] = useState(0)
 
   // Når workoutId endrer seg (bruker åpner annen økt i samme session),
   // resync ved å sammenligne i state. Det unngår dobbel-setState i samme tick.
   if (state.workoutId !== workoutId) {
-    setState({ workoutId, data: null, loading: true })
+    setState({ workoutId, data: null, loading: true, error: false })
   }
 
   useEffect(() => {
     let cancelled = false
-    getWorkoutKlokkesyncData(workoutId).then(d => {
-      if (cancelled) return
-      setState({ workoutId, data: d, loading: false })
-    })
+    getWorkoutKlokkesyncData(workoutId)
+      .then(d => {
+        if (cancelled) return
+        setState({ workoutId, data: d, loading: false, error: false })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setState({ workoutId, data: null, loading: false, error: true })
+      })
     return () => { cancelled = true }
-  }, [workoutId])
+  }, [workoutId, retryTick])
 
   if (state.loading) return null
+  if (state.error) {
+    return (
+      <div className="my-4 p-3 flex items-center gap-3"
+        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderRadius: 10 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
+          Kunne ikke laste klokkedata.
+        </span>
+        <button type="button"
+          onClick={() => { setState(s => ({ ...s, loading: true, error: false })); setRetryTick(t => t + 1) }}
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--accent)', background: 'none',
+            border: '1px solid var(--accent)', borderRadius: 8, padding: '6px 12px',
+            cursor: 'pointer', minHeight: 32,
+          }}>
+          Prøv igjen
+        </button>
+      </div>
+    )
+  }
   const data = state.data
   if (!data) return null
 

@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getDailyHealth } from '@/app/actions/health'
 import { HealthForm } from '@/components/health/HealthForm'
 
 export default async function HealthPage({ params }: { params: Promise<{ date: string }> }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { date } = await params

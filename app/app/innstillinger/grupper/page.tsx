@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { CoachGroupsSection } from '@/components/coach/CoachGroupsSection'
 import type { CoachGroupSummary } from '@/app/actions/coach-dashboard'
@@ -8,7 +9,7 @@ const COACH_BLUE = '#1A6FD4'
 
 export default async function GrupperInnstillingerPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: profile } = await supabase

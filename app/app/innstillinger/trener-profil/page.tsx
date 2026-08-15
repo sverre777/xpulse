@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { TrenerProfilSection } from '@/components/settings/coach/TrenerProfilSection'
 import { getCoachProfile } from '@/app/actions/coach-settings'
@@ -8,7 +9,7 @@ const COACH_BLUE = '#1A6FD4'
 
 export default async function TrenerProfilPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: profile } = await supabase

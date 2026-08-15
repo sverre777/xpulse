@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { ProfileSection } from '@/components/settings/ProfileSection'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import type { Sport } from '@/lib/types'
 
 export default async function ProfilInnstillingerPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()

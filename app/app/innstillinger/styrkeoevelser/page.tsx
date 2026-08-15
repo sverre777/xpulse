@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { StrengthExerciseLibrarySection } from '@/components/settings/StrengthExerciseLibrarySection'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 
 export default async function StyrkeoevelserPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const initial = await getUserExercises(undefined, undefined, 'strength')

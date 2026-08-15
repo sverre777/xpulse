@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { getUserMovementTypes } from '@/app/actions/user-movement-types'
 import { MovementTypesSection } from '@/components/settings/MovementTypesSection'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 
 export default async function BevegelsesformerPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/app')
 
   const initial = await getUserMovementTypes()

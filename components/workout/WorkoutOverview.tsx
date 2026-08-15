@@ -21,6 +21,7 @@ import {
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
+import { ImportSourceBadge } from './ImportSourceBadge'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
 import { computeActivityTotals, ZONE_COLORS_V2, type ActivityLike } from '@/lib/activity-summary'
@@ -230,8 +231,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           ) : (
             <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
           )}
+          {/* Strava-synk vises med offisiell Strava-logo (attribution) —
+              aldri den røde trekanten. */}
           {data.imported_from === 'strava' && (
-            <span style={pillStyle('var(--accent)', 'var(--accent-soft)', 'var(--accent-50)')}>▲ Strava-synk</span>
+            <ImportSourceBadge source="strava" />
           )}
           {data.imported_from && data.imported_from !== 'strava' && (
             <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>

@@ -700,7 +700,13 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
         touchAction: 'manipulation',
       }}>
       {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
-      {w.imported_from && <span style={{ color: 'var(--accent)', fontSize: 10, flexShrink: 0 }} title="Klokkesynk">▲</span>}
+      {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
+          — aldri rød trekant. */}
+      {w.imported_from && (
+        <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+          <ImportSourceBadge source={w.imported_from} compact />
+        </span>
+      )}
       {comp && <span style={{ fontSize: 12, flexShrink: 0 }}>{comp.icon}</span>}
       {w.is_important && <span style={{ color: '#FF4500', fontSize: 12, flexShrink: 0 }}>★</span>}
       {w.start_time && (

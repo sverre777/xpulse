@@ -1716,30 +1716,6 @@ function ShootingFields({
                     ⤓🎯
                   </button>
                 )}
-                {/* Kø #49: vind & sikt-chip — ALLTID i det synlige segmentet
-                    (mobil beholder nr · L/S · treff · vind på linje 1). */}
-                {!planMode && (() => {
-                  const hasWind = s.vind_styrke != null || s.sikt != null
-                  return (
-                    <button type="button" aria-label="Vind og sikt for serien"
-                      onClick={() => setWindTarget(s.id)}
-                      title={hasWind ? 'Endre vind og sikt for serien' : 'Før vind og sikt for serien (valgfritt)'}
-                      className="inline-flex items-center"
-                      style={{
-                        gap: 5, minHeight: 40, borderRadius: 8, cursor: 'pointer', padding: '0 8px',
-                        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#8B8B95',
-                        background: hasWind ? '#1A1218' : 'var(--card2)',
-                        border: `1px ${hasWind ? 'solid #E23A5A55' : 'dashed var(--line2)'}`,
-                      }}>
-                      {hasWind ? (
-                        <>
-                          {s.vind_styrke != null && <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke} size={24} />}
-                          {s.sikt && <span>{sightLabel(s.sikt)?.replace(' sikt', '')}</span>}
-                        </>
-                      ) : '+ vind'}
-                    </button>
-                  )
-                })()}
                 {!planMode && (
                   <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
                     <input value={s.avg_heart_rate} onChange={e => updSeries(s.id, { avg_heart_rate: e.target.value })}
@@ -1759,6 +1735,31 @@ function ShootingFields({
                       }}>
                       🎯
                     </button>
+                    {/* Kø #49: vind & sikt — lite symbol mellom plotting og
+                        notat (brukerplassering 2026-08-16). */}
+                    {(() => {
+                      const hasWind = s.vind_styrke != null || s.sikt != null
+                      const parts = [
+                        s.vind_styrke != null ? windShort(s.vind_retning, s.vind_styrke) : null,
+                        sightLabel(s.sikt),
+                      ].filter(Boolean)
+                      return (
+                        <button type="button" aria-label="Vind og sikt for serien"
+                          onClick={() => setWindTarget(s.id)}
+                          title={hasWind
+                            ? `Vind & sikt: ${parts.join(' · ')} — trykk for å endre`
+                            : 'Før vind og sikt for serien (valgfritt)'}
+                          className="inline-flex items-center justify-center"
+                          style={{
+                            minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
+                            background: hasWind ? '#1A1218' : 'var(--card2)',
+                            border: `1px solid ${hasWind ? '#E23A5A55' : 'var(--line2)'}`,
+                            opacity: hasWind ? 1 : 0.75,
+                          }}>
+                          <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke ?? 0} size={22} />
+                        </button>
+                      )
+                    })()}
                     <button type="button" aria-label="Notat for serien"
                       onClick={() => setNoteOpenId(noteOpenId === s.id ? null : s.id)}
                       style={{

@@ -180,14 +180,28 @@ export default function VilkarPage() {
         begrenses eller fjernes.
       </LegalP>
 
-      <LegalH2>13. Endringer i vilkårene</LegalH2>
+      <LegalH2>13. Helse- og søvndata</LegalH2>
+      <LegalP>
+        Helse- og søvndata er særlige kategorier av personopplysninger (GDPR artikkel 9).
+        Du bestemmer selv om de registreres, og hvem som ser dem.
+      </LegalP>
+      <LegalP>Du forstår at:</LegalP>
+      <LegalUL>
+        <LegalLI>Helse og søvn er kun synlig for deg til du aktivt slår på deling for en bestemt trener</LegalLI>
+        <LegalLI>Deling gir treneren LESE-tilgang; kun du kan føre verdiene</LegalLI>
+        <LegalLI>Kalorier hentes ikke inn, og biosensing (SpO2, EKG, hudtemperatur) hentes ikke i denne versjonen</LegalLI>
+        <LegalLI>Kobler du fra et klokkemerke, slettes de importerte verdiene fra det merket, mens alt du har ført manuelt beholdes</LegalLI>
+        <LegalLI>Helse- og søvndata brukes aldri til AI/ML-trening og deles aldri med tredjeparter</LegalLI>
+      </LegalUL>
+
+      <LegalH2>14. Endringer i vilkårene</LegalH2>
       <LegalP>
         Vi kan endre vilkårene. Vesentlige endringer varsles på e-post eller i appen minst
         30 dager før de trer i kraft. Hvis du ikke godtar endringene, kan du si opp
         kontoen.
       </LegalP>
 
-      <LegalH2>14. Lovvalg og tvisteløsning</LegalH2>
+      <LegalH2>15. Lovvalg og tvisteløsning</LegalH2>
       <LegalP>
         Vilkårene reguleres av norsk rett. Tvister søkes løst i minnelighet. Hvis det
         ikke lykkes, er <strong>[Verneting]</strong> avtalt verneting.
@@ -197,7 +211,7 @@ export default function VilkarPage() {
         nettbaserte tvisteløsningsplattform.
       </LegalP>
 
-      <LegalH2>15. Kontakt</LegalH2>
+      <LegalH2>16. Kontakt</LegalH2>
       <LegalP>
         Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

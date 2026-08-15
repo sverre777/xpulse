@@ -188,7 +188,50 @@ export default function PersonvernPage() {
         For Polar sin egen personvernerklæring: <a href="https://www.polar.com/en/legal/privacy-notice" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>polar.com/legal/privacy-notice</a>.
       </LegalP>
 
-      <LegalH2 id="stripe">11. Stripe (betalingsbehandling)</LegalH2>
+      <LegalH2 id="helse">11. Helse- og søvndata</LegalH2>
+      <LegalP>
+        Helseopplysninger er <strong>særlige kategorier av personopplysninger</strong> etter
+        GDPR artikkel 9. De behandles strengere enn treningsøkter, og du bestemmer selv om
+        de i det hele tatt registreres.
+      </LegalP>
+      <LegalP><strong>Hvilke data det gjelder:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Søvn: leggetid, våknetid, sovetid, våkentid, søvnfaser (dyp/lett/REM) og din egen opplevde kvalitet</LegalLI>
+        <LegalLI>Puls og restitusjon: hvilepuls, HRV, makspuls</LegalLI>
+        <LegalLI>Kropp: vekt</LegalLI>
+        <LegalLI>Daglig aktivitet: skritt, aktiv og inaktiv tid, distanse i dagliglivet, trappetrinn og høydemeter</LegalLI>
+        <LegalLI>Merkespesifikke skårer fra klokka (f.eks. Polars Nightly Recharge og søvnskår), lagret for seg og aldri blandet med de øvrige verdiene</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Vi henter IKKE:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Kalorier — verken forbrenning, aktivitetskalorier eller BMR. Estimatene spriker for mye mellom merker til å være meningsfulle, og de utelates bevisst</LegalLI>
+        <LegalLI>Biosensing som blodoksygen (SpO2), EKG og hudtemperatur</LegalLI>
+        <LegalLI>Kart- og posisjonsdata for helse- og søvnmålinger</LegalLI>
+        <LegalLI>Personopplysninger fra klokke-profilen din (navn, fødselsdato, kjønn)</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hvem ser dem:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Som hovedregel bare deg. Helse og søvn deles ikke automatisk med noen</LegalLI>
+        <LegalLI>Trener ser dem KUN hvis du aktivt slår på helse-deling for den treneren under Innstillinger → Trener. Standard er av</LegalLI>
+        <LegalLI>Tilgangen arves aldri fra andre trener-tillatelser: at treneren ser dagbok eller analyse gir ikke tilgang til helse eller søvn</LegalLI>
+        <LegalLI>Treneren kan kun LESE. Helse- og søvnverdier kan bare føres av deg</LegalLI>
+        <LegalLI>Reglene håndheves i databasen, ikke bare i grensesnittet</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Manuelt ført vs. importert:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Hver enkelt verdi er merket med kilde: ført av deg, eller hentet fra et bestemt klokkemerke</LegalLI>
+        <LegalLI>En import overskriver aldri en verdi du har ført selv</LegalLI>
+        <LegalLI>Kobler du fra et klokkemerke, slettes de importerte helse- og søvnverdiene fra det merket. <strong>Verdier du har ført manuelt slettes aldri</strong></LegalLI>
+      </LegalUL>
+      <LegalP><strong>Bruk og deling:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Helse- og søvndata brukes ALDRI til AI/ML-modelltrening</LegalLI>
+        <LegalLI>De deles ALDRI med tredjeparter, annonsører eller datameglere</LegalLI>
+        <LegalLI>De kombineres ALDRI med andre brukeres data for aggregat-analyse</LegalLI>
+        <LegalLI>Du kan eksportere alt, inkludert kilde per verdi, via data-eksporten</LegalLI>
+      </LegalUL>
+
+      <LegalH2 id="stripe">12. Stripe (betalingsbehandling)</LegalH2>
       <LegalP>
         X-PULSE bruker Stripe (Stripe Inc., USA / Stripe Ireland Limited, EU) for å håndtere abonnement og betalinger.
       </LegalP>
@@ -212,7 +255,7 @@ export default function PersonvernPage() {
         Du kan be Stripe om sletting direkte hvis du ønsker det.
       </LegalP>
 
-      <LegalH2 id="data-eksport">12. Data-eksport (Right to Data Portability)</LegalH2>
+      <LegalH2 id="data-eksport">13. Data-eksport (Right to Data Portability)</LegalH2>
       <LegalP>
         Du har til enhver tid rett til å eksportere alle dine personopplysninger lagret i X-PULSE.
         Eksport er tilgjengelig via{' '}
@@ -234,7 +277,7 @@ export default function PersonvernPage() {
         <LegalLI>Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</LegalLI>
       </LegalUL>
 
-      <LegalH2 id="sletting">13. Sletting av data (Right to Erasure)</LegalH2>
+      <LegalH2 id="sletting">14. Sletting av data (Right to Erasure)</LegalH2>
       <LegalP>
         Du kan slette kontoen og all data permanent når som helst ved å kontakte{' '}
         <a href="mailto:support@x-pulse.no?subject=Sletting%20av%20konto" style={{ color: '#FF4500' }}>support@x-pulse.no</a>.
@@ -246,13 +289,13 @@ export default function PersonvernPage() {
         1 dag før slettingen skjer, så du har full mulighet til å eksportere først eller reaktivere.
       </LegalP>
 
-      <LegalH2>14. Endringer</LegalH2>
+      <LegalH2>15. Endringer</LegalH2>
       <LegalP>
         Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
         i appen før de trer i kraft. Sist oppdatert: <strong>2026-05-16</strong>.
       </LegalP>
 
-      <LegalH2>15. Kontakt</LegalH2>
+      <LegalH2>16. Kontakt</LegalH2>
       <LegalP>
         For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

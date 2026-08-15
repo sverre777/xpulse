@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { resolveTargetUser } from '@/lib/target-user'
+import { resolveHealthTargetUser } from '@/lib/target-user'
 
 // Manuell føring av søvn-fellesfeltene (fase 91: sleep_records).
 //
@@ -47,7 +47,7 @@ export async function getDailySleep(
   targetUserId?: string,
 ): Promise<DailySleepRecord | null> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  const resolved = await resolveHealthTargetUser(supabase, targetUserId)
   if ('error' in resolved) return null
 
   const { data } = await supabase
@@ -70,7 +70,17 @@ export async function saveDailySleep(
   targetUserId?: string,
 ): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  // SKRIVING ER KUN FOR SEG SELV. Trener kan LESE helse og søvn når utøveren
+  // har delt (can_view_helse), men skal aldri kunne skrive det — RLS har ingen
+  // with_check for trener på disse tabellene, og koden speiler den regelen.
+  if (targetUserId) {
+    const meg = await resolveHealthTargetUser(supabase, undefined)
+    if ('error' in meg) return { error: meg.error }
+    if (targetUserId !== meg.userId) {
+      return { error: 'Helse- og søvndata kan bare føres av utøveren selv' }
+    }
+  }
+  const resolved = await resolveHealthTargetUser(supabase, targetUserId)
   if ('error' in resolved) return { error: resolved.error }
 
   const { data: existing, error: readErr } = await supabase

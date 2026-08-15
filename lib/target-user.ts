@@ -60,3 +60,45 @@ export async function resolveTargetUser(
 
   return { userId: targetUserId, isCoachImpersonating: true, coachId: user.id }
 }
+
+// ── Helse og søvn: egen tilgangsvei (GDPR art. 9) ────────────
+//
+// Helsedata arves ALDRI fra can_view_dagbok eller can_view_analysis. Trener
+// får se dem kun når utøveren har slått på deling per relasjon i
+// coach_data_permissions.can_see_health_data (fase 59) — flagget som allerede
+// styrer helse-fanen i analysen. Vi gjenbruker det i stedet for å lage et nytt,
+// så det finnes ÉN sannhet om hvem som får se helse.
+//
+// Fail-closed: mangler raden, er svaret nei.
+export async function resolveHealthTargetUser(
+  supabase: SupabaseClient,
+  targetUserId: string | undefined,
+  authMode: 'mutate' | 'read' = 'mutate',
+): Promise<TargetUserResult | { error: string }> {
+  const user = authMode === 'read'
+    ? await getAuthUser()
+    : (await supabase.auth.getUser()).data.user
+  if (!user) return { error: 'Ikke innlogget' }
+
+  if (!targetUserId || targetUserId === user.id) {
+    return { userId: user.id, isCoachImpersonating: false, coachId: null }
+  }
+
+  const { data, error } = await supabase
+    .from('coach_athlete_relations')
+    .select('id, coach_data_permissions!inner(can_see_health_data)')
+    .eq('coach_id', user.id)
+    .eq('athlete_id', targetUserId)
+    .eq('status', 'active')
+    .maybeSingle()
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Ingen aktiv relasjon til denne utøveren' }
+
+  const perms = data.coach_data_permissions as unknown
+  const delt = Array.isArray(perms)
+    ? (perms[0] as { can_see_health_data?: boolean } | undefined)?.can_see_health_data === true
+    : (perms as { can_see_health_data?: boolean } | null)?.can_see_health_data === true
+  if (!delt) return { error: 'Utøveren har ikke delt helsedata med deg' }
+
+  return { userId: targetUserId, isCoachImpersonating: true, coachId: user.id }
+}

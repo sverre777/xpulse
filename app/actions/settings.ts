@@ -368,6 +368,9 @@ const EXPORT_TABLES = [
   'training_phases', 'seasons', 'training_goals',
   'period_notes', 'weekly_reflections', 'focus_points', 'day_states',
   'recovery_entries', 'daily_health',
+  // Helse og søvn (fase 91). Eksporten er brukerens egen — alt de har ført
+  // og alt som er importert til dem, inkludert kilde per verdi.
+  'sleep_records', 'health_metrics', 'health_brand_metrics',
   'user_heart_zones', 'user_movement_types', 'user_exercises',
   'favorite_charts', 'monthly_volume_targets',
   'tests_and_prs', 'inbox_messages',

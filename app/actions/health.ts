@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { resolveTargetUser } from '@/lib/target-user'
+import { resolveTargetUser, resolveHealthTargetUser } from '@/lib/target-user'
 import { parseDecimal } from '@/lib/parse-decimal'
 
 export async function saveDailyHealth(data: {
@@ -16,7 +16,7 @@ export async function saveDailyHealth(data: {
   targetUserId?: string
 }): Promise<{ error?: string }> {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, data.targetUserId, 'can_view_dagbok')
+  const resolved = await resolveHealthTargetUser(supabase, undefined)
   if ('error' in resolved) return { error: resolved.error }
 
   const payload = {
@@ -41,7 +41,7 @@ export async function saveDailyHealth(data: {
 
 export async function getDailyHealth(date: string, targetUserId?: string) {
   const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_dagbok')
+  const resolved = await resolveHealthTargetUser(supabase, targetUserId)
   if ('error' in resolved) return null
   const { data } = await supabase.from('daily_health').select('*').eq('user_id', resolved.userId).eq('date', date).single()
   return data

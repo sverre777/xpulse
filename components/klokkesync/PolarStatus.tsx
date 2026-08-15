@@ -23,9 +23,14 @@ export interface PolarConn {
   polar_user_id: number
   auto_sync: boolean
   last_sync_at: string | null
+  last_webhook_at: string | null
   registered_at: string | null
   connected_at: string
 }
+
+// Polar deaktiverer webhooken automatisk etter 7 døgn med feilende
+// leveranser. Vi advarer fra dag 5 — da er det fortsatt tid til å fikse.
+const WEBHOOK_WARN_DAYS = 5
 
 const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 'feil' | 'nøytral' }> = {
   koblet: {
@@ -177,10 +182,15 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
       </div>
 
       {conn.registered_at ? (
-        <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#555560', marginTop: 2 }}>
-          Registrert hos Polar {new Date(conn.registered_at).toLocaleString('nb-NO')}
-          {conn.last_sync_at && <> · sist synket {new Date(conn.last_sync_at).toLocaleString('nb-NO')}</>}
-        </div>
+        <>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#555560', marginTop: 2 }}>
+            Registrert hos Polar {new Date(conn.registered_at).toLocaleString('nb-NO')}
+            {conn.last_sync_at
+              ? <> · sist synket {new Date(conn.last_sync_at).toLocaleString('nb-NO')}</>
+              : <> · ingen økter synket ennå</>}
+          </div>
+          <WebhookStatus lastWebhookAt={conn.last_webhook_at} />
+        </>
       ) : (
         <div className="p-3 mt-3"
           style={{
@@ -236,5 +246,44 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
         onClose={() => setShowDisconnect(false)}
       />
     </section>
+  )
+}
+
+// Overvåkning av webhooken. Polar sender nye økter til oss automatisk
+// (primærkanalen); cron-fallbacken går hver 6. time uansett, så brukeren
+// mister ikke data selv om webhooken er stille — men de skal kunne se det.
+function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
+  const days = lastWebhookAt
+    ? Math.floor((Date.now() - new Date(lastWebhookAt).getTime()) / 86400_000)
+    : null
+  const stale = days == null || days >= WEBHOOK_WARN_DAYS
+
+  if (!stale) {
+    return (
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#28A86E', marginTop: 4 }}>
+        ✓ Direkte-varsling fra Polar er aktiv
+        {lastWebhookAt && <span style={{ color: '#555560' }}> · sist {new Date(lastWebhookAt).toLocaleString('nb-NO')}</span>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-3 mt-3"
+      style={{
+        background: 'rgba(245,197,66,0.08)',
+        border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
+        borderLeft: '3px solid #F5C542',
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
+        color: 'rgba(242,240,236,0.8)', lineHeight: 1.6,
+      }}>
+      <span style={{ color: '#F5C542', fontWeight: 600 }}>
+        {days == null
+          ? 'Venter på første direkte-varsling fra Polar'
+          : `Ingen direkte-varsling fra Polar på ${days} dager`}
+      </span>
+      <br />
+      Nye økter hentes fortsatt inn automatisk hver 6. time, så du mister ingenting.
+      {days != null && ' Vedvarer det, kan Polar ha slått av varslingen — si fra, så kobler vi den opp igjen.'}
+    </div>
   )
 }

@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Lett-vekt Polar AccessLink-helper. Speiler lib/strava.ts: ingen state — alt
@@ -431,11 +432,17 @@ export interface PolarRateLimit {
 }
 
 export class PolarRateLimitError extends Error {
-  constructor(public resetSeconds: number | null) {
+  // Skrevet uten parameter-property med vilje: den syntaksen krever full
+  // TS-kompilering, og da kan ikke lib/polar.ts kjøres direkte av Node sin
+  // type-stripping (som selvtestene av parsingen bruker).
+  readonly resetSeconds: number | null
+
+  constructor(resetSeconds: number | null) {
     super(
       `Polar rate limit nådd${resetSeconds != null ? ` — prøv igjen om ${resetSeconds}s` : ''}`,
     )
     this.name = 'PolarRateLimitError'
+    this.resetSeconds = resetSeconds
   }
 }
 
@@ -494,31 +501,43 @@ export interface PolarHeartRate {
   maximum?: number
 }
 
-// Feltnavnene er Polars egne (med bindestrek) — derfor siterte nøkler.
+// VIKTIG: Polar har TO økt-skjemaer med ULIKE feltnavn.
+//  · det gamle transaksjons-APIet bruker BINDESTREK (start-time, heart-rate)
+//  · hash-id-endepunktene vi bruker (GET /v3/exercises og
+//    /v3/exercises/{hashId}) bruker UNDERSTREK (start_time, heart_rate) —
+//    verifisert i Polars swagger (schema `exerciseHashId`).
+// Eneste unntak i det nye skjemaet er `running-index`, som fortsatt har
+// bindestrek. Derfor den ene siterte nøkkelen under.
 export interface PolarExercise {
-  id: number | string
-  'upload-time'?: string
-  'polar-user'?: string
-  'transaction-id'?: number
+  id: string                       // hashet id, f.eks. "2AC312F"
+  upload_time?: string
+  polar_user?: string
   device?: string
-  'device-id'?: string
-  'start-time': string
-  'start-time-utc-offset'?: number
-  duration?: string               // ISO-8601, f.eks. "PT2H44M45S"
+  device_id?: string
+  start_time: string               // LOKAL tid, uten sone-suffiks
+  start_time_utc_offset?: number   // minutter fra UTC
+  duration?: string                // ISO-8601, f.eks. "PT2H44M45S"
   calories?: number
-  distance?: number               // meter
-  'heart-rate'?: PolarHeartRate
-  'training-load'?: number
+  distance?: number                // meter
+  heart_rate?: PolarHeartRate
+  training_load?: number
   sport?: string
-  'has-route'?: boolean
-  'detailed-sport-info'?: string
+  has_route?: boolean
+  detailed_sport_info?: string
   'running-index'?: number
 }
 
+// Sample-objektene beholder bindestrek (schema `sample` i swaggeren).
+export interface PolarSample {
+  'recording-rate': number | null  // sekunder mellom hvert punkt
+  'sample-type': string            // tallkode som streng, se POLAR_SAMPLE_TYPES
+  data: string                     // komma-separert liste, kan inneholde "null"
+}
+
 export interface PolarExerciseDetail extends PolarExercise {
-  samples?: unknown
-  zones?: unknown
-  route?: unknown
+  samples?: PolarSample[]
+  heart_rate_zones?: unknown[]
+  route?: unknown[]
 }
 
 // GET /v3/exercises — KUN økter fra siste 30 dager, og kun de som er lastet
@@ -558,6 +577,264 @@ export async function fetchPolarExerciseDetail(
   if (res.status === 204 || res.status === 404) return null
   if (!res.ok) throw new Error(`Polar exercise-detalj feilet: ${res.status}`)
   return await res.json() as PolarExerciseDetail
+}
+
+// ── Pull-notifications (cron-fallback) ───────────────────────
+
+export interface PolarAvailableUserData {
+  'user-id': number
+  'data-type': 'EXERCISE' | 'ACTIVITY_SUMMARY' | 'PHYSICAL_INFORMATION'
+  url?: string
+}
+
+// GET /v3/notifications — KLIENT-autentisert (Basic), ikke bruker-token.
+// Sier hvilke av VÅRE registrerte brukere som har ventende data. Brukes av
+// cron-fallbacken; webhooken er primærkanalen.
+//
+// Merk: lista tømmes egentlig ved å konsumere transaksjoner (det gamle
+// transaksjons-APIet). Vi bruker den kun som SIGNAL om hvem som har noe nytt,
+// og henter selve øktene med det moderne /v3/exercises. At samme bruker kan
+// dukke opp flere ganger er derfor ufarlig — importen er idempotent via
+// imported_activities.
+export async function fetchPolarNotifications(): Promise<PolarAvailableUserData[]> {
+  const res = await fetch(`${POLAR_API}/notifications`, {
+    headers: { Authorization: polarBasicAuthHeader(), Accept: 'application/json' },
+  })
+  if (res.status === 204) return []
+  if (!res.ok) {
+    const body = (await res.text().catch(() => '')).slice(0, 200)
+    throw new Error(`Polar notifications feilet: ${res.status}${body ? ` — ${body}` : ''}`)
+  }
+  const data = await res.json().catch(() => null) as
+    { 'available-user-data'?: PolarAvailableUserData[] } | null
+  return data?.['available-user-data'] ?? []
+}
+
+// ── Webhook-administrasjon (én webhook per klient) ───────────
+//
+// Alle tre kallene er KLIENT-autentiserte (Basic). Polar sender en PING til
+// url-en ved opprettelse som MÅ besvares med 200, ellers opprettes ikke
+// webhooken — derfor svarer /api/polar/webhook alltid 200 på PING, også når
+// POLAR_WEBHOOK_SECRET ennå ikke finnes (den fås jo først i svaret her).
+//
+// signature_secret_key returneres KUN ved opprettelse. Den må lagres som
+// POLAR_WEBHOOK_SECRET i Netlify — vi skriver den aldri til logg.
+
+export interface PolarWebhookInfo {
+  id?: string
+  events?: string[]
+  url?: string
+  active?: boolean
+}
+
+export async function getPolarWebhook(): Promise<{ status: number; body: unknown }> {
+  const res = await fetch(`${POLAR_API}/webhooks`, {
+    headers: { Authorization: polarBasicAuthHeader(), Accept: 'application/json' },
+  })
+  const body = await res.json().catch(() => null)
+  return { status: res.status, body }
+}
+
+export async function createPolarWebhook(url: string): Promise<{
+  status: number
+  id?: string
+  signature_secret_key?: string
+  body: unknown
+}> {
+  const res = await fetch(`${POLAR_API}/webhooks`, {
+    method: 'POST',
+    headers: {
+      Authorization: polarBasicAuthHeader(),
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ events: ['EXERCISE'], url }),
+  })
+  const body = await res.json().catch(() => null) as
+    { data?: { id?: string; signature_secret_key?: string } } | null
+  return {
+    status: res.status,
+    id: body?.data?.id,
+    signature_secret_key: body?.data?.signature_secret_key,
+    body,
+  }
+}
+
+export async function deletePolarWebhook(webhookId: string): Promise<{ status: number }> {
+  const res = await fetch(`${POLAR_API}/webhooks/${encodeURIComponent(webhookId)}`, {
+    method: 'DELETE',
+    headers: { Authorization: polarBasicAuthHeader(), Accept: 'application/json' },
+  })
+  return { status: res.status }
+}
+
+// ── Webhook-signatur ─────────────────────────────────────────
+
+// Polar signerer webhook-kroppen med HMAC-SHA256 og hemmeligheten fra
+// webhook-opprettelsen, og sender den som hex i Polar-Webhook-Signature.
+// Sammenligningen er tidskonstant — en vanlig !== lekker informasjon om
+// hvor mange tegn som stemte.
+export function verifyPolarWebhookSignature(
+  rawBody: string,
+  signatureHeader: string | null,
+): { ok: boolean; reason?: string } {
+  const secret = process.env.POLAR_WEBHOOK_SECRET
+  if (!secret) return { ok: false, reason: 'POLAR_WEBHOOK_SECRET mangler i env' }
+  if (!signatureHeader) return { ok: false, reason: 'mangler Polar-Webhook-Signature' }
+
+  const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex')
+  const given = signatureHeader.trim().toLowerCase()
+  const expectedBuf = Buffer.from(expected, 'utf8')
+  const givenBuf = Buffer.from(given, 'utf8')
+  if (expectedBuf.length !== givenBuf.length) return { ok: false, reason: 'signatur-lengde stemmer ikke' }
+  if (!timingSafeEqual(expectedBuf, givenBuf)) return { ok: false, reason: 'signatur stemmer ikke' }
+  return { ok: true }
+}
+
+// ── Sample-parsing ───────────────────────────────────────────
+//
+// Polar leverer samples som komma-separerte strenger med en tallkode for type
+// og en opptaksrate i sekunder — ingen tidsstempler. Vi regner t = indeks ×
+// rate og mapper til SAMME sample-format som resten av appen bruker
+// ([{ t, hr }], [{ t, w }] …), så graf- og sonekoden er felles med Strava/.fit.
+//
+// TYPEKODENE: Polars swagger har ingen enum, og appendikset i den offentlige
+// dokumentasjonen er avkortet. Tabellen under er Polars dokumenterte
+// rekkefølge, men vi stoler ikke blindt på den: parsePolarSamples
+// KRYSSJEKKER pulsen mot øktens eget `heart_rate.average`, og utleder
+// fartsenheten fra distanse/varighet. Er noe inkonsistent, sier vi fra i
+// stedet for å skrive søppel.
+const POLAR_SAMPLE_TYPES: Record<string, 'hr' | 'speed' | 'cadence' | 'altitude' | 'power'> = {
+  '0': 'hr',
+  '1': 'speed',
+  '2': 'cadence',
+  '3': 'altitude',
+  '4': 'power',
+}
+
+export interface ParsedPolarSamples {
+  hr_samples: { t: number; hr: number }[] | null
+  watt_samples: { t: number; w: number }[] | null
+  pace_samples: { t: number; mps: number }[] | null
+  altitude_samples: { t: number; alt: number }[] | null
+  cadence_samples: { t: number; cad: number }[] | null
+}
+
+export interface PolarSampleParseResult {
+  samples: ParsedPolarSamples
+  hasAny: boolean
+  // false = pulsverdiene stemmer ikke med øktens eget snitt. Da lar vi være å
+  // regne soner framfor å skrive feil tall inn i analysen.
+  hrTrusted: boolean
+  notes: string[]
+}
+
+function meanOf(values: number[]): number {
+  if (values.length === 0) return 0
+  return values.reduce((a, b) => a + b, 0) / values.length
+}
+
+export function parsePolarSamples(detail: PolarExerciseDetail): PolarSampleParseResult {
+  const notes: string[] = []
+  const byKind: Record<string, { t: number; v: number }[]> = {}
+
+  for (const s of detail.samples ?? []) {
+    const code = String(s['sample-type'] ?? '').trim()
+    const kind = POLAR_SAMPLE_TYPES[code]
+    const rate = s['recording-rate'] && s['recording-rate'] > 0 ? s['recording-rate'] : 1
+    if (!kind) {
+      notes.push(`ukjent sample-type ${code} (hoppet over)`)
+      continue
+    }
+    const points: { t: number; v: number }[] = []
+    const raw = (s.data ?? '').split(',')
+    for (let i = 0; i < raw.length; i++) {
+      const cell = raw[i].trim()
+      if (cell === '' || cell.toLowerCase() === 'null') continue  // sensor offline
+      const n = Number(cell)
+      if (!Number.isFinite(n)) continue
+      // Puls 0 betyr sensor-dropout, ikke hvilepuls på null. Tas ut så både
+      // snitt-kryssjekken og sonekalkulasjonen slipper å håndtere den.
+      if (kind === 'hr' && n <= 0) continue
+      points.push({ t: i * rate, v: n })
+    }
+    // Flere sample-blokker av samme type slås sammen (Polar kan dele opp).
+    byKind[kind] = (byKind[kind] ?? []).concat(points)
+  }
+
+  // Blokker av samme type starter hver på t=0, så sammenslåingen kan gi
+  // ikke-monoton tid. Sorteres slik at sone-beregningens dt aldri blir negativ.
+  for (const kind of Object.keys(byKind)) {
+    byKind[kind].sort((a, b) => a.t - b.t)
+  }
+
+  // Puls: kryssjekk mot øktens eget snitt før vi stoler på den.
+  const hrPoints = byKind.hr ?? []
+  let hrTrusted = hrPoints.length > 0
+  if (hrPoints.length > 0) {
+    const reported = detail.heart_rate?.average
+    const actual = meanOf(hrPoints.map(p => p.v))
+    if (reported && Math.abs(actual - reported) > 15) {
+      hrTrusted = false
+      notes.push(
+        `puls-samples stemmer ikke med øktens snitt (samples ${Math.round(actual)} vs ${reported} bpm) ` +
+        '— soner beregnes ikke for denne økta',
+      )
+    }
+  }
+
+  // Fart: Polar dokumenterer ikke enheten entydig. Utled den av distanse og
+  // varighet i stedet for å gjette: forholdet mellom sample-snittet og
+  // forventet m/s avgjør om verdiene er km/t eller m/s.
+  let speedPoints = byKind.speed ?? []
+  if (speedPoints.length > 0) {
+    const durationSec = parseIsoDuration(detail.duration)
+    const expectedMps = detail.distance && durationSec > 0 ? detail.distance / durationSec : 0
+    const avgSample = meanOf(speedPoints.map(p => p.v))
+    if (expectedMps > 0.3 && avgSample > 0) {
+      const ratio = avgSample / expectedMps
+      if (ratio > 2.5 && ratio < 5) {
+        speedPoints = speedPoints.map(p => ({ t: p.t, v: p.v / 3.6 }))
+        notes.push('fart tolket som km/t og konvertert til m/s')
+      } else if (ratio >= 0.5 && ratio <= 2) {
+        notes.push('fart tolket som m/s')
+      } else {
+        notes.push(`fart har uventet forhold til distanse/varighet (${ratio.toFixed(2)}) — lagret urørt`)
+      }
+    }
+  }
+
+  const map = <K extends string>(points: { t: number; v: number }[], key: K) =>
+    points.length > 0 ? points.map(p => ({ t: p.t, [key]: p.v })) : null
+
+  const samples: ParsedPolarSamples = {
+    hr_samples: map(hrPoints, 'hr') as { t: number; hr: number }[] | null,
+    watt_samples: map(byKind.power ?? [], 'w') as { t: number; w: number }[] | null,
+    pace_samples: map(speedPoints, 'mps') as { t: number; mps: number }[] | null,
+    altitude_samples: map(byKind.altitude ?? [], 'alt') as { t: number; alt: number }[] | null,
+    cadence_samples: map(byKind.cadence ?? [], 'cad') as { t: number; cad: number }[] | null,
+  }
+
+  return {
+    samples,
+    hasAny: Object.values(samples).some(v => v !== null),
+    hrTrusted,
+    notes,
+  }
+}
+
+// ── Tid ──────────────────────────────────────────────────────
+
+// Polars start_time er LOKAL tid uten sone-suffiks ("2026-08-15T10:40:02").
+// Vi lagrer dato + klokkeslett lokalt i workouts, så vi bruker den som den er.
+// `ms` tolkes med Z for å få et deterministisk sammenlignings-grunnlag —
+// konflikt-sjekken bygger motparten på nøyaktig samme måte.
+export function polarLocalStart(ex: PolarExercise): { date: string; time: string; ms: number } {
+  const raw = (ex.start_time ?? '').trim()
+  const date = raw.slice(0, 10)
+  const time = raw.slice(11, 16)
+  const ms = new Date(`${date}T${time || '00:00'}:00Z`).getTime()
+  return { date, time: time || '00:00', ms }
 }
 
 // ISO-8601-varighet ("PT2H44M45S", "PT45M", "PT30.5S") → sekunder.
@@ -728,11 +1005,15 @@ export function mapPolarSportToXpulse(
     .map(v => (v ?? '').trim().toUpperCase())
     .filter(Boolean)
 
+  // Kandidatene prøves i prioritert rekkefølge, og HVER kandidat kjøres
+  // gjennom både eksakt tabell og nøkkelord før vi går videre til neste.
+  // Rekkefølgen er viktig: Polar setter ofte sport='OTHER' mens
+  // detailed_sport_info har den ekte verdien (f.eks. WINTERSPORTS_ICE_SKATING).
+  // Kjørte vi alle eksakt-oppslagene først, ville 'OTHER' truffet tabellen og
+  // gitt «Annet» før heuristikken fikk sett på den presise verdien.
   for (const value of candidates) {
     const hit = POLAR_SPORT_MAP[value]
     if (hit) return hit
-  }
-  for (const value of candidates) {
     const rule = POLAR_KEYWORD_RULES.find(r => r.match.test(value))
     if (rule) return rule.mapping
   }

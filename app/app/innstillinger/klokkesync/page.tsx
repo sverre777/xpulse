@@ -26,7 +26,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   // Polar-kortet kommer i bolk 5, etter at frakoblingen (bolk 3) er på plass.
   const { data: polarConn } = await supabase
     .from('polar_connections')
-    .select('polar_user_id, auto_sync, last_sync_at, registered_at, created_at')
+    .select('polar_user_id, auto_sync, last_sync_at, last_webhook_at, registered_at, created_at')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -57,6 +57,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
             polar_user_id: polarConn.polar_user_id,
             auto_sync: polarConn.auto_sync,
             last_sync_at: polarConn.last_sync_at,
+            last_webhook_at: polarConn.last_webhook_at,
             registered_at: polarConn.registered_at,
             connected_at: polarConn.created_at,
           } : null}

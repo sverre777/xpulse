@@ -254,7 +254,25 @@ export async function POST() {
   }
   deleted.connection = cc ?? 0
 
+  // 9. AVSLUTTENDE VERIFISERING: les tilbake at det faktisk ble tomt, i stedet
+  // for å stole på at slettekallene returnerte det de skulle. Alle tall skal
+  // være 0. Er de ikke det, sier vi det tydelig — frakoblingen er da
+  // ufullstendig, ikke feilet, og en ny kjøring rydder resten.
+  const verified = await verifyPolarGone(supabase, user.id)
+  const verifiedClean = Object.values(verified).every(v => v === 0)
+  if (!verifiedClean) {
+    console.error(
+      `[polar-disconnect] UFULLSTENDIG for user ${user.id} (polar_user_id=${conn?.polar_user_id ?? '?'}): ` +
+      JSON.stringify(verified),
+    )
+  }
+
   revalidatePath('/app/innstillinger/klokkesync')
+
+  const deregisterNote = deregister.ok
+    ? 'X-PULSE er avregistrert hos Polar (tokenet er revokert).'
+    : 'Avregistreringen hos Polar gikk ikke igjennom. Fjern X-PULSE selv under ' +
+      'Innstillinger → Autorisasjoner i Polar Flow for å trekke tilgangen helt tilbake.'
 
   return NextResponse.json({
     ok: true,
@@ -262,12 +280,63 @@ export async function POST() {
     was_registered: !!conn?.registered_at,
     deleted,
     deregister,
-    note: deregister.ok
-      ? 'Alle Polar-data er slettet, og X-PULSE er avregistrert hos Polar (tokenet er revokert).'
-      : 'Alle Polar-data er slettet lokalt og tilkoblingen er fjernet, men avregistreringen hos Polar gikk ikke igjennom. ' +
-        'Fjern X-PULSE selv under Innstillinger → Autorisasjoner i Polar Flow for å trekke tilgangen helt tilbake.',
+    verified,
+    verified_clean: verifiedClean,
+    note: verifiedClean
+      ? `Alle Polar-data er slettet, og etterkontrollen fant ingenting igjen. ${deregisterNote}`
+      : `Frakoblingen er IKKE fullført: etterkontrollen fant Polar-data som fortsatt ligger igjen ` +
+        `(${describeLeftovers(verified)}). Kjør frakoblingen en gang til. ${deregisterNote}`,
     manual_revoke_url: deregister.ok ? null : POLAR_MANUAL_REVOKE_URL,
   })
+}
+
+interface VerifiedCounts {
+  workouts_left: number
+  activities_left: number
+  samples_left: number
+  imports_left: number
+  connection_left: number
+}
+
+// Leser tilbake etter sletting. -1 betyr «kunne ikke verifiseres» (query-feil)
+// og regnes som ikke-rent, så vi aldri melder «tomt» på sviktende grunnlag.
+async function verifyPolarGone(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<VerifiedCounts> {
+  const n = (res: { count: number | null; error: unknown }) => (res.error ? -1 : (res.count ?? 0))
+
+  return {
+    workouts_left: n(await supabase
+      .from('workouts').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('imported_from', 'polar')),
+    activities_left: n(await supabase
+      .from('workout_activities').select('id', { count: 'exact', head: true })
+      .like('external_id', 'polar_%')),
+    samples_left: n(await supabase
+      .from('workout_samples').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('source', 'polar')),
+    imports_left: n(await supabase
+      .from('imported_activities').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('source', 'polar')),
+    connection_left: n(await supabase
+      .from('polar_connections').select('user_id', { count: 'exact', head: true })
+      .eq('user_id', userId)),
+  }
+}
+
+function describeLeftovers(v: VerifiedCounts): string {
+  const labels: [keyof VerifiedCounts, string][] = [
+    ['workouts_left', 'økter'],
+    ['activities_left', 'aktiviteter'],
+    ['samples_left', 'rå-datasett'],
+    ['imports_left', 'import-sporinger'],
+    ['connection_left', 'tilkoblings-rad'],
+  ]
+  const parts = labels
+    .filter(([k]) => v[k] !== 0)
+    .map(([k, label]) => (v[k] === -1 ? `${label}: kunne ikke verifiseres` : `${v[k]} ${label}`))
+  return parts.join(', ')
 }
 
 // Alle økter importert fra Polar for denne brukeren.

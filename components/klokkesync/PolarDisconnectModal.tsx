@@ -25,6 +25,15 @@ interface Preview {
   imports: number
 }
 
+// Etterkontrollen fra ruta: alle tall skal være 0. -1 = kunne ikke verifiseres.
+export interface VerifiedCounts {
+  workouts_left: number
+  activities_left: number
+  samples_left: number
+  imports_left: number
+  connection_left: number
+}
+
 interface DisconnectResponse {
   ok?: boolean
   error?: string
@@ -32,21 +41,40 @@ interface DisconnectResponse {
   manual_revoke_url?: string | null
   deleted?: { workouts?: number }
   deregister?: { ok?: boolean; status?: number; message?: string }
+  verified?: VerifiedCounts
+  verified_clean?: boolean
 }
+
+// Duplisert med POLAR_MANUAL_REVOKE_URL i lib/polar.ts med vilje: den fila er
+// server-side (leser POLAR_CLIENT_SECRET i funksjoner) og skal ikke inn i
+// klient-bundelen. Brukes kun som fallback — ruta sender URL-en i svaret.
+const FALLBACK_REVOKE_URL = 'https://flow.polar.com/settings/authorizations'
+
+const LEFTOVER_LABELS: [keyof VerifiedCounts, string][] = [
+  ['workouts_left', 'økter importert fra Polar'],
+  ['activities_left', 'aktiviteter merket med Polar-id'],
+  ['samples_left', 'rå-datasett fra Polar'],
+  ['imports_left', 'import-sporinger'],
+  ['connection_left', 'tilkoblings-rad'],
+]
 
 export function PolarDisconnectModal({ open, onClose }: Props) {
   const router = useRouter()
   const [preview, setPreview] = useState<Preview | null>(null)
   const [disconnecting, setDisconnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [manual, setManual] = useState<{ url: string; message: string } | null>(null)
+  const [aftermath, setAftermath] = useState<{
+    leftovers: VerifiedCounts | null
+    manualUrl: string | null
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     if (!open) {
       setPreview(null)
       setDisconnecting(false)
       setError(null)
-      setManual(null)
+      setAftermath(null)
       return
     }
     fetch('/api/polar/disconnect')
@@ -60,6 +88,9 @@ export function PolarDisconnectModal({ open, onClose }: Props) {
   const handleDisconnect = async () => {
     setDisconnecting(true)
     setError(null)
+    // Nullstilles så en ny kjøring fra etter-skjermen viser sitt eget resultat
+    // (og eventuelle feil, som bare rendres i bekreftelses-visningen).
+    setAftermath(null)
     try {
       const res = await fetch('/api/polar/disconnect', { method: 'POST' })
       const data = await res.json() as DisconnectResponse
@@ -68,15 +99,22 @@ export function PolarDisconnectModal({ open, onClose }: Props) {
         setDisconnecting(false)
         return
       }
-      // Lokal sletting er fullført. Gikk avregistreringen hos Polar IKKE
-      // igjennom, viser vi manuell-instruksen i stedet for å redirecte.
-      if (data.deregister && !data.deregister.ok && data.manual_revoke_url) {
-        setManual({
-          url: data.manual_revoke_url,
-          message: data.deregister.message ?? 'Avregistreringen hos Polar gikk ikke igjennom.',
+      // Etterkontrollen i ruta leser tilbake at det faktisk ble tomt. Fant den
+      // rester, ELLER gikk avregistreringen hos Polar ikke igjennom, viser vi
+      // det i stedet for å redirecte som om alt var i orden.
+      const hasLeftovers = data.verified_clean === false
+      const deregisterFailed = !!data.deregister && !data.deregister.ok
+      if (hasLeftovers || deregisterFailed) {
+        setAftermath({
+          leftovers: hasLeftovers ? (data.verified ?? null) : null,
+          manualUrl: deregisterFailed ? (data.manual_revoke_url ?? FALLBACK_REVOKE_URL) : null,
+          message: data.deregister?.message ?? '',
         })
         setDisconnecting(false)
-        router.refresh()
+        // BEVISST ingen router.refresh() her: tilkoblings-raden er slettet, så
+        // en refresh ville fjernet hele Polar-blokken — og dermed denne modalen
+        // — før brukeren rakk å lese hva som gjenstår. Vi refresher når de
+        // lukker (handleManualDone).
         return
       }
       router.push(`/app/innstillinger/klokkesync?polar=frakoblet&detail=Slettet+${data.deleted?.workouts ?? 0}+%C3%B8kter`)
@@ -105,8 +143,15 @@ export function PolarDisconnectModal({ open, onClose }: Props) {
           maxWidth: '520px', width: '100%', padding: '24px',
           maxHeight: '90vh', overflowY: 'auto',
         }}>
-        {manual
-          ? <ManualRevokeBody url={manual.url} message={manual.message} onDone={handleManualDone} />
+        {aftermath
+          ? <AftermathBody
+              leftovers={aftermath.leftovers}
+              manualUrl={aftermath.manualUrl}
+              message={aftermath.message}
+              retrying={disconnecting}
+              onRetry={handleDisconnect}
+              onDone={handleManualDone}
+            />
           : <ConfirmBody
               preview={preview}
               disconnecting={disconnecting}
@@ -225,33 +270,84 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
   )
 }
 
-function ManualRevokeBody({ url, message, onDone }: { url: string; message: string; onDone: () => void }) {
+// Etter-skjerm. Vises når etterkontrollen fant rester, eller når
+// avregistreringen hos Polar ikke gikk igjennom — eller begge deler.
+function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDone }: {
+  leftovers: VerifiedCounts | null
+  manualUrl: string | null
+  message: string
+  retrying: boolean
+  onRetry: () => void
+  onDone: () => void
+}) {
+  const rest = leftovers
+    ? LEFTOVER_LABELS.filter(([k]) => leftovers[k] !== 0)
+    : []
   return (
     <>
       <h2 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em' }}>
-        Lokal frakobling fullført
+        {leftovers ? 'Frakoblingen er ikke helt ferdig' : 'Lokal frakobling fullført'}
       </h2>
-      <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
-        Alle Polar-data er slettet fra X-PULSE og tilkoblingen er fjernet. Men vi
-        fikk ikke bekreftet avregistreringen hos Polar — gjør dette selv for å
-        trekke tilgangen helt tilbake:
-      </p>
-      <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5 }}>
-        <li>1. Åpne lenken under (Polar Flow → Innstillinger → Autorisasjoner)</li>
-        <li>2. Finn X-PULSE i listen</li>
-        <li>3. Fjern tilgangen</li>
-      </ol>
-      <a href={url} target="_blank" rel="noopener noreferrer"
-        className="block mb-4 px-4 py-3 text-xs tracking-widest uppercase text-center transition-opacity hover:opacity-90"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
-          backgroundColor: '#FF4500', textDecoration: 'none',
-        }}>
-        Åpne Polar Flow-innstillinger →
-      </a>
-      <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
-        Teknisk detalj (til feilsøking): {message}
-      </p>
+
+      {leftovers && (
+        <div className="mb-4 p-3"
+          style={{
+            backgroundColor: 'rgba(225,29,72,0.08)',
+            border: '1px solid rgba(225,29,72,0.4)',
+          }}>
+          <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48', fontSize: '13px', fontWeight: 600 }}>
+            Etterkontrollen fant data som fortsatt ligger igjen
+          </p>
+          <ul className="mb-3 space-y-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', lineHeight: 1.5 }}>
+            {rest.map(([k, label]) => (
+              <li key={k}>
+                • {leftovers[k] === -1 ? `${label}: kunne ikke verifiseres` : `${leftovers[k]} ${label}`}
+              </li>
+            ))}
+          </ul>
+          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '12px', lineHeight: 1.6 }}>
+            Slettingen er ufullstendig, ikke ødelagt — kjør frakoblingen en gang
+            til, så ryddes resten. Alle stegene tåler gjentakelse.
+          </p>
+          <button type="button" onClick={onRetry} disabled={retrying}
+            className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
+              backgroundColor: '#E11D48', border: '1px solid #E11D48',
+              cursor: retrying ? 'not-allowed' : 'pointer', opacity: retrying ? 0.6 : 1,
+            }}>
+            {retrying ? 'Kjører …' : 'Kjør frakoblingen på nytt'}
+          </button>
+        </div>
+      )}
+
+      {manualUrl && (
+        <>
+          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+            Vi fikk ikke bekreftet avregistreringen hos Polar — gjør dette selv
+            for å trekke tilgangen helt tilbake:
+          </p>
+          <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5 }}>
+            <li>1. Åpne lenken under (Polar Flow → Innstillinger → Autorisasjoner)</li>
+            <li>2. Finn X-PULSE i listen</li>
+            <li>3. Fjern tilgangen</li>
+          </ol>
+          <a href={manualUrl} target="_blank" rel="noopener noreferrer"
+            className="block mb-4 px-4 py-3 text-xs tracking-widest uppercase text-center transition-opacity hover:opacity-90"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
+              backgroundColor: '#FF4500', textDecoration: 'none',
+            }}>
+            Åpne Polar Flow-innstillinger →
+          </a>
+          {message && (
+            <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+              Teknisk detalj (til feilsøking): {message}
+            </p>
+          )}
+        </>
+      )}
+
       <div className="flex justify-end">
         <button type="button" onClick={onDone}
           className="px-4 py-2 text-xs tracking-widest uppercase"
@@ -259,7 +355,7 @@ function ManualRevokeBody({ url, message, onDone }: { url: string; message: stri
             fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
             background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
           }}>
-          Forstått
+          {leftovers ? 'Lukk' : 'Forstått'}
         </button>
       </div>
     </>

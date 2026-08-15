@@ -210,12 +210,14 @@ async function importOneExercise(
 
   // Én aktivitetsrad — hash-id-APIet gir ingen lap-inndeling.
   //
-  // workout_activities.distance_meters er numeric(7,2), altså maks 99 999,99 m
-  // (~100 km). Strava kommer unna med det fordi hver rad er ett lap, men vi
-  // legger HELE økta i én rad — en 150 km sykkeltur ville sprengt kolonnen og
-  // feilet inserten. Da lar vi feltet stå tomt heller enn å miste aktiviteten;
-  // workouts.distance_km (numeric(6,2), maks 9 999,99 km) holder distansen.
-  const ACTIVITY_DISTANCE_MAX_M = 99999.99
+  // Ren sikkerhetsventil mot søppelverdier. Kolonnen er numeric(10,2) i prod
+  // (verifisert 2026-08-15 mot information_schema — repoets phase7-fil sier
+  // numeric(7,2), men den ble utvidet utenfor migreringsfilene, og prod har
+  // allerede rader på 164 km). Taket her er derfor kolonnens faktiske grense,
+  // ikke en kunstig 100 km-begrensning: en 150 km sykkeltur skal lagres som
+  // den er. Overskrides grensen, lar vi feltet stå tomt heller enn å miste
+  // hele aktiviteten — workouts.distance_km holder uansett distansen.
+  const ACTIVITY_DISTANCE_MAX_M = 99999999.99
   const rawDistanceM = detail.distance != null ? Math.round(detail.distance) : null
   const activityDistanceM = rawDistanceM != null && rawDistanceM <= ACTIVITY_DISTANCE_MAX_M
     ? rawDistanceM

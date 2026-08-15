@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
-import { KlokkesyncBrandPicker } from '@/components/klokkesync/KlokkesyncBrandPicker'
+import { KlokkesyncBrandPicker, BrandMark } from '@/components/klokkesync/KlokkesyncBrandPicker'
 import { StravaConnectPanel } from '@/components/strava/StravaConnectPanel'
 import { PoweredByStravaBadge } from '@/components/strava/StravaBrand'
 import { getKlokkesyncBrand, KLOKKESYNC_BRANDS, type KlokkesyncBrand } from '@/lib/klokkesync-brands'
@@ -67,10 +67,11 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
               borderRadius: 14, borderTop: `3px solid ${brand.accent}`,
             }}>
             <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
-              <h2 style={{
+              <h2 className="flex items-center gap-3" style={{
                 fontFamily: "'Bebas Neue', sans-serif", fontSize: 24,
                 letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
               }}>
+                <BrandMark brand={brand} size={44} />
                 {brand.name}
               </h2>
               {/* Stravas brand guidelines krever «Powered by Strava»-merking

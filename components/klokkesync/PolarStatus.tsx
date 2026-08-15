@@ -4,6 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 import { setPolarAutoSync } from '@/app/actions/polar-sync'
+import { getKlokkesyncBrand } from '@/lib/klokkesync-brands'
+import { BrandMark } from './KlokkesyncBrandPicker'
 import { PolarDisconnectModal } from './PolarDisconnectModal'
 
 // Polar-flatene som hører til bolk 2 (OAuth + registrering):
@@ -32,6 +34,10 @@ export interface PolarConn {
 // Polar deaktiverer webhooken automatisk etter 7 døgn med feilende
 // leveranser. Vi advarer fra dag 5 — da er det fortsatt tid til å fikse.
 const WEBHOOK_WARN_DAYS = 5
+
+// Merke-flisen hentes fra samme liste som merkevelgeren, så kortet og
+// velgeren aldri kan komme i utakt.
+const polarBrand = getKlokkesyncBrand('polar')
 
 const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 'feil' | 'nøytral' }> = {
   koblet: {
@@ -164,7 +170,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
             fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
             letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
           }}>
-          <span style={{ width: 16, height: 2, background: '#FF4500' }} />
+          {polarBrand && <BrandMark brand={polarBrand} size={32} />}
           Polar
         </h2>
         <button type="button" onClick={() => setShowDisconnect(true)} disabled={pending}

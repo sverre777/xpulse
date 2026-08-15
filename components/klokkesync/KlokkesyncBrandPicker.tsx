@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { StravaLogo } from '@/components/strava/StravaBrand'
 import { KLOKKESYNC_BRANDS, type KlokkesyncBrand } from '@/lib/klokkesync-brands'
 
 // Merkevelgeren. SAMME komponent brukes tre steder:
@@ -90,7 +91,9 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
         borderRadius: 12,
         opacity: live ? 1 : 0.55,
       }}>
-      <div className="min-w-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <BrandMark brand={brand} />
+        <div className="min-w-0">
         <div style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 18,
           letterSpacing: '0.06em', color: '#F0F0F2',
@@ -102,6 +105,7 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
           color: 'rgba(242,240,236,0.6)', lineHeight: 1.5,
         }}>
           {brand.tagline}
+        </div>
         </div>
       </div>
       <span className="shrink-0" style={{
@@ -121,5 +125,46 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
     <Link href={`/app/innstillinger/klokkesync/${brand.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
       {body}
     </Link>
+  )
+}
+
+// Merke-flis. Tre varianter, i prioritert rekkefølge:
+//   1. brand.logoSrc — offisiell logo-fil når vi har den (legges i /public)
+//   2. Strava — merkets egen logo, som vi både har og SKAL bruke
+//   3. nøytralt monogram i merkets farge
+//
+// Vi tegner ikke andre merkers logoer selv. En omtrentlig kopi av et varemerke
+// er dårligere enn en ren monogram-flis, både visuelt og juridisk — og for
+// Polar er logobruk eksplisitt begrenset i lisensavtalen.
+export function BrandMark({ brand, size = 40 }: { brand: KlokkesyncBrand; size?: number }) {
+  const live = brand.status === 'live'
+  const color = live ? brand.accent : '#8A8A96'
+  const letter = brand.mark ?? brand.name.slice(0, 1).toUpperCase()
+
+  return (
+    <span
+      aria-hidden="true"
+      className="shrink-0 inline-flex items-center justify-center"
+      style={{
+        width: size, height: size, borderRadius: size * 0.26,
+        background: `${color}1F`,
+        border: `1px solid ${color}59`,
+      }}>
+      {brand.logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={brand.logoSrc} alt="" width={size * 0.6} height={size * 0.6}
+          style={{ objectFit: 'contain' }} />
+      ) : brand.branding === 'strava' ? (
+        <StravaLogo size={size * 0.55} color={color} />
+      ) : (
+        <span style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: size * 0.5, lineHeight: 1, color,
+          letterSpacing: '0.02em',
+        }}>
+          {letter}
+        </span>
+      )}
+    </span>
   )
 }

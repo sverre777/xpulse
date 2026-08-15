@@ -24,6 +24,20 @@ export interface KlokkesyncBrand {
   accent: string
   /** 'strava' = merkets egne påkrevde komponenter i tillegg. 'tekst' = kun tekst. */
   branding: 'strava' | 'tekst'
+  /**
+   * Bokstav(er) i merke-flisen. Vi tegner en nøytral monogram-flis i merkets
+   * farge — ikke merkets logo. Grunnen er at vi verken har de offisielle
+   * logo-filene eller lisens til å tegne dem selv, og en omtrentlig kopi av et
+   * varemerke er verre enn ingen logo. Strava er unntaket: der har vi (og skal
+   * ha) merkets egen logo.
+   */
+  mark?: string
+  /**
+   * Sti til offisiell logo-fil under /public når vi har den (f.eks.
+   * '/brands/polar.svg'). Settes den, vises den i stedet for monogrammet —
+   * ett felt per merke, ingen kodeendring.
+   */
+  logoSrc?: string
   /** OAuth-inngang. Kun satt for live merker. */
   connectPath?: string
   /** Tabellen som holder brukerens tilkobling. Kun satt for live merker. */

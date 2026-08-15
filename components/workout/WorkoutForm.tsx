@@ -824,7 +824,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer' }}>
                 Fjern kobling ✕
               </button>
-              <a href="/app/analyse"
+              <a href={`/app/analyse?tab=standardokter&serie=${form.standard_session_series_id}`}
                 className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none' }}>
                 Se utvikling →

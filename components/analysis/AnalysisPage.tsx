@@ -62,6 +62,8 @@ const WeatherTab = dynamic(() => import('./WeatherTab').then(m => ({ default: m.
   { loading: () => <LoadingStub label="Laster vær/føre-analyse…" />, ssr: false })
 const AltitudeHeatTab = dynamic(() => import('./AltitudeHeatTab').then(m => ({ default: m.AltitudeHeatTab })),
   { loading: () => <LoadingStub label="Laster høyde/varme-analyse…" />, ssr: false })
+const StandardSessionsTab = dynamic(() => import('./StandardSessionsTab').then(m => ({ default: m.StandardSessionsTab })),
+  { loading: () => <LoadingStub label="Laster standardøkter…" />, ssr: false })
 
 // 10 faner totalt. Fase D la til Belastning, Terskel, Skyting-dybde og Periodisering-oversikt.
 // Se AGENTS.md for fase-plan.
@@ -72,6 +74,7 @@ type Tab =
   | 'terskel'
   | 'skyting'
   | 'sammenlign'
+  | 'standardokter'
   | 'mal_analyse'
   | 'konkurranser'
   | 'tester_pr'
@@ -104,6 +107,7 @@ const TABS: [Tab, string][] = [
   ['terskel', 'Terskel'],
   ['skyting', 'Skyting-dybde'],
   ['sammenlign', 'Sammenligning'],
+  ['standardokter', 'Standardøkter'],
   ['konkurranser', 'Konkurranser'],
   ['tester_pr', 'Tester & PR'],
   ['ski_tester', 'Ski-tester'],
@@ -681,6 +685,10 @@ function AnalysisPageInner({
           skyting
             ? <SkytingTab data={skyting} range={range} targetUserId={targetUserId} />
             : <LoadingStub label="Laster skyting-dybde…" />
+        )}
+        {/* Kø #48 bolk 3: standardøkt-biblioteket (selv-hentende). */}
+        {tab === 'standardokter' && (
+          <StandardSessionsTab targetUserId={targetUserId} />
         )}
         {tab === 'periodisering' && (
           periodisering

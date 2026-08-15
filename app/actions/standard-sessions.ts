@@ -9,6 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
+import { resolveTargetUser } from '@/lib/target-user'
 
 export interface StandardSessionSeries {
   id: string
@@ -96,6 +97,114 @@ export async function createSessionSeries(input: {
   if (error || !data) return { error: error?.message ?? 'Kunne ikke opprette serie' }
   revalidatePath('/app/analyse')
   return { id: data.id as string }
+}
+
+export async function updateSessionSeries(id: string, patch: {
+  name?: string
+  location?: string | null
+  movement_name?: string | null
+  description?: string | null
+}): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (patch.name !== undefined) {
+    const n = patch.name.trim()
+    if (!n) return { error: 'Navn er påkrevd' }
+    update.name = n
+  }
+  if (patch.location !== undefined) update.location = patch.location?.trim() || null
+  if (patch.movement_name !== undefined) update.movement_name = patch.movement_name?.trim() || null
+  if (patch.description !== undefined) update.description = patch.description?.trim() || null
+
+  const { error } = await supabase
+    .from('standard_session_series')
+    .update(update)
+    .eq('id', id)
+    .eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/app/analyse')
+  return {}
+}
+
+// ── Kø #48 bolk 3: BIBLIOTEKET under Analyse ────────────────
+// Serieliste m/ gjennomføringer (kronologisk) for sparkline + seriedetalj.
+// Trener leser via resolveTargetUser + can_view_analysis — aldri egen logikk.
+
+export interface SeriesExecution {
+  workout_id: string
+  date: string
+  title: string
+  total_seconds: number | null
+  distance_meters: number | null
+  avg_heart_rate: number | null
+}
+
+export interface SessionSeriesWithExecutions extends StandardSessionSeries {
+  executions: SeriesExecution[]   // kronologisk stigende, kun gjennomførte
+}
+
+export async function getSessionSeriesLibrary(
+  targetUserId?: string,
+): Promise<SessionSeriesWithExecutions[] | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+    if ('error' in resolved) return { error: resolved.error }
+    const userId = resolved.userId
+
+    const [{ data: rows, error }, { data: links, error: lErr }] = await Promise.all([
+      supabase
+        .from('standard_session_series')
+        .select('id, name, sport, movement_name, location, template_id, description')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false }),
+      supabase
+        .from('workouts')
+        .select('id, date, title, duration_minutes, distance_km, avg_heart_rate, standard_session_series_id')
+        .eq('user_id', userId)
+        .not('standard_session_series_id', 'is', null)
+        .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+        .order('date', { ascending: true }),
+    ])
+    if (error) return { error: error.message }
+    if (lErr) return { error: lErr.message }
+
+    const bySerie = new Map<string, SeriesExecution[]>()
+    for (const l of (links ?? [])) {
+      const sid = l.standard_session_series_id as string
+      const arr = bySerie.get(sid) ?? []
+      arr.push({
+        workout_id: l.id as string,
+        date: l.date as string,
+        title: (l.title as string | null) ?? '',
+        total_seconds: l.duration_minutes != null ? (l.duration_minutes as number) * 60 : null,
+        distance_meters: l.distance_km != null ? Math.round((l.distance_km as number) * 1000) : null,
+        avg_heart_rate: (l.avg_heart_rate as number | null) ?? null,
+      })
+      bySerie.set(sid, arr)
+    }
+
+    return (rows ?? []).map(r => {
+      const executions = bySerie.get(r.id as string) ?? []
+      return {
+        id: r.id as string,
+        name: r.name as string,
+        sport: (r.sport as string | null) ?? null,
+        movement_name: (r.movement_name as string | null) ?? null,
+        location: (r.location as string | null) ?? null,
+        template_id: (r.template_id as string | null) ?? null,
+        description: (r.description as string | null) ?? null,
+        workout_count: executions.length,
+        last_date: executions.length > 0 ? executions[executions.length - 1].date : null,
+        executions,
+      }
+    })
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
 }
 
 // Slette serie = KUN koblingen forsvinner fra øktene (FK on delete set null).

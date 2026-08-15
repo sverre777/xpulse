@@ -109,6 +109,13 @@ export async function POST() {
   }
 
   // 1. Hent alle Strava-workout-ids før sletting (trengs til samples/activities-delete).
+  //
+  // EIERSKAP, ikke provenance: imported_from svarer på «ble økta OPPRETTET av
+  // importen?». Det er riktig spørsmål her — en økt Strava-data er flettet inn
+  // i (merge) er brukerens egen og skal BEHOLDES, med kun samplene fjernet.
+  // Bytter du dette til imported_activities, sletter du brukerens egne økter.
+  // Provenance-spørsmålet («inneholder økta Strava-avledede data?») besvares
+  // et annet sted, med en annen kilde — se lib/ai-training-data.ts.
   const { data: workouts, error: wErr } = await supabase
     .from('workouts')
     .select('id')

@@ -340,6 +340,12 @@ function describeLeftovers(v: VerifiedCounts): string {
 }
 
 // Alle økter importert fra Polar for denne brukeren.
+//
+// EIERSKAP, ikke provenance: imported_from svarer på «ble økta OPPRETTET av
+// importen?». Det er riktig her — en økt Polar-data er flettet inn i er
+// brukerens egen og skal beholdes (samplene fjernes av steg 2 i stedet).
+// Provenance-spørsmålet besvares med imported_activities — se
+// lib/ai-training-data.ts for hvorfor de to aldri må slås sammen.
 async function polarWorkoutIds(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,

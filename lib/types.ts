@@ -1281,8 +1281,16 @@ function biathlonShootingSequence(format: string): ('L' | 'S')[] {
 function generateBiathlonActivities(format: string): ActivityRow[] {
   const seq = biathlonShootingSequence(format)
   if (seq.length === 0) return []
+  // Kø #47 bolk 8: generatoren lager skyteblokker PÅ SERIEMODELLEN —
+  // nøytral «Skyting»-rad m/ én serie i riktig posisjon (L/S utledes av
+  // serien). Stafett/mix: skudd-feltet er justerbart 5–8 (inntil 3
+  // ekstraskudd) — genereres med 5 + serie-notat som minner om det.
+  // 🏁 Konkurranse-markeringen er AUTOMATISK (utledes av øktas
+  // workout_type='competition' — lagres ikke). Samme struktur/rekkefølge
+  // som før modell-byttet (full paritet): Oppvarming → Runde 1 → Skyting →
+  // … → siste runde inn.
+  const isRelay = format === 'Stafett' || format === 'Mix-stafett'
   const rows: ActivityRow[] = []
-  // Oppvarming → Runde 1 → Skyting L → Runde 2 → Skyting S → …
   rows.push(makeActivity({ activity_type: 'oppvarming', movement_name: 'Langrenn' }))
   seq.forEach((mark, i) => {
     rows.push(makeActivity({
@@ -1291,7 +1299,16 @@ function generateBiathlonActivities(format: string): ActivityRow[] {
       notes: `Runde ${i + 1}`,
     }))
     rows.push(makeActivity({
-      activity_type: mark === 'L' ? 'skyting_liggende' : 'skyting_staaende',
+      activity_type: 'skyting_kombinert',
+      shooting_series: [{
+        id: crypto.randomUUID(),
+        position: mark,
+        shots: '5',
+        hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+        note: isRelay ? 'Inntil 3 ekstraskudd (5–8)' : '',
+        shot_plot: null,
+        points: '',
+      }],
     }))
   })
   // Siste runde inn mot mål

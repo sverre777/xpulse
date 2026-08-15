@@ -19,6 +19,9 @@ export interface Season {
   goal_main: string | null
   goal_details: string | null
   kpi_notes: string | null
+  // Kø #47 bolk 7 (fase 85): valgfritt årsskuddmål (OLT/NSSF-styringstall).
+  // null = ikke satt → mål-baren skjules i skyting-analysen.
+  annual_shot_goal?: number | null
   created_at: string
   updated_at: string
 }
@@ -240,6 +243,7 @@ export interface SeasonInput {
   goal_main?: string | null
   goal_details?: string | null
   kpi_notes?: string | null
+  annual_shot_goal?: number | null
   targetUserId?: string
 }
 
@@ -272,6 +276,7 @@ export async function createSeason(
         goal_main: input.goal_main?.trim() || null,
         goal_details: input.goal_details?.trim() || null,
         kpi_notes: input.kpi_notes?.trim() || null,
+        annual_shot_goal: input.annual_shot_goal ?? null,
       })
       .select('id')
       .single()
@@ -306,6 +311,7 @@ export async function updateSeason(
         goal_main: input.goal_main?.trim() || null,
         goal_details: input.goal_details?.trim() || null,
         kpi_notes: input.kpi_notes?.trim() || null,
+        annual_shot_goal: input.annual_shot_goal ?? null,
       })
       .eq('id', id)
       .eq('user_id', resolved.userId)

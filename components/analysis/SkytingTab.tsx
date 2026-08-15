@@ -6,6 +6,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell,
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
+import { getShotSeasonProgress, type ShotSeasonProgress } from '@/app/actions/analysis'
+import { useEffect, useState } from 'react'
 import { ChartWrapper } from './ChartWrapper'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
@@ -77,6 +79,8 @@ export function SkytingTab({ data, range, targetUserId }: {
   return (
     <div className="space-y-5">
       <SummaryCards data={data} />
+      {/* Kø #47 bolk 7: skuddmengde mot årsmål (sesong-basert). */}
+      <ShotGoalCard targetUserId={targetUserId} />
       {/* Kø #47 bolk 6: skudd per uke/måned m/ typefordeling + treff %-rad
           — samme komponent som i månedsanalysen under kalenderen. */}
       {range && (
@@ -92,6 +96,69 @@ export function SkytingTab({ data, range, targetUserId }: {
       <CsvExport data={data} />
       <MethodNote />
     </div>
+  )
+}
+
+// Kø #47 bolk 7: «Skuddmengde mot årsmål» — fremdriftsbar (hittil/mål/%)
+// + fordeling reelle / tørr (TID, presisering) / i konkurranse / snitt per
+// uke. Veiledningstall — ALDRI røde alarmfarger. Uten satt mål: fordelingen
+// vises, mål-baren skjules. Målet settes på sesongen (rediger sesong i
+// årsplanen). Selvskjulende uten sesong/skyting.
+function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
+  const [prog, setProg] = useState<ShotSeasonProgress | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    getShotSeasonProgress(targetUserId)
+      .then(res => { if (!cancelled) setProg(res && !('error' in res) ? res : null) })
+      .catch(() => { if (!cancelled) setProg(null) })
+    return () => { cancelled = true }
+  }, [targetUserId])
+
+  if (!prog || (prog.shots <= 0 && prog.drySeconds <= 0 && prog.goal == null)) return null
+  const pct = prog.goal && prog.goal > 0 ? Math.min(100, (prog.shots / prog.goal) * 100) : null
+  const fmtN = (n: number) => n.toLocaleString('nb-NO')
+
+  return (
+    <ChartWrapper
+      chartKey="shot-goal"
+      title="Skuddmengde mot årsmål"
+      subtitle={`${prog.seasonName} · ${prog.from} → ${prog.to} · veiledningstall`}
+      height="auto"
+    >
+      <div className="flex flex-col gap-3">
+        {prog.goal != null && prog.goal > 0 ? (
+          <div>
+            <div className="flex items-baseline justify-between mb-1.5"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: '0.04em', color: '#F2F2F0' }}>
+                {fmtN(prog.shots)} <span style={{ fontSize: 15, color: '#8B8B95' }}>/ {fmtN(prog.goal)} skudd</span>
+              </span>
+              <span style={{ fontSize: 14, color: '#C0C0CC' }}>{Math.round((prog.shots / prog.goal) * 100)} %</span>
+            </div>
+            <div style={{ height: 9, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', width: `${pct}%`, borderRadius: 5,
+                background: 'linear-gradient(90deg, var(--accent), rgba(255,69,0,0.55))',
+                transition: 'width 0.2s',
+              }} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Ingen årsskuddmål satt — sett det på sesongen i årsplanen for å få fremdriftsbaren.
+          </p>
+        )}
+        <div className="flex flex-wrap gap-x-5 gap-y-1"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: '#8A8A96' }}>
+          <span>Reelle skudd <b style={{ color: '#F0F0F2' }}>{fmtN(prog.shots)}</b></span>
+          <span>I konkurranse <b style={{ color: '#D4A017' }}>{fmtN(prog.competitionShots)}</b></span>
+          <span>Tørrtrening <b style={{ color: '#F0F0F2' }}>{Math.round(prog.drySeconds / 60)} min</b></span>
+          {prog.avgPerWeek != null && (
+            <span>Snitt <b style={{ color: '#F0F0F2' }}>{fmtN(prog.avgPerWeek)}</b> skudd/uke</span>
+          )}
+        </div>
+      </div>
+    </ChartWrapper>
   )
 }
 

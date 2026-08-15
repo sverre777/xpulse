@@ -4071,6 +4071,96 @@ export async function getShotVolume(
   }
 }
 
+// ─── Kø #47 bolk 7: skuddmengde mot årsmål ──────────────────
+// Sesong-basert (seasons.annual_shot_goal, fase 85): summerer fra
+// sesongstart til i dag (capped på sesongslutt). Konkurranse-skudd telles
+// automatisk i årsmengden; tørrtrening telles separat i TID (presisering).
+// Veiledningstall — visningen bruker aldri røde alarmfarger.
+
+export interface ShotSeasonProgress {
+  seasonName: string
+  from: string
+  to: string
+  goal: number | null
+  shots: number            // reelle skudd totalt (inkl. konkurranse)
+  competitionShots: number
+  drySeconds: number
+  weeksElapsed: number
+  avgPerWeek: number | null
+}
+
+export async function getShotSeasonProgress(
+  targetUserId?: string,
+): Promise<ShotSeasonProgress | null | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const { data: seasonRows, error: sErr } = await supabase
+      .from('seasons')
+      .select('name, start_date, end_date, annual_shot_goal')
+      .eq('user_id', resolved.userId)
+      .lte('start_date', today)
+      .order('start_date', { ascending: false })
+      .limit(1)
+    if (sErr) return { error: sErr.message }
+    const season = (seasonRows ?? [])[0] as {
+      name: string; start_date: string; end_date: string; annual_shot_goal: number | null
+    } | undefined
+    if (!season) return null
+
+    const to = today < season.end_date ? today : season.end_date
+    const { data: rows, error } = await supabase
+      .from('workouts')
+      .select('workout_type, workout_activities(activity_type, shooting_type, is_dry_training, prone_shots, standing_shots, duration_seconds)')
+      .eq('user_id', resolved.userId)
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+      .gte('date', season.start_date)
+      .lte('date', to)
+    if (error) return { error: error.message }
+
+    const SHOOTING = new Set(['skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting', 'skyting_basis'])
+    let shots = 0, competitionShots = 0, drySeconds = 0
+    for (const w of (rows ?? []) as {
+      workout_type: string
+      workout_activities: {
+        activity_type: string; shooting_type: string | null; is_dry_training: boolean | null
+        prone_shots: number | null; standing_shots: number | null; duration_seconds: number | null
+      }[] | null
+    }[]) {
+      for (const a of (w.workout_activities ?? [])) {
+        if (!SHOOTING.has(a.activity_type)) continue
+        const isDry = a.shooting_type === 'torrtrening' || a.is_dry_training === true
+        if (isDry) { drySeconds += Number(a.duration_seconds) || 0; continue }
+        const n = (Number(a.prone_shots) || 0) + (Number(a.standing_shots) || 0)
+        if (n <= 0) continue
+        shots += n
+        if (w.workout_type === 'competition') competitionShots += n
+      }
+    }
+
+    const weeksElapsed = Math.max(1, Math.round(
+      (new Date(to + 'T00:00:00').getTime() - new Date(season.start_date + 'T00:00:00').getTime()) / (7 * 86400000)))
+    return {
+      seasonName: season.name,
+      from: season.start_date,
+      to,
+      goal: season.annual_shot_goal ?? null,
+      shots,
+      competitionShots,
+      drySeconds,
+      weeksElapsed,
+      avgPerWeek: shots > 0 ? Math.round(shots / weeksElapsed) : null,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getShotSeasonProgress: ${msg}` }
+  }
+}
+
 // ─── Tester og PR ───────────────────────────────────────────
 // Leser workout_test_data + personal_records for utøveren. Progresjonskurvene
 // grupperes per (sport, test_type) slik at test-fanen kan vise en separat

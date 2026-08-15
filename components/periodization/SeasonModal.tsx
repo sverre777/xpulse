@@ -21,6 +21,8 @@ export function SeasonModal({
   const [goalMain, setGoalMain] = useState(editing?.goal_main ?? '')
   const [goalDetails, setGoalDetails] = useState(editing?.goal_details ?? '')
   const [kpiNotes, setKpiNotes] = useState(editing?.kpi_notes ?? '')
+  // Kø #47 bolk 7: valgfritt årsskuddmål (skiskyting) — tomt = ikke satt.
+  const [shotGoal, setShotGoal] = useState(editing?.annual_shot_goal != null ? String(editing.annual_shot_goal) : '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,6 +35,7 @@ export function SeasonModal({
     const payload = {
       name, start_date: startDate, end_date: endDate,
       goal_main: goalMain, goal_details: goalDetails, kpi_notes: kpiNotes,
+      annual_shot_goal: shotGoal.trim() === '' ? null : Math.max(1, Math.round(Number(shotGoal)) || 0) || null,
       targetUserId,
     }
     const res = editing
@@ -84,9 +87,19 @@ export function SeasonModal({
           <FieldLabel>Delmål</FieldLabel>
           <textarea value={goalDetails} onChange={e => setGoalDetails(e.target.value)} rows={3} style={{ ...INPUT_STYLE, resize: 'vertical' }} />
         </div>
-        <div className="mb-1">
+        <div className="mb-3">
           <FieldLabel>KPI-notater</FieldLabel>
           <textarea value={kpiNotes} onChange={e => setKpiNotes(e.target.value)} rows={3} style={{ ...INPUT_STYLE, resize: 'vertical' }} placeholder="VO2max 72, 100 km/uke i base, …" />
+        </div>
+        <div className="mb-1">
+          <FieldLabel>🎯 Årsskuddmål (valgfritt)</FieldLabel>
+          <input type="number" inputMode="numeric" min={1} step={100}
+            value={shotGoal} onChange={e => setShotGoal(e.target.value)}
+            style={INPUT_STYLE} placeholder="f.eks. 12000" />
+          <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1.5 }}>
+            OLT/NSSF-styringstall for skiskyting — veiledning, aldri alarm.
+            Vises som fremdriftsbar i skyting-analysen. Tomt = skjult.
+          </p>
         </div>
         {error && <ErrorText message={error} />}
         <ModalFooter

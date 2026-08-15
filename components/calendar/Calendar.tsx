@@ -32,6 +32,7 @@ import { parseWorkoutsByDate, RawCalendarWorkout } from '@/lib/calendar-summary'
 import { RecoveryEntry, displayRecoveryLabel } from '@/lib/recovery-types'
 import { deleteRecoveryEntry } from '@/app/actions/recovery'
 import { RecoveryModal } from '@/components/recovery/RecoveryModal'
+import { HealthModal } from '@/components/health/HealthModal'
 import { getPeriodNotes } from '@/app/actions/period-notes'
 import { PeriodNote } from './PeriodNote'
 import { WeekCalendarView } from './WeekCalendarView'
@@ -107,6 +108,8 @@ interface CalendarActions {
   onEditWorkout: (w: CalendarWorkoutSummary, dateStr: string) => void
   onCreateWorkout: (dateStr: string, time?: string) => void
   onAddRecovery: (dateStr: string) => void
+  // Åpner helse-modalen for en dato (føring eller redigering).
+  onEditHealth: (dateStr: string) => void
   onEditDayState: (state: DayState) => void
   // Åpne dag-tilstand-modalen direkte for en dato/type (hviledag/sykdom/skade)
   // — redigerer eksisterende markering hvis den finnes.
@@ -1225,7 +1228,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // Mobil-listen (bolk 2, kun dagbok): utvidede tomrom — sesjonslokal,
@@ -2131,10 +2134,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             {parts.join(' · ')}
                           </span>
                           {!readOnly && (
-                            <Link href={`/app/health/${ds}`}
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', textDecoration: 'none', borderBottom: '1px solid #333340', marginLeft: '4px' }}>
+                            <button type="button" onClick={() => onEditHealth(ds)}
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid #333340', marginLeft: '4px', padding: 0, cursor: 'pointer' }}>
                               Rediger
-                            </Link>
+                            </button>
                           )}
                         </div>
                       ) : null
@@ -2273,9 +2276,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             </button>
                           )}
                           {mode !== 'plan' && !healthData[ds] && (
-                            <Link href={`/app/health/${ds}`} style={ghostBtn}>
+                            <button type="button" onClick={() => onEditHealth(ds)} style={ghostBtn}>
                               + Helse
-                            </Link>
+                            </button>
                           )}
                           {mode !== 'plan' && !isFuture && (
                             <button type="button" onClick={() => onAddRecovery(ds)} style={ghostBtn}>
@@ -2591,6 +2594,8 @@ export function Calendar({
   const [showPicker, setShowPicker] = useState(false)
   const [modalState, setModalState] = useState<WorkoutModalState | null>(null)
   const [recoveryDate, setRecoveryDate] = useState<string | null>(null)
+  // Helse føres i modal, som recovery/hviledag/sykdom/skade.
+  const [healthDate, setHealthDate] = useState<string | null>(null)
   const [dayStatesByDate, setDayStatesByDate] = useState<Record<string, DayState[]>>(initialDayStates)
   const [dayStateModal, setDayStateModal] = useState<
     { date: string; stateType: DayStateType; editing: DayState | null } | null
@@ -2663,6 +2668,11 @@ export function Calendar({
   const handleAddRecovery = useCallback((dateStr: string) => {
     if (readOnly) return
     setRecoveryDate(dateStr)
+  }, [readOnly])
+
+  const handleEditHealth = useCallback((dateStr: string) => {
+    if (readOnly) return
+    setHealthDate(dateStr)
   }, [readOnly])
 
   const handleMarkDayState = useCallback((dateStr: string, type: 'hviledag' | 'sykdom' | 'skade') => {
@@ -2903,6 +2913,7 @@ export function Calendar({
       onEditWorkout: handleEditWorkout,
       onCreateWorkout: handleCreateWorkout,
       onAddRecovery: handleAddRecovery,
+      onEditHealth: handleEditHealth,
       onEditDayState: handleEditDayState,
       onMarkDayState: handleMarkDayState,
       dayStatesByDate,
@@ -3105,6 +3116,11 @@ export function Calendar({
       date={recoveryDate ?? ''}
       open={recoveryDate !== null}
       onClose={() => setRecoveryDate(null)}
+    />
+    <HealthModal
+      date={healthDate ?? ''}
+      open={healthDate !== null}
+      onClose={() => setHealthDate(null)}
     />
     {dayStateModal && (
       <DayStateModal

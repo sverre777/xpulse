@@ -8,9 +8,16 @@ import { DailyHealth } from '@/lib/types'
 interface HealthFormProps {
   date: string
   existing: DailyHealth | null
+  /**
+   * Settes når skjemaet ligger i en modal: da lukker vi modalen i stedet for
+   * å navigere til dagboka. Uten disse oppfører skjemaet seg nøyaktig som før
+   * på /app/health/[date] — samme lagring, samme redirect.
+   */
+  onSaved?: () => void
+  onCancel?: () => void
 }
 
-export function HealthForm({ date, existing }: HealthFormProps) {
+export function HealthForm({ date, existing, onSaved, onCancel }: HealthFormProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +42,9 @@ export function HealthForm({ date, existing }: HealthFormProps) {
     if (result.error) {
       setError(result.error)
       setSaving(false)
+    } else if (onSaved) {
+      router.refresh()
+      onSaved()
     } else {
       router.push('/app/dagbok')
       router.refresh()
@@ -124,7 +134,7 @@ export function HealthForm({ date, existing }: HealthFormProps) {
           }}>
           {saving ? 'Lagrer...' : existing ? 'Oppdater helse' : 'Lagre helse'}
         </button>
-        <button type="button" onClick={() => router.back()}
+        <button type="button" onClick={() => (onCancel ? onCancel() : router.back())}
           className="px-6 py-4 text-lg tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HelseLoggKnapp } from './HelseLoggKnapp'
 import type {
   OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus, OversiktHealthSummary,
 } from '@/app/actions/oversikt'
@@ -171,10 +172,8 @@ function HealthCardActions({ today }: { today: string }) {
   }
   return (
     <div className="flex gap-2 mt-3 flex-wrap">
-      <Link href={`/app/health/${today}`}
-        style={{ ...linkBase, backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E' }}>
-        + Logg helse
-      </Link>
+      <HelseLoggKnapp date={today}
+        style={{ ...linkBase, backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E' }} />
       <Link href="/app/analyse?tab=helse"
         style={{ ...linkBase, color: '#8A8A96', border: '1px solid var(--line2)' }}>
         Analyse →

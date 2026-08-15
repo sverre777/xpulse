@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { getDailyHealth } from '@/app/actions/health'
+import { getDailySleep } from '@/app/actions/sleep'
 import { HealthForm } from '@/components/health/HealthForm'
 
 export default async function HealthPage({ params }: { params: Promise<{ date: string }> }) {
@@ -13,7 +14,10 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
   const { date } = await params
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) redirect('/app/dagbok')
 
-  const existing = await getDailyHealth(date)
+  const [existing, sleep] = await Promise.all([
+    getDailyHealth(date),
+    getDailySleep(date),
+  ])
 
   const d = new Date(date + 'T12:00:00')
   const dateLabel = d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -33,7 +37,7 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
           </div>
         </div>
 
-        <HealthForm date={date} existing={existing} />
+        <HealthForm date={date} existing={existing} sleep={sleep} />
 
         <div className="text-center mt-4">
           <Link href="/app/dagbok"

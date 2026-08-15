@@ -3278,6 +3278,11 @@ export interface ShootingSeriesRow {
   avg_heart_rate: number | null
   // Serie-makspuls fra ny modell (null for aggregat-fallback/gamle rader).
   max_heart_rate: number | null
+  // Kø #49 (fase 87): vind & sikt per serie — kontekst i tooltips/eksport.
+  // null = ikke ført (aggregat-fallback har aldri vind).
+  vind_retning: 'V' | 'H' | null
+  vind_styrke: number | null
+  sikt: 'god' | 'lett_taake' | 'taake' | 'tett_taake' | null
   in_competition: boolean
 }
 
@@ -3366,6 +3371,7 @@ type RawShootingWorkout = {
       id: string; series_no: number; position: string
       shots: number | null; hits: number | null; time_seconds: number | null
       avg_heart_rate: number | null; max_heart_rate: number | null
+      vind_retning: string | null; vind_styrke: number | null; sikt: string | null
     }[] | null
   }[] | null
 }
@@ -3417,7 +3423,7 @@ export async function getShootingDepthAnalysis(
 
     const { data, error } = await supabase
       .from('workouts')
-      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate))')
+      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,vind_retning,vind_styrke,sikt))')
       .eq('user_id', userId)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .eq('sport', 'biathlon')
@@ -3475,6 +3481,9 @@ export async function getShootingDepthAnalysis(
               duration_seconds: s.time_seconds ?? null,
               avg_heart_rate: s.avg_heart_rate ?? a.avg_heart_rate ?? null,
               max_heart_rate: s.max_heart_rate ?? null,
+              vind_retning: s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+              vind_styrke: s.vind_styrke ?? null,
+              sikt: (s.sikt as ShootingSeriesRow['sikt']) ?? null,
               in_competition: inComp,
             })
           }
@@ -3497,6 +3506,9 @@ export async function getShootingDepthAnalysis(
           duration_seconds: a.duration_seconds,
           avg_heart_rate: a.avg_heart_rate,
           max_heart_rate: null,
+          vind_retning: null,
+          vind_styrke: null,
+          sikt: null,
           in_competition: inComp,
         })
       }

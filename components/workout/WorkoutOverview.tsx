@@ -18,7 +18,8 @@ import {
   NUTRITION_TYPES,
   type WorkoutFormData, type ActivityRow, type ShootingSeriesRow,
 } from '@/lib/types'
-import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
+import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS, windShort, sightLabel } from '@/lib/shooting'
+import { VimpelIcon } from './WindSightModal'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
@@ -485,6 +486,14 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                 </span>
                 {s.hits === '' && (
                   <span style={{ color: '#55555F', fontSize: 12.5 }}>treff ikke ført</span>
+                )}
+                {/* Kø #49 bolk 3: vind & sikt der ført — mini-vimpel + korttekst. */}
+                {(s.vind_styrke != null || s.sikt) && (
+                  <span className="inline-flex items-center" style={{ gap: 4, color: '#8B8B95', fontSize: 12.5 }}>
+                    {s.vind_styrke != null && <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke} size={18} />}
+                    {s.vind_styrke != null && <span>{windShort(s.vind_retning, s.vind_styrke)}</span>}
+                    {s.sikt && <span>{s.vind_styrke != null ? '· ' : ''}{sightLabel(s.sikt)?.replace(' sikt', '')}</span>}
+                  </span>
                 )}
                 {parts.length > 0 && (
                   <span className="ml-auto" style={{ color: '#8B8B95', fontSize: 13 }}>{parts.join(' · ')}</span>

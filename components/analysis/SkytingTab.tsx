@@ -16,6 +16,7 @@ import {
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
 import { ShotVolumeChart } from './ShotVolumeChart'
 import type { DateRange } from './date-range'
+import { windShort, sightLabel } from '@/lib/shooting'
 
 const COLOR_PRONE = '#38BDF8'      // liggende (blå)
 const COLOR_STANDING = '#FF4500'   // stående (oransje)
@@ -448,7 +449,7 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
   const handleExport = () => {
     // Seriemodellen (bolk 9): én rad per serie m/ serie-tid og serie-puls.
     // treff_foert skiller «0 treff» fra «treff ikke ført» (kun-førte-regelen).
-    const header = ['dato', 'okt_type', 'serie_nr', 'aktivitet', 'ligg_skudd', 'ligg_treff', 'sta_skudd', 'sta_treff', 'treff_foert', 'varighet_sek', 'snittpuls', 'makspuls', 'i_konkurranse']
+    const header = ['dato', 'okt_type', 'serie_nr', 'aktivitet', 'ligg_skudd', 'ligg_treff', 'sta_skudd', 'sta_treff', 'treff_foert', 'varighet_sek', 'snittpuls', 'makspuls', 'vind', 'sikt', 'i_konkurranse']
     const rows: string[][] = [header]
     const sorted: ShootingSeriesRow[] = [...data.series].sort((a, b) =>
       a.date.localeCompare(b.date) || a.sort_order - b.sort_order)
@@ -461,6 +462,8 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
         r.duration_seconds != null ? r.duration_seconds.toString() : '',
         r.avg_heart_rate != null ? r.avg_heart_rate.toString() : '',
         r.max_heart_rate != null ? r.max_heart_rate.toString() : '',
+        windShort(r.vind_retning, r.vind_styrke) ?? '',
+        sightLabel(r.sikt) ?? '',
         r.in_competition ? 'ja' : 'nei',
       ])
     }

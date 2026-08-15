@@ -9,7 +9,9 @@ import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/ana
 import { ChartWrapper } from './ChartWrapper'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
+  CHART_TOOLTIP_BOX,
 } from './chart-theme'
+import { windShort, sightLabel } from '@/lib/shooting'
 
 // Custom skyting-graf-bygger — filtrer skyting-data og velg akser fritt.
 // Kjører helt klient-side på `series`-arrayet som allerede er lastet av
@@ -267,7 +269,18 @@ interface ChartPoint {
   x: number | string
   y: number | null
   series: 'first' | 'last' | 'main'
-  meta: { date: string; sort_order: number; avg_hr: number | null }
+  meta: { date: string; sort_order: number; avg_hr: number | null; wind: string | null }
+}
+
+// Kø #49 bolk 3: vind/sikt som kontekst i serie-tooltips — «H3 · Tåke».
+// Uført vind = null → ingen støy i tooltipen.
+function windContext(r: ShootingSeriesRow): string | null {
+  const w = r.vind_styrke != null
+    ? (r.vind_styrke === 0 ? 'Vindstille' : `Vimpel ${windShort(r.vind_retning, r.vind_styrke)}`)
+    : null
+  const s = sightLabel(r.sikt)
+  if (w && s) return `${w} · ${s}`
+  return w ?? s
 }
 
 interface ChartData {
@@ -314,8 +327,8 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
       if (arr.length < 2) { workoutIdx++; continue }
       arr.sort((a, b) => a.sort_order - b.sort_order)
       const first = arr[0], last = arr[arr.length - 1]
-      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate } })
-      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate } })
+      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate, wind: windContext(first) } })
+      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last) } })
       workoutIdx++
     }
     return { points, hasCompare: true, xType }
@@ -335,10 +348,44 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
     x: xOf(r, workoutIndexById.get(r.workout_id) ?? 0),
     y: yOf(r),
     series: 'main' as const,
-    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate },
+    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r) },
   })).filter(p => p.y !== null)
 
   return { points, hasCompare: false, xType }
+}
+
+// Egen tooltip for enkel-serie-grafene: dato · skyting-nr, verdi, puls og
+// vind/sikt-kontekst der ført (CHART_TOOLTIP_BOX = delt tooltip-språk).
+function BuilderTip({ active, payload, yLabel }: {
+  active?: boolean
+  payload?: { payload?: ChartPoint }[]
+  yLabel: string
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  const p = payload.find(e => e.payload)?.payload
+  if (!p) return null
+  return (
+    <div style={CHART_TOOLTIP_BOX}>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
+        {p.meta.date} · Skyting {p.meta.sort_order}
+      </div>
+      {p.y != null && (
+        <div style={{ color: '#8B8B95' }}>
+          Verdi <b style={{ color: '#F2F2F0' }}>{p.y} {yLabel}</b>
+        </div>
+      )}
+      {p.meta.avg_hr != null && (
+        <div style={{ color: '#8B8B95' }}>
+          Puls <b style={{ color: '#F2F2F0' }}>{p.meta.avg_hr}</b>
+        </div>
+      )}
+      {p.meta.wind && (
+        <div style={{ color: '#8B8B95', marginTop: 4 }}>
+          <span aria-hidden style={{ color: '#E23A5A' }}>⚑</span> {p.meta.wind}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function CustomChart({ data, filter }: { data: ChartData; filter: FilterState }) {
@@ -390,10 +437,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
           <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
           <YAxis type="number" dataKey="y" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-          <Tooltip
-            content={<XpTooltip />}
-            formatter={(v, k) => k === 'y' ? [String(v) + ' ' + yLabel, 'Y'] : [String(v), 'X']}
-          />
+          <Tooltip content={<BuilderTip yLabel={yLabel} />} />
           <Scatter data={data.points} fill={positionColor} />
         </ScatterChart>
       </ResponsiveContainer>
@@ -407,7 +451,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
         <XAxis dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
         <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
           label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-        <Tooltip content={<XpTooltip />} />
+        <Tooltip content={<BuilderTip yLabel={yLabel} />} />
         <Line type="monotone" dataKey="y" stroke={positionColor} strokeWidth={2} dot={{ r: 3 }} />
       </LineChart>
     </ResponsiveContainer>

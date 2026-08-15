@@ -188,7 +188,7 @@ function Row({
             fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
-            {template.name}
+            {template.is_test ? '🧪 ' : ''}{template.name}
           </div>
           {template.description && (
             <p className="mt-1 text-sm"

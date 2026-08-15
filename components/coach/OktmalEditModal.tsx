@@ -19,6 +19,8 @@ export function OktmalEditModal({ template, onClose }: Props) {
   const [description, setDescription] = useState(template.description ?? '')
   const [category, setCategory] = useState(template.category ?? 'Annet')
   const [sport, setSport] = useState<Sport>(template.sport ?? 'running')
+  // Kø #49: test-mal-flagg — trener skal også kunne markere/avmarkere.
+  const [isTest, setIsTest] = useState(template.is_test)
   const [err, setErr] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -42,6 +44,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
         description: description.trim() || null,
         category,
         sport,
+        isTest,
       })
       if (res.error) { setErr(res.error); return }
       onClose()
@@ -112,6 +115,21 @@ export function OktmalEditModal({ template, onClose }: Props) {
               </select>
             </Field>
           </div>
+          <button type="button" onClick={() => setIsTest(v => !v)}
+            className="inline-flex items-center gap-2 self-start"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+              letterSpacing: '0.05em', borderRadius: 999, padding: '6px 12px',
+              minHeight: 36, cursor: 'pointer',
+              color: isTest ? '#F0F0F2' : '#8A8A96',
+              background: isTest ? '#D4A01722' : 'transparent',
+              border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+            }}>
+            🧪 Marker som test
+            <span style={{ color: '#555560', fontSize: 12 }}>
+              {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
+            </span>
+          </button>
           <p className="text-xs mt-1"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Aktiviteter, soner og øvelser i malen endres ikke her. Du kan dupliser og bygg ny om du trenger endringer i innholdet.

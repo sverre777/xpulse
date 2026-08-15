@@ -42,8 +42,9 @@ create index if not exists workout_shooting_series_activity_idx
 
 alter table public.workout_shooting_series enable row level security;
 
--- RLS speiler workout_activities: eier alt; coach les via aktiv relasjon,
--- coach skriv via can_edit_plan ELLER can_edit_dagbok (samme som økt-skriving).
+-- RLS speiler workout-tabellene (phase29-mønsteret): eier alt; coach les
+-- via aktiv relasjon, coach skriv via can_edit_plan (eneste edit-flagg for
+-- økt-skriving — det finnes ikke noe can_edit_dagbok-flagg).
 drop policy if exists "Own shooting series" on public.workout_shooting_series;
 create policy "Own shooting series"
   on public.workout_shooting_series for all
@@ -76,14 +77,14 @@ create policy "Coach writes athlete shooting series"
     join public.workouts w on w.id = a.workout_id
     join public.coach_athlete_relations r on r.athlete_id = w.user_id
     where a.id = activity_id and r.coach_id = auth.uid() and r.status = 'active'
-      and (r.can_edit_plan = true or r.can_edit_dagbok = true)
+      and r.can_edit_plan = true
   ))
   with check (exists (
     select 1 from public.workout_activities a
     join public.workouts w on w.id = a.workout_id
     join public.coach_athlete_relations r on r.athlete_id = w.user_id
     where a.id = activity_id and r.coach_id = auth.uid() and r.status = 'active'
-      and (r.can_edit_plan = true or r.can_edit_dagbok = true)
+      and r.can_edit_plan = true
   ));
 
 grant select, insert, update, delete on public.workout_shooting_series to authenticated;

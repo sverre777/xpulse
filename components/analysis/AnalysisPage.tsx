@@ -679,7 +679,7 @@ function AnalysisPageInner({
         )}
         {tab === 'skyting' && (
           skyting
-            ? <SkytingTab data={skyting} />
+            ? <SkytingTab data={skyting} range={range} targetUserId={targetUserId} />
             : <LoadingStub label="Laster skyting-dybde…" />
         )}
         {tab === 'periodisering' && (

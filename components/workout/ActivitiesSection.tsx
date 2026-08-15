@@ -258,7 +258,9 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   // (primær eller sekundær), uansett hvilken sport selve økta føres som.
   // Dette gjør at f.eks. en langrenns-langtur eller styrkeøkt kan inneholde
   // basisskyting/tørrtrening som egen rad.
-  const typeOptions = ACTIVITY_TYPES.filter(t => !t.biathlonOnly || userHasBiathlon)
+  // Kø #47: kun ÉN «Skyting» i velgeren — legacy-variantene (posisjon/art)
+  // skjules, men gamle rader beholder verdi + label (egen option under).
+  const typeOptions = ACTIVITY_TYPES.filter(t => (!t.biathlonOnly || userHasBiathlon) && !t.legacy)
 
   return (
     <div className="space-y-2">
@@ -542,6 +544,14 @@ function ActivityRowItem({
                     <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
                   ))
                 )}
+                {/* Gamle rader m/ legacy skyting-variant: behold verdien synlig. */}
+                {(() => {
+                  const cur = meta
+                  if (cur?.legacy && !typeOptions.some(t => t.value === cur.value)) {
+                    return <option value={cur.value}>{cur.icon}  {cur.label}</option>
+                  }
+                  return null
+                })()}
               </select>
             </Field>
 

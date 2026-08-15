@@ -436,6 +436,10 @@ export interface ActivityTypeOption {
   usesMovement: boolean      // om bevegelsesform-dropdown skal vises
   isShooting: boolean
   biathlonOnly: boolean
+  // Kø #47: seriemodellen gjorde posisjons-/art-variantene overflødige i
+  // VELGEREN (posisjon utledes av seriene; innskyting/basis er markering/
+  // type). Verdiene består for gamle rader — men vises ikke som valg.
+  legacy?: boolean
 }
 
 export const ACTIVITY_TYPES: ActivityTypeOption[] = [
@@ -443,11 +447,11 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'aktivitet',         label: 'Aktivitet',          icon: '⚡', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'pause',             label: 'Pause',              icon: '⏸',  usesMovement: false, isShooting: false, biathlonOnly: false },
   { value: 'aktiv_pause',       label: 'Aktiv pause',        icon: '🚶', usesMovement: true,  isShooting: false, biathlonOnly: false },
-  { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_kombinert', label: 'Skyting — Kombinert',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_basis',     label: 'Skyting — Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_basis',     label: 'Skyting — Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]

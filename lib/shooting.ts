@@ -34,6 +34,17 @@ export type ShotPoint = { x: number; y: number } | null
 // gjennom typepaletten (spec bolk 3).
 export const SHOT_SERIES_COLORS = ['#1A6FD4', '#E23A5A', '#28A86E', '#8B5CF6', '#FF8C00', '#6E6E78']
 
+// Fast visningsrekkefølge for skudd-per-type (bolk 5/6) — deles av
+// uke-chipen og månedsgrafen. Tørr er utelatt (måles i TID); 'ukjent' =
+// migrerte blokker uten satt type.
+export const SHOT_TYPE_ORDER: { key: string; color: string; label: string }[] = [
+  { key: 'basisskyting',   color: '#1A6FD4', label: 'Basis' },
+  { key: 'rolig_komb',     color: '#28A86E', label: 'Rolig' },
+  { key: 'hurtighet_komb', color: '#8B5CF6', label: 'Hurtighet' },
+  { key: 'hard_komb',      color: '#E23A5A', label: 'Hard' },
+  { key: 'ukjent',         color: '#55555F', label: 'Uten type' },
+]
+
 // Bolk 4 (NSSF Test 4): ringverdi fra plottet punkt — 10-delt ISSF-skive
 // lineært fra senter (10) til skivekant (1); utenfor skiva = 0 (bom).
 export function ringValueFromPoint(p: { x: number; y: number }): number {

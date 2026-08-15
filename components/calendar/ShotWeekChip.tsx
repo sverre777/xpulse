@@ -10,14 +10,7 @@
 // MOBIL: chippen faller ALDRI bort — baren bryter til egen linje (<680px).
 
 import type { ShotStats } from '@/lib/types'
-
-const TYPE_ORDER: { key: string; color: string; label: string }[] = [
-  { key: 'basisskyting',   color: '#1A6FD4', label: 'Basis' },
-  { key: 'rolig_komb',     color: '#28A86E', label: 'Rolig' },
-  { key: 'hurtighet_komb', color: '#8B5CF6', label: 'Hurtighet' },
-  { key: 'hard_komb',      color: '#E23A5A', label: 'Hard' },
-  { key: 'ukjent',         color: '#55555F', label: 'Uten type' },
-]
+import { SHOT_TYPE_ORDER as TYPE_ORDER } from '@/lib/shooting'
 
 export function ShotWeekChip({ stats, plannedShots }: {
   stats: ShotStats

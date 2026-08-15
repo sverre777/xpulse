@@ -12,6 +12,8 @@ import {
   CHART_CURSOR, BAR_RADIUS,
 } from './chart-theme'
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
+import { ShotVolumeChart } from './ShotVolumeChart'
+import type { DateRange } from './date-range'
 
 const COLOR_PRONE = '#38BDF8'      // liggende (blå)
 const COLOR_STANDING = '#FF4500'   // stående (oransje)
@@ -47,7 +49,12 @@ function fmtPct(v: number | null): string {
   return v == null ? '—' : `${v.toFixed(1)}%`
 }
 
-export function SkytingTab({ data }: { data: ShootingDepthAnalysis }) {
+export function SkytingTab({ data, range, targetUserId }: {
+  data: ShootingDepthAnalysis
+  // Kø #47 bolk 6: skudd-grafen trenger perioden + trener-drilldown.
+  range?: DateRange
+  targetUserId?: string
+}) {
   if (data.sportMismatch) {
     return (
       <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
@@ -70,6 +77,11 @@ export function SkytingTab({ data }: { data: ShootingDepthAnalysis }) {
   return (
     <div className="space-y-5">
       <SummaryCards data={data} />
+      {/* Kø #47 bolk 6: skudd per uke/måned m/ typefordeling + treff %-rad
+          — samme komponent som i månedsanalysen under kalenderen. */}
+      {range && (
+        <ShotVolumeChart range={range} targetUserId={targetUserId} title="Skudd per uke" />
+      )}
       <CustomSkytingChartBuilder data={data} />
       <AccuracyTrend data={data} />
       <HrZoneAccuracy data={data} />

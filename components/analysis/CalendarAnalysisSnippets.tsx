@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { PlanVsActualCard } from './PlanVsActualCard'
+import { ShotVolumeChart } from './ShotVolumeChart'
 import { BelastningTrendMini } from './BelastningTrendMini'
 import { HelseMiniDashboard } from './HelseMiniDashboard'
 import type { DateRange } from './date-range'
@@ -147,6 +148,9 @@ export function CalendarAnalysisSnippets({ mode, targetUserId }: Props) {
 
       <div className="space-y-5">
         <PlanVsActualCard range={range} targetUserId={targetUserId} />
+
+        {/* Kø #47 bolk 6: skudd-graf — selvskjulende uten skytedata. */}
+        <ShotVolumeChart range={range} targetUserId={targetUserId} />
 
         <div className="p-5" style={{ background: 'linear-gradient(135deg, #131318 0%, #0E0E12 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
           <div className="flex items-center gap-3 mb-3">

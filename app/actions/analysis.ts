@@ -3915,6 +3915,162 @@ export async function getCustomBreakdown(
   }
 }
 
+// ─── Kø #47 bolk 6: skudd-volum per uke/måned ───────────────
+// Delt av månedsanalysen (under kalenderen) og SkytingTab — samme
+// komponent, samme action. Ghost-buckets etter G4-mønsteret. Type +
+// markeringer (skytetest/innskyting/konkurranse/testløp) er filtre.
+
+export interface ShotVolumeBucket {
+  bucketKey: string
+  label: string
+  startDate: string
+  // Skudd per blokk-type (tørr ALDRI med — den telles i drySeconds).
+  byType: Record<string, number>
+  shots: number
+  recordedShots: number
+  recordedHits: number
+  // Kun-førte per type (til treff % per type i tooltip).
+  recordedByType: Record<string, { shots: number; hits: number }>
+  drySeconds: number
+  ghost?: boolean
+}
+
+export type ShotMarkingFilter = 'alle' | 'test' | 'innskyting' | 'konkurranse' | 'testlop'
+
+export interface ShotVolume {
+  buckets: ShotVolumeBucket[]
+  hasData: boolean
+}
+
+export async function getShotVolume(
+  fromDate: string,
+  toDate: string,
+  grouping: 'week' | 'month',
+  targetUserId?: string,
+  typeFilter?: string[] | null,
+  marking: ShotMarkingFilter = 'alle',
+): Promise<ShotVolume | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId, 'can_view_analysis', 'read')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { data: rows, error } = await supabase
+      .from('workouts')
+      .select('date, workout_type, workout_activities(activity_type, shooting_type, is_dry_training, shooting_is_test, shooting_is_innskyting, prone_shots, prone_hits, standing_shots, standing_hits, duration_seconds)')
+      .eq('user_id', resolved.userId)
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date')
+    if (error) return { error: error.message }
+
+    type ShotRow = {
+      date: string
+      workout_type: string
+      workout_activities: {
+        activity_type: string
+        shooting_type: string | null
+        is_dry_training: boolean | null
+        shooting_is_test: boolean | null
+        shooting_is_innskyting: boolean | null
+        prone_shots: number | null
+        prone_hits: number | null
+        standing_shots: number | null
+        standing_hits: number | null
+        duration_seconds: number | null
+      }[] | null
+    }
+
+    const SHOOTING = new Set(['skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting', 'skyting_basis'])
+    const buckets = new Map<string, ShotVolumeBucket>()
+    const ensure = (dateIso: string): ShotVolumeBucket => {
+      const { bucketKey, label, startDate } = bucketKeyFor(dateIso, grouping)
+      let b = buckets.get(bucketKey)
+      if (!b) {
+        b = {
+          bucketKey, label, startDate,
+          byType: {}, shots: 0, recordedShots: 0, recordedHits: 0,
+          recordedByType: {}, drySeconds: 0,
+        }
+        buckets.set(bucketKey, b)
+      }
+      return b
+    }
+
+    for (const w of (rows ?? []) as ShotRow[]) {
+      for (const a of (w.workout_activities ?? [])) {
+        if (!SHOOTING.has(a.activity_type)) continue
+        // Markering-filter: manuelle fra blokken, auto fra øktas type.
+        if (marking === 'test' && a.shooting_is_test !== true) continue
+        if (marking === 'innskyting' && !(a.shooting_is_innskyting === true || a.activity_type === 'skyting_innskyting')) continue
+        if (marking === 'konkurranse' && w.workout_type !== 'competition') continue
+        if (marking === 'testlop' && w.workout_type !== 'testlop') continue
+
+        const type = a.shooting_type
+          ?? (a.is_dry_training ? 'torrtrening'
+            : a.activity_type === 'skyting_basis' ? 'basisskyting' : 'ukjent')
+        if (typeFilter && typeFilter.length > 0 && !typeFilter.includes(type)) continue
+
+        const b = ensure(w.date)
+        if (type === 'torrtrening') {
+          b.drySeconds += Number(a.duration_seconds) || 0
+          continue
+        }
+        const p = Number(a.prone_shots) || 0
+        const s = Number(a.standing_shots) || 0
+        const shots = p + s
+        if (shots <= 0) continue
+        b.shots += shots
+        b.byType[type] = (b.byType[type] ?? 0) + shots
+        const rec = (b.recordedByType[type] ??= { shots: 0, hits: 0 })
+        if (a.prone_hits != null && p > 0) {
+          const h = Math.min(Number(a.prone_hits) || 0, p)
+          b.recordedShots += p; b.recordedHits += h
+          rec.shots += p; rec.hits += h
+        }
+        if (a.standing_hits != null && s > 0) {
+          const h = Math.min(Number(a.standing_hits) || 0, s)
+          b.recordedShots += s; b.recordedHits += h
+          rec.shots += s; rec.hits += h
+        }
+      }
+    }
+
+    const hasData = Array.from(buckets.values()).some(b => b.shots > 0 || b.drySeconds > 0)
+
+    // Ghost-utfylling (G4-mønsteret): tomme perioder i intervallet vises
+    // eksplisitt; ingen snittlinje her, så bare slots + «—» i treff-raden.
+    {
+      const cursor = new Date(fromDate + 'T00:00:00')
+      const rangeEnd = new Date(toDate + 'T00:00:00')
+      let guard = 0
+      while (cursor <= rangeEnd && guard < 800) {
+        guard++
+        const iso = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`
+        const { bucketKey, label, startDate } = bucketKeyFor(iso, grouping)
+        if (!buckets.has(bucketKey)) {
+          buckets.set(bucketKey, {
+            bucketKey, label, startDate,
+            byType: {}, shots: 0, recordedShots: 0, recordedHits: 0,
+            recordedByType: {}, drySeconds: 0, ghost: true,
+          })
+        }
+        if (grouping === 'month') cursor.setMonth(cursor.getMonth() + 1, 1)
+        else cursor.setDate(cursor.getDate() + 7)
+      }
+    }
+
+    return {
+      buckets: Array.from(buckets.values()).sort((a, b) => a.startDate.localeCompare(b.startDate)),
+      hasData,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `getShotVolume: ${msg}` }
+  }
+}
+
 // ─── Tester og PR ───────────────────────────────────────────
 // Leser workout_test_data + personal_records for utøveren. Progresjonskurvene
 // grupperes per (sport, test_type) slik at test-fanen kan vise en separat

@@ -610,6 +610,8 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
   const fmtPace = (sec: number | null) => sec == null ? '—' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
   const th: React.CSSProperties = { padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
   const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }
+  // Kø #49 bolk 6: skytedel (kolonne vises kun når mal-øktene har skyting).
+  const hasShooting = rows.some(r => r.shooting != null)
   return (
     <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '14px 16px' }}>
       <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: '0 0 2px' }}>
@@ -626,6 +628,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
               <th style={th}>Snittpuls</th>
               <th style={th}>Pace</th>
               <th style={th}>RPE</th>
+              {hasShooting && <th style={th}>Skyting</th>}
               <th style={{ ...th, textAlign: 'left' }}>Vær / føre</th>
             </tr>
           </thead>
@@ -638,6 +641,21 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
                 <td style={{ ...td, textAlign: 'center' }}>{r.avg_heart_rate != null ? `${r.avg_heart_rate} bpm` : '—'}</td>
                 <td style={{ ...td, textAlign: 'center' }}>{fmtPace(r.pace_seconds_per_km)}</td>
                 <td style={{ ...td, textAlign: 'center' }}>{r.rpe != null ? r.rpe : '—'}</td>
+                {hasShooting && (
+                  <td style={{ ...td, textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    {r.shooting ? (
+                      <>
+                        {r.shooting.pct != null
+                          ? `${r.shooting.pct} % (${r.shooting.recorded_hits}/${r.shooting.recorded_shots})`
+                          : `${r.shooting.shots} skudd`}
+                        {r.shooting.time_sum != null ? ` · ${r.shooting.time_sum}s` : ''}
+                        {r.shooting.avg_hr != null ? ` · ø${r.shooting.avg_hr}` : ''}
+                        {r.shooting.wind ? ` · ⚑${r.shooting.wind}` : ''}
+                        {r.shooting.sikt ? ` · ${r.shooting.sikt}` : ''}
+                      </>
+                    ) : '—'}
+                  </td>
+                )}
                 <td style={{ ...td, textAlign: 'left', color: rawWeatherSummary(r.weather) ? '#C0C0CC' : '#444' }}>
                   {rawWeatherSummary(r.weather) ?? '— ikke registrert'}
                 </td>
@@ -768,6 +786,20 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
             }}
             variant="inline"
           />
+          {/* Kø #49 bolk 6: serie-tid/-puls + vind/sikt-kontekst der ført. */}
+          {(workout.shooting.shooting_time_seconds != null
+            || workout.shooting.shooting_avg_hr != null
+            || workout.shooting.wind
+            || workout.shooting.sikt) && (
+            <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              {[
+                workout.shooting.shooting_time_seconds != null ? `Skytetid ${workout.shooting.shooting_time_seconds}s` : null,
+                workout.shooting.shooting_avg_hr != null ? `Serie-puls ø${workout.shooting.shooting_avg_hr}` : null,
+                workout.shooting.wind ? `⚑${workout.shooting.wind}` : null,
+                workout.shooting.sikt,
+              ].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
       )}
 

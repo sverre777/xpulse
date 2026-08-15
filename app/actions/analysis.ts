@@ -8,6 +8,7 @@ import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
 import { findStandardTest } from '@/lib/shooting-test-templates'
+import { windShort, sightLabel, type SightKey } from '@/lib/shooting'
 
 // ── Typer ──────────────────────────────────────────
 
@@ -2313,6 +2314,12 @@ export interface ComparableShooting {
   prone_shots: number; prone_hits: number | null
   standing_shots: number; standing_hits: number | null
   accuracy_pct: number | null
+  // Kø #49 bolk 6: skytedel i sammenligninger — serie-tid/-puls fra ny
+  // modell + kompakt vind/sikt-kontekst (kun førte; null = ikke ført).
+  shooting_time_seconds: number | null
+  shooting_avg_hr: number | null
+  wind: string | null
+  sikt: string | null
 }
 
 export interface ComparableWorkout {
@@ -2375,6 +2382,11 @@ type RawCompareRow = {
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
     zones: Record<string, number | string | null> | null
+    workout_shooting_series?: {
+      position: string; shots: number | null; hits: number | null
+      time_seconds: number | null; avg_heart_rate: number | null
+      vind_retning: string | null; vind_styrke: number | null; sikt: string | null
+    }[] | null
   }[] | null
 }
 
@@ -2396,7 +2408,7 @@ export async function getWorkoutsForComparison(
     // markerer dem ulikt slik at brukeren kan sammenligne plan vs faktisk.
     let q = supabase
       .from('workouts')
-      .select('id,date,title,sport,workout_type,is_planned,is_completed,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones)')
+      .select('id,date,title,sport,workout_type,is_planned,is_completed,avg_heart_rate,max_heart_rate,duration_minutes,notes,workout_activities(activity_type,movement_name,sort_order,duration_seconds,distance_meters,avg_heart_rate,max_heart_rate,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,zones,workout_shooting_series(position,shots,hits,time_seconds,avg_heart_rate,vind_retning,vind_styrke,sikt))')
       .eq('user_id', userId)
       .gte('date', fromDate)
       .lte('date', toDate)
@@ -2471,10 +2483,34 @@ export async function getWorkoutsForComparison(
       }
       const recShots = proneRecShots + standRecShots
       const recHits = (proneHits ?? 0) + (standHits ?? 0)
+      // Kø #49 bolk 6: serie-tid/-puls + vind/sikt fra seriemodellen.
+      let shootTime: number | null = null
+      const shootHrs: number[] = []
+      const winds = new Set<string>()
+      const sikts = new Set<string>()
+      for (const a of (w.workout_activities ?? [])) {
+        for (const s of (a.workout_shooting_series ?? [])) {
+          if ((s.shots ?? 0) <= 0) continue
+          if (s.time_seconds != null) shootTime = (shootTime ?? 0) + s.time_seconds
+          if (s.avg_heart_rate && s.avg_heart_rate > 0) shootHrs.push(s.avg_heart_rate)
+          const wd = windShort(
+            s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+            s.vind_styrke,
+          )
+          if (wd) winds.add(wd)
+          const sl = sightLabel((s.sikt ?? null) as SightKey | null)
+          if (sl) sikts.add(sl)
+        }
+      }
       const shooting: ComparableShooting | null = hasShoot ? {
         prone_shots: proneShots, prone_hits: proneHits,
         standing_shots: standShots, standing_hits: standHits,
         accuracy_pct: recShots > 0 ? Math.round((recHits / recShots) * 1000) / 10 : null,
+        shooting_time_seconds: shootTime != null ? Math.round(shootTime) : null,
+        shooting_avg_hr: shootHrs.length > 0
+          ? Math.round(shootHrs.reduce((x, y) => x + y, 0) / shootHrs.length) : null,
+        wind: winds.size > 0 ? Array.from(winds).join(' · ') : null,
+        sikt: sikts.size > 0 ? Array.from(sikts).join(' · ') : null,
       } : null
 
       // Lactate points per activity.

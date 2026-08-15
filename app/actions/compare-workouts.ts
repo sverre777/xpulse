@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { shootingSummary, windShort, sightLabel, type SightKey, type ShootingSeriesLike } from '@/lib/shooting'
 
 // Server-actions for utvidet økt-sammenligning:
 // - getWorkoutsByTemplate: alle økter laget fra en bestemt mal
@@ -76,6 +77,18 @@ export interface WorkoutFromTemplate {
     wind_strength: string | null
     surface_conditions: string[]
   } | null
+  // Kø #49 bolk 6: skytedel i mal-visningen — delt kun-førte-funksjon
+  // (shootingSummary); null når økta ikke har skyting.
+  shooting: {
+    pct: number | null
+    recorded_hits: number
+    recorded_shots: number
+    shots: number
+    time_sum: number | null
+    avg_hr: number | null
+    wind: string | null
+    sikt: string | null
+  } | null
 }
 
 export async function getWorkoutsByTemplate(templateId: string): Promise<WorkoutFromTemplate[] | { error: string }> {
@@ -88,7 +101,9 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
     .select(`
       id, date, title, sport, avg_heart_rate, rpe, distance_km, duration_minutes,
       workout_weather ( temperature, weather_type, wind_strength, surface_conditions ),
-      workout_activities ( duration_seconds, distance_meters, avg_pace_seconds_per_km )
+      workout_activities ( activity_type, duration_seconds, distance_meters, avg_pace_seconds_per_km,
+        shooting_type, is_dry_training, prone_shots, prone_hits, standing_shots, standing_hits,
+        workout_shooting_series ( position, shots, hits, time_seconds, avg_heart_rate, vind_retning, vind_styrke, sikt ) )
     `)
     .eq('user_id', user.id)
     // Fase 76: følg standardøkten — match både økter opprettet FRA malen
@@ -97,11 +112,24 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
     .eq('is_completed', true)
     .order('date', { ascending: false })
   if (error) return { error: error.message }
+  type TplAct = {
+    activity_type: string
+    duration_seconds: number | null; distance_meters: number | null
+    avg_pace_seconds_per_km: number | null
+    shooting_type: string | null; is_dry_training: boolean | null
+    prone_shots: number | null; prone_hits: number | null
+    standing_shots: number | null; standing_hits: number | null
+    workout_shooting_series?: {
+      position: string; shots: number | null; hits: number | null
+      time_seconds: number | null; avg_heart_rate: number | null
+      vind_retning: string | null; vind_styrke: number | null; sikt: string | null
+    }[] | null
+  }
   return (data ?? []).map(w => {
     const wx = (Array.isArray(w.workout_weather) ? w.workout_weather[0] : w.workout_weather) as {
       temperature: number | null; weather_type: string | null; wind_strength: string | null; surface_conditions: string[] | null
     } | null | undefined
-    const acts = (w.workout_activities ?? []) as { duration_seconds: number | null; distance_meters: number | null; avg_pace_seconds_per_km: number | null }[]
+    const acts = (w.workout_activities ?? []) as TplAct[]
     const withPace = acts.filter(a => a.avg_pace_seconds_per_km != null && (a.distance_meters ?? 0) > 0)
     let paceSec: number | null = null
     if (withPace.length > 0) {
@@ -112,6 +140,36 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
       const km = Number(w.distance_km) || 0, min = Number(w.duration_minutes) || 0
       if (km > 0 && min > 0) paceSec = Math.round((min * 60) / km)
     }
+    // Skytedel: serier fra ny modell; fallback syntetiserer fra aggregatene
+    // (samme regel som ellers). Tørrtrening holdes utenfor treff-tallene.
+    const seriesLike: ShootingSeriesLike[] = []
+    const winds = new Set<string>()
+    const sikts = new Set<string>()
+    for (const a of acts) {
+      if (!a.activity_type?.startsWith('skyting')) continue
+      if (a.shooting_type === 'torrtrening' || a.is_dry_training === true) continue
+      const db = (a.workout_shooting_series ?? []).filter(s => (s.shots ?? 0) > 0)
+      if (db.length > 0) {
+        for (const s of db) {
+          seriesLike.push({
+            position: s.position === 'S' ? 'S' : 'L',
+            shots: s.shots, hits: s.hits,
+            time_seconds: s.time_seconds, avg_heart_rate: s.avg_heart_rate,
+          })
+          const wd = windShort(
+            s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+            s.vind_styrke,
+          )
+          if (wd) winds.add(wd)
+          const sl = sightLabel((s.sikt ?? null) as SightKey | null)
+          if (sl) sikts.add(sl)
+        }
+        continue
+      }
+      if ((a.prone_shots ?? 0) > 0) seriesLike.push({ position: 'L', shots: a.prone_shots, hits: a.prone_hits })
+      if ((a.standing_shots ?? 0) > 0) seriesLike.push({ position: 'S', shots: a.standing_shots, hits: a.standing_hits })
+    }
+    const shootSum = seriesLike.length > 0 ? shootingSummary(seriesLike) : null
     return {
       id: w.id, date: w.date, title: w.title, sport: w.sport,
       avg_heart_rate: w.avg_heart_rate ?? null,
@@ -122,6 +180,16 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
         weather_type: wx.weather_type ?? null,
         wind_strength: wx.wind_strength ?? null,
         surface_conditions: Array.isArray(wx.surface_conditions) ? wx.surface_conditions : [],
+      } : null,
+      shooting: shootSum ? {
+        pct: shootSum.pct != null ? Math.round(shootSum.pct * 10) / 10 : null,
+        recorded_hits: shootSum.recordedHits,
+        recorded_shots: shootSum.recordedShots,
+        shots: shootSum.shots,
+        time_sum: shootSum.timeSum != null ? Math.round(shootSum.timeSum) : null,
+        avg_hr: shootSum.avgHr,
+        wind: winds.size > 0 ? Array.from(winds).join(' · ') : null,
+        sikt: sikts.size > 0 ? Array.from(sikts).join(' · ') : null,
       } : null,
     }
   })

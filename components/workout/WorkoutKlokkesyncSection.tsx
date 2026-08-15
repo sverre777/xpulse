@@ -5,6 +5,7 @@ import { getWorkoutKlokkesyncData, type WorkoutKlokkesyncData } from '@/app/acti
 import { WorkoutDetailChart } from './WorkoutDetailChart'
 import { LapTable } from './LapTable'
 import { WorkoutDeepAnalysis } from './WorkoutDeepAnalysis'
+import { ImportSourceBadge } from './ImportSourceBadge'
 
 // Viser klokkesync-data (samples + per-lap-tabell) for én økt.
 // Hentes lazy når komponenten mountes — vi vil ikke forsinke modal-åpning
@@ -142,11 +143,20 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
             {showDeep ? 'Skjul dypere analyse' : 'Vis dypere analyse'}
           </button>
           {showDeep && (
+            <>
             <WorkoutDeepAnalysis
               samples={data.samples}
               sport={data.sport}
               heartZones={data.heartZones}
             />
+            {/* Powered by Strava også på dypere analyse (brand-krav) —
+                samples-dataene er Strava-leverte (og slettes etter 7 dager). */}
+            {importedFrom === 'strava' && (
+              <div className="mt-2 flex justify-end">
+                <ImportSourceBadge source="strava" />
+              </div>
+            )}
+            </>
           )}
         </>
       )}

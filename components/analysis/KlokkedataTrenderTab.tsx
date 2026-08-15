@@ -7,6 +7,7 @@ import {
 } from 'recharts'
 import type { KlokkedataTrender, TrendPoint, ZoneWeekPoint } from '@/app/actions/klokkedata-trender'
 import { ChartWrapper } from './ChartWrapper'
+import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import {
   XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_ZONE_COLORS,
   CHART_LEGEND_STYLE, BAR_RADIUS,
@@ -55,6 +56,13 @@ export function KlokkedataTrenderTab({ data }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Strava-attribution når grunnlaget inneholder Strava-importerte
+          økter (brand-krav — samme badge som øktflatene). */}
+      {data.hasStrava && (
+        <div className="flex justify-end">
+          <ImportSourceBadge source="strava" />
+        </div>
+      )}
       <Summary data={data} />
 
       {data.zonesPerWeek.length > 0 && (

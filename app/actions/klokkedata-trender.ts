@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import type { Sport } from '@/lib/types'
 
 // Aggregert klokkedata over en tidsperiode. Bygger på per-økt-aggregater
@@ -34,6 +35,9 @@ export interface KlokkedataTrender {
   workoutsWithKlokkesync: number
   // Total økter i perioden (for proporsjon).
   workoutsTotal: number
+  // Minst én av øktene i grunnlaget er Strava-importert → fanen viser
+  // Powered by Strava-attribution.
+  hasStrava: boolean
 }
 
 export interface ZoneWeekPoint {
@@ -67,13 +71,14 @@ export async function getKlokkedataTrender(
 ): Promise<KlokkedataTrender | { error: string }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Lesebane: header-basert auth (29026a9-mønsteret).
+    const user = await getAuthUser()
     if (!user) return { error: 'Ikke innlogget' }
 
     let q = supabase
       .from('workouts')
       .select(`
-        id, date, title, sport, suffer_score,
+        id, date, title, sport, suffer_score, imported_from,
         avg_heart_rate, duration_minutes, distance_km,
         workout_activities(activity_type, avg_heart_rate, avg_watts, avg_speed_ms, avg_cadence, duration_seconds, zones)
       `)
@@ -277,6 +282,8 @@ export async function getKlokkedataTrender(
       zonesPerWeek,
       workoutsWithKlokkesync,
       workoutsTotal,
+      hasStrava: ((data ?? []) as { imported_from?: string | null }[])
+        .some(w => w.imported_from === 'strava'),
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

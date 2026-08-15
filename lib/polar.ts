@@ -247,6 +247,102 @@ export async function registerPolarUser(
   }
 }
 
+// ── Avregistrering (frakobling) ──────────────────────────────
+
+export interface PolarDeregisterAttempt {
+  attempt: number
+  status: number
+  body: string
+}
+
+export interface PolarDeregisterResult {
+  ok: boolean
+  status: number
+  attempts: PolarDeregisterAttempt[]
+  message: string
+}
+
+// Statuser det er meningsfullt å prøve på nytt: nettverksfeil (0), rate limit
+// og server-feil. En 401/403/409 blir ikke bedre av flere forsøk.
+function isRetryableDeregisterStatus(status: number): boolean {
+  return status === 0 || status === 429 || status >= 500
+}
+
+// DELETE /v3/users/{user-id} — avregistrerer brukeren OG revokerer tokenet.
+// Påkrevd av Polar API License Agreement ved frakobling.
+//
+// Prøver inntil maxAttempts ganger med kort backoff. Kalleren skal ALLTID
+// fullføre brukerens frakobling uansett resultat — men resultatet (inkludert
+// hvert forsøk) rapporteres, så en feilet avregistrering aldri forsvinner
+// stille.
+export async function deregisterPolarUser(
+  accessToken: string,
+  polarUserId: number,
+  maxAttempts = 3,
+): Promise<PolarDeregisterResult> {
+  const attempts: PolarDeregisterAttempt[] = []
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let status = 0
+    let body = ''
+    try {
+      const res = await fetch(`${POLAR_API}/users/${polarUserId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+      })
+      status = res.status
+      body = (await res.text().catch(() => '')).slice(0, 200)
+    } catch (e) {
+      status = 0
+      body = e instanceof Error ? e.message : String(e)
+    }
+    attempts.push({ attempt, status, body })
+
+    // 204 (dokumentert suksess) og 200 = avregistrert + token revokert.
+    if (status === 204 || status === 200) {
+      return {
+        ok: true, status, attempts,
+        message: 'Avregistrert hos Polar — tokenet er revokert.',
+      }
+    }
+    // 404 = ingen registrering å fjerne (f.eks. registreringen feilet i sin tid,
+    // eller den er allerede fjernet). Ingenting mer å rydde hos Polar.
+    if (status === 404) {
+      return {
+        ok: true, status, attempts,
+        message: 'Fant ingen registrering hos Polar å fjerne — ingenting å rydde der.',
+      }
+    }
+    if (status === 401) {
+      return {
+        ok: false, status, attempts,
+        message: 'Polar avviste tokenet (401). Tilgangen kan allerede være trukket tilbake, men vi fikk ikke bekreftet det.',
+      }
+    }
+    if (!isRetryableDeregisterStatus(status)) {
+      return {
+        ok: false, status, attempts,
+        message: `Polar svarte ${status} på avregistreringen.`,
+      }
+    }
+    if (attempt < maxAttempts) {
+      await new Promise(r => setTimeout(r, attempt * 400))
+    }
+  }
+
+  const last = attempts[attempts.length - 1]
+  return {
+    ok: false,
+    status: last?.status ?? 0,
+    attempts,
+    message: `Avregistrering hos Polar feilet etter ${attempts.length} forsøk.`,
+  }
+}
+
+// Polar Flow-siden der brukeren selv kan fjerne X-PULSE hvis avregistreringen
+// vår feilet. Vises i UI kun når deregisterPolarUser ikke lyktes.
+export const POLAR_MANUAL_REVOKE_URL = 'https://flow.polar.com/settings/authorizations'
+
 // ── Tilkobling + token-fornying ──────────────────────────────
 
 export async function getPolarConnection(

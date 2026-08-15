@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
+import { PolarDisconnectModal } from './PolarDisconnectModal'
 
 // Polar-flatene som hører til bolk 2 (OAuth + registrering):
 //  · PolarStatusBanner — leser ?polar=<status> fra callbacken og viser en
@@ -35,6 +36,11 @@ const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 
   avbrutt: {
     label: 'Du avbrøt Polar-tilkoblingen',
     tone: 'nøytral',
+  },
+  frakoblet: {
+    label: '✓ Polar er frakoblet',
+    hint: 'Alle Polar-importerte økter, aktiviteter og rå-data er slettet, og X-PULSE er avregistrert hos Polar. Økter du har lastet opp som .fit-filer eller ført manuelt er ikke rørt.',
+    tone: 'ok',
   },
   'feil-state': {
     label: 'Sikkerhetsfeil — prøv igjen',
@@ -121,6 +127,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [lastResult, setLastResult] = useState<string | null>(null)
+  const [showDisconnect, setShowDisconnect] = useState(false)
 
   const handleRegister = () => {
     startTransition(async () => {
@@ -145,14 +152,25 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
         background: 'var(--card)', border: '1px solid var(--line)',
         borderRadius: 14, borderTop: '3px solid #FF4500',
       }}>
-      <h2 className="mb-3 flex items-center gap-3"
-        style={{
-          fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-          letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
-        }}>
-        <span style={{ width: 16, height: 2, background: '#FF4500' }} />
-        Polar
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="flex items-center gap-3"
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
+            letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+          }}>
+          <span style={{ width: 16, height: 2, background: '#FF4500' }} />
+          Polar
+        </h2>
+        <button type="button" onClick={() => setShowDisconnect(true)} disabled={pending}
+          style={{
+            background: 'none', border: '1px solid #2A2A30', borderRadius: 10,
+            padding: '8px 14px', cursor: pending ? 'default' : 'pointer', color: '#8A8A96',
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
+            letterSpacing: '0.16em', textTransform: 'uppercase',
+          }}>
+          Frakoble
+        </button>
+      </div>
 
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: '#F0F0F2' }}>
         Koblet · polar-bruker <code style={{ color: '#8A8A96', fontSize: 13 }}>{conn.polar_user_id}</code>
@@ -212,6 +230,11 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
       }}>
         Datakilde: Polar Ecosystem
       </p>
+
+      <PolarDisconnectModal
+        open={showDisconnect}
+        onClose={() => setShowDisconnect(false)}
+      />
     </section>
   )
 }

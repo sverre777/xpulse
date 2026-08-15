@@ -173,8 +173,9 @@ export interface ShootingSeriesRow {
   avg_heart_rate: string
   max_heart_rate: string
   note: string
-  // Skuddplott (bolk 3): {x,y} 0..1 per skudd i rekkefølge.
-  shot_plot: { x: number; y: number }[] | null
+  // Skuddplott (bolk 3): {x,y} 0..1 per skudd (indeks = skuddnr − 1);
+  // null = ikke plottet (delvis plotting er alltid OK).
+  shot_plot: ({ x: number; y: number } | null)[] | null
 }
 
 export interface ShootingBlock {

@@ -21,6 +21,7 @@ import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
+import { ShotPlotModal } from '@/components/workout/ShotPlotModal'
 import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
@@ -1408,6 +1409,8 @@ function ShootingFields({
   workoutType?: string
 }) {
   const [noteOpenId, setNoteOpenId] = useState<string | null>(null)
+  // Bolk 3: skuddplott-popup — én serie (🎯 på raden) eller 'all' (bulk).
+  const [plotTarget, setPlotTarget] = useState<'all' | string | null>(null)
   const series = row.shooting_series
   const isDry = row.shooting_type === 'torrtrening'
   const sum = shootingSummary(series)
@@ -1554,6 +1557,17 @@ function ShootingFields({
                     <input value={s.max_heart_rate} onChange={e => updSeries(s.id, { max_heart_rate: e.target.value })}
                       placeholder="Maks" title="Makspuls under serien"
                       inputMode="numeric" style={{ ...nSt, width: 60 }} />
+                    <button type="button" aria-label="Skuddplott for serien"
+                      onClick={() => setPlotTarget(s.id)}
+                      title="Plott hvor skuddene satt (valgfritt)"
+                      style={{
+                        minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
+                        background: s.shot_plot?.some(p => p) ? '#2A1E10' : 'var(--card2)',
+                        border: `1px solid ${s.shot_plot?.some(p => p) ? '#FF8C0066' : 'var(--line2)'}`,
+                        fontSize: 14,
+                      }}>
+                      🎯
+                    </button>
                     <button type="button" aria-label="Notat for serien"
                       onClick={() => setNoteOpenId(noteOpenId === s.id ? null : s.id)}
                       style={{
@@ -1620,8 +1634,37 @@ function ShootingFields({
               Bruk serie-summen som total skytetid: {autoSumLabel}
             </button>
           )}
+          {/* Bulk-plotting: alle serier i samme popup m/ farge per serie. */}
+          {!planMode && series.filter(s => (parseInt(s.shots) || 0) > 0).length > 1 && (
+            <button type="button" onClick={() => setPlotTarget('all')}
+              className="mt-1 text-xs"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed var(--line2)', borderRadius: 8, cursor: 'pointer', padding: '8px 12px', minHeight: 36, letterSpacing: '0.05em' }}>
+              🎯 Plott alle serier
+            </button>
+          )}
         </>
       )}
+
+      {plotTarget && (() => {
+        const targets = plotTarget === 'all'
+          ? series.filter(s => (parseInt(s.shots) || 0) > 0)
+          : series.filter(s => s.id === plotTarget)
+        if (targets.length === 0) return null
+        return (
+          <ShotPlotModal
+            series={targets}
+            seriesNumbers={targets.map(s => series.indexOf(s) + 1)}
+            onSave={updates => onUpdate({
+              shooting_series: series.map(s => {
+                const u = updates.find(x => x.id === s.id)
+                if (!u) return s
+                return { ...s, shot_plot: u.shot_plot.some(p => p != null) ? u.shot_plot : null }
+              }),
+            })}
+            onClose={() => setPlotTarget(null)}
+          />
+        )
+      })()}
     </div>
   )
 }

@@ -418,7 +418,7 @@ async function insertActivitiesWithChildren(
     activity_id: string; series_no: number; position: 'L' | 'S'
     shots: number; hits: number | null; time_seconds: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null
-    note: string | null; shot_plot: { x: number; y: number }[] | null
+    note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
   }[] = []
   for (const [ai, a] of activities.entries()) {
     const activityId = idBySortOrder.get(ai)
@@ -441,7 +441,7 @@ async function insertActivitiesWithChildren(
         avg_heart_rate: parseInt(s.avg_heart_rate) || null,
         max_heart_rate: parseInt(s.max_heart_rate) || null,
         note: s.note || null,
-        shot_plot: s.shot_plot && s.shot_plot.length > 0 ? s.shot_plot : null,
+        shot_plot: s.shot_plot && s.shot_plot.some(p => p != null) ? s.shot_plot : null,
       })
     }
   }
@@ -1387,7 +1387,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       id: string; series_no: number; position: string
       shots: number | null; hits: number | null; time_seconds: number | null
       avg_heart_rate: number | null; max_heart_rate: number | null
-      note: string | null; shot_plot: { x: number; y: number }[] | null
+      note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
     }[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])

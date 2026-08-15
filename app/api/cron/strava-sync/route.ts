@@ -10,7 +10,7 @@ import {
   type StravaStreamSet,
   type StravaLap,
 } from '@/lib/strava'
-import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
+import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
 
 // Cron-route for auto-synk fra Strava. Trigges av Netlify Scheduled
 // Function (se netlify/functions/strava-sync.ts) som kjøres */15 * * * *.
@@ -140,7 +140,17 @@ async function createWorkoutFromStrava(
   streams: StravaStreamSet,
   externalId: string,
 ): Promise<string | null> {
-  const sport = mapStravaSportToXpulse(detail.sport_type)
+  // mapStravaSportToXpulse returnerer { movement, subcategory } — den styrer
+  // KUN aktivitetsradens bevegelsesform. workouts.sport er brukerens
+  // hovedidrett fra profilen, akkurat som i server-action-veien
+  // (createWorkoutFromStrava i app/actions/strava-sync.ts).
+  const mapping = mapStravaSportToXpulse(detail.sport_type)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('primary_sport')
+    .eq('id', userId)
+    .maybeSingle()
+  const sport = (profile?.primary_sport as string | null) ?? 'endurance'
   const startDate = new Date(detail.start_date)
   const dateStr = startDate.toISOString().slice(0, 10)
   const timeStr = startDate.toISOString().slice(11, 16)
@@ -164,6 +174,10 @@ async function createWorkoutFromStrava(
       calories: detail.calories ?? null,
       is_planned: false,
       is_completed: true,
+      // Uten denne merkingen ville cron-importerte økter verken fått
+      // kilde-badge eller blitt slettet av /api/strava/disconnect (som sletter
+      // på imported_from='strava'). Server-action-veien har alltid satt den.
+      imported_from: 'strava',
     })
     .select('id')
     .single()
@@ -176,7 +190,12 @@ async function createWorkoutFromStrava(
   if (detail.laps && detail.laps.length > 0) {
     const rows = detail.laps.map((lap: StravaLap, idx: number) => ({
       workout_id: workout.id,
-      activity_type: sport,
+      // activity_type må være en av verdiene i
+      // workout_activities_activity_type_check. Bevegelsesformen hører hjemme
+      // i movement_name/-subcategory, som i server-action-veien.
+      activity_type: 'aktivitet',
+      movement_name: mapping.movement,
+      movement_subcategory: mapping.subcategory,
       duration_seconds: lap.elapsed_time,
       distance_meters: Math.round(lap.distance),
       avg_heart_rate: lap.average_heartrate ?? null,
@@ -203,11 +222,18 @@ async function createWorkoutFromStrava(
   }
 
   if (hasStreamData(streams)) {
+    // cache_expires_at MÅ settes (fase 68 / Strava API Agreement § 7: rå
+    // sample-data slettes innen 7 dager). Uten den hopper
+    // /api/cron/cleanup-strava-samples over raden — den rydder kun der feltet
+    // er satt — og rådataene ville blitt liggende for alltid.
+    // Server-action-veien har alltid satt den.
+    const expiresAt = new Date(Date.now() + 7 * 86400_000).toISOString()
     const { error: sampleErr } = await supabase.from('workout_samples').insert({
       workout_id: workout.id,
       user_id: userId,
       ...mapStreamsToSamples(streams),
       source: 'strava',
+      cache_expires_at: expiresAt,
     })
     if (sampleErr) {
       console.error(`[strava-cron] workout_samples insert FAILED for ${detail.id}:`, sampleErr.message)
@@ -228,12 +254,15 @@ async function createWorkoutFromStrava(
         const cumEnd = cumStart + lap.elapsed_time
         const aid = idBySortOrder.get(idx)
         if (aid) {
-          const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
-          const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+          // zones-jsonb lagres i SEKUNDER siden fase 64 — minutt-varianten ga
+          // 60× for lave verdier. Server-action-veien
+          // (populateZonesForLaps) bruker samme sekund-funksjon.
+          const zoneSec = computeZoneSecondsFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+          const total = zoneSec.I1 + zoneSec.I2 + zoneSec.I3 + zoneSec.I4 + zoneSec.I5
           if (total > 0) {
             await supabase
               .from('workout_activities')
-              .update({ zones: { ...minutes, Hurtighet: 0 } })
+              .update({ zones: { ...zoneSec, Hurtighet: 0 } })
               .eq('id', aid)
           }
         }

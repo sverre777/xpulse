@@ -161,6 +161,22 @@ export const SHOOTING_BLOCK_TYPES: { value: ShootingBlockType; label: string }[]
   { value: 'konkurranse',     label: 'Konkurranse' },
 ]
 
+// Kø #47: én skyteserie i føring v2 (klient-form, strenger for input).
+// Alt valgfritt unntatt skudd (default 5; stafett-ekstraskudd 5–8, bulk).
+export interface ShootingSeriesRow {
+  id: string
+  db_id?: string
+  position: 'L' | 'S'
+  shots: string
+  hits: string
+  time_seconds: string
+  avg_heart_rate: string
+  max_heart_rate: string
+  note: string
+  // Skuddplott (bolk 3): {x,y} 0..1 per skudd i rekkefølge.
+  shot_plot: { x: number; y: number }[] | null
+}
+
 export interface ShootingBlock {
   id: string
   shooting_type: ShootingBlockType | ''
@@ -683,6 +699,15 @@ export interface ActivityRow {
   // Tørrtrening — skyting uten skarp ammunisjon. Ortogonalt til posisjon
   // (liggende/stående/kombinert). Kun meningsfullt for skyting_*-aktiviteter.
   is_dry_training: boolean
+  // ── Kø #47 SKYTING-LØFT (fase 85): seriemodellen. Aggregatene over er
+  // nå AVLEDET av seriene ved lagring (bakoverkomp for lesende flater til
+  // bolk 9); is_dry_training avledes av typen. ──
+  shooting_type: '' | 'basisskyting' | 'rolig_komb' | 'hard_komb' | 'hurtighet_komb' | 'torrtrening'
+  shooting_is_innskyting: boolean
+  shooting_is_test: boolean
+  shooting_surface: '' | 'papp' | 'metall' | 'issf'
+  shooting_test_ref: string
+  shooting_series: ShootingSeriesRow[]
   // Høydemeter — valgfritt, tilgjengelig for alle utholdenhetsbevegelser.
   elevation_gain_m: string
   elevation_loss_m: string
@@ -1187,11 +1212,17 @@ export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: 
     avg_pace_seconds_per_km: '',
     pace_unit_preference: '',
     splits_per_km: [],
-    prone_shots: '',
+    prone_shots: overrides.prone_shots ?? '',
     prone_hits: '',
-    standing_shots: '',
+    standing_shots: overrides.standing_shots ?? '',
     standing_hits: '',
     is_dry_training: false,
+    shooting_type: overrides.shooting_type ?? '',
+    shooting_is_innskyting: overrides.shooting_is_innskyting ?? false,
+    shooting_is_test: false,
+    shooting_surface: '',
+    shooting_test_ref: '',
+    shooting_series: overrides.shooting_series ?? [],
     elevation_gain_m: '',
     elevation_loss_m: '',
     incline_percent: '',

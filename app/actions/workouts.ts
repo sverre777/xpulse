@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
   WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType,
+  ShootingSeriesRow,
   WorkoutActivity, ActivityRow, ActivityType,
   ActivityZoneMinutes, emptyActivityZones,
   StrengthExerciseRow, StrengthSetRow,
@@ -14,6 +15,7 @@ import {
   WeatherData,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
+import { seriesToLegacyAggregates } from '@/lib/shooting'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
 import { parseDecimal } from '@/lib/parse-decimal'
@@ -271,11 +273,28 @@ async function insertActivitiesWithChildren(
       avg_pace_seconds_per_km: parseInt(a.avg_pace_seconds_per_km) || null,
       pace_unit_preference: a.pace_unit_preference || null,
       splits_per_km: serializeSplits(a.splits_per_km ?? []),
-      prone_shots: parseInt(a.prone_shots) || null,
-      prone_hits: parseInt(a.prone_hits) || null,
-      standing_shots: parseInt(a.standing_shots) || null,
-      standing_hits: parseInt(a.standing_hits) || null,
-      is_dry_training: a.is_dry_training === true,
+      // Kø #47: aggregatene AVLEDES av seriene når serier finnes — alle
+      // lesende flater (kalender/oversikt/analyse) ser samme tall som før
+      // (paritet frem til bolk 9 legger dem over på seriene direkte).
+      ...(() => {
+        const hasSeries = (a.shooting_series ?? []).some(s => (parseInt(s.shots) || 0) > 0)
+        if (!hasSeries || a.shooting_type === 'torrtrening') {
+          return {
+            prone_shots: a.shooting_type === 'torrtrening' ? null : parseInt(a.prone_shots) || null,
+            prone_hits: a.shooting_type === 'torrtrening' ? null : parseInt(a.prone_hits) || null,
+            standing_shots: a.shooting_type === 'torrtrening' ? null : parseInt(a.standing_shots) || null,
+            standing_hits: a.shooting_type === 'torrtrening' ? null : parseInt(a.standing_hits) || null,
+          }
+        }
+        return seriesToLegacyAggregates(a.shooting_series)
+      })(),
+      // Tørr-typen speiles til det gamle flagget (lesende flater + rollback).
+      is_dry_training: a.shooting_type === 'torrtrening' || a.is_dry_training === true,
+      shooting_type: a.shooting_type || null,
+      shooting_is_innskyting: a.shooting_is_innskyting === true || a.activity_type === 'skyting_innskyting',
+      shooting_is_test: a.shooting_is_test === true,
+      shooting_surface: a.shooting_surface || null,
+      shooting_test_ref: a.shooting_test_ref || null,
       elevation_gain_m: parseInt(a.elevation_gain_m) || null,
       elevation_loss_m: parseInt(a.elevation_loss_m) || null,
       incline_percent: (() => {
@@ -392,7 +411,92 @@ async function insertActivitiesWithChildren(
     if (lactErr) return lactErr.message
   }
 
+  // Kø #47: skyteserier — barn av aktivitetene (samme reinsert-mønster som
+  // øvelser/laktat; cascade ryddet de gamle ved delete over). Tørrtrening
+  // fører KUN skytetid — ingen serier lagres for den typen.
+  const shootingSeriesRows: {
+    activity_id: string; series_no: number; position: 'L' | 'S'
+    shots: number; hits: number | null; time_seconds: number | null
+    avg_heart_rate: number | null; max_heart_rate: number | null
+    note: string | null; shot_plot: { x: number; y: number }[] | null
+  }[] = []
+  for (const [ai, a] of activities.entries()) {
+    const activityId = idBySortOrder.get(ai)
+    if (!activityId) continue
+    if (a.shooting_type === 'torrtrening') continue
+    for (const [si, s] of (a.shooting_series ?? []).entries()) {
+      const shots = parseInt(s.shots) || 0
+      if (shots <= 0) continue
+      shootingSeriesRows.push({
+        activity_id: activityId,
+        series_no: si + 1,
+        position: s.position === 'S' ? 'S' : 'L',
+        shots,
+        hits: s.hits === '' || s.hits == null ? null : Math.max(0, parseInt(s.hits) || 0),
+        time_seconds: (() => {
+          if (s.time_seconds === '' || s.time_seconds == null) return null
+          const v = parseDecimal(s.time_seconds)
+          return Number.isFinite(v) && v >= 0 ? v : null
+        })(),
+        avg_heart_rate: parseInt(s.avg_heart_rate) || null,
+        max_heart_rate: parseInt(s.max_heart_rate) || null,
+        note: s.note || null,
+        shot_plot: s.shot_plot && s.shot_plot.length > 0 ? s.shot_plot : null,
+      })
+    }
+  }
+  if (shootingSeriesRows.length > 0) {
+    const { error: serErr } = await supabase
+      .from('workout_shooting_series')
+      .insert(shootingSeriesRows)
+    if (serErr) return serErr.message
+  }
+
   return null
+}
+
+// Kø #47: normaliser/syntetiser skyteserier. Har raden serier brukes de;
+// ellers (eldre snapshot/rader) syntetiseres fra prone/standing-aggregatene
+// — samme regel som fase 85-migreringen (én L- og/eller én S-serie m/
+// eksakte tall → statistikk-paritet).
+function normalizeShootingSeries(a: {
+  shooting_series?: unknown
+  prone_shots?: string | number | null
+  prone_hits?: string | number | null
+  standing_shots?: string | number | null
+  standing_hits?: string | number | null
+}): ShootingSeriesRow[] {
+  if (Array.isArray(a.shooting_series) && a.shooting_series.length > 0) {
+    return (a.shooting_series as Partial<ShootingSeriesRow>[]).map(s => ({
+      id: crypto.randomUUID(),
+      position: s.position === 'S' ? 'S' : 'L',
+      shots: String(s.shots ?? ''),
+      hits: s.hits == null ? '' : String(s.hits),
+      time_seconds: s.time_seconds == null ? '' : String(s.time_seconds),
+      avg_heart_rate: s.avg_heart_rate == null ? '' : String(s.avg_heart_rate),
+      max_heart_rate: s.max_heart_rate == null ? '' : String(s.max_heart_rate),
+      note: s.note ?? '',
+      shot_plot: Array.isArray(s.shot_plot) ? s.shot_plot : null,
+    }))
+  }
+  const out: ShootingSeriesRow[] = []
+  const p = parseInt(String(a.prone_shots ?? '')) || 0
+  const st = parseInt(String(a.standing_shots ?? '')) || 0
+  if (p > 0) {
+    out.push({
+      id: crypto.randomUUID(), position: 'L', shots: String(p),
+      hits: a.prone_hits == null || a.prone_hits === '' ? '' : String(a.prone_hits),
+      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null,
+    })
+  }
+  if (st > 0) {
+    out.push({
+      id: crypto.randomUUID(), position: 'S', shots: String(st),
+      hits: a.standing_hits == null || a.standing_hits === '' ? '' : String(a.standing_hits),
+      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null,
+    })
+  }
+  return out
 }
 
 // Normaliser ActivityRow-snapshot fra planned_snapshot.activities (jsonb) tilbake til ActivityRow.
@@ -427,6 +531,12 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       standing_shots: a.standing_shots ?? '',
       standing_hits: a.standing_hits ?? '',
       is_dry_training: a.is_dry_training ?? false,
+      shooting_type: a.shooting_type ?? (a.is_dry_training ? 'torrtrening' : ''),
+      shooting_is_innskyting: a.shooting_is_innskyting ?? (a.activity_type === 'skyting_innskyting'),
+      shooting_is_test: a.shooting_is_test ?? false,
+      shooting_surface: a.shooting_surface ?? '',
+      shooting_test_ref: a.shooting_test_ref ?? '',
+      shooting_series: normalizeShootingSeries(a),
       elevation_gain_m: a.elevation_gain_m ?? '',
       elevation_loss_m: a.elevation_loss_m ?? '',
       incline_percent: a.incline_percent ?? '',
@@ -1183,7 +1293,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       *,
       workout_movements(*), workout_tags(*),
       workout_lactate_measurements(*), workout_shooting_blocks(*),
-      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*)),
+      workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*), workout_shooting_series(*)),
       workout_competition_data(*),
       workout_test_data(*),
       workout_weather(*),
@@ -1260,6 +1370,11 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     prone_shots: number | null; prone_hits: number | null
     standing_shots: number | null; standing_hits: number | null
     is_dry_training: boolean | null
+    shooting_type: string | null
+    shooting_is_innskyting: boolean | null
+    shooting_is_test: boolean | null
+    shooting_surface: string | null
+    shooting_test_ref: string | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
     incline_percent: number | null
     pack_weight_kg: number | null; sled_weight_kg: number | null
@@ -1268,6 +1383,12 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     zones: Record<string, number> | null
     workout_activity_exercises?: DbExercise[] | null
     workout_activity_lactate_measurements?: DbLactate[] | null
+    workout_shooting_series?: {
+      id: string; series_no: number; position: string
+      shots: number | null; hits: number | null; time_seconds: number | null
+      avg_heart_rate: number | null; max_heart_rate: number | null
+      note: string | null; shot_plot: { x: number; y: number }[] | null
+    }[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -1331,6 +1452,33 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         standing_shots: a.standing_shots?.toString() ?? '',
         standing_hits: a.standing_hits?.toString() ?? '',
         is_dry_training: a.is_dry_training === true,
+        shooting_type: (a.shooting_type as ActivityRow['shooting_type'] | null)
+          ?? (a.is_dry_training === true ? 'torrtrening' : ''),
+        shooting_is_innskyting: a.shooting_is_innskyting === true || a.activity_type === 'skyting_innskyting',
+        shooting_is_test: a.shooting_is_test === true,
+        shooting_surface: (a.shooting_surface as ActivityRow['shooting_surface'] | null) ?? '',
+        shooting_test_ref: a.shooting_test_ref ?? '',
+        shooting_series: (() => {
+          const db = (a.workout_shooting_series ?? []).slice().sort((x, y) => x.series_no - y.series_no)
+          if (db.length > 0) {
+            return db.map<ShootingSeriesRow>(s => ({
+              id: crypto.randomUUID(), db_id: s.id,
+              position: s.position === 'S' ? 'S' : 'L',
+              shots: s.shots?.toString() ?? '',
+              hits: s.hits?.toString() ?? '',
+              time_seconds: s.time_seconds?.toString() ?? '',
+              avg_heart_rate: s.avg_heart_rate?.toString() ?? '',
+              max_heart_rate: s.max_heart_rate?.toString() ?? '',
+              note: s.note ?? '',
+              shot_plot: s.shot_plot ?? null,
+            }))
+          }
+          // Fallback for rader uten serier (pre-migrering/edge): syntetiser.
+          return normalizeShootingSeries({
+            prone_shots: a.prone_shots, prone_hits: a.prone_hits,
+            standing_shots: a.standing_shots, standing_hits: a.standing_hits,
+          })
+        })(),
         elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
         elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
         incline_percent: a.incline_percent?.toString() ?? '',

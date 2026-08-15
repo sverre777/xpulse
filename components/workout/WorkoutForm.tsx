@@ -139,6 +139,12 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
     standing_shots: a.standing_shots ?? '',
     standing_hits: a.standing_hits ?? '',
     is_dry_training: a.is_dry_training ?? false,
+    shooting_type: a.shooting_type ?? (a.is_dry_training ? 'torrtrening' : ''),
+    shooting_is_innskyting: a.shooting_is_innskyting ?? (a.activity_type === 'skyting_innskyting'),
+    shooting_is_test: a.shooting_is_test ?? false,
+    shooting_surface: a.shooting_surface ?? '',
+    shooting_test_ref: a.shooting_test_ref ?? '',
+    shooting_series: (a.shooting_series ?? []).map(s => ({ ...s, id: crypto.randomUUID() })),
     elevation_gain_m: a.elevation_gain_m ?? '',
     elevation_loss_m: a.elevation_loss_m ?? '',
     incline_percent: a.incline_percent ?? '',
@@ -910,6 +916,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           activityTypeFavorites={activityTypeFavorites}
           mode={isPlanMode ? 'plan' : 'dagbok'}
           defaultPaceUnit={defaultPaceUnit}
+          workoutType={form.workout_type}
         />
       </Section>
 

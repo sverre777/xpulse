@@ -20,6 +20,8 @@ import {
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
+import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
+import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import type { UserExercise } from '@/lib/user-exercise-types'
@@ -73,6 +75,8 @@ interface Props {
   mode?: 'plan' | 'dagbok'
   // Brukerens default pace-enhet fra profiles.default_pace_unit. null = min_per_km.
   defaultPaceUnit?: PaceUnit | null
+  // Kø #47: øktas workout_type — driver auto-markeringene 🏁/⏱ på skyteblokker.
+  workoutType?: string
 }
 
 function defaultMovementForSport(sport: Sport): string {
@@ -101,6 +105,12 @@ function emptyRow(type: ActivityType, movement: string): ActivityRow {
     standing_shots: '',
     standing_hits: '',
     is_dry_training: false,
+    shooting_type: '',
+    shooting_is_innskyting: false,
+    shooting_is_test: false,
+    shooting_surface: '',
+    shooting_test_ref: '',
+    shooting_series: [],
     elevation_gain_m: '',
     elevation_loss_m: '',
     incline_percent: '',
@@ -157,7 +167,7 @@ const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
   Hurtighet: '#8B5CF6',
 }
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -271,6 +281,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
           userMovementTypes={userMovementTypes}
           onRequestCreateMovement={() => setCreateModalRowId(row.id)}
           defaultPaceUnit={defaultPaceUnit}
+          workoutType={workoutType}
         />
       ))}
       </div>
@@ -311,7 +322,7 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
   typeOptions, favoriteTypes, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
-  defaultPaceUnit,
+  defaultPaceUnit, workoutType,
 }: {
   row: ActivityRow
   expanded: boolean
@@ -330,6 +341,7 @@ function ActivityRowItem({
   userMovementTypes: UserMovementType[]
   onRequestCreateMovement: () => void
   defaultPaceUnit: PaceUnit | null
+  workoutType?: string
 }) {
   // Beregn hvilke favoritter som er tilgjengelige for denne brukeren
   // (typeOptions er allerede filtrert på userSports). Skjul Mest brukt-
@@ -704,7 +716,7 @@ function ActivityRowItem({
           {/* Skyting-felt — dagbok viser skudd + treff + %, plan viser kun
               planlagt antall skudd. Treff er alltid valgfritt. */}
           {meta?.isShooting && (
-            <ShootingFields row={row} onUpdate={onUpdate} planMode={isPlanMode} />
+            <ShootingFields row={row} onUpdate={onUpdate} planMode={isPlanMode} workoutType={workoutType} />
           )}
 
           {/* Styrke-felt */}
@@ -1380,145 +1392,238 @@ function TurFields({
 // fylt inn.
 // I plan-modus vises kun "Antall skudd planlagt" (ingen treff, ingen %).
 
+// ── Skyting: FØRING V2 (kø #47 bolk 2) ─────────────────────
+// Type per blokk (fargeprikk-chips) + markeringer (manuelle: innskyting,
+// 🧪 skytetest; automatiske: 🏁/⏱ fra øktas konkurranse/testløp-type) +
+// serie-rader L/S · skudd · treff · tid · puls på seriemodellen (fase 85).
+// Blokk-total skytetid = radens Varighet-felt (utenfor treningstid som før);
+// auto-sum-hint fra serie-tidene. Tørrtrening fører KUN skytetid.
+// 🎯 skuddplott kommer i bolk 3. Delt beregning: shootingSummary (kun førte).
 function ShootingFields({
-  row, onUpdate, planMode,
+  row, onUpdate, planMode, workoutType,
 }: {
   row: ActivityRow
   onUpdate: (patch: Partial<ActivityRow>) => void
   planMode: boolean
+  workoutType?: string
 }) {
-  const isInnskyting = row.activity_type === 'skyting_innskyting'
-  const isBasis = row.activity_type === 'skyting_basis'
-  const isKombOrBasis = row.activity_type === 'skyting_kombinert' || isBasis
-  const showProne    = row.activity_type === 'skyting_liggende' || isKombOrBasis || isInnskyting
-  const showStanding = row.activity_type === 'skyting_staaende' || isKombOrBasis || isInnskyting
+  const [noteOpenId, setNoteOpenId] = useState<string | null>(null)
+  const series = row.shooting_series
+  const isDry = row.shooting_type === 'torrtrening'
+  const sum = shootingSummary(series)
+  const isComp = workoutType === 'competition'
+  const isTestlop = workoutType === 'testlop'
 
-  const pronePct = planMode ? null : computePct(row.prone_shots, row.prone_hits)
-  const standingPct = planMode ? null : computePct(row.standing_shots, row.standing_hits)
+  const updSeries = (id: string, patch: Partial<ShootingSeriesRow>) =>
+    onUpdate({ shooting_series: series.map(s => s.id === id ? { ...s, ...patch } : s) })
+  const removeSeries = (id: string) =>
+    onUpdate({ shooting_series: series.filter(s => s.id !== id) })
+  const addSeries = () => {
+    const last = series[series.length - 1]
+    onUpdate({
+      shooting_series: [...series, {
+        id: crypto.randomUUID(),
+        position: last?.position ?? 'L',
+        shots: '5', hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+        note: '', shot_plot: null,
+      }],
+    })
+  }
 
-  const heading =
-    isInnskyting ? 'Innskyting' :
-    isBasis      ? 'Basisskyting' :
-                   'Skyting'
+  const nSt: React.CSSProperties = {
+    backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
+    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
+    padding: '8px 6px', minHeight: 40, textAlign: 'center', outline: 'none',
+  }
+
+  const chip = (
+    label: string, active: boolean, color: string,
+    onClick?: () => void, opts?: { dashed?: boolean; title?: string },
+  ) => (
+    <button key={label} type="button" onClick={onClick} disabled={!onClick}
+      title={opts?.title}
+      className="inline-flex items-center gap-1.5"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, letterSpacing: '0.05em',
+        borderRadius: 999, padding: '6px 12px', minHeight: 36,
+        cursor: onClick ? 'pointer' : 'default',
+        color: active ? '#F0F0F2' : '#8B8B95',
+        background: active ? `${color}22` : 'transparent',
+        border: `1px ${opts?.dashed ? 'dashed' : 'solid'} ${active ? color : 'var(--line2)'}`,
+        opacity: !onClick && !active ? 0.5 : 1,
+      }}>
+      <span aria-hidden style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      {label}
+    </button>
+  )
+
+  // Auto-sum-hint: serie-tidene summert ≠ radens Varighet → tilby å bruke summen.
+  const autoSumLabel = sum.timeSum != null && sum.timeSum > 0
+    ? formatActivityDuration(Math.round(sum.timeSum))
+    : null
+  const showAutoSum = !planMode && autoSumLabel != null && autoSumLabel !== row.duration
 
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
-      <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <div className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          {heading}
-          {!planMode && !row.is_dry_training && (
-            <span style={{ marginLeft: 8, color: '#8A8A96', textTransform: 'none', letterSpacing: 0 }}>
-              · Treff er valgfritt
-            </span>
-          )}
-          {row.is_dry_training && (
-            <span style={{ marginLeft: 8, color: '#FF8C00', textTransform: 'none', letterSpacing: 0 }}>
-              · Uten skarp ammunisjon
-            </span>
-          )}
-        </div>
-        {/* Tørrtrening — ortogonalt til posisjon. Kan slås på selv for konkurranse-/
-            kombinert-typer; brukes til å skille tørr-skyting fra skarp ammunisjon i
-            analyse. Når aktiv: skjules skudd/treff-felt og kun varighet + posisjon
-            beholdes (varighet ligger på selve aktivitets-raden). */}
-        <button
-          type="button"
-          onClick={() => onUpdate({ is_dry_training: !row.is_dry_training })}
-          className="px-2 py-1 text-xs tracking-widest uppercase transition-colors"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: row.is_dry_training ? 'rgba(255,140,0,0.18)' : 'transparent',
-            color: row.is_dry_training ? '#FF8C00' : '#555560',
-            border: `1px solid ${row.is_dry_training ? '#FF8C00' : '#222228'}`,
-            cursor: 'pointer',
-          }}
-          aria-pressed={row.is_dry_training}
-        >
-          {row.is_dry_training ? '✓ Tørrtrening' : 'Tørrtrening'}
-        </button>
+      {/* Type-chips — én type per blokk. */}
+      <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 8 }}>
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', marginRight: 2 }}>
+          Type
+        </span>
+        {SHOOTING_TYPES_V2.map(t => chip(
+          t.label,
+          row.shooting_type === t.key,
+          t.color,
+          () => onUpdate({ shooting_type: row.shooting_type === t.key ? '' : t.key }),
+        ))}
       </div>
-      {row.is_dry_training ? (
-        <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          Tørrtrening — registrér kun varighet og posisjon. Skudd/treff-statistikk hoppes over for denne raden.
+      {!row.shooting_type && (
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8C00', marginBottom: 8 }}>
+          Velg type for skyteblokken.
+        </p>
+      )}
+
+      {/* Markeringer: manuelle + automatiske (fra øktas chips). */}
+      <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 10 }}>
+        <span className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', marginRight: 2 }}>
+          Markering
+        </span>
+        {chip('Innskyting', row.shooting_is_innskyting, '#8A8A96',
+          () => onUpdate({ shooting_is_innskyting: !row.shooting_is_innskyting }))}
+        {chip('🧪 Skytetest', row.shooting_is_test, '#D4A017',
+          () => onUpdate({ shooting_is_test: !row.shooting_is_test }))}
+        {isComp && chip('🏁 Konkurranse', true, '#D4A017', undefined,
+          { dashed: true, title: 'Automatisk — følger øktas konkurranse-markering' })}
+        {isTestlop && chip('⏱ Testløp', true, '#1A6FD4', undefined,
+          { dashed: true, title: 'Automatisk — følger øktas testløp-markering' })}
+      </div>
+
+      {isDry ? (
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+          Tørrtrening: før kun total skytetid i Varighet-feltet over — ingen
+          skudd/treff registreres.
+          <span style={{ display: 'block', color: '#555560' }}>
+            NSSF-tips: 3×5 min er bedre enn 1×15 min.
+          </span>
         </p>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {showProne && (
-          <ShootingBlock
-            label="Liggende"
-            shots={row.prone_shots} hits={row.prone_hits}
-            onShots={v => onUpdate({ prone_shots: v })}
-            onHits={v => onUpdate({ prone_hits: v })}
-            pct={pronePct}
-            planMode={planMode}
-          />
-        )}
-        {showStanding && (
-          <ShootingBlock
-            label="Stående"
-            shots={row.standing_shots} hits={row.standing_hits}
-            onShots={v => onUpdate({ standing_shots: v })}
-            onHits={v => onUpdate({ standing_hits: v })}
-            pct={standingPct}
-            planMode={planMode}
-          />
-        )}
-      </div>
+        <>
+          {/* Serie-rader: nr · L/S · skudd · treff · tid · puls · 📝 · ✕.
+              Under 680px bryter puls-gruppen til egen linje (w-full). */}
+          {series.map((s, i) => (
+            <div key={s.id} style={{ borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
+              <div className="flex flex-wrap items-center" style={{ gap: 6, padding: '6px 0' }}>
+                <span style={{ width: 16, textAlign: 'right', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#55555F', flexShrink: 0 }}>
+                  {i + 1}
+                </span>
+                <div className="flex" style={{ borderRadius: 9, overflow: 'hidden', border: '1px solid var(--line2)', flexShrink: 0 }}>
+                  {(['L', 'S'] as const).map(pos => (
+                    <button key={pos} type="button"
+                      onClick={() => updSeries(s.id, { position: pos })}
+                      aria-label={pos === 'L' ? 'Liggende' : 'Stående'}
+                      style={{
+                        minWidth: 40, minHeight: 40, border: 'none', cursor: 'pointer',
+                        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
+                        background: s.position === pos ? POSITION_COLORS[pos] : 'var(--card2)',
+                        color: s.position === pos ? '#0A0A0B' : '#8B8B95',
+                      }}>
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+                <input value={s.shots} onChange={e => updSeries(s.id, { shots: e.target.value })}
+                  placeholder="Skudd" title="Skudd (5–8 v/ stafett-ekstraskudd)"
+                  inputMode="numeric" style={{ ...nSt, width: 58 }} />
+                {!planMode && (
+                  <input value={s.hits} onChange={e => updSeries(s.id, { hits: e.target.value })}
+                    placeholder="Treff" title="Treff (valgfritt — teller i % kun når ført)"
+                    inputMode="numeric" style={{ ...nSt, width: 58 }} />
+                )}
+                {!planMode && (
+                  <input value={s.time_seconds} onChange={e => updSeries(s.id, { time_seconds: e.target.value })}
+                    placeholder="Tid s" title="Skytetid for serien (sekunder)"
+                    inputMode="decimal" style={{ ...nSt, width: 62 }} />
+                )}
+                {!planMode && (
+                  <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
+                    <input value={s.avg_heart_rate} onChange={e => updSeries(s.id, { avg_heart_rate: e.target.value })}
+                      placeholder="Puls" title="Snittpuls under serien"
+                      inputMode="numeric" style={{ ...nSt, width: 60 }} />
+                    <input value={s.max_heart_rate} onChange={e => updSeries(s.id, { max_heart_rate: e.target.value })}
+                      placeholder="Maks" title="Makspuls under serien"
+                      inputMode="numeric" style={{ ...nSt, width: 60 }} />
+                    <button type="button" aria-label="Notat for serien"
+                      onClick={() => setNoteOpenId(noteOpenId === s.id ? null : s.id)}
+                      style={{
+                        minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
+                        background: noteOpenId === s.id || s.note ? '#1E2A22' : 'var(--card2)',
+                        border: '1px solid var(--line2)', fontSize: 14,
+                      }}>
+                      📝
+                    </button>
+                    <button type="button" aria-label="Fjern serie"
+                      onClick={() => removeSeries(s.id)}
+                      style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: '#8B8B95', fontSize: 13 }}>
+                      ✕
+                    </button>
+                  </div>
+                )}
+                {planMode && (
+                  <button type="button" aria-label="Fjern serie"
+                    onClick={() => removeSeries(s.id)}
+                    style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: '#8B8B95', fontSize: 13 }}>
+                    ✕
+                  </button>
+                )}
+              </div>
+              {!planMode && (noteOpenId === s.id || s.note) && (
+                <input value={s.note} onChange={e => updSeries(s.id, { note: e.target.value })}
+                  placeholder="Notat for serien (vind, ankomstpuls, …)"
+                  style={{ ...nSt, width: '100%', textAlign: 'left', padding: '8px 10px', marginBottom: 6 }} />
+              )}
+            </div>
+          ))}
+
+          <button type="button" onClick={addSeries} className="xp-add w-full" style={{ marginTop: series.length > 0 ? 4 : 0 }}>
+            + Legg til serie
+          </button>
+
+          {/* Sum-strip (delt «kun førte»-beregning). */}
+          {sum.totalSeries > 0 && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2"
+              style={{ borderTop: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: '#8A8A96' }}>
+              <span><b style={{ color: '#F0F0F2' }}>{sum.shots}</b> skudd</span>
+              {!planMode && (
+                <span>
+                  Treff <b style={{ color: '#F0F0F2' }}>{sum.recordedHits}</b>/{sum.recordedShots} ført
+                  {sum.pct != null && <> · <b style={{ color: '#F0F0F2' }}>{Math.round(sum.pct)} %</b></>}
+                </span>
+              )}
+              {!planMode && sum.timeSum != null && (
+                <span>Skytetid <b style={{ color: '#F0F0F2' }}>{Math.round(sum.timeSum)}s</b></span>
+              )}
+              {!planMode && sum.avgHr != null && (
+                <span>Snittpuls <b style={{ color: '#F0F0F2' }}>{sum.avgHr}</b></span>
+              )}
+              {!planMode && sum.maxHr != null && (
+                <span>Makspuls <b style={{ color: '#F0F0F2' }}>{sum.maxHr}</b></span>
+              )}
+            </div>
+          )}
+          {showAutoSum && (
+            <button type="button"
+              onClick={() => onUpdate({ duration: autoSumLabel! })}
+              className="mt-1 text-xs"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0', letterSpacing: '0.05em' }}>
+              Bruk serie-summen som total skytetid: {autoSumLabel}
+            </button>
+          )}
+        </>
       )}
     </div>
   )
-}
-
-function ShootingBlock({
-  label, shots, hits, onShots, onHits, pct, planMode,
-}: {
-  label: string; shots: string; hits: string
-  onShots: (v: string) => void; onHits: (v: string) => void
-  pct: number | null
-  planMode: boolean
-}) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {label}
-        </span>
-        {pct != null && (
-          <span style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            color: pct >= 80 ? '#28A86E' : pct >= 60 ? '#FF9500' : '#FF4500',
-            fontSize: '15px', letterSpacing: '0.05em',
-          }}>
-            {pct}%
-          </span>
-        )}
-      </div>
-      {planMode ? (
-        <input value={shots} onChange={e => onShots(e.target.value)}
-          inputMode="numeric" placeholder="Antall skudd planlagt"
-          style={iSt} />
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
-          <input value={shots} onChange={e => onShots(e.target.value)}
-            inputMode="numeric" placeholder="Skudd"
-            style={iSt} />
-          <input value={hits} onChange={e => onHits(e.target.value)}
-            inputMode="numeric" placeholder="Treff (valgfritt)"
-            style={iSt} />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function computePct(shots: string, hits: string): number | null {
-  const s = parseInt(shots)
-  const h = parseInt(hits)
-  if (!Number.isFinite(s) || !Number.isFinite(h) || s <= 0) return null
-  return Math.round((h / s) * 100)
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

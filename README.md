@@ -30,3 +30,9 @@ Påkrevde env-variabler i Netlify:
 - `SUPABASE_SERVICE_ROLE_KEY` (cron-jobs som bypasser RLS)
 - `CRON_SECRET` (matcher Authorization-header på `/api/cron/*`-ruter)
 - `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `STRAVA_REDIRECT_URI`
+- `POLAR_CLIENT_ID`, `POLAR_CLIENT_SECRET`, `POLAR_REDIRECT_URI`,
+  `POLAR_WEBHOOK_SECRET` (AccessLink — klient opprettes på
+  admin.polaraccesslink.com). Registrert redirect-URL:
+  `https://x-pulse.no/auth/polar/callback` — `POLAR_REDIRECT_URI` må matche
+  den eksakt. `POLAR_WEBHOOK_SECRET` er `signature_secret_key` fra
+  webhook-opprettelsen og brukes til HMAC-SHA256-verifisering.

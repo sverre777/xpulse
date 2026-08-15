@@ -288,7 +288,8 @@
   .device-name.device-soon { font-size:13px; letter-spacing:1.5px; color:rgba(242,240,236,0.4); }
   /* Strava gradvis-utrulling-melding */
   .sync-note { max-width:780px; margin:18px auto 0; padding:16px 22px; border-radius:var(--r-sm); background:var(--surface); border:1px solid var(--border); border-left:3px solid #F5C542; }
-  .sync-note-head { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+  .sync-note-head { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); margin-bottom:8px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .sync-note-head .sync-note-live { color:#28A86E; }
   .sync-note p { font-size:13.5px; line-height:1.65; color:rgba(242,240,236,0.6); margin:0 0 6px; }
   .sync-note p:last-child { margin-bottom:0; }
   .sync-note .sync-note-fit { color:rgba(242,240,236,0.82); }
@@ -1002,7 +1003,7 @@
 </div>
 
 <div class="sync-note">
-  <div class="sync-note-head"><span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis</div>
+  <div class="sync-note-head"><span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis <span class="sync-note-live">· Polar-synk live nå!</span></div>
   <p class="sync-note-fit">Direkte Strava-synk er i utrulling — full tilgang kommer snart. <strong>Polar-synk er live for alle</strong>, uten utrulling. Og uansett merke kan <strong>alle</strong> laste opp .fit-filer fra Strava, Garmin, Polar, Coros, Suunto og Wahoo med full pulskurve, lap-data og sone-fordeling.</p>
 </div>
 

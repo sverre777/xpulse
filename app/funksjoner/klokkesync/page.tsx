@@ -43,8 +43,9 @@ export default function KlokkesyncPage() {
           background: '#1A1A1E', border: '1px solid #262629', borderLeft: '3px solid #F5C542',
           fontFamily: "'Barlow Condensed', sans-serif",
         }}>
-          <div style={{ color: '#F2F0EC', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ color: '#F2F0EC', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis
+            <span style={{ color: '#28A86E' }}>· Polar-synk live nå!</span>
           </div>
           <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.6)', margin: '0 0 6px' }}>
             Direkte Strava-synkronisering er i utrulling og tilgjengelig for et begrenset antall brukere nå mens vi utvider kapasiteten. Full tilgang for alle kommer snart.

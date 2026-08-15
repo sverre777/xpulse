@@ -1900,7 +1900,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           const showArrows = canReorder
                           // Kun PLANLAGTE styrkeøkter: en ført dagbok-økt er
                           // allerede gjennomført — å «starte» den gir ikke mening.
-                          const isStrengthRow = !readOnly && w.is_planned && !w.is_completed
+                          // Live-modus er UTØVER-only: også trener MED redigeringsrett
+                          // (readOnly=false, targetUserId satt) skal ikke se «Start live»
+                          // — samme gating som WorkoutForm/WorkoutModal (!targetUserId).
+                          const isStrengthRow = !readOnly && !targetUserId && w.is_planned && !w.is_completed
                             && (w.workout_type === 'strength' || w.primary_movement === 'Styrke')
                           return (
                             <div key={w.id}>

@@ -118,7 +118,10 @@ export async function DagbokPageView({ viewContext }: Props) {
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
 
-        <ResumeSessionBanner />
+        {/* Gjenoppta-banneret viser INNLOGGET brukers aktive live-økt —
+            skjules i trener-drilldown (ville vist trenerens egen økt inne
+            i utøverens dagbok; live-modus er uansett utøver-only). */}
+        {viewContext.mode !== 'coach-view' && <ResumeSessionBanner />}
 
         <div className="mb-6">
           <p className="text-sm tracking-widest uppercase mb-0.5"

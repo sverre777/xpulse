@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { shootingSummary, windShort, sightLabel, type SightKey, type ShootingSeriesLike } from '@/lib/shooting'
 
 // Server-actions for utvidet økt-sammenligning:
@@ -20,7 +21,9 @@ export interface TemplateOption {
 
 export async function getTemplateOptions(): Promise<TemplateOption[] | { error: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Lesebane: getAuthUser (8e657a7-mønsteret — direkte auth.getUser henger
+  // intermitterende ved Auth-rate-limit).
+  const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   // Fase 76: en standardøkt (mal) "representeres" av en økt enten fordi den ble
@@ -93,7 +96,7 @@ export interface WorkoutFromTemplate {
 
 export async function getWorkoutsByTemplate(templateId: string): Promise<WorkoutFromTemplate[] | { error: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   const { data, error } = await supabase
@@ -246,7 +249,7 @@ export async function compareWorkoutsDetailed(
 ): Promise<DetailedWorkout[] | { error: string }> {
   if (workoutIds.length === 0) return []
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   // RLS sikrer at vi bare kan lese workouts vi har tilgang til (egen +
@@ -339,7 +342,7 @@ export interface SavedComparison {
 
 export async function getMyComparisons(): Promise<SavedComparison[] | { error: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   const { data, error } = await supabase

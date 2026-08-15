@@ -23,6 +23,8 @@ interface Preview {
   activities: number
   samples: number
   imports: number
+  health_values: number
+  brand_metrics: number
 }
 
 // Etterkontrollen fra ruta: alle tall skal være 0. -1 = kunne ikke verifiseres.
@@ -32,6 +34,8 @@ export interface VerifiedCounts {
   samples_left: number
   imports_left: number
   connection_left: number
+  polar_health_values_left: number
+  brand_metrics_left: number
 }
 
 interface DisconnectResponse {
@@ -56,6 +60,8 @@ const LEFTOVER_LABELS: [keyof VerifiedCounts, string][] = [
   ['samples_left', 'rå-datasett fra Polar'],
   ['imports_left', 'import-sporinger'],
   ['connection_left', 'tilkoblings-rad'],
+  ['polar_health_values_left', 'helseverdier merket Polar'],
+  ['brand_metrics_left', 'Polar-skårer'],
 ]
 
 export function PolarDisconnectModal({ open, onClose }: Props) {
@@ -79,8 +85,8 @@ export function PolarDisconnectModal({ open, onClose }: Props) {
     }
     fetch('/api/polar/disconnect')
       .then(r => r.json())
-      .then(d => setPreview(d?.will_delete ?? { workouts: 0, activities: 0, samples: 0, imports: 0 }))
-      .catch(() => setPreview({ workouts: 0, activities: 0, samples: 0, imports: 0 }))
+      .then(d => setPreview(d?.will_delete ?? { workouts: 0, activities: 0, samples: 0, imports: 0, health_values: 0, brand_metrics: 0 }))
+      .catch(() => setPreview({ workouts: 0, activities: 0, samples: 0, imports: 0, health_values: 0, brand_metrics: 0 }))
   }, [open])
 
   if (!open) return null
@@ -186,6 +192,8 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <li>• <strong>{n(preview?.activities)}</strong> tilhørende aktiviteter/lap i disse øktene</li>
         <li>• <strong>{n(preview?.samples)}</strong> rå-datasett (puls, watt, fart, høyde sekund for sekund)</li>
         <li>• <strong>{n(preview?.imports)}</strong> import-sporinger som hindrer dobbeltimport</li>
+        <li>• <strong>{n(preview?.health_values)}</strong> helse- og søvnverdier hentet fra Polar</li>
+        <li>• <strong>{n(preview?.brand_metrics)}</strong> Polar-skårer (Nightly Recharge, søvnskår)</li>
         <li>• All analyse basert på disse øktene — PR-er og trender vil endres</li>
       </ul>
 
@@ -207,6 +215,8 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
           → Økter du har lastet opp selv som .fit-filer
           <br />
           → Økter du har ført manuelt
+          <br />
+          → <strong>Helse- og søvnverdier du har ført selv</strong> — de slettes aldri
           <br />
           → Strava-tilkoblingen og Strava-importerte økter
         </p>

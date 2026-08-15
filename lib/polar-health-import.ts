@@ -8,6 +8,7 @@ import {
   parsePolarRecharge,
   type PolarConnection,
 } from '@/lib/polar'
+import { planManualWinsUpdate } from '@/lib/health-source-rules'
 
 // ENESTE importvei for Polar HELSE og SØVN. Både webhooken (SLEEP-event) og
 // cron-fallbacken kaller denne — ingen parallell implementasjon, samme
@@ -185,19 +186,13 @@ export async function upsertWithManualWins<T extends object>(
     .maybeSingle()
   if (readErr) return { written: 0, keptManual: [], error: readErr.message }
 
-  const sources: Record<string, string> = { ...((existing?.sources as Record<string, string> | null) ?? {}) }
-  const patch: Record<string, unknown> = {}
-  const keptManual: string[] = []
-
-  for (const [field, value] of Object.entries(incoming as Record<string, unknown>)) {
-    if (value == null) continue
-    if (sources[field] === 'manual') {
-      keptManual.push(field)
-      continue
-    }
-    patch[field] = value
-    sources[field] = source
-  }
+  // Regelen «manuell vinner» ligger i lib/health-source-rules.ts som en ren
+  // funksjon, slik at den kan testes med assertions uten database.
+  const { patch, sources, keptManual } = planManualWinsUpdate(
+    existing?.sources as Record<string, string> | null,
+    incoming as Record<string, unknown>,
+    source,
+  )
 
   if (Object.keys(patch).length === 0) {
     return { written: 0, keptManual }

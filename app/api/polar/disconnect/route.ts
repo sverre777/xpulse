@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { deregisterPolarUser, POLAR_MANUAL_REVOKE_URL } from '@/lib/polar'
+import {
+  planBrandPurge, SLEEP_VALUE_FIELDS, HEALTH_METRIC_VALUE_FIELDS,
+} from '@/lib/health-source-rules'
 
 // Frakobling av Polar. Speiler /api/strava/disconnect, men med Polars egne
 // krav: avregistrering hos Polar er PÅKREVD (Polar API License Agreement —
@@ -50,6 +53,16 @@ interface DeletedCounts {
   workouts: number
   imports: number
   connection: number
+  // Helse og søvn (kø #52). «cleared» = enkeltverdier nullstilt fordi de kom
+  // fra Polar. «deleted» = rader som ble tomme og derfor fjernet.
+  // «kept_manual» = verdier som ble stående fordi brukeren førte dem selv.
+  brand_metrics: number
+  sleep_cleared: number
+  sleep_deleted: number
+  sleep_kept_manual: number
+  metrics_cleared: number
+  metrics_deleted: number
+  metrics_kept_manual: number
 }
 
 export async function GET() {
@@ -111,6 +124,13 @@ export async function GET() {
       activities,
       samples,
       imports: imports ?? 0,
+      // Helse og søvn: kun verdiene som kom fra Polar telles. Manuelt førte
+      // verdier berøres ikke og er derfor ikke med i tallet.
+      health_values: await countPolarMarkedValues(supabase, user.id),
+      brand_metrics: (await supabase
+        .from('health_brand_metrics')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id).eq('brand', 'polar')).count ?? 0,
     },
   })
 }
@@ -126,6 +146,9 @@ export async function POST() {
     samples: 0, samples_merged: 0,
     activities: 0, activities_merged: 0,
     workouts: 0, imports: 0, connection: 0,
+    brand_metrics: 0,
+    sleep_cleared: 0, sleep_deleted: 0, sleep_kept_manual: 0,
+    metrics_cleared: 0, metrics_deleted: 0, metrics_kept_manual: 0,
   }
 
   const fail = (step: string, message: string, extra: Record<string, unknown> = {}) =>
@@ -216,6 +239,34 @@ export async function POST() {
     deleted.imports = count ?? 0
   }
 
+  // 6b. Helse og søvn importert fra Polar (kø #52).
+  // Merkespesifikke skårer slettes i sin helhet — de er per definisjon Polars.
+  // Fellesfeltene ryddes verdi for verdi: felter merket 'polar' nullstilles,
+  // manuelt førte verdier står urørt, og rader som blir tomme fjernes.
+  {
+    const { count, error } = await supabase
+      .from('health_brand_metrics').delete({ count: 'exact' })
+      .eq('user_id', user.id).eq('brand', 'polar')
+    if (error) return fail('slett merkeverdier', error.message)
+    deleted.brand_metrics = count ?? 0
+  }
+  for (const [tabell, felter, nøkkel] of [
+    ['sleep_records', SLEEP_VALUE_FIELDS, 'sleep'],
+    ['health_metrics', HEALTH_METRIC_VALUE_FIELDS, 'metrics'],
+  ] as const) {
+    const res = await purgeBrandValues(supabase, tabell, felter, user.id, 'polar')
+    if (res.error) return fail(`rydd ${tabell}`, res.error)
+    if (nøkkel === 'sleep') {
+      deleted.sleep_cleared = res.cleared
+      deleted.sleep_deleted = res.deletedRows
+      deleted.sleep_kept_manual = res.keptManual
+    } else {
+      deleted.metrics_cleared = res.cleared
+      deleted.metrics_deleted = res.deletedRows
+      deleted.metrics_kept_manual = res.keptManual
+    }
+  }
+
   // 7. Avregistrer hos Polar (revokerer også tokenet). Inntil 3 forsøk.
   let deregister: {
     attempted: boolean
@@ -296,6 +347,9 @@ interface VerifiedCounts {
   samples_left: number
   imports_left: number
   connection_left: number
+  /** Rader der et felt fortsatt er merket med kilde 'polar'. Skal være 0. */
+  polar_health_values_left: number
+  brand_metrics_left: number
 }
 
 // Leser tilbake etter sletting. -1 betyr «kunne ikke verifiseres» (query-feil)
@@ -322,7 +376,31 @@ async function verifyPolarGone(
     connection_left: n(await supabase
       .from('polar_connections').select('user_id', { count: 'exact', head: true })
       .eq('user_id', userId)),
+    // jsonb-nøkler kan ikke telles med en enkel filter-query, så vi henter
+    // sources-kolonnene og teller felter merket 'polar' selv.
+    polar_health_values_left: await countPolarMarkedValues(supabase, userId),
+    brand_metrics_left: n(await supabase
+      .from('health_brand_metrics').select('id', { count: 'exact', head: true })
+      .eq('user_id', userId).eq('brand', 'polar')),
   }
+}
+
+// Teller enkeltverdier som fortsatt er merket med kilde 'polar' i fellesfelt-
+// tabellene. Etter en fullført frakobling skal dette være 0 — mens manuelt
+// merkede verdier kan (og skal) ligge igjen.
+async function countPolarMarkedValues(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<number> {
+  let antall = 0
+  for (const table of ['sleep_records', 'health_metrics'] as const) {
+    const { data, error } = await supabase.from(table).select('sources').eq('user_id', userId)
+    if (error) return -1
+    for (const rad of (data ?? []) as { sources: Record<string, string> | null }[]) {
+      antall += Object.values(rad.sources ?? {}).filter(v => v === 'polar').length
+    }
+  }
+  return antall
 }
 
 function describeLeftovers(v: VerifiedCounts): string {
@@ -332,11 +410,69 @@ function describeLeftovers(v: VerifiedCounts): string {
     ['samples_left', 'rå-datasett'],
     ['imports_left', 'import-sporinger'],
     ['connection_left', 'tilkoblings-rad'],
+    ['polar_health_values_left', 'helseverdier merket Polar'],
+    ['brand_metrics_left', 'Polar-skårer'],
   ]
   const parts = labels
     .filter(([k]) => v[k] !== 0)
     .map(([k, label]) => (v[k] === -1 ? `${label}: kunne ikke verifiseres` : `${v[k]} ${label}`))
   return parts.join(', ')
+}
+
+// Rydder ett merkes verdier ut av en fellesfelt-tabell, verdi for verdi.
+//
+// KUN verdier som er merket med dette merket fjernes. Manuelt førte verdier
+// står urørt — også når de ligger i samme rad. Blir raden helt tom, slettes
+// den; har den fortsatt manuelle verdier, beholdes den med merkets felter
+// nullstilt.
+async function purgeBrandValues(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: 'sleep_records' | 'health_metrics',
+  fields: readonly string[],
+  userId: string,
+  brand: string,
+): Promise<{ cleared: number; deletedRows: number; keptManual: number; error?: string }> {
+  const { data, error } = await supabase
+    .from(table)
+    .select(['id', 'sources', ...fields].join(','))
+    .eq('user_id', userId)
+  if (error) return { cleared: 0, deletedRows: 0, keptManual: 0, error: error.message }
+
+  const rader = (data ?? []) as unknown as Array<Record<string, unknown> & { id: string; sources: Record<string, string> | null }>
+  const slettes: string[] = []
+  let cleared = 0
+  let keptManual = 0
+
+  for (const rad of rader) {
+    const plan = planBrandPurge(rad, rad.sources, brand, fields)
+    const antallFjernet = Object.keys(plan.patch).length
+    const kildeEndret = JSON.stringify(plan.sources) !== JSON.stringify(rad.sources ?? {})
+    if (antallFjernet === 0 && !kildeEndret) continue
+
+    keptManual += plan.kept.length
+    if (plan.rowIsEmpty) {
+      slettes.push(rad.id)
+      continue
+    }
+    const { error: updErr } = await supabase
+      .from(table)
+      .update({ ...plan.patch, sources: plan.sources, updated_at: new Date().toISOString() })
+      .eq('id', rad.id)
+    if (updErr) return { cleared, deletedRows: 0, keptManual, error: updErr.message }
+    cleared += antallFjernet
+  }
+
+  let deletedRows = 0
+  for (let i = 0; i < slettes.length; i += CHUNK) {
+    const bit = slettes.slice(i, i + CHUNK)
+    const { count, error: delErr } = await supabase
+      .from(table).delete({ count: 'exact' })
+      .in('id', bit).eq('user_id', userId)
+    if (delErr) return { cleared, deletedRows, keptManual, error: delErr.message }
+    deletedRows += count ?? 0
+  }
+
+  return { cleared, deletedRows, keptManual }
 }
 
 // Alle økter importert fra Polar for denne brukeren.

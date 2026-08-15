@@ -45,6 +45,16 @@ export const SHOT_TYPE_ORDER: { key: string; color: string; label: string }[] = 
   { key: 'ukjent',         color: '#55555F', label: 'Uten type' },
 ]
 
+// BOM-REGELEN (brukerpresisering 2026-08-15): et skudd er bom når mer enn
+// 50 % av det ligger utenfor sonen — geometrisk er det at skuddets SENTER
+// er utenfor sonegrensen. Liggende måles mot den STIPLEDE sonen slik den
+// TEGNES (brukeren plotter mot det den ser — SHOT_INNER_R_DRAWN); stående
+// mot hele skiva (SHOT_DISC_R). Brukes til auto-treff ved full plotting.
+export function isShotHit(p: { x: number; y: number }, position: 'L' | 'S'): boolean {
+  const r = Math.hypot(p.x - 0.5, p.y - 0.5)
+  return r <= (position === 'L' ? SHOT_INNER_R_DRAWN : SHOT_DISC_R)
+}
+
 // Bolk 4 (NSSF Test 4): ringverdi fra plottet punkt — 10-delt ISSF-skive
 // lineært fra senter (10) til skivekant (1); utenfor skiva = 0 (bom).
 export function ringValueFromPoint(p: { x: number; y: number }): number {

@@ -21,7 +21,7 @@ import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
-import { ringValueFromPoint } from '@/lib/shooting'
+import { ringValueFromPoint, isShotHit } from '@/lib/shooting'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -1829,7 +1829,18 @@ function ShootingFields({
               shooting_series: series.map(s => {
                 const u = updates.find(x => x.id === s.id)
                 if (!u) return s
-                return { ...s, shot_plot: u.shot_plot.some(p => p != null) ? u.shot_plot : null }
+                const plot = u.shot_plot.some(p => p != null) ? u.shot_plot : null
+                const next = { ...s, shot_plot: plot }
+                // Auto-treff fra plottet (BOM-REGELEN: senter utenfor stiplet
+                // sone = bom for L, utenfor skiva for S) — KUN når ALLE
+                // skuddene i serien er plottet; delvis plotting rører ikke
+                // manuelt førte treff.
+                const shotsN = parseInt(s.shots) || 0
+                if (plot && shotsN > 0 && plot.slice(0, shotsN).every(p => p != null)) {
+                  next.hits = String(plot.slice(0, shotsN)
+                    .reduce((acc, p) => acc + (p && isShotHit(p, s.position) ? 1 : 0), 0))
+                }
+                return next
               }),
             })}
             onClose={() => setPlotTarget(null)}

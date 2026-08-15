@@ -179,6 +179,12 @@ export interface ShootingSeriesRow {
   // Ring-/poengsum for serien (bolk 4 — NSSF Test 1/4). Eget felt så
   // treff %-statistikken aldri forurenses. Tom = ikke ført.
   points: string
+  // Kø #49 (fase 87): vind & sikt per serie — det utøveren SER på standplass.
+  // vind_styrke 0 = vindstille (retning null). Alt null = ikke ført.
+  // Instansdata: strippes ved mal-lagring, føres aldri i planmodus.
+  vind_retning: 'V' | 'H' | null
+  vind_styrke: number | null
+  sikt: 'god' | 'lett_taake' | 'taake' | 'tett_taake' | null
 }
 
 export interface ShootingBlock {
@@ -1308,6 +1314,7 @@ function generateBiathlonActivities(format: string): ActivityRow[] {
         note: isRelay ? 'Inntil 3 ekstraskudd (5–8)' : '',
         shot_plot: null,
         points: '',
+        vind_retning: null, vind_styrke: null, sikt: null,
       }],
     }))
   })

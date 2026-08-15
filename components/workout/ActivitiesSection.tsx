@@ -21,7 +21,8 @@ import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
-import { ringValueFromPoint, isShotHit } from '@/lib/shooting'
+import { ringValueFromPoint, isShotHit, sightLabel } from '@/lib/shooting'
+import { WindSightModal, VimpelIcon, type WindSightValue } from '@/components/workout/WindSightModal'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -1425,6 +1426,8 @@ function ShootingFields({
   const [noteOpenId, setNoteOpenId] = useState<string | null>(null)
   // Bolk 3: skuddplott-popup — én serie (🎯 på raden) eller 'all' (bulk).
   const [plotTarget, setPlotTarget] = useState<'all' | string | null>(null)
+  // Kø #49 bolk 2: vind & sikt-popup for én serie.
+  const [windTarget, setWindTarget] = useState<string | null>(null)
   // Bolk 4: skytetest-maler — NSSF-standardene bor i kode (låst), egne i DB.
   const [ownTests, setOwnTests] = useState<OwnShootingTest[] | null>(null)
   const [saveTestName, setSaveTestName] = useState<string | null>(null)
@@ -1468,6 +1471,7 @@ function ShootingFields({
         id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
         hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
         note: '', shot_plot: null, points: '',
+        vind_retning: null, vind_styrke: null, sikt: null,
       })),
     })
   }
@@ -1501,6 +1505,7 @@ function ShootingFields({
         position: last?.position ?? 'L',
         shots: '5', hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
         note: '', shot_plot: null, points: '',
+        vind_retning: null, vind_styrke: null, sikt: null,
       }],
     })
   }
@@ -1711,6 +1716,30 @@ function ShootingFields({
                     ⤓🎯
                   </button>
                 )}
+                {/* Kø #49: vind & sikt-chip — ALLTID i det synlige segmentet
+                    (mobil beholder nr · L/S · treff · vind på linje 1). */}
+                {!planMode && (() => {
+                  const hasWind = s.vind_styrke != null || s.sikt != null
+                  return (
+                    <button type="button" aria-label="Vind og sikt for serien"
+                      onClick={() => setWindTarget(s.id)}
+                      title={hasWind ? 'Endre vind og sikt for serien' : 'Før vind og sikt for serien (valgfritt)'}
+                      className="inline-flex items-center"
+                      style={{
+                        gap: 5, minHeight: 40, borderRadius: 8, cursor: 'pointer', padding: '0 8px',
+                        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#8B8B95',
+                        background: hasWind ? '#1A1218' : 'var(--card2)',
+                        border: `1px ${hasWind ? 'solid #E23A5A55' : 'dashed var(--line2)'}`,
+                      }}>
+                      {hasWind ? (
+                        <>
+                          {s.vind_styrke != null && <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke} size={24} />}
+                          {s.sikt && <span>{sightLabel(s.sikt)?.replace(' sikt', '')}</span>}
+                        </>
+                      ) : '+ vind'}
+                    </button>
+                  )
+                })()}
                 {!planMode && (
                   <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
                     <input value={s.avg_heart_rate} onChange={e => updSeries(s.id, { avg_heart_rate: e.target.value })}
@@ -1815,6 +1844,32 @@ function ShootingFields({
           )}
         </>
       )}
+
+      {/* Kø #49: vind & sikt-popupen. Forrige series verdi foreslås
+          (forhåndsvalgt) — lagres først når brukeren trykker Lagre. */}
+      {windTarget && (() => {
+        const idx = series.findIndex(s => s.id === windTarget)
+        if (idx < 0) return null
+        const s = series[idx]
+        let suggestion: WindSightValue | null = null
+        for (let j = idx - 1; j >= 0; j--) {
+          const p = series[j]
+          if (p.vind_styrke != null || p.sikt != null) {
+            suggestion = { vind_retning: p.vind_retning, vind_styrke: p.vind_styrke, sikt: p.sikt }
+            break
+          }
+        }
+        return (
+          <WindSightModal
+            serieNo={idx + 1}
+            position={s.position}
+            value={{ vind_retning: s.vind_retning, vind_styrke: s.vind_styrke, sikt: s.sikt }}
+            suggestion={suggestion}
+            onSave={v => { updSeries(s.id, v); setWindTarget(null) }}
+            onClose={() => setWindTarget(null)}
+          />
+        )
+      })()}
 
       {plotTarget && (() => {
         const targets = plotTarget === 'all'

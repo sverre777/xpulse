@@ -34,6 +34,17 @@ function rowToTemplate(row: Record<string, unknown>): WorkoutTemplate {
 }
 
 // Lagre økten som mal. Tar hele aktivitetslisten pluss metadata.
+// Kø #49: vind/sikt er INSTANSDATA (det utøveren så på standplass) og hører
+// til økta — aldri til malen. Strippes ved all mal-lagring av aktiviteter.
+function stripInstanceDataFromActivities(activities: ActivityRow[]): ActivityRow[] {
+  return activities.map(a => ({
+    ...a,
+    shooting_series: (a.shooting_series ?? []).map(s => ({
+      ...s, vind_retning: null, vind_styrke: null, sikt: null,
+    })),
+  }))
+}
+
 export async function saveAsTemplate(params: {
   name: string
   description?: string
@@ -57,7 +68,7 @@ export async function saveAsTemplate(params: {
     description: params.description?.trim() || null,
     category: params.category?.trim() || null,
     sport: params.sport,
-    activities: params.activities,
+    activities: stripInstanceDataFromActivities(params.activities),
     template_data: params.templateData,
     times_used: 0,
     updated_at: now,
@@ -171,7 +182,7 @@ export async function updateTemplate(id: string, patch: {
   if (patch.description !== undefined) update.description = patch.description?.toString().trim() || null
   if (patch.category !== undefined) update.category = patch.category?.toString().trim() || null
   if (patch.sport !== undefined) update.sport = patch.sport
-  if (patch.activities !== undefined) update.activities = patch.activities
+  if (patch.activities !== undefined) update.activities = stripInstanceDataFromActivities(patch.activities)
   if (patch.templateData !== undefined) update.template_data = patch.templateData
 
   const { error } = await supabase

@@ -420,6 +420,7 @@ async function insertActivitiesWithChildren(
     avg_heart_rate: number | null; max_heart_rate: number | null
     note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
     points?: number | null
+    vind_retning: 'V' | 'H' | null; vind_styrke: number | null; sikt: string | null
   }[] = []
   // points-kolonnen (fase 86) sendes KUN når minst én serie har ført poeng —
   // uniform batch m/ null ellers; lagring uten poeng virker før migreringen.
@@ -447,6 +448,10 @@ async function insertActivitiesWithChildren(
         max_heart_rate: parseInt(s.max_heart_rate) || null,
         note: s.note || null,
         shot_plot: s.shot_plot && s.shot_plot.some(p => p != null) ? s.shot_plot : null,
+        // Kø #49 (fase 87): vind & sikt. 0 = vindstille → retning null.
+        vind_retning: s.vind_styrke != null && s.vind_styrke > 0 ? (s.vind_retning ?? null) : null,
+        vind_styrke: s.vind_styrke == null ? null : Math.max(0, Math.min(5, s.vind_styrke)),
+        sikt: s.sikt ?? null,
         ...(anySeriesPoints ? {
           points: s.points == null || s.points === '' ? null : (() => {
             const v = parseDecimal(s.points)
@@ -489,6 +494,9 @@ function normalizeShootingSeries(a: {
       note: s.note ?? '',
       shot_plot: Array.isArray(s.shot_plot) ? s.shot_plot : null,
       points: s.points == null ? '' : String(s.points),
+      vind_retning: s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+      vind_styrke: typeof s.vind_styrke === 'number' ? s.vind_styrke : null,
+      sikt: s.sikt ?? null,
     }))
   }
   const out: ShootingSeriesRow[] = []
@@ -499,6 +507,7 @@ function normalizeShootingSeries(a: {
       id: crypto.randomUUID(), position: 'L', shots: String(p),
       hits: a.prone_hits == null || a.prone_hits === '' ? '' : String(a.prone_hits),
       time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '',
+      vind_retning: null, vind_styrke: null, sikt: null,
     })
   }
   if (st > 0) {
@@ -506,6 +515,7 @@ function normalizeShootingSeries(a: {
       id: crypto.randomUUID(), position: 'S', shots: String(st),
       hits: a.standing_hits == null || a.standing_hits === '' ? '' : String(a.standing_hits),
       time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '',
+      vind_retning: null, vind_styrke: null, sikt: null,
     })
   }
   return out
@@ -1401,6 +1411,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       avg_heart_rate: number | null; max_heart_rate: number | null
       note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
       points?: number | null
+      vind_retning?: string | null; vind_styrke?: number | null; sikt?: string | null
     }[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
@@ -1485,6 +1496,9 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
               note: s.note ?? '',
               shot_plot: s.shot_plot ?? null,
               points: s.points?.toString() ?? '',
+              vind_retning: s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null,
+              vind_styrke: s.vind_styrke ?? null,
+              sikt: (s.sikt as ShootingSeriesRow['sikt']) ?? null,
             }))
           }
           // Fallback for rader uten serier (pre-migrering/edge): syntetiser.

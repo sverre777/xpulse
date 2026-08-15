@@ -387,7 +387,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           const rows = (a.shooting_series ?? []).filter(s => num(s.shots) > 0)
           if (rows.length > 0) return rows
           const synth: ShootingSeriesRow[] = []
-          const empty = { time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '' }
+          const empty = {
+            time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '',
+            shot_plot: null, points: '',
+            vind_retning: null, vind_styrke: null, sikt: null,
+          }
           if (num(a.prone_shots) > 0) synth.push({ id: `${a.id}-L`, position: 'L', shots: a.prone_shots, hits: a.prone_hits, ...empty })
           if (num(a.standing_shots) > 0) synth.push({ id: `${a.id}-S`, position: 'S', shots: a.standing_shots, hits: a.standing_hits, ...empty })
           return synth

@@ -63,6 +63,39 @@ export function ringValueFromPoint(p: { x: number; y: number }): number {
   return Math.max(1, Math.min(10, 10 - Math.floor((r / SHOT_DISC_R) * 10)))
 }
 
+// ── Vind & sikt per serie (kø #49, fase 87) ─────────────────
+// Vi lagrer det utøveren SER: vimpelretning V/H + styrke 0–5 (0 = vindstille,
+// retning null) + sikt. Ingen meteorologi-tolkning. Vimpel = skiskyting-rød
+// #E23A5A på svart stang (IBU-tro). Vind er informasjon — aldri alarmfarger.
+export type WindDirection = 'V' | 'H'
+export type SightKey = 'god' | 'lett_taake' | 'taake' | 'tett_taake'
+
+export const SIGHT_LEVELS: { key: SightKey; label: string; fog: number }[] = [
+  { key: 'god',        label: 'God sikt',  fog: 0 },
+  { key: 'lett_taake', label: 'Lett tåke', fog: 1 },
+  { key: 'taake',      label: 'Tåke',      fog: 2 },
+  { key: 'tett_taake', label: 'Tett tåke', fog: 3 },
+]
+
+export function sightLabel(key: SightKey | null | undefined): string | null {
+  return SIGHT_LEVELS.find(s => s.key === key)?.label ?? null
+}
+
+// Bekreftelsestekst i popupen: «Vimpel moderat mot høyre (3/5)».
+export function windText(retning: WindDirection | null, styrke: number | null): string | null {
+  if (styrke == null) return null
+  if (styrke <= 0) return 'Vimpel henger rett ned — vindstille'
+  const grad = ['', 'litt', 'litt mer', 'moderat', 'nesten rett ut', 'rett ut + blafring'][Math.min(styrke, 5)]
+  return `Vimpel ${grad} mot ${retning === 'V' ? 'venstre' : 'høyre'} (${Math.min(styrke, 5)}/5)`
+}
+
+// Kort chip-etikett: '0' | 'V3' | 'H5'.
+export function windShort(retning: WindDirection | null, styrke: number | null): string | null {
+  if (styrke == null) return null
+  if (styrke <= 0) return '0'
+  return `${retning ?? ''}${Math.min(styrke, 5)}`
+}
+
 // Serie-form som fungerer for både klient-strenger og DB-tall.
 export interface ShootingSeriesLike {
   position?: 'L' | 'S' | string | null

@@ -21,6 +21,10 @@ import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
 import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
+import { ringValueFromPoint } from '@/lib/shooting'
+import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
+import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { ShotPlotModal } from '@/components/workout/ShotPlotModal'
 import type { ShootingSeriesRow } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
@@ -1411,11 +1415,69 @@ function ShootingFields({
   const [noteOpenId, setNoteOpenId] = useState<string | null>(null)
   // Bolk 3: skuddplott-popup — én serie (🎯 på raden) eller 'all' (bulk).
   const [plotTarget, setPlotTarget] = useState<'all' | string | null>(null)
+  // Bolk 4: skytetest-maler — NSSF-standardene bor i kode (låst), egne i DB.
+  const [ownTests, setOwnTests] = useState<OwnShootingTest[] | null>(null)
+  const [saveTestName, setSaveTestName] = useState<string | null>(null)
   const series = row.shooting_series
   const isDry = row.shooting_type === 'torrtrening'
   const sum = shootingSummary(series)
   const isComp = workoutType === 'competition'
   const isTestlop = workoutType === 'testlop'
+
+  // Lazy-last egne testmaler første gang 🧪 er på.
+  useEffect(() => {
+    if (!row.shooting_is_test || ownTests !== null) return
+    let cancelled = false
+    listMyShootingTests()
+      .then(res => { if (!cancelled) setOwnTests(Array.isArray(res) ? res : []) })
+      .catch(() => { if (!cancelled) setOwnTests([]) })
+    return () => { cancelled = true }
+  }, [row.shooting_is_test, ownTests])
+
+  const activeStd = findStandardTest(row.shooting_test_ref)
+  const activeOwn = ownTests?.find(t => t.id === row.shooting_test_ref) ?? null
+  const testScoring: 'treff' | 'ring' = activeStd?.scoring ?? activeOwn?.config.scoring ?? 'treff'
+  const showPoints = row.shooting_is_test && testScoring === 'ring' && !planMode
+
+  // Forhåndsutfyll serier/underlag fra mal — destruktivt bekreftes.
+  const applyTest = async (ref: string) => {
+    if (!ref) { onUpdate({ shooting_test_ref: '' }); return }
+    const std = findStandardTest(ref)
+    const own = ownTests?.find(t => t.id === ref) ?? null
+    const flat = std ? expandTestSeries(std) : (own?.config.series ?? [])
+    const name = std?.name ?? own?.name ?? ref
+    if (flat.length === 0) { onUpdate({ shooting_test_ref: ref }); return }
+    if (series.some(s => (parseInt(s.shots) || 0) > 0)) {
+      const ok = await xpConfirm(`Erstatte seriene med oppsettet fra «${name}» (${flat.length} serier)?`)
+      if (!ok) return
+    }
+    onUpdate({
+      shooting_test_ref: ref,
+      shooting_surface: (std?.surface ?? own?.config.surface ?? row.shooting_surface) as ActivityRow['shooting_surface'],
+      shooting_series: flat.map(f => ({
+        id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
+        hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+        note: '', shot_plot: null, points: '',
+      })),
+    })
+  }
+
+  const saveAsOwnTest = async () => {
+    const name = (saveTestName ?? '').trim()
+    if (!name) return
+    const res = await saveMyShootingTest(name, {
+      surface: row.shooting_surface,
+      scoring: testScoring,
+      series: series
+        .filter(s => (parseInt(s.shots) || 0) > 0)
+        .map(s => ({ position: s.position, shots: parseInt(s.shots) || 5 })),
+    })
+    if (!res.error) {
+      setOwnTests(null) // re-lastes m/ den nye
+      setSaveTestName(null)
+      if (res.id) onUpdate({ shooting_test_ref: res.id })
+    }
+  }
 
   const updSeries = (id: string, patch: Partial<ShootingSeriesRow>) =>
     onUpdate({ shooting_series: series.map(s => s.id === id ? { ...s, ...patch } : s) })
@@ -1428,7 +1490,7 @@ function ShootingFields({
         id: crypto.randomUUID(),
         position: last?.position ?? 'L',
         shots: '5', hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
-        note: '', shot_plot: null,
+        note: '', shot_plot: null, points: '',
       }],
     })
   }
@@ -1503,6 +1565,80 @@ function ShootingFields({
           { dashed: true, title: 'Automatisk — følger øktas testløp-markering' })}
       </div>
 
+      {/* Bolk 4: skytetest-mal (🧪) — forhåndsutfyller serier/underlag. */}
+      {row.shooting_is_test && (
+        <div className="mb-3 p-2" style={{ border: '1px dashed rgba(212,160,23,0.4)', borderRadius: 10 }}>
+          <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
+            <select
+              value={row.shooting_test_ref}
+              onChange={e => { void applyTest(e.target.value) }}
+              style={{
+                backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
+                color: row.shooting_test_ref ? '#F0F0F2' : '#8A8A96',
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
+                padding: '8px 8px', minHeight: 40, maxWidth: 260, outline: 'none',
+              }}>
+              <option value="">Velg testmal…</option>
+              <optgroup label="NSSF-standard (låst)">
+                {STANDARD_SHOOTING_TESTS.map(t => (
+                  <option key={t.ref} value={t.ref}>{t.name}</option>
+                ))}
+              </optgroup>
+              {(ownTests?.length ?? 0) > 0 && (
+                <optgroup label="Egne maler">
+                  {ownTests!.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+            <select
+              value={row.shooting_surface}
+              onChange={e => onUpdate({ shooting_surface: e.target.value as ActivityRow['shooting_surface'] })}
+              title="Underlag for testen"
+              style={{
+                backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
+                color: row.shooting_surface ? '#F0F0F2' : '#8A8A96',
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
+                padding: '8px 8px', minHeight: 40, outline: 'none',
+              }}>
+              <option value="">Underlag…</option>
+              <option value="papp">Papp</option>
+              <option value="metall">Metall</option>
+              <option value="issf">ISSF</option>
+            </select>
+            {saveTestName === null ? (
+              series.some(s => (parseInt(s.shots) || 0) > 0) && (
+                <button type="button" onClick={() => setSaveTestName('')}
+                  className="text-xs"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  Lagre som egen mal
+                </button>
+              )
+            ) : (
+              <span className="flex items-center" style={{ gap: 6 }}>
+                <input value={saveTestName} onChange={e => setSaveTestName(e.target.value)}
+                  placeholder="Navn på malen"
+                  style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, padding: '8px 10px', minHeight: 40, width: 160, outline: 'none' }} />
+                <button type="button" onClick={() => { void saveAsOwnTest() }}
+                  disabled={!(saveTestName ?? '').trim()}
+                  className="text-xs"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#D4A017', border: 'none', borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer', fontWeight: 700 }}>
+                  Lagre
+                </button>
+                <button type="button" onClick={() => setSaveTestName(null)} aria-label="Avbryt"
+                  style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', minHeight: 40, minWidth: 32 }}>✕</button>
+              </span>
+            )}
+          </div>
+          {(activeStd?.guidance || activeOwn) && (
+            <p className="text-xs mt-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
+              {activeStd?.guidance ?? 'Egen mal — samme mal gir sammenlignbar testserie over tid.'}
+            </p>
+          )}
+        </div>
+      )}
+
       {isDry ? (
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
           Tørrtrening: før kun total skytetid i Varighet-feltet over — ingen
@@ -1548,6 +1684,22 @@ function ShootingFields({
                   <input value={s.time_seconds} onChange={e => updSeries(s.id, { time_seconds: e.target.value })}
                     placeholder="Tid s" title="Skytetid for serien (sekunder)"
                     inputMode="decimal" style={{ ...nSt, width: 62 }} />
+                )}
+                {showPoints && (
+                  <input value={s.points} onChange={e => updSeries(s.id, { points: e.target.value })}
+                    placeholder="Poeng" title="Ring-/poengsum for serien (kan leses fra 🎯-plottet)"
+                    inputMode="decimal" style={{ ...nSt, width: 62, borderColor: '#D4A01755' }} />
+                )}
+                {showPoints && s.shot_plot?.some(p => p != null) && (
+                  <button type="button"
+                    onClick={() => updSeries(s.id, {
+                      points: String((s.shot_plot ?? []).reduce((acc, pt) => acc + (pt ? ringValueFromPoint(pt) : 0), 0)),
+                    })}
+                    title="Les poeng fra skuddplottet (ringverdi per skudd)"
+                    className="text-xs"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017', background: 'none', border: '1px solid #D4A01755', borderRadius: 8, padding: '0 8px', minHeight: 40, cursor: 'pointer' }}>
+                    ⤓🎯
+                  </button>
                 )}
                 {!planMode && (
                   <div className="flex items-center w-full min-[680px]:w-auto" style={{ gap: 6 }}>
@@ -1624,6 +1776,15 @@ function ShootingFields({
               {!planMode && sum.maxHr != null && (
                 <span>Makspuls <b style={{ color: '#F0F0F2' }}>{sum.maxHr}</b></span>
               )}
+              {showPoints && (() => {
+                const pts = series.reduce((acc, s) => {
+                  const v = parseFloat((s.points || '').replace(',', '.'))
+                  return Number.isFinite(v) ? acc + v : acc
+                }, 0)
+                return pts > 0
+                  ? <span>Poeng <b style={{ color: '#D4A017' }}>{Math.round(pts * 10) / 10}</b></span>
+                  : null
+              })()}
             </div>
           )}
           {showAutoSum && (

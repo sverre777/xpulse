@@ -34,6 +34,14 @@ export type ShotPoint = { x: number; y: number } | null
 // gjennom typepaletten (spec bolk 3).
 export const SHOT_SERIES_COLORS = ['#1A6FD4', '#E23A5A', '#28A86E', '#8B5CF6', '#FF8C00', '#6E6E78']
 
+// Bolk 4 (NSSF Test 4): ringverdi fra plottet punkt — 10-delt ISSF-skive
+// lineært fra senter (10) til skivekant (1); utenfor skiva = 0 (bom).
+export function ringValueFromPoint(p: { x: number; y: number }): number {
+  const r = Math.hypot(p.x - 0.5, p.y - 0.5)
+  if (r > SHOT_DISC_R) return 0
+  return Math.max(1, Math.min(10, 10 - Math.floor((r / SHOT_DISC_R) * 10)))
+}
+
 // Serie-form som fungerer for både klient-strenger og DB-tall.
 export interface ShootingSeriesLike {
   position?: 'L' | 'S' | string | null

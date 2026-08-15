@@ -419,7 +419,12 @@ async function insertActivitiesWithChildren(
     shots: number; hits: number | null; time_seconds: number | null
     avg_heart_rate: number | null; max_heart_rate: number | null
     note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
+    points?: number | null
   }[] = []
+  // points-kolonnen (fase 86) sendes KUN når minst én serie har ført poeng —
+  // uniform batch m/ null ellers; lagring uten poeng virker før migreringen.
+  const anySeriesPoints = activities.some(x =>
+    (x.shooting_series ?? []).some(s => s.points != null && s.points !== ''))
   for (const [ai, a] of activities.entries()) {
     const activityId = idBySortOrder.get(ai)
     if (!activityId) continue
@@ -442,6 +447,12 @@ async function insertActivitiesWithChildren(
         max_heart_rate: parseInt(s.max_heart_rate) || null,
         note: s.note || null,
         shot_plot: s.shot_plot && s.shot_plot.some(p => p != null) ? s.shot_plot : null,
+        ...(anySeriesPoints ? {
+          points: s.points == null || s.points === '' ? null : (() => {
+            const v = parseDecimal(s.points)
+            return Number.isFinite(v) && v >= 0 ? v : null
+          })(),
+        } : {}),
       })
     }
   }
@@ -477,6 +488,7 @@ function normalizeShootingSeries(a: {
       max_heart_rate: s.max_heart_rate == null ? '' : String(s.max_heart_rate),
       note: s.note ?? '',
       shot_plot: Array.isArray(s.shot_plot) ? s.shot_plot : null,
+      points: s.points == null ? '' : String(s.points),
     }))
   }
   const out: ShootingSeriesRow[] = []
@@ -486,14 +498,14 @@ function normalizeShootingSeries(a: {
     out.push({
       id: crypto.randomUUID(), position: 'L', shots: String(p),
       hits: a.prone_hits == null || a.prone_hits === '' ? '' : String(a.prone_hits),
-      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null,
+      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '',
     })
   }
   if (st > 0) {
     out.push({
       id: crypto.randomUUID(), position: 'S', shots: String(st),
       hits: a.standing_hits == null || a.standing_hits === '' ? '' : String(a.standing_hits),
-      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null,
+      time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '',
     })
   }
   return out
@@ -1388,6 +1400,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       shots: number | null; hits: number | null; time_seconds: number | null
       avg_heart_rate: number | null; max_heart_rate: number | null
       note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
+      points?: number | null
     }[] | null
   }
   const activities: ActivityRow[] = ((workout.workout_activities ?? []) as DbActivity[])
@@ -1471,6 +1484,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
               max_heart_rate: s.max_heart_rate?.toString() ?? '',
               note: s.note ?? '',
               shot_plot: s.shot_plot ?? null,
+              points: s.points?.toString() ?? '',
             }))
           }
           // Fallback for rader uten serier (pre-migrering/edge): syntetiser.

@@ -144,7 +144,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
     shooting_is_test: a.shooting_is_test ?? false,
     shooting_surface: a.shooting_surface ?? '',
     shooting_test_ref: a.shooting_test_ref ?? '',
-    shooting_series: (a.shooting_series ?? []).map(s => ({ ...s, id: crypto.randomUUID() })),
+    shooting_series: (a.shooting_series ?? []).map(s => ({ ...s, id: crypto.randomUUID(), points: s.points ?? '' })),
     elevation_gain_m: a.elevation_gain_m ?? '',
     elevation_loss_m: a.elevation_loss_m ?? '',
     incline_percent: a.incline_percent ?? '',

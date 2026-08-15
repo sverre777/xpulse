@@ -176,6 +176,9 @@ export interface ShootingSeriesRow {
   // Skuddplott (bolk 3): {x,y} 0..1 per skudd (indeks = skuddnr − 1);
   // null = ikke plottet (delvis plotting er alltid OK).
   shot_plot: ({ x: number; y: number } | null)[] | null
+  // Ring-/poengsum for serien (bolk 4 — NSSF Test 1/4). Eget felt så
+  // treff %-statistikken aldri forurenses. Tom = ikke ført.
+  points: string
 }
 
 export interface ShootingBlock {

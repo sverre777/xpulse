@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { getDailyHealth } from '@/app/actions/health'
 import { getDailySleep, type DailySleepRecord } from '@/app/actions/sleep'
+import { getDailyHealthMetrics, type DailyHealthMetrics } from '@/app/actions/health-metrics'
+import { HealthDayExtras } from './HealthDayExtras'
 import { HealthForm } from './HealthForm'
 import type { DailyHealth } from '@/lib/types'
 
@@ -25,6 +27,7 @@ interface Props {
 export function HealthModal({ date, open, onClose, onSaved }: Props) {
   const [existing, setExisting] = useState<DailyHealth | null>(null)
   const [sleep, setSleep] = useState<DailySleepRecord | null>(null)
+  const [metrics, setMetrics] = useState<DailyHealthMetrics | null>(null)
   const [loading, setLoading] = useState(false)
 
   // Henter dagens verdier når modalen åpnes, så «Rediger» viser det som
@@ -34,19 +37,21 @@ export function HealthModal({ date, open, onClose, onSaved }: Props) {
     if (!open) {
       setExisting(null)
       setSleep(null)
+      setMetrics(null)
       setLoading(false)
       return
     }
     setLoading(true)
     // Begge lagene hentes samtidig: daily_health (dagens føring) og
     // sleep_records (de utvidede feltene med kilde per verdi).
-    Promise.all([getDailyHealth(date), getDailySleep(date)])
-      .then(([health, sleepRow]) => {
+    Promise.all([getDailyHealth(date), getDailySleep(date), getDailyHealthMetrics(date)])
+      .then(([health, sleepRow, metricRow]) => {
         if (cancelled) return
         setExisting((health as DailyHealth | null) ?? null)
         setSleep(sleepRow)
+        setMetrics(metricRow)
       })
-      .catch(() => { if (!cancelled) { setExisting(null); setSleep(null) } })
+      .catch(() => { if (!cancelled) { setExisting(null); setSleep(null); setMetrics(null) } })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [open, date])
@@ -112,13 +117,17 @@ export function HealthModal({ date, open, onClose, onSaved }: Props) {
             Henter dagens verdier …
           </p>
         ) : (
-          <HealthForm
-            date={date}
-            existing={existing}
-            sleep={sleep}
-            onSaved={handleSaved}
-            onCancel={onClose}
-          />
+          <>
+            <HealthForm
+              date={date}
+              existing={existing}
+              sleep={sleep}
+              metrics={metrics}
+              onSaved={handleSaved}
+              onCancel={onClose}
+            />
+            <HealthDayExtras date={date} />
+          </>
         )}
       </div>
     </div>

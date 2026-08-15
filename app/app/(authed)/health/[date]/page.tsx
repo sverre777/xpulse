@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { getDailyHealth } from '@/app/actions/health'
 import { getDailySleep } from '@/app/actions/sleep'
+import { getDailyHealthMetrics } from '@/app/actions/health-metrics'
+import { HealthDayExtras } from '@/components/health/HealthDayExtras'
 import { HealthForm } from '@/components/health/HealthForm'
 
 export default async function HealthPage({ params }: { params: Promise<{ date: string }> }) {
@@ -14,9 +16,10 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
   const { date } = await params
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) redirect('/app/dagbok')
 
-  const [existing, sleep] = await Promise.all([
+  const [existing, sleep, metrics] = await Promise.all([
     getDailyHealth(date),
     getDailySleep(date),
+    getDailyHealthMetrics(date),
   ])
 
   const d = new Date(date + 'T12:00:00')
@@ -37,7 +40,9 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
           </div>
         </div>
 
-        <HealthForm date={date} existing={existing} sleep={sleep} />
+        <HealthForm date={date} existing={existing} sleep={sleep} metrics={metrics} />
+
+        <HealthDayExtras date={date} />
 
         <div className="text-center mt-4">
           <Link href="/app/dagbok"

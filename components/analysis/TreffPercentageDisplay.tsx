@@ -12,18 +12,21 @@ const COLOR_TOTAL = '#F0F0F2'
 
 export interface ShootingTotals {
   prone_shots?: number
-  prone_hits?: number
+  // null = treff ikke ført for posisjonen (kun-førte-regelen: vises som «—»,
+  // og posisjonen holdes utenfor total-divisoren).
+  prone_hits?: number | null
   standing_shots?: number
-  standing_hits?: number
+  standing_hits?: number | null
   // Pre-beregnede prosenter overstyrer rå-tall hvis satt.
   prone_accuracy_pct?: number | null
   standing_accuracy_pct?: number | null
   total_accuracy_pct?: number | null
 }
 
-function pct(hits: number | undefined, shots: number | undefined): number | null {
+function pct(hits: number | null | undefined, shots: number | undefined): number | null {
   if (!shots || shots <= 0) return null
-  return Math.round(((hits ?? 0) / shots) * 1000) / 10
+  if (hits == null) return null
+  return Math.round((hits / shots) * 1000) / 10
 }
 
 function fmtPct(v: number | null): string {
@@ -36,8 +39,11 @@ function deriveStats(t: ShootingTotals): { total: number | null; prone: number |
   const totalShots = proneShots + standingShots
   const prone = t.prone_accuracy_pct ?? pct(t.prone_hits, t.prone_shots)
   const standing = t.standing_accuracy_pct ?? pct(t.standing_hits, t.standing_shots)
-  const total = t.total_accuracy_pct
-    ?? pct((t.prone_hits ?? 0) + (t.standing_hits ?? 0), totalShots)
+  // Kun-førte: posisjoner uten ført treff teller ikke i total-divisoren.
+  const recShots = (t.prone_hits != null ? proneShots : 0)
+    + (t.standing_hits != null ? standingShots : 0)
+  const recHits = (t.prone_hits ?? 0) + (t.standing_hits ?? 0)
+  const total = t.total_accuracy_pct ?? pct(recShots > 0 ? recHits : null, recShots)
   return { total, prone, standing, totalShots, proneShots, standingShots }
 }
 

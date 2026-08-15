@@ -105,17 +105,23 @@ export function CompetitionTab({
 
   // Biathlon-spesifikk aggregering.
   const biathlonRows = isBiathlon ? rows.filter(r => r.sport === 'biathlon') : []
-  const hitPctTrend = biathlonRows.map(r => {
-    const shots = r.shooting.prone_shots + r.shooting.standing_shots
-    const hits = r.shooting.prone_hits + r.shooting.standing_hits
-    return {
-      label: formatEpochAxis(dateToEpoch(r.date)),
-      date: r.date,
-      prone: r.shooting.prone_shots > 0 ? Math.round((r.shooting.prone_hits / r.shooting.prone_shots) * 100) : 0,
-      standing: r.shooting.standing_shots > 0 ? Math.round((r.shooting.standing_hits / r.shooting.standing_shots) * 100) : 0,
-      total: shots > 0 ? Math.round((hits / shots) * 100) : 0,
-    }
-  })
+  // Kun-førte-regelen: % deles på recorded-skudd; posisjon uten førte treff
+  // gir hull i linjen (null) i stedet for falsk 0 %.
+  const hitPctTrend = biathlonRows
+    .filter(r => r.shooting.prone_recorded_shots + r.shooting.standing_recorded_shots > 0)
+    .map(r => {
+      const rec = r.shooting.prone_recorded_shots + r.shooting.standing_recorded_shots
+      const hits = r.shooting.prone_hits + r.shooting.standing_hits
+      return {
+        label: formatEpochAxis(dateToEpoch(r.date)),
+        date: r.date,
+        prone: r.shooting.prone_recorded_shots > 0
+          ? Math.round((r.shooting.prone_hits / r.shooting.prone_recorded_shots) * 100) : null,
+        standing: r.shooting.standing_recorded_shots > 0
+          ? Math.round((r.shooting.standing_hits / r.shooting.standing_recorded_shots) * 100) : null,
+        total: Math.round((hits / rec) * 100),
+      }
+    })
 
   const biathlonShootingTimes = biathlonRows
     .filter(r => r.shooting.series_count > 0 && r.shooting.total_shooting_seconds > 0)

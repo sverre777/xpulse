@@ -446,7 +446,9 @@ function PerWorkoutType({ data }: { data: ShootingDepthAnalysis }) {
 
 function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
   const handleExport = () => {
-    const header = ['dato', 'okt_type', 'serie_nr', 'aktivitet', 'ligg_skudd', 'ligg_treff', 'sta_skudd', 'sta_treff', 'varighet_sek', 'snittpuls', 'i_konkurranse']
+    // Seriemodellen (bolk 9): én rad per serie m/ serie-tid og serie-puls.
+    // treff_foert skiller «0 treff» fra «treff ikke ført» (kun-førte-regelen).
+    const header = ['dato', 'okt_type', 'serie_nr', 'aktivitet', 'ligg_skudd', 'ligg_treff', 'sta_skudd', 'sta_treff', 'treff_foert', 'varighet_sek', 'snittpuls', 'makspuls', 'i_konkurranse']
     const rows: string[][] = [header]
     const sorted: ShootingSeriesRow[] = [...data.series].sort((a, b) =>
       a.date.localeCompare(b.date) || a.sort_order - b.sort_order)
@@ -455,8 +457,10 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
         r.date, r.workout_type, r.sort_order.toString(), r.activity_type,
         r.prone_shots.toString(), r.prone_hits.toString(),
         r.standing_shots.toString(), r.standing_hits.toString(),
+        r.prone_recorded_shots + r.standing_recorded_shots > 0 ? 'ja' : 'nei',
         r.duration_seconds != null ? r.duration_seconds.toString() : '',
         r.avg_heart_rate != null ? r.avg_heart_rate.toString() : '',
+        r.max_heart_rate != null ? r.max_heart_rate.toString() : '',
         r.in_competition ? 'ja' : 'nei',
       ])
     }

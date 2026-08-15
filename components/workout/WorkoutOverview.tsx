@@ -16,8 +16,9 @@ import type { ReactNode } from 'react'
 import {
   WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES, WEATHER_TYPES, WIND_STRENGTHS,
   NUTRITION_TYPES,
-  type WorkoutFormData, type ActivityRow,
+  type WorkoutFormData, type ActivityRow, type ShootingSeriesRow,
 } from '@/lib/types'
+import { shootingSummary, SHOOTING_TYPES_V2, POSITION_COLORS } from '@/lib/shooting'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
@@ -374,22 +375,32 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       {/* ── SKYTING ── Vises når skyte-data finnes ELLER økta er skiskyting
           (også uten førte skudd): etter #40 åpner alle eksisterende økter som
           oversikt, og uten en synlig inngang her var treff-føringen «borte»
-          for skiskyttere — skjemaets skytefelter lå gjemt bak ✎ Rediger. ── */}
+          for skiskyttere — skjemaets skytefelter lå gjemt bak ✎ Rediger.
+          Kø #47 bolk 9: seriemodellen — totalene regnes m/ delt kun-førte-
+          funksjon, og hver blokk vises m/ type, markeringer og serie-liste. ── */}
       {(() => {
-        let pShots = 0, pHits = 0, sShots = 0, sHits = 0, series = 0
-        for (const a of activities) {
-          if (!SHOOTING_TYPES.has(a.activity_type)) continue
-          const ps = num(a.prone_shots), ss = num(a.standing_shots)
-          if (ps + ss > 0) series++
-          pShots += ps; pHits += num(a.prone_hits)
-          sShots += ss; sHits += num(a.standing_hits)
+        const blocks = activities.filter(a => SHOOTING_TYPES.has(a.activity_type))
+        const isDryBlock = (a: ActivityRow) => a.shooting_type === 'torrtrening'
+        // Serier per blokk; fallback syntetiserer fra aggregatene (samme
+        // regel som lagringen) for snapshot/eldre rader uten serier.
+        const seriesOf = (a: ActivityRow): ShootingSeriesRow[] => {
+          const rows = (a.shooting_series ?? []).filter(s => num(s.shots) > 0)
+          if (rows.length > 0) return rows
+          const synth: ShootingSeriesRow[] = []
+          const empty = { time_seconds: '', avg_heart_rate: '', max_heart_rate: '', note: '', shot_plot: null, points: '' }
+          if (num(a.prone_shots) > 0) synth.push({ id: `${a.id}-L`, position: 'L', shots: a.prone_shots, hits: a.prone_hits, ...empty })
+          if (num(a.standing_shots) > 0) synth.push({ id: `${a.id}-S`, position: 'S', shots: a.standing_shots, hits: a.standing_hits, ...empty })
+          return synth
         }
-        const shots = pShots + sShots
-        const hasShootingRows = activities.some(a => SHOOTING_TYPES.has(a.activity_type))
-        const offerEntry = canEdit && !isPlannedView && (hasShootingRows || data.sport === 'biathlon')
-        if (shots <= 0 && !offerEntry) return null
-        const hits = pHits + sHits
-        const pct = (h: number, s: number) => s > 0 ? `${Math.round((h / s) * 100)}%` : ''
+        const realBlocks = blocks.filter(a => !isDryBlock(a))
+        const dryBlocks = blocks.filter(isDryBlock)
+        const allSeries = realBlocks.flatMap(seriesOf)
+        const sum = shootingSummary(allSeries)
+        const sumL = shootingSummary(allSeries.filter(s => s.position !== 'S'))
+        const sumS = shootingSummary(allSeries.filter(s => s.position === 'S'))
+        const shots = sum.shots
+        const offerEntry = canEdit && !isPlannedView && (blocks.length > 0 || data.sport === 'biathlon')
+        if (shots <= 0 && dryBlocks.length === 0 && !offerEntry) return null
         const dots = (h: number, s: number) => s > 0 && s <= 20 ? (
           <div className="flex flex-wrap gap-1 mt-2">
             {Array.from({ length: s }, (_, i) => (
@@ -397,27 +408,127 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             ))}
           </div>
         ) : null
-        const box = (k: string, h: number, s: number) => (
+        const box = (k: string, s: typeof sum) => (
           <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
             <span style={K_STYLE}>{k}</span>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
-              {h}/{s} <span style={{ fontSize: 14, color: '#55555F' }}>{pct(h, s)}</span>
-            </div>
-            {dots(h, s)}
-          </div>
-        )
-        return (
-          <Card title="SKYTING" beamColor="#E23A5A" aux={shots > 0 ? `${series} serie${series !== 1 ? 'r' : ''} · ${shots} skudd` : undefined}>
-            {shots > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {box('Totalt', hits, shots)}
-                {pShots > 0 && box('Liggende', pHits, pShots)}
-                {sShots > 0 && box('Stående', sHits, sShots)}
+            {s.pct != null ? (
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
+                {s.recordedHits}/{s.recordedShots} <span style={{ fontSize: 14, color: '#55555F' }}>{Math.round(s.pct)}%</span>
               </div>
             ) : (
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
+                {s.shots} <span style={{ fontSize: 14, color: '#55555F' }}>skudd</span>
+              </div>
+            )}
+            {s.shots > s.recordedShots && s.pct != null && (
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F' }}>
+                {s.recordedShots}/{s.shots} skudd m/ ført treff
+              </span>
+            )}
+            {s.pct != null && dots(s.recordedHits, s.recordedShots)}
+          </div>
+        )
+        const chip = (label: string, color: string, dim = false): ReactNode => (
+          <span key={label} style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color, border: `1px solid ${color}44`,
+            borderRadius: 7, padding: '1.5px 7px', opacity: dim ? 0.75 : 1,
+          }}>{label}</span>
+        )
+        const SURFACE_LABELS: Record<string, string> = { papp: 'Papp', metall: 'Metall', issf: 'ISSF' }
+        const blockHeader = (a: ActivityRow, idx: number) => {
+          const meta = SHOOTING_TYPES_V2.find(t => t.key === a.shooting_type)
+          const legacyLabel = ACTIVITY_TYPES.find(t => t.value === a.activity_type)?.label
+          const chips: ReactNode[] = []
+          if (a.shooting_is_innskyting) chips.push(chip('Innskyting', '#8B8B95'))
+          if (a.shooting_is_test) chips.push(chip('🧪 Skytetest', '#D4A017'))
+          if (data.workout_type === 'competition') chips.push(chip('🏁 Konkurranse', '#D4A017', true))
+          if (data.workout_type === 'testlop') chips.push(chip('⏱ Testløp', '#D4A017', true))
+          if (a.shooting_is_test && a.shooting_surface) chips.push(chip(SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, '#8B8B95'))
+          const blockSec = parseActivityDuration(a.duration) ?? 0
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              {blocks.length > 1 && (
+                <span style={{ ...K_STYLE, color: '#55555F' }}>Blokk {idx + 1}</span>
+              )}
+              <span className="flex items-center gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 600, color: '#F2F2F0' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta?.color ?? '#55555F', display: 'inline-block' }} />
+                {meta?.label ?? legacyLabel ?? 'Skyting'}
+              </span>
+              {chips}
+              {blockSec > 0 && (
+                <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F' }}>
+                  {fmtZoneTime(blockSec)} skytetid
+                </span>
+              )}
+            </div>
+          )
+        }
+        const seriesLine = (s: ShootingSeriesRow, no: number) => {
+          const posColor = POSITION_COLORS[s.position]
+          const parts: string[] = []
+          if (num(s.time_seconds) > 0) parts.push(`${num(s.time_seconds)}s`)
+          if (num(s.points) > 0) parts.push(`${s.points} p`)
+          if (num(s.avg_heart_rate) > 0) parts.push(`ø${Math.round(num(s.avg_heart_rate))}`)
+          if (num(s.max_heart_rate) > 0) parts.push(`↑${Math.round(num(s.max_heart_rate))}`)
+          return (
+            <div key={s.id}>
+              <div className="flex items-center gap-2.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
+                <span style={{ color: '#55555F', width: 16, textAlign: 'right' }}>{no}</span>
+                <span style={{ color: posColor, fontWeight: 700, width: 14 }}>{s.position}</span>
+                <span style={{ color: '#F2F2F0', fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em' }}>
+                  {s.hits !== '' ? `${Math.min(num(s.hits), num(s.shots))}/${num(s.shots)}` : `${num(s.shots)} skudd`}
+                </span>
+                {s.hits === '' && (
+                  <span style={{ color: '#55555F', fontSize: 12.5 }}>treff ikke ført</span>
+                )}
+                {parts.length > 0 && (
+                  <span className="ml-auto" style={{ color: '#8B8B95', fontSize: 13 }}>{parts.join(' · ')}</span>
+                )}
+              </div>
+              {s.note && (
+                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F', margin: '1px 0 0 44px' }}>
+                  {s.note}
+                </p>
+              )}
+            </div>
+          )
+        }
+        return (
+          <Card title="SKYTING" beamColor="#E23A5A" aux={shots > 0 ? `${sum.totalSeries} serie${sum.totalSeries !== 1 ? 'r' : ''} · ${shots} skudd` : undefined}>
+            {shots > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {box('Totalt', sum)}
+                {sumL.shots > 0 && box('Liggende', sumL)}
+                {sumS.shots > 0 && box('Stående', sumS)}
+              </div>
+            ) : dryBlocks.length === 0 ? (
               <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#8B8B95' }}>
                 Ingen skudd ført på denne økta ennå.
               </p>
+            ) : null}
+            {/* Blokk-detaljer: type + markeringer + serie-liste (kun når noe er ført) */}
+            {blocks.some(a => isDryBlock(a) || seriesOf(a).length > 0) && (
+              <div className="flex flex-col gap-3 mt-3.5">
+                {blocks.map((a, idx) => {
+                  const rows = isDryBlock(a) ? [] : seriesOf(a)
+                  if (!isDryBlock(a) && rows.length === 0) return null
+                  return (
+                    <div key={a.id} style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', background: 'var(--card2)' }}>
+                      {blockHeader(a, idx)}
+                      {isDryBlock(a) ? (
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8B8B95', marginTop: 5 }}>
+                          Tørrtrening — kun skytetid føres.
+                        </p>
+                      ) : (
+                        <div className="flex flex-col gap-1 mt-2">
+                          {rows.map((s, i) => seriesLine(s, i + 1))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             )}
             {offerEntry && (
               <button type="button" onClick={onEdit}

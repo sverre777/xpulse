@@ -25,7 +25,7 @@ type PerSkytingKey = 'all' | 'last' | 'first' | 'specific'
 
 type XAxisKey = 'date' | 'avg_hr' | 'workout_index' | 'sort_order'
 
-type YAxisKey = 'accuracy_pct' | 'hits' | 'time_seconds'
+type YAxisKey = 'accuracy_pct' | 'hits' | 'time_seconds' | 'avg_hr' | 'max_hr'
 
 interface FilterState {
   workoutType: WorkoutTypeKey
@@ -94,9 +94,10 @@ function applyPerSkytingFilter(rows: ShootingSeriesRow[], filter: FilterState): 
 }
 
 function rowAccuracy(r: ShootingSeriesRow, position: PositionKey): number | null {
+  // Kun-førte-regelen: del på skudd der treff er FØRT, aldri totalskudd.
   let shots = 0, hits = 0
-  if (position === 'all' || position === 'prone') { shots += r.prone_shots; hits += r.prone_hits }
-  if (position === 'all' || position === 'standing') { shots += r.standing_shots; hits += r.standing_hits }
+  if (position === 'all' || position === 'prone') { shots += r.prone_recorded_shots; hits += r.prone_hits }
+  if (position === 'all' || position === 'standing') { shots += r.standing_recorded_shots; hits += r.standing_hits }
   if (shots === 0) return null
   return Math.round((hits / shots) * 1000) / 10
 }
@@ -232,7 +233,9 @@ export function CustomSkytingChartBuilder({ data }: Props) {
           <SelectField label="Y-akse" value={filter.yAxis} onChange={v => set('yAxis', v as YAxisKey)}>
             <option value="accuracy_pct">Treff%</option>
             <option value="hits">Antall treff</option>
-            <option value="time_seconds">Skytetid (sek)</option>
+            <option value="time_seconds">Serietid (sek)</option>
+            <option value="avg_hr">Snittpuls</option>
+            <option value="max_hr">Makspuls</option>
           </SelectField>
         </div>
 
@@ -283,6 +286,8 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
   const yOf = (r: ShootingSeriesRow): number | null => {
     if (filter.yAxis === 'accuracy_pct') return rowAccuracy(r, filter.position)
     if (filter.yAxis === 'hits') return rowHits(r, filter.position)
+    if (filter.yAxis === 'avg_hr') return r.avg_heart_rate ?? null
+    if (filter.yAxis === 'max_hr') return r.max_heart_rate ?? null
     return r.duration_seconds ?? null
   }
   const xOf = (r: ShootingSeriesRow, workoutOrder: number): number | string => {
@@ -339,6 +344,7 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
 function CustomChart({ data, filter }: { data: ChartData; filter: FilterState }) {
   const yLabel = filter.yAxis === 'accuracy_pct' ? '%'
     : filter.yAxis === 'hits' ? 'treff'
+    : filter.yAxis === 'avg_hr' || filter.yAxis === 'max_hr' ? 'bpm'
     : 's'
   const positionColor = filter.position === 'prone' ? COLOR_PRONE
     : filter.position === 'standing' ? COLOR_STANDING

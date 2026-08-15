@@ -79,9 +79,10 @@ function buildSeriesLines(shooting: ShootingSeriesPoint[]) {
   for (const [date, series] of byDate) {
     let proneIdx = 0, standingIdx = 0
     const sorted = series.slice().sort((a, b) => a.sort_order - b.sort_order)
-    let totShots = 0, totHits = 0
+    // Kun-førte-regelen: snittet deles på recorded-skudd, aldri totalskudd.
+    let totRec = 0, totHits = 0
     for (const s of sorted) {
-      totShots += s.shots; totHits += s.hits
+      totRec += s.recorded_shots; totHits += s.hits
       const pct = s.accuracy_pct
       if (pct == null) continue
       if (s.activity_type === 'skyting_liggende') {
@@ -94,8 +95,8 @@ function buildSeriesLines(shooting: ShootingSeriesPoint[]) {
         else if (standingIdx === 2) secondStanding.points.push({ x: dateToEpoch(date), y: pct, date })
       }
     }
-    if (totShots > 0) {
-      avg.points.push({ x: dateToEpoch(date), y: Math.round((totHits / totShots) * 1000) / 10, date })
+    if (totRec > 0) {
+      avg.points.push({ x: dateToEpoch(date), y: Math.round((totHits / totRec) * 1000) / 10, date })
     }
   }
 
@@ -181,11 +182,12 @@ export function CompetitionsTab({
   // Treff% konkurranse vs trening — to linjer per dato.
   const compVsTrainingAcc = useMemo(() => {
     if (!showShooting) return []
+    // Kun-førte-regelen: divisor = recorded-skudd.
     const byDate = new Map<string, { compShots: number; compHits: number; trainShots: number; trainHits: number }>()
     for (const p of data.shootingSeries) {
       const e = byDate.get(p.date) ?? { compShots: 0, compHits: 0, trainShots: 0, trainHits: 0 }
-      if (p.in_competition) { e.compShots += p.shots; e.compHits += p.hits }
-      else { e.trainShots += p.shots; e.trainHits += p.hits }
+      if (p.in_competition) { e.compShots += p.recorded_shots; e.compHits += p.hits }
+      else { e.trainShots += p.recorded_shots; e.trainHits += p.hits }
       byDate.set(p.date, e)
     }
     return Array.from(byDate.entries())
@@ -434,23 +436,31 @@ export function CompetitionsTab({
                 </p>
               </div>
 
-              {/* Aggregert treff% i konkurranse: total / liggende / stående */}
+              {/* Aggregert treff% i konkurranse: total / liggende / stående.
+                  Kun-førte-regelen: % deles på recorded-skudd. */}
               {(() => {
                 let proneShots = 0, proneHits = 0, standingShots = 0, standingHits = 0
+                let proneRec = 0, standingRec = 0
                 for (const p of data.shootingSeries) {
                   if (!p.in_competition) continue
                   if (p.activity_type === 'skyting_liggende') {
-                    proneShots += p.shots; proneHits += p.hits
+                    proneShots += p.shots; proneHits += p.hits; proneRec += p.recorded_shots
                   } else if (p.activity_type === 'skyting_staaende') {
-                    standingShots += p.shots; standingHits += p.hits
+                    standingShots += p.shots; standingHits += p.hits; standingRec += p.recorded_shots
                   }
                 }
                 if (proneShots + standingShots === 0) return null
+                const rec = proneRec + standingRec
                 return (
                   <TreffPercentageDisplay
                     totals={{
-                      prone_shots: proneShots, prone_hits: proneHits,
-                      standing_shots: standingShots, standing_hits: standingHits,
+                      prone_shots: proneShots,
+                      prone_hits: proneRec > 0 ? proneHits : null,
+                      standing_shots: standingShots,
+                      standing_hits: standingRec > 0 ? standingHits : null,
+                      prone_accuracy_pct: proneRec > 0 ? Math.round((proneHits / proneRec) * 1000) / 10 : null,
+                      standing_accuracy_pct: standingRec > 0 ? Math.round((standingHits / standingRec) * 1000) / 10 : null,
+                      total_accuracy_pct: rec > 0 ? Math.round(((proneHits + standingHits) / rec) * 1000) / 10 : null,
                     }}
                     variant="cards"
                   />

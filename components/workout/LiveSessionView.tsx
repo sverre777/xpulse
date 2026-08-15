@@ -8,6 +8,7 @@ import {
   type LastSessionForExercise,
 } from '@/app/actions/strength-session'
 import { searchStandardExercises } from '@/lib/standard-exercises'
+import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { hapticTap, showCompletionCheck } from '@/lib/interactions'
@@ -484,19 +485,30 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
 
 function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
   const [q, setQ] = useState('')
+  // Bla-modus: kategorichips fra standardbiblioteket (kø #46-oppfølger).
+  const [browse, setBrowse] = useState(false)
   const matches = useMemo(() => q.trim() ? searchStandardExercises(q, new Set(), 6) : [], [q])
-  const commit = (name: string) => { onAdd(name); setQ('') }
+  const commit = (name: string) => { onAdd(name); setQ(''); setBrowse(false) }
   return (
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: 'flex', gap: 8 }}>
         <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)}
           placeholder="Legg til øvelse (søk eller skriv eget)"
           style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
+        <button type="button" onClick={() => setBrowse(b => !b)} aria-label="Bla i biblioteket"
+          style={{ background: browse ? ORANGE : 'var(--card2)', color: browse ? '#0A0A0B' : '#C0C0CC', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 12px', cursor: 'pointer', minHeight: 40 }}>
+          ▦ Bla
+        </button>
         <button type="button" onClick={() => commit(q)} disabled={!q.trim()}
           style={{ background: ORANGE, color: '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 16px', textTransform: 'uppercase', cursor: q.trim() ? 'pointer' : 'default', opacity: q.trim() ? 1 : 0.5 }}>
           Legg til
         </button>
       </div>
+      {browse && (
+        <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, marginTop: 6, overflow: 'hidden' }}>
+          <StandardExerciseBrowser onPick={commit} />
+        </div>
+      )}
       {matches.length > 0 && (
         <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
           {matches.map(m => (

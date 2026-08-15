@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout, markCompleted } from '@/app/actions/workouts'
 import { getAltitudePeriodForDate } from '@/app/actions/seasons'
@@ -250,6 +250,30 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // «Marker som standardøkt»-velger: åpner mal-listen i tagge-modus.
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
+
+  // Mal-kategorisering: filtrer «Fra mal»-lista på bevegelsesform og
+  // kategori når lista er stor (>4). Union-opsjoner fra malene selv —
+  // samme kilde/logikk som /app/maler-filteret.
+  const [malMovement, setMalMovement] = useState('')
+  const [malCategory, setMalCategory] = useState('')
+  const malMovementOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of templates) for (const a of t.activities ?? []) {
+      if (a.movement_name) s.add(a.movement_name)
+    }
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb'))
+  }, [templates])
+  const malCategoryOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of templates) if (t.category) s.add(t.category)
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb'))
+  }, [templates])
+  const visibleTemplates = useMemo(() => templates.filter(t => {
+    if (malMovement && !(t.activities ?? []).some(a => a.movement_name === malMovement)) return false
+    if (malCategory && t.category !== malCategory) return false
+    return true
+  }), [templates, malMovement, malCategory])
+  const showMalFilters = templates.length > 4
 
   // Live økt-modus: vises kun for utøvers egne styrkeøkter (ikke trener).
   const [startingLive, setStartingLive] = useState(false)
@@ -585,9 +609,43 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       {/* ── MALER ── */}
       {templates.length > 0 && (
         <div className="mb-2">
+          {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
+          {showMalFilters && (
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              {malMovementOptions.length > 0 && (
+                <select value={malMovement} onChange={e => setMalMovement(e.target.value)}
+                  style={{
+                    backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+                    borderRadius: 'var(--r-field)', color: malMovement ? 'var(--accent)' : '#8A8A96',
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
+                    padding: '6px 8px', outline: 'none', minHeight: 34,
+                  }}>
+                  <option value="">Alle bev.former</option>
+                  {malMovementOptions.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              )}
+              {malCategoryOptions.length > 1 && (
+                <select value={malCategory} onChange={e => setMalCategory(e.target.value)}
+                  style={{
+                    backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+                    borderRadius: 'var(--r-field)', color: malCategory ? 'var(--accent)' : '#8A8A96',
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
+                    padding: '6px 8px', outline: 'none', minHeight: 34,
+                  }}>
+                  <option value="">Alle kategorier</option>
+                  {malCategoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+            </div>
+          )}
           <div className="xp-malrow">
             <span className="xp-mal-label">Fra mal</span>
-            {templates.map(t => (
+            {visibleTemplates.length === 0 && (
+              <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                Ingen maler matcher filtrene
+              </span>
+            )}
+            {visibleTemplates.map(t => (
               <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal">
                 {t.name}
               </button>
@@ -607,7 +665,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 økten beholder sine egne tall (f.eks. fra klokkesynk).
               </p>
               <div className="flex items-center gap-2 flex-wrap">
-                {templates.map(t => (
+                {visibleTemplates.map(t => (
                   <button key={t.id} type="button" onClick={() => tagAsStandard(t)}
                     className="px-3 py-1 text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
                     style={{

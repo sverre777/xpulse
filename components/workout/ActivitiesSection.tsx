@@ -19,6 +19,7 @@ import {
 } from '@/lib/pace-utils'
 import { presetsForCategory } from '@/lib/exercise-presets'
 import { searchStandardExercises } from '@/lib/standard-exercises'
+import { StandardExerciseBrowser } from '@/components/workout/StandardExerciseBrowser'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import type { UserExercise } from '@/lib/user-exercise-types'
@@ -1127,6 +1128,8 @@ function ExerciseNameAutocomplete({
   libraryNames: Set<string>
 }) {
   const [open, setOpen] = useState(false)
+  // Bla-modus: kategorichips + øvelsesliste fra standardbiblioteket.
+  const [browsing, setBrowsing] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
 
   const q = value.trim().toLowerCase()
@@ -1174,6 +1177,7 @@ function ExerciseNameAutocomplete({
       onChange(s.name)
     }
     setOpen(false)
+    setBrowsing(false)
   }
 
   return (
@@ -1184,11 +1188,11 @@ function ExerciseNameAutocomplete({
         placeholder="Øvelsesnavn (f.eks. Knebøy)"
         style={{ ...iSt, width: '100%', fontWeight: 600 }} />
 
-      {open && suggestions.length > 0 && (
+      {open && (suggestions.length > 0 || browsing) && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
           backgroundColor: '#1A1A22', border: '1px solid #262629',
-          marginTop: '2px', maxHeight: '220px', overflowY: 'auto',
+          marginTop: '2px', maxHeight: browsing ? '340px' : '260px', overflowY: 'auto',
         }}>
           {suggestions.map((s, i) => (
             <button key={`${s.kind}-${s.name}-${i}`} type="button"
@@ -1213,6 +1217,21 @@ function ExerciseNameAutocomplete({
               </span>
             </button>
           ))}
+          {/* Bla per kategori (kø #46-oppfølger): toggler kategorichips +
+              øvelsesliste fra standardbiblioteket — 287 øvelser. */}
+          <button type="button" onClick={() => setBrowsing(b => !b)}
+            className="w-full px-3 transition-colors hover:bg-[#1E1E22]"
+            style={{
+              background: 'none', border: 'none', borderTop: '1px solid #262629',
+              cursor: 'pointer', textAlign: 'left', minHeight: 38, padding: '9px 12px',
+              fontFamily: "'Barlow Condensed', sans-serif", color: browsing ? 'var(--accent)' : '#8A8A96',
+              fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}>
+            {browsing ? '▾' : '▸'} Bla i biblioteket per kategori
+          </button>
+          {browsing && (
+            <StandardExerciseBrowser onPick={name => { onChange(name); setOpen(false); setBrowsing(false) }} />
+          )}
         </div>
       )}
     </div>

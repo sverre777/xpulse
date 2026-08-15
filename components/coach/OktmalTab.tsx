@@ -22,6 +22,9 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>('')
   const [sport, setSport] = useState<string>('')
+  // Paritet m/ utøver-/app/maler: bev.form-filter + sortering.
+  const [movement, setMovement] = useState<string>('')
+  const [sortBy, setSortBy] = useState<'sist' | 'nyest' | 'navn' | 'mest'>('sist')
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [showBuilder, setShowBuilder] = useState(false)
   const [editing, setEditing] = useState<WorkoutTemplate | null>(null)
@@ -29,15 +32,31 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
   const [_isPending, startTransition] = useTransition()
   void _isPending
 
+  // Unionen av bevegelsesformer i malene — samme kilde som /app/maler.
+  const movementOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of initialTemplates) for (const a of t.activities ?? []) {
+      if (a.movement_name) s.add(a.movement_name)
+    }
+    return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb'))
+  }, [initialTemplates])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return initialTemplates.filter(t => {
+    const list = initialTemplates.filter(t => {
       if (category && t.category !== category) return false
       if (sport && t.sport !== sport) return false
+      if (movement && !(t.activities ?? []).some(a => a.movement_name === movement)) return false
       if (q && !t.name.toLowerCase().includes(q)) return false
       return true
     })
-  }, [initialTemplates, query, category, sport])
+    const sorted = [...list]
+    if (sortBy === 'sist') sorted.sort((a, b) => (b.last_used_at ?? '').localeCompare(a.last_used_at ?? ''))
+    else if (sortBy === 'nyest') sorted.sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))
+    else if (sortBy === 'navn') sorted.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
+    else if (sortBy === 'mest') sorted.sort((a, b) => (b.times_used ?? 0) - (a.times_used ?? 0))
+    return sorted
+  }, [initialTemplates, query, category, sport, movement, sortBy])
 
   return (
     <div>
@@ -57,10 +76,10 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
         <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Søk etter navn…"
-          style={iSt} className="w-full px-3 py-2" />
+          style={iSt} className="w-full px-3 py-2 col-span-2 md:col-span-1" />
         <select value={category} onChange={e => setCategory(e.target.value)}
           style={iSt} className="w-full px-3 py-2">
           <option value="">Alle kategorier</option>
@@ -70,6 +89,18 @@ export function OktmalTab({ initialTemplates, primarySport }: Props) {
           style={iSt} className="w-full px-3 py-2">
           <option value="">Alle sporter</option>
           {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <select value={movement} onChange={e => setMovement(e.target.value)}
+          style={iSt} className="w-full px-3 py-2">
+          <option value="">Alle bev.former</option>
+          {movementOptions.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}
+          style={iSt} className="w-full px-3 py-2">
+          <option value="sist">Sist brukt</option>
+          <option value="nyest">Nyest</option>
+          <option value="navn">Navn</option>
+          <option value="mest">Mest brukt</option>
         </select>
       </div>
 

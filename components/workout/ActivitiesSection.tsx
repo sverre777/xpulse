@@ -1623,13 +1623,38 @@ function ShootingFields({
               <option value="issf">ISSF</option>
             </select>
             {saveTestName === null ? (
-              series.some(s => (parseInt(s.shots) || 0) > 0) && (
-                <button type="button" onClick={() => setSaveTestName('')}
-                  className="text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
-                  Lagre som egen mal
-                </button>
-              )
+              <>
+                {series.some(s => (parseInt(s.shots) || 0) > 0) && (
+                  <button type="button" onClick={() => setSaveTestName('')}
+                    className="text-xs"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                    Lagre som egen mal
+                  </button>
+                )}
+                {/* Kø #49 bolk 4: NSSF er låst men KOPIERBART — kopien tas fra
+                    NSSF-DEFINISJONEN (ikke gjeldende serier) og blir brukerens
+                    egen redigerbare test-mal, valgt med én gang. */}
+                {activeStd && (
+                  <button type="button"
+                    onClick={async () => {
+                      const flat = expandTestSeries(activeStd)
+                      const res = await saveMyShootingTest(`${activeStd.name} (kopi)`, {
+                        surface: activeStd.surface ?? row.shooting_surface,
+                        scoring: activeStd.scoring,
+                        series: flat.map(f => ({ position: f.position, shots: f.shots })),
+                      })
+                      if (!res.error) {
+                        setOwnTests(null)
+                        if (res.id) onUpdate({ shooting_test_ref: res.id })
+                      }
+                    }}
+                    title="Lag en egen redigerbar kopi av NSSF-malen (havner under Egne maler)"
+                    className="text-xs"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017', background: 'none', border: '1px solid #D4A01755', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                    Kopier til egen mal
+                  </button>
+                )}
+              </>
             ) : (
               <span className="flex items-center" style={{ gap: 6 }}>
                 <input value={saveTestName} onChange={e => setSaveTestName(e.target.value)}

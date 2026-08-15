@@ -38,6 +38,9 @@ export function MalerClient({
   const [sport, setSport] = useState<string>('')
   const [movement, setMovement] = useState<string>('')
   const [sortBy, setSortBy] = useState<'sist' | 'nyest' | 'navn' | 'mest'>('sist')
+  // Kø #49: hurtigfilter-chips (Alle / 🧪 Test / Skyting / Styrke) — i tillegg
+  // til de eksisterende select-filtrene (full paritet).
+  const [quick, setQuick] = useState<'alle' | 'test' | 'skyting' | 'styrke'>('alle')
 
   // Bevegelsesform-valg: union fra øktmalenes aktiviteter.
   const movementOptions = useMemo(() => {
@@ -118,6 +121,34 @@ export function MalerClient({
         />
       )}
 
+      {/* Kø #49: hurtigfilter-chips for øktmaler. */}
+      {tab === 'okt' && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {([
+            { key: 'alle', label: 'Alle' },
+            { key: 'test', label: '🧪 Test' },
+            { key: 'skyting', label: 'Skyting' },
+            { key: 'styrke', label: 'Styrke' },
+          ] as const).map(c => (
+            <button key={c.key} type="button" onClick={() => setQuick(c.key)}
+              className="text-xs tracking-widest uppercase"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                padding: '7px 14px', minHeight: 36, cursor: 'pointer',
+                color: quick === c.key ? '#F0F0F2' : '#8A8A96',
+                backgroundColor: quick === c.key
+                  ? (c.key === 'test' ? '#D4A01722' : '#FF450022')
+                  : 'transparent',
+                border: `1px solid ${quick === c.key
+                  ? (c.key === 'test' ? '#D4A017' : '#FF4500')
+                  : '#222228'}`,
+              }}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
         <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Søk navn eller tagg..."
@@ -192,7 +223,7 @@ export function MalerClient({
       {tab === 'okt' && (
         <WorkoutList
 movement={movement} sortBy={sortBy}           templates={initialWorkoutTemplates}
-          query={query} category={category} sport={sport}
+          query={query} category={category} sport={sport} quick={quick}
           pendingId={pendingId}
           onEdit={(t) => setEditingOktmal(t)}
           onUseDate={(t) => setBruktOktmal(t)}
@@ -275,13 +306,28 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   )
 }
 
+// Kø #49: hurtigfilter-predikater — skyting/styrke leses av mal-innholdet.
+function templateActs(t: WorkoutTemplate) {
+  return t.activities ?? t.template_data?.activities ?? []
+}
+function isShootingTemplate(t: WorkoutTemplate): boolean {
+  return t.sport === 'biathlon' || templateActs(t).some(a => a.activity_type?.startsWith('skyting'))
+}
+function isStrengthTemplate(t: WorkoutTemplate): boolean {
+  // Styrke bor på movement_name/exercises (ikke egen activity_type/sport).
+  return templateActs(t).some(a => a.movement_name === 'Styrke' || (a.exercises?.length ?? 0) > 0)
+    || t.template_data?.workout_type === 'strength'
+    || (t.category ?? '').toLowerCase().includes('styrke')
+}
+
 function WorkoutList({
-  templates, query, category, sport, movement, sortBy, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
+  templates, query, category, sport, movement, sortBy, quick, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: WorkoutTemplate[]
   query: string; category: string; sport: string
   movement: string
   sortBy: 'sist' | 'nyest' | 'navn' | 'mest'
+  quick: 'alle' | 'test' | 'skyting' | 'styrke'
   pendingId: string | null
   onEdit: (t: WorkoutTemplate) => void
   onUseDate: (t: WorkoutTemplate) => void
@@ -291,6 +337,9 @@ function WorkoutList({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     const list = templates.filter(t => {
+      if (quick === 'test' && !t.is_test) return false
+      if (quick === 'skyting' && !isShootingTemplate(t)) return false
+      if (quick === 'styrke' && !isStrengthTemplate(t)) return false
       if (category && t.category !== category) return false
       if (sport && t.sport !== sport) return false
       if (movement && !(t.activities ?? []).some(a => a.movement_name === movement)) return false
@@ -307,7 +356,7 @@ function WorkoutList({
     else if (sortBy === 'navn') sorted.sort((a, b) => a.name.localeCompare(b.name, 'nb'))
     else if (sortBy === 'mest') sorted.sort((a, b) => (b.times_used ?? 0) - (a.times_used ?? 0))
     return sorted
-  }, [templates, query, category, sport, movement, sortBy])
+  }, [templates, query, category, sport, movement, sortBy, quick])
   if (filtered.length === 0) {
     return <EmptyBox empty={templates.length === 0} kind="økt" />
   }
@@ -320,8 +369,10 @@ function WorkoutList({
           : 'Aldri brukt'
         return (
           <TemplateRow key={t.id}
-            name={t.name} description={t.description} category={t.category}
-            meta={[sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
+            name={`${t.is_test ? '🧪 ' : ''}${t.name}`} description={t.description} category={t.category}
+            meta={t.is_test
+              ? ['Test-mal', sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]
+              : [sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}
             disabled={pendingId === t.id}
             onEdit={() => onEdit(t)}
             onUseDate={() => onUseDate(t)}

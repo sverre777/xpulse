@@ -186,6 +186,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [templateName, setTemplateName] = useState('')
   const [templateDescription, setTemplateDescription] = useState('')
   const [templateCategory, setTemplateCategory] = useState<string>('Annet')
+  // Kø #49: «Marker som test» — test-mal er vanlig øktmal m/ is_test-flagg.
+  const [templateIsTest, setTemplateIsTest] = useState(false)
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [templateError, setTemplateError] = useState<string | null>(null)
   // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
@@ -354,7 +356,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       // navn ER tittelen (settes fra øktens tittel når malen lagres).
       title: template.name || f.title,
       sport: template.sport ?? d.sport ?? f.sport,
-      workout_type: d.workout_type ?? f.workout_type,
+      // Kø #49: økt fra test-mal får 🧪 forhåndsvalgt (kan fjernes før lagring).
+      workout_type: template.is_test ? 'test' : (d.workout_type ?? f.workout_type),
       movements: (d.movements ?? []).map((m: MovementRow) => ({
         ...m,
         id: crypto.randomUUID(),
@@ -398,6 +401,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     setTemplateName(form.title.trim())
     setTemplateDescription('')
     setTemplateCategory('Annet')
+    // 🧪 forhåndsvelges når økta selv er markert som test.
+    setTemplateIsTest(form.workout_type === 'test')
     setTemplateError(null)
     setShowTemplateModal(true)
   }
@@ -422,6 +427,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         strength_type: form.strength_type,
         location: form.location,
       },
+      isTest: templateIsTest,
     })
     setSavingTemplate(false)
     if (result.error) {
@@ -658,7 +664,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             )}
             {visibleTemplates.map(t => (
               <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal">
-                {t.name}
+                {t.is_test ? '🧪 ' : ''}{t.name}
               </button>
             ))}
             <button type="button" onClick={() => setStandardPickerOpen(o => !o)}
@@ -1144,9 +1150,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           description={templateDescription}
           category={templateCategory}
           sportLabel={SPORTS.find(s => s.value === form.sport)?.label ?? form.sport}
+          isTest={templateIsTest}
           onName={setTemplateName}
           onDescription={setTemplateDescription}
           onCategory={setTemplateCategory}
+          onIsTest={setTemplateIsTest}
           onCancel={() => setShowTemplateModal(false)}
           onSave={handleSaveTemplate}
           saving={savingTemplate}
@@ -1171,17 +1179,19 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 }
 
 function SaveAsTemplateModal({
-  name, description, category, sportLabel,
-  onName, onDescription, onCategory,
+  name, description, category, sportLabel, isTest,
+  onName, onDescription, onCategory, onIsTest,
   onCancel, onSave, saving, error,
 }: {
   name: string
   description: string
   category: string
   sportLabel: string
+  isTest: boolean
   onName: (v: string) => void
   onDescription: (v: string) => void
   onCategory: (v: string) => void
+  onIsTest: (v: boolean) => void
   onCancel: () => void
   onSave: () => void
   saving: boolean
@@ -1251,6 +1261,24 @@ function SaveAsTemplateModal({
               </div>
             </div>
           </div>
+
+          {/* Kø #49: test-mal = vanlig øktmal m/ flagg. Økt fra test-mal
+              får 🧪 forhåndsvalgt (kan fjernes før lagring). */}
+          <button type="button" onClick={() => onIsTest(!isTest)}
+            className="inline-flex items-center gap-2 mt-3"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+              letterSpacing: '0.05em', borderRadius: 999, padding: '6px 12px',
+              minHeight: 36, cursor: 'pointer',
+              color: isTest ? '#F0F0F2' : '#8A8A96',
+              background: isTest ? '#D4A01722' : 'transparent',
+              border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+            }}>
+            🧪 Marker som test
+            <span style={{ color: '#555560', fontSize: 12 }}>
+              {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
+            </span>
+          </button>
 
           {error && (
             <p className="text-xs px-3 py-2"

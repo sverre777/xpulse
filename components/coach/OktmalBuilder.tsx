@@ -20,6 +20,9 @@ interface Props {
 export function OktmalBuilder({ primarySport, templates, defaultValues, editing, onClose }: Props) {
   const router = useRouter()
   const [saveError, setSaveError] = useState<string | null>(null)
+  // Kø #49: test-flagg på malen (rediger-modus; ny mal setter det i
+  // «Lagre som mal»-modalen inne i WorkoutForm).
+  const [isTest, setIsTest] = useState(editing?.is_test ?? false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -63,6 +66,7 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
         tags: data.tags,
         strength_type: data.strength_type,
       },
+      isTest,
     })
     if (res.error) {
       setSaveError(res.error)
@@ -96,6 +100,20 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
             {editing ? 'Rediger øktmal' : 'Ny øktmal'}
           </span>
+          {editing && (
+            <button type="button" onClick={() => setIsTest(v => !v)}
+              className="inline-flex items-center"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+                letterSpacing: '0.05em', borderRadius: 999, padding: '4px 12px',
+                minHeight: 32, cursor: 'pointer', marginLeft: 'auto', marginRight: 8,
+                color: isTest ? '#F0F0F2' : '#8A8A96',
+                background: isTest ? '#D4A01722' : 'transparent',
+                border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+              }}>
+              🧪 Test-mal
+            </button>
+          )}
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
               color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',

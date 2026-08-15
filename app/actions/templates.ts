@@ -25,6 +25,7 @@ function rowToTemplate(row: Record<string, unknown>): WorkoutTemplate {
     sport: (row.sport as Sport | null) ?? null,
     activities: (row.activities as ActivityRow[] | null) ?? null,
     template_data: (row.template_data as WorkoutFormData) ?? ({} as WorkoutFormData),
+    is_test: (row.is_test as boolean | null) ?? false,
     times_used: (row.times_used as number | null) ?? 0,
     last_used_at: (row.last_used_at as string | null) ?? null,
     use_count: (row.use_count as number | null) ?? 0,
@@ -53,6 +54,8 @@ export async function saveAsTemplate(params: {
   activities: ActivityRow[]
   // Legacy-felt så gamle visninger fortsatt kan laste mal
   templateData: Partial<WorkoutFormData>
+  // Kø #49: «Marker som test» — test-mal er vanlig øktmal m/ flagg.
+  isTest?: boolean
 }): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -70,6 +73,7 @@ export async function saveAsTemplate(params: {
     sport: params.sport,
     activities: stripInstanceDataFromActivities(params.activities),
     template_data: params.templateData,
+    is_test: params.isTest ?? false,
     times_used: 0,
     updated_at: now,
   }).select('id').single()
@@ -168,6 +172,7 @@ export async function updateTemplate(id: string, patch: {
   sport?: Sport | null
   activities?: ActivityRow[]
   templateData?: Partial<WorkoutFormData>
+  isTest?: boolean
 }): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -184,6 +189,7 @@ export async function updateTemplate(id: string, patch: {
   if (patch.sport !== undefined) update.sport = patch.sport
   if (patch.activities !== undefined) update.activities = stripInstanceDataFromActivities(patch.activities)
   if (patch.templateData !== undefined) update.template_data = patch.templateData
+  if (patch.isTest !== undefined) update.is_test = patch.isTest
 
   const { error } = await supabase
     .from('workout_templates')
@@ -242,7 +248,9 @@ export async function materializeOktmalAtDate(
       user_id: user.id,
       title: template.name,
       sport,
-      workout_type: td.workout_type ?? 'long_run',
+      // Kø #49: økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt —
+      // kan endres når økta åpnes/redigeres.
+      workout_type: template.is_test ? 'test' : (td.workout_type ?? 'long_run'),
       date,
       notes: td.notes ?? null,
       tags: td.tags ?? [],
@@ -322,6 +330,7 @@ export async function duplicateTemplate(id: string): Promise<{ error?: string; i
     sport: source.sport,
     activities: source.activities,
     template_data: source.template_data,
+    is_test: source.is_test,
     times_used: 0,
     updated_at: now,
   }).select('id').single()

@@ -997,6 +997,9 @@ export interface WorkoutTemplate {
   activities: ActivityRow[] | null
   // Legacy — inneholder sport/workout_type/movements/notes/tags for bakoverkomp.
   template_data: WorkoutFormData
+  // Kø #49 (fase 87): test-mal = vanlig øktmal m/ flagg (alle idretter).
+  // Økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt.
+  is_test: boolean
   times_used: number
   last_used_at: string | null
   use_count: number

@@ -665,10 +665,16 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
 // ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──
 // Gjenbruker chip-fargekodingen 1:1: typefarge på venstre kant (konkurranse/
 // styrke/intensitet), stiplet ramme for planlagt, ✓ grønn, ▲ for import.
-function MobileWorkoutPill({ w, mode, onClick }: {
+function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttributes, dragging }: {
   w: CalendarWorkoutSummary
   mode: CalendarMode
   onClick: () => void
+  // Valgfrie dra-bindings fra DraggableMobilePill — samme mønster som
+  // WorkoutChip/DraggableChip på desktop.
+  dragRef?: (el: HTMLElement | null) => void
+  dragListeners?: Record<string, unknown>
+  dragAttributes?: Record<string, unknown>
+  dragging?: boolean
 }) {
   const comp = competitionChipStyle(w, mode)
   const isStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
@@ -678,13 +684,20 @@ function MobileWorkoutPill({ w, mode, onClick }: {
   const durationLabel = formatDurationShort(secondsFor(w, mode))
   return (
     <button type="button"
+      ref={dragRef}
+      {...dragAttributes}
+      {...dragListeners}
       onClick={e => { e.stopPropagation(); onClick() }}
       className="flex items-center gap-2 text-left w-full"
       style={{
         border: isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid var(--line)',
         borderLeft: `4px solid ${w.is_important ? '#FF4500' : color}`,
         background: isPlanned ? 'transparent' : 'var(--card2)',
-        borderRadius: 9, padding: '8px 11px', minWidth: 0, cursor: 'pointer',
+        borderRadius: 9, padding: '8px 11px', minWidth: 0,
+        cursor: dragRef ? 'grab' : 'pointer',
+        opacity: dragging ? 0.4 : 1,
+        // Long-press (TouchSensor delay) starter drag — vanlig scroll bevares.
+        touchAction: 'manipulation',
       }}>
       {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
       {w.imported_from && <span style={{ color: 'var(--accent)', fontSize: 10, flexShrink: 0 }} title="Klokkesynk">▲</span>}
@@ -912,6 +925,57 @@ function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateSt
       dragAttributes={attributes as unknown as Record<string, unknown>}
       dragging={isDragging}
     />
+  )
+}
+
+// ── Mobil DnD (måned-liste): long-press på pillen (TouchSensor delay 250)
+// starter drag; dagraden er drop-mål. EGNE id-prefikser (m:/mday:) fordi
+// desktop-gridets draggables/droppables er mountet samtidig (kun CSS-skjult)
+// — like id-er ville kollidert i dnd-kit-registeret. handleDragEnd stripper
+// m:-prefikset før server-kallet.
+function DraggableMobilePill({ w, ds, mode, onClick }: {
+  w: CalendarWorkoutSummary
+  ds: string
+  mode: CalendarMode
+  onClick: () => void
+}) {
+  const { readOnly } = useCalendarActions()
+  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
+    id: `m:${w.id}`,
+    data: { workout: w, fromDate: ds },
+    disabled: readOnly,
+  })
+  return (
+    <MobileWorkoutPill
+      w={w} mode={mode} onClick={onClick}
+      dragRef={setNodeRef}
+      dragListeners={listeners as unknown as Record<string, unknown>}
+      dragAttributes={attributes as unknown as Record<string, unknown>}
+      dragging={isDragging}
+    />
+  )
+}
+
+function MobileDayDropRow({ ds, onClick, className, style, children }: {
+  ds: string
+  onClick: () => void
+  className?: string
+  style?: React.CSSProperties
+  children: React.ReactNode
+}) {
+  const { readOnly } = useCalendarActions()
+  const { setNodeRef, isOver } = useDroppable({ id: `mday:${ds}`, data: { date: ds }, disabled: readOnly })
+  return (
+    <div ref={setNodeRef} onClick={onClick} className={className}
+      style={{
+        ...style,
+        ...(isOver ? {
+          background: 'rgba(255,69,0,0.14)', borderRadius: 10,
+          outline: '2px solid rgba(255,69,0,0.55)', outlineOffset: -2,
+        } : {}),
+      }}>
+      {children}
+    </div>
   )
 }
 
@@ -1166,7 +1230,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
     // opp/ned-pilene i dag-detalj — økter med tid sorteres av klokka).
     if (overId.startsWith('chip:')) {
       const [, chipDate, targetId] = overId.split(':')
-      const activeId = String(active.id)
+      // m:-prefiks = drag startet fra mobil-listen (samme workout-id under).
+      const activeId = String(active.id).replace(/^m:/, '')
       if (chipDate !== fromDate) {
         moveWorkoutTo(activeId, fromDate, chipDate)
         return
@@ -1192,10 +1257,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       return
     }
 
-    if (!overId.startsWith('day:')) return
-    const toDate = overId.slice(4)
-    if (fromDate === toDate) return
-    moveWorkoutTo(String(active.id), fromDate, toDate) // måned: behold tid (undefined)
+    // Mobil-listens dagrader (mday:) og desktop-gridets celler (day:) —
+    // begge er dag-flytt m/ behold tid.
+    const toDate = overId.startsWith('mday:')
+      ? overId.slice(5)
+      : overId.startsWith('day:') ? overId.slice(4) : null
+    if (!toDate || fromDate === toDate) return
+    moveWorkoutTo(String(active.id).replace(/^m:/, ''), fromDate, toDate) // måned: behold tid (undefined)
   }
   // Lazy-loadet ernæring per økt — kun hentet når dag-detalj-modal er åpen.
   // null = ikke lastet enda; tomt array = ingen rader registrert.
@@ -1533,7 +1601,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         ))}
                       </div>
                     )}
-                    <div
+                    <MobileDayDropRow
+                      ds={ds}
                       onClick={() => setExpandedDay(prev => prev === ds ? null : ds)}
                       className="flex items-start gap-2.5"
                       style={{
@@ -1589,7 +1658,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                           {dayWorkouts.map(w => (
                             <div key={w.id}>
-                              <MobileWorkoutPill w={w} mode={mode} onClick={() => onEditWorkout(w, ds)} />
+                              <DraggableMobilePill w={w} ds={ds} mode={mode} onClick={() => onEditWorkout(w, ds)} />
                               {/* Meta-linje m/ full dataparitet mot grid-chipen:
                                   underkategori · bev.form · skyting · plassering. */}
                               {(w.primary_subcategory || w.primary_movement || w.position_overall != null) && (
@@ -1613,7 +1682,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           ＋
                         </button>
                       )}
-                    </div>
+                    </MobileDayDropRow>
                     </Fragment>
                   )
                   }

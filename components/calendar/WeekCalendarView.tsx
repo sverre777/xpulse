@@ -498,6 +498,46 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
   )
 }
 
+// ── Mobil DnD (uke-liste): long-press på økt-raden flytter den til en annen
+// dag (klokkeslettet beholdes). EGNE id-prefikser (m:/mwd:) — desktop-
+// rutenettets draggables/droppables er mountet samtidig (kun CSS-skjult).
+function MobileWeekDropDay({ ds, disabled, children }: {
+  ds: string; disabled: boolean; children: React.ReactNode
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `mwd:${ds}`, data: { date: ds }, disabled })
+  return (
+    <div ref={setNodeRef}
+      style={{
+        borderBottom: '1px solid #1A1A1E', padding: '12px 16px',
+        ...(isOver ? {
+          backgroundColor: 'rgba(255,69,0,0.10)',
+          outline: '2px solid rgba(255,69,0,0.55)', outlineOffset: -2,
+        } : {}),
+      }}>
+      {children}
+    </div>
+  )
+}
+
+function DraggableMobileWeekRow({ w, ds, disabled, children }: {
+  w: CalendarWorkoutSummary; ds: string; disabled: boolean; children: React.ReactNode
+}) {
+  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
+    id: `m:${w.id}`,
+    data: { workout: w, fromDate: ds },
+    disabled,
+  })
+  return (
+    <div ref={setNodeRef}
+      {...(disabled ? {} : (attributes as unknown as Record<string, unknown>))}
+      {...(disabled ? {} : (listeners as unknown as Record<string, unknown>))}
+      className="flex items-stretch gap-1"
+      style={{ opacity: isDragging ? 0.4 : 1, touchAction: 'manipulation' }}>
+      {children}
+    </div>
+  )
+}
+
 // Dag-kolonne i tidsrutenettet som også er drop-sone for dra-og-slipp.
 function DroppableDayColumn({ ds, isToday, canClick, dndEnabled, onColumnClick, title, children }: {
   ds: string; isToday: boolean; canClick: boolean; dndEnabled: boolean
@@ -561,6 +601,14 @@ export function WeekCalendarView({
     const { active, over, delta } = e
     if (!over) return
     const overId = String(over.id)
+    // Mobil-listens dagseksjoner (mwd:) — ren dag-flytt m/ behold klokkeslett.
+    if (overId.startsWith('mwd:')) {
+      const toDate = overId.slice(4)
+      const d = active.data.current as { fromDate?: string } | undefined
+      if (!d?.fromDate || d.fromDate === toDate) return
+      onMoveWorkout(String(active.id).replace(/^m:/, ''), d.fromDate, toDate, undefined)
+      return
+    }
     if (!overId.startsWith('wd:')) return
     const toDate = overId.slice(3)
     const data = active.data.current as { fromDate?: string; top?: number; kind?: string } | undefined
@@ -632,7 +680,7 @@ export function WeekCalendarView({
           const dayWorkouts = filterByMode(byDate[ds] ?? [], mode)
           const states = dayStatesByDate?.[ds] ?? []
           return (
-            <div key={ds} style={{ borderBottom: '1px solid #1A1A1E', padding: '12px 16px' }}>
+            <MobileWeekDropDay key={ds} ds={ds} disabled={readOnly || !onMoveWorkout}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs tracking-widest uppercase"
@@ -776,7 +824,7 @@ export function WeekCalendarView({
                     ].filter(Boolean).join(' · ')
                     const dayIdx = orderedIds.indexOf(w.id)
                     return (
-                      <div key={w.id} className="flex items-stretch gap-1">
+                      <DraggableMobileWeekRow key={w.id} w={w} ds={ds} disabled={readOnly || !onMoveWorkout}>
                       <button
                         type="button"
                         onClick={() => onEditWorkout(w, ds)}
@@ -854,13 +902,13 @@ export function WeekCalendarView({
                             }}>↓</button>
                         </div>
                       )}
-                      </div>
+                      </DraggableMobileWeekRow>
                     )
                   })}
                 </div>
                 )
               })()}
-            </div>
+            </MobileWeekDropDay>
           )
         })}
       </div>

@@ -11,6 +11,9 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // Lar scripts/*.ts importere med .ts-endelse, slik Node sin type-stripping
+    // krever. Lovlig fordi noEmit er true. Appen selv bruker ikke .ts-imports.
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

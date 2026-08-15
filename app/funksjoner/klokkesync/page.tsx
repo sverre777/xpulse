@@ -6,9 +6,9 @@ import { WaitlistSignup } from '@/components/landing/WaitlistSignup'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Klokkesync – Strava-synk og .fit-import fra alle klokker',
+  title: 'Klokkesync – Strava- og Polar-synk + .fit-import fra alle klokker',
   description:
-    'X-PULSE klokkesync: .fit-import for alle, Strava OAuth-synk, Garmin Connect direkte kommer snart. Auto-import, soner, splittinger og AI-tolkning når synken er på plass.',
+    'X-PULSE klokkesync: .fit-import for alle, direkte-synk fra Strava og Polar, Garmin Connect kommer snart. Auto-import, soner, splittinger og AI-tolkning når synken er på plass.',
   path: '/funksjoner/klokkesync',
 })
 
@@ -30,9 +30,9 @@ export default function KlokkesyncPage() {
   return (
     <LandingShell>
       <SportPageHero
-        kicker="Strava + .fit i dag · direkte-synk kommer snart"
-        title={<>STRAVA OG <span style={{ color: '#FF4500' }}>.FIT-OPPLASTING<br/>VIRKER NÅ.</span></>}
-        description="Du er på lufta i dag — koble Strava OAuth med ett klikk eller last opp .fit-filer fra hvilken som helst klokke. Direkte-synk for Garmin, Apple Health, Polar og Coros kommer snart."
+        kicker="Strava, Polar og .fit i dag · flere merker kommer"
+        title={<>STRAVA, POLAR OG <span style={{ color: '#FF4500' }}>.FIT-OPPLASTING<br/>VIRKER NÅ.</span></>}
+        description="Du er på lufta i dag — koble til Strava eller Polar med ett klikk, eller last opp .fit-filer fra hvilken som helst klokke. Direkte-synk for Garmin, Apple Health og Coros kommer snart."
         icon={<ClockIcon />}
       />
 
@@ -52,17 +52,20 @@ export default function KlokkesyncPage() {
           <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.82)', margin: 0 }}>
             I mellomtiden kan <strong style={{ color: '#FF4500' }}>alle</strong> laste opp .fit-filer fra Strava, Garmin, Polar, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sone-fordeling.
           </p>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.82)', margin: '6px 0 0' }}>
+            <strong style={{ color: '#28A86E' }}>Polar-synk er live</strong> — direkte-tilkobling mot Polar Flow er åpen for alle, uten utrulling og uten venteliste.
+          </p>
         </div>
       </div>
 
       <SportFeatureSection
         kicker="Hvilke klokker"
         title="ALLE STORE LEVERANDØRER."
-        intro="Vi tar støtte for hele bredden av endurance-klokker. Per i dag fungerer .fit-opplasting og Strava OAuth; direkte-synk via Garmin Connect og Apple Health kommer snart, med Polar og Coros like etter."
+        intro="Vi tar støtte for hele bredden av endurance-klokker. Per i dag fungerer .fit-opplasting, Strava OAuth og direkte-synk fra Polar; Garmin Connect og Apple Health kommer snart, med Coros like etter."
         bullets={[
           { title: 'Garmin', body: 'Connect-API direkte-synk kommer snart. .fit-import virker i dag for alle Garmin-modeller.' },
           { title: 'Apple Watch', body: 'Apple Health-eksport via iOS-app. Direkte-synk kommer snart.' },
-          { title: 'Polar', body: 'Polar Flow-eksport som .fit fungerer; direkte-synk vurderes fortløpende.' },
+          { title: 'Polar', body: 'Direkte-synk er live: koble til én gang, så hentes nye økter inn av seg selv. Polar gir de siste 30 dagene — eldre historikk tas med .fit-eksport fra Polar Flow.' },
           { title: 'Coros', body: '.fit-import via Coros-app eller direkte fra klokken. Direkte-synk kommer snart.' },
           { title: 'Wahoo', body: '.fit-import fra Wahoo Element-serien. Strava-omveien fungerer også.' },
         ]}
@@ -70,21 +73,23 @@ export default function KlokkesyncPage() {
 
       <SportFeatureSection
         kicker="Hvordan virker det"
-        title="TRE STIER INN."
-        intro="Vi treffer deg der du er. Hvis du har Strava er du på lufta i dag. Hvis du har en Garmin og venter på direkte-synk: bruk .fit-import inntil videre — du mister ingenting når direkte-synken slås på."
+        title="FIRE STIER INN."
+        intro="Vi treffer deg der du er. Har du Strava eller Polar, er du på lufta i dag. Venter du på Garmin-synk: bruk .fit-import inntil videre — du mister ingenting når direkte-synken slås på."
         bullets={[
           { title: '.fit-opplasting (alle)', body: 'Last opp .fit-filer manuelt eller drag-drop. Auto-detekterer aktivitet, sone-tid og høydemeter.' },
           { title: 'Strava OAuth (auto)', body: 'Koble til Strava én gang — alle nye økter synkes automatisk innen 5 minutter.' },
+          { title: 'Polar (auto)', body: 'Koble til Polar én gang. Nye økter varsles til oss direkte fra Polar Flow og hentes inn automatisk, med sikkerhetsnett som fanger opp resten.' },
           { title: 'Garmin direkte (kommer snart)', body: 'Direkte API-tilgang så data kommer uten Strava-omvei og inkluderer alle felter (ikke bare det Strava eksponerer).' },
         ]}
       />
 
       <SportFeatureSection
         kicker="Hvordan vi håndterer dine data"
-        title="STRAVAS REGLER GJELDER STRAVA-DATA."
-        intro="Stravas API-vilkår krever at rå data slettes etter 7 dager og at all importert Strava-data slettes ved frakobling. Aggregerte verdier (varighet, distanse, sone-fordeling, lap-tider) beholdes så lenge tilkoblingen er aktiv. Bruker du .fit-opplasting eller direkte Garmin-synk? Da bestemmer du selv — ingen eksterne regler."
+        title="HVERT MERKE HAR SINE REGLER."
+        intro="Reglene følger kilden, og vi sier tydelig fra hvilke som gjelder hvor. Stravas API-vilkår krever at rå data slettes etter 7 dager og at all importert Strava-data slettes ved frakobling. Polar har ingen 7-dagers-frist, men gir kun de siste 30 dagene. Bruker du .fit-opplasting? Da bestemmer du selv — ingen eksterne regler."
         bullets={[
           { title: 'Strava OAuth', body: 'Rå sample-data (sekund-puls, GPS, watt-strøm) slettes etter 7 dager. Aggregert vises permanent så lenge Strava er koblet. Ved frakobling: alt slettes innen 48t.' },
+          { title: 'Polar', body: 'Ingen 7-dagers-frist på rådata. Polar gir kun økter fra siste 30 dager, og kun de som lastes opp etter at du koblet til. Ved frakobling slettes alle Polar-importerte økter, og X-PULSE avregistreres hos Polar. Datakilde: Polar Ecosystem.' },
           { title: '.fit-opplasting', body: 'Dine egne data, ingen eksterne regler. Permanent lagring av alt inkludert sekund-data.' },
           { title: 'Garmin direkte (kommer snart)', body: 'Direkte fra klokken via Garmin Connect. Du eier dataene fullt ut — vi sletter ikke automatisk.' },
         ]}
@@ -120,11 +125,11 @@ export default function KlokkesyncPage() {
               fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
               letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 18,
             }}>
-              GI BESKJED NÅR<br/>KLOKKESYNC ÅPNER.
+              GI BESKJED NÅR<br/>FLERE MERKER ÅPNER.
             </h2>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)', maxWidth: 460 }}>
-              Skriv inn e-postadressen så får du beskjed når Garmin-, Apple Health- og direkte-koblingene
-              åpner. Du blir også prioritert i beta-tilgangen.
+              Strava og Polar er live nå. Skriv inn e-postadressen så får du beskjed når Garmin-,
+              Apple Health- og Coros-koblingene åpner. Du blir også prioritert i beta-tilgangen.
             </p>
           </div>
           <WaitlistSignup

@@ -744,6 +744,11 @@ export async function createKeyDate(
           date: input.event_date,
           workout_type: wType,
           is_planned: true,
+          // MÅ settes eksplisitt: workouts.is_completed har default TRUE i
+          // skjemaet, så en konkurranse opprettet fra årsplanen ble ellers
+          // markert som gjennomført med én gang — også når den ligger frem i
+          // tid. Ingenting er fullført før brukeren markerer det selv.
+          is_completed: false,
           notes: input.notes?.trim() || null,
           created_by_coach_id: resolved.isCoachImpersonating ? resolved.coachId : null,
         })
@@ -835,6 +840,11 @@ export async function updateKeyDate(
           date: input.event_date,
           workout_type: wType,
           is_planned: true,
+          // MÅ settes eksplisitt: workouts.is_completed har default TRUE i
+          // skjemaet, så en konkurranse opprettet fra årsplanen ble ellers
+          // markert som gjennomført med én gang — også når den ligger frem i
+          // tid. Ingenting er fullført før brukeren markerer det selv.
+          is_completed: false,
           notes: input.notes?.trim() || null,
           created_by_coach_id: resolved.isCoachImpersonating ? resolved.coachId : null,
         })

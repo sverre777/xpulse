@@ -625,8 +625,10 @@ function ActivityRowItem({
 
             {/* Høydemeter — utholdenhet + tur. Skjules for innendørs-aktiviteter
                 (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
-                Indoors/Ergo, Air bike, Tredemølle) der høydemeter ikke er meningsfullt. */}
-            {(isEndurance || isTur) && !isIndoorActivity && (
+                Indoors/Ergo, Air bike, Tredemølle) der høydemeter ikke er meningsfullt,
+                og for skyting: en skyteserie har ingen høydemeter selv om
+                bevegelsesformen (f.eks. Langrenn) er en utholdenhetsform. */}
+            {(isEndurance || isTur) && !isIndoorActivity && !meta?.isShooting && (
               <>
                 <Field label="Høydemeter opp (m)">
                   <input value={row.elevation_gain_m}

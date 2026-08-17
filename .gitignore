@@ -43,3 +43,12 @@ next-env.d.ts
 
 # Foto-originaler — webb-skalerte thumbs ligger i public/photos/.
 public/Bilder/
+
+# Local Netlify folder
+.netlify
+
+# Claude Code — lokal sesjonstilstand, ikke prosjektfiler.
+.claude/
+
+# macOS
+.DS_Store

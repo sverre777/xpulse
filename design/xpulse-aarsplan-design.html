@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Årsplan «Mal sesongen» (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B; --card:#101014; --card2:#15151B;
+  --line:#1F1F26; --line2:#2A2A33;
+  --ink:#F2F2F0; --mut:#8B8B95; --dim:#55555F;
+  --orange:#FF4500; --orange-soft:rgba(255,69,0,.12);
+  --blue:#1A6FD4; --gold:#F5C542;
+  --rolig:#28A86E; --medium:#D4A017; --hard:#E11D48;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:17px;padding:28px 0 70px;-webkit-user-select:none;user-select:none}
+.wrap{max-width:1060px;margin:0 auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:14px}
+.ch{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.ch .beam{width:22px;height:4px;border-radius:2px;background:var(--orange);margin-top:9px}
+.ch h2{font-family:'Bebas Neue';font-size:22px;letter-spacing:.09em;font-weight:400}
+.ch .sub{font-size:14.5px;color:var(--dim);margin-top:2px}
+
+/* ===== SESONG-HEADER ===== */
+.shead{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.shead .sel{position:relative}
+.shead select{appearance:none;background:var(--card2);border:1px solid var(--line2);border-radius:10px;color:var(--ink);font-family:'Bebas Neue';font-size:20px;letter-spacing:.06em;padding:10px 40px 8px 16px;cursor:pointer}
+.shead .sel::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:12px;pointer-events:none}
+.shead .goal{font-size:15.5px;color:var(--mut)}
+.shead .goal b{color:var(--gold);font-weight:600}
+.shead .dates{margin-left:auto;font-size:14px;color:var(--dim);letter-spacing:.04em}
+
+/* ===== VERKTØYKASSE ===== */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tgroup{display:flex;gap:8px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2)}
+.tgroup .tl{font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;margin-right:2px}
+.tool{
+  display:inline-flex;align-items:center;gap:7px;border-radius:9px;border:1px solid var(--line2);
+  background:none;color:var(--mut);font:inherit;font-size:14px;font-weight:700;letter-spacing:.06em;
+  padding:8px 13px;cursor:pointer;transition:.13s;
+}
+.tool .sw{width:11px;height:11px;border-radius:3px}
+.tool:hover{color:var(--ink);border-color:var(--mut)}
+.tool.on{color:#fff;border-color:transparent;box-shadow:0 0 0 2px var(--orange), 0 4px 16px rgba(255,69,0,.25)}
+.tool.on.rolig{background:var(--rolig)} .tool.on.medium{background:var(--medium)} .tool.on.hard{background:var(--hard)}
+.tool.on.neutral{background:#26262E}
+.hinttext{font-size:14px;color:var(--dim);margin-top:10px}
+.hinttext b{color:var(--mut)}
+
+/* ===== SESONGLERRET ===== */
+.canvas{margin-top:6px}
+.mrow{display:flex;align-items:stretch;gap:8px;margin-bottom:7px}
+.mlab{
+  flex:0 0 44px;display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue';font-size:15px;letter-spacing:.1em;color:var(--dim);
+  border-right:1px solid var(--line);
+}
+.weeks{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.wk{
+  position:relative;min-height:58px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card2);cursor:pointer;transition:box-shadow .12s, filter .12s;
+  padding:5px 7px;overflow:visible;
+}
+.wk:hover{filter:brightness(1.18)}
+.wk .n{font-size:11.5px;color:var(--dim);letter-spacing:.06em}
+.wk.rolig{background:rgba(40,168,110,.28);border-color:rgba(40,168,110,.55)}
+.wk.medium{background:rgba(212,160,23,.26);border-color:rgba(212,160,23,.55)}
+.wk.hard{background:rgba(225,29,72,.26);border-color:rgba(225,29,72,.55)}
+.wk.pstart{border-top-left-radius:9px;border-bottom-left-radius:9px}
+.wk .pname{
+  position:absolute;top:-9px;left:6px;font-size:11px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;background:var(--bg);border-radius:5px;padding:1px 7px;white-space:nowrap;z-index:2;
+}
+.wk.rolig .pname{color:var(--rolig);border:1px solid rgba(40,168,110,.5)}
+.wk.medium .pname{color:var(--medium);border:1px solid rgba(212,160,23,.5)}
+.wk.hard .pname{color:var(--hard);border:1px solid rgba(225,29,72,.5)}
+.wk .marks{position:absolute;bottom:4px;left:6px;right:4px;display:flex;gap:3px;font-size:13px;line-height:1}
+.wk .flags{position:absolute;top:4px;right:6px;font-size:11px;display:flex;gap:2px}
+.wk.peak{box-shadow:0 0 0 1.5px var(--gold), 0 0 18px rgba(245,197,66,.45)}
+.wk.today{outline:2px solid var(--orange);outline-offset:1px}
+.wk.today .n{color:var(--orange);font-weight:700}
+.wk.empty-dim .n{opacity:.45}
+
+/* ===== DETALJPANEL (klikket periode) ===== */
+.detail{border-left:3px solid var(--medium)}
+.detail .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.detail .full{grid-column:1/-1}
+label.f{display:block;font-size:12px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase;margin-bottom:5px}
+.inp{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:9px;color:var(--ink);font:inherit;font-size:16px;padding:10px 12px}
+.inp:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-soft)}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:6px 13px}
+.badge.medium{color:var(--medium);border:1px solid var(--medium);background:rgba(212,160,23,.1)}
+.togglerow{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+.tgl{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:9px;padding:9px 14px;font-size:14.5px;color:var(--mut);cursor:pointer;transition:.13s}
+.tgl.on{color:var(--ink);border-color:var(--orange);background:var(--orange-soft)}
+.dfoot{display:flex;gap:10px;margin-top:16px}
+.btn{border-radius:10px;font:inherit;font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;cursor:pointer;border:1px solid transparent;background:none;transition:.15s}
+.btn.primary{background:var(--orange);color:#fff}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.ghost{border-color:var(--line2);color:var(--mut)}
+.btn.ghost:hover{color:var(--ink)}
+.btn.danger{border-color:rgba(225,29,72,.5);color:var(--hard);margin-left:auto}
+
+/* ===== VOLUM ===== */
+.vol{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;margin-top:8px}
+.vcol{text-align:center}
+.vcol .bar{height:70px;display:flex;align-items:flex-end;margin-bottom:6px}
+.vcol .bar i{width:100%;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--orange),rgba(255,69,0,.55));min-height:2px}
+.vcol input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:7px;color:var(--ink);font:inherit;font-size:14px;text-align:center;padding:6px 2px}
+.vcol input:focus{outline:none;border-color:var(--orange)}
+.vcol .m{font-size:11.5px;color:var(--dim);letter-spacing:.08em;margin-top:4px;text-transform:uppercase}
+.vtotal{margin-top:12px;font-size:15px;color:var(--mut)}
+.vtotal b{font-family:'Bebas Neue';font-size:22px;color:var(--ink);letter-spacing:.04em}
+
+/* ===== KRYSSFUNKSJON-PREVIEW ===== */
+.xprev{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.xd{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--medium);border-radius:8px;min-height:64px;padding:5px 7px;position:relative}
+.xd .dn{font-family:'Bebas Neue';font-size:14px;color:var(--mut)}
+.xd.race{border:1.5px solid var(--gold);border-left:3px solid var(--gold);box-shadow:0 0 14px rgba(245,197,66,.35)}
+.xd .ic{position:absolute;top:4px;right:6px;font-size:12px}
+.xd .pl{margin-top:4px;font-size:11px;border-radius:5px;padding:3px 5px;background:var(--blue);background:rgba(26,111,212,.18);border-left:2px solid var(--blue);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xnote{font-size:14px;color:var(--dim);margin-top:12px;line-height:1.5}
+.xnote b{color:var(--mut)}
+
+@media (max-width:680px){
+  .weeks{gap:5px}
+  .wk{min-height:46px;padding:4px 5px}
+  .wk .pname{font-size:9.5px}
+  .vol{grid-template-columns:repeat(6,1fr);row-gap:14px}
+  .detail .dgrid{grid-template-columns:1fr}
+  .shead .dates{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <!-- SESONG-HEADER -->
+  <section class="card">
+    <div class="shead">
+      <div class="sel">
+        <select><option>SESONG 26/27</option><option>SESONG 25/26</option><option>+ NY SESONG</option></select>
+      </div>
+      <span class="goal">Hovedmål: <b>🏆 Topp 150 Vasaloppet</b></span>
+      <span class="dates">1. MAI 2026 → 30. APR 2027</span>
+    </div>
+  </section>
+
+  <!-- VERKTØYKASSE -->
+  <section class="card">
+    <div class="ch"><span class="beam"></span><div><h2>MAL SESONGEN</h2><div class="sub">Velg pensel → dra over ukene. Sammenhengende uker blir én periode automatisk.</div></div></div>
+    <div class="tools">
+      <div class="tgroup">
+        <span class="tl">Belastning</span>
+        <button class="tool rolig on" data-brush="rolig"><span class="sw" style="background:var(--rolig)"></span>Rolig</button>
+        <button class="tool medium" data-brush="medium"><span class="sw" style="background:var(--medium)"></span>Medium</button>
+        <button class="tool hard" data-brush="hard"><span class="sw" style="background:var(--hard)"></span>Hard</button>
+      </div>
+      <div class="tgroup">
+        <span class="tl">Marker</span>
+        <button class="tool" data-brush="camp">📍 Samling</button>
+        <button class="tool" data-brush="alt">🏔 Høyde</button>
+      </div>
+      <div class="tgroup">
+        <span class="tl">Nøkkeldato</span>
+        <button class="tool" data-brush="ka">🏆 A</button>
+        <button class="tool" data-brush="kb">🏅 B</button>
+        <button class="tool" data-brush="kc">📊 C</button>
+        <button class="tool" data-brush="test">🧪 Test</button>
+        <button class="tool" data-brush="peak">⭐ Peak</button>
+      </div>
+      <div class="tgroup">
+        <button class="tool neutral" data-brush="pick">✋ Velg</button>
+        <button class="tool neutral" data-brush="erase">⌫ Visk</button>
+      </div>
+    </div>
+    <p class="hinttext"><b>Slik virker det:</b> Belastning males med dra · Samling/Høyde legges oppå en malt periode · Nøkkeldatoer stemples på enkeltuker (Peak gir gull-glød) · ✋ Velg åpner detaljer på en periode.</p>
+  </section>
+
+  <!-- 52-UKERS LERRET -->
+  <section class="card">
+    <div class="canvas" id="canvas"><!-- bygges av JS --></div>
+  </section>
+
+  <!-- DETALJPANEL (demo: valgt periode) -->
+  <section class="card detail">
+    <div class="ch"><span class="beam" style="background:var(--medium)"></span>
+      <div><h2>PERIODE — HØYDESAMLING SJUSJØEN</h2><div class="sub">Uke 32 → uke 35 · 4 uker (dato-endene kan finjusteres per dag her)</div></div>
+      <span class="badge medium" style="margin-left:auto">Medium</span>
+    </div>
+    <div class="dgrid">
+      <div><label class="f">Navn</label><input class="inp" value="Høydesamling Sjusjøen"></div>
+      <div><label class="f">Fokus</label><input class="inp" value="VO2max + mengde"></div>
+      <div class="full">
+        <div class="togglerow">
+          <span class="tgl on">📍 Treningssamling · <input class="inp" value="Sjusjøen" style="width:130px;padding:4px 8px;font-size:14px;display:inline-block"></span>
+          <span class="tgl on">🏔 Høydeperiode · <input class="inp" value="1800" style="width:70px;padding:4px 8px;font-size:14px;display:inline-block"> moh</span>
+        </div>
+        <p class="hinttext" style="margin-top:8px">Øktene i perioden <b>arver høydetrening + 1800 moh automatisk</b> — overstyrbart per økt.</p>
+      </div>
+      <div class="full"><label class="f">Notat</label><input class="inp" placeholder="Frivillig notat…"></div>
+    </div>
+    <div class="dfoot">
+      <button class="btn primary">Lagre</button>
+      <button class="btn ghost">Lukk</button>
+      <button class="btn danger">Slett periode</button>
+    </div>
+  </section>
+
+  <!-- MÅNEDSVOLUM -->
+  <section class="card">
+    <div class="ch"><span class="beam"></span><div><h2>MÅNEDSVOLUM</h2><div class="sub">Planlagte timer per måned — søylene oppdateres live.</div></div></div>
+    <div class="vol" id="vol"></div>
+    <div class="vtotal">Sesongtotal: <b id="vtot">0T</b> <span id="vavg" style="margin-left:10px"></span></div>
+  </section>
+
+  <!-- KRYSSFUNKSJONER LIVE -->
+  <section class="card">
+    <div class="ch"><span class="beam" style="background:var(--blue)"></span>
+      <div><h2>SLIK VISES DET I RESTEN AV APPEN</h2><div class="sub">Uke 40 i dagbok/plan-kalenderen — automatisk fra årsplanen.</div></div>
+    </div>
+    <div class="xprev">
+      <div class="xd"><span class="dn">28</span></div>
+      <div class="xd"><span class="dn">29</span><div class="pl">Terskel 4×8</div></div>
+      <div class="xd"><span class="dn">30</span></div>
+      <div class="xd"><span class="dn">1</span><div class="pl">Rolig langtur</div></div>
+      <div class="xd"><span class="dn">2</span></div>
+      <div class="xd race"><span class="dn">3</span><span class="ic">🏆⭐</span><div class="pl">Skagen sprint</div></div>
+      <div class="xd"><span class="dn">4</span></div>
+    </div>
+    <p class="xnote">
+      <b>Kryssfunksjonene beholdes 1:1:</b> periodens farge ligger som accent på ukeradene · nøkkeldato-ikoner + ramme på dagcellene · ⭐ peak-target gir gull-glød · konkurranse-nedtellingen på Hjem leser fra nøkkeldatoene · høydeperioder legger overlay på belastningsgrafen i Analyse · trener redigerer samme flate hos utøver, og årsplan-<b>malen</b> for trener bruker identisk lerret med relative uker (U1–U52) i stedet for datoer.
+    </p>
+  </section>
+
+</main>
+
+<script>
+/* ================= DATA (demo-sesong mai→apr) ================= */
+const MONTHS=['MAI','JUN','JUL','AUG','SEP','OKT','NOV','DES','JAN','FEB','MAR','APR'];
+// 52 uker, ukenr fra 18 (mai) og rundt
+const weeks=[];let wn=18;
+for(let i=0;i<52;i++){weeks.push({no:wn,brush:null,name:null,camp:false,alt:false,marks:[],peak:false});wn=wn===52?1:wn+1;}
+// forhåndsmalt demo
+function paint(a,b,brush,name){for(let i=a;i<=b;i++){weeks[i].brush=brush;weeks[i].name=null}weeks[a].name=name}
+paint(0,12,'rolig','Grunntrening 1');
+paint(13,16,'medium','Høydesamling Sjusjøen');weeks[13].camp=true;weeks[13].alt=true;
+paint(17,25,'medium','Spesifikk blokk');
+paint(26,29,'hard','Hard blokk');
+paint(30,44,'medium','Konkurranseperiode');
+paint(45,51,'rolig','Overgang / hvile');
+weeks[36].marks=['🏅'];weeks[40].marks=['🏆'];weeks[40].peak=true;weeks[43].marks=['📊'];weeks[20].marks=['🧪'];
+weeks[14].today=true;
+
+/* ================= RENDER ================= */
+const canvas=document.getElementById('canvas');
+function render(){
+  canvas.innerHTML='';
+  let wi=0;
+  MONTHS.forEach((m,mi)=>{
+    const per=mi<4?5:4; // 4 mnd à 5 uker + 8 à 4 = 52
+    const row=document.createElement('div');row.className='mrow';
+    row.innerHTML='<div class="mlab">'+m+'</div>';
+    const wrap=document.createElement('div');wrap.className='weeks';
+    wrap.style.gridTemplateColumns='repeat('+per+',1fr)';
+    for(let k=0;k<per&&wi<52;k++,wi++){
+      const w=weeks[wi];
+      const c=document.createElement('div');
+      c.className='wk'+(w.brush?' '+w.brush:' empty-dim')+(w.peak?' peak':'')+(w.today?' today':'');
+      c.dataset.i=wi;
+      let inner='<span class="n">U'+w.no+'</span>';
+      if(w.name)inner+='<span class="pname">'+w.name+'</span>';
+      let flags='';if(w.camp)flags+='📍';if(w.alt)flags+='🏔';
+      if(flags)inner+='<span class="flags">'+flags+'</span>';
+      if(w.marks.length||w.peak)inner+='<span class="marks">'+w.marks.join('')+(w.peak?'⭐':'')+'</span>';
+      c.innerHTML=inner;
+      wrap.appendChild(c);
+    }
+    row.appendChild(wrap);canvas.appendChild(row);
+  });
+}
+render();
+
+/* ================= PENSLER ================= */
+let brush='rolig',down=false;
+document.querySelectorAll('.tool').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tool').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');brush=t.dataset.brush;
+}));
+function apply(i){
+  const w=weeks[i];if(!w)return;
+  if(['rolig','medium','hard'].includes(brush)){w.brush=brush;autoName();}
+  else if(brush==='erase'){Object.assign(w,{brush:null,name:null,camp:false,alt:false,marks:[],peak:false});autoName();}
+  else if(brush==='camp')w.camp=!w.camp;
+  else if(brush==='alt')w.alt=!w.alt;
+  else if(brush==='peak')w.peak=!w.peak;
+  else if(brush==='ka')toggleMark(w,'🏆');
+  else if(brush==='kb')toggleMark(w,'🏅');
+  else if(brush==='kc')toggleMark(w,'📊');
+  else if(brush==='test')toggleMark(w,'🧪');
+  render();
+}
+function toggleMark(w,ic){const j=w.marks.indexOf(ic);j>=0?w.marks.splice(j,1):w.marks.push(ic)}
+function autoName(){ // første uke i hver sammenhengende blokk beholder/får navn
+  let prev=null;
+  weeks.forEach((w,i)=>{
+    if(w.brush&&w.brush!==prev){if(!w.name)w.name='Ny periode';}
+    else if(w.brush===prev){w.name=w.name&&i===0?w.name:null;}
+    if(!w.brush)w.name=null;
+    prev=w.brush;
+  });
+}
+canvas.addEventListener('pointerdown',e=>{const c=e.target.closest('.wk');if(!c)return;down=true;apply(+c.dataset.i);});
+canvas.addEventListener('pointerover',e=>{if(!down)return;const c=e.target.closest('.wk');if(c&&['rolig','medium','hard','erase'].includes(brush))apply(+c.dataset.i);});
+window.addEventListener('pointerup',()=>down=false);
+
+/* ================= VOLUM ================= */
+const demo=[38,42,46,52,48,44,40,36,30,26,22,18];
+const vol=document.getElementById('vol');
+MONTHS.forEach((m,i)=>{
+  const d=document.createElement('div');d.className='vcol';
+  d.innerHTML='<div class="bar"><i style="height:'+(demo[i]/60*100)+'%"></i></div><input value="'+demo[i]+'" inputmode="numeric"><div class="m">'+m+'</div>';
+  vol.appendChild(d);
+});
+function vsum(){
+  let t=0;vol.querySelectorAll('input').forEach((inp,i)=>{
+    const v=parseInt(inp.value)||0;t+=v;
+    inp.closest('.vcol').querySelector('.bar i').style.height=Math.min(100,v/60*100)+'%';
+  });
+  document.getElementById('vtot').textContent=t+'T';
+  document.getElementById('vavg').textContent='· snitt '+Math.round(t/12)+'t/mnd · ~'+(t/52).toFixed(1)+'t/uke';
+}
+vol.addEventListener('input',vsum);vsum();
+</script>
+</body>
+</html>

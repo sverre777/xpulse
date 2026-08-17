@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-PULSE — Vind &amp; sikt per serie (designutkast)</title>
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --red:#E23A5A; --blue:#1A6FD4; --green:#28A86E; --gold:#E8B93C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:34px 22px 80px}
+.wrap{max-width:960px;margin:0 auto}
+.eyebrow{color:var(--orange);font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:700}
+h1{font-size:40px;line-height:1.1;margin:10px 0 6px;letter-spacing:-.01em}
+h1 .r{color:var(--red)}
+.intro{color:var(--dim);max-width:64ch}
+.fact{margin-top:14px;border:1px solid var(--line);border-left:3px solid var(--red);background:var(--card);border-radius:9px;padding:12px 16px;font-size:14.5px;color:var(--dim)}
+.fact b{color:var(--paper)}
+section{margin-top:46px}
+h2{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--paper);display:flex;align-items:center;gap:10px}
+h2::before{content:'';display:block;width:22px;height:3px;background:var(--red);border-radius:2px}
+h2 .aux{margin-left:auto;font-size:12.5px;letter-spacing:.08em;color:var(--mute);font-weight:400}
+.card{margin-top:14px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:22px}
+
+/* --- vimpel-skala --- */
+.scale{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap;overflow-x:auto;padding:6px 2px}
+.vbtn{flex:0 0 auto;width:74px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px 6px;text-align:center;cursor:pointer;transition:border-color .15s, background .15s}
+.vbtn svg{display:block;margin:0 auto}
+.vbtn .lb{font-size:11px;color:var(--mute);letter-spacing:.06em;margin-top:4px;text-transform:uppercase}
+.vbtn.sel{border-color:var(--red);background:rgba(226,58,90,.10)}
+.vbtn.sel .lb{color:var(--red);font-weight:700}
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:13.5px;color:var(--dim)}
+.legend b{color:var(--paper);font-weight:700}
+
+/* --- popup-mockup --- */
+.pop{max-width:640px;margin:14px auto 0;border:1px solid var(--line2);background:var(--surface);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden}
+.pop .ph{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.pop .ph .t{font-weight:800;letter-spacing:.04em}
+.pop .ph .aux{color:var(--mute);font-size:13px}
+.pop .ph .x{margin-left:auto;color:var(--mute);border:1px solid var(--line2);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer}
+.pop .bd{padding:18px 20px 20px}
+.pop .cap{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:2px 0 8px}
+.val{margin-top:10px;text-align:center;font-size:16.5px}
+.val b{color:var(--red)}
+.sikt{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.schip{display:flex;align-items:center;gap:8px;border:1px solid var(--line2);background:var(--surface);border-radius:9px;padding:9px 14px;font-size:14.5px;color:var(--dim);cursor:pointer}
+.schip svg{display:block}
+.schip.sel{border-color:var(--blue);background:rgba(26,111,212,.12);color:var(--paper);font-weight:700}
+.applyrow{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px;color:var(--dim)}
+.applyrow .box{width:18px;height:18px;border:1.5px solid var(--line2);border-radius:5px;display:grid;place-items:center;color:var(--green);font-weight:800;font-size:13px}
+.pop .ft{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line)}
+.btn{border-radius:9px;padding:9px 22px;font-weight:700;font-size:14.5px;cursor:pointer}
+.btn.pri{background:var(--red);color:#fff}
+.btn.gh{border:1px solid var(--line2);color:var(--dim)}
+
+/* --- serierad --- */
+.usr{display:grid;grid-template-columns:32px 92px 1fr 74px 104px 96px;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:11px 14px;margin-top:8px;font-size:16px}
+.usr .num{color:var(--dim);font-weight:700}
+.uls{display:inline-flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;font-weight:800;font-size:13.5px}
+.uls span{padding:4px 11px;color:var(--mute);background:var(--bg)}
+.uls span.on{color:#fff}
+.uls span.on.l{background:rgba(26,111,212,.5)}
+.uls span.on.s{background:rgba(255,140,0,.5)}
+.usr .tr{font-weight:700}
+.usr .tr small{color:var(--dim);font-weight:400}
+.usr .ti{color:#FF8C00;font-weight:700}
+.usr .pu{color:var(--dim);text-align:right}
+.usr .pu b{color:var(--paper)}
+.vchip{display:flex;align-items:center;gap:7px;justify-content:center;border:1px solid var(--line2);border-radius:8px;padding:4px 8px;cursor:pointer;min-height:36px}
+.vchip .sk{font-size:12px;color:var(--dim)}
+.vchip.empty{border-style:dashed;color:var(--mute);font-size:13px}
+.note{margin-top:10px;font-size:14px;color:var(--dim)}
+.note b{color:var(--paper)}
+
+/* --- notat --- */
+.nlist{margin-top:6px}
+.nlist li{margin:10px 0 0 18px;color:var(--dim)}
+.nlist b{color:var(--paper)}
+.tag{display:inline-block;border:1px solid var(--line2);border-radius:6px;padding:1px 8px;font-size:12.5px;color:var(--gold)}
+@media (max-width:680px){
+  h1{font-size:30px}
+  .scale{justify-content:flex-start}
+  .usr{grid-template-columns:28px 84px 1fr 84px;grid-auto-rows:auto}
+  .usr .ti,.usr .pu{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">X-PULSE · Designutkast · Skyting</div>
+<h1>Vind &amp; sikt — <span class="r">per serie</span></h1>
+<p class="intro">Føres på samme sted som treff: en egen vind-chip på serieraden. Trykk på vimpelen som ligner mest på det du så på standplass, legg på sikt om du vil — ferdig.</p>
+<div class="fact">Fasit fra virkeligheten: IBU-vimpler er <b>knallrøde, maks 5 gram lette</b> og roterer fritt på tynne stenger — plassert ved <b>annenhver skive, 5 m fra rampen og 20 m fra blinken</b>. Det er den utøveren leser. UI-et gjengir det: rød vimpel, svart stang.</div>
+
+<section>
+  <h2>Vimpel-skalaen<span class="aux">11 tilstander · vindstille i midten</span></h2>
+  <div class="card">
+    <div class="scale" id="scaleRow"></div>
+    <div class="legend"><span><b>0</b> Vindstille</span><span><b>1</b> Litt</span><span><b>2</b> Litt mer</span><span><b>3</b> Moderat</span><span><b>4</b> Nesten rett ut</span><span><b>5</b> Rett ut + blafring</span></div>
+    <p class="note" style="text-align:center">Vi lagrer det utøveren <b>ser</b>: vimpelens retning (venstre/høyre) + styrke 0–5. Ingen meteorologi-tolkning i føringen.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Popupen<span class="aux">Åpnes fra vind-chipen på serieraden</span></h2>
+  <div class="pop">
+    <div class="ph"><span style="color:var(--red)">⚑</span><span class="t">VIND &amp; SIKT</span><span class="aux">Serie 2 · Stående</span><span class="x">✕</span></div>
+    <div class="bd">
+      <div class="cap">Vimpel — trykk den som ligner</div>
+      <div class="scale" id="popRow"></div>
+      <div class="val" id="valTxt">Vimpel <b>moderat mot høyre</b> (3/5)</div>
+      <div class="cap" style="margin-top:18px">Sikt</div>
+      <div class="sikt" id="siktRow"></div>
+      <div class="applyrow"><span class="box">✓</span>Bruk som forslag for neste serie (kan endres per serie)</div>
+    </div>
+    <div class="ft"><span class="btn gh">Fjern vind</span><span class="btn gh">Avbryt</span><span class="btn pri">Lagre</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>På serieraden<span class="aux">Sammen med treff — egen chip for vind</span></h2>
+  <div class="card">
+    <div class="usr"><span class="num">1</span><span class="uls"><span class="on l">L</span><span>S</span></span><span class="tr">5/5 <small>treff</small></span><span class="ti">27s</span><span class="pu"><b>156</b>/162</span><span class="vchip" id="chip1"><span class="sk">God</span></span></div>
+    <div class="usr"><span class="num">2</span><span class="uls"><span>L</span><span class="on s">S</span></span><span class="tr">3/5 <small>treff</small></span><span class="ti">24s</span><span class="pu"><b>171</b>/178</span><span class="vchip" id="chip2"><span class="sk">Tåke</span></span></div>
+    <div class="usr"><span class="num">3</span><span class="uls"><span class="on l">L</span><span>S</span></span><span class="tr">4/5 <small>treff</small></span><span class="ti">25s</span><span class="pu"><b>163</b>/170</span><span class="vchip empty">+ vind</span></div>
+    <p class="note">Chipen viser mini-vimpelen + sikt. Tom chip = ikke ført (helt valgfritt). På mobil beholder raden nr · L/S · treff · vind — tid/puls ligger i utvidet visning.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Notat — modell &amp; regler</h2>
+  <div class="card">
+    <ul class="nlist">
+      <li><b>Datamodell per serie:</b> <span class="tag">vind_retning</span> V/H eller null · <span class="tag">vind_styrke</span> 0–5 (0 = vindstille, 5 = rett ut + blafring) · <span class="tag">sikt</span> god / lett tåke / tåke / tett tåke eller null. Alt valgfritt.</li>
+      <li><b>Rask føring:</b> forrige series verdi foreslås for neste serie (forhåndsvalgt i popupen) — endres med ett trykk. Aldri automatisk lagring uten at serien åpnes.</li>
+      <li><b>Analyse:</b> vind/sikt blir kontekst-kolonner i test- og standardøkt-sammenligning og i serie-tooltips — «78 % i frisk vind» forteller noe annet enn «78 % i vindstille».</li>
+      <li><b>Fargefasit:</b> vimpel = skiskyting-rød #E23A5A på svart stang (IBU-tro). Sikt-chips nøytrale m/ blå valgt-markering. Ingen røde alarmer — vind er informasjon.</li>
+      <li><b>Mobil:</b> skalaen er én rad, horisontalt scrollbar m/ snap; valgt tilstand alltid synlig. Treffflater ≥36 px.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+<script>
+/* Vimpel-SVG: dir 'V'|'H'|null, lvl 0-5. Rød duk på svart stang. */
+function vimpel(dir, lvl, size){
+  const s = size || 56;
+  const angles = {1:15, 2:35, 3:55, 4:75};
+  let flag = '';
+  if (lvl === 0){
+    flag = '<path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/>';
+  } else if (lvl === 5){
+    flag = '<path d="M32,10 c8,-3 13,3 21,0 c8,-3 13,3 21,0 l0,13 c-8,3 -13,-3 -21,0 c-8,3 -13,-3 -21,0 Z" fill="#E23A5A"/>'
+         + '<path d="M78,9 c4,-2 7,1 10,0 M78,26 c4,2 7,-1 10,0" stroke="#E23A5A" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"/>';
+  } else {
+    const a = angles[lvl];
+    flag = '<g transform="rotate(' + (-a) + ' 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g>';
+  }
+  const inner = '<line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/>'
+    + '<circle cx="32" cy="10" r="3.5" fill="#8B8B95"/>' + flag;
+  const body = (dir === 'V') ? '<g transform="translate(92 0) scale(-1 1)">' + inner + '</g>' : inner;
+  return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 92 92">' + body + '</svg>';
+}
+const STATES = [
+  {d:'V',l:5},{d:'V',l:4},{d:'V',l:3},{d:'V',l:2},{d:'V',l:1},
+  {d:null,l:0},
+  {d:'H',l:1},{d:'H',l:2},{d:'H',l:3},{d:'H',l:4},{d:'H',l:5}
+];
+const NAME = {0:'Vindstille',1:'Litt',2:'Litt mer',3:'Moderat',4:'Nesten ut',5:'Blafrer'};
+function lbl(st){ return st.l===0 ? '0' : (st.d==='V'?'V':'H') + st.l; }
+function rowHTML(target, selIdx, size){
+  const el = document.getElementById(target);
+  el.innerHTML = STATES.map((st,i) =>
+    '<div class="vbtn' + (i===selIdx?' sel':'') + '" data-i="' + i + '">' + vimpel(st.d, st.l, size) +
+    '<div class="lb">' + lbl(st) + '</div></div>').join('');
+}
+rowHTML('scaleRow', 8, 56);
+rowHTML('popRow', 8, 46);
+/* popupen: klikkbar demo */
+document.getElementById('popRow').addEventListener('click', e => {
+  const b = e.target.closest('.vbtn'); if(!b) return;
+  document.querySelectorAll('#popRow .vbtn').forEach(x => x.classList.remove('sel'));
+  b.classList.add('sel');
+  const st = STATES[+b.dataset.i];
+  const txt = st.l===0 ? 'Vindstille'
+    : NAME[st.l].toLowerCase() + ' mot ' + (st.d==='V' ? 'venstre' : 'høyre');
+  document.getElementById('valTxt').innerHTML = st.l===0
+    ? 'Vimpel <b>henger rett ned</b> — vindstille'
+    : 'Vimpel <b>' + txt + '</b> (' + st.l + '/5)';
+});
+/* sikt-chips */
+const FOG = n => {
+  if (n===0) return '<svg width="18" height="14" viewBox="0 0 18 14"><circle cx="9" cy="7" r="5" fill="none" stroke="#28A86E" stroke-width="2"/></svg>';
+  let p = '';
+  for (let i=0;i<n;i++) p += '<path d="M2,' + (3+i*4) + ' c3,-2 6,2 9,0 c2,-1 4,1 5,0" stroke="#8B8B95" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="' + (0.5+0.17*i) + '"/>';
+  return '<svg width="18" height="14" viewBox="0 0 18 14">' + p + '</svg>';
+};
+const SIKT = [['God sikt',0],['Lett tåke',1],['Tåke',2],['Tett tåke',3]];
+document.getElementById('siktRow').innerHTML = SIKT.map(([t,n],i) =>
+  '<span class="schip' + (i===0?' sel':'') + '">' + FOG(n) + t + '</span>').join('');
+document.getElementById('siktRow').addEventListener('click', e => {
+  const c = e.target.closest('.schip'); if(!c) return;
+  document.querySelectorAll('#siktRow .schip').forEach(x => x.classList.remove('sel'));
+  c.classList.add('sel');
+});
+/* serierad-chips: mini-vimpler */
+document.getElementById('chip1').insertAdjacentHTML('afterbegin', vimpel('H',1,26));
+document.getElementById('chip2').insertAdjacentHTML('afterbegin', vimpel('H',4,26));
+</script>
+</body>
+</html>

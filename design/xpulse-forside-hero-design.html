@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Forside hero v2 (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060607; --card:#101014; --card2:#15151B;
+  --line:#1F1F26; --line2:#2A2A33;
+  --ink:#F2F0EC; --mut:#8B8B95; --dim:#55555F;
+  --orange:#FF4500; --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E; --blue:#1A6FD4; --gold:#F5C542;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --hard:#E11D48; --medium:#D4A017;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:17px}
+
+/* ============ HERO V2 ============ */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background-image:url('../public/photos/hero-bg.jpg');background-size:cover;background-position:center 30%}
+.hero-bg::before{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(6,6,7,.94) 0%,rgba(6,6,7,.72) 46%,rgba(6,6,7,.25) 100%)}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(6,6,7,1) 0%,transparent 34%)}
+.hero-inner{position:relative;z-index:2;width:100%;max-width:1220px;margin:0 auto;padding:80px 40px 90px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero-tag{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:11.5px;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);margin-bottom:22px}
+.hero-tag::before{content:'';width:28px;height:1px;background:var(--orange)}
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,6.2vw,92px);line-height:.95;letter-spacing:2px;font-weight:400}
+.h1-orange{color:var(--orange)} .h1-blue{color:var(--blue)}
+.hero-desc{font-size:16.5px;line-height:1.75;color:rgba(242,240,236,.62);max-width:440px;margin:22px 0 34px}
+.btn-primary{display:inline-block;background:var(--orange);color:#fff;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:15px 28px;border-radius:12px}
+.btn-secondary{display:inline-block;border:1px solid var(--line2);color:var(--ink);text-decoration:none;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;padding:15px 24px;border-radius:12px;margin-left:12px}
+.hero-free{margin-top:18px;font-size:12.5px;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
+.hero-free span{color:var(--orange)}
+
+/* Flytende produktpanel i hero */
+.float{position:relative}
+.float::before{content:'';position:absolute;inset:-40px -20px;background:radial-gradient(ellipse,rgba(255,69,0,.14) 0%,transparent 65%);pointer-events:none}
+.panel{position:relative;background:#101014;border:1px solid #26262E;border-radius:18px;padding:22px 24px;box-shadow:0 40px 90px rgba(0,0,0,.65)}
+.panel+.panel{margin-top:14px}
+.panel.tilt{transform:rotate(.6deg)}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ph .beam{width:20px;height:3.5px;border-radius:2px;background:var(--orange)}
+.ph.red .beam{background:var(--i5)} .ph.green .beam{background:var(--green)}
+.ph h4{font-family:'Bebas Neue';font-size:16.5px;letter-spacing:.12em;font-weight:400;color:var(--mut)}
+.ph .aux{margin-left:auto;font-size:12.5px;color:var(--dim)}
+/* mini stacked-søyler */
+.bars{position:relative;padding-left:40px}
+.bars .gl{position:absolute;left:40px;right:0;border-top:1px solid #1F1F26;height:0}
+.bars .gl span{position:absolute;left:-38px;top:-8px;font-size:10.5px;color:var(--dim);width:32px;text-align:right}
+.bars .cols{display:flex;align-items:flex-end;gap:10px;height:150px;position:relative}
+.bars .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bars .tot{font-family:'Bebas Neue';font-size:12px;color:var(--ink);margin-bottom:4px}
+.bars .stack{width:100%;max-width:52px;display:flex;flex-direction:column-reverse;gap:2px}
+.bars .stack i{display:block;border-radius:2px}
+.bars .stack i:last-child{border-radius:5px 5px 2px 2px}
+.bars .xl{display:flex;gap:10px;border-top:1px solid #2A2A33;padding-top:6px;margin-top:0}
+.bars .xl span{flex:1;text-align:center;font-family:'Bebas Neue';font-size:11px;color:var(--mut);letter-spacing:.08em}
+.bars .xl span.now{color:var(--orange)}
+.tip{position:absolute;right:-8px;top:-14px;background:#0C0C0F;border:1px solid #2A2A33;border-radius:10px;padding:9px 12px;box-shadow:0 12px 34px rgba(0,0,0,.6);z-index:5;min-width:132px}
+.tip .tw{font-family:'Bebas Neue';font-size:12.5px;letter-spacing:.08em;margin-bottom:4px}
+.tip .tr{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mut);line-height:1.5}
+.tip .tr .d{width:7px;height:7px;border-radius:2px}
+.tip .tr b{color:var(--ink);margin-left:auto;padding-left:10px;font-weight:600}
+/* helse-mini i hero */
+.hrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.ht{border:1px solid #1F1F26;border-radius:10px;background:#15151B;padding:9px 11px}
+.ht .k{font-size:9.5px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase}
+.ht .v{font-family:'Bebas Neue';font-size:21px;margin-top:1px}
+.ht .v .u{font-size:11px;color:var(--dim)}
+.ht .d{font-size:10.5px;font-weight:600;color:var(--green)}
+
+/* ============ INNI SYSTEMET ============ */
+.inside{max-width:1220px;margin:0 auto;padding:70px 40px}
+.sec-label{display:flex;align-items:center;gap:12px;font-weight:600;font-size:11.5px;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);margin-bottom:10px}
+.sec-label::after{content:'';flex:1;max-width:70px;height:1px;background:var(--line2)}
+.inside h2{font-family:'Bebas Neue';font-size:clamp(36px,4vw,56px);letter-spacing:2px;line-height:1;font-weight:400;margin-bottom:8px}
+.inside .sub{color:var(--mut);font-size:16px;max-width:60ch;margin-bottom:34px}
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.shot{background:#101014;border:1px solid #26262E;border-radius:16px;padding:18px;transition:transform .2s, border-color .2s}
+.shot:hover{transform:translateY(-4px);border-color:#3A3A44}
+.shot .cap{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:4px 11px;margin-bottom:14px}
+.shot .cap i{width:7px;height:7px;border-radius:50%;background:var(--orange);display:inline-block}
+/* kalender-mini m/ periodestripe + typefarger */
+.prd{position:relative;padding-left:12px}
+.prd::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:4px;border-radius:2px;background:var(--hard)}
+.cal{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.cal .d{background:#0D0D11;border:1px solid #1F1F26;border-radius:8px;min-height:78px;padding:6px}
+.cal .d .n{font-family:'Bebas Neue';font-size:12px;color:var(--mut)}
+.cal .d.today{border-color:var(--orange)}
+.pill{margin-top:5px;border:1px solid #1F1F26;border-left:3px solid var(--i1);background:#15151B;border-radius:6px;padding:4px 6px;font-size:10.5px;line-height:1.3}
+.pill .t1{color:var(--mut);font-size:9.5px}
+.pill .t1 b{color:var(--green)}
+.pill .nm{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill .du{color:var(--orange);font-weight:700;font-size:10px}
+.pill.i3{border-left-color:var(--i3)} .pill.pl{border-style:dashed;border-left-style:solid;background:#101014} .pill.race{border-left-color:var(--gold)}
+.wsum{display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 10px;border:1px solid #1F1F26;border-left:4px solid var(--hard);border-radius:8px;background:#15151B;font-size:11px;color:var(--mut)}
+.wsum .big{font-family:'Bebas Neue';font-size:14px;color:var(--orange)}
+/* soner-mini */
+.zbar{height:10px;border-radius:5px;display:flex;gap:2px;overflow:hidden;margin:6px 0 8px}
+.zbar i{height:100%;border-radius:2px}
+.zleg{display:flex;justify-content:space-between}
+.zleg .z{text-align:center;flex:1}
+.zleg .zl{font-size:10.5px;font-weight:700}
+.zleg .zt{font-family:'Bebas Neue';font-size:12px;color:var(--ink)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.st{border:1px solid #1F1F26;border-radius:9px;background:#15151B;padding:8px 10px}
+.st .k{font-size:9.5px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase}
+.st .v{font-family:'Bebas Neue';font-size:19px}
+.st .v .u{font-size:11px;color:var(--dim)}
+/* skyting-mini */
+.sh .v{font-family:'Bebas Neue';font-size:26px}
+.sh .v .u{font-size:13px;color:var(--dim)}
+.hits{display:flex;gap:4px;margin-top:6px}
+.hits i{width:10px;height:10px;border-radius:50%;background:var(--green)}
+.hits i.m{background:#2A2A33}
+.shl{font-size:10px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase;margin-top:10px}
+
+/* ============ DESIGNNOTAT ============ */
+.notes{max-width:1220px;margin:0 auto;padding:0 40px 90px}
+.notes .box{border-left:2px solid var(--orange);background:rgba(255,69,0,.05);padding:20px 26px}
+.notes h3{font-family:'Bebas Neue';font-size:22px;letter-spacing:.08em;font-weight:400;margin-bottom:10px}
+.notes ol{margin-left:20px;color:var(--mut);font-size:15.5px;line-height:1.8}
+.notes b{color:var(--ink);font-weight:600}
+
+@media (max-width:920px){
+  .hero-inner{grid-template-columns:1fr;padding:70px 22px}
+  .float{max-width:560px}
+  .trio{grid-template-columns:1fr}
+  .inside,.notes{padding-left:22px;padding-right:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO V2: foto + produktbevis side om side ============ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+
+    <div>
+      <div class="hero-tag">For seriøse utøvere — utholdenhetsidretter på én plattform</div>
+      <h1>BYGGET FOR<br><span class="h1-orange">ELITEN.</span><br>ENKEL FOR <span class="h1-blue">ALLE.</span></h1>
+      <p class="hero-desc">Treningsplan, dagbok og dyp analyse med enkel klokketilkobling — og live styrkeøkt-føring. Alt på ett sted. AI-coach på vei.</p>
+      <div>
+        <a href="#" class="btn-primary">Start 30 dagers gratis prøve</a>
+        <a href="#inside" class="btn-secondary">Se appen innenfra ↓</a>
+      </div>
+      <div class="hero-free"><span>30 dagers gratis prøve</span> — Kort, Klarna eller Apple Pay, ingen bindingstid</div>
+    </div>
+
+    <!-- Flytende, token-tro app-paneler (ren HTML — 0 kb bilder, skarpt på retina) -->
+    <div class="float">
+      <div class="panel tilt">
+        <div class="ph"><span class="beam"></span><h4>ANALYSE · TID I SONE PER UKE</h4><span class="aux">Uke-gruppering</span></div>
+        <div class="bars">
+          <div class="cols">
+            <div class="gl" style="bottom:150px"><span>10t</span></div>
+            <div class="gl" style="bottom:75px"><span>5t</span></div>
+            <div class="gl" style="bottom:0"><span>0</span></div>
+            <div class="col"><span class="tot">7T 10M</span><div class="stack"><i style="height:75px;background:var(--i1)"></i><i style="height:11px;background:var(--i2)"></i><i style="height:7px;background:var(--i3)"></i><i style="height:12px;background:#6E6E78"></i></div></div>
+            <div class="col"><span class="tot">8T 5M</span><div class="stack"><i style="height:84px;background:var(--i1)"></i><i style="height:13px;background:var(--i2)"></i><i style="height:9px;background:var(--i3)"></i><i style="height:5px;background:var(--i4)"></i><i style="height:10px;background:#6E6E78"></i></div></div>
+            <div class="col"><span class="tot">6T 30M</span><div class="stack"><i style="height:66px;background:var(--i1)"></i><i style="height:10px;background:var(--i2)"></i><i style="height:12px;background:var(--i3)"></i><i style="height:8px;background:#6E6E78"></i></div></div>
+            <div class="col"><span class="tot">9T 40M</span><div class="stack"><i style="height:98px;background:var(--i1)"></i><i style="height:15px;background:var(--i2)"></i><i style="height:11px;background:var(--i3)"></i><i style="height:7px;background:var(--i4)"></i><i style="height:4px;background:var(--i5)"></i><i style="height:10px;background:#6E6E78"></i></div></div>
+          </div>
+          <div class="xl"><span>U30</span><span>U31</span><span>U32</span><span class="now">U33</span></div>
+          <div class="tip">
+            <div class="tw">U33 · 10.–16. AUG</div>
+            <div class="tr"><span class="d" style="background:var(--i1)"></span>I1<b>6T 32M</b></div>
+            <div class="tr"><span class="d" style="background:var(--i3)"></span>I3<b>44M</b></div>
+            <div class="tr"><span class="d" style="background:#6E6E78"></span>Styrke<b>40M</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ph green"><span class="beam"></span><h4>HELSE · I DAG</h4><span class="aux">Fra klokka 06:42</span></div>
+        <div class="hrow">
+          <div class="ht"><span class="k">HRV</span><div class="v">68 <span class="u">ms</span></div><div class="d">↑ 4 vs snitt</div></div>
+          <div class="ht"><span class="k">Hvilepuls</span><div class="v">42 <span class="u">bpm</span></div><div class="d">↓ 2</div></div>
+          <div class="ht"><span class="k">Søvn</span><div class="v">7:40 <span class="u">t</span></div><div class="d" style="color:var(--mut)">Stabil</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ INNI SYSTEMET ============ -->
+<section class="inside" id="inside">
+  <div class="sec-label">Inni systemet</div>
+  <h2>SLIK SER DET UT DER INNE.</h2>
+  <p class="sub">Ikke stockfoto — dette er flatene du bruker hver dag. Kalenderen med typefargede økter og periodestripe, øktanalysen med soner, og standplass-tallene ingen andre har.</p>
+  <div class="trio">
+
+    <div class="shot">
+      <span class="cap"><i></i>Dagbok · kalender</span>
+      <div class="prd">
+        <div class="cal">
+          <div class="d"><span class="n">10</span><div class="pill"><div class="t1"><b>✓</b> 06:40</div><div class="nm">Rolig langtur</div><div class="du">2t 10m</div></div></div>
+          <div class="d today"><span class="n">12</span><div class="pill i3"><div class="t1"><b>✓</b> 17:30</div><div class="nm">5×5 terskel</div><div class="du">1t 24m</div></div></div>
+          <div class="d"><span class="n">16</span><div class="pill race"><div class="t1">🏁 11:00</div><div class="nm">Testløp 3 km</div><div class="du">B-konk</div></div></div>
+        </div>
+        <div class="wsum"><span>UKE 33</span><span class="big">9T 40M</span><span>6 økter</span><span>📍🏔</span></div>
+      </div>
+    </div>
+
+    <div class="shot">
+      <span class="cap"><i style="background:var(--i3)"></i>Analyse · økt</span>
+      <div class="zbar">
+        <i style="flex:38;background:var(--i1)"></i><i style="flex:14;background:var(--i2)"></i><i style="flex:30;background:var(--i3)"></i><i style="flex:12;background:var(--i4)"></i><i style="flex:6;background:var(--i5)"></i>
+      </div>
+      <div class="zleg">
+        <div class="z"><div class="zl" style="color:var(--i1)">I1</div><div class="zt">32:00</div></div>
+        <div class="z"><div class="zl" style="color:var(--i2)">I2</div><div class="zt">12:00</div></div>
+        <div class="z"><div class="zl" style="color:var(--i3)">I3</div><div class="zt">25:00</div></div>
+        <div class="z"><div class="zl" style="color:var(--i4)">I4</div><div class="zt">10:00</div></div>
+        <div class="z"><div class="zl" style="color:var(--i5)">I5</div><div class="zt">5:00</div></div>
+      </div>
+      <div class="stats">
+        <div class="st"><span class="k">Total tid</span><div class="v">1T 24M</div></div>
+        <div class="st"><span class="k">Distanse</span><div class="v">18,4 <span class="u">km</span></div></div>
+        <div class="st"><span class="k">Snittpuls</span><div class="v">156 <span class="u">bpm</span></div></div>
+        <div class="st"><span class="k">Snittfart</span><div class="v">13,1 <span class="u">km/t</span></div></div>
+      </div>
+    </div>
+
+    <div class="shot sh">
+      <span class="cap"><i style="background:var(--i5)"></i>Skiskyting · standplass</span>
+      <div class="v">17/20 <span class="u">85 %</span></div>
+      <div class="shl">Liggende · 9/10</div>
+      <div class="hits"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="m"></i></div>
+      <div class="shl">Stående · 8/10</div>
+      <div class="hits"><i></i><i></i><i class="m"></i><i></i><i></i><i></i><i></i><i class="m"></i><i></i><i></i></div>
+      <div class="stats" style="grid-template-columns:1fr 1fr">
+        <div class="st"><span class="k">Skytetid L</span><div class="v">28 <span class="u">s</span></div></div>
+        <div class="st"><span class="k">Skytetid S</span><div class="v">23 <span class="u">s</span></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ DESIGNNOTAT ============ -->
+<section class="notes">
+  <div class="box">
+    <h3>NOTAT — INTEGRASJON I PUBLIC/XPULSE.HTML</h3>
+    <ol>
+      <li><b>Hero:</b> behold foto, tekst og CTA-er som i dag — legg produktpanelet til høyre (grid 1.05fr/.95fr). Under 920px stables panelet under teksten. «Se funksjoner ↓» kan bli «Se appen innenfra ↓» og peke på den nye seksjonen.</li>
+      <li><b>«Inni systemet»-stripen</b> legges rett etter problem-seksjonen (før sport-kortene) — besøkende bør se produktet før de leser om det. Kortene kan lenke til /funksjoner-sidene.</li>
+      <li><b>Ren HTML, ikke skjermbilder:</b> panelene er token-tro (samme farger som appen etter fase 6) — 0 kb bilder, skarpe på retina, enkle å oppdatere. Alternativ: ekte skjermbilder med demo-data i samme ramme når UI-et er helt stabilt — mer «bevis», men krever vedlikehold.</li>
+      <li><b>Erstatt den gamle mock-dashboarden</b> i analyse-seksjonen (browser-dots + avatar) med samme panelstil — den matcher ikke appens faktiske utseende lenger.</li>
+      <li><b>Fargekoding som i appen:</b> typefarge på økt-pillens venstre kant, periodestripe kun i grønn/gul/rød, samling som 📍🏔 — konsistent med kalenderen og IG-malene.</li>
+      <li><b>Bilder:</b> hero-bg.jpg bør få AVIF/WebP-varianter + srcset; foto-stripen kan gjenbruke _thumb-bildene som allerede ligger i /photos.</li>
+    </ol>
+  </div>
+</section>
+
+</body>
+</html>

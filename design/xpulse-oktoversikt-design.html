@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Øktoversikt (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B; --card:#101014; --card2:#15151B;
+  --line:#1F1F26; --line2:#2A2A33;
+  --ink:#F2F2F0; --mut:#8B8B95; --dim:#55555F;
+  --orange:#FF4500; --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E; --green-soft:rgba(40,168,110,.12);
+  --blue:#1A6FD4; --gold:#F5C542;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:17px;padding-bottom:70px}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+
+/* ===== TOPBAR ===== */
+.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(10,10,11,.97) 70%,rgba(10,10,11,0));backdrop-filter:blur(8px);padding:16px 0 10px}
+.topbar .wrap{display:flex;align-items:center;gap:12px}
+.back{width:38px;height:38px;border:1px solid var(--line2);border-radius:9px;background:none;color:var(--mut);font-size:16px;cursor:pointer}
+.back:hover{color:var(--ink)}
+.topbar h1{font-family:'Bebas Neue';font-size:22px;letter-spacing:.1em;font-weight:400;color:var(--mut)}
+.topbar .sp{flex:1}
+.btn{border-radius:10px;font:inherit;font-weight:700;font-size:13.5px;letter-spacing:.13em;text-transform:uppercase;padding:11px 18px;cursor:pointer;border:1px solid transparent;background:none;transition:.15s}
+.btn.edit{border-color:var(--orange);color:var(--orange)}
+.btn.edit:hover{background:var(--orange-soft)}
+.btn.more{border-color:var(--line2);color:var(--mut);padding:11px 14px}
+
+/* ===== HERO ===== */
+.hero{padding:14px 0 18px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;border-radius:999px;padding:6px 13px}
+.pill.done{color:var(--green);background:var(--green-soft);border:1px solid rgba(40,168,110,.4)}
+.pill.strava{color:var(--orange);background:var(--orange-soft);border:1px solid rgba(255,69,0,.4)}
+.pill.grey{color:var(--mut);border:1px solid var(--line2)}
+.hero h2{font-family:'Bebas Neue';font-size:46px;letter-spacing:.03em;font-weight:400;line-height:1.02}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;color:var(--mut);font-size:16px}
+.meta b{color:var(--ink);font-weight:600}
+.tagsrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:6px 13px}
+.chip.hot{color:var(--gold);border-color:rgba(245,197,66,.4)}
+.chip.gear{color:var(--mut)} .chip.gear b{color:var(--ink)}
+
+/* ===== KORT ===== */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px}
+.kh{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.kh .beam{width:20px;height:3.5px;border-radius:2px;background:var(--orange)}
+.kh.blue .beam{background:var(--blue)} .kh.green .beam{background:var(--green)} .kh.gold .beam{background:var(--gold)}
+.kh h3{font-family:'Bebas Neue';font-size:18px;letter-spacing:.12em;font-weight:400;color:var(--mut)}
+.kh .aux{margin-left:auto;font-size:13.5px;color:var(--dim)}
+
+/* hero-stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#131318,#0E0E12);margin-bottom:14px}
+.stats .c{padding:16px 18px;border-right:1px solid var(--line)}
+.stats .c:nth-child(4n){border-right:none}
+.stats .c:nth-child(n+5){border-top:1px solid var(--line)}
+.stats .k{font-size:11px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.stats .v{font-family:'Bebas Neue';font-size:30px;letter-spacing:.03em;margin-top:2px}
+.stats .v .u{font-size:14px;color:var(--dim);letter-spacing:.05em}
+.stats .c.sm .v{font-size:23px}
+
+/* sonefordeling */
+.sonebar{height:10px;border-radius:5px;display:flex;overflow:hidden;background:var(--line);margin-bottom:12px}
+.sonebar i{height:100%}
+.sonelegend{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.sl{text-align:center}
+.sl .z{font-size:12.5px;font-weight:700;letter-spacing:.08em}
+.sl .t{font-family:'Bebas Neue';font-size:17px;letter-spacing:.04em;color:var(--ink)}
+.sl .p{font-size:12px;color:var(--dim)}
+
+/* skyting */
+.shoot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.sh{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--card2)}
+.sh .k{font-size:11px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase}
+.sh .v{font-family:'Bebas Neue';font-size:28px;letter-spacing:.03em;margin-top:2px}
+.sh .v .u{font-size:14px;color:var(--dim)}
+.sh .hits{display:flex;gap:4px;margin-top:8px}
+.sh .hits i{width:11px;height:11px;border-radius:50%;background:var(--green)}
+.sh .hits i.miss{background:var(--line2)}
+
+/* aktiviteter (read-only tidslinje) */
+.tl{position:relative;padding-left:24px}
+.tl::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--orange),rgba(255,69,0,.15));border-radius:2px}
+.arow{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:11px 0;border-bottom:1px solid var(--line)}
+.arow:last-child{border-bottom:none}
+.arow::before{content:'';position:absolute;left:-21px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:3px solid var(--orange)}
+.arow.shooting::before{border-color:var(--i5)}
+.arow .ic{font-size:15px}
+.arow .nm{font-weight:700;font-size:16.5px}
+.arow .nm small{color:var(--mut);font-weight:500}
+.arow .d{color:var(--mut);font-size:14.5px}
+.arow .d b{color:var(--ink);font-weight:600}
+.arow .mini{display:flex;height:5px;width:90px;border-radius:3px;overflow:hidden;background:var(--line);margin-left:auto}
+.arow .mini i{height:100%}
+
+/* splits */
+.splits{display:flex;flex-direction:column;gap:6px}
+.sp{display:grid;grid-template-columns:44px 1fr 64px 54px;align-items:center;gap:10px;font-size:14.5px}
+.sp .km{color:var(--dim);letter-spacing:.05em}
+.sp .bar{height:7px;border-radius:4px;background:var(--line);overflow:hidden}
+.sp .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6));border-radius:4px}
+.sp .pace{font-family:'Bebas Neue';font-size:16px;letter-spacing:.04em;text-align:right}
+.sp .hr{color:var(--mut);text-align:right;font-size:13.5px}
+
+/* dagsform */
+.formrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.fbox{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:var(--card2)}
+.fbox .k{font-size:11px;letter-spacing:.16em;color:var(--mut);text-transform:uppercase;margin-bottom:6px}
+.starline{color:var(--line2);font-size:19px;letter-spacing:2px}
+.starline b{color:var(--i3);text-shadow:0 0 10px rgba(232,185,60,.35);font-weight:400}
+.rpebadge{display:inline-block;font-family:'Bebas Neue';font-size:24px;letter-spacing:.04em;color:#fff;background:var(--i4);border-radius:9px;padding:4px 14px 2px}
+.fbox .sub{font-size:13px;color:var(--dim);margin-top:4px}
+
+/* notat + vær + trener */
+.note{font-size:16.5px;line-height:1.55;color:var(--ink)}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tag{font-size:13.5px;font-weight:600;color:var(--orange);background:var(--orange-soft);border-radius:999px;padding:5px 12px}
+.wline{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--mut);font-size:15.5px}
+.wline b{color:var(--ink);font-weight:600}
+.coach{border-left:3px solid var(--blue)}
+.cmsg{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15.5px;line-height:1.5}
+.cmsg .who{font-size:12.5px;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:4px}
+
+/* sync-fot */
+.sync{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--dim)}
+.sync a{color:var(--orange);text-decoration:none;font-weight:600}
+.sync .dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+@media (max-width:640px){
+  .hero h2{font-size:34px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stats .c:nth-child(2n){border-right:none}
+  .stats .c:nth-child(n+3){border-top:1px solid var(--line)}
+  .shoot{grid-template-columns:1fr}
+  .formrow{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .sonelegend{grid-template-columns:repeat(3,1fr);row-gap:10px}
+  .arow .mini{width:100%;margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <button class="back">←</button>
+    <h1>ØKT · DAGBOK</h1>
+    <span class="sp"></span>
+    <button class="btn edit">✎ Rediger</button>
+    <button class="btn more">⋯</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="pills">
+      <span class="pill done">✓ Gjennomført</span>
+      <span class="pill strava">▲ Strava-synk</span>
+      <span class="pill grey">Fra mal: 5×5 terskel</span>
+    </div>
+    <h2>5×5MIN TERSKELINTERVALL + SKYTING</h2>
+    <div class="meta">
+      <span>Ons <b>13. aug 2026</b></span>
+      <span>Kl. <b>17:30</b></span>
+      <span><b>Holmenkollen</b></span>
+      <span>Type <b>Intervall</b></span>
+      <span>Sport <b>Skiskyting · Rulleski</b></span>
+    </div>
+    <div class="tagsrow">
+      <span class="chip hot">★ Viktig økt</span>
+      <span class="chip">🏔 Høydetrening · 1800 moh</span>
+      <span class="chip gear">Ski · <b>Madshus test</b></span>
+      <span class="chip gear">Våpen · <b>Anschütz</b></span>
+    </div>
+  </div>
+
+  <!-- HERO-STATS -->
+  <div class="stats">
+    <div class="c"><span class="k">Total tid</span><div class="v">1T 24M</div></div>
+    <div class="c"><span class="k">Distanse</span><div class="v">18,4 <span class="u">km</span></div></div>
+    <div class="c"><span class="k">Snittpuls</span><div class="v">156 <span class="u">bpm</span></div></div>
+    <div class="c"><span class="k">Snittfart</span><div class="v">13,1 <span class="u">km/t</span></div></div>
+    <div class="c sm"><span class="k">Makspuls</span><div class="v">182</div></div>
+    <div class="c sm"><span class="k">Høydemeter</span><div class="v">312 <span class="u">m</span></div></div>
+    <div class="c sm"><span class="k">Snittwatt</span><div class="v">241</div></div>
+    <div class="c sm"><span class="k">Kalorier</span><div class="v">986</div></div>
+  </div>
+
+  <!-- SONEFORDELING -->
+  <section class="card">
+    <div class="kh"><span class="beam"></span><h3>SONEFORDELING</h3><span class="aux">Σ 1T 24M</span></div>
+    <div class="sonebar">
+      <i style="width:38%;background:var(--i1)"></i>
+      <i style="width:14%;background:var(--i2)"></i>
+      <i style="width:30%;background:var(--i3)"></i>
+      <i style="width:12%;background:var(--i4)"></i>
+      <i style="width:4%;background:var(--i5)"></i>
+      <i style="width:2%;background:var(--hurt)"></i>
+    </div>
+    <div class="sonelegend">
+      <div class="sl"><div class="z" style="color:var(--i1)">I1</div><div class="t">32:00</div><div class="p">38%</div></div>
+      <div class="sl"><div class="z" style="color:var(--i2)">I2</div><div class="t">12:00</div><div class="p">14%</div></div>
+      <div class="sl"><div class="z" style="color:var(--i3)">I3</div><div class="t">25:00</div><div class="p">30%</div></div>
+      <div class="sl"><div class="z" style="color:var(--i4)">I4</div><div class="t">10:00</div><div class="p">12%</div></div>
+      <div class="sl"><div class="z" style="color:var(--i5)">I5</div><div class="t">3:30</div><div class="p">4%</div></div>
+      <div class="sl"><div class="z" style="color:var(--hurt)">HURT.</div><div class="t">1:30</div><div class="p">2%</div></div>
+    </div>
+  </section>
+
+  <!-- SKYTING -->
+  <section class="card">
+    <div class="kh"><span class="beam" style="background:var(--i5)"></span><h3>SKYTING</h3><span class="aux">4 serier · 20 skudd</span></div>
+    <div class="shoot">
+      <div class="sh">
+        <span class="k">Totalt</span>
+        <div class="v">17/20 <span class="u">85%</span></div>
+      </div>
+      <div class="sh">
+        <span class="k">Liggende</span>
+        <div class="v">9/10 <span class="u">90%</span></div>
+        <div class="hits"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="miss"></i></div>
+      </div>
+      <div class="sh">
+        <span class="k">Stående</span>
+        <div class="v">8/10 <span class="u">80%</span></div>
+        <div class="hits"><i></i><i></i><i></i><i class="miss"></i><i></i><i></i><i></i><i></i><i class="miss"></i><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AKTIVITETER -->
+  <section class="card">
+    <div class="kh"><span class="beam"></span><h3>AKTIVITETER</h3><span class="aux">Kronologisk</span></div>
+    <div class="tl">
+      <div class="arow">
+        <span class="ic">🔥</span><span class="nm">Oppvarming <small>· Rulleski skøyting</small></span>
+        <span class="d"><b>20:00</b> · <b>4,2</b> km · <b>128</b> bpm</span>
+        <div class="mini"><i style="width:100%;background:var(--i1)"></i></div>
+      </div>
+      <div class="arow">
+        <span class="ic">⚡</span><span class="nm">5×5min terskel <small>· Rulleski skøyting</small></span>
+        <span class="d"><b>37:00</b> · <b>9,6</b> km · <b>171</b> bpm · <b>241</b> w</span>
+        <div class="mini"><i style="width:15%;background:var(--i2)"></i><i style="width:55%;background:var(--i3)"></i><i style="width:25%;background:var(--i4)"></i><i style="width:5%;background:var(--i5)"></i></div>
+      </div>
+      <div class="arow shooting">
+        <span class="ic">🎯</span><span class="nm">Skyting kombinert <small>· L + S mellom drag</small></span>
+        <span class="d"><b>12:00</b> · <b>17/20</b> treff</span>
+        <div class="mini"><i style="width:100%;background:var(--i5);opacity:.5"></i></div>
+      </div>
+      <div class="arow">
+        <span class="ic">🧊</span><span class="nm">Nedjogg <small>· Løping</small></span>
+        <span class="d"><b>15:00</b> · <b>2,4</b> km · <b>118</b> bpm</span>
+        <div class="mini"><i style="width:100%;background:var(--i1)"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <!-- SPLITS (klokkedata) -->
+    <section class="card">
+      <div class="kh"><span class="beam"></span><h3>SPLITS PER KM</h3><span class="aux">Fra klokke</span></div>
+      <div class="splits">
+        <div class="sp"><span class="km">1</span><div class="bar"><i style="width:72%"></i></div><span class="pace">4:32</span><span class="hr">142</span></div>
+        <div class="sp"><span class="km">2</span><div class="bar"><i style="width:78%"></i></div><span class="pace">4:21</span><span class="hr">151</span></div>
+        <div class="sp"><span class="km">3</span><div class="bar"><i style="width:95%"></i></div><span class="pace">3:48</span><span class="hr">168</span></div>
+        <div class="sp"><span class="km">4</span><div class="bar"><i style="width:100%"></i></div><span class="pace">3:41</span><span class="hr">174</span></div>
+        <div class="sp"><span class="km">5</span><div class="bar"><i style="width:97%"></i></div><span class="pace">3:45</span><span class="hr">172</span></div>
+        <div class="sp"><span class="km">6</span><div class="bar"><i style="width:70%"></i></div><span class="pace">4:38</span><span class="hr">139</span></div>
+      </div>
+    </section>
+
+    <!-- DAGSFORM -->
+    <section class="card">
+      <div class="kh"><span class="beam" style="background:var(--gold)"></span><h3>DAGSFORM OG BELASTNING</h3></div>
+      <div class="formrow" style="grid-template-columns:1fr">
+        <div class="fbox">
+          <div class="k">Fysisk form</div>
+          <div class="starline"><b>★★★★</b>★</div>
+        </div>
+        <div class="fbox">
+          <div class="k">Mental form</div>
+          <div class="starline"><b>★★★</b>★★</div>
+        </div>
+        <div class="fbox">
+          <div class="k">RPE</div>
+          <span class="rpebadge">8</span>
+          <div class="sub">Hard økt</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- VÆR + NOTAT -->
+  <div class="grid2">
+    <section class="card">
+      <div class="kh"><span class="beam green"></span><h3>VÆR OG FØRE</h3></div>
+      <div class="wline">
+        <span>☀️ <b>Sol, 14°</b></span>
+        <span>Vind <b>3 m/s</b></span>
+        <span>Føre <b>Tørr asfalt</b></span>
+      </div>
+    </section>
+    <section class="card">
+      <div class="kh"><span class="beam"></span><h3>ERNÆRING</h3></div>
+      <div class="wline">
+        <span>Under økt <b>1 gel + 0,5L sportsdrikke</b></span>
+        <span>Etter <b>Restitusjonsshake</b></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- NOTATER -->
+  <section class="card">
+    <div class="kh"><span class="beam"></span><h3>NOTATER</h3></div>
+    <p class="note">Beina responderte bra etter hviledagen. Drag 3–4 på riktig fart, siste draget litt tungt. Stående skyting må jobbes med — bommer på samme side begge serier. Bra flyt på skøytinga i motbakkene.</p>
+    <div class="tags">
+      <span class="tag">terskel</span><span class="tag">skyting</span><span class="tag">rulleski</span><span class="tag">holmenkollen</span>
+    </div>
+  </section>
+
+  <!-- TRENER -->
+  <section class="card coach">
+    <div class="kh blue"><span class="beam"></span><h3>TRENER</h3><span class="aux">1 kommentar</span></div>
+    <div class="cmsg">
+      <div class="who">Coach Jørstad · i går 21:14</div>
+      Bra gjennomført! Ser at pulsen ligger riktig på dragene. Til neste gang: senk skulderen på stående — vi tar det på fellesøkta torsdag. 💪
+    </div>
+  </section>
+
+  <!-- SYNC-INFO -->
+  <div class="sync">
+    <span class="dot"></span>
+    Importert fra Strava 13. aug 19:04 · <a href="#">Se original på Strava →</a> · Manuelt redigert etter import
+  </div>
+
+</main>
+</body>
+</html>

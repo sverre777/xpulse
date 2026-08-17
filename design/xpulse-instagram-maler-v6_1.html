@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-PULSE — Instagram-maler v6</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --ink:#0A0A0B; --orange:#FF4500; --blue:#1A6FD4; --green:#28A86E;
+  --paper:#F2F2F0; --dim:rgba(242,242,240,.62); --hair:rgba(242,242,240,.16);
+  --card:#101014; --card2:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#141416;color:var(--paper);font-family:'Barlow Condensed',system-ui,sans-serif;padding:30px 18px 80px}
+
+.panel{max-width:1160px;margin:0 auto 34px}
+.panel h1{font-family:'Bebas Neue',sans-serif;font-size:46px;letter-spacing:.02em;line-height:.95}
+.panel h1 em{font-style:normal;color:var(--orange)}
+.panel h1 b{font-weight:400;color:var(--blue)}
+.panel p{color:var(--dim);font-size:17px;max-width:66ch;margin-top:10px;line-height:1.45}
+.howto{border-left:2px solid var(--orange);padding:13px 18px;margin-top:20px;background:rgba(255,69,0,.05)}
+.howto ol{margin-left:18px;font-size:16px;line-height:1.7;color:var(--dim)}
+.howto strong{color:var(--paper);font-weight:600}
+.bulk{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+button{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;background:var(--orange);color:#fff;border:0;padding:10px 18px;border-radius:8px}
+button:hover{filter:brightness(1.12)}
+button.ghost{background:transparent;color:var(--paper);border:1px solid var(--hair)}
+button.ghost:hover{border-color:var(--orange);color:var(--orange);filter:none}
+
+.group{max-width:1160px;margin:54px auto 22px;border-top:1px solid var(--hair);padding-top:18px}
+.group h2{font-family:'Bebas Neue',sans-serif;font-size:29px;letter-spacing:.04em}
+.group h2 em{font-style:normal;color:var(--orange)}
+.group p{color:var(--dim);font-size:15px;margin-top:4px}
+.carousel-note{display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(26,111,212,.4);padding:3px 9px;margin-top:8px}
+
+.grid{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:32px 24px}
+.slot{display:flex;flex-direction:column;gap:9px}
+.stage{width:100%;aspect-ratio:1080/1350;position:relative;overflow:hidden;background:var(--ink)}
+.stage .card{position:absolute;top:0;left:0;width:1080px;height:1350px;transform-origin:top left}
+.tools{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.tools .name{font-size:13px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);margin-right:auto}
+.tools button{padding:6px 11px;font-size:11px}
+.tools button.dl{padding:9px 16px;font-size:12px;background:var(--orange);letter-spacing:.16em}
+.tools button.dl:disabled{background:var(--green);opacity:1}
+label.up{font-size:11px;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--hair);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--paper)}
+label.up:hover{border-color:var(--orange);color:var(--orange)}
+label.up input{display:none}
+
+/* ================= KORT 1080×1350 ================= */
+.card{background:var(--ink);color:var(--paper);font-family:'Barlow Condensed',sans-serif;display:flex;flex-direction:column;padding:80px 76px;position:relative;overflow:hidden}
+.card .bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.card .veil{position:absolute;inset:0;z-index:1}
+.card.hasimg .veil{background:linear-gradient(180deg,rgba(10,10,11,.58) 0%,rgba(10,10,11,.70) 40%,rgba(10,10,11,.96) 100%)}
+.card > *:not(.bg):not(.veil){position:relative;z-index:2}
+
+/* Signatur: pulslinje */
+.pulse{width:100%;height:44px;display:block;flex:0 0 auto;margin:24px 0;overflow:visible}
+img.pulse{height:auto;min-height:44px}
+.pulse path{fill:none;stroke:#FF4500;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.card.blue .pulse path{stroke:#1A6FD4}
+.card.green .pulse path{stroke:#28A86E}
+
+.eyebrow{font-size:23px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--orange);display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:'';width:30px;height:4px;border-radius:2px;background:currentColor;flex:0 0 auto}
+.card.blue .eyebrow{color:var(--blue)}
+.card.green .eyebrow{color:var(--green)}
+.eyebrow.mute{color:var(--dim)}
+
+h1{font-family:'Bebas Neue',sans-serif;text-transform:uppercase;font-weight:400}
+h1.xl{font-size:138px;line-height:.84}
+h1.big{font-size:118px;line-height:.86}
+h1.mid{font-size:96px;line-height:.89}
+h1.sm{font-size:76px;line-height:.93}
+h1 .o{color:var(--orange)}
+h1 .b{color:var(--blue)}
+h1 .g{color:var(--green)}
+
+.lede{font-size:31px;line-height:1.32;color:var(--dim);font-weight:300;max-width:35ch}
+.lede b{color:var(--paper);font-weight:600}
+.spacer{flex:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.swipe{font-size:20px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);display:flex;align-items:center;gap:10px;white-space:nowrap}
+.swipe .arrow{color:var(--orange);font-size:29px}
+.card.blue .swipe .arrow{color:var(--blue)}
+
+.foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--hair);padding-top:24px;margin-top:30px}
+.foot .bw{display:flex;align-items:center;gap:14px}
+.foot .bt{font-family:'Bebas Neue',sans-serif;font-size:33px;letter-spacing:.13em}
+.foot .bt i{font-style:normal;color:var(--orange)}
+.foot .url{font-size:21px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
+
+ul.bul{list-style:none;display:flex;flex-direction:column;gap:17px;margin-top:6px}
+ul.bul li{font-size:29px;line-height:1.24;display:flex;gap:17px;align-items:flex-start;font-weight:300}
+ul.bul li::before{content:'';width:12px;height:12px;border-radius:4px;background:var(--orange);flex:0 0 auto;margin-top:11px}
+.card.blue ul.bul li::before{background:var(--blue)}
+.card.green ul.bul li::before{background:var(--green)}
+ul.bul li b{color:var(--paper);font-weight:600}
+
+.badge{display:inline-block;font-size:21px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:7px 18px;border-radius:999px;background:var(--green);color:#fff;margin-left:18px;transform:translateY(-16px);font-family:'Barlow Condensed',sans-serif}
+.badge.gold{background:#B8860B}
+
+.cta{display:inline-block;background:var(--orange);color:#fff;font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.05em;padding:20px 48px;margin-top:34px;border-radius:12px}
+
+/* Problem-layout: stort outline-tall */
+.probnum{font-family:'Bebas Neue',sans-serif;font-size:230px;line-height:.9;color:transparent;-webkit-text-stroke:2.5px var(--orange);margin-top:14px}
+.card.blue .probnum{-webkit-text-stroke-color:var(--blue)}
+
+/* Disiplin-chips */
+.chips{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.chips span{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.04em;border:1px solid var(--line2);border-radius:999px;padding:12px 30px;color:var(--dim);background:var(--card)}
+.chips span.hot{border-color:var(--orange);color:var(--orange);background:rgba(255,69,0,.12)}
+
+/* Sonebar */
+.zones{display:flex;gap:6px;height:24px;margin-top:6px;border-radius:6px;overflow:hidden}
+.zones i{display:block;border-radius:4px}
+.zones i:nth-child(1){background:var(--i1);flex:3.4}
+.zones i:nth-child(2){background:var(--i2);flex:2.6}
+.zones i:nth-child(3){background:var(--i3);flex:1.5}
+.zones i:nth-child(4){background:var(--i4);flex:1}
+.zones i:nth-child(5){background:var(--i5);flex:.55}
+.zonelbl{display:flex;justify-content:space-between;margin-top:10px;font-size:18px;letter-spacing:.16em;color:var(--dim)}
+
+/* Metrikk-rad */
+.metrics{display:flex;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin-top:8px}
+.metrics div{flex:1;padding:24px 4px;text-align:center;border-right:1px solid var(--hair)}
+.metrics div:last-child{border-right:0}
+.metrics span{display:block;font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1}
+.metrics small{font-size:17px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim)}
+
+/* AI-innsiktsboks */
+.aibox{border:1px solid var(--hair);background:rgba(242,242,240,.035);padding:38px 40px;margin-top:26px}
+.aibox .lbl{font-size:21px;letter-spacing:.28em;text-transform:uppercase;color:var(--green);font-weight:600}
+.aibox p{font-size:31px;line-height:1.38;margin-top:14px;font-weight:300;color:var(--dim)}
+.aibox p b{color:var(--green);font-weight:600}
+
+/* Nivåkort AI */
+.levels{display:flex;flex-direction:column;gap:18px;margin-top:6px}
+.lvl{border:1px solid var(--hair);padding:26px 32px}
+.lvl.hot{border-color:var(--green)}
+.lvl h3{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:.03em;font-weight:400}
+.lvl.hot h3{color:var(--green)}
+.lvl p{font-size:25px;color:var(--dim);font-weight:300;line-height:1.28;margin-top:4px}
+
+/* Sammenlignings-rad */
+.vs{display:flex;flex-direction:column;gap:0;margin-top:8px;border-top:1px solid var(--hair)}
+.vs .row{display:flex;align-items:center;justify-content:space-between;padding:19px 0;border-bottom:1px solid var(--hair);font-size:27px;font-weight:300;gap:16px}
+.vs .row span{color:var(--dim);flex:1}
+.vs .row em{font-style:normal;font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.06em;flex:0 0 auto}
+.vs .row em.yes{color:var(--green)}
+.vs .row em.no{color:rgba(242,242,240,.3)}
+
+/* Pris-blokk */
+.price{display:flex;align-items:baseline;gap:14px;margin-top:6px}
+.price b{font-family:'Bebas Neue',sans-serif;font-size:150px;line-height:.85;color:var(--orange);font-weight:400}
+.price small{font-size:30px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+
+
+/* ---------- v4: nye maler ---------- */
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-top:10px}
+.calgrid i{display:block;height:88px;border:2px dashed var(--line2);border-radius:10px}
+.calgrid i.on{border:2px solid var(--orange);border-radius:10px;background:rgba(255,69,0,.18)}
+.donerow{display:flex;align-items:center;gap:18px;margin-top:30px}
+.donerow .chk{width:52px;height:52px;flex:0 0 auto;position:relative}
+.donerow .chk::before{content:'';position:absolute;left:4px;top:22px;width:18px;height:6px;background:var(--green);transform:rotate(45deg);border-radius:3px}
+.donerow .chk::after{content:'';position:absolute;left:14px;top:14px;width:34px;height:6px;background:var(--green);transform:rotate(-50deg);border-radius:3px}
+.donerow b{font-family:'Bebas Neue',sans-serif;font-size:46px;font-weight:400;letter-spacing:.04em;color:var(--green)}
+.targets{display:flex;gap:26px;margin-top:16px}
+.targets i{width:96px;height:96px;border-radius:50%;border:5px solid rgba(242,242,240,.3);display:block;position:relative}
+.targets i.hit::after{content:'';position:absolute;inset:20px;border-radius:50%;background:var(--paper)}
+.targets i.miss::after{content:'';position:absolute;inset:20px;border-radius:50%;border:4px solid var(--orange)}
+.pct{font-family:'Bebas Neue',sans-serif;font-size:210px;line-height:.9;color:var(--orange);margin-top:10px}
+.clock{font-family:'Bebas Neue',sans-serif;font-size:170px;line-height:.95;color:var(--orange);letter-spacing:.03em}
+.setrow{display:flex;justify-content:space-between;align-items:center;border:2px solid var(--line2);border-radius:12px;background:var(--card);padding:22px 30px;font-size:33px;font-weight:500;letter-spacing:.03em;margin-top:16px}
+.setrow.hit{border-color:rgba(40,168,110,.7);background:rgba(40,168,110,.12)}
+.setrow em{font-style:normal;color:var(--dim)}
+.setrow.hit em{color:var(--green)}
+.quote{font-size:56px;line-height:1.22;font-weight:400;color:var(--paper)}
+.quote b{color:var(--orange);font-weight:600}
+.qmark{font-family:'Bebas Neue',sans-serif;font-size:220px;line-height:.5;color:rgba(255,69,0,.55)}
+.who{font-size:27px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-top:26px}
+.bignums{display:flex;border:1px solid var(--line2);border-radius:14px;background:var(--card);overflow:hidden;margin-top:14px}
+.bignums div{flex:1;padding:34px 6px;text-align:center;border-right:1px solid var(--line)}
+.bignums div:last-child{border-right:0}
+.bignums span{display:block;font-family:'Bebas Neue',sans-serif;font-size:96px;line-height:1;color:var(--orange)}
+.bignums small{font-size:19px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+
+/* ---------- v6: «Inni appen» — UI-mockups ---------- */
+.ui{background:#101014;border:1px solid #26262E;border-radius:20px;padding:30px 32px;margin-top:16px;box-shadow:0 24px 70px rgba(0,0,0,.5);position:relative}
+.ui+.ui{margin-top:18px}
+.unav{display:flex;gap:9px;margin-bottom:20px;flex-wrap:wrap}
+.unav span{font-size:18px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#55555F;padding:7px 15px;border:1px solid #1F1F26;border-radius:999px}
+.unav span.on{color:#fff;background:var(--orange);border-color:var(--orange)}
+.uh{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.uh .beam{width:24px;height:4px;border-radius:2px;background:var(--orange);flex:0 0 auto}
+.uh.red .beam{background:var(--i5)} .uh.blue .beam{background:var(--blue)} .uh.green .beam{background:var(--green)} .uh.gold .beam{background:#F5C542}
+.uh h4{font-family:'Bebas Neue';font-size:25px;letter-spacing:.12em;font-weight:400;color:#8B8B95}
+.uh .aux{margin-left:auto;font-size:18px;color:#55555F;letter-spacing:.05em}
+/* status-piller */
+.upills{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px}
+.upl{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;border-radius:999px;padding:7px 15px}
+.upl.done{color:var(--green);background:rgba(40,168,110,.12);border:1px solid rgba(40,168,110,.4)}
+.upl.sync{color:var(--orange);background:rgba(255,69,0,.12);border:1px solid rgba(255,69,0,.4)}
+.upl.grey{color:#8B8B95;border:1px solid #2A2A33}
+.ut{font-family:'Bebas Neue';font-size:42px;letter-spacing:.03em;font-weight:400;line-height:1.05;color:var(--paper)}
+.umeta{display:flex;flex-wrap:wrap;gap:5px 20px;margin-top:8px;color:#8B8B95;font-size:18.5px}
+.umeta b{color:var(--paper);font-weight:600}
+/* stat-celler */
+.ustats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #1F1F26;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#131318,#0E0E12);margin-top:16px}
+.ustats.c3{grid-template-columns:repeat(3,1fr)}
+.ustats .c{padding:17px 19px;border-right:1px solid #1F1F26}
+.ustats .c:last-child{border-right:none}
+.ustats .k{font-size:14.5px;letter-spacing:.17em;color:#8B8B95;text-transform:uppercase;display:block}
+.ustats .v{font-family:'Bebas Neue';font-size:42px;letter-spacing:.03em;margin-top:2px;color:var(--paper)}
+.ustats .v .u{font-size:19px;color:#55555F}
+.ustats .d{font-size:16.5px;font-weight:600;margin-top:2px;color:#55555F}
+.ustats .d.pos{color:var(--green)} .ustats .d.neg{color:var(--i5)}
+/* sonebar + legend (2px gap = lesbart også uten farge) */
+.usone{margin-top:16px}
+.usone .bar{height:14px;border-radius:7px;display:flex;overflow:hidden;gap:2px}
+.usone .bar i{height:100%;border-radius:3px}
+.usone .leg{display:flex;justify-content:space-between;margin-top:10px}
+.usone .leg .z{text-align:center;flex:1}
+.usone .leg .zl{font-size:16px;font-weight:700;letter-spacing:.06em}
+.usone .leg .zt{font-family:'Bebas Neue';font-size:19px;color:var(--paper);letter-spacing:.04em}
+.usone .leg .zp{font-size:14px;color:#55555F}
+/* kalender-mockup */
+.ucal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:4px}
+.ucal .dw{font-size:13.5px;letter-spacing:.18em;color:#55555F;text-transform:uppercase;text-align:center;padding-bottom:2px}
+.ucal .d{background:#0D0D11;border:1px solid #1F1F26;border-radius:10px;min-height:112px;padding:8px 7px}
+.ucal .d .n{font-family:'Bebas Neue';font-size:17px;color:#8B8B95;letter-spacing:.05em}
+.ucal .d.today{border-color:var(--orange)}
+.ucal .d.today .n{color:#fff;background:var(--orange);border-radius:6px;padding:2px 7px 0;display:inline-block}
+.upill{margin-top:6px;border:1px solid #1F1F26;border-left:4px solid var(--green);background:#15151B;border-radius:7px;padding:6px 7px;font-size:14px;line-height:1.3}
+.upill .t1{color:#8B8B95;font-size:12.5px;display:flex;gap:5px;align-items:center}
+.upill .t1 b{color:var(--green);font-weight:700}
+.upill .t1 .st{color:var(--orange)}
+.upill .nm{color:var(--paper);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upill .du{color:var(--orange);font-weight:700;font-size:13px}
+.upill.plan{border-left-color:var(--blue);background:rgba(26,111,212,.10)}
+.upill.race{border-left-color:#F5C542}
+.uwsum{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px;padding:13px 18px;border:1px solid #1F1F26;border-radius:12px;background:#15151B}
+.uwsum .wk{font-size:14px;letter-spacing:.2em;color:#55555F;text-transform:uppercase;font-weight:700}
+.uwsum .big{font-family:'Bebas Neue';font-size:27px;color:var(--orange);letter-spacing:.04em}
+.uwsum .s{font-size:18px;color:#8B8B95}
+.uwsum .s b{color:var(--paper);font-weight:600}
+.uwsum .wbar{flex:1;min-width:110px;display:flex;height:8px;border-radius:4px;overflow:hidden;gap:2px}
+.uwsum .wbar i{height:100%;border-radius:2px}
+.uwsum .pct{font-size:14.5px;color:#55555F;white-space:nowrap}
+/* tidslinje */
+.utl{position:relative;padding-left:28px;margin-top:6px}
+.utl::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--orange),rgba(255,69,0,.15));border-radius:2px}
+.uarow{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:13px 0;border-bottom:1px solid #1F1F26}
+.uarow:last-child{border-bottom:none}
+.uarow::before{content:'';position:absolute;left:-24px;top:20px;width:11px;height:11px;border-radius:50%;background:#101014;border:3px solid var(--orange)}
+.uarow.sh::before{border-color:var(--i5)}
+.uarow .nm{font-weight:700;font-size:19px;color:var(--paper)}
+.uarow .nm small{color:#8B8B95;font-weight:500}
+.uarow .dd{color:#8B8B95;font-size:16.5px}
+.uarow .dd b{color:var(--paper);font-weight:600}
+.uarow .mini{display:flex;height:6px;width:110px;border-radius:3px;overflow:hidden;gap:2px;margin-left:auto}
+.uarow .mini i{height:100%;border-radius:2px}
+/* skjema-mockup (logg økt) */
+.uinp{margin-top:12px}
+.uinp .fl{font-size:14px;letter-spacing:.16em;color:#8B8B95;text-transform:uppercase;display:block;margin-bottom:6px}
+.uinp .fv{background:#15151B;border:1px solid #1F1F26;border-radius:10px;color:var(--paper);font-size:19.5px;padding:12px 15px}
+.uinp .fv.focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,69,0,.12)}
+.uinp .fv.ph{color:#55555F}
+.ugrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.usgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:12px}
+.usg .sl{font-size:15px;font-weight:700;letter-spacing:.06em;text-align:center;margin-bottom:5px}
+.usg .si{background:#0A0A0B;border:1px solid #1F1F26;border-radius:8px;color:var(--paper);font-size:16.5px;padding:9px 4px;text-align:center}
+.urpe{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;margin-top:12px}
+.urpe span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #2A2A33;background:#15151B;color:#8B8B95;font-weight:700;font-size:17px}
+.urpe span.on{color:#fff;border-color:transparent;background:var(--i4);box-shadow:0 0 14px rgba(255,140,0,.4)}
+/* skyting */
+.ushoot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.ush{border:1px solid #1F1F26;border-radius:12px;padding:14px 16px;background:#15151B}
+.ush .k{font-size:13.5px;letter-spacing:.16em;color:#8B8B95;text-transform:uppercase}
+.ush .v{font-family:'Bebas Neue';font-size:36px;letter-spacing:.03em;margin-top:2px;color:var(--paper)}
+.ush .v .u{font-size:17px;color:#55555F}
+.uhits{display:flex;gap:5px;margin-top:9px}
+.uhits i{width:15px;height:15px;border-radius:50%;background:var(--green)}
+.uhits i.m{background:#2A2A33}
+/* søylegraf-mockup */
+.ubars{position:relative;padding-left:58px;margin-top:18px}
+.ubars .gl{position:absolute;left:0;right:0;border-top:1px solid #1F1F26;height:0}
+.ubars .gl span{position:absolute;left:-54px;top:-10px;font-size:14.5px;color:#55555F;width:46px;text-align:right}
+.ubars .cols{display:flex;align-items:flex-end;gap:14px;height:300px;position:relative}
+.ubars .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.ubars .tot{font-family:'Bebas Neue';font-size:18px;color:var(--paper);margin-bottom:6px;letter-spacing:.04em}
+.ubars .stack{width:100%;max-width:96px;display:flex;flex-direction:column-reverse;gap:2px}
+.ubars .stack i{display:block;width:100%;border-radius:3px}
+.ubars .stack i:last-child{border-radius:8px 8px 3px 3px}
+.ubars .xl{display:flex;gap:14px;border-top:1px solid #2A2A33;padding-top:9px}
+.ubars .xl span{flex:1;text-align:center;font-family:'Bebas Neue';font-size:16.5px;color:#8B8B95;letter-spacing:.08em}
+.ubars .xl span.now{color:var(--orange)}
+/* legend-chips */
+.uleg{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.uleg span{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;border:1px solid #2A2A33;color:#8B8B95;font-size:15.5px;font-weight:600;letter-spacing:.05em}
+.uleg .d{width:10px;height:10px;border-radius:3px}
+/* tooltip-mockup */
+.utip{position:absolute;background:#0C0C0F;border:1px solid #2A2A33;border-radius:12px;padding:13px 16px;box-shadow:0 14px 40px rgba(0,0,0,.65);min-width:200px;z-index:5}
+.utip .tw{font-family:'Bebas Neue';font-size:19px;letter-spacing:.08em;margin-bottom:7px;color:var(--paper)}
+.utip .tr{display:flex;align-items:center;gap:9px;font-size:16.5px;color:#8B8B95;line-height:1.55}
+.utip .tr .d{width:10px;height:10px;border-radius:3px}
+.utip .tr b{color:var(--paper);margin-left:auto;font-weight:600;padding-left:14px}
+.utip .tt{border-top:1px solid #1F1F26;margin-top:7px;padding-top:7px;display:flex;justify-content:space-between;font-size:16.5px;color:#8B8B95}
+.utip .tt b{font-family:'Bebas Neue';font-size:19px;color:var(--paper)}
+/* linjegraf (SVG) */
+.uchart{margin-top:14px}
+.uchart svg{display:block;width:100%;height:auto}
+.uxlab{display:flex;justify-content:space-between;margin-top:8px;padding-left:58px}
+.uxlab span{font-family:'Bebas Neue';font-size:16px;color:#8B8B95;letter-spacing:.08em}
+/* årsplan-lerret */
+.uplan{margin-top:14px}
+.uprow{display:flex;gap:8px;align-items:stretch;margin-bottom:8px}
+.uprow .ml{flex:0 0 52px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:16px;color:#55555F;letter-spacing:.08em;border-right:1px solid #1F1F26}
+.uprow .wks{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.uwk{position:relative;min-height:58px;border-radius:9px;border:1px solid #1F1F26;background:#15151B;padding:6px 8px;font-size:13.5px;color:#55555F}
+.uwk.rolig{background:rgba(40,168,110,.28);border-color:rgba(40,168,110,.55)}
+.uwk.medium{background:rgba(212,160,23,.26);border-color:rgba(212,160,23,.55)}
+.uwk.hard{background:rgba(225,29,72,.26);border-color:rgba(225,29,72,.55)}
+.uwk .pname{position:absolute;top:-10px;left:6px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:#101014;border-radius:5px;padding:1px 8px;white-space:nowrap;z-index:2}
+.uwk.rolig .pname{color:#28A86E;border:1px solid rgba(40,168,110,.5)}
+.uwk.medium .pname{color:#D4A017;border:1px solid rgba(212,160,23,.5)}
+.uwk.hard .pname{color:#E11D48;border:1px solid rgba(225,29,72,.5)}
+.uwk .fl2{position:absolute;top:5px;right:7px;font-size:13px}
+.uwk .mk{position:absolute;bottom:5px;left:7px;font-size:14px}
+.uwk.peak{box-shadow:0 0 0 1.5px #F5C542, 0 0 18px rgba(245,197,66,.45)}
+/* månedsvolum */
+.uvol{display:grid;grid-template-columns:repeat(12,1fr);gap:9px;margin-top:16px}
+.uvc{text-align:center}
+.uvc .vb{height:120px;display:flex;align-items:flex-end;margin-bottom:7px}
+.uvc .vb i{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--orange),rgba(255,69,0,.55));min-height:3px}
+.uvc .vt{font-family:'Bebas Neue';font-size:16.5px;color:var(--paper);letter-spacing:.03em}
+.uvc .m{font-size:12.5px;color:#55555F;letter-spacing:.08em;margin-top:2px;text-transform:uppercase}
+/* dagsform-bokser */
+.uform{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.ufb{border:1px solid #1F1F26;border-radius:12px;padding:14px 16px;background:#15151B}
+.ufb .k{font-size:13px;letter-spacing:.16em;color:#8B8B95;text-transform:uppercase;margin-bottom:7px}
+.ustar{color:#2A2A33;font-size:23px;letter-spacing:2px}
+.ustar b{color:var(--i3);text-shadow:0 0 10px rgba(232,185,60,.35);font-weight:400}
+.urpebadge{display:inline-block;font-family:'Bebas Neue';font-size:27px;letter-spacing:.04em;color:#fff;background:var(--i4);border-radius:9px;padding:4px 15px 2px}
+/* trener-melding */
+.ucmsg{background:#15151B;border:1px solid #1F1F26;border-left:3px solid var(--blue);border-radius:11px;padding:16px 18px;font-size:20px;line-height:1.5;color:var(--paper);margin-top:14px}
+.ucmsg .who{font-size:15px;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+/* utstyr */
+.ugear{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.ugc{display:flex;align-items:center;gap:14px;border:1px solid #1F1F26;border-radius:12px;background:#15151B;padding:14px 18px}
+.ugc .k{font-size:13.5px;letter-spacing:.14em;color:#8B8B95;text-transform:uppercase;display:block}
+.ugc .n2{font-size:20px;color:var(--paper);font-weight:600}
+.ugc .km{margin-left:auto;font-family:'Bebas Neue';font-size:27px;color:var(--orange);letter-spacing:.04em}
+.ugc .best{font-size:14px;color:#F5C542;border:1px solid rgba(245,197,66,.4);border-radius:999px;padding:4px 11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+/* synk-linje */
+.usync{display:flex;align-items:center;gap:10px;font-size:17px;color:#8B8B95;margin-top:14px}
+.usync .dot{width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.usync b{color:var(--orange);font-weight:600}
+/* sportfordeling */
+.usport{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+.usp{display:grid;grid-template-columns:150px 1fr 90px;align-items:center;gap:14px}
+.usp .n2{font-size:18.5px;color:#8B8B95;font-weight:600}
+.usp .bar{height:12px;border-radius:6px;overflow:hidden;background:#1F1F26}
+.usp .bar i{display:block;height:100%;border-radius:6px}
+.usp .t{font-family:'Bebas Neue';font-size:20px;color:var(--paper);text-align:right;letter-spacing:.04em}
+/* årsvisning-celler */
+.uyear{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.uyc{border:1px solid #1F1F26;border-radius:12px;background:#15151B;padding:14px 15px}
+.uyc.dimmed{opacity:.38}
+.uyc .mn{font-family:'Bebas Neue';font-size:20px;letter-spacing:.09em;color:#8B8B95}
+.uyc .vv{font-family:'Bebas Neue';font-size:31px;color:var(--paper);letter-spacing:.03em;margin-top:3px}
+.uyc .vv .u{font-size:15px;color:#55555F}
+.uyc .kmm{font-size:15.5px;color:#8B8B95;margin-top:1px}
+.uyc .bar{height:8px;border-radius:4px;display:flex;overflow:hidden;gap:2px;margin-top:9px}
+.uyc .bar i{height:100%;border-radius:2px}
+.uyc .chips2{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.uyc .chips2 span{font-size:12.5px;color:#8B8B95;border:1px solid #2A2A33;border-radius:999px;padding:3px 9px}
+/* helse-fliser */
+.uhealth{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.uht{border:1px solid #1F1F26;border-radius:12px;background:#15151B;padding:14px 16px}
+.uht .k{font-size:13.5px;letter-spacing:.15em;color:#8B8B95;text-transform:uppercase}
+.uht .v{font-family:'Bebas Neue';font-size:38px;color:var(--paper);letter-spacing:.03em;margin-top:2px}
+.uht .v .u{font-size:16px;color:#55555F}
+.uht .d{font-size:15.5px;font-weight:600;margin-top:1px}
+.uht .d.pos{color:var(--green)} .uht .d.neg{color:var(--i5)}
+.uht svg{display:block;width:100%;height:auto;margin-top:9px}
+
+/* ---------- Lagre-overlay (iOS-fallback) ---------- */
+#saveOverlay{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(6,6,7,.94);
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;
+}
+#saveOverlay.on{display:flex}
+#saveOverlay img{max-width:min(92vw,420px);max-height:66vh;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#saveOverlay .tip{
+  font-size:17px;line-height:1.5;text-align:center;max-width:34ch;color:var(--paper);
+}
+#saveOverlay .tip b{color:var(--orange)}
+#saveOverlay .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+@media print{body{background:#fff;padding:0}.panel,.group,.tools{display:none}}
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <h1>X-PULSE — Instagram-maler <em>v6</em></h1>
+  <p>37 innlegg i 4:5 fra v5 — pluss <b style="color:var(--paper)">30 nye «Inni appen»-kort</b> (gruppe 09–13) som viser hvordan det ser ut på innsiden: dagbok, plan, analyse og skiskyting som gjenskapte skjermer med fiktive navn og data. Hero-kort + karuseller med mer tekst å bla til. Legg gjerne eget bakgrunnsbilde på hero-kortene.</p>
+  <div class="howto">
+    <ol>
+      <li><strong>Bilde</strong> — knappen under kortet. Mørkt slør legges på automatisk.</li>
+      <li><strong>Rediger</strong> — klikk rett i teksten på kortet.</li>
+      <li><strong>Lagre bilde</strong> — 1080×1350, klar for Instagram. På iPhone: last ned denne HTML-filen til Filer-appen og åpne den i Safari, da havner bildene rett i Bilder.</li>
+    </ol>
+  </div>
+  <div class="bulk">
+    <button onclick="allePng()">Last ned alle</button>
+    <button class="ghost" onclick="document.body.classList.toggle('edit')">Vis/skjul redigeringsramme</button>
+  </div>
+</div>
+
+<div class="group"><h2>01 — <em>Åpnere</em></h2><p>De som skal stoppe scrollingen. Bruk hovedinnlegget som pinned post.</p></div>
+<div class="grid" id="g1"></div>
+
+<div class="group"><h2>02 — <em>Problemet</em></h2><p>Karusell på 5 slides. De store outline-tallene bærer serien.</p><div class="carousel-note">Karusell · sveip i rekkefølge</div></div>
+<div class="grid" id="g2"></div>
+
+<div class="group"><h2>03 — <em>Velg din disiplin</em></h2><p>Karusell: åpner med alle disiplinene som chips, så én slide per idrett. Legg inn eget bakgrunnsbilde på hver.</p><div class="carousel-note">Karusell · 7 slides</div></div>
+<div class="grid" id="g3"></div>
+
+<div class="group"><h2>04 — <em>Funksjoner</em></h2><p>Åpner med hero-slide som lister alle ni, deretter én slide per funksjon. Live styrkeøkt har NY-merke.</p><div class="carousel-note">Karusell · 10 slides</div></div>
+<div class="grid" id="g4"></div>
+
+<div class="group"><h2>05 — <em>Analyse &amp; AI</em></h2><p>Dybden i produktet — de mest overbevisende kortene for erfarne utøvere.</p></div>
+<div class="grid" id="g5"></div>
+
+<div class="group"><h2>06 — <em>Trener</em></h2><p>Blå palett gjennomgående. Trenere er den viktigste inntektskanalen.</p></div>
+<div class="grid" id="g6"></div>
+
+<div class="group"><h2>07 — <em>Selg &amp; konverter</em></h2><p>Sammenligning, pris, prøveperiode og avsluttende CTA.</p></div>
+<div class="grid" id="g7"></div>
+
+<div class="group"><h2>08 — <em>Nye i v4</em></h2><p>Sitat, marker fullført, skyting, live styrke, ukestall og en ren bildemal for egne foto.</p></div>
+<div class="grid" id="g8"></div>
+
+<div class="group"><h2>09 — <em>Inni appen · Dagbok</em></h2><p>Nye i v6. Gjenskapte skjermer fra dagboka — hjem, kalender, øktvisning, tidslinje, logg økt, live styrke og helse. Fiktive navn og data.</p><div class="carousel-note">Karusell · 7 slides</div></div>
+<div class="grid" id="g9"></div>
+
+<div class="group"><h2>10 — <em>Inni appen · Plan</em></h2><p>Årsplan-lerretet, periodedetaljer, månedsvolum, planlagt uke og plan-mot-virkelighet.</p><div class="carousel-note">Karusell · 5 slides</div></div>
+<div class="grid" id="g10"></div>
+
+<div class="group"><h2>11 — <em>Inni appen · Analyse</em></h2><p>Custom graf, soner, belastning og form, klokkedata, bevegelsesformer, helse-trend og årsvisning.</p><div class="carousel-note">Karusell · 7 slides</div></div>
+<div class="grid" id="g11"></div>
+
+<div class="group"><h2>12 — <em>Inni appen · Skiskyting</em></h2><p>Standplass, treffprosent over tid, skytetid, puls på standplass og konkurranser.</p><div class="carousel-note">Karusell · 5 slides</div></div>
+<div class="grid" id="g12"></div>
+
+<div class="group"><h2>13 — <em>Inni appen · Enkeltposter</em></h2><p>Frittstående kort: trenerkommentar, klokkesync, ukesammendrag, marker fullført, skipark og en avslutter med CTA.</p></div>
+<div class="grid" id="g13"></div>
+
+
+<div id="saveOverlay" onclick="if(event.target.id==='saveOverlay')closeSave()">
+  <img id="saveImg" alt="">
+  <p class="tip"><b>Hold inne bildet</b> og velg «Legg til i Bilder» (iPhone) eller «Lagre bilde».</p>
+  <div class="row">
+    <button id="shareBtn">Del / lagre</button>
+    <button class="ghost" onclick="closeSave()">Lukk</button>
+  </div>
+</div>
+
+<script>
+/* ============ LOGO: X-symbol + "-PULSE" ============ */
+let _n=0;
+function logo(size){
+  const id='l'+(_n++);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 200 200" style="display:block;flex:0 0 auto">
+    <defs>
+      <clipPath id="${id}a"><polygon points="0,0 200,200 0,200"/></clipPath>
+      <clipPath id="${id}b"><polygon points="0,0 200,0 200,200"/></clipPath>
+    </defs>
+    <g clip-path="url(#${id}a)"><path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#FF4500"/></g>
+    <g clip-path="url(#${id}b)"><path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#1A6FD4"/></g>
+  </svg>`;
+}
+const P = `<svg class="pulse" viewBox="0 0 928 44" width="928" height="44"><path d="M0,22 H392 L406,22 L418,5 L432,39 L444,14 L456,27 L466,22 H928"/></svg>`;
+const FOOT = `<div class="foot"><div class="bw">${logo(50)}<div class="bt"><i>-</i>PULSE</div></div><div class="url">x-pulse.no</div></div>`;
+const SW = `<div class="swipe">Sveip <span class="arrow">&rarr;</span></div>`;
+const L = s => logo(s);
+
+/* Hjelpere */
+const b=(t,items)=>`<ul class="bul">${items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+
+/* ============ 01 ÅPNERE ============ */
+const G1=[
+{n:'Hovedinnlegg',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Norsk treningsverktøy</div>${L(86)}</div>
+  <div class="spacer"></div>
+  <h1 class="xl">Bygget for<br><span class="o">eliten</span>.<br>Enkel for <span class="b">alle</span>.</h1>
+  ${P}
+  <p class="lede">Vi bygger <b>Norges beste treningsverktøy</b> — plan, dagbok og dyp analyse på ett sted.</p>
+  ${FOOT}`},
+
+{n:'Øktplan → toppform',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Fra plan til prestasjon</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Fra <span class="o">øktplan</span><br>til <span class="o">toppform</span>.</h1>
+  ${P}
+  ${b(0,['Planlegg sesongen rundt målkonkurransene','Marker økta fullført når den er gjort','Se avviket mellom plan og virkelighet'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Alt på ett sted',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Én app</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="big"><span class="o">Alt</span> du trenger.<br>Ett sted.</h1>
+  ${P}
+  ${b(0,['Plan, dagbok og analyse i samme system','Klokkesync fra alle merker','Styrke, utholdenhet og skyting i én økt','Trener og utøver i samme konto'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Bygget av utøvere',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Hvem står bak</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Bygget av<br><span class="o">utøvere</span> som<br>savnet dette.</h1>
+  ${P}
+  ${b(0,['Aktive utøvere, ikke et softwarehus','Hver funksjon er noe vi selv trengte','Innspill fra brukerne bygges inn løpende'])}
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ 02 PROBLEMET (karusell) ============ */
+const G2=[
+{n:'P — åpner',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Kjenner du deg igjen?</div>${SW}</div>
+  <div class="spacer"></div>
+  <h1 class="xl">Du fortjener<br><span class="o">én</span> app.<br>Ikke tre.</h1>
+  ${P}
+  <p class="lede">Planen ett sted. Dagboken et annet. Dataene et tredje. <b>De møtes aldri.</b></p>
+  ${FOOT}`},
+
+{n:'P — 01 Excel',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Problem</div>${SW}</div>
+  <div class="probnum">01</div>
+  <h1 class="sm">Planen lever i<br><span class="o">Excel</span> eller på papir</h1>
+  ${P}
+  ${b(0,['Vet ikke om du gjennomførte økta','Vet ikke om du traff sonene','Må flyttes manuelt hver gang noe endres'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'P — 02 Dagbok',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Problem</div>${SW}</div>
+  <div class="probnum">02</div>
+  <h1 class="sm">Dagboken er<br><span class="o">isolert</span></h1>
+  ${P}
+  ${b(0,['Notater og følelse logges ett sted','Pulsdataene ligger et annet','Ingen ser sammenhengen for deg'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'P — 03 Analysen',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Problem</div>${SW}</div>
+  <div class="probnum">03</div>
+  <h1 class="sm">Analysen sover<br>i <span class="o">klokkeappen</span></h1>
+  ${P}
+  ${b(0,['Puls, HRV og belastning ligger der','Men vet ikke hva du planla eller følte','<b>Og da har vi ikke nevnt regnearkene for ski-tester</b>'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'P — løsningen',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Løsningen</div>${L(86)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid"><span class="o">X-PULSE</span> kobler<br>plan, dagbok og<br>analyse i ett.</h1>
+  ${P}
+  ${b(0,['Hver økt lærer deg noe','Ingen dobbeltføring, ingen regneark','Bygget av utøvere som savnet dette'])}
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ 03 DISIPLINER (karusell) ============ */
+const DISC=[
+['Skiskyting','Ingen andre gjør dette',['Treff&nbsp;% per posisjon — ligg og stå separat','Skyteserier og innskyting logget hver for seg','Kombinasjonsøkter med skytetid utenfor treningstiden','Konkurransestruktur genereres automatisk']],
+['Langrenn','Bygget for norsk vinter',['Klassisk, skøyting og staking som egne former','Skipark med ski-tester og rangering per føre','Smøring og struktur logget der det skjer','Føre og temperatur inn i analysen']],
+['Langløp','Mot startstreken',['Bygget for Birken og Vasaloppet','Lange økter med terreng og høydemeter','Ernæring per økt — test i trening','Pacing og forhold på konkurransedagen']],
+['Løping','Fra intervall til langtur',['Bane, asfalt, grus, terreng og mølle','Sone-styrt plan mot OLT-skalaen','Pace-utvikling over sesongen','Terskeltester du kan gjenta og sammenligne']],
+['Sykling','Effekt og høydemeter',['Landevei, terreng, gravel og ergo','Watt, effekt-soner og høydemeter','Sesongsammenligning på samme rute','Kombiner med løping i triatlonplan']],
+['Triatlon','Tre grener, én plan',['Svømming, sykling og løping i samme plan','Brick-økter og bytt-tider','Periodisering mot konkurransedagen','Volum per gren, samlet belastning']]
+];
+const G3=[
+{n:'D — velg disiplin',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Bygget for din idrett</div>${SW}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Velg din<br><span class="o">disiplin</span>.</h1>
+  ${P}
+  <div class="chips">
+    <span>Langrenn</span><span class="hot">Skiskyting</span><span>Langløp</span>
+    <span>Løping</span><span>Sykling</span><span>Triatlon</span>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Hver idrett har sine <b>egne verktøy</b> — ikke samme skjema for alle.</p>
+  ${FOOT}`},
+...DISC.map(([t,e,items],i)=>({
+  n:'D — '+t,img:1,html:`
+  <div class="topbar"><div class="eyebrow">${e}</div>${i===DISC.length-1?L(80):SW}</div>
+  <div class="spacer"></div>
+  <h1 class="big"><span class="o">${t}</span></h1>
+  ${P}
+  ${b(0,items)}
+  <div class="spacer"></div>
+  ${FOOT}`}))
+];
+
+/* ============ 04 FUNKSJONER (karusell) ============ */
+const FEAT=[
+['01','Sesongplan','',['Målkonkurransene inn — periodene bygges rundt','Grunntrening, spesifikk fase og peaking','Samlinger, høydeopphold og nøkkeldatoer','Dra-og-slipp økter rett i kalenderen'],''],
+['02','Dagbok','',['Marker planlagt økt som gjennomført','Sport-spesifikke felter per bevegelsesform','Laktat, dagsform, RPE og notater','Egne tagger og smart søk i historikken'],''],
+['03','Live styrkeøkt','NY',['Før økta sett for sett mens du trener','Timer, supersett og volum underveis','Ser hva du tok sist — «gjenta forrige»','130+ øvelser, også staking og skyteleie'],''],
+['04','Klokkesync','',['.fit fra Garmin, Polar, Coros, Suunto, Wahoo','Full pulskurve, lap-data og sonefordeling','Bulk-import — hele året på én gang','Strava-synk ruller ut nå'],''],
+['05','Dyp analyse','',['Belastning og form over uker (ATL/CTL/TSB)','Laktat mot puls — terskelen din over tid','Vær, føre og høyde som egne dimensjoner','Grafer du selv setter sammen'],''],
+['06','Maler','',['Lagre økt, uke eller hel planperiode','Bruk igjen med ett klikk','Trenere pusher maler til mange samtidig','Hver utøver får sine egne datoer'],''],
+['07','Utstyr &amp; skipark','',['Kilometer på ski, staver og sko','Ski-tester med rangering per skipar','Smøring og struktur per føre','Se hvilke ski som faktisk går fortest'],''],
+['08','Utøver &amp; trener','',['Hele troppen i ett panel','Kommenter direkte på økta','Utøveren eier dataene og styrer delingen','Trenerabonnement inkluderer egen profil'],'blue'],
+['09','AI Coach','KOMMER',['Auto-tolkning av økter fra dine mønstre','Anbefalinger ut fra form og mål','Tre nivåer — du velger hvor mye hjelp','Bli varslet ved lansering'],'green']
+];
+const G4=[
+/* Hero-slide som åpner karusellen */
+{n:'F — hero alle funksjoner',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Funksjoner</div>${SW}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Ni grunner til<br>å bytte <span class="o">nå</span>.</h1>
+  ${P}
+  <ul class="bul" style="gap:13px">
+    <li style="font-size:26px">Sesongplan med periodisering</li>
+    <li style="font-size:26px">Dagbok med marker-fullført</li>
+    <li style="font-size:26px"><b>Live styrkeøkt</b> — sett for sett underveis</li>
+    <li style="font-size:26px">Klokkesync fra alle merker</li>
+    <li style="font-size:26px">Dyp analyse med laktat og vær/føre</li>
+    <li style="font-size:26px">Maler for økt, uke og hel sesong</li>
+    <li style="font-size:26px">Utstyr og skipark med ski-tester</li>
+    <li style="font-size:26px">Utøver og trener i samme konto</li>
+    <li style="font-size:26px">AI Coach — kommer snart</li>
+  </ul>
+  <div class="spacer"></div>
+  ${FOOT}`},
+...FEAT.map(([num,t,badge,items,color],i)=>{
+  const last=i===FEAT.length-1;
+  const cls=color?' '+color:'';
+  return {n:'F'+num+' '+t.replace('&amp;','&'),img:0,cls:cls.trim(),html:`
+  <div class="topbar"><div class="eyebrow">Funksjon ${num}</div>${last?L(80):SW}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">${t}${badge?`<span class="badge${badge==='KOMMER'?' gold':''}">${badge}</span>`:''}</h1>
+  ${P}
+  ${b(0,items)}
+  <div class="spacer"></div>
+  ${FOOT}`};
+})
+];
+
+/* ============ 05 ANALYSE & AI ============ */
+const G5=[
+{n:'Forstå formen',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Analyse</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Forstå <span class="o">hvorfor</span><br>du var i form.</h1>
+  ${P}
+  <div class="zones"><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="zonelbl"><span>I1</span><span>I2</span><span>I3</span><span>I4</span><span>I5</span></div>
+  ${b(0,['OLT-sonene som standard — norsk skala','Polarisert eller no man\'s land? Se det svart på hvitt','Sonefordeling per sport og periode'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'AI-innsikt eksempel',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Langtur — Nordmarka · 1t 52min · 24,3 km</div></div>
+  <div class="metrics">
+    <div><span>158</span><small>Snittpuls</small></div>
+    <div><span>174</span><small>Makspuls</small></div>
+    <div><span class="o" style="color:var(--orange)">2,8</span><small>Laktat</small></div>
+    <div><span>68</span><small>HRV</small></div>
+  </div>
+  <div class="aibox">
+    <div class="lbl">AI-innsikt</div>
+    <p>Laktat på 2,8 mmol ved denne pulsen er <b>0,4 lavere</b> enn samme økt for seks uker siden. <b>Tydelig fremgang i aerob terskel.</b></p>
+  </div>
+  <div class="spacer"></div>
+  <h1 class="sm">Data uten innsikt<br>er bare <span class="o">tall</span>.</h1>
+  ${P}
+  ${FOOT}`},
+
+{n:'Vær og føre',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Analyse</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Var det <span class="o">formen</span>,<br>eller var det<br>sørpa?</h1>
+  ${P}
+  ${b(0,['Vær, temperatur og føre logges på økta','Snøtype og underlag som egne valg','Se om den trege rulleskiøkta skyldtes våt asfalt','Sammenlign samme økt under ulike forhold'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Laktat & tester',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Analyse</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Terskelen din,<br>målt over <span class="o">tid</span>.</h1>
+  ${P}
+  ${b(0,['Flere laktatmålinger per økt — med klokkeslett','Verdi, puls og følelse på hver måling','Terskelutvikling gjennom sesongen','Standardøkter du gjentar og sammenligner'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Høyde og varme',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Analyse</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Hva skjedde<br>etter <span class="o">høyden</span>?</h1>
+  ${P}
+  ${b(0,['Marker økter og perioder som høydetrening','Meter over havet arves fra perioden','Egen analyse av form etter høydeopphold','Varmetrening med kroppstemperatur'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'AI — lærer seg deg',img:1,cls:'green',html:`
+  <div class="topbar"><div class="eyebrow">AI Coach — kommer snart</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">En coach som<br><span class="g">lærer seg</span> deg.</h1>
+  ${P}
+  ${b(0,['Leser dine data, dine notater, dine mønstre','Ikke generiske råd — dine råd','Blir smartere for hver økt du logger'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'AI — tre nivåer',img:0,cls:'green',html:`
+  <div class="topbar"><div class="eyebrow">Du velger nivået</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="sm">Hvor mye hjelp<br>vil du <span class="g">ha</span>?</h1>
+  ${P}
+  <div class="levels">
+    <div class="lvl"><h3>Logg &amp; analyse</h3><p>Du styrer alt. AI er stille i bakgrunnen.</p></div>
+    <div class="lvl"><h3>AI-assistent</h3><p>Påpeker mønstre og foreslår. Du bestemmer.</p></div>
+    <div class="lvl hot"><h3>Full AI-coach</h3><p>Foreslår økter og justerer planen. Du godkjenner.</p></div>
+  </div>
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ 06 TRENER (blå) ============ */
+const G6=[
+{n:'T — ser alt',img:1,cls:'blue',html:`
+  <div class="topbar"><div class="eyebrow">For trenere</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid"><span class="b">Treneren</span> ser alt.<br>Utøveren<br>leverer mer.</h1>
+  ${P}
+  ${b(0,['Hele troppen i ett panel','Varsler ved høy belastning eller dårlig recovery','Se siste økt og status per utøver'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'T — egen plattform',img:0,cls:'blue',html:`
+  <div class="topbar"><div class="eyebrow">Trener-modulen</div>${SW}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Ikke en utøver-app<br>du må <span class="b">omgå</span>.</h1>
+  ${P}
+  ${b(0,['Bygg én mal — push til hele laget','Hver utøver får sine egne konkurransedatoer','Kommenter direkte på øktnivå','Sammenlign utøvere side om side'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'T — skipark',img:1,cls:'blue',html:`
+  <div class="topbar"><div class="eyebrow">For langrennstrenere</div>${SW}</div>
+  <div class="spacer"></div>
+  <h1 class="mid"><span class="b">Skipark</span>-tilsyn<br>for hele laget.</h1>
+  ${P}
+  ${b(0,['Følg ski-tester og smøring per utøver','Noter føre og forhold for laget','Én konkurransedag, ett sted','Se hvilke ski som går fortest på hvilket føre'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'T — inkludert profil',img:0,cls:'blue',html:`
+  <div class="topbar"><div class="eyebrow">Godt å vite</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Trener?<br>Du trener <span class="b">selv</span> også.</h1>
+  ${P}
+  ${b(0,['Alle trenerabonnement inkluderer egen utøverprofil','Bytt mellom trener og utøver i appen','Trener Pro gir også lisenser til utøverne dine'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Din kontroll',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Ditt eierskap</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Din plan.<br>Dine data.<br>Din <span class="o">kontroll</span>.</h1>
+  ${P}
+  ${b(0,['Du eier dataene — ikke plattformen','Bestem hva treneren ser, per datatype','Full eksport når du vil','Lagret i EU'])}
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ 07 SELG & KONVERTER ============ */
+const G7=[
+{n:'Hvorfor X-PULSE',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Hvorfor X-PULSE</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Det ingen andre<br>har <span class="o">samlet</span>.</h1>
+  <svg class="pulse" viewBox="0 0 928 44" width="928" height="44" style="margin:12px 0"><path d="M0,22 H392 L406,22 L418,5 L432,39 L444,14 L456,27 L466,22 H928"/></svg>
+  <div class="vs" style="font-size:24px">
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Skiskyting-analyse med treff&nbsp;% per posisjon</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Ski-tester og smøring med rangering</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Vær og føre som analysedimensjon</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Utstyr-km på ski og staver</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Norsk periodisering med OLT-soner</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Live styrkeøkt koblet til dagboka</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Laktat som egen datatype per økt</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Høyde- og varmetrening med form-respons</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Trener og utøver i samme konto</span><em class="yes" style="font-size:29px">Kun her</em></div>
+    <div class="row" style="padding:14px 0;font-size:24px"><span>Granulær kontroll på hva treneren ser</span><em class="yes" style="font-size:29px">Kun her</em></div>
+  </div>
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Komplementer',img:0,html:`
+  <div class="topbar"><div class="eyebrow mute">Godt å vite</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Behold det <span class="o">sosiale</span>.<br>Gjør det <span class="o">seriøse</span><br>her.</h1>
+  ${P}
+  ${b(0,['Vi henter treningsdataene dine automatisk','Du beholder appen du deler økter i','X-PULSE gir planlegging, periodisering og dyp analyse','Ingen dobbeltføring'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Pris — utøver',img:0,html:`
+  <div class="topbar"><div class="eyebrow">For utøvere</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <div class="price"><b>59</b><small>kr / mnd</small></div>
+  <h1 class="sm" style="margin-top:20px">Alt du trenger.<br>Ingen bindingstid.</h1>
+  ${P}
+  ${b(0,['Full klokkesync og bulk-import','Plan, dagbok og dyp analyse','Live styrkeøkt og utstyrssporing','30 dager gratis først'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'30 dager gratis',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Prøv fritt</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="big"><span class="o">30 dager</span><br>gratis.</h1>
+  ${P}
+  ${b(0,['Kort eller Apple Pay — trygt via Stripe','Ingen bindingstid','Si opp når som helst','Full tilgang fra dag én'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Vi bygger sammen',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Bli med fra start</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Savner du noe<br>i din <span class="o">idrett</span>?</h1>
+  ${P}
+  ${b(0,['Send oss innspill — vi svarer','Funksjoner bygges etter utøvernes ønsker','Du er tidlig — det du sier former produktet'])}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'CTA — trene smartere',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Bli med fra start</div>${L(86)}</div>
+  <div class="spacer"></div>
+  <h1 class="xl">Klar til å<br>trene<br><span class="o">smartere</span>?</h1>
+  ${P}
+  <p class="lede">30 dager gratis. Kort eller Apple Pay. Ingen bindingstid.</p>
+  <div><span class="cta">Prøv gratis</span></div>
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+
+/* ============ 08 NYE I V4 ============ */
+const G8=[
+{n:'Sitat / testimonial',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Fra en utøver</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <div class="qmark">“</div>
+  <p class="quote">Har brukt X-PULSE som dagbok i <b>to måneder</b> — endelig ett sted for alt.</p>
+  <p class="who">Langløper · beta-bruker</p>
+  ${P}
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Marker fullført',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Plan møter virkelighet</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Marker<br><span class="o">fullført</span>.</h1>
+  ${P}
+  <div class="calgrid"><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+  <div class="donerow"><span class="chk"></span><b>Planlagt → gjennomført</b></div>
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Skiskyting — treff',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Skiskyting</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Treff, serier og<br><span class="o">standplass</span>.</h1>
+  ${P}
+  <div class="targets"><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="miss"></i></div>
+  <div class="pct">90%</div>
+  <p class="lede">Liggende og stående hver for seg — <b>sporet over hele sesongen</b>.</p>
+  ${FOOT}`},
+
+{n:'Live styrke — showcase',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Live styrkeøkt</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <div class="clock">32:47</div>
+  <div class="setrow hit"><span>Knebøy</span><em>5 × 82,5 kg</em></div>
+  <div class="setrow hit"><span>Markløft</span><em>5 × 100 kg</em></div>
+  <div class="setrow"><span>Staking</span><em>Sist: 4 × 40 kg</em></div>
+  ${P}
+  <p class="lede">Timer, sett og vekter <b>rett i dagboka</b> — og du ser hva du tok sist.</p>
+  ${FOOT}`},
+
+{n:'Ukestall',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Denne uken</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="mid">Tallene som<br>betyr <span class="o">noe</span>.</h1>
+  ${P}
+  <div class="bignums">
+    <div><span>14:32</span><small>Timer</small></div>
+    <div><span>186</span><small>Km</small></div>
+    <div><span>9</span><small>Økter</small></div>
+  </div>
+  <p class="lede" style="margin-top:26px">Uke, måned og sesong — <b>alltid oppdatert</b>, aldri ført dobbelt.</p>
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Multisport',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Multisport</div>${L(80)}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Alt du gjør —<br><span class="o">samlet</span>.</h1>
+  ${P}
+  <div class="chips"><span>Løping</span><span class="hot">Langrenn</span><span>Styrke</span><span>Sykkel</span><span>Svømming</span><span>+ mer</span></div>
+  <p class="lede" style="margin-top:28px">Hybrid-økter og alle idretter i én dagbok — <b>én analyse på tvers</b>.</p>
+  <div class="spacer"></div>
+  ${FOOT}`},
+
+{n:'Ren bildemal',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Norsk utviklet</div>${L(86)}</div>
+  <div class="spacer"></div>
+  <h1 class="xl">Din idrett.<br>Ditt <span class="o">verktøy</span>.</h1>
+  ${P}
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ v6-HJELPERE: UI-mockups ============ */
+const UNAV=on=>`<div class="unav">${['Hjem','Plan','Dagbok','Analyse','Skipark'].map(x=>`<span class="${x===on?'on':''}">${x}</span>`).join('')}</div>`;
+const ZCOL=['var(--i1)','var(--i2)','var(--i3)','var(--i4)','var(--i5)'];
+const ZBAR=w=>`<div class="bar">${w.map((f,i)=>`<i style="flex:${f};background:${ZCOL[i]}"></i>`).join('')}</div>`;
+
+/* ============ 09 INNI APPEN · DAGBOK (karusell) ============ */
+const G9=[
+{n:'IA-D — åpner: Bli med inn',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="mid" style="margin-top:26px">Bli med <span class="o">inn</span>.</h1>
+  ${P}
+  <div class="ui">
+    ${UNAV('Hjem')}
+    <div class="uh"><span class="beam"></span><h4>I DAG</h4><span class="aux">Uke 33</span></div>
+    <div class="upills"><span class="upl done">✓ Gjennomført</span></div>
+    <div class="ut" data-e>5×5MIN TERSKEL + SKYTING</div>
+    <div class="umeta"><span>Sport <b>Skiskyting</b></span><span>Type <b>Intervall</b></span><span>Varighet <b>1t 24m</b></span></div>
+    <div class="ustats c3">
+      <div class="c"><span class="k">Tid uke 33</span><div class="v" data-e>9T 40M</div><div class="d pos">↑ 12% vs forrige</div></div>
+      <div class="c"><span class="k">Distanse</span><div class="v" data-e>96 <span class="u">km</span></div><div class="d pos">↑ 8%</div></div>
+      <div class="c"><span class="k">Økter</span><div class="v" data-e>6</div><div class="d">2 planlagt igjen</div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Slik ser hjemskjermen ut når uka er i gang — <b>dagens økt og ukas tall</b>, rett i fjeset.</p>
+  ${FOOT}`},
+
+{n:'IA-D — kalenderen',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Hele uka. <span class="o">Ett blikk</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>KALENDER · AUGUST</h4><span class="aux">Månedsvisning</span></div>
+    <div class="ucal">
+      <span class="dw">Man</span><span class="dw">Tir</span><span class="dw">Ons</span><span class="dw">Tor</span><span class="dw">Fre</span><span class="dw">Lør</span><span class="dw">Søn</span>
+      <div class="d"><span class="n">10</span><div class="upill"><div class="t1"><b>✓</b><span class="st">▲</span>06:40</div><div class="nm">Rolig langtur</div><div class="du">2t 10m</div></div></div>
+      <div class="d"><span class="n">11</span><div class="upill"><div class="t1"><b>✓</b>17:30</div><div class="nm">Styrke</div><div class="du">50m</div></div></div>
+      <div class="d today"><span class="n">12</span><div class="upill"><div class="t1"><b>✓</b>17:30</div><div class="nm">5×5 terskel</div><div class="du">1t 24m</div></div></div>
+      <div class="d"><span class="n">13</span><div class="upill plan"><div class="t1">10:00</div><div class="nm">Skyting + rulleski</div><div class="du">1t 30m</div></div></div>
+      <div class="d"><span class="n">14</span></div>
+      <div class="d"><span class="n">15</span><div class="upill plan"><div class="t1">09:00</div><div class="nm">Lang rulleski</div><div class="du">3t</div></div></div>
+      <div class="d"><span class="n">16</span><div class="upill race"><div class="t1">🏁 11:00</div><div class="nm">Testløp 3 km</div><div class="du">B-konk</div></div></div>
+    </div>
+    <div class="uwsum"><span class="wk">Uke 33</span><span class="big">9T 40M</span><span class="s"><b>96,4</b> km</span><span class="s"><b>6</b> økter</span><div class="wbar"><i style="flex:7.2;background:var(--i1)"></i><i style="flex:1.4;background:var(--i2)"></i><i style="flex:1;background:var(--i3)"></i><i style="flex:.6;background:var(--i4)"></i></div><span class="pct">I1–2 <b style="color:var(--i1)">78%</b></span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Gjennomført er grønt, planlagt er blått, konkurranse er gull — <b>og uka summeres av seg selv</b>.</p>
+  ${FOOT}`},
+
+{n:'IA-D — øktvisning',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Økta, ferdig <span class="o">tolket</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="upills"><span class="upl done">✓ Gjennomført</span><span class="upl sync">▲ Klokke-synk</span><span class="upl grey">Fra mal: 5×5 terskel</span></div>
+    <div class="ut" data-e>5×5MIN TERSKELINTERVALL + SKYTING</div>
+    <div class="umeta"><span>Ons <b>13. aug</b></span><span>Kl. <b>17:30</b></span><span><b>Granåsen-mockup</b></span><span>Sport <b>Skiskyting · Rulleski</b></span></div>
+    <div class="ustats">
+      <div class="c"><span class="k">Total tid</span><div class="v" data-e>1T 24M</div></div>
+      <div class="c"><span class="k">Distanse</span><div class="v" data-e>18,4 <span class="u">km</span></div></div>
+      <div class="c"><span class="k">Snittpuls</span><div class="v" data-e>156 <span class="u">bpm</span></div></div>
+      <div class="c"><span class="k">Snittfart</span><div class="v" data-e>13,1 <span class="u">km/t</span></div></div>
+    </div>
+    <div class="usone">
+      ${ZBAR([38,14,30,12,6])}
+      <div class="leg">
+        <div class="z"><div class="zl" style="color:var(--i1)">I1</div><div class="zt">32:00</div><div class="zp">38%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i2)">I2</div><div class="zt">12:00</div><div class="zp">14%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i3)">I3</div><div class="zt">25:00</div><div class="zp">30%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i4)">I4</div><div class="zt">10:00</div><div class="zp">12%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i5)">I5</div><div class="zt">5:00</div><div class="zp">6%</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Full økt-side med <b>soner, puls og fart</b> — automatisk fra klokka, redigerbart av deg.</p>
+  ${FOOT}`},
+
+{n:'IA-D — tidslinje',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Hver del av økta —<br><span class="o">hver for seg</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>AKTIVITETER</h4><span class="aux">Kronologisk</span></div>
+    <div class="utl">
+      <div class="uarow"><span class="nm">🔥 Oppvarming <small>· Rulleski</small></span><span class="dd"><b>20:00</b> · <b>128</b> bpm</span><div class="mini"><i style="flex:1;background:var(--i1)"></i></div></div>
+      <div class="uarow"><span class="nm">⚡ 5×5min terskel <small>· Rulleski</small></span><span class="dd"><b>37:00</b> · <b>171</b> bpm · <b>241</b> w</span><div class="mini"><i style="flex:1.5;background:var(--i2)"></i><i style="flex:5.5;background:var(--i3)"></i><i style="flex:2.5;background:var(--i4)"></i><i style="flex:.5;background:var(--i5)"></i></div></div>
+      <div class="uarow sh"><span class="nm">🎯 Skyting kombinert <small>· L + S</small></span><span class="dd"><b>12:00</b> · <b>17/20</b> treff</span><div class="mini"><i style="flex:1;background:var(--i5);opacity:.5"></i></div></div>
+      <div class="uarow"><span class="nm">🧊 Nedjogg <small>· Løping</small></span><span class="dd"><b>15:00</b> · <b>118</b> bpm</span><div class="mini"><i style="flex:1;background:var(--i1)"></i></div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Oppvarming, drag, skyting og nedjogg som <b>egne aktiviteter i én økt</b> — skytetid holdes utenfor treningstiden.</p>
+  ${FOOT}`},
+
+{n:'IA-D — logg økt',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Logget på<br><span class="o">under minuttet</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>LOGG ØKT</h4><span class="aux">02 · Aktiviteter</span></div>
+    <div class="ugrid2">
+      <div class="uinp"><span class="fl">Tittel</span><div class="fv focus" data-e>Rolig langtur m/ staking</div></div>
+      <div class="uinp"><span class="fl">Varighet</span><div class="fv" data-e>2:10:00</div></div>
+    </div>
+    <div class="uinp" style="margin-top:16px"><span class="fl">Sonefordeling · Σ 2:10</span></div>
+    <div class="usgrid">
+      <div class="usg"><div class="sl" style="color:var(--i1)">I1</div><div class="si">1:45</div></div>
+      <div class="usg"><div class="sl" style="color:var(--i2)">I2</div><div class="si">20:00</div></div>
+      <div class="usg"><div class="sl" style="color:var(--i3)">I3</div><div class="si">5:00</div></div>
+      <div class="usg"><div class="sl" style="color:var(--i4)">I4</div><div class="si" style="color:#55555F">—</div></div>
+      <div class="usg"><div class="sl" style="color:var(--i5)">I5</div><div class="si" style="color:#55555F">—</div></div>
+      <div class="usg"><div class="sl" style="color:#8B5CF6">HURT.</div><div class="si" style="color:#55555F">—</div></div>
+    </div>
+    <div class="uinp" style="margin-top:16px"><span class="fl">RPE</span></div>
+    <div class="urpe"><span>1</span><span>2</span><span>3</span><span class="on">4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Skriv «60» for 60 min. Sport-spesifikke felter per bevegelsesform — <b>aldri samme skjema for alle</b>.</p>
+  ${FOOT}`},
+
+{n:'IA-D — live styrke',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Styrke føres<br><span class="o">mens du løfter</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>LIVE STYRKEØKT</h4><span class="aux">Pågår</span></div>
+    <div class="clock" style="font-size:110px;margin:4px 0 6px" data-e>32:47</div>
+    <div class="setrow hit"><span>Knebøy</span><em>5 × 82,5 kg · sett 3/5</em></div>
+    <div class="setrow hit"><span>Markløft</span><em>5 × 100 kg</em></div>
+    <div class="setrow"><span>Staking m/ strikk</span><em>Sist: 4 × 40 kg</em></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Timer, supersett og «hva tok jeg sist» — <b>rett i dagboka</b> når du trykker fullfør.</p>
+  ${FOOT}`},
+
+{n:'IA-D — helse',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Formen,<br><span class="g">før frokost</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh green"><span class="beam"></span><h4>HELSE · SISTE 7 DAGER</h4><span class="aux">Under kalenderen</span></div>
+    <div class="uhealth">
+      <div class="uht"><span class="k">HRV</span><div class="v" data-e>68 <span class="u">ms</span></div><div class="d pos">↑ 4 vs snitt</div>
+        <svg viewBox="0 0 220 60" width="220" height="60"><path d="M4,40 L34,36 L64,42 L96,32 L128,28 L158,32 L188,22 L216,17" fill="none" stroke="#28A86E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="uht"><span class="k">Hvilepuls</span><div class="v" data-e>42 <span class="u">bpm</span></div><div class="d pos">↓ 2 vs snitt</div>
+        <svg viewBox="0 0 220 60" width="220" height="60"><path d="M4,22 L34,26 L64,20 L96,28 L128,32 L158,30 L188,36 L216,41" fill="none" stroke="#28A86E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="uht"><span class="k">Søvn</span><div class="v" data-e>7:40 <span class="u">t</span></div><div class="d" style="color:#8B8B95">Stabil</div>
+        <svg viewBox="0 0 220 60" width="220" height="60"><path d="M4,30 L34,26 L64,32 L96,24 L128,30 L158,26 L188,28 L216,24" fill="none" stroke="#1A6FD4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">HRV, hvilepuls og søvn ligger <b>rett under dagbok-kalenderen</b> — formen følges uten å lete.</p>
+  ${FOOT}`}
+];
+
+/* ============ 10 INNI APPEN · PLAN (karusell) ============ */
+const G10=[
+{n:'IP — årsplanen',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Plan</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Sesongen males —<br><span class="o">uke for uke</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>ÅRSPLAN · SESONG 26/27</h4><span class="aux">Mål: 🏆 NM sprint</span></div>
+    <div class="uplan">
+      <div class="uprow"><span class="ml">AUG</span><div class="wks">
+        <div class="uwk medium"><span class="pname">Høydesamling</span>U32<span class="fl2">📍🏔</span></div><div class="uwk medium">U33</div><div class="uwk medium">U34</div><div class="uwk medium">U35</div></div></div>
+      <div class="uprow"><span class="ml">SEP</span><div class="wks">
+        <div class="uwk medium"><span class="pname">Spesifikk</span>U36</div><div class="uwk medium">U37<span class="mk">🧪</span></div><div class="uwk medium">U38</div><div class="uwk medium">U39</div></div></div>
+      <div class="uprow"><span class="ml">OKT</span><div class="wks">
+        <div class="uwk hard"><span class="pname">Hard blokk</span>U40</div><div class="uwk hard">U41</div><div class="uwk hard">U42</div><div class="uwk rolig"><span class="pname">Hvile</span>U43</div></div></div>
+      <div class="uprow"><span class="ml">NOV</span><div class="wks">
+        <div class="uwk medium"><span class="pname">Konkurranse</span>U44</div><div class="uwk medium">U45<span class="mk">🏅</span></div><div class="uwk medium">U46</div><div class="uwk medium peak">U47<span class="mk">🏆⭐</span></div></div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Velg pensel, dra over ukene — <b>perioder, samlinger og nøkkeldatoer</b> på ett lerret.</p>
+  ${FOOT}`},
+
+{n:'IP — perioden',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Plan</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Høydesamling?<br><span class="o">Alt arves</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh gold"><span class="beam"></span><h4>PERIODE — HØYDESAMLING</h4><span class="aux">U32 → U35 · 4 uker</span></div>
+    <div class="ugrid2">
+      <div class="uinp"><span class="fl">Navn</span><div class="fv" data-e>Høydesamling Fjellheimen</div></div>
+      <div class="uinp"><span class="fl">Fokus</span><div class="fv" data-e>VO2maks + mengde</div></div>
+    </div>
+    <div class="upills" style="margin:18px 0 0">
+      <span class="upl grey">📍 Treningssamling</span>
+      <span class="upl grey">🏔 Høyde · <b style="color:var(--paper)">&nbsp;1800 moh</b></span>
+      <span class="upl done">Arves til øktene ✓</span>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Øktene i perioden <b>arver høydetrening og moh automatisk</b> — og analysen vet det etterpå.</p>
+  ${FOOT}`},
+
+{n:'IP — månedsvolum',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Plan</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Timene,<br><span class="o">planlagt</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>MÅNEDSVOLUM · 26/27</h4><span class="aux">Planlagte timer</span></div>
+    <div class="uvol">
+      ${[['MAI',38],['JUN',42],['JUL',46],['AUG',52],['SEP',48],['OKT',44],['NOV',40],['DES',36],['JAN',30],['FEB',26],['MAR',22],['APR',18]].map(([m,v])=>`<div class="uvc"><div class="vb"><i style="height:${Math.round(v/52*100)}%"></i></div><div class="vt">${v}</div><div class="m">${m}</div></div>`).join('')}
+    </div>
+    <div class="usync" style="margin-top:18px"><span class="dot"></span>Sesongtotal <b>&nbsp;442 timer&nbsp;</b>· snitt 8,5 t/uke</div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Søylene oppdateres live når du justerer — <b>og sammenlignes med det du faktisk gjør</b>.</p>
+  ${FOOT}`},
+
+{n:'IP — uka ligger klar',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Plan</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Uka ligger<br><span class="o">klar</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh blue"><span class="beam"></span><h4>UKE 40 · FRA ÅRSPLANEN</h4><span class="aux">Hard blokk</span></div>
+    <div class="ucal">
+      <span class="dw">Man</span><span class="dw">Tir</span><span class="dw">Ons</span><span class="dw">Tor</span><span class="dw">Fre</span><span class="dw">Lør</span><span class="dw">Søn</span>
+      <div class="d"><span class="n">28</span><div class="upill plan"><div class="t1">17:00</div><div class="nm">Terskel 4×8</div><div class="du">1t 20m</div></div></div>
+      <div class="d"><span class="n">29</span><div class="upill plan"><div class="t1">17:30</div><div class="nm">Styrke</div><div class="du">1t</div></div></div>
+      <div class="d"><span class="n">30</span></div>
+      <div class="d"><span class="n">1</span><div class="upill plan"><div class="t1">10:00</div><div class="nm">Rolig langtur</div><div class="du">2t 30m</div></div></div>
+      <div class="d"><span class="n">2</span></div>
+      <div class="d"><span class="n">3</span><div class="upill race"><div class="t1">🏆 11:00</div><div class="nm">Fjellsprinten</div><div class="du">A-konk ⭐</div></div></div>
+      <div class="d"><span class="n">4</span></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Periodens farge, nøkkeldatoer og økter — <b>automatisk fra årsplanen</b> og inn i kalenderen din.</p>
+  ${FOOT}`},
+
+{n:'IP — plan møter virkelighet',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Plan</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Planen møter<br><span class="o">virkeligheten</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>UKE 33 · PLAN VS GJENNOMFØRT</h4></div>
+    <div class="ustats c3">
+      <div class="c"><span class="k">Planlagt</span><div class="v" data-e>10T 0M</div><div class="d">7 økter</div></div>
+      <div class="c"><span class="k">Gjennomført</span><div class="v" data-e>9T 40M</div><div class="d pos">6 økter ✓</div></div>
+      <div class="c"><span class="k">Treff på plan</span><div class="v" data-e>97<span class="u">%</span></div><div class="d pos">↑ sesongbeste</div></div>
+    </div>
+    <div class="usport" style="margin-top:20px">
+      <div class="usp"><span class="n2">Volum I1–2</span><div class="bar"><i style="width:100%;background:var(--i1)"></i></div><span class="t">102%</span></div>
+      <div class="usp"><span class="n2">Tid i I3+</span><div class="bar"><i style="width:88%;background:var(--i3)"></i></div><span class="t">88%</span></div>
+      <div class="usp"><span class="n2">Styrkeøkter</span><div class="bar"><i style="width:100%;background:#6E6E78"></i></div><span class="t">2/2</span></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Avviket mellom plan og virkelighet er <b>der læringen bor</b> — X-PULSE regner det ut for deg.</p>
+  ${FOOT}`}
+];
+
+/* ============ 11 INNI APPEN · ANALYSE (karusell) ============ */
+const G11=[
+{n:'AN — custom graf',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Bygg grafen<br><span class="o">selv</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>CUSTOM GRAF · UKE</h4><span class="aux">Soner + styrke</span></div>
+    <div class="ubars">
+      <div class="cols">
+        <div class="gl" style="bottom:300px"><span>10t</span></div>
+        <div class="gl" style="bottom:225px"><span>7,5t</span></div>
+        <div class="gl" style="bottom:150px"><span>5t</span></div>
+        <div class="gl" style="bottom:75px"><span>2,5t</span></div>
+        <div class="gl" style="bottom:0"><span>0</span></div>
+        <div class="col"><span class="tot">7T 10M</span><div class="stack"><i style="height:150px;background:var(--i1)"></i><i style="height:22px;background:var(--i2)"></i><i style="height:14px;background:var(--i3)"></i><i style="height:24px;background:#6E6E78"></i></div></div>
+        <div class="col"><span class="tot">8T 5M</span><div class="stack"><i style="height:168px;background:var(--i1)"></i><i style="height:26px;background:var(--i2)"></i><i style="height:18px;background:var(--i3)"></i><i style="height:10px;background:var(--i4)"></i><i style="height:20px;background:#6E6E78"></i></div></div>
+        <div class="col"><span class="tot">6T 30M</span><div class="stack"><i style="height:132px;background:var(--i1)"></i><i style="height:20px;background:var(--i2)"></i><i style="height:24px;background:var(--i3)"></i><i style="height:16px;background:#6E6E78"></i></div></div>
+        <div class="col"><span class="tot">9T 40M</span><div class="stack"><i style="height:196px;background:var(--i1)"></i><i style="height:30px;background:var(--i2)"></i><i style="height:22px;background:var(--i3)"></i><i style="height:14px;background:var(--i4)"></i><i style="height:8px;background:var(--i5)"></i><i style="height:20px;background:#6E6E78"></i></div></div>
+      </div>
+      <div class="xl"><span>U30</span><span>U31</span><span>U32</span><span class="now">U33</span></div>
+      <div class="utip" style="right:4px;top:-10px">
+        <div class="tw">U33 · 10.–16. AUG</div>
+        <div class="tr"><span class="d" style="background:var(--i1)"></span>I1<b>6T 32M</b></div>
+        <div class="tr"><span class="d" style="background:var(--i2)"></span>I2<b>1T 0M</b></div>
+        <div class="tr"><span class="d" style="background:var(--i3)"></span>I3<b>44M</b></div>
+        <div class="tr"><span class="d" style="background:#6E6E78"></span>Styrke<b>40M</b></div>
+        <div class="tt"><span>Totalt</span><b>9T 40M</b></div>
+      </div>
+    </div>
+    <div class="uleg"><span><span class="d" style="background:var(--i1)"></span>I1</span><span><span class="d" style="background:var(--i2)"></span>I2</span><span><span class="d" style="background:var(--i3)"></span>I3</span><span><span class="d" style="background:var(--i4)"></span>I4</span><span><span class="d" style="background:var(--i5)"></span>I5</span><span><span class="d" style="background:#6E6E78"></span>Styrke</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Uke, måned eller år. Soner, bevegelsesformer, styrke — <b>du velger nedbrytingen</b>.</p>
+  ${FOOT}`},
+
+{n:'AN — sonefordeling',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Polarisert?<br><span class="o">Se det</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>SONEFORDELING · SISTE 4 UKER</h4><span class="aux">OLT-soner</span></div>
+    <div class="usone" style="margin-top:8px">
+      ${ZBAR([78,8,8,4,2])}
+      <div class="leg">
+        <div class="z"><div class="zl" style="color:var(--i1)">I1</div><div class="zt">24T 10M</div><div class="zp">78%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i2)">I2</div><div class="zt">2T 30M</div><div class="zp">8%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i3)">I3</div><div class="zt">2T 28M</div><div class="zp">8%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i4)">I4</div><div class="zt">1T 14M</div><div class="zp">4%</div></div>
+        <div class="z"><div class="zl" style="color:var(--i5)">I5</div><div class="zt">37M</div><div class="zp">2%</div></div>
+      </div>
+    </div>
+    <div class="ustats c3" style="margin-top:20px">
+      <div class="c"><span class="k">I1–I2</span><div class="v" data-e>86<span class="u">%</span></div><div class="d pos">Polarisert ✓</div></div>
+      <div class="c"><span class="k">I3</span><div class="v" data-e>8<span class="u">%</span></div><div class="d">Kontrollert</div></div>
+      <div class="c"><span class="k">I4–I5</span><div class="v" data-e>6<span class="u">%</span></div><div class="d">2 hardøkter/uke</div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">80/20 eller no man's land? <b>Sonefordelingen avslører det</b> — per sport og periode.</p>
+  ${FOOT}`},
+
+{n:'AN — belastning og form',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Form og<br><span class="o">belastning</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>BELASTNING · 12 UKER</h4><span class="aux">ATL / CTL / TSB</span></div>
+    <div class="uchart">
+      <svg viewBox="0 0 860 300" width="860" height="300">
+        <path d="M10,60 H850 M10,130 H850 M10,200 H850 M10,270 H850" stroke="#1F1F26" stroke-width="1.5" fill="none"/>
+        <path d="M745,45 V275" stroke="#F5C542" stroke-width="2.5" stroke-dasharray="7 7" fill="none"/>
+        <path d="M20,215 L110,195 L200,205 L290,170 L380,150 L470,168 L560,120 L650,95 L745,110 L840,125" fill="none" stroke="#FF4500" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20,150 L110,160 L200,150 L290,185 L380,200 L470,180 L560,205 L650,150 L745,88 L840,95" fill="none" stroke="#28A86E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="uxlab" style="padding-left:0"><span>MAI</span><span>JUN</span><span>JUL</span><span class="now" style="color:var(--orange)">AUG</span></div>
+    <div class="uleg"><span><span class="d" style="background:#FF4500"></span>Belastning</span><span><span class="d" style="background:#28A86E"></span>Form</span><span><span class="d" style="background:#F5C542"></span>🏆 Konkurransedag</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Belastning opp, form på topp <b>akkurat på konkurransedagen</b> — ATL/CTL uten regneark.</p>
+  ${FOOT}`},
+
+{n:'AN — klokkedata',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Klokka har<br><span class="o">mer å fortelle</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>POWER CURVE · SESONG</h4><span class="aux">Beste snittwatt</span></div>
+    <div class="ubars">
+      <div class="cols" style="height:280px">
+        <div class="gl" style="bottom:280px"><span>900w</span></div>
+        <div class="gl" style="bottom:187px"><span>600w</span></div>
+        <div class="gl" style="bottom:93px"><span>300w</span></div>
+        <div class="gl" style="bottom:0"><span>0</span></div>
+        <div class="col"><span class="tot">890W</span><div class="stack"><i style="height:270px;background:var(--orange)"></i></div></div>
+        <div class="col"><span class="tot">610W</span><div class="stack"><i style="height:185px;background:var(--orange)"></i></div></div>
+        <div class="col"><span class="tot">425W</span><div class="stack"><i style="height:129px;background:var(--orange)"></i></div></div>
+        <div class="col"><span class="tot">358W</span><div class="stack"><i style="height:109px;background:var(--orange)"></i></div></div>
+        <div class="col"><span class="tot">312W</span><div class="stack"><i style="height:95px;background:var(--orange)"></i></div></div>
+      </div>
+      <div class="xl"><span>5 SEK</span><span>1 MIN</span><span>5 MIN</span><span>20 MIN</span><span>60 MIN</span></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Power curve, aerob effektivitet og cardiac drift — <b>klokkedataene jobber for deg</b>.</p>
+  ${FOOT}`},
+
+{n:'AN — bevegelsesformer',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Hver form.<br><span class="o">Hvert minutt</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>BEVEGELSESFORMER · UKE 33</h4><span class="aux">9T 40M totalt</span></div>
+    <div class="usport" style="margin-top:20px">
+      <div class="usp"><span class="n2">Rulleski</span><div class="bar"><i style="width:100%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6))"></i></div><span class="t">3T 40M</span></div>
+      <div class="usp"><span class="n2">Løping</span><div class="bar"><i style="width:79%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6))"></i></div><span class="t">2T 55M</span></div>
+      <div class="usp"><span class="n2">Styrke</span><div class="bar"><i style="width:52%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6))"></i></div><span class="t">1T 55M</span></div>
+      <div class="usp"><span class="n2">Elghufs</span><div class="bar"><i style="width:23%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6))"></i></div><span class="t">50M</span></div>
+      <div class="usp"><span class="n2">Skyting</span><div class="bar"><i style="width:18%;background:linear-gradient(90deg,var(--orange),rgba(255,69,0,.6))"></i></div><span class="t">40M</span></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Hver bevegelsesform får sine egne tall — <b>og skytetid telles for seg</b>.</p>
+  ${FOOT}`},
+
+{n:'AN — helse-trend',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">HRV-en ser det<br><span class="g">før deg</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh green"><span class="beam"></span><h4>HRV · 8 UKER</h4><span class="aux">Mot hard blokk</span></div>
+    <div class="uchart">
+      <svg viewBox="0 0 860 300" width="860" height="300">
+        <path d="M10,60 H850 M10,130 H850 M10,200 H850 M10,270 H850" stroke="#1F1F26" stroke-width="1.5" fill="none"/>
+        <path d="M10,140 H850" stroke="#55555F" stroke-width="2" stroke-dasharray="6 8" fill="none"/>
+        <path d="M20,120 L130,110 L240,125 L350,105 L460,115 L570,150 L680,205 L790,235" fill="none" stroke="#28A86E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="790" cy="235" r="9" fill="#E23A5A" stroke="#101014" stroke-width="3"/>
+      </svg>
+    </div>
+    <div class="uxlab" style="padding-left:0"><span>U26</span><span>U28</span><span>U30</span><span>U32</span><span class="now" style="color:var(--orange)">U33</span></div>
+    <div class="uleg"><span><span class="d" style="background:#28A86E"></span>HRV ukesnitt</span><span><span class="d" style="background:#55555F"></span>Sesongsnitt</span><span><span class="d" style="background:#E23A5A"></span>Under snitt — vurder hvile</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Synkende HRV på tampen av hard blokk — <b>appen sier fra når kroppen gjør det</b>.</p>
+  ${FOOT}`},
+
+{n:'AN — årsvisning',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Analyse</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Året —<br><span class="o">måned for måned</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>ÅRSVISNING · 2026</h4><span class="aux">312T hittil · ↑ 8% vs 2025</span></div>
+    <div class="uyear">
+      <div class="uyc"><div class="mn">MAI</div><div class="vv">38T <span class="u">402 km</span></div><div class="bar"><i style="flex:8;background:var(--i1)"></i><i style="flex:1.2;background:var(--i2)"></i><i style="flex:.8;background:var(--i3)"></i></div><div class="chips2"><span>Løping</span><span>Rulleski</span><span>Styrke</span></div></div>
+      <div class="uyc"><div class="mn">JUN</div><div class="vv">42T <span class="u">455 km</span></div><div class="bar"><i style="flex:7.6;background:var(--i1)"></i><i style="flex:1.4;background:var(--i2)"></i><i style="flex:1;background:var(--i3)"></i></div><div class="chips2"><span>Rulleski</span><span>Løping</span><span>Styrke</span></div></div>
+      <div class="uyc"><div class="mn">JUL</div><div class="vv">46T <span class="u">512 km</span></div><div class="bar"><i style="flex:7.8;background:var(--i1)"></i><i style="flex:1.2;background:var(--i2)"></i><i style="flex:.7;background:var(--i3)"></i><i style="flex:.3;background:var(--i4)"></i></div><div class="chips2"><span>Rulleski</span><span>Løping</span><span>Elghufs</span></div></div>
+      <div class="uyc"><div class="mn">AUG</div><div class="vv">32T <span class="u">351 km</span></div><div class="bar"><i style="flex:7.4;background:var(--i1)"></i><i style="flex:1.3;background:var(--i2)"></i><i style="flex:.8;background:var(--i3)"></i><i style="flex:.5;background:var(--i4)"></i></div><div class="chips2"><span>Rulleski</span><span>Skyting</span><span>Styrke</span></div></div>
+      <div class="uyc dimmed"><div class="mn">SEP</div><div class="vv">—</div><div class="kmm">Planlagt: 48t</div></div>
+      <div class="uyc dimmed"><div class="mn">OKT</div><div class="vv">—</div><div class="kmm">Planlagt: 44t</div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Km, sonetider og toppformer per måned — <b>med delta mot i fjor</b>. Klikk en måned for detaljene.</p>
+  ${FOOT}`}
+];
+
+/* ============ 12 INNI APPEN · SKISKYTING (karusell) ============ */
+const G12=[
+{n:'SK — standplass',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skiskyting</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Standplassen,<br><span class="o">tallfestet</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh red"><span class="beam"></span><h4>SKYTING · AUGUST</h4><span class="aux">184 skudd · 9 økter</span></div>
+    <div class="ushoot">
+      <div class="ush"><span class="k">Totalt</span><div class="v" data-e>87<span class="u">%</span></div><div class="d" style="font-size:15.5px;color:#8B8B95;margin-top:2px">160/184 treff</div></div>
+      <div class="ush"><span class="k">Liggende</span><div class="v" data-e>92<span class="u">%</span></div><div class="uhits"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="m"></i></div></div>
+      <div class="ush"><span class="k">Stående</span><div class="v" data-e>81<span class="u">%</span></div><div class="uhits"><i></i><i></i><i class="m"></i><i></i><i></i><i></i><i></i><i class="m"></i><i></i><i></i></div></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Ligg og stå hver for seg, innskyting for seg, serie for serie — <b>ingen andre gjør dette</b>.</p>
+  ${FOOT}`},
+
+{n:'SK — treff over tid',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skiskyting</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Treffprosenten,<br><span class="o">uke for uke</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh red"><span class="beam"></span><h4>TREFF % OVER TID</h4><span class="aux">Sesong 26/27</span></div>
+    <div class="uchart">
+      <svg viewBox="0 0 860 300" width="860" height="300">
+        <path d="M10,60 H850 M10,130 H850 M10,200 H850 M10,270 H850" stroke="#1F1F26" stroke-width="1.5" fill="none"/>
+        <path d="M20,95 L130,105 L240,88 L350,98 L460,80 L570,88 L680,72 L790,66" fill="none" stroke="#1A6FD4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20,205 L130,190 L240,200 L350,172 L460,180 L570,155 L680,142 L790,128" fill="none" stroke="#FF8C00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M20,150 L130,148 L240,144 L350,135 L460,130 L570,122 L680,107 L790,97" fill="none" stroke="#F2F2F0" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="uxlab" style="padding-left:0"><span>MAI</span><span>JUN</span><span>JUL</span><span class="now" style="color:var(--orange)">AUG</span></div>
+    <div class="uleg"><span><span class="d" style="background:#1A6FD4"></span>Liggende</span><span><span class="d" style="background:#FF8C00"></span>Stående</span><span><span class="d" style="background:#F2F2F0"></span>Totalt (stiplet)</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Stående nærmer seg liggende — <b>fremgangen er synlig</b>, ikke bare en følelse.</p>
+  ${FOOT}`},
+
+{n:'SK — skytetid per serie',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skiskyting</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Skytetid,<br><span class="o">serie for serie</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh red"><span class="beam"></span><h4>SKYTETID · SNITT PER SERIE</h4><span class="aux">Fra første til siste skudd</span></div>
+    <div class="ubars">
+      <div class="cols" style="height:280px">
+        <div class="gl" style="bottom:280px"><span>35s</span></div>
+        <div class="gl" style="bottom:187px"><span>25s</span></div>
+        <div class="gl" style="bottom:93px"><span>15s</span></div>
+        <div class="gl" style="bottom:0"><span>0</span></div>
+        <div class="col"><span class="tot">31S</span><div class="stack"><i style="height:248px;background:#1A6FD4"></i></div></div>
+        <div class="col"><span class="tot">24S</span><div class="stack"><i style="height:192px;background:#FF8C00"></i></div></div>
+        <div class="col"><span class="tot">30S</span><div class="stack"><i style="height:240px;background:#1A6FD4"></i></div></div>
+        <div class="col"><span class="tot">23S</span><div class="stack"><i style="height:184px;background:#FF8C00"></i></div></div>
+        <div class="col"><span class="tot">28S</span><div class="stack"><i style="height:224px;background:#1A6FD4"></i></div></div>
+        <div class="col"><span class="tot">22S</span><div class="stack"><i style="height:176px;background:#FF8C00"></i></div></div>
+      </div>
+      <div class="xl"><span>L1</span><span>S1</span><span>L2</span><span>S2</span><span>L3</span><span>S3</span></div>
+    </div>
+    <div class="uleg"><span><span class="d" style="background:#1A6FD4"></span>Liggende</span><span><span class="d" style="background:#FF8C00"></span>Stående</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Sekunder fra første til siste skudd, liggende og stående — <b>rutinen bygges med tall</b>.</p>
+  ${FOOT}`},
+
+{n:'SK — puls på standplass',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skiskyting</div>${SW}</div>
+  <h1 class="sm" style="margin-top:22px">Pulsen når det<br><span class="o">gjelder</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh red"><span class="beam"></span><h4>PULS UNDER SKYTING</h4><span class="aux">Kombinasjonsøkt · i går</span></div>
+    <div class="uchart">
+      <svg viewBox="0 0 860 300" width="860" height="300">
+        <rect x="215" y="40" width="130" height="240" fill="rgba(226,58,90,.10)"/>
+        <rect x="555" y="40" width="130" height="240" fill="rgba(226,58,90,.10)"/>
+        <path d="M10,60 H850 M10,130 H850 M10,200 H850 M10,270 H850" stroke="#1F1F26" stroke-width="1.5" fill="none"/>
+        <path d="M20,90 L120,72 L215,80 L250,130 L285,165 L320,180 L345,172 L420,85 L490,70 L555,82 L590,135 L625,172 L660,188 L685,180 L770,90 L840,74" fill="none" stroke="#E23A5A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="uxlab" style="padding-left:0"><span>DRAG 1</span><span style="color:#E23A5A">LIGGENDE</span><span>DRAG 2</span><span style="color:#E23A5A">STÅENDE</span><span>DRAG 3</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Inn på standplass på 172, første skudd på 148 — <b>se hvor mye du rekker å roe ned</b>.</p>
+  ${FOOT}`},
+
+{n:'SK — konkurranser',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skiskyting</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Svart på hvitt:<br><span class="o">det virker</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh gold"><span class="beam"></span><h4>PLASSERINGER OVER TID</h4><span class="aux">Beste: 5. plass</span></div>
+    <div class="uchart">
+      <svg viewBox="0 0 860 300" width="860" height="300">
+        <path d="M10,60 H850 M10,130 H850 M10,200 H850 M10,270 H850" stroke="#1F1F26" stroke-width="1.5" fill="none"/>
+        <path d="M40,245 L820,72" stroke="#55555F" stroke-width="2" stroke-dasharray="6 8" fill="none"/>
+        <circle cx="60" cy="235" r="10" fill="#E23A5A"/><circle cx="160" cy="210" r="10" fill="#E23A5A"/><circle cx="260" cy="225" r="10" fill="#E23A5A"/><circle cx="360" cy="180" r="10" fill="#E23A5A"/><circle cx="460" cy="150" r="10" fill="#E23A5A"/><circle cx="560" cy="160" r="10" fill="#E23A5A"/><circle cx="660" cy="110" r="10" fill="#E23A5A"/><circle cx="760" cy="85" r="10" fill="#E23A5A"/>
+        <circle cx="210" cy="190" r="10" fill="#E8B93C"/><circle cx="510" cy="130" r="10" fill="#E8B93C"/><circle cx="710" cy="70" r="10" fill="#E8B93C"/>
+      </svg>
+    </div>
+    <div class="uxlab" style="padding-left:0"><span>DES</span><span>JAN</span><span>FEB</span><span>MAR</span></div>
+    <div class="uleg"><span><span class="d" style="background:#E23A5A"></span>Skiskyting</span><span><span class="d" style="background:#E8B93C"></span>Langløp</span><span><span class="d" style="background:#55555F"></span>Trend</span></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Plasseringer, sluttider og skyting per konkurranse — <b>kurven peker riktig vei</b>.</p>
+  ${FOOT}`}
+];
+
+/* ============ 13 INNI APPEN · ENKELTPOSTER ============ */
+const G13=[
+{n:'IA — trenerkommentar',img:0,cls:'blue',html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Trener</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Treneren ser økta.<br><span class="b">Og svarer</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="upills"><span class="upl done">✓ Gjennomført</span><span class="upl grey">Uke 33 · Intervall</span></div>
+    <div class="ut" data-e>5×5MIN TERSKEL + SKYTING</div>
+    <div class="ucmsg">
+      <div class="who">Trener Berg · i går 21:14</div>
+      <span data-e>Bra gjennomført! Pulsen ligger riktig på dragene. Til torsdag: senk skulderen på stående — vi tar det på fellesøkta. 💪</span>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Kommentarer <b>rett på økta</b> — ikke i en løsrevet melding. Utøveren styrer hva treneren ser.</p>
+  ${FOOT}`},
+
+{n:'IA — klokkesync',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Synk</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Klokka inn.<br><span class="o">Ferdig</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="upills"><span class="upl sync">▲ Klokke-synk</span><span class="upl done">✓ Importert i dag 06:42</span></div>
+    <div class="ustats c3" style="margin-top:14px">
+      <div class="c"><span class="k">Pulskurve</span><div class="v" data-e>✓</div><div class="d">Hele økta</div></div>
+      <div class="c"><span class="k">Laps</span><div class="v" data-e>12</div><div class="d">Auto-splittet</div></div>
+      <div class="c"><span class="k">Soner</span><div class="v" data-e>AUTO</div><div class="d">Fra din OLT-skala</div></div>
+    </div>
+    <div class="usync"><span class="dot"></span>Morgenøkta lå i dagboka <b>&nbsp;før du var ute av dusjen</b></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Garmin, Polar, Coros, Suunto, Wahoo — <b>.fit rett inn</b>. Bulk-import tar hele året på én gang.</p>
+  ${FOOT}`},
+
+{n:'IA — ukesammendrag',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Uka di,<br><span class="o">oppsummert</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>UKE 33</h4><span class="aux">10.–16. aug</span></div>
+    <div class="uwsum" style="margin-top:6px"><span class="big" style="font-size:34px" data-e>9T 40M</span><span class="s"><b>96,4</b> km</span><span class="s"><b>6</b> økter</span><span class="s"><b>1 892</b> hm</span></div>
+    <div class="usone" style="margin-top:18px">
+      ${ZBAR([72,14,8,4,2])}
+    </div>
+    <div class="upills" style="margin-top:18px">
+      <span class="upl grey">Rulleski · <b style="color:var(--paper)">&nbsp;3t 40m</b></span>
+      <span class="upl grey">Løping · <b style="color:var(--paper)">&nbsp;2t 55m</b></span>
+      <span class="upl grey">Styrke · <b style="color:var(--paper)">&nbsp;1t 55m</b></span>
+      <span class="upl grey">Skyting · <b style="color:var(--paper)">&nbsp;40m</b></span>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Tid, km, høydemeter, soner og former — <b>hver uke summeres av seg selv</b>.</p>
+  ${FOOT}`},
+
+{n:'IA — marker fullført',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Dagbok</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Trykk.<br><span class="o">Fullført</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh"><span class="beam"></span><h4>PLANLAGT → GJENNOMFØRT</h4></div>
+    <div class="ucal" style="grid-template-columns:1fr 1fr;gap:14px">
+      <div class="d" style="min-height:130px"><span class="n">TIR 11</span><div class="upill plan" style="margin-top:10px"><div class="t1">17:30</div><div class="nm">5×5 terskel</div><div class="du">Planlagt · 1t 10m</div></div></div>
+      <div class="d today" style="min-height:130px"><span class="n">TIR 11</span><div class="upill" style="margin-top:10px"><div class="t1"><b>✓</b><span class="st">▲</span>17:31</div><div class="nm">5×5 terskel</div><div class="du">Gjennomført · 1t 24m</div></div></div>
+    </div>
+    <div class="donerow" style="margin-top:22px"><span class="chk"></span><b>Én knapp — avviket regnes ut</b></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Planen blir dagbok med ett trykk — <b>og avviket mellom dem er analyse</b>.</p>
+  ${FOOT}`},
+
+{n:'IA — skipark',img:0,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen · Skipark</div>${L(80)}</div>
+  <h1 class="sm" style="margin-top:22px">Skiparken vet hvilket<br>par som <span class="o">går</span>.</h1>
+  ${P}
+  <div class="ui">
+    <div class="uh gold"><span class="beam"></span><h4>SKIPARK</h4><span class="aux">6 par · 3 testet i vinter</span></div>
+    <div class="ugear">
+      <div class="ugc"><div><span class="k">Skøyteski</span><span class="n2" data-e>Par A · «Kalde»</span></div><span class="best">★ Raskest kaldt føre</span><span class="km">412 km</span></div>
+      <div class="ugc"><div><span class="k">Skøyteski</span><span class="n2" data-e>Par B · «Milde»</span></div><span class="km">268 km</span></div>
+      <div class="ugc"><div><span class="k">Klassisk</span><span class="n2" data-e>Par C · Felle</span></div><span class="km">184 km</span></div>
+      <div class="ugc"><div><span class="k">Staver</span><span class="n2" data-e>Konkurransestaver</span></div><span class="km">1 204 km</span></div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lede">Km per par, ski-tester med rangering, smøring per føre — <b>utstyret er en del av analysen</b>.</p>
+  ${FOOT}`},
+
+{n:'IA — avslutter: innsiden',img:1,html:`
+  <div class="topbar"><div class="eyebrow">Inni appen</div>${L(86)}</div>
+  <div class="spacer"></div>
+  <h1 class="big">Dette er<br><span class="o">innsiden</span>.</h1>
+  ${P}
+  <p class="lede">Plan, dagbok, analyse og skiskyting — <b>i ett system</b>, bygget av utøvere. 30 dager gratis.</p>
+  <div><span class="cta">Prøv gratis</span></div>
+  <div class="spacer"></div>
+  ${FOOT}`}
+];
+
+/* ============ BYGG ============ */
+let uid=0;
+function build(list,target){
+  const wrap=document.getElementById(target);
+  list.forEach(d=>{
+    const id='c'+(uid++);
+    const s=document.createElement('div');
+    s.className='slot';
+    s.innerHTML=`
+      <div class="stage">
+        <div class="card ${d.cls||''}" id="${id}">
+          <div class="bg"></div><div class="veil"></div>
+          ${d.html}
+        </div>
+      </div>
+      <div class="tools">
+        <span class="name">${d.n}</span>
+        <label class="up">Bilde<input type="file" accept="image/*" data-t="${id}"></label>
+        <button class="dl" onclick="png('${id}','${d.n.replace(/'/g,"")}')">↓ Lagre bilde</button>
+      </div>`;
+    wrap.appendChild(s);
+  });
+}
+build(G1,'g1');build(G2,'g2');build(G3,'g3');build(G4,'g4');build(G5,'g5');build(G6,'g6');build(G7,'g7');build(G8,'g8');build(G9,'g9');build(G10,'g10');build(G11,'g11');build(G12,'g12');build(G13,'g13');
+
+function fit(){
+  document.querySelectorAll('.stage').forEach(st=>{
+    st.querySelector('.card').style.transform=`scale(${st.clientWidth/1080})`;
+  });
+}
+fit();addEventListener('resize',fit);
+
+/* ============ v4: SVG → PNG (pulslinje/logo alltid med i eksport) ============ */
+async function rasterizeSvgs(){
+  const svgs=[...document.querySelectorAll('.card svg')];
+  for(const svg of svgs){
+    try{
+      const isPulse=svg.classList.contains('pulse');
+      svg.querySelectorAll('path,polygon').forEach(el=>{
+        const cs=getComputedStyle(el);
+        ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin'].forEach(p=>{
+          const v=cs.getPropertyValue(p);
+          if(v && v!=='none' || p==='fill') el.setAttribute(p,v||'none');
+        });
+      });
+      const vb=svg.viewBox.baseVal;
+      const w=parseFloat(svg.getAttribute('width'))||vb.width||100;
+      const h=parseFloat(svg.getAttribute('height'))||vb.height||100;
+      const xml=new XMLSerializer().serializeToString(svg);
+      const im=new Image();
+      await new Promise((res,rej)=>{im.onload=res;im.onerror=rej;
+        im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);});
+      const S=2, pad=isPulse?24:4;
+      const c=document.createElement('canvas');
+      c.width=(w+pad*2)*S; c.height=(h+pad*2)*S;
+      const x=c.getContext('2d');
+      if(isPulse){
+        const stroke=svg.querySelector('path') ?
+          getComputedStyle(svg.querySelector('path')).stroke : '#FF4500';
+        x.shadowColor=stroke; x.shadowBlur=14*S;
+      }
+      x.drawImage(im,pad*S,pad*S,w*S,h*S);
+      const png=new Image();
+      png.src=c.toDataURL('image/png');
+      png.style.cssText=svg.style.cssText;
+      if(isPulse){
+        png.className='pulse';
+        png.style.width='100%'; png.style.height=(h+pad*2)+'px';
+        png.style.objectFit='contain'; png.style.margin='12px 0';
+      }else{
+        png.width=w; png.height=h;
+        png.style.display='block'; png.style.flex='0 0 auto';
+      }
+      svg.replaceWith(png);
+    }catch(e){ console.warn('SVG-rasterisering feilet, beholder SVG:', e); }
+  }
+}
+/* .pulse-CSS gjelder nå img – nullstill path-regel-avhengighet */
+document.fonts.ready.then(()=>rasterizeSvgs());
+
+
+document.addEventListener('change',e=>{
+  const i=e.target;
+  if(i.type!=='file'||!i.dataset.t)return;
+  const f=i.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const c=document.getElementById(i.dataset.t);
+    c.querySelector('.bg').style.backgroundImage=`url(${r.result})`;
+    c.classList.add('hasimg');
+  };
+  r.readAsDataURL(f);
+});
+
+/* Redigerbart */
+const st=document.createElement('style');
+st.textContent=`body.edit .card h1,body.edit .card .lede,body.edit .card .eyebrow,body.edit .card li,body.edit .card .cta,body.edit .card .aibox p,body.edit .card .lvl h3,body.edit .card .lvl p,body.edit .card .probnum,body.edit .card .chips span{outline:1px dashed rgba(255,69,0,.26);outline-offset:4px}`;
+document.head.appendChild(st);
+document.body.classList.add('edit');
+document.querySelectorAll('.card h1,.card .lede,.card .eyebrow,.card li,.card .cta,.card .aibox p,.card .lvl h3,.card .lvl p,.card .probnum,.card .chips span,.card .vs .row span,.card .quote,.card .who,.card .clock,.card .setrow span,.card .setrow em,.card .pct,.card .bignums span,.card .bignums small,.card .donerow b,.card .ui [data-e],.card .uh h4,.card .uh .aux,.card .umeta span,.card .uleg span,.card .uxlab span').forEach(el=>{
+  el.setAttribute('contenteditable','true');el.spellcheck=false;
+});
+
+let _lastBlobUrl=null;
+function closeSave(){
+  document.getElementById('saveOverlay').classList.remove('on');
+  if(_lastBlobUrl){ URL.revokeObjectURL(_lastBlobUrl); _lastBlobUrl=null; }
+}
+function isApple(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+         (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+
+async function png(id,name,btn){
+  const c=document.getElementById(id);
+  const button = btn || (typeof event!=='undefined' && event ? event.target : null);
+  const orig = button ? button.textContent : '';
+  if(button){ button.disabled=true; button.textContent='Lager \u2026'; }
+
+  const pt=c.style.transform;
+  const we=document.body.classList.contains('edit');
+  const restore=()=>{
+    c.style.position='';c.style.top='';c.style.left='';c.style.zIndex='';c.style.transform=pt;
+    if(we)document.body.classList.add('edit');
+  };
+  const reset=(txt,ms)=>{ if(button){ button.textContent=txt; setTimeout(()=>{button.textContent=orig;button.disabled=false;},ms); } };
+
+  document.body.classList.remove('edit');
+  c.style.transform='none';c.style.position='fixed';c.style.top='0';c.style.left='0';c.style.zIndex='9999';
+
+  try{
+    const cv=await html2canvas(c,{width:1080,height:1350,scale:1,backgroundColor:'#0A0A0B',useCORS:true,logging:false});
+    const filename=`xpulse-${name.toLowerCase().replace(/[^a-z0-9\u00e6\u00f8\u00e5]+/g,'-').replace(/^-|-$/g,'')}.png`;
+    const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+    restore();
+
+    const file=new File([blob],filename,{type:'image/png'});
+
+    /* 1) Del-arket \u2014 gir «Lagre bilde» rett i Bilder */
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file]});
+        reset('\u2713 Lagret',1600);
+        return;
+      }catch(e){
+        if(e && e.name==='AbortError'){ if(button){button.textContent=orig;button.disabled=false;} return; }
+        /* ellers: fall videre ned */
+      }
+    }
+
+    const url=URL.createObjectURL(blob);
+
+    /* 2) iPhone/iPad uten del-tilgang: vis bildet med hold-inne-instruksjon */
+    const inFrame = (window.self !== window.top);
+    if(isApple() || inFrame){
+      closeSave();
+      _lastBlobUrl=null;
+      document.getElementById('saveImg').src=cv.toDataURL('image/png');
+      const ov=document.getElementById('saveOverlay');
+      ov.classList.add('on');
+      const sb=document.getElementById('shareBtn');
+      sb.onclick=async()=>{
+        try{
+          if(navigator.share) await navigator.share({files:[file]});
+          else window.open(url,'_blank');
+        }catch(e){}
+      };
+      if(button){ button.textContent=orig; button.disabled=false; }
+      return;
+    }
+
+    /* 3) Desktop: vanlig nedlasting */
+    const a=document.createElement('a');
+    a.download=filename;a.href=url;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    reset('\u2713 Lastet ned',1800);
+
+  }catch(err){
+    console.error(err);
+    restore();
+    reset('Feilet \u2014 pr\u00f8v igjen',2200);
+  }
+}
+async function allePng(){
+  const cs=document.querySelectorAll('.card');
+  for(let i=0;i<cs.length;i++){
+    const slot=cs[i].closest('.slot');
+    const nm=slot.querySelector('.name').textContent;
+    await png(cs[i].id,nm,slot.querySelector('button.dl'));
+    await new Promise(r=>setTimeout(r,300));
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-PULSE — Konkurranse, testløp &amp; test i føringen (designutkast)</title>
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --red:#E23A5A; --blue:#1A6FD4; --green:#28A86E; --gold:#E8B93C; --gold2:#D4A017;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:34px 22px 80px}
+.wrap{max-width:960px;margin:0 auto}
+.eyebrow{color:var(--orange);font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:700}
+h1{font-size:40px;line-height:1.1;margin:10px 0 6px;letter-spacing:-.01em}
+h1 .g{color:var(--gold)}
+.intro{color:var(--dim);max-width:66ch}
+section{margin-top:46px}
+h2{font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--paper);display:flex;align-items:center;gap:10px}
+h2::before{content:'';display:block;width:22px;height:3px;background:var(--gold);border-radius:2px}
+h2 .aux{margin-left:auto;font-size:12.5px;letter-spacing:.08em;color:var(--mute);font-weight:400}
+.note{margin-top:10px;font-size:14px;color:var(--dim)}
+.note b{color:var(--paper)}
+
+/* --- skjelett/kontekst --- */
+.skel{margin-top:14px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px}
+.sk-blk{border:1px dashed var(--line2);border-radius:10px;padding:12px 16px;color:var(--mute);font-size:13.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:10px}
+.sk-blk.hi{border:1px solid rgba(232,185,60,.45);background:rgba(232,185,60,.05);color:var(--gold);font-weight:700}
+.sk-blk small{display:block;letter-spacing:0;text-transform:none;color:var(--dim);font-weight:400;margin-top:3px}
+
+/* --- panelet --- */
+.panel{margin-top:14px;border:1px solid var(--line2);border-left:4px solid var(--gold2);background:var(--card);border-radius:14px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ph .t{font-weight:800;letter-spacing:.14em;font-size:14px;color:var(--gold)}
+.typ{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-left:auto}
+.typ span{padding:9px 18px;font-size:14.5px;color:var(--dim);cursor:pointer;display:flex;gap:7px;align-items:center}
+.typ span.on{background:rgba(232,185,60,.14);color:var(--gold);font-weight:700}
+.auto{display:flex;align-items:center;gap:14px;margin:16px 20px 0;border:1px solid rgba(232,185,60,.35);background:rgba(232,185,60,.06);border-radius:11px;padding:13px 16px;flex-wrap:wrap}
+.auto .tx{font-size:15px;color:var(--paper)}
+.auto .tx b{color:var(--gold)}
+.auto .go{margin-left:auto;background:var(--gold2);color:#101014;font-weight:800;font-size:14px;letter-spacing:.06em;border-radius:9px;padding:10px 20px;cursor:pointer;white-space:nowrap}
+.bd{padding:6px 20px 20px}
+.row{display:grid;gap:12px;margin-top:14px}
+.r3{grid-template-columns:1fr 1fr 1fr}
+.r-navn{grid-template-columns:2.2fr 1.2fr .8fr}
+.fld label{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.inp{border:1px solid var(--line2);background:var(--surface);border-radius:9px;padding:11px 13px;font-size:15.5px;color:var(--paper);min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.inp .ph2{color:var(--mute)}
+.inp .car{color:var(--mute);font-size:12px}
+.abc{display:flex;gap:8px}
+.abc span{flex:1;text-align:center;border:1px solid var(--line2);border-radius:9px;padding:10px 0;font-weight:800;color:var(--dim);cursor:pointer}
+.abc span.on{border-color:var(--gold);background:rgba(232,185,60,.12);color:var(--gold)}
+.arv{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--dim)}
+.arv .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.arv b{color:var(--paper)}
+.sep{display:flex;align-items:center;gap:12px;margin-top:22px;color:var(--mute);font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.sep::after{content:'';flex:1;height:1px;background:var(--line)}
+.sep .chev{border:1px solid var(--line2);border-radius:7px;padding:2px 9px;font-size:12px;color:var(--dim)}
+.r4{grid-template-columns:1fr 1fr 1fr 1fr}
+.ta{border:1px solid var(--line2);background:var(--surface);border-radius:9px;padding:12px 13px;min-height:64px;color:var(--mute);font-size:15px;margin-top:12px}
+.malrow{display:flex;align-items:center;gap:10px;padding:13px 20px;border-top:1px solid var(--line);font-size:13.5px;color:var(--dim);flex-wrap:wrap}
+.malrow b{color:var(--paper)}
+.malrow .lagre{margin-left:auto;border:1px solid var(--line2);border-radius:8px;padding:7px 14px;color:var(--dim);font-weight:700;font-size:13px;cursor:pointer}
+
+/* --- testvelger --- */
+.tlist{margin-top:10px}
+.trow{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line2);background:var(--surface);border-radius:9px;padding:12px 15px;margin-top:8px;cursor:pointer}
+.trow .nm{font-weight:700;font-size:15.5px}
+.trow .k{font-size:12.5px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+.trow .tag{font-size:12px;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:6px;padding:2px 9px;white-space:nowrap}
+.trow.on{border-color:var(--gold);background:rgba(232,185,60,.07)}
+.trow .tag.egen{color:var(--blue);border-color:rgba(26,111,212,.4)}
+
+/* --- notat --- */
+.nlist{margin-top:6px}
+.nlist li{margin:10px 0 0 18px;color:var(--dim)}
+.nlist b{color:var(--paper)}
+@media (max-width:680px){
+  h1{font-size:30px}
+  .r3,.r-navn,.r4{grid-template-columns:1fr 1fr}
+  .typ{margin-left:0}
+  .auto .go{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">X-PULSE · Designutkast · Føring</div>
+<h1>Konkurranse, testløp &amp; test — <span class="g">redesignet</span></h1>
+<p class="intro">Samme funksjoner som i dag — men panelet flyttes <b style="color:var(--paper)">over aktivitets- og skyteføringen</b>, typen velges med chips, A/B/C-prioritet er med, og auto-genereringen er umulig å overse.</p>
+
+<section>
+  <h2>Plasseringen i økt-skjemaet<span class="aux">Panelet ligger FØR aktiviteter og skyting</span></h2>
+  <div class="skel">
+    <div class="sk-blk">Økt-info · dato · sport · varighet</div>
+    <div class="sk-blk hi">🏁 Konkurranse / testløp / test — panelet under<small>Synlig med auto-generering FØR du fører aktiviteter — ikke gjemt nederst</small></div>
+    <div class="sk-blk">Aktiviteter / tidslinje <small>← genereres automatisk fra formatet (5 runder + 4 skyteserier for jaktstart)</small></div>
+    <div class="sk-blk">Skyting · serier <small>← seriene (L-L-S-S) ligger klare til føring</small></div>
+    <div class="sk-blk">Helse · utstyr · kommentar</div>
+  </div>
+</section>
+
+<section>
+  <h2>Panelet — konkurranse<span class="aux">Chips i stedet for dropdown · samme felter</span></h2>
+  <div class="panel">
+    <div class="ph"><span class="t">— KONKURRANSE</span>
+      <span class="typ" id="typRow"><span class="on" data-t="k">🏁 Konkurranse</span><span data-t="tl">⏱ Testløp</span><span data-t="te">🧪 Test</span></span>
+    </div>
+    <div class="auto" id="autoStrip">
+      <span class="tx">⚡ <b>Jaktstart</b> genererer <b>5 runder + 4 skyteserier (L-L-S-S)</b> — klare til føring</span>
+      <span class="go">Generer aktiviteter</span>
+    </div>
+    <div class="bd" id="bdK">
+      <div class="row r3">
+        <div class="fld"><label>Sport</label><div class="inp">Skiskyting <span class="car">▾</span></div></div>
+        <div class="fld"><label>Format</label><div class="inp">Jaktstart <span class="car">▾</span></div></div>
+        <div class="fld"><label>Prioritet</label>
+          <div class="abc"><span class="on">A</span><span>B</span><span>C</span></div>
+          <div class="arv"><span class="dot"></span>Hentet fra <b>årsplanen</b> — kan overstyres</div>
+        </div>
+      </div>
+      <div class="row r-navn">
+        <div class="fld"><label>Navn</label><div class="inp"><span class="ph2">F.eks. NC sprint Simostranda</span></div></div>
+        <div class="fld"><label>Sted</label><div class="inp"><span class="ph2">By/arena</span></div></div>
+        <div class="fld"><label>Startnr</label><div class="inp"><span class="ph2">—</span></div></div>
+      </div>
+      <div class="sep"><span class="chev">▾</span>Etter løpet — fyll ut når du er i mål</div>
+      <div class="row r4">
+        <div class="fld"><label>Plassering</label><div class="inp"><span class="ph2">—</span></div></div>
+        <div class="fld"><label>I klassen</label><div class="inp"><span class="ph2">—</span></div></div>
+        <div class="fld"><label>Kjønn</label><div class="inp"><span class="ph2">—</span></div></div>
+        <div class="fld"><label>Deltakere</label><div class="inp"><span class="ph2">—</span></div></div>
+      </div>
+      <div class="ta">Hvordan gikk det? Følelse, taktikk, forhold…</div>
+    </div>
+    <div class="malrow">💾 <b>Ny konkurranse-mal</b> lages i egen popup — en ren struktur-bygger: navn, format, bev.former/aktiviteter, skyting/serieoppsett, evt. distanse. <b>Aldri fra utfylt panel-innhold</b> — sted, plasseringer og resultater hører til økta, ikke malen.<span class="lagre">+ Ny mal</span></div>
+  </div>
+  <p class="note">Alt fra dagens skjema er med: sport, type, format, navn, sted, startnummer, plasseringer, deltakere, kommentar og regenerer. Bare tettere, gruppert — og øverst i skjemaet.</p>
+</section>
+
+<section>
+  <h2>Test + skiskyting = skytetest-biblioteket<span class="aux">Samme bibliotek som i skyting-løftet</span></h2>
+  <div class="panel">
+    <div class="ph"><span class="t">— TEST</span>
+      <span class="typ"><span data-t="k">🏁 Konkurranse</span><span data-t="tl">⏱ Testløp</span><span class="on" data-t="te">🧪 Test</span></span>
+    </div>
+    <div class="bd">
+      <div class="row r3" style="grid-template-columns:1fr 2fr">
+        <div class="fld"><label>Sport</label><div class="inp">Skiskyting <span class="car">▾</span></div></div>
+        <div class="fld"><label>Hvilken test?</label>
+          <div class="tlist" style="margin-top:0">
+            <div class="trow on"><div><div class="nm">NSSF standardtest 1</div><div class="k">4 serier · genererer seriene</div></div><span class="tag">NSSF-mal</span></div>
+            <div class="trow"><div><div class="nm">200 stående på metall</div><div class="k">40 serier stå</div></div><span class="tag">NSSF-mal</span></div>
+            <div class="trow"><div><div class="nm">Hurtighet ligg 5×5</div><div class="k">Din egen · 5 serier</div></div><span class="tag egen">Egen test-mal</span></div>
+            <div class="trow"><div><div class="nm">+ Ny test-mal</div><div class="k">Lag din egen — lagres i biblioteket</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="auto" style="margin:16px 0 0">
+        <span class="tx">⚡ <b>NSSF standardtest 1</b> genererer <b>serieoppsettet</b> automatisk — 🧪 og gull-markering settes på økta</span>
+        <span class="go">Generer serier</span>
+      </div>
+    </div>
+    <div class="malrow">Samme bibliotek som skytetest-malene i skyting-delen — <b>NSSF-malene er låste, dine egne er redigerbare</b>. Ingen A/B/C på test.</div>
+  </div>
+  <p class="note"><b>Testløp</b> (⏱) ser ut som konkurranse-varianten, men uten A/B/C-prioritet og uten startnummer-fokus — auto-generering etter format gjelder der også. For andre idretter viser «Hvilken test?» idrettens egne test-maler (test-mal = øktmal m/ test-flagg).</p>
+</section>
+
+<section>
+  <h2>Notat — regler</h2>
+  <div class="skel" style="padding:22px">
+    <ul class="nlist">
+      <li><b>Plassering:</b> panelet ligger ALLTID over aktivitets-/skyteføringen når type er valgt, med auto-strip synlig. Aldri gjemt under resultatfeltene.</li>
+      <li><b>Funksjonsparitet:</b> alle dagens felter og auto-genereringen beholdes 1:1 — kun layout, gruppering og plassering endres.</li>
+      <li><b>A/B/C:</b> kun for konkurranse. Er økta koblet til en konkurranse fra årsplanen, arves prioriteten (grønn prikk «hentet fra årsplanen») og kan overstyres — samme felt/kilde som årsplanen, ikke duplikat.</li>
+      <li><b>Auto-generering:</b> samme logikk som i dag; på skiskyting produserer den seriemodellen (jaktstart L-L-S-S osv.). «Regenerer» finnes fortsatt — men bak bekreftelse siden den overskriver.</li>
+      <li><b>Test + skiskyting:</b> underkategorien ER skytetest-biblioteket (NSSF-maler låst + egne test-maler). Valgt mal genererer serieoppsettet og setter 🧪/gull.</li>
+      <li><b>Maler:</b> «Ny konkurranse-/testløp-/test-mal» opprettes i EGEN popup (åpnes fra mal-velgeren i panelet og fra biblioteket) — en ren struktur-bygger: navn, type, format, bevegelsesformer/aktiviteter, skyting/serieoppsett, evt. distanse/km. Malen lages ALDRI ved å kopiere utfylt panel-innhold, og inneholder ALDRI instansdata (dato, sted, startnummer, plasseringer, deltakere, kommentar, treff/resultater). Test-maler får test-flagget (#49) og havner i riktig bibliotek.</li>
+      <li><b>Test-mal-byggeren per type:</b> «Ny test-mal»-knappen ligger OGSÅ i mal-biblioteket (Maler-delen). Byggeren gjenbruker riktig editor etter innhold: styrke-test bygges som styrkeøkt-mal (øvelser/sett), fysisk test som vanlig øktmal (drag/intervaller), skytetest som serieoppsett (som i dag). Eller MINIMAL: kun tittel + bevegelsesform (f.eks. «O₂-test»). I økta velges malen fra panelet øverst eller inne i skyting-delen som i dag — samme bibliotek bak begge innganger. Mal-velgeren ved oppretting av økt/plan/dagbok får samme filter-chips (Alle/Test/Skyting/Styrke/idrett).</li>
+      <li><b>Mal + standardøkt:</b> en mal kan OGSÅ markeres som standardøkt (eget flagg, kobles til/oppretter standardøkt-serien). Malen viser da begge badges i biblioteket («Mal · Standardøkt», evt. også 🧪). Økter laget fra en slik mal får standardøkt-koblingen FORHÅNDSVALGT (kan fjernes før lagring — samme mønster som 🧪 fra test-mal). Maler uten flagget beholder forslag-flyten fra #48. «Standardøkt» blir også filter-chip i mal-velgeren.</li>
+      <li><b>Etter løpet:</b> egen kollapsbar seksjon — skjemaet føles kort før start, komplett etterpå.</li>
+      <li><b>Mobil (375px):</b> feltgrid → 2 kolonner, chips wrapper, auto-strip stabler tekst over knapp.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+<script>
+/* demo: type-chips bytter innhold i øverste panel */
+document.getElementById('typRow').addEventListener('click', e => {
+  const c = e.target.closest('span[data-t]'); if(!c) return;
+  document.querySelectorAll('#typRow span').forEach(x => x.classList.remove('on'));
+  c.classList.add('on');
+  const t = c.dataset.t;
+  const strip = document.getElementById('autoStrip');
+  const abc = document.querySelector('#bdK .abc').parentElement;
+  if (t === 'k'){
+    strip.firstElementChild.innerHTML = '⚡ <b>Jaktstart</b> genererer <b>5 runder + 4 skyteserier (L-L-S-S)</b> — klare til føring';
+    abc.style.opacity = 1;
+  } else if (t === 'tl'){
+    strip.firstElementChild.innerHTML = '⚡ <b>Testløp · jaktstart</b> genererer samme struktur — <b>uten prioritet</b>';
+    abc.style.opacity = .25;
+  } else {
+    strip.firstElementChild.innerHTML = '⚡ Velg test fra <b>skytetest-biblioteket</b> — serieoppsettet genereres automatisk';
+    abc.style.opacity = .25;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Månedsvisning på mobil, stablet (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B; --card:#101014; --card2:#15151B; --cell:#0D0D11;
+  --line:#1F1F26; --line2:#2A2A33;
+  --ink:#F2F2F0; --mut:#8B8B95; --dim:#55555F;
+  --orange:#FF4500; --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E; --blue:#1A6FD4; --gold:#F5C542;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --sty:#6E6E78; --hard:#E11D48; --medium:#D4A017; --rolig:#28A86E;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#141416;color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:17px;padding:36px 18px 70px}
+.intro{max-width:1100px;margin:0 auto 30px}
+.intro h1{font-family:'Bebas Neue';font-size:38px;letter-spacing:.03em;font-weight:400}
+.intro h1 em{font-style:normal;color:var(--orange)}
+.intro p{color:var(--mut);font-size:16px;max-width:72ch;margin-top:8px;line-height:1.5}
+
+.stage{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+.pcol{display:flex;flex-direction:column;gap:12px}
+.plabel{text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.plabel b{color:var(--orange)}
+.phone{width:400px;border:1px solid #2A2A33;border-radius:38px;padding:10px;background:#0C0C0F;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.screen{background:var(--bg);border-radius:30px;overflow:hidden;border:1px solid var(--line)}
+
+/* ===== topp: visning + mnd-nav ===== */
+.chead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 14px 10px;border-bottom:1px solid var(--line);position:relative}
+.seg{display:flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.seg span{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);padding:7px 12px}
+.seg span.on{background:var(--orange);color:#fff}
+.mnav{display:flex;align-items:center;gap:6px}
+.mnav .m{font-family:'Bebas Neue';font-size:17px;letter-spacing:.07em}
+.mnav i{width:28px;height:28px;border:1px solid var(--line2);border-radius:7px;color:var(--mut);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px}
+/* kollapset analyse */
+.ana{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.ana .tri{color:var(--orange);font-size:10px}
+.ana .aux{margin-left:auto;color:var(--dim);letter-spacing:.08em;font-weight:600}
+
+/* ===== stablet måned ===== */
+.mlist{padding:10px 12px 16px}
+.wblock{position:relative;padding-left:13px;margin-bottom:14px}
+.wblock::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:4px;border-radius:2px}
+.wblock.hard::before{background:var(--hard)}
+.wblock.rolig::before{background:var(--rolig)}
+.wblock.medium::before{background:var(--medium)}
+.whead{display:flex;align-items:center;gap:8px;margin:2px 0 7px}
+.whead .wlbl{font-size:11.5px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.whead .wmark{font-size:11px;color:var(--mut);border:1px solid var(--line2);border-radius:999px;padding:2px 9px;letter-spacing:.06em}
+
+.drow{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.drow:last-of-type{border-bottom:none}
+.dbadge{flex:0 0 44px;text-align:center;padding-top:3px}
+.dbadge .dw{display:block;font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.dbadge .dn{display:block;font-family:'Bebas Neue';font-size:21px;color:var(--mut);line-height:1.1}
+.drow.today .dbadge .dn{color:#fff;background:var(--orange);border-radius:8px;margin:1px 6px 0}
+.drow.today .dbadge .dw{color:var(--orange)}
+.dpills{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dplus{flex:0 0 auto;color:var(--dim);font-size:15px;padding:6px 2px 0}
+
+/* økt-pille — full lesbarhet, typefarge på venstre kant */
+.pill{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-left:4px solid var(--sty);background:var(--card2);border-radius:9px;padding:8px 11px;min-width:0}
+.pill .ok{color:var(--green);font-size:12px;flex:0 0 auto}
+.pill .strava{color:var(--orange);font-size:10px;flex:0 0 auto}
+.pill .tm{color:var(--mut);font-size:12.5px;flex:0 0 auto}
+.pill .nm{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pill .sub{color:var(--dim);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill .du{margin-left:auto;color:var(--orange);font-weight:700;font-size:13.5px;flex:0 0 auto}
+.pill.i1{border-left-color:var(--i1)} .pill.i2{border-left-color:var(--i2)} .pill.i3{border-left-color:var(--i3)} .pill.i4{border-left-color:var(--i4)} .pill.i5{border-left-color:var(--i5)}
+.pill.race{border-left-color:var(--gold)}
+.pill.pl{border-style:dashed;border-left-style:solid;background:var(--cell)}
+.pill.pl .ok{display:none}
+
+/* tom dag */
+.drow.empty{padding:4px 0}
+.drow.empty .dbadge .dn{font-size:17px;opacity:.7}
+.drow.empty .ehint{flex:1;color:var(--dim);font-size:12.5px;padding-top:7px;letter-spacing:.04em}
+/* kollapsert tomrom (variant B) */
+.drow.gap{padding:6px 0}
+.gapbox{flex:1;display:flex;align-items:center;gap:10px;border:1px dashed var(--line2);border-radius:9px;padding:8px 12px;color:var(--dim);font-size:13px}
+.gapbox b{color:var(--mut);font-weight:600;letter-spacing:.04em}
+.gapbox .x{margin-left:auto;color:var(--dim)}
+
+/* ukesammendrag */
+.wsum{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card2)}
+.wblock.hard .wsum{border-left:4px solid var(--hard);border-top-left-radius:12px;border-bottom-left-radius:12px}
+.wblock.rolig .wsum{border-left:4px solid var(--rolig);border-top-left-radius:12px;border-bottom-left-radius:12px}
+.wsum .wk{font-size:10.5px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;font-weight:700}
+.wsum .big{font-family:'Bebas Neue';font-size:17px;color:var(--orange);letter-spacing:.04em}
+.wsum .s{font-size:13px;color:var(--mut)} .wsum .s b{color:var(--ink);font-weight:600}
+.wsum .bar{flex:1;min-width:60px;display:flex;height:5px;border-radius:3px;overflow:hidden;gap:2px}
+.wsum .bar i{height:100%;border-radius:2px}
+
+/* flytende + */
+.fab{position:sticky;bottom:14px;margin:0 14px 14px auto;width:50px;height:50px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 10px 30px rgba(255,69,0,.45)}
+
+/* ===== notat ===== */
+.notes{max-width:1100px;margin:40px auto 0;border-left:2px solid var(--orange);background:rgba(255,69,0,.05);padding:20px 26px}
+.notes h3{font-family:'Bebas Neue';font-size:22px;letter-spacing:.08em;font-weight:400;margin-bottom:10px}
+.notes ol{margin-left:20px;color:var(--mut);font-size:15.5px;line-height:1.8}
+.notes b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>MÅNEDSVISNING PÅ MOBIL — <em>STABLET NEDOVER</em></h1>
+  <p>Gjelder både plan og dagbok under 768px. Grid-månedsvisningen beholdes på nettbrett/desktop. To varianter å velge mellom — forskjellen er hvordan tomme dager håndteres.</p>
+</div>
+
+<div class="stage">
+
+  <!-- ============ VARIANT A ============ -->
+  <div class="pcol">
+    <div class="plabel">Variant <b>A</b> — alle dager synlige</div>
+    <div class="phone"><div class="screen">
+
+      <div class="chead">
+        <div class="seg"><span>Uke</span><span class="on">Måned</span><span>År</span></div>
+        <div class="mnav"><i>←</i><span class="m">AUGUST</span><i>→</i></div>
+      </div>
+      <div class="ana"><span class="tri">▶</span> Analyse august <span class="aux">9t 40m · 6 økter</span></div>
+
+      <div class="mlist">
+
+        <!-- UKE 32 (hard + samling) -->
+        <div class="wblock hard">
+          <div class="whead"><span class="wlbl">Uke 32</span><span class="wmark">📍🏔 Høydesamling · 1800 moh</span></div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Man</span><span class="dn">3</span></div>
+            <div class="dpills">
+              <div class="pill i1"><span class="ok">✓</span><span class="strava">▲</span><span class="tm">06:40</span><span class="nm">Rolig langtur</span><span class="du">2t 10m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tir</span><span class="dn">4</span></div>
+            <div class="dpills">
+              <div class="pill i3"><span class="ok">✓</span><span class="tm">17:30</span><span class="nm">5×5 terskel + skyting</span><span class="du">1t 24m</span></div>
+              <div class="pill"><span class="ok">✓</span><span class="tm">19:30</span><span class="nm">Styrke helkropp</span><span class="du">50m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow empty">
+            <div class="dbadge"><span class="dw">Ons</span><span class="dn">5</span></div>
+            <span class="ehint">—</span>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tor</span><span class="dn">6</span></div>
+            <div class="dpills">
+              <div class="pill i2 pl"><span class="tm">10:00</span><span class="nm">Skyting + rulleski</span><span class="du">1t 30m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow empty">
+            <div class="dbadge"><span class="dw">Fre</span><span class="dn">7</span></div>
+            <span class="ehint">—</span>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Lør</span><span class="dn">8</span></div>
+            <div class="dpills">
+              <div class="pill i1 pl"><span class="tm">09:00</span><span class="nm">Lang rulleski</span><span class="du">3t</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Søn</span><span class="dn">9</span></div>
+            <div class="dpills">
+              <div class="pill race pl"><span class="tm">🏁 11:00</span><span class="nm">Testløp 3 km</span><span class="du">B-konk</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="wsum"><span class="wk">Uke 32</span><span class="big">8T 55M</span><span class="s"><b>84</b> km</span><span class="s"><b>6</b> økter</span><div class="bar"><i style="flex:7;background:var(--i1)"></i><i style="flex:1.6;background:var(--i2)"></i><i style="flex:1;background:var(--i3)"></i><i style="flex:.4;background:var(--i4)"></i></div></div>
+        </div>
+
+        <!-- UKE 33 (rolig) -->
+        <div class="wblock rolig">
+          <div class="whead"><span class="wlbl">Uke 33</span></div>
+
+          <div class="drow today">
+            <div class="dbadge"><span class="dw">Man</span><span class="dn">10</span></div>
+            <div class="dpills">
+              <div class="pill i1"><span class="ok">✓</span><span class="strava">▲</span><span class="tm">06:40</span><span class="nm">Rolig jogg</span><span class="du">1t 05m</span></div>
+              <div class="pill sty pl"><span class="tm">18:00</span><span class="nm">Styrke</span><span class="du">1t</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow empty">
+            <div class="dbadge"><span class="dw">Tir</span><span class="dn">11</span></div>
+            <span class="ehint">—</span>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow empty">
+            <div class="dbadge"><span class="dw">Ons</span><span class="dn">12</span></div>
+            <span class="ehint">—</span>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tor</span><span class="dn">13</span></div>
+            <div class="dpills">
+              <div class="pill i1 pl"><span class="tm">10:00</span><span class="nm">Elghufs m/ staver</span><span class="du">1t 45m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="wsum"><span class="wk">Uke 33</span><span class="big">2T 10M</span><span class="s"><b>3</b> økter</span><div class="bar"><i style="flex:1;background:var(--i1)"></i></div></div>
+        </div>
+
+      </div>
+      <div class="fab">＋</div>
+
+    </div></div>
+  </div>
+
+  <!-- ============ VARIANT B ============ -->
+  <div class="pcol">
+    <div class="plabel">Variant <b>B</b> — tomme dager kollapses</div>
+    <div class="phone"><div class="screen">
+
+      <div class="chead">
+        <div class="seg"><span>Uke</span><span class="on">Måned</span><span>År</span></div>
+        <div class="mnav"><i>←</i><span class="m">AUGUST</span><i>→</i></div>
+      </div>
+      <div class="ana"><span class="tri">▶</span> Analyse august <span class="aux">9t 40m · 6 økter</span></div>
+
+      <div class="mlist">
+
+        <div class="wblock hard">
+          <div class="whead"><span class="wlbl">Uke 32</span><span class="wmark">📍🏔 Høydesamling · 1800 moh</span></div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Man</span><span class="dn">3</span></div>
+            <div class="dpills">
+              <div class="pill i1"><span class="ok">✓</span><span class="strava">▲</span><span class="tm">06:40</span><span class="nm">Rolig langtur</span><span class="du">2t 10m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tir</span><span class="dn">4</span></div>
+            <div class="dpills">
+              <div class="pill i3"><span class="ok">✓</span><span class="tm">17:30</span><span class="nm">5×5 terskel + skyting</span><span class="du">1t 24m</span></div>
+              <div class="pill"><span class="ok">✓</span><span class="tm">19:30</span><span class="nm">Styrke helkropp</span><span class="du">50m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow gap">
+            <div class="dbadge"><span class="dw">Ons</span><span class="dn">5</span></div>
+            <div class="gapbox"><b>Onsdag 5.</b> ingen økter <span class="x">＋</span></div>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tor</span><span class="dn">6</span></div>
+            <div class="dpills">
+              <div class="pill i2 pl"><span class="tm">10:00</span><span class="nm">Skyting + rulleski</span><span class="du">1t 30m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow gap">
+            <div class="dbadge"><span class="dw">Fre</span><span class="dn">7</span></div>
+            <div class="gapbox"><b>Fredag 7.</b> ingen økter <span class="x">＋</span></div>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Lør</span><span class="dn">8</span></div>
+            <div class="dpills">
+              <div class="pill i1 pl"><span class="tm">09:00</span><span class="nm">Lang rulleski</span><span class="du">3t</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Søn</span><span class="dn">9</span></div>
+            <div class="dpills">
+              <div class="pill race pl"><span class="tm">🏁 11:00</span><span class="nm">Testløp 3 km</span><span class="du">B-konk</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="wsum"><span class="wk">Uke 32</span><span class="big">8T 55M</span><span class="s"><b>84</b> km</span><span class="s"><b>6</b> økter</span><div class="bar"><i style="flex:7;background:var(--i1)"></i><i style="flex:1.6;background:var(--i2)"></i><i style="flex:1;background:var(--i3)"></i><i style="flex:.4;background:var(--i4)"></i></div></div>
+        </div>
+
+        <div class="wblock rolig">
+          <div class="whead"><span class="wlbl">Uke 33</span></div>
+
+          <div class="drow today">
+            <div class="dbadge"><span class="dw">Man</span><span class="dn">10</span></div>
+            <div class="dpills">
+              <div class="pill i1"><span class="ok">✓</span><span class="strava">▲</span><span class="tm">06:40</span><span class="nm">Rolig jogg</span><span class="du">1t 05m</span></div>
+              <div class="pill sty pl"><span class="tm">18:00</span><span class="nm">Styrke</span><span class="du">1t</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="drow gap">
+            <div class="dbadge" style="opacity:.75"><span class="dw">Tir–Ons</span><span class="dn" style="font-size:15px">11–12</span></div>
+            <div class="gapbox"><b>2 dager</b> uten økter — trykk for å utvide <span class="x">▾</span></div>
+          </div>
+
+          <div class="drow">
+            <div class="dbadge"><span class="dw">Tor</span><span class="dn">13</span></div>
+            <div class="dpills">
+              <div class="pill i1 pl"><span class="tm">10:00</span><span class="nm">Elghufs m/ staver</span><span class="du">1t 45m</span></div>
+            </div>
+            <span class="dplus">＋</span>
+          </div>
+
+          <div class="wsum"><span class="wk">Uke 33</span><span class="big">2T 10M</span><span class="s"><b>3</b> økter</span><div class="bar"><i style="flex:1;background:var(--i1)"></i></div></div>
+        </div>
+
+      </div>
+      <div class="fab">＋</div>
+
+    </div></div>
+  </div>
+
+</div>
+
+<!-- ============ NOTAT ============ -->
+<div class="notes">
+  <h3>NOTAT — OPPFØRSEL OG INTEGRASJON</h3>
+  <ol>
+    <li><b>Bryter kun på mobil:</b> stablet visning under 768px; nettbrett/desktop beholder dagens 7-kolonners grid. Uke- og årsvisning urørt.</li>
+    <li><b>All app-koding beholdes 1:1:</b> typefarge på pillens venstre kant, planlagt = stiplet, ✓ grønn, ▲ Strava, konkurranse gull, periodestripe (grønn/gul/rød) langs hele uka, 📍🏔-chip på uker med samling, ukesammendrag med matchende venstrekant.</li>
+    <li><b>Variant A</b> viser alle dager — mest forutsigbar å planlegge i, men en tom måned blir ~30 slanke rader. <b>Variant B</b> kollapser tomme dager til én rad (enkeltdager vises med navn, 2+ dager slås sammen og utvides ved trykk). Anbefaling: <b>B i dagbok, A i plan</b> — ev. A overalt først, B som forbedring.</li>
+    <li><b>Trykkflater:</b> dag-rad → dag-popupen (#43); ＋ på raden → logg/planlegg rett i økt-skjemaet (som `2248514`); flytende ＋ nede til høyre for dagens dato.</li>
+    <li><b>Sticky:</b> månedsheaderen (seg + nav) pinnes øverst; ukelabelen kan pinne seg under den mens uka scrolles (som modal-headeren — margin, ikke padding!).</li>
+    <li><b>Scroll-posisjon:</b> ved åpning scrolles det automatisk til dagens uke, ikke toppen av måneden.</li>
+    <li><b>Ytelse:</b> én måned = maks ~31 rader + 2–5 piller per dag — ingen virtualisering nødvendig.</li>
+  </ol>
+</div>
+
+</body>
+</html>

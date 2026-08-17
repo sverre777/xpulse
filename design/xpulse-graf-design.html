@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X-PULSE — Grafer (designutkast)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0B; --card:#101014; --card2:#15151B;
+  --line:#1F1F26; --line2:#2A2A33;
+  --ink:#F2F2F0; --mut:#8B8B95; --dim:#55555F;
+  --orange:#FF4500; --orange-soft:rgba(255,69,0,.12);
+  --green:#28A86E; --blue:#1A6FD4; --gold:#F5C542;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --hurt:#8B5CF6; --styrke:#6E6E78;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:17px;padding:30px 0 60px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:16px}
+.ch{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+.ch .beam{width:22px;height:4px;border-radius:2px;background:var(--orange);margin-top:9px}
+.ch h2{font-family:'Bebas Neue';font-size:22px;letter-spacing:.09em;font-weight:400}
+.ch .sub{font-size:14.5px;color:var(--dim);margin-top:2px}
+.ch .fav{margin-left:auto;color:var(--dim);font-size:19px;cursor:pointer}
+.ch .fav:hover{color:var(--gold)}
+
+/* ===== FILTERRAD ===== */
+.filters{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;margin:14px 0 6px}
+.f-group .fl{font-size:11.5px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase;display:block;margin-bottom:6px}
+.seg{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.seg button{border:none;background:none;color:var(--mut);font:inherit;font-size:13.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:.15s}
+.seg button.on{background:var(--orange);color:#fff}
+.sel{position:relative}
+.sel select{
+  appearance:none;background:var(--card2);border:1px solid var(--line);border-radius:10px;
+  color:var(--ink);font:inherit;font-size:15.5px;padding:9px 38px 9px 14px;cursor:pointer;
+}
+.sel::after{content:'▾';position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:12px;pointer-events:none}
+.sel select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-soft)}
+
+/* ===== LEGEND ===== */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px}
+.lg{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--line2);background:none;color:var(--mut);font:inherit;font-size:13.5px;
+  font-weight:600;letter-spacing:.06em;cursor:pointer;transition:.15s;
+}
+.lg .d{width:9px;height:9px;border-radius:3px}
+.lg.off{opacity:.32}
+.lg:hover{border-color:var(--mut)}
+
+/* ===== CHART ===== */
+.chartbox{position:relative;margin-top:14px;padding-left:44px}
+.gridlines{position:absolute;left:44px;right:0;top:0;bottom:34px}
+.gl{position:absolute;left:0;right:0;border-top:1px solid var(--line);height:0}
+.gl span{position:absolute;left:-40px;top:-8px;font-size:12px;color:var(--dim);width:34px;text-align:right}
+.gl.zero{border-top-color:var(--line2)}
+.avg{position:absolute;left:0;right:0;border-top:2px dashed rgba(255,69,0,.45);height:0}
+.avg em{
+  position:absolute;right:0;top:-22px;font-style:normal;font-size:12px;color:var(--orange);
+  background:var(--orange-soft);border:1px solid rgba(255,69,0,.35);border-radius:6px;padding:2px 8px;
+  letter-spacing:.08em;
+}
+.cols{position:relative;display:flex;align-items:flex-end;gap:10px;height:300px;margin-bottom:0}
+.col{flex:1;max-width:92px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.col .total{
+  font-family:'Bebas Neue';font-size:16px;letter-spacing:.05em;color:var(--ink);margin-bottom:5px;
+  opacity:.95;
+}
+.bar{
+  width:100%;display:flex;flex-direction:column-reverse;border-radius:8px 8px 3px 3px;overflow:hidden;
+  cursor:pointer;transition:filter .15s, transform .15s;
+}
+.col:hover .bar{filter:brightness(1.18)}
+.bar i{display:block;width:100%}
+.col.empty .ghost{
+  width:100%;height:10px;border-radius:6px;border:1.5px dashed var(--line2);
+}
+.col.empty .total{color:var(--dim);font-size:13px;font-family:'Barlow Condensed'}
+.xlab{display:flex;gap:10px;padding-top:10px;border-top:1px solid var(--line2);margin-top:0}
+.xlab .xl{flex:1;max-width:92px;text-align:center}
+.xlab .xl .w{font-family:'Bebas Neue';font-size:15px;letter-spacing:.08em;color:var(--mut)}
+.xlab .xl .dt{font-size:11.5px;color:var(--dim);letter-spacing:.02em}
+.xlab .xl.now .w{color:var(--orange)}
+.xlab .xl.empty .w{color:var(--dim);opacity:.5}
+
+/* tooltip */
+.tip{
+  position:absolute;z-index:10;min-width:150px;
+  background:#0C0C0F;border:1px solid var(--line2);border-radius:12px;padding:12px 14px;
+  box-shadow:0 12px 34px rgba(0,0,0,.55);pointer-events:none;
+}
+.tip .tw{font-family:'Bebas Neue';font-size:16px;letter-spacing:.08em;margin-bottom:6px}
+.tip .tr{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);line-height:1.6}
+.tip .tr .d{width:8px;height:8px;border-radius:2px}
+.tip .tr b{color:var(--ink);font-weight:600;margin-left:auto}
+.tip .tt{border-top:1px solid var(--line);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:14px}
+.tip .tt b{font-family:'Bebas Neue';font-size:16px;letter-spacing:.05em}
+
+/* ===== STAT-KORT ===== */
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;border-left:3px solid var(--orange);
+}
+.stat.blue{border-left-color:var(--blue)}
+.stat.green{border-left-color:var(--green)}
+.stat.gold{border-left-color:var(--gold)}
+.stat .k{font-size:11.5px;letter-spacing:.18em;color:var(--mut);text-transform:uppercase}
+.stat .v{font-family:'Bebas Neue';font-size:34px;letter-spacing:.03em;line-height:1.1;margin-top:3px}
+.stat .v small{font-size:15px;color:var(--green);font-family:'Barlow Condensed';font-weight:600;letter-spacing:.02em;margin-left:6px}
+.stat .v small.neg{color:var(--i5)}
+.stat .v small.flat{color:var(--dim)}
+.stat .fx{font-size:13.5px;color:var(--dim);margin-top:2px}
+
+@media (max-width:820px){
+  .statgrid{grid-template-columns:1fr 1fr}
+  .cols{gap:6px}.xlab{gap:6px}
+  .col .total{font-size:13px}
+  .xlab .xl .dt{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <!-- ============ CUSTOM GRAF ============ -->
+  <section class="card">
+    <div class="ch">
+      <span class="beam"></span>
+      <div>
+        <h2>CUSTOM GRAF — FLEKSIBEL NEDBRYTING</h2>
+        <div class="sub">Uke-gruppering · 22. mai → 13. aug 2026</div>
+      </div>
+      <span class="fav">☆</span>
+    </div>
+
+    <div class="filters">
+      <div class="f-group">
+        <span class="fl">Gruppering</span>
+        <div class="seg">
+          <button class="on">Uke</button><button>Måned</button><button>År</button>
+        </div>
+      </div>
+      <div class="f-group">
+        <span class="fl">Periode</span>
+        <div class="sel"><select><option>Analyse-periode</option><option>Siste 12 uker</option><option>Sesong 26/27</option></select></div>
+      </div>
+      <div class="f-group" style="flex:1;min-width:180px">
+        <span class="fl">Bevegelsesformer (30/30)</span>
+        <div class="sel" style="width:100%"><select style="width:100%"><option>Alle</option><option>Løping</option><option>Langrenn</option><option>Rulleski</option></select></div>
+      </div>
+    </div>
+
+    <!-- legend som toggle -->
+    <div class="legend" id="legend">
+      <button class="lg" data-s="hurt"><span class="d" style="background:var(--hurt)"></span>Hurtighet</button>
+      <button class="lg" data-s="i1"><span class="d" style="background:var(--i1)"></span>I1</button>
+      <button class="lg" data-s="i2"><span class="d" style="background:var(--i2)"></span>I2</button>
+      <button class="lg" data-s="i3"><span class="d" style="background:var(--i3)"></span>I3</button>
+      <button class="lg" data-s="i4"><span class="d" style="background:var(--i4)"></span>I4</button>
+      <button class="lg" data-s="i5"><span class="d" style="background:var(--i5)"></span>I5</button>
+      <button class="lg" data-s="st"><span class="d" style="background:var(--styrke)"></span>Styrke</button>
+    </div>
+
+    <div class="chartbox">
+      <div class="gridlines">
+        <div class="gl" style="bottom:100%"><span>600</span></div>
+        <div class="gl" style="bottom:75%"><span>450</span></div>
+        <div class="gl" style="bottom:50%"><span>300</span></div>
+        <div class="gl" style="bottom:25%"><span>150</span></div>
+        <div class="gl zero" style="bottom:0"><span>0</span></div>
+        <!-- snittlinje: 130 min ≈ 21.6% -->
+        <div class="avg" style="bottom:21.6%"><em>SNITT 2T 10M</em></div>
+      </div>
+
+      <!-- skala: 600 min = 300px → 0.5 px/min -->
+      <div class="cols">
+        <div class="col" data-w="U23">
+          <span class="total">3T 8M</span>
+          <div class="bar">
+            <i data-s="i1" style="height:82px;background:var(--i1)"></i>
+            <i data-s="i2" style="height:8px;background:var(--i2)"></i>
+            <i data-s="i3" style="height:4px;background:var(--i3)"></i>
+          </div>
+        </div>
+        <div class="col" data-w="U24">
+          <span class="total">25M</span>
+          <div class="bar"><i data-s="st" style="height:13px;background:var(--styrke)"></i></div>
+        </div>
+        <div class="col" data-w="U25">
+          <span class="total">21M</span>
+          <div class="bar"><i data-s="st" style="height:11px;background:var(--styrke)"></i></div>
+        </div>
+        <div class="col" data-w="U26">
+          <span class="total">1M</span>
+          <div class="bar"><i data-s="st" style="height:3px;background:var(--styrke)"></i></div>
+        </div>
+        <div class="col empty"><span class="total">—</span><div class="ghost"></div></div>
+        <div class="col empty"><span class="total">—</span><div class="ghost"></div></div>
+        <div class="col" data-w="U33" id="demoCol">
+          <span class="total">6T 55M</span>
+          <div class="bar">
+            <i data-s="i1" style="height:150px;background:var(--i1)"></i>
+            <i data-s="st" style="height:58px;background:var(--styrke)"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="xlab">
+        <div class="xl"><div class="w">U23</div><div class="dt">1.–7. jun</div></div>
+        <div class="xl"><div class="w">U24</div><div class="dt">8.–14. jun</div></div>
+        <div class="xl"><div class="w">U25</div><div class="dt">15.–21. jun</div></div>
+        <div class="xl"><div class="w">U26</div><div class="dt">22.–28. jun</div></div>
+        <div class="xl empty"><div class="w">U27–32</div><div class="dt">ingen økter</div></div>
+        <div class="xl empty"><div class="w"></div><div class="dt"></div></div>
+        <div class="xl now"><div class="w">U33</div><div class="dt">10.–16. aug</div></div>
+      </div>
+
+      <!-- demo-tooltip forankret på U33 -->
+      <div class="tip" style="right:8px;bottom:250px">
+        <div class="tw">U33 · 10.–16. AUG</div>
+        <div class="tr"><span class="d" style="background:var(--i1)"></span>I1 <b>5T 0M</b></div>
+        <div class="tr"><span class="d" style="background:var(--styrke)"></span>Styrke <b>1T 55M</b></div>
+        <div class="tt"><span>Totalt</span><b>6T 55M</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SONEFORDELING ============ -->
+  <section class="card">
+    <div class="ch">
+      <span class="beam"></span>
+      <div>
+        <h2>SONEFORDELING PER UKE</h2>
+        <div class="sub">Minutter i sone · maks søylebredde holder grafen lesbar med få uker</div>
+      </div>
+      <span class="fav">☆</span>
+    </div>
+
+    <div class="chartbox" style="margin-top:20px">
+      <div class="gridlines">
+        <div class="gl" style="bottom:100%"><span>300</span></div>
+        <div class="gl" style="bottom:66.6%"><span>200</span></div>
+        <div class="gl" style="bottom:33.3%"><span>100</span></div>
+        <div class="gl zero" style="bottom:0"><span>0</span></div>
+      </div>
+      <!-- skala: 300 min = 300px → 1 px/min. Få uker: kolonner sentreres, max-width hindrer megasøyle -->
+      <div class="cols" style="justify-content:center;gap:56px">
+        <div class="col">
+          <span class="total">3T 8M</span>
+          <div class="bar">
+            <i style="height:165px;background:var(--i1)"></i>
+            <i style="height:15px;background:var(--i2)"></i>
+            <i style="height:8px;background:var(--i3)"></i>
+          </div>
+        </div>
+        <div class="col">
+          <span class="total">5T 0M</span>
+          <div class="bar"><i style="height:300px;background:var(--i1)"></i></div>
+        </div>
+      </div>
+      <div class="xlab" style="justify-content:center;gap:56px">
+        <div class="xl"><div class="w">U23</div><div class="dt">1.–7. jun</div></div>
+        <div class="xl now"><div class="w">U33</div><div class="dt">10.–16. aug</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STAT-KORT (matcher resten) ============ -->
+  <div class="statgrid">
+    <div class="stat">
+      <span class="k">Total tid</span>
+      <div class="v">7T<small>+250%</small></div>
+      <div class="fx">Forrige periode: 2t</div>
+    </div>
+    <div class="stat blue">
+      <span class="k">Total km</span>
+      <div class="v">0<small class="flat">±0%</small></div>
+      <div class="fx">Forrige periode: 0</div>
+    </div>
+    <div class="stat green">
+      <span class="k">Antall økter</span>
+      <div class="v">3<small>+50%</small></div>
+      <div class="fx">Planlagt: 4 · forrige: 2</div>
+    </div>
+    <div class="stat gold">
+      <span class="k">Konkurranser</span>
+      <div class="v">0</div>
+      <div class="fx">Forrige periode: 0</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// legend-toggle: dimmer segmenter i grafen
+document.querySelectorAll('#legend .lg').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    btn.classList.toggle('off');
+    const s=btn.dataset.s, off=btn.classList.contains('off');
+    document.querySelectorAll('.bar i[data-s="'+s+'"]').forEach(seg=>{
+      seg.style.opacity=off?0.12:1;
+    });
+  });
+});
+// segmented
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  b.closest('.seg').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+}));
+</script>
+</body>
+</html>

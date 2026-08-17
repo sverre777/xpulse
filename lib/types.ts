@@ -1147,12 +1147,6 @@ export const TYPE_COLORS: Record<string, string> = {
   strength:        '#4A4A4A',
 }
 
-export const ZONE_COLORS: Record<string, string> = {
-  I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10',
-  I4: '#8A5A00', I5: '#8A1A00', I6: '#6A008A',
-  I7: '#4A004A', I8: '#2A002A',
-}
-
 // ── Fase 8: Konkurranse ────────────────────────────────────
 
 export type CompetitionType = 'konkurranse' | 'testlop' | 'stafett' | 'tempo'

@@ -800,17 +800,28 @@ function ZoneEditor({
         {totalSec === 0 && <div style={{ flex: 1, backgroundColor: '#1A1A1E' }} />}
       </div>
 
-      <div className="grid grid-cols-6 gap-2">
+      {/* ÉN grid som pakker N felter — ikke to hardkodede rader. På mobil gir
+          ZONE_KEYS-rekkefølgen I1·I2·I3 på rad 1 og I4·I5·Hurt. på rad 2, og
+          en utvidet soneskala ville flytt videre av seg selv.
+          md: er samme brekkpunkt som sonevisningen i WorkoutOverview, så
+          oppsummering og føring aldri står 3-bred og 6-bred samtidig. */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 gap-y-3">
         {keys.map(k => (
           <div key={k}>
             <label className="block text-center mb-1 text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ZONE_COLORS_BAR[k] }}>
               {k === 'Hurtighet' ? 'Hurt.' : k}
             </label>
+            {/* padding nulles ut fra iSt her — inline style slår Tailwind, så
+                padding-klassene ville ikke hatt effekt ellers. Den delte
+                iSt-konstanten er urørt; kun denne inputen overstyres.
+                min-h-[40px] gir touch-høyde på mobil uansett fontmetrikk, og
+                md:min-h-0 + md:py-1.5 beholder dagens høyde fra md og opp. */}
             <input value={zones[k]}
               onChange={e => onChange({ ...zones, [k]: e.target.value })}
               inputMode="text" placeholder="MM:SS"
-              style={{ ...iSt, textAlign: 'center' }} />
+              className="min-h-[40px] py-2.5 px-2 md:min-h-0 md:py-1.5 md:px-2.5"
+              style={{ ...iSt, padding: undefined, textAlign: 'center' }} />
           </div>
         ))}
       </div>

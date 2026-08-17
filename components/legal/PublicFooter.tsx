@@ -12,6 +12,10 @@ export function PublicFooter() {
       <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
       >
+        <Link href="/nytt" className="transition-opacity hover:opacity-80" style={{ color: '#8A8A96' }}>
+          Hva er nytt
+        </Link>
+        <span style={{ color: '#2A2A30' }}>·</span>
         <Link href="/personvern" className="transition-opacity hover:opacity-80" style={{ color: '#8A8A96' }}>
           Personvern
         </Link>

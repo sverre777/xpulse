@@ -70,6 +70,7 @@ export function LandingFooter() {
 
         <div>
           <FooterCol label="Selskap" items={[
+            { href: '/nytt',                     label: 'Hva er nytt' },
             { href: 'mailto:support@x-pulse.no', label: 'Kontakt' },
             { href: '/personvern',               label: 'Personvern' },
             { href: '/vilkar',                   label: 'Vilkår' },

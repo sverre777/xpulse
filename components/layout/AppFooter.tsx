@@ -62,6 +62,8 @@ export function AppFooter() {
             >
               Selskap
             </span>
+            <Link href="/nytt" style={linkStyle}>Hva er nytt</Link>
+            <Dot />
             <a href="mailto:support@x-pulse.no" style={linkStyle}>Kontakt</a>
             <Dot />
             <Link href="/personvern" style={linkStyle}>Personvern</Link>

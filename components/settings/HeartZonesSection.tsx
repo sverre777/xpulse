@@ -10,13 +10,10 @@ import {
   saveHeartRateProfile, saveCustomHeartZones, resetHeartZonesToAuto,
 } from '@/app/actions/settings'
 
-const ZONE_COLORS: Record<ZoneName, string> = {
-  I1: '#28A86E',
-  I2: '#1A6FD4',
-  I3: '#D4A017',
-  I4: '#FF4500',
-  I5: '#E11D48',
-}
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+// Fasiten har også Hurtighet; å slå opp med ZoneName er helt greit.
+import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 const ZONE_LABELS: Record<ZoneName, string> = {
   I1: 'Rolig langkjøring / Restitusjon',

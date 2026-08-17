@@ -5,6 +5,10 @@ import type { WorkoutSamples } from './WorkoutDetailChart'
 import type { HeartZone } from '@/lib/heart-zones'
 import { ZONE_NAMES, zoneForHeartRate } from '@/lib/heart-zones'
 import type { Sport } from '@/lib/types'
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import type { ExtendedZoneName } from '@/lib/heart-zones'
 
 // "Vis dypere analyse" — beregner avansert per-økt-statistikk fra samples
 // uten ekstra DB-kall. Alt regnes ut én gang via useMemo så toggles ikke
@@ -225,10 +229,7 @@ function ZoneRow({
 }: {
   zone: string; range: HeartZone | null; seconds: number; pct: number
 }) {
-  const colors: Record<string, string> = {
-    I1: '#28A86E', I2: '#3DD68C', I3: '#FFB300', I4: '#FF7300', I5: '#E11D48',
-  }
-  const color = colors[zone] ?? '#8A8A96'
+  const color = ZONE_COLORS_V2[zone as ExtendedZoneName] ?? '#8A8A96'
   return (
     <div>
       <div className="flex items-center justify-between text-xs mb-1"

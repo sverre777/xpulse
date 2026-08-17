@@ -7,6 +7,10 @@ import {
   XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
   CHART_CURSOR,
 } from '@/components/analysis/chart-theme'
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+// Treneren skal se nøyaktig samme farger som utøveren har i dagboka si.
+import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 const PALETTE = ['#1A6FD4', '#FF4500', '#E8B93C', '#22C55E', '#A855F7', '#0EA5E9', '#F472B6', '#EAB308']
 function colorFor(i: number): string { return PALETTE[i % PALETTE.length]! }
@@ -99,10 +103,6 @@ function ZoneStackChart({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }
       Hurtighet: Number((z.Hurtighet / 3600).toFixed(1)),
     }
   })
-  const ZONE_COLORS = {
-    I1: '#3B82F6', I2: '#22C55E', I3: '#EAB308',
-    I4: '#F97316', I5: '#EF4444', Hurtighet: '#A855F7',
-  }
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>

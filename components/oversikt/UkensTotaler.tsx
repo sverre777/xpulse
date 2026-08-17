@@ -3,16 +3,9 @@ import type { OversiktWeekTotals, OversiktZoneSeconds } from '@/app/actions/over
 const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
 
 // Samme palett som brukes i Analyse — hold konsistent.
-// Samme sonepalett som resten av appen (tokens --i1..--i5/--hurt):
-// I1 grønn, I2 blå, I3 gul, I4 oransje, I5 rød, Hurtighet lilla.
-const ZONE_COLORS: Record<string, string> = {
-  I1: '#28A86E',
-  I2: '#1A6FD4',
-  I3: '#E8B93C',
-  I4: '#FF8C00',
-  I5: '#E23A5A',
-  Hurtighet: '#8B5CF6',
-}
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 function fmtHM(seconds: number): string {
   if (seconds <= 0) return '0t'

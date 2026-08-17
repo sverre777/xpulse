@@ -18,17 +18,15 @@ export const CHART_AXIS_TICK = {
 } as const
 
 export const CHART_AXIS_LINE = { stroke: '#2A2A33' } as const
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
 // ===== Sonefarger =====
 // Samme hexer som tokens --i1..--i5/--hurt i globals.css + Styrke-grå fra utkastet.
 // I1 = grønn ALLTID; rekkefølgen I1→I5 er hellig.
 export const CHART_ZONE_COLORS = {
-  I1: '#28A86E',
-  I2: '#1A6FD4',
-  I3: '#E8B93C',
-  I4: '#FF8C00',
-  I5: '#E23A5A',
-  Hurtighet: '#8B5CF6',
+  ...ZONE_COLORS_V2,
+  // Styrke er ikke en pulssone og finnes derfor ikke i fasiten — den hører
+  // kun hjemme i diagrammer som stabler styrke sammen med sonetid.
   Styrke: '#6E6E78',
 } as const
 

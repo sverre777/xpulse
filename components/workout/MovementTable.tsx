@@ -3,6 +3,10 @@
 import { Fragment, useState } from 'react'
 import { MovementRow, ZoneRow, ExerciseRow, MOVEMENT_CATEGORIES, INTENSITY_ZONES, getSubcategories } from '@/lib/types'
 import { parseDecimal } from '@/lib/parse-decimal'
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import type { ExtendedZoneName } from '@/lib/heart-zones'
 
 interface MovementTableProps {
   rows: MovementRow[]
@@ -83,10 +87,7 @@ function ZoneExpandSection({ zones, onChange }: { zones: ZoneRow[]; onChange: (z
           Intensitetssoner
         </span>
         {activeZones.map(z => {
-          const zoneColors: Record<string, string> = {
-            I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10', I4: '#8A5A00', I5: '#8A1A00',
-          }
-          const col = zoneColors[z.zone_name] ?? '#555560'
+          const col = ZONE_COLORS_V2[z.zone_name as ExtendedZoneName] ?? '#555560'
           return (
             <div key={z.zone_name} className="flex items-center gap-1">
               <span style={{
@@ -437,9 +438,6 @@ export function ZoneAggregateSummary({ rows }: { rows: MovementRow[] }) {
   if (!hasData) return null
 
   const totalMins = entries.reduce((s, e) => s + e.minutes, 0)
-  const zoneColors: Record<string, string> = {
-    I1: '#2A5A8A', I2: '#1A7A4A', I3: '#8A8A10', I4: '#8A5A00', I5: '#8A1A00',
-  }
 
   return (
     <div className="mt-4 p-3" style={{ backgroundColor: '#0D0D11', border: '1px solid #1A1A1E' }}>
@@ -451,7 +449,7 @@ export function ZoneAggregateSummary({ rows }: { rows: MovementRow[] }) {
         {entries.filter(e => e.minutes > 0).map(e => (
           <div
             key={e.zone}
-            style={{ width: `${(e.minutes / totalMins) * 100}%`, backgroundColor: zoneColors[e.zone] ?? '#333' }}
+            style={{ width: `${(e.minutes / totalMins) * 100}%`, backgroundColor: ZONE_COLORS_V2[e.zone as ExtendedZoneName] ?? '#333' }}
           />
         ))}
       </div>
@@ -459,8 +457,8 @@ export function ZoneAggregateSummary({ rows }: { rows: MovementRow[] }) {
       <div className="flex gap-4 flex-wrap">
         {entries.filter(e => e.minutes > 0).map(e => (
           <div key={e.zone} className="flex items-center gap-1.5">
-            <div style={{ width: '8px', height: '8px', backgroundColor: zoneColors[e.zone] ?? '#333', flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: zoneColors[e.zone], fontSize: '14px' }}>{e.zone}</span>
+            <div style={{ width: '8px', height: '8px', backgroundColor: ZONE_COLORS_V2[e.zone as ExtendedZoneName] ?? '#333', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: ZONE_COLORS_V2[e.zone as ExtendedZoneName], fontSize: '14px' }}>{e.zone}</span>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>{e.minutes}min</span>
           </div>
         ))}

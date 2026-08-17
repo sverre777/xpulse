@@ -25,14 +25,9 @@ interface Props {
   defaultPaceUnit?: PaceUnit | null
 }
 
-const ZONE_COLORS: Record<ExtendedZoneName, string> = {
-  I1: '#28A86E',
-  I2: '#1A6FD4',
-  I3: '#D4A017',
-  I4: '#FF4500',
-  I5: '#E11D48',
-  Hurtighet: '#8B5CF6',
-}
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 function formatTotalTime(totalSeconds: number): string {
   if (totalSeconds <= 0) return '—'

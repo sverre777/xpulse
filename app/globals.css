@@ -306,6 +306,9 @@ input::placeholder {
   --blue: #1A6FD4;
   --blue-soft: rgba(26, 111, 212, .10);
   --gold: #F5C542;
+  /* Sonefarger. CSS kan ikke importere TypeScript, så disse er en NØDVENDIG
+     andrekopi av ZONE_COLORS_V2 i lib/activity-summary.ts — som er fasiten.
+     Endres én av dem, MÅ den andre endres i samme commit. I1 er grønn, alltid. */
   --i1: #28A86E; --i2: #1A6FD4; --i3: #E8B93C; --i4: #FF8C00; --i5: #E23A5A;
   --hurt: #8B5CF6;
   --r-field: 10px;

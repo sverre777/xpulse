@@ -168,10 +168,9 @@ function sumZoneSeconds(z: ActivityZoneMinutes): number {
   return ZONE_KEYS.reduce((s, k) => s + (parseActivityDuration(z[k]) ?? 0), 0)
 }
 
-const ZONE_COLORS_BAR: Record<keyof ActivityZoneMinutes, string> = {
-  I1: '#28A86E', I2: '#2A7AB8', I3: '#D4B500', I4: '#FF9500', I5: '#FF4500',
-  Hurtighet: '#8B5CF6',
-}
+// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
+// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
+import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 
 export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]

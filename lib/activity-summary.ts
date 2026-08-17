@@ -7,9 +7,18 @@ import {
   zoneForHeartRate,
 } from './heart-zones'
 
-// Sone-palett — SAMME hexer som tokens --i1..--i5/--hurt i globals.css og
-// chart-theme.tsx. Hurtighet bruker lilla for å skille den tydelig fra
-// puls-sonene I1-I5. I1 = grønn alltid.
+// SONEFARGER — ÉN FASIT FOR HELE APPEN.
+//
+// Alle komponenter importerer herfra; ingen skal gjenta hexene lokalt.
+// chart-theme.tsx bygger CHART_ZONE_COLORS på denne (+ Styrke, som ikke er
+// en pulssone).
+//
+// ENESTE tillatte kopi er --i1..--i5/--hurt i app/globals.css, fordi CSS ikke
+// kan importere TypeScript. De to MÅ holdes like — endres den ene, endres den
+// andre i samme commit.
+//
+// Hurtighet er lilla for å skille den tydelig fra puls-sonene I1-I5.
+// I1 = grønn alltid, I2 = blå alltid.
 export const ZONE_COLORS_V2: Record<ExtendedZoneName, string> = {
   I1: '#28A86E',
   I2: '#1A6FD4',

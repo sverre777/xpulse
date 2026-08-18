@@ -890,13 +890,26 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
         </div>
 
-        {/* Chip-raden er delt i to grupper: markeringer til venstre, høyde og
-            varme stablet til høyre. Begge gruppene er `contents` på mobil —
-            da forsvinner wrapperne ut av layouten og chipene flyter nøyaktig
-            som før i én rad som brytes. To smale kolonner på 375px ville vært
-            verre enn ingen gruppering. Fra sm og opp blir gruppene ekte. */}
-        <div className="flex flex-wrap gap-3 mt-4 sm:items-start">
-          <div className="contents sm:flex sm:flex-wrap sm:gap-3">
+        {/* Chip-raden. DOM-rekkefølgen ER mobil-rekkefølgen: markeringer,
+            høyde/varme, så økttypene. Under sm er alle tre gruppene
+            `contents` — wrapperne forsvinner ut av layouten og chipene flyter
+            i én rad som brytes naturlig, akkurat som før grupperingen fantes.
+
+            Fra sm og opp legger et grid dem på plass:
+
+              [markeringer          ] [høyde]
+              [økttyper             ] [varme]
+
+            Grid og ikke `order` på flex, fordi visuell rekkefølge og
+            DOM-rekkefølge her IKKE er like — grid plasserer gruppene
+            eksplisitt uten å endre rekkefølgen for skjermlesere og
+            tastaturnavigasjon.
+
+            RAD 1 HOLDES KORT MED VILJE: «Bygg intervall» og mal-knappene
+            skal inn der senere, og da må det være plass igjen. */}
+        <div className="flex flex-wrap gap-3 mt-4
+                        sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-3 sm:gap-y-2 sm:items-start">
+          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-1">
             <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
               ★ Viktig økt
             </Chip>
@@ -908,6 +921,24 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 👥 Skal delta
               </Chip>
             )}
+          </div>
+
+          {/* Kort tekst med vilje — ikonet bærer betydningen, og plassen
+              trengs i rad 1. Lesevisningene (WorkoutOverview, WorkoutCard,
+              Calendar, AltitudeHeatTab) beholder «Høydetrening»/«Varmetrening»:
+              der står ikonet ikke nødvendigvis ved siden av, og «Høyde» alene
+              kan like gjerne bety høydemeter. */}
+          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:items-end
+                          sm:col-start-2 sm:row-start-1 sm:row-span-2">
+            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
+              🏔️ Høyde
+            </Chip>
+            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
+              🌡️ Varme
+            </Chip>
+          </div>
+
+          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-2">
             {SPECIAL_WORKOUT_TYPES.map(s => (
               <Chip key={s.value} active={form.workout_type === s.value}
                 onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
@@ -915,15 +946,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {s.label}
               </Chip>
             ))}
-          </div>
-
-          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:ml-auto sm:items-end">
-            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
-              🏔️ Høydetrening
-            </Chip>
-            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
-              🌡️ Varmetrening
-            </Chip>
           </div>
         </div>
 

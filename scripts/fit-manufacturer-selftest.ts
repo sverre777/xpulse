@@ -98,5 +98,86 @@ for (const m of FIT_MANUFACTURER_TABLE) {
 sjekk('ingen duplikate ID-er',
   new Set(FIT_MANUFACTURER_TABLE.map(m => m.id)).size, FIT_MANUFACTURER_TABLE.length)
 
+// ── Ende-til-ende: parseren → mappingen ─────────────────────
+//
+// Testene over hadde alle vært grønne mens merkingen var fullstendig død,
+// for feilen lå ikke i tabellen — den lå i SØMMEN mot parseren. Derfor
+// bygges det her ekte .fit-filer som kjøres gjennom fit-file-parser med
+// produksjonens egne opsjoner, og resultatet sammenlignes med det økta
+// faktisk ville fått i workouts.imported_from.
+
+const FitParser = require('../node_modules/fit-file-parser/dist/cjs/fit-parser.js').default
+
+const CRC_TABELL = [
+  0x0000, 0xCC01, 0xD801, 0x1400, 0xF001, 0x3C00, 0x2800, 0xE401,
+  0xA001, 0x6C00, 0x7800, 0xB401, 0x5000, 0x9C01, 0x8801, 0x4400,
+]
+function crc16(buf: Buffer): number {
+  let crc = 0
+  for (const b of buf) {
+    let t = CRC_TABELL[crc & 0xF]
+    crc = ((crc >> 4) & 0x0FFF) ^ t ^ CRC_TABELL[b & 0xF]
+    t = CRC_TABELL[crc & 0xF]
+    crc = ((crc >> 4) & 0x0FFF) ^ t ^ CRC_TABELL[(b >> 4) & 0xF]
+  }
+  return crc & 0xFFFF
+}
+
+/** Minimal, gyldig .fit-fil med én file_id-melding. */
+function lagFitFil(manufacturerId: number): Buffer {
+  const def = Buffer.from([
+    0x40,              // definisjonsmelding, local type 0
+    0x00, 0x00,        // reservert, arkitektur = little endian
+    0x00, 0x00,        // global msg num 0 = file_id
+    0x02,              // 2 felt
+    0x00, 0x01, 0x00,  // felt 0 (type),         1 byte, enum
+    0x01, 0x02, 0x84,  // felt 1 (manufacturer), 2 byte, uint16
+  ])
+  const data = Buffer.alloc(4)
+  data[0] = 0x00
+  data[1] = 4                                   // file type = activity
+  data.writeUInt16LE(manufacturerId, 2)
+  const body = Buffer.concat([def, data])
+
+  const head = Buffer.alloc(14)
+  head[0] = 14
+  head[1] = 0x10
+  head.writeUInt16LE(2140, 2)
+  head.writeUInt32LE(body.length, 4)
+  head.write('.FIT', 8, 'ascii')
+  head.writeUInt16LE(crc16(head.subarray(0, 12)), 12)
+
+  const utenCrc = Buffer.concat([head, body])
+  const crc = Buffer.alloc(2)
+  crc.writeUInt16LE(crc16(utenCrc), 0)
+  return Buffer.concat([utenCrc, crc])
+}
+
+// Nøyaktig opsjonene fra app/actions/fit-upload.ts.
+function parseFit(buf: Buffer): Promise<{ file_ids?: { manufacturer?: number | string }[] }> {
+  const parser = new FitParser({
+    force: true, speedUnit: 'm/s', lengthUnit: 'km',
+    temperatureUnit: 'celsius', elapsedRecordField: true, mode: 'cascade',
+  })
+  return new Promise((res, rej) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser.parse(buf, (e: Error | null, d: any) => (e ? rej(e) : res(d))))
+}
+
+console.log('\nENDE-TIL-ENDE: ekte .fit-fil → parser → imported_from')
+for (const m of FIT_MANUFACTURER_TABLE) {
+  const parsed = await parseFit(lagFitFil(m.id))
+  const rå = parsed.file_ids?.[0]?.manufacturer
+  // Samme uttrykk som fit-upload.ts. Sendes RÅTT videre — legger noen på
+  // en typeof-test her igjen, blir hele tabellen død og disse feiler.
+  sjekk(`id ${m.id} (parser ga «${String(rå)}»)`, mapFitManufacturerToSource(rå), m.source)
+}
+// En ID ingen kjenner skal falle pent til 'fit', ikke krasje.
+{
+  const parsed = await parseFit(lagFitFil(9999))
+  sjekk('ukjent id 9999 → fit',
+    mapFitManufacturerToSource(parsed.file_ids?.[0]?.manufacturer), 'fit')
+}
+
 console.log(feil === 0 ? '\n✓ alle tester grønne\n' : `\n✗ ${feil} feil\n`)
 process.exit(feil === 0 ? 0 : 1)

@@ -165,8 +165,13 @@ export async function uploadFitFile(
   // fra brukerens primary_sport — manufacturer-merket bestemmer kilde-badge.
   const mapping = mapFitSportToXpulse(session.sport, session.sub_sport)
   const fileId = parsed.file_ids?.[0]
-  const manufacturerId = typeof fileId?.manufacturer === 'number' ? fileId.manufacturer : null
-  const importedFrom = mapFitManufacturerToSource(manufacturerId)
+  // Sendes videre RÅ, i den formen parseren ga oss. Her stod det tidligere en
+  // `typeof … === 'number' ? … : null`-test, og den gjorde tabellen død:
+  // fit-file-parser oversetter enum-felt til profilnavnet sitt, så feltet er
+  // strengen 'polar_electro' — ikke 123 — for hvert merke biblioteket kjenner.
+  // Testen traff derfor bare ID-er biblioteket IKKE kjenner, og alt annet ble
+  // 'fit'. mapFitManufacturerToSource tar begge former.
+  const importedFrom = mapFitManufacturerToSource(fileId?.manufacturer)
   const title = `${file.name.replace(/\.fit$/i, '')} — ${formatDuration(durationMin)}`
 
   // Konflikt-deteksjon.

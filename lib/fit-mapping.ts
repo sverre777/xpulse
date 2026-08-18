@@ -83,9 +83,19 @@ export function fitSourceLabel(source: string): string {
     case 'fit_suunto':     return 'Suunto'
     case 'fit_coros':      return 'Coros'
     case 'fit_hammerhead': return 'Hammerhead'
-    // .fit eksportert fra Strava. NB: dette er IKKE det samme som kilden
-    // 'strava' (direkte-synk) — se kommentaren over tabellen.
-    case 'fit_strava':     return 'Strava'
+    // .fit eksportert fra Strava viser «Fil», ikke «Strava». Bevisst valg:
+    //
+    // PoweredByStravaBadge betyr «hentet gjennom Strava-API-et», og den
+    // betydningen henger sammen med 7-dagers rådata, AI/ML-ekskludering og
+    // sletting ved frakobling. Strekkes den til filer brukeren selv har
+    // lastet opp, kan man ikke lenger se på skjermen hvilke økter som er
+    // API-avledet — nøyaktig den grensen provenance-regelen fra #51 finnes
+    // for. Men «Strava» på den grå klokke-badgen er heller ikke svaret: da
+    // har appen to ulike Strava-merker som betyr forskjellige ting.
+    //
+    // «Fil» er sant og nøytralt. Kilden blir stående som 'fit_strava' i
+    // databasen, så skillet kan tas i bruk senere uten datatap.
+    case 'fit_strava':     return 'Fil'
     case 'fit':            return 'Klokke (.fit)'
     default:               return source.replace(/^fit_/, '').replace(/^./, c => c.toUpperCase())
   }

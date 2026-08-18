@@ -78,7 +78,10 @@ sjekk('alle kilder har fit_-prefiks',
   FIT_MANUFACTURER_TABLE.filter(m => !m.source.startsWith('fit_')).length, 0)
 
 console.log('\nEtiketter')
-sjekk('fit_strava', fitSourceLabel('fit_strava'), 'Strava')
+// «Fil», ikke «Strava» — se begrunnelsen i fitSourceLabel. Endres denne,
+// får appen to ulike Strava-merker med ulik betydning.
+sjekk('fit_strava viser Fil', fitSourceLabel('fit_strava'), 'Fil')
+sjekk('fit_strava viser IKKE Strava', fitSourceLabel('fit_strava') === 'Strava', false)
 sjekk('fit_polar', fitSourceLabel('fit_polar'), 'Polar')
 sjekk('fit_suunto', fitSourceLabel('fit_suunto'), 'Suunto')
 sjekk('fit_coros', fitSourceLabel('fit_coros'), 'Coros')
@@ -88,7 +91,7 @@ sjekk('alle kilder i tabellen har egen etikett',
     // default-grenen gir bare source-strengen med stor forbokstav — det
     // teller ikke som en etikett noen har tatt stilling til.
     return l === m.source.replace(/^fit_/, '').replace(/^./, c => c.toUpperCase())
-      && !['Garmin', 'Polar', 'Wahoo', 'Suunto', 'Coros', 'Hammerhead', 'Strava'].includes(l)
+      && !['Garmin', 'Polar', 'Wahoo', 'Suunto', 'Coros', 'Hammerhead', 'Fil'].includes(l)
   }).length, 0)
 
 console.log('\n⚑ FASIT: hver ID kryssjekkes mot FIT-profilen i fit-file-parser')

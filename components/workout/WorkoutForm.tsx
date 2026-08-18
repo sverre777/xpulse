@@ -890,31 +890,41 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 mt-4">
-          <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
-            ★ Viktig økt
-          </Chip>
-          <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
-            👥 Fellestrening
-          </Chip>
-          {showCoachAttendChip && (
-            <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
-              👥 Skal delta
+        {/* Chip-raden er delt i to grupper: markeringer til venstre, høyde og
+            varme stablet til høyre. Begge gruppene er `contents` på mobil —
+            da forsvinner wrapperne ut av layouten og chipene flyter nøyaktig
+            som før i én rad som brytes. To smale kolonner på 375px ville vært
+            verre enn ingen gruppering. Fra sm og opp blir gruppene ekte. */}
+        <div className="flex flex-wrap gap-3 mt-4 sm:items-start">
+          <div className="contents sm:flex sm:flex-wrap sm:gap-3">
+            <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
+              ★ Viktig økt
             </Chip>
-          )}
-          <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
-            🏔️ Høydetrening
-          </Chip>
-          <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
-            🌡️ Varmetrening
-          </Chip>
-          {SPECIAL_WORKOUT_TYPES.map(s => (
-            <Chip key={s.value} active={form.workout_type === s.value}
-              onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
-              color={s.color}>
-              {s.label}
+            <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
+              👥 Fellestrening
             </Chip>
-          ))}
+            {showCoachAttendChip && (
+              <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
+                👥 Skal delta
+              </Chip>
+            )}
+            {SPECIAL_WORKOUT_TYPES.map(s => (
+              <Chip key={s.value} active={form.workout_type === s.value}
+                onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
+                color={s.color}>
+                {s.label}
+              </Chip>
+            ))}
+          </div>
+
+          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:ml-auto sm:items-end">
+            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
+              🏔️ Høydetrening
+            </Chip>
+            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
+              🌡️ Varmetrening
+            </Chip>
+          </div>
         </div>
 
         {/* B2 (kø #39): arven kommer fra MARKERINGSLAGET (dag-presis) —

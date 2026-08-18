@@ -15,7 +15,7 @@ import { ChartWrapper } from './ChartWrapper'
 import { localISODate } from '@/lib/local-date'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
-  CHART_CURSOR, CHART_AVG_LINE,
+  CHART_CURSOR, CHART_AVG_LINE, BAR_RADIUS, BAR_RADIUS_FLAT,
 } from './chart-theme'
 
 const CHART_KEY = 'overview_custom_breakdown'
@@ -592,6 +592,10 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         legendType="none"
                         tooltipType="none"
                         isAnimationActive={false}
+                        // Ghosten er 0 høy i buckets med data, så radiusen
+                        // merkes kun der perioden er tom — og der er den den
+                        // eneste kolonnen, som da skal se ut som de andre.
+                        radius={BAR_RADIUS}
                       />
                     )}
                     {avgTotal > 0 && (
@@ -611,6 +615,9 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         fill={CHART_ZONE_COLORS[z]}
                         name={viewMode === 'both' ? `${z} (gjennomført)` : z}
                         hide={hiddenSeries.has(z)}
+                        // Runde hjørner KUN på øverste synlige segment — resten
+                        // flate, ellers får stacken hakk mellom hvert segment.
+                        radius={z === lastVisibleKey ? BAR_RADIUS : BAR_RADIUS_FLAT}
                       >
                         {viewMode !== 'both' && z === lastVisibleKey && (
                           <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
@@ -625,6 +632,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         fill={colorForNonEndurance(m)}
                         name={viewMode === 'both' ? `${m} (gjennomført)` : m}
                         hide={hiddenSeries.has(m)}
+                        radius={m === lastVisibleKey ? BAR_RADIUS : BAR_RADIUS_FLAT}
                       >
                         {viewMode !== 'both' && m === lastVisibleKey && (
                           <LabelList content={<BarTotalLabel totals={visibleTotals} />} />
@@ -644,6 +652,9 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         strokeDasharray="4 3"
                         name={`${z} (plan)`}
                         hide={hiddenSeries.has(z)}
+                        // Plan-stacken er en egen stack og trenger sin egen
+                        // topp — samme nøkkelrekkefølge, så samme øverste.
+                        radius={z === lastVisibleKey ? BAR_RADIUS : BAR_RADIUS_FLAT}
                       />
                     ))}
                     {viewMode === 'both' && activeNonEnduranceKeys.map(m => (
@@ -657,6 +668,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         strokeDasharray="4 3"
                         name={`${m} (plan)`}
                         hide={hiddenSeries.has(m)}
+                        radius={m === lastVisibleKey ? BAR_RADIUS : BAR_RADIUS_FLAT}
                       />
                     ))}
                   </BarChart>

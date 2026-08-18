@@ -5,26 +5,74 @@
 // Manufacturer-enum og sport-enum kommer fra FIT SDK Profile.xlsx (Types-tab).
 
 // ── Manufacturer ────────────────────────────────────────────
+//
+// ⚠ ID-ENE SKAL ALDRI SKRIVES FRA HUKOMMELSEN. De kommer fra FIT SDK
+// Profile (Types-fanen, `manufacturer`) og er lette å huske feil — denne
+// tabellen hadde fire feil ID-er fram til 2026-08-18, med det resultatet at
+// Suunto-filer ble merket Polar og Polar-filer ikke ble merket i det hele
+// tatt. Skal en ID inn eller endres: slå den opp i to uavhengige kilder
+// først, og la `scripts/fit-manufacturer-selftest.ts` bekrefte den.
+//
+// Verifisert 2026-08-18 mot:
+//   1. Garmin FIT SDK (offisiell fasit)
+//      github.com/garmin/fit-javascript-sdk → src/profile.js
+//   2. fit-file-parser, parseren X-PULSE faktisk bruker
+//      node_modules/fit-file-parser/dist/cjs/fit.js → FIT.types.manufacturer
+// Kildene var enige om samtlige ID-er begge inneholder.
+//
+// Merker vi ikke har en etikett for skal IKKE stå her — de faller til 'fit',
+// som er riktig oppførsel. Derfor mangler f.eks. 70 (sigmasport),
+// 89 (tacx), 281 (trainer_road) og 309 (form) med vilje.
+//
+// `navn` er det offisielle FIT-profilnavnet. Det er ikke pynt: parseren
+// returnerer navnet, ikke tallet, for hver ID den kjenner (se
+// mapFitManufacturerToSource under), så begge må stemme.
 
-const FIT_MANUFACTURER_SOURCE: Record<number, string> = {
-  1:   'fit_garmin',     // Garmin (alle FR/Edge/Fenix/etc)
-  2:   'fit_garmin',     // GarminFR405Antfs
-  13:  'fit_garmin',     // Dynastream (Garmin-owned)
-  15:  'fit_garmin',     // Dynastream OEM (Garmin)
-  23:  'fit_polar',      // Polar Electro
-  32:  'fit_wahoo',      // Wahoo Fitness
-  70:  'fit_suunto',     // Suunto
-  281: 'fit_coros',      // Coros (PACE/APEX/VERTIX)
-  294: 'fit_hammerhead', // Hammerhead
-  309: 'fit_hammerhead', // Karoo (Hammerhead)
+const FIT_MANUFACTURERS: readonly { id: number; navn: string; source: string }[] = [
+  { id: 1,   navn: 'garmin',              source: 'fit_garmin' },
+  { id: 2,   navn: 'garmin_fr405_antfs',  source: 'fit_garmin' },
+  { id: 13,  navn: 'dynastream_oem',      source: 'fit_garmin' },      // Garmin-eid
+  { id: 15,  navn: 'dynastream',          source: 'fit_garmin' },      // Garmin-eid
+  { id: 23,  navn: 'suunto',              source: 'fit_suunto' },
+  { id: 32,  navn: 'wahoo_fitness',       source: 'fit_wahoo' },
+  { id: 123, navn: 'polar_electro',       source: 'fit_polar' },
+  { id: 265, navn: 'strava',              source: 'fit_strava' },
+  { id: 289, navn: 'hammerhead',          source: 'fit_hammerhead' },  // Karoo
+  { id: 294, navn: 'coros',               source: 'fit_coros' },       // PACE/APEX/VERTIX
+]
+
+const SOURCE_BY_ID = new Map(FIT_MANUFACTURERS.map(m => [m.id, m.source]))
+const SOURCE_BY_NAVN = new Map(FIT_MANUFACTURERS.map(m => [m.navn, m.source]))
+
+/**
+ * Returner kilde-strengen som lagres i workouts.imported_from.
+ *
+ * Tar BÅDE tall og navn, og det er ikke defensiv pynt: fit-file-parser
+ * oversetter enum-felt til profilnavnet sitt før vi ser dem, så et
+ * file_id.manufacturer er strengen 'polar_electro' — ikke 123 — for hver ID
+ * biblioteket kjenner. Tallet kommer kun igjennom for ID-er biblioteket IKKE
+ * kjenner. En ren tall-oppslag treffer derfor aldri et kjent merke.
+ * (Samme grunn som mapFitSportToXpulse under tar begge former.)
+ *
+ * Ukjent produsent, eller manglende file_id, faller til 'fit'.
+ */
+export function mapFitManufacturerToSource(
+  manufacturer: number | string | null | undefined,
+): string {
+  if (manufacturer == null) return 'fit'
+  if (typeof manufacturer === 'number') return SOURCE_BY_ID.get(manufacturer) ?? 'fit'
+
+  const navn = manufacturer.trim().toLowerCase()
+  const fraNavn = SOURCE_BY_NAVN.get(navn)
+  if (fraNavn) return fraNavn
+
+  // Et tall som kom inn som streng skal behandles som tallet det er.
+  const somTall = /^\d+$/.test(navn) ? Number(navn) : null
+  return somTall == null ? 'fit' : SOURCE_BY_ID.get(somTall) ?? 'fit'
 }
 
-// Returner kilde-streng som lagres i workouts.imported_from. Ukjente
-// manufacturers (eller manglende file_id) faller tilbake til 'fit'.
-export function mapFitManufacturerToSource(manufacturerId: number | null | undefined): string {
-  if (manufacturerId == null) return 'fit'
-  return FIT_MANUFACTURER_SOURCE[manufacturerId] ?? 'fit'
-}
+/** Kun for selvtesten — så tabellen kan kryssjekkes mot FIT-profilen. */
+export const FIT_MANUFACTURER_TABLE = FIT_MANUFACTURERS
 
 // Lesbart merkenavn for UI-badge.
 export function fitSourceLabel(source: string): string {
@@ -35,6 +83,9 @@ export function fitSourceLabel(source: string): string {
     case 'fit_suunto':     return 'Suunto'
     case 'fit_coros':      return 'Coros'
     case 'fit_hammerhead': return 'Hammerhead'
+    // .fit eksportert fra Strava. NB: dette er IKKE det samme som kilden
+    // 'strava' (direkte-synk) — se kommentaren over tabellen.
+    case 'fit_strava':     return 'Strava'
     case 'fit':            return 'Klokke (.fit)'
     default:               return source.replace(/^fit_/, '').replace(/^./, c => c.toUpperCase())
   }

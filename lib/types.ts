@@ -452,6 +452,30 @@ export interface ActivityTypeOption {
   legacy?: boolean
 }
 
+// ── SKYTETYPENE: hvorfor det ser rart ut, og hvorfor det står slik ───────
+//
+// `skyting_kombinert` er DAGENS ENESTE skytetype, og etiketten er «Skyting»
+// — ikke «kombinert». Navnet er historisk, fra da posisjon var en del av
+// selve typen. Etter kø #47 ligger posisjon på serien
+// (`ShootingSeriesRow.position`), og én skyterad kan derfor inneholde både
+// liggende og stående serier. ALT NYTT SOM OPPRETTER SKYTING SKAL BRUKE
+// `skyting_kombinert`.
+//
+// De fire med `legacy: true` brukes IKKE for nye rader. De står her fordi
+// gamle rader i prod fortsatt bærer verdiene, og tre steder slår dem opp:
+//   · WorkoutOverview.tsx:180 og :452 — henter etiketten så gamle økter
+//     beholder navnet sitt i visningen
+//   · ActivitiesSection.tsx:547 — beholder verdien synlig i velgeren på en
+//     gammel rad som allerede har den
+// Fjernes de, mister gamle økter navnet sitt og faller tilbake på råverdien.
+//
+// At velgeren viser ÉN «Skyting» kommer av filteret i
+// ActivitiesSection.tsx:263, som dropper alt med `legacy`.
+//
+// Å døpe om `skyting_kombinert` til noe mer treffende ville krevd en
+// migrering av `activities.activity_type` i prod, og gevinsten er kun
+// lesbarhet. Bevisst ikke gjort.
+
 export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'oppvarming',        label: 'Oppvarming',         icon: '🔥', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'aktivitet',         label: 'Aktivitet',          icon: '⚡', usesMovement: true,  isShooting: false, biathlonOnly: false },

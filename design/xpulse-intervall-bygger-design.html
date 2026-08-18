@@ -10,6 +10,7 @@
   --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
   --orange:#FF4500;
   --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
+  --ligg:#1A6FD4; --staa:#FF8C00;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--paper);font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:34px 22px 80px}
@@ -22,11 +23,17 @@ h2::before{content:'';display:block;width:22px;height:3px;background:var(--orang
 .card{margin-top:14px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:20px}
 .cap{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
 
-/* ── rader ── */
+/* knapperad over sonefeltene */
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.actions .lbl{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-right:auto}
+.abtn{border:1px solid var(--line2);background:var(--surface);color:var(--dim);border-radius:9px;
+     padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}
+.abtn.on{border-color:var(--orange);color:var(--paper);background:rgba(255,69,0,.10);font-weight:700}
+
+/* rader */
 .row{display:grid;grid-template-columns:60px 14px 84px 92px 20px 84px 34px;gap:8px;align-items:center;
      border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;margin-top:8px}
-.row .x{color:var(--mute);text-align:center;font-size:15px}
-.row .sl{color:var(--mute);text-align:center;font-size:15px}
+.row .x,.row .sl{color:var(--mute);text-align:center;font-size:15px}
 input,select{background:#0A0A0D;border:1px solid var(--line2);border-radius:8px;color:var(--paper);
      font:inherit;font-size:15px;padding:9px 10px;width:100%;outline:none;min-width:0}
 input:focus,select:focus{border-color:var(--orange)}
@@ -39,10 +46,36 @@ select.z{font-weight:700}
 .addrow:hover{border-color:var(--orange);color:var(--paper)}
 .hdr{display:grid;grid-template-columns:60px 14px 84px 92px 20px 84px 34px;gap:8px;padding:0 12px;
      font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
-
+.bev{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .oppned{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
 
-/* ── forhåndsvisning ── */
+/* skyting */
+.skyt{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:var(--surface);color:var(--dim);border-radius:999px;
+     padding:8px 15px;font:inherit;font-size:14px;cursor:pointer}
+.chip.on{border-color:var(--i5);background:rgba(226,58,90,.12);color:var(--paper);font-weight:700}
+.opprett{margin-top:18px;width:100%;border:none;background:var(--orange);color:#fff;border-radius:10px;
+     padding:13px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+
+/* kollapset tilstand */
+.stegrad{display:flex;align-items:center;gap:12px;justify-content:space-between;
+     margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.krad{display:flex;align-items:center;gap:14px}
+.strip.mini{height:16px;margin:0;flex:0 0 150px}
+.ksum{flex:1;font-size:14.5px;min-width:0}
+.ksum b{display:block;font-weight:700}
+.ksum span{color:var(--mute);font-size:13px}
+
+/* forhåndsvisning */
+/* Skyting er en MARKERING over stripa, ikke en egen farge i den. Stripa skal
+   fortsatt kunne leses som ren sonefordeling. */
+.stripwrap{position:relative;padding-top:26px;margin-top:4px}
+.marks{position:absolute;top:0;left:0;right:0;height:26px}
+.mark{position:absolute;top:0;transform:translateX(-50%);text-align:center;line-height:1}
+.mark .b{display:block;font-size:10.5px;font-weight:800;color:#fff;border-radius:3px;
+     width:16px;height:16px;line-height:16px}
+.mark .l{width:1.5px;height:10px;margin:0 auto;background:currentColor;opacity:.6}
 .strip{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--line2);margin-top:4px}
 .strip div{height:100%}
 .tot{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
@@ -56,16 +89,31 @@ select.z{font-weight:700}
 .sum .big{font-size:30px;font-weight:800;letter-spacing:-.01em}
 .tittel{margin-top:14px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:12px 14px}
 .tittel .t{font-size:17px;font-weight:700}
-.seq{margin-top:12px;font-size:13px;color:var(--dim);line-height:1.8;word-break:break-word}
-.seq span{border:1px solid var(--line2);border-radius:6px;padding:2px 7px;margin-right:5px;white-space:nowrap}
+
+/* aktivitetsrader */
+.genhdr{display:flex;align-items:center;gap:12px;margin-top:18px;margin-bottom:8px}
+.seg{margin-left:auto;display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.seg button{border:none;background:transparent;color:var(--dim);font:inherit;font-size:13px;
+     padding:7px 14px;cursor:pointer}
+.seg button.on{background:var(--orange);color:#fff;font-weight:700}
+.acts{margin-top:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.act{display:grid;grid-template-columns:26px 1fr 74px 62px;gap:10px;align-items:center;
+     padding:8px 12px;font-size:14px;border-bottom:1px solid var(--line)}
+.act:last-child{border-bottom:none}
+.act .n{color:var(--mute);font-size:12px;text-align:right}
+.act .ty{color:var(--dim)}
+.act .bv{color:var(--mute);font-size:12.5px;margin-left:8px}
+.act .du{text-align:right;font-variant-numeric:tabular-nums}
+.act .zo{text-align:right;font-weight:700;font-size:13px}
+.act.sk{background:rgba(226,58,90,.06)}
+.pos{display:inline-block;width:17px;height:17px;line-height:17px;text-align:center;border-radius:4px;
+     font-size:11px;font-weight:800;color:#fff;margin-right:7px}
 
 .note{margin-top:16px;border:1px solid var(--line);border-left:3px solid var(--orange);background:var(--card);
      border-radius:9px;padding:13px 16px;font-size:14px;color:var(--dim)}
 .note b{color:var(--paper)}
 .note + .note{margin-top:10px}
 @media(max-width:640px){
-  /* Gangetegnet og skråstreken er pynt — de ryker først når plassen tar slutt,
-     ikke feltene. Kolonneoverskriftene bærer betydningen uansett. */
   .row .x,.row .sl,.hdr .g{display:none}
   .row,.hdr{grid-template-columns:44px 1fr 1fr 1fr 30px;gap:6px}
   input,select{font-size:14px;padding:8px 6px}
@@ -74,6 +122,9 @@ select.z{font-weight:700}
   .card{padding:14px}
   .row{padding:10px 8px}
   .hdr{padding:0 8px;font-size:10px;letter-spacing:.08em}
+  .bev{grid-template-columns:1fr 1fr}
+  .skytvelg{grid-column:1 / -1}
+  .act{grid-template-columns:22px 1fr 62px 52px;gap:7px;font-size:13px}
   h1{font-size:29px}
 }
 </style>
@@ -84,12 +135,58 @@ select.z{font-weight:700}
   <div class="eyebrow">Designutkast</div>
   <h1>Intervall-bygger</h1>
   <p class="intro">Velg antall drag, dragtid, sone og pause. Flere rader stables etter hverandre,
-  så pyramider og progressive økter bygges like enkelt som en ren serie. Rundene lages automatisk,
-  og siste pause utgår.</p>
+  så pyramider og progressive økter bygges like enkelt som en ren serie. Byggeren lager
+  aktivitetsradene ferdig — det du ellers ville lagt til for hånd, én etter én.</p>
 
-  <h2>Byggeren</h2>
+  <h2>Der den bor</h2>
   <div class="card">
-    <div class="cap">Drag</div>
+    <div class="actions">
+      <span class="lbl">Sonefordeling</span>
+      <button class="abtn">Velg mal</button>
+      <button class="abtn on">Bygg intervall</button>
+    </div>
+    <p style="color:var(--dim);font-size:14px">Begge knappene står alltid der, rett over sonefeltene.
+    To veier til å fylle ut det samme: én for økter du har gjort før, én for økter du finner på nå.</p>
+  </div>
+
+  <h2 id="h-bygg">Steg 1 — bygg</h2>
+
+  <!-- KOLLAPSET: etter «Opprett». Samme mønster som når konkurranse
+       fellesstart genererer alt automatisk. -->
+  <h2 id="h-ferdig" style="display:none">Ferdig — generatoren er kollapset</h2>
+  <div class="card" id="kollaps" style="display:none">
+    <div class="krad">
+      <div class="strip mini" id="kstrip"></div>
+      <div class="ksum" id="ksum">—</div>
+      <button class="abtn" onclick="steg('bygg')">Endre</button>
+    </div>
+  </div>
+
+  <div class="card" id="byggeren">
+    <div class="cap">Gjelder hele økta</div>
+    <div class="bev">
+      <div>
+        <div class="cap" style="margin-bottom:6px">Bevegelsesform</div>
+        <select id="bev" onchange="render()"></select>
+      </div>
+      <div>
+        <div class="cap" style="margin-bottom:6px">Underkategori</div>
+        <select id="sub" onchange="draw()"></select>
+      </div>
+      <div class="skytvelg">
+        <div class="cap" style="margin-bottom:6px">Skyting i pausene</div>
+        <select id="skytsel" onchange="setSkyt(this.value||null)">
+          <option value="">Ingen skyting</option>
+          <option value="LS">L–S–L–S</option>
+          <option value="LLSS">L,L → S,S</option>
+          <option value="PAR">L,L,S,S…</option>
+          <option value="L">Kun liggende</option>
+          <option value="S">Kun stående</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cap" style="margin-top:18px">Drag</div>
     <div class="hdr">
       <span>Antall</span><span class="g"></span><span>Dragtid</span><span>Sone</span><span class="g"></span><span>Pause</span><span></span>
     </div>
@@ -97,84 +194,164 @@ select.z{font-weight:700}
     <button class="addrow" onclick="addRow()">+ Legg til rad</button>
 
     <div class="oppned">
-      <div>
-        <div class="cap">Oppvarming</div>
-        <input id="opp" value="30:00" oninput="draw()">
-      </div>
-      <div>
-        <div class="cap">Nedjogg</div>
-        <input id="ned" value="10:00" oninput="draw()">
-      </div>
+      <div><div class="cap">Oppvarming</div><input id="opp" value="30:00" oninput="draw()"></div>
+      <div><div class="cap">Nedjogg</div><input id="ned" value="10:00" oninput="draw()"></div>
     </div>
+
+    <div class="skyt">
+      <div id="skinfo" style="color:var(--dim);font-size:14px">—</div>
+    </div>
+
+    <button class="opprett" onclick="steg('vis')">Opprett</button>
   </div>
 
-  <h2>Slik blir økta</h2>
-  <div class="card">
+  <h2 id="h-vis">Steg 2 — se hvordan den blir</h2>
+  <div class="card" id="visning">
     <div class="cap">Fordeling</div>
-    <div class="strip" id="strip"></div>
+    <div class="stripwrap">
+      <div class="marks" id="marks"></div>
+      <div class="strip" id="strip"></div>
+    </div>
     <div class="tot" id="tot"></div>
 
-    <div class="sum">
-      <span class="lbl">Total varighet</span>
-      <span class="big" id="total">—</span>
-    </div>
+    <div class="sum"><span class="lbl">Total varighet</span><span class="big" id="total">—</span></div>
 
     <div class="tittel">
       <div class="cap" style="margin-bottom:5px">Tittel — fylles inn, fritt redigerbar</div>
       <div class="t" id="tittel">—</div>
     </div>
 
-    <div class="cap" style="margin-top:16px">Blokkene som lagres</div>
-    <div class="seq" id="seq"></div>
+    <div class="genhdr">
+      <span class="cap" style="margin:0">Generert i aktivitetslista</span>
+      <span class="seg">
+        <button id="g-spl" class="on" onclick="setGen('splittet')">Splittet</button>
+        <button id="g-sam" onclick="setGen('samlet')">Samlet</button>
+      </span>
+    </div>
+    <div class="acts" id="acts"></div>
+
+    <div class="stegrad">
+      <button class="abtn" onclick="steg('bygg')">← Tilbake</button>
+      <button class="opprett" style="margin:0;width:auto;padding:13px 34px" onclick="steg('ferdig')">Ferdig</button>
+    </div>
   </div>
 
-  <div class="note"><b>Siste pause utgår.</b> Tre drag gir to pauser. Etter siste drag går man rett
-  på nedjogg, eller rett inn i neste rad.</div>
+  <div class="note"><b>Bevegelsesformene her er utkast-data.</b> Fem stykker, kun for å vise
+  oppførselen. Det ekte importerer <code>MOVEMENT_CATEGORIES</code> og
+  <code>getSubcategories()</code> fra <code>lib/types.ts</code>, med samme sortering som resten av
+  appen — «Topp 6» øverst og brukerens egne først via
+  <code>DEFAULT_MOVEMENTS_BY_SPORT</code>. Aldri en egen kopi.</div>
 
-  <div class="note"><b>Ingenting låses.</b> Byggeren fyller ut feltene i økta. Etterpå er alt fritt
+  <div class="note"><b>Samlet eller splittet.</b> Splittet gir én aktivitetsrad per blokk, altså
+  drag-for-drag-data til analysen. Samlet gir én rad med sonetotaler, og en egen skyterad — ryddigere
+  i dagboka når du ikke bryr deg om hvert enkelt drag. Begge bygger på nøyaktig samme tall.
+  <span style="display:block;margin-top:6px">Skytingen kan aldri slås sammen med bevegelsen — den
+  blir en egen rad uansett.</span></div>
+
+  <div class="note"><b>Tre steg.</b> Bygg → se hvordan den blir → ferdig. Valget mellom samlet og
+  splittet hører hjemme i steg 2, der du faktisk ser forskjellen, ikke mens du bygger. «Tilbake»
+  går til byggeren med alt intakt.
+  <span style="display:block;margin-top:6px">Etter «Ferdig» kollapser generatoren til én linje med
+  fordelingsstripe og «Endre», mens radene ligger i aktivitetslista som helt vanlige rader — samme
+  mønster som når konkurranse fellesstart genererer alt automatisk.</span>
+  <span style="display:block;margin-top:6px">Knappene virker i utkastet. Klikk deg gjennom.</span></div>
+
+  <div class="note"><b>Byggeren lager aktivitetsrader, ikke sammenlagte tall.</b>
+  <code>ActivityType</code> har allerede <code>oppvarming</code>, <code>aktivitet</code>,
+  <code>aktiv_pause</code> og <code>nedjogg</code> — altså nøyaktig strukturen en intervalløkt har.
+  Byggeren fyller ut de radene du ellers ville lagt til én etter én. Det gir også drag-for-drag-data
+  til analysen uten at noe nytt må bygges.</div>
+
+  <div class="note"><b>Skyting erstatter pausen, den kommer ikke i tillegg.</b> Pauseraden blir en
+  skyterad med samme varighet og posisjon satt. Skal det være hvile i tillegg, legger utøveren det
+  til selv etterpå.</div>
+
+  <div class="note"><b>Siste pause utgår</b> — tre drag gir to pauser. Pausen MELLOM to rader
+  beholdes, ellers kolliderer siste drag i rad 1 med første i rad 2.</div>
+
+  <div class="note"><b>Ingenting låses.</b> Byggeren fyller ut feltene. Etterpå er alt fritt
   redigerbart, og økta husker ikke at den kom fra en bygger.</div>
 
-  <div class="note"><b>Blokkene lagres, totalene utledes.</b> <code>ActivityRow</code> har ingen
-  drag-modell i dag, så sonetotalene er det appen faktisk bruker. Blokklista lagres ved siden av, i
-  samme format som øktmal-biblioteket, og tas i bruk når drag-modellen kommer i #48/SF-4.
-  Totalene skrives aldri for hånd.</div>
-
-  <div class="note"><b>Eksempelet over</b> er en progressiv økt: to lange terskeldrag først, så tre
-  kortere i I4. Det er nettopp den typen økt som ikke kan bygges med bare «antall × tid», og som er
-  grunnen til at rader er verdt å bygge.</div>
+  <div class="note"><b>Dette er byggeren, ikke føringen.</b> Skuddtreff, skytetid, serie-puls,
+  vind og sikt hører hjemme i skytedelen etterpå. Her velges bare om det skytes, hvor, og hvor mange
+  skudd.</div>
 
 </div>
 
 <script>
-const SONER = [
-  ['I1','var(--i1)'],['I2','var(--i2)'],['I3','var(--i3)'],
-  ['I4','var(--i4)'],['I5','var(--i5)'],['Hurtighet','var(--hurt)']
-];
+const SONER = [['I1','var(--i1)'],['I2','var(--i2)'],['I3','var(--i3)'],
+               ['I4','var(--i4)'],['I5','var(--i5)'],['Hurtighet','var(--hurt)']];
 const FARGE = Object.fromEntries(SONER);
 
-// Eksempel: 2 × 10 min I3 / 3 min  +  3 × 5 min I4 / 2 min
 let rader = [
   {n:2, drag:'10:00', sone:'I3', pause:'3:00'},
   {n:3, drag:'5:00',  sone:'I4', pause:'2:00'},
 ];
+let skyt = null;   // ingen skyting er standard
+let gen = 'splittet';   // 'splittet' = én rad per blokk · 'samlet' = én rad med totaler
 
-const p = s => {
-  const d = String(s||'').trim().split(':').map(Number);
+// ⚠️ KUN UTKAST-DATA. Fem bevegelsesformer for å vise oppførselen.
+// Det ekte skal importere MOVEMENT_CATEGORIES og getSubcategories() fra
+// lib/types.ts — ALDRI en egen kopi. Samme regel som sonefargene og
+// OKT_MAL_TYPER: én kilde, ellers driver de fra hverandre.
+// Sorteringen skal følge resten av appen: «Topp 6» øverst, og brukerens egne
+// bevegelsesformer først via DEFAULT_MOVEMENTS_BY_SPORT.
+const BEV = [
+  ['Rulleski', ['Klassisk','Skøyting','Dobbeltak','Padling']],
+  ['Langrenn', ['Klassisk','Skøyting','Dobbeltak','Padling']],
+  ['Løping',   ['Terreng','Asfalt','Grus','Tredemølle','Bane']],
+  ['Sykling',  ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo']],
+  ['SkiErg',   []],
+];
+
+const p = s => { const d=String(s||'').trim().split(':').map(Number);
   if (d.some(isNaN)) return 0;
-  return d.length===3 ? d[0]*3600+d[1]*60+d[2] : d.length===2 ? d[0]*60+d[1] : d[0]*60;
-};
-const f = sek => {
-  if (sek<=0) return '0:00';
-  const t=Math.floor(sek/3600), m=Math.floor(sek%3600/60), s=sek%60;
-  const z=n=>String(n).padStart(2,'0');
-  return t>0 ? `${t}:${z(m)}:${z(s)}` : `${m}:${z(s)}`;
-};
+  return d.length===3 ? d[0]*3600+d[1]*60+d[2] : d.length===2 ? d[0]*60+d[1] : d[0]*60; };
+const f = sek => { if (sek<=0) return '0:00';
+  const t=Math.floor(sek/3600), mm=Math.floor(sek%3600/60), ss=sek%60, z=n=>String(n).padStart(2,'0');
+  return t>0 ? `${t}:${z(mm)}:${z(ss)}` : `${mm}:${z(ss)}`; };
 
 function addRow(){ rader.push({n:4, drag:'4:00', sone:'I5', pause:'3:00'}); render(); }
 function delRow(i){ if(rader.length>1){ rader.splice(i,1); render(); } }
 function upd(i,k,v){ rader[i][k] = k==='n' ? Math.max(1,parseInt(v)||1) : v; draw(); }
+function setSkyt(v){ skyt=v; render(); }
+function setGen(v){
+  gen=v;
+  document.getElementById('g-spl').classList.toggle('on', v==='splittet');
+  document.getElementById('g-sam').classList.toggle('on', v==='samlet');
+  draw();
+}
+
+function steg(s){
+  const vis = (id,på) => document.getElementById(id).style.display = på ? '' : 'none';
+  vis('h-bygg',   s==='bygg');   vis('byggeren', s==='bygg');
+  vis('h-vis',    s==='vis');    vis('visning',  s==='vis');
+  vis('h-ferdig', s==='ferdig'); vis('kollaps',  s==='ferdig');
+  draw();
+  window.scrollTo({top: document.querySelector('h2:not([style*="none"])').offsetTop - 20, behavior:'smooth'});
+}
+
+// Posisjon for pause nr. i av n. Ett sted, så mønsteret aldri kan tolkes ulikt.
+function posisjon(i, n){
+  switch(skyt){
+    case 'LS':   return i%2===0 ? 'L' : 'S';
+    case 'LLSS': return i < Math.ceil(n/2) ? 'L' : 'S';   // alle liggende først, så alle stående
+    case 'PAR':  return i % 4 < 2 ? 'L' : 'S';             // L,L,S,S,L,L,S,S — parvis, gjentatt
+    case 'L':    return 'L';
+    case 'S':    return 'S';
+    default:     return null;
+  }
+}
 
 function render(){
+  const bs = document.getElementById('bev');
+  if (!bs.options.length) bs.innerHTML = BEV.map(([n])=>`<option>${n}</option>`).join('');
+  const subs = (BEV.find(([n])=>n===bs.value) ?? BEV[0])[1];
+  const ss = document.getElementById('sub');
+  ss.innerHTML = subs.length ? subs.map(x=>`<option>${x}</option>`).join('')
+                             : '<option value="">—</option>';
+  ss.disabled = !subs.length;
+
   document.getElementById('rows').innerHTML = rader.map((r,i)=>`
     <div class="row">
       <input value="${r.n}" oninput="upd(${i},'n',this.value)">
@@ -191,46 +368,114 @@ function render(){
 }
 
 function blokker(){
-  const b = [];
-  const o = p(document.getElementById('opp').value);
-  if (o>0) b.push({sek:o, sone:'I1', rolle:'oppvarming'});
-  rader.forEach((r,ri)=>{
-    for (let i=0;i<r.n;i++){
-      b.push({sek:p(r.drag), sone:r.sone, rolle:'arbeid'});
-      const sisteIRad = i===r.n-1;
-      const sisteRad  = ri===rader.length-1;
-      // Siste pause i siste rad utgår. Mellom rader beholdes pausen.
-      if (!(sisteIRad && sisteRad) && p(r.pause)>0) b.push({sek:p(r.pause), sone:'I1', rolle:'pause'});
+  const b=[], o=p(document.getElementById('opp').value);
+  if(o>0) b.push({sek:o, sone:'I1', type:'oppvarming'});
+  // Alle pauser i hele økta nummereres i rekkefølge, så mønsteret løper på
+  // tvers av rader og ikke starter på nytt for hver.
+  const pauser=[];
+  rader.forEach((r,ri)=>{ for(let i=0;i<r.n;i++){
+    const sist = i===r.n-1 && ri===rader.length-1;
+    if(!sist && p(r.pause)>0) pauser.push(true);
+  }});
+  let pi=0;
+  rader.forEach((r,ri)=>{ for(let i=0;i<r.n;i++){
+    b.push({sek:p(r.drag), sone:r.sone, type:'aktivitet'});
+    const sist = i===r.n-1 && ri===rader.length-1;
+    if(!sist && p(r.pause)>0){
+      const pos = posisjon(pi, pauser.length); pi++;
+      b.push({sek:p(r.pause), sone:'I1', type: pos?('skyting_'+(pos==='L'?'liggende':'staaende')):'aktiv_pause', pos});
     }
-  });
-  const n = p(document.getElementById('ned').value);
-  if (n>0) b.push({sek:n, sone:'I1', rolle:'nedjogg'});
+  }});
+  const n=p(document.getElementById('ned').value);
+  if(n>0) b.push({sek:n, sone:'I1', type:'nedjogg'});
   return b.filter(x=>x.sek>0);
 }
 
+const NAVN = {oppvarming:'Oppvarming', aktivitet:'Aktivitet', aktiv_pause:'Aktiv pause',
+              nedjogg:'Nedjogg', skyting_liggende:'Skyting', skyting_staaende:'Skyting'};
+// Skyterader har usesMovement = false — de skal ikke ha bevegelsesform.
+const HAR_BEV = t => !t.startsWith('skyting_');
+
 function draw(){
-  const b = blokker();
-  const tot = b.reduce((s,x)=>s+x.sek,0);
+  const b=blokker(), tot=b.reduce((s,x)=>s+x.sek,0);
+  const serier = b.filter(x=>x.pos).length;
+  const bev = document.getElementById('bev').value || '';
+  const sub = document.getElementById('sub').value || '';
+  const skudd = 5;   // 5 skudd er standard i skiskyting — ikke et valg i byggeren.
 
   document.getElementById('strip').innerHTML = b.map(x=>
-    `<div style="width:${(x.sek/tot*100)}%;background:${FARGE[x.sone]}" title="${f(x.sek)} ${x.sone}"></div>`).join('');
+    `<div style="width:${x.sek/tot*100}%;background:${FARGE[x.sone]}"></div>`).join('');
+
+  // L/S over stripa, med strek ned i den pausen skytingen hører til.
+  let løpt = 0;
+  document.getElementById('marks').innerHTML = b.map(x => {
+    const midt = (løpt + x.sek/2) / tot * 100; løpt += x.sek;
+    if (!x.pos) return '';
+    const c = x.pos==='L' ? 'var(--ligg)' : 'var(--staa)';
+    return `<span class="mark" style="left:${midt}%;color:${c}">
+              <span class="b" style="background:${c}">${x.pos}</span>
+              <span class="l"></span>
+            </span>`;
+  }).join('');
 
   document.getElementById('tot').innerHTML = SONER.map(([s,c])=>{
-    const sek = b.filter(x=>x.sone===s).reduce((a,x)=>a+x.sek,0);
-    return sek>0 ? `<span class="pill"><span class="dot" style="background:${c}"></span>${s} <b>${f(sek)}</b></span>` : '';
+    const sek=b.filter(x=>x.sone===s).reduce((a,x)=>a+x.sek,0);
+    return sek>0?`<span class="pill"><span class="dot" style="background:${c}"></span>${s} <b>${f(sek)}</b></span>`:'';
   }).join('');
 
   document.getElementById('total').textContent = f(tot);
 
+  document.getElementById('skinfo').textContent = serier
+    ? `${serier} serier · ${b.filter(x=>x.pos==='L').length} liggende, ${b.filter(x=>x.pos==='S').length} stående · ${serier*skudd} skudd`
+    : 'Pausene blir vanlige aktive pauser.';
+
   document.getElementById('tittel').textContent = rader
     .map(r=>`${r.n} × ${r.drag.replace(/:00$/,' min')} ${r.sone} / ${r.pause.replace(/:00$/,' min')}`)
-    .join('  +  ');
+    .join('  +  ') + (serier ? '  ·  komb' : '');
 
-  document.getElementById('seq').innerHTML = b.map(x=>
-    `<span style="color:${FARGE[x.sone]}">${f(x.sek)} ${x.sone}</span>`).join('');
+  // Kollapset visning — samme data, én linje.
+  document.getElementById('kstrip').innerHTML = document.getElementById('strip').innerHTML;
+  document.getElementById('ksum').innerHTML =
+    `<b>${document.getElementById('tittel').textContent}</b><span>${f(tot)} · ${b.length} rader${serier?` · ${serier} skyteserier`:''}</span>`;
+
+  if (gen === 'splittet') {
+    document.getElementById('acts').innerHTML = b.map((x,i)=>`
+      <div class="act ${x.pos?'sk':''}">
+        <span class="n">${i+1}</span>
+        <span class="ty">${x.pos?`<span class="pos" style="background:${x.pos==='L'?'var(--ligg)':'var(--staa)'}">${x.pos}</span>`:''}${NAVN[x.type]}${x.pos?` · ${skudd} skudd`:''}${HAR_BEV(x.type)?`<span class="bv">${bev}${sub?' · '+sub:''}</span>`:''}</span>
+        <span class="du">${f(x.sek)}</span>
+        <span class="zo" style="color:${FARGE[x.sone]}">${x.sone}</span>
+      </div>`).join('');
+  } else {
+    // SAMLET: én aktivitetsrad med sonetotaler. Skytingen blir én egen rad,
+    // for den kan ikke slås sammen med bevegelsen.
+    const soner = SONER.map(([sn,c])=>{
+      const sek=b.filter(x=>x.sone===sn && !x.pos).reduce((a,x)=>a+x.sek,0);
+      return sek>0 ? `<span style="color:${c}">${sn} ${f(sek)}</span>` : '';
+    }).filter(Boolean).join('<span style="color:var(--mute)"> · </span>');
+    const bevSek = b.filter(x=>!x.pos).reduce((a,x)=>a+x.sek,0);
+    document.getElementById('acts').innerHTML = `
+      <div class="act">
+        <span class="n">1</span>
+        <span class="ty">Aktivitet<span class="bv">${bev}${sub?' · '+sub:''}</span></span>
+        <span class="du">${f(bevSek)}</span>
+        <span class="zo"></span>
+      </div>
+      <div class="act"><span class="n"></span><span class="ty" style="font-size:13px">${soner}</span>
+        <span class="du"></span><span class="zo"></span></div>` +
+      (serier ? `
+      <div class="act sk">
+        <span class="n">2</span>
+        <span class="ty">Skyting · ${serier} serier · ${serier*skudd} skudd
+          <span class="bv">${b.filter(x=>x.pos==='L').length} liggende, ${b.filter(x=>x.pos==='S').length} stående</span></span>
+        <span class="du">${f(b.filter(x=>x.pos).reduce((a,x)=>a+x.sek,0))}</span>
+        <span class="zo"></span>
+      </div>` : '');
+  }
 }
 
 render();
+steg('bygg');
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 // X-PULSE-merket som inline SVG.
 //
-// Geometrien er identisk med public/NY LOGO/favicon-transparent.svg —
+// Geometrien er identisk med design/logo/favicon-transparent.svg —
 // samme viewBox, samme tre paths, samme skew. Endres logoen, endres begge.
 // Transparent bakgrunn (ingen <rect>): merket kan ligge over nav-gradienten
 // eller hvilken som helst flate uten boks rundt.

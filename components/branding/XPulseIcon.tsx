@@ -1,27 +1,46 @@
-// To-farget X-ikon brukt som "X" i X-PULSE-logoen. Oransje (utøver) i øvre
-// venstre del, blå (trener) i nedre høyre — samme split som favicon.
+// X-PULSE-merket som inline SVG.
 //
-// Transparent bakgrunn: ingen <rect>-fyll, slik at logoen kan ligge over
-// nav-gradienten eller andre bakgrunner uten boks rundt.
+// Geometrien er identisk med public/NY LOGO/favicon-transparent.svg —
+// samme viewBox, samme tre paths, samme skew. Endres logoen, endres begge.
+// Transparent bakgrunn (ingen <rect>): merket kan ligge over nav-gradienten
+// eller hvilken som helst flate uten boks rundt.
 //
-// id-er på clip-paths har unike navn slik at flere instanser av ikonet på
-// samme side ikke kolliderer.
+// TRE VARIANTER, og fargespråket er det samme som ellers i appen:
+//   hero    — hvit X med BLÅ arm og ORANSJE pil. Nøytral merkevare-bruk:
+//             forside, innlogging, footere.
+//   utover  — hvit X med ORANSJE pil. Utøvermodus.
+//   trener  — hvit X med BLÅ pil. Trenermodus.
+//
+// Den gamle versjonen brukte to clip-paths med hver sin id, og et
+// telleverk for å holde id-ene unike når flere ikoner sto på samme side.
+// Den nye har ingen id-bærende <defs> i det hele tatt — tre paths med hver
+// sin fill holder — så telleverket er fjernet framfor å stå igjen ubrukt.
 
-let counter = 0
+const HVIT = '#FFFFFF'
+const BLA = '#1A6FD4'
+const ORANSJE = '#FF4500'
+
+export type XPulseVariant = 'hero' | 'utover' | 'trener'
+
+/** [diagonal, arm, pil] per variant. */
+const FARGER: Record<XPulseVariant, [string, string, string]> = {
+  hero:   [HVIT, BLA,  ORANSJE],
+  utover: [HVIT, HVIT, ORANSJE],
+  trener: [HVIT, HVIT, BLA],
+}
 
 interface Props {
   size?: number
   className?: string
   ariaLabel?: string
+  variant?: XPulseVariant
 }
 
-export function XPulseIcon({ size = 24, className, ariaLabel }: Props) {
-  const uid = ++counter
-  const tlId = `xpulse-tl-${uid}`
-  const brId = `xpulse-br-${uid}`
+export function XPulseIcon({ size = 24, className, ariaLabel, variant = 'hero' }: Props) {
+  const [diagonal, arm, pil] = FARGER[variant]
   return (
     <svg
-      viewBox="0 0 200 200"
+      viewBox="-93 -132 1450 1450"
       width={size}
       height={size}
       className={className}
@@ -30,24 +49,19 @@ export function XPulseIcon({ size = 24, className, ariaLabel }: Props) {
       aria-label={ariaLabel}
       aria-hidden={ariaLabel ? undefined : true}
     >
-      <defs>
-        <clipPath id={tlId}>
-          <polygon points="0,0 200,200 0,200" />
-        </clipPath>
-        <clipPath id={brId}>
-          <polygon points="0,0 200,0 200,200" />
-        </clipPath>
-      </defs>
-      <g clipPath={`url(#${tlId})`}>
+      {/* Skew-en er en del av merket, ikke en transformasjon som kan droppes. */}
+      <g transform="translate(86,0) skewX(-8)">
         <path
-          d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z"
-          fill="#FF4500"
+          d="M62 125 L362 125 L1231 1068 L931 1068 Z"
+          fill={diagonal} stroke={diagonal} strokeWidth="48" strokeLinejoin="round"
         />
-      </g>
-      <g clipPath={`url(#${brId})`}>
         <path
-          d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z"
-          fill="#1A6FD4"
+          d="M906 117 L1194 117 L850 510 L710 371 Z"
+          fill={arm} stroke={arm} strokeWidth="44" strokeLinejoin="round"
+        />
+        <path
+          d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z"
+          fill={pil} stroke={pil} strokeWidth="38" strokeLinejoin="round"
         />
       </g>
     </svg>

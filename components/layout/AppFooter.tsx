@@ -1,27 +1,11 @@
 import Link from 'next/link'
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
 
 // Bunn-footer for /app/-rutene. Minimalistisk, ikke sticky — scroller
 // naturlig sammen med innhold. Skjules implisitt på modaler siden de
 // rendres med position:fixed over alt innhold.
 // Speiler forside-footerens innhold (logo, tagline, Selskap, sosialt),
 // men lagt horisontalt så den ikke stjeler høyde inne i appen.
-
-function XLogo({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <defs>
-        <clipPath id="app-foot-tl"><polygon points="0,0 200,200 0,200" /></clipPath>
-        <clipPath id="app-foot-br"><polygon points="0,0 200,0 200,200" /></clipPath>
-      </defs>
-      <g clipPath="url(#app-foot-tl)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#FF4500" />
-      </g>
-      <g clipPath="url(#app-foot-br)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#1A6FD4" />
-      </g>
-    </svg>
-  )
-}
 
 export function AppFooter() {
   return (
@@ -44,7 +28,7 @@ export function AppFooter() {
                 color: '#F2F0EC', textTransform: 'uppercase',
               }}
             >
-              <XLogo size={20} />
+              <XPulseIcon size={20} />
               <span>PULSE</span>
             </span>
             <Dot />

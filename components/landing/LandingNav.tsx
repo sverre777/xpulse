@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   MenuIcon, CloseIcon, ChevronDownIcon, SearchIcon, MailIcon,
 } from '@/components/branding/nav-icons'
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
 
 // Topbar for funksjoner-undersider. Speilet xpulse.html-stil men i React,
 // med Funksjoner-dropdown på desktop og slide-in-panel på mobil.
@@ -30,23 +31,6 @@ const MODULE_LINKS = [
   { href: '/funksjoner/ai-coach',       label: 'AI Coach',                      soon: true },
 ] as const
 
-function XLogo({ size = 35 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <defs>
-        <clipPath id="lp-x-tl"><polygon points="0,0 200,200 0,200" /></clipPath>
-        <clipPath id="lp-x-br"><polygon points="0,0 200,0 200,200" /></clipPath>
-      </defs>
-      <g clipPath="url(#lp-x-tl)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#FF4500" />
-      </g>
-      <g clipPath="url(#lp-x-br)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#1A6FD4" />
-      </g>
-    </svg>
-  )
-}
-
 export function LandingNav() {
   const [panelOpen, setPanelOpen] = useState(false)
 
@@ -64,7 +48,7 @@ export function LandingNav() {
           aria-label="X-PULSE"
           style={{ textDecoration: 'none' }}
         >
-          <XLogo size={35} />
+          <XPulseIcon size={35} />
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600, fontSize: '20px', letterSpacing: '0.4em',
@@ -176,7 +160,7 @@ export function LandingNav() {
               className="inline-flex items-center gap-2"
               style={{ textDecoration: 'none' }}
             >
-              <XLogo size={32} />
+              <XPulseIcon size={32} />
               <span style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 600, fontSize: '18px', letterSpacing: '0.4em',

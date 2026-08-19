@@ -1,24 +1,8 @@
 import Link from 'next/link'
+import { XPulseIcon } from '@/components/branding/XPulseIcon'
 
 // Footer brukt på alle funksjoner-undersider. Speiler xpulse.html-footeren
 // i innhold, i kompakt layout så undersidene ikke blir for tunge nederst.
-
-function XLogo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true">
-      <defs>
-        <clipPath id="lp-foot-tl"><polygon points="0,0 200,200 0,200" /></clipPath>
-        <clipPath id="lp-foot-br"><polygon points="0,0 200,0 200,200" /></clipPath>
-      </defs>
-      <g clipPath="url(#lp-foot-tl)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#FF4500" />
-      </g>
-      <g clipPath="url(#lp-foot-br)">
-        <path d="M 30 30 L 60 30 L 100 90 L 140 30 L 170 30 L 120 100 L 170 170 L 140 170 L 100 110 L 60 170 L 30 170 L 80 100 Z" fill="#1A6FD4" />
-      </g>
-    </svg>
-  )
-}
 
 export function LandingFooter() {
   return (
@@ -35,7 +19,7 @@ export function LandingFooter() {
               fontSize: '16px', letterSpacing: '0.4em', color: '#F2F0EC',
               textTransform: 'uppercase', textDecoration: 'none',
             }}>
-            <XLogo size={28} />
+            <XPulseIcon size={28} />
             <span>PULSE</span>
           </Link>
           <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'rgba(242,240,236,0.55)', maxWidth: 280 }}>

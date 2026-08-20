@@ -356,8 +356,14 @@ footer a:hover{color:var(--paper)}
   .htag{font-size:10.5px;letter-spacing:.12em;white-space:normal;line-height:1.5}
   .hdesc{font-size:15.5px}
   .btn{padding:14px 20px;font-size:14px}
-  .proof{display:grid;grid-template-columns:1fr 1fr;max-width:100%}
-  .proof div{border-right:none;border-bottom:1px solid var(--line)}
+  /* Proof-stripa MYE mindre på mobil (Sverre 20. aug): kompakt padding,
+     mindre tall og tekst — fire små celler, ikke fire kort. */
+  .proof{display:grid;grid-template-columns:1fr 1fr;max-width:100%;margin-top:26px}
+  .proof div{border-right:none;border-bottom:1px solid var(--line);padding:9px 12px}
+  .proof div:nth-last-child(-n+2){border-bottom:none}
+  .proof .n{font-size:20px}
+  .proof .n span{font-size:13px !important}
+  .proof .t{font-size:9px;letter-spacing:.1em;margin-top:2px}
   .devbar{padding:13px 20px;gap:12px}
   .day{min-height:84px}
   .cal{gap:4px}

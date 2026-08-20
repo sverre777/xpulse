@@ -266,7 +266,7 @@ interface RawActivity {
   avg_pace_seconds_per_km: number | null
   movement_name: string | null
   splits_per_km: { km: number; seconds: number }[] | null
-  lactate_measurements: { mmol: number; measured_at_time: string | null }[] | null
+  lactate_measurements: { value_mmol: number; measured_at: string | null }[] | null
   activity_type?: string | null
   max_heart_rate?: number | null
   zones?: Record<string, string> | null
@@ -300,7 +300,7 @@ export async function compareWorkoutsDetailed(
       workout_activities (
         sort_order, activity_type, duration_seconds, distance_meters, avg_heart_rate,
         max_heart_rate, avg_watts, avg_pace_seconds_per_km, movement_name, splits_per_km, zones,
-        lactate_measurements (mmol, measured_at_time),
+        lactate_measurements:workout_activity_lactate_measurements ( value_mmol, measured_at ),
         workout_activity_exercises (
           exercise_name, sort_order,
           workout_activity_exercise_sets ( set_number, reps, weight_kg, rpe )
@@ -361,8 +361,8 @@ export async function compareWorkoutsDetailed(
       for (const lm of a.lactate_measurements ?? []) {
         lactates.push({
           activity_idx: idx,
-          mmol: Number(lm.mmol) || 0,
-          minute_offset: lm.measured_at_time ? parseHHMMtoMinutes(lm.measured_at_time) : null,
+          mmol: Number(lm.value_mmol) || 0,
+          minute_offset: lm.measured_at ? parseHHMMtoMinutes(lm.measured_at) : null,
         })
       }
     })

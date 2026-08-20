@@ -38,7 +38,7 @@ export type ChangelogEntry = {
 export const CHANGELOG_VERSION = '1.2'
 
 /** Hvor mange av de nyeste punktene sida viser. */
-export const CHANGELOG_VISIBLE = 8
+export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
   // V1.2 (2026-08-20): ÉN oppføring for hele leveringen, per /nytt-regelen

@@ -15,7 +15,7 @@ export default async function MalerPage({ searchParams }: Props) {
   if (!user) redirect('/app')
 
   const sp = await searchParams
-  const activeTab = sp.tab === 'plan' ? 'plan' : 'okt'
+  const activeTab = sp.tab === 'plan' || sp.tab === 'standard' ? sp.tab : 'okt'
 
   const [workoutTemplates, planTemplates, { data: profile }] = await Promise.all([
     getTemplates(),

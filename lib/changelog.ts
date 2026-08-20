@@ -42,13 +42,13 @@ export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
   // V1.2 (2026-08-20): ÉN oppføring for hele leveringen («ett punkt per
-  // levering») — UTVIDET da mal-fiksen gikk live samme dag: forside +
-  // øktmal-bibliotek + standardøkt-chip + sammenligning. Intervall-byggeren
-  // står fortsatt IKKE her — UI-en er ikke live ennå.
+  // levering») — utvidet etter hvert som delene gikk live samme dag:
+  // forside + øktmal-bibliotek + standardøkt + sammenligning + intervall-
+  // byggeren.
   {
     date: '2026-08-20',
     title: 'X-PULSE V1.2',
-    body: 'Ny forside — og 58 ferdige øktmaler fra OLT-skalaen i øktskjemaet, med søk («6x6»), økttype-filter, standardøkt-merking og full sammenligning av standardøkter i analysen.',
+    body: 'Ny forside — og planlegging på sekunder: intervall-byggeren lager hele økta fra antall × dragtid × sone / pause (skiskyttere velger skyting i pausene), 58 ferdige øktmaler fra OLT-skalaen med søk («6x6»), standardøkt-merking og full sammenligning av standardøkter i analysen.',
   },
   {
     date: '2026-08-20',

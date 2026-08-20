@@ -22,6 +22,7 @@ import {
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
+import { IntervallBygger } from './IntervallBygger'
 import { ActivitySummary } from './ActivitySummary'
 import { CompetitionModule } from './CompetitionModule'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
@@ -273,6 +274,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Kø #48 bolk 2: standardøkt-SERIE-velger (erstatter mal-tagge-modusen).
   // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
+  const [byggerOpen, setByggerOpen] = useState(false)
   const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
   const [serieSearch, setSerieSearch] = useState('')
   const [newSerieName, setNewSerieName] = useState<string | null>(null)
@@ -851,6 +853,30 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 👥 Skal delta
               </Chip>
             )}
+            {/* Fase 97: standardøkt som markering — én chip blant markeringene,
+                fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
+                klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
+                serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
+            <Chip active={!!form.standard_session_series_id || standardPickerOpen}
+              onClick={() => { void (async () => {
+                if (form.standard_session_series_id) {
+                  if (form.is_completed && !await xpConfirm(
+                    `Fjerne koblingen til «${form.standard_session_series_name ?? 'serien'}»?`)) return
+                  clearSerie()
+                } else {
+                  setStandardPickerOpen(o => !o)
+                }
+              })() }}
+              color="#FF8A5C">
+              ⟳ {form.standard_session_series_id
+                ? (form.standard_session_series_name ?? 'Standardøkt')
+                : 'Standardøkt'}
+            </Chip>
+            {/* Intervall-byggeren (SF-12-UI): plassen i rad 1 var holdt av
+                til denne. Åpner byggeren over aktivitetslista. */}
+            <Chip active={byggerOpen} onClick={() => setByggerOpen(o => !o)} color="#8B5CF6">
+              🔧 Bygg intervall
+            </Chip>
           </div>
 
           {/* Kort tekst med vilje — ikonet bærer betydningen, og plassen
@@ -876,25 +902,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {s.label}
               </Chip>
             ))}
-            {/* Fase 97: standardøkt som markering — én chip blant markeringene,
-                fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
-                klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
-                serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
-            <Chip active={!!form.standard_session_series_id || standardPickerOpen}
-              onClick={() => { void (async () => {
-                if (form.standard_session_series_id) {
-                  if (form.is_completed && !await xpConfirm(
-                    `Fjerne koblingen til «${form.standard_session_series_name ?? 'serien'}»?`)) return
-                  clearSerie()
-                } else {
-                  setStandardPickerOpen(o => !o)
-                }
-              })() }}
-              color="#FF8A5C">
-              ⟳ {form.standard_session_series_id
-                ? (form.standard_session_series_name ?? 'Standardøkt')
-                : 'Standardøkt'}
-            </Chip>
           </div>
         </div>
 
@@ -1151,6 +1158,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
+        {byggerOpen && (
+          <IntervallBygger sport={form.sport}
+            onOpprett={async (rader, tittel) => {
+              // Samme mønster som konkurranse fellesstart: bekreft erstatning
+              // hvis lista alt har innhold. Radene er vanlige aktivitetsrader
+              // etterpå — økta husker ikke at den kom fra en bygger.
+              const harInnhold = form.activities.some(a =>
+                a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
+                || a.shooting_series.length > 0 || a.exercises.length > 0)
+              if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
+              setForm(f => ({
+                ...f,
+                activities: rader,
+                title: f.title.trim() === '' ? tittel : f.title,
+              }))
+            }} />
+        )}
         <ActivitiesSection
           rows={form.activities}
           onChange={a => set('activities', a)}

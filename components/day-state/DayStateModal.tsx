@@ -33,6 +33,9 @@ export function DayStateModal({
   const isRest = stateType === 'hviledag'
   const isInjury = stateType === 'skade'
   const isSick = stateType === 'sykdom'
+  const isTravel = stateType === 'reisedag'
+  // Hviledag og reisedag kan planlegges frem i tid; syk/skade kan ikke.
+  const plannable = isRest || isTravel
   // Planlagt KUN for fremtidige datoer. Redigeres en tidligere planlagt
   // hviledag på/etter dagen, normaliseres den til faktisk ved lagring —
   // brukeren skal aldri måtte «markere som gjennomført» manuelt.
@@ -43,6 +46,8 @@ export function DayStateModal({
   const [symptoms, setSymptoms] = useState(editing?.symptoms ?? '')
   const [notes, setNotes] = useState(editing?.notes ?? '')
   const [expectedDaysOff, setExpectedDaysOff] = useState<number | ''>(editing?.expected_days_off ?? '')
+  const [travelHours, setTravelHours] = useState<string>(
+    editing?.travel_hours != null ? String(editing.travel_hours).replace('.', ',') : '')
   // Flerdags-markering (kun ved NY markering): til-og-med-dato → alle dager
   // i spennet markeres i én operasjon. Hviledag kan planlegges frem i tid;
   // syk/skade kan kun markeres på inntrufne dager (maks i dag).
@@ -74,9 +79,9 @@ export function DayStateModal({
       const res = await upsertDayState({
         date: ds,
         state_type: stateType,
-        // Per-dag: hviledag frem i tid = planlagt; syk/skade planlegges aldri.
+        // Per-dag: hviledag/reisedag frem i tid = planlagt; syk/skade aldri.
         is_planned: datesToMark.length > 1
-          ? (isRest ? ds > today : false)
+          ? (plannable ? ds > today : false)
           : isPlanned,
         sub_type: subType || null,
         feeling: feeling === '' ? null : Number(feeling),
@@ -85,7 +90,10 @@ export function DayStateModal({
         symptoms: isSick ? symptoms : null,
         notes,
         // Antatt dager utenfor trening gjelder både sykdom og skade.
-        expected_days_off: isRest ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
+        expected_days_off: (isRest || isTravel) ? null : (expectedDaysOff === '' ? null : Number(expectedDaysOff)),
+        travel_hours: isTravel && travelHours.trim() !== ''
+          ? Number(travelHours.replace(',', '.'))
+          : null,
         targetUserId,
       })
       if (res.error) { setError(`${ds}: ${res.error}`); setBusy(false); return }
@@ -100,6 +108,7 @@ export function DayStateModal({
     if (!editing) return
     const label = isRest ? 'hviledag-markeringen'
       : isInjury ? 'skade-markeringen'
+      : isTravel ? 'reisedag-markeringen'
       : 'sykdom-markeringen'
     if (!await xpConfirm(`Fjern ${label} for ${date}?`)) return
     setBusy(true); setError(null)
@@ -111,7 +120,9 @@ export function DayStateModal({
     onClose()
   }
 
-  const title = isRest
+  const title = isTravel
+    ? (editing ? 'Rediger reisedag' : (isPlanned ? 'Planlegg reisedag' : 'Marker reisedag'))
+    : isRest
     ? (editing ? 'Rediger hviledag' : (isPlanned ? 'Planlegg hviledag' : 'Marker hviledag'))
     : isInjury
       ? (editing ? 'Rediger skade' : 'Marker skade')
@@ -137,19 +148,29 @@ export function DayStateModal({
           <div className="mb-3">
             <FieldLabel>Til og med (valgfritt — marker flere dager)</FieldLabel>
             <input type="date" value={toDate} min={date}
-              max={isRest ? undefined : today}
+              max={plannable ? undefined : today}
               onChange={e => setToDate(e.target.value)}
               style={INPUT_STYLE} />
             {datesToMark.length > 1 && (
               <p className="text-xs mt-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--accent)' }}>
                 {datesToMark.length} dager markeres ({date} → {toDate})
-                {isRest && toDate > today ? ' — fremtidige dager blir planlagte' : ''}
+                {plannable && toDate > today ? ' — fremtidige dager blir planlagte' : ''}
               </p>
             )}
           </div>
         )}
 
+        {isTravel && (
+          <div className="mb-3">
+            <FieldLabel>Timer reise</FieldLabel>
+            <input type="text" inputMode="decimal" value={travelHours}
+              onChange={e => setTravelHours(e.target.value)}
+              style={INPUT_STYLE} placeholder="f.eks. 6,5" />
+          </div>
+        )}
+
+        {!isTravel && (
         <div className="mb-3">
           <FieldLabel>{subTypeLabel}</FieldLabel>
           <select value={subType} onChange={e => setSubType(e.target.value)} style={INPUT_STYLE}>
@@ -159,9 +180,11 @@ export function DayStateModal({
             ))}
           </select>
         </div>
+        )}
 
-        {/* Følelse føres kun på faktiske dager (dagbok) — ikke ved planlegging. */}
-        {!isPlanned && (
+        {/* Følelse føres kun på faktiske dager (dagbok) — ikke ved planlegging.
+            Reisedag holder seg til timer + notat. */}
+        {!isPlanned && !isTravel && (
         <div className="mb-3">
           <FieldLabel>Følelse</FieldLabel>
           <select value={feeling} onChange={e => setFeeling(e.target.value === '' ? '' : Number(e.target.value))}
@@ -182,7 +205,7 @@ export function DayStateModal({
               placeholder="Sår hals, feber, …" />
           </div>
         )}
-        {!isRest && (
+        {!isRest && !isTravel && (
           <div className="mb-3">
             <FieldLabel>Antatt dager utenfor trening</FieldLabel>
             <input type="number" min={0} max={60}

@@ -10,12 +10,16 @@ async function validate(input: DayStateInput): Promise<string | null> {
   if (
     input.state_type !== 'hviledag' &&
     input.state_type !== 'sykdom' &&
-    input.state_type !== 'skade'
+    input.state_type !== 'skade' &&
+    input.state_type !== 'reisedag'
   ) {
     return 'Ugyldig tilstand'
   }
   if (input.feeling != null && (input.feeling < 1 || input.feeling > 5)) {
     return 'Følelse må være 1–5'
+  }
+  if (input.travel_hours != null && (input.travel_hours < 0 || input.travel_hours > 24)) {
+    return 'Timer reise må være 0–24'
   }
   return null
 }
@@ -65,6 +69,11 @@ export async function upsertDayState(
       symptoms: input.symptoms?.trim() || null,
       notes: input.notes?.trim() || null,
       expected_days_off: input.expected_days_off ?? null,
+      // Betinget med vilje: sendes feltet alltid, knekker HVER dagtilstands-
+      // lagring i vinduet mellom deploy og kjørt fase 96 (42703, kolonnen
+      // finnes ikke). Slik er det kun reisedag som avhenger av fase 96 —
+      // og null sendes med for reisedag så feltet kan TØMMES ved redigering.
+      ...(input.state_type === 'reisedag' ? { travel_hours: input.travel_hours ?? null } : {}),
       updated_at: new Date().toISOString(),
     }
 

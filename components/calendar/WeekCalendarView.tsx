@@ -737,13 +737,17 @@ export function WeekCalendarView({
                 <div className="flex flex-col gap-1 mb-2">
                   {states.map(s => {
                     const isRest = s.state_type === 'hviledag'
-                    const color = isRest ? '#28A86E' : '#E11D48'
-                    const icon = isRest ? '🛌' : '🤒'
+                    const isTravel = s.state_type === 'reisedag'
+                    const color = isRest ? '#28A86E' : isTravel ? '#5B8DEF' : '#E11D48'
+                    const icon = isRest ? '🛌' : isTravel ? '✈️' : '🤒'
                     const label = isRest
                       ? (s.is_planned ? 'Planlagt hviledag' : 'Hviledag')
+                      : isTravel
+                      ? (s.is_planned ? 'Planlagt reisedag' : 'Reisedag')
                       : 'Sykdom'
                     const meta: string[] = []
                     if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))
+                    if (s.travel_hours != null) meta.push(`${String(s.travel_hours).replace('.', ',')} t reise`)
                     if (s.feeling != null) meta.push(`Følelse ${s.feeling}/5`)
                     const inner = (
                       <>

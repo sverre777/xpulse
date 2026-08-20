@@ -33,7 +33,11 @@ export function stateBgFor(states: DayState[]): string | undefined {
   }
   if (hasSick) return SICK_BG
   if (hasInjury) return INJURY_BG
-  const rest = states.find(s => s.state_type === 'hviledag')!
+  // Reisedag farger IKKE dagen — den er en markering, ikke en kroppstilstand.
+  // Guarden er også det som hindrer krasj på en dag med KUN reisedag: uten
+  // den traff `!`-assertionen under en undefined.
+  const rest = states.find(s => s.state_type === 'hviledag')
+  if (!rest) return undefined
   return restStillPlanned(rest) ? REST_PLANNED_BG : REST_BG
 }
 
@@ -64,6 +68,12 @@ export function DayStateIndicator({
         icon: '🩹',
         title: `Skade${s.sub_type ? ` · ${s.sub_type}` : ''}`,
         color: '#FF8C00',
+      })
+    } else if (s.state_type === 'reisedag') {
+      icons.push({
+        icon: '✈️',
+        title: `Reisedag${restStillPlanned(s) ? ' (planlagt)' : ''}${s.travel_hours != null ? ` · ${String(s.travel_hours).replace('.', ',')} t` : ''}`,
+        color: '#5B8DEF',
       })
     } else {
       icons.push({

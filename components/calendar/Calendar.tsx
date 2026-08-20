@@ -113,7 +113,7 @@ interface CalendarActions {
   onEditDayState: (state: DayState) => void
   // Åpne dag-tilstand-modalen direkte for en dato/type (hviledag/sykdom/skade)
   // — redigerer eksisterende markering hvis den finnes.
-  onMarkDayState: (dateStr: string, type: 'hviledag' | 'sykdom' | 'skade') => void
+  onMarkDayState: (dateStr: string, type: 'hviledag' | 'sykdom' | 'skade' | 'reisedag') => void
   dayStatesByDate: Record<string, DayState[]>
   targetUserId?: string
   // Trener-visning: skjul alle write-handlinger (opprett/rediger/slett).
@@ -2191,13 +2191,17 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       <div className="mb-3 space-y-1">
                         {(dayStatesByDate[ds] ?? []).map(s => {
                           const isRest = s.state_type === 'hviledag'
-                          const color = isRest ? '#28A86E' : '#E11D48'
-                          const icon = isRest ? '🛌' : '🤒'
+                          const isTravel = s.state_type === 'reisedag'
+                          const color = isRest ? '#28A86E' : isTravel ? '#5B8DEF' : '#E11D48'
+                          const icon = isRest ? '🛌' : isTravel ? '✈️' : '🤒'
                           const label = isRest
                             ? (restStillPlanned(s) ? 'Planlagt hviledag' : 'Hviledag')
+                            : isTravel
+                            ? (restStillPlanned(s) ? 'Planlagt reisedag' : 'Reisedag')
                             : 'Sykdom'
                           const meta: string[] = []
                           if (s.sub_type) meta.push(s.sub_type.replace(/_/g, ' '))
+                          if (s.travel_hours != null) meta.push(`${String(s.travel_hours).replace('.', ',')} t reise`)
                           if (s.feeling != null) meta.push(`Følelse ${s.feeling}/5`)
                           if (s.expected_days_off != null) meta.push(`${s.expected_days_off} dager utenfor`)
                           const rowInner = (
@@ -2264,6 +2268,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               syk/skade markeres kun på inntrufne dager. */}
                           <button type="button" onClick={() => onMarkDayState(ds, 'hviledag')} style={ghostBtn}>
                             🛌 Hviledag
+                          </button>
+                          {/* Reisedag kan planlegges frem i tid, som hviledag. */}
+                          <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} style={ghostBtn}>
+                            ✈️ Reisedag
                           </button>
                           {!isFuture && (
                             <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} style={ghostBtn}>
@@ -2675,7 +2683,7 @@ export function Calendar({
     setHealthDate(dateStr)
   }, [readOnly])
 
-  const handleMarkDayState = useCallback((dateStr: string, type: 'hviledag' | 'sykdom' | 'skade') => {
+  const handleMarkDayState = useCallback((dateStr: string, type: 'hviledag' | 'sykdom' | 'skade' | 'reisedag') => {
     if (readOnly) return
     const existing = (dayStatesByDate[dateStr] ?? []).find(s => s.state_type === type) ?? null
     setDayStateModal({ date: dateStr, stateType: type, editing: existing })

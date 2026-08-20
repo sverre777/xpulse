@@ -1,4 +1,6 @@
-export type DayStateType = 'hviledag' | 'sykdom' | 'skade'
+// Reisedag (fase 96): markering med timer reise + notat. Kan planlegges frem
+// i tid som hviledag, og sameksisterer med trening og alt annet ført samme dag.
+export type DayStateType = 'hviledag' | 'sykdom' | 'skade' | 'reisedag'
 
 export const REST_SUBTYPES = [
   'aktiv_hvile', 'passiv_hvile', 'restitusjonstrening',
@@ -57,6 +59,8 @@ export interface DayState {
   symptoms: string | null
   notes: string | null
   expected_days_off: number | null
+  // Kun reisedag: antall timer reise (0–24, halvtimer OK).
+  travel_hours: number | null
   created_at: string
   updated_at: string
 }
@@ -70,4 +74,5 @@ export interface DayStateInput {
   symptoms?: string | null
   notes?: string | null
   expected_days_off?: number | null
+  travel_hours?: number | null
 }

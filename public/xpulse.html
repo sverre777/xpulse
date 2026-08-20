@@ -82,15 +82,14 @@ section{padding:88px 0}
 .draft b{color:#F5C542}
 
 /* ── NAV ── */
-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:34px;padding:16px 34px;
-  background:rgba(13,13,17,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+
 .logo{display:flex;align-items:center;gap:11px}
 .logo svg{display:block}
 .logo span{font:400 21px/1 'Bebas Neue';letter-spacing:.34em;padding-left:2px}
-.nlinks{display:flex;gap:26px;margin-left:auto;align-items:center;font:600 13.5px/1 'Barlow Condensed';letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
-.nlinks a:hover{color:var(--paper)}
-.ncta{background:var(--orange);color:#fff !important;border-radius:9px;padding:11px 20px}
-@media(max-width:1080px){.nlinks{display:none}}
+
+
+
+
 .proof div{min-width:0}
 .day,.okt,.frow,.trow{min-width:0}
 .okt .t,.okt .m{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -542,12 +541,72 @@ body.nav-locked { overflow:hidden; }
 
 /* ── Kompat-aliaser for CSS portert fra forrige forside (hamburger-panel,
    AI-prisrader, sammenlign-tabell). Verdiene er mappet til v2-paletten. ── */
-:root{ --white:var(--paper); --darker:#0A0A0B; --border:var(--line2); --mid:#1E1E26;
+:root{ --white:var(--paper); --darker:#0A0A0B; --border:var(--line2); --mid:#111113;
   --muted:var(--dim); --orange-dark:#CC3700; --r-card:16px; --r-sm:10px; }
 /* Custom cursor gjelder hele sida (portert). */
 body,a,button,summary{cursor:none}
-/* Hamburgeren følger v2-navets brytepunkt (nlinks skjules på 1080). */
-@media(max-width:1080px){ .nav-hamburger{display:inline-flex} }
+
+/* ═══ TOPPBAREN FRA FORRIGE FORSIDE (tilbakeført på Sverres beskjed) ═══ */
+nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:28px 56px;
+    background:linear-gradient(to bottom, rgba(11,19,21,0.75), transparent);
+  }
+.nav-logo {
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:600; font-size:20px; letter-spacing:0.4em;
+    color:var(--white); text-decoration:none; text-transform:uppercase;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+.nav-logo svg, .footer-logo svg { display:block; flex-shrink:0; }
+.nav-links { display:flex; gap:32px; list-style:none; align-items:center; }
+.nav-links a {
+    font-family:'Barlow Condensed',sans-serif; font-weight:600;
+    font-size:11px; letter-spacing:2.5px; text-transform:uppercase;
+    color:rgba(242,240,236,0.55); text-decoration:none; transition:color 0.3s;
+  }
+.nav-links a:hover, .nav-links a.active { color:var(--white); }
+.nav-cta { border-radius:999px; background:var(--orange) !important; color:var(--white) !important; padding:9px 20px !important; border-radius:0; }
+.nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
+.dropdown-trigger {
+    background:none; border:none; cursor:none;
+    font-family:'Barlow Condensed',sans-serif; font-weight:600;
+    font-size:11px; letter-spacing:2.5px; text-transform:uppercase;
+    color:rgba(242,240,236,0.55); padding:0; transition:color 0.3s;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+.dropdown-trigger:hover, .has-dropdown:hover .dropdown-trigger,
+  .has-dropdown:focus-within .dropdown-trigger { color:var(--white); }
+.dropdown-chev { transition:transform 0.2s; }
+.dropdown-panel {
+    position:absolute; top:calc(100% + 14px); left:0; min-width:220px;
+    background:var(--mid); border:1px solid var(--border);
+    padding:8px 0; opacity:0; visibility:hidden; transform:translateY(-6px);
+    transition:opacity 0.2s, visibility 0.2s, transform 0.2s;
+    z-index:120;
+  }
+.dropdown-panel a {
+    display:block; padding:11px 20px;
+    font-family:'Barlow Condensed',sans-serif; font-weight:600;
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:rgba(242,240,236,0.6); text-decoration:none;
+    transition:background 0.15s, color 0.15s;
+  }
+.dropdown-panel a:hover { background:var(--surface); color:var(--white); }
+.dropdown-divider { height:1px; background:var(--border); margin:6px 12px; }
+.dropdown-soon { display:inline-block; margin-left:6px; padding:1px 6px; background:rgba(245,197,66,0.15); border:1px solid rgba(245,197,66,0.4); color:#F5C542; font-size:9px; letter-spacing:1.5px; vertical-align:middle; }
+@media (max-width:900px) {
+  nav { padding:max(20px, calc(env(safe-area-inset-top) + 12px)) 24px 20px; }
+  .nav-links { display:none; }
+  .nav-hamburger { display:inline-flex; }
+}
+
+/* ═══ Vekslende seksjonsbakgrunner — som forrige forside. Skiskyting- og
+   CTA-seksjonene beholder sine egne gradienter. ═══ */
+#nytt, #trener, #faq { background:#101014 }
+#problem, #priser { background:#09090C }
+#sports, .drow, .dwrap { background:#09090C }
 </style>
 </head>
 <body>
@@ -558,8 +617,8 @@ body,a,button,summary{cursor:none}
 
 
 <nav>
-  <a class="logo" href="#">
-    <svg width="34" height="34" viewBox="-93 -132 1450 1450" aria-hidden="true">
+  <a class="nav-logo" href="/xpulse.html" aria-label="X-PULSE">
+    <svg width="35" height="35" viewBox="-93 -132 1450 1450" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <g transform="translate(86,0) skewX(-8)">
         <path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="48" stroke-linejoin="round"/>
         <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="#1A6FD4" stroke="#1A6FD4" stroke-width="44" stroke-linejoin="round"/>
@@ -568,17 +627,33 @@ body,a,button,summary{cursor:none}
     </svg>
     <span>PULSE</span>
   </a>
-  <div class="nlinks">
-    <a href="#inside">Inni appen</a>
-    <a href="#features">Funksjoner</a>
-    <a href="#skiskyting">Skiskyting</a>
-    <a href="#trener">Trener</a>
-    <a href="#priser">Priser</a>
-    <a href="#faq">FAQ</a>
-    <a href="/nytt">Hva er nytt</a>
-    <a href="/app">Logg inn</a>
-    <a href="#priser" class="ncta">Start gratis prøve</a>
-  </div>
+  <ul class="nav-links">
+    <li class="has-dropdown">
+      <button type="button" class="dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+        Funksjoner
+        <svg class="dropdown-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9 L12 15 L18 9"/></svg>
+      </button>
+      <div class="dropdown-panel" role="menu">
+        <a href="/funksjoner/langrenn" role="menuitem">Langrenn</a>
+        <a href="/funksjoner/skiskyting" role="menuitem">Skiskyting</a>
+        <a href="/funksjoner/langlop" role="menuitem">Langløp</a>
+        <a href="/funksjoner/loping" role="menuitem">Løping</a>
+        <a href="/funksjoner/sykling" role="menuitem">Sykling</a>
+        <a href="/funksjoner/triatlon" role="menuitem">Triatlon</a>
+        <a href="/funksjoner/multisport" role="menuitem">Multisport</a>
+        <div class="dropdown-divider" aria-hidden="true"></div>
+        <a href="/funksjoner/dagbok-og-plan" role="menuitem">Dagbok og Plan</a>
+        <a href="/funksjoner/analyse" role="menuitem">Analyse</a>
+        <a href="/funksjoner/trener" role="menuitem">Trener</a>
+        <a href="/funksjoner/klokkesync" role="menuitem">Klokkesync</a>
+        <a href="/funksjoner/ai-coach" role="menuitem">AI Coach <span class="dropdown-soon">Kommer snart</span></a>
+      </div>
+    </li>
+    <li><a href="#priser">Priser</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="/app">Logg inn</a></li>
+    <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
+  </ul>
   <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Åpne meny" aria-controls="navPanel" aria-expanded="false">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M4 7 H20"/><path d="M4 12 H20"/><path d="M4 17 H20"/>
@@ -786,7 +861,7 @@ body,a,button,summary{cursor:none}
 </section>
 
 <!-- ═══════════ NYTT I V1.2 ═══════════ -->
-<section style="padding-top:0">
+<section id="nytt" style="padding-top:0">
   <div class="wrap">
     <div class="label gold">Nytt i V1.2</div>
     <h2>PLANLEGGING PÅ <span class="g">SEKUNDER.</span></h2>
@@ -834,7 +909,7 @@ body,a,button,summary{cursor:none}
 </section>
 
 <!-- problem — beholdt fra dagens side, strammet -->
-<section style="padding-top:20px">
+<section id="problem" style="padding-top:20px">
   <div class="wrap">
     <h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2>
     <div class="problems">
@@ -889,7 +964,7 @@ body,a,button,summary{cursor:none}
   <a class="dtile d-triatlon" href="/funksjoner/triatlon"><span class="dcap"><img alt="" src="/sport-icons/triatlon.png">Triatlon</span></a>
   <a class="dtile d-multisport" href="/funksjoner/multisport"><span class="dcap">Multisport</span></a>
 </div>
-<div class="wrap" style="padding-top:34px;padding-bottom:54px">
+<div class="wrap dwrap" style="padding-top:34px;padding-bottom:54px">
   <div class="snote">
     <p><b>Hver idrett har sine egne verktøy</b> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
     <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> — vi bygger X-PULSE sammen med utøverne.</p>
@@ -1195,7 +1270,7 @@ body,a,button,summary{cursor:none}
   window.addEventListener('scroll',()=>{
     let cur='';
     document.querySelectorAll('section[id]').forEach(s=>{if(window.scrollY>=s.offsetTop-120)cur=s.id;});
-    document.querySelectorAll('.nlinks a[href^="#"]').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+cur);});
+    document.querySelectorAll('.nav-links a[href^="#"]').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+cur);});
   });
 
   // Hamburger-meny: toggle åpen/lukket, lås body-scroll, ESC-lukker.

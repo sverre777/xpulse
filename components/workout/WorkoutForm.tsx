@@ -758,14 +758,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   {malCategoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               )}
-            </div>
-          )}
-          {/* Bygg intervall: alltid synlig på egen linje over mal-lista —
-              verktøy, ikke mal (accent-omriss skiller den). */}
-          <div className="flex justify-end mb-1.5">
-            {/* Bygg intervall: verktøy, ikke mal — egen stil (accent-omriss)
-                og plassering ytterst til høyre skiller den fra mal-knappene. */}
-            <button type="button"
+              {/* Bygg intervall: samme linje som filtrene — alltid synlig. */}
+              <button type="button" className="ml-auto"
               onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
               
               style={{
@@ -778,7 +772,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               }}>
               🔧 Bygg intervall
             </button>
-          </div>
+            </div>
+          )}
           <div className="xp-malrow" style={{ maxHeight: 150, overflowY: 'auto' }}>
             <span className="xp-mal-label">Fra mal</span>
             {visibleTemplates.length === 0 && (

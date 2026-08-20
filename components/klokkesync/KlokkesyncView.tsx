@@ -16,6 +16,7 @@ import {
   type ConflictResolution,
 } from '@/app/actions/strava-sync'
 import { uploadFitFile } from '@/app/actions/fit-upload'
+import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
 import { ConflictModal } from './ConflictModal'
 import { KlokkesyncBrandPicker } from './KlokkesyncBrandPicker'
 import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
@@ -472,6 +473,9 @@ function FitUploadSection() {
   // Legg til filer i kø (dedup på navn+størrelse så samme fil ikke står to
   // ganger om brukeren slipper inn / velger overlappende sett). Nullstiller
   // forrige oppsummering når nye filer legges til.
+  //
+  // FEIL-1: for store filer avvises HER, med ærlig melding, før de sendes —
+  // over grensen dreper rammeverket requesten uten noe brukbart svar tilbake.
   const addFiles = (files: FileList) => {
     const fitFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.fit'))
     if (fitFiles.length === 0) return
@@ -480,7 +484,14 @@ function FitUploadSection() {
       const seen = new Set(prev.map(e => `${e.name}:${e.file.size}`))
       const additions = fitFiles
         .filter(f => !seen.has(`${f.name}:${f.size}`))
-        .map<FileEntry>(f => ({ file: f, name: f.name, status: 'pending' }))
+        .map<FileEntry>(f => (
+          f.size > FIT_MAX_BYTES
+            ? {
+                file: f, name: f.name, status: 'failed',
+                detail: `Fila er ${formatMB(f.size)} — grensen er ${formatMB(FIT_MAX_BYTES)}`,
+              }
+            : { file: f, name: f.name, status: 'pending' }
+        ))
       return [...prev, ...additions]
     })
   }
@@ -527,9 +538,13 @@ function FitUploadSection() {
         final = 'failed'
         detail = res.error ?? 'Ukjent feil'
       }
-    } catch {
+    } catch (e) {
+      // Rammeverket kaster uten brukbar årsak når selve requesten dør
+      // (nett, serverfeil). Størrelse er allerede avvist i addFiles, så
+      // dette er reelt server/nett — og skal etterlate seg et spor.
+      console.error('uploadFitFile kastet:', e)
       final = 'failed'
-      detail = 'Uventet feil under opplasting'
+      detail = 'Serverfeil under opplasting — prøv igjen, og si fra hvis det vedvarer'
     } finally {
       bump()
     }
@@ -541,13 +556,17 @@ function FitUploadSection() {
     if (importing || entries.length === 0) return
     setImporting(true)
     setSummary(null)
-    const total = entries.length
+    const total = entries.filter(e => e.status === 'pending').length
     let done = 0
     setProgress({ done, total })
     const bump = () => { done += 1; setProgress({ done, total }) }
 
     const tally = { imported: 0, duplicate: 0, skipped: 0, failed: 0 }
-    const indices = entries.map((_, i) => i)
+    // Kun pending sendes — for store filer ligger allerede som failed med
+    // forklaring og skal ikke skytes mot serveren likevel. De telles i
+    // oppsummeringen som feilet.
+    tally.failed += entries.filter(e => e.status === 'failed').length
+    const indices = entries.map((_, i) => i).filter(i => entries[i].status === 'pending')
     for (let i = 0; i < indices.length; i += UPLOAD_BATCH) {
       const chunk = indices.slice(i, i + UPLOAD_BATCH)
       const statuses = await Promise.all(chunk.map(idx => processOne(entries[idx], idx, bump)))

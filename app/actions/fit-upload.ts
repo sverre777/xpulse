@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import FitParser from 'fit-file-parser'
 import { mapFitSportToXpulse, mapFitManufacturerToSource } from '@/lib/fit-mapping'
+import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
 import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
 import { DEFAULT_MOVEMENTS_BY_SPORT, type Sport } from '@/lib/types'
 
@@ -121,7 +122,14 @@ export async function uploadFitFile(
 
   const file = formData.get('file')
   if (!(file instanceof File)) return { ok: false, error: 'Ingen fil' }
-  if (file.size > 20 * 1024 * 1024) return { ok: false, error: 'Fila er for stor (>20 MB)' }
+  // Samme grense som klientvalideringen og next.config.ts (FEIL-1).
+  // Sjekken her er i praksis uoppnåelig — rammeverket kutter kroppen på
+  // grensen før denne koden kjører — men står så meldingen er SANN den
+  // dagen grensene endres hver for seg. (Var 20 MB: død kode over et
+  // rammeverkstak på 1 MB, og meldingen løy.)
+  if (file.size > FIT_MAX_BYTES) {
+    return { ok: false, error: `Fila er ${formatMB(file.size)} — grensen er ${formatMB(FIT_MAX_BYTES)}` }
+  }
 
   // Buffer + hash for anti-duplikat. Hash er deterministisk så samme fil
   // alltid får samme external_id.

@@ -1382,6 +1382,26 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       {/* Ingen månedsbanner her: Analyse-overlay øverst dekker både Dagbok og Plan,
           og vi unngår dermed to parallelle oppsummeringer av samme periode. */}
 
+      {/* SKYTING QUICK FIX: månedens skudd-oppsummering — GJENBRUK av
+          ShotWeekChip + aggregateShotRange over månedens datoer. Ingen ny
+          regnelogikk; «kun førte»-regelen for treff % ligger i chippen. */}
+      {(() => {
+        const mDates = iterMonthDates(year, month)
+        const mShots = aggregateShotRange(byDate, mDates, mode)
+        if (mShots.shots <= 0 && mShots.drySeconds <= 0) return null
+        const mPlanned = mode === 'dagbok' ? aggregateShotRange(byDate, mDates, 'plan').shots : 0
+        return (
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 md:px-6 py-2"
+            style={{ borderBottom: CALENDAR_TOKENS.headerDivider }}>
+            <span className="tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#55555F' }}>
+              Skyting denne måneden
+            </span>
+            <ShotWeekChip stats={mShots} plannedShots={mPlanned > 0 ? mPlanned : null} />
+          </div>
+        )
+      })()}
+
 
       {/* Del D: mål-linje fra årsplanens månedsvolum — KUN i Plan. Diff mot
           PLANLAGT (dempet oransje ved manko, aldri rød); klikk → årsplanens
@@ -2425,6 +2445,18 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
             </div>
           </div>
         </div>
+
+        {(() => {
+          const yShots = aggregateShotRange(byDate, yearDates, mode)
+          if (yShots.shots <= 0 && yShots.drySeconds <= 0) return null
+          const yPlanned = mode === 'dagbok' ? aggregateShotRange(byDate, yearDates, 'plan').shots : 0
+          return (
+            <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span className="xp-k">Skyting {year}</span>
+              <ShotWeekChip stats={yShots} plannedShots={yPlanned > 0 ? yPlanned : null} />
+            </div>
+          )
+        })()}
 
         {yearAgg.seconds > 0 && (
           <div className="mt-3">

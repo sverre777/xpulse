@@ -1,7 +1,8 @@
 // Selvtest for mal-fiksen (fase 97): søk-normalisering + økttype-mapping.
 // Kjør: node scripts/mal-fiks-selftest.ts
 
-import { normaliserMalSok, OKT_TYPE_TIL_WORKOUT_TYPE, oktTypeToWorkoutType, oktMalTilWorkoutTemplate } from '../lib/okt-mal-kopi.ts'
+import { normaliserMalSok, OKT_TYPE_TIL_WORKOUT_TYPE, oktTypeToWorkoutType, oktMalTilWorkoutTemplate, oktMalTilIntervallOppsett } from '../lib/okt-mal-kopi.ts'
+import { byggBlokker } from '../lib/intervall-generator.ts'
 import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER } from '../lib/okt-template-library.ts'
 import { WORKOUT_TYPES_BIATHLON } from '../lib/types.ts'
 
@@ -43,6 +44,34 @@ const t1 = oktMalTilWorkoutTemplate(b1, { sport: 'running' }, { id: 'bib_b1' })
 sjekk('okt_type = malens type', t1.okt_type, b1.type)
 sjekk('pseudo-id stabil', t1.id, 'bib_b1')
 sjekk('aldri serie fra biblioteket', t1.standard_session_series_id, null)
+
+console.log('\nRUNDTUR: mal.blokker → intervall-oppsett → byggBlokker == mal.blokker')
+// Tapsfri rekonstruksjon for ALLE 58 — sekund for sekund, sone for sone,
+// rolle for rolle. Ryker denne, gir bibliotekmal-dialogen en annen økt enn
+// malen lover.
+let runde = 0
+for (const mal of OKT_MAL_BIBLIOTEK) {
+  const opps = oktMalTilIntervallOppsett(mal)
+  const igjen = byggBlokker({
+    oppvarmingSek: opps.oppvarmingSek, nedjoggSek: opps.nedjoggSek,
+    rader: opps.rader, bevegelsesform: '', underkategori: '',
+    skyting: null, form: 'splittet',
+  })
+  const a = mal.blokker.map(b => `${b.sek}|${b.sone}|${b.rolle}`).join(';')
+  const b = igjen.map(x => `${x.sek}|${x.sone}|${x.rolle}`).join(';')
+  if (a === b) runde++
+  else { console.log(`  FEIL rundtur ${mal.ref}\n       mal: ${a.slice(0,120)}\n       ble: ${b.slice(0,120)}`); feil++ }
+}
+sjekk(`alle ${OKT_MAL_BIBLIOTEK.length} maler rekonstrueres tapsfritt`, runde, OKT_MAL_BIBLIOTEK.length)
+// Komb-malene: skyting forhåndsvalgt (LS) og totaltid UENDRET med skyting på.
+for (const mal of OKT_MAL_BIBLIOTEK.filter(m => m.skyting)) {
+  const opps = oktMalTilIntervallOppsett(mal)
+  sjekk(`${mal.ref}: skyting forhåndsvalgt`, opps.skyting, 'LS')
+  const medSkyting = byggBlokker({ oppvarmingSek: opps.oppvarmingSek, nedjoggSek: opps.nedjoggSek,
+    rader: opps.rader, bevegelsesform: '', underkategori: '', skyting: 'LS', form: 'splittet' })
+  const tot = (bs: { sek: number }[]) => bs.reduce((s2, x) => s2 + x.sek, 0)
+  sjekk(`${mal.ref}: totaltid uendret m/ skyting`, tot(medSkyting), tot(mal.blokker))
+}
 
 console.log(feil === 0 ? '\n✓ alle tester grønne\n' : `\n✗ ${feil} feil\n`)
 process.exit(feil === 0 ? 0 : 1)

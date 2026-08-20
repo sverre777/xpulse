@@ -14,7 +14,7 @@
 // skyterader uten bevegelsesform. INGENTING LÅSES — radene er vanlige
 // aktivitetsrader etterpå, og økta husker ikke at den kom fra en bygger.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   byggBlokker, genererIntervalløkt,
   type GenerertBlokk, type IntervallKonfig, type SkyteMonster,
@@ -72,23 +72,54 @@ function tMin(s: string): string {
   return s.replace(/:00$/, ' min')
 }
 
-export function IntervallBygger({ sport, onOpprett }: {
+export interface IntervallForhandsutfylling {
+  rader: { antall: number; dragSek: number; sone: BlokkSone; pauseSek: number }[]
+  oppvarmingSek: number
+  nedjoggSek: number
+  skyting: SkyteMonster | null
+  /** Malens navn — brukt som tittel i stedet for den genererte. */
+  tittel?: string
+}
+
+export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal }: {
   sport: Sport
   // Leverer genererte rader + forslags-tittel. WorkoutForm eier innsettingen
   // (og bekreftelsen hvis lista alt har innhold) — samme som fellesstart.
   onOpprett: (rader: ActivityRow[], tittel: string) => void | Promise<void>
+  // Bibliotekmal-flyten: byggeren forhåndsutfylles fra malens blokker
+  // (oktMalTilIntervallOppsett) og kjører som DIALOG — Avbryt setter
+  // ingenting inn, og Ferdig lukker i stedet for å kollapse.
+  forhandsutfylt?: IntervallForhandsutfylling
+  onAvbryt?: () => void
+  // Pop-up-flyten (WorkoutForm): varsler steg-skiftene så skjemaet kan vise
+  // bygg/vis i overlay og ferdig-linja inline — komponenten forblir montert
+  // hele veien, så oppsettet overlever «Endre».
+  onStegChange?: (steg: 'bygg' | 'vis' | 'ferdig') => void
+  /** Bump for å gjenåpne byggeren fra kollapset tilstand. */
+  apneSignal?: number
 }) {
-  const [steg, setSteg] = useState<'bygg' | 'vis' | 'ferdig'>('bygg')
-  const [rader, setRader] = useState<Rad[]>([
-    { antall: '2', drag: '10:00', sone: 'I3', pause: '3:00' },
-    { antall: '3', drag: '5:00', sone: 'I4', pause: '2:00' },
-  ])
+  const [steg, settStegIntern] = useState<'bygg' | 'vis' | 'ferdig'>('bygg')
+  const setSteg = (st: 'bygg' | 'vis' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
+  const [rader, setRader] = useState<Rad[]>(() =>
+    forhandsutfylt
+      ? forhandsutfylt.rader.map(r => ({
+          antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
+        }))
+      : [
+          { antall: '2', drag: '10:00', sone: 'I3', pause: '3:00' },
+          { antall: '3', drag: '5:00', sone: 'I4', pause: '2:00' },
+        ])
   const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState('')
-  const [skyting, setSkyting] = useState<'' | SkyteMonster>('')
-  const [opp, setOpp] = useState('30:00')
-  const [ned, setNed] = useState('10:00')
+  const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
+  const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '30:00')
+  const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '10:00')
   const [genForm, setGenForm] = useState<'splittet' | 'samlet'>('splittet')
+
+  useEffect(() => {
+    if (apneSignal != null && apneSignal > 0) setSteg('bygg')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apneSignal])
 
   // Bevegelsesformer: brukerens sport-defaults først, så resten av fasiten.
   const bevValg = useMemo(() => {
@@ -119,16 +150,18 @@ export function IntervallBygger({ sport, onOpprett }: {
   const antallL = blokker.filter(b => b.posisjon === 'L').length
   const antallS = blokker.filter(b => b.posisjon === 'S').length
 
-  const tittel = rader
+  const generertTittel = rader
     .map(r => `${Math.max(1, parseInt(r.antall) || 1)} × ${tMin(r.drag)} ${r.sone} / ${tMin(r.pause)}`)
     .join('  +  ') + (serier > 0 ? '  ·  komb' : '')
+  const tittel = forhandsutfylt?.tittel ?? generertTittel
 
   const oppdater = (i: number, felt: keyof Rad, verdi: string) =>
     setRader(rs => rs.map((r, ri) => ri === i ? { ...r, [felt]: verdi } : r))
 
   const opprett = async () => {
     await onOpprett(genererIntervalløkt(konfig), tittel)
-    setSteg('ferdig')
+    if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk — ingen kollaps-linje
+    else setSteg('ferdig')
   }
 
   // ── Fordelingsstripa m/ L/S-markering OVER (aldri egen farge i stripa) ──
@@ -348,11 +381,20 @@ export function IntervallBygger({ sport, onOpprett }: {
           : 'Pausene blir vanlige aktive pauser.'}
       </p>
 
-      <button type="button" onClick={() => setSteg('vis')}
-        className="w-full mt-2"
-        style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
-        Opprett
-      </button>
+      <div className="flex gap-2 mt-2">
+        {onAvbryt && (
+          <button type="button" onClick={onAvbryt}
+            className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: FONT, color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
+            Avbryt
+          </button>
+        )}
+        <button type="button" onClick={() => setSteg('vis')}
+          className="flex-1"
+          style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
+          Opprett
+        </button>
+      </div>
     </div>
   )
 }

@@ -19,8 +19,10 @@ import {
   erTestMal,
   sekTilKlokke,
   totalSekunder,
+  type Blokk,
   type OktMalDef,
 } from './okt-template-library.ts'
+import type { IntervallKonfig, SkyteMonster } from './intervall-generator.ts'
 import {
   makeActivity,
   type ActivityRow,
@@ -202,4 +204,51 @@ export function oktMalTilWorkoutTemplate(
     created_at: naa,
     updated_at: naa,
   }
+}
+
+/**
+ * Bibliotekmal → intervall-byggerens oppsett (blokker → rader).
+ *
+ * Malens blokker følger nøyaktig generatorens modell (verifisert for alle
+ * 58: pauser er I1, strukturen er [opp] (arbeid pause?)* [ned]) — så
+ * rekonstruksjonen er tapsfri: `byggBlokker` på resultatet gir malens
+ * blokker tilbake, sekund for sekund. Selvtesten vokter rundturen.
+ *
+ * Skyting: komb-malene (mal.skyting) får mønsteret FORHÅNDSVALGT som 'LS'
+ * (standardmønsteret) — endrebart i dialogen. Blokkene bærer ikke L/S selv,
+ * så antall serier følger pausene, ikke mal.skyting.serier.
+ */
+export function oktMalTilIntervallOppsett(mal: OktMalDef): {
+  oppvarmingSek: number
+  nedjoggSek: number
+  rader: IntervallKonfig['rader']
+  skyting: SkyteMonster | null
+} {
+  const blokker = [...mal.blokker]
+  const oppvarmingSek = blokker[0]?.rolle === 'oppvarming' ? blokker.shift()!.sek : 0
+  const nedjoggSek = blokker[blokker.length - 1]?.rolle === 'nedjogg' ? blokker.pop()!.sek : 0
+
+  // Arbeidsblokker med pausen som følger hver (null for den aller siste —
+  // generatoren utelater den selv, og pausen MELLOM rader er forrige rads).
+  const drag: { sek: number; sone: Blokk['sone']; pauseEtter: number | null }[] = []
+  for (let i = 0; i < blokker.length; i++) {
+    const b = blokker[i]
+    if (b.rolle !== 'arbeid') continue
+    const neste = blokker[i + 1]
+    drag.push({ sek: b.sek, sone: b.sone, pauseEtter: neste?.rolle === 'pause' ? neste.sek : null })
+  }
+
+  const rader: IntervallKonfig['rader'] = []
+  for (const d of drag) {
+    const siste = rader[rader.length - 1]
+    // Samme drag og samme pause (null = siste drag, arver gruppas pause).
+    if (siste && siste.dragSek === d.sek && siste.sone === d.sone
+      && (d.pauseEtter === null || d.pauseEtter === siste.pauseSek)) {
+      siste.antall++
+    } else {
+      rader.push({ antall: 1, dragSek: d.sek, sone: d.sone, pauseSek: d.pauseEtter ?? 0 })
+    }
+  }
+
+  return { oppvarmingSek, nedjoggSek, rader, skyting: mal.skyting ? 'LS' : null }
 }

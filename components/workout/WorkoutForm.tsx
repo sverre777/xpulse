@@ -36,8 +36,8 @@ import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSele
 import { HeartZone } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
-import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER } from '@/lib/okt-template-library'
-import { oktMalTilWorkoutTemplate, normaliserMalSok } from '@/lib/okt-mal-kopi'
+import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER, finnOktMal, erTestMal, type OktMalDef } from '@/lib/okt-template-library'
+import { oktMalTilWorkoutTemplate, normaliserMalSok, oktMalTilIntervallOppsett, oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
@@ -275,6 +275,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
   const [byggerOpen, setByggerOpen] = useState(false)
+  const [byggerFerdig, setByggerFerdig] = useState(false)
+  const [byggerApneSignal, setByggerApneSignal] = useState(0)
+  // Bibliotekmal valgt → generator-dialog forhåndsutfylt fra malens blokker.
+  const [malBygger, setMalBygger] = useState<OktMalDef | null>(null)
   const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
   const [serieSearch, setSerieSearch] = useState('')
   const [newSerieName, setNewSerieName] = useState<string | null>(null)
@@ -764,14 +768,34 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </span>
             )}
             {visibleTemplates.map(t => (
-              <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal"
+              <button key={t.id} type="button"
+                onClick={() => {
+                  // Bibliotekmal: åpne generator-dialogen (blokker → rader) i
+                  // stedet for én aggregert rad. Avbrutt = ingenting settes inn.
+                  if (erBibliotekMal(t)) setMalBygger(finnOktMal(t.id.slice(4)) ?? null)
+                  else loadTemplate(t)
+                }} className="xp-mal"
                 style={erBibliotekMal(t) ? { color: '#A0A0AC', borderStyle: 'dashed' } : undefined}
                 title={erBibliotekMal(t) ? 'Fra biblioteket — alt kan endres etter valg' : undefined}>
                 {erBibliotekMal(t) ? '📚 ' : ''}{t.is_test ? '🧪 ' : ''}{t.standard_session_series_id ? '⟳ ' : ''}{t.name}
               </button>
             ))}
-            {/* ⟳ Standardøkt bor nå i markerings-raden (chip) — fristilt fra
-                mal-flaten. Serie-velgeren under åpnes derfra. */}
+            {/* ⟳ Standardøkt bor i markerings-raden (chip). */}
+            {/* Bygg intervall: verktøy, ikke mal — egen stil (accent-omriss)
+                og plassering ytterst til høyre skiller den fra mal-knappene. */}
+            <button type="button"
+              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
+              className="ml-auto"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
+                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
+                border: '1px solid var(--accent)', borderRadius: 9,
+                padding: '7px 14px', cursor: 'pointer', flexShrink: 0, minHeight: 36,
+              }}>
+              🔧 Bygg intervall
+            </button>
           </div>
 
         </div>
@@ -871,11 +895,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               ⟳ {form.standard_session_series_id
                 ? (form.standard_session_series_name ?? 'Standardøkt')
                 : 'Standardøkt'}
-            </Chip>
-            {/* Intervall-byggeren (SF-12-UI): plassen i rad 1 var holdt av
-                til denne. Åpner byggeren over aktivitetslista. */}
-            <Chip active={byggerOpen} onClick={() => setByggerOpen(o => !o)} color="#8B5CF6">
-              🔧 Bygg intervall
             </Chip>
           </div>
 
@@ -1158,22 +1177,34 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
-        {byggerOpen && (
-          <IntervallBygger sport={form.sport}
-            onOpprett={async (rader, tittel) => {
-              // Samme mønster som konkurranse fellesstart: bekreft erstatning
-              // hvis lista alt har innhold. Radene er vanlige aktivitetsrader
-              // etterpå — økta husker ikke at den kom fra en bygger.
-              const harInnhold = form.activities.some(a =>
-                a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
-                || a.shooting_series.length > 0 || a.exercises.length > 0)
-              if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
-              setForm(f => ({
-                ...f,
-                activities: rader,
-                title: f.title.trim() === '' ? tittel : f.title,
-              }))
-            }} />
+        {(byggerOpen || byggerFerdig) && (
+          <div
+            className={byggerOpen ? 'fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto' : undefined}
+            style={byggerOpen ? { backgroundColor: 'rgba(0,0,0,0.7)' } : undefined}
+            onClick={byggerOpen ? () => setByggerOpen(false) : undefined}>
+            <div className={byggerOpen ? 'w-full max-w-xl' : undefined}
+              onClick={e => { if (byggerOpen) e.stopPropagation() }}>
+              <IntervallBygger sport={form.sport}
+                apneSignal={byggerApneSignal}
+                onStegChange={st => {
+                  // ferdig → lukk pop-upen, vis kollaps-linja inline.
+                  // «Endre» på linja → steg 'bygg' → pop-upen åpner igjen.
+                  if (st === 'ferdig') { setByggerFerdig(true); setByggerOpen(false) }
+                  else { setByggerFerdig(false); setByggerOpen(true) }
+                }}
+                onOpprett={async (rader, tittel) => {
+                  const harInnhold = form.activities.some(a =>
+                    a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
+                    || a.shooting_series.length > 0 || a.exercises.length > 0)
+                  if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
+                  setForm(f => ({
+                    ...f,
+                    activities: rader,
+                    title: f.title.trim() === '' ? tittel : f.title,
+                  }))
+                }} />
+            </div>
+          </div>
         )}
         <ActivitiesSection
           rows={form.activities}
@@ -1399,6 +1430,40 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           )}
         </div>
       </div>
+
+      {malBygger && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setMalBygger(null)}>
+          <div className="w-full max-w-xl" onClick={e => e.stopPropagation()}>
+            <p className="mb-1 text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A0A0AC' }}>
+              📚 {malBygger.navn}
+            </p>
+            <IntervallBygger
+              sport={form.sport}
+              forhandsutfylt={{ ...oktMalTilIntervallOppsett(malBygger), tittel: malBygger.navn }}
+              onAvbryt={() => setMalBygger(null)}
+              onOpprett={async (rader, tittel) => {
+                const mal = malBygger
+                const harInnhold = form.activities.some(a =>
+                  a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
+                  || a.shooting_series.length > 0 || a.exercises.length > 0)
+                if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
+                setForm(f => ({
+                  ...f,
+                  title: tittel,
+                  // okt_type fra malen som før (bolk 1): test → 🧪, ellers mappes.
+                  workout_type: erTestMal(mal) ? 'test'
+                    : ((oktTypeToWorkoutType(mal.type) ?? f.workout_type) as WorkoutFormData['workout_type']),
+                  activities: rader,
+                  template_id: null,
+                  template_name: mal.navn,
+                }))
+              }} />
+          </div>
+        </div>
+      )}
 
       {showTemplateModal && (
         <SaveAsTemplateModal

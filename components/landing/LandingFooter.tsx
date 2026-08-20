@@ -73,11 +73,6 @@ export function LandingFooter() {
                 <circle cx="17.5" cy="6.5" r="0.7" fill="currentColor" />
               </svg>
             </a>
-            <a href="#" aria-label="X / Twitter (kommer)" style={socialStyle}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 4 L20 20" /><path d="M20 4 L4 20" />
-              </svg>
-            </a>
           </div>
         </div>
       </div>

@@ -23,12 +23,12 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { IntervallBygger } from './IntervallBygger'
+import { KonkurransePanel, type PanelType } from './KonkurransePanel'
+import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
 import { ActivitySummary } from './ActivitySummary'
-import { CompetitionModule } from './CompetitionModule'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
-import { TestDataModule } from './TestDataModule'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { NutritionSection } from './NutritionSection'
 import { WeatherSection, weatherSummaryLine } from './WeatherSection'
@@ -184,6 +184,31 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Fellestrening. Etter saveWorkout fires toggleAttendanceForWorkout(id).
   // For redigering håndterer TrainerAttendanceSection i WorkoutModal saken.
   const showCoachAttendChip = !!targetUserId && !workoutId
+
+  // #50 bolk 1 / SF-2 del 1: er økta koblet fra årsplanen, åpner panelet
+  // ferdig koblet — navn/format/prioritet arvet inn i TOMME felt.
+  useEffect(() => {
+    if (!workoutId) return
+    let aktiv = true
+    getKeyDateForWorkout(workoutId).then(kd => {
+      if (!aktiv || !kd) return
+      setKeyDate(kd)
+      setForm(f => {
+        const cd = f.competition_data ?? emptyCompetitionData()
+        return {
+          ...f,
+          competition_data: {
+            ...cd,
+            name: cd.name.trim() === '' ? kd.name : cd.name,
+            location: cd.location.trim() === '' ? (kd.location ?? '') : cd.location,
+            distance_format: cd.distance_format === '' ? (kd.distance_format ?? '') : cd.distance_format,
+          },
+        }
+      })
+    })
+    return () => { aktiv = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutId])
   const [coachWillAttend, setCoachWillAttend] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingTemplate, setSavingTemplate] = useState(false)
@@ -277,6 +302,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [byggerOpen, setByggerOpen] = useState(false)
   const [byggerFerdig, setByggerFerdig] = useState(false)
   const [byggerApneSignal, setByggerApneSignal] = useState(0)
+  // #50: årsplan-kobling — key-daten som peker på økta (SF-2 del 1).
+  const [keyDate, setKeyDate] = useState<WorkoutKeyDateLink | null>(null)
   // Bibliotekmal valgt → generator-dialog forhåndsutfylt fra malens blokker.
   const [malBygger, setMalBygger] = useState<OktMalDef | null>(null)
   const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
@@ -1172,6 +1199,41 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           Plassert høyt i skjemaet siden dette er hovedinnsats-feltet. Test/
           Konkurranse-undersettene under setter ekstra-data og kan auto-generere
           aktivitets-struktur. */}
+      {/* #50 bolk 1: KONKURRANSE-/TESTLØP-/TEST-PANELET — ALLTID over
+          aktivitets- og skyteføringen, med auto-stripa synlig FØR føring.
+          Type-chips i panelet speiler workout_type (samme felt som chip-raden). */}
+      {(form.workout_type === 'competition' || form.workout_type === 'testlop' || form.workout_type === 'test') && (
+        <KonkurransePanel
+          type={form.workout_type as PanelType}
+          onTypeChange={t => set('workout_type', t)}
+          data={form.competition_data ?? emptyCompetitionData(form.workout_type === 'testlop' ? 'testlop' : 'konkurranse')}
+          onChange={d => set('competition_data', d)}
+          sport={form.sport}
+          mode={isPlanMode ? 'plan' : 'dagbok'}
+          onSportChange={s2 => handleSportChange(s2)}
+          activityCount={form.activities.length}
+          keyDate={keyDate}
+          onPrioritetChange={p => { void (async () => {
+            if (!keyDate) return
+            const forrige = keyDate
+            setKeyDate({ ...keyDate, event_type: `competition_${p}` })
+            const res = await updateKeyDatePriority(keyDate.key_date_id, p)
+            if (res.error) { setKeyDate(forrige); void xpAlert(res.error) }
+          })() }}
+          testData={form.test_data ?? null}
+          onTestDataChange={d => set('test_data', d)}
+          onRequestGenerate={async (format, replaceExisting) => {
+            const generated = generateCompetitionActivities(form.sport, format)
+            if (generated.length === 0) return
+            const confirmMsg = replaceExisting
+              ? `Erstatt eksisterende aktiviteter med auto-generert struktur for ${format}?`
+              : `Auto-generer aktivitets-struktur for ${format}?`
+            if (!await xpConfirm(confirmMsg)) return
+            set('activities', generated)
+          }}
+        />
+      )}
+
       <Section label="Aktiviteter">
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
@@ -1217,39 +1279,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         />
       </Section>
 
-      {/* ── TEST (protokoll + resultat — kun for workout_type='test') ── */}
-      {form.workout_type === 'test' && (
-        <div className="mt-4">
-          <TestDataModule
-            data={form.test_data ?? emptyTestData()}
-            onChange={d => set('test_data', d)}
-            mode={isPlanMode ? 'plan' : 'dagbok'}
-          />
-        </div>
-      )}
 
-      {/* ── KONKURRANSE (kontekst + resultat — kun for competition/testlop) ── */}
-      {(form.workout_type === 'competition' || form.workout_type === 'testlop') && (
-        <div className="mt-4">
-          <CompetitionModule
-            data={form.competition_data ?? emptyCompetitionData(form.workout_type === 'testlop' ? 'testlop' : 'konkurranse')}
-            onChange={d => set('competition_data', d)}
-            sport={form.sport}
-            onSportChange={s => handleSportChange(s)}
-            mode={isPlanMode ? 'plan' : 'dagbok'}
-            activityCount={form.activities.length}
-            onRequestGenerate={async (format, replaceExisting) => {
-              const generated = generateCompetitionActivities(form.sport, format)
-              if (generated.length === 0) return
-              const confirmMsg = replaceExisting
-                ? `Erstatt eksisterende aktiviteter med auto-generert struktur for ${format}?`
-                : `Auto-generer aktivitets-struktur for ${format}?`
-              if (!await xpConfirm(confirmMsg)) return
-              set('activities', generated)
-            }}
-          />
-        </div>
-      )}
 
       {/* ── ERNÆRING — vises i dagbok-modus (gjennomført økt) ── */}
       {showExecutionFields && (

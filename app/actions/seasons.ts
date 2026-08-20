@@ -1010,3 +1010,59 @@ export async function deleteKeyDate(
     return { error: e instanceof Error ? e.message : String(e) }
   }
 }
+
+// ── #50 bolk 1: årsplan-kobling i konkurranse-panelet ──────────────────
+// A/B/C-prioriteten ER key-datens event_type (competition_a/b/c) — samme
+// datakilde som årsplanen, aldri duplikatfelt. Overstyring i panelet
+// skriver derfor TILBAKE hit.
+
+export interface WorkoutKeyDateLink {
+  key_date_id: string
+  event_type: string
+  name: string
+  location: string | null
+  distance_format: string | null
+  event_date: string
+}
+
+export async function getKeyDateForWorkout(
+  workoutId: string,
+): Promise<WorkoutKeyDateLink | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  // RLS på season_key_dates går via seasons.user_id — egne + coach-lest.
+  const { data } = await supabase
+    .from('season_key_dates')
+    .select('id, event_type, name, location, distance_format, event_date')
+    .eq('linked_workout_id', workoutId)
+    .maybeSingle()
+  if (!data) return null
+  return {
+    key_date_id: data.id as string,
+    event_type: data.event_type as string,
+    name: (data.name as string) ?? '',
+    location: (data.location as string | null) ?? null,
+    distance_format: (data.distance_format as string | null) ?? null,
+    event_date: data.event_date as string,
+  }
+}
+
+export async function updateKeyDatePriority(
+  keyDateId: string,
+  prioritet: 'a' | 'b' | 'c',
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { data, error } = await supabase
+    .from('season_key_dates')
+    .update({ event_type: `competition_${prioritet}` })
+    .eq('id', keyDateId)
+    .select('id')
+  if (error) return { error: error.message }
+  if (!data || data.length === 0) return { error: 'Fant ikke nøkkeldatoen' }
+  revalidatePath('/app/periodisering')
+  revalidatePath('/app/plan')
+  return {}
+}

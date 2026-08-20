@@ -10,10 +10,15 @@ import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { PlanMalBuilder } from '@/components/coach/PlanMalBuilder'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
+import {
+  listMySessionSeries, createSessionSeries, updateSessionSeries, deleteSessionSeries,
+  type StandardSessionSeries,
+} from '@/app/actions/standard-sessions'
+import { useEffect } from 'react'
 
 // Periodiserings-maler er trener-eide fra og med Fase F — utøver ser disse
 // materialisert i egen periodiserings-side, ikke som mal-objekter.
-type Tab = 'okt' | 'plan'
+type Tab = 'okt' | 'plan' | 'standard'
 
 interface Props {
   activeTab: string
@@ -30,7 +35,7 @@ export function MalerClient({
   initialWorkoutTemplates,
   initialPlanTemplates,
 }: Props) {
-  const tab: Tab = activeTab === 'plan' ? 'plan' : 'okt'
+  const tab: Tab = activeTab === 'plan' ? 'plan' : activeTab === 'standard' ? 'standard' : 'okt'
   const router = useRouter()
 
   const [query, setQuery] = useState('')
@@ -82,6 +87,7 @@ export function MalerClient({
 
       {/* Opprett-knapper — utøver kan lage egne private maler. Knappene
           tilpasses aktiv tab så CTA er kontekstuelt riktig. */}
+      {tab !== 'standard' && (
       <div className="flex flex-wrap gap-2 mb-4">
         <button type="button" onClick={() => setShowOktmalBuilder(true)}
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
@@ -102,6 +108,12 @@ export function MalerClient({
           + Ny planmal
         </button>
       </div>
+      )}
+
+      {/* Standardøkt-seriene: administrasjon (se/endre/opprett). Analysen
+          (sammenligning + trend) bor fortsatt under Analyse → Standardøkter —
+          to biblioteker-prinsippet: maler = planlegging, serier = analyse. */}
+      {tab === 'standard' && <StandardSerierPanel />}
 
       {(showOktmalBuilder || editingOktmal) && (
         <OktmalBuilder
@@ -283,6 +295,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
   const tabs: { key: Tab; label: string }[] = [
     { key: 'okt', label: 'Økt-maler' },
     { key: 'plan', label: 'Plan-maler' },
+    { key: 'standard', label: '⟳ Standardøkter' },
   ]
   return (
     <div className="flex gap-2 mb-6">
@@ -750,6 +763,146 @@ function BrukPlanPaaDatoModal({
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ── Standardøkt-seriene på /app/maler: se, endre, opprett og slett. ──
+// Gjenbruker actions fra kø #48 (standard-sessions). Sammenligningen bor i
+// Analyse → Standardøkter; herfra dyplenkes det dit per serie.
+function StandardSerierPanel() {
+  const [serier, setSerier] = useState<StandardSessionSeries[] | null>(null)
+  const [redigerer, setRedigerer] = useState<StandardSessionSeries | null>(null)
+  const [nyApen, setNyApen] = useState(false)
+  const [navn, setNavn] = useState('')
+  const [sted, setSted] = useState('')
+  const [beskrivelse, setBeskrivelse] = useState('')
+  const [lagrer, setLagrer] = useState(false)
+
+  const last = () => {
+    listMySessionSeries().then(r => setSerier(Array.isArray(r) ? r : []))
+  }
+  useEffect(() => { last() }, [])
+
+  const startNy = () => { setRedigerer(null); setNavn(''); setSted(''); setBeskrivelse(''); setNyApen(true) }
+  const startRediger = (s: StandardSessionSeries) => {
+    setRedigerer(s); setNavn(s.name); setSted(s.location ?? ''); setBeskrivelse(s.description ?? ''); setNyApen(true)
+  }
+  const lagre = async () => {
+    if (!navn.trim()) { void xpAlert('Navn er påkrevd'); return }
+    setLagrer(true)
+    const res = redigerer
+      ? await updateSessionSeries(redigerer.id, { name: navn, location: sted, description: beskrivelse })
+      : await createSessionSeries({ name: navn, location: sted.trim() || undefined })
+    setLagrer(false)
+    if ('error' in res && res.error) { void xpAlert(res.error); return }
+    setNyApen(false)
+    last()
+  }
+  const slett = async (s: StandardSessionSeries) => {
+    if (!await xpConfirm(`Slette serien «${s.name}»? Øktene beholdes — kun koblingen fjernes.`)) return
+    const res = await deleteSessionSeries(s.id)
+    if (res.error) { void xpAlert(res.error); return }
+    last()
+  }
+
+  const inputStil: React.CSSProperties = {
+    background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8,
+    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15,
+    padding: '9px 11px', outline: 'none', width: '100%',
+  }
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <button type="button" onClick={startNy}
+          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B',
+            backgroundColor: '#FF8A5C', border: 'none', borderRadius: 999,
+            padding: '10px 16px', cursor: 'pointer', fontWeight: 700,
+          }}>
+          + Ny standardøkt-serie
+        </button>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          Samme økt over tid — koble økter til serien fra øktskjemaet (⟳), og
+          sammenlign gjennomføringene i analysen.
+        </p>
+      </div>
+
+      {nyApen && (
+        <div className="p-4 mb-4 flex flex-col gap-2" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, maxWidth: 460 }}>
+          <p className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C' }}>
+            {redigerer ? `Rediger «${redigerer.name}»` : 'Ny serie'}
+          </p>
+          <input value={navn} onChange={e => setNavn(e.target.value)} placeholder="Navn (f.eks. Terskeltest Holmenkollen)" style={inputStil} />
+          <input value={sted} onChange={e => setSted(e.target.value)} placeholder="Sted (valgfritt)" style={inputStil} />
+          {redigerer && (
+            <textarea value={beskrivelse} onChange={e => setBeskrivelse(e.target.value)} placeholder="Beskrivelse (valgfritt)" rows={2}
+              style={{ ...inputStil, resize: 'vertical' }} />
+          )}
+          <div className="flex gap-2">
+            <button type="button" onClick={() => { void lagre() }} disabled={lagrer}
+              className="text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '9px 18px', cursor: 'pointer', fontWeight: 700 }}>
+              {lagrer ? 'Lagrer…' : 'Lagre'}
+            </button>
+            <button type="button" onClick={() => setNyApen(false)}
+              className="text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '9px 18px', cursor: 'pointer' }}>
+              Avbryt
+            </button>
+          </div>
+        </div>
+      )}
+
+      {serier === null ? (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 14 }}>Laster serier…</p>
+      ) : serier.length === 0 ? (
+        <EmptyState
+          title="Ingen standardøkt-serier ennå"
+          body="Opprett en serie her, eller direkte fra øktskjemaet (⟳ Standardøkt). Øktene du kobler til samles og kan sammenlignes over tid i analysen." />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {serier.map(s => {
+            const sportLabel = SPORTS.find(x => x.value === s.sport)?.label ?? s.sport
+            return (
+              <div key={s.id} className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, letterSpacing: '0.04em', color: '#F0F0F2' }}>
+                    <span style={{ color: '#FF8A5C' }}>⟳</span> {s.name}
+                  </span>
+                </div>
+                <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8A8A96' }}>
+                  {[sportLabel, s.movement_name, s.location,
+                    `${s.workout_count} gjennomføring${s.workout_count !== 1 ? 'er' : ''}`]
+                    .filter(Boolean).join(' · ')}
+                </p>
+                {s.description && (
+                  <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#C0C0CC' }}>{s.description}</p>
+                )}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <a href={`/app/analyse?tab=standardokter&serie=${s.id}`}
+                    className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'none', border: '1px solid #1A6FD444', borderRadius: 999, padding: '6px 12px' }}>
+                    Se utvikling →
+                  </a>
+                  <button type="button" onClick={() => startRediger(s)}
+                    className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer' }}>
+                    Rediger
+                  </button>
+                  <button type="button" onClick={() => { void slett(s) }}
+                    className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500', background: 'none', border: '1px solid #FF450066', borderRadius: 999, padding: '6px 12px', cursor: 'pointer' }}>
+                    Slett
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

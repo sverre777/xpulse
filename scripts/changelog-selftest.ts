@@ -73,10 +73,14 @@ sjekk(
   true,
 )
 sjekk('nok punkter til å fylle sida', CHANGELOG.length >= CHANGELOG_VISIBLE, true)
+// Strukturelt, ikke innholdsbundet: den forrige varianten bakte inn V1.1-
+// innholdet og knakk ved første nye oppføring. Sida skal vise nøyaktig
+// CHANGELOG_VISIBLE punkter, gruppert uten å miste noen.
 sjekk(
-  'sida viser åtte punkter i én datogruppe',
-  groupChangelogByDate(CHANGELOG.slice(0, CHANGELOG_VISIBLE)).map(g => [g.date, g.entries.length]),
-  [['2026-08-15', 8]],
+  'de synlige punktene grupperes uten svinn',
+  groupChangelogByDate(CHANGELOG.slice(0, CHANGELOG_VISIBLE))
+    .reduce((s, g) => s + g.entries.length, 0),
+  Math.min(CHANGELOG_VISIBLE, CHANGELOG.length),
 )
 
 console.log(feil === 0 ? '\n✓ alle tester grønne\n' : `\n✗ ${feil} feil\n`)

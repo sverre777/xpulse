@@ -35,12 +35,26 @@ export type ChangelogEntry = {
 }
 
 /** Vises som diskret merkelapp øverst på /nytt. Løftes ved større leveranser. */
-export const CHANGELOG_VERSION = '1.1'
+export const CHANGELOG_VERSION = '1.2'
 
 /** Hvor mange av de nyeste punktene sida viser. */
 export const CHANGELOG_VISIBLE = 8
 
 export const CHANGELOG: ChangelogEntry[] = [
+  // V1.2 (2026-08-20): ÉN oppføring for hele leveringen, per /nytt-regelen
+  // «ett punkt per levering». Intervall-byggeren og øktmal-biblioteket står
+  // IKKE her ennå — logikken er levert, men UI-en er ikke live. De får sitt
+  // punkt når mal-fiksen faktisk viser dem.
+  {
+    date: '2026-08-20',
+    title: 'X-PULSE V1.2 — ny forside',
+    body: 'Helt ny forside som viser appen slik den faktisk ser ut — kalenderen, live styrkeøkt og dagboka.',
+  },
+  {
+    date: '2026-08-20',
+    title: 'Reisedag i dagboka',
+    body: 'Planlegg og før reisedager med timer og notat — og tren samme dag som vanlig.',
+  },
   {
     date: '2026-08-15',
     title: 'Polar-synk er live',

@@ -24,6 +24,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
+import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
 import { computeActivityTotals, ZONE_COLORS_V2, type ActivityLike } from '@/lib/activity-summary'
@@ -329,6 +330,19 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         <div className="mb-3.5">
           <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? null} />
         </div>
+      )}
+
+      {/* FEIL-2 (b): en importert økt uten aktivitetsrader skal SI det, ikke
+          bare se halvtom ut. Vanligste årsak: økta ble ført manuelt i
+          kilde-appen — da finnes det ingen laps/streams å lage rader av, og
+          «kun totaltid og tittel» er korrekt import av en tom kilde. */}
+      {activities.length === 0 && data.imported_from && (
+        <Card title="AKTIVITETER">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: '#8B8B95', lineHeight: 1.55 }}>
+            Ingen detaljdata fulgte med denne økta fra {fitSourceLabel(data.imported_from) || 'kilden'} —
+            trolig ført manuelt der, uten klokkeopptak. Du kan legge til aktiviteter selv via Rediger.
+          </p>
+        </Card>
       )}
 
       {/* ── AKTIVITETER (read-only tidslinje) ── */}

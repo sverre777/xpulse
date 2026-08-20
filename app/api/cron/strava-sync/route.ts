@@ -100,13 +100,23 @@ async function syncOneUser(
     if (hasConflict(sa.start_date, existingWorkouts ?? [])) continue
 
     // Hent detalj + streams og lag workout.
-    const detail: StravaActivityDetail = await fetchStravaActivityDetail(supabase, conn, sa.id)
-    const streams: StravaStreamSet = await fetchStravaStreams(supabase, conn, sa.id)
+    // FEIL-2 (c): per-økt try/catch. Uten den kastet ett feilende API-kall
+    // (rate limit, 404 på streams for manuelt førte økter, utløpt scope)
+    // HELE brukerens gjenstående kø for denne kjøringen — uimportert og uten
+    // annet spor enn den generiske per-bruker-feilen. Én økt som feiler skal
+    // logges MED økt-id og hoppes over; resten av køen skal fortsette.
+    // (Ikke markert som importert → prøves igjen neste kjøring.)
+    try {
+      const detail: StravaActivityDetail = await fetchStravaActivityDetail(supabase, conn, sa.id)
+      const streams: StravaStreamSet = await fetchStravaStreams(supabase, conn, sa.id)
 
-    const workoutId = await createWorkoutFromStrava(supabase, conn.user_id, detail, streams, externalId)
-    if (workoutId) {
-      imported++
-      await insertImportNotification(supabase, conn.user_id, detail, workoutId)
+      const workoutId = await createWorkoutFromStrava(supabase, conn.user_id, detail, streams, externalId)
+      if (workoutId) {
+        imported++
+        await insertImportNotification(supabase, conn.user_id, detail, workoutId)
+      }
+    } catch (e) {
+      console.error(`[strava-cron] import av aktivitet ${sa.id} (${sa.sport_type ?? '?'}) feilet for ${conn.user_id}:`, e)
     }
   }
 

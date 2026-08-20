@@ -607,6 +607,16 @@ nav {
   .nav-hamburger { display:inline-flex; }
 }
 
+/* Funksjoner-dropdownen: reglene som røk i porteringen (kommentar foran
+   selektoren + .has-dropdown-prefikset) — uten hover-regelen vises aldri lista. */
+.nav-links .has-dropdown { position:relative; }
+.has-dropdown:hover .dropdown-chev,
+  .has-dropdown:focus-within .dropdown-chev { transform:rotate(180deg); }
+.has-dropdown:hover .dropdown-panel,
+  .has-dropdown:focus-within .dropdown-panel {
+    opacity:1; visibility:visible; transform:translateY(0);
+  }
+
 /* ═══ Vekslende seksjonsbakgrunner — som forrige forside. Skiskyting- og
    CTA-seksjonene beholder sine egne gradienter. ═══ */
 #nytt, #trener, #faq { background:#101014 }

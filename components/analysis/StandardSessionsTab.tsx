@@ -15,6 +15,7 @@ import {
 } from '@/app/actions/standard-sessions'
 import { SPORTS } from '@/lib/types'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { SerieSammenligning } from './SerieSammenligning'
 
 const ACCENT = '#FF8A5C'
 
@@ -230,13 +231,10 @@ export function StandardSessionsTab({ targetUserId }: { targetUserId?: string })
               ))}
             </div>
           )}
-          {selected.executions.length >= 2 && (
-            <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-              Full sammenligningsvisning (side-om-side + trend) kommer i neste bolk —
-              inntil da: «Sammenligning»-fanen har øktene.
-            </p>
-          )}
         </div>
+
+        {/* Kø #48 bolk 4–6: sammenligningen — innholdsavhengig fra start. */}
+        <SerieSammenligning serie={selected} />
       </div>
     )
   }

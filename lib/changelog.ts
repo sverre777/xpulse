@@ -41,14 +41,14 @@ export const CHANGELOG_VERSION = '1.2'
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
-  // V1.2 (2026-08-20): ÉN oppføring for hele leveringen, per /nytt-regelen
-  // «ett punkt per levering». Intervall-byggeren og øktmal-biblioteket står
-  // IKKE her ennå — logikken er levert, men UI-en er ikke live. De får sitt
-  // punkt når mal-fiksen faktisk viser dem.
+  // V1.2 (2026-08-20): ÉN oppføring for hele leveringen («ett punkt per
+  // levering») — UTVIDET da mal-fiksen gikk live samme dag: forside +
+  // øktmal-bibliotek + standardøkt-chip + sammenligning. Intervall-byggeren
+  // står fortsatt IKKE her — UI-en er ikke live ennå.
   {
     date: '2026-08-20',
-    title: 'X-PULSE V1.2 — ny forside',
-    body: 'Helt ny forside som viser appen slik den faktisk ser ut — kalenderen, live styrkeøkt og dagboka.',
+    title: 'X-PULSE V1.2',
+    body: 'Ny forside — og 58 ferdige øktmaler fra OLT-skalaen i øktskjemaet, med søk («6x6»), økttype-filter, standardøkt-merking og full sammenligning av standardøkter i analysen.',
   },
   {
     date: '2026-08-20',

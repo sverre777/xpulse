@@ -200,15 +200,38 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
 
 // ── Detaljert sammenligning: tidsserie-data for grafer ─────────
 
+export interface DetailedExercise {
+  exercise_name: string
+  sets: { set_number: number; reps: number | null; weight_kg: number | null; rpe: number | null }[]
+}
+
+export interface DetailedShootingSeries {
+  series_no: number
+  position: 'L' | 'S'
+  shots: number
+  hits: number | null
+  time_seconds: number | null
+  avg_heart_rate: number | null
+  vind_retning: string | null
+  vind_styrke: number | null
+  sikt: string | null
+}
+
 export interface DetailedActivity {
   sort_order: number
+  activity_type: string | null
   duration_seconds: number | null
   distance_meters: number | null
   avg_heart_rate: number | null
+  max_heart_rate: number | null
   avg_watts: number | null
   avg_pace_seconds_per_km: number | null
   movement_name: string | null
   splits_per_km: { km: number; seconds: number }[] | null
+  // Sone-fordeling slik den er lagret (minutt-strenger per sone).
+  zones: Record<string, string> | null
+  exercises: DetailedExercise[]
+  shooting_series: DetailedShootingSeries[]
 }
 
 export interface DetailedWorkout {
@@ -220,6 +243,8 @@ export interface DetailedWorkout {
   total_meters: number
   avg_heart_rate: number | null
   activities: DetailedActivity[]
+  // Pulskurve fra klokkesynk (workout_samples.hr_samples) — null uten samples.
+  hr_samples: { t: number; hr: number }[] | null
   // Laktat-målinger med klokkeslett og verdi (mmol).
   lactates: { activity_idx: number; mmol: number; minute_offset: number | null }[]
   // Fase 74: vær/føre-kontekst (for å skille forhold fra form i sammenligning).
@@ -242,6 +267,18 @@ interface RawActivity {
   movement_name: string | null
   splits_per_km: { km: number; seconds: number }[] | null
   lactate_measurements: { mmol: number; measured_at_time: string | null }[] | null
+  activity_type?: string | null
+  max_heart_rate?: number | null
+  zones?: Record<string, string> | null
+  workout_activity_exercises?: {
+    exercise_name: string; sort_order: number | null
+    workout_activity_exercise_sets?: { set_number: number; reps: number | null; weight_kg: number | null; rpe: number | null }[] | null
+  }[] | null
+  workout_shooting_series?: {
+    series_no: number; position: string; shots: number; hits: number | null
+    time_seconds: number | null; avg_heart_rate: number | null
+    vind_retning: string | null; vind_styrke: number | null; sikt: string | null
+  }[] | null
 }
 
 export async function compareWorkoutsDetailed(
@@ -259,10 +296,19 @@ export async function compareWorkoutsDetailed(
     .select(`
       id, date, title, sport, duration_minutes, distance_km, avg_heart_rate,
       workout_weather ( temperature, weather_type, wind_strength, surface_conditions, notes ),
+      workout_samples ( hr_samples ),
       workout_activities (
-        sort_order, duration_seconds, distance_meters, avg_heart_rate,
-        avg_watts, avg_pace_seconds_per_km, movement_name, splits_per_km,
-        lactate_measurements (mmol, measured_at_time)
+        sort_order, activity_type, duration_seconds, distance_meters, avg_heart_rate,
+        max_heart_rate, avg_watts, avg_pace_seconds_per_km, movement_name, splits_per_km, zones,
+        lactate_measurements (mmol, measured_at_time),
+        workout_activity_exercises (
+          exercise_name, sort_order,
+          workout_activity_exercise_sets ( set_number, reps, weight_kg, rpe )
+        ),
+        workout_shooting_series (
+          series_no, position, shots, hits, time_seconds, avg_heart_rate,
+          vind_retning, vind_styrke, sikt
+        )
       )
     `)
     .in('id', workoutIds)
@@ -273,13 +319,42 @@ export async function compareWorkoutsDetailed(
     const sorted = [...acts].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
     const activities: DetailedActivity[] = sorted.map((a, idx) => ({
       sort_order: a.sort_order ?? idx,
+      activity_type: a.activity_type ?? null,
       duration_seconds: a.duration_seconds ?? null,
       distance_meters: a.distance_meters ?? null,
       avg_heart_rate: a.avg_heart_rate ?? null,
+      max_heart_rate: a.max_heart_rate ?? null,
       avg_watts: a.avg_watts ?? null,
       avg_pace_seconds_per_km: a.avg_pace_seconds_per_km ?? null,
       movement_name: a.movement_name ?? null,
       splits_per_km: a.splits_per_km ?? null,
+      zones: a.zones ?? null,
+      exercises: [...(a.workout_activity_exercises ?? [])]
+        .sort((x, y) => (x.sort_order ?? 0) - (y.sort_order ?? 0))
+        .map(e => ({
+          exercise_name: e.exercise_name,
+          sets: [...(e.workout_activity_exercise_sets ?? [])]
+            .sort((x, y) => x.set_number - y.set_number)
+            .map(st => ({
+              set_number: st.set_number,
+              reps: st.reps ?? null,
+              weight_kg: st.weight_kg != null ? Number(st.weight_kg) : null,
+              rpe: st.rpe ?? null,
+            })),
+        })),
+      shooting_series: [...(a.workout_shooting_series ?? [])]
+        .sort((x, y) => x.series_no - y.series_no)
+        .map(sr => ({
+          series_no: sr.series_no,
+          position: (sr.position === 'S' ? 'S' : 'L') as 'L' | 'S',
+          shots: sr.shots,
+          hits: sr.hits ?? null,
+          time_seconds: sr.time_seconds != null ? Number(sr.time_seconds) : null,
+          avg_heart_rate: sr.avg_heart_rate ?? null,
+          vind_retning: sr.vind_retning ?? null,
+          vind_styrke: sr.vind_styrke ?? null,
+          sikt: sr.sikt ?? null,
+        })),
     }))
     const lactates: DetailedWorkout['lactates'] = []
     sorted.forEach((a, idx) => {
@@ -306,6 +381,10 @@ export async function compareWorkoutsDetailed(
       surface_conditions: Array.isArray(wRaw.surface_conditions) ? wRaw.surface_conditions : [],
       notes: wRaw.notes ?? null,
     } : null
+    const samplesRaw = (Array.isArray(w.workout_samples) ? w.workout_samples[0] : w.workout_samples) as
+      { hr_samples: { t: number; hr: number }[] | null } | null | undefined
+    const hr_samples = Array.isArray(samplesRaw?.hr_samples) && samplesRaw.hr_samples.length > 1
+      ? samplesRaw.hr_samples : null
     return {
       id: w.id,
       date: w.date,
@@ -315,6 +394,7 @@ export async function compareWorkoutsDetailed(
       total_meters,
       avg_heart_rate: w.avg_heart_rate,
       activities,
+      hr_samples,
       lactates,
       weather,
     }

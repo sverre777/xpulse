@@ -760,6 +760,25 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               )}
             </div>
           )}
+          {/* Bygg intervall: alltid synlig på egen linje over mal-lista —
+              verktøy, ikke mal (accent-omriss skiller den). */}
+          <div className="flex justify-end mb-1.5">
+            {/* Bygg intervall: verktøy, ikke mal — egen stil (accent-omriss)
+                og plassering ytterst til høyre skiller den fra mal-knappene. */}
+            <button type="button"
+              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
+              
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
+                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
+                border: '1px solid var(--accent)', borderRadius: 9,
+                padding: '7px 14px', cursor: 'pointer', flexShrink: 0, minHeight: 36,
+              }}>
+              🔧 Bygg intervall
+            </button>
+          </div>
           <div className="xp-malrow" style={{ maxHeight: 150, overflowY: 'auto' }}>
             <span className="xp-mal-label">Fra mal</span>
             {visibleTemplates.length === 0 && (
@@ -781,21 +800,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </button>
             ))}
             {/* ⟳ Standardøkt bor i markerings-raden (chip). */}
-            {/* Bygg intervall: verktøy, ikke mal — egen stil (accent-omriss)
-                og plassering ytterst til høyre skiller den fra mal-knappene. */}
-            <button type="button"
-              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
-              className="ml-auto"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
-                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
-                border: '1px solid var(--accent)', borderRadius: 9,
-                padding: '7px 14px', cursor: 'pointer', flexShrink: 0, minHeight: 36,
-              }}>
-              🔧 Bygg intervall
-            </button>
           </div>
 
         </div>

@@ -124,6 +124,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .devbar span{color:var(--dim)}
 .devbar .live{color:var(--green)}
 .devbar .soon{color:var(--mute)}
+.devnote{padding:11px 34px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px;color:var(--dim)}
+.devnote b{color:var(--paper)}
 
 /* ── INNI APPEN (nye mockups) ── */
 .inside-grid{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,.66fr) 206px;gap:20px;margin-top:38px;align-items:start}
@@ -742,7 +744,7 @@ nav {
       <div><div class="n">58</div><div class="t">Ferdige øktmaler fra OLT-skalaen</div></div>
       <div><div class="n">287</div><div class="t">Øvelser i styrke­biblioteket</div></div>
       <div><div class="n">7</div><div class="t">Idretter med egne verktøy</div></div>
-      <div><div class="n">2<span style="font-size:18px;color:var(--green)"> live</span></div><div class="t">Klokkesynk: Strava + Polar</div></div>
+      <div><div class="n">2</div><div class="t">Direktesynk: Polar + Strava</div></div>
     </div>
   </div>
 </header>
@@ -754,6 +756,7 @@ nav {
   <span>.fit-import: Garmin · Coros · Suunto · Wahoo (alle, i dag)</span>
   <span class="soon">Garmin · Apple Health · Coros direkte — kommer</span>
 </div>
+<div class="devnote">Uansett klokkemerke: last opp <b>.fit-filer</b> fra Garmin, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sonefordeling.</div>
 
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->
 <section id="inside">
@@ -860,6 +863,69 @@ nav {
   </div>
 </section>
 
+<!-- velg din disiplin — slått sammen med bildestripa: tittel fra live-siden, visning som stripa, alle sju med bilde -->
+<section id="sports" style="padding-top:20px;padding-bottom:0">
+  <div class="wrap">
+    <div class="label">Bygget for din idrett</div>
+    <h2>VELG DIN <span class="o">DISIPLIN.</span></h2>
+  </div>
+</section>
+<div class="drow">
+  <a class="dtile d-langrenn" href="/funksjoner/langrenn"><span class="dcap"><img alt="" src="/sport-icons/langrenn.png">Langrenn</span></a>
+  <a class="dtile d-skiskyting" href="/funksjoner/skiskyting"><span class="dcap"><img alt="" src="/sport-icons/skiskyting.png">Skiskyting</span></a>
+  <a class="dtile d-langlop" href="/funksjoner/langlop"><span class="dcap"><img alt="" src="/sport-icons/langlop.png">Langløp</span></a>
+  <a class="dtile d-loping" href="/funksjoner/loping"><span class="dcap"><img alt="" src="/sport-icons/loping.png">Løping</span></a>
+  <a class="dtile d-sykling" href="/funksjoner/sykling"><span class="dcap"><img alt="" src="/sport-icons/sykling.png">Sykling</span></a>
+  <a class="dtile d-triatlon" href="/funksjoner/triatlon"><span class="dcap"><img alt="" src="/sport-icons/triatlon.png">Triatlon</span></a>
+  <a class="dtile d-multisport" href="/funksjoner/multisport"><span class="dcap">Multisport</span></a>
+</div>
+<div class="wrap dwrap" style="padding-top:34px;padding-bottom:54px">
+  <div class="snote">
+    <p><b>Hver idrett har sine egne verktøy</b> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
+    <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> — vi bygger X-PULSE sammen med utøverne.</p>
+  </div>
+</div>
+
+<!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
+<section class="ski" id="skiskyting">
+  <div class="wrap">
+    <div class="label" style="color:var(--red)">Skiskyting — verktøy ingen andre har</div>
+    <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
+    <div class="skigrid">
+      <div>
+        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare — og alt sammenlignes over tid.</p>
+        <div class="vimprow">
+          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/></svg><span class="lb">Stille</span></span>
+          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-35 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">2</span></span>
+          <span class="vimp sel"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">3 H</span></span>
+          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><g transform="translate(92 0) scale(-1 1)"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></g></svg><span class="lb">3 V</span></span>
+        </div>
+        <div class="chiprow" style="margin-top:14px">
+          <span class="chip" style="color:var(--blue);border-color:rgba(26,111,212,.55);background:rgba(26,111,212,.1)">Sikt: God</span>
+          <span class="chip">Lett tåke</span><span class="chip">Tåke</span><span class="chip">Tett tåke</span>
+        </div>
+        <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie — analysen viser treff mot forholdene, over hele sesongen.</p>
+      </div>
+      <div class="blinkwrap">
+        <svg width="230" height="230" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="#141419" stroke="#2A2A33" stroke-width="2"/>
+          <circle cx="100" cy="100" r="40" fill="#0A0A0D" stroke="#3A3A44" stroke-width="2"/>
+          <circle cx="88" cy="86" r="8" fill="#28A86E"/><circle cx="112" cy="104" r="8" fill="#28A86E"/>
+          <circle cx="96" cy="118" r="8" fill="#28A86E"/><circle cx="118" cy="80" r="8" fill="#28A86E"/>
+          <circle cx="150" cy="62" r="8" fill="#E23A5A"/>
+        </svg>
+        <div class="blinkstats">
+          Serie 2 · Stående<br>
+          <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
+          puls inn <b>168</b> · vind <b>3 H</b><br>
+          <span style="color:var(--mute);font-size:12px">Bommen plottes — mønsteret avslører seg selv.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 <!-- ═══════════ NYTT I V1.2 ═══════════ -->
 <section id="nytt" style="padding-top:0">
   <div class="wrap">
@@ -948,67 +1014,7 @@ nav {
   </div>
 </section>
 
-<!-- velg din disiplin — slått sammen med bildestripa: tittel fra live-siden, visning som stripa, alle sju med bilde -->
-<section id="sports" style="padding-top:20px;padding-bottom:0">
-  <div class="wrap">
-    <div class="label">Bygget for din idrett</div>
-    <h2>VELG DIN <span class="o">DISIPLIN.</span></h2>
-  </div>
-</section>
-<div class="drow">
-  <a class="dtile d-langrenn" href="/funksjoner/langrenn"><span class="dcap"><img alt="" src="/sport-icons/langrenn.png">Langrenn</span></a>
-  <a class="dtile d-skiskyting" href="/funksjoner/skiskyting"><span class="dcap"><img alt="" src="/sport-icons/skiskyting.png">Skiskyting</span></a>
-  <a class="dtile d-langlop" href="/funksjoner/langlop"><span class="dcap"><img alt="" src="/sport-icons/langlop.png">Langløp</span></a>
-  <a class="dtile d-loping" href="/funksjoner/loping"><span class="dcap"><img alt="" src="/sport-icons/loping.png">Løping</span></a>
-  <a class="dtile d-sykling" href="/funksjoner/sykling"><span class="dcap"><img alt="" src="/sport-icons/sykling.png">Sykling</span></a>
-  <a class="dtile d-triatlon" href="/funksjoner/triatlon"><span class="dcap"><img alt="" src="/sport-icons/triatlon.png">Triatlon</span></a>
-  <a class="dtile d-multisport" href="/funksjoner/multisport"><span class="dcap">Multisport</span></a>
-</div>
-<div class="wrap dwrap" style="padding-top:34px;padding-bottom:54px">
-  <div class="snote">
-    <p><b>Hver idrett har sine egne verktøy</b> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
-    <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> — vi bygger X-PULSE sammen med utøverne.</p>
-  </div>
-</div>
 
-<!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
-<section class="ski" id="skiskyting">
-  <div class="wrap">
-    <div class="label" style="color:var(--red)">Skiskyting — verktøy ingen andre har</div>
-    <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
-    <div class="skigrid">
-      <div>
-        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare — og alt sammenlignes over tid.</p>
-        <div class="vimprow">
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/></svg><span class="lb">Stille</span></span>
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-35 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">2</span></span>
-          <span class="vimp sel"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">3 H</span></span>
-          <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><g transform="translate(92 0) scale(-1 1)"><line x1="32" y1="12" x2="32" y2="84" stroke="#55555F" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="#8B8B95"/><g transform="rotate(-55 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></g></svg><span class="lb">3 V</span></span>
-        </div>
-        <div class="chiprow" style="margin-top:14px">
-          <span class="chip" style="color:var(--blue);border-color:rgba(26,111,212,.55);background:rgba(26,111,212,.1)">Sikt: God</span>
-          <span class="chip">Lett tåke</span><span class="chip">Tåke</span><span class="chip">Tett tåke</span>
-        </div>
-        <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie — analysen viser treff mot forholdene, over hele sesongen.</p>
-      </div>
-      <div class="blinkwrap">
-        <svg width="230" height="230" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="86" fill="#141419" stroke="#2A2A33" stroke-width="2"/>
-          <circle cx="100" cy="100" r="40" fill="#0A0A0D" stroke="#3A3A44" stroke-width="2"/>
-          <circle cx="88" cy="86" r="8" fill="#28A86E"/><circle cx="112" cy="104" r="8" fill="#28A86E"/>
-          <circle cx="96" cy="118" r="8" fill="#28A86E"/><circle cx="118" cy="80" r="8" fill="#28A86E"/>
-          <circle cx="150" cy="62" r="8" fill="#E23A5A"/>
-        </svg>
-        <div class="blinkstats">
-          Serie 2 · Stående<br>
-          <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
-          puls inn <b>168</b> · vind <b>3 H</b><br>
-          <span style="color:var(--mute);font-size:12px">Bommen plottes — mønsteret avslører seg selv.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ═══════════ TRENERPANEL — NY PÅ FORSIDEN ═══════════ -->
 <section id="trener">

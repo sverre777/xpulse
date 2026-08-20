@@ -569,7 +569,10 @@ nav {
     color:rgba(242,240,236,0.55); text-decoration:none; transition:color 0.3s;
   }
 .nav-links a:hover, .nav-links a.active { color:var(--white); }
-.nav-cta { border-radius:999px; background:var(--orange) !important; color:var(--white) !important; padding:9px 20px !important; border-radius:0; }
+.nav-cta { border-radius:999px; background:var(--orange) !important; color:var(--white) !important; padding:9px 20px !important; }
+  /* Logg inn: pill-omriss uten fyll (Sverre 20. aug). */
+  .nav-login { border:1px solid var(--border); border-radius:999px; padding:8px 18px; }
+  .nav-login:hover { border-color:var(--muted); }
 .nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
 .dropdown-trigger {
     background:none; border:none; cursor:none;
@@ -653,7 +656,7 @@ nav {
     </li>
     <li><a href="#priser">Priser</a></li>
     <li><a href="#faq">FAQ</a></li>
-    <li><a href="/app">Logg inn</a></li>
+    <li><a href="/app" class="nav-login">Logg inn</a></li>
     <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
   </ul>
   <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Åpne meny" aria-controls="navPanel" aria-expanded="false">

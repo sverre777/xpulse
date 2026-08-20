@@ -31,6 +31,41 @@ import {
   type WorkoutTemplate,
 } from './types.ts'
 
+/**
+ * Økttype → workouts.workout_type. ÉN plass — brukes av materializeOktmalAtDate
+ * og alt annet som skal stemple en økt fra malens type. Fasiten for venstresiden
+ * er OKT_MAL_TYPER; høyresiden er WORKOUT_TYPES-enumen i lib/types.ts.
+ * Komb-øktene peker på skytetypene (easy_combo/hard_combo) — det er samme
+ * begrep i appen.
+ */
+export const OKT_TYPE_TIL_WORKOUT_TYPE: Record<string, string> = {
+  rolig: 'easy',
+  langkjoring: 'long_run',
+  terskel: 'threshold',
+  i4_intervall: 'interval',
+  i5_intervall: 'interval',
+  hurtighet: 'interval',
+  motbakke: 'interval',
+  fartslek: 'interval',
+  lagtur: 'long_run',
+  komb_rolig: 'easy_combo',
+  komb_hard: 'hard_combo',
+  test: 'test',
+}
+
+export function oktTypeToWorkoutType(oktType: string | null | undefined): string | null {
+  if (!oktType) return null
+  return OKT_TYPE_TIL_WORKOUT_TYPE[oktType] ?? null
+}
+
+/**
+ * Normalisering for mal-søk: «6x6» skal treffe «6 × 6 min / 2 min».
+ * × → x, alt av mellomrom ignoreres, små bokstaver. Brukes av mal-velgeren.
+ */
+export function normaliserMalSok(s: string): string {
+  return s.toLowerCase().replace(/×/g, 'x').replace(/\s+/g, '')
+}
+
 export interface OktMalKopiValg {
   /** Idretten malen kopieres inn i. Bestemmer hva movement_name fylles med senere. */
   sport: Sport
@@ -103,9 +138,8 @@ function skyteRad(skyting: NonNullable<OktMalDef['skyting']>): ActivityRow {
  * Parameterne `saveAsTemplate` tar. Dette er den ekte veien inn — kall
  * `saveAsTemplate(oktMalTilTemplateInput(mal, { sport }))`.
  *
- * `workout_type` settes IKKE her. Økttypen hører til mal-fiksen, som skal
- * importere `OKT_MAL_TYPER` som fasit. Til da faller `materializeOktmalAtDate`
- * tilbake på 'long_run' for alt som ikke er test — bevisst, ikke glemt.
+ * Økttypen følger med som `oktType` (fase 97) — materializeOktmalAtDate
+ * stempler økta via OKT_TYPE_TIL_WORKOUT_TYPE. Long_run-fallbacken er borte.
  */
 export function oktMalTilTemplateInput(mal: OktMalDef, valg: OktMalKopiValg): {
   name: string
@@ -115,6 +149,7 @@ export function oktMalTilTemplateInput(mal: OktMalDef, valg: OktMalKopiValg): {
   activities: ActivityRow[]
   templateData: Partial<WorkoutFormData>
   isTest: boolean
+  oktType: string
 } {
   return {
     name: valg.navn?.trim() || mal.navn,
@@ -132,6 +167,7 @@ export function oktMalTilTemplateInput(mal: OktMalDef, valg: OktMalKopiValg): {
     },
     // Test-mal er en vanlig øktmal med flagg — ikke en egen type.
     isTest: erTestMal(mal),
+    oktType: mal.type,
   }
 }
 
@@ -158,6 +194,8 @@ export function oktMalTilWorkoutTemplate(
     activities: input.activities,
     template_data: input.templateData as WorkoutFormData,
     is_test: input.isTest,
+    okt_type: mal.type,
+    standard_session_series_id: null,
     times_used: 0,
     last_used_at: null,
     use_count: 0,

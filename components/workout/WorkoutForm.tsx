@@ -17,6 +17,7 @@ import {
   TestData, emptyTestData,
   ActivityRow, ActivityType, emptyActivityZones, makeActivity,
   NutritionEntryRow, emptyWeatherData,
+  MOVEMENT_CATEGORIES,
 } from '@/lib/types'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
@@ -34,6 +35,8 @@ import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSele
 import { HeartZone } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER } from '@/lib/okt-template-library'
+import { oktMalTilWorkoutTemplate, normaliserMalSok } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
 
 // Økttype-velgeren tilbyr kun de FUNKSJONELLE taggene — de som faktisk trigger
@@ -189,6 +192,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [templateCategory, setTemplateCategory] = useState<string>('Annet')
   // Kø #49: «Marker som test» — test-mal er vanlig øktmal m/ is_test-flagg.
   const [templateIsTest, setTemplateIsTest] = useState(false)
+  // Fase 97: økttype + «mal som standardøkt» (serie-kobling) i lagre-modalen.
+  const [templateOktType, setTemplateOktType] = useState('')
+  const [templateSerieId, setTemplateSerieId] = useState('')
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [templateError, setTemplateError] = useState<string | null>(null)
   // Aktiveres når bruker trykker "✓ Merk som gjennomført" på en planlagt økt i Dagbok.
@@ -297,8 +303,21 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // samme kilde/logikk som /app/maler-filteret.
   const [malMovement, setMalMovement] = useState('')
   const [malCategory, setMalCategory] = useState('')
+  const [malType, setMalType] = useState('')
+  const [malSok, setMalSok] = useState('')
+  // Fase 97: bibliotekets 58 vises SAMMEN med brukerens egne. Stabile id-er
+  // (bib_<ref>) så React-keys ikke flakker; sport følger skjemaet.
+  // Biblioteket endres ALDRI på plass — valg fyller kun skjemaet.
+  const bibliotekMaler = useMemo(
+    () => OKT_MAL_BIBLIOTEK.map(m =>
+      oktMalTilWorkoutTemplate(m, { sport: form.sport }, { id: `bib_${m.ref}` })),
+    [form.sport])
+  const erBibliotekMal = (t: WorkoutTemplate) => t.id.startsWith('bib_')
+  const alleMaler = useMemo(() => [...templates, ...bibliotekMaler], [templates, bibliotekMaler])
   const malMovementOptions = useMemo(() => {
-    const s = new Set<string>()
+    // Fasiten for bevegelsesformer er MOVEMENT_CATEGORIES — union med det
+    // malene faktisk bruker (dekker egne/eldre navn).
+    const s = new Set<string>(MOVEMENT_CATEGORIES.map(c => c.name))
     for (const t of templates) for (const a of t.activities ?? []) {
       if (a.movement_name) s.add(a.movement_name)
     }
@@ -309,12 +328,18 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     for (const t of templates) if (t.category) s.add(t.category)
     return Array.from(s).sort((a, b) => a.localeCompare(b, 'nb'))
   }, [templates])
-  const visibleTemplates = useMemo(() => templates.filter(t => {
-    if (malMovement && !(t.activities ?? []).some(a => a.movement_name === malMovement)) return false
-    if (malCategory && t.category !== malCategory) return false
+  const visibleTemplates = useMemo(() => alleMaler.filter(t => {
+    // Bibliotekmaler har åpen bevegelsesform/kategori — de filtreres aldri
+    // bort av de to aksene, kun av økttype og søk.
+    if (malMovement && !erBibliotekMal(t)
+      && !(t.activities ?? []).some(a => a.movement_name === malMovement)) return false
+    if (malCategory && !erBibliotekMal(t) && t.category !== malCategory) return false
+    if (malType && t.okt_type !== malType) return false
+    // Normalisert søk: «6x6» treffer «6 × 6 min / 2 min».
+    if (malSok.trim() && !normaliserMalSok(t.name).includes(normaliserMalSok(malSok))) return false
     return true
-  }), [templates, malMovement, malCategory])
-  const showMalFilters = templates.length > 4
+  }), [alleMaler, malMovement, malCategory, malType, malSok])
+  const showMalFilters = alleMaler.length > 4
 
   // Live økt-modus: vises kun for utøvers egne styrkeøkter (ikke trener).
   const [startingLive, setStartingLive] = useState(false)
@@ -400,10 +425,20 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       tags: d.tags ?? [],
       activities: freshActivities.length > 0 ? freshActivities : f.activities,
       location: d.location ?? f.location,
-      template_id: template.id,
+      // workouts.template_id er uuid-FK — bibliotekets pseudo-id (bib_<ref>)
+      // skal aldri dit. Bibliotekmal gir navn, ikke kobling.
+      template_id: erBibliotekMal(template) ? null : template.id,
       template_name: template.name,
       // Kø #48 (kjerneprinsipp 2): mal-bruk gjør ALDRI økta automatisk til
-      // standardøkt — en matchende serie FORESLÅS i stedet (serieSuggestion).
+      // standardøkt — MED ETT UNNTAK (fase 97): mal eksplisitt merket som
+      // standardøkt forhåndsvelger serien sin. Endrebar/fjernbar som alltid.
+      ...(template.standard_session_series_id
+        ? {
+            standard_session_series_id: template.standard_session_series_id,
+            standard_session_series_name:
+              seriesList?.find(se => se.id === template.standard_session_series_id)?.name ?? null,
+          }
+        : {}),
     }))
   }
 
@@ -472,6 +507,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         location: form.location,
       },
       isTest: templateIsTest,
+      oktType: templateOktType || null,
+      standardSessionSeriesId: templateSerieId || null,
     })
     setSavingTemplate(false)
     if (result.error) {
@@ -668,7 +705,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       )}
 
       {/* ── MALER ── */}
-      {templates.length > 0 && (
+      {(
         <div className="mb-2">
           {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
           {showMalFilters && (
@@ -685,6 +722,24 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   {malMovementOptions.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               )}
+              <select value={malType} onChange={e => setMalType(e.target.value)}
+                style={{
+                  backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+                  borderRadius: 'var(--r-field)', color: malType ? 'var(--accent)' : '#8A8A96',
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
+                  padding: '6px 8px', outline: 'none', minHeight: 34,
+                }}>
+                <option value="">Alle økttyper</option>
+                {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
+              </select>
+              <input value={malSok} onChange={e => setMalSok(e.target.value)}
+                placeholder="Søk (f.eks. 6x6)…"
+                style={{
+                  backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+                  borderRadius: 'var(--r-field)', color: '#F0F0F2',
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
+                  padding: '6px 10px', outline: 'none', minHeight: 34, width: 150,
+                }} />
               {malCategoryOptions.length > 1 && (
                 <select value={malCategory} onChange={e => setMalCategory(e.target.value)}
                   style={{
@@ -699,7 +754,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               )}
             </div>
           )}
-          <div className="xp-malrow">
+          <div className="xp-malrow" style={{ maxHeight: 150, overflowY: 'auto' }}>
             <span className="xp-mal-label">Fra mal</span>
             {visibleTemplates.length === 0 && (
               <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -707,22 +762,143 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </span>
             )}
             {visibleTemplates.map(t => (
-              <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal">
-                {t.is_test ? '🧪 ' : ''}{t.name}
+              <button key={t.id} type="button" onClick={() => loadTemplate(t)} className="xp-mal"
+                style={erBibliotekMal(t) ? { color: '#A0A0AC', borderStyle: 'dashed' } : undefined}
+                title={erBibliotekMal(t) ? 'Fra biblioteket — alt kan endres etter valg' : undefined}>
+                {erBibliotekMal(t) ? '📚 ' : ''}{t.is_test ? '🧪 ' : ''}{t.standard_session_series_id ? '⟳ ' : ''}{t.name}
               </button>
             ))}
-            <button type="button" onClick={() => setStandardPickerOpen(o => !o)}
-              className="xp-mal"
-              style={{
-                color: form.standard_session_series_id || standardPickerOpen ? '#FF8A5C' : undefined,
-                borderColor: form.standard_session_series_id || standardPickerOpen ? '#FF450088' : undefined,
-                background: form.standard_session_series_id ? '#1A0F08' : undefined,
-                borderRadius: 999,
-              }}>
-              ⟳ Standardøkt
-            </button>
+            {/* ⟳ Standardøkt bor nå i markerings-raden (chip) — fristilt fra
+                mal-flaten. Serie-velgeren under åpnes derfra. */}
           </div>
 
+        </div>
+      )}
+
+      {/* ── GRUNNINFO ── */}
+      <Section label="Grunninfo">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Label>Tittel</Label>
+            <input value={form.title} onChange={e => set('title', e.target.value)}
+              placeholder="F.eks. 5×5min terskelintervall" required
+              className="w-full px-4 py-3"
+              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
+              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
+          </div>
+          <div>
+            <Label>Dato</Label>
+            <input type="date" value={form.date} onChange={e => set('date', e.target.value)}
+              required style={iSt} className="w-full px-4 py-3" />
+          </div>
+          <div>
+            <Label>Klokkeslett (valgfritt)</Label>
+            <input type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
+              style={iSt} className="w-full px-4 py-3" />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Sted (valgfritt)</Label>
+            <input value={form.location ?? ''} onChange={e => set('location', e.target.value)}
+              placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
+              className="w-full px-4 py-3"
+              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
+              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Økttype (valgfritt)</Label>
+            {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
+                brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
+            <select
+              value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
+              onChange={e => set('workout_type', e.target.value as WorkoutType)}
+              style={iSt} className="w-full px-4 py-3">
+              <option value="other">Vanlig økt</option>
+              {workoutTypeOptions
+                .filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value))
+                .map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Chip-raden. DOM-rekkefølgen ER mobil-rekkefølgen: markeringer,
+            høyde/varme, så økttypene. Under sm er alle tre gruppene
+            `contents` — wrapperne forsvinner ut av layouten og chipene flyter
+            i én rad som brytes naturlig, akkurat som før grupperingen fantes.
+
+            Fra sm og opp legger et grid dem på plass:
+
+              [markeringer          ] [høyde]
+              [økttyper             ] [varme]
+
+            Grid og ikke `order` på flex, fordi visuell rekkefølge og
+            DOM-rekkefølge her IKKE er like — grid plasserer gruppene
+            eksplisitt uten å endre rekkefølgen for skjermlesere og
+            tastaturnavigasjon.
+
+            RAD 1 HOLDES KORT MED VILJE: «Bygg intervall» og mal-knappene
+            skal inn der senere, og da må det være plass igjen. */}
+        <div className="flex flex-wrap gap-3 mt-4
+                        sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-3 sm:gap-y-2 sm:items-start">
+          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-1">
+            <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
+              ★ Viktig økt
+            </Chip>
+            <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
+              👥 Fellestrening
+            </Chip>
+            {showCoachAttendChip && (
+              <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
+                👥 Skal delta
+              </Chip>
+            )}
+          </div>
+
+          {/* Kort tekst med vilje — ikonet bærer betydningen, og plassen
+              trengs i rad 1. Lesevisningene (WorkoutOverview, WorkoutCard,
+              Calendar, AltitudeHeatTab) beholder «Høydetrening»/«Varmetrening»:
+              der står ikonet ikke nødvendigvis ved siden av, og «Høyde» alene
+              kan like gjerne bety høydemeter. */}
+          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:items-end
+                          sm:col-start-2 sm:row-start-1 sm:row-span-2">
+            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
+              🏔️ Høyde
+            </Chip>
+            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
+              🌡️ Varme
+            </Chip>
+          </div>
+
+          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-2">
+            {SPECIAL_WORKOUT_TYPES.map(s => (
+              <Chip key={s.value} active={form.workout_type === s.value}
+                onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
+                color={s.color}>
+                {s.label}
+              </Chip>
+            ))}
+            {/* Fase 97: standardøkt som markering — én chip blant markeringene,
+                fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
+                klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
+                serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
+            <Chip active={!!form.standard_session_series_id || standardPickerOpen}
+              onClick={() => { void (async () => {
+                if (form.standard_session_series_id) {
+                  if (form.is_completed && !await xpConfirm(
+                    `Fjerne koblingen til «${form.standard_session_series_name ?? 'serien'}»?`)) return
+                  clearSerie()
+                } else {
+                  setStandardPickerOpen(o => !o)
+                }
+              })() }}
+              color="#FF8A5C">
+              ⟳ {form.standard_session_series_id
+                ? (form.standard_session_series_name ?? 'Standardøkt')
+                : 'Standardøkt'}
+            </Chip>
+          </div>
+        </div>
+
+        {/* Serie-UI (velger/aktiv kobling) — åpnes fra ⟳-chipen over. */}
           {/* Kø #48 bolk 2: smart forslag — mal/sted matcher en serie.
               Aldri automatikk; dismissbart, vises én gang per skjema. */}
           {serieSuggestion && !standardPickerOpen && (
@@ -842,112 +1018,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </span>
             </div>
           )}
-        </div>
-      )}
 
-      {/* ── GRUNNINFO ── */}
-      <Section label="Grunninfo">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <Label>Tittel</Label>
-            <input value={form.title} onChange={e => set('title', e.target.value)}
-              placeholder="F.eks. 5×5min terskelintervall" required
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
-          </div>
-          <div>
-            <Label>Dato</Label>
-            <input type="date" value={form.date} onChange={e => set('date', e.target.value)}
-              required style={iSt} className="w-full px-4 py-3" />
-          </div>
-          <div>
-            <Label>Klokkeslett (valgfritt)</Label>
-            <input type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
-              style={iSt} className="w-full px-4 py-3" />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Sted (valgfritt)</Label>
-            <input value={form.location ?? ''} onChange={e => set('location', e.target.value)}
-              placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Økttype (valgfritt)</Label>
-            {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
-                brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
-            <select
-              value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
-              onChange={e => set('workout_type', e.target.value as WorkoutType)}
-              style={iSt} className="w-full px-4 py-3">
-              <option value="other">Vanlig økt</option>
-              {workoutTypeOptions
-                .filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value))
-                .map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Chip-raden. DOM-rekkefølgen ER mobil-rekkefølgen: markeringer,
-            høyde/varme, så økttypene. Under sm er alle tre gruppene
-            `contents` — wrapperne forsvinner ut av layouten og chipene flyter
-            i én rad som brytes naturlig, akkurat som før grupperingen fantes.
-
-            Fra sm og opp legger et grid dem på plass:
-
-              [markeringer          ] [høyde]
-              [økttyper             ] [varme]
-
-            Grid og ikke `order` på flex, fordi visuell rekkefølge og
-            DOM-rekkefølge her IKKE er like — grid plasserer gruppene
-            eksplisitt uten å endre rekkefølgen for skjermlesere og
-            tastaturnavigasjon.
-
-            RAD 1 HOLDES KORT MED VILJE: «Bygg intervall» og mal-knappene
-            skal inn der senere, og da må det være plass igjen. */}
-        <div className="flex flex-wrap gap-3 mt-4
-                        sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-3 sm:gap-y-2 sm:items-start">
-          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-1">
-            <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
-              ★ Viktig økt
-            </Chip>
-            <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
-              👥 Fellestrening
-            </Chip>
-            {showCoachAttendChip && (
-              <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
-                👥 Skal delta
-              </Chip>
-            )}
-          </div>
-
-          {/* Kort tekst med vilje — ikonet bærer betydningen, og plassen
-              trengs i rad 1. Lesevisningene (WorkoutOverview, WorkoutCard,
-              Calendar, AltitudeHeatTab) beholder «Høydetrening»/«Varmetrening»:
-              der står ikonet ikke nødvendigvis ved siden av, og «Høyde» alene
-              kan like gjerne bety høydemeter. */}
-          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:items-end
-                          sm:col-start-2 sm:row-start-1 sm:row-span-2">
-            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
-              🏔️ Høyde
-            </Chip>
-            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
-              🌡️ Varme
-            </Chip>
-          </div>
-
-          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-2">
-            {SPECIAL_WORKOUT_TYPES.map(s => (
-              <Chip key={s.value} active={form.workout_type === s.value}
-                onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
-                color={s.color}>
-                {s.label}
-              </Chip>
-            ))}
-          </div>
-        </div>
 
         {/* B2 (kø #39): arven kommer fra MARKERINGSLAGET (dag-presis) —
             teksten sier «høyde-oppholdet», ikke belastningsperioden. */}
@@ -1312,6 +1383,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           category={templateCategory}
           sportLabel={SPORTS.find(s => s.value === form.sport)?.label ?? form.sport}
           isTest={templateIsTest}
+          oktType={templateOktType}
+          serieId={templateSerieId}
+          seriesList={seriesList ?? []}
+          onOktType={setTemplateOktType}
+          onSerieId={setTemplateSerieId}
           onName={setTemplateName}
           onDescription={setTemplateDescription}
           onCategory={setTemplateCategory}
@@ -1341,7 +1417,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
 function SaveAsTemplateModal({
   name, description, category, sportLabel, isTest,
-  onName, onDescription, onCategory, onIsTest,
+  oktType, serieId, seriesList,
+  onName, onDescription, onCategory, onIsTest, onOktType, onSerieId,
   onCancel, onSave, saving, error,
 }: {
   name: string
@@ -1349,6 +1426,11 @@ function SaveAsTemplateModal({
   category: string
   sportLabel: string
   isTest: boolean
+  oktType: string
+  serieId: string
+  seriesList: StandardSessionSeries[]
+  onOktType: (v: string) => void
+  onSerieId: (v: string) => void
   onName: (v: string) => void
   onDescription: (v: string) => void
   onCategory: (v: string) => void
@@ -1440,6 +1522,38 @@ function SaveAsTemplateModal({
               {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
             </span>
           </button>
+
+          {/* Fase 97: økttype (fasit = OKT_MAL_TYPER) — brukes av filteret i
+              mal-velgeren og stempler økter laget fra malen. Valgfritt. */}
+          <div className="mt-3">
+            <label className="block text-xs mb-1"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', letterSpacing: '0.05em' }}>
+              Økttype (valgfritt)
+            </label>
+            <select value={oktType} onChange={e => onOktType(e.target.value)}
+              className="w-full px-3 py-2"
+              style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
+              <option value="">— Ingen —</option>
+              {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
+            </select>
+          </div>
+
+          {/* Fase 97: mal som standardøkt — økter fra malen får serien
+              forhåndsvalgt (endrebar før lagring). Malen viser ⟳-badge. */}
+          {seriesList.length > 0 && (
+            <div className="mt-3">
+              <label className="block text-xs mb-1"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', letterSpacing: '0.05em' }}>
+                ⟳ Standardøkt-serie (valgfritt)
+              </label>
+              <select value={serieId} onChange={e => onSerieId(e.target.value)}
+                className="w-full px-3 py-2"
+                style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
+                <option value="">— Ikke standardøkt —</option>
+                {seriesList.map(se => <option key={se.id} value={se.id}>{se.name}</option>)}
+              </select>
+            </div>
+          )}
 
           {error && (
             <p className="text-xs px-3 py-2"

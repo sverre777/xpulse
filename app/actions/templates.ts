@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import type { ActivityRow, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
+import { oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { parseDecimal } from '@/lib/parse-decimal'
 
 // Mal-server-actions (fase 14). Se phase14_templates_tagging.sql.
@@ -26,6 +27,8 @@ function rowToTemplate(row: Record<string, unknown>): WorkoutTemplate {
     activities: (row.activities as ActivityRow[] | null) ?? null,
     template_data: (row.template_data as WorkoutFormData) ?? ({} as WorkoutFormData),
     is_test: (row.is_test as boolean | null) ?? false,
+    okt_type: (row.okt_type as string | null) ?? null,
+    standard_session_series_id: (row.standard_session_series_id as string | null) ?? null,
     times_used: (row.times_used as number | null) ?? 0,
     last_used_at: (row.last_used_at as string | null) ?? null,
     use_count: (row.use_count as number | null) ?? 0,
@@ -56,6 +59,9 @@ export async function saveAsTemplate(params: {
   templateData: Partial<WorkoutFormData>
   // Kø #49: «Marker som test» — test-mal er vanlig øktmal m/ flagg.
   isTest?: boolean
+  // Fase 97: malens økttype (verdi fra OKT_MAL_TYPER) og ev. standardøkt-serie.
+  oktType?: string | null
+  standardSessionSeriesId?: string | null
 }): Promise<{ error?: string; id?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -74,6 +80,11 @@ export async function saveAsTemplate(params: {
     activities: stripInstanceDataFromActivities(params.activities),
     template_data: params.templateData,
     is_test: params.isTest ?? false,
+    // Betinget så lagring fortsatt virker i vinduet før fase 97 er kjørt —
+    // kun maler som faktisk setter feltene avhenger av migreringen.
+    ...(params.oktType !== undefined ? { okt_type: params.oktType } : {}),
+    ...(params.standardSessionSeriesId !== undefined
+      ? { standard_session_series_id: params.standardSessionSeriesId } : {}),
     times_used: 0,
     updated_at: now,
   }).select('id').single()
@@ -171,6 +182,8 @@ export async function updateTemplate(id: string, patch: {
   category?: string | null
   sport?: Sport | null
   activities?: ActivityRow[]
+  oktType?: string | null
+  standardSessionSeriesId?: string | null
   templateData?: Partial<WorkoutFormData>
   isTest?: boolean
 }): Promise<{ error?: string }> {
@@ -190,6 +203,8 @@ export async function updateTemplate(id: string, patch: {
   if (patch.activities !== undefined) update.activities = stripInstanceDataFromActivities(patch.activities)
   if (patch.templateData !== undefined) update.template_data = patch.templateData
   if (patch.isTest !== undefined) update.is_test = patch.isTest
+  if (patch.oktType !== undefined) update.okt_type = patch.oktType
+  if (patch.standardSessionSeriesId !== undefined) update.standard_session_series_id = patch.standardSessionSeriesId
 
   const { error } = await supabase
     .from('workout_templates')
@@ -248,9 +263,14 @@ export async function materializeOktmalAtDate(
       user_id: user.id,
       title: template.name,
       sport,
-      // Kø #49: økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt —
-      // kan endres når økta åpnes/redigeres.
-      workout_type: template.is_test ? 'test' : (td.workout_type ?? 'long_run'),
+      // Kø #49: økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt.
+      // Fase 97: malens faktiske økttype kobles gjennom (OKT_TYPE_TIL_
+      // WORKOUT_TYPE). 'long_run'-fallbacken er FJERNET — den stemplet alt
+      // uten type som langtur. Uten kjent type: 'other' («Vanlig økt»),
+      // som er sant i stedet for gjettet.
+      workout_type: template.is_test
+        ? 'test'
+        : (oktTypeToWorkoutType(template.okt_type) ?? td.workout_type ?? 'other'),
       date,
       notes: td.notes ?? null,
       tags: td.tags ?? [],
@@ -259,6 +279,9 @@ export async function materializeOktmalAtDate(
       is_completed: false,
       template_id: template.id,
       template_name: template.name,
+      // Fase 97: mal merket som standardøkt → serien forhåndsvalgt på økta.
+      ...(template.standard_session_series_id
+        ? { standard_session_series_id: template.standard_session_series_id } : {}),
     })
     .select('id')
     .single()

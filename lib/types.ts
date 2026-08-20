@@ -1028,6 +1028,13 @@ export interface WorkoutTemplate {
   // Kø #49 (fase 87): test-mal = vanlig øktmal m/ flagg (alle idretter).
   // Økt fra test-mal får 🧪 (workout_type 'test') forhåndsvalgt.
   is_test: boolean
+  // Fase 97 (mal-fiksen): malens økttype. Verdiene er OKT_MAL_TYPER i
+  // lib/okt-template-library.ts — fasiten importeres, aldri kopieres.
+  // `category` er OPPTATT (sport-kategori) og skal ikke gjenbrukes til dette.
+  okt_type: string | null
+  // Fase 97: «mal som standardøkt» — økter fra malen får serien forhåndsvalgt
+  // (endrebar). NULL = vanlig mal.
+  standard_session_series_id: string | null
   times_used: number
   last_used_at: string | null
   use_count: number

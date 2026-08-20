@@ -3,6 +3,7 @@ import { LandingShell } from '@/components/landing/LandingShell'
 import { SportPageHero } from '@/components/landing/SportPageHero'
 import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
+import { InsideMockups } from '@/components/landing/InsideMockups'
 
 export const metadata: Metadata = buildFeatureMetadata({
   title: 'Treningsdagbok og treningsplanlegger – plan og logg i ett',
@@ -37,8 +38,11 @@ export default function DagbokOgPlanPage() {
         title={<>SLIK LOGGER DU<br/><span style={{ color: '#FF4500' }}>OG PLANLEGGER.</span></>}
         description="To moduser av samme rammeverk. Bygg planen fremover, logg gjennomføringen tilbake — og se sammenligningen automatisk. Trener-kommentarene følger med på øktnivå."
         icon={<DagbokIcon />}
-        backgroundImage="/photos/DSC02031_thumb.jpg"
+        backgroundImage="/photos/rulleski-skogsvei.jpg"
       />
+
+      {/* Ekte flater fra appen — samme mockups som forsiden. */}
+      <InsideMockups />
 
       <SportFeatureSection
         kicker="Aktivitets-basert logging"
@@ -53,12 +57,12 @@ export default function DagbokOgPlanPage() {
 
       <SportFeatureSection
         kicker="Spesialformater"
-        title="KONKURRANSE. TESTLØP. HVILEDAG."
+        title="KONKURRANSE. TEST. REISEDAG."
         intro="Ikke alle økter er trening. Velg riktig type ved logging og rammeverket tilpasses — egne felter for konkurranse-resultater, test-protokoller og hviledag-årsak."
         bullets={[
           { title: 'Konkurranse-modul', body: 'Distanse, posisjon, klasse, deltakerantall — alt strukturert for senere PR-historikk.' },
           { title: 'Testløp og test-økter', body: 'Cooper, FTP, terskel-test og 20+ andre standard-formater forhåndskonfigurert.' },
-          { title: 'Hviledag og sykdom', body: 'Loggføres som egne rader uten å forurense trenings-statistikk; spores i belastnings-modellen.' },
+          { title: 'Hviledag, sykdom, skade og reisedag', body: 'Dagmarkeringer med egne felt — reisedag med timer og notat. Forurenser aldri treningsstatistikken.' },
         ]}
       />
 
@@ -68,8 +72,19 @@ export default function DagbokOgPlanPage() {
         intro="Plan-kalenderen lar deg legge inn økter på fremtidige datoer med varighet, sone-mål og struktur. Maler kan importeres for hele uker eller hele sesonger."
         bullets={[
           { title: 'Planlagt vs gjennomført', body: 'Hver planlagt økt får et snapshot. Når du logger gjennomføring sammenstilles plan vs faktisk automatisk.' },
-          { title: 'Mal-bibliotek', body: 'Lagre uke- eller årsplan-maler og gjenbruk for andre sesonger eller andre utøvere.' },
+          { title: 'Øktmal-bibliotek + egne maler', body: '58 ferdige økter fra OLT-skalaen, pluss dine egne økt-, uke- og planmaler. Søk «6x6» og økta ligger klar.' },
           { title: 'Sone-mål per drag', body: 'Plan-økter spesifiserer mål-tid per sone (I1-I5, Hurtighet) — avvik flagges ved logging.' },
+        ]}
+      />
+
+      <SportFeatureSection
+        kicker="Nytt i V1.2"
+        title="PLANLEGGING PÅ SEKUNDER."
+        intro="Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause — hele strukturen genereres som aktivitetsrader. Eller velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, med oppvarming og nedjogg klart."
+        bullets={[
+          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause. Stable rader for pyramider og progressive økter — skiskyttere velger skyting i pausene.' },
+          { title: '58 øktmaler fra OLT-skalaen', body: 'Terskel, I4/I5, motbakke, fartslek, komb og tester — velg, juster, lagre som din egen.' },
+          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie og se utviklingen som én graf gjennom sesongen.' },
         ]}
       />
 

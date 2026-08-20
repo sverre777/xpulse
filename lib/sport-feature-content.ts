@@ -31,7 +31,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Klassisk.', 'Skøyting.', 'Staking.'],
       description:
         'Full bredde av langrennssporten på én plattform. Logg drag, analyser bevegelsesform-spesifikk utvikling, hold orden på skiparken og bygg sesongplan rundt nasjonale konkurranser.',
-      backgroundImage: '/photos/DSC09859_thumb.jpg',
+      backgroundImage: '/photos/langrenn.jpg',
     },
     metaDescription:
       'X-PULSE for langrennsutøvere. Klassisk, skøyting, staking, skipark, ski-tester og bevegelsesform-spesifikk analyse på én plattform.',
@@ -84,6 +84,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Grupperte trener-planer', body: 'Trenere kan sende samme grunnplan til hele laget og personalisere på toppen.' },
         ],
       },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          '58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala — terskel, I4/I5, motbakke, lagtur — pluss en intervall-bygger som genererer hele økta fra antall × dragtid × sone / pause. Søk «6x6» og økta ligger klar.',
+        bullets: [
+          { title: 'Øktmal-biblioteket', body: 'Velg blant 58 OLT-baserte økter med oppvarming og nedjogg klart — eller lagre dine egne økt-, uke- og planmaler.' },
+          { title: 'Intervall-byggeren', body: 'Stable rader for pyramider og progressive økter — rundene genereres som vanlige aktivitetsrader du kan justere fritt.' },
+          { title: 'Helse og søvn fra klokka', body: 'Søvn, hvilepuls og HRV kommer inn av seg selv hver natt — det du fører manuelt vinner alltid.' },
+        ],
+      },
     ],
   },
 
@@ -94,7 +106,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Eneste plattformen', 'med dyp', 'skyting-analyse.'],
       description:
         'Auto-genererte konkurranseformater (Sprint, Jaktstart, Normal, Fellesstart), per-skyting-data, treff% delt på liggende/stående, og custom grafer som lar deg svare på spørsmål andre apper ikke kan.',
-      backgroundImage: '/photos/IMG_4578_thumb.jpg',
+      backgroundImage: '/photos/skiskyting.jpg',
     },
     metaDescription:
       'X-PULSE for skiskyttere. Auto-konkurransestruktur, treff% per posisjon, per-skyting-data og custom skyting-grafer.',
@@ -124,15 +136,15 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         ],
       },
       {
-        id: 'per-skyting',
-        kicker: 'Per-skyting-data',
-        title: 'FØRSTE VS SISTE SKYTING.',
+        id: 'standplass',
+        kicker: 'Som på standplass',
+        title: 'SKUDD PÅ BLINK. VIND PÅ VIMPEL.',
         intro:
-          'For hver skyting i økten registreres totaltall: treff, bom og poengsum per posisjon. Sammenligning av første mot siste skyting viser om du blir mer eller mindre stabil utover økten — kritisk for fellesstart.',
+          'Hver serie føres slik du opplevde den: plott hvert skudd der det traff på blinken, sett vimpelen slik den sto, og velg sikten. Treffprosenten regnes ut av seg selv — og analysen viser treff mot forholdene over hele sesongen.',
         bullets: [
-          { title: '5-skudds-totaler per skyting', body: 'Treff, bom og poengsum logges per skyting (1-N) i økten.' },
-          { title: 'Skyting-til-skyting-utvikling', body: 'Sammenlign første vs siste skyting i økten — viser stabilitet under tretthet.' },
-          { title: 'Tid på skytteplass', body: 'Logg skytetid per skyting hvis tilgjengelig; sammenlign med treff%.' },
+          { title: 'Skuddplotting', body: 'Plott skuddene på blink per serie — bommene avslører mønsteret sitt selv.' },
+          { title: 'Vind og sikt per serie', body: 'Vimpelstilling (retning og styrke) og sikt føres per serie, slik du faktisk så det.' },
+          { title: 'Serie for serie', body: 'Treff, tid og puls per serie — sammenlign første mot siste skyting under tretthet.' },
         ],
       },
       {
@@ -149,14 +161,26 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'tester',
-        kicker: 'Skipark + skyting-tester',
-        title: 'KOMBINERT TRACKING.',
+        kicker: 'Skytetester',
+        title: 'NSSF-TESTENE LIGGER KLARE.',
         intro:
-          'Skiparken fra langrenn-modulen er åpen også for skiskyttere — registrer ski og test-resultater. Skyting-tester (egne formater på blink, biathlon ranking, dry-fire-økter) loggføres separat med egen historikk.',
+          'NSSF-testene ligger som ferdige maler i biblioteket — velg testen, så er serieoppsettet klart. Definisjonen er låst, så resultatene kan sammenlignes over år. Du kan også lage dine egne skytetest-maler, og skiparken fra langrenn er åpen for skiskyttere.',
         bullets: [
-          { title: 'Skipark-felles', body: 'Samme skipark-modul som langrenn — bytt mellom skøyte- og klassisk-ski.' },
-          { title: 'Skytt-tester', body: 'Tørr-skyting og blink-tester registreres som egne workout-typer med skudd-data.' },
-          { title: 'PR per format', body: 'Personlig rekord per konkurranseformat — vises tydelig i historikken.' },
+          { title: 'NSSF-maler', body: 'Standardtestene klare i biblioteket med riktig serieoppsett — også tørrtrening.' },
+          { title: 'Egne skytetester', body: 'Lag dine egne testformater; låst definisjon gjør resultatene sammenlignbare over tid.' },
+          { title: 'Skipark-felles', body: 'Samme skipark-modul som langrenn — ski-tester, smøring og rangering per føre.' },
+        ],
+      },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'Komb-øktene bygges på sekunder: velg skyting i pausene, så legges L–S-mønsteret inn av seg selv. 58 øktmaler fra OLT-skalaen ligger klare, komb-øktene med serier ferdig satt opp.',
+        bullets: [
+          { title: 'Skyting i pausene', body: 'Intervall-byggeren gjør pausene om til skyteserier — L–S, alle liggende først eller parvis, du velger mønsteret.' },
+          { title: 'Ferdige komb-maler', body: 'Rolig og hard komb ligger i biblioteket med serier og soner klare — juster og kjør.' },
+          { title: 'Helse og søvn fra klokka', body: 'Søvn, hvilepuls og HRV inn automatisk — restitusjonen synlig ved siden av treffprosenten.' },
         ],
       },
     ],
@@ -169,7 +193,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Birken.', 'Vasaloppet.', 'Lange økter.'],
       description:
         'Bygd for de virkelig lange utholdenhetsøktene og turrennene. Logg ernæring, klær, gear og forhold per økt; bygg periodiseringen så du topper formen til riktig dato.',
-      backgroundImage: '/photos/DJI_0062_thumb.jpg',
+      backgroundImage: '/photos/langlop.jpg',
     },
     metaDescription:
       'X-PULSE for langløp. Lang-tur-spesifikke felt, terreng-detaljering, periodisering mot Birken/Vasaloppet og pacing-analyse.',
@@ -234,6 +258,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Notat-tag på "lærdom"', body: 'Marker hva som virket og hva som ikke gjorde det. Søkbart i historikken.' },
         ],
       },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'De lange øktene planlegges på sekunder: 58 ferdige øktmaler fra OLT-skalaen, intervall-bygger for fartslek og terskeldrag, og standardøkter som kobler gjentakelser av samme langtur i én graf.',
+        bullets: [
+          { title: 'Øktmal-biblioteket', body: 'Langkjøring, terskel og motbakke ligger klart med oppvarming og nedjogg — søk, juster, kjør.' },
+          { title: 'Standardøkter', body: 'Samme testrunde gjennom vinteren? Koble øktene i en serie og se utviklingen som én kurve.' },
+          { title: 'Helse og søvn fra klokka', body: 'Søvn og hvilepuls inn automatisk — restitusjonen etter de lange øktene blir synlig.' },
+        ],
+      },
     ],
   },
 
@@ -244,7 +280,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Bane.', 'Asfalt.', 'Terreng.'],
       description:
         'Sone-styrt plan, pace-utvikling over tid og tester for å se om treningen faktisk gir fremgang. Funksjoner som dekker hele bredden — fra 800-meter-intervall til ultra på fjellet.',
-      backgroundImage: '/photos/DSC07271_thumb.jpg',
+      backgroundImage: '/photos/loping.jpg',
     },
     metaDescription:
       'X-PULSE for løpere. Sone-styrt plan, pace-utvikling, tester og PR-historikk for både bane, asfalt og terreng.',
@@ -297,6 +333,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Konkurranse-format', body: 'Trail-konkurranser (Salomon, UTMB, lokal terrengløp) får egne formater.' },
         ],
       },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause. Eller velg blant 58 ferdige øktmaler fra Olympiatoppens intensitetsskala — 6 × 6 min terskel ligger klar med oppvarming og nedjogg.',
+        bullets: [
+          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause — hele strukturen genereres som aktivitetsrader. Stable rader for pyramider.' },
+          { title: 'Øktmal-biblioteket', body: 'Terskel, I4/I5-intervaller, motbakke og fartslek ferdig rigget — søk «6x6» og du finner den.' },
+          { title: 'Standardøkter', body: 'Koble gjentakelser av samme intervalløkt i en serie — terskeltesten som graf gjennom sesongen.' },
+        ],
+      },
     ],
   },
 
@@ -307,6 +355,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Landevei.', 'Terreng.', 'Effekt.'],
       description:
         'Effekt-soner, høydemeter og sammenligning over sesong. Logg landeveis-økter og terrengritt med samme rammeverk og se utviklingen mot dine mål.',
+      backgroundImage: '/photos/sykling.jpg',
     },
     metaDescription:
       'X-PULSE for syklister. Effekt-soner, høydemeter, FTP-utvikling og sammenligning av økter på samme rute over sesong.',
@@ -359,6 +408,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Service-historikk', body: 'Logg verksteds-besøk og bytt med dato; se historikk per sykkel.' },
         ],
       },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'Intervalløktene bygges på sekunder med intervall-byggeren, og 58 ferdige øktmaler fra OLT-skalaen dekker terskel til VO2-drag. Helse og søvn kommer inn fra klokka hver natt.',
+        bullets: [
+          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause — også progressive økter med flere rader.' },
+          { title: 'Øktmal-biblioteket', body: 'Terskel- og intervalløkter ferdig rigget — velg, juster watt-målene, kjør.' },
+          { title: 'Helse og søvn fra klokka', body: 'Søvn, hvilepuls og HRV automatisk — restitusjon og belastning i samme bilde.' },
+        ],
+      },
     ],
   },
 
@@ -369,6 +430,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Løp. Sykle. Ski.', 'Styrke. Alt teller.'],
       description:
         'For deg som trener variert — eller bare vil komme i gang. All trening i én dagbok, én plan og én belastningsmodell, uansett hvor mange idretter du blander.',
+      backgroundImage: '/photos/multisport.jpg',
     },
     metaDescription:
       'X-PULSE for multisport: løping, sykling, ski, styrke og alt annet i én treningsdagbok. Felles belastning, soner per sport og hybrid-økter.',
@@ -409,6 +471,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
           { title: 'Sekundæridretter', body: 'Velg idrett nummer to og tre i profilen — feltene følger etter (skiskyting gir f.eks. skyteanalyse).' },
         ],
       },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'Uansett idrett: 58 ferdige øktmaler fra Olympiatoppens intensitetsskala, intervall-bygger som genererer økta på fire tastetrykk, og helse og søvn som kommer inn fra klokka av seg selv.',
+        bullets: [
+          { title: 'Øktmal-biblioteket', body: 'Rolig, terskel, intervall, motbakke, fartslek og tester — klare for alle utholdenhetsidretter.' },
+          { title: 'Intervall-byggeren', body: 'Bygg drag-økta én gang — bevegelsesformen velger du fritt etterpå.' },
+          { title: 'Reisedag og helse', body: 'Reisedager, søvn og hvilepuls hører hjemme i samme dagbok som treningen.' },
+        ],
+      },
     ],
   },
   triatlon: {
@@ -418,6 +492,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       titleLines: ['Svømming.', 'Sykling.', 'Løping.'],
       description:
         'Tre disipliner i én plan. Bytt-tider, brick-økter og periodisering mot konkurransedato — uten å måtte hoppe mellom tre apper for å holde oversikt.',
+      backgroundImage: '/photos/triatlon.jpg',
     },
     metaDescription:
       'X-PULSE for triatleter. Tre disipliner i én plan, brick-økter, bytt-tider og periodisering mot Ironman/Olympic-distanse.',
@@ -467,6 +542,18 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         bullets: [
           { title: 'Disiplin-filter', body: 'Alle dashbord kan filtreres på svøm/sykkel/løp eller multi.' },
           { title: 'Pace-tap etter sykkel', body: 'Spor om løpe-pace-tap-mellom-solo-og-brick reduseres over sesong.' },
+        ],
+      },
+      {
+        id: 'nytt-v12',
+        kicker: 'Nytt i V1.2',
+        title: 'PLANLEGGING PÅ SEKUNDER.',
+        intro:
+          'Tre disipliner — samme verktøy: 58 ferdige øktmaler fra OLT-skalaen, intervall-bygger for drag i alle tre, og standardøkter som sporer nøkkeløktene gjennom sesongen.',
+        bullets: [
+          { title: 'Intervall-byggeren', body: 'Drag-økter for svøm, sykkel og løp genereres på fire tastetrykk — sonene følger idrettens egne terskler.' },
+          { title: 'Øktmal-biblioteket', body: '58 OLT-baserte økter pluss dine egne — også brick-økter kan lagres som mal.' },
+          { title: 'Helse og søvn fra klokka', body: 'Restitusjonen på tvers av tre idretter samlet i ett bilde — automatisk.' },
         ],
       },
     ],

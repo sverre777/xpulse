@@ -33,7 +33,7 @@ export default function AnalysePage() {
         title={<>FORSTÅ <span style={{ color: '#FF4500' }}>DIN<br/>EGEN UTVIKLING.</span></>}
         description="Data uten innsikt er bare tall. Analyse-modulen kobler puls, HRV, laktat og subjektiv følelse i én helhetlig oversikt — slik at du faktisk lærer av hver økt og av sesongen som helhet."
         icon={<AnalyseIcon />}
-        backgroundImage="/photos/DSC05290_thumb.jpg"
+        backgroundImage="/photos/rulleski-oslo-utsikt.jpg"
       />
 
       <SportFeatureSection
@@ -55,6 +55,17 @@ export default function AnalysePage() {
           { title: 'Per-sport-soner', body: 'Soner registreres uavhengig per disiplin så svømme-stats ikke forurenser løpe-stats.' },
           { title: 'Plan vs faktisk', body: 'Sammenlign planlagt sone-fordeling mot det du faktisk gjorde — viktig for trener-kommunikasjon.' },
           { title: 'Polarisert vs pyramidisk', body: 'Mønster-tag som viser om sesongen din følger en kjent trenings-modell.' },
+        ]}
+      />
+
+      <SportFeatureSection
+        kicker="Helse og søvn · Nytt i V1.2"
+        title="SØVN OG HVILEPULS — AUTOMATISK."
+        intro="Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt kommer inn fra klokka hver natt — i dag fra Polar, flere merker kommer. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier."
+        bullets={[
+          { title: 'Kilde per verdi', body: 'Hver verdi vet hvor den kom fra — klokke eller manuelt — og manuelt vinner alltid.' },
+          { title: 'Søvn utvidet', body: 'Leggetid, våknetid, faser og avbrudd — ikke bare ett tall per natt.' },
+          { title: 'Restitusjon mot belastning', body: 'Hvilepuls- og HRV-trenden vises ved siden av treningsbelastningen — sammenhengen blir synlig.' },
         ]}
       />
 
@@ -89,6 +100,7 @@ export default function AnalysePage() {
           { title: 'Standard-maler', body: '20+ kjente test-formater forhåndskonfigurert med riktig protokoll og felter.' },
           { title: 'Egne tester', body: 'Lag dine egne hvis du har et signatur-format — trener kan dele med hele laget.' },
           { title: 'Trend per test', body: 'Hver test får egen graf med årstall-akse — se sesong-til-sesong-fremgang.' },
+          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie — terskeltesten som én kurve gjennom sesongen.' },
         ]}
       />
 

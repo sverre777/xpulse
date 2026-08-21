@@ -26,6 +26,7 @@ import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
+import { NyTestMalPopup } from './NyTestMalPopup'
 import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
 import { ActivitySummary } from './ActivitySummary'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
@@ -310,6 +311,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Portal til body: WorkoutForm er selv et <form>, og OktmalBuilder rendrer
   // sitt eget — nøstede skjemaer er ugyldig HTML.
   const [visNyMalBygger, setVisNyMalBygger] = useState(false)
+  // Test-fanen: kompakt «ny test-mal»-popup (navn + serieoppsett/bev.form).
+  const [visNyTestMal, setVisNyTestMal] = useState(false)
   // Bibliotekmal valgt → generator-dialog forhåndsutfylt fra malens blokker.
   const [malBygger, setMalBygger] = useState<OktMalDef | null>(null)
   const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
@@ -543,7 +546,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     if (!name) { setTemplateError('Navn er påkrevd'); return }
     setSavingTemplate(true)
     setTemplateError(null)
-    const result = await saveAsTemplate({
+    // try/catch: et KASTET unntak fra server-actionen (ikke {error}) lot
+    // spinneren stå for alltid uten spor (meldt fra bruk 21. aug).
+    let result: Awaited<ReturnType<typeof saveAsTemplate>>
+    try {
+      result = await saveAsTemplate({
       name,
       description: templateDescription.trim() || undefined,
       category: templateCategory,
@@ -561,7 +568,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       isTest: templateIsTest,
       oktType: templateOktType || null,
       standardSessionSeriesId: templateSerieId || null,
-    })
+      })
+    } catch (e) {
+      console.error('saveAsTemplate kastet:', e)
+      setTemplateError(e instanceof Error ? e.message : 'Lagringen feilet — prøv igjen')
+      setSavingTemplate(false)
+      return
+    }
     setSavingTemplate(false)
     if (result.error) {
       setTemplateError(result.error)
@@ -1255,6 +1268,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           activityCount={form.activities.length}
           keyDate={keyDate}
           onPrioritetChange={p => { void (async () => {
+            // Alltid inn i øktas eget felt; MED årsplan-kobling skrives den
+            // også tilbake dit (samme sannhet begge steder).
+            setForm(f => ({
+              ...f,
+              competition_data: { ...(f.competition_data ?? emptyCompetitionData()), priority: p },
+            }))
             if (!keyDate) return
             const forrige = keyDate
             setKeyDate({ ...keyDate, event_type: `competition_${p}` })
@@ -1300,7 +1319,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             if (id.startsWith('bib_')) setMalBygger(finnOktMal(id.slice(4)) ?? null)
             else { const t = templates.find(x => x.id === id); if (t) loadTemplate(t) }
           }}
-          onNyMal={() => setVisNyMalBygger(true)}
+          onNyMal={() => form.workout_type === 'test' ? setVisNyTestMal(true) : setVisNyMalBygger(true)}
           onRequestGenerate={async (format, replaceExisting) => {
             const generated = generateCompetitionActivities(form.sport, format)
             if (generated.length === 0) return
@@ -1538,6 +1557,21 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           )}
         </div>
       </div>
+
+      {visNyTestMal && (
+        <NyTestMalPopup sport={form.sport}
+          onLukk={() => setVisNyTestMal(false)}
+          onLagret={info => {
+            setVisNyTestMal(false)
+            // Nytt navn rett inn i test-feltene; skytetest kan velges videre
+            // fra lista (TestVelger re-laster egne ved neste åpning).
+            setForm(f => ({
+              ...f,
+              test_data: { ...(f.test_data ?? emptyTestData()), custom_label: info.navn },
+              title: f.title.trim() === '' ? info.navn : f.title,
+            }))
+          }} />
+      )}
 
       {visNyMalBygger && typeof document !== 'undefined' && createPortal(
         <OktmalBuilder

@@ -94,9 +94,12 @@ export function KonkurransePanel({
   const set = <K extends keyof CompetitionData>(k: K, v: CompetitionData[K]) =>
     onChange({ ...data, [k]: v })
 
+  // Med årsplan-kobling vinner key-datens event_type; ellers øktas eget
+  // priority-felt (fase 98). Manuelt valg virker altså ALLTID —
+  // auto-markert kun når den kommer fra årsplanen.
   const prioritet: 'a' | 'b' | 'c' | null = keyDate?.event_type?.startsWith('competition_')
     ? (keyDate.event_type.slice(-1) as 'a' | 'b' | 'c')
-    : null
+    : (data.priority || null)
 
   const tittel = erKonk ? 'KONKURRANSE' : type === 'testlop' ? 'TESTLØP' : 'TEST'
 
@@ -148,19 +151,36 @@ export function KonkurransePanel({
       {/* ── TEST: «Hvilken test?» + protokoll-skjemaet ── */}
       {erTest ? (
         <div className="px-4 pb-4 pt-2">
+          {/* Navn på testen — fylles fra valgt mal, fritt redigerbart. */}
+          <div className="mb-3">
+            <label style={LBL}>Navn på testen</label>
+            <input value={(testData ?? emptyTestData()).custom_label}
+              onChange={e => onTestDataChange({ ...(testData ?? emptyTestData()), custom_label: e.target.value })}
+              placeholder="F.eks. NSSF standardtest 1, 3000 m, O₂-test…"
+              style={FELT} />
+          </div>
           <TestVelger sport={sport}
             onVelgSkytetest={onVelgSkytetest}
             aktivSkytetestRef={aktivSkytetestRef}
             testMaler={testMaler}
             onVelgTestMal={onVelgTestMal}
             onNyMal={onNyMal} />
-          <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} />
+          {/* Protokoll/resultat hører til GJENNOMFØRINGEN — i plan holder
+              navn + valgt test; resultatfeltene kommer i dagbok. */}
+          {isPlan ? (
+            <p style={{ fontFamily: FONT, fontSize: 13, color: '#55555F' }}>
+              Resultat og protokoll føres når testen er gjennomført — feltene ligger klare i dagbok-visningen.
+            </p>
+          ) : (
+            <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} />
+          )}
         </div>
       ) : (
         <div className="px-4 pb-4 pt-1">
-          {/* Rad 1: Sport · Konkurransetype · Format · (Prioritet kun konk).
-              Konkurransetype (stafett/tempo) er beholdt for funksjonsparitet. */}
-          <div className={`grid grid-cols-2 gap-3 mt-3 ${erKonk ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+          {/* Rad 1: Sport · Format · (Prioritet kun konk). Konkurransetype-
+              selecten er FJERNET (Sverre 21. aug) — typen velges alt med
+              chipene; feltet settes implisitt og stafett avledes av formatet. */}
+          <div className={`grid grid-cols-2 gap-3 mt-3 ${erKonk ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
             {onSportChange ? (
               <div>
                 <label style={LBL}>Sport</label>
@@ -177,21 +197,20 @@ export function KonkurransePanel({
               </div>
             )}
             <div>
-              <label style={LBL}>Type</label>
-              <select value={data.competition_type}
-                onChange={e => set('competition_type', (e.target.value || '') as CompetitionData['competition_type'])}
-                style={FELT}>
-                <option value="">—</option>
-                {COMPETITION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-            <div>
               <label style={LBL}>Format</label>
               <select value={data.distance_format}
                 onChange={e => {
                   const format = e.target.value
                   const prev = data.distance_format
-                  set('distance_format', format)
+                  // competition_type settes implisitt: stafett-formater merker
+                  // typen, ellers styrer chipen (konkurranse/testlop).
+                  onChange({
+                    ...data,
+                    distance_format: format,
+                    competition_type: /stafett/i.test(format)
+                      ? 'stafett'
+                      : (type === 'testlop' ? 'testlop' : 'konkurranse'),
+                  })
                   if (format && format !== prev && hasAutoGenerateTemplate(sport, format)) {
                     onRequestGenerate(format, activityCount > 0)
                   }
@@ -208,16 +227,13 @@ export function KonkurransePanel({
                   {(['a', 'b', 'c'] as const).map(p => (
                     <button key={p} type="button"
                       onClick={() => onPrioritetChange(p)}
-                      disabled={!keyDate}
-                      title={keyDate ? undefined : 'Prioritet settes på konkurransen i årsplanen — koble økta dit først'}
                       style={{
                         flex: 1, textAlign: 'center', borderRadius: 9, padding: '10px 0',
                         fontFamily: FONT, fontWeight: 800, fontSize: 14.5,
-                        cursor: keyDate ? 'pointer' : 'not-allowed',
+                        cursor: 'pointer',
                         color: prioritet === p ? GULL : '#8B8B95',
                         border: `1px solid ${prioritet === p ? GULL : 'var(--line2)'}`,
                         background: prioritet === p ? 'rgba(232,185,60,.12)' : 'transparent',
-                        opacity: keyDate ? 1 : 0.45,
                       }}>
                       {p.toUpperCase()}
                     </button>

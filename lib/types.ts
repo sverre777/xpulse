@@ -990,7 +990,10 @@ export interface DailyHealth {
 
 // Kategorier for mal — vises i "Lagre som mal"-modal og i filter på /app/maler.
 export const TEMPLATE_CATEGORIES = [
-  'Intervall', 'Terskel', 'Langkjøring', 'Rolig', 'Styrke', 'Teknikk', 'Annet',
+  'Intervall', 'Terskel', 'Langkjøring', 'Rolig', 'Styrke', 'Teknikk',
+  // #50 (21. aug): konkurranse-/testløp-/test-maler trenger sin kategori i
+  // lagre-som-mal-modalen — økttype-detaljene bor i okt_type-feltet.
+  'Konkurranse', 'Testløp', 'Test', 'Skyting', 'Hurtighet', 'Motbakke', 'Fartslek', 'Annet',
 ] as const
 export type TemplateCategory = typeof TEMPLATE_CATEGORIES[number]
 
@@ -1193,7 +1196,7 @@ export const COMPETITION_TYPES: { value: CompetitionType; label: string }[] = [
 export const DISTANCE_FORMATS: Record<Sport, string[]> = {
   running:              ['5 km', '10 km', 'Halvmaraton', 'Maraton', 'Ultra', 'Terrengløp', 'Motbakkeløp', 'Bane'],
   cross_country_skiing: ['Sprint', 'Kort distanse', 'Lang distanse', 'Langløp', 'Stafett'],
-  long_distance_skiing: ['Kort', 'Lang', 'Ultra'],
+  long_distance_skiing: ['Langløp', 'Halvdistanse', 'Prolog', 'Stafett'],
   biathlon:             ['Sprint', 'Jaktstart', 'Normal', 'Fellesstart', 'Stafett', 'Mix-stafett', 'Supersprint'],
   cycling:              ['Tempo', 'Fellesstart', 'Etapperitt', 'Gran fondo', 'Terrengsykling', 'Bakkeløp'],
   triathlon:            ['Sprint', 'Olympisk', '70.3', 'Ironman', 'Aquathlon', 'Duathlon'],
@@ -1217,6 +1220,9 @@ export interface CompetitionData {
   pre_comment: string
   // Etterpå-kommentar (dagbok-refleksjon).
   comment: string
+  // Fase 98: A/B/C-prioritet. Med årsplan-kobling vinner key-datens
+  // event_type (og skrives tilbake dit); dette feltet er kilden ELLERS.
+  priority: 'a' | 'b' | 'c' | ''
 }
 
 export function emptyCompetitionData(defaultType: CompetitionType = 'konkurranse'): CompetitionData {
@@ -1233,6 +1239,7 @@ export function emptyCompetitionData(defaultType: CompetitionType = 'konkurranse
     goal: '',
     pre_comment: '',
     comment: '',
+    priority: '',
   }
 }
 

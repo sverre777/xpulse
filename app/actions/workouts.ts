@@ -87,6 +87,9 @@ function competitionRowFor(workoutId: string, d: CompetitionData) {
     goal: d.goal || null,
     pre_comment: d.pre_comment || null,
     comment: d.comment || null,
+    // Betinget til fase 98 er kjørt — ellers knekker hver konkurranse-lagring
+    // på manglende kolonne (samme mønster som travel_hours/fase 96).
+    ...(d.priority ? { priority: d.priority } : {}),
     updated_at: new Date().toISOString(),
   }
 }
@@ -105,6 +108,7 @@ function competitionRowToForm(row: {
   goal: string | null
   pre_comment: string | null
   comment: string | null
+  priority?: string | null
 }): CompetitionData {
   return {
     db_id: row.id,
@@ -120,6 +124,7 @@ function competitionRowToForm(row: {
     goal: row.goal ?? '',
     pre_comment: row.pre_comment ?? '',
     comment: row.comment ?? '',
+    priority: ((row.priority as 'a' | 'b' | 'c' | null | undefined) ?? '') as CompetitionData['priority'],
   }
 }
 

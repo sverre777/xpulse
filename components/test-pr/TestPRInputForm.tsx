@@ -52,19 +52,32 @@ interface Props {
   title?: string
   // Plassholder for Resultat-feltet.
   valuePlaceholder?: string
+  // 'panel' (#50): rendres INNI konkurranse-panelet — gull-designet eier
+  // rammen, så boksen/blå-headeren droppes og feltene bruker panelets
+  // form-språk. Analyse-modalen bruker default-varianten uendret.
+  variant?: 'default' | 'panel'
+}
+
+const panelFieldStyle: React.CSSProperties = {
+  backgroundColor: 'var(--surface, #101014)', border: '1px solid var(--line2)',
+  borderRadius: 9, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  fontSize: 15, padding: '10px 12px', outline: 'none', width: '100%', minHeight: 44,
 }
 
 export function TestPRInputForm({
-  value, onChange, mode, showEquipmentConditions, title, valuePlaceholder,
+  value, onChange, mode, showEquipmentConditions, title, valuePlaceholder, variant = 'default',
 }: Props) {
   const set = <K extends keyof TestPRFormValue>(k: K, v: TestPRFormValue[K]) =>
     onChange({ ...value, [k]: v })
 
   const isManual = mode === 'manual'
+  const erPanel = variant === 'panel'
+  const felt = erPanel ? panelFieldStyle : inputStyle
 
   return (
-    <div className="p-4"
-      style={{ backgroundColor: '#13131A', border: `1px solid ${TEST_BLUE}44` }}>
+    <div className={erPanel ? undefined : 'p-4'}
+      style={erPanel ? undefined : { backgroundColor: '#13131A', border: `1px solid ${TEST_BLUE}44` }}>
+      {!erPanel && (
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: TEST_BLUE, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
@@ -72,9 +85,11 @@ export function TestPRInputForm({
           {title ?? 'Test/PR'}
         </span>
       </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <SportSubcategorySelector
+          fieldStyle={erPanel ? panelFieldStyle : undefined}
           sport={value.sport}
           subcategory={value.subcategory}
           customLabel={value.custom_label}
@@ -90,21 +105,21 @@ export function TestPRInputForm({
           <input value={value.value}
             onChange={e => set('value', e.target.value)}
             placeholder={valuePlaceholder ?? 'f.eks. 320 eller 18.42'}
-            style={inputStyle} />
+            style={felt} />
         </Field>
 
         <Field label="Enhet">
           <input value={value.unit}
             onChange={e => set('unit', e.target.value)}
             placeholder="sek, watt, ml/kg/min, kg, reps…"
-            style={inputStyle} />
+            style={felt} />
         </Field>
 
         {isManual && (
           <Field label="Oppnådd dato">
             <input type="date" value={value.achieved_at}
               onChange={e => set('achieved_at', e.target.value)}
-              style={inputStyle} />
+              style={felt} />
           </Field>
         )}
 
@@ -114,13 +129,13 @@ export function TestPRInputForm({
               <input value={value.equipment}
                 onChange={e => set('equipment', e.target.value)}
                 placeholder="Tredemølle, SRM, Concept2…"
-                style={inputStyle} />
+                style={felt} />
             </Field>
             <Field label="Forhold (valgfri)">
               <input value={value.conditions}
                 onChange={e => set('conditions', e.target.value)}
                 placeholder="+12°C, lett motvind, tørr bane…"
-                style={inputStyle} />
+                style={felt} />
             </Field>
           </>
         )}
@@ -131,16 +146,18 @@ export function TestPRInputForm({
               onChange={e => set('notes', e.target.value)}
               rows={3}
               placeholder="Hvordan gikk det? Følelse, pacing, utstyr, forhold…"
-              style={{ ...inputStyle, resize: 'vertical' }} />
+              style={{ ...felt, resize: 'vertical' }} />
           </Field>
         </div>
       </div>
 
+      {!erPanel && (
       <p className="mt-3 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Test/PR-resultatet vises i «Tester & PR» i analyse — samme felter
         som test-protokoll i Dagbok.
       </p>
+      )}
     </div>
   )
 }

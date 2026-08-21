@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-PULSE — Utstyr + skipark (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --kgull:#D4A017; --green:#28A86E; --red:#E23A5A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:34px 22px 80px}
+.wrap{max-width:1100px;margin:0 auto}
+.draft{border:1px solid rgba(232,185,60,.5);background:rgba(232,185,60,.07);color:var(--gold);border-radius:10px;padding:12px 16px;font-size:13.5px;margin-bottom:30px}
+.draft b{color:var(--paper)}
+h1{font:400 40px/1 'Bebas Neue';letter-spacing:.03em;margin:6px 0 4px}
+h2{font:400 15px/1 'Bebas Neue';letter-spacing:.16em;color:var(--dim);display:flex;align-items:baseline;gap:12px;margin:0 0 14px}
+h2 .aux{font:600 11px 'Barlow Condensed';letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+section{margin:44px 0}
+.panel{border:1px solid var(--line2);background:var(--surface);border-radius:16px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ph .t{font:400 16px/1 'Bebas Neue';letter-spacing:.14em;color:var(--dim)}
+.bd{padding:20px}
+label{display:block;font:600 10.5px 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
+.inp{border:1px solid var(--line2);background:#0B0B0F;border-radius:9px;padding:11px 13px;font-size:14px;color:var(--paper);display:flex;justify-content:space-between;align-items:center;min-height:42px}
+.inp .ph2{color:var(--mute)} .inp .car{color:var(--mute)}
+.row{display:grid;gap:14px;margin-bottom:16px}
+.r2{grid-template-columns:repeat(2,minmax(0,1fr))} .r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);border-radius:999px;padding:9px 16px;font:600 13px 'Barlow Condensed';letter-spacing:.09em;text-transform:uppercase;color:var(--dim);cursor:pointer;user-select:none}
+.chip.on{border-color:var(--orange);color:var(--paper);background:rgba(255,69,0,.10)}
+.chip.g.on{border-color:var(--green);background:rgba(40,168,110,.10)}
+.chip.k.on{border-color:var(--kgull);background:rgba(212,160,23,.10)}
+.sep{display:flex;align-items:center;gap:10px;font:600 11px 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:22px 0 14px}
+.sep::after{content:'';flex:1;height:1px;background:var(--line)}
+.hint{font-size:12.5px;color:var(--dim);margin-top:6px}
+.hint b{color:var(--paper)}
+.autonote{display:flex;gap:10px;align-items:center;border:1px solid rgba(40,168,110,.4);background:rgba(40,168,110,.07);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--paper);margin-top:16px}
+.badge{display:inline-block;font:700 10px 'Barlow Condensed';letter-spacing:.12em;border:1px solid;border-radius:5px;padding:2px 7px;vertical-align:middle}
+.b-konk{color:var(--kgull);border-color:rgba(212,160,23,.5)}
+.b-tren{color:var(--green);border-color:rgba(40,168,110,.5)}
+.b-type{color:var(--blue);border-color:rgba(26,111,212,.5)}
+.note{margin:14px 0;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--card);border-radius:9px;padding:13px 16px;font-size:13.5px;color:var(--dim)}
+.note b{color:var(--paper)}
+.nlist{list-style:none;display:flex;flex-direction:column;gap:12px}
+.nlist li{padding-left:18px;position:relative;font-size:13.5px;color:var(--dim)}
+.nlist li::before{content:'—';position:absolute;left:0;color:var(--orange)}
+.nlist b{color:var(--paper)}
+/* utstyrskort */
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ucard{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:16px}
+.ucard .nm{font-weight:600;font-size:14.5px}
+.ucard .meta{font-size:12px;color:var(--mute);margin:3px 0 10px}
+.ucard .km{font:400 26px/1 'Bebas Neue';letter-spacing:.03em}
+.ucard .km small{font:600 11px 'Barlow Condensed';letter-spacing:.1em;color:var(--mute)}
+.kmbar{height:5px;border-radius:3px;background:#1E1E26;margin-top:9px;overflow:hidden}
+.kmbar i{display:block;height:100%;border-radius:3px}
+.sliprow{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:9px;padding:10px 13px;font-size:13px;margin-bottom:8px}
+.sliprow .d{color:var(--mute);font-size:12px}
+.sliprow.old{opacity:.55}
+/* bracket */
+.bracket{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:center}
+.bcol h4{font:600 11px 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;text-align:center}
+.pair{border:1px solid var(--line2);border-radius:10px;overflow:hidden;margin-bottom:14px;background:#0B0B0F}
+.pski{display:flex;justify-content:space-between;padding:9px 12px;font-size:13px;border-bottom:1px solid var(--line)}
+.pski:last-child{border-bottom:none}
+.pski.w{background:rgba(40,168,110,.10)}
+.pski.w .nm::after{content:' ✓';color:var(--green)}
+.pski .no{color:var(--mute);font:600 11px 'Barlow Condensed';letter-spacing:.08em}
+.podium{border:1px solid rgba(212,160,23,.45);border-radius:10px;background:rgba(212,160,23,.06);padding:14px}
+.podium .prow{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 4px;border-bottom:1px solid var(--line)}
+.podium .prow:last-child{border-bottom:none}
+.podium .plass{font:400 15px 'Bebas Neue';color:var(--kgull);width:26px}
+/* forhold */
+.cond{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.skirow{display:grid;grid-template-columns:1.2fr 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;margin-bottom:8px}
+.skirow .u{color:var(--mute);font-size:12px}
+.mal{border:1px solid var(--line2);border-radius:12px;padding:14px 16px;background:#0B0B0F;cursor:pointer}
+.mal.on{border-color:var(--orange);background:rgba(255,69,0,.07)}
+.mal .mt{font-weight:600;font-size:14px}
+.mal .md{font-size:12px;color:var(--mute);margin-top:3px}
+.mals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:4px}
+@media(max-width:820px){
+  .cards,.mals,.cond{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bracket{grid-template-columns:1fr}
+  .r3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  body{padding:22px 12px 60px}
+  .r2,.r3,.cards,.mals,.cond{grid-template-columns:1fr}
+  .skirow{grid-template-columns:1fr;gap:6px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="draft"><b>DESIGNUTKAST — Utstyr + skipark-oppgradering.</b> Ikke live kode. Kategori-chipsene og mal-kortene under er klikkbare og viser variantene. Reglene nederst er fasit.</div>
+
+<h1>UTSTYR <span style="color:var(--orange)">+ SKIPARK</span></h1>
+<p style="color:var(--dim);font-size:14px;max-width:64ch">Nytt utstyr-skjemaet blir kategorispesifikt, alt utstyr kan starte med kilometer på telleren, ski har sliphistorikk og går rett i skiparken — og skiparken får testmaler med full forholdsregistrering og parallelltest med utslag.</p>
+
+<!-- ═══ 1 · NYTT UTSTYR ═══ -->
+<section>
+  <h2>1 · Nytt utstyr — kategorispesifikt<span class="aux">Klikk kategoriene</span></h2>
+  <div class="panel">
+    <div class="ph"><span class="t">— NYTT UTSTYR</span>
+      <span class="chips" id="katRow">
+        <span class="chip on" data-k="ski">Ski</span>
+        <span class="chip" data-k="rulleski">Rulleski</span>
+        <span class="chip" data-k="skisko">Skisko</span>
+        <span class="chip" data-k="lopesko">Løpesko</span>
+        <span class="chip" data-k="staver">Skistaver</span>
+        <span class="chip" data-k="sykkel">Sykkel</span>
+        <span class="chip" data-k="sykkelsko">Sykkelsko</span>
+        <span class="chip" data-k="annet">Klokke/annet</span>
+      </span>
+    </div>
+    <div class="bd">
+      <div class="row r3">
+        <div><label>Navn</label><div class="inp"><span class="ph2">F.eks. Madshus Redline</span></div></div>
+        <div><label>Merke</label><div class="inp"><span class="ph2">—</span></div></div>
+        <div><label>Modell</label><div class="inp"><span class="ph2">—</span></div></div>
+      </div>
+      <div class="row r3">
+        <div><label>Kjøpsdato</label><div class="inp"><span class="ph2">dd.mm.åååå</span></div></div>
+        <div><label>Pris (kr)</label><div class="inp"><span class="ph2">—</span></div></div>
+        <div><label>Km allerede gått</label><div class="inp"><span class="ph2">0</span></div>
+          <p class="hint">Start-km — historisk utstyr starter ikke på null.</p></div>
+      </div>
+
+      <!-- SKI -->
+      <div data-v="ski">
+        <div class="sep">Ski-detaljer</div>
+        <div class="row r2">
+          <div><label>Lengde (cm)</label><div class="inp"><span class="ph2">192</span></div></div>
+          <div><label>Type</label>
+            <div class="chips"><span class="chip on">Skøyte</span><span class="chip">Klassisk</span><span class="chip">Stake</span></div>
+          </div>
+        </div>
+        <div class="row r2">
+          <div><label>Bruk</label>
+            <div class="chips"><span class="chip k on">🏁 Konkurranseski</span><span class="chip g">Treningsski</span></div>
+          </div>
+          <div><label>Nåværende slip · årstall/dato</label>
+            <div class="row r2" style="margin:0">
+              <div class="inp"><span class="ph2">F.eks. S1-7 kald</span></div>
+              <div class="inp"><span class="ph2">2026</span></div>
+            </div>
+            <p class="hint">Ny slip legges senere <b>oppå</b> — historikken beholdes (se ski-kortet under).</p>
+          </div>
+        </div>
+        <div class="autonote">✓ Skia legges automatisk i <b>skiparken</b> når du lagrer — med type, bruk og slip som filtre der.</div>
+      </div>
+
+      <!-- RULLESKI -->
+      <div data-v="rulleski" hidden>
+        <div class="sep">Rulleski-detaljer <span style="color:var(--mute);letter-spacing:.05em">· egen kategori — rulleski har ikke slip</span></div>
+        <div class="row r2">
+          <div><label>Type</label>
+            <div class="chips"><span class="chip on">Skøyte</span><span class="chip">Klassisk</span></div>
+          </div>
+          <div><label>Hjultype</label><div class="inp">Standard (PU) <span class="car">▾</span></div></div>
+        </div>
+        <div class="row r2">
+          <div><label>Rullemotstand</label><div class="inp">2 <span class="car">▾</span></div>
+            <p class="hint">Én felles motstand — eller slå på <b>ulik foran/bak</b> →</p></div>
+          <div><label>Ulik motstand foran/bak</label>
+            <div class="row r2" style="margin:0">
+              <div class="inp"><span class="ph2">Foran: 2</span></div>
+              <div class="inp"><span class="ph2">Bak: 3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKISKO -->
+      <div data-v="skisko" hidden>
+        <div class="sep">Skisko-detaljer</div>
+        <div class="row r2">
+          <div><label>Størrelse</label><div class="inp"><span class="ph2">43,5</span></div></div>
+          <div><label>Type</label>
+            <div class="chips"><span class="chip on">Skøyte</span><span class="chip">Klassisk</span><span class="chip">Kombi</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LØPESKO -->
+      <div data-v="lopesko" hidden>
+        <div class="sep">Løpesko-detaljer</div>
+        <div class="row r2">
+          <div><label>Størrelse</label><div class="inp"><span class="ph2">43</span></div></div>
+          <div><label>Bruk</label>
+            <div class="chips"><span class="chip on">Trening</span><span class="chip k">Konkurranse</span><span class="chip">Terreng</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAVER -->
+      <div data-v="staver" hidden>
+        <div class="sep">Stav-detaljer</div>
+        <div class="row r2">
+          <div><label>Lengde (cm)</label><div class="inp"><span class="ph2">160</span></div></div>
+          <div><label>Bruk</label>
+            <div class="chips"><span class="chip on">Skøyte</span><span class="chip">Klassisk</span><span class="chip">Rulleski</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SYKKEL -->
+      <div data-v="sykkel" hidden>
+        <div class="sep">Sykkel-detaljer</div>
+        <div class="row r3">
+          <div><label>Type</label><div class="inp">Landevei <span class="car">▾</span></div></div>
+          <div><label>Drivverk / gir</label><div class="inp"><span class="ph2">F.eks. Ultegra Di2</span></div></div>
+          <div><label>Hjulsett</label><div class="inp"><span class="ph2">—</span></div></div>
+        </div>
+      </div>
+
+      <!-- SYKKELSKO -->
+      <div data-v="sykkelsko" hidden>
+        <div class="sep">Sykkelsko-detaljer</div>
+        <div class="row r2">
+          <div><label>Størrelse</label><div class="inp"><span class="ph2">43</span></div></div>
+          <div><label>Festesystem</label><div class="inp">SPD-SL <span class="car">▾</span></div></div>
+        </div>
+      </div>
+
+      <!-- ANNET -->
+      <div data-v="annet" hidden>
+        <div class="sep">Ingen ekstra felter</div>
+        <p class="hint">Klokke og annet utstyr bruker kun basen over.</p>
+      </div>
+
+      <div class="row r2" style="margin-top:18px">
+        <div><label>Sport (valgfritt)</label><div class="inp"><span class="ph2">F.eks. langrenn, løping</span></div></div>
+        <div><label>Notater</label><div class="inp"><span class="ph2">—</span></div></div>
+      </div>
+    </div>
+  </div>
+  <p class="note"><b>Basen er felles</b> (kategori, navn, merke, modell, sport, kjøpsdato, pris, notater — som i dag) <b>+ «km allerede gått»</b> for alt. Kategoriens egne felter kommer opp under — ett skjema, riktig innhold.</p>
+</section>
+
+<!-- ═══ 2 · SKI-KORTET M/ SLIPHISTORIKK ═══ -->
+<section>
+  <h2>2 · Ski-kortet — sliphistorikk + km<span class="aux">Utstyrslista og detaljsiden</span></h2>
+  <div class="cards" style="margin-bottom:14px">
+    <div class="ucard">
+      <div class="nm">Madshus Redline F3 <span class="badge b-konk">🏁 KONK</span> <span class="badge b-type">SKØYTE</span></div>
+      <div class="meta">192 cm · Slip: S1-7 kald (2026)</div>
+      <div class="km">1 240 <small>KM</small></div>
+      <div class="kmbar"><i style="width:62%;background:var(--kgull)"></i></div>
+      <div class="meta" style="margin-top:7px">340 km siden siste slip</div>
+    </div>
+    <div class="ucard">
+      <div class="nm">Fischer Speedmax <span class="badge b-tren">TRENING</span> <span class="badge b-type">KLASSISK</span></div>
+      <div class="meta">197 cm · Slip: universal (2025)</div>
+      <div class="km">2 875 <small>KM</small></div>
+      <div class="kmbar"><i style="width:88%;background:var(--green)"></i></div>
+      <div class="meta" style="margin-top:7px">1 120 km siden siste slip</div>
+    </div>
+    <div class="ucard">
+      <div class="nm">Swenor Skate <span class="badge b-type">RULLESKI</span></div>
+      <div class="meta">Motstand 2/3 (foran/bak) · PU-hjul</div>
+      <div class="km">640 <small>KM</small></div>
+      <div class="kmbar"><i style="width:34%;background:var(--blue)"></i></div>
+      <div class="meta" style="margin-top:7px">Hjul byttet: aldri</div>
+    </div>
+  </div>
+  <div class="panel"><div class="bd">
+    <label style="margin-bottom:10px">Sliphistorikk — Madshus Redline F3</label>
+    <div class="sliprow"><span><b>S1-7 kald</b> <span class="badge b-tren" style="margin-left:6px">AKTIV</span></span><span class="d">Jan 2026 · 340 km siden</span></div>
+    <div class="sliprow old"><span>S2-9 universal</span><span class="d">2025 · gikk 900 km</span></div>
+    <div class="sliprow old"><span>Fabrikkslip</span><span class="d">2024 · gikk 0–?</span></div>
+    <div class="chips" style="margin-top:12px"><span class="chip on">+ Ny slip</span></div>
+    <p class="hint">Ny slip legges <b>oppå</b> med navn + dato/årstall (årstall holder). Historikken røres aldri — km-telleren «siden siste slip» nullstilles.</p>
+  </div></div>
+</section>
+
+<!-- ═══ 3 · SKIPARK: NY TEST ═══ -->
+<section>
+  <h2>3 · Skiparken — ny test<span class="aux">Maler + egne tester · klikk malene</span></h2>
+  <div class="panel">
+    <div class="ph"><span class="t">— NY SKITEST</span></div>
+    <div class="bd">
+      <label style="margin-bottom:8px">Testtype</label>
+      <div class="mals" id="malRow">
+        <div class="mal on" data-m="tid"><div class="mt">⏱ Tidtaker-glid</div><div class="md">Tid over fast strekning, flere runs per ski</div></div>
+        <div class="mal" data-m="lengde"><div class="mt">📏 Lengde-glid</div><div class="md">Hvor langt skia glir — meter fra fast fart</div></div>
+        <div class="mal" data-m="par"><div class="mt">⚔ Parallelltest</div><div class="md">To og to side om side — vinneren videre</div></div>
+        <div class="mal" data-m="egen"><div class="mt">✎ Egen test</div><div class="md">Ditt eget oppsett — lagres som mal</div></div>
+      </div>
+
+      <div class="sep">Forhold — registreres på alle tester</div>
+      <div class="cond">
+        <div><label>Sted</label><div class="inp"><span class="ph2">Holmenkollen</span></div></div>
+        <div><label>Vær</label><div class="inp">Lettskyet <span class="car">▾</span></div></div>
+        <div><label>Føre</label><div class="inp">Hardt/kunstsnø <span class="car">▾</span></div></div>
+        <div><label>Luftfuktighet %</label><div class="inp"><span class="ph2">78</span></div></div>
+        <div><label>Temp luft °C</label><div class="inp"><span class="ph2">−4</span></div></div>
+        <div><label>Temp snø °C</label><div class="inp"><span class="ph2">−7</span></div></div>
+        <div style="grid-column:span 2"><label>Notat</label><div class="inp"><span class="ph2">Vind fra nord, sporet glaserte utover dagen…</span></div></div>
+      </div>
+
+      <div class="sep">Ski i testen — under skiene per ski</div>
+      <div class="skirow"><span><b>Redline F3</b> <span class="badge b-konk">🏁</span></span><div class="inp" style="min-height:36px;padding:7px 11px"><span class="ph2">HF7 + topping C6</span></div><span class="u">✕</span></div>
+      <div class="skirow"><span><b>Speedmax klassisk</b></span><div class="inp" style="min-height:36px;padding:7px 11px"><span class="ph2">LF6</span></div><span class="u">✕</span></div>
+      <div class="skirow"><span><b>Redline F2</b> <span class="badge b-tren">TR</span></span><div class="inp" style="min-height:36px;padding:7px 11px"><span class="ph2">HF7</span></div><span class="u">✕</span></div>
+      <div class="chips" style="margin-top:6px"><span class="chip">+ Legg til ski fra skiparken</span></div>
+      <p class="hint">Ved <b>smøretest</b> er «under skiene» selve testvariabelen — samme ski kan være med flere ganger med ulik smøring.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 4 · PARALLELLTEST ═══ -->
+<section>
+  <h2>4 · Parallelltesten — utslagsformat<span class="aux">To og to · vinneren videre</span></h2>
+  <div class="panel"><div class="bd">
+    <div class="bracket">
+      <div class="bcol">
+        <h4>Runde 1</h4>
+        <div class="pair"><div class="pski w"><span class="nm">Redline F3</span><span class="no">PAR 1</span></div><div class="pski"><span class="nm">Redline F2</span><span class="no"></span></div></div>
+        <div class="pair"><div class="pski"><span class="nm">Speedmax</span><span class="no">PAR 2</span></div><div class="pski w"><span class="nm">Aero 3.0</span><span class="no"></span></div></div>
+        <div class="pair"><div class="pski w"><span class="nm">RCS Carbon</span><span class="no">PAR 3</span></div><div class="pski"><span class="nm">S/Lab X</span><span class="no"></span></div></div>
+      </div>
+      <div class="bcol">
+        <h4>Runde 2</h4>
+        <div class="pair"><div class="pski w"><span class="nm">Redline F3</span><span class="no">PAR 4</span></div><div class="pski"><span class="nm">Aero 3.0</span><span class="no"></span></div></div>
+        <div class="pair"><div class="pski w"><span class="nm">RCS Carbon</span><span class="no">FRIRUNDE</span></div></div>
+      </div>
+      <div class="bcol">
+        <h4>Finale → rangering</h4>
+        <div class="pair"><div class="pski w"><span class="nm">RCS Carbon</span><span class="no">FINALE</span></div><div class="pski"><span class="nm">Redline F3</span><span class="no"></span></div></div>
+        <div class="podium">
+          <div class="prow"><span><span class="plass">1</span> RCS Carbon</span><span style="color:var(--kgull)">🏆</span></div>
+          <div class="prow"><span><span class="plass">2</span> Redline F3</span><span></span></div>
+          <div class="prow"><span><span class="plass">3</span> Aero 3.0</span><span></span></div>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:14px">Paringene settes opp automatisk fra skia i testen (oddetall → frirunde). Ett trykk per par markerer vinneren — resultatet lagres som vanlig skitest-rangering, så «beste ski per føre» i skiparken fanger det opp automatisk.</p>
+  </div></div>
+</section>
+
+<!-- ═══ REGLER ═══ -->
+<section>
+  <h2>Notat — regler</h2>
+  <div class="panel"><div class="bd">
+    <ul class="nlist">
+      <li><b>Kategorispesifikt skjema:</b> basen er felles (som i dag) + «km allerede gått» for ALT utstyr — start-km legges til km-tellingen, historisk utstyr starter ikke på null. Kategoriens egne felter vises under basen.</li>
+      <li><b>Ski:</b> lengde · type (skøyte/klassisk/stake) · bruk (trenings-/konkurranseski) · slip m/ årstall/dato. Lagres → <b>rett inn i skiparken</b>, med type/bruk/slip som filtre der.</li>
+      <li><b>Slip er HISTORIKK:</b> ny slip legges alltid OPPÅ (navn + dato/årstall — årstall holder), gamle beholdes, «km siden siste slip» nullstilles ved ny. Aldri overskriving.</li>
+      <li><b>Rulleski er EGEN kategori</b> — har ikke slip. Felter: type (skøyte/klassisk), hjultype, rullemotstand — én felles ELLER ulik foran/bak.</li>
+      <li><b>Skisko:</b> størrelse + type (skøyte/klassisk/kombi). <b>Løpesko/sykkelsko:</b> størrelse. <b>Skistaver:</b> lengde + bruk. <b>Sykkel:</b> type, drivverk, hjulsett. <b>Klokke/annet:</b> kun basen.</li>
+      <li><b>Kategoriene utvides</b> fra dagens ['sko','sykkel','ski','klokke','annet'] — eksisterende rader BEHOLDES og mappes (dagens 'sko' → løpesko som default; migrering m/ SQL til godkjenning, prod-skjema verifiseres først).</li>
+      <li><b>Skipark-tester:</b> maler ⏱ tidtaker-glid · 📏 lengde-glid · ⚔ parallelltest + EGNE tester (lagres som mal). Gjenbruker eksisterende skitest-modell (entries + rank_in_test) — dette utvider, erstatter ikke.</li>
+      <li><b>Forhold på alle tester:</b> sted · vær · føre · temp LUFT og SNØ · luftfuktighet · notat. <b>«Under skiene» per ski</b> — ved smøretest er det selve testvariabelen (samme ski kan stille flere ganger m/ ulik smøring).</li>
+      <li><b>Parallelltesten:</b> paringer auto fra valgte ski, oddetall gir frirunde, ett trykk markerer vinner, vinneren videre til neste runde. Resultat = rangering → lagres som vanlig skitest så «beste ski per føre» fanger den.</li>
+      <li><b>Funksjonsparitet:</b> alt dagens (km-telling, smøring, rangering per føre, tester) beholdes 1:1 — dette er utvidelse + redesign av skjemaet.</li>
+      <li><b>Mobil (375px):</b> alt i én kolonne, chips wrapper, bracket stables vertikalt.</li>
+    </ul>
+  </div></div>
+</section>
+
+</div>
+<script>
+document.getElementById('katRow').addEventListener('click', e => {
+  const c = e.target.closest('.chip[data-k]'); if(!c) return;
+  document.querySelectorAll('#katRow .chip').forEach(x => x.classList.remove('on'));
+  c.classList.add('on');
+  document.querySelectorAll('[data-v]').forEach(v => v.hidden = v.dataset.v !== c.dataset.k);
+});
+document.getElementById('malRow').addEventListener('click', e => {
+  const m = e.target.closest('.mal'); if(!m) return;
+  document.querySelectorAll('#malRow .mal').forEach(x => x.classList.remove('on'));
+  m.classList.add('on');
+});
+</script>
+</body>
+</html>

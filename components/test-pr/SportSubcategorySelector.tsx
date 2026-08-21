@@ -19,10 +19,12 @@ interface Props {
   // Tre separate callbacks ville bygd på stale value og overskrevet hverandre,
   // så vi eksponerer én batched callback i tillegg til de individuelle.
   onPatch: (patch: { sport?: TestPRSport | ''; subcategory?: string; customLabel?: string }) => void
+  // Panel-varianten (#50): feltstil arves fra konkurranse-panelet.
+  fieldStyle?: React.CSSProperties
 }
 
 export function SportSubcategorySelector({
-  sport, subcategory, customLabel, onPatch,
+  sport, subcategory, customLabel, onPatch, fieldStyle,
 }: Props) {
   const def = sport ? findTestPRSport(sport) : null
   const subs = def?.subcategories ?? []
@@ -40,7 +42,7 @@ export function SportSubcategorySelector({
   return (
     <>
       <Field label="Sport">
-        <select value={sport} onChange={e => onSelectSport(e.target.value)} style={inputStyle}>
+        <select value={sport} onChange={e => onSelectSport(e.target.value)} style={fieldStyle ?? inputStyle}>
           <option value="">— velg sport —</option>
           {TEST_PR_SPORTS_AND_SUBCATEGORIES.map(s => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -50,7 +52,7 @@ export function SportSubcategorySelector({
 
       {subs.length > 0 && (
         <Field label="Underkategori">
-          <select value={subcategory} onChange={e => onPatch({ subcategory: e.target.value })} style={inputStyle}>
+          <select value={subcategory} onChange={e => onPatch({ subcategory: e.target.value })} style={fieldStyle ?? inputStyle}>
             <option value="">— velg —</option>
             {subs.map(s => (
               <option key={s} value={s}>{s}</option>
@@ -64,7 +66,7 @@ export function SportSubcategorySelector({
           <input value={customLabel}
             onChange={e => onPatch({ customLabel: e.target.value })}
             placeholder="f.eks. Standhopp m/sving, 6×400m, Pull-up dødheng…"
-            style={inputStyle} />
+            style={fieldStyle ?? inputStyle} />
         </Field>
       )}
     </>

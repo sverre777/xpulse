@@ -172,7 +172,7 @@ export function KonkurransePanel({
               Resultat og protokoll føres når testen er gjennomført — feltene ligger klare i dagbok-visningen.
             </p>
           ) : (
-            <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} />
+            <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} variant="panel" />
           )}
         </div>
       ) : (

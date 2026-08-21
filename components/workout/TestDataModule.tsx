@@ -9,6 +9,7 @@ interface Props {
   data: TestData
   onChange: (data: TestData) => void
   mode: 'plan' | 'dagbok'
+  variant?: 'default' | 'panel'
 }
 
 // Tynn adapter mellom WorkoutFormData.test_data og det felles
@@ -16,7 +17,7 @@ interface Props {
 // for serialisering til workout_test_data, men UI-en deles med
 // manuell-modal i Analyse via TestPRInputForm.
 // (Sport velges i hoved-skjemaet — egen sport-velger her var dobbelt opp.)
-export function TestDataModule({ data, onChange, mode }: Props) {
+export function TestDataModule({ data, onChange, mode, variant }: Props) {
   const formValue: TestPRFormValue = {
     sport: data.sport,
     subcategory: data.subcategory,
@@ -52,6 +53,7 @@ export function TestDataModule({ data, onChange, mode }: Props) {
         onChange={onFormChange}
         mode="workout"
         showEquipmentConditions
+        variant={variant}
         title={`Test-protokoll ${mode === 'plan' ? '— Plan' : '— Resultat'}`}
       />
     </div>

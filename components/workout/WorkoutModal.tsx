@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
-import { listEquipment, getWorkoutEquipmentIds } from '@/app/actions/equipment'
+import { listEquipmentWithUsage, getWorkoutEquipmentSelection } from '@/app/actions/equipment'
 import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
@@ -44,6 +44,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   const [deleting, startDelete] = useTransition()
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [equipmentIds, setEquipmentIds] = useState<string[]>([])
+  // Bolk 4: ⇄-overstyringer per aktivitet (keyet på sort_order/radindeks).
+  const [activityEquipment, setActivityEquipment] = useState<Record<number, string[]>>({})
   // Øktoversikt (kø #40): eksisterende økter (gjennomført OG planlagt) åpnes
   // som oversikt; «✎ Rediger» bytter til skjemaet. For planlagt økt kan
   // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
@@ -53,7 +55,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   useEffect(() => {
     setShowEditForm(false)
     setAutoMark(false)
-    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); return }
+    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); return }
     if (state.kind === 'create') {
       setDefaults({
         date: state.date,
@@ -61,6 +63,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
         time_of_day: state.initialStartTime ?? '',
       })
       setEquipmentIds([])
+      setActivityEquipment({})
     } else {
       setLoading(true)
       getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
@@ -71,9 +74,15 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
     // Last brukerens utstyr-bibliotek én gang per modal-åpning. Hopper over for
     // trener-redigering siden trener ikke registrerer utstyr på utøvers vegne.
     if (!targetUserId) {
-      listEquipment({ status: 'active' }).then(setEquipment)
+      // Med usage så pop-up-velgeren kan vise km-tall per utstyr (bolk 4).
+      listEquipmentWithUsage({ status: 'active' }).then(setEquipment)
       if (state.kind === 'edit') {
-        getWorkoutEquipmentIds(state.workoutId).then(setEquipmentIds)
+        getWorkoutEquipmentSelection(state.workoutId).then(sel => {
+          setEquipmentIds(sel.heleOkta)
+          const rec: Record<number, string[]> = {}
+          for (const p of sel.perAktivitet) rec[p.sortOrder] = p.equipmentIds
+          setActivityEquipment(rec)
+        })
       }
     }
   }, [state, targetUserId])
@@ -248,6 +257,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               targetUserId={targetUserId}
               availableEquipment={equipment}
               initialEquipmentIds={equipmentIds}
+              initialActivityEquipment={activityEquipment}
             />
             {/* Trener-deltakelse — kun for redigering av eksisterende økter
                 (krever workout_id). targetUserId-presence er det riktige

@@ -23,6 +23,48 @@ export const STANDARD_CONDITIONS = [
   'Variabelt',
 ] as const
 
+// Fase 100 — vær-valg («forhold på alle tester»). Fritekst er også lov i UI-en.
+export const STANDARD_WEATHER = [
+  'Klart',
+  'Lettskyet',
+  'Overskyet',
+  'Snøvær',
+  'Tåke',
+  'Regn/sludd',
+  'Vind',
+] as const
+
+// Fase 100 — testmalene (fasit: designfilens seksjon 3).
+// null i test_type = fri/eldre test fra før malene fantes.
+export const SKI_TEST_TYPES = ['tidtaker', 'lengde', 'parallell', 'egen'] as const
+export type SkiTestType = typeof SKI_TEST_TYPES[number]
+
+export const SKI_TEST_TYPE_LABELS: Record<SkiTestType, string> = {
+  tidtaker: '⏱ Tidtaker-glid',
+  lengde: '📏 Lengde-glid',
+  parallell: '⚔ Parallelltest',
+  egen: '✎ Egen test',
+}
+
+export const SKI_TEST_TYPE_DESCRIPTIONS: Record<SkiTestType, string> = {
+  tidtaker: 'Tid over fast strekning, flere runs per ski',
+  lengde: 'Hvor langt skia glir — meter fra fast fart',
+  parallell: 'To og to side om side — vinneren videre',
+  egen: 'Ditt eget oppsett — lagres som mal',
+}
+
+// Egne test-maler (ski_test_templates, fase 100): navn + beskrivelse + målemåte.
+export type SkiTestMeasure = 'tid' | 'lengde' | 'score'
+
+export interface SkiTestTemplate {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  measure: SkiTestMeasure
+  created_at: string
+}
+
 export type ConditionsTemplateType = 'snow' | 'conditions'
 
 export interface UserConditionsTemplate {
@@ -47,6 +89,10 @@ export interface SkiTest {
   notes: string | null
   created_at: string
   updated_at: string
+  // Fase 100 — testmal + utvidede forhold. Kan mangle på eldre rader.
+  test_type?: SkiTestType | null
+  weather?: string | null
+  humidity_pct?: number | null
 }
 
 export interface SkiTestEntry {
@@ -60,6 +106,8 @@ export interface SkiTestEntry {
   slip_used: string | null
   notes: string | null
   created_at: string
+  // Fase 100 — lengde-glid måler meter.
+  distance_m?: number | null
 }
 
 export interface SkiTestWithEntries extends SkiTest {
@@ -75,6 +123,10 @@ export interface SaveSkiTestInput {
   conditions?: string | null
   notes?: string | null
   workout_id?: string | null
+  // Fase 100 — testmal + utvidede forhold.
+  test_type?: SkiTestType | null
+  weather?: string | null
+  humidity_pct?: number | null
   entries: Array<{
     ski_id: string
     rank_in_test?: number | null
@@ -83,5 +135,6 @@ export interface SaveSkiTestInput {
     wax_used?: string | null
     slip_used?: string | null
     notes?: string | null
+    distance_m?: number | null
   }>
 }

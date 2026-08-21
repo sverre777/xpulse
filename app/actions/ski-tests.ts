@@ -10,6 +10,8 @@ import type {
   SaveSkiTestInput,
   UserConditionsTemplate,
   ConditionsTemplateType,
+  SkiTestTemplate,
+  SkiTestMeasure,
 } from '@/lib/ski-test-types'
 
 // ── Tester ───────────────────────────────────────────────────
@@ -97,6 +99,10 @@ export async function saveSkiTest(
       snow_type: input.snow_type?.trim() || null,
       conditions: input.conditions?.trim() || null,
       notes: input.notes?.trim() || null,
+      // Fase 100 — testmal + utvidede forhold (kolonnene finnes i prod).
+      test_type: input.test_type ?? null,
+      weather: input.weather?.trim() || null,
+      humidity_pct: typeof input.humidity_pct === 'number' ? input.humidity_pct : null,
       created_at: now,
       updated_at: now,
     })
@@ -113,6 +119,7 @@ export async function saveSkiTest(
     wax_used: e.wax_used?.trim() || null,
     slip_used: e.slip_used?.trim() || null,
     notes: e.notes?.trim() || null,
+    distance_m: typeof e.distance_m === 'number' ? e.distance_m : null,
   }))
   const { error: entryErr } = await supabase.from('ski_test_entries').insert(entryRows)
   if (entryErr) {
@@ -265,5 +272,61 @@ export async function deleteConditionsTemplate(id: string): Promise<{ error?: st
     .eq('id', id)
     .eq('user_id', user.id)
   if (error) return { error: error.message }
+  return {}
+}
+
+// ── Egne test-maler (Fase 100) ───────────────────────────────
+//
+// «✎ Egen test — ditt eget oppsett, lagres som mal»: navn + beskrivelse +
+// målemåte (tid/lengde/score). Kun egne maler (RLS own-only).
+
+export async function listSkiTestTemplates(): Promise<SkiTestTemplate[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data } = await supabase
+    .from('ski_test_templates')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+  return (data ?? []) as SkiTestTemplate[]
+}
+
+export async function saveSkiTestTemplate(input: {
+  name: string
+  description?: string | null
+  measure?: SkiTestMeasure
+}): Promise<{ id?: string; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const name = input.name?.trim()
+  if (!name) return { error: 'Navn er påkrevd' }
+  const { data, error } = await supabase
+    .from('ski_test_templates')
+    .insert({
+      user_id: user.id,
+      name,
+      description: input.description?.trim() || null,
+      measure: input.measure ?? 'score',
+    })
+    .select('id')
+    .single()
+  if (error || !data) return { error: error?.message ?? 'Kunne ikke lagre test-mal' }
+  revalidatePath('/app/utstyr/ski')
+  return { id: data.id }
+}
+
+export async function deleteSkiTestTemplate(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { error } = await supabase
+    .from('ski_test_templates')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/app/utstyr/ski')
   return {}
 }

@@ -41,6 +41,12 @@ export const CHANGELOG_VERSION = '1.2'
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
+  // Utstyr + skipark (2026-08-21): ÉN oppføring for hele leveringen (tre bolker).
+  {
+    date: '2026-08-21',
+    title: 'Utstyr og skipark — full oppgradering',
+    body: 'Nytt utstyr-skjema med egne felter per kategori (ski, rulleski, skisko, løpesko, staver, sykkel, sykkelsko), start-km så historisk utstyr ikke begynner på null, sliphistorikk der ny slip legges oppå og «km siden siste slip» telles automatisk — og skiparken har fått bruk- og slipfiltre pluss testmaler: tidtaker-glid, lengde-glid og parallelltest med utslagsrunder der ett trykk kårer vinneren.',
+  },
   // V1.2 (2026-08-20): ÉN oppføring for hele leveringen («ett punkt per
   // levering») — utvidet etter hvert som delene gikk live samme dag:
   // forside + øktmal-bibliotek + standardøkt + sammenligning + intervall-

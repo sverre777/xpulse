@@ -8,6 +8,7 @@ import {
   deleteEquipment,
   duplicateEquipment,
   saveSkiData,
+  addGrind,
 } from '@/app/actions/equipment'
 import {
   EQUIPMENT_CATEGORIES,
@@ -16,17 +17,24 @@ import {
   EQUIPMENT_STATUS_LABELS,
   SKI_TYPES,
   SKI_TYPE_LABELS,
+  SKI_USAGE_TYPES,
+  SKI_USAGE_LABELS,
+  normalizeCategory,
+  slipDatoTilDate,
+  visSlipDato,
   type EquipmentCategory,
   type EquipmentStatus,
   type EquipmentSkiData,
   type EquipmentWithUsage,
   type SkiType,
+  type SkiUsageType,
 } from '@/lib/equipment-types'
-import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
+import type { SkiTestTemplate, SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
-import type { SkiEquipment } from '@/lib/equipment-types'
+import type { EquipmentGrind, SkiEquipment } from '@/lib/equipment-types'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { KategoriFelter, kategoriVerdierFraEquipment } from './KategoriFelter'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -45,10 +53,15 @@ interface Props {
   // Brukes til "+ Ny test"-modal når kategorien er ski.
   allSki?: SkiEquipment[]
   conditionsTemplates?: UserConditionsTemplate[]
+  // Fase 99 — sliphistorikk (kun ski), nyeste først.
+  grinds?: EquipmentGrind[]
+  // Fase 100 — egne test-maler til «+ Ny test»-modalen.
+  testTemplates?: SkiTestTemplate[]
 }
 
 export function EquipmentDetailView({
   equipment, workouts, skiData = null, skiTests = [], allSki = [], conditionsTemplates = [],
+  grinds = [], testTemplates = [],
 }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -56,7 +69,8 @@ export function EquipmentDetailView({
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
     name: equipment.name,
-    category: equipment.category,
+    // normalizeCategory: rader lagret før fase 99 kan fortsatt ha 'sko'.
+    category: normalizeCategory(equipment.category),
     brand: equipment.brand ?? '',
     model: equipment.model ?? '',
     sport: equipment.sport ?? '',
@@ -64,12 +78,21 @@ export function EquipmentDetailView({
     price_kr: equipment.price_kr != null ? String(equipment.price_kr) : '',
     status: equipment.status,
     notes: equipment.notes ?? '',
+    start_km: equipment.start_km != null && equipment.start_km !== 0 ? String(equipment.start_km) : '',
+    ...kategoriVerdierFraEquipment(equipment),
   })
+  const set = (patch: Partial<typeof form>) => setForm(f => ({ ...f, ...patch }))
+
+  // Km siden siste slip — datobasert fra øktene som er koblet til skia.
+  const sisteSlipDato = grinds[0]?.grind_date ?? skiData?.slip_date ?? null
+  const kmSinceSlip = sisteSlipDato == null ? null : workouts.reduce((sum, w) =>
+    (w.date >= sisteSlipDato && typeof w.distance_km === 'number') ? sum + w.distance_km : sum, 0)
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
+      const erRulleski = form.category === 'rulleski'
       const result = await updateEquipment({
         id: equipment.id,
         name: form.name,
@@ -81,6 +104,19 @@ export function EquipmentDetailView({
         price_kr: form.price_kr ? parseDecimal(form.price_kr) : null,
         status: form.status,
         notes: form.notes,
+        start_km: form.start_km ? parseDecimal(form.start_km) : 0,
+        size: form.size,
+        usage_type: form.usage_type,
+        length_cm: form.length_cm ? parseDecimal(form.length_cm) : null,
+        subtype: form.subtype,
+        wheel_type: form.wheel_type,
+        // Motstand: én felles ELLER ulik foran/bak — aldri begge deler.
+        resistance: erRulleski && !form.splitResistance ? form.resistance : '',
+        resistance_front: erRulleski && form.splitResistance ? form.resistance_front : '',
+        resistance_rear: erRulleski && form.splitResistance ? form.resistance_rear : '',
+        cleat_system: form.cleat_system,
+        drivetrain: form.drivetrain,
+        wheelset: form.wheelset,
       })
       if (result.error) { setError(result.error); return }
       setEditing(false)
@@ -138,7 +174,7 @@ export function EquipmentDetailView({
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-              {EQUIPMENT_CATEGORY_LABELS[equipment.category]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
+              {EQUIPMENT_CATEGORY_LABELS[normalizeCategory(equipment.category)]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
             </p>
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.06em' }}>
               {equipment.name}
@@ -151,10 +187,13 @@ export function EquipmentDetailView({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className={`grid ${kmSinceSlip != null ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3'} gap-3 mb-6`}>
           <Stat label="Total km" value={equipment.usage.total_km.toFixed(1)} />
           <Stat label="Total tid" value={`${Math.round(equipment.usage.total_minutes / 60)} t`} />
           <Stat label="Økter" value={String(equipment.usage.workout_count)} />
+          {kmSinceSlip != null && (
+            <Stat label="Km siden slip" value={kmSinceSlip.toFixed(0)} />
+          )}
         </div>
 
         {!editing ? (
@@ -162,6 +201,21 @@ export function EquipmentDetailView({
             <Row label="Sport" value={equipment.sport} />
             <Row label="Kjøpsdato" value={equipment.purchase_date} />
             <Row label="Pris" value={equipment.price_kr != null ? `${equipment.price_kr} kr` : null} />
+            <Row label="Start-km" value={equipment.start_km ? `${equipment.start_km} km` : null} />
+            {/* Fase 99 — kategorispesifikke felter (vises kun når satt) */}
+            <Row label="Størrelse" value={equipment.size ?? null} />
+            <Row label="Bruk" value={equipment.usage_type ?? null} />
+            <Row label="Lengde" value={equipment.length_cm != null ? `${equipment.length_cm} cm` : null} />
+            <Row label="Type" value={equipment.subtype ?? null} />
+            <Row label="Hjultype" value={equipment.wheel_type ?? null} />
+            <Row label="Motstand" value={
+              equipment.resistance_front || equipment.resistance_rear
+                ? `${equipment.resistance_front ?? '?'}/${equipment.resistance_rear ?? '?'} (foran/bak)`
+                : equipment.resistance ?? null
+            } />
+            <Row label="Festesystem" value={equipment.cleat_system ?? null} />
+            <Row label="Drivverk" value={equipment.drivetrain ?? null} />
+            <Row label="Hjulsett" value={equipment.wheelset ?? null} />
             <Row label="Notater" value={equipment.notes} multiline />
             <div className="flex items-center gap-2 flex-wrap pt-3 mt-3"
               style={{ borderTop: '1px solid #1E1E22' }}>
@@ -232,6 +286,14 @@ export function EquipmentDetailView({
                   className="w-full px-4 py-3" style={inputStyle} />
               </Field>
             </div>
+            <Field label="Km allerede gått (start-km)">
+              <input type="text" inputMode="decimal" value={form.start_km}
+                onChange={e => set({ start_km: e.target.value })}
+                placeholder="0" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+            {/* Kategorispesifikke felter — delt komponent, samme fasit som ny-skjemaet.
+                Ski-feltene redigeres i Ski-data-seksjonen under (visSki=false). */}
+            <KategoriFelter category={form.category} verdier={form} onChange={set} />
             <Field label="Notater">
               <textarea value={form.notes} rows={3}
                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -254,11 +316,21 @@ export function EquipmentDetailView({
         )}
 
         {equipment.category === 'ski' && (
+          <SliphistorikkSection
+            equipmentId={equipment.id}
+            grinds={grinds}
+            workouts={workouts}
+            kmSinceSlip={kmSinceSlip}
+          />
+        )}
+
+        {equipment.category === 'ski' && (
           <SkiTestHistorySection
             skiId={equipment.id}
             tests={skiTests}
             allSki={allSki}
             templates={conditionsTemplates}
+            testTemplates={testTemplates}
           />
         )}
 
@@ -306,11 +378,9 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     ski_type: (skiData?.ski_type ?? '') as SkiType | '',
+    usage_type: (skiData?.usage_type ?? '') as SkiUsageType | '',
     length_cm: skiData?.length_cm != null ? String(skiData.length_cm) : '',
     camber: skiData?.camber ?? '',
-    current_slip: skiData?.current_slip ?? '',
-    slip_date: skiData?.slip_date ?? '',
-    slip_by: skiData?.slip_by ?? '',
     current_wax: skiData?.current_wax ?? '',
     notes: skiData?.notes ?? '',
   })
@@ -319,14 +389,14 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
     e.preventDefault()
     setError(null)
     startTransition(async () => {
+      // Slip-feltene sendes IKKE herfra — slip er historikk og redigeres via
+      // «+ Ny slip» i sliphistorikk-seksjonen. saveSkiData rører ikke utelatte felter.
       const result = await saveSkiData({
         equipment_id: equipmentId,
         ski_type: form.ski_type === '' ? null : form.ski_type,
+        usage_type: form.usage_type === '' ? null : form.usage_type,
         length_cm: form.length_cm ? parseInt(form.length_cm) : null,
         camber: form.camber,
-        current_slip: form.current_slip,
-        slip_date: form.slip_date || null,
-        slip_by: form.slip_by,
         current_wax: form.current_wax,
         notes: form.notes,
       })
@@ -355,11 +425,9 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
         ) : (
           <>
             <Row label="Ski-type" value={skiData.ski_type ? SKI_TYPE_LABELS[skiData.ski_type] : null} />
+            <Row label="Bruk" value={skiData.usage_type ? SKI_USAGE_LABELS[skiData.usage_type] : null} />
             <Row label="Lengde" value={skiData.length_cm != null ? `${skiData.length_cm} cm` : null} />
             <Row label="Camber/stivhet" value={skiData.camber} />
-            <Row label="Slip" value={skiData.current_slip} />
-            <Row label="Slip-dato" value={skiData.slip_date} />
-            <Row label="Slip utført av" value={skiData.slip_by} />
             <Row label="Smøring" value={skiData.current_wax} />
             <Row label="Notater" value={skiData.notes} multiline />
           </>
@@ -390,35 +458,29 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
             className="w-full px-4 py-3" style={inputStyle} />
         </Field>
       </div>
-      <Field label="Camber / stivhet">
-        <input value={form.camber} onChange={e => setForm(f => ({ ...f, camber: e.target.value }))}
-          placeholder="F.eks. medium, hard pakksnø"
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Bruk">
+          <select value={form.usage_type}
+            onChange={e => setForm(f => ({ ...f, usage_type: e.target.value as SkiUsageType | '' }))}
+            className="w-full px-4 py-3" style={inputStyle}>
+            <option value="">— ikke satt —</option>
+            {SKI_USAGE_TYPES.map(u => <option key={u} value={u}>{SKI_USAGE_LABELS[u]}</option>)}
+          </select>
+        </Field>
+        <Field label="Camber / stivhet">
+          <input value={form.camber} onChange={e => setForm(f => ({ ...f, camber: e.target.value }))}
+            placeholder="F.eks. medium, hard pakksnø"
+            className="w-full px-4 py-3" style={inputStyle} />
+        </Field>
+      </div>
+      <Field label="Smøring">
+        <input value={form.current_wax} onChange={e => setForm(f => ({ ...f, current_wax: e.target.value }))}
+          placeholder="F.eks. Swix HF6"
           className="w-full px-4 py-3" style={inputStyle} />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Slip">
-          <input value={form.current_slip} onChange={e => setForm(f => ({ ...f, current_slip: e.target.value }))}
-            placeholder="F.eks. fin struktur, varmt"
-            className="w-full px-4 py-3" style={inputStyle} />
-        </Field>
-        <Field label="Smøring">
-          <input value={form.current_wax} onChange={e => setForm(f => ({ ...f, current_wax: e.target.value }))}
-            placeholder="F.eks. Swix HF6"
-            className="w-full px-4 py-3" style={inputStyle} />
-        </Field>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Slip-dato">
-          <input type="date" value={form.slip_date}
-            onChange={e => setForm(f => ({ ...f, slip_date: e.target.value }))}
-            className="w-full px-4 py-3" style={inputStyle} />
-        </Field>
-        <Field label="Slip utført av">
-          <input value={form.slip_by} onChange={e => setForm(f => ({ ...f, slip_by: e.target.value }))}
-            placeholder="Navn på slipper"
-            className="w-full px-4 py-3" style={inputStyle} />
-        </Field>
-      </div>
+      <p className="text-xs" style={{ color: '#555560' }}>
+        Slip registreres i sliphistorikken under — «+ Ny slip» legger alltid en ny rad oppå.
+      </p>
       <Field label="Notater">
         <textarea value={form.notes} rows={3}
           onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
@@ -436,13 +498,156 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
   )
 }
 
+// Sliphistorikk (fasit: designfilens seksjon 2). Ny slip legges alltid OPPÅ —
+// historikken røres aldri, «km siden siste slip» nullstilles ved ny slip.
+function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
+  equipmentId: string
+  grinds: EquipmentGrind[]
+  workouts: Array<{ date: string; distance_km: number | null }>
+  kmSinceSlip: number | null
+}) {
+  const router = useRouter()
+  const [adding, setAdding] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [form, setForm] = useState({ grind: '', dato: '', ground_by: '', notes: '' })
+
+  // Km gått i hver slip-periode: fra radens dato fram til neste (nyere) slip.
+  const kmIPeriode = (fra: string, til: string | null): number =>
+    workouts.reduce((sum, w) =>
+      (w.date >= fra && (til === null || w.date < til) && typeof w.distance_km === 'number')
+        ? sum + w.distance_km : sum, 0)
+
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    const dato = slipDatoTilDate(form.dato)
+    if (!form.grind.trim()) { setError('Slip-navn er påkrevd'); return }
+    if (!dato) { setError('Årstall eller dato er påkrevd — «2026» holder'); return }
+    startTransition(async () => {
+      const result = await addGrind({
+        equipment_id: equipmentId,
+        grind: form.grind,
+        grind_date: dato,
+        ground_by: form.ground_by,
+        notes: form.notes,
+      })
+      if (result.error) { setError(result.error); return }
+      setForm({ grind: '', dato: '', ground_by: '', notes: '' })
+      setAdding(false)
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="p-6 mb-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Sliphistorikk
+        </p>
+        <button type="button" onClick={() => setAdding(a => !a)} style={btnPrimary}>
+          + Ny slip
+        </button>
+      </div>
+
+      {adding && (
+        <form onSubmit={handleAdd} className="space-y-3 mb-4 p-4"
+          style={{ border: '1px solid #1E1E22', borderRadius: 9 }}>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Slip">
+              <input value={form.grind} onChange={e => setForm(f => ({ ...f, grind: e.target.value }))}
+                placeholder="F.eks. S1-7 kald" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+            <Field label="Årstall/dato">
+              <input value={form.dato} onChange={e => setForm(f => ({ ...f, dato: e.target.value }))}
+                placeholder="2026 eller 2026-01-15" className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Utført av (valgfritt)">
+              <input value={form.ground_by} onChange={e => setForm(f => ({ ...f, ground_by: e.target.value }))}
+                className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+            <Field label="Notat (valgfritt)">
+              <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                className="w-full px-4 py-3" style={inputStyle} />
+            </Field>
+          </div>
+          <p className="text-xs" style={{ color: '#8A8A96' }}>
+            Ny slip legges <b style={{ color: '#F0F0F2' }}>oppå</b> — historikken beholdes, og
+            «km siden siste slip» nullstilles.
+          </p>
+          {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
+          <div className="flex items-center justify-end gap-3">
+            <button type="button" onClick={() => setAdding(false)} style={btnSecondary}>Avbryt</button>
+            <button type="submit" disabled={pending}
+              style={{ ...btnPrimary, opacity: pending ? 0.6 : 1 }}>
+              {pending ? 'Lagrer…' : 'Lagre slip'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {grinds.length === 0 ? (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          Ingen slip registrert ennå.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {grinds.map((g, i) => {
+            const nyereDato = i > 0 ? grinds[i - 1].grind_date : null
+            const km = i === 0 ? kmSinceSlip : kmIPeriode(g.grind_date, nyereDato)
+            return (
+              <div key={g.id} className="flex items-center justify-between gap-2 px-4 py-3"
+                style={{
+                  border: '1px solid #1E1E22', borderRadius: 9,
+                  opacity: i === 0 ? 1 : 0.55,
+                }}>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                      {g.grind}
+                    </p>
+                    {i === 0 && (
+                      <span style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700, fontSize: '10px', letterSpacing: '0.12em',
+                        color: '#28A86E', border: '1px solid rgba(40,168,110,0.5)',
+                        borderRadius: 5, padding: '1px 7px',
+                      }}>
+                        AKTIV
+                      </span>
+                    )}
+                  </div>
+                  {(g.ground_by || g.notes) && (
+                    <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      {[g.ground_by, g.notes].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs shrink-0 text-right"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  {visSlipDato(g.grind_date)}
+                  {km != null && (i === 0 ? ` · ${km.toFixed(0)} km siden` : ` · gikk ${km.toFixed(0)} km`)}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SkiTestHistorySection({
-  skiId, tests, allSki, templates,
+  skiId, tests, allSki, templates, testTemplates = [],
 }: {
   skiId: string
   tests: SkiTestWithEntries[]
   allSki: SkiEquipment[]
   templates: UserConditionsTemplate[]
+  testTemplates?: SkiTestTemplate[]
 }) {
   const [showModal, setShowModal] = useState(false)
   const myEntries = tests
@@ -477,6 +682,7 @@ function SkiTestHistorySection({
           <NewSkiTestModal
             ski={allSki}
             templates={templates}
+            testTemplates={testTemplates}
             defaultSkiId={skiId}
             onClose={() => setShowModal(false)}
           />
@@ -557,6 +763,7 @@ function SkiTestHistorySection({
       <NewSkiTestModal
         ski={allSki}
         templates={templates}
+        testTemplates={testTemplates}
         defaultSkiId={skiId}
         onClose={() => setShowModal(false)}
       />

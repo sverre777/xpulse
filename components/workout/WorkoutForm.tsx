@@ -111,6 +111,9 @@ interface WorkoutFormProps {
   // Når satt vises EquipmentSelectorInWorkout. Endringer lagres etter saveWorkout.
   availableEquipment?: Equipment[]
   initialEquipmentIds?: string[]
+  // Utstyr bolk 4: per-aktivitet-overstyringer (⇄), keyet på sort_order
+  // (= radindeks) siden DB-idene byttes ved hver lagring.
+  initialActivityEquipment?: Record<number, string[]>
 }
 
 function makeDefaultMovements(sport: Sport): MovementRow[] {
@@ -178,7 +181,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   }
 }
 
-export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [] }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
@@ -432,6 +435,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // Utstyr-valg for økten. Endres uavhengig av form-state; lagres separat etter saveWorkout.
   const [equipmentIds, setEquipmentIds] = useState<string[]>(initialEquipmentIds)
+  // Bolk 4: ⇄-overstyringer per aktivitetsrad, keyet på radens klient-id.
+  // Initialiseres fra sort_order-nøklene (radindeks ved innlasting).
+  const [activityEquipment, setActivityEquipment] = useState<Record<string, string[]>>(() => {
+    const res: Record<string, string[]> = {}
+    for (const [soStr, ids] of Object.entries(initialActivityEquipment)) {
+      const row = form.activities[parseInt(soStr)]
+      if (row && ids.length > 0) res[row.id] = ids
+    }
+    return res
+  })
 
   // Dirty-tracking: vi snapshotter første render som "rent" og varsler foreldre
   // når noen form-felt avviker. Brukes av plan-mal-bygger for å vise bekreftelses-
@@ -614,7 +627,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       // egen utstyr-tabell) og når formen er i ren plan-modus uten økt-id.
       const savedId = result.id
       if (savedId && !targetUserId && !isPlanMode && availableEquipment.length > 0) {
-        await setWorkoutEquipment(savedId, equipmentIds)
+        // Bolk 4: arv («hele økta») + ⇄-overstyringer per aktivitet. Radene
+        // identifiseres med sort_order = radindeks — samme rekkefølge som
+        // insertActivitiesWithChildren skriver dem.
+        await setWorkoutEquipment(savedId, {
+          heleOkta: equipmentIds,
+          perAktivitet: form.activities
+            .map((a, i) => ({ sortOrder: i, equipmentIds: activityEquipment[a.id] ?? [] }))
+            .filter(p => p.equipmentIds.length > 0),
+        })
       }
       // Lagre ernæring-rader separat (egen tabell, ikke en del av saveWorkout-
       // payloaden). Skip i plan-modus siden plan-økter ikke har ernæring.
@@ -1371,6 +1392,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           mode={isPlanMode ? 'plan' : 'dagbok'}
           defaultPaceUnit={defaultPaceUnit}
           workoutType={form.workout_type}
+          availableEquipment={!isPlanMode && !targetUserId ? availableEquipment : undefined}
+          activityEquipment={activityEquipment}
+          onActivityEquipmentChange={!isPlanMode && !targetUserId
+            ? (rowId, ids) => setActivityEquipment(prev => {
+                const next = { ...prev }
+                if (ids.length === 0) delete next[rowId]
+                else next[rowId] = ids
+                return next
+              })
+            : undefined}
         />
       </Section>
 

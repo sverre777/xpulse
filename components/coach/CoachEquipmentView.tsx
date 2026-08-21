@@ -5,6 +5,7 @@ import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_LABELS,
   EQUIPMENT_STATUS_LABELS,
+  normalizeCategory,
   type EquipmentCategory,
   type EquipmentWithUsage,
   type SkiEquipment,
@@ -32,7 +33,8 @@ export function CoachEquipmentView({
 
   const filtered = useMemo(() => {
     if (filter === 'all') return equipment
-    return equipment.filter(e => e.category === filter)
+    // normalizeCategory: rader lagret før fase 99 kan fortsatt ha 'sko'.
+    return equipment.filter(e => normalizeCategory(e.category) === filter)
   }, [equipment, filter])
 
   const skiCount = equipment.filter(e => e.category === 'ski').length
@@ -54,7 +56,7 @@ export function CoachEquipmentView({
           Alle ({equipment.length})
         </FilterBtn>
         {EQUIPMENT_CATEGORIES.map(c => {
-          const count = equipment.filter(e => e.category === c).length
+          const count = equipment.filter(e => normalizeCategory(e.category) === c).length
           if (count === 0) return null
           return (
             <FilterBtn key={c} active={filter === c} onClick={() => setFilter(c)}>
@@ -117,7 +119,7 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-1"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        {EQUIPMENT_CATEGORY_LABELS[equipment.category]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
+        {EQUIPMENT_CATEGORY_LABELS[normalizeCategory(equipment.category)]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
       </p>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '17px' }}>
         {equipment.name}

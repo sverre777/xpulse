@@ -8,35 +8,45 @@ import {
   CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import { XpTooltip, CHART_LEGEND_STYLE } from '@/components/analysis/chart-theme'
-import { saveEquipment } from '@/app/actions/equipment'
+import { saveEquipment, saveSkiData } from '@/app/actions/equipment'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import {
   EQUIPMENT_CATEGORIES,
   EQUIPMENT_CATEGORY_LABELS,
   EQUIPMENT_STATUS_LABELS,
+  SKI_TYPE_LABELS,
+  normalizeCategory,
+  slipDatoTilDate,
+  visSlipDato,
   type EquipmentCategory,
   type EquipmentStatus,
   type EquipmentWithUsage,
+  type SkiEquipment,
 } from '@/lib/equipment-types'
+import { KategoriFelter, FormChip, tomKategoriVerdier } from './KategoriFelter'
 
 const ATHLETE_ORANGE = '#FF4500'
 
 interface Props {
   initialEquipment: EquipmentWithUsage[]
+  // Ski-info (ski_data + sliphistorikk + km siden slip) til ski-kortene.
+  ski?: SkiEquipment[]
 }
 
 type CategoryFilter = EquipmentCategory | 'all'
 type StatusFilter = EquipmentStatus | 'all'
 
-export function UtstyrPageView({ initialEquipment }: Props) {
+export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
+  const skiById = useMemo(() => new Map(ski.map(s => [s.id, s])), [ski])
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [showNew, setShowNew] = useState(false)
 
   const filtered = useMemo(() => {
     return initialEquipment.filter(e => {
-      if (categoryFilter !== 'all' && e.category !== categoryFilter) return false
+      // normalizeCategory: rader lagret før fase 99 kan fortsatt ha 'sko'.
+      if (categoryFilter !== 'all' && normalizeCategory(e.category) !== categoryFilter) return false
       if (statusFilter !== 'all' && e.status !== statusFilter) return false
       return true
     })
@@ -45,7 +55,7 @@ export function UtstyrPageView({ initialEquipment }: Props) {
   const grouped = useMemo(() => {
     const map = new Map<EquipmentCategory, EquipmentWithUsage[]>()
     for (const cat of EQUIPMENT_CATEGORIES) map.set(cat, [])
-    for (const e of filtered) map.get(e.category)?.push(e)
+    for (const e of filtered) map.get(normalizeCategory(e.category))?.push(e)
     return map
   }, [filtered])
 
@@ -175,7 +185,11 @@ export function UtstyrPageView({ initialEquipment }: Props) {
                   {EQUIPMENT_CATEGORY_LABELS[cat]} · {items.length}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {items.map(e => <EquipmentCard key={e.id} equipment={e} />)}
+                  {items.map(e => (
+                    <EquipmentCard key={e.id} equipment={e}
+                      maxKm={Math.max(...items.map(i => i.usage.total_km), 0)}
+                      skiInfo={skiById.get(e.id) ?? null} />
+                  ))}
                 </div>
               </section>
             )
@@ -188,8 +202,61 @@ export function UtstyrPageView({ initialEquipment }: Props) {
   )
 }
 
-function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
+// Utstyrskort (fasit: designfilens seksjon 2) — badges, kategorimeta,
+// km-teller (inkl. start-km via usage), km-bar og «km siden siste slip» for ski.
+function EquipmentCard({ equipment, maxKm, skiInfo }: {
+  equipment: EquipmentWithUsage
+  maxKm: number
+  skiInfo?: SkiEquipment | null
+}) {
   const subtitle = [equipment.brand, equipment.model].filter(Boolean).join(' ')
+  const cat = normalizeCategory(equipment.category)
+  const skiData = skiInfo?.ski_data ?? null
+
+  // Badges: bruk (gull konk / grønn trening) + type (blå).
+  const badges: Array<{ text: string; color: string }> = []
+  const brukBadge = (bruk: string | null | undefined) => {
+    if (!bruk) return
+    if (bruk === 'konkurranse') badges.push({ text: '🏁 KONK', color: '#D4A017' })
+    else if (bruk === 'trening') badges.push({ text: 'TRENING', color: '#28A86E' })
+    else badges.push({ text: bruk.toUpperCase(), color: '#1A6FD4' })
+  }
+  if (cat === 'ski') {
+    brukBadge(skiData?.usage_type)
+    if (skiData?.ski_type) badges.push({ text: SKI_TYPE_LABELS[skiData.ski_type].toUpperCase(), color: '#1A6FD4' })
+  } else {
+    brukBadge(equipment.usage_type)
+    if (equipment.subtype) badges.push({ text: equipment.subtype.toUpperCase(), color: '#1A6FD4' })
+  }
+
+  // Kategorimeta-linje under navnet.
+  const metaDeler: string[] = []
+  if (cat === 'ski') {
+    if (skiData?.length_cm) metaDeler.push(`${skiData.length_cm} cm`)
+    if (skiData?.current_slip) {
+      const dato = visSlipDato(skiData.slip_date)
+      metaDeler.push(`Slip: ${skiData.current_slip}${dato ? ` (${dato})` : ''}`)
+    }
+  } else if (cat === 'rulleski') {
+    if (equipment.resistance_front || equipment.resistance_rear) {
+      metaDeler.push(`Motstand ${equipment.resistance_front ?? '?'}/${equipment.resistance_rear ?? '?'} (foran/bak)`)
+    } else if (equipment.resistance) {
+      metaDeler.push(`Motstand ${equipment.resistance}`)
+    }
+    if (equipment.wheel_type) metaDeler.push(equipment.wheel_type)
+  } else if (cat === 'skistaver') {
+    if (equipment.length_cm) metaDeler.push(`${equipment.length_cm} cm`)
+  } else if (equipment.size) {
+    metaDeler.push(`Str. ${equipment.size}`)
+  }
+  if (cat === 'sykkel') {
+    if (equipment.drivetrain) metaDeler.push(equipment.drivetrain)
+    if (equipment.wheelset) metaDeler.push(equipment.wheelset)
+  }
+  if (cat === 'sykkelsko' && equipment.cleat_system) metaDeler.push(equipment.cleat_system)
+
+  const kmAndel = maxKm > 0 ? Math.min(equipment.usage.total_km / maxKm, 1) : 0
+
   return (
     <Link href={`/app/utstyr/${equipment.id}`}
       className="flex items-center gap-3 p-4 transition-opacity hover:opacity-80"
@@ -202,24 +269,52 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
         flexShrink: 0,
       }} />
       <div className="flex-1 min-w-0">
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}
-          className="truncate">
-          {equipment.name}
-        </p>
-        {subtitle && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}
+            className="truncate">
+            {equipment.name}
+          </p>
+          {badges.map(b => <Badge key={b.text} text={b.text} color={b.color} />)}
+        </div>
+        {(subtitle || metaDeler.length > 0) && (
           <p className="truncate"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
-            {subtitle}
+            {[subtitle, ...metaDeler].filter(Boolean).join(' · ')}
           </p>
         )}
         <p className="text-xs tracking-widest uppercase mt-1"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          {equipment.usage.total_km.toFixed(1)} km · {equipment.usage.workout_count} økt{equipment.usage.workout_count === 1 ? '' : 'er'}
+          {equipment.usage.total_km.toFixed(1)} km · {Math.round(equipment.usage.total_minutes / 60)} t · {equipment.usage.workout_count} økt{equipment.usage.workout_count === 1 ? '' : 'er'}
           {equipment.status !== 'active' && ` · ${EQUIPMENT_STATUS_LABELS[equipment.status]}`}
         </p>
+        {maxKm > 0 && (
+          <div style={{ height: 5, borderRadius: 3, backgroundColor: '#1E1E26', marginTop: 7, overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 3, width: `${Math.round(kmAndel * 100)}%`, backgroundColor: ATHLETE_ORANGE }} />
+          </div>
+        )}
+        {cat === 'ski' && skiInfo?.km_since_slip != null && (
+          <p className="text-xs mt-1"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            {skiInfo.km_since_slip.toFixed(0)} km siden siste slip
+          </p>
+        )}
       </div>
       <span style={{ color: '#555560', fontSize: '18px' }}>›</span>
     </Link>
+  )
+}
+
+function Badge({ text, color }: { text: string; color: string }) {
+  return (
+    <span className="shrink-0"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontWeight: 700, fontSize: '10px', letterSpacing: '0.12em',
+        color, border: `1px solid ${color}80`, borderRadius: 5,
+        padding: '1px 7px',
+      }}>
+      {text}
+    </span>
   )
 }
 
@@ -257,20 +352,26 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '',
-    category: 'sko' as EquipmentCategory,
+    category: 'ski' as EquipmentCategory,
     brand: '',
     model: '',
     sport: '',
     purchase_date: '',
     price_kr: '',
     notes: '',
+    // Fase 99 — start-km + kategorispesifikke felter (fasit: designfilens seksjon 1).
+    start_km: '',
+    ...tomKategoriVerdier(),
   })
+
+  const set = (patch: Partial<typeof form>) => setForm(f => ({ ...f, ...patch }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name.trim()) { setError('Navn er påkrevd'); return }
     setError(null)
     startTransition(async () => {
+      const erRulleski = form.category === 'rulleski'
       const result = await saveEquipment({
         name: form.name,
         category: form.category,
@@ -280,8 +381,34 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
         purchase_date: form.purchase_date || null,
         price_kr: form.price_kr ? parseDecimal(form.price_kr) : null,
         notes: form.notes,
+        start_km: form.start_km ? parseDecimal(form.start_km) : null,
+        size: form.size,
+        usage_type: form.usage_type,
+        length_cm: form.length_cm ? parseDecimal(form.length_cm) : null,
+        subtype: form.subtype,
+        wheel_type: form.wheel_type,
+        // Motstand: én felles ELLER ulik foran/bak — aldri begge deler.
+        resistance: erRulleski && !form.splitResistance ? form.resistance : '',
+        resistance_front: erRulleski && form.splitResistance ? form.resistance_front : '',
+        resistance_rear: erRulleski && form.splitResistance ? form.resistance_rear : '',
+        cleat_system: form.cleat_system,
+        drivetrain: form.drivetrain,
+        wheelset: form.wheelset,
       })
       if (result.error) { setError(result.error); return }
+      // Ski: type/lengde/bruk/slip går i equipment_ski_data — skia ligger dermed
+      // automatisk i skiparken (som lister category='ski').
+      if (form.category === 'ski' && result.id) {
+        const skiResult = await saveSkiData({
+          equipment_id: result.id,
+          ski_type: form.ski_type || null,
+          length_cm: form.ski_length_cm ? parseDecimal(form.ski_length_cm) : null,
+          usage_type: form.ski_usage || null,
+          current_slip: form.ski_slip,
+          slip_date: slipDatoTilDate(form.ski_slip_date),
+        })
+        if (skiResult.error) { setError(`Utstyret ble lagret, men ski-detaljene feilet: ${skiResult.error}`); return }
+      }
       router.refresh()
       onClose()
     })
@@ -314,12 +441,13 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <Field label="Kategori">
-            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value as EquipmentCategory }))}
-              className="w-full px-4 py-3" style={inputStyle}>
+            <div className="flex flex-wrap gap-2">
               {EQUIPMENT_CATEGORIES.map(c => (
-                <option key={c} value={c}>{EQUIPMENT_CATEGORY_LABELS[c]}</option>
+                <FormChip key={c} active={form.category === c} onClick={() => set({ category: c })}>
+                  {EQUIPMENT_CATEGORY_LABELS[c]}
+                </FormChip>
               ))}
-            </select>
+            </div>
           </Field>
           <Field label="Navn">
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -352,6 +480,17 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
                 className="w-full px-4 py-3" style={inputStyle} />
             </Field>
           </div>
+          <Field label="Km allerede gått">
+            <input type="text" inputMode="decimal" value={form.start_km}
+              onChange={e => set({ start_km: e.target.value })}
+              placeholder="0" className="w-full px-4 py-3" style={inputStyle} />
+            <p className="text-xs mt-1" style={{ color: '#555560' }}>
+              Start-km — historisk utstyr starter ikke på null. Legges til km-telleren.
+            </p>
+          </Field>
+
+          {/* Kategorispesifikke felter — delt komponent, samme fasit som detaljsiden */}
+          <KategoriFelter category={form.category} verdier={form} onChange={set} visSki />
           <Field label="Notater">
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={3} className="w-full px-4 py-3" style={inputStyle} />

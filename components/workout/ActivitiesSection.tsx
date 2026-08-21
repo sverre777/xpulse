@@ -36,6 +36,8 @@ import {
   type UserMovementType, type UserMovementTypeKind,
 } from '@/app/actions/user-movement-types'
 import { parseDecimal } from '@/lib/parse-decimal'
+import { UtstyrVelgerPopup } from '@/components/equipment/UtstyrVelgerPopup'
+import type { Equipment } from '@/lib/equipment-types'
 import {
   resolveMovementKind, isEnduranceFor, isStrengthFor, isTurFor,
   subcategoriesFor,
@@ -83,6 +85,12 @@ interface Props {
   defaultPaceUnit?: PaceUnit | null
   // Kø #47: øktas workout_type — driver auto-markeringene 🏁/⏱ på skyteblokker.
   workoutType?: string
+  // Utstyr bolk 4: ⇄ per aktivitetsrad — bytte av utstyr KUN der man faktisk
+  // byttet (hele økta-arven settes i «Utstyr brukt»-seksjonen). Keyet på
+  // ActivityRow.id. Uten disse propene vises ingen ⇄ (trener/plan-mal).
+  availableEquipment?: Equipment[]
+  activityEquipment?: Record<string, string[]>
+  onActivityEquipmentChange?: (rowId: string, ids: string[]) => void
 }
 
 function defaultMovementForSport(sport: Sport): string {
@@ -172,7 +180,7 @@ function sumZoneSeconds(z: ActivityZoneMinutes): number {
 // Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
 import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -289,6 +297,9 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
           onRequestCreateMovement={() => setCreateModalRowId(row.id)}
           defaultPaceUnit={defaultPaceUnit}
           workoutType={workoutType}
+          equipment={availableEquipment}
+          equipmentIds={activityEquipment?.[row.id] ?? []}
+          onEquipmentChange={onActivityEquipmentChange ? ids => onActivityEquipmentChange(row.id, ids) : undefined}
         />
       ))}
       </div>
@@ -329,7 +340,7 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
   typeOptions, favoriteTypes, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
-  defaultPaceUnit, workoutType,
+  defaultPaceUnit, workoutType, equipment, equipmentIds = [], onEquipmentChange,
 }: {
   row: ActivityRow
   expanded: boolean
@@ -349,7 +360,12 @@ function ActivityRowItem({
   onRequestCreateMovement: () => void
   defaultPaceUnit: PaceUnit | null
   workoutType?: string
+  equipment?: Equipment[]
+  equipmentIds?: string[]
+  onEquipmentChange?: (ids: string[]) => void
 }) {
+  // Utstyr bolk 4: ⇄ åpner utstyr-velgeren for BYTTE på akkurat denne raden.
+  const [equipOpen, setEquipOpen] = useState(false)
   // Beregn hvilke favoritter som er tilgjengelige for denne brukeren
   // (typeOptions er allerede filtrert på userSports). Skjul Mest brukt-
   // optgruppen helt hvis ingen treff — én entry-favoritt er ikke verdt
@@ -491,6 +507,25 @@ function ActivityRowItem({
           </span>
         )}
 
+        {/* Utstyr-bytte (⇄) — kun der man faktisk byttet fra hele økta-arven */}
+        {onEquipmentChange && (equipment?.length ?? 0) > 0 && (
+          <button type="button"
+            onClick={e => { e.stopPropagation(); setEquipOpen(true) }}
+            aria-label="Bytt utstyr for denne aktiviteten"
+            title={equipmentIds.length > 0
+              ? `Byttet utstyr på denne aktiviteten (${equipmentIds.length})`
+              : 'Bytt utstyr for denne aktiviteten'}
+            style={{
+              background: 'none',
+              border: equipmentIds.length > 0 ? '1px solid #FF4500' : '1px solid #2A2A33',
+              borderRadius: 6, cursor: 'pointer',
+              color: equipmentIds.length > 0 ? '#FF4500' : '#555560',
+              fontSize: '12px', lineHeight: 1, padding: '4px 6px',
+            }}>
+            ⇄{equipmentIds.length > 0 ? equipmentIds.length : ''}
+          </button>
+        )}
+
         {/* Expand */}
         <span style={{
           color: '#555560', fontSize: '12px',
@@ -510,6 +545,17 @@ function ActivityRowItem({
             padding: '6px 8px', marginRight: '-6px',
           }}>×</button>
       </div>
+
+      {equipOpen && onEquipmentChange && (
+        <UtstyrVelgerPopup
+          available={equipment ?? []}
+          selectedIds={equipmentIds}
+          title="Bytt utstyr — denne aktiviteten"
+          hint="Overstyrer hele økta-valget kun for denne raden. Tomt valg = arv."
+          onDone={onEquipmentChange}
+          onClose={() => setEquipOpen(false)}
+        />
+      )}
 
       {/* Expanded body */}
       {expanded && (

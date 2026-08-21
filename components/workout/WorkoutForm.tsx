@@ -1310,7 +1310,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             })
           })() }}
           testMaler={alleMaler.filter(t => t.is_test).map(t => ({
-            id: t.id, navn: t.name, erBibliotek: erBibliotekMal(t),
+            id: t.id, navn: t.name, erBibliotek: erBibliotekMal(t), sport: t.sport ?? null,
           }))}
           onVelgTestMal={id => {
             if (id.startsWith('bib_')) setMalBygger(finnOktMal(id.slice(4)) ?? null)

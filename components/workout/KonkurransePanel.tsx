@@ -75,7 +75,7 @@ export function KonkurransePanel({
   }) => void
   aktivSkytetestRef: string | null
   // Andre idretter: idrettens test-maler (test-mal = oektmal m/ flagg, #49).
-  testMaler: { id: string; navn: string; erBibliotek: boolean }[]
+  testMaler: { id: string; navn: string; erBibliotek: boolean; sport: Sport | null }[]
   onVelgTestMal: (id: string) => void
   // «+ Ny mal» — ren struktur-bygger i egen popup (aldri fra panel-innhold).
   onNyMal: () => void
@@ -160,6 +160,7 @@ export function KonkurransePanel({
               style={FELT} />
           </div>
           <TestVelger sport={sport}
+            testSport={(testData?.sport as string | undefined) ?? ''}
             onVelgSkytetest={onVelgSkytetest}
             aktivSkytetestRef={aktivSkytetestRef}
             testMaler={testMaler}
@@ -359,19 +360,34 @@ export function KonkurransePanel({
 }
 
 // ── «Hvilken test?» — biblioteket bak valget avhenger av idretten. ──
-function TestVelger({ sport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal }: {
+// TestPRSport (protokollens sport-enum) → app-Sport, for å filtrere maler.
+const TESTSPORT_TIL_SPORT: Record<string, Sport> = {
+  lop: 'running', sykling: 'cycling', langrenn: 'cross_country_skiing',
+  skiskyting: 'biathlon', triathlon: 'triathlon',
+}
+
+function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal }: {
   sport: Sport
+  // Protokollens eget sport-valg — DET styrer hvilke test-maler som vises,
+  // ikke sporten valgt under konkurranse/testløp (Sverre 21. aug).
+  testSport: string
   onVelgSkytetest: (oppsett: {
     ref: string; navn: string; surface: string | null
     serier: { position: 'L' | 'S'; shots: number }[]
   }) => void
   aktivSkytetestRef: string | null
-  testMaler: { id: string; navn: string; erBibliotek: boolean }[]
+  testMaler: { id: string; navn: string; erBibliotek: boolean; sport: Sport | null }[]
   onVelgTestMal: (id: string) => void
   onNyMal: () => void
 }) {
   const [egne, setEgne] = useState<OwnShootingTest[] | null>(null)
-  const erSkiskyting = sport === 'biathlon'
+  // Testens sport vinner når den er valgt; øktas sport er kun fallback før valg.
+  const effektivSport: Sport | null = testSport
+    ? (TESTSPORT_TIL_SPORT[testSport] ?? null)
+    : sport
+  const erSkiskyting = (testSport ? testSport === 'skiskyting' : sport === 'biathlon')
+  const relevanteMaler = testMaler.filter(t =>
+    t.erBibliotek || effektivSport === null || t.sport === null || t.sport === effektivSport)
   useEffect(() => {
     if (!erSkiskyting || egne !== null) return
     listMyShootingTests().then(r => setEgne(Array.isArray(r) ? r : []))
@@ -403,7 +419,7 @@ function TestVelger({ sport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVe
     <div className="mb-4">
       <label style={LBL}>Hvilken test?</label>
       {erSkiskyting ? (
-        <>
+        <div style={{ maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
           {STANDARD_SHOOTING_TESTS.map(t =>
             rad(t.ref, t.name, `${t.series.reduce((a, x) => a + x.count, 0)} serier · genererer seriene`,
               'NSSF-mal', false, aktivSkytetestRef === t.ref, () => onVelgSkytetest({ ref: t.ref, navn: t.name, surface: t.surface ?? null, serier: expandTestSeries(t) })))}
@@ -414,20 +430,20 @@ function TestVelger({ sport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVe
           <p style={{ fontFamily: FONT, fontSize: 12.5, color: '#55555F', marginTop: 8 }}>
             Samme bibliotek som skytetest-malene i skyting-delen — NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
           </p>
-        </>
+        </div>
       ) : (
-        <>
-          {testMaler.length === 0 && (
+        <div style={{ maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
+          {relevanteMaler.length === 0 && (
             <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#55555F', marginTop: 6 }}>
               Ingen test-maler for idretten ennå — lag en med «+ Ny test-mal».
             </p>
           )}
-          {testMaler.map(t =>
+          {relevanteMaler.map(t =>
             rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
               t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
               null, !t.erBibliotek, false, () => onVelgTestMal(t.id)))}
           {rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
-        </>
+        </div>
       )}
     </div>
   )

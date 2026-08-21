@@ -345,6 +345,52 @@ label{display:block;font:600 10.5px 'Barlow Condensed';letter-spacing:.16em;text
   </div></div>
 </section>
 
+<!-- ═══ 5 · UTSTYR BRUKT I ØKTA ═══ -->
+<section>
+  <h2>5 · «Utstyr brukt» i økt-skjemaet — kompakt + per aktivitet<span class="aux">Redesign av dagens seksjon</span></h2>
+  <div class="panel">
+    <div class="ph"><span class="t">— UTSTYR BRUKT</span><span style="margin-left:auto;font:600 11px 'Barlow Condensed';letter-spacing:.1em;color:var(--mute)">GJELDER HELE ØKTA · OVERSTYR PER AKTIVITET VED BEHOV</span></div>
+    <div class="bd">
+      <div class="chips" style="margin-bottom:6px">
+        <span class="chip on" style="text-transform:none;letter-spacing:.03em">🎿 Redline F3 <span style="color:var(--mute)">✕</span></span>
+        <span class="chip on" style="text-transform:none;letter-spacing:.03em">🥢 Staver Team 160 <span style="color:var(--mute)">✕</span></span>
+        <span class="chip on" style="text-transform:none;letter-spacing:.03em">👟 Alphafly <span style="color:var(--mute)">✕</span></span>
+        <span class="chip">+ Velg utstyr</span>
+      </div>
+      <p class="hint">Én kompakt chip-rad i stedet for dagens store kort. «+ Velg utstyr» åpner velgeren:</p>
+
+      <div class="row r2" style="margin-top:14px">
+        <div class="panel" style="border-radius:12px">
+          <div class="ph" style="padding:10px 14px"><span class="t" style="font-size:13px">VELG UTSTYR</span><span style="margin-left:auto" class="chips"><span class="chip" style="padding:5px 10px;font-size:11px">Søk…</span></span></div>
+          <div class="bd" style="padding:12px 14px">
+            <label>Ski</label>
+            <div class="sliprow" style="margin-bottom:6px"><span>☑ <b>Redline F3</b> <span class="badge b-konk">🏁</span></span><span class="d">1 240 km</span></div>
+            <div class="sliprow" style="margin-bottom:12px"><span>☐ Speedmax klassisk</span><span class="d">2 875 km</span></div>
+            <label>Staver</label>
+            <div class="sliprow" style="margin-bottom:12px"><span>☑ <b>Team 160</b></span><span class="d">890 km</span></div>
+            <label>Sko</label>
+            <div class="sliprow" style="margin-bottom:6px"><span>☑ <b>Alphafly</b></span><span class="d">312 km</span></div>
+            <div class="sliprow"><span>☐ Pegasus (trening)</span><span class="d">1 480 km</span></div>
+            <div class="chips" style="margin-top:12px"><span class="chip on">Ferdig</span></div>
+          </div>
+        </div>
+        <div>
+          <p class="hint" style="margin:0 0 10px"><b>Flere typer utstyr velges i samme omgang</b> — gruppert per kategori, avhukbar liste, søk øverst. Kun kategorier med utstyr vises.</p>
+          <p class="hint" style="margin:0 0 10px"><b>Valget gjelder HELE økta som standard</b> (arv) — det er dette som gjør at du IKKE må legge løpeskoene på hvert intervalldrag.</p>
+          <p class="hint" style="margin:0"><b>Byttet du underveis</b>, overstyrer du på akkurat den aktiviteten det gjelder — se under.</p>
+        </div>
+      </div>
+
+      <div class="sep">Per aktivitet — overstyring kun der du faktisk byttet</div>
+      <div class="skirow"><span><b>Oppvarming</b> · 20:00</span><span class="u" style="text-align:right">arver økta</span><span></span></div>
+      <div class="skirow"><span><b>Drag 1–4</b> · 6:00 I3</span><span class="u" style="text-align:right">arver økta</span><span></span></div>
+      <div class="skirow" style="border-color:rgba(255,69,0,.45)"><span><b>Drag 5</b> · 6:00 I3</span><span style="text-align:right"><span class="chip on" style="padding:4px 10px;font-size:11px;text-transform:none">🎿 Redline F2</span></span><span class="u">⇄</span></div>
+      <div class="skirow"><span><b>Nedjogg</b> · 10:00</span><span class="u" style="text-align:right">arver økta</span><span></span></div>
+      <p class="hint">Utstyret KOBLES til aktiviteten i datamodellen — «hele økta» er bare arve-standarden. Km-tellingen følger dermed aktivitetene utstyret faktisk ble brukt i (byttet du ski på drag 5, får begge par riktig km).</p>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ REGLER ═══ -->
 <section>
   <h2>Notat — regler</h2>
@@ -359,6 +405,8 @@ label{display:block;font:600 10.5px 'Barlow Condensed';letter-spacing:.16em;text
       <li><b>Skipark-tester:</b> maler ⏱ tidtaker-glid · 📏 lengde-glid · ⚔ parallelltest + EGNE tester (lagres som mal). Gjenbruker eksisterende skitest-modell (entries + rank_in_test) — dette utvider, erstatter ikke.</li>
       <li><b>Forhold på alle tester:</b> sted · vær · føre · temp LUFT og SNØ · luftfuktighet · notat. <b>«Under skiene» per ski</b> — ved smøretest er det selve testvariabelen (samme ski kan stille flere ganger m/ ulik smøring).</li>
       <li><b>Parallelltesten:</b> paringer auto fra valgte ski, oddetall gir frirunde, ett trykk markerer vinner, vinneren videre til neste runde. Resultat = rangering → lagres som vanlig skitest så «beste ski per føre» fanger den.</li>
+      <li><b>«Utstyr brukt» redesignes:</b> kompakt chip-rad i stedet for store kort · «+ Velg utstyr» åpner liten velger gruppert per kategori m/ avhuking og søk — FLERE utstyr velges i samme omgang.</li>
+      <li><b>Utstyr kobles til AKTIVITET, ikke økta:</b> valget i seksjonen er «hele økta»-ARV (standard), per-aktivitet-overstyring kun der man faktisk byttet (⇄ på raden). Aldri krav om å legge utstyr per drag. Km-tellingen følger aktivitetene utstyret ble brukt i. Migrering: eksisterende økt-koblinger → «hele økta»-arv, ingen datatap.</li>
       <li><b>Funksjonsparitet:</b> alt dagens (km-telling, smøring, rangering per føre, tester) beholdes 1:1 — dette er utvidelse + redesign av skjemaet.</li>
       <li><b>Mobil (375px):</b> alt i én kolonne, chips wrapper, bracket stables vertikalt.</li>
     </ul>

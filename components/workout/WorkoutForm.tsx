@@ -379,10 +379,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     // Normalisert søk: «6x6» treffer «6 × 6 min / 2 min».
     if (malSok.trim() && !normaliserMalSok(t.name).includes(normaliserMalSok(malSok))) return false
     if (malHurtig !== 'alle') {
+      // NB: gamle mal-snapshots kan mangle felter på radene (før fase 85/7.1)
+      // — alt må leses null-sikkert, ellers krasjer filteret hele sida.
       const acts = t.activities ?? []
       if (malHurtig === 'test' && !t.is_test) return false
-      if (malHurtig === 'skyting' && !acts.some(a => a.activity_type.startsWith('skyting') || a.shooting_series.length > 0)) return false
-      if (malHurtig === 'styrke' && !acts.some(a => a.exercises.length > 0 || a.movement_name === 'Styrke')) return false
+      if (malHurtig === 'skyting' && !acts.some(a =>
+        (a?.activity_type ?? '').startsWith('skyting') || (a?.shooting_series?.length ?? 0) > 0)) return false
+      if (malHurtig === 'styrke' && !acts.some(a =>
+        (a?.exercises?.length ?? 0) > 0 || a?.movement_name === 'Styrke')) return false
       if (malHurtig === 'standard' && !t.standard_session_series_id) return false
     }
     return true

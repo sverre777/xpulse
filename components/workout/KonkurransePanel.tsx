@@ -19,6 +19,9 @@ import {
   hasAutoGenerateTemplate, type TestData, emptyTestData,
 } from '@/lib/types'
 import type { WorkoutKeyDateLink } from '@/app/actions/seasons'
+import { useEffect } from 'react'
+import { STANDARD_SHOOTING_TESTS, expandTestSeries } from '@/lib/shooting-test-templates'
+import { listMyShootingTests, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { TestDataModule } from './TestDataModule'
 
 const GULL = '#E8B93C'
@@ -47,6 +50,7 @@ export function KonkurransePanel({
   type, onTypeChange, data, onChange, sport, mode, onSportChange,
   onRequestGenerate, activityCount, keyDate, onPrioritetChange,
   testData, onTestDataChange,
+  onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal,
 }: {
   type: PanelType
   onTypeChange: (t: PanelType) => void
@@ -62,6 +66,19 @@ export function KonkurransePanel({
   onPrioritetChange: (p: 'a' | 'b' | 'c') => void
   testData: TestData | null
   onTestDataChange: (d: TestData) => void
+  // #50 bolk 2 — «Hvilken test?»:
+  // Skiskyting: skytetest-biblioteket (NSSF laast + egne). Valg genererer
+  // serieoppsettet i aktivitetslista (WorkoutForm eier innsettingen).
+  onVelgSkytetest: (oppsett: {
+    ref: string; navn: string; surface: string | null
+    serier: { position: 'L' | 'S'; shots: number }[]
+  }) => void
+  aktivSkytetestRef: string | null
+  // Andre idretter: idrettens test-maler (test-mal = oektmal m/ flagg, #49).
+  testMaler: { id: string; navn: string; erBibliotek: boolean }[]
+  onVelgTestMal: (id: string) => void
+  // «+ Ny mal» — ren struktur-bygger i egen popup (aldri fra panel-innhold).
+  onNyMal: () => void
 }) {
   const isPlan = mode === 'plan'
   const erKonk = type === 'competition'
@@ -128,9 +145,15 @@ export function KonkurransePanel({
         </div>
       )}
 
-      {/* ── TEST: protokoll-skjemaet (bolk 2 kobler skytetest-biblioteket) ── */}
+      {/* ── TEST: «Hvilken test?» + protokoll-skjemaet ── */}
       {erTest ? (
         <div className="px-4 pb-4 pt-2">
+          <TestVelger sport={sport}
+            onVelgSkytetest={onVelgSkytetest}
+            aktivSkytetestRef={aktivSkytetestRef}
+            testMaler={testMaler}
+            onVelgTestMal={onVelgTestMal}
+            onNyMal={onNyMal} />
           <TestDataModule data={testData ?? emptyTestData()} onChange={onTestDataChange} mode={mode} />
         </div>
       ) : (
@@ -302,6 +325,93 @@ export function KonkurransePanel({
             </>
           )}
         </div>
+      )}
+
+      {/* Mal-rad: ny mal i EGEN popup — ren struktur-bygger. Aldri fra
+          utfylt panel-innhold; sted/plasseringer/resultater hoerer til oekta. */}
+      <div className="flex items-center gap-3 flex-wrap px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
+        <span style={{ fontFamily: FONT, fontSize: 13, color: '#8B8B95', flex: 1, minWidth: 200 }}>
+          💾 <b style={{ color: '#F0F0F2' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> — ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
+        </span>
+        <button type="button" onClick={onNyMal}
+          style={{ fontFamily: FONT, fontWeight: 700, fontSize: 13, color: '#8B8B95', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
+          + Ny mal
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── «Hvilken test?» — biblioteket bak valget avhenger av idretten. ──
+function TestVelger({ sport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal }: {
+  sport: Sport
+  onVelgSkytetest: (oppsett: {
+    ref: string; navn: string; surface: string | null
+    serier: { position: 'L' | 'S'; shots: number }[]
+  }) => void
+  aktivSkytetestRef: string | null
+  testMaler: { id: string; navn: string; erBibliotek: boolean }[]
+  onVelgTestMal: (id: string) => void
+  onNyMal: () => void
+}) {
+  const [egne, setEgne] = useState<OwnShootingTest[] | null>(null)
+  const erSkiskyting = sport === 'biathlon'
+  useEffect(() => {
+    if (!erSkiskyting || egne !== null) return
+    listMyShootingTests().then(r => setEgne(Array.isArray(r) ? r : []))
+  }, [erSkiskyting, egne])
+
+  const rad = (nokkel: string, navn: string, detalj: string, tag: string | null, egen: boolean, aktiv: boolean, onClick: () => void) => (
+    <button key={nokkel} type="button" onClick={onClick}
+      className="flex justify-between items-center gap-3 w-full text-left"
+      style={{
+        border: `1px solid ${aktiv ? GULL : 'var(--line2)'}`,
+        background: aktiv ? 'rgba(232,185,60,.07)' : 'var(--surface, #101014)',
+        borderRadius: 9, padding: '11px 14px', marginTop: 8, cursor: 'pointer',
+      }}>
+      <span>
+        <span style={{ display: 'block', fontFamily: FONT, fontWeight: 700, fontSize: 15, color: '#F0F0F2' }}>{navn}</span>
+        <span style={{ display: 'block', fontFamily: FONT, fontSize: 12, color: '#55555F', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>{detalj}</span>
+      </span>
+      {tag && (
+        <span style={{
+          fontFamily: FONT, fontSize: 12, whiteSpace: 'nowrap', borderRadius: 6, padding: '2px 9px',
+          color: egen ? '#1A6FD4' : GULL,
+          border: `1px solid ${egen ? 'rgba(26,111,212,.4)' : 'rgba(232,185,60,.4)'}`,
+        }}>{tag}</span>
+      )}
+    </button>
+  )
+
+  return (
+    <div className="mb-4">
+      <label style={LBL}>Hvilken test?</label>
+      {erSkiskyting ? (
+        <>
+          {STANDARD_SHOOTING_TESTS.map(t =>
+            rad(t.ref, t.name, `${t.series.reduce((a, x) => a + x.count, 0)} serier · genererer seriene`,
+              'NSSF-mal', false, aktivSkytetestRef === t.ref, () => onVelgSkytetest({ ref: t.ref, navn: t.name, surface: t.surface ?? null, serier: expandTestSeries(t) })))}
+          {(egne ?? []).map(t =>
+            rad(t.id, t.name, `Din egen · ${t.config.series.length} serier`,
+              'Egen test-mal', true, aktivSkytetestRef === t.id, () => onVelgSkytetest({ ref: t.id, navn: t.name, surface: t.config.surface ?? null, serier: t.config.series })))}
+          {rad('__ny', '+ Ny test-mal', 'Lag din egen — lagres i biblioteket', null, false, false, onNyMal)}
+          <p style={{ fontFamily: FONT, fontSize: 12.5, color: '#55555F', marginTop: 8 }}>
+            Samme bibliotek som skytetest-malene i skyting-delen — NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
+          </p>
+        </>
+      ) : (
+        <>
+          {testMaler.length === 0 && (
+            <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#55555F', marginTop: 6 }}>
+              Ingen test-maler for idretten ennå — lag en med «+ Ny test-mal».
+            </p>
+          )}
+          {testMaler.map(t =>
+            rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
+              t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
+              null, !t.erBibliotek, false, () => onVelgTestMal(t.id)))}
+          {rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
+        </>
       )}
     </div>
   )

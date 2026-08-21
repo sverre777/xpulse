@@ -24,6 +24,8 @@ import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, type PanelType } from './KonkurransePanel'
+import { createPortal } from 'react-dom'
+import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
 import { ActivitySummary } from './ActivitySummary'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
@@ -304,6 +306,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [byggerApneSignal, setByggerApneSignal] = useState(0)
   // #50: årsplan-kobling — key-daten som peker på økta (SF-2 del 1).
   const [keyDate, setKeyDate] = useState<WorkoutKeyDateLink | null>(null)
+  // #50 bolk 2: «+ Ny mal» fra panelet — struktur-byggeren i egen popup.
+  // Portal til body: WorkoutForm er selv et <form>, og OktmalBuilder rendrer
+  // sitt eget — nøstede skjemaer er ugyldig HTML.
+  const [visNyMalBygger, setVisNyMalBygger] = useState(false)
   // Bibliotekmal valgt → generator-dialog forhåndsutfylt fra malens blokker.
   const [malBygger, setMalBygger] = useState<OktMalDef | null>(null)
   const [seriesList, setSeriesList] = useState<StandardSessionSeries[] | null>(null)
@@ -338,6 +344,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [malCategory, setMalCategory] = useState('')
   const [malType, setMalType] = useState('')
   const [malSok, setMalSok] = useState('')
+  // #50 bolk 2: hurtigfilter-chips — samme sett som /app/maler + Standardøkt.
+  const [malHurtig, setMalHurtig] = useState<'alle' | 'test' | 'skyting' | 'styrke' | 'standard'>('alle')
   // Fase 97: bibliotekets 58 vises SAMMEN med brukerens egne. Stabile id-er
   // (bib_<ref>) så React-keys ikke flakker; sport følger skjemaet.
   // Biblioteket endres ALDRI på plass — valg fyller kun skjemaet.
@@ -370,8 +378,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     if (malType && t.okt_type !== malType) return false
     // Normalisert søk: «6x6» treffer «6 × 6 min / 2 min».
     if (malSok.trim() && !normaliserMalSok(t.name).includes(normaliserMalSok(malSok))) return false
+    if (malHurtig !== 'alle') {
+      const acts = t.activities ?? []
+      if (malHurtig === 'test' && !t.is_test) return false
+      if (malHurtig === 'skyting' && !acts.some(a => a.activity_type.startsWith('skyting') || a.shooting_series.length > 0)) return false
+      if (malHurtig === 'styrke' && !acts.some(a => a.exercises.length > 0 || a.movement_name === 'Styrke')) return false
+      if (malHurtig === 'standard' && !t.standard_session_series_id) return false
+    }
     return true
-  }), [alleMaler, malMovement, malCategory, malType, malSok])
+  }), [alleMaler, malMovement, malCategory, malType, malSok, malHurtig])
   const showMalFilters = alleMaler.length > 4
 
   // Live økt-modus: vises kun for utøvers egne styrkeøkter (ikke trener).
@@ -741,6 +756,28 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       {(
         <div className="mb-2">
           {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
+          {/* Hurtigfilter (#50): samme sett som /app/maler + ⟳ Standardøkt. */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+            {([
+              { key: 'alle', label: 'Alle' },
+              { key: 'test', label: '🧪 Test' },
+              { key: 'skyting', label: 'Skyting' },
+              { key: 'styrke', label: 'Styrke' },
+              { key: 'standard', label: '⟳ Standardøkt' },
+            ] as const).map(c => (
+              <button key={c.key} type="button" onClick={() => setMalHurtig(c.key)}
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
+                  borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
+                  color: malHurtig === c.key ? '#F0F0F2' : '#8A8A96',
+                  background: malHurtig === c.key ? 'var(--card2)' : 'none',
+                  border: `1px solid ${malHurtig === c.key ? 'var(--accent)' : 'var(--line2)'}`,
+                  fontWeight: malHurtig === c.key ? 700 : 400,
+                }}>
+                {c.label}
+              </button>
+            ))}
+          </div>
           {showMalFilters && (
             <div className="flex items-center gap-2 flex-wrap mb-1.5">
               {malMovementOptions.length > 0 && (
@@ -1222,6 +1259,44 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           })() }}
           testData={form.test_data ?? null}
           onTestDataChange={d => set('test_data', d)}
+          aktivSkytetestRef={form.activities.find(a => a.shooting_is_test && a.shooting_test_ref)?.shooting_test_ref ?? null}
+          onVelgSkytetest={oppsett => { void (async () => {
+            // Genererer serieoppsettet i aktivitetslista (gull-markeringen er
+            // shooting_is_test på raden; 🧪 er allerede workout_type='test').
+            const nySerier = oppsett.serier.map(f => ({
+              id: crypto.randomUUID(), position: f.position, shots: String(f.shots),
+              hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+              note: '', shot_plot: null, points: '',
+              vind_retning: null, vind_styrke: null, sikt: null,
+            }))
+            const eksisterende = form.activities.find(a => a.shooting_series.length > 0)
+            if (eksisterende && eksisterende.shooting_series.some(sr => (parseInt(sr.shots) || 0) > 0)
+              && !await xpConfirm(`Erstatte seriene med oppsettet fra «${oppsett.navn}» (${nySerier.length} serier)?`)) return
+            setForm(f => {
+              const rad = f.activities.find(a => a.shooting_series.length > 0)
+              if (rad) {
+                return { ...f, activities: f.activities.map(a => a.id === rad.id
+                  ? { ...a, shooting_is_test: true, shooting_test_ref: oppsett.ref,
+                      shooting_surface: (oppsett.surface ?? a.shooting_surface) as ActivityRow['shooting_surface'],
+                      shooting_series: nySerier }
+                  : a) }
+              }
+              return { ...f, activities: [...f.activities, {
+                ...makeActivity({ activity_type: 'skyting_kombinert' }),
+                shooting_is_test: true, shooting_test_ref: oppsett.ref,
+                shooting_surface: (oppsett.surface ?? '') as ActivityRow['shooting_surface'],
+                shooting_series: nySerier,
+              }] }
+            })
+          })() }}
+          testMaler={alleMaler.filter(t => t.is_test).map(t => ({
+            id: t.id, navn: t.name, erBibliotek: erBibliotekMal(t),
+          }))}
+          onVelgTestMal={id => {
+            if (id.startsWith('bib_')) setMalBygger(finnOktMal(id.slice(4)) ?? null)
+            else { const t = templates.find(x => x.id === id); if (t) loadTemplate(t) }
+          }}
+          onNyMal={() => setVisNyMalBygger(true)}
           onRequestGenerate={async (format, replaceExisting) => {
             const generated = generateCompetitionActivities(form.sport, format)
             if (generated.length === 0) return
@@ -1459,6 +1534,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           )}
         </div>
       </div>
+
+      {visNyMalBygger && typeof document !== 'undefined' && createPortal(
+        <OktmalBuilder
+          primarySport={form.sport}
+          templates={templates}
+          defaultValues={{ workout_type: form.workout_type }}
+          onClose={() => setVisNyMalBygger(false)}
+        />,
+        document.body,
+      )}
 
       {malBygger && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"

@@ -65,6 +65,9 @@ export function MalerClient({
   // user_id = auth.uid() så maler er allerede privat per bruker (ingen ekstra
   // visibility-flag trengs; treners RLS leser bare egne).
   const [showOktmalBuilder, setShowOktmalBuilder] = useState(false)
+  // #50 bolk 2: «Ny test-mal» — samme bygger, workout_type forhåndsvalgt til
+  // test så 🧪-flagget er forhåndsvalgt i lagre-modalen (#49-mønsteret).
+  const [nyTestMal, setNyTestMal] = useState(false)
   const [showPlanmalBuilder, setShowPlanmalBuilder] = useState(false)
   // Edit-modus: når satt åpnes builder med eksisterende mal-data og lagring
   // oppdaterer raden i stedet for å lage ny.
@@ -98,6 +101,15 @@ export function MalerClient({
           }}>
           + Ny øktmal
         </button>
+        <button type="button" onClick={() => setNyTestMal(true)}
+          className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017',
+            background: 'none', border: '1px solid #D4A017', borderRadius: 999,
+            padding: '10px 16px', cursor: 'pointer',
+          }}>
+          🧪 + Ny test-mal
+        </button>
         <button type="button" onClick={() => setShowPlanmalBuilder(true)}
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
@@ -121,6 +133,15 @@ export function MalerClient({
           templates={initialWorkoutTemplates}
           editing={editingOktmal}
           onClose={() => { setShowOktmalBuilder(false); setEditingOktmal(null) }}
+        />
+      )}
+
+      {nyTestMal && (
+        <OktmalBuilder
+          primarySport={primarySport}
+          templates={initialWorkoutTemplates}
+          defaultValues={{ workout_type: 'test' }}
+          onClose={() => setNyTestMal(false)}
         />
       )}
 
@@ -383,7 +404,7 @@ function WorkoutList({
           : 'Aldri brukt'
         return (
           <TemplateRow key={t.id}
-            name={`${t.is_test ? '🧪 ' : ''}${t.name}`} description={t.description} category={t.category}
+            name={`${t.is_test ? '🧪 ' : ''}${t.standard_session_series_id ? '⟳ ' : ''}${t.name}`} description={t.description} category={t.category}
             meta={t.is_test
               ? ['Test-mal', sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]
               : [sportLabel, `Brukt ${t.times_used}×`, `Sist: ${lastUsed}`]}

@@ -48,7 +48,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     date: '2026-08-20',
     title: 'X-PULSE V1.2',
-    body: 'Ny forside — og planlegging på sekunder: intervall-byggeren lager hele økta fra antall × dragtid × sone / pause (skiskyttere velger skyting i pausene), 58 ferdige øktmaler fra OLT-skalaen med søk («6x6»), standardøkt-merking og full sammenligning av standardøkter i analysen.',
+    body: 'Ny forside — og planlegging på sekunder: intervall-byggeren lager hele økta fra antall × dragtid × sone / pause (skiskyttere velger skyting i pausene), 58 ferdige øktmaler fra OLT-skalaen med søk («6x6»), standardøkt-merking, full sammenligning av standardøkter i analysen — og konkurransepanelet øverst i føringen, med prioritet hentet rett fra årsplanen og testvalg fra biblioteket.',
   },
   {
     date: '2026-08-20',

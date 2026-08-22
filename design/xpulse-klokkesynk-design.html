@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — klokkesynk, utkast</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══ Tokens — IDENTISKE med public/xpulse.html sin :root. Ikke endre. ═══ */
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+
+  /* Merkefarger. Strava #FC5200 er verifisert fra developers.strava.com.
+     Polar er ANSLAG — eksakt hex kommer med den offisielle fila. */
+  --strava:#FC5200;
+  --polar:#E4002B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif;padding:0 0 72px}
+img{display:block;max-width:100%}
+
+/* ═══════════════════════════════════════════════════════════
+   VARIANT B — LOGO-RADEN  ★ ANBEFALT
+   To nivåer: ekte koblinger med logo, filimport som tekst.
+   ═══════════════════════════════════════════════════════════ */
+
+.syncrow{
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  background:var(--surface);
+  padding:18px 34px;
+}
+/* Samme .wrap-bredde som resten av siden (1180px), midtstilt — raden
+   skal stå i samme kolonne som heroen over og seksjonene under. */
+.syncrow .inner{max-width:1180px; margin:0 auto; text-align:center}
+.syncrow .head{
+  font:600 11px/1 'Barlow Condensed'; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--mute); margin-bottom:13px;
+}
+
+.cards{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; justify-content:center}
+
+/* Merkekort. Mørkt, ikke hvit pille: den offisielle HVITE logovarianten
+   legges rett på flaten. Ingen ramme rundt logoen, ingen omfarging. */
+.bcard{
+  display:flex; align-items:center; gap:11px;
+  background:var(--card); border:1px solid var(--line2);
+  border-radius:12px; padding:11px 16px;
+  min-height:52px;
+}
+/* Tynn fargestripe i merkefargen — merkets identitet uten å røre logoen. */
+.bcard{position:relative; overflow:hidden}
+.bcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:2px}
+.bcard.strava::before{background:var(--strava)}
+.bcard.polar::before{background:var(--polar)}
+
+/* Logo-slot. Her legges den offisielle SVG-en inn — se notat punkt 2. */
+.logo{height:20px; display:flex; align-items:center; flex-shrink:0}
+.logo img{height:100%; width:auto}
+/* Plassholder til fila er på plass. IKKE en tegnet etterligning av
+   logoen — bevisst nøytral, så ingen tror den er ekte. */
+.slot{
+  height:20px; display:flex; align-items:center; padding:0 10px;
+  border:1px dashed var(--line2); border-radius:5px;
+  font:600 9.5px/1 'Barlow Condensed'; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--mute); white-space:nowrap;
+}
+.bmeta{display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left}
+.bname{font:600 13px/1 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase; color:var(--paper)}
+.bstat{display:inline-flex; align-items:center; gap:5px;
+  font:600 10.5px/1 'Barlow Condensed'; letter-spacing:.12em; text-transform:uppercase; color:var(--green)}
+.dot{width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0}
+.bstat.rolling{color:var(--dim)} .bstat.rolling .dot{background:var(--dim)}
+
+/* Nivå 2 — filimport. Tekst, ingen logoer: vi kobler oss ikke til dem. */
+.tier2{
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:center;
+  margin-top:13px; padding-top:12px; border-top:1px solid var(--line);
+  font:600 12px/1.5 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--dim);
+}
+.tier2 .k{color:var(--mute)}
+.tier2 .soon{color:var(--mute)}
+.tier2 .pipe{color:var(--line2)}
+
+.devnote{
+  padding:10px 34px; background:var(--surface);
+  border-bottom:1px solid var(--line); font-size:13px; color:var(--dim);
+  text-align:center;
+}
+.devnote b{color:var(--paper)}
+
+@media(max-width:820px){
+  .syncrow{padding:15px 20px}
+  .cards{gap:8px}
+  .bcard{flex:1 1 calc(50% - 4px); padding:10px 13px; gap:9px}
+  .tier2{font-size:11px; letter-spacing:.1em}
+  .devnote{padding:9px 20px; font-size:12px}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   VARIANT A — KOMPAKT TEKSTBAR  (fallback hvis logoene drøyer)
+   ═══════════════════════════════════════════════════════════ */
+.devbar{
+  display:flex; align-items:center; flex-wrap:wrap; gap:0 18px; justify-content:center;
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  background:var(--surface); padding:11px 34px;
+  font:600 13px/1 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase;
+}
+.devbar .l{color:var(--mute); flex-shrink:0}
+.sep{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
+.brand{display:inline-flex; align-items:center; gap:8px; flex-shrink:0}
+.tile{width:22px; height:22px; border-radius:6px; display:grid; place-items:center; flex-shrink:0;
+  font:700 12px/1 'Barlow Condensed'; color:#fff; overflow:hidden}
+.tile img{width:100%; height:100%; object-fit:contain}
+.tile.p{background:var(--polar)}
+.tile.s{background:#17171C; border:1.5px solid var(--strava); color:var(--strava)}
+.grp{display:inline-flex; align-items:center; gap:7px; color:var(--dim); flex-wrap:wrap}
+.grp .k{color:var(--mute)}
+.grp.soon{color:var(--mute)}
+@media(max-width:820px){
+  .devbar{padding:11px 20px; gap:8px 14px}
+  .sep{display:none}
+  .devbar .l{width:100%; margin-bottom:2px}
+}
+
+/* ═══ Bare for dette utkastet — ikke portér ═══ */
+.vlabel{font:600 11px/1 'Barlow Condensed'; letter-spacing:.26em; text-transform:uppercase;
+  color:var(--orange); padding:44px 34px 11px}
+.vlabel .sub{color:var(--mute); letter-spacing:.1em; margin-left:10px}
+.hint{font-size:12.5px; color:var(--mute); padding:9px 34px 0; font-style:italic}
+.note{max-width:900px; margin:64px auto 0; padding:0 28px}
+.note h2{font:400 26px/1.1 'Bebas Neue'; letter-spacing:.06em; color:var(--paper); margin-bottom:6px}
+.note h3{font:600 12px/1 'Barlow Condensed'; letter-spacing:.2em; text-transform:uppercase; color:var(--orange); margin:26px 0 9px}
+.note p,.note li{font-size:14px; line-height:1.65; color:var(--dim)}
+.note li{margin-bottom:7px}
+.note ul,.note ol{padding-left:20px}
+.note b{color:var(--paper)}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12.5px; color:var(--gold); background:#15151B; padding:1px 5px; border-radius:4px}
+.note .warn{border-left:2px solid var(--red); padding:10px 0 10px 14px; margin:14px 0}
+.note .ok{border-left:2px solid var(--green); padding:10px 0 10px 14px; margin:14px 0}
+.note a{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="vlabel">Variant B — logo-raden <span class="sub">★ anbefalt</span></div>
+
+<!-- ═══════ VARIANT B ═══════ -->
+<div class="syncrow">
+ <div class="inner">
+  <div class="head">Synker med</div>
+
+  <div class="cards">
+    <!-- POLAR — live. Logo-slot venter på klarering fra Polar. -->
+    <div class="bcard polar">
+      <span class="logo"><span class="slot">Polar-logo</span></span>
+      <span class="bmeta">
+        <span class="bname">Polar</span>
+        <span class="bstat"><span class="dot"></span>Direktesynk — live</span>
+      </span>
+    </div>
+
+    <!-- STRAVA — live, under utrulling. «Compatible with Strava», hvit
+         variant fra Stravas eget kit. Legges inn uendret. -->
+    <div class="bcard strava">
+      <span class="logo"><span class="slot">Compatible with Strava</span></span>
+      <span class="bmeta">
+        <span class="bname">Strava</span>
+        <span class="bstat rolling"><span class="dot"></span>Gradvis utrulling</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Nivå 2: filimport. Tekst, ingen logoer — vi kobler oss ikke til dem. -->
+  <div class="tier2">
+    <span class="k">.fit-import:</span>
+    <span>Garmin · Coros · Suunto · Wahoo (alle, i dag)</span>
+    <span class="pipe">|</span>
+    <span class="soon">Garmin · Apple Health · Coros direkte — kommer</span>
+  </div>
+ </div>
+</div>
+
+<div class="devnote">Uansett klokkemerke: last opp <b>.fit-filer</b> fra Garmin, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sonefordeling.</div>
+
+<p class="hint">All tekst er uendret, ord for ord. Merkekortene bærer bare de to vi faktisk kobler oss til.</p>
+
+<div class="vlabel">Variant A — kompakt tekstbar <span class="sub">fallback hvis logofilene drøyer</span></div>
+
+<!-- ═══════ VARIANT A ═══════ -->
+<div class="devbar">
+  <span class="l">Synker med</span>
+  <span class="brand">
+    <span class="tile p" aria-hidden="true">P</span>
+    <span>Polar</span>
+    <span class="bstat"><span class="dot"></span>Live</span>
+  </span>
+  <span class="brand">
+    <span class="tile s" aria-hidden="true">S</span>
+    <span>Strava</span>
+    <span class="bstat rolling"><span class="dot"></span>Gradvis utrulling</span>
+  </span>
+  <span class="sep"></span>
+  <span class="grp"><span class="k">.fit-import:</span> Garmin · Coros · Suunto · Wahoo (alle, i dag)</span>
+  <span class="sep"></span>
+  <span class="grp soon">Garmin · Apple Health · Coros direkte — kommer</span>
+</div>
+<div class="devnote">Uansett klokkemerke: last opp <b>.fit-filer</b> fra Garmin, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sonefordeling.</div>
+
+<p class="hint">Samme innhold, én linje lavere. Dette er dagens bar strammet inn — bruk den hvis logoene lar vente på seg.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="note">
+  <h2>Notat — regler</h2>
+  <p>Fasit for CC. Følg 1:1. Punktene er beslutninger, ikke forslag.</p>
+
+  <h3>1. Bygg variant B. A er reserven.</h3>
+  <p>Logo-raden er målet. Tekstbaren er der hvis logofilene ikke er klarert i tide — den kan portéres først og byttes ut senere uten at teksten endres.</p>
+
+  <h3>2. Strava: merkingen finnes, og den er lov</h3>
+  <div class="ok">
+    <p>Verifisert mot <a href="https://developers.strava.com/guidelines/">developers.strava.com/guidelines</a>: Strava leverer <b>«Compatible with Strava»</b> og <b>«Powered by Strava»</b> som offisielle merkinger, i <b>oransje, hvit og sort</b>, horisontal og stablet, som EPS/SVG/PNG. Bruk den <b>hvite</b> varianten — den ligger rett på den mørke flaten uten hvit pille rundt.</p>
+  </div>
+  <p>Reglene deres, som vi må følge:</p>
+  <ul>
+    <li>Aldri endre, omfarge eller animere logoen.</li>
+    <li>Den skal stå <b>adskilt fra</b> X-Pulse-logoen — aldri i samme lockup.</li>
+    <li>Den skal <b>ikke være mer fremtredende</b> enn vår egen merkevare. Derfor er raden nede under heroen, ikke i toppnavigasjonen.</li>
+    <li>Aldri som app-ikon, aldri noe som antyder at Strava har laget eller sponset X-Pulse.</li>
+    <li>Lenker til Strava-data: teksten «View on Strava», eventuelt i <code>#FC5200</code>.</li>
+  </ul>
+  <p><b>Merk:</b> dette er merkingen for markedsføringsflater. Selve tilkoblingsknappen i appen er en annen sak og skal fortsatt bruke Stravas egen knapp — <code>components/strava/StravaBrand.tsx</code>.</p>
+
+  <h3>3. Polar: kortet står klart, logoen venter</h3>
+  <div class="warn">
+    <p><code>public/brands/README.md</code>: «Logobruk er BEGRENSET i AccessLink-lisensavtalen. Krever skriftlig klarering før den tas i bruk.» Kontakt <code>polar@miltton.com</code>, filene ligger i pressebanken deres (EPS/PDF, ikke web-SVG — må konverteres).</p>
+  </div>
+  <p>Til klareringen er i havn står kortet med plassholder-slot. Kortet skal <b>ikke</b> fjernes — Polar er vår eneste ekte direktesynk, og den skal være synlig. Det er logoen som mangler, ikke merket.</p>
+
+  <h3>4. Hvorfor .fit-merkene ikke er i raden</h3>
+  <p>Dette er den viktigste avgjørelsen i utkastet, og den er ikke juridisk — den er ærlighet.</p>
+  <p>Referansebildet setter Garmin, Wahoo, Zwift og Coros side om side med Strava og Polar, som om alt er likeverdige koblinger. <b>Vi leser .fit-filer fra fire av dem.</b> Legger vi logoene deres i samme rad, lover vi en integrasjon vi ikke har — og det er nøyaktig den typen påstand som gjør at folk mister tilliten til resten av siden.</p>
+  <p>Derfor to nivåer: logo på det vi kobler oss til, navn i tekst på det vi leser filer fra. Når Garmin-API-et blir live, flyttes Garmin opp i nivå 1 og får kort med logo — <b>ikke før</b>.</p>
+
+  <h3>5. Slik legges en logo inn</h3>
+  <p>Offisiell SVG i <code>public/brands/&lt;slug&gt;.svg</code> — samme slugger som <code>lib/klokkesync-brands.ts</code> (<code>strava</code>, <code>polar</code>, <code>garmin</code>, <code>coros</code>, <code>suunto</code>, <code>whoop</code>, <code>oura</code>). Så byttes slot mot bilde:</p>
+  <p><code>&lt;span class="logo"&gt;&lt;img src="/brands/strava.svg" alt="Compatible with Strava"&gt;&lt;/span&gt;</code></p>
+  <p>Ingen andre endringer. Høyden er låst til 20px, bredden flyter — logoer har ulike proporsjoner og skal ikke strekkes.</p>
+
+  <h3>6. Aldri tegnede etterligninger</h3>
+  <p>Plassholderne er med vilje nøytrale stiplede bokser med merkenavnet i vår egen font. De skal ikke ligne logoen. Filene hentes fra merkets offisielle kit — ikke fra bildesøk, ikke fra logo-arkiv. Ved tvil: behold plassholderen.</p>
+
+  <h3>7. Fargestripen</h3>
+  <p>2px stripe i merkefargen på venstre kant av kortet. Det gir merket identitet uten å røre logoen — som er det Strava forbyr. <code>--strava:#FC5200</code> er verifisert. <code>--polar</code> er anslag til den offisielle verdien foreligger.</p>
+
+  <h3>8. Midtstilling</h3>
+  <p>Hele raden er midtstilt i samme 1180px-kolonne som resten av siden (<code>.wrap</code>) — merkekortene, «Synker med», nivå 2 og <code>.devnote</code>. Raden skal stå i samme kolonne som heroen over og seksjonene under, ikke flyte fritt i full bredde.</p>
+  <p>Ett unntak: <b>teksten inne i hvert kort er venstrestilt</b> (<code>.bmeta</code>). Merkenavn og status står som et par under hverandre, og midtstilt tekst der ville fått de to linjene til å vagle seg mot logoen. Kortene midtstilles, innholdet i dem gjør det ikke.</p>
+
+  <h3>9. Mobil</h3>
+  <p>Under 820px legger merkekortene seg to i bredden, fortsatt midtstilt. De skal ikke krympe under 52px høyde — logoen må være lesbar, ellers er den verdiløs. Nivå 2 og <code>.devnote</code> flyter som vanlig tekst.</p>
+
+  <h3>10. Teksten er uendret</h3>
+  <p>«Synker med» · «live» · «gradvis utrulling» · «.fit-import: Garmin · Coros · Suunto · Wahoo (alle, i dag)» · «Garmin · Apple Health · Coros direkte — kommer» · <code>.devnote</code>-setningen. Ingenting omformuleres i denne runden.</p>
+</div>
+
+</body>
+</html>

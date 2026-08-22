@@ -67,14 +67,16 @@ export const STANDARD_SHOOTING_TESTS: ShootingTestTemplateDef[] = [
     usePulse: false,
     useTime: false,
     scoring: 'ring',
+    // 30 skudd ligg + 30 skudd stå som 5-skuddserier (6×5 L + 6×5 S) —
+    // ikke enkeltskudd (Sverre 22. aug).
     series: [
-      { position: 'L', shots: 1, count: 30 },
-      { position: 'S', shots: 1, count: 30 },
+      { position: 'L', shots: 5, count: 6 },
+      { position: 'S', shots: 5, count: 6 },
     ],
     guidance:
-      'Enkeltskudd på 10-delt ISSF 50 m-skive, uten tidspress/puls. '
-      + '1–10 p per skudd — plott skuddet og les poeng fra plottet, '
-      + 'eller før poeng manuelt.',
+      '30 skudd liggende + 30 stående i 5-skuddserier på 10-delt ISSF '
+      + '50 m-skive, uten tidspress/puls. 1–10 p per skudd — plott skuddene '
+      + 'og les poeng fra plottet, eller før poeng manuelt.',
   },
   {
     ref: 'staaende200',

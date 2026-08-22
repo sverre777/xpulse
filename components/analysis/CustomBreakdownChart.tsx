@@ -754,7 +754,7 @@ function MovementMultiSelect({
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full px-3 py-1.5 text-xs text-left flex items-center justify-between"
+        className="w-full px-3.5 py-1.5 text-xs text-left flex items-center justify-between"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           backgroundColor: '#0A0A0B',
@@ -762,6 +762,7 @@ function MovementMultiSelect({
           color: '#F0F0F2',
           minHeight: 32,
           cursor: 'pointer',
+          borderRadius: 999,
         }}
       >
         <span>{selectedCount === totalCount ? 'Alle' : `${selectedCount} valgt`}</span>
@@ -774,6 +775,7 @@ function MovementMultiSelect({
             backgroundColor: '#0A0A0B',
             border: '1px solid #1E1E22',
             boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            borderRadius: 12,
           }}
         >
           <MovementGroup title="Utholdenhet" options={enduranceOptions} isSelected={isSelected} onToggle={onToggle} />

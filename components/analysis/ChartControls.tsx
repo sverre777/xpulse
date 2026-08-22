@@ -28,7 +28,7 @@ export function ChipSelector<T extends string>({
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </span>
-      <div className="flex gap-1">
+      <div className="flex gap-1.5 flex-wrap">
         {options.map(o => {
           const av = !!o.disabledReason
           return (
@@ -38,7 +38,7 @@ export function ChipSelector<T extends string>({
               onClick={() => !av && onChange(o.value)}
               disabled={av}
               title={o.disabledReason}
-              className="px-3 py-1.5 text-xs tracking-widest uppercase"
+              className="px-3.5 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: value === o.value ? '#FF4500' : '#0A0A0B',
@@ -47,6 +47,7 @@ export function ChipSelector<T extends string>({
                 cursor: av ? 'not-allowed' : 'pointer',
                 opacity: av ? 0.45 : 1,
                 minHeight: 32,
+                borderRadius: 999,
               }}
             >
               {o.label}
@@ -75,13 +76,14 @@ export function SelectControl({
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="px-3 py-1.5 text-xs"
+        className="px-3.5 py-1.5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           backgroundColor: '#0A0A0B',
           border: '1px solid #1E1E22',
           color: '#F0F0F2',
           minHeight: 32,
+          borderRadius: 999,
         }}
       >
         {children}

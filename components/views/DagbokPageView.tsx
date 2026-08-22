@@ -198,12 +198,10 @@ export async function DagbokPageView({ viewContext }: Props) {
           targetUserId={targetId}
         />
 
-        {/* Skyting-grafen rett etter den fysiske — samme komponent som i
-            Skyting-dybde. Skjuler seg selv for brukere uten skytedata. */}
-        <SkytingChartSection
-          analysisRange={rangeFromPreset('12m')}
-          targetUserId={targetId}
-        />
+        {/* Skyting rett etter den fysiske grafen: noekkeltall + skudd per
+            periode, med egen periodevelger. Skjuler seg selv for brukere
+            uten skytedata. */}
+        <SkytingChartSection targetUserId={targetId} />
 
       </div>
     </div>

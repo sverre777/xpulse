@@ -6,9 +6,8 @@
 // - 'inline': kompakt tekst-linje "Total 87% (L 92% · S 82%)" — passer i
 //   workout-cards, sammenlignings-tabeller og lignende.
 
-const COLOR_PRONE = '#38BDF8'
-const COLOR_STANDING = '#FF4500'
-const COLOR_TOTAL = '#F0F0F2'
+// Fargefasiten eies av SkytingSummaryCards — ingen egen kopi her.
+import { COLOR_PRONE, COLOR_STANDING, COLOR_TOTAL } from './SkytingSummaryCards'
 
 export interface ShootingTotals {
   prone_shots?: number

@@ -14,6 +14,7 @@ import {
 } from './chart-theme'
 import { windShort, sightLabel, SHOT_TYPE_ORDER, SHOT_SERIES_COLORS } from '@/lib/shooting'
 import { findStandardTest } from '@/lib/shooting-test-templates'
+import { COLOR_PRONE, COLOR_STANDING, COLOR_TOTAL } from './SkytingSummaryCards'
 
 // Custom skyting-graf-bygger — filtrer skyting-data og velg akser fritt.
 // Kjører helt klient-side på `series`-arrayet som allerede er lastet av
@@ -103,9 +104,8 @@ const PER_SKYTING_LABELS: Record<PerSkytingKey, string> = {
   accumulated: 'Akkumulert',
 }
 
-const COLOR_PRONE = '#38BDF8'
-const COLOR_STANDING = '#FF4500'
-const COLOR_TOTAL = '#F0F0F2'
+// Fargene eies av SkytingSummaryCards. Foerste/siste-paret er egne roller i
+// denne grafen og bor derfor her.
 const COLOR_FIRST = '#28A86E'
 const COLOR_LAST = '#E23A5A'
 

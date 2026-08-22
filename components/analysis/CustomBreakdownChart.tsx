@@ -12,6 +12,7 @@ import {
 import type { DateRange } from './date-range'
 import { rangeFromPreset, PRESETS, type PresetKey } from './date-range'
 import { ChartWrapper } from './ChartWrapper'
+import { ChipSelector, SelectControl } from './ChartControls'
 import { localISODate } from '@/lib/local-date'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
@@ -689,76 +690,34 @@ function formatRangeLabel(r: DateRange): string {
 function GroupingSelector({
   value, onChange,
 }: { value: CustomBreakdownGrouping; onChange: (v: CustomBreakdownGrouping) => void }) {
-  const options: { value: CustomBreakdownGrouping; label: string }[] = [
-    { value: 'week', label: 'Uke' },
-    { value: 'month', label: 'Måned' },
-    { value: 'year', label: 'År' },
-  ]
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Gruppering
-      </span>
-      <div className="flex gap-1">
-        {options.map(o => (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className="px-3 py-1.5 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: value === o.value ? '#FF4500' : '#0A0A0B',
-              border: value === o.value ? '1px solid #FF4500' : '1px solid #1E1E22',
-              color: value === o.value ? '#FFFFFF' : '#F0F0F2',
-              cursor: 'pointer',
-              minHeight: 32,
-            }}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <ChipSelector
+      label="Gruppering"
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: 'week', label: 'Uke' },
+        { value: 'month', label: 'Måned' },
+        { value: 'year', label: 'År' },
+      ]}
+    />
   )
 }
 
 function ViewModeSelector({
   value, onChange,
 }: { value: BreakdownViewMode; onChange: (v: BreakdownViewMode) => void }) {
-  const options: { value: BreakdownViewMode; label: string }[] = [
-    { value: 'completed', label: 'Gjennomført' },
-    { value: 'planned', label: 'Planlagt' },
-    { value: 'both', label: 'Begge' },
-  ]
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Visning
-      </span>
-      <div className="flex gap-1">
-        {options.map(o => (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className="px-3 py-1.5 text-xs tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: value === o.value ? '#FF4500' : '#0A0A0B',
-              border: value === o.value ? '1px solid #FF4500' : '1px solid #1E1E22',
-              color: value === o.value ? '#FFFFFF' : '#F0F0F2',
-              cursor: 'pointer',
-              minHeight: 32,
-            }}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <ChipSelector
+      label="Visning"
+      value={value}
+      onChange={onChange}
+      options={[
+        { value: 'completed', label: 'Gjennomført' },
+        { value: 'planned', label: 'Planlagt' },
+        { value: 'both', label: 'Begge' },
+      ]}
+    />
   )
 }
 
@@ -766,28 +725,11 @@ function RangeSelector({
   value, onChange,
 }: { value: PresetKey | 'inherit'; onChange: (v: PresetKey | 'inherit') => void }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Periode
-      </span>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value as PresetKey | 'inherit')}
-        className="px-3 py-1.5 text-xs"
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#0A0A0B',
-          border: '1px solid #1E1E22',
-          color: '#F0F0F2',
-          minHeight: 32,
-        }}
-      >
-        {PRESETS_FOR_OVERRIDE.map(p => (
-          <option key={p.key} value={p.key}>{p.label}</option>
-        ))}
-      </select>
-    </div>
+    <SelectControl label="Periode" value={value} onChange={v => onChange(v as PresetKey | 'inherit')}>
+      {PRESETS_FOR_OVERRIDE.map(p => (
+        <option key={p.key} value={p.key}>{p.label}</option>
+      ))}
+    </SelectControl>
   )
 }
 

@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react'
 import {
-  ResponsiveContainer, LineChart, Line, ScatterChart, Scatter,
+  ResponsiveContainer, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
+import { ChipSelector } from './ChartControls'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
   CHART_TOOLTIP_BOX,
@@ -27,6 +28,21 @@ type PerSkytingKey = 'all' | 'last' | 'first' | 'specific'
 
 type XAxisKey = 'date' | 'avg_hr' | 'workout_index' | 'sort_order'
 
+// Punkter/linje er et BRUKERVALG, ikke en konsekvens av hvilken akse som er
+// valgt. Før het regelen «numerisk x ⇒ scatter uten linje», og da ga puls
+// eller økt-nr bare en løs punktsky.
+type VisningKey = 'points' | 'line' | 'both'
+
+// UNNTAKET: puls som x er en SAMMENHENG-visning (treff % mot puls), ikke en
+// tidsrekke. Punktene har ingen naturlig rekkefølge — en linje mellom dem
+// ville tegnet en sammenheng som ikke finnes, uansett sortering. Der låses
+// visningen til punkter, og UI-et sier hvorfor.
+const X_ER_SAMMENHENG: Record<XAxisKey, boolean> = {
+  date: false, workout_index: false, sort_order: false, avg_hr: true,
+}
+const SAMMENHENG_FORKLARING =
+  'Puls på x-aksen viser sammenhengen mellom puls og resultat. Punktene har ingen rekkefølge, så en linje mellom dem ville vært meningsløs.'
+
 type YAxisKey = 'accuracy_pct' | 'hits' | 'time_seconds' | 'avg_hr' | 'max_hr'
 
 interface FilterState {
@@ -36,6 +52,7 @@ interface FilterState {
   specificSortOrder: number
   xAxis: XAxisKey
   yAxis: YAxisKey
+  visning: VisningKey
   workoutId: string | null  // For akkumulert: hvilken økt
 }
 
@@ -46,6 +63,7 @@ const DEFAULT_FILTER: FilterState = {
   specificSortOrder: 1,
   xAxis: 'date',
   yAxis: 'accuracy_pct',
+  visning: 'both',
   workoutId: null,
 }
 
@@ -137,6 +155,8 @@ export function CustomSkytingChartBuilder({ data }: Props) {
   const chartData = useMemo(() => {
     return buildChartPoints(filtered, filter)
   }, [filtered, filter])
+
+  const erSammenheng = X_ER_SAMMENHENG[filter.xAxis]
 
   const presets: { key: string; label: string; apply: () => void }[] = [
     {
@@ -241,11 +261,29 @@ export function CustomSkytingChartBuilder({ data }: Props) {
           </SelectField>
         </div>
 
+        {/* VISNING — samme chip-rad som den fysiske grafens
+            Gjennomført/Planlagt/Begge (delt ChipSelector). */}
+        <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
+          <ChipSelector
+            label="Visning"
+            value={erSammenheng ? 'points' : filter.visning}
+            onChange={v => set('visning', v)}
+            options={[
+              { value: 'points', label: 'Punkter' },
+              { value: 'line', label: 'Linje', disabledReason: erSammenheng ? SAMMENHENG_FORKLARING : undefined },
+              { value: 'both', label: 'Begge', disabledReason: erSammenheng ? SAMMENHENG_FORKLARING : undefined },
+            ]}
+          />
+        </div>
+
         <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           {chartData.points.length === 0
             ? 'Ingen data for valgt filter.'
             : `${chartData.points.length} datapunkt`}
+          {erSammenheng && (
+            <span style={{ color: '#555560' }}> · {SAMMENHENG_FORKLARING}</span>
+          )}
         </p>
 
         <div style={{ width: '100%', height: 260 }}>
@@ -351,6 +389,16 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
     meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r) },
   })).filter(p => p.y !== null)
 
+  // SORTERING PÅ X for numeriske akser. Radene kommer sortert på DATO, og en
+  // linje følger punktrekkefølgen i dataene — ikke x-verdien. Tegner man
+  // usortert numerisk x, går streken fram og tilbake og lager sikksakk. Det
+  // var nettopp derfor grafen ble en ren scatter i utgangspunktet; her
+  // sorteres den i stedet, så linja faktisk kan tegnes.
+  // Kategori-aksen (dato) sorteres ikke om: der ER datorekkefølgen x-rekkefølgen.
+  if (xType === 'number') {
+    points.sort((a, b) => (a.x as number) - (b.x as number))
+  }
+
   return { points, hasCompare: false, xType }
 }
 
@@ -428,31 +476,48 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
     )
   }
 
-  // For tall-akser bruk scatter; kategori-akse (dato) bruk linje.
-  if (data.xType === 'number') {
-    return (
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        <ScatterChart>
-          <CartesianGrid stroke={CHART_GRID} />
-          <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
-          <YAxis type="number" dataKey="y" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
-            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
-          <Tooltip content={<BuilderTip yLabel={yLabel} />} />
-          <Scatter data={data.points} fill={positionColor} />
-        </ScatterChart>
-      </ResponsiveContainer>
-    )
-  }
+  // ÉN graf-type for alle akser, og punktene tegnes som linjas egne dots.
+  // Grunnen: <Scatter> krever i praksis numeriske akser i recharts, mens
+  // standardaksen her er dato (kategori) — «Punkter» ville da vært tom på
+  // nettopp den viktigste visningen. Med dots på linja virker alle tre
+  // valgene likt uansett akse: «Punkter» = ingen strek, bare prikker.
+  // Punktene er sortert på x når aksen er numerisk (se buildChartPoints),
+  // så linja går én vei i stedet for å sikksakke.
+  // Puls-aksen er en sammenheng-visning og låses til punkter.
+  const visning: VisningKey = X_ER_SAMMENHENG[filter.xAxis] ? 'points' : filter.visning
+  const visLinje = visning === 'line' || visning === 'both'
+  const visPunkter = visning === 'points' || visning === 'both'
 
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={data.points}>
-        <CartesianGrid stroke={CHART_GRID} vertical={false} />
-        <XAxis dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
-        <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={48}
-          label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+        <CartesianGrid stroke={CHART_GRID} vertical={data.xType === 'number'} />
+        <XAxis
+          dataKey="x"
+          type={data.xType}
+          domain={data.xType === 'number' ? ['dataMin', 'dataMax'] : undefined}
+          tick={CHART_AXIS_TICK}
+          axisLine={CHART_AXIS_LINE}
+          tickLine={false}
+        />
+        <YAxis
+          tick={CHART_AXIS_TICK}
+          axisLine={CHART_AXIS_LINE}
+          tickLine={false}
+          width={48}
+          label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+        />
         <Tooltip content={<BuilderTip yLabel={yLabel} />} />
-        <Line type="monotone" dataKey="y" stroke={positionColor} strokeWidth={2} dot={{ r: 3 }} />
+        <Line
+          type="monotone"
+          dataKey="y"
+          stroke={visLinje ? positionColor : 'none'}
+          strokeWidth={2}
+          dot={visPunkter ? { r: 3, fill: positionColor, stroke: positionColor } : false}
+          activeDot={{ r: 5 }}
+          isAnimationActive={false}
+          connectNulls
+        />
       </LineChart>
     </ResponsiveContainer>
   )

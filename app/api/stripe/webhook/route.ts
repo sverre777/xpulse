@@ -261,6 +261,17 @@ async function upsertSubscription(
     return
   }
 
+  // GRANTED-VERNET (bolk 3-kollisjonen): når en selvbetalende løser inn en
+  // plass, konverteres raden til granted FØR det gamle abonnementet settes
+  // cancel_at_period_end. Eventene som følger (updated m/ cap=true, senere
+  // deleted) skal ikke gjenopplive raden som Stripe-eid — plassen vant.
+  // Et ekte «fortsett selv»-kjøp har cap=false og går gjennom som normalt.
+  const capIncoming = (sub as unknown as { cancel_at_period_end?: boolean }).cancel_at_period_end === true
+  if (existing?.granted_by_subscription_id && !existing.stripe_subscription_id && capIncoming) {
+    console.log(`[stripe-webhook] granted-vernet: ${sub.id} (cap=true) rører ikke plass-raden til ${userId}`)
+    return
+  }
+
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
   // current_period_end ble i nyere API-versjoner FLYTTET fra abonnementet til
   // item-nivået (verifisert i E2E: toppnivået er null i 2026-04-22.dahlia).

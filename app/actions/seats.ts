@@ -16,6 +16,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { stripe, seatPriceId, includedSeatsForTier } from '@/lib/stripe'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
+import { seatContextForCoach } from '@/lib/seat-claim'
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -55,19 +56,15 @@ export async function getSeatStatus(): Promise<SeatStatus | { error: string }> {
   }
 
   const service = getServiceSupabase()
-  // Egen rad-id + seat_quantity via service (kolonnene er nye — leses her
-  // fremfor å utvide getActiveSubscription, som middleware er avhengig av).
-  const { data: coachRow } = await service
-    .from('subscriptions')
-    .select('id, seat_quantity')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  if (!coachRow) return { error: 'Fant ikke abonnementsraden' }
+  // Teller-fasiten bor i lib/seat-claim.ts (delt med invitasjonsflyten):
+  // frigjorte plasser (cancel_at_period_end) teller IKKE som i bruk.
+  const ctx = await seatContextForCoach(service, user.id)
+  if ('error' in ctx) return { error: ctx.error }
 
   const { data: granted } = await service
     .from('subscriptions')
-    .select('user_id, status, current_period_end')
-    .eq('granted_by_subscription_id', coachRow.id)
+    .select('user_id, status, current_period_end, cancel_at_period_end')
+    .eq('granted_by_subscription_id', ctx.coachSubRowId)
 
   const rows = granted ?? []
   const athleteIds = rows.map(r => r.user_id)
@@ -80,22 +77,18 @@ export async function getSeatStatus(): Promise<SeatStatus | { error: string }> {
     for (const p of profiles ?? []) nameById.set(p.id, p.full_name ?? 'Ukjent utøver')
   }
 
-  const included = includedSeatsForTier(sub!.tier)
-  const purchased = coachRow.seat_quantity ?? 0
-  // «I bruk» = aktive granted-rader. Fjernede/utløpte (canceled) frigjør
-  // plassen UMIDDELBART i telleren selv om utøveren beholder ut perioden.
-  const inUse = rows.filter(r => r.status === 'active' || r.status === 'trialing').length
-
   return {
-    tier: sub!.tier,
-    included,
-    purchased,
-    inUse,
-    available: included + purchased - inUse,
+    tier: ctx.tier,
+    included: ctx.teller.included,
+    purchased: ctx.teller.purchased,
+    inUse: ctx.teller.inUse,
+    available: ctx.teller.available,
     athletes: rows.map(r => ({
       userId: r.user_id,
       name: nameById.get(r.user_id) ?? 'Ukjent utøver',
-      status: r.status,
+      // Frigjort-men-løper-ut vises som egen tilstand i panelet.
+      status: r.cancel_at_period_end && (r.status === 'active' || r.status === 'trialing')
+        ? 'utloper' : r.status,
       currentPeriodEnd: r.current_period_end,
     })),
   }
@@ -126,24 +119,17 @@ export async function setSeatQuantity(
   }
 
   // ── HARD SERVER-SPERRE: aldri under plasser i bruk ────────
+  // Teller-fasiten fra lib/seat-claim.ts: frigjorte plasser teller ikke.
   const service = getServiceSupabase()
-  const { data: coachRow } = await service
-    .from('subscriptions')
-    .select('id')
-    .eq('user_id', user.id)
-    .maybeSingle()
-  if (!coachRow) return { error: 'Fant ikke abonnementsraden' }
-
-  const { count: inUse } = await service
-    .from('subscriptions')
-    .select('id', { count: 'exact', head: true })
-    .eq('granted_by_subscription_id', coachRow.id)
-    .in('status', ['active', 'trialing'])
+  const ctx = await seatContextForCoach(service, user.id)
+  if ('error' in ctx) return { error: ctx.error }
+  const coachRow = { id: ctx.coachSubRowId }
+  const inUse = ctx.teller.inUse
 
   const included = includedSeatsForTier(sub!.tier)
   const total = included + quantity
-  if ((inUse ?? 0) > total) {
-    const mustFree = (inUse ?? 0) - total
+  if (inUse > total) {
+    const mustFree = inUse - total
     return {
       error: `Frigjør ${mustFree} plass${mustFree === 1 ? '' : 'er'} først — ${inUse} er i bruk, og ${included} inkludert + ${quantity} kjøpt gir bare ${total}.`,
       mustFree,

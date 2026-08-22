@@ -20,7 +20,8 @@ import {
   type SkiTestTemplate,
   type UserConditionsTemplate,
 } from '@/lib/ski-test-types'
-import type { SkiEquipment } from '@/lib/equipment-types'
+import Link from 'next/link'
+import { visSlipDato, type SkiEquipment } from '@/lib/equipment-types'
 import { parseDecimal } from '@/lib/parse-decimal'
 import {
   lagRunde,
@@ -45,6 +46,10 @@ interface Props {
   testTemplates?: SkiTestTemplate[]
 }
 
+// Slip og lengde spoerres IKKE om her — de ligger paa ski-raden i utstyr og
+// leses derfra. Testen har derfor ingen slip-felt i skjema-tilstanden; verdien
+// snapshottes fra utstyret ved lagring (test-historikken skal vise hvilken
+// slip skia faktisk hadde da testen ble kjoert).
 interface EntryRow {
   ski_id: string
   rank_in_test: string
@@ -52,7 +57,6 @@ interface EntryRow {
   time_seconds: string
   distance_m: string
   wax_used: string
-  slip_used: string
   notes: string
 }
 
@@ -229,7 +233,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           time_seconds: en.time_seconds ? parseInt(en.time_seconds) : null,
           distance_m: en.distance_m ? parseDecimal(en.distance_m) : null,
           wax_used: en.wax_used || null,
-          slip_used: en.slip_used || null,
+          // Fra utstyret — aldri fra et felt i testen.
+          slip_used: skiById.get(en.ski_id)?.ski_data?.current_slip ?? null,
           notes: en.notes || null,
         })),
       }, targetUserId)
@@ -390,19 +395,18 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     ✕ Fjern
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Field label="Under skiene (smøring)">
-                    <input value={en.wax_used}
-                      onChange={e => updateEntry(idx, { wax_used: e.target.value })}
-                      placeholder="F.eks. HF7 + topping C6"
-                      className="w-full px-3 py-2" style={inputStyle} />
-                  </Field>
-                  <Field label="Slip">
-                    <input value={en.slip_used}
-                      onChange={e => updateEntry(idx, { slip_used: e.target.value })}
-                      className="w-full px-3 py-2" style={inputStyle} />
-                  </Field>
-                </div>
+                {/* Slip og lengde LESES fra utstyret — ingen input her, og
+                    ingen andre sannhet lagret på testen. */}
+                <SkiFraUtstyret ski={skiById.get(en.ski_id) ?? null}
+                  href={targetUserId
+                    ? `/app/trener/${targetUserId}/utstyr`
+                    : `/app/utstyr/${en.ski_id}`} />
+                <Field label="Under skiene (smøring)">
+                  <input value={en.wax_used}
+                    onChange={e => updateEntry(idx, { wax_used: e.target.value })}
+                    placeholder="F.eks. HF7 + topping C6"
+                    className="w-full px-3 py-2" style={inputStyle} />
+                </Field>
                 {!erParallell && (
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     {visTid && (
@@ -413,7 +417,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                       </Field>
                     )}
                     {visLengde && (
-                      <Field label="Lengde (m)">
+                      <Field label="Glidlengde (m)">
                         <input type="number" min="0" step="0.1" value={en.distance_m}
                           onChange={e => updateEntry(idx, { distance_m: e.target.value })}
                           className="w-full px-3 py-2" style={inputStyle} />
@@ -680,7 +684,7 @@ function ComboInput({
 }
 
 function makeEntry(ski_id: string): EntryRow {
-  return { ski_id, rank_in_test: '', rating: '', time_seconds: '', distance_m: '', wax_used: '', slip_used: '', notes: '' }
+  return { ski_id, rank_in_test: '', rating: '', time_seconds: '', distance_m: '', wax_used: '', notes: '' }
 }
 
 const inputStyle: React.CSSProperties = {
@@ -689,6 +693,34 @@ const inputStyle: React.CSSProperties = {
   backgroundColor: '#0F0F12',
   border: '1px solid var(--line)',
   fontSize: '15px',
+}
+
+// Slip og lengde hentes fra ski-raden i utstyr og vises som lest info.
+// Mangler verdien: «— (legg inn på utstyret)» med lenke dit — aldri et felt
+// her som ville lagret en andre sannhet.
+function SkiFraUtstyret({ ski, href }: { ski: SkiEquipment | null; href: string }) {
+  const d = ski?.ski_data ?? null
+  const slipDato = visSlipDato(d?.slip_date ?? null)
+  const slip = d?.current_slip ? `${d.current_slip}${slipDato ? ` (${slipDato})` : ''}` : null
+  const lengde = d?.length_cm != null ? `${d.length_cm} cm` : null
+
+  const mangler = (
+    <Link href={href}
+      style={{ color: '#8A8A96', textDecoration: 'underline' }}>
+      — (legg inn på utstyret)
+    </Link>
+  )
+
+  return (
+    <p className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1"
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+      <span className="text-xs tracking-widest uppercase" style={{ color: '#555560' }}>
+        Fra utstyret
+      </span>
+      <span>Slip: {slip ? <b style={{ color: '#F0F0F2' }}>{slip}</b> : mangler}</span>
+      <span>Lengde: {lengde ? <b style={{ color: '#F0F0F2' }}>{lengde}</b> : mangler}</span>
+    </p>
+  )
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

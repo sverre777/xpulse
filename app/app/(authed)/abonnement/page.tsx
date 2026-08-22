@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasActiveAccess, hasCoachTier, tierLabel, tierPriceMonthly } from '@/lib/subscriptions'
+import { getMySeatInfo } from '@/app/actions/seat-invite'
 import { ManageBillingButton } from './ManageBillingButton'
 
 export const dynamic = 'force-dynamic'
@@ -44,6 +45,12 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const active = hasActiveAccess(sub)
   const statusInfo = sub ? STATUS_INFO[sub.status] ?? { text: sub.status, color: '#8A8A96' } : null
 
+  // Setemodellen: er tilgangen en utøverplass fra en trener, vises plass-
+  // status i stedet for fakturadetaljer — utøveren betaler ingenting.
+  const seatInfo = await getMySeatInfo()
+  const seat = 'error' in seatInfo ? null : seatInfo
+  const paaPlass = !!seat?.paaPlass
+
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
       <div className="max-w-2xl mx-auto px-4 py-12">
@@ -67,7 +74,56 @@ export default async function AbonnementPage({ searchParams }: Props) {
           <Toast color="#E11D48" text={portalError} />
         )}
 
-        {!sub ? (
+        {/* Setemodellen: plassen er borte (fjernet/utløpt/trener sa opp) →
+            «fortsett selv for 59 kr»-tilbudet, uansett hvilken gren som vises under. */}
+        {seat?.tilbudFortsettSelv && (
+          <div className="mb-4 p-4"
+            style={{
+              backgroundColor: 'rgba(255,69,0,0.08)',
+              border: '1px solid rgba(255,69,0,0.4)',
+              borderLeft: '3px solid #FF4500',
+            }}>
+            <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+              Utøverplassen din{seat.coachName ? ` fra ${seat.coachName}` : ''} er avsluttet.
+              All treningsdata er trygt bevart — fortsett med Athlete Pro for 59 kr/mnd, så tar du opp tråden der du slapp.
+            </p>
+            <Link href="/onboarding/abonnement"
+              className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: '#FF4500', color: '#FFFFFF', textDecoration: 'none',
+              }}>
+              Fortsett selv for 59 kr/mnd →
+            </Link>
+          </div>
+        )}
+
+        {paaPlass && sub ? (
+          <section className="p-6"
+            style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+            <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
+                Athlete Pro · via {seat!.coachName ?? 'treneren din'}
+              </h2>
+              <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  color: '#28A86E', border: '1px solid #28A86E',
+                }}>
+                Utøverplass
+              </span>
+            </div>
+            <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              <Row label="Betaling" value="Plassen betales av treneren din — ingenting trekkes deg, og du trenger aldri legge inn kort." />
+              {seat!.utloper ? (
+                <Row label="Plassen løper ut"
+                  value={`${fmtDate(seat!.currentPeriodEnd)} — etterpå kan du fortsette selv for 59 kr/mnd.`} />
+              ) : (
+                <Row label="Fornyes" value={`Følger trenerens abonnement (neste periodeslutt ${fmtDate(seat!.currentPeriodEnd)}).`} />
+              )}
+            </dl>
+          </section>
+        ) : !sub ? (
           <section className="p-6"
             style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             <h2 className="mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>

@@ -78,6 +78,24 @@ export async function seatContextForCoach(
   }
 }
 
+// NEDGRADERINGS-SPERREN (bolk 4/scenario D): antall kjøpte plasser kan aldri
+// settes slik at totalen faller under plasser i bruk. Returnerer hvor mange
+// som må frigjøres — panelet viser navnelisten og TRENEREN velger hvem.
+export function sjekkAntallMotBruk(
+  teller: SeatTeller,
+  included: number,
+  nyttAntall: number,
+): { ok: true } | { ok: false; mustFree: number; melding: string } {
+  const total = included + nyttAntall
+  if (teller.inUse <= total) return { ok: true }
+  const mustFree = teller.inUse - total
+  return {
+    ok: false,
+    mustFree,
+    melding: `Frigjør ${mustFree} plass${mustFree === 1 ? '' : 'er'} først — ${teller.inUse} er i bruk, og ${included} inkludert + ${nyttAntall} kjøpt gir bare ${total}.`,
+  }
+}
+
 // ── Invitasjonslenka ─────────────────────────────────────────
 
 export async function getOrCreateInviteCore(

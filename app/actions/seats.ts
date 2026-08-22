@@ -16,7 +16,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { stripe, seatPriceId, includedSeatsForTier } from '@/lib/stripe'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
-import { seatContextForCoach } from '@/lib/seat-claim'
+import { seatContextForCoach, sjekkAntallMotBruk } from '@/lib/seat-claim'
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -124,16 +124,9 @@ export async function setSeatQuantity(
   const ctx = await seatContextForCoach(service, user.id)
   if ('error' in ctx) return { error: ctx.error }
   const coachRow = { id: ctx.coachSubRowId }
-  const inUse = ctx.teller.inUse
-
-  const included = includedSeatsForTier(sub!.tier)
-  const total = included + quantity
-  if (inUse > total) {
-    const mustFree = inUse - total
-    return {
-      error: `Frigjør ${mustFree} plass${mustFree === 1 ? '' : 'er'} først — ${inUse} er i bruk, og ${included} inkludert + ${quantity} kjøpt gir bare ${total}.`,
-      mustFree,
-    }
+  const sperre = sjekkAntallMotBruk(ctx.teller, includedSeatsForTier(sub!.tier), quantity)
+  if (!sperre.ok) {
+    return { error: sperre.melding, mustFree: sperre.mustFree }
   }
 
   // ── Stripe: legg til / oppdater / fjern Utøverplass-linjen ─

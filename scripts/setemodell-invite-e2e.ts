@@ -28,6 +28,7 @@ import {
   claimAsNewUserCore,
   releaseSeatCore,
   seatContextForCoach,
+  sjekkAntallMotBruk,
 } from '../lib/seat-claim'
 
 for (const line of readFileSync(join(process.cwd(), '.env.local'), 'utf8').split('\n')) {
@@ -211,6 +212,43 @@ async function main() {
       hasActiveAccess(utlopt as unknown as ActiveSubscription) === false)
     const cIdem = await releaseSeatCore(service, trenerId, b.userId)
     ok('frigjøring er idempotent', !('error' in cIdem))
+
+    console.log('\nSCENARIO D — nedgradering m/ alle plasser i bruk (Basic-treneren)')
+    // Basic-treneren kjøper 1 plass i Stripe → webhook speiler seat_quantity.
+    const bsSub = await stripe.subscriptions.retrieve(bs.subId)
+    await stripe.subscriptions.update(bs.subId, {
+      items: [{ price: process.env.STRIPE_PRICE_UTOVERPLASS!, quantity: 1 }],
+      proration_behavior: 'create_prorations',
+    })
+    void bsSub
+    await poll(async () => {
+      const c = await seatContextForCoach(service, basicId)
+      return 'error' in c ? -1 : c.teller.purchased
+    }, v => v === 1)
+    // Én utøver tar plassen → alle plasser i bruk (0 inkludert + 1 kjøpt).
+    const dEpost = `sete-inv-d-${stamp}@test.x-pulse.no`
+    const dClaim = await claimAsNewUserCore(service, stripe, {
+      token: basicLenke.token, name: 'E2E D-Utøver', email: dEpost, password: 'Minst8Tegn!',
+    })
+    if (!('error' in dClaim)) opprettedeBrukere.push(dClaim.userId)
+    ok('plassen tatt (1/1 i bruk)', !('error' in dClaim), 'error' in dClaim ? dClaim.error : 'ok')
+
+    const dCtx = await seatContextForCoach(service, basicId)
+    if ('error' in dCtx) throw new Error(dCtx.error)
+    const blokkert = sjekkAntallMotBruk(dCtx.teller, 0, 0)
+    ok('nedgradering til 0 BLOKKERES (server-sperren)', !blokkert.ok && (!blokkert.ok ? blokkert.mustFree === 1 : false),
+      blokkert.ok ? 'SLAPP GJENNOM?!' : blokkert.melding)
+
+    // Treneren frigjør den navngitte utøveren selv → nedgradering OK.
+    if (!('error' in dClaim)) {
+      const dRelease = await releaseSeatCore(service, basicId, dClaim.userId)
+      ok('treneren frigjør navngitt utøver', !('error' in dRelease))
+    }
+    const dCtx2 = await seatContextForCoach(service, basicId)
+    if ('error' in dCtx2) throw new Error(dCtx2.error)
+    const etterFrigjoring = sjekkAntallMotBruk(dCtx2.teller, 0, 0)
+    ok('etter frigjøring: nedgradering OK', etterFrigjoring.ok === true,
+      `inUse=${dCtx2.teller.inUse}`)
   } finally {
     console.log('\nRydder opp…')
     for (const s of stripeSubs) { try { await stripe.subscriptions.cancel(s) } catch { /* ok */ } }

@@ -1,4 +1,7 @@
 import { getCoachDashboard, getCoachUpcomingEvents } from '@/app/actions/coach-dashboard'
+import { getSeatStatus } from '@/app/actions/seats'
+import { getSeatInviteLink } from '@/app/actions/seat-invite'
+import { SeatPanelSection } from '@/components/seats/SeatPanelSection'
 import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
 import { CoachHero } from '@/components/coach/CoachHero'
@@ -12,9 +15,11 @@ import { FeedbackCard } from '@/components/feedback/FeedbackCard'
 
 
 export default async function CoachDashboardPage() {
-  const [res, upcomingEvents] = await Promise.all([
+  const [res, upcomingEvents, seatStatus, seatInvite] = await Promise.all([
     getCoachDashboard(),
     getCoachUpcomingEvents(5),
+    getSeatStatus(),
+    getSeatInviteLink(),
   ])
 
   if ('error' in res) {
@@ -44,6 +49,11 @@ export default async function CoachDashboardPage() {
       <CoachActivityFeed items={res.feed} />
 
       <CoachAthleteList athletes={res.athletes} />
+
+      {/* Setemodellen: utøverplasser + invitasjonslenka (bolk 4) */}
+      {!('error' in seatStatus) && !('error' in seatInvite) && (
+        <SeatPanelSection status={seatStatus} inviteUrl={seatInvite.url} />
+      )}
 
       <CoachGroupsSection groups={res.groups} />
 

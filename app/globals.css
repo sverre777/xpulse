@@ -246,6 +246,35 @@ input::placeholder {
   }
 }
 
+/* Horisontal chip-/knapperad som ALDRI skal renne ut av skjermen.
+   Brukes av utstyr-filtrene (og mal-velgerens filterlinje). Reglene gjelder
+   KUN mobil: paa desktop faar radene plass, og klassen skal ikke endre noe
+   der. Legg .xp-scrollfade paa rader som faktisk er for lange - fade i hoyre
+   kant er avkutt-hintet som viser at raden fortsetter. */
+@media (max-width: 767px) {
+  .xp-scrollrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .xp-scrollrow::-webkit-scrollbar { display: none; }
+  .xp-scrollrow > * { flex: 0 0 auto; white-space: nowrap; }
+
+  .xp-scrollfade { position: relative; }
+  .xp-scrollfade::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 26px;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(10,10,11,0), #0A0A0B 85%);
+  }
+}
+
 /* Mikroanimasjoner — raske og subtile. Slås av ved prefers-reduced-motion. */
 @keyframes xpTabIn {
   from { opacity: 0; transform: translateY(4px); }

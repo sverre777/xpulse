@@ -20,6 +20,13 @@ export const EQUIPMENT_CATEGORY_LABELS: Record<EquipmentCategory, string> = {
   annet: 'Annet',
 }
 
+// Kategoriikon — ÉN kilde, brukes både av utstyrslista og av velgeren i økta.
+// Nøkler = normalizeCategory-verdier.
+export const EQUIPMENT_CATEGORY_ICONS: Record<EquipmentCategory, string> = {
+  ski: '🎿', rulleski: '🛼', skisko: '🥾', lopesko: '👟', skistaver: '🦯',
+  sykkel: '🚴', sykkelsko: '👟', klokke: '⌚', annet: '🎒',
+}
+
 // Rader lagret før fase 99-migreringen kan fortsatt ha 'sko'. All lesing av
 // category fra databasen skal gjennom denne — aldri stol på at verdien er ny.
 export function normalizeCategory(category: string): EquipmentCategory {

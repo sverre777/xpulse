@@ -10,15 +10,11 @@
 
 import { useState } from 'react'
 import {
+  EQUIPMENT_CATEGORY_ICONS,
   normalizeCategory,
   type Equipment,
 } from '@/lib/equipment-types'
 import { UtstyrVelgerPopup } from './UtstyrVelgerPopup'
-
-const KATEGORI_IKON: Record<string, string> = {
-  ski: '🎿', rulleski: '🛼', skisko: '🥾', lopesko: '👟', sykkelsko: '👟',
-  skistaver: '🦯', sykkel: '🚴', klokke: '⌚', annet: '🎒',
-}
 
 interface Props {
   available: Equipment[]
@@ -60,7 +56,7 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
               border: '1px solid #2A2A33', borderRadius: 999,
               backgroundColor: 'rgba(255,69,0,0.06)',
             }}>
-            <span aria-hidden>{KATEGORI_IKON[normalizeCategory(e.category)] ?? '🎒'}</span>
+            <span aria-hidden>{EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]}</span>
             {e.name}
             <button type="button" aria-label={`Fjern ${e.name}`}
               onClick={() => onChange(selectedIds.filter(id => id !== e.id))}

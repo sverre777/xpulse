@@ -13,6 +13,7 @@ import { parseDecimal } from '@/lib/parse-decimal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import {
   EQUIPMENT_CATEGORIES,
+  EQUIPMENT_CATEGORY_ICONS,
   EQUIPMENT_CATEGORY_LABELS,
   EQUIPMENT_STATUS_LABELS,
   SKI_TYPE_LABELS,
@@ -77,16 +78,19 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        {/* Topplinja: tittel og de to knappene delte én linje og ble trange på
+            375px. På mobil stables de, og knappene deler bredden likt. Fra md
+            og opp er raden nøyaktig som før. */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <span style={{ width: '32px', height: '3px', backgroundColor: ATHLETE_ORANGE, display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
               Utstyr
             </h1>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/app/utstyr/ski"
-              className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+              className="flex-1 md:flex-none text-center px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 color: '#8A8A96', background: 'none', border: '1px solid #1E1E22',
@@ -95,7 +99,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
               Min skipark
             </Link>
             <button type="button" onClick={() => setShowNew(true)}
-              className="px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
+              className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2', border: 'none', cursor: 'pointer',
@@ -105,8 +109,11 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <FilterGroup label="Kategori">
+        {/* Filtrene rant ut av skjermen på 375px (KLOKKE ble kuttet). Radene
+            scroller horisontalt på mobil med fade som avkutt-hint; desktop
+            uendret (xp-scrollrow gjelder kun under md). */}
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-6 md:flex-wrap">
+          <FilterGroup label="Kategori" fade>
             <FilterButton active={categoryFilter === 'all'} onClick={() => setCategoryFilter('all')}>Alle</FilterButton>
             {EQUIPMENT_CATEGORIES.map(c => (
               <FilterButton key={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)}>
@@ -121,13 +128,33 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
           </FilterGroup>
         </div>
 
-        {topUsage.length > 0 && (
+        {/* Grafen skal tåle 1 like godt som 20: med ett eller to utstyr blir en
+            240px søylegraf bare tom plass — da vises totalbruken som én
+            kompakt linje i stedet. */}
+        {topUsage.length > 0 && topUsage.length <= 2 && (
+          <div className="mb-6 px-4 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1"
+            style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
+            <span className="text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Totalbruk
+            </span>
+            {topUsage.map(d => (
+              <span key={d.id} className="min-w-0 truncate"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+                {d.name} · <b style={{ color: ATHLETE_ORANGE }}>{d.km} km</b>
+                {' · '}<b style={{ color: '#1A6FD4' }}>{d.hours} t</b>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {topUsage.length > 2 && (
           <div className="mb-8 p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <p className="text-xs tracking-widest uppercase mb-3"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
               Totalbruk — topp {topUsage.length}
             </p>
-            <div style={{ width: '100%', height: 240 }}>
+            <div className="h-[200px] md:h-[240px]" style={{ width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={topUsage} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
                   <CartesianGrid stroke="#1F1F26" />
@@ -259,15 +286,20 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
 
   return (
     <Link href={`/app/utstyr/${equipment.id}`}
-      className="flex items-center gap-3 p-4 transition-opacity hover:opacity-80"
+      className="flex items-center gap-3 p-3 md:p-4 transition-opacity hover:opacity-80"
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12, textDecoration: 'none' }}>
-      <div style={{
-        width: '52px', height: '52px',
-        backgroundColor: '#0F0F12',
-        backgroundImage: equipment.image_url ? `url(${equipment.image_url})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        flexShrink: 0,
-      }} />
+      {/* Uten bilde sto det en tom rute her — kortet så tomt ut. Kategoriikonet
+          fyller plassen (samme fasit som velgeren i økta). */}
+      <div className="w-11 h-11 md:w-[52px] md:h-[52px] shrink-0 flex items-center justify-center"
+        style={{
+          backgroundColor: '#0F0F12',
+          backgroundImage: equipment.image_url ? `url(${equipment.image_url})` : undefined,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+        }}>
+        {!equipment.image_url && (
+          <span aria-hidden style={{ fontSize: '19px', opacity: 0.75 }}>{EQUIPMENT_CATEGORY_ICONS[cat]}</span>
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}
@@ -318,14 +350,17 @@ function Badge({ text, color }: { text: string; color: string }) {
   )
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({ label, children, fade = false }: { label: string; children: React.ReactNode; fade?: boolean }) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="text-xs tracking-widest uppercase mr-1"
+    <div className="flex items-center gap-1 min-w-0">
+      <span className="text-xs tracking-widest uppercase mr-1 shrink-0"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         {label}
       </span>
-      {children}
+      {/* Etiketten staar i ro — bare knappene scroller (kun paa mobil). */}
+      <div className={`flex items-center gap-1 min-w-0 xp-scrollrow${fade ? ' xp-scrollfade' : ''}`}>
+        {children}
+      </div>
     </div>
   )
 }

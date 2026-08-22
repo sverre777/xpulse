@@ -262,15 +262,25 @@ async function upsertSubscription(
   }
 
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
-  // Stripe.Subscription har current_period_end + trial_end som unix-timestamp.
-  // Cast via unknown for å unngå type-mismatch på tvers av API-versjoner.
+  // current_period_end ble i nyere API-versjoner FLYTTET fra abonnementet til
+  // item-nivået (verifisert i E2E: toppnivået er null i 2026-04-22.dahlia).
+  // Vi leser toppnivået for eldre event-former og faller tilbake til største
+  // periodeslutt blant items. trial_end + cancel_at_period_end bor fortsatt
+  // på toppnivået.
   const subRaw = sub as unknown as {
     current_period_end?: number
     trial_end?: number | null
     cancel_at_period_end?: boolean
   }
-  const periodEnd = subRaw.current_period_end
-    ? new Date(subRaw.current_period_end * 1000).toISOString() : null
+  let periodEndUnix = subRaw.current_period_end ?? null
+  if (!periodEndUnix) {
+    for (const item of sub.items.data as unknown as Array<{ current_period_end?: number }>) {
+      if (item.current_period_end && (!periodEndUnix || item.current_period_end > periodEndUnix)) {
+        periodEndUnix = item.current_period_end
+      }
+    }
+  }
+  const periodEnd = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null
   const trialEnd = subRaw.trial_end
     ? new Date(subRaw.trial_end * 1000).toISOString() : null
 

@@ -14,7 +14,7 @@ import {
   Sport, SPORTS, DEFAULT_MOVEMENTS_BY_SPORT,
   getWorkoutTypes, WorkoutType, WorkoutTemplate, TEMPLATE_CATEGORIES,
   CompetitionData, emptyCompetitionData, generateCompetitionActivities,
-  TestData, emptyTestData,
+  TestData, emptyTestData, findTestPRSport, type TestPRSport,
   ActivityRow, ActivityType, emptyActivityZones, makeActivity,
   NutritionEntryRow, emptyWeatherData,
   MOVEMENT_CATEGORIES,
@@ -494,6 +494,28 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     }
   }
 
+  // Bevegelsesform/underkategori i byggerens rader → testprotokollens
+  // sport/underkategori (beste treff mot TestPR-taksonomien; rulleski-
+  // variantene mappes til langrenns «Rulleski skøyting/klassisk»).
+  const MOVEMENT_TIL_PROTOKOLL: Record<string, TestPRSport> = {
+    'Løping': 'lop', 'Langrenn': 'langrenn', 'Rulleski': 'langrenn',
+    'Rulleski på mølle': 'langrenn', 'SkiErg': 'langrenn',
+    'Sykling': 'sykling', 'Svømming': 'svomming', 'Styrke': 'styrke',
+  }
+  const protokollFraRader = (rader: ActivityRow[]): { sport: TestPRSport | null; subcategory: string } => {
+    const rad = rader.find(r => r.movement_name && MOVEMENT_TIL_PROTOKOLL[r.movement_name])
+    if (!rad) return { sport: null, subcategory: '' }
+    const sport = MOVEMENT_TIL_PROTOKOLL[rad.movement_name]
+    let sub = rad.movement_subcategory || ''
+    if (rad.movement_name.startsWith('Rulleski')) {
+      sub = sub === 'Skøyting' ? 'Rulleski skøyting' : sub === 'Klassisk' ? 'Rulleski klassisk' : sub
+    }
+    if (rad.movement_name === 'Sykling' && sub === 'Spinning') sub = 'Innendørs'
+    // Kun underkategorier som finnes i protokollens liste — ellers tomt.
+    const def = findTestPRSport(sport)
+    return { sport, subcategory: def?.subcategories.includes(sub) ? sub : '' }
+  }
+
   const loadTemplate = (template: WorkoutTemplate) => {
     const d = template.template_data ?? ({} as WorkoutFormData)
     // Generer nye klient-id-er + safe defaults for alle felt så ikke gamle
@@ -600,12 +622,20 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     // spinneren stå for alltid uten spor (meldt fra bruk 21. aug).
     let result: Awaited<ReturnType<typeof saveAsTemplate>>
     try {
-      // Test-mal: kategori/økttype/standardøkt er ikke valg — det ER en test
-      // (feltene er skjult i modalen og settes deterministisk her).
+      // Test-/konkurranse-/testløp-mal: kategori/økttype/standardøkt er ikke
+      // valg — typen ER gitt (feltene er skjult i modalen og settes
+      // deterministisk her). Test-flagget vinner over konkurranse/testløp.
+      const malKind = templateIsTest ? 'test'
+        : form.workout_type === 'competition' ? 'konkurranse'
+        : form.workout_type === 'testlop' ? 'testlop'
+        : null
       result = await saveAsTemplate({
       name,
       description: templateDescription.trim() || undefined,
-      category: templateIsTest ? 'Test' : templateCategory,
+      category: malKind === 'test' ? 'Test'
+        : malKind === 'konkurranse' ? 'Konkurranse'
+        : malKind === 'testlop' ? 'Testløp'
+        : templateCategory,
       sport: templateSport,
       activities: form.activities,
       templateData: {
@@ -618,8 +648,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         location: form.location,
       },
       isTest: templateIsTest,
-      oktType: templateIsTest ? 'test' : (templateOktType || null),
-      standardSessionSeriesId: templateIsTest ? null : (templateSerieId || null),
+      oktType: malKind === 'test' ? 'test' : (malKind ? null : (templateOktType || null)),
+      standardSessionSeriesId: malKind ? null : (templateSerieId || null),
       })
     } catch (e) {
       console.error('saveAsTemplate kastet:', e)
@@ -1718,10 +1748,25 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                     template_id: null,
                     template_name: mal.navn,
                   }
-                  // Test-mal: testpanelet fylles auto — byggerens tittel vinner.
-                  return erTestMal(mal)
-                    ? { ...base, ...testFelter(base, mal.navn, base.sport), title: base.title }
-                    : base
+                  // Test-mal: testpanelet fylles auto — byggerens TITTEL blir
+                  // «Navn på testen», bev.form/underkat fra radene blir
+                  // protokollsport/underkategori, og malens navn beholdes som
+                  // stabil test_type (så samme mal grupperes på tvers av økter
+                  // selv om tittelen varieres). Kun tomme felter fylles.
+                  if (!erTestMal(mal)) return base
+                  const p = protokollFraRader(rader)
+                  const felter = testFelter(base, tittel, base.sport)
+                  const td = felter.test_data!
+                  const forrige = f.test_data ?? emptyTestData()
+                  return {
+                    ...base, ...felter, title: base.title,
+                    test_data: {
+                      ...td,
+                      test_type: forrige.test_type.trim() === '' ? mal.navn : td.test_type,
+                      sport: forrige.sport === '' && p.sport ? p.sport : td.sport,
+                      subcategory: forrige.subcategory.trim() === '' ? p.subcategory : td.subcategory,
+                    },
+                  }
                 })
               }} />
           </div>
@@ -1735,6 +1780,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           category={templateCategory}
           sport={templateSport}
           onSport={setTemplateSport}
+          malKind={form.workout_type === 'competition' ? 'konkurranse'
+            : form.workout_type === 'testlop' ? 'testlop' : null}
           isTest={templateIsTest}
           oktType={templateOktType}
           serieId={templateSerieId}
@@ -1769,7 +1816,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 }
 
 function SaveAsTemplateModal({
-  name, description, category, sport, isTest,
+  name, description, category, sport, isTest, malKind,
   oktType, serieId, seriesList,
   onName, onDescription, onCategory, onSport, onIsTest, onOktType, onSerieId,
   onCancel, onSave, saving, error,
@@ -1780,6 +1827,8 @@ function SaveAsTemplateModal({
   sport: Sport
   onSport: (v: Sport) => void
   isTest: boolean
+  // Konkurranse-/testløp-økt: kategorien er gitt av typen — som for test.
+  malKind: 'konkurranse' | 'testlop' | null
   oktType: string
   serieId: string
   seriesList: StandardSessionSeries[]
@@ -1794,6 +1843,10 @@ function SaveAsTemplateModal({
   saving: boolean
   error: string | null
 }) {
+  // Typen er gitt (test vinner over konkurranse/testløp): kategori, økttype
+  // og standardøkt er ikke valg — de settes deterministisk ved lagring.
+  const typeGitt = isTest ? 'Test' : malKind === 'konkurranse' ? 'Konkurranse' : malKind === 'testlop' ? 'Testløp' : null
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
@@ -1831,9 +1884,9 @@ function SaveAsTemplateModal({
               style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
           </div>
 
-          <div className={isTest ? '' : 'grid grid-cols-2 gap-3'}>
-            {/* Test-mal: kategorien ER Test — valget skjules. */}
-            {!isTest && (
+          <div className={typeGitt ? '' : 'grid grid-cols-2 gap-3'}>
+            {/* Typen gitt (test/konkurranse/testløp): kategorien skjules. */}
+            {!typeGitt && (
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -1879,10 +1932,16 @@ function SaveAsTemplateModal({
             </span>
           </button>
 
+          {typeGitt && !isTest && (
+            <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              {typeGitt === 'Konkurranse' ? '🏁' : '⏱'} Lagres som {typeGitt.toLowerCase()}-mal — kategorien følger økt-typen.
+            </p>
+          )}
+
           {/* Fase 97: økttype (fasit = OKT_MAL_TYPER) — brukes av filteret i
               mal-velgeren og stempler økter laget fra malen. Valgfritt.
-              Test-mal: skjult — økttypen ER test. */}
-          {!isTest && (
+              Typen gitt: skjult — kategorien følger typen. */}
+          {!typeGitt && (
           <div className="mt-3">
             <label className="block text-xs mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', letterSpacing: '0.05em' }}>
@@ -1899,8 +1958,8 @@ function SaveAsTemplateModal({
 
           {/* Fase 97: mal som standardøkt — økter fra malen får serien
               forhåndsvalgt (endrebar før lagring). Malen viser ⟳-badge.
-              Test-mal: skjult — en test er ikke en standardøkt. */}
-          {!isTest && seriesList.length > 0 && (
+              Typen gitt: skjult — konkurranse/testløp/test er ikke standardøkt. */}
+          {!typeGitt && seriesList.length > 0 && (
             <div className="mt-3">
               <label className="block text-xs mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', letterSpacing: '0.05em' }}>

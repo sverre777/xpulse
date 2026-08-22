@@ -22,7 +22,16 @@ const FONT_TITTEL = "'Bebas Neue', sans-serif"
 const FONT_TEKST = "'Barlow Condensed', sans-serif"
 
 export default function NyttPage() {
-  const grupper = groupChangelogByDate(CHANGELOG.slice(0, CHANGELOG_VISIBLE))
+  // «Nye ting» (uten version) er alt levert etter v1.2 — egen seksjon øverst.
+  // Versjonsslippet (v1.2) vises alltid i sin helhet under.
+  const nyeTing = CHANGELOG.filter(e => !e.version).slice(0, CHANGELOG_VISIBLE)
+  const v12 = CHANGELOG.filter(e => e.version === CHANGELOG_VERSION)
+  const seksjoner = [
+    ...(nyeTing.length > 0
+      ? [{ nokkel: 'nytt', overskrift: `Nytt siden v${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(nyeTing) }]
+      : []),
+    { nokkel: 'v12', overskrift: `X-PULSE V${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(v12) },
+  ]
 
   return (
     <LandingShell>
@@ -53,10 +62,19 @@ export default function NyttPage() {
             De siste oppdateringene i appen
           </p>
 
-          <div className="flex flex-col gap-12">
-            {grupper.map(gruppe => (
+          <div className="flex flex-col gap-14">
+            {seksjoner.map(seksjon => (
+            <div key={seksjon.nokkel}>
+            <h2
+              className="text-3xl mb-8"
+              style={{ fontFamily: FONT_TITTEL, color: '#FF4500', letterSpacing: '0.08em' }}
+            >
+              {seksjon.overskrift}
+            </h2>
+            <div className="flex flex-col gap-12">
+            {seksjon.grupper.map(gruppe => (
               <section key={gruppe.date}>
-                <h2
+                <h3
                   className="text-xs tracking-widest uppercase pb-3 mb-6"
                   style={{
                     fontFamily: FONT_TEKST,
@@ -66,7 +84,7 @@ export default function NyttPage() {
                   }}
                 >
                   <time dateTime={gruppe.date}>{formatChangelogDate(gruppe.date)}</time>
-                </h2>
+                </h3>
 
                 <ul className="flex flex-col gap-7 list-none p-0">
                   {gruppe.entries.map(entry => (
@@ -102,6 +120,9 @@ export default function NyttPage() {
                   ))}
                 </ul>
               </section>
+            ))}
+            </div>
+            </div>
             ))}
           </div>
         </div>

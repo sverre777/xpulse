@@ -32,80 +32,157 @@ export type ChangelogEntry = {
   date: string
   title: string
   body: string
+  /**
+   * Versjonsslippet punktet hører til (f.eks. '1.2'). Punkter UTEN version er
+   * «nye ting» etter siste slipp og vises i egen seksjon øverst på /nytt —
+   * nye oppføringer legges øverst uten version til neste versjon slippes.
+   */
+  version?: string
 }
 
 /** Vises som diskret merkelapp øverst på /nytt. Løftes ved større leveranser. */
 export const CHANGELOG_VERSION = '1.2'
 
-/** Hvor mange av de nyeste punktene sida viser. */
+/** Hvor mange av de nyeste «nye ting»-punktene (uten version) sida viser.
+ * Versjonsslipp (f.eks. v1.2-seksjonen) vises alltid i sin helhet. */
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
-  // Setemodellen (2026-08-22): ÉN oppføring for hele leveringen (5 bolker).
+  // ── NYE TING etter v1.2 legges HER (øverst, uten version) ──────────────
+
+  // ── X-PULSE V1.2 — alle punktene i slippet (Sverre 22. aug: siste
+  //    endringer som egne punkter under v1.2) ───────────────────────────────
   {
     date: '2026-08-22',
     title: 'Utøverplasser for trenere',
-    body: 'Trener Pro har nå 5 Athlete Pro-lisenser inkludert, og både Basic og Pro kan kjøpe flere utøverplasser for 29 kr/mnd. Del én invitasjonslenke fra trenerpanelet — utøveren registrerer seg med navn og passord og er koblet til deg med full tilgang på under et minutt, uten kort. Plassene styres fra det nye Utøverplasser-panelet.',
+    body: 'Trener Pro har 5 Athlete Pro-lisenser inkludert, og både Basic og Pro kan kjøpe flere utøverplasser for 29 kr/mnd. Del én invitasjonslenke fra trenerpanelet — utøveren registrerer seg og er koblet til deg med full tilgang på under et minutt, uten kort.',
+    version: '1.2',
   },
-  // Utstyr + skipark (2026-08-21): ÉN oppføring for hele leveringen (tre bolker).
+  {
+    date: '2026-08-22',
+    title: 'Skitester kan åpnes og redigeres',
+    body: 'Se hele resultatet av en skitest, rett feil og fyll inn i etterkant — fra skiparken, utstyrssiden og trenervisningen.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-22',
+    title: 'Søvnscore i helse',
+    body: 'Før søvnscore (0–100) sammen med resten av søvndataene.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-22',
+    title: '.fit-importen henter alt',
+    body: 'Aktiviteter, soner og totaler kommer nå riktig inn fra klokke-filer — og Strava-økter uten runder får også soner.',
+    version: '1.2',
+  },
   {
     date: '2026-08-21',
-    title: 'Utstyr og skipark — full oppgradering',
-    body: 'Nytt utstyr-skjema med egne felter per kategori (ski, rulleski, skisko, løpesko, staver, sykkel, sykkelsko), start-km så historisk utstyr ikke begynner på null, sliphistorikk der ny slip legges oppå og «km siden siste slip» telles automatisk — og skiparken har fått bruk- og slipfiltre pluss testmaler: tidtaker-glid, lengde-glid og parallelltest med utslagsrunder der ett trykk kårer vinneren.',
+    title: 'Utstyr med egne felter per kategori',
+    body: 'Ski, rulleski, skisko, løpesko, staver, sykkel og sykkelsko har hver sine felter — og start-km gjør at historisk utstyr ikke begynner på null.',
+    version: '1.2',
   },
-  // V1.2 (2026-08-20): ÉN oppføring for hele leveringen («ett punkt per
-  // levering») — utvidet etter hvert som delene gikk live samme dag:
-  // forside + øktmal-bibliotek + standardøkt + sammenligning + intervall-
-  // byggeren.
+  {
+    date: '2026-08-21',
+    title: 'Sliphistorikk på ski',
+    body: 'Ny slip legges oppå historikken, og «km siden siste slip» telles automatisk fra øktene.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-21',
+    title: 'Skipark-tester med parallelltest',
+    body: 'Tidtaker-glid, lengde-glid og parallelltest med utslagsrunder — ett trykk kårer vinneren, og forhold (vær, føre, temperatur, fukt) registreres på alle tester.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-21',
+    title: 'Utstyr per aktivitet i økta',
+    body: 'Velg utstyr for hele økta i en kompakt chip-rad, og bytt per aktivitet der du faktisk byttet — km og tid følger aktivitetene. Planlagt utstyr teller først når økta er gjennomført.',
+    version: '1.2',
+  },
   {
     date: '2026-08-20',
-    title: 'X-PULSE V1.2',
-    body: 'Ny forside — og planlegging på sekunder: intervall-byggeren lager hele økta fra antall × dragtid × sone / pause (skiskyttere velger skyting i pausene), 58 ferdige øktmaler fra OLT-skalaen med søk («6x6»), standardøkt-merking, full sammenligning av standardøkter i analysen — og konkurransepanelet øverst i føringen, med prioritet hentet rett fra årsplanen og testvalg fra biblioteket.',
+    title: 'Ny forside',
+    body: 'x-pulse.no er bygget om — nye bilder, funksjonssider og priser.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-20',
+    title: 'Intervall-byggeren',
+    body: 'Hele økta fra antall × dragtid × sone / pause — skiskyttere velger skyting i pausene. Struktur på sekunder, alt kan justeres etterpå.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-20',
+    title: '58 øktmaler fra OLT-skalaen',
+    body: 'Ferdige økter bygget på Olympiatoppens intensitetsskala, med søk som forstår «6x6».',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-20',
+    title: 'Konkurranse- og testpanel i føringen',
+    body: 'Konkurranse, testløp og test øverst i økta — med A/B/C-prioritet rett fra årsplanen og testvalg fra biblioteket.',
+    version: '1.2',
+  },
+  {
+    date: '2026-08-20',
+    title: 'Standardøkter i analysen',
+    body: 'Merk økter som standardøkt og sammenlign gjennomføringene mot hverandre over tid.',
+    version: '1.2',
   },
   {
     date: '2026-08-20',
     title: 'Reisedag i dagboka',
     body: 'Planlegg og før reisedager med timer og notat — og tren samme dag som vanlig.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Polar-synk er live',
     body: 'Koble Polar direkte, så kommer øktene inn av seg selv.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Helse og søvn fra klokka',
     body: 'Søvn, hvilepuls, HRV og skritt hentes automatisk — og kan føres manuelt.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Vind og sikt per skyteserie',
     body: 'Før vimpelstilling og sikt for hver serie, og se det igjen i analysen.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Skuddplotting på blink',
     body: 'Plott hvert skudd der det traff. Treffprosenten regnes ut av seg selv.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Skytetest-maler',
     body: 'NSSF-testene ligger klare i biblioteket, og du kan lage dine egne.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Testmaler for alle idretter',
     body: 'Merk en øktmal som test, uansett om det er løping, styrke eller skyting.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: 'Standardøkter',
     body: 'Samle økter du gjentar i en serie, og finn dem igjen i analysen.',
+    version: '1.2',
   },
   {
     date: '2026-08-15',
     title: '287 øvelser i biblioteket',
     body: 'Utvidet fra 127, med en ny kategori for bæring og grep.',
+    version: '1.2',
   },
 ]
 

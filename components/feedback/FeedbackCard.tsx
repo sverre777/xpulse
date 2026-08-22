@@ -27,7 +27,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
           padding: '1px 7px', fontSize: '10px', letterSpacing: '0.18em',
         }}
       >
-        v1.1
+        v1.2
       </span>
 
       <h3

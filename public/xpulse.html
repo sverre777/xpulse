@@ -386,7 +386,9 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* pricing */
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:36px}
 @media(max-width:900px){.pgrid{grid-template-columns:1fr}}
-.pcard{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:28px;display:flex;flex-direction:column}
+.pcard{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:28px;display:flex;flex-direction:column}
+.pcard.badged{padding-top:52px}
+.pcard .price-badge-recommended{border-radius:15px 15px 0 0;font-size:10px}
 .pcard.hot{border-color:rgba(255,69,0,.5);box-shadow:0 24px 70px rgba(255,69,0,.12)}
 .pcard .tier{font:600 12px/1 'Barlow Condensed';letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
 .pcard .amt{margin:14px 0 18px}
@@ -1225,7 +1227,8 @@ nav {
     <h2>VELG PLANEN<br>SOM PASSER.</h2>
     <p class="lead">30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Kort, Klarna eller Apple Pay, ingen bindingstid. Si opp når som helst.</p>
     <div class="pgrid">
-      <div class="pcard hot">
+      <div class="pcard hot badged">
+        <div class="price-badge price-badge-recommended">Mest populær</div>
         <div class="tier" style="color:var(--orange)">Athlete Pro</div>
         <div class="amt"><b>59</b><span>kr/mnd</span></div>
         <ul>
@@ -1254,7 +1257,8 @@ nav {
         </ul>
         <a class="btn blue" href="/api/checkout?tier=trener_basic">Start gratis prøve</a>
       </div>
-      <div class="pcard">
+      <div class="pcard badged">
+        <div class="price-badge price-badge-recommended" style="background:var(--blue)">Anbefalt for trenere</div>
         <div class="tier" style="color:var(--blue)">Trener Pro</div>
         <div class="amt"><b>279</b><span>kr/mnd</span></div>
         <ul>

@@ -9,6 +9,7 @@ import {
   type StravaActivityDetail,
   type StravaStreamSet,
   type StravaLap,
+  syntetiskLapFraAktivitet,
 } from '@/lib/strava'
 import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
 
@@ -197,8 +198,13 @@ async function createWorkoutFromStrava(
   // speed, cadence) så cron-importerte økter har samme metadata som
   // manuelt synkede. Eksplisitt error-logging fanger fase-51-mangler.
   let activityIds: Array<{ id: string; sort_order: number }> = []
-  if (detail.laps && detail.laps.length > 0) {
-    const rows = detail.laps.map((lap: StravaLap, idx: number) => ({
+  // Samme regel som server-action-veien: uten laps (manuelt førte økter o.l.)
+  // lages én rad av øktas totaler, ellers blir økta staaende uten
+  // aktivitetsrad og dermed uten soner.
+  const harEkteLaps = !!detail.laps && detail.laps.length > 0
+  const laps: StravaLap[] = harEkteLaps ? detail.laps : [syntetiskLapFraAktivitet(detail)]
+  if (laps.length > 0) {
+    const rows = laps.map((lap: StravaLap, idx: number) => ({
       workout_id: workout.id,
       // activity_type må være en av verdiene i
       // workout_activities_activity_type_check. Bevegelsesformen hører hjemme
@@ -217,8 +223,8 @@ async function createWorkoutFromStrava(
       avg_cadence: lap.average_cadence ?? null,
       elevation_gain_m: Math.round(lap.total_elevation_gain),
       sort_order: idx,
-      strava_lap_index: lap.lap_index,
-      external_id: `strava_lap_${lap.id}`,
+      strava_lap_index: harEkteLaps ? lap.lap_index : null,
+      external_id: harEkteLaps ? `strava_lap_${lap.id}` : `strava_activity_${lap.id}`,
     }))
     const { data: inserted, error: lapErr } = await supabase
       .from('workout_activities')
@@ -251,7 +257,7 @@ async function createWorkoutFromStrava(
   }
 
   // Sone-fordeling per lap fra hr-streams.
-  if (streams.heartrate?.data && detail.laps && activityIds.length > 0) {
+  if (streams.heartrate?.data && activityIds.length > 0) {
     const heartZones = await getHeartZonesForUser(supabase, userId)
     if (heartZones.length > 0) {
       const time = streams.time?.data ?? []
@@ -259,8 +265,8 @@ async function createWorkoutFromStrava(
       const hrSamples = hr.map((v, i) => ({ t: time[i] ?? i, hr: v }))
       const idBySortOrder = new Map(activityIds.map(a => [a.sort_order, a.id]))
       let cumStart = 0
-      for (let idx = 0; idx < detail.laps.length; idx++) {
-        const lap = detail.laps[idx]
+      for (let idx = 0; idx < laps.length; idx++) {
+        const lap = laps[idx]
         const cumEnd = cumStart + lap.elapsed_time
         const aid = idBySortOrder.get(idx)
         if (aid) {

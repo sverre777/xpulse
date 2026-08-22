@@ -13,6 +13,7 @@ import {
   type StravaActivityDetail,
   type StravaLap,
   type StravaStreamSet,
+  syntetiskLapFraAktivitet,
 } from '@/lib/strava'
 import { computeZoneSecondsFromSamples, type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
@@ -567,9 +568,13 @@ async function createWorkoutFromStrava(
   // eksplisitt slik at årsaken er synlig i Netlify Function logs.
   let activityIds: Array<{ id: string; sort_order: number }> = []
   console.log(`[strava-sync] activity ${detail.id} — laps fra Strava: ${detail.laps?.length ?? 0}`)
-  if (detail.laps && detail.laps.length > 0) {
-    const activityRows = detail.laps.map((lap, idx) =>
-      mapLapToActivity(workout.id, lap, idx, detail.sport_type)
+  // Uten laps (manuelt førte økter o.l.) lages én rad av øktas totaler —
+  // ellers sto økta igjen uten aktivitetsrad og dermed uten soner.
+  const harEkteLaps = !!detail.laps && detail.laps.length > 0
+  const laps = harEkteLaps ? detail.laps : [syntetiskLapFraAktivitet(detail)]
+  if (laps.length > 0) {
+    const activityRows = laps.map((lap, idx) =>
+      mapLapToActivity(workout.id, lap, idx, detail.sport_type, harEkteLaps)
     )
     const { data: inserted, error: lapErr } = await supabase
       .from('workout_activities')
@@ -603,9 +608,9 @@ async function createWorkoutFromStrava(
   // Uten dette får importerte økter null-soner og fanges ikke av belastnings- og
   // intensitets-analyser. Hvis stream/laps/activities mangler logges det
   // eksplisitt så vi ser hvilken kondisjon som avbryter.
-  if (streams.heartrate?.data && detail.laps && activityIds.length > 0) {
+  if (streams.heartrate?.data && activityIds.length > 0) {
     console.log(`[strava-sync] activity ${detail.id} — beregner zones for ${activityIds.length} laps`)
-    await populateZonesForLaps(supabase, userId, detail.laps, activityIds, streams)
+    await populateZonesForLaps(supabase, userId, laps, activityIds, streams)
   } else {
     console.log(
       `[strava-sync] activity ${detail.id} — hopper over zones`,
@@ -710,6 +715,10 @@ function mapLapToActivity(
   lap: StravaLap,
   idx: number,
   stravaSportType: string,
+  // false = raden er laget av øktas totaler fordi Strava ikke ga laps. Da
+  // skal den ikke utgi seg for å være en lap: ingen lap-indeks, og en
+  // external_id som sier hva den faktisk er.
+  erEkteLap = true,
 ) {
   // activity_type MÅ være en av verdiene i workout_activities_activity_type_check
   // (oppvarming/aktivitet/pause/aktiv_pause/skyting_*/nedjogg/annet). Strava sport_type
@@ -728,8 +737,8 @@ function mapLapToActivity(
     avg_heart_rate: lap.average_heartrate ?? null,
     elevation_gain_m: Math.round(lap.total_elevation_gain),
     sort_order: idx,
-    strava_lap_index: lap.lap_index,
-    external_id: `strava_lap_${lap.id}`,
+    strava_lap_index: erEkteLap ? lap.lap_index : null,
+    external_id: erEkteLap ? `strava_lap_${lap.id}` : `strava_activity_${lap.id}`,
   }
 }
 

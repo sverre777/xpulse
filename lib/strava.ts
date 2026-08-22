@@ -260,6 +260,31 @@ export interface StravaLap {
   average_cadence?: number | null
 }
 
+// Strava returnerer IKKE alltid laps: manuelt førte økter og enkelte
+// tredjeparts-opplastinger kommer uten. Importen la da inn null aktivitets-
+// rader, og da ble det heller ingen soner — økta sto igjen med bare totaltid.
+// Denne lager én lap av øktas egne totaler, slik at aktivitetsraden og
+// sone-beregningen får noe å jobbe med. Brukes av BEGGE import-veiene
+// (server-action og cron) så de ikke driver fra hverandre.
+export function syntetiskLapFraAktivitet(detail: StravaActivityDetail): StravaLap {
+  return {
+    id: detail.id,
+    name: detail.name,
+    lap_index: 0,
+    elapsed_time: detail.elapsed_time,
+    moving_time: detail.moving_time,
+    distance: detail.distance,
+    total_elevation_gain: detail.total_elevation_gain,
+    average_heartrate: detail.average_heartrate,
+    max_heartrate: detail.max_heartrate,
+    average_watts: detail.average_watts,
+    max_watts: detail.max_watts,
+    average_speed: detail.average_speed,
+    max_speed: detail.max_speed,
+    average_cadence: null,
+  }
+}
+
 export interface StravaStream {
   data: number[]
   series_type: string

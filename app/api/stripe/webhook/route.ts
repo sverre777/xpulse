@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
-import { stripe } from '@/lib/stripe'
+import { stripe, tierAndSeatsFromItems } from '@/lib/stripe'
 
 // Stripe webhook-endpoint. Konfigurer i Stripe Dashboard:
 //   URL: https://x-pulse.no/api/stripe/webhook
@@ -24,13 +24,8 @@ function getServiceSupabase() {
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
-function tierFromPriceId(priceId: string | null | undefined): 'athlete_pro' | 'trener_basic' | 'trener_pro' | null {
-  if (!priceId) return null
-  if (priceId === process.env.STRIPE_PRICE_ATHLETE_PRO) return 'athlete_pro'
-  if (priceId === process.env.STRIPE_PRICE_TRENER_BASIC) return 'trener_basic'
-  if (priceId === process.env.STRIPE_PRICE_TRENER_PRO) return 'trener_pro'
-  return null
-}
+// tier + antall utøverplasser leses fra ALLE abonnementslinjene —
+// delt funksjon i lib/stripe.ts (enhetstestet i setemodell-selvtesten).
 
 export async function POST(request: Request) {
   const signature = request.headers.get('stripe-signature')
@@ -160,6 +155,14 @@ async function handleSubscriptionDeleted(
   // Phase 72 grace-period: marker expired_at + planlegg datasletting om 90d.
   const now = new Date()
   const deletionDate = new Date(now.getTime() + 90 * 86400_000).toISOString()
+
+  // Hent rad-id FØR oppdatering — trengs for setemodell-kaskaden under.
+  const { data: row } = await supabase
+    .from('subscriptions')
+    .select('id')
+    .eq('stripe_subscription_id', sub.id)
+    .maybeSingle()
+
   await supabase
     .from('subscriptions')
     .update({
@@ -168,6 +171,37 @@ async function handleSubscriptionDeleted(
       data_deletion_scheduled_at: deletionDate,
     })
     .eq('stripe_subscription_id', sub.id)
+
+  // Setemodell-kaskaden: alle plasser tildelt fra dette abonnementet dør.
+  // subscription.deleted kommer ved PERIODESLUTT ved vanlig oppsigelse
+  // (cancel_at_period_end) — «beholder ut perioden» er dermed allerede
+  // levert via active-status + fail-closed current_period_end frem til nå.
+  // Utøverne beholder bruker + data (samme grace-felter som egen oppsigelse).
+  if (row?.id) {
+    await cascadeCancelGranted(supabase, row.id, now.toISOString(), deletionDate)
+  }
+}
+
+// Setter alle granted-rader (plasser tildelt fra coachSubRowId) til canceled
+// m/ phase72-grace. Brukes av deleted-kaskaden og tier-nedgradering. Rører
+// ALDRI utvalget av hvem — webhooken velger aldri offer (bolk 4-sperren eier
+// nedgradering av antall).
+async function cascadeCancelGranted(
+  supabase: ReturnType<typeof getServiceSupabase>,
+  coachSubRowId: string,
+  expiredAtIso: string,
+  deletionIso: string,
+) {
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({
+      status: 'canceled',
+      expired_at: expiredAtIso,
+      data_deletion_scheduled_at: deletionIso,
+    })
+    .eq('granted_by_subscription_id', coachSubRowId)
+    .in('status', ['active', 'trialing'])
+  if (error) throw new Error(`granted-kaskade: ${error.message}`)
 }
 
 async function handlePaymentFailed(
@@ -187,16 +221,43 @@ async function handlePaymentFailed(
 }
 
 // Upsert subscription med data fra Stripe. Brukes av både checkout.completed
-// og subscription.updated/created. Bruker stripe_subscription_id som unique-key.
+// og subscription.updated/created.
+//
+// Setemodell-omskrivning (bolk 2):
+// - Tier + antall kjøpte utøverplasser leses fra ALLE items (to linjer mulig).
+// - Konflikt-nøkkel er user_id (unik indeks — én rad per bruker er hard
+//   invariant): et NYTT Stripe-abonnement for en bruker med eksisterende rad
+//   (f.eks. «fortsett selv for 59 kr» etter granted-utløp, eller re-tegning
+//   etter oppsigelse) skal ERSTATTE raden, ikke krasje mot unique(user_id).
+// - Sene/out-of-order events for et ANNET abonnement enn radens: en døende
+//   hendelse (canceled/incomplete/expired) får aldri klå på en rad som
+//   allerede eies av et nyere abonnement.
+// - En Stripe-eid rad er aldri granted: granted_by settes eksplisitt null
+//   (tar over etter plass — plassen ryddes når brukeren betaler selv).
 async function upsertSubscription(
   supabase: ReturnType<typeof getServiceSupabase>,
   sub: Stripe.Subscription,
   userId: string,
 ) {
-  const priceId = sub.items.data[0]?.price.id ?? null
-  const tier = tierFromPriceId(priceId)
+  const { tier, seatQuantity } = tierAndSeatsFromItems(sub.items.data)
   if (!tier) {
-    console.warn(`[stripe-webhook] ukjent priceId "${priceId}" for sub ${sub.id} — hopper over`)
+    console.warn(`[stripe-webhook] ingen kjent tier-price blant items for sub ${sub.id} — hopper over`)
+    return
+  }
+
+  const { data: existing } = await supabase
+    .from('subscriptions')
+    .select('id, tier, status, stripe_subscription_id, granted_by_subscription_id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  const LEVENDE = new Set(['active', 'trialing', 'past_due'])
+  if (
+    existing?.stripe_subscription_id &&
+    existing.stripe_subscription_id !== sub.id &&
+    !LEVENDE.has(sub.status)
+  ) {
+    console.warn(`[stripe-webhook] ignorerer ${sub.status}-event for gammelt abonnement ${sub.id} (raden eies av ${existing.stripe_subscription_id})`)
     return
   }
 
@@ -217,7 +278,7 @@ async function upsertSubscription(
   // nullstill grace-period-felter så brukeren får full tilgang igjen.
   const clearGrace = sub.status === 'active' || sub.status === 'trialing'
 
-  const { error } = await supabase
+  const { data: upserted, error } = await supabase
     .from('subscriptions')
     .upsert({
       user_id: userId,
@@ -228,8 +289,42 @@ async function upsertSubscription(
       current_period_end: periodEnd,
       trial_end: trialEnd,
       cancel_at_period_end: subRaw.cancel_at_period_end ?? false,
+      seat_quantity: seatQuantity,
+      granted_by_subscription_id: null,
       ...(clearGrace ? { expired_at: null, data_deletion_scheduled_at: null } : {}),
-    }, { onConflict: 'stripe_subscription_id' })
+    }, { onConflict: 'user_id' })
+    .select('id')
+    .maybeSingle()
 
   if (error) throw new Error(`subscriptions-upsert: ${error.message}`)
+
+  // ── Setemodell-vedlikehold for trener-rader ────────────────
+  const rowId = upserted?.id ?? existing?.id ?? null
+  if (!rowId) return
+
+  // a) FAIL-CLOSED: plassene lever aldri lenger enn trenerens betalte periode.
+  //    Synkes ved hver fornyelse (invoice.paid → subscription.updated) — dør
+  //    webhooken senere, dør plassene av seg selv ved periodeslutt.
+  if ((tier === 'trener_basic' || tier === 'trener_pro') && periodEnd && LEVENDE.has(sub.status)) {
+    const { error: syncErr } = await supabase
+      .from('subscriptions')
+      .update({ current_period_end: periodEnd })
+      .eq('granted_by_subscription_id', rowId)
+      .in('status', ['active', 'trialing'])
+    if (syncErr) throw new Error(`fail-closed-synk: ${syncErr.message}`)
+  }
+
+  // b) TIER-NEDGRADERING → kaskade: plasser tildelt fra abonnementet dør.
+  //    (Nedgradering av ANTALL plasser går ALDRI her — den er sperret
+  //    server-side i setSeatQuantity, og webhooken velger aldri offer.)
+  const varTrener = existing?.tier === 'trener_basic' || existing?.tier === 'trener_pro'
+  const nedgradert = varTrener && existing!.tier !== tier &&
+    (tier === 'athlete_pro' || (existing!.tier === 'trener_pro' && tier === 'trener_basic'))
+  if (nedgradert) {
+    const now = new Date()
+    await cascadeCancelGranted(
+      supabase, rowId, now.toISOString(),
+      new Date(now.getTime() + 90 * 86400_000).toISOString(),
+    )
+  }
 }

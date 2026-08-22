@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveSubscription, hasActiveAccess, hasCoachTier, tierLabel, tierPriceMonthly } from '@/lib/subscriptions'
 import { getMySeatInfo } from '@/app/actions/seat-invite'
+import { getSeatStatus } from '@/app/actions/seats'
 import { ManageBillingButton } from './ManageBillingButton'
 
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,13 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const seatInfo = await getMySeatInfo()
   const seat = 'error' in seatInfo ? null : seatInfo
   const paaPlass = !!seat?.paaPlass
+
+  // Trenere: utøverplassene er en del av regningen — vis kjøpte plasser og
+  // reell total månedspris her, ikke bare tier-prisen.
+  const seatStatusRes = sub && hasCoachTier(sub) ? await getSeatStatus() : null
+  const seats = seatStatusRes && !('error' in seatStatusRes) ? seatStatusRes : null
+  const seatMnd = (seats?.purchased ?? 0) * 29
+  const totalMnd = sub ? tierPriceMonthly(sub.tier) + seatMnd : 0
 
   return (
     <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
@@ -147,7 +155,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
               style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
                 <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
-                  {tierLabel(sub.tier)} · {tierPriceMonthly(sub.tier)} kr/mnd
+                  {tierLabel(sub.tier)} · {totalMnd} kr/mnd
                 </h2>
                 {statusInfo && (
                   <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -174,6 +182,16 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 {sub.status === 'active' && !sub.cancel_at_period_end && (
                   <Row label="Neste fakturering" value={fmtDate(sub.current_period_end)} />
                 )}
+                {seats && (
+                  <>
+                    <Row label="Utøverplasser"
+                      value={`${seats.included} inkludert${seats.purchased > 0 ? ` + ${seats.purchased} kjøpt${seats.purchased === 1 ? '' : 'e'} (${seatMnd} kr/mnd)` : ''} · ${seats.inUse} i bruk`} />
+                    {seats.purchased > 0 && (
+                      <Row label="Månedspris"
+                        value={`${totalMnd} kr (${tierPriceMonthly(sub.tier)} kr ${tierLabel(sub.tier)} + ${seatMnd} kr utøverplasser)`} />
+                    )}
+                  </>
+                )}
                 {sub.status === 'past_due' && (
                   <Row label="Betaling feilet"
                     value="Oppdater betalingsmetode for å unngå at tilgangen suspenderes." />
@@ -183,6 +201,13 @@ export default async function AbonnementPage({ searchParams }: Props) {
                     value={`Tilgang opphørt ${fmtDate(sub.current_period_end)}. Aktiver for å fortsette.`} />
                 )}
               </dl>
+              {seats && (
+                <Link href="/app/trener"
+                  className="inline-block mt-4 text-xs tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', textDecoration: 'underline' }}>
+                  Administrer utøverplasser i trenerpanelet →
+                </Link>
+              )}
             </section>
 
             {hasCoachTier(sub) && (

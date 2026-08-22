@@ -130,7 +130,7 @@ export default function VilkarPage() {
       beholder brukeren og all treningsdata i henhold til reglene for abonnement-utløp over, og
       kan når som helst fortsette med eget abonnement. Utøvere på tildelt plass belastes aldri.</LegalP>
 
-      <LegalP><strong>Gratis prøveperiode:</strong> Alle nye brukere får 30 dagers gratis prøveperiode. Etter prøveperiodens utløp må aktivt abonnement være på plass for å fortsette å bruke /app-tjenestene.</LegalP>
+      <LegalP><strong>Gratis prøveperiode:</strong> Nye brukere får 30 dagers gratis prøveperiode på Athlete Pro og Trener Basic. Trener Pro har ingen prøveperiode og faktureres fra start. Etter prøveperiodens utløp må aktivt abonnement være på plass for å fortsette å bruke /app-tjenestene.</LegalP>
 
       <LegalP><strong>Fakturering:</strong> Abonnement fornyes automatisk månedlig via Stripe. Du kan kansellere når som helst via{' '}
         <a href="/app/abonnement" style={{ color: '#FF4500' }}>/app/abonnement</a>. Etter kansellering har du tilgang ut betalingsperioden.

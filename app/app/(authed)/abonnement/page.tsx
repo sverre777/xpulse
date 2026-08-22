@@ -130,7 +130,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
               Ingen aktivt abonnement
             </h2>
             <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px', lineHeight: 1.6 }}>
-              30 dagers gratis prøve på Athlete Pro, Trener Basic og Trener Pro. Promo-kode kan brukes ved kassen.
+              30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Promo-kode kan brukes ved kassen.
             </p>
             <Link href="/onboarding/abonnement"
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"

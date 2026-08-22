@@ -82,7 +82,9 @@ export async function createCheckoutSession(
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 30,
+        // Trener Pro har INGEN prøveperiode (inkluderer 5 utøverplasser fra
+        // dag 1) — faktureres fra start. Øvrige tiere beholder 30 dager.
+        ...(tier === 'trener_pro' ? {} : { trial_period_days: 30 }),
         metadata: { tier, supabase_user_id: user.id },
       },
       success_url: `${baseUrl}/app/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,

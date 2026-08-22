@@ -148,10 +148,10 @@ export default function TrenerPage() {
       </section>
 
       <SportPageCTA
-        title="Start trener-prøve"
+        title="Kom i gang som trener"
         subtitle="Trener Pro inkluderer egen utøver-profil og 5 Athlete Pro-lisenser til utøverne dine — og du kan kjøpe flere plasser for 29 kr/mnd."
         href="/app/registrer?role=coach&tier=pro"
-        label="Start gratis prøve (Pro)"
+        label="Kom i gang med Trener Pro"
         accent="blue"
       />
     </LandingShell>

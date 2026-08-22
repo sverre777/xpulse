@@ -6,7 +6,7 @@ import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
 
 export const metadata: Metadata = {
   title: 'Velg ditt abonnement — X-PULSE',
-  description: '30 dagers gratis prøve. Promo-kode kan brukes ved kassen.',
+  description: '30 dagers gratis prøve på Athlete Pro og Trener Basic. Promo-kode kan brukes ved kassen.',
 }
 
 // Pris-velger for nye brukere. Krever innlogget bruker. Hvis brukeren allerede
@@ -125,7 +125,7 @@ export default async function OnboardingAbonnementPage() {
             Velg ditt abonnement
           </h1>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px', letterSpacing: '0.04em' }}>
-            30 dagers gratis prøve. Avslutt når som helst. Promo-kode kan brukes ved kassen.
+            30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Avslutt når som helst. Promo-kode kan brukes ved kassen.
           </p>
         </div>
 
@@ -221,7 +221,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: accent, color: '#FFFFFF', textDecoration: 'none',
           }}>
-          Start gratis prøve
+          {tier.priceTier === 'trener_pro' ? 'Kom i gang — faktureres fra start' : 'Start gratis prøve'}
         </Link>
       )}
     </div>

@@ -100,9 +100,15 @@ export async function getSeatStatus(): Promise<SeatStatus | { error: string }> {
 export interface SeatQuantityPreview {
   fra: number
   til: number
-  // Prorert beløp i øre for resten av perioden (negativt = godskrives).
-  // 0 typisk under prøveperiode — belastningen kommer på første faktura.
+  // Prorert beløp i øre for resten av perioden ETTER rabatt — det som faktisk
+  // belastes (negativt = godskrives). 0 typisk under prøveperiode eller ved
+  // 100 %-rabatt.
   prorationOre: number
+  // Abonnementet har rabattkode (verifisert mot Stripe): prosent-kuponger
+  // reduserer prorasjonslinjenes amount DIREKTE (50 % → halvert beløp,
+  // discount_amounts=0 på linjene), så beløpet over er alltid det som faktisk
+  // belastes — dette flagget lar popupen forklare hvorfor det er lavere/0.
+  harRabatt: boolean
   nyMndOre: number
   status: string
 }
@@ -147,7 +153,7 @@ export async function previewSeatQuantity(
 
     if (items.length === 0) {
       // 0 → 0 uten eksisterende linje: ingenting å endre.
-      return { fra: 0, til: 0, prorationOre: 0, nyMndOre: 0, status: stripeSub.status }
+      return { fra: 0, til: 0, prorationOre: 0, harRabatt: false, nyMndOre: 0, status: stripeSub.status }
     }
 
     const preview = await stripe.invoices.createPreview({
@@ -155,16 +161,27 @@ export async function previewSeatQuantity(
       subscription_details: { items, proration_behavior: 'create_prorations' },
     })
     // Proration-flagget bor i line.parent.subscription_item_details i
-    // 2026-API-et (verifisert i setemodell-stripe-testen).
-    const prorationOre = preview.lines.data
-      .filter(l => (l as unknown as { parent?: { subscription_item_details?: { proration?: boolean } } })
-        .parent?.subscription_item_details?.proration === true)
-      .reduce((s, l) => s + l.amount, 0)
+    // 2026-API-et. Prosent-kuponger reduserer prorasjonslinjenes amount
+    // direkte (verifisert i testmodus: 50 % → 72,50 kr, 100 % → 0, og
+    // discount_amounts=0 på prorasjonslinjene) — pluss ev. beløps-rabatter
+    // i discount_amounts trekkes fra. Summen er det som FAKTISK belastes.
+    let prorationOre = 0
+    for (const l of preview.lines.data) {
+      const erProration = (l as unknown as { parent?: { subscription_item_details?: { proration?: boolean } } })
+        .parent?.subscription_item_details?.proration === true
+      if (!erProration) continue
+      prorationOre += l.amount
+      const rabatter = (l as unknown as { discount_amounts?: Array<{ amount?: number }> }).discount_amounts ?? []
+      for (const d of rabatter) prorationOre -= d.amount ?? 0
+    }
+
+    const harRabatt = ((stripeSub as unknown as { discounts?: unknown[] }).discounts?.length ?? 0) > 0
 
     return {
       fra: seatItem?.quantity ?? 0,
       til: quantity,
       prorationOre,
+      harRabatt,
       nyMndOre: quantity * 2900,
       status: stripeSub.status,
     }

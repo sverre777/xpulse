@@ -183,10 +183,17 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
                 <p>Godskrives på neste faktura: <b style={{ color: '#28A86E' }}>{(Math.abs(preview.prorationOre) / 100).toFixed(2)} kr</b></p>
               )}
               {preview.prorationOre === 0 && preview.til !== preview.fra && (
-                <p style={{ color: '#8A8A96' }}>
-                  {preview.status === 'trialing'
-                    ? 'Ingen belastning nå — plassene kommer på første faktura etter prøveperioden.'
-                    : 'Ingen belastning nå — endringen kommer på neste faktura.'}
+                <p style={{ color: preview.harRabatt ? '#28A86E' : '#8A8A96' }}>
+                  {preview.harRabatt
+                    ? 'Dekkes av rabatten din — ingenting belastes.'
+                    : preview.status === 'trialing'
+                      ? 'Ingen belastning nå — plassene kommer på første faktura etter prøveperioden.'
+                      : 'Ingen belastning nå — endringen kommer på neste faktura.'}
+                </p>
+              )}
+              {preview.prorationOre > 0 && preview.harRabatt && (
+                <p className="text-xs" style={{ color: '#28A86E' }}>
+                  Rabatten din er allerede trukket fra beløpet.
                 </p>
               )}
             </div>

@@ -10,7 +10,13 @@ import {
   type EquipmentWithUsage,
   type SkiEquipment,
 } from '@/lib/equipment-types'
-import type { SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
+import {
+  besteSkiIEnTest,
+  sorterteEntries,
+  testResultatDeler,
+  type SkiTestWithEntries,
+  type UserConditionsTemplate,
+} from '@/lib/ski-test-types'
 import { NewSkiTestModal } from '@/components/equipment/NewSkiTestModal'
 
 const COACH_BLUE = '#1A6FD4'
@@ -30,6 +36,8 @@ export function CoachEquipmentView({
 }: Props) {
   const [filter, setFilter] = useState<EquipmentCategory | 'all'>('all')
   const [skiTestModalOpen, setSkiTestModalOpen] = useState(false)
+  // Satt = åpne testen for redigering (krever can_edit_plan, som å opprette).
+  const [editTest, setEditTest] = useState<SkiTestWithEntries | null>(null)
 
   const filtered = useMemo(() => {
     if (filter === 'all') return equipment
@@ -87,7 +95,8 @@ export function CoachEquipmentView({
       )}
 
       {(skiCount > 0 && skiTests.length > 0) ? (
-        <SkiTestsBlock equipment={equipment} tests={skiTests} />
+        <SkiTestsBlock equipment={equipment} tests={skiTests}
+          onEdit={canEditPlan && athleteId ? setEditTest : undefined} />
       ) : (canEditPlan && skiCount > 0 && skiEquipment.length > 0) ? (
         <p className="p-4 text-xs"
           style={{
@@ -98,12 +107,14 @@ export function CoachEquipmentView({
         </p>
       ) : null}
 
-      {skiTestModalOpen && athleteId && (
+      {(skiTestModalOpen || editTest) && athleteId && (
         <NewSkiTestModal
+          key={editTest?.id ?? 'ny'}
           ski={skiEquipment}
           templates={conditionsTemplates}
           targetUserId={athleteId}
-          onClose={() => setSkiTestModalOpen(false)}
+          existing={editTest}
+          onClose={() => { setSkiTestModalOpen(false); setEditTest(null) }}
         />
       )}
     </div>
@@ -136,10 +147,11 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
 }
 
 function SkiTestsBlock({
-  equipment, tests,
+  equipment, tests, onEdit,
 }: {
   equipment: EquipmentWithUsage[]
   tests: SkiTestWithEntries[]
+  onEdit?: (test: SkiTestWithEntries) => void
 }) {
   const skiById = new Map(equipment.map(e => [e.id, e]))
   return (
@@ -152,7 +164,7 @@ function SkiTestsBlock({
       </div>
       <div className="space-y-3">
         {tests.map(test => {
-          const winner = bestEntry(test)
+          const winner = besteSkiIEnTest(test)
           const winnerSki = winner ? skiById.get(winner.ski_id) : null
           return (
             <div key={test.id} className="p-4"
@@ -169,23 +181,27 @@ function SkiTestsBlock({
                     {test.snow_temp != null ? ` · snø ${test.snow_temp}°` : ''}
                   </p>
                 </div>
-                {winnerSki && (
-                  <span className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-                    🏆 {winnerSki.name}
-                  </span>
-                )}
+                <div className="flex items-center gap-2 shrink-0">
+                  {winnerSki && (
+                    <span className="text-xs tracking-widest uppercase"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                      🏆 {winnerSki.name}
+                    </span>
+                  )}
+                  {onEdit && (
+                    <button type="button" onClick={() => onEdit(test)}
+                      className="xp-pill xp-pill-ghost xp-pill-sm"
+                      style={{ borderColor: 'var(--line)' }}>
+                      ✎ Rediger
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-1 mt-2">
-                {test.entries
-                  .slice()
-                  .sort((a, b) => (a.rank_in_test ?? 99) - (b.rank_in_test ?? 99))
+                {sorterteEntries(test)
                   .map(en => {
                     const ski = skiById.get(en.ski_id)
-                    const stats: string[] = []
-                    if (typeof en.rank_in_test === 'number') stats.push(`#${en.rank_in_test}`)
-                    if (typeof en.rating === 'number') stats.push(`${en.rating}/10`)
-                    if (typeof en.time_seconds === 'number') stats.push(`${en.time_seconds}s`)
+                    const stats = testResultatDeler(en)
                     return (
                       <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
                         style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)' }}>
@@ -205,20 +221,6 @@ function SkiTestsBlock({
         })}
       </div>
     </div>
-  )
-}
-
-function bestEntry(test: SkiTestWithEntries) {
-  const ranked = test.entries.filter(e => typeof e.rank_in_test === 'number')
-  if (ranked.length > 0) {
-    return ranked.reduce((best, e) =>
-      (best.rank_in_test! < e.rank_in_test!) ? best : e
-    )
-  }
-  const rated = test.entries.filter(e => typeof e.rating === 'number')
-  if (rated.length === 0) return null
-  return rated.reduce((best, e) =>
-    (best.rating! > e.rating!) ? best : e
   )
 }
 

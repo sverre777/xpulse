@@ -8,7 +8,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { saveSkiTest, saveConditionsTemplate, saveSkiTestTemplate } from '@/app/actions/ski-tests'
+import { saveSkiTest, updateSkiTest, deleteSkiTest, saveConditionsTemplate, saveSkiTestTemplate } from '@/app/actions/ski-tests'
 import {
   STANDARD_SNOW_TYPES,
   STANDARD_CONDITIONS,
@@ -16,8 +16,10 @@ import {
   SKI_TEST_TYPES,
   SKI_TEST_TYPE_LABELS,
   SKI_TEST_TYPE_DESCRIPTIONS,
+  sorterteEntries,
   type SkiTestType,
   type SkiTestTemplate,
+  type SkiTestWithEntries,
   type UserConditionsTemplate,
 } from '@/lib/ski-test-types'
 import Link from 'next/link'
@@ -44,12 +46,17 @@ interface Props {
   targetUserId?: string
   // Egne lagrede test-maler (fase 100) — kun i utøverens egen flyt.
   testTemplates?: SkiTestTemplate[]
+  // Satt = REDIGER en eksisterende test i stedet for å lage en ny. Samme
+  // skjema, samme validering — bare en annen lagringsvei.
+  existing?: SkiTestWithEntries | null
 }
 
 // Slip og lengde spoerres IKKE om her — de ligger paa ski-raden i utstyr og
-// leses derfra. Testen har derfor ingen slip-felt i skjema-tilstanden; verdien
-// snapshottes fra utstyret ved lagring (test-historikken skal vise hvilken
-// slip skia faktisk hadde da testen ble kjoert).
+// leses derfra. Verdien snapshottes fra utstyret naar raden er NY, slik at
+// test-historikken viser hvilken slip skia faktisk hadde da testen ble kjoert.
+// `slip_used` er derfor ikke et redigerbart felt, men den BAERES med ved
+// redigering: en test fra i fjor skal ikke faa aarets slip paastemplet fordi
+// noen retter en skrivefeil i notatet.
 interface EntryRow {
   ski_id: string
   rank_in_test: string
@@ -58,6 +65,8 @@ interface EntryRow {
   distance_m: string
   wax_used: string
   notes: string
+  // Historisk verdi fra den lagrede testen. Tom for nye rader.
+  slip_used: string
 }
 
 const todayISO = () => {
@@ -65,16 +74,27 @@ const todayISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetUserId, testTemplates = [] }: Props) {
+export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetUserId, testTemplates = [], existing = null }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [testType, setTestType] = useState<SkiTestType>('egen')
+  const redigerer = !!existing
+  const [testType, setTestType] = useState<SkiTestType>(existing?.test_type ?? 'egen')
   // Valgt egen mal (styrer målemåten når testType='egen').
   const [egenMal, setEgenMal] = useState<SkiTestTemplate | null>(null)
   const [lagreSomMal, setLagreSomMal] = useState(false)
   const [malNavn, setMalNavn] = useState('')
-  const [test, setTest] = useState({
+  const [test, setTest] = useState(() => existing ? {
+    test_date: existing.test_date,
+    location: existing.location ?? '',
+    weather: existing.weather ?? '',
+    air_temp: existing.air_temp != null ? String(existing.air_temp) : '',
+    snow_temp: existing.snow_temp != null ? String(existing.snow_temp) : '',
+    humidity_pct: existing.humidity_pct != null ? String(existing.humidity_pct) : '',
+    snow_type: existing.snow_type ?? '',
+    conditions: existing.conditions ?? '',
+    notes: existing.notes ?? '',
+  } : {
     test_date: todayISO(),
     location: '',
     weather: '',
@@ -86,6 +106,18 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
     notes: '',
   })
   const [entries, setEntries] = useState<EntryRow[]>(() => {
+    if (existing) {
+      return sorterteEntries(existing).map(e => ({
+        ski_id: e.ski_id,
+        rank_in_test: e.rank_in_test != null ? String(e.rank_in_test) : '',
+        rating: e.rating != null ? String(e.rating) : '',
+        time_seconds: e.time_seconds != null ? String(e.time_seconds) : '',
+        distance_m: e.distance_m != null ? String(e.distance_m) : '',
+        wax_used: e.wax_used ?? '',
+        notes: e.notes ?? '',
+        slip_used: e.slip_used ?? '',
+      }))
+    }
     const initial: EntryRow[] = []
     if (defaultSkiId) initial.push(makeEntry(defaultSkiId))
     return initial
@@ -178,11 +210,15 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (entries.length < 1) { setError('Minst 1 ski må registreres'); return }
-    if (erParallell && !parallellRangering) { setError('Fullfør parallelltesten — alle duellene må avgjøres'); return }
+    // Ved redigering finnes rangeringen allerede; braketten må bare kjøres
+    // på nytt hvis brukeren faktisk starter den.
+    if (erParallell && !parallellRangering && !redigerer) {
+      setError('Fullfør parallelltesten — alle duellene må avgjøres'); return
+    }
     setError(null)
     startTransition(async () => {
       // Egen test kan lagres som gjenbrukbar mal (fase 100).
-      if (testType === 'egen' && lagreSomMal && malNavn.trim()) {
+      if (!redigerer && testType === 'egen' && lagreSomMal && malNavn.trim()) {
         await saveSkiTestTemplate({
           name: malNavn,
           measure: egenMeasure ?? 'score',
@@ -211,7 +247,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
         }
       }
 
-      const result = await saveSkiTest({
+      const payload = {
         test_date: test.test_date,
         location: test.location || null,
         weather: test.weather || null,
@@ -225,7 +261,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
         entries: entries.map((en, idx) => ({
           ski_id: en.ski_id,
           rank_in_test: erParallell
-            ? (parallellRangering?.get(String(idx)) ?? null)
+            ? (parallellRangering?.get(String(idx))
+                // Redigering uten ny brakett: behold rangeringen som ligger der.
+                ?? (en.rank_in_test ? parseInt(en.rank_in_test) : null))
             : en.rank_in_test
               ? parseInt(en.rank_in_test)
               : (autoRank.get(idx) ?? null),
@@ -233,11 +271,25 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           time_seconds: en.time_seconds ? parseInt(en.time_seconds) : null,
           distance_m: en.distance_m ? parseDecimal(en.distance_m) : null,
           wax_used: en.wax_used || null,
-          // Fra utstyret — aldri fra et felt i testen.
-          slip_used: skiById.get(en.ski_id)?.ski_data?.current_slip ?? null,
+          // Lagret verdi vinner (historikk); nye rader snapshotter utstyret.
+          slip_used: en.slip_used || (skiById.get(en.ski_id)?.ski_data?.current_slip ?? null),
           notes: en.notes || null,
         })),
-      }, targetUserId)
+      }
+      const result = existing
+        ? await updateSkiTest(existing.id, payload, targetUserId)
+        : await saveSkiTest(payload, targetUserId)
+      if (result.error) { setError(result.error); return }
+      router.refresh()
+      onClose()
+    })
+  }
+
+  const handleDelete = () => {
+    if (!existing) return
+    if (!confirm('Slette denne testen? Resultatene forsvinner for alle skiene som var med.')) return
+    startTransition(async () => {
+      const result = await deleteSkiTest(existing.id, targetUserId)
       if (result.error) { setError(result.error); return }
       router.refresh()
       onClose()
@@ -261,7 +313,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
         <div className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: '1px solid var(--line)' }}>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.08em' }}>
-            Ny skitest
+            {redigerer ? 'Rediger skitest' : 'Ny skitest'}
           </h2>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: '22px' }}>
@@ -382,6 +434,19 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               Ski i testen — under skiene per ski ({entries.length}/10)
             </p>
 
+            {/* Redigering: rangeringen som allerede ligger der blir stående.
+                Den regnes bare ut på nytt hvis feltene tømmes (eller, for
+                parallell, hvis paringene settes opp igjen) — ellers ville en
+                rettet skrivefeil i tida stille skrevet om plasseringene. */}
+            {redigerer && (
+              <p className="text-xs mb-2"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                {erParallell
+                  ? 'Rangeringen fra parallelltesten beholdes. Trykk «Sett opp paringene» for å kjøre duellene om igjen.'
+                  : 'Rangeringen beholdes som den er. Tøm rangerings-feltene hvis du vil at den skal regnes ut på nytt fra målingene.'}
+              </p>
+            )}
+
             {entries.map((en, idx) => (
               <div key={idx} className="p-3 mb-2"
                 style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)', borderRadius: 9 }}>
@@ -397,6 +462,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                 {/* Slip og lengde LESES fra utstyret — ingen input her, og
                     ingen andre sannhet lagret på testen. */}
                 <SkiFraUtstyret ski={skiById.get(en.ski_id) ?? null}
+                  lagretSlip={en.slip_used || null}
                   href={targetUserId
                     ? `/app/trener/${targetUserId}/utstyr`
                     : `/app/utstyr/${en.ski_id}`} />
@@ -566,7 +632,8 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {testType === 'egen' && !egenMal && !targetUserId && (
             <div className="flex items-center gap-2 flex-wrap">
               <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: '#8A8A96' }}>
-                <input type="checkbox" checked={lagreSomMal} onChange={e => setLagreSomMal(e.target.checked)} />
+                <input type="checkbox" checked={lagreSomMal} onChange={e => setLagreSomMal(e.target.checked)}
+                  disabled={redigerer} />
                 Lagre oppsettet som egen test-mal
               </label>
               {lagreSomMal && (
@@ -580,12 +647,18 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
 
           <div className="flex items-center justify-end gap-3 pt-2">
+            {redigerer && (
+              <button type="button" onClick={handleDelete} disabled={pending}
+                className="xp-pill xp-pill-danger mr-auto">
+                🗑 Slett test
+              </button>
+            )}
             <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
               Avbryt
             </button>
-            <button type="submit" disabled={pending || (erParallell && !parallellRangering)}
+            <button type="submit" disabled={pending || (erParallell && !parallellRangering && !redigerer)}
               className="xp-pill xp-pill-primary">
-              {pending ? 'Lagrer…' : 'Lagre test'}
+              {pending ? 'Lagrer…' : redigerer ? 'Lagre endringer' : 'Lagre test'}
             </button>
           </div>
         </form>
@@ -666,7 +739,7 @@ function ComboInput({
 }
 
 function makeEntry(ski_id: string): EntryRow {
-  return { ski_id, rank_in_test: '', rating: '', time_seconds: '', distance_m: '', wax_used: '', notes: '' }
+  return { ski_id, rank_in_test: '', rating: '', time_seconds: '', distance_m: '', wax_used: '', notes: '', slip_used: '' }
 }
 
 const inputStyle: React.CSSProperties = {
@@ -680,10 +753,19 @@ const inputStyle: React.CSSProperties = {
 // Slip og lengde hentes fra ski-raden i utstyr og vises som lest info.
 // Mangler verdien: «— (legg inn på utstyret)» med lenke dit — aldri et felt
 // her som ville lagret en andre sannhet.
-function SkiFraUtstyret({ ski, href }: { ski: SkiEquipment | null; href: string }) {
+function SkiFraUtstyret({ ski, href, lagretSlip = null }: {
+  ski: SkiEquipment | null
+  href: string
+  // Slipen testen ble kjørt på. Vinner over utstyrets nåværende slip når de
+  // er ulike — skia kan ha vært slipt om siden.
+  lagretSlip?: string | null
+}) {
   const d = ski?.ski_data ?? null
   const slipDato = visSlipDato(d?.slip_date ?? null)
-  const slip = d?.current_slip ? `${d.current_slip}${slipDato ? ` (${slipDato})` : ''}` : null
+  const naa = d?.current_slip ? `${d.current_slip}${slipDato ? ` (${slipDato})` : ''}` : null
+  const slip = lagretSlip
+    ? `${lagretSlip}${d?.current_slip && d.current_slip !== lagretSlip ? ' — slik den var ved testen' : ''}`
+    : naa
   const lengde = d?.length_cm != null ? `${d.length_cm} cm` : null
 
   const mangler = (

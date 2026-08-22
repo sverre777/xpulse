@@ -74,44 +74,34 @@ export async function listSkiTestsForSki(skiId: string): Promise<SkiTestWithEntr
   return tests.map(t => ({ ...(t as SkiTest), entries: byTest.get(t.id) ?? [] }))
 }
 
-export async function saveSkiTest(
-  input: SaveSkiTestInput,
-  targetUserId?: string,
-): Promise<{ id?: string; error?: string }> {
-  const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
-  if ('error' in resolved) return { error: resolved.error }
+// Felles for lagre og oppdater: samme validering og samme kolonne-mapping.
+// En test som REDIGERES skal treffe nøyaktig de samme reglene som en ny.
+function validerTest(input: SaveSkiTestInput): string | null {
+  if (!input.test_date) return 'Dato er påkrevd'
+  if (input.entries.length < 1) return 'Minst 1 ski må registreres'
+  if (input.entries.length > 10) return 'Maks 10 ski per test'
+  return null
+}
 
-  if (!input.test_date) return { error: 'Dato er påkrevd' }
-  if (input.entries.length < 1) return { error: 'Minst 1 ski må registreres' }
-  if (input.entries.length > 10) return { error: 'Maks 10 ski per test' }
+function testKolonner(input: SaveSkiTestInput) {
+  return {
+    test_date: input.test_date,
+    location: input.location?.trim() || null,
+    air_temp: typeof input.air_temp === 'number' ? input.air_temp : null,
+    snow_temp: typeof input.snow_temp === 'number' ? input.snow_temp : null,
+    snow_type: input.snow_type?.trim() || null,
+    conditions: input.conditions?.trim() || null,
+    notes: input.notes?.trim() || null,
+    // Fase 100 — testmal + utvidede forhold (kolonnene finnes i prod).
+    test_type: input.test_type ?? null,
+    weather: input.weather?.trim() || null,
+    humidity_pct: typeof input.humidity_pct === 'number' ? input.humidity_pct : null,
+  }
+}
 
-  const now = new Date().toISOString()
-  const { data: test, error: testErr } = await supabase
-    .from('ski_tests')
-    .insert({
-      user_id: resolved.userId,
-      workout_id: input.workout_id ?? null,
-      test_date: input.test_date,
-      location: input.location?.trim() || null,
-      air_temp: typeof input.air_temp === 'number' ? input.air_temp : null,
-      snow_temp: typeof input.snow_temp === 'number' ? input.snow_temp : null,
-      snow_type: input.snow_type?.trim() || null,
-      conditions: input.conditions?.trim() || null,
-      notes: input.notes?.trim() || null,
-      // Fase 100 — testmal + utvidede forhold (kolonnene finnes i prod).
-      test_type: input.test_type ?? null,
-      weather: input.weather?.trim() || null,
-      humidity_pct: typeof input.humidity_pct === 'number' ? input.humidity_pct : null,
-      created_at: now,
-      updated_at: now,
-    })
-    .select('id')
-    .single()
-  if (testErr || !test) return { error: testErr?.message ?? 'Kunne ikke lagre test' }
-
-  const entryRows = input.entries.map(e => ({
-    test_id: test.id,
+function entryKolonner(testId: string, input: SaveSkiTestInput) {
+  return input.entries.map(e => ({
+    test_id: testId,
     ski_id: e.ski_id,
     rank_in_test: typeof e.rank_in_test === 'number' ? e.rank_in_test : null,
     time_seconds: typeof e.time_seconds === 'number' ? e.time_seconds : null,
@@ -121,25 +111,110 @@ export async function saveSkiTest(
     notes: e.notes?.trim() || null,
     distance_m: typeof e.distance_m === 'number' ? e.distance_m : null,
   }))
-  const { error: entryErr } = await supabase.from('ski_test_entries').insert(entryRows)
+}
+
+function revaliderTestflater(targetUserId?: string) {
+  revalidatePath('/app/utstyr/ski')
+  revalidatePath('/app/utstyr')
+  if (targetUserId) revalidatePath('/app/trener/[athleteId]/utstyr', 'page')
+}
+
+export async function saveSkiTest(
+  input: SaveSkiTestInput,
+  targetUserId?: string,
+): Promise<{ id?: string; error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const ugyldig = validerTest(input)
+  if (ugyldig) return { error: ugyldig }
+
+  const now = new Date().toISOString()
+  const { data: test, error: testErr } = await supabase
+    .from('ski_tests')
+    .insert({
+      user_id: resolved.userId,
+      workout_id: input.workout_id ?? null,
+      ...testKolonner(input),
+      created_at: now,
+      updated_at: now,
+    })
+    .select('id')
+    .single()
+  if (testErr || !test) return { error: testErr?.message ?? 'Kunne ikke lagre test' }
+
+  const { error: entryErr } = await supabase
+    .from('ski_test_entries')
+    .insert(entryKolonner(test.id, input))
   if (entryErr) {
     // Rull tilbake test-raden hvis entries feilet.
     await supabase.from('ski_tests').delete().eq('id', test.id)
     return { error: entryErr.message }
   }
 
-  revalidatePath('/app/utstyr/ski')
-  if (targetUserId) revalidatePath('/app/trener/[athleteId]/utstyr', 'page')
+  revaliderTestflater(targetUserId)
   return { id: test.id }
 }
 
-export async function deleteSkiTest(id: string): Promise<{ error?: string }> {
+// Rediger en eksisterende test. Entries erstattes i sin helhet — ski kan være
+// lagt til eller fjernet siden testen ble lagret, og radene har ingen stabil
+// identitet i skjemaet (samme ski kan stille flere ganger m/ ulik smøring).
+export async function updateSkiTest(
+  id: string,
+  input: SaveSkiTestInput,
+  targetUserId?: string,
+): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Ikke innlogget' }
-  const { error } = await supabase.from('ski_tests').delete().eq('id', id).eq('user_id', user.id)
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+
+  const ugyldig = validerTest(input)
+  if (ugyldig) return { error: ugyldig }
+
+  // Eierskap verifiseres eksplisitt før noe røres.
+  const { data: eksisterende } = await supabase
+    .from('ski_tests')
+    .select('id')
+    .eq('id', id)
+    .eq('user_id', resolved.userId)
+    .maybeSingle()
+  if (!eksisterende) return { error: 'Fant ikke testen' }
+
+  const { error: testErr } = await supabase
+    .from('ski_tests')
+    .update({ ...testKolonner(input), updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', resolved.userId)
+  if (testErr) return { error: testErr.message }
+
+  // Gamle rader leses ut først, så de kan legges tilbake hvis innsettingen
+  // feiler — en halvlagret test er verre enn ingen endring.
+  const { data: gamle } = await supabase
+    .from('ski_test_entries')
+    .select('*')
+    .eq('test_id', id)
+
+  await supabase.from('ski_test_entries').delete().eq('test_id', id)
+  const { error: entryErr } = await supabase
+    .from('ski_test_entries')
+    .insert(entryKolonner(id, input))
+  if (entryErr) {
+    if (gamle && gamle.length > 0) await supabase.from('ski_test_entries').insert(gamle)
+    return { error: entryErr.message }
+  }
+
+  revaliderTestflater(targetUserId)
+  return { id }
+}
+
+export async function deleteSkiTest(id: string, targetUserId?: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
+  if ('error' in resolved) return { error: resolved.error }
+  const { error } = await supabase.from('ski_tests').delete().eq('id', id).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
-  revalidatePath('/app/utstyr/ski')
+  revaliderTestflater(targetUserId)
   return {}
 }
 

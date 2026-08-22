@@ -31,6 +31,7 @@ import {
 } from '@/lib/equipment-types'
 import type { SkiTestTemplate, SkiTestWithEntries, UserConditionsTemplate } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
+import { testResultatDeler } from '@/lib/ski-test-types'
 import type { EquipmentGrind, SkiEquipment } from '@/lib/equipment-types'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
@@ -650,6 +651,8 @@ function SkiTestHistorySection({
   testTemplates?: SkiTestTemplate[]
 }) {
   const [showModal, setShowModal] = useState(false)
+  // Satt = åpne testen i redigeringsmodus (samme modal som «+ Ny test»).
+  const [editTest, setEditTest] = useState<SkiTestWithEntries | null>(null)
   const myEntries = tests
     .map(t => {
       const entry = t.entries.find(e => e.ski_id === skiId)
@@ -721,10 +724,7 @@ function SkiTestHistorySection({
       <div className="space-y-2">
         {myEntries.map(({ test, entry }) => {
           const condition = [test.snow_type, test.conditions].filter(Boolean).join(' · ')
-          const stats: string[] = []
-          if (typeof entry.rank_in_test === 'number') stats.push(`#${entry.rank_in_test}`)
-          if (typeof entry.rating === 'number') stats.push(`${entry.rating}/10`)
-          if (typeof entry.time_seconds === 'number') stats.push(`${entry.time_seconds}s`)
+          const stats = testResultatDeler(entry)
           return (
             <div key={entry.id} className="px-3 py-2"
               style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
@@ -742,10 +742,17 @@ function SkiTestHistorySection({
                     </p>
                   )}
                 </div>
-                <span className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-                  {stats.join(' · ') || '—'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                    {stats.join(' · ') || '—'}
+                  </span>
+                  <button type="button" onClick={() => setEditTest(test)}
+                    className="xp-pill xp-pill-ghost xp-pill-sm"
+                    title="Åpne hele testen for redigering">
+                    ✎
+                  </button>
+                </div>
               </div>
               {(entry.wax_used || entry.slip_used) && (
                 <p className="text-xs mt-1"
@@ -759,13 +766,15 @@ function SkiTestHistorySection({
         })}
       </div>
     </div>
-    {showModal && (
+    {(showModal || editTest) && (
       <NewSkiTestModal
+        key={editTest?.id ?? 'ny'}
         ski={allSki}
         templates={templates}
         testTemplates={testTemplates}
         defaultSkiId={skiId}
-        onClose={() => setShowModal(false)}
+        existing={editTest}
+        onClose={() => { setShowModal(false); setEditTest(null) }}
       />
     )}
     </>

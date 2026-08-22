@@ -11,7 +11,15 @@ import {
   type SkiType,
   type SkiUsageType,
 } from '@/lib/equipment-types'
-import { SKI_TEST_TYPE_LABELS, type SkiTestTemplate, type SkiTestWithEntries, type UserConditionsTemplate } from '@/lib/ski-test-types'
+import {
+  besteSkiIEnTest,
+  sorterteEntries,
+  testForholdTekst,
+  testResultatDeler,
+  type SkiTestTemplate,
+  type SkiTestWithEntries,
+  type UserConditionsTemplate,
+} from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
 import { FilterChip as TabButton } from '@/components/ui/FilterChip'
 
@@ -37,6 +45,8 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
   const [bruk, setBruk] = useState<BrukFilter>('all')
   const [slip, setSlip] = useState<string>('all')
   const [showModal, setShowModal] = useState(false)
+  // Satt = åpne test-modalen i redigeringsmodus for denne testen.
+  const [editTest, setEditTest] = useState<SkiTestWithEntries | null>(null)
 
   // Slip-filterverdier: distinkte nåværende sliper i parken.
   const slipValg = useMemo(() => {
@@ -129,15 +139,17 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
         )}
 
         {tests.length > 0 && (
-          <RecentTestsSection tests={tests} ski={ski} />
+          <TestsSection tests={tests} ski={ski} onEdit={setEditTest} />
         )}
 
-        {showModal && (
+        {(showModal || editTest) && (
           <NewSkiTestModal
+            key={editTest?.id ?? 'ny'}
             ski={ski}
             templates={templates}
             testTemplates={testTemplates}
-            onClose={() => setShowModal(false)}
+            existing={editTest}
+            onClose={() => { setShowModal(false); setEditTest(null) }}
           />
         )}
       </div>
@@ -223,65 +235,128 @@ function FilterLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-function RecentTestsSection({ tests, ski }: { tests: SkiTestWithEntries[]; ski: SkiEquipment[] }) {
+// Testene med FULLE resultater: hver rad kan åpnes og viser plassering,
+// måling, smøring og slip per ski — og kan åpnes for redigering. Fram til nå
+// viste skiparken bare de fem siste som én sammendragslinje, uten vei inn.
+function TestsSection({ tests, ski, onEdit }: {
+  tests: SkiTestWithEntries[]
+  ski: SkiEquipment[]
+  onEdit: (test: SkiTestWithEntries) => void
+}) {
   const skiById = new Map(ski.map(s => [s.id, s]))
-  const recent = tests.slice(0, 5)
+  const [visAlle, setVisAlle] = useState(false)
+  const [apen, setApen] = useState<string | null>(null)
+  const synlige = visAlle ? tests : tests.slice(0, 5)
+
   return (
     <div className="mt-10">
-      <h2 className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-        Siste tester
-      </h2>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h2 className="text-xs tracking-widest uppercase"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          Tester ({tests.length})
+        </h2>
+        {tests.length > 5 && (
+          <button type="button" onClick={() => setVisAlle(v => !v)}
+            className="xp-pill xp-pill-ghost xp-pill-sm">
+            {visAlle ? 'Vis færre' : `Vis alle (${tests.length})`}
+          </button>
+        )}
+      </div>
+
       <div className="space-y-2">
-        {recent.map(t => {
-          const winner = bestEntry(t)
-          const winnerSki = winner ? skiById.get(winner.ski_id) : null
-          const condition = [
-            t.test_type ? SKI_TEST_TYPE_LABELS[t.test_type] : null,
-            t.weather,
-            t.snow_type,
-            t.conditions,
-          ].filter(Boolean).join(' · ')
+        {synlige.map(t => {
+          const vinner = besteSkiIEnTest(t)
+          const vinnerSki = vinner ? skiById.get(vinner.ski_id) : null
+          const forhold = testForholdTekst(t)
+          const eråpen = apen === t.id
           return (
-            <div key={t.id} className="px-4 py-3"
+            <div key={t.id}
               style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div>
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+              <button type="button" onClick={() => setApen(eråpen ? null : t.id)}
+                aria-expanded={eråpen}
+                className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left"
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <span className="min-w-0">
+                  <span className="block"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
                     {t.test_date}{t.location ? ` · ${t.location}` : ''}
-                  </p>
-                  {condition && (
-                    <p className="text-xs"
+                  </span>
+                  {forhold && (
+                    <span className="block text-xs"
                       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                      {condition}
+                      {forhold}
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center gap-2 shrink-0 text-xs tracking-widest uppercase"
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  <span>
+                    {t.entries.length} ski
+                    {vinnerSki && <> · 🏆 {vinnerSki.name}</>}
+                  </span>
+                  <span style={{
+                    color: '#555560', fontSize: '12px',
+                    transform: eråpen ? 'rotate(90deg)' : 'none',
+                    transition: 'transform 150ms',
+                  }}>▶</span>
+                </span>
+              </button>
+
+              {eråpen && (
+                <div className="px-4 pb-4">
+                  <div className="space-y-1">
+                    {sorterteEntries(t).map(en => {
+                      const s = skiById.get(en.ski_id)
+                      const deler = testResultatDeler(en)
+                      const under = [
+                        en.wax_used && `Smøring: ${en.wax_used}`,
+                        en.slip_used && `Slip: ${en.slip_used}`,
+                        en.notes,
+                      ].filter(Boolean).join(' · ')
+                      return (
+                        <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
+                          style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)', borderRadius: 9 }}>
+                          <span className="min-w-0">
+                            <span className="block truncate"
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                              {en.rank_in_test === 1 ? '🏆 ' : ''}{s?.name ?? 'Slettet ski'}
+                            </span>
+                            {under && (
+                              <span className="block text-xs"
+                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                                {under}
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-xs tracking-widest uppercase"
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                            {deler.join(' · ') || '—'}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {t.notes && (
+                    <p className="text-xs mt-2"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      Notat: {t.notes}
                     </p>
                   )}
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <button type="button" onClick={() => onEdit(t)}
+                      className="xp-pill xp-pill-ghost xp-pill-sm">
+                      ✎ Rediger test
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-                  {t.entries.length} ski
-                  {winnerSki && <> · 🏆 {winnerSki.name}</>}
-                </div>
-              </div>
+              )}
             </div>
           )
         })}
       </div>
     </div>
-  )
-}
-
-function bestEntry(test: SkiTestWithEntries) {
-  const ranked = test.entries.filter(e => typeof e.rank_in_test === 'number')
-  if (ranked.length > 0) {
-    return ranked.reduce((best, e) =>
-      (best.rank_in_test! < e.rank_in_test!) ? best : e
-    )
-  }
-  const rated = test.entries.filter(e => typeof e.rating === 'number')
-  if (rated.length === 0) return null
-  return rated.reduce((best, e) =>
-    (best.rating! > e.rating!) ? best : e
   )
 }
 

@@ -65,9 +65,20 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
   const [periode, setPeriode] = useState<SkytingPeriode>('12m')
   const range = useMemo(() => rangeForPeriode(periode), [periode])
 
-  const [data, setData] = useState<ShootingDepthAnalysis | null>(null)
-  // Klebrig: settes én gang og nullstilles aldri. Se kommentaren over.
-  const [harSkytedata, setHarSkytedata] = useState(false)
+  // BEGGE tilstandene bærer hvem de gjelder for. Trenervisningen er ruten
+  // /app/trener/[athleteId]/dagbok: bytte av utøver endrer bare rute-
+  // parameteren, komponenten står på samme plass i treet, og React beholder
+  // state. Uten eierskap fulgte det klebrige flagget med — og en løper fikk
+  // skiskytterens skyting-seksjon med «—» og 0, som er nøyaktig det
+  // selvskjulingen finnes for å hindre.
+  //
+  // Eierskap i stedet for nullstilling: da forsvinner seksjonen med én gang
+  // id-en ikke stemmer, uten et bilde der den blinker bort og inn igjen.
+  // Dataene har samme eier, så heller ikke tallene kan vises for feil utøver
+  // i vinduet før det nye svaret lander.
+  const brukerNokkel = targetUserId ?? 'meg'
+  const [svar, setSvar] = useState<{ forBruker: string; data: ShootingDepthAnalysis } | null>(null)
+  const [harSkytedataFor, setHarSkytedataFor] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
   useEffect(() => {
@@ -79,15 +90,18 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
       if (avbrutt) return
       // Feil (f.eks. trener uten analysetilgang) skjuler seksjonen i stedet
       // for å rope om det — dette er en bonusflate, ikke en hovedflate.
-      if ('error' in res) { setData(null); return }
-      setData(res)
-      if (res.hasData) setHarSkytedata(true)
+      if ('error' in res) { setSvar(null); return }
+      setSvar({ forBruker: brukerNokkel, data: res })
+      if (res.hasData) setHarSkytedataFor(brukerNokkel)
     })
     return () => { avbrutt = true }
-  }, [range.from, range.to, targetUserId])
+  }, [range.from, range.to, targetUserId, brukerNokkel])
 
-  // Vent på første svar, og skjul helt for den som ikke har skyting.
-  if (!data || !harSkytedata) return null
+  // Vis kun når BÅDE dataene og «har skyting»-flagget gjelder utøveren vi
+  // faktisk står på.
+  if (!svar || svar.forBruker !== brukerNokkel) return null
+  if (harSkytedataFor !== brukerNokkel) return null
+  const data = svar.data
   const tomPeriode = !data.hasData
 
   return (

@@ -25,7 +25,7 @@ import {
   type FitSession,
   type FitTotaler,
 } from '@/lib/fit-extract'
-import { getHeartZonesForUser, computeZoneMinutesFromSamples } from '@/lib/heart-zones'
+import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
 import { DEFAULT_MOVEMENTS_BY_SPORT, type Sport } from '@/lib/types'
 
 function movementForSport(sport: Sport): string {
@@ -506,15 +506,18 @@ async function populateZonesForFitLaps(
   let cumStart = 0
   for (let idx = 0; idx < laps.length; idx++) {
     const lap = laps[idx]
-    const cumEnd = cumStart + (lap.total_elapsed_time ?? 0)
+    const cumEnd = cumStart + varighetSekunder(lap)
     const activityId = idBySortOrder.get(idx)
     if (activityId) {
-      const minutes = computeZoneMinutesFromSamples(hrSamples, heartZones, cumStart, cumEnd)
-      const total = minutes.I1 + minutes.I2 + minutes.I3 + minutes.I4 + minutes.I5
+      // SEKUNDER, ikke minutter: workout_activities.zones er sekunder siden
+      // fase 64, og begge Strava-veiene skriver sekunder. Her stod minutter,
+      // som ville gitt sonetider 60x for lave for .fit-importerte økter.
+      const zoneSec = computeZoneSecondsFromSamples(hrSamples, heartZones, cumStart, cumEnd)
+      const total = zoneSec.I1 + zoneSec.I2 + zoneSec.I3 + zoneSec.I4 + zoneSec.I5
       if (total > 0) {
         await supabase
           .from('workout_activities')
-          .update({ zones: { ...minutes, Hurtighet: 0 } })
+          .update({ zones: { ...zoneSec, Hurtighet: 0 } })
           .eq('id', activityId)
       }
     }

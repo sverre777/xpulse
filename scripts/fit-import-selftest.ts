@@ -465,6 +465,26 @@ async function main() {
     ok('en vanlig økt meldes som «activity»', fitFilType(await parseMed(aktivitet, { ...FIT_PARSE_OPTIONS })) === 'activity')
   }
 
+  // ── Sømvern mot serverveien ────────────────────────────────
+  console.log('\nSØM: serverveien maa bruke uttrekket og riktige enheter')
+  {
+    const { readFileSync } = await import('node:fs')
+    const { fileURLToPath } = await import('node:url')
+    const { dirname, join } = await import('node:path')
+    const rot = join(dirname(fileURLToPath(import.meta.url)), '..')
+    const kode = readFileSync(join(rot, 'app/actions/fit-upload.ts'), 'utf-8')
+
+    ok('leser strukturen via hentFitStruktur', kode.includes('hentFitStruktur(parsed)'))
+    ok('leser IKKE parsed.sessions[0] direkte igjen', !kode.includes('parsed.sessions?.[0]'))
+    ok('leser IKKE parsed.records/.laps direkte igjen',
+      !kode.includes('parsed.records ??') && !kode.includes('parsed.laps ??'))
+    ok('parser-opsjonene kommer fra fasiten', kode.includes('...FIT_PARSE_OPTIONS'))
+    ok('hoydemeter gaar gjennom ascentTilMeter', !/Math\.round\((?:session|lap)\.total_ascent/.test(kode))
+    // zones er SEKUNDER siden fase 64 — begge Strava-veiene skriver sekunder.
+    ok('soner lagres i sekunder', kode.includes('computeZoneSecondsFromSamples')
+      && !kode.includes('computeZoneMinutesFromSamples'))
+  }
+
   if (feil > 0) {
     console.error(`\n✗ ${feil} test(er) feilet`)
     process.exit(1)

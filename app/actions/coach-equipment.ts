@@ -57,13 +57,14 @@ export async function listAthleteEquipmentWithUsage(
     .select('equipment_id, workout_id, activity_id')
     .in('equipment_id', ids)
 
-  const workoutById = new Map<string, { distance_km: number | null; duration_minutes: number | null }>()
+  const workoutById = new Map<string, { distance_km: number | null; duration_minutes: number | null; is_completed: boolean | null }>()
   const activityById = new Map<string, { workout_id: string; distance_meters: number | null; duration_seconds: number | null }>()
   if (links && links.length > 0) {
     const workoutIds = Array.from(new Set(links.map(l => l.workout_id)))
+    // is_completed MÅ med — samme fasit som utøverens egen visning.
     const { data: workouts } = await supabase
       .from('workouts')
-      .select('id, distance_km, duration_minutes')
+      .select('id, distance_km, duration_minutes, is_completed')
       .in('id', workoutIds)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
     const activityIds = Array.from(new Set(links.map(l => l.activity_id).filter((x): x is string => x !== null)))

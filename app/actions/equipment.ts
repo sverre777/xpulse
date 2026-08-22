@@ -24,7 +24,7 @@ import {
   SKI_TYPES,
   normalizeCategory,
 } from '@/lib/equipment-types'
-import { beregnEquipmentUsage } from '@/lib/equipment-usage'
+import { beregnEquipmentUsage, tellerSomGjennomfort } from '@/lib/equipment-usage'
 
 // Hent alle utstyrsrader for innlogget bruker. Filtrer optional på kategori +
 // status. Sortering: aktive først, deretter sist endret.
@@ -71,13 +71,14 @@ export async function listEquipmentWithUsage(filter?: {
     .select('equipment_id, workout_id, activity_id')
     .in('equipment_id', ids)
 
-  const workoutById = new Map<string, { distance_km: number | null; duration_minutes: number | null }>()
+  const workoutById = new Map<string, { distance_km: number | null; duration_minutes: number | null; is_completed: boolean | null }>()
   const activityById = new Map<string, { workout_id: string; distance_meters: number | null; duration_seconds: number | null }>()
   if (links && links.length > 0) {
     const workoutIds = Array.from(new Set(links.map(l => l.workout_id)))
+    // is_completed MÅ med: planlagt utstyr teller 0 km / 0 min (lib/equipment-usage).
     const { data: workouts } = await supabase
       .from('workouts')
-      .select('id, distance_km, duration_minutes')
+      .select('id, distance_km, duration_minutes, is_completed')
       .in('id', workoutIds)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
 
@@ -150,11 +151,13 @@ export async function listWorkoutsForEquipment(equipmentId: string): Promise<Arr
   if (!links || links.length === 0) return []
 
   const workoutIds = links.map(l => l.workout_id)
+  // Kun gjennomførte økter: en planlagt økt har ingen registrerte km/tid ennå.
   const { data: workouts } = await supabase
     .from('workouts')
     .select('id, date, title, sport, distance_km, duration_minutes, user_id')
     .in('id', workoutIds)
     .eq('user_id', user.id)
+    .eq('is_completed', true)
     .order('date', { ascending: false })
 
   return (workouts ?? []).map(w => ({
@@ -346,13 +349,20 @@ export async function setWorkoutEquipment(
     .maybeSingle()
   if (!w) return { error: 'Fant ikke økten' }
 
-  await supabase.from('workout_equipment').delete().eq('workout_id', workoutId)
+  // Arv-radene erstattes alltid. Overstyringene røres kun når skjemaet faktisk
+  // eier dem (dagbok-modus) — se bevarOverstyringer.
+  if (sel.bevarOverstyringer) {
+    await supabase.from('workout_equipment').delete()
+      .eq('workout_id', workoutId).is('activity_id', null)
+  } else {
+    await supabase.from('workout_equipment').delete().eq('workout_id', workoutId)
+  }
 
   const rows: Array<{ workout_id: string; equipment_id: string; activity_id?: string }> = []
   const arv = Array.from(new Set(sel.heleOkta.filter(Boolean)))
   for (const equipment_id of arv) rows.push({ workout_id: workoutId, equipment_id })
 
-  const overstyringer = sel.perAktivitet.filter(p => p.equipmentIds.length > 0)
+  const overstyringer = sel.bevarOverstyringer ? [] : sel.perAktivitet.filter(p => p.equipmentIds.length > 0)
   if (overstyringer.length > 0) {
     const { data: acts } = await supabase
       .from('workout_activities')
@@ -376,6 +386,7 @@ export async function setWorkoutEquipment(
 
   revalidatePath('/app/utstyr')
   revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
   return {}
 }
 
@@ -615,12 +626,12 @@ export async function listSkiEquipment(filter?: { ski_type?: SkiType | null }): 
   for (const g of (grindRows ?? [])) grindsById.get(g.equipment_id)?.push(g as EquipmentGrind)
 
   // Km siden siste slip: trenger dato per økt — hent date + distance for koblede økter.
-  const workoutById = new Map<string, { date: string; distance_km: number | null }>()
+  const workoutById = new Map<string, { date: string; distance_km: number | null; is_completed: boolean | null }>()
   if (links && links.length > 0) {
     const workoutIds = Array.from(new Set(links.map(l => l.workout_id)))
     const { data: workouts } = await supabase
       .from('workouts')
-      .select('id, date, distance_km')
+      .select('id, date, distance_km, is_completed')
       .in('id', workoutIds)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
   }
@@ -637,7 +648,7 @@ export async function listSkiEquipment(filter?: { ski_type?: SkiType | null }): 
       for (const link of (links ?? [])) {
         if (link.equipment_id !== e.id) continue
         const w = workoutById.get(link.workout_id)
-        if (!w || w.date < sisteSlipDato) continue
+        if (!w || !tellerSomGjennomfort(w) || w.date < sisteSlipDato) continue
         if (typeof w.distance_km === 'number') kmSinceSlip += w.distance_km
       }
     }

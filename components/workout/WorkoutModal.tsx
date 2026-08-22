@@ -44,6 +44,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   const [deleting, startDelete] = useTransition()
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [equipmentIds, setEquipmentIds] = useState<string[]>([])
+  // WorkoutForm tar utstyr-utvalget som INITIALVERDI (useState) — mountes den
+  // før utvalget er hentet, står skjemaet tomt og neste lagring sletter
+  // koblingene. Skjemaet holdes derfor tilbake til utvalget er lest.
+  const [equipLoading, setEquipLoading] = useState(false)
   // Bolk 4: ⇄-overstyringer per aktivitet (keyet på sort_order/radindeks).
   const [activityEquipment, setActivityEquipment] = useState<Record<number, string[]>>({})
   // Øktoversikt (kø #40): eksisterende økter (gjennomført OG planlagt) åpnes
@@ -55,7 +59,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   useEffect(() => {
     setShowEditForm(false)
     setAutoMark(false)
-    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); return }
+    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); setEquipLoading(false); return }
     if (state.kind === 'create') {
       setDefaults({
         date: state.date,
@@ -77,13 +81,19 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       // Med usage så pop-up-velgeren kan vise km-tall per utstyr (bolk 4).
       listEquipmentWithUsage({ status: 'active' }).then(setEquipment)
       if (state.kind === 'edit') {
+        setEquipLoading(true)
         getWorkoutEquipmentSelection(state.workoutId).then(sel => {
           setEquipmentIds(sel.heleOkta)
           const rec: Record<number, string[]> = {}
           for (const p of sel.perAktivitet) rec[p.sortOrder] = p.equipmentIds
           setActivityEquipment(rec)
-        })
+          setEquipLoading(false)
+        }).catch(() => setEquipLoading(false))
+      } else {
+        setEquipLoading(false)
       }
+    } else {
+      setEquipLoading(false)
     }
   }, [state, targetUserId])
 
@@ -209,6 +219,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
           </div>
         ) : showOverview ? (
           <>
+            {/* Oversikten holdes IKKE tilbake av utstyr-lastingen: den viser
+                utvalget som prop og oppdaterer seg selv når det lander. */}
             <WorkoutOverview
               data={defaults}
               onEdit={() => setShowEditForm(true)}
@@ -238,6 +250,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               </div>
             )}
           </>
+        ) : equipLoading ? (
+          <div style={{ padding: 60, textAlign: 'center', color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>
+            Laster...
+          </div>
         ) : (
           <>
             <WorkoutForm

@@ -53,7 +53,9 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
   const body = (
     <div onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 70,
+        // z 200: økt-modalen ligger på 100 — 70 la velgeren BAK overlayet,
+        // så klikkene traff modalens bakgrunn og lukket hele økta i stedet.
+        position: 'fixed', inset: 0, zIndex: 200,
         backgroundColor: 'rgba(0,0,0,0.7)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '6vh', paddingBottom: '6vh', overflow: 'auto',

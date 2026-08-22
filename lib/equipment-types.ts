@@ -171,6 +171,10 @@ export interface WorkoutEquipment {
 export interface WorkoutEquipmentSelection {
   heleOkta: string[]
   perAktivitet: Array<{ sortOrder: number; equipmentIds: string[] }>
+  // Plan-modus: skjemaet viser planens frosne aktiviteter (planned_snapshot),
+  // så radindeksene stemmer IKKE med workout_activities. Da skrives kun arven,
+  // og eksisterende ⇄-overstyringer får ligge urørt.
+  bevarOverstyringer?: boolean
 }
 
 // ── Ski-spesifikk data (Fase 37) ─────────────────────────────

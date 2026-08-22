@@ -10,6 +10,10 @@
 //   SAMME kategori mister den aktiviteten fra sin telling.
 // - Både KM og TID følger aktivitetene: tid fra radens varighet, km fra
 //   radens distanse.
+// - PLANLAGT UTSTYR TELLER IKKE: km og tid registreres først når økta er
+//   markert gjennomført. Et utstyrsvalg på en planlagt økt er en intensjon
+//   (hvilke ski økta SKAL gjøres på), ikke bruk. `tellerSomGjennomfort` er
+//   ÉN kilde for den regelen — importér den, ikke gjenskap testen.
 
 import type { EquipmentUsage } from './equipment-types'
 
@@ -22,6 +26,15 @@ export interface UsageLink {
 export interface UsageWorkout {
   distance_km: number | null
   duration_minutes: number | null
+  // workouts.is_completed (not null i skjemaet) — planlagte økter teller 0.
+  is_completed: boolean | null
+}
+
+// Fasit for «har denne økta faktisk vært brukt?». Brukes både av tellingen
+// under og av km-siden-siste-slip i app/actions/equipment.ts — ingenting er
+// fullført før brukeren markerer det.
+export function tellerSomGjennomfort(w: { is_completed: boolean | null }): boolean {
+  return w.is_completed === true
 }
 
 export interface UsageActivity {
@@ -53,6 +66,8 @@ export function beregnEquipmentUsage(
   for (const [workoutId, wLinks] of perWorkout) {
     const w = workoutById.get(workoutId)
     if (!w) continue
+    // Planlagt økt: utstyret er valgt, men ingen km/tid er registrert ennå.
+    if (!tellerSomGjennomfort(w)) continue
 
     const overrides = wLinks.filter(l => l.activity_id !== null)
 

@@ -274,8 +274,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             )}
             {data.is_heat_training && <span style={chipStyle}>🌡 Varmetrening</span>}
             {data.is_group_session && <span style={chipStyle}>👥 Fellestrening</span>}
+            {/* Planlagt økt: utstyret er en intensjon — km/tid telles først
+                når økta markeres gjennomført. */}
             {gearNames.map(n => (
-              <span key={n} style={chipStyle}>Utstyr · <b style={{ color: '#F2F2F0' }}>{n}</b></span>
+              <span key={n} style={chipStyle}>{isPlannedView ? 'Planlagt utstyr' : 'Utstyr'} · <b style={{ color: '#F2F2F0' }}>{n}</b></span>
             ))}
           </div>
         )}

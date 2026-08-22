@@ -624,13 +624,21 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     if (result.error) { setError(result.error); setSaving(false) }
     else {
       // Lagre utstyr-koblinger separat. Hopper over for trener-redigering (ikke
-      // egen utstyr-tabell) og når formen er i ren plan-modus uten økt-id.
+      // egen utstyr-tabell) og for mal-/capture-modus (ingen økt å koble til).
+      // Plan-modus lagrer også: utstyr kan PLANLEGGES — km/tid telles først når
+      // økta markeres gjennomført (lib/equipment-usage).
       const savedId = result.id
-      if (savedId && !targetUserId && !isPlanMode && availableEquipment.length > 0) {
+      if (savedId && !targetUserId && !templateBuildingMode && availableEquipment.length > 0) {
         // Bolk 4: arv («hele økta») + ⇄-overstyringer per aktivitet. Radene
         // identifiseres med sort_order = radindeks — samme rekkefølge som
-        // insertActivitiesWithChildren skriver dem.
-        await setWorkoutEquipment(savedId, {
+        // insertActivitiesWithChildren skriver dem. I plan-modus viser skjemaet
+        // planens frosne aktiviteter, så da skrives kun arven og eksisterende
+        // ⇄-overstyringer blir liggende urørt.
+        await setWorkoutEquipment(savedId, isPlanMode ? {
+          heleOkta: equipmentIds,
+          perAktivitet: [],
+          bevarOverstyringer: true,
+        } : {
           heleOkta: equipmentIds,
           perAktivitet: form.activities
             .map((a, i) => ({ sortOrder: i, equipmentIds: activityEquipment[a.id] ?? [] }))
@@ -1220,12 +1228,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
         )}
 
-        {!isPlanMode && !targetUserId && (
+        {!targetUserId && !templateBuildingMode && !captureOnlyMode && (
           <div className="mt-4">
             <EquipmentSelectorInWorkout
               available={availableEquipment}
               selectedIds={equipmentIds}
               onChange={setEquipmentIds}
+              planlagt={isPlanMode}
             />
           </div>
         )}

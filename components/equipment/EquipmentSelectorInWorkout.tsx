@@ -4,6 +4,9 @@
 // Valgt utstyr vises som chips m/ ✕; «+ Velg utstyr» åpner UtstyrVelgerPopup.
 // Valget her er «hele økta»-ARV: utstyret telles på hver aktivitet automatisk.
 // Bytte per aktivitet gjøres med ⇄ på aktivitetsraden — aldri krav per drag.
+// Seksjonen finnes både i dagbok og plan. I PLAN er valget en intensjon
+// (hvilke ski økta skal gjøres på): km og tid telles først når økta er markert
+// gjennomført — da følger utvalget med som forhåndsvalgt, endrbart før lagring.
 
 import { useState } from 'react'
 import {
@@ -21,9 +24,12 @@ interface Props {
   available: Equipment[]
   selectedIds: string[]
   onChange: (ids: string[]) => void
+  // Plan-modus: utstyret er planlagt, ikke brukt — teksten sier fra om at
+  // km/tid først registreres ved gjennomføring.
+  planlagt?: boolean
 }
 
-export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }: Props) {
+export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, planlagt = false }: Props) {
   const [open, setOpen] = useState(false)
 
   const valgte = selectedIds
@@ -35,11 +41,13 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }:
       <div className="flex items-baseline gap-2 flex-wrap" style={{ padding: '12px 0 8px' }}>
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Utstyr brukt
+          {planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}
         </span>
         <span className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#3A3A42' }}>
-          Gjelder hele økta · overstyr per aktivitet ved behov
+          {planlagt
+            ? 'Km og tid telles først når økta er markert gjennomført'
+            : 'Gjelder hele økta · overstyr per aktivitet ved behov'}
         </span>
       </div>
 
@@ -76,8 +84,10 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange }:
         <UtstyrVelgerPopup
           available={available}
           selectedIds={selectedIds}
-          title="Utstyr brukt"
-          hint="Gjelder hele økta — telles på hver aktivitet automatisk."
+          title={planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}
+          hint={planlagt
+            ? 'Planlagt utstyr. Km og tid telles først når økta er markert gjennomført.'
+            : 'Gjelder hele økta — telles på hver aktivitet automatisk.'}
           onDone={onChange}
           onClose={() => setOpen(false)}
         />

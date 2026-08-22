@@ -17,6 +17,7 @@ import type { ViewContext } from '@/lib/view-context'
 import { localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
+import { SkytingChartSection } from '@/components/analysis/SkytingChartSection'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 
 interface Props {
@@ -194,6 +195,13 @@ export async function DagbokPageView({ viewContext }: Props) {
           initialView="both"
           initialGrouping="month"
           initialPreset="12m"
+          targetUserId={targetId}
+        />
+
+        {/* Skyting-grafen rett etter den fysiske — samme komponent som i
+            Skyting-dybde. Skjuler seg selv for brukere uten skytedata. */}
+        <SkytingChartSection
+          analysisRange={rangeFromPreset('12m')}
           targetUserId={targetId}
         />
 

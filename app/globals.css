@@ -376,6 +376,32 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-grid2 .xp-full { grid-column: 1 / -1; }
 
 /* ── Flagg-chips ── */
+/* Knapper — PILLEFORM er designfasiten (designfilens .chip/knapperad).
+   Tre varianter: primary (oransje fylt), ghost (linje) og danger. Bruk disse
+   i stedet for aa skrive inline-stiler per knapp; det var slik utstyr-siden
+   endte med bade firkantede og runde knapper om hverandre.
+   NB: heter .xp-pill, IKKE .xp-btn - .xp-btn er allerede tatt av savebar-
+   knappene lenger nede (border-radius 12, egne stoerrelser). */
+.xp-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  padding: 8px 16px; min-height: 36px;
+  border: 1px solid transparent; cursor: pointer;
+  text-decoration: none; white-space: nowrap;
+  transition: opacity .15s, color .15s, border-color .15s, background-color .15s;
+}
+.xp-pill:disabled { opacity: .6; cursor: not-allowed; }
+.xp-pill-primary { background: var(--accent); color: #F0F0F2; border-color: var(--accent); }
+.xp-pill-primary:hover:not(:disabled) { opacity: .9; }
+.xp-pill-ghost { background: none; color: #8A8A96; border-color: #1E1E22; }
+.xp-pill-ghost:hover:not(:disabled) { color: #F0F0F2; border-color: #2A2A33; }
+.xp-pill-danger { background: none; color: #FF4500; border-color: #FF4500; }
+.xp-pill-danger:hover:not(:disabled) { opacity: .85; }
+/* Liten variant til raderte handlinger (rediger/slett inne i lister). */
+.xp-pill-sm { font-size: 11.5px; letter-spacing: .12em; padding: 5px 12px; min-height: 30px; }
+
 .xp-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line2); background: none; color: var(--mut); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; cursor: pointer; transition: .15s; }
 .xp-chip:hover { color: var(--ink); }
 .xp-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }

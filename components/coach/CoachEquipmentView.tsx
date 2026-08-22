@@ -76,12 +76,10 @@ export function CoachEquipmentView({
         <div className="flex justify-end">
           <button type="button"
             onClick={() => setSkiTestModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2"
+            className="xp-pill"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-              fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
-              background: COACH_BLUE, color: '#F0F0F2', border: 'none',
-              cursor: 'pointer',
+              fontWeight: 700, fontSize: 12, letterSpacing: '0.18em',
+              background: COACH_BLUE, color: '#F0F0F2', borderColor: COACH_BLUE,
             }}>
             + Legg til ski-test
           </button>
@@ -230,6 +228,9 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
       className="px-4 py-2 text-xs tracking-widest uppercase transition-colors"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
+        // Pilleform som resten av utstyr-flaten; farge er trener-blaa her
+        // (visningen er ikke pakket i .xp-coach, den setter blaatt selv).
+        borderRadius: 999,
         color: active ? '#F0F0F2' : '#8A8A96',
         background: 'none',
         border: active ? `1px solid ${COACH_BLUE}` : '1px solid var(--line)',

@@ -26,6 +26,7 @@ import {
   type SkiEquipment,
 } from '@/lib/equipment-types'
 import { KategoriFelter, FormChip, tomKategoriVerdier } from './KategoriFelter'
+import { FilterChip as FilterButton } from '@/components/ui/FilterChip'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -89,21 +90,11 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/app/utstyr/ski"
-              className="flex-1 md:flex-none text-center px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid #1E1E22',
-                textDecoration: 'none',
-              }}>
+            <Link href="/app/utstyr/ski" className="xp-pill xp-pill-ghost flex-1 md:flex-none">
               Min skipark
             </Link>
             <button type="button" onClick={() => setShowNew(true)}
-              className="flex-1 md:flex-none px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2', border: 'none', cursor: 'pointer',
-              }}>
+              className="xp-pill xp-pill-primary flex-1 md:flex-none">
               + Nytt utstyr
             </button>
           </div>
@@ -365,22 +356,6 @@ function FilterGroup({ label, children, fade = false }: { label: string; childre
   )
 }
 
-function FilterButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick}
-      className="px-3 py-1 text-xs tracking-widest uppercase transition-colors"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: active ? '#F0F0F2' : '#8A8A96',
-        background: 'none',
-        border: active ? `1px solid ${ATHLETE_ORANGE}` : '1px solid #1E1E22',
-        cursor: 'pointer',
-      }}>
-      {children}
-    </button>
-  )
-}
-
 function NewEquipmentModal({ onClose }: { onClose: () => void }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -534,22 +509,10 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
-              }}>
+            <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
               Avbryt
             </button>
-            <button type="submit" disabled={pending}
-              className="px-4 py-2 text-sm font-semibold tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2',
-                border: 'none', cursor: pending ? 'wait' : 'pointer',
-                opacity: pending ? 0.6 : 1,
-              }}>
+            <button type="submit" disabled={pending} className="xp-pill xp-pill-primary">
               {pending ? 'Lagrer…' : 'Lagre'}
             </button>
           </div>

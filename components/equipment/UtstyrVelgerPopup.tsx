@@ -153,20 +153,11 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
 
         <div className="flex items-center justify-end gap-3 px-5 py-4"
           style={{ borderTop: '1px solid #1E1E22' }}>
-          <button type="button" onClick={onClose}
-            className="px-4 py-2 text-sm tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
-            }}>
+          <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
             Avbryt
           </button>
           <button type="button" onClick={() => { onDone(valgte); onClose() }}
-            className="px-4 py-2 text-sm font-semibold tracking-widest uppercase"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2', border: 'none', cursor: 'pointer',
-            }}>
+            className="xp-pill xp-pill-primary">
             Ferdig{valgte.length > 0 ? ` (${valgte.length})` : ''}
           </button>
         </div>

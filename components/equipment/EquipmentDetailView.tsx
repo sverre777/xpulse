@@ -220,15 +220,15 @@ export function EquipmentDetailView({
             <div className="flex items-center gap-2 flex-wrap pt-3 mt-3"
               style={{ borderTop: '1px solid #1E1E22' }}>
               <button type="button" onClick={() => setEditing(true)} disabled={pending}
-                style={btnPrimary}>Rediger</button>
+                className="xp-pill xp-pill-primary">Rediger</button>
               <button type="button" onClick={handleDuplicate} disabled={pending}
-                style={btnSecondary}>Dupliser</button>
+                className="xp-pill xp-pill-ghost">Dupliser</button>
               {equipment.status === 'active' && (
                 <button type="button" onClick={handleRetire} disabled={pending}
-                  style={btnSecondary}>Pensjoner</button>
+                  className="xp-pill xp-pill-ghost">Pensjoner</button>
               )}
               <button type="button" onClick={handleDelete} disabled={pending}
-                style={{ ...btnSecondary, color: '#FF4500', borderColor: '#FF4500' }}>
+                className="xp-pill xp-pill-danger">
                 Slett
               </button>
             </div>
@@ -302,9 +302,9 @@ export function EquipmentDetailView({
             {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
             <div className="flex items-center justify-end gap-3 pt-2">
               <button type="button" onClick={() => setEditing(false)}
-                style={btnSecondary}>Avbryt</button>
+                className="xp-pill xp-pill-ghost">Avbryt</button>
               <button type="submit" disabled={pending}
-                style={{ ...btnPrimary, opacity: pending ? 0.6 : 1 }}>
+                className="xp-pill xp-pill-primary">
                 {pending ? 'Lagrer…' : 'Lagre'}
               </button>
             </div>
@@ -414,7 +414,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
             Ski-data
           </p>
-          <button type="button" onClick={() => setEditing(true)} style={btnSecondary}>
+          <button type="button" onClick={() => setEditing(true)} className="xp-pill xp-pill-ghost">
             {skiData ? 'Rediger' : 'Legg til'}
           </button>
         </div>
@@ -488,9 +488,9 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
       </Field>
       {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
       <div className="flex items-center justify-end gap-3 pt-2">
-        <button type="button" onClick={() => setEditing(false)} style={btnSecondary}>Avbryt</button>
+        <button type="button" onClick={() => setEditing(false)} className="xp-pill xp-pill-ghost">Avbryt</button>
         <button type="submit" disabled={pending}
-          style={{ ...btnPrimary, opacity: pending ? 0.6 : 1 }}>
+          className="xp-pill xp-pill-primary">
           {pending ? 'Lagrer…' : 'Lagre'}
         </button>
       </div>
@@ -546,7 +546,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
           Sliphistorikk
         </p>
-        <button type="button" onClick={() => setAdding(a => !a)} style={btnPrimary}>
+        <button type="button" onClick={() => setAdding(a => !a)} className="xp-pill xp-pill-primary">
           + Ny slip
         </button>
       </div>
@@ -580,9 +580,9 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
           </p>
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
           <div className="flex items-center justify-end gap-3">
-            <button type="button" onClick={() => setAdding(false)} style={btnSecondary}>Avbryt</button>
+            <button type="button" onClick={() => setAdding(false)} className="xp-pill xp-pill-ghost">Avbryt</button>
             <button type="submit" disabled={pending}
-              style={{ ...btnPrimary, opacity: pending ? 0.6 : 1 }}>
+              className="xp-pill xp-pill-primary">
               {pending ? 'Lagrer…' : 'Lagre slip'}
             </button>
           </div>
@@ -663,7 +663,7 @@ function SkiTestHistorySection({
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
         Ski-tester ({myEntries.length})
       </p>
-      <button type="button" onClick={() => setShowModal(true)} style={btnPrimary}>
+      <button type="button" onClick={() => setShowModal(true)} className="xp-pill xp-pill-primary">
         + Ny test
       </button>
     </div>
@@ -829,22 +829,6 @@ const inputStyle: React.CSSProperties = {
   backgroundColor: '#0F0F12',
   border: '1px solid #1E1E22',
   fontSize: '15px',
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'Barlow Condensed', sans-serif",
-  fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase',
-  backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2',
-  border: 'none', cursor: 'pointer',
-  padding: '8px 16px',
-}
-
-const btnSecondary: React.CSSProperties = {
-  fontFamily: "'Barlow Condensed', sans-serif",
-  fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase',
-  background: 'none', color: '#8A8A96',
-  border: '1px solid #1E1E22', cursor: 'pointer',
-  padding: '8px 16px',
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

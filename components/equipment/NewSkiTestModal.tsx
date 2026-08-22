@@ -390,8 +390,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     {entryNavn(idx)}
                   </span>
                   <button type="button" onClick={() => removeEntry(idx)}
-                    className="text-xs tracking-widest uppercase"
-                    style={{ background: 'none', border: 'none', color: '#FF4500', cursor: 'pointer' }}>
+                    className="xp-pill xp-pill-sm xp-pill-danger">
                     ✕ Fjern
                   </button>
                 </div>
@@ -476,13 +475,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                   Parallelltesten — to og to · vinneren videre
                 </p>
                 <button type="button" onClick={startBracket}
-                  className="px-3 py-1 text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    color: '#F0F0F2', backgroundColor: runder ? 'transparent' : ATHLETE_ORANGE,
-                    border: runder ? '1px solid var(--line)' : 'none',
-                    cursor: 'pointer',
-                  }}>
+                  className={`xp-pill xp-pill-sm ${runder ? 'xp-pill-ghost' : 'xp-pill-primary'}`}>
                   {runder ? '⟳ Start på nytt' : 'Sett opp paringene'}
                 </button>
               </div>
@@ -587,22 +580,11 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
-              }}>
+            <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
               Avbryt
             </button>
             <button type="submit" disabled={pending || (erParallell && !parallellRangering)}
-              className="px-4 py-2 text-sm font-semibold tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2',
-                border: 'none', cursor: pending ? 'wait' : 'pointer',
-                opacity: pending || (erParallell && !parallellRangering) ? 0.6 : 1,
-              }}>
+              className="xp-pill xp-pill-primary">
               {pending ? 'Lagrer…' : 'Lagre test'}
             </button>
           </div>

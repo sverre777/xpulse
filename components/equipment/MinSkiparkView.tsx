@@ -13,6 +13,7 @@ import {
 } from '@/lib/equipment-types'
 import { SKI_TEST_TYPE_LABELS, type SkiTestTemplate, type SkiTestWithEntries, type UserConditionsTemplate } from '@/lib/ski-test-types'
 import { NewSkiTestModal } from './NewSkiTestModal'
+import { FilterChip as TabButton } from '@/components/ui/FilterChip'
 
 const ATHLETE_ORANGE = '#FF4500'
 
@@ -64,27 +65,22 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
           ‹ Tilbake til utstyr
         </Link>
 
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <span style={{ width: '32px', height: '3px', backgroundColor: ATHLETE_ORANGE, display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
               Min skipark
             </h1>
           </div>
           {ski.length >= 1 && (
             <button type="button" onClick={() => setShowModal(true)}
-              className="px-4 py-2 text-sm tracking-widest uppercase"
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: ATHLETE_ORANGE, color: '#F0F0F2',
-                border: 'none', cursor: 'pointer',
-              }}>
+              className="xp-pill xp-pill-primary">
               + Ny test
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-1 mb-3 flex-wrap">
+        <div className="flex items-center gap-1 mb-3 flex-wrap xp-scrollrow xp-scrollfade">
           <TabButton active={tab === 'all'} onClick={() => setTab('all')}>Alle ({ski.length})</TabButton>
           {SKI_TYPES.map(t => {
             const count = ski.filter(s => s.ski_data?.ski_type === t).length
@@ -97,8 +93,8 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
         </div>
 
         {/* Bruk- og slip-filtre (fasit: «med type, bruk og slip som filtre der») */}
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-6 md:flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap min-w-0 xp-scrollrow">
             <FilterLabel>Bruk</FilterLabel>
             <TabButton active={bruk === 'all'} onClick={() => setBruk('all')}>Alle</TabButton>
             {SKI_USAGE_TYPES.map(u => (
@@ -108,7 +104,7 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
             ))}
           </div>
           {slipValg.length > 0 && (
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1 flex-wrap min-w-0 xp-scrollrow xp-scrollfade">
               <FilterLabel>Slip</FilterLabel>
               <TabButton active={slip === 'all'} onClick={() => setSlip('all')}>Alle</TabButton>
               {slipValg.map(s => (
@@ -289,18 +285,3 @@ function bestEntry(test: SkiTestWithEntries) {
   )
 }
 
-function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick}
-      className="px-4 py-2 text-xs tracking-widest uppercase transition-colors"
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        color: active ? '#F0F0F2' : '#8A8A96',
-        background: 'none',
-        border: active ? `1px solid ${ATHLETE_ORANGE}` : '1px solid #1E1E22',
-        cursor: 'pointer',
-      }}>
-      {children}
-    </button>
-  )
-}

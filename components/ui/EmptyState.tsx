@@ -29,7 +29,9 @@ export function EmptyState({
     fontFamily: "'Barlow Condensed', sans-serif",
     fontWeight: 600, fontSize: 13,
     letterSpacing: '0.12em', textTransform: 'uppercase',
-    textDecoration: 'none', border: 'none', cursor: 'pointer',
+    textDecoration: 'none', border: '1px solid transparent', cursor: 'pointer',
+    // Pilleform — samme knappefasit som .xp-pill i globals.css.
+    borderRadius: 999,
   }
   const secondaryStyle: CSSProperties = {
     ...ctaStyle,

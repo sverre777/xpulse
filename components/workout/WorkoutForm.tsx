@@ -23,7 +23,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { IntervallBygger } from './IntervallBygger'
-import { KonkurransePanel, type PanelType } from './KonkurransePanel'
+import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'
 import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
@@ -432,6 +432,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.date, targetUserId, workoutId])
+
+  // Valgt test-mal i konkurransepanelets test-fane — gull-markering i
+  // velgeren (selve koblingen persisteres via test_data.test_type/tittel).
+  const [valgtTestMalId, setValgtTestMalId] = useState<string | null>(null)
 
   // Utstyr-valg for økten. Endres uavhengig av form-state; lagres separat etter saveWorkout.
   const [equipmentIds, setEquipmentIds] = useState<string[]>(initialEquipmentIds)
@@ -1365,9 +1369,38 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           testMaler={alleMaler.filter(t => t.is_test).map(t => ({
             id: t.id, navn: t.name, erBibliotek: erBibliotekMal(t), sport: t.sport ?? null,
           }))}
+          aktivTestMalId={valgtTestMalId}
           onVelgTestMal={id => {
-            if (id.startsWith('bib_')) setMalBygger(finnOktMal(id.slice(4)) ?? null)
-            else { const t = templates.find(x => x.id === id); if (t) loadTemplate(t) }
+            // Valgt test skal MARKERES og resultatet KOBLES til testen — ikke
+            // bare generere struktur: gull-rad i velgeren, 🧪 test som økt-type,
+            // testnavnet inn i tittel + «Navn på testen», og test_type settes
+            // til malens navn så resultatet lagres som resultat AV DEN testen
+            // (samme mal = samme test i test-/PR-analysen, på tvers av økter).
+            setValgtTestMalId(id)
+            const bibMal = id.startsWith('bib_') ? finnOktMal(id.slice(4)) : null
+            const egenMal = bibMal ? null : templates.find(x => x.id === id)
+            const malNavn = bibMal?.navn ?? egenMal?.name ?? ''
+            // Bibliotekmaler er sport-nøytrale — kun egne maler bærer sport.
+            const malSport = egenMal?.sport ?? null
+            const testSport = malSport
+              ? (Object.entries(TESTSPORT_TIL_SPORT).find(([, s]) => s === malSport)?.[0] ?? '')
+              : ''
+            setForm(f => {
+              const td = f.test_data ?? emptyTestData()
+              return {
+                ...f,
+                workout_type: 'test',
+                title: f.title.trim() === '' ? malNavn : f.title,
+                test_data: {
+                  ...td,
+                  custom_label: td.custom_label.trim() === '' ? malNavn : td.custom_label,
+                  test_type: td.test_type.trim() === '' ? malNavn : td.test_type,
+                  sport: td.sport === '' ? (testSport as typeof td.sport) : td.sport,
+                },
+              }
+            })
+            if (bibMal) setMalBygger(bibMal)
+            else if (egenMal) loadTemplate(egenMal)
           }}
           onNyMal={() => setVisNyMalBygger(true)}
           onRequestGenerate={async (format, replaceExisting) => {

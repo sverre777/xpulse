@@ -51,6 +51,7 @@ export function KonkurransePanel({
   onRequestGenerate, activityCount, keyDate, onPrioritetChange,
   testData, onTestDataChange,
   onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal,
+  aktivTestMalId = null,
 }: {
   type: PanelType
   onTypeChange: (t: PanelType) => void
@@ -77,6 +78,8 @@ export function KonkurransePanel({
   // Andre idretter: idrettens test-maler (test-mal = oektmal m/ flagg, #49).
   testMaler: { id: string; navn: string; erBibliotek: boolean; sport: Sport | null }[]
   onVelgTestMal: (id: string) => void
+  // Valgt test-mal — gull-markeres i velgeren (som aktivSkytetestRef).
+  aktivTestMalId?: string | null
   // «+ Ny mal» — ren struktur-bygger i egen popup (aldri fra panel-innhold).
   onNyMal: () => void
 }) {
@@ -165,6 +168,7 @@ export function KonkurransePanel({
             aktivSkytetestRef={aktivSkytetestRef}
             testMaler={testMaler}
             onVelgTestMal={onVelgTestMal}
+            aktivTestMalId={aktivTestMalId}
             onNyMal={onNyMal} />
           {/* Protokoll/resultat hører til GJENNOMFØRINGEN — i plan holder
               navn + valgt test; resultatfeltene kommer i dagbok. */}
@@ -361,12 +365,14 @@ export function KonkurransePanel({
 
 // ── «Hvilken test?» — biblioteket bak valget avhenger av idretten. ──
 // TestPRSport (protokollens sport-enum) → app-Sport, for å filtrere maler.
-const TESTSPORT_TIL_SPORT: Record<string, Sport> = {
+// Eksportert: WorkoutForm bruker den baklengs for å forhåndsutfylle
+// protokoll-sporten når en test-mal velges.
+export const TESTSPORT_TIL_SPORT: Record<string, Sport> = {
   lop: 'running', sykling: 'cycling', langrenn: 'cross_country_skiing',
   skiskyting: 'biathlon', triathlon: 'triathlon',
 }
 
-function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal }: {
+function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, aktivTestMalId, onNyMal }: {
   sport: Sport
   // Protokollens eget sport-valg — DET styrer hvilke test-maler som vises,
   // ikke sporten valgt under konkurranse/testløp (Sverre 21. aug).
@@ -378,6 +384,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
   aktivSkytetestRef: string | null
   testMaler: { id: string; navn: string; erBibliotek: boolean; sport: Sport | null }[]
   onVelgTestMal: (id: string) => void
+  aktivTestMalId: string | null
   onNyMal: () => void
 }) {
   const [egne, setEgne] = useState<OwnShootingTest[] | null>(null)
@@ -441,7 +448,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
           {relevanteMaler.map(t =>
             rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
               t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
-              null, !t.erBibliotek, false, () => onVelgTestMal(t.id)))}
+              null, !t.erBibliotek, aktivTestMalId === t.id, () => onVelgTestMal(t.id)))}
           {rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
         </div>
       )}

@@ -64,10 +64,11 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
 
   const hrv = points('hrv_ms')
   const rhr = points('resting_hr')
-  const sleep = points('sleep_hours')
+  // Søvnscore (0–100, tallet klokka viser) i stedet for timer — Sverre 22. aug.
+  const sleepScore = points('sleep_score')
 
   // Hvis ingen helse-data: skjul hele blokka.
-  if (hrv.length === 0 && rhr.length === 0 && sleep.length === 0) return null
+  if (hrv.length === 0 && rhr.length === 0 && sleepScore.length === 0) return null
 
   return (
     <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
@@ -81,7 +82,7 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <MiniChart title="HRV" unit="ms" color={COLOR_HRV} points={hrv} />
         <MiniChart title="Hvilepuls" unit="bpm" color={COLOR_RHR} points={rhr} />
-        <MiniChart title="Søvn" unit="t" color={COLOR_SLEEP} points={sleep} />
+        <MiniChart title="Søvnscore" unit="/100" color={COLOR_SLEEP} points={sleepScore} />
       </div>
     </div>
   )

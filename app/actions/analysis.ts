@@ -1691,6 +1691,8 @@ export interface HealthDailyPoint {
   resting_hr: number | null
   sleep_hours: number | null
   sleep_quality: number | null
+  // Søvnscore 0–100 fra sleep_records (fase 103) — tallet klokka viser.
+  sleep_score: number | null
   body_weight_kg: number | null
   day_form: number | null             // snitt av day_form_physical/mental fra workouts den dagen
   workload_seconds: number            // total_seconds den dagen (alle økter, alle sporter)
@@ -1789,7 +1791,7 @@ export async function getHealthCorrelations(
     // på de tidligste datoene i perioden.
     const lookBackFrom = shiftDays(fromDate, -7)
 
-    const [healthRes, workoutsRes, recoveryRes, templatesRes, reflRes, dsRes] = await Promise.all([
+    const [healthRes, workoutsRes, recoveryRes, templatesRes, reflRes, dsRes, sleepRes] = await Promise.all([
       supabase.from('daily_health')
         .select('date,hrv_ms,resting_hr,sleep_hours,sleep_quality,body_weight_kg')
         .eq('user_id', userId)
@@ -1817,6 +1819,11 @@ export async function getHealthCorrelations(
         .select('date,state_type')
         .eq('user_id', userId)
         .gte('date', fromDate).lte('date', toDate),
+      // Søvnscore bor i sleep_records (fase 103), ikke i daily_health.
+      supabase.from('sleep_records')
+        .select('date, sleep_score')
+        .eq('user_id', userId)
+        .gte('date', fromDate).lte('date', toDate),
     ])
 
     if (healthRes.error) return { error: healthRes.error.message }
@@ -1839,6 +1846,12 @@ export async function getHealthCorrelations(
 
     const healthByDate = new Map<string, HealthRow>()
     for (const r of (healthRes.data ?? []) as HealthRow[]) healthByDate.set(r.date, r)
+
+    // sleepRes.error tolereres (som templates) — da vises bare ingen score.
+    const sleepScoreByDate = new Map<string, number>()
+    for (const r of (sleepRes.data ?? []) as { date: string; sleep_score: number | null }[]) {
+      if (typeof r.sleep_score === 'number') sleepScoreByDate.set(r.date, r.sleep_score)
+    }
 
     // Pr-dag workload (sekunder) for ALLE dager i lookBack-perioden.
     const workloadByDate = new Map<string, number>()
@@ -1893,6 +1906,7 @@ export async function getHealthCorrelations(
         resting_hr: h?.resting_hr ?? null,
         sleep_hours: h?.sleep_hours ?? null,
         sleep_quality: h?.sleep_quality ?? null,
+        sleep_score: sleepScoreByDate.get(iso) ?? null,
         body_weight_kg: h?.body_weight_kg ?? null,
         day_form: df ? Math.round((df.sum / df.count) * 10) / 10 : null,
         workload_seconds: workloadByDate.get(iso) ?? 0,

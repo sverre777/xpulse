@@ -41,6 +41,12 @@ export const CHANGELOG_VERSION = '1.2'
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
+  // Setemodellen (2026-08-22): ÉN oppføring for hele leveringen (5 bolker).
+  {
+    date: '2026-08-22',
+    title: 'Utøverplasser for trenere',
+    body: 'Trener Pro har nå 5 Athlete Pro-lisenser inkludert, og både Basic og Pro kan kjøpe flere utøverplasser for 29 kr/mnd. Del én invitasjonslenke fra trenerpanelet — utøveren registrerer seg med navn og passord og er koblet til deg med full tilgang på under et minutt, uten kort. Plassene styres fra det nye Utøverplasser-panelet.',
+  },
   // Utstyr + skipark (2026-08-21): ÉN oppføring for hele leveringen (tre bolker).
   {
     date: '2026-08-21',

@@ -64,6 +64,7 @@ const TRAINER_TIERS: Tier[] = [
     features: [
       'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Inntil 10 utøvere',
+      'Kjøp utøverplasser ved behov — 29 kr/mnd per plass',
       'Treningsplan-bygging + maler',
       'Push planer/økter til utøvere',
       'Trener-kalender + innboks',
@@ -77,7 +78,7 @@ const TRAINER_TIERS: Tier[] = [
       'Egen utøver-profil inkludert (dagbok, plan, klokkesync, analyse)',
       'Alt i Trener Basic',
       'Ubegrenset antall utøvere',
-      '+ 3 Athlete Pro-lisenser til utøvere',
+      '5 Athlete Pro-lisenser til utøvere inkludert — kjøp flere à 29 kr/mnd',
     ],
   },
   {

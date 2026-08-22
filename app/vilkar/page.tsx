@@ -119,7 +119,16 @@ export default function VilkarPage() {
         <LegalLI>Trener Pro 279 kr/mnd</LegalLI>
         <LegalLI>Trener Pro AI 499 kr/mnd (kommer)</LegalLI>
         <LegalLI>Trener Ultimate AI 999 kr/mnd (kommer)</LegalLI>
+        <LegalLI>Utøverplass (kjøpes av trener) 29 kr/mnd per plass</LegalLI>
       </LegalUL>
+
+      <LegalP><strong>Utøverplasser (tildelt tilgang):</strong> Trener-abonnement kan inkludere
+      eller kjøpe utøverplasser som gir navngitte utøvere Athlete Pro-tilgang betalt av treneren.
+      Slik tildelt tilgang er knyttet til trenerens abonnement: den opphører automatisk ved
+      utløpet av inneværende betalingsperiode dersom trenerens abonnement avsluttes eller
+      nedgraderes, eller dersom treneren fjerner utøveren fra plassen. Utøveren varsles i appen,
+      beholder brukeren og all treningsdata i henhold til reglene for abonnement-utløp over, og
+      kan når som helst fortsette med eget abonnement. Utøvere på tildelt plass belastes aldri.</LegalP>
 
       <LegalP><strong>Gratis prøveperiode:</strong> Alle nye brukere får 30 dagers gratis prøveperiode. Etter prøveperiodens utløp må aktivt abonnement være på plass for å fortsette å bruke /app-tjenestene.</LegalP>
 

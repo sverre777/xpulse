@@ -118,9 +118,9 @@ export default function TrenerPage() {
           </h2>
           <div className="grid gap-px md:grid-cols-3" style={{ background: '#262629' }}>
             <TierCard tier="Basic" price="199 kr/mnd"
-              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
+              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser — kjøp utøverplasser à 29 kr/mnd', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
             <TierCard tier="Pro" price="279 kr/mnd" featured
-              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '+ 3 Athlete Pro-lisenser til utøvere', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
+              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '5 Athlete Pro-lisenser til utøvere inkludert — kjøp flere à 29 kr/mnd', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
             <TierCard tier="Pro AI" price="499 kr/mnd" coming
               points={['Inkluderer egen utøver-profil', '+ 5 Athlete Pro-lisenser til utøvere', 'AI-analyse på utøveres data', 'Auto-ukesoppsummeringer', 'Alt i Pro']} />
           </div>
@@ -149,7 +149,7 @@ export default function TrenerPage() {
 
       <SportPageCTA
         title="Start trener-prøve"
-        subtitle="Trener Pro inkluderer 3 Athlete Pro-lisenser — egen profil for deg som trener og 2 utøvere."
+        subtitle="Trener Pro inkluderer egen utøver-profil og 5 Athlete Pro-lisenser til utøverne dine — og du kan kjøpe flere plasser for 29 kr/mnd."
         href="/app/registrer?role=coach&tier=pro"
         label="Start gratis prøve (Pro)"
         accent="blue"

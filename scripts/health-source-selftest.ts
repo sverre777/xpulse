@@ -97,6 +97,27 @@ const kunPolar = planBrandPurge(
 check('ren Polar-rad blir tom', kunPolar.rowIsEmpty, true)
 check('ren Polar-rad har ingen kilder igjen', kunPolar.sources, {})
 
+// ── Manuell søvnscore (fase 103) ────────────────────────────
+// Scoren er brukerens egen. Den skal overleve at et merke kobles fra, og en
+// rad som KUN inneholder den skal ikke regnes som tom og slettes.
+const kunScore = planBrandPurge(
+  { sleep_score: 82, deep_minutes: 100 },
+  { sleep_score: 'manual', deep_minutes: 'polar' },
+  'polar', SLEEP_VALUE_FIELDS,
+)
+check('manuell søvnscore beholdes ved frakobling', kunScore.kept, ['sleep_score'])
+check('raden med bare søvnscore slettes IKKE', kunScore.rowIsEmpty, false)
+check('bare Polars felt nullstilles', kunScore.patch, { deep_minutes: null })
+
+// Og importen skal aldri kunne overskrive den.
+const importMotScore = planManualWinsUpdate(
+  { sleep_score: 'manual' },
+  { sleep_score: 91, total_sleep_minutes: 455 },
+  'polar',
+)
+check('import rører ikke manuell søvnscore', importMotScore.patch, { total_sleep_minutes: 455 })
+check('scoren står fortsatt som manuell', importMotScore.keptManual, ['sleep_score'])
+
 // Rad som KUN er manuelt ført: frakobling skal ikke røre den i det hele tatt.
 const kunManuell = planBrandPurge(
   { total_sleep_minutes: 450, perceived_quality: 5 },

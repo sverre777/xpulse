@@ -96,6 +96,10 @@ export const SLEEP_VALUE_FIELDS = [
   'sleep_start', 'sleep_end', 'total_sleep_minutes', 'awake_minutes',
   'interruptions', 'deep_minutes', 'light_minutes', 'rem_minutes',
   'perceived_quality',
+  // Manuell søvnscore (fase 103). MÅ stå her: uten den ville en rad som kun
+  // inneholder brukerens egen score blitt regnet som tom ved frakobling av
+  // et merke, og slettet.
+  'sleep_score',
 ] as const
 
 export const HEALTH_METRIC_VALUE_FIELDS = [

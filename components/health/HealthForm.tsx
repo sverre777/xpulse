@@ -108,6 +108,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
     deep:     sleep?.deep_minutes?.toString() ?? '',
     light:    sleep?.light_minutes?.toString() ?? '',
     rem:      sleep?.rem_minutes?.toString() ?? '',
+    score:    sleep?.sleep_score?.toString() ?? '',
   })
   const setSovnFelt = (k: keyof typeof sovn, v: string) =>
     setSovn(f => ({ ...f, [k]: v }))
@@ -155,6 +156,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
       light_minutes: numOrNull(sovn.light),
       rem_minutes: numOrNull(sovn.rem),
       perceived_quality: form.sleep_quality,
+      sleep_score: numOrNull(sovn.score),
     })
     if (sleepResult.error) {
       setError(`Helse er lagret, men søvndetaljene ble ikke lagret: ${sleepResult.error}`)
@@ -298,7 +300,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
           </Field>
         </div>
 
-        <div className="mt-4">
+        <div className="grid grid-cols-2 gap-3 mt-4">
           <Field label={<>Opplevd kvalitet<KildeMerke source={kilde.perceived_quality} /></>}>
             <div className="flex gap-1">
               {[1,2,3,4,5].map(n => (
@@ -311,6 +313,15 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
                   }}>★</button>
               ))}
             </div>
+          </Field>
+          {/* Tallet klokka viser (0–100). Egen skala fra stjernene ved siden
+              av, og egen verdi fra merkets importerte score — den vises med
+              merkenavn under «Fra klokka». */}
+          <Field label={<>Søvnscore (0–100)<KildeMerke source={kilde.sleep_score} /></>}>
+            <input type="number" step="1" min="0" max="100" value={sovn.score}
+              onChange={e => setSovnFelt('score', e.target.value)} placeholder="82"
+              style={{ ...iSt, minHeight: 44 }} onFocus={e => (e.currentTarget.style.borderColor = '#28A86E')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--line)')} />
           </Field>
         </div>
       </div>

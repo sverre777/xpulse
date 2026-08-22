@@ -29,11 +29,18 @@ export interface SleepFormValues {
   light_minutes: number | null
   rem_minutes: number | null
   perceived_quality: number | null
+  /**
+   * Søvnscore 0–100 — tallet klokka viser. Egen kolonne fordi
+   * perceived_quality er 1–5-skalaen, og merkets egen score bor i
+   * health_brand_metrics (som tømmes ved frakobling). Se phase103.
+   */
+  sleep_score: number | null
 }
 
 const SLEEP_FIELDS: (keyof SleepFormValues)[] = [
   'sleep_start', 'sleep_end', 'total_sleep_minutes', 'awake_minutes',
   'deep_minutes', 'light_minutes', 'rem_minutes', 'perceived_quality',
+  'sleep_score',
 ]
 
 export interface DailySleepRecord extends SleepFormValues {
@@ -52,7 +59,7 @@ export async function getDailySleep(
 
   const { data } = await supabase
     .from('sleep_records')
-    .select('date, sleep_start, sleep_end, total_sleep_minutes, awake_minutes, deep_minutes, light_minutes, rem_minutes, perceived_quality, sources')
+    .select('date, sleep_start, sleep_end, total_sleep_minutes, awake_minutes, deep_minutes, light_minutes, rem_minutes, perceived_quality, sleep_score, sources')
     .eq('user_id', resolved.userId)
     .eq('date', date)
     .maybeSingle()

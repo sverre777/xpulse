@@ -10,17 +10,29 @@ import type { Sport } from '@/lib/types'
 import { SPORTS } from '@/lib/types'
 import { ModalShell, FieldLabel, INPUT_STYLE, ErrorText, ModalFooter } from './ModalShell'
 
-const EVENT_TYPES: { value: KeyEventType; label: string; icon: string }[] = [
-  { value: 'competition_a', label: 'A-konkurranse', icon: '🏆' },
-  { value: 'competition_b', label: 'B-konkurranse', icon: '🏅' },
-  { value: 'competition_c', label: 'C-konkurranse', icon: '📊' },
-  { value: 'test',          label: 'Testløp',       icon: '📊' },
-  // 'camp' (Samling) er flyttet til periode-markering (PeriodModal) — fjernet her.
-  { value: 'other',         label: 'Annet',         icon: '⚑' },
+// Fase 104 + panel-språket fra økt-føringen (Sverre 22. aug): typen velges
+// med chips (🏁 Konkurranse / ⏱ Testløp / 🧪 Test / ⚑ Annet), og A/B/C er
+// PRIORITET på konkurransen — ikke egne typer i nedtrekket.
+type HendelseKind = 'konkurranse' | 'testlop' | 'test' | 'other'
+
+const KIND_CHIPS: { verdi: HendelseKind; etikett: string }[] = [
+  { verdi: 'konkurranse', etikett: '🏁 Konkurranse' },
+  { verdi: 'testlop', etikett: '⏱ Testløp' },
+  { verdi: 'test', etikett: '🧪 Test' },
+  { verdi: 'other', etikett: '⚑ Annet' },
 ]
 
+function kindFraEventType(e: KeyEventType): HendelseKind {
+  if (e.startsWith('competition_')) return 'konkurranse'
+  if (e === 'testlop') return 'testlop'
+  if (e === 'test') return 'test'
+  return 'other'
+}
+
 // Disse eventene trigger auto-opprettelse av planlagt workout.
-const AUTO_WORKOUT_TYPES: KeyEventType[] = ['competition_a', 'competition_b', 'competition_c', 'test']
+const AUTO_WORKOUT_TYPES: KeyEventType[] = ['competition_a', 'competition_b', 'competition_c', 'testlop', 'test']
+
+const GULL = '#E8B93C' 
 
 export function KeyDateModal({
   open, onClose, seasonId, seasonStart, seasonEnd, editing, targetUserId,
@@ -40,7 +52,16 @@ export function KeyDateModal({
   initialPeak?: boolean
 }) {
   const router = useRouter()
-  const [eventType, setEventType] = useState<KeyEventType>(editing?.event_type ?? initialType ?? 'competition_a')
+  const startType = editing?.event_type ?? initialType ?? 'competition_a'
+  const [kind, setKind] = useState<HendelseKind>(kindFraEventType(startType))
+  const [prioritet, setPrioritet] = useState<'a' | 'b' | 'c'>(
+    startType.startsWith('competition_') ? (startType.slice(-1) as 'a' | 'b' | 'c') : 'a')
+  // event_type komponeres av type + prioritet (A/B/C gjelder kun konkurranse).
+  const eventType: KeyEventType = kind === 'konkurranse'
+    ? (`competition_${prioritet}` as KeyEventType)
+    : kind === 'testlop' ? 'testlop'
+    : kind === 'test' ? 'test'
+    : 'other' 
   const [eventDate, setEventDate] = useState(editing?.event_date ?? initialDate ?? seasonStart)
   const [name, setName] = useState(editing?.name ?? '')
   const [sport, setSport] = useState<Sport | ''>(editing?.sport ?? '')
@@ -110,20 +131,50 @@ export function KeyDateModal({
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
           Sesong: {seasonStart} → {seasonEnd}
         </p>
+        {/* Type-chips — samme språk som konkurransepanelet i økt-føringen. */}
+        <div className="mb-3">
+          <FieldLabel>Type</FieldLabel>
+          <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, #2A2A33)', borderRadius: 10, overflow: 'hidden' }}>
+            {KIND_CHIPS.map(c => (
+              <button key={c.verdi} type="button" onClick={() => setKind(c.verdi)}
+                style={{
+                  padding: '8px 13px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
+                  cursor: 'pointer', border: 'none',
+                  color: kind === c.verdi ? GULL : '#8B8B95',
+                  background: kind === c.verdi ? 'rgba(232,185,60,.14)' : 'transparent',
+                  fontWeight: kind === c.verdi ? 700 : 400,
+                }}>
+                {c.etikett}
+              </button>
+            ))}
+          </span>
+        </div>
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <FieldLabel>Type</FieldLabel>
-            <select value={eventType} onChange={e => setEventType(e.target.value as KeyEventType)} style={INPUT_STYLE}>
-              {EVENT_TYPES.map(t => (
-                <option key={t.value} value={t.value}>{t.icon} {t.label}</option>
-              ))}
-            </select>
-          </div>
           <div>
             <FieldLabel>Dato</FieldLabel>
             <input type="date" value={eventDate} min={seasonStart} max={seasonEnd}
               onChange={e => setEventDate(e.target.value)} style={INPUT_STYLE} />
           </div>
+          {kind === 'konkurranse' && (
+            <div>
+              <FieldLabel>Prioritet</FieldLabel>
+              <div className="flex gap-2">
+                {(['a', 'b', 'c'] as const).map(pv => (
+                  <button key={pv} type="button" onClick={() => setPrioritet(pv)}
+                    style={{
+                      flex: 1, minHeight: 40, fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                      color: prioritet === pv ? GULL : '#8B8B95',
+                      background: prioritet === pv ? 'rgba(232,185,60,.12)' : 'transparent',
+                      border: `1px solid ${prioritet === pv ? GULL : 'var(--line2, #2A2A33)'}`,
+                      borderRadius: 9,
+                    }}>
+                    {pv.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="mb-3">
           <FieldLabel>Navn</FieldLabel>

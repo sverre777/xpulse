@@ -8,7 +8,8 @@ const EVENT_STYLE: Record<KeyEventType, { label: string; color: string; icon: st
   competition_a: { label: 'A-konkurranse', color: '#D4A017', icon: '🏆' },
   competition_b: { label: 'B-konkurranse', color: '#D4A017', icon: '🏅' },
   competition_c: { label: 'C-konkurranse', color: '#1A6FD4', icon: '📊' },
-  test:          { label: 'Testløp',       color: '#1A6FD4', icon: '📊' },
+  testlop:       { label: 'Testløp',       color: '#1A6FD4', icon: '⏱' },
+  test:          { label: 'Test',          color: '#28A86E', icon: '🧪' },
   camp:          { label: 'Samling',       color: '#8A8A96', icon: '📍' },
   other:         { label: 'Annet',         color: '#8A8A96', icon: '⚑' },
 }

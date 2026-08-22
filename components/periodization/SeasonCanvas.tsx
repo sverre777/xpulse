@@ -25,7 +25,7 @@ const INTENSITY_LABEL: Record<Intensity, string> = {
   rolig: 'Rolig', medium: 'Medium', hard: 'Hard',
 }
 
-type StampBrush = 'stamp_a' | 'stamp_b' | 'stamp_c' | 'stamp_test' | 'stamp_peak'
+type StampBrush = 'stamp_a' | 'stamp_b' | 'stamp_c' | 'stamp_testlop' | 'stamp_test' | 'stamp_peak'
 type Brush = 'pick' | 'erase' | 'samling' | StampBrush | Intensity
 type Granularity = 'uke' | 'dag'
 
@@ -34,12 +34,13 @@ const STAMPS: { brush: StampBrush; icon: string; label: string; eventType: KeyEv
   { brush: 'stamp_a',    icon: '🏆', label: 'A',    eventType: 'competition_a', peak: false },
   { brush: 'stamp_b',    icon: '🏅', label: 'B',    eventType: 'competition_b', peak: false },
   { brush: 'stamp_c',    icon: '📊', label: 'C',    eventType: 'competition_c', peak: false },
+  { brush: 'stamp_testlop', icon: '⏱', label: 'Testløp', eventType: 'testlop', peak: false },
   { brush: 'stamp_test', icon: '🧪', label: 'Test', eventType: 'test',          peak: false },
   { brush: 'stamp_peak', icon: '⭐', label: 'Peak', eventType: 'competition_a', peak: true },
 ]
 const KEY_ICON: Record<string, string> = {
   competition_a: '🏆', competition_b: '🏅', competition_c: '📊',
-  test: '🧪', camp: '📍', other: '⚑',
+  testlop: '⏱', test: '🧪', camp: '📍', other: '⚑',
 }
 const PEAK_CELL_GLOW = '0 0 8px rgba(212, 160, 23, 0.6)'
 

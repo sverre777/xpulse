@@ -8,7 +8,9 @@ import type { Sport, WorkoutType } from '@/lib/types'
 export type Intensity = 'rolig' | 'medium' | 'hard'
 export type KeyEventType =
   | 'competition_a' | 'competition_b' | 'competition_c'
-  | 'test' | 'camp' | 'other'
+  // Fase 104: 'testlop' er egen type; 'test' er heretter REN 🧪 test
+  // (eksisterende test-rader migrert til testlop — de var alltid testløp).
+  | 'testlop' | 'test' | 'camp' | 'other'
 
 export interface Season {
   id: string
@@ -686,10 +688,13 @@ export interface KeyDateInput {
 
 function workoutTypeFor(eventType: KeyEventType): WorkoutType | null {
   switch (eventType) {
+    // Fase 104: alle konkurranse-prioriteter ER konkurranser (C var testlop
+    // før testløp fantes som egen hendelsestype).
     case 'competition_a':
-    case 'competition_b': return 'competition'
-    case 'competition_c':
-    case 'test':          return 'testlop'
+    case 'competition_b':
+    case 'competition_c': return 'competition'
+    case 'testlop':       return 'testlop'
+    case 'test':          return 'test'
     case 'camp':
     case 'other':         return null
   }

@@ -32,7 +32,9 @@ export const KEY_EVENT_VISUALS: Record<KeyEventType, KeyEventVisual> = {
   competition_a: { label: 'A-konkurranse', color: '#D4A017', icon: '🏆', borderWidth: 3 },
   competition_b: { label: 'B-konkurranse', color: '#D4A017', icon: '🏅', borderWidth: 2 },
   competition_c: { label: 'C-konkurranse', color: '#1A6FD4', icon: '📊', borderWidth: 2 },
-  test:          { label: 'Testløp',       color: '#1A6FD4', icon: '📊', borderWidth: 2 },
+  // Fase 104: testløp er egen type — 'test' er heretter ren 🧪 test.
+  testlop:       { label: 'Testløp',       color: '#1A6FD4', icon: '⏱', borderWidth: 2 },
+  test:          { label: 'Test',          color: '#28A86E', icon: '🧪', borderWidth: 2 },
   camp:          { label: 'Samling',       color: '#8A8A96', icon: '📍', borderWidth: 1 },
   other:         { label: 'Annet',         color: '#8A8A96', icon: '⚑', borderWidth: 1 },
 }

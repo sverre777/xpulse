@@ -645,16 +645,27 @@ function FitUploadSection() {
             {entries.map((e, i) => {
               const v = STATUS_VISUAL[e.status]
               return (
-                <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-center justify-between gap-3"
+                <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-start justify-between gap-3"
                   style={{
                     background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                   }}>
-                  <span className="min-w-0 flex-1" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {e.name}
+                  <span className="min-w-0 flex-1">
+                    <span className="block" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {e.name}
+                    </span>
+                    {/* Den FAKTISKE årsaken. Lå tidligere kun i en title-
+                        tooltip: usynlig på mobil, og hver importfeil ble et
+                        blindspor. Teksten kommer fra serveren — vis den som
+                        den er, ikke «noe gikk galt». */}
+                    {e.detail && (
+                      <span className="block" style={{ color: v.color, fontSize: 12, lineHeight: 1.45, marginTop: 2 }}>
+                        {e.detail}
+                      </span>
+                    )}
                   </span>
                   <span className="flex items-center gap-2 shrink-0">
-                    <span style={{ color: v.color }} title={e.detail}>{v.label}</span>
+                    <span style={{ color: v.color }}>{v.label}</span>
                     {!importing && e.status === 'pending' && (
                       <button type="button" onClick={() => removeEntry(i)}
                         aria-label={`Fjern ${e.name}`}
@@ -683,6 +694,17 @@ function FitUploadSection() {
           {summary.skipped > 0 && <> · <strong>{summary.skipped}</strong> duplikat hoppet over</>}
           {summary.duplicate > 0 && <> · <strong>{summary.duplicate}</strong> allerede importert</>}
           {summary.failed > 0 && <> · <strong>{summary.failed}</strong> feilet</>}.
+          {summary.failed > 0 && (
+            <ul className="list-none p-0 mt-2 space-y-1">
+              {entries.filter(e => e.status === 'failed').map((e, i) => (
+                <li key={`feil:${e.name}:${i}`} style={{ fontSize: 12, color: '#F0F0F2' }}>
+                  <span style={{ color: '#E11D48' }}>✗</span>{' '}
+                  <strong>{e.name}</strong>
+                  {e.detail ? <> — {e.detail}</> : null}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </section>
@@ -798,7 +820,9 @@ function FitDropZone({ onFiles, disabled }: {
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
         color: '#555560', letterSpacing: '0.12em', textTransform: 'uppercase',
       }}>
-        Maks 20 MB per fil
+        {/* Leses fra FIT_MAX_BYTES — teksten sa 20 MB mens den ekte grensen
+            var 4 MB, så avvisningen kom som en overraskelse. Én kilde. */}
+        Maks {formatMB(FIT_MAX_BYTES)} per fil
       </div>
     </label>
   )

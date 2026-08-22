@@ -40,6 +40,25 @@ type ModusKey = 'serier' | 'tester'
 
 const UTEN_TYPE = 'ukjent'
 
+// A1: datoaksen skrev raa ISO («2026-08-15») mens «Utvikling per dag» rett
+// under skriver «15. aug». Kun AKSEN kortes ned — tooltipen beholder full
+// dato, for der er det plass og der trenger man presisjonen.
+function datoTick(v: unknown): string {
+  const iso = String(v ?? '')
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso
+  return new Date(iso + 'T00:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
+}
+
+// A3: y-aksen hadde ingen domain, saa den viste bare «100». Treff% er en
+// prosent og skal alltid staa mot 0–100 — ellers ser en forskjell paa to
+// prosentpoeng dramatisk ut. Antall treff starter paa 0. Tid og puls faar
+// staa auto: der er nullpunktet meningsloest.
+function yDomain(yAxis: YAxisKey): [number, number | 'dataMax'] | undefined {
+  if (yAxis === 'accuracy_pct') return [0, 100]
+  if (yAxis === 'hits') return [0, 'dataMax']
+  return undefined
+}
+
 type PerSkytingKey = 'all' | 'last' | 'first' | 'specific'
   | 'compare_first_vs_last' | 'accumulated'
 
@@ -493,7 +512,14 @@ export function CustomSkytingChartBuilder({ data }: Props) {
                 : `${testSerier.length} testprotokoll${testSerier.length === 1 ? '' : 'er'} · ${testSerier.reduce((n, t) => n + t.punkter.length, 0)} gjennomføringer`)
             : chartData.points.length === 0
               ? 'Ingen data for valgt filter.'
-              : `${chartData.points.length} datapunkt`}
+              : chartData.aggregert
+                ? `${chartData.aggregert.skytinger} skytinger · ${chartData.aggregert.dager} dager · snitt per dag`
+                : `${chartData.points.length} datapunkt`}
+          {filter.modus === 'serier' && chartData.aggregert && chartData.aggregert.skytinger > chartData.aggregert.dager && (
+            <span style={{ color: '#555560' }}>
+              {' '}· Vil du se hver skyting for seg, velg Skyting-nr på X-aksen.
+            </span>
+          )}
           {filter.modus === 'serier' && erSammenheng && (
             <span style={{ color: '#555560' }}> · {SAMMENHENG_FORKLARING}</span>
           )}
@@ -566,6 +592,8 @@ interface ChartData {
   xType: 'category' | 'number'
   /** Satt når det grupperes per skytetype — én serie per type. */
   groups: TypeGroup[] | null
+  /** A4: satt når punktene er slått sammen til ett per dato. */
+  aggregert: { skytinger: number; dager: number } | null
 }
 
 function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): ChartData {
@@ -610,7 +638,7 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
       points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last), type: rowShotType(last) } })
       workoutIdx++
     }
-    return { points, hasCompare: true, xType, groups: null }
+    return { points, hasCompare: true, xType, groups: null, aggregert: null }
   }
 
   // Standard: alle rader
@@ -656,15 +684,53 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
       .map(t => ({ key: t.key, label: t.label, color: t.color, points: perType.get(t.key) ?? [] }))
   }
 
-  return { points, hasCompare: false, xType, groups }
+  // A4: flere skytinger samme dag stablet seg til en loddrett strek paa
+  // datoaksen. Naar x er dato OG vi hverken ser paa én bestemt skyting eller
+  // grupperer per skytetype, er dagen den meningsfulle enheten — da slaas de
+  // sammen til ett punkt med snittet, samme prinsipp som «Utvikling per dag».
+  // IKKE naar perSkyting != 'all' eller ved gruppering: der er poenget
+  // nettopp aa skille skytingene fra hverandre.
+  if (filter.xAxis === 'date' && filter.perSkyting === 'all' && filter.grupper === 'samlet' && points.length > 0) {
+    const perDag = new Map<string, ChartPoint[]>()
+    for (const p of points) {
+      const arr = perDag.get(String(p.x)) ?? []
+      arr.push(p)
+      perDag.set(String(p.x), arr)
+    }
+    const snittPunkter: ChartPoint[] = Array.from(perDag.entries()).map(([dag, ps]) => {
+      const medVerdi = ps.filter(p => p.y != null)
+      const snitt = medVerdi.length > 0
+        ? Math.round((medVerdi.reduce((sum, p) => sum + (p.y as number), 0) / medVerdi.length) * 10) / 10
+        : null
+      return {
+        x: dag,
+        y: snitt,
+        series: 'main' as const,
+        // Beholder foerste punktets kontekst, men sort_order gir ikke mening
+        // for et dagssnitt — den settes til antallet skytinger i dagen.
+        meta: { ...ps[0].meta, sort_order: ps.length },
+      }
+    })
+    return {
+      points: snittPunkter,
+      hasCompare: false,
+      xType,
+      groups: null,
+      aggregert: { skytinger: points.length, dager: snittPunkter.length },
+    }
+  }
+
+  return { points, hasCompare: false, xType, groups, aggregert: null }
 }
 
 // Egen tooltip for enkel-serie-grafene: dato · skyting-nr, verdi, puls og
 // vind/sikt-kontekst der ført (CHART_TOOLTIP_BOX = delt tooltip-språk).
-function BuilderTip({ active, payload, yLabel }: {
+function BuilderTip({ active, payload, yLabel, aggregert = false }: {
   active?: boolean
   payload?: { payload?: ChartPoint }[]
   yLabel: string
+  /** Dagssnitt: da er sort_order antall skytinger, ikke et nummer. */
+  aggregert?: boolean
 }) {
   if (!active || !payload || payload.length === 0) return null
   const p = payload.find(e => e.payload)?.payload
@@ -672,7 +738,9 @@ function BuilderTip({ active, payload, yLabel }: {
   return (
     <div style={CHART_TOOLTIP_BOX}>
       <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
-        {p.meta.date} · Skyting {p.meta.sort_order}
+        {p.meta.date} · {aggregert
+          ? `${p.meta.sort_order} skyting${p.meta.sort_order === 1 ? '' : 'er'} (snitt)`
+          : `Skyting ${p.meta.sort_order}`}
       </div>
       {p.y != null && (
         <div style={{ color: '#8B8B95' }}>
@@ -713,11 +781,13 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
             type={data.xType}
             dataKey="x"
             allowDuplicatedCategory={false}
+            tickFormatter={filter.xAxis === 'date' ? datoTick : undefined}
             tick={CHART_AXIS_TICK}
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
           />
           <YAxis
+            domain={yDomain(filter.yAxis)}
             tick={CHART_AXIS_TICK}
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
@@ -756,19 +826,21 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
             dataKey="x"
             type={data.xType}
             allowDuplicatedCategory={false}
+            tickFormatter={filter.xAxis === 'date' ? datoTick : undefined}
             domain={data.xType === 'number' ? ['dataMin', 'dataMax'] : undefined}
             tick={CHART_AXIS_TICK}
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
           />
           <YAxis
+            domain={yDomain(filter.yAxis)}
             tick={CHART_AXIS_TICK}
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
             width={48}
             label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
           />
-          <Tooltip content={<BuilderTip yLabel={yLabel} />} />
+          <Tooltip content={<BuilderTip yLabel={yLabel} aggregert={!!data.aggregert} />} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           {synligeGrupper.map(g => (
             <Line
@@ -797,19 +869,24 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
         <XAxis
           dataKey="x"
           type={data.xType}
+          // A2: denne manglet, mens de to andre grafene hadde den — derfor
+          // fem identiske datomerker paa aksen naar flere serier delte dag.
+          allowDuplicatedCategory={false}
+          tickFormatter={filter.xAxis === 'date' ? datoTick : undefined}
           domain={data.xType === 'number' ? ['dataMin', 'dataMax'] : undefined}
           tick={CHART_AXIS_TICK}
           axisLine={CHART_AXIS_LINE}
           tickLine={false}
         />
         <YAxis
+          domain={yDomain(filter.yAxis)}
           tick={CHART_AXIS_TICK}
           axisLine={CHART_AXIS_LINE}
           tickLine={false}
           width={48}
           label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
         />
-        <Tooltip content={<BuilderTip yLabel={yLabel} />} />
+        <Tooltip content={<BuilderTip yLabel={yLabel} aggregert={!!data.aggregert} />} />
         <Line
           type="monotone"
           dataKey="y"

@@ -14,6 +14,7 @@ import {
   CHART_CURSOR, BAR_RADIUS,
 } from './chart-theme'
 import { CustomSkytingChartBuilder } from './CustomSkytingChartBuilder'
+import { SkytingVindSiktCard } from './SkytingVindSiktCard'
 import { TestComparison } from './TestComparison'
 import { ShotVolumeChart } from './ShotVolumeChart'
 import type { DateRange } from './date-range'
@@ -91,7 +92,7 @@ export function SkytingTab({ data, range, targetUserId }: {
       <CustomSkytingChartBuilder data={data} />
       <AccuracyTrend data={data} />
       <HrZoneAccuracy data={data} />
-      <WindAccuracy data={data} />
+      <SkytingVindSiktCard data={data} />
       <FirstVsLast data={data} />
       <TimeTrend data={data} />
       <TrainingVsComp data={data} />
@@ -237,99 +238,6 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
                 return [String(v ?? ''), String(k)]
               }} />
             <Bar dataKey="accuracy" fill={COLOR_STANDING} name="Treff%" radius={BAR_RADIUS} />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartWrapper>
-    </div>
-  )
-}
-
-// TREFF% PER VINDFORHOLD — én rad per vindforhold, liggende og stående side
-// om side. Horisontale søyler fordi etikettene («Vindstille», «V3 mot
-// venstre») er navn, ikke tall: de får plass til venstre uten å stå på skrå.
-//
-// Radene sorteres som en SKALA fra venstre vind, gjennom vindstille, til
-// høyre vind — da blir en skjevhet mellom sidene synlig med én gang, i
-// stedet for å drukne i alfabetisk rekkefølge.
-//
-// Kun-førte-regelen: prosenten deles på skudd der treff faktisk ER ført.
-// Serier uten registrert vind (vind_styrke null) holdes helt utenfor — det
-// er ikke «vindstille», det er ukjent, og skal ikke gjettes inn.
-// Selvskjulende: har du aldri ført vind, kommer ikke kortet.
-export function WindAccuracy({ data }: { data: ShootingDepthAnalysis }) {
-  const rows = useMemo(() => {
-    type Agg = { label: string; order: number; recL: number; hitL: number; recS: number; hitS: number }
-    const per = new Map<string, Agg>()
-    for (const r of data.series) {
-      if (r.vind_styrke == null) continue
-      const styrke = Math.min(r.vind_styrke, 5)
-      // windShort er appens egen etikett for et vindforhold ('0' | 'V3' |
-      // 'H5') — samme fasit som chips og tooltips bruker.
-      const kort = windShort(r.vind_retning, r.vind_styrke)
-      if (!kort) continue
-      const label = styrke === 0
-        ? 'Vindstille'
-        : `${kort} ${r.vind_retning === 'V' ? '← venstre' : '→ høyre'}`
-      // Skala: venstre vind negativt, vindstille 0, høyre vind positivt.
-      const order = styrke === 0 ? 0 : (r.vind_retning === 'V' ? -styrke : styrke)
-      const a = per.get(label) ?? { label, order, recL: 0, hitL: 0, recS: 0, hitS: 0 }
-      a.recL += r.prone_recorded_shots
-      a.hitL += r.prone_hits
-      a.recS += r.standing_recorded_shots
-      a.hitS += r.standing_hits
-      per.set(label, a)
-    }
-    return Array.from(per.values())
-      .filter(a => a.recL > 0 || a.recS > 0)
-      .sort((a, b) => a.order - b.order)
-      .map(a => ({
-        label: a.label,
-        // null (ikke 0) når posisjonen ikke er skutt i dette forholdet —
-        // en 0-søyle ville påstått at man bommet på alt.
-        liggende: a.recL > 0 ? Math.round((a.hitL / a.recL) * 1000) / 10 : null,
-        staaende: a.recS > 0 ? Math.round((a.hitS / a.recS) * 1000) / 10 : null,
-        skuddL: a.recL,
-        skuddS: a.recS,
-      }))
-  }, [data.series])
-
-  if (rows.length === 0) return null
-
-  // Kortet vokser med antall forhold — ellers klemmes radene sammen.
-  const høyde = Math.max(200, 56 + rows.length * 46)
-
-  return (
-    <div>
-      <div className="flex items-center gap-3 mb-2">
-        <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-          Treff% per vindforhold
-        </p>
-      </div>
-      <ChartWrapper chartKey="skyting_wind_accuracy" title="Treff vs. vind"
-        subtitle="Liggende og stående side om side per vindforhold · kun serier der vind er ført"
-        height={høyde}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={CHART_GRID} horizontal={false} />
-            <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`}
-              tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
-            <YAxis type="category" dataKey="label" width={104}
-              tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
-            <Tooltip content={<XpTooltip />} cursor={CHART_CURSOR}
-              formatter={(v, k, p) => {
-                const rad = p && typeof p === 'object' && 'payload' in p
-                  ? (p as { payload: { skuddL: number; skuddS: number } }).payload
-                  : null
-                const skudd = k === 'liggende' ? rad?.skuddL : rad?.skuddS
-                const navn = k === 'liggende' ? 'Liggende' : 'Stående'
-                if (v == null) return ['—', navn]
-                return [`${typeof v === 'number' ? v.toFixed(1) : v}% (${skudd ?? 0} skudd)`, navn]
-              }} />
-            <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-            <Bar dataKey="liggende" name="Liggende" fill={COLOR_PRONE} radius={BAR_RADIUS} />
-            <Bar dataKey="staaende" name="Stående" fill={COLOR_STANDING} radius={BAR_RADIUS} />
           </BarChart>
         </ResponsiveContainer>
       </ChartWrapper>

@@ -168,8 +168,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* Logo-slot. Her legges den offisielle SVG-en inn — høyden er låst til
    20px, bredden flyter: logoer har ulike proporsjoner og skal aldri
    strekkes. */
-.syncrow .logo{height:20px; display:flex; align-items:center; flex-shrink:0}
-.syncrow .logo img{height:100%; width:auto}
+.syncrow .logo{display:flex; align-items:center; flex-shrink:0; min-width:0}
+.syncrow .logo img{height:11px; width:auto; max-width:100%; display:block}
 /* Plassholder til fila er på plass. IKKE en tegnet etterligning av
    logoen — bevisst nøytral, så ingen tror den er ekte. */
 .syncrow .slot{
@@ -213,7 +213,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 @media(max-width:820px){
   .syncrow{padding:15px 20px}
   .syncrow .cards{gap:8px}
-  .syncrow .bcard{flex:1 1 calc(50% - 4px); padding:10px 13px; gap:9px}
+  .syncrow .bcard{flex:1 1 100%; padding:9px 13px; gap:9px; flex-wrap:wrap}
+  .syncrow .logo img{height:10px}
   .syncrow .tier2{font-size:11px; letter-spacing:.1em}
   .devnote{padding:9px 20px; font-size:12px}
 }
@@ -876,7 +877,7 @@ nav {
          samme lockup som X-PULSE-logoen. Derfor ligger raden her under
          heroen og ikke i toppnavigasjonen. -->
     <div class="bcard strava">
-      <span class="logo"><img src="/brand/api_logo_cptblWith_strava_horiz_white.svg" alt="Compatible with Strava" style="height:13px;width:auto;display:block"></span>
+      <span class="logo"><img src="/brand/api_logo_cptblWith_strava_horiz_white.svg" alt="Compatible with Strava"></span>
       <span class="bmeta">
         <span class="bname">Strava</span>
         <span class="bstat rolling"><span class="dot"></span>Gradvis utrulling</span>

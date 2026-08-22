@@ -10,7 +10,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { setSeatQuantity, type SeatStatus } from '@/app/actions/seats'
+import { setSeatQuantity, previewSeatQuantity, type SeatStatus, type SeatQuantityPreview } from '@/app/actions/seats'
 import { regenerateSeatInviteLink, releaseSeat } from '@/app/actions/seat-invite'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
@@ -51,10 +51,28 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
     })
   }
 
+  // Kjøp skjer ALDRI direkte fra Lagre: først hentes den faktiske
+  // proraterte summen fra Stripe og vises i en «helt sikker?»-popup.
+  const [preview, setPreview] = useState<SeatQuantityPreview | null>(null)
+
   const lagreAntall = () => {
     setError(null); setMustFree(null)
     startTransition(async () => {
+      const res = await previewSeatQuantity(antall)
+      if ('error' in res) {
+        setError(res.error)
+        if (res.mustFree) setMustFree(res.mustFree)
+        return
+      }
+      setPreview(res)
+    })
+  }
+
+  const bekreftKjop = () => {
+    setError(null)
+    startTransition(async () => {
       const res = await setSeatQuantity(antall)
+      setPreview(null)
       if (res.error) {
         setError(res.error)
         if (res.mustFree) setMustFree(res.mustFree)
@@ -136,10 +154,53 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
         <button type="button" onClick={() => setAntall(a => Math.min(200, a + 1))} style={knappSekundar} aria-label="Flere plasser">+</button>
         {antall !== status.purchased && (
           <button type="button" onClick={lagreAntall} disabled={pending} style={knappPrimar}>
-            {pending ? 'Lagrer…' : `Lagre (${antall * 29} kr/mnd)`}
+            {pending ? 'Henter pris…' : `Lagre (${antall * 29} kr/mnd)`}
           </button>
         )}
       </div>
+
+      {/* Bekreftelses-popup: viser den FAKTISKE proraterte summen fra Stripe
+          før noe endres — kjøp skjer aldri i blinde. */}
+      {preview && (
+        <div onClick={() => setPreview(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 80,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+          }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ backgroundColor: '#0A0A0B', border: '1px solid #2A2A33', borderRadius: 14, maxWidth: 420, width: '100%', padding: 22 }}>
+            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 20, letterSpacing: '0.08em', marginBottom: 10 }}>
+              {preview.til > preview.fra ? 'Bekreft kjøp av plasser' : 'Bekreft endring'}
+            </h3>
+            <div className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+              <p>Kjøpte utøverplasser: <b style={{ color: '#F0F0F2' }}>{preview.fra} → {preview.til}</b></p>
+              <p>Ny månedspris for plassene: <b style={{ color: '#F0F0F2' }}>{preview.nyMndOre / 100} kr/mnd</b> (fra neste faktura)</p>
+              {preview.prorationOre > 0 && (
+                <p>Belastes nå (resten av perioden): <b style={{ color: '#F0F0F2' }}>{(preview.prorationOre / 100).toFixed(2)} kr</b></p>
+              )}
+              {preview.prorationOre < 0 && (
+                <p>Godskrives på neste faktura: <b style={{ color: '#28A86E' }}>{(Math.abs(preview.prorationOre) / 100).toFixed(2)} kr</b></p>
+              )}
+              {preview.prorationOre === 0 && preview.til !== preview.fra && (
+                <p style={{ color: '#8A8A96' }}>
+                  {preview.status === 'trialing'
+                    ? 'Ingen belastning nå — plassene kommer på første faktura etter prøveperioden.'
+                    : 'Ingen belastning nå — endringen kommer på neste faktura.'}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <button type="button" onClick={() => setPreview(null)} style={knappSekundar}>Avbryt</button>
+              <button type="button" onClick={bekreftKjop} disabled={pending} style={{ ...knappPrimar, opacity: pending ? 0.6 : 1 }}>
+                {pending ? 'Utfører…' : preview.til > preview.fra
+                  ? `Bekreft kjøp${preview.prorationOre > 0 ? ` — ${(preview.prorationOre / 100).toFixed(2)} kr nå` : ''}`
+                  : 'Bekreft endring'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-3 mb-3" style={{

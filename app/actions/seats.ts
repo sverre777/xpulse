@@ -94,6 +94,86 @@ export async function getSeatStatus(): Promise<SeatStatus | { error: string }> {
   }
 }
 
+// Forhåndsvisning av antall-endring FØR noe skjer: hva belastes/godskrives
+// NÅ (faktisk proratering fra Stripe, ikke et estimat) og ny månedspris.
+// Panelet viser dette i en bekreftelses-popup — kjøp skjer aldri i blinde.
+export interface SeatQuantityPreview {
+  fra: number
+  til: number
+  // Prorert beløp i øre for resten av perioden (negativt = godskrives).
+  // 0 typisk under prøveperiode — belastningen kommer på første faktura.
+  prorationOre: number
+  nyMndOre: number
+  status: string
+}
+
+export async function previewSeatQuantity(
+  quantity: number,
+): Promise<SeatQuantityPreview | { error: string; mustFree?: number }> {
+  if (!Number.isInteger(quantity) || quantity < 0 || quantity > 200) {
+    return { error: 'Ugyldig antall' }
+  }
+  const priceId = seatPriceId()
+  if (!priceId) return { error: 'Mangler STRIPE_PRICE_UTOVERPLASS i env' }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+
+  const sub = await getActiveSubscription(supabase, user.id)
+  if (!hasActiveAccess(sub) || (sub!.tier !== 'trener_basic' && sub!.tier !== 'trener_pro')) {
+    return { error: 'Krever aktivt trener-abonnement' }
+  }
+  if (!sub!.stripe_subscription_id) return { error: 'Abonnementet er ikke koblet til Stripe' }
+
+  // Samme sperre som selve endringen — popup-en skal aldri vises for en
+  // endring serveren uansett ville blokkert.
+  const service = getServiceSupabase()
+  const ctx = await seatContextForCoach(service, user.id)
+  if ('error' in ctx) return { error: ctx.error }
+  const sperre = sjekkAntallMotBruk(ctx.teller, includedSeatsForTier(sub!.tier), quantity)
+  if (!sperre.ok) return { error: sperre.melding, mustFree: sperre.mustFree }
+
+  try {
+    const stripeSub = await stripe.subscriptions.retrieve(sub!.stripe_subscription_id)
+    const seatItem = stripeSub.items.data.find(i => i.price?.id === priceId)
+
+    // Hypotetisk item-liste — INGENTING endres av en preview.
+    const items = quantity === 0
+      ? (seatItem ? [{ id: seatItem.id, deleted: true as const }] : [])
+      : seatItem
+        ? [{ id: seatItem.id, quantity }]
+        : [{ price: priceId, quantity }]
+
+    if (items.length === 0) {
+      // 0 → 0 uten eksisterende linje: ingenting å endre.
+      return { fra: 0, til: 0, prorationOre: 0, nyMndOre: 0, status: stripeSub.status }
+    }
+
+    const preview = await stripe.invoices.createPreview({
+      subscription: stripeSub.id,
+      subscription_details: { items, proration_behavior: 'create_prorations' },
+    })
+    // Proration-flagget bor i line.parent.subscription_item_details i
+    // 2026-API-et (verifisert i setemodell-stripe-testen).
+    const prorationOre = preview.lines.data
+      .filter(l => (l as unknown as { parent?: { subscription_item_details?: { proration?: boolean } } })
+        .parent?.subscription_item_details?.proration === true)
+      .reduce((s, l) => s + l.amount, 0)
+
+    return {
+      fra: seatItem?.quantity ?? 0,
+      til: quantity,
+      prorationOre,
+      nyMndOre: quantity * 2900,
+      status: stripeSub.status,
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { error: `Kunne ikke hente forhåndsvisning fra Stripe: ${msg}` }
+  }
+}
+
 // Setter antall KJØPTE utøverplasser (Stripe quantity). Proratering skjer i
 // Stripe (create_prorations). Returnerer ved sperre hvor mange plasser som må
 // frigjøres — bolk 4 viser navnelisten og lar treneren velge.

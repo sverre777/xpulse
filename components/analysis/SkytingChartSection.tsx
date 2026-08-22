@@ -19,7 +19,7 @@ import { getShootingDepthAnalysis, type ShootingDepthAnalysis } from '@/app/acti
 import { SkytingSummaryCards } from './SkytingSummaryCards'
 import { ShotVolumeChart } from './ShotVolumeChart'
 import { ChipSelector } from './ChartControls'
-import { rangeFromPreset, type DateRange } from './date-range'
+import { rangeFromPreset, shotVolumeGrouping, type DateRange } from './date-range'
 
 // Periodevalgene er høstet fra CalendarAnalysisSnippets (LocalPeriod /
 // rangeForPeriod / PERIOD_OPTIONS) i stedet for å finne opp et nytt sett.
@@ -98,13 +98,13 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
 
         <SkytingSummaryCards data={data} />
 
-        {/* Uke- eller månedssøyler utledes fortsatt av periodelengden inne i
-            grafen — med eksplisitt periodevalg gjør den logikken nå det
-            brukeren forventer av seg selv. */}
+        {/* Tittelen utledes av SAMME funksjon som grafen grupperer etter.
+            Gjettet vi på periode-nøkkelen i stedet, ville «3 mnd» (90 dager,
+            altså ukesøyler) fått tittelen «Skudd per måned». */}
         <ShotVolumeChart
           range={range}
           targetUserId={targetUserId}
-          title={periode === '12m' || periode === '3m' ? 'Skudd per måned' : 'Skudd per uke'}
+          title={shotVolumeGrouping(range) === 'month' ? 'Skudd per måned' : 'Skudd per uke'}
         />
       </div>
     </>

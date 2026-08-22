@@ -27,3 +27,24 @@ export function rangeFromPreset(preset: PresetKey, today: Date = new Date()): Da
   from.setDate(today.getDate() - days + 1)
   return { from: formatDate(from), to: formatDate(to), preset }
 }
+
+/**
+ * Uke- eller månedssøyler for en periode — ÉN KILDE for den beslutningen.
+ *
+ * Bor her, i den rene range-modulen, og ikke i grafkomponenten: da kan både
+ * grafen og seksjonen over den kalle den uten å dra med seg server-actions,
+ * og regelen kan kjøres i et script.
+ *
+ * Bakgrunn: regelen lå som en anonym useMemo inne i ShotVolumeChart, mens
+ * SkytingChartSection gjettet det samme ut fra periode-NØKKELEN. De kom i
+ * utakt — «3 mnd» er 90 dager, altså ukesøyler, men seksjonen skrev «Skudd
+ * per måned» over dem. Kaller begge denne, kan de ikke sprike igjen, heller
+ * ikke den dagen noen flytter terskelen.
+ *
+ * Terskelen: over ~4,5 måned blir ukesøylene for mange og for tynne.
+ */
+export function shotVolumeGrouping(range: DateRange): 'week' | 'month' {
+  const from = new Date(range.from + 'T00:00:00')
+  const to = new Date(range.to + 'T00:00:00')
+  return (to.getTime() - from.getTime()) / 86400000 > 140 ? 'month' : 'week'
+}

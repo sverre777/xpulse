@@ -18,7 +18,7 @@ import {
 import { SHOT_TYPE_ORDER } from '@/lib/shooting'
 import { ChartWrapper } from './ChartWrapper'
 import { CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_CURSOR } from './chart-theme'
-import type { DateRange } from './date-range'
+import { shotVolumeGrouping, type DateRange } from './date-range'
 
 const MARKING_OPTIONS: { value: ShotMarkingFilter; label: string }[] = [
   { value: 'alle',        label: 'Alle markeringer' },
@@ -92,12 +92,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
   const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set())
   const [marking, setMarking] = useState<ShotMarkingFilter>('alle')
 
-  // År-gruppering: samme graf per måned når perioden er lang (> ~4,5 mnd).
-  const grouping: 'week' | 'month' = useMemo(() => {
-    const from = new Date(range.from + 'T00:00:00')
-    const to = new Date(range.to + 'T00:00:00')
-    return (to.getTime() - from.getTime()) / 86400000 > 140 ? 'month' : 'week'
-  }, [range.from, range.to])
+  const grouping = useMemo(() => shotVolumeGrouping(range), [range])
 
   useEffect(() => {
     let cancelled = false

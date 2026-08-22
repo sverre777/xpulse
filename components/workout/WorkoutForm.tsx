@@ -1419,7 +1419,17 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               && !await xpConfirm(`Erstatte seriene med oppsettet fra «${oppsett.navn}» (${nySerier.length} serier)?`)) return
             setForm(f => {
               // Samme regel som alle andre test-innganger (testFelter).
-              const medTest = testFelter(f, oppsett.navn, 'biathlon')
+              // Skytetest er ingen av skiskytingens distanse-underkategorier
+              // (Sprint/Jaktstart/…) — protokollen settes til «Egen».
+              const medTestBase = testFelter(f, oppsett.navn, 'biathlon')
+              const tdSkyte = medTestBase.test_data!
+              const medTest = {
+                ...medTestBase,
+                test_data: {
+                  ...tdSkyte,
+                  subcategory: tdSkyte.subcategory.trim() === '' ? 'Egen' : tdSkyte.subcategory,
+                },
+              }
               const rad = f.activities.find(a => a.shooting_series.length > 0)
               if (rad) {
                 return { ...f, ...medTest, activities: f.activities.map(a => a.id === rad.id

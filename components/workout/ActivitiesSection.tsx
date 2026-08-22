@@ -212,7 +212,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
         exercises: created.type === 'styrke' ? r.exercises : [],
         elevation_gain_m: created.type === 'utholdenhet' || created.type === 'tur' ? r.elevation_gain_m : '',
         elevation_loss_m: created.type === 'utholdenhet' || created.type === 'tur' ? r.elevation_loss_m : '',
-        pack_weight_kg: created.type === 'tur' ? r.pack_weight_kg : '',
+        pack_weight_kg: created.type === 'tur' || created.type === 'utholdenhet' ? r.pack_weight_kg : '',
         sled_weight_kg: created.type === 'tur' ? r.sled_weight_kg : '',
         weather: created.type === 'tur' ? r.weather : '',
         temperature_c: created.type === 'tur' ? r.temperature_c : '',
@@ -412,8 +412,10 @@ function ActivityRowItem({
       patch.elevation_gain_m = ''
       patch.elevation_loss_m = ''
     }
-    if (!nextTur) {
+    if (!nextTur && !nextEndurance) {
       patch.pack_weight_kg = ''
+    }
+    if (!nextTur) {
       patch.sled_weight_kg = ''
       patch.weather = ''
       patch.temperature_c = ''
@@ -760,6 +762,13 @@ function ActivityRowItem({
               tur-former. Pulkvekt vises bare når underkategori matcher pulk-liste. */}
           {isTur && (
             <TurFields row={row} onUpdate={onUpdate} />
+          )}
+
+          {/* Vekt (vest/våpen) på utholdenhet — DISKRET tillegg (Sverre 22. aug):
+              en liten ghost-knapp til verdien finnes. Skiskyttere får børsa-
+              chip (3,5 kg) rett i raden. Lagres i pack_weight_kg (Tur-mønsteret). */}
+          {isEndurance && !isTur && !meta?.isShooting && !isAnnet && (
+            <VektTillegg row={row} onUpdate={onUpdate} biathlon={sport === 'biathlon'} />
           )}
 
           {/* Sonefordeling — kun utholdenhet (ikke skyting/pause/styrke) */}
@@ -1390,6 +1399,62 @@ function LactateMeasurementsEditor({
 // ── Tur-spesifikke felt ────────────────────────────────────
 // Pakkevekt, pulkvekt, total (read-only sum), værforhold og temperatur.
 // Pulkvekt vises kun når underkategori tilsier det (f.eks. "Fjellski med pulk").
+
+function VektTillegg({ row, onUpdate, biathlon }: {
+  row: ActivityRow
+  onUpdate: (patch: Partial<ActivityRow>) => void
+  biathlon: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const val = row.pack_weight_kg
+  const erBorsa = val === '3.5'
+  const ghost: React.CSSProperties = {
+    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
+    letterSpacing: '0.06em', color: '#555560', background: 'none',
+    border: '1px dashed #2A2A33', borderRadius: 999, padding: '3px 10px',
+    cursor: 'pointer',
+  }
+  if (val === '' && !open) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <button type="button" onClick={() => setOpen(true)} style={ghost}>
+          ＋ Vekt (vest/våpen)
+        </button>
+        {biathlon && (
+          <button type="button" onClick={() => onUpdate({ pack_weight_kg: '3.5' })} style={ghost}>
+            🔫 Børsa 3,5 kg
+          </button>
+        )}
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-2 mt-2 flex-wrap">
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#8A8A96', letterSpacing: '0.06em' }}>
+        ⚖ Vekt
+      </span>
+      <input value={val} inputMode="decimal" placeholder="kg" autoFocus={open && val === ''}
+        onChange={e => onUpdate({ pack_weight_kg: e.target.value })}
+        style={{ ...iSt, width: 64, padding: '3px 8px', fontSize: 13 }} />
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#555560' }}>kg</span>
+      {biathlon && (
+        <button type="button"
+          onClick={() => onUpdate({ pack_weight_kg: erBorsa ? '' : '3.5' })}
+          style={{ ...ghost, borderStyle: 'solid',
+            color: erBorsa ? '#F0F0F2' : '#555560',
+            borderColor: erBorsa ? '#FF4500' : '#2A2A33',
+            background: erBorsa ? 'rgba(255,69,0,0.08)' : 'none' }}>
+          🔫 Børsa 3,5 kg
+        </button>
+      )}
+      <button type="button" aria-label="Fjern vekt"
+        onClick={() => { onUpdate({ pack_weight_kg: '' }); setOpen(false) }}
+        style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: 13, padding: '0 2px' }}>
+        ✕
+      </button>
+    </div>
+  )
+}
 
 function TurFields({
   row, onUpdate,

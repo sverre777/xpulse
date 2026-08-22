@@ -101,6 +101,8 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo','Spinning','Air bike'] },
   { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
   { name: 'Rulleski',       subcategories: SKI_SUBCATEGORIES },
+  // Egen form for mølle-rulleski (Sverre 20. aug) — samme teknikk-språk.
+  { name: 'Rulleski på mølle', subcategories: ['Staking','Klassisk','Skøyting','Skøyting uten staver'] },
   { name: 'SkiErg' },
   // Resten — utholdenhet før øvrige.
   { name: 'Svømming basseng 25m', subcategories: SVOMMING_TECHNIQUES },

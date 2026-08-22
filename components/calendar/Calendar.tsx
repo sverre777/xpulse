@@ -39,6 +39,7 @@ import { WeekCalendarView } from './WeekCalendarView'
 import type { DayState, DayStateType } from '@/lib/day-state-types'
 import { getDayStatesForRange } from '@/app/actions/day-states'
 import { DayStateModal } from '@/components/day-state/DayStateModal'
+import { SamlingModal } from '@/components/calendar/SamlingModal'
 import {
   DayStateIndicator, restStillPlanned, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
@@ -127,6 +128,11 @@ interface CalendarActions {
   // reconciler. newTime: undefined = behold tid (måned/uke-dato-drop); 'HH:MM'
   // eller null = sett/nullstill tid (uke-view tid-drop).
   moveWorkoutTo: (workoutId: string, fromDate: string, toDate: string, newTime?: string | null) => void
+  // 📍 Samling/høyde: planlegg fra en dag (ved siden av reisedag) og rediger
+  // ved klikk på markeringen. Skriver til season_markings — samme rader som
+  // årsplanen, så endringer herfra ER årsplan-oppdateringer.
+  onPlanSamling: (dateStr: string) => void
+  onEditMarking: (m: import('@/app/actions/seasons').SeasonMarking) => void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
 function useCalendarActions(): CalendarActions {
@@ -1067,7 +1073,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
 
 // ── Day cell ────────────────────────────────────────────────
 
-function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, periodEdges, periodStart }: {
+function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, markingsOnDay = [], periodEdges, periodStart }: {
   date: Date
   workouts: CalendarWorkoutSummary[]
   healthDate: boolean
@@ -1076,6 +1082,9 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   isExpanded: boolean
   onToggle: () => void
   keyDatesOnDay: import('@/app/actions/seasons').SeasonKeyDate[]
+  // 📍 samling / 🏔 høyde som dekker dagen — diskret emoji ved datotallet,
+  // KUN på dager innenfor spennet (title = navn + datoer). Aldri utenfor.
+  markingsOnDay?: import('@/app/actions/seasons').SeasonMarking[]
   // Tynn strek på dagen der en periode starter (venstre) / slutter (høyre).
   // title = navn + datospenn (Del C: hover-tooltip).
   periodEdges?: { side: 'start' | 'end'; color: string; title: string }[]
@@ -1152,6 +1161,19 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
           {date.getDate()}
         </span>
         <div className="flex items-center gap-1">
+          {/* 📍/🏔 vises maks én gang hver — samling/høyde per dag i spennet. */}
+          {markingsOnDay.some(m => m.is_training_camp) && (
+            <span aria-hidden style={{ fontSize: '11px', lineHeight: 1, opacity: 0.85 }}
+              title={markingsOnDay.filter(m => m.is_training_camp).map(m => `📍 ${m.name} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')}>
+              📍
+            </span>
+          )}
+          {markingsOnDay.some(m => m.is_altitude) && (
+            <span aria-hidden style={{ fontSize: '11px', lineHeight: 1, opacity: 0.85 }}
+              title={markingsOnDay.filter(m => m.is_altitude).map(m => `🏔 ${m.name}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} · ${formatSpanNO(m.start_date, m.end_date)}`).join('\n')}>
+              🏔
+            </span>
+          )}
           <DayStateIndicator states={states} size={11} />
           {keyDatesOnDay.slice(0, 2).map(k => (
             <span key={k.id} aria-hidden
@@ -1237,7 +1259,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
   seasonKeyDates: import('@/app/actions/seasons').SeasonKeyDate[]
 }) {
   const router = useRouter()
-  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo } = useCalendarActions()
+  const { onEditWorkout, onCreateWorkout, onAddRecovery, onEditHealth, onEditDayState, onMarkDayState, dayStatesByDate, targetUserId, readOnly, refreshCalendar, moveWorkoutTo, onPlanSamling, onEditMarking } = useCalendarActions()
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
 
   // Mobil-listen (bolk 2, kun dagbok): utvidede tomrom — sesjonslokal,
@@ -1554,6 +1576,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       isExpanded={expandedDay === ds}
                       onToggle={() => setExpandedDay(prev => prev === ds ? null : ds)}
                       keyDatesOnDay={keyDatesForDate(seasonKeyDates, ds)}
+                      markingsOnDay={seasonMarkings.filter(m => m.start_date <= ds && m.end_date >= ds)}
                       periodEdges={seasonPeriods.flatMap(p => {
                         const title = `${p.name} · ${formatSpanNO(p.start_date, p.end_date)}`
                         return [
@@ -1900,13 +1923,14 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             </span>
                           )}
                           {dm.map(m => (
-                            <span key={m.id} title={`${m.start_date} → ${m.end_date}`}
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em' }}>
+                            <button key={m.id} type="button" title={`${m.start_date} → ${m.end_date}${readOnly ? '' : ' — klikk for å redigere'}`}
+                              onClick={() => { if (!readOnly) onEditMarking(m) }}
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#D4A017', border: '1px solid rgba(212,160,23,0.45)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.05em', background: 'none', cursor: readOnly ? 'default' : 'pointer' }}>
                               {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔 ' : ''}{m.name}
                               {m.location ? ` · ${m.location}` : ''}
                               {m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''}
                               {edge(m.start_date, m.end_date)}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       )
@@ -2282,6 +2306,11 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           {/* Reisedag kan planlegges frem i tid, som hviledag. */}
                           <button type="button" onClick={() => onMarkDayState(ds, 'reisedag')} style={ghostBtn}>
                             ✈️ Reisedag
+                          </button>
+                          {/* Samling/høyde planlegges med fra–til — bor i
+                              årsplanens markeringslag (én kilde). */}
+                          <button type="button" onClick={() => onPlanSamling(ds)} style={ghostBtn}>
+                            📍 Samling
                           </button>
                           {!isFuture && (
                             <button type="button" onClick={() => onMarkDayState(ds, 'sykdom')} style={ghostBtn}>
@@ -2749,6 +2778,9 @@ export function Calendar({
     }
   }, [searchParams, mode])
 
+  // 📍 Samling/høyde-modalen (season_markings — én kilde m/ årsplanen).
+  const [samlingModal, setSamlingModal] = useState<{ existing: import('@/app/actions/seasons').SeasonMarking | null; date?: string } | null>(null)
+
   const fetchData = useCallback(async (start: Date, end: Date, prevStart?: Date, prevEnd?: Date) => {
     setLoading(true)
     const [raw, statesRes, prevRaw] = await Promise.all([
@@ -2961,6 +2993,8 @@ export function Calendar({
       readOnly,
       refreshCalendar,
       moveWorkoutTo: handleMoveWorkout,
+      onPlanSamling: (dateStr: string) => setSamlingModal({ existing: null, date: dateStr }),
+      onEditMarking: (m) => setSamlingModal({ existing: m }),
     }}>
     <div style={{ opacity: loading ? 0.7 : 1, transition: 'opacity 0.15s' }}>
       {/* ── Header ── */}
@@ -3173,6 +3207,16 @@ export function Calendar({
         editing={dayStateModal.editing}
         onSaved={() => { refreshDayStates() }}
         targetUserId={targetUserId}
+      />
+    )}
+    {samlingModal && (
+      <SamlingModal
+        existing={samlingModal.existing}
+        defaultDate={samlingModal.date}
+        targetUserId={targetUserId}
+        onClose={() => setSamlingModal(null)}
+        // seasonMarkings kommer som server-prop — refresh henter dem på nytt.
+        onSaved={() => { router.refresh() }}
       />
     )}
     </CalendarActionsContext.Provider>

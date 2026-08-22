@@ -1066,3 +1066,67 @@ export async function updateKeyDatePriority(
   revalidatePath('/app/plan')
   return {}
 }
+
+// ── Samling/høyde i kalenderen (plan + dagbok) ───────────────
+//
+// Kalenderen viser 📍/🏔 per dag i markeringsperiodene og lar deg planlegge
+// samling direkte (ved siden av reisedag). ALT går mot season_markings —
+// samme rader som årsplanen viser, så redigering herfra ER en oppdatering
+// av årsplanen (én kilde, aldri sync).
+
+export async function getMarkingsForRange(
+  from: string,
+  to: string,
+  targetUserId?: string,
+): Promise<SeasonMarking[] | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, targetUserId)
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { data, error } = await supabase
+      .from('season_markings')
+      .select('*, seasons!inner(user_id)')
+      .eq('seasons.user_id', resolved.userId)
+      .lte('start_date', to)
+      .gte('end_date', from)
+      .order('start_date', { ascending: true })
+    if (error) return { error: error.message }
+    // Join-feltet skal ikke ut til klienten.
+    return (data ?? []).map(r => {
+      const { seasons: _s, ...rest } = r as SeasonMarking & { seasons: unknown }
+      return rest as SeasonMarking
+    })
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+// Opprett markering fra kalenderen uten å kjenne sesongen: finner sesongen
+// som dekker datoene. Ingen sesong = ærlig feilmelding (markeringslaget bor
+// i årsplanen, og trenger en sesong å bo i).
+export async function createMarkingForDates(
+  input: Omit<MarkingInput, 'season_id'>,
+): Promise<{ id?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const resolved = await resolveTargetUser(supabase, input.targetUserId, 'can_edit_periodization')
+    if ('error' in resolved) return { error: resolved.error }
+
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('user_id', resolved.userId)
+      .lte('start_date', input.start_date)
+      .gte('end_date', input.end_date)
+      .order('start_date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (!season) {
+      return { error: 'Ingen sesong i årsplanen dekker datoene — opprett eller utvid sesongen under Periodisering først.' }
+    }
+    return createMarking({ ...input, season_id: season.id as string })
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+}

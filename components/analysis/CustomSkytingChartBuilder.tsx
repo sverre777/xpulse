@@ -298,7 +298,11 @@ export function CustomSkytingChartBuilder({ data }: Props) {
       chartKey="skyting_custom"
       title="Custom skyting-graf"
       subtitle="Filtrer økt-type, posisjon og per-skyting · velg fritt akser"
-      height={360}
+      // height="auto": kortet må vokse med kontrollene. Med fast høyde ble
+      // grafen tegnet UTENFOR kortet og malte over kortene under så snart
+      // kontrollradene ble høyere enn tallet — ChartWrapper klipper ikke.
+      // Samme valg som den fysiske «Custom graf», av samme grunn.
+      height="auto"
     >
       <div className="flex flex-col gap-3 -mt-2">
         <div className="flex flex-wrap gap-2">
@@ -495,7 +499,8 @@ export function CustomSkytingChartBuilder({ data }: Props) {
           )}
         </p>
 
-        <div style={{ width: '100%', height: 260 }}>
+        {/* Grafen har sin egen faste høyde inni det auto-høye kortet. */}
+        <div style={{ width: '100%', height: 260, minWidth: 0 }}>
           {filter.modus === 'tester' ? (
             testSerier.length === 0 ? (
               <div className="h-full flex items-center justify-center"

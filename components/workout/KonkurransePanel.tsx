@@ -353,7 +353,9 @@ export function KonkurransePanel({
       )}
 
       {/* Mal-rad: ny mal i EGEN popup — ren struktur-bygger. Aldri fra
-          utfylt panel-innhold; sted/plasseringer/resultater hoerer til oekta. */}
+          utfylt panel-innhold; sted/plasseringer/resultater hoerer til oekta.
+          Skjules inne i mal-byggeren — ingen meta-oppretting av maler der. */}
+      {kanLageNyMal && (
       <div className="flex items-center gap-3 flex-wrap px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
         <span style={{ fontFamily: FONT, fontSize: 13, color: '#8B8B95', flex: 1, minWidth: 200 }}>
           💾 <b style={{ color: '#F0F0F2' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> — ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
@@ -363,6 +365,7 @@ export function KonkurransePanel({
           + Ny mal
         </button>
       </div>
+      )}
     </div>
   )
 }

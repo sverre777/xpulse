@@ -467,11 +467,32 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     setForm(f => ({ ...f, sport, movements: makeDefaultMovements(sport) }))
   }
 
+  // ÉN regel for hva et test-valg gjør med skjemaet — uansett inngang
+  // (panelets testvelger, skytetest-biblioteket, mal-velgeren i toppen eller
+  // bibliotek-byggeren): 🧪 økt-type, og tittel + testpanelets «Navn på
+  // testen» + test_type fra testens navn, så resultatet lagres som resultat
+  // AV den testen. Tomme felter fylles — utfylte røres aldri.
+  const testFelter = (f: WorkoutFormData, navn: string): Partial<WorkoutFormData> => {
+    const td = f.test_data ?? emptyTestData()
+    return {
+      workout_type: 'test',
+      title: f.title.trim() === '' ? navn : f.title,
+      test_data: {
+        ...td,
+        custom_label: td.custom_label.trim() === '' ? navn : td.custom_label,
+        test_type: td.test_type.trim() === '' ? navn : td.test_type,
+      },
+    }
+  }
+
   const loadTemplate = (template: WorkoutTemplate) => {
     const d = template.template_data ?? ({} as WorkoutFormData)
     // Generer nye klient-id-er + safe defaults for alle felt så ikke gamle
     // mal-snapshots krasjer render i ActivitiesSection.
     const freshActivities = (template.activities ?? []).map(normalizeActivityRowFromTemplate)
+    // Test-mal valgt (uansett fra mal-velgeren i toppen eller panelet):
+    // testpanelet fylles automatisk og malen gull-markeres i testvelgeren.
+    setValgtTestMalId(template.is_test ? template.id : null)
     setForm(f => ({
       ...f,
       // Malens tittel følger med inn i økten (pre-fylt, redigerbar). Malens
@@ -508,6 +529,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               seriesList?.find(se => se.id === template.standard_session_series_id)?.name ?? null,
           }
         : {}),
+      // Test-mal: fyll testpanelet (navn/test_type) — tittel settes over.
+      ...(template.is_test ? testFelter({ ...f, title: template.name || f.title }, template.name) : {}),
     }))
   }
 
@@ -1350,15 +1373,17 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             if (eksisterende && eksisterende.shooting_series.some(sr => (parseInt(sr.shots) || 0) > 0)
               && !await xpConfirm(`Erstatte seriene med oppsettet fra «${oppsett.navn}» (${nySerier.length} serier)?`)) return
             setForm(f => {
+              // Samme regel som alle andre test-innganger (testFelter).
+              const medTest = testFelter(f, oppsett.navn)
               const rad = f.activities.find(a => a.shooting_series.length > 0)
               if (rad) {
-                return { ...f, activities: f.activities.map(a => a.id === rad.id
+                return { ...f, ...medTest, activities: f.activities.map(a => a.id === rad.id
                   ? { ...a, shooting_is_test: true, shooting_test_ref: oppsett.ref,
                       shooting_surface: (oppsett.surface ?? a.shooting_surface) as ActivityRow['shooting_surface'],
                       shooting_series: nySerier }
                   : a) }
               }
-              return { ...f, activities: [...f.activities, {
+              return { ...f, ...medTest, activities: [...f.activities, {
                 ...makeActivity({ activity_type: 'skyting_kombinert' }),
                 shooting_is_test: true, shooting_test_ref: oppsett.ref,
                 shooting_surface: (oppsett.surface ?? '') as ActivityRow['shooting_surface'],
@@ -1386,17 +1411,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               ? (Object.entries(TESTSPORT_TIL_SPORT).find(([, s]) => s === malSport)?.[0] ?? '')
               : ''
             setForm(f => {
-              const td = f.test_data ?? emptyTestData()
+              const felter = testFelter(f, malNavn)
+              const td = felter.test_data!
               return {
                 ...f,
-                workout_type: 'test',
-                title: f.title.trim() === '' ? malNavn : f.title,
-                test_data: {
-                  ...td,
-                  custom_label: td.custom_label.trim() === '' ? malNavn : td.custom_label,
-                  test_type: td.test_type.trim() === '' ? malNavn : td.test_type,
-                  sport: td.sport === '' ? (testSport as typeof td.sport) : td.sport,
-                },
+                ...felter,
+                test_data: { ...td, sport: td.sport === '' ? (testSport as typeof td.sport) : td.sport },
               }
             })
             if (bibMal) setMalBygger(bibMal)
@@ -1682,16 +1702,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
                   || a.shooting_series.length > 0 || a.exercises.length > 0)
                 if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
-                setForm(f => ({
-                  ...f,
-                  title: tittel,
-                  // okt_type fra malen som før (bolk 1): test → 🧪, ellers mappes.
-                  workout_type: erTestMal(mal) ? 'test'
-                    : ((oktTypeToWorkoutType(mal.type) ?? f.workout_type) as WorkoutFormData['workout_type']),
-                  activities: rader,
-                  template_id: null,
-                  template_name: mal.navn,
-                }))
+                if (erTestMal(mal)) setValgtTestMalId(`bib_${mal.ref}`)
+                setForm(f => {
+                  const base = {
+                    ...f,
+                    title: tittel,
+                    // okt_type fra malen som før (bolk 1): test → 🧪, ellers mappes.
+                    workout_type: (erTestMal(mal) ? 'test'
+                      : (oktTypeToWorkoutType(mal.type) ?? f.workout_type)) as WorkoutFormData['workout_type'],
+                    activities: rader,
+                    template_id: null,
+                    template_name: mal.navn,
+                  }
+                  // Test-mal: testpanelet fylles auto — byggerens tittel vinner.
+                  return erTestMal(mal)
+                    ? { ...base, ...testFelter(base, mal.navn), title: base.title }
+                    : base
+                })
               }} />
           </div>
         </div>

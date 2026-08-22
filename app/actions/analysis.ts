@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
+import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
@@ -3321,6 +3322,14 @@ export interface ShootingSeriesRow {
   vind_styrke: number | null
   sikt: 'god' | 'lett_taake' | 'taake' | 'tett_taake' | null
   in_competition: boolean
+  // Skytetypen fra aktiviteten ('basisskyting' | 'rolig_komb' |
+  // 'hurtighet_komb' | 'hard_komb' | null). Nøklene er de samme som
+  // SHOT_TYPE_ORDER i lib/shooting.ts — null vises som «Uten type».
+  shooting_type: string | null
+  // Skytetest: flagget + hvilken protokoll ('nssf1'… eller uuid mot
+  // shooting_test_templates). Lar testresultater følges over tid.
+  shooting_is_test: boolean
+  shooting_test_ref: string | null
 }
 
 export interface ShootingAccuracyPoint {
@@ -3404,6 +3413,8 @@ type RawShootingWorkout = {
     standing_hits: number | null
     shooting_type: string | null
     is_dry_training: boolean | null
+    shooting_is_test: boolean | null
+    shooting_test_ref: string | null
     workout_shooting_series?: {
       id: string; series_no: number; position: string
       shots: number | null; hits: number | null; time_seconds: number | null
@@ -3460,7 +3471,7 @@ export async function getShootingDepthAnalysis(
 
     const { data, error } = await supabase
       .from('workouts')
-      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,vind_retning,vind_styrke,sikt))')
+      .select('id,date,workout_type,sport,workout_activities(activity_type,sort_order,duration_seconds,avg_heart_rate,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training,shooting_is_test,shooting_test_ref,workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,vind_retning,vind_styrke,sikt))')
       .eq('user_id', userId)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .eq('sport', 'biathlon')
@@ -3522,6 +3533,9 @@ export async function getShootingDepthAnalysis(
               vind_styrke: s.vind_styrke ?? null,
               sikt: (s.sikt as ShootingSeriesRow['sikt']) ?? null,
               in_competition: inComp,
+              shooting_type: a.shooting_type ?? null,
+              shooting_is_test: a.shooting_is_test === true,
+              shooting_test_ref: a.shooting_test_ref ?? null,
             })
           }
           continue
@@ -3547,6 +3561,9 @@ export async function getShootingDepthAnalysis(
           vind_styrke: null,
           sikt: null,
           in_competition: inComp,
+          shooting_type: a.shooting_type ?? null,
+          shooting_is_test: a.shooting_is_test === true,
+          shooting_test_ref: a.shooting_test_ref ?? null,
         })
       }
     }
@@ -4290,6 +4307,11 @@ export interface ShotVolumeBucket {
   // Kun-førte per type (til treff % per type i tooltip).
   recordedByType: Record<string, { shots: number; hits: number }>
   drySeconds: number
+  // PLANLAGTE skudd i samme periode, per type. Tørrtrening er aldri med —
+  // den telles i tid, ikke skudd (plannedDrySeconds).
+  plannedByType: Record<string, number>
+  plannedShots: number
+  plannedDrySeconds: number
   ghost?: boolean
 }
 
@@ -4323,6 +4345,22 @@ export async function getShotVolume(
       .order('date')
     if (error) return { error: error.message }
 
+    // PLANLAGTE skudd. Egen spørring fordi hoved-spørringen med vilje bare
+    // henter gjennomførte økter. Planen leses fra planned_snapshot når den
+    // finnes (det er der plan-modus skriver den), med aktivitetsradene som
+    // fallback for planer lagret før snapshotet — nøyaktig samme kilder som
+    // kalenderens planned_shot_stats, gjennom de samme funksjonene.
+    const { data: plannedRows, error: plannedErr } = await supabase
+      .from('workouts')
+      .select('date, planned_snapshot, workout_activities(activity_type, shooting_type, is_dry_training, prone_shots, prone_hits, standing_shots, standing_hits, duration_seconds)')
+      .eq('user_id', resolved.userId)
+      .eq('is_planned', true)
+      .eq('is_completed', false)
+      .gte('date', fromDate)
+      .lte('date', toDate)
+      .order('date')
+    if (plannedErr) return { error: plannedErr.message }
+
     type ShotRow = {
       date: string
       workout_type: string
@@ -4350,6 +4388,7 @@ export async function getShotVolume(
           bucketKey, label, startDate,
           byType: {}, shots: 0, recordedShots: 0, recordedHits: 0,
           recordedByType: {}, drySeconds: 0,
+          plannedByType: {}, plannedShots: 0, plannedDrySeconds: 0,
         }
         buckets.set(bucketKey, b)
       }
@@ -4395,10 +4434,33 @@ export async function getShotVolume(
       }
     }
 
-    const hasData = Array.from(buckets.values()).some(b => b.shots > 0 || b.drySeconds > 0)
+    // hasData beregnes ETTER at planen er lagt inn — en periode med bare
+    // planlagte skudd er også data, ellers ville grafen meldt «ingen økter»
+    // for en ren planleggingsperiode.
 
     // Ghost-utfylling (G4-mønsteret): tomme perioder i intervallet vises
     // eksplisitt; ingen snittlinje her, så bare slots + «—» i treff-raden.
+    // Legg planen inn i de samme bøttene. Tørrtrening holdes utenfor
+    // skuddstolpene (ShotStats.drySeconds), som i den førte veien.
+    for (const w of (plannedRows ?? []) as Array<{
+      date: string
+      planned_snapshot: Parameters<typeof shotStatsFromSnapshot>[0]
+      workout_activities: Parameters<typeof shotStatsFromActivities>[0]
+    }>) {
+      const stats = shotStatsFromSnapshot(w.planned_snapshot)
+        ?? shotStatsFromActivities(w.workout_activities)
+      if (!stats) continue
+      const b = ensure(w.date)
+      b.plannedShots += stats.shots
+      b.plannedDrySeconds += stats.drySeconds
+      for (const [type, n] of Object.entries(stats.byType)) {
+        b.plannedByType[type] = (b.plannedByType[type] ?? 0) + n
+      }
+    }
+
+    const hasData = Array.from(buckets.values())
+      .some(b => b.shots > 0 || b.drySeconds > 0 || b.plannedShots > 0)
+
     {
       const cursor = new Date(fromDate + 'T00:00:00')
       const rangeEnd = new Date(toDate + 'T00:00:00')
@@ -4411,7 +4473,8 @@ export async function getShotVolume(
           buckets.set(bucketKey, {
             bucketKey, label, startDate,
             byType: {}, shots: 0, recordedShots: 0, recordedHits: 0,
-            recordedByType: {}, drySeconds: 0, ghost: true,
+            recordedByType: {}, drySeconds: 0,
+            plannedByType: {}, plannedShots: 0, plannedDrySeconds: 0, ghost: true,
           })
         }
         if (grouping === 'month') cursor.setMonth(cursor.getMonth() + 1, 1)

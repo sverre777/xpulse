@@ -12,7 +12,8 @@ import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_LEGEND_STYLE,
   CHART_TOOLTIP_BOX,
 } from './chart-theme'
-import { windShort, sightLabel } from '@/lib/shooting'
+import { windShort, sightLabel, SHOT_TYPE_ORDER, SHOT_SERIES_COLORS } from '@/lib/shooting'
+import { findStandardTest } from '@/lib/shooting-test-templates'
 
 // Custom skyting-graf-bygger — filtrer skyting-data og velg akser fritt.
 // Kjører helt klient-side på `series`-arrayet som allerede er lastet av
@@ -22,6 +23,21 @@ type WorkoutTypeKey = 'all' | 'competition' | 'hard_combo' | 'easy_combo'
   | 'training_only' | 'test_pr'
 
 type PositionKey = 'all' | 'prone' | 'standing'
+
+// Forhold som filtre, ikke bare tooltip-tekst (bolk 2 pkt 7).
+// Vind: styrke 0 = vindstille, >0 = vind. Uført vind er null og faller
+// utenfor begge — den vet vi ingenting om, og skal ikke gjettes inn.
+type WindKey = 'all' | 'calm' | 'wind'
+// Sikt: god mot alt som er redusert (lett tåke / tåke / tett tåke).
+type SightKeyFilter = 'all' | 'good' | 'reduced'
+
+// Én linje per skytetype, eller alt samlet i én.
+type GroupKey = 'samlet' | 'skytetype'
+
+// To grafmoduser: seriene (dagens akse-bygger) og testresultater over tid.
+type ModusKey = 'serier' | 'tester'
+
+const UTEN_TYPE = 'ukjent'
 
 type PerSkytingKey = 'all' | 'last' | 'first' | 'specific'
   | 'compare_first_vs_last' | 'accumulated'
@@ -46,6 +62,11 @@ const SAMMENHENG_FORKLARING =
 type YAxisKey = 'accuracy_pct' | 'hits' | 'time_seconds' | 'avg_hr' | 'max_hr'
 
 interface FilterState {
+  modus: ModusKey
+  grupper: GroupKey
+  wind: WindKey
+  sight: SightKeyFilter
+  hiddenTypes: string[]
   workoutType: WorkoutTypeKey
   position: PositionKey
   perSkyting: PerSkytingKey
@@ -57,6 +78,11 @@ interface FilterState {
 }
 
 const DEFAULT_FILTER: FilterState = {
+  modus: 'serier',
+  grupper: 'samlet',
+  wind: 'all',
+  sight: 'all',
+  hiddenTypes: [],
   workoutType: 'all',
   position: 'all',
   perSkyting: 'all',
@@ -65,6 +91,16 @@ const DEFAULT_FILTER: FilterState = {
   yAxis: 'accuracy_pct',
   visning: 'both',
   workoutId: null,
+}
+
+const WORKOUT_TYPE_LABELS: Record<WorkoutTypeKey, string> = {
+  all: 'Alle', competition: 'Konkurranser', hard_combo: 'Hard komb',
+  easy_combo: 'Rolig komb', training_only: 'Trening', test_pr: 'Test/PR',
+}
+const PER_SKYTING_LABELS: Record<PerSkytingKey, string> = {
+  all: 'Alle samlet', last: 'Siste i økt', first: 'Første i økt',
+  specific: 'Spesifikk #', compare_first_vs_last: '1. vs siste',
+  accumulated: 'Akkumulert',
 }
 
 const COLOR_PRONE = '#38BDF8'
@@ -82,6 +118,23 @@ function applyWorkoutTypeFilter(rows: ShootingSeriesRow[], key: WorkoutTypeKey):
     case 'training_only': return rows.filter(r => !r.in_competition && (r.workout_type === 'basis_shooting' || r.workout_type === 'warmup_shooting'))
     case 'test_pr': return rows.filter(r => r.workout_type === 'test' || r.workout_type === 'testlop')
   }
+}
+
+function applyConditionFilter(rows: ShootingSeriesRow[], filter: FilterState): ShootingSeriesRow[] {
+  let out = rows
+  if (filter.wind === 'calm') out = out.filter(r => r.vind_styrke === 0)
+  else if (filter.wind === 'wind') out = out.filter(r => (r.vind_styrke ?? 0) > 0)
+  if (filter.sight === 'good') out = out.filter(r => r.sikt === 'god')
+  else if (filter.sight === 'reduced') out = out.filter(r => r.sikt != null && r.sikt !== 'god')
+  return out
+}
+
+// Skytetypen på raden, normalisert mot SHOT_TYPE_ORDER. Ukjent/uført type
+// samles i «Uten type» — fasitens egen nøkkel, ikke en ny kategori.
+function rowShotType(r: ShootingSeriesRow): string {
+  const t = r.shooting_type
+  if (!t) return UTEN_TYPE
+  return SHOT_TYPE_ORDER.some(x => x.key === t) ? t : UTEN_TYPE
 }
 
 function applyPerSkytingFilter(rows: ShootingSeriesRow[], filter: FilterState): ShootingSeriesRow[] {
@@ -148,9 +201,68 @@ export function CustomSkytingChartBuilder({ data }: Props) {
 
   const filtered = useMemo(() => {
     let rows = applyWorkoutTypeFilter(data.series, filter.workoutType)
+    rows = applyConditionFilter(rows, filter)
     rows = applyPerSkytingFilter(rows, filter)
     return rows
   }, [data.series, filter])
+
+  // Skytetypene som faktisk finnes i utvalget — chip-raden viser bare dem.
+  const typerIData = useMemo(() => {
+    const funnet = new Set(filtered.map(rowShotType))
+    return SHOT_TYPE_ORDER.filter(t => funnet.has(t.key))
+  }, [filtered])
+
+  const toggleType = (key: string) => setFilter(f => ({
+    ...f,
+    hiddenTypes: f.hiddenTypes.includes(key)
+      ? f.hiddenTypes.filter(k => k !== key)
+      : [...f.hiddenTypes, key],
+  }))
+
+  // TESTRESULTATER OVER TID: én serie per testprotokoll, plottet kronologisk.
+  // En test = én skyte-aktivitet i én økt, så radene grupperes på
+  // (økt, test_ref). To like tester i samme økt slås dermed sammen — radene
+  // bærer ikke aktivitets-id, og det er uansett samme test samme dag.
+  // Kun-førte-regelen gjelder som ellers: prosenten deles på skudd der treff
+  // ER ført, aldri på totalskudd.
+  const testSerier = useMemo(() => {
+    const tester = filtered.filter(r => r.shooting_is_test)
+    if (tester.length === 0) return []
+    type Agg = { date: string; ref: string; shots: number; hits: number }
+    const per = new Map<string, Agg>()
+    for (const r of tester) {
+      const ref = r.shooting_test_ref ?? 'egen'
+      const key = `${r.workout_id}::${ref}`
+      const a = per.get(key) ?? { date: r.date, ref, shots: 0, hits: 0 }
+      a.shots += r.prone_recorded_shots + r.standing_recorded_shots
+      a.hits += r.prone_hits + r.standing_hits
+      per.set(key, a)
+    }
+    const perRef = new Map<string, { date: string; y: number }[]>()
+    for (const a of Array.from(per.values()).sort((x, y) => x.date.localeCompare(y.date))) {
+      if (a.shots === 0) continue
+      const arr = perRef.get(a.ref) ?? []
+      arr.push({ date: a.date, y: Math.round((a.hits / a.shots) * 1000) / 10 })
+      perRef.set(a.ref, arr)
+    }
+    return Array.from(perRef.entries()).map(([ref, punkter], i) => ({
+      ref,
+      label: findStandardTest(ref)?.name ?? (ref === 'egen' ? 'Egen test' : 'Egen test-mal'),
+      color: SHOT_SERIES_COLORS[i % SHOT_SERIES_COLORS.length],
+      punkter,
+    }))
+  }, [filtered])
+
+  // Aktive filtre som chips — så det alltid er synlig hva grafen viser.
+  const aktiveFiltre = useMemo(() => {
+    const ut: string[] = []
+    if (filter.workoutType !== 'all') ut.push(WORKOUT_TYPE_LABELS[filter.workoutType])
+    if (filter.position !== 'all') ut.push(filter.position === 'prone' ? 'Liggende' : 'Stående')
+    if (filter.wind !== 'all') ut.push(filter.wind === 'calm' ? 'Vindstille' : 'Vind')
+    if (filter.sight !== 'all') ut.push(filter.sight === 'good' ? 'God sikt' : 'Redusert sikt')
+    if (filter.perSkyting !== 'all') ut.push(PER_SKYTING_LABELS[filter.perSkyting])
+    return ut
+  }, [filter])
 
   const chartData = useMemo(() => {
     return buildChartPoints(filtered, filter)
@@ -224,6 +336,7 @@ export function CustomSkytingChartBuilder({ data }: Props) {
             <option value="prone">Liggende</option>
             <option value="standing">Stående</option>
           </SelectField>
+          {filter.modus === 'serier' && (
           <SelectField label="Per skyting" value={filter.perSkyting} onChange={v => set('perSkyting', v as PerSkytingKey)}>
             <option value="all">Alle samlet</option>
             <option value="first">Første i økt</option>
@@ -232,7 +345,8 @@ export function CustomSkytingChartBuilder({ data }: Props) {
             <option value="compare_first_vs_last">Sammenlign 1. vs siste</option>
             <option value="accumulated">Akkumulert i én økt</option>
           </SelectField>
-          {filter.perSkyting === 'specific' ? (
+          )}
+          {filter.modus === 'serier' && (filter.perSkyting === 'specific' ? (
             <SelectField label="Skyting #" value={String(filter.specificSortOrder)} onChange={v => set('specificSortOrder', Number(v))}>
               {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}
             </SelectField>
@@ -245,7 +359,18 @@ export function CustomSkytingChartBuilder({ data }: Props) {
             </SelectField>
           ) : (
             <div />
-          )}
+          ))}
+          <SelectField label="Vind" value={filter.wind} onChange={v => set('wind', v as WindKey)}>
+            <option value="all">Alle</option>
+            <option value="calm">Vindstille</option>
+            <option value="wind">Vind</option>
+          </SelectField>
+          <SelectField label="Sikt" value={filter.sight} onChange={v => set('sight', v as SightKeyFilter)}>
+            <option value="all">Alle</option>
+            <option value="good">God sikt</option>
+            <option value="reduced">Redusert sikt</option>
+          </SelectField>
+          {filter.modus === 'serier' && (<>
           <SelectField label="X-akse" value={filter.xAxis} onChange={v => set('xAxis', v as XAxisKey)}>
             <option value="date">Dato</option>
             <option value="avg_hr">Snittpuls</option>
@@ -259,11 +384,23 @@ export function CustomSkytingChartBuilder({ data }: Props) {
             <option value="avg_hr">Snittpuls</option>
             <option value="max_hr">Makspuls</option>
           </SelectField>
+          </>)}
         </div>
+
+        <ChipSelector
+          label="Grafmodus"
+          value={filter.modus}
+          onChange={v => set('modus', v)}
+          options={[
+            { value: 'serier', label: 'Serier' },
+            { value: 'tester', label: 'Testresultater' },
+          ]}
+        />
 
         {/* VISNING — samme chip-rad som den fysiske grafens
             Gjennomført/Planlagt/Begge (delt ChipSelector). */}
-        <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
+        {filter.modus === 'serier' && (
+        <div className="flex flex-col lg:flex-row gap-3 lg:items-end flex-wrap">
           <ChipSelector
             label="Visning"
             value={erSammenheng ? 'points' : filter.visning}
@@ -274,20 +411,103 @@ export function CustomSkytingChartBuilder({ data }: Props) {
               { value: 'both', label: 'Begge', disabledReason: erSammenheng ? SAMMENHENG_FORKLARING : undefined },
             ]}
           />
+          <ChipSelector
+            label="Grupper"
+            value={filter.grupper}
+            onChange={v => set('grupper', v)}
+            options={[
+              { value: 'samlet', label: 'Samlet' },
+              { value: 'skytetype', label: 'Per skytetype' },
+            ]}
+          />
         </div>
+        )}
+
+        {/* Skytetype-chips — av/på per type, som sone-chipsene i den
+            fysiske grafen. Fargene er SHOT_TYPE_ORDER sine. */}
+        {filter.modus === 'serier' && filter.grupper === 'skytetype' && typerIData.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {typerIData.map(t => {
+              const av = filter.hiddenTypes.includes(t.key)
+              return (
+                <button key={t.key} type="button" onClick={() => toggleType(t.key)}
+                  className="flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    border: `1px solid ${av ? '#1E1E22' : t.color}`,
+                    background: 'none',
+                    color: av ? '#555560' : '#F0F0F2',
+                    borderRadius: 999,
+                    cursor: 'pointer',
+                    opacity: av ? 0.5 : 1,
+                  }}>
+                  <span aria-hidden style={{
+                    width: 8, height: 8, borderRadius: 999,
+                    backgroundColor: av ? '#2A2A33' : t.color, display: 'inline-block',
+                  }} />
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Aktive filtre — alltid synlig hva grafen faktisk viser. */}
+        {aktiveFiltre.length > 0 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs tracking-widest uppercase"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Filtre
+            </span>
+            {aktiveFiltre.map(f => (
+              <span key={f} className="px-3 py-1 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  border: '1px solid #FF4500', color: '#FF4500',
+                  borderRadius: 999, backgroundColor: 'rgba(255,69,0,0.07)',
+                }}>
+                {f}
+              </span>
+            ))}
+            <button type="button" onClick={() => setFilter(f => ({ ...DEFAULT_FILTER, modus: f.modus }))}
+              className="px-3 py-1 text-xs tracking-widest uppercase"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                border: '1px solid #1E1E22', color: '#8A8A96',
+                borderRadius: 999, background: 'none', cursor: 'pointer',
+              }}>
+              Nullstill
+            </button>
+          </div>
+        )}
 
         <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {chartData.points.length === 0
-            ? 'Ingen data for valgt filter.'
-            : `${chartData.points.length} datapunkt`}
-          {erSammenheng && (
+          {filter.modus === 'tester'
+            ? (testSerier.length === 0
+                ? 'Ingen skytetester i perioden.'
+                : `${testSerier.length} testprotokoll${testSerier.length === 1 ? '' : 'er'} · ${testSerier.reduce((n, t) => n + t.punkter.length, 0)} gjennomføringer`)
+            : chartData.points.length === 0
+              ? 'Ingen data for valgt filter.'
+              : `${chartData.points.length} datapunkt`}
+          {filter.modus === 'serier' && erSammenheng && (
             <span style={{ color: '#555560' }}> · {SAMMENHENG_FORKLARING}</span>
           )}
         </p>
 
         <div style={{ width: '100%', height: 260 }}>
-          {chartData.points.length === 0 ? (
+          {filter.modus === 'tester' ? (
+            testSerier.length === 0 ? (
+              <div className="h-full flex items-center justify-center"
+                style={{ border: '1px dashed #1E1E22' }}>
+                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  Ingen skytetester i perioden. Marker en skyting som 🧪 test for å følge den over tid.
+                </p>
+              </div>
+            ) : (
+              <TestChart serier={testSerier} />
+            )
+          ) : chartData.points.length === 0 ? (
             <div className="h-full flex items-center justify-center"
               style={{ border: '1px dashed #1E1E22' }}>
               <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -307,7 +527,14 @@ interface ChartPoint {
   x: number | string
   y: number | null
   series: 'first' | 'last' | 'main'
-  meta: { date: string; sort_order: number; avg_hr: number | null; wind: string | null }
+  meta: {
+    date: string
+    sort_order: number
+    avg_hr: number | null
+    wind: string | null
+    /** Skytetype-nøkkel fra SHOT_TYPE_ORDER — grupperingen leser denne. */
+    type: string
+  }
 }
 
 // Kø #49 bolk 3: vind/sikt som kontekst i serie-tooltips — «H3 · Tåke».
@@ -321,10 +548,19 @@ function windContext(r: ShootingSeriesRow): string | null {
   return w ?? s
 }
 
+interface TypeGroup {
+  key: string
+  label: string
+  color: string
+  points: ChartPoint[]
+}
+
 interface ChartData {
   points: ChartPoint[]
   hasCompare: boolean
   xType: 'category' | 'number'
+  /** Satt når det grupperes per skytetype — én serie per type. */
+  groups: TypeGroup[] | null
 }
 
 function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): ChartData {
@@ -365,11 +601,11 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
       if (arr.length < 2) { workoutIdx++; continue }
       arr.sort((a, b) => a.sort_order - b.sort_order)
       const first = arr[0], last = arr[arr.length - 1]
-      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate, wind: windContext(first) } })
-      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last) } })
+      points.push({ x: xOf(first, workoutIdx), y: yOf(first), series: 'first', meta: { date: first.date, sort_order: first.sort_order, avg_hr: first.avg_heart_rate, wind: windContext(first), type: rowShotType(first) } })
+      points.push({ x: xOf(last, workoutIdx), y: yOf(last), series: 'last', meta: { date: last.date, sort_order: last.sort_order, avg_hr: last.avg_heart_rate, wind: windContext(last), type: rowShotType(last) } })
       workoutIdx++
     }
-    return { points, hasCompare: true, xType }
+    return { points, hasCompare: true, xType, groups: null }
   }
 
   // Standard: alle rader
@@ -386,7 +622,7 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
     x: xOf(r, workoutIndexById.get(r.workout_id) ?? 0),
     y: yOf(r),
     series: 'main' as const,
-    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r) },
+    meta: { date: r.date, sort_order: r.sort_order, avg_hr: r.avg_heart_rate, wind: windContext(r), type: rowShotType(r) },
   })).filter(p => p.y !== null)
 
   // SORTERING PÅ X for numeriske akser. Radene kommer sortert på DATO, og en
@@ -399,7 +635,23 @@ function buildChartPoints(rows: ShootingSeriesRow[], filter: FilterState): Chart
     points.sort((a, b) => (a.x as number) - (b.x as number))
   }
 
-  return { points, hasCompare: false, xType }
+  // Én serie per skytetype. Fargene kommer fra SHOT_TYPE_ORDER i
+  // lib/shooting.ts — samme fasit som skuddgrafen og kalenderen bruker,
+  // aldri egne farger her.
+  let groups: TypeGroup[] | null = null
+  if (filter.grupper === 'skytetype') {
+    const perType = new Map<string, ChartPoint[]>()
+    for (const p of points) {
+      const arr = perType.get(p.meta.type) ?? []
+      arr.push(p)
+      perType.set(p.meta.type, arr)
+    }
+    groups = SHOT_TYPE_ORDER
+      .filter(t => (perType.get(t.key)?.length ?? 0) > 0)
+      .map(t => ({ key: t.key, label: t.label, color: t.color, points: perType.get(t.key) ?? [] }))
+  }
+
+  return { points, hasCompare: false, xType, groups }
 }
 
 // Egen tooltip for enkel-serie-grafene: dato · skyting-nr, verdi, puls og
@@ -488,6 +740,51 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
   const visLinje = visning === 'line' || visning === 'both'
   const visPunkter = visning === 'points' || visning === 'both'
 
+  // Gruppert per skytetype: én linje per type, farge fra SHOT_TYPE_ORDER.
+  const synligeGrupper = (data.groups ?? []).filter(g => !filter.hiddenTypes.includes(g.key))
+  if (data.groups && synligeGrupper.length > 0) {
+    return (
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <LineChart>
+          <CartesianGrid stroke={CHART_GRID} vertical={data.xType === 'number'} />
+          <XAxis
+            dataKey="x"
+            type={data.xType}
+            allowDuplicatedCategory={false}
+            domain={data.xType === 'number' ? ['dataMin', 'dataMax'] : undefined}
+            tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE}
+            tickLine={false}
+          />
+          <YAxis
+            tick={CHART_AXIS_TICK}
+            axisLine={CHART_AXIS_LINE}
+            tickLine={false}
+            width={48}
+            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+          />
+          <Tooltip content={<BuilderTip yLabel={yLabel} />} />
+          <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+          {synligeGrupper.map(g => (
+            <Line
+              key={g.key}
+              data={g.points}
+              type="monotone"
+              dataKey="y"
+              name={g.label}
+              stroke={visLinje ? g.color : 'none'}
+              strokeWidth={2}
+              dot={visPunkter ? { r: 3, fill: g.color, stroke: g.color } : false}
+              activeDot={{ r: 5 }}
+              isAnimationActive={false}
+              connectNulls
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    )
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
       <LineChart data={data.points}>
@@ -518,6 +815,55 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
           isAnimationActive={false}
           connectNulls
         />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+}
+
+// Testresultater over tid: én linje per protokoll, treff % kronologisk.
+// Y-aksen er låst til 0–100 %: en test skal kunne sammenlignes mot seg selv
+// over sesongen, og en auto-skalert akse ville fått små forskjeller til å se
+// dramatiske ut.
+function TestChart({ serier }: {
+  serier: { ref: string; label: string; color: string; punkter: { date: string; y: number }[] }[]
+}) {
+  return (
+    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+      <LineChart>
+        <CartesianGrid stroke={CHART_GRID} vertical={false} />
+        <XAxis
+          dataKey="date"
+          type="category"
+          allowDuplicatedCategory={false}
+          tick={CHART_AXIS_TICK}
+          axisLine={CHART_AXIS_LINE}
+          tickLine={false}
+        />
+        <YAxis
+          domain={[0, 100]}
+          tick={CHART_AXIS_TICK}
+          axisLine={CHART_AXIS_LINE}
+          tickLine={false}
+          width={48}
+          label={{ value: '%', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+        />
+        <Tooltip content={<XpTooltip />} />
+        <Legend wrapperStyle={CHART_LEGEND_STYLE} />
+        {serier.map(t => (
+          <Line
+            key={t.ref}
+            data={t.punkter}
+            type="monotone"
+            dataKey="y"
+            name={t.label}
+            stroke={t.color}
+            strokeWidth={2}
+            dot={{ r: 3, fill: t.color, stroke: t.color }}
+            activeDot={{ r: 5 }}
+            isAnimationActive={false}
+            connectNulls
+          />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   )

@@ -112,14 +112,24 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
   if (!data || (!data.hasData && typeFilter.size === 0 && marking === 'alle')) return null
 
   const buckets = data.buckets
+  // Planlagt får sin egen stack ved siden av den gjennomførte, med `plan_`-
+  // prefiks på nøklene. Én stack per side, ikke to farger i samme søyle:
+  // planlagt og gjennomført skal kunne leses mot hverandre, ikke summeres.
   const chartData = buckets.map(b => {
     const row: Record<string, string | number> = { label: b.label }
-    for (const t of SHOT_TYPE_ORDER) row[t.key] = b.byType[t.key] ?? 0
+    for (const t of SHOT_TYPE_ORDER) {
+      row[t.key] = b.byType[t.key] ?? 0
+      row[`plan_${t.key}`] = b.plannedByType?.[t.key] ?? 0
+    }
     return row
   })
   const totals = buckets.map(b => b.shots)
   const visibleTypes = SHOT_TYPE_ORDER.filter(t => buckets.some(b => (b.byType[t.key] ?? 0) > 0))
   const lastKey = visibleTypes[visibleTypes.length - 1]?.key
+  // Planlagte typer vises kun når det FINNES en plan i perioden — ellers
+  // ville hver graf fått en tom søyle ved siden av seg.
+  const plannedTypes = SHOT_TYPE_ORDER.filter(t => buckets.some(b => (b.plannedByType?.[t.key] ?? 0) > 0))
+  const harPlan = plannedTypes.length > 0
 
   return (
     <ChartWrapper
@@ -174,9 +184,19 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
               {visibleTypes.map(t => (
                 // Flat topp (radius 0) + mørk stroke = 2px gap mellom segmentene.
                 <Bar key={t.key} dataKey={t.key} stackId="shots" fill={t.color}
+                  name={t.label}
                   stroke="#0A0A0B" strokeWidth={1} isAnimationActive={false}>
                   {t.key === lastKey && <LabelList content={<TotalLabel totals={totals} />} />}
                 </Bar>
+              ))}
+              {/* PLANLAGT: stiplet omriss i typens farge, uten fyll — samme
+                  visuelle språk som planlagt har ellers i appen. Egen stack
+                  ⇒ side om side med den gjennomførte søyla. */}
+              {harPlan && plannedTypes.map(t => (
+                <Bar key={`plan_${t.key}`} dataKey={`plan_${t.key}`} stackId="planned"
+                  name={`${t.label} (planlagt)`}
+                  fill="transparent" stroke={t.color} strokeWidth={1}
+                  strokeDasharray="3 3" isAnimationActive={false} />
               ))}
             </BarChart>
           </ResponsiveContainer>

@@ -258,7 +258,7 @@ function resolveShotType(activityType: string, shootingType?: string | null, isD
   return 'ukjent'
 }
 
-function shotStatsFromActivities(acts: RawCalendarWorkout['workout_activities']): ShotStats | null {
+export function shotStatsFromActivities(acts: RawCalendarWorkout['workout_activities']): ShotStats | null {
   if (!acts || acts.length === 0) return null
   const out = emptyShotStats()
   let any = false
@@ -290,7 +290,10 @@ function shotStatsFromActivities(acts: RawCalendarWorkout['workout_activities'])
 
 // Planlagt: snapshot-aktiviteter (rå ActivityRow-jsonb) — serier foretrekkes
 // (nye planer har tomme prone/standing-strenger), fallback til aggregatene.
-function shotStatsFromSnapshot(snap: RawCalendarWorkout['planned_snapshot']): ShotStats | null {
+// Eksportert: skudd-analysen (getShotVolume) regner planlagte skudd fra
+// NØYAKTIG samme fasit som kalenderen, i stedet for en egen tolkning av
+// snapshot-formatet.
+export function shotStatsFromSnapshot(snap: RawCalendarWorkout['planned_snapshot']): ShotStats | null {
   const raw = snap?.activities
   if (!Array.isArray(raw) || raw.length === 0) return null
   const out = emptyShotStats()

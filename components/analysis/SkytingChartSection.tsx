@@ -29,8 +29,9 @@ import { ShotVolumeChart } from './ShotVolumeChart'
 import { ChipSelector } from './ChartControls'
 import { rangeFromPreset, shotVolumeGrouping, type DateRange } from './date-range'
 
-// Periodevalgene er høstet fra CalendarAnalysisSnippets (LocalPeriod /
-// rangeForPeriod / PERIOD_OPTIONS) i stedet for å finne opp et nytt sett.
+// Periodevalgene er høstet fra den nå slettede CalendarAnalysisSnippets
+// (LocalPeriod / rangeForPeriod / PERIOD_OPTIONS) i stedet for å finne opp
+// et nytt sett — høstingen var sperren for å kunne slette den.
 // «Egendefinert» er utelatt her: seksjonen skal være en rask oversikt, ikke
 // et analyseverktøy — det er custom-grafen i analysen sin oppgave.
 type SkytingPeriode = 'week' | '30d' | '3m' | '12m'

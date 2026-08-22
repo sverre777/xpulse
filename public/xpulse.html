@@ -122,6 +122,13 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .proof .t{font:600 10.5px/1.3 'Barlow Condensed';letter-spacing:.13em;text-transform:uppercase;color:var(--dim,#8B8B95);margin-top:6px}
 
 /* ── KLOKKESYNK-RADEN ──────────────────────────────────────────────
+   NB: alle selektorene er scopet under .syncrow med vilje. Sida har egne,
+   USCOPEDE regler paa generiske navn — saerlig
+   `.logo span{font:400 21px/1 'Bebas Neue';letter-spacing:.34em}`, som er
+   X-PULSE-ordmerket. Uten scoping vant den over .slot (0,1,1 mot 0,1,0),
+   plassholderne ble 21px Bebas med kraftig sperring, og den altfor brede
+   teksten dyttet kortene ut i full bredde. Markupen er uendret 1:1 med
+   utkastet — det er kun selektorene som er prefikset.
    To nivåer: ekte koblinger med logo, filimport som tekst. Skillet er
    ærlighet, ikke jus: vi leser .fit-filer fra Garmin/Coros/Suunto/Wahoo,
    vi kobler oss ikke til dem. Logo i samme rad ville lovet en integrasjon
@@ -138,11 +145,11 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
   color:var(--mute); margin-bottom:13px;
 }
 
-.cards{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; justify-content:center}
+.syncrow .cards{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; justify-content:center}
 
 /* Merkekort. Mørkt, ikke hvit pille: den offisielle HVITE logovarianten
    legges rett på flaten. Ingen ramme rundt logoen, ingen omfarging. */
-.bcard{
+.syncrow .bcard{
   display:flex; align-items:center; gap:11px;
   background:var(--card); border:1px solid var(--line2);
   border-radius:12px; padding:11px 16px;
@@ -151,18 +158,18 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 }
 /* Tynn fargestripe i merkefargen — merkets identitet uten å røre logoen,
    som er nettopp det Strava forbyr. */
-.bcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:2px}
-.bcard.strava::before{background:var(--strava)}
-.bcard.polar::before{background:var(--polar)}
+.syncrow .bcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:2px}
+.syncrow .bcard.strava::before{background:var(--strava)}
+.syncrow .bcard.polar::before{background:var(--polar)}
 
 /* Logo-slot. Her legges den offisielle SVG-en inn — høyden er låst til
    20px, bredden flyter: logoer har ulike proporsjoner og skal aldri
    strekkes. */
-.logo{height:20px; display:flex; align-items:center; flex-shrink:0}
-.logo img{height:100%; width:auto}
+.syncrow .logo{height:20px; display:flex; align-items:center; flex-shrink:0}
+.syncrow .logo img{height:100%; width:auto}
 /* Plassholder til fila er på plass. IKKE en tegnet etterligning av
    logoen — bevisst nøytral, så ingen tror den er ekte. */
-.slot{
+.syncrow .slot{
   height:20px; display:flex; align-items:center; padding:0 10px;
   border:1px dashed var(--line2); border-radius:5px;
   font:600 9.5px/1 'Barlow Condensed'; letter-spacing:.16em; text-transform:uppercase;
@@ -171,25 +178,25 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* Teksten i kortet er venstrestilt med vilje: navn og status er et par
    under hverandre, og midtstilt tekst der vagler seg mot logoen.
    Kortene midtstilles, innholdet i dem gjør det ikke. */
-.bmeta{display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left}
-.bname{font:600 13px/1 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase; color:var(--paper)}
-.bstat{display:inline-flex; align-items:center; gap:5px;
+.syncrow .bmeta{display:flex; flex-direction:column; gap:3px; min-width:0; text-align:left}
+.syncrow .bname{font:600 13px/1 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase; color:var(--paper)}
+.syncrow .bstat{display:inline-flex; align-items:center; gap:5px;
   font:600 10.5px/1 'Barlow Condensed'; letter-spacing:.12em; text-transform:uppercase; color:var(--green)}
 /* Prikken er dekorativ — statusen står som TEKST ved siden av, så ingen
    informasjon bæres av farge alene. */
-.dot{width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0}
-.bstat.rolling{color:var(--dim)} .bstat.rolling .dot{background:var(--dim)}
+.syncrow .dot{width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0}
+.syncrow .bstat.rolling{color:var(--dim)} .syncrow .bstat.rolling .syncrow .dot{background:var(--dim)}
 
 /* Nivå 2 — filimport. Tekst, ingen logoer: vi kobler oss ikke til dem. */
-.tier2{
+.syncrow .tier2{
   display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:center;
   margin-top:13px; padding-top:12px; border-top:1px solid var(--line);
   font:600 12px/1.5 'Barlow Condensed'; letter-spacing:.13em; text-transform:uppercase;
   color:var(--dim);
 }
-.tier2 .k{color:var(--mute)}
-.tier2 .soon{color:var(--mute)}
-.tier2 .pipe{color:var(--line2)}
+.syncrow .tier2 .k{color:var(--mute)}
+.syncrow .tier2 .soon{color:var(--mute)}
+.syncrow .tier2 .pipe{color:var(--line2)}
 
 .devnote{
   padding:10px 34px; background:var(--surface);
@@ -202,9 +209,9 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    krymper aldri under 52px: en logo som ikke er lesbar er verdiløs. */
 @media(max-width:820px){
   .syncrow{padding:15px 20px}
-  .cards{gap:8px}
-  .bcard{flex:1 1 calc(50% - 4px); padding:10px 13px; gap:9px}
-  .tier2{font-size:11px; letter-spacing:.1em}
+  .syncrow .cards{gap:8px}
+  .syncrow .bcard{flex:1 1 calc(50% - 4px); padding:10px 13px; gap:9px}
+  .syncrow .tier2{font-size:11px; letter-spacing:.1em}
   .devnote{padding:9px 20px; font-size:12px}
 }
 

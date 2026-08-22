@@ -221,6 +221,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [templateName, setTemplateName] = useState('')
   const [templateDescription, setTemplateDescription] = useState('')
   const [templateCategory, setTemplateCategory] = useState<string>('Annet')
+  // Sport i «Lagre som mal» er redigerbar (Sverre 22. aug) — synces til
+  // øktas sport når modalen åpnes (form deklareres lenger ned).
+  const [templateSport, setTemplateSport] = useState<Sport>(initialSport)
   // Kø #49: «Marker som test» — test-mal er vanlig øktmal m/ is_test-flagg.
   const [templateIsTest, setTemplateIsTest] = useState(false)
   // Fase 97: økttype + «mal som standardøkt» (serie-kobling) i lagre-modalen.
@@ -584,6 +587,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     // 🧪 forhåndsvelges når økta selv er markert som test.
     setTemplateIsTest(form.workout_type === 'test')
     setTemplateError(null)
+    setTemplateSport(form.sport)
     setShowTemplateModal(true)
   }
 
@@ -596,14 +600,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     // spinneren stå for alltid uten spor (meldt fra bruk 21. aug).
     let result: Awaited<ReturnType<typeof saveAsTemplate>>
     try {
+      // Test-mal: kategori/økttype/standardøkt er ikke valg — det ER en test
+      // (feltene er skjult i modalen og settes deterministisk her).
       result = await saveAsTemplate({
       name,
       description: templateDescription.trim() || undefined,
-      category: templateCategory,
-      sport: form.sport,
+      category: templateIsTest ? 'Test' : templateCategory,
+      sport: templateSport,
       activities: form.activities,
       templateData: {
-        sport: form.sport,
+        sport: templateSport,
         workout_type: form.workout_type,
         movements: form.movements,
         notes: form.notes,
@@ -612,8 +618,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         location: form.location,
       },
       isTest: templateIsTest,
-      oktType: templateOktType || null,
-      standardSessionSeriesId: templateSerieId || null,
+      oktType: templateIsTest ? 'test' : (templateOktType || null),
+      standardSessionSeriesId: templateIsTest ? null : (templateSerieId || null),
       })
     } catch (e) {
       console.error('saveAsTemplate kastet:', e)
@@ -1727,7 +1733,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           name={templateName}
           description={templateDescription}
           category={templateCategory}
-          sportLabel={SPORTS.find(s => s.value === form.sport)?.label ?? form.sport}
+          sport={templateSport}
+          onSport={setTemplateSport}
           isTest={templateIsTest}
           oktType={templateOktType}
           serieId={templateSerieId}
@@ -1762,15 +1769,16 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 }
 
 function SaveAsTemplateModal({
-  name, description, category, sportLabel, isTest,
+  name, description, category, sport, isTest,
   oktType, serieId, seriesList,
-  onName, onDescription, onCategory, onIsTest, onOktType, onSerieId,
+  onName, onDescription, onCategory, onSport, onIsTest, onOktType, onSerieId,
   onCancel, onSave, saving, error,
 }: {
   name: string
   description: string
   category: string
-  sportLabel: string
+  sport: Sport
+  onSport: (v: Sport) => void
   isTest: boolean
   oktType: string
   serieId: string
@@ -1823,7 +1831,9 @@ function SaveAsTemplateModal({
               style={{ ...iSt, resize: 'vertical' }} className="w-full px-3 py-2" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={isTest ? '' : 'grid grid-cols-2 gap-3'}>
+            {/* Test-mal: kategorien ER Test — valget skjules. */}
+            {!isTest && (
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -1836,18 +1846,18 @@ function SaveAsTemplateModal({
                 ))}
               </select>
             </div>
+            )}
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
                 Sport
               </label>
-              <div className="w-full px-3 py-2"
-                style={{
-                  ...iSt, color: '#8A8A96',
-                  display: 'flex', alignItems: 'center', height: '100%',
-                }}>
-                {sportLabel}
-              </div>
+              <select value={sport} onChange={e => onSport(e.target.value as Sport)}
+                style={iSt} className="w-full px-3 py-2">
+                {SPORTS.map(s => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -1870,7 +1880,9 @@ function SaveAsTemplateModal({
           </button>
 
           {/* Fase 97: økttype (fasit = OKT_MAL_TYPER) — brukes av filteret i
-              mal-velgeren og stempler økter laget fra malen. Valgfritt. */}
+              mal-velgeren og stempler økter laget fra malen. Valgfritt.
+              Test-mal: skjult — økttypen ER test. */}
+          {!isTest && (
           <div className="mt-3">
             <label className="block text-xs mb-1"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', letterSpacing: '0.05em' }}>
@@ -1883,10 +1895,12 @@ function SaveAsTemplateModal({
               {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
             </select>
           </div>
+          )}
 
           {/* Fase 97: mal som standardøkt — økter fra malen får serien
-              forhåndsvalgt (endrebar før lagring). Malen viser ⟳-badge. */}
-          {seriesList.length > 0 && (
+              forhåndsvalgt (endrebar før lagring). Malen viser ⟳-badge.
+              Test-mal: skjult — en test er ikke en standardøkt. */}
+          {!isTest && seriesList.length > 0 && (
             <div className="mt-3">
               <label className="block text-xs mb-1"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF8A5C', letterSpacing: '0.05em' }}>

@@ -39,6 +39,26 @@ export function seatPriceId(): string | null {
   return process.env.STRIPE_PRICE_UTOVERPLASS ?? null
 }
 
+// current_period_end ble i nyere API-versjoner FLYTTET fra abonnementet til
+// item-nivået (verifisert i webhook-E2E: toppnivået er null i
+// 2026-04-22.dahlia). Én felles leser: toppnivå først (eldre event-former),
+// ellers største periodeslutt blant items. Brukes av webhooken OG
+// backfill-scriptet — aldri kopier denne logikken.
+export function periodEndFromStripeSub(sub: {
+  current_period_end?: number | null
+  items?: { data?: Array<{ current_period_end?: number | null }> }
+}): string | null {
+  let unix = sub.current_period_end ?? null
+  if (!unix) {
+    for (const item of sub.items?.data ?? []) {
+      if (item.current_period_end && (!unix || item.current_period_end > unix)) {
+        unix = item.current_period_end
+      }
+    }
+  }
+  return unix ? new Date(unix * 1000).toISOString() : null
+}
+
 export function tierFromPriceId(priceId: string | null | undefined): StripeTier | null {
   if (!priceId) return null
   if (priceId === process.env.STRIPE_PRICE_ATHLETE_PRO) return 'athlete_pro'

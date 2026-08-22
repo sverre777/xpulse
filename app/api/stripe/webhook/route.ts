@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
-import { stripe, tierAndSeatsFromItems } from '@/lib/stripe'
+import { stripe, tierAndSeatsFromItems, periodEndFromStripeSub } from '@/lib/stripe'
 
 // Stripe webhook-endpoint. Konfigurer i Stripe Dashboard:
 //   URL: https://x-pulse.no/api/stripe/webhook
@@ -273,25 +273,14 @@ async function upsertSubscription(
   }
 
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
-  // current_period_end ble i nyere API-versjoner FLYTTET fra abonnementet til
-  // item-nivået (verifisert i E2E: toppnivået er null i 2026-04-22.dahlia).
-  // Vi leser toppnivået for eldre event-former og faller tilbake til største
-  // periodeslutt blant items. trial_end + cancel_at_period_end bor fortsatt
-  // på toppnivået.
+  // Periodeslutt leses via delt helper (item-nivå m/ toppnivå-fallback) —
+  // samme funksjon som backfill-scriptet bruker, aldri en kopi.
+  // trial_end + cancel_at_period_end bor fortsatt på toppnivået.
   const subRaw = sub as unknown as {
-    current_period_end?: number
     trial_end?: number | null
     cancel_at_period_end?: boolean
   }
-  let periodEndUnix = subRaw.current_period_end ?? null
-  if (!periodEndUnix) {
-    for (const item of sub.items.data as unknown as Array<{ current_period_end?: number }>) {
-      if (item.current_period_end && (!periodEndUnix || item.current_period_end > periodEndUnix)) {
-        periodEndUnix = item.current_period_end
-      }
-    }
-  }
-  const periodEnd = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null
+  const periodEnd = periodEndFromStripeSub(sub as unknown as Parameters<typeof periodEndFromStripeSub>[0])
   const trialEnd = subRaw.trial_end
     ? new Date(subRaw.trial_end * 1000).toISOString() : null
 

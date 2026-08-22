@@ -15,6 +15,10 @@ export interface ActiveSubscription {
   cancel_at_period_end: boolean
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
+  // Setemodellen: satt = utøverplass tildelt fra en treners abonnement
+  // (fase 102). Optional så eldre call-sites/tester som bygger objektet
+  // uten feltet fortsatt kompilerer — fravær behandles som ikke-tildelt.
+  granted_by_subscription_id?: string | null
 }
 
 const ACTIVE_STATUSES = new Set<SubscriptionStatus>(['active', 'trialing'])
@@ -25,7 +29,7 @@ export async function getActiveSubscription(
 ): Promise<ActiveSubscription | null> {
   const { data } = await supabase
     .from('subscriptions')
-    .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_customer_id, stripe_subscription_id')
+    .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_customer_id, stripe_subscription_id, granted_by_subscription_id')
     .eq('user_id', userId)
     .maybeSingle()
   return (data as ActiveSubscription | null) ?? null
@@ -37,6 +41,12 @@ export async function getActiveSubscription(
 export function hasActiveAccess(sub: ActiveSubscription | null): boolean {
   if (!sub) return false
   if (!ACTIVE_STATUSES.has(sub.status)) return false
+  // FAIL-CLOSED for tildelte utøverplasser (setemodellen): en granted-rad
+  // uten periodeslutt ville vært evig gratis hvis dato-synken fra trenerens
+  // abonnement svikter — derfor INGEN tilgang uten dato. Stripe-eide rader
+  // beholder den milde NULL-defaulten under (Stripe/webhooken eier fristen
+  // deres, og en manglende dato der skal aldri sperre en betalende bruker).
+  if (sub.granted_by_subscription_id && !sub.current_period_end) return false
   const now = Date.now()
   if (sub.status === 'trialing') {
     if (!sub.trial_end) return true  // ingen frist registrert — gi tilgang

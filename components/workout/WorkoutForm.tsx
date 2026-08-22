@@ -472,8 +472,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // bibliotek-byggeren): 🧪 økt-type, og tittel + testpanelets «Navn på
   // testen» + test_type fra testens navn, så resultatet lagres som resultat
   // AV den testen. Tomme felter fylles — utfylte røres aldri.
-  const testFelter = (f: WorkoutFormData, navn: string): Partial<WorkoutFormData> => {
+  const testFelter = (f: WorkoutFormData, navn: string, sportHint?: Sport | null): Partial<WorkoutFormData> => {
     const td = f.test_data ?? emptyTestData()
+    // Protokoll-sporten auto-fylles fra malens/øktas sport (baklengs mapping)
+    // — kun når feltet står tomt, som alt annet her.
+    const protokollSport = sportHint
+      ? (Object.entries(TESTSPORT_TIL_SPORT).find(([, s]) => s === sportHint)?.[0] ?? '')
+      : ''
     return {
       workout_type: 'test',
       title: f.title.trim() === '' ? navn : f.title,
@@ -481,6 +486,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         ...td,
         custom_label: td.custom_label.trim() === '' ? navn : td.custom_label,
         test_type: td.test_type.trim() === '' ? navn : td.test_type,
+        sport: td.sport === '' ? (protokollSport as typeof td.sport) : td.sport,
       },
     }
   }
@@ -529,8 +535,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               seriesList?.find(se => se.id === template.standard_session_series_id)?.name ?? null,
           }
         : {}),
-      // Test-mal: fyll testpanelet (navn/test_type) — tittel settes over.
-      ...(template.is_test ? testFelter({ ...f, title: template.name || f.title }, template.name) : {}),
+      // Test-mal: fyll testpanelet (navn/test_type/sport) — tittel settes over.
+      ...(template.is_test
+        ? testFelter({ ...f, title: template.name || f.title }, template.name,
+            template.sport ?? d.sport ?? f.sport)
+        : {}),
     }))
   }
 
@@ -1374,7 +1383,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               && !await xpConfirm(`Erstatte seriene med oppsettet fra «${oppsett.navn}» (${nySerier.length} serier)?`)) return
             setForm(f => {
               // Samme regel som alle andre test-innganger (testFelter).
-              const medTest = testFelter(f, oppsett.navn)
+              const medTest = testFelter(f, oppsett.navn, 'biathlon')
               const rad = f.activities.find(a => a.shooting_series.length > 0)
               if (rad) {
                 return { ...f, ...medTest, activities: f.activities.map(a => a.id === rad.id
@@ -1407,18 +1416,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             const malNavn = bibMal?.navn ?? egenMal?.name ?? ''
             // Bibliotekmaler er sport-nøytrale — kun egne maler bærer sport.
             const malSport = egenMal?.sport ?? null
-            const testSport = malSport
-              ? (Object.entries(TESTSPORT_TIL_SPORT).find(([, s]) => s === malSport)?.[0] ?? '')
-              : ''
-            setForm(f => {
-              const felter = testFelter(f, malNavn)
-              const td = felter.test_data!
-              return {
-                ...f,
-                ...felter,
-                test_data: { ...td, sport: td.sport === '' ? (testSport as typeof td.sport) : td.sport },
-              }
-            })
+            setForm(f => ({ ...f, ...testFelter(f, malNavn, malSport ?? f.sport) }))
             if (bibMal) setMalBygger(bibMal)
             else if (egenMal) loadTemplate(egenMal)
           }}
@@ -1716,7 +1714,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   }
                   // Test-mal: testpanelet fylles auto — byggerens tittel vinner.
                   return erTestMal(mal)
-                    ? { ...base, ...testFelter(base, mal.navn), title: base.title }
+                    ? { ...base, ...testFelter(base, mal.navn, base.sport), title: base.title }
                     : base
                 })
               }} />

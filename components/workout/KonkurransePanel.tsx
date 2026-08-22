@@ -51,7 +51,7 @@ export function KonkurransePanel({
   onRequestGenerate, activityCount, keyDate, onPrioritetChange,
   testData, onTestDataChange,
   onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, onNyMal,
-  aktivTestMalId = null,
+  aktivTestMalId = null, kanLageNyMal = true,
 }: {
   type: PanelType
   onTypeChange: (t: PanelType) => void
@@ -82,6 +82,9 @@ export function KonkurransePanel({
   aktivTestMalId?: string | null
   // «+ Ny mal» — ren struktur-bygger i egen popup (aldri fra panel-innhold).
   onNyMal: () => void
+  // False inne i mal-byggeren: man skal ikke kunne åpne «ny test-mal»
+  // inne i popupen der man allerede lager en test-mal.
+  kanLageNyMal?: boolean
 }) {
   const isPlan = mode === 'plan'
   const erKonk = type === 'competition'
@@ -169,6 +172,7 @@ export function KonkurransePanel({
             testMaler={testMaler}
             onVelgTestMal={onVelgTestMal}
             aktivTestMalId={aktivTestMalId}
+            kanLageNyMal={kanLageNyMal}
             onNyMal={onNyMal} />
           {/* Protokoll/resultat hører til GJENNOMFØRINGEN — i plan holder
               navn + valgt test; resultatfeltene kommer i dagbok. */}
@@ -372,7 +376,7 @@ export const TESTSPORT_TIL_SPORT: Record<string, Sport> = {
   skiskyting: 'biathlon', triathlon: 'triathlon',
 }
 
-function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, aktivTestMalId, onNyMal }: {
+function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, testMaler, onVelgTestMal, aktivTestMalId, kanLageNyMal, onNyMal }: {
   sport: Sport
   // Protokollens eget sport-valg — DET styrer hvilke test-maler som vises,
   // ikke sporten valgt under konkurranse/testløp (Sverre 21. aug).
@@ -385,6 +389,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
   testMaler: { id: string; navn: string; erBibliotek: boolean; sport: Sport | null }[]
   onVelgTestMal: (id: string) => void
   aktivTestMalId: string | null
+  kanLageNyMal: boolean
   onNyMal: () => void
 }) {
   const [egne, setEgne] = useState<OwnShootingTest[] | null>(null)
@@ -433,7 +438,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
           {(egne ?? []).map(t =>
             rad(t.id, t.name, `Din egen · ${t.config.series.length} serier`,
               'Egen test-mal', true, aktivSkytetestRef === t.id, () => onVelgSkytetest({ ref: t.id, navn: t.name, surface: t.config.surface ?? null, serier: t.config.series })))}
-          {rad('__ny', '+ Ny test-mal', 'Lag din egen — lagres i biblioteket', null, false, false, onNyMal)}
+          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Lag din egen — lagres i biblioteket', null, false, false, onNyMal)}
           <p style={{ fontFamily: FONT, fontSize: 12.5, color: '#55555F', marginTop: 8 }}>
             Samme bibliotek som skytetest-malene i skyting-delen — NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
           </p>
@@ -449,7 +454,7 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
             rad(t.id, `${t.erBibliotek ? '📚 ' : ''}🧪 ${t.navn}`,
               t.erBibliotek ? 'Fra biblioteket' : 'Din egen test-mal',
               null, !t.erBibliotek, aktivTestMalId === t.id, () => onVelgTestMal(t.id)))}
-          {rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
+          {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Test-mal = øktmal med test-flagg — lagres i biblioteket', null, false, false, onNyMal)}
         </div>
       )}
     </div>

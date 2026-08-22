@@ -79,6 +79,7 @@ export function TrenerPlanleggPage({
           <TestMalTab
             initialTemplates={initialTestTemplates}
             primarySport={primarySport}
+            workoutTemplates={initialWorkoutTemplates}
           />
         )}
       </div>

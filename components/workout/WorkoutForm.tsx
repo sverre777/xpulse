@@ -1403,6 +1403,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             else if (egenMal) loadTemplate(egenMal)
           }}
           onNyMal={() => setVisNyMalBygger(true)}
+          kanLageNyMal={!templateBuildingMode && !captureOnlyMode}
           onRequestGenerate={async (format, replaceExisting) => {
             const generated = generateCompetitionActivities(form.sport, format)
             if (generated.length === 0) return

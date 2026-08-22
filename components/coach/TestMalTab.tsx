@@ -1,12 +1,23 @@
 'use client'
 
+// Trenerens test-maler — SAMME måte som utøveren (Sverre 22. aug):
+// test-mal = øktmal m/ 🧪-flagg, bygget i OktmalBuilder (struktur-byggeren)
+// med workout_type forhåndsvalgt til test — identisk med utøverens
+// «+ Ny test-mal» i /app/maler og i konkurransepanelet. Klikk på en mal
+// åpner samme bygger i rediger-modus.
+//
+// Eldre test-maler fra den gamle protokoll-modellen (test_templates) vises
+// i egen seksjon under KUN hvis de finnes — de kan fortsatt leses/redigeres/
+// slettes, men nye lages aldri den veien.
+
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   saveTestTemplate, deleteTestTemplate,
   type TestTemplate, type TestTemplateInput,
 } from '@/app/actions/tests'
-import { SPORTS, TEST_TYPES_BY_SPORT, type Sport } from '@/lib/types'
+import { SPORTS, TEST_TYPES_BY_SPORT, type Sport, type WorkoutTemplate } from '@/lib/types'
+import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 
 const COACH_BLUE = '#1A6FD4'
@@ -19,19 +30,25 @@ const iSt: React.CSSProperties = {
 interface Props {
   initialTemplates: TestTemplate[]
   primarySport: Sport
+  // Trenerens øktmaler — test-malene er de med is_test (samme modell som utøveren).
+  workoutTemplates: WorkoutTemplate[]
 }
 
-export function TestMalTab({ initialTemplates, primarySport }: Props) {
-  const [editing, setEditing] = useState<TestTemplate | 'new' | null>(null)
+export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }: Props) {
+  const [editingLegacy, setEditingLegacy] = useState<TestTemplate | null>(null)
+  const [nyTestMal, setNyTestMal] = useState(false)
+  const [editingOktmal, setEditingOktmal] = useState<WorkoutTemplate | null>(null)
+
+  const testMaler = workoutTemplates.filter(t => t.is_test)
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          {initialTemplates.length} test-mal{initialTemplates.length === 1 ? '' : 'er'}
+          {testMaler.length} test-mal{testMaler.length === 1 ? '' : 'er'}
         </p>
-        <button type="button" onClick={() => setEditing('new')}
+        <button type="button" onClick={() => setNyTestMal(true)}
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -42,45 +59,83 @@ export function TestMalTab({ initialTemplates, primarySport }: Props) {
         </button>
       </div>
 
-      {initialTemplates.length === 0 ? (
+      {testMaler.length === 0 ? (
         <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-            Ingen test-maler ennå. Trykk «+ Ny test-mal» for å bygge din første.
+            Ingen test-maler ennå. «+ Ny test-mal» åpner struktur-byggeren —
+            test-mal er en øktmal med 🧪-flagg, akkurat som hos utøverne.
           </p>
         </div>
       ) : (
         <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-          {initialTemplates.map(t => (
+          {testMaler.map(t => (
             <button key={t.id} type="button"
-              onClick={() => setEditing(t)}
+              onClick={() => setEditingOktmal(t)}
               className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
               style={{ borderBottom: '1px solid var(--line)' }}>
               <div>
                 <p className="text-sm"
                   style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
-                  {t.name}
+                  🧪 {t.name}
                 </p>
                 <p className="text-xs tracking-widest uppercase"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
-                  {t.test_type} · {SPORTS.find(s => s.value === t.sport)?.label ?? t.sport}
-                  {t.is_shared_with_athletes && <span className="ml-2" style={{ color: '#8A8A96' }}>· delt</span>}
+                  {SPORTS.find(s => s.value === t.sport)?.label ?? t.sport ?? 'Alle idretter'}
                 </p>
               </div>
               <p className="text-xs"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-                {t.default_duration_minutes ? `${t.default_duration_minutes} min` : ''}
-                {t.default_distance_km ? ` · ${t.default_distance_km} km` : ''}
+                Rediger →
               </p>
             </button>
           ))}
         </div>
       )}
 
-      {editing && (
+      {initialTemplates.length > 0 && (
+        <div className="mt-8">
+          <p className="text-xs tracking-widest uppercase mb-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            Eldre test-maler (protokollskjema) — nye lages med byggeren over
+          </p>
+          <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+            {initialTemplates.map(t => (
+              <button key={t.id} type="button"
+                onClick={() => setEditingLegacy(t)}
+                className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
+                style={{ borderBottom: '1px solid var(--line)' }}>
+                <div>
+                  <p className="text-sm"
+                    style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+                    {t.name}
+                  </p>
+                  <p className="text-xs tracking-widest uppercase"
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    {t.test_type} · {SPORTS.find(s => s.value === t.sport)?.label ?? t.sport}
+                    {t.is_shared_with_athletes && <span className="ml-2">· delt</span>}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(nyTestMal || editingOktmal) && (
+        <OktmalBuilder
+          primarySport={primarySport}
+          templates={workoutTemplates}
+          defaultValues={{ workout_type: 'test' }}
+          editing={editingOktmal}
+          onClose={() => { setNyTestMal(false); setEditingOktmal(null) }}
+        />
+      )}
+
+      {editingLegacy && (
         <TestMalEditModal
-          template={editing === 'new' ? null : editing}
+          template={editingLegacy}
           defaultSport={primarySport}
-          onClose={() => setEditing(null)}
+          onClose={() => setEditingLegacy(null)}
         />
       )}
     </div>

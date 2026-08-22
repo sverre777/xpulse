@@ -247,10 +247,13 @@ input::placeholder {
 }
 
 /* Horisontal chip-/knapperad som ALDRI skal renne ut av skjermen.
-   Brukes av utstyr-filtrene (og mal-velgerens filterlinje). Reglene gjelder
+   Brukes av utstyr-filtrene og mal-velgerens topp (SF-16). Reglene gjelder
    KUN mobil: paa desktop faar radene plass, og klassen skal ikke endre noe
-   der. Legg .xp-scrollfade paa rader som faktisk er for lange - fade i hoyre
-   kant er avkutt-hintet som viser at raden fortsetter. */
+   der. .xp-scrollfade legger avkutt-hintet paa rader som faktisk er for
+   lange - hoyre kant tones ut saa det syns at raden fortsetter.
+   Hintet er en MASKE, ikke et ::after-element: et absolutt plassert element
+   inni en scroll-container foelger innholdet og ville forsvunnet ut til
+   hoyre med en gang. Maska ligger paa selve boksen og staar stille. */
 @media (max-width: 767px) {
   .xp-scrollrow {
     display: flex;
@@ -264,14 +267,9 @@ input::placeholder {
   .xp-scrollrow::-webkit-scrollbar { display: none; }
   .xp-scrollrow > * { flex: 0 0 auto; white-space: nowrap; }
 
-  .xp-scrollfade { position: relative; }
-  .xp-scrollfade::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0;
-    width: 26px;
-    pointer-events: none;
-    background: linear-gradient(90deg, rgba(10,10,11,0), #0A0A0B 85%);
+  .xp-scrollfade {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent);
   }
 }
 

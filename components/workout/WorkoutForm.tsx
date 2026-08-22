@@ -597,6 +597,21 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     }
   }
 
+  // Søkefeltet i mal-velgeren står på filterlinja på desktop og på mal-linja
+  // på mobil (SF-16: maks 3 rader). Samme felt, samme state — bare to
+  // monteringspunkter, der CSS viser ett av dem.
+  const malSokFelt = (className: string, bredde: number) => (
+    <input value={malSok} onChange={e => setMalSok(e.target.value)}
+      placeholder="Søk (f.eks. 6x6)…"
+      className={className}
+      style={{
+        backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
+        borderRadius: 'var(--r-field)', color: '#F0F0F2',
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
+        padding: '6px 10px', outline: 'none', minHeight: 34, width: bredde,
+      }} />
+  )
+
   const toggleTag = (tag: string) => {
     setForm(f => ({ ...f, tags: f.tags.includes(tag) ? f.tags.filter(t => t !== tag) : [...f.tags, tag] }))
   }
@@ -799,32 +814,53 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       {(
         <div className="mb-2">
           {/* Kategorisering av mal-lista (bev.form + kategori) ved >4 maler. */}
-          {/* Hurtigfilter (#50): samme sett som /app/maler + ⟳ Standardøkt. */}
-          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-            {([
-              { key: 'alle', label: 'Alle' },
-              { key: 'test', label: '🧪 Test' },
-              { key: 'skyting', label: 'Skyting' },
-              { key: 'styrke', label: 'Styrke' },
-              { key: 'standard', label: '⟳ Standardøkt' },
-            ] as const).map(c => (
-              <button key={c.key} type="button" onClick={() => setMalHurtig(c.key)}
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
-                  borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
-                  color: malHurtig === c.key ? '#F0F0F2' : '#8A8A96',
-                  background: malHurtig === c.key ? 'var(--card2)' : 'none',
-                  border: `1px solid ${malHurtig === c.key ? 'var(--accent)' : 'var(--line2)'}`,
-                  fontWeight: malHurtig === c.key ? 700 : 400,
-                }}>
-                {c.label}
-              </button>
-            ))}
+          {/* Hurtigfilter (#50): samme sett som /app/maler + ⟳ Standardøkt.
+              SF-16: toppen skal ta MAKS 3 rader på mobil —
+              rad 1 = chips (scroller) + 🔧 til høyre · rad 2 = de tre
+              nedtrekkene · rad 3 = søk + FRA MAL-chipsene (scroller).
+              🔧-knappen bor nå her i stedet for på filterlinja: den linja
+              finnes bare når man har mer enn fire maler, så knappen var
+              usynlig for alle andre — den skal alltid være der. */}
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0 xp-scrollrow xp-scrollfade">
+              {([
+                { key: 'alle', label: 'Alle' },
+                { key: 'test', label: '🧪 Test' },
+                { key: 'skyting', label: 'Skyting' },
+                { key: 'styrke', label: 'Styrke' },
+                { key: 'standard', label: '⟳ Standardøkt' },
+              ] as const).map(c => (
+                <button key={c.key} type="button" onClick={() => setMalHurtig(c.key)}
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
+                    borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
+                    color: malHurtig === c.key ? '#F0F0F2' : '#8A8A96',
+                    background: malHurtig === c.key ? 'var(--card2)' : 'none',
+                    border: `1px solid ${malHurtig === c.key ? 'var(--accent)' : 'var(--line2)'}`,
+                    fontWeight: malHurtig === c.key ? 700 : 400,
+                  }}>
+                  {c.label}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="shrink-0"
+              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
+                letterSpacing: '0.08em', textTransform: 'uppercase',
+                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
+                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
+                border: '1px solid var(--accent)', borderRadius: 9,
+                padding: '7px 12px', cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
+              }}>
+              🔧 Bygg<span className="hidden md:inline"> intervall</span>
+            </button>
           </div>
           {showMalFilters && (
-            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <div className="flex items-center gap-1.5 md:gap-2 flex-nowrap md:flex-wrap mb-1.5">
               {malMovementOptions.length > 0 && (
                 <select value={malMovement} onChange={e => setMalMovement(e.target.value)}
+                  className="flex-1 min-w-0 md:flex-none"
                   style={{
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
                     borderRadius: 'var(--r-field)', color: malMovement ? 'var(--accent)' : '#8A8A96',
@@ -836,6 +872,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 </select>
               )}
               <select value={malType} onChange={e => setMalType(e.target.value)}
+                className="flex-1 min-w-0 md:flex-none"
                 style={{
                   backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
                   borderRadius: 'var(--r-field)', color: malType ? 'var(--accent)' : '#8A8A96',
@@ -845,16 +882,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 <option value="">Alle økttyper</option>
                 {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
               </select>
-              <input value={malSok} onChange={e => setMalSok(e.target.value)}
-                placeholder="Søk (f.eks. 6x6)…"
-                style={{
-                  backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-field)', color: '#F0F0F2',
-                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
-                  padding: '6px 10px', outline: 'none', minHeight: 34, width: 150,
-                }} />
+              {malSokFelt('hidden md:block', 150)}
               {malCategoryOptions.length > 1 && (
                 <select value={malCategory} onChange={e => setMalCategory(e.target.value)}
+                  className="flex-1 min-w-0 md:flex-none"
                   style={{
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
                     borderRadius: 'var(--r-field)', color: malCategory ? 'var(--accent)' : '#8A8A96',
@@ -865,23 +896,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   {malCategoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               )}
-              {/* Bygg intervall: samme linje som filtrene — alltid synlig. */}
-              <button type="button" className="ml-auto"
-              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
-              
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
-                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
-                border: '1px solid var(--accent)', borderRadius: 9,
-                padding: '7px 14px', cursor: 'pointer', flexShrink: 0, minHeight: 36,
-              }}>
-              🔧 Bygg intervall
-            </button>
             </div>
           )}
-          <div className="xp-malrow" style={{ maxHeight: 150, overflowY: 'auto' }}>
+          {/* Rad 3: søket ligger her på mobil (på desktop står det på
+              filterlinja over) — resten av linja er mal-chipsene, som
+              scroller horisontalt som før. */}
+          <div className="flex items-start gap-2">
+            {malSokFelt('md:hidden shrink-0', 108)}
+            <div className="xp-malrow flex-1 min-w-0" style={{ maxHeight: 150, overflowY: 'auto' }}>
             <span className="xp-mal-label">Fra mal</span>
             {visibleTemplates.length === 0 && (
               <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
@@ -902,6 +924,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </button>
             ))}
             {/* ⟳ Standardøkt bor i markerings-raden (chip). */}
+            </div>
           </div>
 
         </div>

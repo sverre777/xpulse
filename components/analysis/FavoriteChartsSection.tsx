@@ -24,7 +24,7 @@ import {
   HealthReflectionsTrend, HealthInjuriesTimeline, HealthSicknessVsLoad,
 } from './HealthTab'
 import { LactateProfile, LactateTrend } from './TerskelTab'
-import { AccuracyTrend, HrZoneAccuracy, TimeTrend, TrainingVsComp } from './SkytingTab'
+import { AccuracyTrend, HrZoneAccuracy, TimeTrend, TrainingVsComp, WindAccuracy } from './SkytingTab'
 import { LoadPerPeriod, CompetitionsPerPeriod } from './PeriodiseringTab'
 import { IntensiveWorkoutsLine, PolarizedStack } from './IntensityTab'
 
@@ -68,6 +68,7 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   skyting_custom: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Custom skyting-graf' },
   skyting_accuracy_over_time: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Treff% per stilling over tid' },
   skyting_accuracy_hr_zones: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Treff% i puls-soner' },
+  skyting_wind_accuracy: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Treff% per vindforhold' },
   skyting_time_per_series: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Skytetid-progresjon' },
   skyting_training_vs_comp: { tab: 'skyting', tabLabel: 'Skyting-dybde', title: 'Trening vs. konkurranse' },
 
@@ -232,6 +233,7 @@ function renderKnownChart(
     case 'overview_intensive_sessions': return <OverviewIntensiveSessions stats={stats} />
     case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={analysisRange} />
     case 'skyting_custom': return skyting ? <CustomSkytingChartBuilder data={skyting} /> : null
+    case 'skyting_wind_accuracy': return skyting ? <WindAccuracy data={skyting} /> : null
     case 'overview_training_vs_rest_vs_sickness':
       return overview ? <OverviewTrainingVsRestVsSickness weekly={overview.weekly_distribution} /> : null
     case 'overview_rest_days':

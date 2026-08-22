@@ -24,7 +24,7 @@
 
 import { useMemo, useState } from 'react'
 import type { ShootingDepthAnalysis, ShootingSeriesRow } from '@/app/actions/analysis'
-import { SIGHT_LEVELS } from '@/lib/shooting'
+import { SIGHT_LEVELS, windShort } from '@/lib/shooting'
 import { ChartWrapper } from './ChartWrapper'
 import { ChipSelector } from './ChartControls'
 import { COLOR_PRONE, COLOR_STANDING } from './SkytingSummaryCards'
@@ -32,18 +32,26 @@ import { COLOR_PRONE, COLOR_STANDING } from './SkytingSummaryCards'
 /** Under dette antallet førte skudd sier raden «for lite data». */
 const MIN_SKUDD = 20
 
-type Retning = 'alle' | 'V' | 'H'
+// SKALAEN ER STANDARD: for en skiskytter er venstre mot høyre i SAMME styrke
+// hele poenget med å se på vind, og det må stå i ett bilde — ikke som to
+// visninger man sammenligner fra hukommelsen. «Sider hver for seg» nøkler
+// derfor radene på FORTEGNET styrke (−5 … 0 … +5). Sammenslåingen er beholdt
+// som et eksplisitt valg: den er nyttig når man vil se styrken alene.
+type Retning = 'sider' | 'samlet' | 'V' | 'H'
 type Kontekst = 'alle' | 'trening' | 'konkurranse'
 
 interface Rad {
   key: string
   label: string
+  /** Sorteringsverdi. For vind: fortegnet styrke, så venstre havner over
+   *  vindstille og høyre under — skalaen leses ovenfra og ned. */
+  order: number
   recL: number; hitL: number
   recS: number; hitS: number
 }
 
-function tomRad(key: string, label: string): Rad {
-  return { key, label, recL: 0, hitL: 0, recS: 0, hitS: 0 }
+function tomRad(key: string, label: string, order: number): Rad {
+  return { key, label, order, recL: 0, hitL: 0, recS: 0, hitS: 0 }
 }
 
 function leggTil(rad: Rad, r: ShootingSeriesRow) {
@@ -59,7 +67,7 @@ function pct(hits: number, rec: number): number | null {
 
 export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
   const [kontekst, setKontekst] = useState<Kontekst>('alle')
-  const [retning, setRetning] = useState<Retning>('alle')
+  const [retning, setRetning] = useState<Retning>('sider')
 
   const utvalg = useMemo(() => data.series.filter(r => {
     if (kontekst === 'trening') return !r.in_competition
@@ -69,23 +77,37 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
 
   // ── Vind ──
   const vind = useMemo(() => {
-    const rader = new Map<number, Rad>()
+    const rader = new Map<string, Rad>()
     let utelatt = 0
     for (const r of utvalg) {
       if (r.vind_styrke == null) { utelatt++; continue }
       const styrke = Math.max(0, Math.min(5, r.vind_styrke))
-      // Vindstille har ingen retning og er referanselinja — den står uansett
-      // hvilken side man ser på, ellers mister man sammenligningsgrunnlaget.
-      if (styrke > 0 && retning !== 'alle' && r.vind_retning !== retning) continue
-      const rad = rader.get(styrke)
-        ?? tomRad(String(styrke), styrke === 0 ? 'Vindstille' : `Vimpel ${styrke}`)
+      // Vindstille har ingen retning og er referanselinja — den står i ALLE
+      // fire valgene, ellers mister man sammenligningsgrunnlaget.
+      if (styrke > 0 && (retning === 'V' || retning === 'H') && r.vind_retning !== retning) continue
+
+      let key: string, label: string, order: number
+      if (styrke === 0) {
+        key = '0'; label = 'Vindstille'; order = 0
+      } else if (retning === 'samlet') {
+        key = `s${styrke}`; label = `Vimpel ${styrke}`; order = styrke
+      } else {
+        // Etiketten kommer fra windShort() — samme fasit som chips og
+        // tooltips, ingen ny navngiving av vindforhold.
+        const dir = r.vind_retning
+        const kort = windShort(dir, styrke) ?? String(styrke)
+        key = `${dir ?? '?'}${styrke}`
+        label = dir === 'V' ? `${kort} ← venstre` : dir === 'H' ? `${kort} → høyre` : kort
+        order = dir === 'V' ? -styrke : styrke
+      }
+
+      const rad = rader.get(key) ?? tomRad(key, label, order)
       leggTil(rad, r)
-      rader.set(styrke, rad)
+      rader.set(key, rad)
     }
     return {
-      rader: Array.from(rader.entries())
-        .sort((a, b) => a[0] - b[0])
-        .map(([, rad]) => rad)
+      rader: Array.from(rader.values())
+        .sort((a, b) => a.order - b.order)
         .filter(rad => rad.recL > 0 || rad.recS > 0),
       utelatt,
     }
@@ -99,7 +121,7 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
       if (r.sikt == null) { utelatt++; continue }
       const niva = SIGHT_LEVELS.find(s => s.key === r.sikt)
       if (!niva) { utelatt++; continue }
-      const rad = rader.get(niva.key) ?? tomRad(niva.key, niva.label)
+      const rad = rader.get(niva.key) ?? tomRad(niva.key, niva.label, niva.fog)
       leggTil(rad, r)
       rader.set(niva.key, rad)
     }
@@ -148,7 +170,8 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
               value={retning}
               onChange={setRetning}
               options={[
-                { value: 'alle', label: 'Samlet' },
+                { value: 'sider', label: 'Sider hver for seg' },
+                { value: 'samlet', label: 'Slått sammen' },
                 { value: 'V', label: '← Fra venstre' },
                 { value: 'H', label: '→ Fra høyre' },
               ]}
@@ -156,7 +179,7 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
           </div>
 
           <Blokk
-            tittel="Vind (vimpel)"
+            tittel={retning === 'samlet' ? 'Vind (vimpel) — styrke slått sammen' : 'Vind (vimpel)'}
             rader={vind.rader}
             utelatt={vind.utelatt}
             utelattTekst="uten ført vind"

@@ -18,6 +18,7 @@ import {
 import { SHOT_TYPE_ORDER } from '@/lib/shooting'
 import { ChartWrapper } from './ChartWrapper'
 import { CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_CURSOR } from './chart-theme'
+import { ChipSelector } from './ChartControls'
 import { shotVolumeGrouping, type DateRange } from './date-range'
 
 const MARKING_OPTIONS: { value: ShotMarkingFilter; label: string }[] = [
@@ -29,6 +30,8 @@ const MARKING_OPTIONS: { value: ShotMarkingFilter; label: string }[] = [
 ]
 
 const Y_AXIS_WIDTH = 40
+
+type BreakdownView = 'completed' | 'planned' | 'both'
 
 function TotalLabel({ totals, x, y, width, index }: {
   totals: number[]
@@ -91,6 +94,10 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
   const [data, setData] = useState<ShotVolume | null>(null)
   const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set())
   const [marking, setMarking] = useState<ShotMarkingFilter>('alle')
+  // Gjennomført / Planlagt / Begge — samme valg og samme ord som den fysiske
+  // «Custom graf». Chipsene står ALLTID: en kontroll som forsvinner når
+  // perioden mangler plan, forsvinner under fingeren på deg.
+  const [viewMode, setViewMode] = useState<BreakdownView>('both')
 
   const grouping = useMemo(() => shotVolumeGrouping(range), [range])
 
@@ -104,7 +111,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
   }, [range.from, range.to, grouping, targetUserId, typeFilter, marking])
 
   // Selvskjulende når det ikke finnes skytedata i perioden (uten filter).
-  if (!data || (!data.hasData && typeFilter.size === 0 && marking === 'alle')) return null
+  if (!data || (!data.hasData && typeFilter.size === 0 && marking === 'alle' && viewMode === 'both')) return null
 
   const buckets = data.buckets
   // Planlagt får sin egen stack ved siden av den gjennomførte, med `plan_`-
@@ -118,7 +125,9 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
     }
     return row
   })
-  const totals = buckets.map(b => b.shots)
+  // Tallet over søylene følger visningen: i «Planlagt» er det planen som
+  // står der, ikke en gjennomført total som ikke vises.
+  const totals = buckets.map(b => viewMode === 'planned' ? (b.plannedShots ?? 0) : b.shots)
   const visibleTypes = SHOT_TYPE_ORDER.filter(t => buckets.some(b => (b.byType[t.key] ?? 0) > 0))
   const lastKey = visibleTypes[visibleTypes.length - 1]?.key
   // Planlagte typer vises kun når det FINNES en plan i perioden — ellers
@@ -130,10 +139,25 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
     <ChartWrapper
       chartKey="shot-volume"
       title={title}
-      subtitle={`${grouping === 'week' ? 'Per uke' : 'Per måned'} · reelle skudd (tørr i tooltip) · treff % under`}
+      subtitle={`${grouping === 'week' ? 'Per uke' : 'Per måned'} · ${
+        viewMode === 'completed' ? 'gjennomført'
+        : viewMode === 'planned' ? 'planlagt (stiplet)'
+        : 'gjennomført + planlagt (stiplet)'
+      } · tørr i tooltip · treff % under`}
       height="auto"
     >
       <div className="flex flex-col gap-2">
+        <ChipSelector
+          label="Visning"
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { value: 'completed', label: 'Gjennomført' },
+            { value: 'planned', label: 'Planlagt' },
+            { value: 'both', label: 'Begge' },
+          ]}
+        />
+
         {/* Filtre: type-chips + markering. */}
         <div className="flex flex-wrap items-center gap-1.5">
           {SHOT_TYPE_ORDER.filter(t => t.key !== 'ukjent').map(t => {
@@ -176,22 +200,28 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
               <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
               <YAxis tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={Y_AXIS_WIDTH} allowDecimals={false} />
               <Tooltip cursor={CHART_CURSOR} content={<ShotTooltip buckets={buckets} />} />
-              {visibleTypes.map(t => (
+              {viewMode !== 'planned' && visibleTypes.map(t => (
                 // Flat topp (radius 0) + mørk stroke = 2px gap mellom segmentene.
                 <Bar key={t.key} dataKey={t.key} stackId="shots" fill={t.color}
                   name={t.label}
                   stroke="#0A0A0B" strokeWidth={1} isAnimationActive={false}>
-                  {t.key === lastKey && <LabelList content={<TotalLabel totals={totals} />} />}
+                  {t.key === lastKey && (
+                    <LabelList content={<TotalLabel totals={totals} />} />
+                  )}
                 </Bar>
               ))}
               {/* PLANLAGT: stiplet omriss i typens farge, uten fyll — samme
                   visuelle språk som planlagt har ellers i appen. Egen stack
                   ⇒ side om side med den gjennomførte søyla. */}
-              {harPlan && plannedTypes.map(t => (
+              {viewMode !== 'completed' && harPlan && plannedTypes.map(t => (
                 <Bar key={`plan_${t.key}`} dataKey={`plan_${t.key}`} stackId="planned"
                   name={`${t.label} (planlagt)`}
                   fill="transparent" stroke={t.color} strokeWidth={1}
-                  strokeDasharray="3 3" isAnimationActive={false} />
+                  strokeDasharray="3 3" isAnimationActive={false}>
+                  {t.key === plannedTypes[plannedTypes.length - 1]?.key && viewMode === 'planned' && (
+                    <LabelList content={<TotalLabel totals={totals} />} />
+                  )}
+                </Bar>
               ))}
             </BarChart>
           </ResponsiveContainer>

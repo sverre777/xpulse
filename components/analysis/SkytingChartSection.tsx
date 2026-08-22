@@ -8,11 +8,19 @@
 // vil ha den under dagboken kan stjernemerke den (chartKey «skyting_custom»),
 // og favoritt-veien er escape-hatchen.
 //
-// SELVSKJULENDE: uten skytedata i perioden rendres ingenting — heller ikke
-// overskriften. En løper eller syklist skal ikke få en tom skyting-boks under
-// kalenderen. getShootingDepthAnalysis filtrerer selv på biathlon, så dette
-// dekker også «skyting finnes bare når skiskyting er primær/sekundær sport»:
-// uten biathlon-økter finnes det ingen serier å vise.
+// SELVSKJULENDE — MEN PÅ RIKTIG NIVÅ: seksjonen skjules for den som ikke
+// driver med skyting i det hele tatt (en løper eller syklist skal ikke få en
+// tom skyting-boks under kalenderen). Den skjules IKKE fordi den valgte
+// perioden tilfeldigvis er tom: klikker du «Uke» i en uke uten skyting, skal
+// grafen stå tom — ikke forsvinne under fingeren på deg.
+//
+// Skillet gjøres med et klebrig flagg: har vi én gang sett skytedata for
+// denne brukeren, blir seksjonen stående. Første lasting bruker standard-
+// perioden År, så flagget svarer i praksis på «har du skutt det siste året».
+//
+// getShootingDepthAnalysis filtrerer selv på biathlon, så dette dekker også
+// «skyting finnes bare når skiskyting er primær/sekundær sport»: uten
+// biathlon-økter finnes det ingen serier å vise.
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { getShootingDepthAnalysis, type ShootingDepthAnalysis } from '@/app/actions/analysis'
@@ -58,6 +66,8 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
   const range = useMemo(() => rangeForPeriode(periode), [periode])
 
   const [data, setData] = useState<ShootingDepthAnalysis | null>(null)
+  // Klebrig: settes én gang og nullstilles aldri. Se kommentaren over.
+  const [harSkytedata, setHarSkytedata] = useState(false)
   const [, startTransition] = useTransition()
 
   useEffect(() => {
@@ -69,12 +79,16 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
       if (avbrutt) return
       // Feil (f.eks. trener uten analysetilgang) skjuler seksjonen i stedet
       // for å rope om det — dette er en bonusflate, ikke en hovedflate.
-      setData('error' in res ? null : res)
+      if ('error' in res) { setData(null); return }
+      setData(res)
+      if (res.hasData) setHarSkytedata(true)
     })
     return () => { avbrutt = true }
   }, [range.from, range.to, targetUserId])
 
-  if (!data || !data.hasData) return null
+  // Vent på første svar, og skjul helt for den som ikke har skyting.
+  if (!data || !harSkytedata) return null
+  const tomPeriode = !data.hasData
 
   return (
     <>
@@ -96,7 +110,21 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
           options={PERIODE_VALG}
         />
 
+        {/* Kortene står også i en tom periode — da med «—» og 0, som er et
+            ærlig svar. De forsvinner ikke. */}
         <SkytingSummaryCards data={data} />
+
+        {tomPeriode && (
+          <div className="p-5 text-center"
+            style={{ border: '1px dashed #1E1E22', borderRadius: 'var(--r-card)' }}>
+            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              Ingen skyting ført i denne perioden.
+            </p>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              Velg en lengre periode over for å se historikken.
+            </p>
+          </div>
+        )}
 
         {/* Tittelen utledes av SAMME funksjon som grafen grupperer etter.
             Gjettet vi på periode-nøkkelen i stedet, ville «3 mnd» (90 dager,

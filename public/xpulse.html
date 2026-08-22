@@ -102,7 +102,7 @@ section{padding:88px 0}
 .hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat;filter:saturate(.92)}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,13,17,.88) 0%,rgba(13,13,17,.62) 55%,rgba(13,13,17,.45) 100%);}
 .hero-fade{position:absolute;left:0;right:0;bottom:0;height:180px;background:linear-gradient(to bottom,transparent,var(--bg))}
-.hero-in{position:relative;padding:120px 0 140px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.hero-in{position:relative;padding:120px 0 70px;text-align:center;display:flex;flex-direction:column;align-items:center}
 .hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
 .htag{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
 .hver{font:700 12px/1 'Barlow Condensed';letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
@@ -134,9 +134,10 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    vi kobler oss ikke til dem. Logo i samme rad ville lovet en integrasjon
    vi ikke har. Garmin flyttes opp når API-et er live — ikke før. */
 .syncrow{
-  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-  background:var(--surface);
-  padding:18px 34px;
+  position:relative;
+  border-top:1px solid rgba(255,255,255,.06);
+  background:transparent;
+  padding:18px 34px 26px;
 }
 /* Samme .wrap-bredde som resten av siden (1180px), midtstilt. */
 .syncrow .inner{max-width:1180px; margin:0 auto; text-align:center}
@@ -853,8 +854,6 @@ nav {
       <div><div class="n">2</div><div class="t">Direktesynk: Polar + Strava</div></div>
     </div>
   </div>
-</header>
-
 <div class="syncrow">
  <div class="inner">
   <div class="head">Synker med</div>
@@ -864,7 +863,6 @@ nav {
          klarering; logobruk er begrenset i AccessLink-lisensavtalen.
          Kortet står uansett: det er logoen som mangler, ikke merket. -->
     <div class="bcard polar">
-      <span class="logo"><span class="slot">Polar-logo</span></span>
       <span class="bmeta">
         <span class="bname">Polar</span>
         <span class="bstat"><span class="dot"></span>Direktesynk — live</span>
@@ -876,7 +874,7 @@ nav {
          samme lockup som X-PULSE-logoen. Derfor ligger raden her under
          heroen og ikke i toppnavigasjonen. -->
     <div class="bcard strava">
-      <span class="logo"><span class="slot">Compatible with Strava</span></span>
+      <span class="logo"><img src="/brand/api_logo_cptblWith_strava_horiz_white.svg" alt="Compatible with Strava" style="height:26px;width:auto;display:block"></span>
       <span class="bmeta">
         <span class="bname">Strava</span>
         <span class="bstat rolling"><span class="dot"></span>Gradvis utrulling</span>
@@ -893,6 +891,8 @@ nav {
   </div>
  </div>
 </div>
+</header>
+
 <div class="devnote">Uansett klokkemerke: last opp <b>.fit-filer</b> fra Garmin, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sonefordeling.</div>
 
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->

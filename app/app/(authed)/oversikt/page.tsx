@@ -13,7 +13,6 @@ import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { KlokkesyncMiniKort } from '@/components/oversikt/KlokkesyncMiniKort'
 import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
-import { HelseMiniDashboard } from '@/components/analysis/HelseMiniDashboard'
 import { FeedbackCard } from '@/components/feedback/FeedbackCard'
 import type { DateRange } from '@/components/analysis/date-range'
 
@@ -110,11 +109,12 @@ export default async function OversiktPage() {
           health={res.health}
         />
 
-        {/* Helse-mini + trener-kort side om side. Om utøver ikke har trener
+        {/* Trener-kort + klokkesync side om side. Om utøver ikke har trener
             vises trener-kortet som koble-knapp (ingen full bredde-fallback —
-            grid-klassen gir naturlig 50/50 i begge tilfellene). */}
+            grid-klassen gir naturlig 50/50 i begge tilfellene).
+            «Helse over tid» laa her tidligere; helse dekkes av helse-kortet
+            i noekkelkort-raden over. */}
         <div className="grid gap-4 md:grid-cols-2 mb-6">
-          <HelseMiniDashboard range={range} />
           <TrenerKort overview={coachOverview} />
           {/* Kort liten klokkesync-boks: koble / synk nå + sist synket. */}
           <KlokkesyncMiniKort badge={klokkesyncBadge} />

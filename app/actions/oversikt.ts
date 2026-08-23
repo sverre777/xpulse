@@ -164,6 +164,13 @@ export interface OversiktHealthSummary {
    */
   days_logged_30d: number
   days_in_window: number
+  /**
+   * Dagsserien bak snittene, eldste først. Ingen ny spørring — dette er de
+   * samme 30 radene som allerede er hentet, bare eksponert. Brukes til
+   * sparklinjene i helse-popupen (notat pkt 11): retningsindikatorer uten
+   * akser, ikke grafer.
+   */
+  trend_30d: { date: string; resting_hr: number | null; hrv_ms: number | null; sleep_hours: number | null }[]
 }
 
 export interface OversiktFeedEntry {
@@ -829,6 +836,13 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       avg_sleep_score_30d: avg(sleepRows.map(r => r.sleep_score)),
       days_logged_30d: dagerFort,
       days_in_window: 30,
+      // healthRows kommer nyeste først — snus her så linja leses venstre→høyre.
+      trend_30d: [...healthRows].reverse().map(r => ({
+        date: r.date,
+        resting_hr: r.resting_hr,
+        hrv_ms: r.hrv_ms,
+        sleep_hours: r.sleep_hours,
+      })),
     }
 
     // Aktivitets-feed: siste 5 fullførte.

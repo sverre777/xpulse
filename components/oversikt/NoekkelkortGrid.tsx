@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { HelseLoggKnapp } from './HelseLoggKnapp'
 import type {
@@ -5,6 +8,7 @@ import type {
 } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
+import { HardoktPopup, HelsePopup } from './kort-popups'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
 function sportLabel(v: string): string {
@@ -63,10 +67,8 @@ function CardMeta({ children }: { children: React.ReactNode }) {
   )
 }
 
-function HardWorkoutCard({ w, onVisMer }: {
-  w: OversiktWorkoutCard | null
-  onVisMer?: () => void
-}) {
+function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
+  const [apen, setApen] = useState(false)
   // Tomtilstand (notat pkt 12): kortet skjules ALDRI — et hull ville flyttet
   // paa alt annet i rutenettet. Overskriften staar, og én linje forklarer.
   if (!w) {
@@ -116,8 +118,9 @@ function HardWorkoutCard({ w, onVisMer }: {
           }}>
           Se detaljer
         </Link>
-        {onVisMer && <VisMer onClick={onVisMer} />}
+        <VisMer onClick={() => setApen(true)} />
       </KortFot>
+      {apen && <HardoktPopup w={w} onClose={() => setApen(false)} />}
     </Card>
   )
 }
@@ -278,7 +281,8 @@ function HelseTall({ label, verdi, enhet, snitt, hoyereErBra, farge }: {
   )
 }
 
-function HealthCard({ h, onVisMer }: { h: OversiktHealthSummary; onVisMer?: () => void }) {
+function HealthCard({ h }: { h: OversiktHealthSummary }) {
+  const [apen, setApen] = useState(false)
   const hasAny = h.last_entry_date !== null
   const today = todayLocalISO()
   if (!hasAny) {
@@ -304,7 +308,8 @@ function HealthCard({ h, onVisMer }: { h: OversiktHealthSummary; onVisMer?: () =
       </div>
       <CardMeta>Sist ført: {fmtDate(h.last_entry_date!)}</CardMeta>
       <Spacer />
-      <HealthCardActions today={today} onVisMer={onVisMer} />
+      <HealthCardActions today={today} onVisMer={() => setApen(true)} />
+      {apen && <HelsePopup h={h} onClose={() => setApen(false)} />}
     </Card>
   )
 }

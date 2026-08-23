@@ -1,5 +1,9 @@
+'use client'
+
+import { useState } from 'react'
 import type { OversiktWeekTotals } from '@/app/actions/oversikt'
 import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
+import { UkePopup } from './kort-popups'
 
 function fmtKm(meters: number): string {
   if (meters <= 0) return '0 km'
@@ -42,13 +46,14 @@ function StatCell({ label, value, delta }: { label: string; value: string; delta
 }
 
 export function UkensTotaler({
-  totals, weekNumber, onVisMer,
+  totals, weekNumber,
 }: {
   totals: OversiktWeekTotals
   weekNumber: number
-  /** Satt = «Vis mer» rendres. Popupen kommer i bolk 3. */
-  onVisMer?: () => void
 }) {
+  // Kortet eier sin egen popup — siden er en server-komponent og skal ikke
+  // holde UI-tilstand for kortene.
+  const [apen, setApen] = useState(false)
   return (
     <section className="p-5 h-full flex flex-col" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="xp-kh">
@@ -70,11 +75,10 @@ export function UkensTotaler({
 
       {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}
       <Spacer />
-      {onVisMer && (
-        <KortFot>
-          <VisMer onClick={onVisMer} />
-        </KortFot>
-      )}
+      <KortFot>
+        <VisMer onClick={() => setApen(true)} />
+      </KortFot>
+      {apen && <UkePopup totals={totals} weekNumber={weekNumber} onClose={() => setApen(false)} />}
     </section>
   )
 }

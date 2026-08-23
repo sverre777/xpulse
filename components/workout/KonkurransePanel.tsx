@@ -332,11 +332,6 @@ export function KonkurransePanel({
                         onChange={e => set('position_class', e.target.value)} style={FELT} />
                     </div>
                     <div>
-                      <label style={LBL}>Kjønn</label>
-                      <input type="number" inputMode="numeric" min={1} value={data.position_gender}
-                        onChange={e => set('position_gender', e.target.value)} style={FELT} />
-                    </div>
-                    <div>
                       <label style={LBL}>Deltakere</label>
                       <input type="number" inputMode="numeric" min={1} value={data.participant_count}
                         onChange={e => set('participant_count', e.target.value)} style={FELT} />

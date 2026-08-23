@@ -112,6 +112,9 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .hacts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:11px;padding:16px 30px;font:800 15px/1 'Inter';cursor:pointer}
 .btn.pri{background:var(--orange);color:#fff;box-shadow:0 18px 50px rgba(255,69,0,.35)}
+/* Heroens hovedknapp staar stoerre enn resten: den er sidas ene viktigste
+   handling. Scopet til .hero saa priskortene beholder sin egen stoerrelse. */
+.hero .btn.pri{font-size:19px;padding:18px 34px}
 .btn.sec{border:1px solid var(--line2);color:var(--paper);background:rgba(13,13,17,.5)}
 .btn.blue{background:var(--blue);color:#fff;box-shadow:0 18px 50px rgba(26,111,212,.35)}
 .hfree{margin-top:16px;font-size:13.5px;color:var(--mute)}
@@ -451,6 +454,7 @@ footer a:hover{color:var(--paper)}
   .htag{font-size:10.5px;letter-spacing:.12em;white-space:normal;line-height:1.5}
   .hdesc{font-size:15.5px}
   .btn{padding:14px 20px;font-size:14px}
+  .hero .btn.pri{font-size:16.5px;padding:15px 24px}
   /* Proof-stripa MYE mindre på mobil (Sverre 20. aug): kompakt padding,
      mindre tall og tekst — fire små celler, ikke fire kort. */
   .proof{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;max-width:100%;margin-top:18px}
@@ -850,7 +854,7 @@ nav {
     <h1>BYGGET FOR <span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
     <p class="hdesc">Plan, dagbok og dyp analyse i ett — med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
     <div class="hacts">
-      <a class="btn pri" href="#priser">Start 30 dagers gratis prøve</a>
+      <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>
     </div>
     <div class="hfree"><b>30 dager gratis</b> — Kort, Klarna eller Apple Pay. Ingen bindingstid.</div>

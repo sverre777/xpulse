@@ -114,7 +114,8 @@ export default async function OnboardingAbonnementPage() {
 
   // Allerede aktivt abonnement → rett til dagbok (skip onboarding).
   const sub = await getActiveSubscription(supabase, user.id)
-  if (hasActiveAccess(sub)) redirect('/app/dagbok')
+  // Samme «inn i appen»-oyeblikk som innlogging: hjem, ikke dagbok.
+  if (hasActiveAccess(sub)) redirect('/app/oversikt')
 
   return (
     <main style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>

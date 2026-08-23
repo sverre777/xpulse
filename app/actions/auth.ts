@@ -54,7 +54,10 @@ export async function login(prevState: AuthState, formData: FormData): Promise<A
   const activeRole = (profile?.active_role ?? profile?.role) as Role | null
 
   revalidatePath('/', 'layout')
-  redirect(activeRole === 'coach' ? '/app/trener' : '/app/dagbok')
+  // HJEM etter innlogging. Trener har allerede /app/trener som sitt hjem
+  // (HOME_HREF i CoachNav); utoveren skal tilsvarende til /app/oversikt,
+  // som er «Hjem» i MainNav - ikke rett i dagboka.
+  redirect(activeRole === 'coach' ? '/app/trener' : '/app/oversikt')
 }
 
 export async function register(prevState: AuthState, formData: FormData): Promise<AuthState> {
@@ -123,7 +126,7 @@ export async function register(prevState: AuthState, formData: FormData): Promis
   void activeRole // unused etter onboarding-tvang — beholder fetch så profil-init kjører
   revalidatePath('/', 'layout')
   // Ny bruker skal alltid velge abonnement før de slipper inn i appen.
-  // /onboarding/abonnement redirecter videre til /app/dagbok hvis brukeren
+  // /onboarding/abonnement redirecter videre til /app/oversikt hvis brukeren
   // allerede har en aktiv subscription (returkonto-tilfellet).
   redirect('/onboarding/abonnement')
 }

@@ -82,7 +82,7 @@ export async function switchActiveRole(
 
   await writeRoleToSubCache(user.id, coachTier, target)
   revalidatePath('/', 'layout')
-  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
+  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/oversikt' }
 }
 
 // Legger til en rolle brukeren ikke har fra før. Setter samtidig active_role
@@ -111,5 +111,5 @@ export async function addRole(
   const addSub = await getActiveSubscription(supabase, user.id)
   await writeRoleToSubCache(user.id, hasCoachTier(addSub), target)
   revalidatePath('/', 'layout')
-  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/dagbok' }
+  return { redirectTo: target === 'coach' ? '/app/trener' : '/app/oversikt' }
 }

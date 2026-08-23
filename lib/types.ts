@@ -1215,7 +1215,6 @@ export interface CompetitionData {
   bib_number: string
   position_overall: string
   position_class: string
-  position_gender: string
   participant_count: string
   // Plan-felter: mål (f.eks. "Topp 10") og før-kommentar (taktikk/forberedelser).
   goal: string
@@ -1236,7 +1235,6 @@ export function emptyCompetitionData(defaultType: CompetitionType = 'konkurranse
     bib_number: '',
     position_overall: '',
     position_class: '',
-    position_gender: '',
     participant_count: '',
     goal: '',
     pre_comment: '',
@@ -1256,7 +1254,6 @@ export interface WorkoutCompetitionData {
   bib_number: string | null
   position_overall: number | null
   position_class: number | null
-  position_gender: number | null
   participant_count: number | null
   goal: string | null
   pre_comment: string | null

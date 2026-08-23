@@ -67,7 +67,7 @@ function hasCompetitionContent(d: CompetitionData): boolean {
   return !!(
     d.competition_type || d.name || d.location || d.distance_format ||
     d.bib_number || d.position_overall || d.position_class ||
-    d.position_gender || d.participant_count ||
+    d.participant_count ||
     d.goal || d.pre_comment || d.comment
   )
 }
@@ -82,7 +82,6 @@ function competitionRowFor(workoutId: string, d: CompetitionData) {
     bib_number: d.bib_number || null,
     position_overall: parseIntOrNull(d.position_overall),
     position_class: parseIntOrNull(d.position_class),
-    position_gender: parseIntOrNull(d.position_gender),
     participant_count: parseIntOrNull(d.participant_count),
     goal: d.goal || null,
     pre_comment: d.pre_comment || null,
@@ -103,7 +102,6 @@ function competitionRowToForm(row: {
   bib_number: string | null
   position_overall: number | null
   position_class: number | null
-  position_gender: number | null
   participant_count: number | null
   goal: string | null
   pre_comment: string | null
@@ -119,7 +117,6 @@ function competitionRowToForm(row: {
     bib_number: row.bib_number ?? '',
     position_overall: row.position_overall?.toString() ?? '',
     position_class: row.position_class?.toString() ?? '',
-    position_gender: row.position_gender?.toString() ?? '',
     participant_count: row.participant_count?.toString() ?? '',
     goal: row.goal ?? '',
     pre_comment: row.pre_comment ?? '',

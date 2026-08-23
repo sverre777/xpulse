@@ -92,7 +92,7 @@ export function KonkurransePanel({
   // «Etter løpet» kollapset som standard i plan (skjemaet føles kort før
   // start) — åpen i dagbok, eller når noe alt er ført.
   const harResultat = data.position_overall !== '' || data.position_class !== ''
-    || data.position_gender !== '' || data.participant_count !== '' || data.comment.trim() !== ''
+    || data.participant_count !== '' || data.comment.trim() !== ''
   const [etterApen, setEtterApen] = useState(!isPlan || harResultat)
 
   const formats = DISTANCE_FORMATS[sport] ?? []

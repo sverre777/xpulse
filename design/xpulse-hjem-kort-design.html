@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Hjem-kortene, utkast</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --card:#15151B; --card2:#101014; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  /* ZONE_COLORS_V2 — lib/activity-summary.ts */
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A; --hurt:#8B5CF6;
+  /* SkytingSummaryCards.tsx */
+  --prone:#38BDF8; --standing:#FF4500;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080A;color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif;padding:30px 20px 90px}
+.stage{max-width:1240px;margin:0 auto}
+
+/* ═══ Ekte rutenett — samme proporsjoner som Hjem ═══ */
+.grid{display:grid;gap:13px;margin-bottom:13px}
+.r1{grid-template-columns:1.05fr 1.25fr 1fr}
+.r2{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.r1,.r2{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.r1,.r2{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  min-width:0;display:flex;flex-direction:column;position:relative}
+.card.gold{border-color:rgba(232,185,60,.5);background:linear-gradient(150deg,#1A160D 0%,#141118 100%)}
+
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ch .bar{width:14px;height:2px;border-radius:2px;flex-shrink:0}
+.ch .t{font:600 10px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.ch .r{margin-left:auto;font:600 9px/1 'Barlow Condensed';letter-spacing:.14em;color:var(--mute)}
+
+.ttl{font:400 22px/1.05 'Bebas Neue';letter-spacing:.03em}
+.ttl.sm{font-size:19px}
+.meta{font-size:11px;color:var(--mute);margin-top:6px;line-height:1.5}
+.meta b{color:var(--dim);font-weight:500}
+
+/* Kompakt tallrad inne i et lite kort */
+.mini{display:flex;gap:14px;margin-top:11px;flex-wrap:wrap}
+.mini div{min-width:0}
+.mini .k{font:600 8.5px/1 'Barlow Condensed';letter-spacing:.15em;text-transform:uppercase;color:var(--mute)}
+.mini .v{font:400 19px/1 'Bebas Neue';margin-top:5px;letter-spacing:.02em}
+.mini .v small{font:600 9px/1 'Barlow Condensed';color:var(--dim);letter-spacing:.06em;margin-left:2px}
+.mini .v.empty{color:var(--mute)}
+
+/* KPI-boks (Ukens totaler) */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.kpis > div{padding:10px 11px;border-right:1px solid var(--line);min-width:0}
+.kpis > div:last-child{border-right:none}
+.kpis .k{font:600 8.5px/1 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.kpis .v{font:400 22px/1 'Bebas Neue';margin-top:6px;letter-spacing:.02em}
+.kpis .v small{font:600 10px/1 'Barlow Condensed';color:var(--dim);margin-left:2px}
+.kpis .d{font:600 9px/1 'Barlow Condensed';letter-spacing:.05em;margin-top:6px;color:var(--mute)}
+.kpis .d.up{color:var(--green)} .kpis .d.down{color:var(--red)}
+
+/* Sonestripe — kompakt */
+.zbar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:#0A0A0C;margin-top:12px}
+.zbar span{display:block}
+.zlg{display:flex;flex-wrap:wrap;gap:3px 11px;margin-top:8px}
+.zlg i{display:inline-flex;align-items:center;gap:5px;font-style:normal;
+  font:600 9.5px/1 'Barlow Condensed';letter-spacing:.08em;color:var(--dim)}
+.zlg i b{width:7px;height:7px;border-radius:2px;display:block;flex-shrink:0}
+
+/* Én skytelinje i det lille kortet */
+.shotline{display:flex;align-items:center;gap:7px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font:600 10px/1 'Barlow Condensed';letter-spacing:.1em;color:var(--dim);flex-wrap:wrap}
+.shotline em{font-style:normal;color:var(--paper);font-size:12px}
+.shotline .dot{width:6px;height:6px;border-radius:50%;display:block}
+
+.ztag{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 7px;
+  font:600 9px/1 'Barlow Condensed';letter-spacing:.12em;text-transform:uppercase}
+.ztag b{width:5px;height:5px;border-radius:50%;display:block}
+
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(232,185,60,.45);
+  border-radius:999px;padding:5px 10px;font:600 9.5px/1 'Barlow Condensed';
+  letter-spacing:.13em;text-transform:uppercase;color:var(--gold);align-self:flex-start}
+.pill i{width:5px;height:5px;border-radius:50%;background:var(--gold);display:block}
+
+.spacer{flex:1;min-height:8px}
+
+/* Handlinger nederst — alltid på samme linje, alltid nederst */
+.foot{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.b{border-radius:8px;padding:7px 12px;font:600 9.5px/1 'Barlow Condensed';
+  letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;cursor:pointer}
+.b.gold{background:var(--gold);color:#15151B}
+.b.green{background:var(--green);color:#08130D}
+.b.ghost{border:1px solid var(--line2);color:var(--dim);background:none}
+/* «Vis mer» — diskret, alltid til høyre */
+.more{margin-left:auto;font:600 9.5px/1 'Barlow Condensed';letter-spacing:.14em;
+  text-transform:uppercase;color:var(--mute);border:none;background:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px}
+.more:hover{color:var(--dim)}
+
+/* Helse kompakt */
+.h3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.h3 .k{font:600 8.5px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.h3 .v{font:400 20px/1 'Bebas Neue';margin-top:5px}
+.h3 .v small{font:600 9px/1 'Barlow Condensed';color:var(--dim);margin-left:2px}
+.h3 .v.empty{color:var(--mute)}
+.h3 .dv{font:600 9px/1 'Barlow Condensed';letter-spacing:.05em;margin-top:5px;color:var(--mute)}
+.h3 .dv.good{color:var(--green)} .h3 .dv.watch{color:var(--gold)}
+
+/* Aktivitetsliste — full bredde, den har plass */
+.feed .row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(31,31,38,.65)}
+.feed .row:last-child{border-bottom:none}
+.feed .zd{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.feed .nm{font:600 11px/1 'Barlow Condensed';letter-spacing:.11em;text-transform:uppercase;color:var(--paper);display:block}
+.feed .sub{font-size:10.5px;color:var(--mute);margin-top:3px;display:block}
+.feed .rt{margin-left:auto;text-align:right;white-space:nowrap}
+.feed .rt .a{font-size:11.5px;color:var(--paper);display:block}
+.feed .rt .bq{font-size:10.5px;color:var(--mute);display:block;margin-top:2px}
+
+/* ═══ POPUP ═══ */
+.modal{max-width:620px;margin:0 auto;background:var(--card);border:1px solid var(--line2);
+  border-radius:16px;padding:20px 22px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mh{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.mh .x{margin-left:auto;color:var(--mute);font-size:18px;line-height:1}
+.mh .kick{font:600 9.5px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.mh .mt{font:400 26px/1.05 'Bebas Neue';letter-spacing:.03em;margin-top:7px}
+.mh .ms{font-size:11.5px;color:var(--mute);margin-top:6px}
+.sect{margin-top:16px}
+.sect .lbl{font:600 9.5px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;display:block}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stats4 > div{background:var(--card2);padding:10px 11px}
+.stats4 .k{font:600 8.5px/1 'Barlow Condensed';letter-spacing:.15em;text-transform:uppercase;color:var(--mute)}
+.stats4 .v{font:400 19px/1 'Bebas Neue';margin-top:6px}
+.stats4 .v small{font:600 9px/1 'Barlow Condensed';color:var(--dim);margin-left:2px}
+.stats4 .v.empty{color:var(--mute)}
+.pos{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pbox{border:1px solid var(--line);border-radius:10px;padding:10px 11px;position:relative;overflow:hidden}
+.pbox::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.pbox.prone::before{background:var(--prone)}
+.pbox.standing::before{background:var(--standing)}
+.pbox .pk{font:600 8.5px/1 'Barlow Condensed';letter-spacing:.15em;text-transform:uppercase;color:var(--mute)}
+.pbox .pv{font:400 20px/1 'Bebas Neue';margin-top:6px}
+.pbox .pv small{font:600 9px/1 'Barlow Condensed';color:var(--dim);margin-left:2px}
+.pbox .ps{font-size:10px;color:var(--mute);margin-top:5px}
+.trk{height:4px;border-radius:2px;background:#0A0A0C;overflow:hidden;margin-top:7px}
+.trk span{display:block;height:100%;border-radius:2px}
+.act{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(31,31,38,.65)}
+.act:last-child{border-bottom:none}
+.act .zd{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.act .nm{font:600 10.5px/1 'Barlow Condensed';letter-spacing:.12em;text-transform:uppercase}
+.act .dt{margin-left:auto;font-size:11px;color:var(--dim);white-space:nowrap}
+.quote{font-size:12px;color:var(--dim);font-style:italic;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.sparks{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sparks .sh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.sparks .sn{font:600 9px/1 'Barlow Condensed';letter-spacing:.15em;text-transform:uppercase;color:var(--mute)}
+.sparks .sv{font:400 17px/1 'Bebas Neue'}
+.sparks .sv small{font:600 8.5px/1 'Barlow Condensed';color:var(--dim);margin-left:2px}
+.sparks svg{width:100%;height:44px;display:block}
+.sparks .sf{font-size:10px;color:var(--mute);margin-top:6px}
+
+/* Etiketter */
+.vl{font:600 10.5px/1 'Barlow Condensed';letter-spacing:.24em;text-transform:uppercase;color:var(--orange);margin:34px 0 12px}
+.vl .s{color:var(--mute);letter-spacing:.09em;margin-left:10px}
+.note{max-width:900px;margin:56px auto 0}
+.note h2{font:400 26px/1.1 'Bebas Neue';letter-spacing:.06em;margin-bottom:6px}
+.note h3{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin:26px 0 9px}
+.note p,.note li{font-size:14px;line-height:1.65;color:var(--dim)}
+.note li{margin-bottom:7px}
+.note ul{padding-left:20px}
+.note b{color:var(--paper)}
+.note code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--gold);background:#15151B;padding:1px 5px;border-radius:4px}
+.note .warn{border-left:2px solid var(--red);padding:10px 0 10px 14px;margin:14px 0}
+.note .ok{border-left:2px solid var(--green);padding:10px 0 10px 14px;margin:14px 0}
+</style>
+</head>
+<body>
+<div class="stage">
+
+<div class="vl">Kortene i ekte størrelse <span class="s">samme rutenett som Hjem — alt får plass</span></div>
+
+<!-- ═══════ RAD 1 ═══════ -->
+<div class="grid r1">
+
+  <!-- I DAG -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--gold)"></span><span class="t">Neste økt</span><span class="r">Om 4 dager</span></div>
+    <span class="pill"><i></i>Tor. 27. aug · 12:30</span>
+    <div class="ttl" style="margin-top:11px">NC sprint</div>
+    <div class="meta">Løping · Konkurranse · Hafjell</div>
+    <div class="mini">
+      <div><div class="k">Planlagt</div><div class="v">1<small>t</small> 10<small>m</small></div></div>
+      <div><div class="k">Distanse</div><div class="v">10.0<small>km</small></div></div>
+      <div><div class="k">Skudd</div><div class="v">20</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="foot">
+      <span class="b gold">Se detaljer</span>
+      <button class="more">Vis mer ⤢</button>
+    </div>
+  </div>
+
+  <!-- UKENS TOTALER -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--orange)"></span><span class="t">Ukens totaler</span><span class="r">Uke 34</span></div>
+    <div class="kpis">
+      <div><div class="k">Tid</div><div class="v">11<small>t</small>20</div><div class="d up">↑ 18 %</div></div>
+      <div><div class="k">Distanse</div><div class="v">96.4<small>km</small></div><div class="d up">↑ 12 %</div></div>
+      <div><div class="k">Økter</div><div class="v">6</div><div class="d up">↑ 1</div></div>
+    </div>
+    <div class="zbar">
+      <span style="width:64%;background:var(--i1)"></span>
+      <span style="width:15%;background:var(--i2)"></span>
+      <span style="width:9%;background:var(--i3)"></span>
+      <span style="width:8%;background:var(--i4)"></span>
+      <span style="width:4%;background:var(--i5)"></span>
+    </div>
+    <div class="zlg">
+      <i><b style="background:var(--i1)"></b>I1 7t15</i>
+      <i><b style="background:var(--i2)"></b>I2 1t42</i>
+      <i><b style="background:var(--i3)"></b>I3 1t01</i>
+      <i><b style="background:var(--i4)"></b>I4 54m</i>
+      <i><b style="background:var(--i5)"></b>I5 28m</i>
+    </div>
+    <div class="shotline">
+      <span class="dot" style="background:var(--standing)"></span>
+      Skyting <em>235</em> skudd · <em>84 %</em> treff
+    </div>
+    <div class="spacer"></div>
+    <div class="foot"><button class="more">Vis mer ⤢</button></div>
+  </div>
+
+  <!-- NESTE KONKURRANSE -->
+  <div class="card gold">
+    <div class="ch"><span class="bar" style="background:var(--gold)"></span><span class="t">Neste konkurranse</span></div>
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div style="min-width:0">
+        <div class="ttl">NC sprint</div>
+        <div class="meta">Torsdag 27. august 2026<br>Hafjell · Løping</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font:400 40px/1 'Bebas Neue';color:var(--gold)">4</div>
+        <div style="font:600 8px/1 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--gold);opacity:.8;margin-top:4px">Dager igjen</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="foot">
+      <span class="b ghost" style="border-color:rgba(232,185,60,.5);color:var(--gold)">Åpne detaljer →</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ RAD 2 ═══════ -->
+<div class="grid r2">
+
+  <!-- SISTE HARDØKT -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--red)"></span><span class="t">Siste hardøkt</span><span class="r">5d siden</span></div>
+    <div class="ttl sm">NM rulleski</div>
+    <div class="meta">17. aug · Skiskyting<br>Konkurranse
+      <span class="ztag" style="border:1px solid var(--i4);color:var(--i4);margin-left:4px"><b style="background:var(--i4)"></b>I4</span>
+    </div>
+    <div class="mini">
+      <div><div class="k">Tid</div><div class="v">1<small>t</small>04</div></div>
+      <div><div class="k">Snittpuls</div><div class="v">172<small>bpm</small></div></div>
+    </div>
+    <div class="zbar" style="margin-top:11px">
+      <span style="width:14%;background:var(--i1)"></span>
+      <span style="width:11%;background:var(--i2)"></span>
+      <span style="width:18%;background:var(--i3)"></span>
+      <span style="width:41%;background:var(--i4)"></span>
+      <span style="width:16%;background:var(--i5)"></span>
+    </div>
+    <div class="shotline"><span class="dot" style="background:var(--prone)"></span><em>20</em> skudd · <em>85 %</em></div>
+    <div class="spacer"></div>
+    <div class="foot"><button class="more">Vis mer ⤢</button></div>
+  </div>
+
+  <!-- HOVEDMÅL — uendret, bare med for helheten -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--orange)"></span><span class="t">Hovedmål</span></div>
+    <div class="ttl sm">Topp 3 NM</div>
+    <div class="meta">Sesongtest 2 · 12 dager til sesongslutt</div>
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;font:600 8.5px/1 'Barlow Condensed';letter-spacing:.15em;text-transform:uppercase;color:var(--mute);margin-bottom:7px">
+        <span>Volum hittil</span><b style="color:var(--paper)">62 %</b>
+      </div>
+      <div class="trk"><span style="width:62%;background:var(--orange)"></span></div>
+      <div class="meta" style="margin-top:7px">486t av 780t</div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- PERIODE -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--blue)"></span><span class="t">Periode</span></div>
+    <div class="ttl sm">Hard uke 33–36</div>
+    <div class="meta">Uke 2/4 · 17. aug–13. sept</div>
+    <div style="margin-top:12px">
+      <span class="ztag" style="border:1px solid var(--i4);color:var(--i4);padding:5px 10px"><b style="background:var(--i4)"></b>Hard</span>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- HELSE -->
+  <div class="card">
+    <div class="ch"><span class="bar" style="background:var(--green)"></span><span class="t">Helse</span><span class="r">I dag 06:40</span></div>
+    <div class="h3">
+      <div><div class="k">Hvilepuls</div><div class="v">42</div><div class="dv good">−1 mot snitt</div></div>
+      <div><div class="k">HRV</div><div class="v">96</div><div class="dv good">+5 mot snitt</div></div>
+      <div><div class="k">Søvn</div><div class="v">88</div><div class="dv">8.1 t</div></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="foot">
+      <span class="b green">+ Logg</span>
+      <span class="b ghost">Analyse →</span>
+      <button class="more">Vis mer ⤢</button>
+    </div>
+  </div>
+</div>
+
+<!-- SISTE AKTIVITETER — full bredde -->
+<div class="card feed">
+  <div class="ch"><span class="bar" style="background:var(--orange)"></span><span class="t">Siste aktiviteter</span><span class="r">Alle →</span></div>
+
+  <div class="row">
+    <span class="zd" style="background:var(--i4)"></span>
+    <span style="min-width:0"><span class="nm">NM rulleski</span><span class="sub">man. 17. aug · Skiskyting · Konkurranse</span></span>
+    <span class="rt"><span class="a">1t 04m · 20.0 km</span><span class="bq">172 bpm · 20 skudd · 85 %</span></span>
+  </div>
+  <div class="row">
+    <span class="zd" style="background:var(--i2)"></span>
+    <span style="min-width:0"><span class="nm">Test skyting</span><span class="sub">lør. 15. aug · Skiskyting · Annet</span></span>
+    <span class="rt"><span class="a">42m</span><span class="bq">100 skudd · 88 %</span></span>
+  </div>
+  <div class="row">
+    <span class="zd" style="background:var(--hurt)"></span>
+    <span style="min-width:0"><span class="nm">Styrke test 2</span><span class="sub">tor. 13. aug · Skiskyting · Styrke</span></span>
+    <span class="rt"><span class="a">1t 05m</span><span class="bq">6 øvelser · 4 200 kg</span></span>
+  </div>
+  <div class="row">
+    <span class="zd" style="background:var(--i1)"></span>
+    <span style="min-width:0"><span class="nm">Rolig langtur</span><span class="sub">ons. 12. aug · Rulleski · Rolig</span></span>
+    <span class="rt"><span class="a">2t 10m · 38.4 km</span><span class="bq">128 bpm</span></span>
+  </div>
+  <div class="row">
+    <span class="zd" style="background:var(--mute)"></span>
+    <span style="min-width:0"><span class="nm">Uten tittel</span><span class="sub">tir. 11. aug · Løping · Annet</span></span>
+    <span class="rt"><span class="a" style="color:var(--mute)">—</span></span>
+  </div>
+</div>
+
+<!-- ═══════════ POPUP: SISTE HARDØKT ═══════════ -->
+<div class="vl">Popup — Siste hardøkt <span class="s">«Vis mer» åpner dybden</span></div>
+
+<div class="modal">
+  <div class="mh">
+    <div style="min-width:0">
+      <div class="kick">Siste hardøkt</div>
+      <div class="mt">NM rulleski</div>
+      <div class="ms">Mandag 17. august · Skiskyting · Konkurranse · dominerende sone I4</div>
+    </div>
+    <span class="x">✕</span>
+  </div>
+
+  <div class="stats4">
+    <div><div class="k">Varighet</div><div class="v">1<small>t</small>04<small>m</small></div></div>
+    <div><div class="k">Distanse</div><div class="v">20.0<small>km</small></div></div>
+    <div><div class="k">Snittpuls</div><div class="v">172<small>bpm</small></div></div>
+    <div><div class="k">Makspuls</div><div class="v">189<small>bpm</small></div></div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Soner i økta</span>
+    <div class="zbar" style="height:9px;margin-top:0">
+      <span style="width:14%;background:var(--i1)"></span>
+      <span style="width:11%;background:var(--i2)"></span>
+      <span style="width:18%;background:var(--i3)"></span>
+      <span style="width:41%;background:var(--i4)"></span>
+      <span style="width:16%;background:var(--i5)"></span>
+    </div>
+    <div class="zlg">
+      <i><b style="background:var(--i1)"></b>I1 9m</i>
+      <i><b style="background:var(--i2)"></b>I2 7m</i>
+      <i><b style="background:var(--i3)"></b>I3 12m</i>
+      <i><b style="background:var(--i4)"></b>I4 26m</i>
+      <i><b style="background:var(--i5)"></b>I5 10m</i>
+    </div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Skyting · 20 skudd · 85 % treff</span>
+    <div class="pos">
+      <div class="pbox prone">
+        <div class="pk">Liggende</div><div class="pv">90<small>%</small></div>
+        <div class="trk"><span style="width:90%;background:var(--prone)"></span></div>
+        <div class="ps">9 av 10 skudd</div>
+      </div>
+      <div class="pbox standing">
+        <div class="pk">Stående</div><div class="pv">80<small>%</small></div>
+        <div class="trk"><span style="width:80%;background:var(--standing)"></span></div>
+        <div class="ps">8 av 10 skudd</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Slik var økta bygget</span>
+    <div class="act"><span class="zd" style="background:var(--i1)"></span><span class="nm">Oppvarming</span><span class="dt">18 min · 6.1 km</span></div>
+    <div class="act"><span class="zd" style="background:var(--i4)"></span><span class="nm">Konkurranse</span><span class="dt">31 min · 10.0 km · laktat 8.4</span></div>
+    <div class="act"><span class="zd" style="background:var(--i1)"></span><span class="nm">Nedjogg</span><span class="dt">15 min · 3.9 km</span></div>
+  </div>
+
+  <div class="quote">«Kjente meg tung første runde, bedre etter første skyting.»</div>
+
+  <div class="foot"><span class="b ghost">Åpne økta i dagboken →</span></div>
+</div>
+
+<!-- ═══════════ POPUP: HELSE ═══════════ -->
+<div class="vl">Popup — Helse <span class="s">30-dagers baseline og trend</span></div>
+
+<div class="modal">
+  <div class="mh">
+    <div style="min-width:0">
+      <div class="kick">Helse</div>
+      <div class="mt">I dag, 06:40</div>
+      <div class="ms">Alle tall sammenlignes mot ditt eget snitt · 27 av 30 dager ført</div>
+    </div>
+    <span class="x">✕</span>
+  </div>
+
+  <div class="sparks">
+    <div>
+      <div class="sh"><span class="sn">Hvilepuls</span><span class="sv">42<small>bpm</small></span></div>
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#E23A5A" stroke-width="1.8" stroke-linejoin="round"
+          points="0,16 9,21 18,13 27,25 36,18 45,28 54,20 63,30 72,22 81,33 90,25 100,30"/>
+      </svg>
+      <div class="sf">Snitt 43 · 1 under</div>
+    </div>
+    <div>
+      <div class="sh"><span class="sn">HRV</span><span class="sv">96<small>ms</small></span></div>
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#8B5CF6" stroke-width="1.8" stroke-linejoin="round"
+          points="0,31 9,26 18,34 27,21 36,27 45,17 54,24 63,14 72,20 81,10 90,17 100,12"/>
+      </svg>
+      <div class="sf">Snitt 91 ms · 5 over</div>
+    </div>
+    <div>
+      <div class="sh"><span class="sn">Søvnscore</span><span class="sv">88<small>/100</small></span></div>
+      <svg viewBox="0 0 100 44" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#1A6FD4" stroke-width="1.8" stroke-linejoin="round"
+          points="0,22 9,15 18,26 27,13 36,20 45,10 54,17 63,12 72,23 81,8 90,15 100,10"/>
+      </svg>
+      <div class="sf">Snitt 84 · 4 over</div>
+    </div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Snitt siste 30 dager</span>
+    <div class="stats4">
+      <div><div class="k">Hvilepuls</div><div class="v">43<small>bpm</small></div></div>
+      <div><div class="k">HRV</div><div class="v">91<small>ms</small></div></div>
+      <div><div class="k">Søvn</div><div class="v">7<small>t</small>48</div></div>
+      <div><div class="k">Søvnscore</div><div class="v">84</div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="b green">+ Logg helse</span>
+    <span class="b ghost">Åpne analyse →</span>
+  </div>
+</div>
+
+<!-- ═══════════ POPUP: UKENS TOTALER ═══════════ -->
+<div class="vl">Popup — Ukens totaler <span class="s">soner i tid, skyting per stilling</span></div>
+
+<div class="modal">
+  <div class="mh">
+    <div style="min-width:0">
+      <div class="kick">Ukens totaler</div>
+      <div class="mt">Uke 34</div>
+      <div class="ms">18.–24. august · 6 økter ført</div>
+    </div>
+    <span class="x">✕</span>
+  </div>
+
+  <div class="stats4">
+    <div><div class="k">Tid</div><div class="v">11<small>t</small>20</div></div>
+    <div><div class="k">Distanse</div><div class="v">96.4<small>km</small></div></div>
+    <div><div class="k">Økter</div><div class="v">6</div></div>
+    <div><div class="k">Mot forrige</div><div class="v">+18<small>%</small></div></div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Sonefordeling</span>
+    <div class="zbar" style="height:9px;margin-top:0">
+      <span style="width:64%;background:var(--i1)"></span>
+      <span style="width:15%;background:var(--i2)"></span>
+      <span style="width:9%;background:var(--i3)"></span>
+      <span style="width:8%;background:var(--i4)"></span>
+      <span style="width:4%;background:var(--i5)"></span>
+    </div>
+    <div class="zlg">
+      <i><b style="background:var(--i1)"></b>I1 7t 15m · 64 %</i>
+      <i><b style="background:var(--i2)"></b>I2 1t 42m · 15 %</i>
+      <i><b style="background:var(--i3)"></b>I3 1t 01m · 9 %</i>
+      <i><b style="background:var(--i4)"></b>I4 54m · 8 %</i>
+      <i><b style="background:var(--i5)"></b>I5 28m · 4 %</i>
+    </div>
+  </div>
+
+  <div class="sect">
+    <span class="lbl">Skyting · 235 skudd · 84 % treff</span>
+    <div class="pos">
+      <div class="pbox prone">
+        <div class="pk">Liggende</div><div class="pv">92<small>%</small></div>
+        <div class="trk"><span style="width:92%;background:var(--prone)"></span></div>
+        <div class="ps">110 av 120 skudd</div>
+      </div>
+      <div class="pbox standing">
+        <div class="pk">Stående</div><div class="pv">75<small>%</small></div>
+        <div class="trk"><span style="width:75%;background:var(--standing)"></span></div>
+        <div class="ps">86 av 115 skudd</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span class="b ghost">Åpne uka i dagboken →</span></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="note">
+  <h2>Notat — regler</h2>
+  <p>Fasit for CC. Følg 1:1. Punktene er beslutninger, ikke forslag.</p>
+
+  <h3>1. Kortet svarer på ett blikk, popupen har dybden</h3>
+  <div class="ok">
+    <p>Rad 2 er fire kort på under 300 px. Det er den ekte begrensningen, og den styrer alt her: <b>kortet skal svare på ett spørsmål</b> — «hvordan ligger jeg an akkurat nå» — og det som krever mer enn ett blikk hører hjemme i popupen bak «Vis mer».</p>
+    <p>Ingenting nytt hentes for popupen. <b>Samme datasett, to detaljnivåer.</b> Popupen er ren visning av det kortet allerede har lastet.</p>
+  </div>
+
+  <h3>2. Hva som allerede finnes, og hva som må hentes</h3>
+  <div class="warn">
+    <p>«Kun hente data som allerede finnes» stemmer på <b>databasenivå</b>, men ikke i Hjem-payloaden. Serverfunksjonen må hente flere kolonner. <b>Ingen migrering, ingen ny modell</b> — utvidet <code>select</code> og noen felter på grensesnittet.</p>
+  </div>
+  <p><b>Allerede i <code>OversiktWeekTotals</code>:</b> <code>total_seconds</code>, <code>total_meters</code>, <code>workout_count</code>, <code>zones</code>, forrige uke og begge prosentendringene. Sonestripen kan bygges i dag uten å røre serveren.</p>
+  <p><b>Skyting mangler helt.</b> <code>oversikt.ts</code> har ikke ett skytefelt. Summer <code>prone_shots</code>/<code>prone_hits</code>/<code>standing_shots</code>/<code>standing_hits</code> fra <code>workout_activities</code>. Feltene ligger allerede i selecten i <code>analysis.ts:2412</code> — samme mønster.</p>
+  <p><b><code>OversiktWorkoutCard</code> har ni felter</b> og er derfor tomt: id, title, date, sport, workout_type, duration_minutes, distance_km, time_of_day, is_planned, is_completed, primary_intensity_zone. Legg til <code>avg_heart_rate</code>, <code>max_heart_rate</code>, <code>notes</code> (fra <code>workouts</code>), og <code>zones</code>, <code>lactate_mmol</code>, skyttefeltene og aktivitetsradene (fra <code>workout_activities</code>).</p>
+  <p><b>Helse:</b> <code>OversiktHealthSummary</code> har 7-dagers snitt. Legg til <b>30 dager</b> — sju dager er for kort baseline for hvilepuls og HRV, én dårlig natt flytter snittet merkbart. <b>Søvnscore finnes ikke i <code>daily_health</code></b>; den bor i søvnmodellen (<code>app/actions/sleep.ts</code>, feltet <code>sleep_score</code>).</p>
+  <p><b>Feeden</b> bygges på <code>oversikt.ts:670</code> fra <code>recentCompleted</code>, og den selecten henter allerede <code>workout_activities(zones)</code>. Legg til puls og skyttefeltene der.</p>
+
+  <h3>3. «Vis mer» — hvordan den skal se ut og oppføre seg</h3>
+  <ul>
+    <li>Alltid <b>nederst til høyre</b> i kortet, dempet grå, aldri en fylt knapp. Den skal ikke konkurrere med «Se detaljer» eller «+ Logg».</li>
+    <li>Bare på kort som faktisk har mer å vise. <b>Hovedmål og Periode får den ikke</b> — de har ingen dybde bak seg, og en tom popup er verre enn ingen knapp.</li>
+    <li>Popupen lukkes med ✕, klikk utenfor og Escape.</li>
+    <li>Nederst i popupen: én lenke videre til der man faktisk kan gjøre noe — dagboken eller analysen. Popupen er en visning, ikke en arbeidsflate.</li>
+  </ul>
+
+  <h3>4. «I dag»-kortet lyver i dag — ekte feil</h3>
+  <div class="warn">
+    <p><code>components/oversikt/NesteOektKort.tsx:49</code> har overskriften <b>hardkodet til «I dag»</b>, mens pillen sier «Neste økt · tor. 27. aug». På skjermbildet står «I DAG» over en økt fire dager fram.</p>
+    <p>Fiks: kickeren følger datoen. I dag → «I dag» + klokkeslett. Senere → «Neste økt» + «Om N dager». Linje 155 gjør allerede halve jobben; det er linje 49 og 107 som ikke gjør det.</p>
+  </div>
+  <p>Og «Varighet: —» skyldes at planlagte økter sjelden har <code>duration_minutes</code> på selve økta. Tiden ligger i <code>workout_activities.duration_seconds</code>, som allerede hentes. Summer dem.</p>
+
+  <h3>5. Aktivitetslista — «1m» er ekte, men leser som feil</h3>
+  <p><code>OversiktFeedEntry</code> har seks felter, derfor står det bare «—» eller «1m» til høyre. Tallene er riktige — styrketester ført med ett og tre minutter — men de leser som feil fordi det ikke står noe rundt dem.</p>
+  <p>Hver rad: <b>sonefarge-prikk</b>, tittel, dato · sport · type, og til høyre <b>to linjer</b> — tid og distanse øverst, puls/skudd/treff % under. Styrkeøkter har verken distanse eller interessant puls: vis <b>antall øvelser og totalt volum</b>, det er det en styrkeøkt måles i.</p>
+
+  <h3>6. Kun-førte-regelen</h3>
+  <p>Treff % deles på skudd der treff <b>faktisk er ført</b> — aldri på totalskudd. En posisjon som ikke er skutt gir <b>«—», ikke 0 %</b>: en nullsøyle påstår at man bommet på alt. Samme for snitt: bare førte dager teller, aldri null for manglende.</p>
+
+  <h3>7. Selvskjulende skyting</h3>
+  <p>Ingen skudd i perioden → skytelinja og skyteseksjonen rendres ikke, heller ikke overskriften. En løper skal aldri se en tom skyteboks. Samme prinsipp som skyting-seksjonen under dagboken.</p>
+
+  <h3>8. Helse sammenlignes mot deg selv</h3>
+  <div class="ok">
+    <p>«42 bpm» sier ingenting alene — <b>«1 under ditt eget snitt» sier alt</b>. Absolutte tall er meningsløse på tvers av utøvere. Samme prinsipp som lav-recovery-flagget i trenerpanelet: alltid mot utøverens EGEN baseline.</p>
+  </div>
+  <p>Retningen skal stå <b>i ord</b>, ikke bare fortegn: HRV over snittet er bra, hvilepuls over snittet er det ikke, og «+5» uten kontekst leses feil begge veier. Farg varsomt — grønt når det peker riktig vei, gult når det er verdt et blikk, <b>aldri rødt</b>. Dette er veiledningstall, ikke alarmer.</p>
+  <p>Dekningsgraden skal stå i popupen: «27 av 30 dager ført». Et 30-dagers snitt bygget på fire målinger er ikke en baseline.</p>
+
+  <h3>9. Sammenligningen mot forrige uke</h3>
+  <p>Finnes det ikke forrige uke å sammenligne med, skriv <b>«—»</b> i dempet grå — ikke «↑ 100 %». I dagens kort står «↑ 100 % vs forrige» på en uke der forrige uke var null. Det er ikke en dobling, det er fravær av grunnlag.</p>
+
+  <h3>10. Fargefasit</h3>
+  <p>Soner: <code>ZONE_COLORS_V2</code> i <code>lib/activity-summary.ts</code> — I1 <code>#28A86E</code> · I2 <code>#1A6FD4</code> · I3 <code>#E8B93C</code> · I4 <code>#FF8C00</code> · I5 <code>#E23A5A</code> · Hurtighet <code>#8B5CF6</code>. Soner uten tid rendres ikke.</p>
+  <p>Stillinger: liggende <code>#38BDF8</code>, stående <code>#FF4500</code> — importer fra <code>components/analysis/SkytingSummaryCards.tsx</code>, ikke definer på nytt (regel 11).</p>
+  <p>Helse: hvilepuls <code>#E23A5A</code>, HRV <code>#8B5CF6</code>, søvn <code>#1A6FD4</code> — samme som «Helse over tid» allerede bruker.</p>
+
+  <h3>11. Kortene skal ikke bli analyser</h3>
+  <p>Ingen grafer i selve kortene. Én stripe og noen tall. Sparklinjer finnes bare i Helse-popupen, uten akser — de er retningsindikatorer. Vil man grave, går man til Analyse.</p>
+
+  <h3>12. Tomtilstander</h3>
+  <p>Kortene er faste i rutenettet og skjules aldri — et hull ville flyttet på alt annet. Ingen hardøkt ført → behold overskriften og skriv én linje om at ingen økt i I3 eller høyere er ført enda. Ikke ført helse i dag → «—» på tallene, mens 30-dagers snittet blir stående.</p>
+
+  <h3>13. Mobil</h3>
+  <p>Under 1000px går rutenettet til to kolonner, under 620px til én. Kortene har allerede fast bunnjustering på handlingsradene (<code>.spacer</code>), så knappene står på linje uansett hvor høyt innholdet over er. Popupen går til full bredde med marg, og fire-kolonners tallrader blir to.</p>
+
+  <h3>14. Fellesnevneren</h3>
+  <div class="ok">
+    <p>Ingen av kortene trenger nye tabeller eller migreringer. Alle mangler det samme: <b>serverfunksjonen henter for få kolonner</b>. Dette er en select-jobb og en designjobb, ikke en modelljobb.</p>
+    <p>Og det gjennomgående prinsippet: <b>«—» der noe ikke er ført, aldri 0.</b> Et nulltall påstår at verdien er målt og var null. En strek sier at den ikke er ført. Det er hele forskjellen på et kort man stoler på og et man slutter å lese.</p>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

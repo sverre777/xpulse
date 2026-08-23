@@ -36,6 +36,23 @@ export interface OversiktWorkoutCard {
   is_completed: boolean
   // I3/I4/I5/Hurtighet — dominerende sone hvis identifiserbar.
   primary_intensity_zone: string | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  notes: string | null
+  /** Tid per sone i sekunder. Soner uten tid rendres ikke (notat pkt 10). */
+  zones: OversiktZoneSeconds
+  /** Høyeste målte laktat i økta — null når ingen måling er ført. */
+  lactate_mmol: number | null
+  /** null = ingen skudd i økta. Skyting er selvskjulende (notat pkt 7). */
+  shots: OversiktShots | null
+  activities: OversiktActivityRow[]
+  /**
+   * Varighet å VISE. Planlagte økter har sjelden duration_minutes på selve
+   * økta — tiden ligger i aktivitetsradene (notat pkt 4). Denne faller
+   * tilbake på summen av dem, så «Varighet: —» ikke står på en økt som
+   * faktisk har en plan.
+   */
+  effective_duration_minutes: number | null
 }
 
 export type OversiktNextWorkout =
@@ -43,6 +60,27 @@ export type OversiktNextWorkout =
   | { kind: 'today_completed'; workout: OversiktWorkoutCard }
   | { kind: 'future_planned'; workout: OversiktWorkoutCard }
   | { kind: 'none' }
+
+/**
+ * Skudd for en økt eller en periode. KUN-FØRTE-REGELEN (notat pkt 6):
+ * treff % deles på `recorded_shots` — skudd der treff faktisk ER ført —
+ * aldri på totalskudd. Er ingenting ført, er accuracy_pct null og skal
+ * vises som «—», aldri som 0 %.
+ */
+export interface OversiktShots {
+  shots: number
+  recorded_shots: number
+  hits: number
+  accuracy_pct: number | null
+}
+
+/** Aktivitetsrad på et kort — nok til å vise struktur, ikke hele økta. */
+export interface OversiktActivityRow {
+  activity_type: string
+  movement_name: string | null
+  duration_seconds: number | null
+  distance_meters: number | null
+}
 
 export interface OversiktZoneSeconds {
   I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number
@@ -54,6 +92,8 @@ export interface OversiktWeekTotals {
     total_meters: number
     workout_count: number
     zones: OversiktZoneSeconds
+    /** null = ingen skudd i uka — skytelinja rendres ikke. */
+    shots: OversiktShots | null
   }
   previous: {
     total_seconds: number
@@ -107,6 +147,23 @@ export interface OversiktHealthSummary {
   avg_resting_hr_7d: number | null
   avg_hrv_7d: number | null
   avg_sleep_7d: number | null
+  /**
+   * 30-dagers snitt. Sju dager er for kort baseline for hvilepuls og HRV —
+   * én dårlig natt flytter snittet merkbart (notat pkt 2).
+   * Kun-førte: snittet regnes bare over dager som ER ført.
+   */
+  avg_resting_hr_30d: number | null
+  avg_hrv_30d: number | null
+  avg_sleep_30d: number | null
+  /** Søvnscore bor i søvnmodellen (sleep_records), ikke i daily_health. */
+  sleep_score: number | null
+  avg_sleep_score_30d: number | null
+  /**
+   * Dekningsgrad: hvor mange av de 30 dagene som faktisk er ført. Et
+   * 30-dagers snitt bygget på fire målinger er ingen baseline (notat pkt 8).
+   */
+  days_logged_30d: number
+  days_in_window: number
 }
 
 export interface OversiktFeedEntry {
@@ -117,6 +174,13 @@ export interface OversiktFeedEntry {
   workout_type: WorkoutType
   duration_minutes: number | null
   distance_km: number | null
+  avg_heart_rate: number | null
+  /** null = ingen skudd — skyttekolonnen rendres ikke for den raden. */
+  shots: OversiktShots | null
+  /** Dominerende sone — fargeprikken i feed-raden. */
+  primary_intensity_zone: string | null
+  /** Styrkeøkter måles i øvelser og volum, ikke distanse og puls. */
+  exercise_count: number
 }
 
 export interface OversiktFocusPoints {
@@ -205,6 +269,21 @@ function dominantZone(zones: OversiktZoneSeconds): string | null {
   return best
 }
 
+type ActivityRaw = {
+  activity_type?: string | null
+  movement_name?: string | null
+  duration_seconds?: number | null
+  distance_meters?: number | null
+  avg_heart_rate?: number | null
+  zones: Record<string, number> | null
+  lactate_mmol?: number | null
+  prone_shots?: number | null
+  prone_hits?: number | null
+  standing_shots?: number | null
+  standing_hits?: number | null
+  workout_activity_exercises?: { id: string }[] | null
+}
+
 type WorkoutRow = {
   id: string
   title: string | null
@@ -216,12 +295,55 @@ type WorkoutRow = {
   time_of_day: string | null
   is_planned: boolean
   is_completed: boolean
-  workout_activities?: { zones: Record<string, number> | null }[] | null
+  avg_heart_rate?: number | null
+  max_heart_rate?: number | null
+  notes?: string | null
+  workout_activities?: ActivityRaw[] | null
+}
+
+/**
+ * Summerer skudd over aktivitetsrader. KUN-FØRTE: `recorded_shots` teller
+ * bare skudd der treff faktisk er ført (hits ikke null), og prosenten deles
+ * på den. Er ingenting ført, blir accuracy_pct null — «—», aldri 0 %.
+ * Returnerer null når det ikke finnes ETT skudd: da skal skytingen ikke
+ * rendres i det hele tatt (notat pkt 7).
+ */
+function sumShots(acts: ActivityRaw[]): OversiktShots | null {
+  let shots = 0, rec = 0, hits = 0
+  for (const a of acts) {
+    const ps = a.prone_shots ?? 0
+    const ss = a.standing_shots ?? 0
+    shots += ps + ss
+    if (a.prone_hits != null && ps > 0) { rec += ps; hits += Math.min(a.prone_hits, ps) }
+    if (a.standing_hits != null && ss > 0) { rec += ss; hits += Math.min(a.standing_hits, ss) }
+  }
+  if (shots === 0) return null
+  return {
+    shots,
+    recorded_shots: rec,
+    hits,
+    accuracy_pct: rec > 0 ? Math.round((hits / rec) * 1000) / 10 : null,
+  }
 }
 
 function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
+  const acts = w.workout_activities ?? []
   const zones = zeroZones()
-  accumulateZonesFromActivities(w.workout_activities ?? [], zones)
+  accumulateZonesFromActivities(acts, zones)
+
+  // Høyeste målte laktat i økta. Er ingen måling ført, er den null —
+  // ikke 0, som ville påstått at det ER målt og var null.
+  let lactate: number | null = null
+  for (const a of acts) {
+    if (typeof a.lactate_mmol === 'number' && (lactate === null || a.lactate_mmol > lactate)) {
+      lactate = a.lactate_mmol
+    }
+  }
+
+  // Varighet å vise: øktas egen, ellers summen av aktivitetsradene.
+  const aktSek = acts.reduce((sum, a) => sum + (a.duration_seconds ?? 0), 0)
+  const effektiv = w.duration_minutes ?? (aktSek > 0 ? Math.round(aktSek / 60) : null)
+
   return {
     id: w.id,
     title: w.title ?? 'Uten tittel',
@@ -234,6 +356,19 @@ function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
     is_planned: w.is_planned,
     is_completed: w.is_completed,
     primary_intensity_zone: dominantZone(zones),
+    avg_heart_rate: w.avg_heart_rate ?? null,
+    max_heart_rate: w.max_heart_rate ?? null,
+    notes: w.notes ?? null,
+    zones,
+    lactate_mmol: lactate,
+    shots: sumShots(acts),
+    activities: acts.map(a => ({
+      activity_type: a.activity_type ?? '',
+      movement_name: a.movement_name ?? null,
+      duration_seconds: a.duration_seconds ?? null,
+      distance_meters: a.distance_meters ?? null,
+    })),
+    effective_duration_minutes: effektiv,
   }
 }
 
@@ -276,7 +411,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 3. Dagens økter (planlagt + gjennomført).
     const todayWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed, workout_activities(zones)')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .eq('date', todayISO)
       .order('time_of_day', { ascending: true, nullsFirst: false })
@@ -284,7 +419,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 4. Neste planlagt fremover i tid (opp til 30 dager).
     const futurePlannedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed, workout_activities(zones)')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .eq('is_planned', true)
       .eq('is_completed', false)
@@ -301,7 +436,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    computeActivityTotals.
     const weekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
+      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .gte('date', weekStart).lte('date', todayISO)
@@ -309,7 +444,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 6. Forrige ukes økter — samme filter-utvidelse.
     const prevWeekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
+      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .gte('date', prevWeekStart).lte('date', prevWeekEnd)
@@ -339,7 +474,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    Også utvidet filter for å fange dagbok-input som ikke har is_completed=true.
     const recentCompletedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed, workout_activities(zones)')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .lte('date', todayISO)
@@ -362,6 +497,17 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const healthPromise = supabase
       .from('daily_health')
       .select('date,resting_hr,hrv_ms,sleep_hours')
+      .eq('user_id', user.id)
+      .gte('date', healthLookbackStart)
+      .lte('date', todayISO)
+      .order('date', { ascending: false })
+      .limit(30)
+
+    // 10b. Søvnscore ligger IKKE i daily_health — den bor i søvnmodellen
+    //      (sleep_records, fase 103). Samme 30-dagers vindu som helsa.
+    const sleepPromise = supabase
+      .from('sleep_records')
+      .select('date,sleep_score')
       .eq('user_id', user.id)
       .gte('date', healthLookbackStart)
       .lte('date', todayISO)
@@ -399,13 +545,13 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const [
       dayStateRes, todayWorkoutsRes, futurePlannedRes,
       weekWorkoutsRes, prevWeekWorkoutsRes, keyDateRes, compWorkoutRes,
-      recentCompletedRes, seasonRes, healthRes,
+      recentCompletedRes, seasonRes, healthRes, sleepRes,
       dayFocusRes, weekFocusRes, reflectionRes,
     ] = await Promise.all([
       dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
       weekWorkoutsPromise, prevWeekWorkoutsPromise, upcomingKeyDatePromise,
       upcomingCompetitionWorkoutPromise, recentCompletedPromise, seasonPromise,
-      healthPromise, dayFocusPromise, weekFocusPromise, reflectionPromise,
+      healthPromise, sleepPromise, dayFocusPromise, weekFocusPromise, reflectionPromise,
     ])
 
     // Hero — bruk navn fra cache-dedupert profil.
@@ -478,10 +624,15 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // Ukes-totaler + soner (skyting ekskludert via computeActivityTotals).
     const weekZones = zeroZones()
     let weekMeters = 0
+    const weekActs: ActivityRaw[] = []
     for (const w of weekWorkouts) {
       accumulateZonesFromActivities(w.workout_activities ?? [], weekZones)
       weekMeters += totalsForWorkout(w).m
+      weekActs.push(...((w.workout_activities ?? []) as ActivityRaw[]))
     }
+    // Ukas skudd, summert over alle aktivitetsradene. null = ingen skudd,
+    // og da rendres skytelinja ikke i det hele tatt.
+    const weekShots = sumShots(weekActs)
     const prevWeek = (prevWeekWorkoutsRes.data ?? []) as WeekWorkout[]
     const prevSeconds = prevWeek.reduce((s, w) => s + totalsForWorkout(w).sec, 0)
     const prevMeters = prevWeek.reduce((s, w) => s + totalsForWorkout(w).m, 0)
@@ -492,6 +643,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
         total_meters: weekMeters,
         workout_count: weekWorkouts.length,
         zones: weekZones,
+        shots: weekShots,
       },
       previous: {
         total_seconds: prevSeconds,
@@ -656,6 +808,12 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       if (xs.length === 0) return null
       return Math.round((xs.reduce((s, v) => s + v, 0) / xs.length) * 10) / 10
     }
+    const sleepRows = (sleepRes.data ?? []) as { date: string; sleep_score: number | null }[]
+    // Kun-førte: en dag teller som ført hvis MINST én verdi er registrert.
+    // Tomme rader skal ikke dra dekningsgraden opp.
+    const dagerFort = healthRows.filter(r =>
+      r.resting_hr != null || r.hrv_ms != null || r.sleep_hours != null).length
+
     const health: OversiktHealthSummary = {
       last_entry_date: last?.date ?? null,
       resting_hr: last?.resting_hr ?? null,
@@ -664,18 +822,35 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       avg_resting_hr_7d: avg(last7.map(r => r.resting_hr)),
       avg_hrv_7d: avg(last7.map(r => r.hrv_ms)),
       avg_sleep_7d: avg(last7.map(r => r.sleep_hours)),
+      avg_resting_hr_30d: avg(healthRows.map(r => r.resting_hr)),
+      avg_hrv_30d: avg(healthRows.map(r => r.hrv_ms)),
+      avg_sleep_30d: avg(healthRows.map(r => r.sleep_hours)),
+      sleep_score: sleepRows[0]?.sleep_score ?? null,
+      avg_sleep_score_30d: avg(sleepRows.map(r => r.sleep_score)),
+      days_logged_30d: dagerFort,
+      days_in_window: 30,
     }
 
     // Aktivitets-feed: siste 5 fullførte.
-    const feed: OversiktFeedEntry[] = recentCompleted.slice(0, 5).map(w => ({
-      id: w.id,
-      title: w.title ?? 'Uten tittel',
-      date: w.date,
-      sport: w.sport,
-      workout_type: w.workout_type,
-      duration_minutes: w.duration_minutes,
-      distance_km: w.distance_km,
-    }))
+    const feed: OversiktFeedEntry[] = recentCompleted.slice(0, 5).map(w => {
+      const acts = (w.workout_activities ?? []) as ActivityRaw[]
+      const z = zeroZones()
+      accumulateZonesFromActivities(acts, z)
+      return {
+        id: w.id,
+        title: w.title ?? 'Uten tittel',
+        date: w.date,
+        sport: w.sport,
+        workout_type: w.workout_type,
+        duration_minutes: w.duration_minutes,
+        distance_km: w.distance_km,
+        avg_heart_rate: w.avg_heart_rate ?? null,
+        shots: sumShots(acts),
+        primary_intensity_zone: dominantZone(z),
+        // Styrkeøkter måles i øvelser og volum, ikke distanse og puls.
+        exercise_count: acts.reduce((n, a) => n + (a.workout_activity_exercises?.length ?? 0), 0),
+      }
+    })
 
     // Fokus-punkter
     const focusPoints: OversiktFocusPoints = {

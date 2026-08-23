@@ -4,6 +4,8 @@ import type {
   OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus, OversiktHealthSummary,
 } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
+import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
 function sportLabel(v: string): string {
   return SPORTS.find(s => s.value === v)?.label ?? v
@@ -61,22 +63,61 @@ function CardMeta({ children }: { children: React.ReactNode }) {
   )
 }
 
-function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
+function HardWorkoutCard({ w, onVisMer }: {
+  w: OversiktWorkoutCard | null
+  onVisMer?: () => void
+}) {
+  // Tomtilstand (notat pkt 12): kortet skjules ALDRI — et hull ville flyttet
+  // paa alt annet i rutenettet. Overskriften staar, og én linje forklarer.
   if (!w) {
     return (
       <Card kicker="Siste hardøkt" accent="#E11D48">
         <CardTitle>Ingen registrert</CardTitle>
-        <CardMeta>Logg en økt med intensitet I3+ eller en konkurranse.</CardMeta>
+        <CardMeta>Ingen økt i I3 eller høyere er ført enda.</CardMeta>
       </Card>
     )
   }
+  const sone = w.primary_intensity_zone
   return (
-    <Card kicker="Siste hardøkt" accent="#E11D48" href={`/app/dagbok?edit=${w.id}`}>
+    <Card kicker="Siste hardøkt" accent="#E11D48">
       <CardTitle>{w.title}</CardTitle>
       <CardMeta>
-        {fmtDate(w.date)} · {sportLabel(w.sport)} · {workoutTypeLabel(w.workout_type)}
-        {w.primary_intensity_zone ? ` · ${w.primary_intensity_zone}` : ''}
+        <span className="inline-flex items-center gap-1.5 flex-wrap">
+          {fmtDate(w.date)} · {sportLabel(w.sport)} · {workoutTypeLabel(w.workout_type)}
+          {sone && (
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? '#8B8B95',
+              border: `1px solid ${ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? '#2A2A33'}`,
+              borderRadius: 999, padding: '1px 7px',
+            }}>{sone}</span>
+          )}
+        </span>
       </CardMeta>
+
+      {/* Tid + snittpuls. «—» der noe ikke er foert, aldri 0. */}
+      <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#8B8B95' }}>
+        {w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—'}
+        {' · '}
+        {w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm snitt` : '— puls ikke ført'}
+      </p>
+
+      <ZoneBar zones={w.zones} legend={false} />
+      <ShotLine shots={w.shots} />
+
+      <Spacer />
+      <KortFot>
+        <Link href={`/app/dagbok?edit=${w.id}`}
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: '#E11D48', textDecoration: 'none',
+          }}>
+          Se detaljer
+        </Link>
+        {onVisMer && <VisMer onClick={onVisMer} />}
+      </KortFot>
     </Card>
   )
 }
@@ -164,7 +205,7 @@ function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseS
 }
 
 // Liten grønn logg-knapp + dim analyse-lenke — brukes i begge helse-tilstander.
-function HealthCardActions({ today }: { today: string }) {
+function HealthCardActions({ today, onVisMer }: { today: string; onVisMer?: () => void }) {
   const linkBase: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
     letterSpacing: '0.13em', textTransform: 'uppercase', textDecoration: 'none',
@@ -178,6 +219,7 @@ function HealthCardActions({ today }: { today: string }) {
         style={{ ...linkBase, color: '#8A8A96', border: '1px solid var(--line2)' }}>
         Analyse →
       </Link>
+      {onVisMer && <VisMer onClick={onVisMer} />}
     </div>
   )
 }
@@ -187,7 +229,56 @@ function todayLocalISO(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function HealthCard({ h }: { h: OversiktHealthSummary }) {
+/**
+ * Ett helsetall maalt mot brukerens EGET 30-dagers snitt (notat pkt 8).
+ * «42 bpm» sier ingenting alene — «1 under ditt eget snitt» sier alt.
+ *
+ * Retningen staar i ORD, ikke bare fortegn: HRV over snittet er bra,
+ * hvilepuls over snittet er det ikke, og «+5» uten kontekst leses feil
+ * begge veier. Fargene er varsomme: groent naar det peker riktig vei, gult
+ * naar det er verdt et blikk, ALDRI roedt. Dette er veiledningstall.
+ */
+function HelseTall({ label, verdi, enhet, snitt, hoyereErBra, farge }: {
+  label: string
+  verdi: number | null
+  enhet: string
+  snitt: number | null
+  hoyereErBra: boolean
+  farge: string
+}) {
+  const diff = verdi != null && snitt != null ? Math.round((verdi - snitt) * 10) / 10 : null
+  let retning: string | null = null
+  let retningsfarge = '#8B8B95'
+  if (diff != null && Math.abs(diff) >= 0.1) {
+    const over = diff > 0
+    retning = `${Math.abs(diff)} ${over ? 'over' : 'under'} snitt`
+    const bra = over === hoyereErBra
+    retningsfarge = bra ? '#28A86E' : '#E8B93C'
+  } else if (diff != null) {
+    retning = 'som snitt'
+  }
+  return (
+    <div className="flex flex-col" style={{ minWidth: 0 }}>
+      <span className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        {label}
+      </span>
+      <span style={{
+        fontFamily: "'Bebas Neue', sans-serif", color: verdi != null ? farge : '#55555F',
+        fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1,
+      }}>
+        {/* «—» naar ikke foert i dag — 30-dagers snittet blir staaende. */}
+        {verdi != null ? `${verdi}` : '—'}
+        {verdi != null && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', marginLeft: 3 }}>{enhet}</span>}
+      </span>
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, color: retningsfarge, marginTop: 2 }}>
+        {retning ?? (snitt != null ? `snitt ${snitt}${enhet ? ' ' + enhet : ''}` : '—')}
+      </span>
+    </div>
+  )
+}
+
+function HealthCard({ h, onVisMer }: { h: OversiktHealthSummary; onVisMer?: () => void }) {
   const hasAny = h.last_entry_date !== null
   const today = todayLocalISO()
   if (!hasAny) {
@@ -199,34 +290,21 @@ function HealthCard({ h }: { h: OversiktHealthSummary }) {
       </Card>
     )
   }
-  const pairs: { label: string; value: string }[] = []
-  if (h.resting_hr !== null) pairs.push({ label: 'Hvilepuls', value: `${h.resting_hr}` })
-  if (h.hrv_ms !== null) pairs.push({ label: 'HRV', value: `${h.hrv_ms} ms` })
-  if (h.sleep_hours !== null) pairs.push({ label: 'Søvn', value: `${h.sleep_hours.toFixed(1)} t` })
-
   return (
     <Card kicker="Helse" accent="#28A86E">
-      <div className="flex flex-wrap gap-x-5 gap-y-2">
-        {pairs.map(p => (
-          <div key={p.label} className="flex flex-col">
-            <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-              {p.label}
-            </span>
-            <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
-              fontSize: '20px', letterSpacing: '0.04em', lineHeight: 1.1,
-            }}>
-              {p.value}
-            </span>
-          </div>
-        ))}
+      {/* Fargene er de samme som «Helse over tid» brukte: hvilepuls roed,
+          HRV lilla, soevn blaa (notat pkt 10). */}
+      <div className="grid grid-cols-3 gap-3">
+        <HelseTall label="Hvilepuls" verdi={h.resting_hr} enhet="bpm"
+          snitt={h.avg_resting_hr_30d} hoyereErBra={false} farge="#E23A5A" />
+        <HelseTall label="HRV" verdi={h.hrv_ms} enhet="ms"
+          snitt={h.avg_hrv_30d} hoyereErBra={true} farge="#8B5CF6" />
+        <HelseTall label="Søvn" verdi={h.sleep_hours} enhet="t"
+          snitt={h.avg_sleep_30d} hoyereErBra={true} farge="#1A6FD4" />
       </div>
-      <CardMeta>
-        Sist: {fmtDate(h.last_entry_date!)}
-        {h.avg_resting_hr_7d !== null ? ` · 7d snitt HR ${h.avg_resting_hr_7d}` : ''}
-      </CardMeta>
-      <HealthCardActions today={today} />
+      <CardMeta>Sist ført: {fmtDate(h.last_entry_date!)}</CardMeta>
+      <Spacer />
+      <HealthCardActions today={today} onVisMer={onVisMer} />
     </Card>
   )
 }

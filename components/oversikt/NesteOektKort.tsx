@@ -34,10 +34,16 @@ function Label({ text }: { text: string }) {
 }
 
 function CardShell({
-  accent, kicker, children, ctaHref, ctaLabel,
+  accent, kicker, tittel, children, ctaHref, ctaLabel,
 }: {
   accent: string
   kicker: string
+  /**
+   * Overskrift. Sto tidligere hardkodet til «I dag» mens pillen kunne si
+   * «Neste økt · tor. 27. aug» — kortet ropte «I DAG» over en økt fire
+   * dager fram (notat pkt 4). Nå følger den datoen.
+   */
+  tittel: string
   children: React.ReactNode
   ctaHref?: string
   ctaLabel?: string
@@ -46,7 +52,7 @@ function CardShell({
     <div className="p-5 h-full" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="xp-kh">
         <span className="xp-beam" style={{ background: accent }} />
-        <h2 className="xp-kh-t">I dag</h2>
+        <h2 className="xp-kh-t">{tittel}</h2>
       </div>
       <span className="xp-status-badge" style={{ color: accent, backgroundColor: `${accent}1f`, borderColor: `${accent}59` }}>
         <span className="xp-pulse-dot" />
@@ -78,7 +84,13 @@ function WorkoutBody({ w }: { w: OversiktWorkoutCard }) {
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
         <span><span style={{ color: '#8A8A96' }}>Sport: </span>{sportLabel(w.sport)}</span>
         <span><span style={{ color: '#8A8A96' }}>Type: </span>{workoutTypeLabel(w.workout_type)}</span>
-        <span><span style={{ color: '#8A8A96' }}>Varighet: </span>{fmtDuration(w.duration_minutes)}</span>
+        {/* effective_duration_minutes faller tilbake paa summen av
+            aktivitetsradene: planlagte oekter har sjelden duration_minutes
+            paa selve okta, og det var aarsaken til «Varighet: —». */}
+        <span><span style={{ color: '#8A8A96' }}>Varighet: </span>{fmtDuration(w.effective_duration_minutes)}</span>
+        {w.shots && w.shots.shots > 0 && (
+          <span><span style={{ color: '#8A8A96' }}>Skudd: </span>{w.shots.shots}</span>
+        )}
         {w.distance_km !== null && w.distance_km > 0 && (
           <span><span style={{ color: '#8A8A96' }}>Distanse: </span>{w.distance_km.toFixed(1)} km</span>
         )}
@@ -100,11 +112,26 @@ export function NesteOektKort({
 }) {
   const today = new Date().toISOString().slice(0, 10)
 
+  // Dager fram til økta. Regnes på rene datoer (ikke tidspunkt), så en økt
+  // i kveld og en økt i morgen tidlig ikke havner i samme bøtte.
+  const dagerTil = (dato: string): number => {
+    const a = new Date(today + 'T00:00:00').getTime()
+    const b = new Date(dato + 'T00:00:00').getTime()
+    return Math.round((b - a) / 86400000)
+  }
+  const naarTekst = (dato: string): string => {
+    const n = dagerTil(dato)
+    if (n <= 0) return 'I dag'
+    if (n === 1) return 'I morgen'
+    return `Om ${n} dager`
+  }
+
   if (next.kind === 'none') {
     return (
       <CardShell
         accent="#8A8A96"
-        kicker="I dag"
+        tittel="I dag"
+        kicker="Ingenting planlagt"
         ctaHref={`/app/plan?new=${today}`}
         ctaLabel="+ Planlegg økt"
       >
@@ -126,7 +153,8 @@ export function NesteOektKort({
     return (
       <CardShell
         accent="#28A86E"
-        kicker="Gjennomført i dag"
+        tittel="I dag"
+        kicker="Gjennomført"
         ctaHref={`/app/dagbok?edit=${next.workout.id}`}
         ctaLabel="Åpne i dagbok"
       >
@@ -139,7 +167,8 @@ export function NesteOektKort({
     return (
       <CardShell
         accent="#FF4500"
-        kicker="Dagens økt"
+        tittel="I dag"
+        kicker={next.workout.time_of_day ? `Kl. ${next.workout.time_of_day.slice(0, 5)}` : 'Dagens økt'}
         ctaHref={`/app/dagbok?edit=${next.workout.id}`}
         ctaLabel="Logg gjennomføring"
       >
@@ -152,7 +181,8 @@ export function NesteOektKort({
   return (
     <CardShell
       accent="#F5C542"
-      kicker={`Neste økt · ${fmtDate(next.workout.date)}`}
+      tittel="Neste økt"
+      kicker={`${naarTekst(next.workout.date)} · ${fmtDate(next.workout.date)}`}
       ctaHref={`/app/plan?edit=${next.workout.id}`}
       ctaLabel="Se detaljer"
     >

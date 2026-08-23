@@ -1,21 +1,5 @@
-import type { OversiktWeekTotals, OversiktZoneSeconds } from '@/app/actions/oversikt'
-
-const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
-
-// Samme palett som brukes i Analyse — hold konsistent.
-// Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
-// Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
-import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
-
-function fmtHM(seconds: number): string {
-  if (seconds <= 0) return '0t'
-  const mins = Math.round(seconds / 60)
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  if (h > 0 && m > 0) return `${h}t ${m}m`
-  if (h > 0) return `${h}t`
-  return `${m}m`
-}
+import type { OversiktWeekTotals } from '@/app/actions/oversikt'
+import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
 
 function fmtKm(meters: number): string {
   if (meters <= 0) return '0 km'
@@ -43,46 +27,6 @@ function DeltaBadge({ pct }: { pct: number | null }) {
   )
 }
 
-function ZoneBar({ zones }: { zones: OversiktZoneSeconds }) {
-  const total = ZONE_KEYS.reduce((s, k) => s + zones[k], 0)
-  if (total <= 0) {
-    return (
-      <div className="xp-zonempty">
-        Ingen sone-data for denne uken.
-      </div>
-    )
-  }
-  return (
-    <div className="mt-4">
-      <div className="flex h-2" style={{ backgroundColor: '#1E1E22' }}>
-        {ZONE_KEYS.map(k => {
-          const pct = (zones[k] / total) * 100
-          if (pct <= 0) return null
-          return (
-            <div key={k}
-              title={`${k} · ${fmtHM(zones[k])} (${Math.round(pct)}%)`}
-              style={{ width: `${pct}%`, backgroundColor: ZONE_COLORS[k] }}
-            />
-          )
-        })}
-      </div>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-        {ZONE_KEYS.map(k => {
-          if (zones[k] <= 0) return null
-          return (
-            <span key={k} className="inline-flex items-center gap-1.5" style={{ color: '#8A8A96' }}>
-              <span style={{ width: '8px', height: '8px', backgroundColor: ZONE_COLORS[k], display: 'inline-block' }} />
-              <span style={{ color: '#F0F0F2' }}>{k}</span>
-              <span>{fmtHM(zones[k])}</span>
-            </span>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 function StatCell({ label, value, delta }: { label: string; value: string; delta?: number | null }) {
   return (
     <div className="xp-cell flex flex-col">
@@ -98,13 +42,15 @@ function StatCell({ label, value, delta }: { label: string; value: string; delta
 }
 
 export function UkensTotaler({
-  totals, weekNumber,
+  totals, weekNumber, onVisMer,
 }: {
   totals: OversiktWeekTotals
   weekNumber: number
+  /** Satt = «Vis mer» rendres. Popupen kommer i bolk 3. */
+  onVisMer?: () => void
 }) {
   return (
-    <section className="p-5 h-full" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
+    <section className="p-5 h-full flex flex-col" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="xp-kh">
         <span className="xp-beam" />
         <h2 className="xp-kh-t">Ukens totaler</h2>
@@ -118,6 +64,17 @@ export function UkensTotaler({
       </div>
 
       <ZoneBar zones={totals.current.zones} />
+
+      {/* Selvskjulende: uten skudd i uka rendres ingenting her. */}
+      <ShotLine shots={totals.current.shots} />
+
+      {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}
+      <Spacer />
+      {onVisMer && (
+        <KortFot>
+          <VisMer onClick={onVisMer} />
+        </KortFot>
+      )}
     </section>
   )
 }

@@ -225,7 +225,7 @@ export async function updateSession(request: NextRequest) {
   // edge-funksjonen til timeout (= site down). Betalingsmur degraderes da kort-
   // varig; RLS beskytter fortsatt data.
   try {
-  // Authenticated: /app root og /app/register bounce til dagbok eller onboarding.
+  // Authenticated: /app root og /app/register bounce HJEM eller til onboarding.
   if (isAuthPage) {
     // Sjekk subscription først — ny bruker uten sub skal til onboarding.
     const { data: sub } = await withTimeout(supabase
@@ -247,7 +247,11 @@ export async function updateSession(request: NextRequest) {
 
     const activeRole = profile?.active_role ?? profile?.role
     const url = request.nextUrl.clone()
-    url.pathname = activeRole === 'coach' ? '/app/trener' : '/app/dagbok'
+    // HJEM, ikke dagbok. Denne bouncen er grunnen til at innlogging fortsatt
+    // havnet i dagboka etter at login-actionen ble rettet: er man allerede
+    // autentisert og treffer /app, overstyrer middleware-en alt actionen sa.
+    // Trener har /app/trener som hjem, utoever har /app/oversikt (MainNav).
+    url.pathname = activeRole === 'coach' ? '/app/trener' : '/app/oversikt'
     return redirectTo(url)
   }
 

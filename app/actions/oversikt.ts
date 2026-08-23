@@ -67,11 +67,17 @@ export type OversiktNextWorkout =
  * aldri på totalskudd. Er ingenting ført, er accuracy_pct null og skal
  * vises som «—», aldri som 0 %.
  */
-export interface OversiktShots {
+export interface OversiktShotSplit {
   shots: number
   recorded_shots: number
   hits: number
   accuracy_pct: number | null
+}
+
+export interface OversiktShots extends OversiktShotSplit {
+  /** Samme tall per stilling — til treff % liggende/stående/totalt i popupen. */
+  prone: OversiktShotSplit
+  standing: OversiktShotSplit
 }
 
 /** Aktivitetsrad på et kort — nok til å vise struktur, ikke hele økta. */
@@ -316,21 +322,28 @@ type WorkoutRow = {
  * rendres i det hele tatt (notat pkt 7).
  */
 function sumShots(acts: ActivityRaw[]): OversiktShots | null {
-  let shots = 0, rec = 0, hits = 0
+  const tom = (): { shots: number; rec: number; hits: number } => ({ shots: 0, rec: 0, hits: 0 })
+  const l = tom(), st = tom()
   for (const a of acts) {
     const ps = a.prone_shots ?? 0
     const ss = a.standing_shots ?? 0
-    shots += ps + ss
-    if (a.prone_hits != null && ps > 0) { rec += ps; hits += Math.min(a.prone_hits, ps) }
-    if (a.standing_hits != null && ss > 0) { rec += ss; hits += Math.min(a.standing_hits, ss) }
+    l.shots += ps
+    st.shots += ss
+    if (a.prone_hits != null && ps > 0) { l.rec += ps; l.hits += Math.min(a.prone_hits, ps) }
+    if (a.standing_hits != null && ss > 0) { st.rec += ss; st.hits += Math.min(a.standing_hits, ss) }
   }
+  const shots = l.shots + st.shots
   if (shots === 0) return null
-  return {
-    shots,
-    recorded_shots: rec,
-    hits,
-    accuracy_pct: rec > 0 ? Math.round((hits / rec) * 1000) / 10 : null,
-  }
+  const del = (x: { shots: number; rec: number; hits: number }): OversiktShotSplit => ({
+    shots: x.shots,
+    recorded_shots: x.rec,
+    hits: x.hits,
+    // null (ikke 0) naar stillingen ikke er skutt eller treff ikke er foert:
+    // 0 % ville paastaatt at man bommet paa alt.
+    accuracy_pct: x.rec > 0 ? Math.round((x.hits / x.rec) * 1000) / 10 : null,
+  })
+  const total = { shots, rec: l.rec + st.rec, hits: l.hits + st.hits }
+  return { ...del(total), prone: del(l), standing: del(st) }
 }
 
 function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {

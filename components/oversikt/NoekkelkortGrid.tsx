@@ -7,7 +7,7 @@ import type {
   OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus, OversiktHealthSummary,
 } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
-import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
+import { ZoneBar, ShotChip, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
 import { HardoktPopup, HelsePopup } from './kort-popups'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
@@ -106,7 +106,7 @@ function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
       </p>
 
       <ZoneBar zones={w.zones} legend={false} />
-      <ShotLine shots={w.shots} />
+      <ShotChip shots={w.shots} />
 
       <Spacer />
       <KortFot>

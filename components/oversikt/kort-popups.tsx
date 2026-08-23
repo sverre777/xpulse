@@ -7,10 +7,45 @@ import type {
   OversiktWorkoutCard, OversiktHealthSummary, OversiktWeekTotals,
 } from '@/app/actions/oversikt'
 import { KortPopup, PopupSeksjon, PopupTall, Sparkline } from './KortPopup'
-import { ZoneBar, ShotLine, fmtHM, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
+import { ZoneBar, fmtHM, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
+import type { OversiktShots } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 
 const FONT = "'Barlow Condensed', sans-serif"
+
+/**
+ * Treff % LIGGENDE / STÅENDE / TOTALT. Kun-førte per stilling: prosenten
+ * deles på skudd der treff faktisk er ført i DEN stillingen. En stilling
+ * som ikke er skutt gir «—», aldri 0 % — en nullverdi ville påstått at man
+ * bommet på alt. Selvskjulende uten skudd.
+ */
+function SkyteSplitt({ shots }: { shots: OversiktShots }) {
+  const rader = [
+    { navn: 'Liggende', farge: COLOR_PRONE, d: shots.prone },
+    { navn: 'Stående', farge: COLOR_STANDING, d: shots.standing },
+    { navn: 'Totalt', farge: '#F2F2F0', d: shots },
+  ]
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {rader.map(r => (
+        <div key={r.navn}
+          style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 11px', borderLeft: `2px solid ${r.farge}` }}>
+          <div style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#55555F' }}>
+            {r.navn}
+          </div>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: r.d.accuracy_pct != null ? '#F2F2F0' : '#55555F' }}>
+            {r.d.accuracy_pct != null ? `${r.d.accuracy_pct} %` : '—'}
+          </div>
+          <div style={{ fontFamily: FONT, fontSize: 10, color: '#55555F', marginTop: 3 }}>
+            {r.d.accuracy_pct != null
+              ? `${r.d.hits}/${r.d.recorded_shots} treff`
+              : r.d.shots > 0 ? `${r.d.shots} skudd · treff ikke ført` : 'ikke skutt'}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 const sportLabel = (v: string) => SPORTS.find(s => s.value === v)?.label ?? v
 const typeLabel = (v: string) => WORKOUT_TYPES_BASE.find(t => t.value === v)?.label ?? v
 const fmtDato = (iso: string) =>
@@ -57,8 +92,12 @@ export function HardoktPopup({ w, onClose }: { w: OversiktWorkoutCard; onClose: 
         </PopupSeksjon>
       )}
 
-      {/* Selvskjulende: begge seksjonene under rendres bare når de har noe. */}
-      <ShotLine shots={w.shots} />
+      {/* Selvskjulende: seksjonene under rendres bare når de har noe. */}
+      {w.shots && (
+        <PopupSeksjon tittel="Treff%">
+          <SkyteSplitt shots={w.shots} />
+        </PopupSeksjon>
+      )}
       {w.lactate_mmol != null && (
         <p style={{ fontFamily: FONT, fontSize: 12, color: '#8B8B95', marginTop: 10 }}>
           Høyeste laktat <b style={{ color: '#F2F2F0' }}>{w.lactate_mmol} mmol</b>
@@ -148,19 +187,8 @@ export function UkePopup({ totals, weekNumber, onClose }: {
       </PopupSeksjon>
 
       {c.shots && (
-        <PopupSeksjon tittel="Skyting">
-          <div className="grid grid-cols-2 gap-2">
-            <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 11px', borderLeft: `2px solid ${COLOR_PRONE}` }}>
-              <div style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#55555F' }}>Skudd</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, color: '#F2F2F0', marginTop: 6 }}>{c.shots.shots}</div>
-            </div>
-            <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 11px', borderLeft: `2px solid ${COLOR_STANDING}` }}>
-              <div style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#55555F' }}>Treff</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, color: c.shots.accuracy_pct != null ? '#F2F2F0' : '#55555F', marginTop: 6 }}>
-                {c.shots.accuracy_pct != null ? `${c.shots.accuracy_pct} %` : '—'}
-              </div>
-            </div>
-          </div>
+        <PopupSeksjon tittel={`Treff% · ${c.shots.shots} skudd i uka`}>
+          <SkyteSplitt shots={c.shots} />
         </PopupSeksjon>
       )}
     </KortPopup>

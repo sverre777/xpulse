@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { OversiktWeekTotals } from '@/app/actions/oversikt'
-import { ZoneBar, ShotLine, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
+import { ZoneBar, ShotChip, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
 import { UkePopup } from './kort-popups'
 
 function fmtKm(meters: number): string {
@@ -71,7 +71,7 @@ export function UkensTotaler({
       <ZoneBar zones={totals.current.zones} />
 
       {/* Selvskjulende: uten skudd i uka rendres ingenting her. */}
-      <ShotLine shots={totals.current.shots} />
+      <ShotChip shots={totals.current.shots} />
 
       {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}
       <Spacer />

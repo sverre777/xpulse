@@ -71,7 +71,7 @@ export function PeriodModal({
   return (
     <ModalShell open={open} onClose={onClose} title={editing ? 'Rediger periode' : 'Ny periode'}>
       <form onSubmit={handleSubmit}>
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Sesong: {seasonStart} → {seasonEnd}
         </p>
         <div className="mb-3">
@@ -105,7 +105,7 @@ export function PeriodModal({
         {/* B2 (kø #39): samling/høyde er flyttet til markeringslaget — eget
             📍-verktøy i lerretet og «+ Samling/høyde»-knappen, med dag-presise
             datoer uavhengig av belastningsperiodene. */}
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1.5, borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', lineHeight: 1.5, borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
           📍 Samling og 🏔️ høyde markeres nå som eget lag over periodene — bruk
           Samling/høyde-verktøyet i lerretet eller «+ Samling/høyde»-knappen.
         </p>

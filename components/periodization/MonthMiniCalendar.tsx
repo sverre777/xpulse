@@ -39,18 +39,18 @@ export function MonthMiniCalendar({
   const titleSize = compact ? 16 : 20
 
   return (
-    <div className="p-3" style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+    <div className="p-3" style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--kant-3)' }}>
       <button
         type="button"
         onClick={() => onSelectMonth?.(year, month0)}
         className="w-full flex items-baseline justify-between mb-2"
         style={{ background: 'none', border: 'none', padding: 0, cursor: onSelectMonth ? 'pointer' : 'default', textAlign: 'left' }}
       >
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: `${titleSize}px`, letterSpacing: '0.06em' }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: `${titleSize}px`, letterSpacing: '0.06em' }}>
           {MONTHS_NO[month0]}
         </span>
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {year}
         </span>
       </button>
@@ -60,7 +60,7 @@ export function MonthMiniCalendar({
         <div />
         {DAYS_NO_SHORT.map((d, i) => (
           <div key={i} className="text-center text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', lineHeight: 1 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', lineHeight: 1 }}>
             {d}
           </div>
         ))}
@@ -77,7 +77,7 @@ export function MonthMiniCalendar({
               className="text-center text-xs"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#555560',
+                color: 'var(--tekst-8-app)',
                 background: 'none',
                 border: 'none',
                 padding: 0,
@@ -129,7 +129,7 @@ export function MonthMiniCalendar({
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: compact ? '10px' : '11px',
                     lineHeight: 1,
-                    color: !inMonth ? '#2A2A30' : !within ? '#2A2A30' : isToday ? '#FF4500' : '#F0F0F2',
+                    color: !inMonth ? 'var(--kant-6)' : !within ? 'var(--kant-6)' : isToday ? '#FF4500' : 'var(--tekst-1-app)',
                     backgroundColor: inMonth && within ? bg : 'transparent',
                     border: 'none',
                     borderLeft: period ? `2px solid ${accent}` : '2px solid transparent',

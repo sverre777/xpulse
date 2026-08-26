@@ -81,7 +81,7 @@ export function MarkingModal({
   return (
     <ModalShell open={open} onClose={onClose} title={editing ? 'Rediger samling/høyde' : 'Ny samling/høyde'}>
       <form onSubmit={handleSubmit}>
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Sesong: {seasonStart} → {seasonEnd}. Markeringen ligger som eget bånd
           over belastningsperiodene og kan fritt overlappe dem.
         </p>
@@ -101,8 +101,8 @@ export function MarkingModal({
               onChange={e => setEndDate(e.target.value)} style={INPUT_STYLE} />
           </div>
         </div>
-        <div className="mb-3" style={{ borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
-          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
+          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isCamp} onChange={e => setIsCamp(e.target.checked)} />
             <span>📍 Treningssamling</span>
           </label>
@@ -114,8 +114,8 @@ export function MarkingModal({
             </div>
           )}
         </div>
-        <div className="mb-3" style={{ borderTop: '1px solid #1E1E22', paddingTop: '12px' }}>
-          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        <div className="mb-3" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: '12px' }}>
+          <label className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             <input type="checkbox" checked={isAltitude} onChange={e => setIsAltitude(e.target.checked)} />
             <span>🏔️ Høydeopphold</span>
           </label>

@@ -108,7 +108,7 @@ export function MonthlyVolumeSection({
         style={{
           background: 'none',
           border: 'none',
-          borderBottom: open ? '1px solid #1E1E22' : 'none',
+          borderBottom: open ? '1px solid var(--kant-3)' : 'none',
           cursor: 'pointer',
           textAlign: 'left',
         }}>
@@ -117,7 +117,7 @@ export function MonthlyVolumeSection({
           <div>
             <span style={{
               fontFamily: "'Bebas Neue', sans-serif",
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               fontSize: '18px',
               letterSpacing: '0.06em',
               display: 'block',
@@ -125,12 +125,12 @@ export function MonthlyVolumeSection({
               Månedsvolum
             </span>
             <span className="text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
               {canEdit ? 'Planlagte timer per måned — søylene oppdateres live.' : 'Planlagte timer per måned.'}
             </span>
           </div>
           <span className="text-xs tracking-wider uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {totalHours > 0 || totalKm > 0
               ? `${fmtN(totalHours)} t${totalKm > 0 ? ` · ${totalKm.toFixed(0)} km` : ''}`
               : 'ikke satt'}
@@ -138,7 +138,7 @@ export function MonthlyVolumeSection({
         </div>
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#8A8A96',
+          color: 'var(--tekst-5-app)',
           fontSize: '12px',
         }}>
           {open ? '▾ Skjul' : '▸ Vis'}
@@ -197,7 +197,7 @@ export function MonthlyVolumeSection({
                       }}
                     />
                   ) : (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: hours > 0 ? '#F0F0F2' : '#3A3A44' }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: hours > 0 ? 'var(--tekst-1-app)' : 'var(--tekst-10)' }}>
                       {hours > 0 ? fmtN(hours) : '—'}
                     </span>
                   )}
@@ -208,7 +208,7 @@ export function MonthlyVolumeSection({
                     title="Km, notat og fordeling"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: detailOpen ? 'var(--accent)' : '#555560',
+                      color: detailOpen ? 'var(--accent)' : 'var(--tekst-8-app)',
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       background: 'none', border: 'none', cursor: 'pointer',
@@ -222,9 +222,9 @@ export function MonthlyVolumeSection({
           </div>
 
           {/* vtotal-linje: sesongtotal + snitt + veiledende ukesnitt. */}
-          <div className="mt-3 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          <div className="mt-3 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Sesongtotal:{' '}
-            <b style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, color: '#F0F0F2', letterSpacing: '0.04em' }}>
+            <b style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
               {fmtN(totalHours)}T
             </b>
             {monthsWithHours > 0 && (
@@ -246,8 +246,8 @@ export function MonthlyVolumeSection({
               const hasData = existing?.planned_hours != null || existing?.planned_km != null || existing?.notes
               return (
                 <div className="py-2 text-xs mt-2"
-                  style={{ borderTop: '1px solid #1A1A1E', fontFamily: "'Barlow Condensed', sans-serif", color: hasData ? '#C0C0CC' : '#3A3A44' }}>
-                  <span style={{ color: '#8A8A96', marginRight: 8 }}>{m.month}/{m.year}:</span>
+                  style={{ borderTop: '1px solid var(--kant-2)', fontFamily: "'Barlow Condensed', sans-serif", color: hasData ? 'var(--tekst-3-app)' : 'var(--tekst-10)' }}>
+                  <span style={{ color: 'var(--tekst-5-app)', marginRight: 8 }}>{m.month}/{m.year}:</span>
                   {existing?.planned_hours != null && <span>{existing.planned_hours} t · </span>}
                   {existing?.planned_km != null && <span>{existing.planned_km} km</span>}
                   {existing?.notes && <span> · {existing.notes}</span>}
@@ -281,7 +281,7 @@ export function MonthlyVolumeSection({
 
           {canEdit && (
             <p className="mt-3 text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Endringer lagres automatisk. Trykk månedsnavnet for km, notat og fordeling.
             </p>
           )}

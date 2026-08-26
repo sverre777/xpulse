@@ -37,7 +37,7 @@ export function ViewToggle({ active }: { active: CalendarView }) {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: isActive ? '#FF4500' : 'transparent',
-              color: isActive ? '#FFFFFF' : '#8A8A96',
+              color: isActive ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
               border: 'none',
               cursor: 'pointer',
             }}

@@ -64,11 +64,11 @@ export function WeekOverviewCalendar({
     <section>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', letterSpacing: '0.06em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', letterSpacing: '0.06em' }}>
             Uke {wn}
           </h2>
           <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {monday.getDate()}. {MONTHS_NO[monday.getMonth()]} → {days[6].getDate()}. {MONTHS_NO[days[6].getMonth()]} {days[6].getFullYear()}
             {weekPeriod && ` · ${weekPeriod.name} (${INTENSITY_LABEL[weekPeriod.intensity]})`}
           </p>
@@ -78,8 +78,8 @@ export function WeekOverviewCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-              color: prevAllowed ? '#F0F0F2' : '#2A2A30',
+              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+              color: prevAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
               cursor: prevAllowed ? 'pointer' : 'not-allowed',
             }}>
             ← Forrige
@@ -88,8 +88,8 @@ export function WeekOverviewCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-              color: nextAllowed ? '#F0F0F2' : '#2A2A30',
+              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+              color: nextAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
               cursor: nextAllowed ? 'pointer' : 'not-allowed',
             }}>
             Neste →
@@ -118,19 +118,19 @@ export function WeekOverviewCalendar({
               style={{
                 minHeight: '180px',
                 padding: '10px',
-                backgroundColor: isToday ? '#0D0D14' : bg,
-                border: '1px solid #1E1E22',
+                backgroundColor: isToday ? 'var(--flate-6-b)' : bg,
+                border: '1px solid var(--kant-3)',
                 borderLeft: `3px solid ${accent}`,
                 boxShadow: isPeak ? PEAK_GLOW : undefined,
                 cursor: within ? 'pointer' : 'default',
               }}>
               <div className="flex items-baseline justify-between mb-2">
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {DAYS_NO_LONG[i]}
                 </span>
                 <span style={{
                   fontFamily: "'Bebas Neue', sans-serif", fontSize: '22px', lineHeight: 1,
-                  color: isToday ? '#FF4500' : '#F0F0F2',
+                  color: isToday ? '#FF4500' : 'var(--tekst-1-app)',
                 }}>
                   {d.getDate()}
                 </span>
@@ -151,7 +151,7 @@ export function WeekOverviewCalendar({
 
               {workouts.map(w => (
                 <div key={w.id} className="text-xs truncate"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}
                   title={w.title}>
                   • {w.title || 'Planlagt økt'}
                 </div>
@@ -159,7 +159,7 @@ export function WeekOverviewCalendar({
 
               {events.length === 0 && workouts.length === 0 && within && (
                 <span className="text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-hover)' }}>
                   —
                 </span>
               )}

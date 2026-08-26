@@ -59,7 +59,7 @@ export function PeriodsSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span style={{ width: '20px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
             Perioder
           </h2>
         </div>
@@ -87,7 +87,7 @@ export function PeriodsSection({
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: '#FF4500',
                 border: '1px solid #FF4500',
-                color: '#FFFFFF',
+                color: 'var(--tekst-1-ren)',
                 cursor: 'pointer',
               }}
             >
@@ -98,8 +98,8 @@ export function PeriodsSection({
       </div>
 
       {periods.length === 0 ? (
-        <div className="p-6 text-center" style={{ border: '1px dashed #1E1E22' }}>
-          <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen perioder definert ennå
           </p>
         </div>
@@ -111,17 +111,17 @@ export function PeriodsSection({
               type="button"
               onClick={() => canEdit && setEditing(p)}
               disabled={!canEdit}
-              className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
+              className="w-full p-4 flex items-start gap-3 text-left transition-colors hover:bg-[var(--flate-14)]"
               style={{
                 backgroundColor: 'var(--card)',
                 borderLeft: `3px solid ${INTENSITY_COLOR[p.intensity]}`,
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--kant-3)',
                 cursor: canEdit ? 'pointer' : 'default',
               }}
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.04em' }}>
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.04em' }}>
                     {p.name}
                   </span>
                   <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -132,15 +132,15 @@ export function PeriodsSection({
                       høyde» under) — ikke lenger som periode-flagg her. */}
                 </div>
                 {p.focus && (
-                  <p className="text-sm mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  <p className="text-sm mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                     {p.focus}
                   </p>
                 )}
-                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {p.start_date} → {p.end_date}
                 </p>
                 {p.notes && (
-                  <p className="text-xs mt-1 whitespace-pre-wrap" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  <p className="text-xs mt-1 whitespace-pre-wrap" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {p.notes}
                   </p>
                 )}
@@ -156,7 +156,7 @@ export function PeriodsSection({
         <div className="mt-5">
           <div className="flex items-center gap-3 mb-2">
             <span style={{ width: '14px', height: '2px', backgroundColor: '#D4A017', display: 'inline-block' }} />
-            <h3 className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <h3 className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Samlinger & høyde
             </h3>
           </div>
@@ -167,17 +167,17 @@ export function PeriodsSection({
                 type="button"
                 onClick={() => canEdit && setEditingMarking(m)}
                 disabled={!canEdit}
-                className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
+                className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[var(--flate-14)]"
                 style={{
                   backgroundColor: 'var(--card)',
-                  border: '1px solid #1E1E22',
+                  border: '1px solid var(--kant-3)',
                   borderLeft: '3px solid #D4A017',
                   cursor: canEdit ? 'pointer' : 'default',
                 }}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
+                    <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
                       {m.is_training_camp ? '📍 ' : ''}{m.is_altitude ? '🏔️ ' : ''}{m.name}
                     </span>
                     {m.is_training_camp && m.location && (
@@ -191,11 +191,11 @@ export function PeriodsSection({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  <p className="text-xs mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {m.start_date} → {m.end_date}
                   </p>
                   {m.notes && (
-                    <p className="text-xs mt-1 whitespace-pre-wrap" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    <p className="text-xs mt-1 whitespace-pre-wrap" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {m.notes}
                     </p>
                   )}

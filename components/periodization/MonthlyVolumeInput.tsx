@@ -104,9 +104,9 @@ export function MonthlyVolumeInput({
   }
 
   const iSt: React.CSSProperties = {
-    backgroundColor: '#1A1A22',
-    border: '1px solid #1E1E22',
-    color: '#F0F0F2',
+    backgroundColor: 'var(--flate-14)',
+    border: '1px solid var(--kant-3)',
+    color: 'var(--tekst-1-app)',
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: '13px',
     padding: '4px 8px',
@@ -115,7 +115,7 @@ export function MonthlyVolumeInput({
 
   const labelSt: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif",
-    color: '#8A8A96',
+    color: 'var(--tekst-5-app)',
     fontSize: '13px',
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
@@ -125,11 +125,11 @@ export function MonthlyVolumeInput({
 
   return (
     <div className="grid grid-cols-12 gap-2 items-start py-2"
-      style={{ borderTop: '1px solid #1A1A1E' }}>
+      style={{ borderTop: '1px solid var(--kant-2)' }}>
       <div className="col-span-12 md:col-span-2 flex items-center">
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           fontSize: '15px',
           letterSpacing: '0.04em',
         }}>
@@ -169,7 +169,7 @@ export function MonthlyVolumeInput({
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: '13px',
-          color: err ? '#E11D48' : saved ? '#28A86E' : '#555560',
+          color: err ? '#E11D48' : saved ? '#28A86E' : 'var(--tekst-8-app)',
         }}>
           {err ? 'Feil' : saved ? 'Lagret' : isPending ? '…' : ''}
         </span>
@@ -193,19 +193,19 @@ export function MonthlyVolumeInput({
           const movSum = movRows.reduce((s, r) => s + num(r.hours), 0)
           const touch = () => { breakdownTouched.current = true; scheduleSave() }
           const softColor = (sum: number) =>
-            hoursNum > 0 && sum > hoursNum ? '#FF8C00' : '#555560'
+            hoursNum > 0 && sum > hoursNum ? '#FF8C00' : 'var(--tekst-8-app)'
           return (
             <>
               <button type="button" onClick={() => setShowBreakdown(!showBreakdown)}
                 className="text-xs"
                 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
                   background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0',
                   letterSpacing: '0.06em', minHeight: 36,
                 }}>
                 {showBreakdown ? '▾' : '▸'} Fordeling
                 {!showBreakdown && (zoneSum > 0 || movSum > 0) && (
-                  <span style={{ color: '#555560' }}>
+                  <span style={{ color: 'var(--tekst-8-app)' }}>
                     {zoneSum > 0 ? ` · soner ${fmtN(zoneSum)} t` : ''}
                     {movSum > 0 ? ` · bev.form ${fmtN(movSum)} t` : ''}
                   </span>
@@ -225,9 +225,9 @@ export function MonthlyVolumeInput({
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
                           textTransform: 'uppercase', letterSpacing: '0.08em',
-                          color: zoneMode === m ? '#F0F0F2' : '#555560',
-                          background: zoneMode === m ? '#1A1A22' : 'none',
-                          border: `1px solid ${zoneMode === m ? '#2A2A32' : '#1E1E22'}`,
+                          color: zoneMode === m ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+                          background: zoneMode === m ? 'var(--flate-14)' : 'none',
+                          border: `1px solid ${zoneMode === m ? 'var(--kant-6-alt)' : 'var(--kant-3)'}`,
                           cursor: 'pointer',
                         }}>
                         {m === 'gruppert' ? 'I1–2 / I3 / I4–5' : 'I1…I5'}
@@ -263,7 +263,7 @@ export function MonthlyVolumeInput({
                           placeholder="t" inputMode="decimal" style={{ ...iSt, width: 64 }} />
                         <button type="button" aria-label="Fjern"
                           onClick={() => { setMovRows(rows => rows.filter((_, xi) => xi !== i)); touch(); doSave() }}
-                          style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
+                          style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
                           ✕
                         </button>
                       </div>
@@ -271,7 +271,7 @@ export function MonthlyVolumeInput({
                     <button type="button"
                       onClick={() => setMovRows(rows => [...rows, { name: '', hours: '' }])}
                       className="text-xs"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed #1E1E22', padding: '3px 8px', cursor: 'pointer' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--kant-3)', padding: '3px 8px', cursor: 'pointer' }}>
                       + Bevegelsesform
                     </button>
                     {movSum > 0 && hoursNum > 0 && (

@@ -25,12 +25,12 @@ export function SeasonContextStrip({
 
       <div className="flex items-center gap-2">
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Periode
         </span>
         {currentPeriod ? (
           <>
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.04em' }}>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.04em' }}>
               {currentPeriod.name}
             </span>
             <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -43,7 +43,7 @@ export function SeasonContextStrip({
             </span>
           </>
         ) : (
-          <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             —
           </span>
         )}
@@ -52,10 +52,10 @@ export function SeasonContextStrip({
       {currentPeriod?.focus && (
         <div className="flex items-center gap-2">
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Fokus
           </span>
-          <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {currentPeriod.focus}
           </span>
         </div>
@@ -64,14 +64,14 @@ export function SeasonContextStrip({
       {nextA && (
         <div className="flex items-center gap-2 ml-auto">
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Neste A
           </span>
           <span aria-hidden>{KEY_EVENT_VISUALS[nextA.event_type].icon}</span>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.04em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.04em' }}>
             {nextA.name}
           </span>
-          <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             om {daysBetween(todayISO, nextA.event_date)} dager ({nextA.event_date})
           </span>
         </div>

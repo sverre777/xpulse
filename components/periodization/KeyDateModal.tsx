@@ -128,19 +128,19 @@ export function KeyDateModal({
   return (
     <ModalShell open={open} onClose={onClose} title={editing ? 'Rediger hendelse' : 'Ny hendelse'}>
       <form onSubmit={handleSubmit}>
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Sesong: {seasonStart} → {seasonEnd}
         </p>
         {/* Type-chips — samme språk som konkurransepanelet i økt-føringen. */}
         <div className="mb-3">
           <FieldLabel>Type</FieldLabel>
-          <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, #2A2A33)', borderRadius: 10, overflow: 'hidden' }}>
+          <span className="inline-flex flex-wrap" style={{ border: '1px solid var(--line2, var(--line2))', borderRadius: 10, overflow: 'hidden' }}>
             {KIND_CHIPS.map(c => (
               <button key={c.verdi} type="button" onClick={() => setKind(c.verdi)}
                 style={{
                   padding: '8px 13px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
                   cursor: 'pointer', border: 'none',
-                  color: kind === c.verdi ? GULL : '#8B8B95',
+                  color: kind === c.verdi ? GULL : 'var(--mut)',
                   background: kind === c.verdi ? 'rgba(232,185,60,.14)' : 'transparent',
                   fontWeight: kind === c.verdi ? 700 : 400,
                 }}>
@@ -164,9 +164,9 @@ export function KeyDateModal({
                     style={{
                       flex: 1, minHeight: 40, fontFamily: "'Barlow Condensed', sans-serif",
                       fontWeight: 700, fontSize: 15, cursor: 'pointer',
-                      color: prioritet === pv ? GULL : '#8B8B95',
+                      color: prioritet === pv ? GULL : 'var(--mut)',
                       background: prioritet === pv ? 'rgba(232,185,60,.12)' : 'transparent',
-                      border: `1px solid ${prioritet === pv ? GULL : 'var(--line2, #2A2A33)'}`,
+                      border: `1px solid ${prioritet === pv ? GULL : 'var(--line2, var(--line2))'}`,
                       borderRadius: 9,
                     }}>
                     {pv.toUpperCase()}
@@ -213,7 +213,7 @@ export function KeyDateModal({
               Form-topp-mål
             </span>
             <span className="block text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Markér denne hendelsen som peiling for toppform. Får gull-glød i kalenderen.
             </span>
           </span>

@@ -14,10 +14,10 @@ function StatBlock({ label, value }: { label: string; value: string | number }) 
   return (
     <div className="flex flex-col">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1 }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1 }}>
         {value}
       </span>
     </div>
@@ -45,21 +45,21 @@ export function SeasonHeaderBar({
           <div className="flex items-center gap-3 mb-2">
             <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Sesong
             </span>
           </div>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '28px', letterSpacing: '0.06em', lineHeight: 1.05 }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '28px', letterSpacing: '0.06em', lineHeight: 1.05 }}>
             {season.name}
           </h2>
           <p className="mt-1 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {fmtDate(season.start_date)} → {fmtDate(season.end_date)}
           </p>
           {season.goal_main && (
             <p className="mt-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
-              <span style={{ color: '#8A8A96' }}>Hovedmål: </span>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
+              <span style={{ color: 'var(--tekst-5-app)' }}>Hovedmål: </span>
               {season.goal_main}
             </p>
           )}
@@ -78,9 +78,9 @@ export function SeasonHeaderBar({
 
       {peakDates.length > 0 && (
         <div className="mt-4 pt-3 flex flex-wrap items-center gap-2"
-          style={{ borderTop: '1px solid #1E1E22' }}>
+          style={{ borderTop: '1px solid var(--kant-3)' }}>
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Form-topp
           </span>
           {peakDates.map(p => (

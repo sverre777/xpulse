@@ -73,7 +73,7 @@ export function MonthFullCalendar({
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', letterSpacing: '0.06em' }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', letterSpacing: '0.06em' }}>
           {MONTHS_NO[month0]} {year}
         </h2>
         <div className="flex items-center gap-2">
@@ -81,8 +81,8 @@ export function MonthFullCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-              color: prevAllowed ? '#F0F0F2' : '#2A2A30',
+              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+              color: prevAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
               cursor: prevAllowed ? 'pointer' : 'not-allowed',
             }}>
             ← Forrige
@@ -91,8 +91,8 @@ export function MonthFullCalendar({
             className="px-3 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-              color: nextAllowed ? '#F0F0F2' : '#2A2A30',
+              backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+              color: nextAllowed ? 'var(--tekst-1-app)' : 'var(--kant-6)',
               cursor: nextAllowed ? 'pointer' : 'not-allowed',
             }}>
             Neste →
@@ -104,7 +104,7 @@ export function MonthFullCalendar({
       <div className="grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO_LONG.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {d}
           </div>
         ))}
@@ -124,7 +124,7 @@ export function MonthFullCalendar({
               const isToday = iso === todayISO
               const isPeak = events.some(e => e.is_peak_target)
               const bg = period ? INTENSITY_TINT[period.intensity] : 'transparent'
-              const accent = period ? INTENSITY_COLOR[period.intensity] : '#2A2A30'
+              const accent = period ? INTENSITY_COLOR[period.intensity] : 'var(--data-nopris)'
 
               return (
                 <button key={iso}
@@ -135,19 +135,19 @@ export function MonthFullCalendar({
                   style={{
                     padding: '4px 6px',
                     textAlign: 'left',
-                    backgroundColor: isToday ? '#0D0D14' : bg,
-                    borderLeft: period ? `2px solid ${accent}` : '1px solid #1A1A1E',
+                    backgroundColor: isToday ? 'var(--flate-6-b)' : bg,
+                    borderLeft: period ? `2px solid ${accent}` : '1px solid var(--kant-2)',
                     opacity: inMonth ? 1 : 0.35,
                     boxShadow: isPeak ? PEAK_GLOW : undefined,
                     cursor: within ? 'pointer' : 'default',
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: '#F0F0F2',
+                    color: 'var(--tekst-1-app)',
                   }}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span style={{
                       fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', lineHeight: 1,
-                      color: isToday ? '#FF4500' : '#F0F0F2',
+                      color: isToday ? '#FF4500' : 'var(--tekst-1-app)',
                     }}>
                       {d.getDate()}
                     </span>
@@ -173,7 +173,7 @@ export function MonthFullCalendar({
                   ))}
 
                   {workouts.length > 0 && (
-                    <div className="text-xs truncate" style={{ color: '#8A8A96' }}>
+                    <div className="text-xs truncate" style={{ color: 'var(--tekst-5-app)' }}>
                       {workouts.length === 1
                         ? workouts[0].title || 'Planlagt økt'
                         : `${workouts.length} økter`}

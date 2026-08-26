@@ -488,8 +488,8 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
         letterSpacing: '0.06em', borderRadius: 9, padding: '8px 13px', cursor: 'pointer',
         minHeight: 40,
         border: '1px solid var(--line2)',
-        color: brush === b ? '#fff' : '#8B8B95',
-        background: brush === b ? (sw ?? '#26262E') : 'none',
+        color: brush === b ? 'var(--tekst-1-ren)' : 'var(--mut)',
+        background: brush === b ? (sw ?? 'var(--flate-17)') : 'none',
         boxShadow: brush === b ? '0 0 0 2px var(--accent), 0 4px 16px rgba(255,69,0,.2)' : 'none',
       }}>
       {sw && <span style={{ width: 11, height: 11, borderRadius: 3, background: sw }} />}
@@ -504,7 +504,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
         letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: 9,
         padding: '8px 13px', cursor: 'pointer', border: '1px solid var(--line2)',
         minHeight: 40,
-        color: granularity === g ? '#fff' : '#8B8B95',
+        color: granularity === g ? 'var(--tekst-1-ren)' : 'var(--mut)',
         background: granularity === g ? 'var(--accent)' : 'none',
       }}>
       {label}
@@ -518,10 +518,10 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       <div className="flex items-start gap-3 mb-2">
         <span style={{ width: 22, height: 4, borderRadius: 2, background: 'var(--accent)', marginTop: 8 }} />
         <div>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '0.09em', color: '#F2F2F0', fontWeight: 400 }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '0.09em', color: 'var(--ink)', fontWeight: 400 }}>
             Mal sesongen
           </h2>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: '#55555F', marginTop: 2 }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14.5px', color: 'var(--tekst-8-alt)', marginTop: 2 }}>
             {canEdit
               ? granularity === 'uke'
                 ? 'Velg pensel → dra over ukene (snapper man–søn). 📍 tegner samling/høyde-bånd over lagene. ✋ Velg åpner detaljer (også på bånd). Bytt til Dag for enkeltdager.'
@@ -539,23 +539,23 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
       {canEdit && (
         <div className="flex flex-wrap gap-2 mb-3">
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Belastning</span>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Belastning</span>
             {toolBtn('rolig', 'Rolig', INTENSITY_COLOR.rolig)}
             {toolBtn('medium', 'Medium', INTENSITY_COLOR.medium)}
             {toolBtn('hard', 'Hard', INTENSITY_COLOR.hard)}
           </div>
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Markering</span>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Markering</span>
             {toolBtn('samling', '📍 Samling/høyde', '#D4A017')}
           </div>
           {onStampDay && (
             <div className="flex gap-2 items-center p-2 flex-wrap" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Nøkkeldato</span>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Nøkkeldato</span>
               {STAMPS.map(s => toolBtn(s.brush, `${s.icon} ${s.label}`))}
             </div>
           )}
           <div className="flex gap-2 items-center p-2" style={{ border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card2)' }}>
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase' }}>Presisjon</span>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase' }}>Presisjon</span>
             {granBtn('uke', 'Uke')}
             {granBtn('dag', 'Dag')}
           </div>
@@ -594,7 +594,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
             <div style={{
               flex: '0 0 40px', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: "'Bebas Neue', sans-serif", fontSize: relative ? 12 : 14, letterSpacing: '0.06em',
-              color: '#55555F', borderRight: '1px solid var(--line)',
+              color: 'var(--tekst-8-alt)', borderRight: '1px solid var(--line)',
               position: 'sticky', left: 0, zIndex: 3, background: 'var(--card)',
             }}>
               {row.label}
@@ -629,7 +629,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                     }}>
                     <span style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px',
-                      letterSpacing: '0.06em', color: isToday ? 'var(--accent)' : '#55555F',
+                      letterSpacing: '0.06em', color: isToday ? 'var(--accent)' : 'var(--tekst-8-alt)',
                       fontWeight: isToday ? 700 : 400,
                     }}>
                       U{weekLabel(w)}
@@ -650,7 +650,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                           </span>
                         ))}
                         {weekKeyDates.length > 3 && (
-                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 9 }}>
+                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 9 }}>
                             +{weekKeyDates.length - 3}
                           </span>
                         )}
@@ -717,8 +717,8 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         position: 'absolute', top: -9, left: 5, zIndex: 2,
                         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, fontWeight: 700,
                         letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                        background: 'var(--flate-3, #0A0A0B)', borderRadius: 5, padding: '1px 6px',
-                        color: color ?? '#8B8B95', border: `1px solid ${color ? `${color}80` : 'var(--line2)'}`,
+                        background: 'var(--flate-3, var(--flate-3))', borderRadius: 5, padding: '1px 6px',
+                        color: color ?? 'var(--mut)', border: `1px solid ${color ? `${color}80` : 'var(--line2)'}`,
                         maxWidth: '160%', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {p.name}

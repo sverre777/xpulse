@@ -46,7 +46,7 @@ export function YearCalendarView({
     <section>
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 mb-3 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {(['rolig', 'medium', 'hard'] as const).map(k => (
           <span key={k} className="flex items-center gap-1">
             <span style={{ width: 10, height: 10, backgroundColor: INTENSITY_COLOR[k], display: 'inline-block' }} />
@@ -100,7 +100,7 @@ export function YearCalendarView({
       </div>
 
       <p className="mt-3 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Klikk på en måned for detaljer · ukenummer åpner ukesvisning · dag åpner Plan
       </p>
     </section>

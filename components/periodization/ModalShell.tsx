@@ -26,7 +26,7 @@ export function ModalShell({
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}
@@ -47,7 +47,7 @@ export function ModalShell({
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <span style={{ width: '20px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
               {title}
             </h2>
           </div>
@@ -56,7 +56,7 @@ export function ModalShell({
             onClick={onClose}
             aria-label="Lukk"
             className="text-xl"
-            style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', padding: 0, lineHeight: 1 }}
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', padding: 0, lineHeight: 1 }}
           >
             ×
           </button>
@@ -70,7 +70,7 @@ export function ModalShell({
 export function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <label className="block text-xs tracking-widest uppercase mb-1"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
       {children}
     </label>
   )
@@ -137,7 +137,7 @@ export function ModalFooter({
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
             borderRadius: 'var(--r-field)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             cursor: busy ? 'not-allowed' : 'pointer',
           }}
         >
@@ -151,7 +151,7 @@ export function ModalFooter({
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: disabled ? '#3A1A0F' : '#FF4500',
             border: `1px solid ${disabled ? '#3A1A0F' : '#FF4500'}`,
-            color: '#FFFFFF',
+            color: 'var(--tekst-1-ren)',
             cursor: disabled ? 'not-allowed' : 'pointer',
             borderRadius: 'var(--r-field)',}}
         >

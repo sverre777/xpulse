@@ -39,8 +39,8 @@ export function SeasonSelector({
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'var(--card)',
-            border: '1px solid #1E1E22',
-            color: '#F0F0F2',
+            border: '1px solid var(--kant-3)',
+            color: 'var(--tekst-1-app)',
             minWidth: '240px',
           }}
         >
@@ -58,9 +58,9 @@ export function SeasonSelector({
             className="px-3 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A1A22',
-              border: '1px solid #1E1E22',
-              color: '#F0F0F2',
+              backgroundColor: 'var(--flate-14)',
+              border: '1px solid var(--kant-3)',
+              color: 'var(--tekst-1-app)',
               cursor: 'pointer',
             }}
           >
@@ -76,7 +76,7 @@ export function SeasonSelector({
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: '#FF4500',
               border: '1px solid #FF4500',
-              color: '#FFFFFF',
+              color: 'var(--tekst-1-ren)',
               cursor: 'pointer',
             }}
           >

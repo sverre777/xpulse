@@ -1173,14 +1173,14 @@ export const TYPE_COLORS: Record<string, string> = {
   testlop:         '#1A6FD4',
   recovery:        '#3A3A6A',
   technical:       '#2A6A5A',
-  other:           '#4A4A4A',
+  other:           'var(--tekst-9-graa)',
   hard_combo:      '#7A3A1A',
   easy_combo:      '#3A6A4A',
   basis_shooting:  '#4A4A8A',
   warmup_shooting: '#2A4A5A',
   // legacy fallbacks
   endurance:       '#1A5A8A',
-  strength:        '#4A4A4A',
+  strength:        'var(--tekst-9-graa)',
 }
 
 // ── Fase 8: Konkurranse ────────────────────────────────────

@@ -35,8 +35,8 @@ export const KEY_EVENT_VISUALS: Record<KeyEventType, KeyEventVisual> = {
   // Fase 104: testløp er egen type — 'test' er heretter ren 🧪 test.
   testlop:       { label: 'Testløp',       color: '#1A6FD4', icon: '⏱', borderWidth: 2 },
   test:          { label: 'Test',          color: '#28A86E', icon: '🧪', borderWidth: 2 },
-  camp:          { label: 'Samling',       color: '#8A8A96', icon: '📍', borderWidth: 1 },
-  other:         { label: 'Annet',         color: '#8A8A96', icon: '⚑', borderWidth: 1 },
+  camp:          { label: 'Samling',       color: 'var(--tekst-5-app)', icon: '📍', borderWidth: 1 },
+  other:         { label: 'Annet',         color: 'var(--tekst-5-app)', icon: '⚑', borderWidth: 1 },
 }
 
 // Finn perioden som inneholder gitt ISO-dato ('YYYY-MM-DD').

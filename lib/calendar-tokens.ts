@@ -7,13 +7,13 @@
 
 export const CALENDAR_TOKENS = {
   /** Skille mellom uker i måneds- og periodiseringsvisning. */
-  weekDivider: '2px solid #2A2A30',
+  weekDivider: '2px solid var(--kant-6)',
   /** Skille mellom dager innen samme uke (kolonne-borders). */
-  dayBorder: '1px solid #1A1A1E',
+  dayBorder: '1px solid var(--kant-2)',
   /** Header-linje under ukedager-raden. */
-  headerDivider: '1px solid #1A1A1E',
+  headerDivider: '1px solid var(--kant-2)',
   /** Bakgrunn for ukes-analyse-stripa under hver uke. */
-  weekStripeBg: '#0E0E12',
+  weekStripeBg: 'var(--flate-7-alt)',
   /** Subtil indre divider (timeslinjer i ukesvisning, day-state-bar). */
-  innerDivider: '1px solid #14141A',
+  innerDivider: '1px solid var(--kant-1-app)',
 } as const

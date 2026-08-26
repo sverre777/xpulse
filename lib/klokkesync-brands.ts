@@ -133,7 +133,7 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
     name: 'Garmin',
     status: 'kommer',
     tagline: 'Direkte-synk fra Garmin Connect. Bruk .fit-opplasting i mellomtiden.',
-    accent: '#8A8A96',
+    accent: 'var(--tekst-5-app)',
     branding: 'tekst',
   },
   {
@@ -141,7 +141,7 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
     name: 'COROS',
     status: 'kommer',
     tagline: 'Direkte-synk fra COROS. Bruk .fit-opplasting i mellomtiden.',
-    accent: '#8A8A96',
+    accent: 'var(--tekst-5-app)',
     branding: 'tekst',
   },
   {
@@ -149,7 +149,7 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
     name: 'Suunto',
     status: 'kommer',
     tagline: 'Direkte-synk fra Suunto. Bruk .fit-opplasting i mellomtiden.',
-    accent: '#8A8A96',
+    accent: 'var(--tekst-5-app)',
     branding: 'tekst',
   },
   {
@@ -157,7 +157,7 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
     name: 'Whoop',
     status: 'kommer',
     tagline: 'Belastning og restitusjon fra Whoop.',
-    accent: '#8A8A96',
+    accent: 'var(--tekst-5-app)',
     branding: 'tekst',
   },
   {
@@ -165,7 +165,7 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
     name: 'Oura',
     status: 'kommer',
     tagline: 'Søvn og restitusjon fra Oura.',
-    accent: '#8A8A96',
+    accent: 'var(--tekst-5-app)',
     branding: 'tekst',
   },
 ]

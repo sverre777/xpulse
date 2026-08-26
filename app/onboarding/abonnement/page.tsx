@@ -118,14 +118,14 @@ export default async function OnboardingAbonnementPage() {
   if (hasActiveAccess(sub)) redirect('/app/oversikt')
 
   return (
-    <main style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <main style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-12 lg:py-16">
         <div className="text-center mb-8">
           <h1 className="mb-3"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 'clamp(32px, 5vw, 44px)', letterSpacing: '0.08em' }}>
+            style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 'clamp(32px, 5vw, 44px)', letterSpacing: '0.08em' }}>
             Velg ditt abonnement
           </h1>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px', letterSpacing: '0.04em' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px', letterSpacing: '0.04em' }}>
             30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Avslutt når som helst. Promo-kode kan brukes ved kassen.
           </p>
         </div>
@@ -145,7 +145,7 @@ export default async function OnboardingAbonnementPage() {
         </section>
 
         <p className="text-center mt-8 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Allerede har abonnement?{' '}
           <Link href="/app/dagbok" style={{ color: ATHLETE_ACCENT, textDecoration: 'underline' }}>
             Gå til Dagbok
@@ -160,7 +160,7 @@ function GroupHeader({ label, accent }: { label: string; accent: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
       <span style={{ width: '24px', height: '3px', backgroundColor: accent, display: 'inline-block' }} />
-      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em', margin: 0 }}>
+      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em', margin: 0 }}>
         {label}
       </h2>
     </div>
@@ -178,7 +178,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
       }}>
       <div>
         <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em', margin: 0 }}>
+          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.04em', margin: 0 }}>
             {tier.name}
           </h3>
           {isSoon && (
@@ -193,11 +193,11 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
           )}
         </div>
         <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: accent, fontSize: '28px', letterSpacing: '0.04em', margin: 0, lineHeight: 1.1 }}>
-          {tier.priceMonthly} <span style={{ fontSize: '13px', color: '#8A8A96', letterSpacing: '0.06em' }}>kr/mnd</span>
+          {tier.priceMonthly} <span style={{ fontSize: '13px', color: 'var(--tekst-5-app)', letterSpacing: '0.06em' }}>kr/mnd</span>
         </p>
       </div>
 
-      <ul className="space-y-1.5 flex-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', lineHeight: 1.5 }}>
+      <ul className="space-y-1.5 flex-1 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', lineHeight: 1.5 }}>
         {tier.features.map((f, i) => (
           <li key={i} className="flex items-start gap-2">
             <span style={{ color: accent, marginTop: '1px' }}>✓</span>
@@ -220,7 +220,7 @@ function TierCard({ tier, accent }: { tier: Tier; accent: string }) {
           className="block text-center px-4 py-3 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: accent, color: '#FFFFFF', textDecoration: 'none',
+            backgroundColor: accent, color: 'var(--tekst-1-ren)', textDecoration: 'none',
           }}>
           {tier.priceTier === 'trener_pro' ? 'Kom i gang — faktureres fra start' : 'Start gratis prøve'}
         </Link>

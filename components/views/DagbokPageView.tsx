@@ -116,7 +116,7 @@ export async function DagbokPageView({ viewContext }: Props) {
     : (dayHour < 10 ? 'God morgen' : dayHour < 12 ? 'Formiddag' : dayHour < 17 ? 'God dag' : dayHour < 21 ? 'God kveld' : 'God natt')
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
 
         {/* Gjenoppta-banneret viser INNLOGGET brukers aktive live-økt —
@@ -126,10 +126,10 @@ export async function DagbokPageView({ viewContext }: Props) {
 
         <div className="mb-6">
           <p className="text-sm tracking-widest uppercase mb-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {greeting}
           </p>
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '48px', letterSpacing: '0.05em', lineHeight: 1 }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '48px', letterSpacing: '0.05em', lineHeight: 1 }}>
             {firstName}
           </h1>
         </div>
@@ -149,7 +149,7 @@ export async function DagbokPageView({ viewContext }: Props) {
 
         <div className="flex items-center gap-3 mb-4">
           <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
             Kalender
           </h2>
         </div>
@@ -186,7 +186,7 @@ export async function DagbokPageView({ viewContext }: Props) {
             «Begge»/måned/siste 12 mnd; brukeren kan endre alt selv. */}
         <div className="flex items-center gap-3 mb-4 mt-8">
           <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
             Plan vs. gjennomført
           </h2>
         </div>

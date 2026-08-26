@@ -43,11 +43,11 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
 
   if ('error' in seasonsResult) {
     return (
-      <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
         <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
           <div className="flex items-center gap-3 mb-6">
             <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em' }}>
               Årsplan
             </h1>
           </div>
@@ -92,13 +92,13 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
   }
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
               Årsplan
             </h1>
           </div>
@@ -122,11 +122,11 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
         {calendarError && <LoadError what="årsplanen" detail={calendarError} />}
 
         {!activeSeason ? (
-          <div className="p-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
-            <p className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em' }}>
+          <div className="p-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+            <p className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.04em' }}>
               Ingen sesong enda
             </p>
-            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Trykk «+ Ny sesong» øverst for å komme i gang.
             </p>
           </div>
@@ -147,7 +147,7 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
             <div className="flex items-center justify-between mb-4">
               <ViewToggle active={view} />
               <span className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {view === 'år' && 'Oversikt over hele sesongen'}
                 {view === 'måned' && 'Detaljert månedsvisning'}
                 {view === 'uke' && 'Ukesvisning med planlagte økter'}

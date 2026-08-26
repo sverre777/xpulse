@@ -18,12 +18,12 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
   })) as Workout[]
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-8">
 
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em' }}>
             Historikk
           </h1>
         </div>
@@ -37,15 +37,15 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
               className="flex-1 px-4 py-3 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-                color: '#F0F0F2', outline: 'none',
+                backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+                color: 'var(--tekst-1-app)', outline: 'none',
               }}
             />
             <button type="submit"
               className="px-6 py-3 text-sm tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#F0F0F2',
+                backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
                 border: 'none', cursor: 'pointer',
               }}>
               Søk
@@ -55,35 +55,35 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
           <div className="flex gap-3 flex-wrap">
             <select name="sport" defaultValue={params.sport ?? ''}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }}>
               <option value="">Alle sporter</option>
               {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
             <select name="type" defaultValue={params.type ?? ''}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }}>
               <option value="">Alle økttyper</option>
               {WORKOUT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
             <input type="date" name="from" defaultValue={params.from}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }} />
-            <span className="self-center text-sm" style={{ color: '#555560' }}>—</span>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }} />
+            <span className="self-center text-sm" style={{ color: 'var(--tekst-8-app)' }}>—</span>
             <input type="date" name="to" defaultValue={params.to}
               className="px-3 py-2 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#8A8A96' }} />
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)' }} />
           </div>
         </form>
 
         <div>
           <p className="text-xs tracking-widest uppercase mb-4"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {workouts.length} økt{workouts.length !== 1 ? 'er' : ''}
           </p>
 
           {workouts.length === 0 ? (
             <div className="text-center py-16">
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '16px' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '16px' }}>
                 Ingen økter funnet
               </p>
             </div>
@@ -97,7 +97,7 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
                   <div key={w.id}>
                     <div className="mb-1">
                       <span className="text-xs tracking-widest uppercase capitalize"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                         {dateFormatted}
                       </span>
                     </div>

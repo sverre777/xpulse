@@ -35,14 +35,14 @@ export default function NyttPage() {
 
   return (
     <LandingShell>
-      <div className="px-4 py-12" style={{ backgroundColor: '#0A0A0B' }}>
+      <div className="px-4 py-12" style={{ backgroundColor: 'var(--flate-3)' }}>
         <div className="max-w-3xl mx-auto">
           <span
             className="inline-block mb-4 px-2.5 py-1 text-xs tracking-widest uppercase"
             style={{
               fontFamily: FONT_TEKST,
               color: '#FF4500',
-              border: '1px solid #2A2A30',
+              border: '1px solid var(--kant-6)',
               letterSpacing: '0.2em',
             }}
           >
@@ -51,13 +51,13 @@ export default function NyttPage() {
 
           <h1
             className="text-5xl md:text-6xl mb-2"
-            style={{ fontFamily: FONT_TITTEL, color: '#F0F0F2', letterSpacing: '0.08em' }}
+            style={{ fontFamily: FONT_TITTEL, color: 'var(--tekst-1-app)', letterSpacing: '0.08em' }}
           >
             Hva er nytt
           </h1>
           <p
             className="text-xs tracking-widest uppercase mb-12"
-            style={{ fontFamily: FONT_TEKST, color: '#55555F' }}
+            style={{ fontFamily: FONT_TEKST, color: 'var(--tekst-8-alt)' }}
           >
             De siste oppdateringene i appen
           </p>
@@ -78,9 +78,9 @@ export default function NyttPage() {
                   className="text-xs tracking-widest uppercase pb-3 mb-6"
                   style={{
                     fontFamily: FONT_TEKST,
-                    color: '#8A8A96',
+                    color: 'var(--tekst-5-app)',
                     letterSpacing: '0.24em',
-                    borderBottom: '1px solid #1E1E22',
+                    borderBottom: '1px solid var(--kant-3)',
                   }}
                 >
                   <time dateTime={gruppe.date}>{formatChangelogDate(gruppe.date)}</time>
@@ -99,7 +99,7 @@ export default function NyttPage() {
                           className="text-2xl mb-1"
                           style={{
                             fontFamily: FONT_TITTEL,
-                            color: '#F0F0F2',
+                            color: 'var(--tekst-1-app)',
                             letterSpacing: '0.05em',
                           }}
                         >
@@ -108,7 +108,7 @@ export default function NyttPage() {
                         <p
                           style={{
                             fontFamily: FONT_TEKST,
-                            color: '#C0C0CC',
+                            color: 'var(--tekst-3-app)',
                             fontSize: '16px',
                             lineHeight: 1.6,
                           }}

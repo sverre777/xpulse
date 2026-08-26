@@ -17,7 +17,7 @@ export default async function PersonvernInnstillingerPage() {
     .single()
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader
           title="Personvern og data"
@@ -28,7 +28,7 @@ export default async function PersonvernInnstillingerPage() {
             <DataExportButton />
             <div>
               <p className="text-xs mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Slett kontoen og alle dine data. Du har 7 dagers angrefrist.
               </p>
               <DeleteAccountModal deletionRequestedAt={profile?.deletion_requested_at ?? null} />

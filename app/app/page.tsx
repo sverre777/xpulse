@@ -28,7 +28,7 @@ function LoginInner() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: '#0A0A0B' }}
+      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       <AuthCard title="Logg inn" subtitle="Velkommen tilbake">
         <form action={formAction} className="flex flex-col gap-5">
@@ -55,7 +55,7 @@ function LoginInner() {
           <div className="-mt-2 text-right">
             <Link href="/glemt-passord"
               className="text-xs tracking-wide transition-opacity hover:opacity-80"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Glemt passord?
             </Link>
           </div>
@@ -106,7 +106,7 @@ function LoginInner() {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: pending ? '#7A2200' : '#FF4500',
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 cursor: pending ? 'not-allowed' : 'pointer',
                 opacity: pending ? 0.7 : 1,
                 border: 'none',
@@ -120,7 +120,7 @@ function LoginInner() {
         <div className="mt-6 text-center">
           <p
             className="text-sm tracking-wide"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Har du ikke konto?{' '}
             <Link

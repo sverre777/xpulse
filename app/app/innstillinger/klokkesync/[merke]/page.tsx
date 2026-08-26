@@ -46,7 +46,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
   const isConnected = connectedSlugs.includes(brand.slug)
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title={brand.name} />
 
@@ -56,7 +56,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
               display: 'inline-flex', alignItems: 'center', minHeight: 44,
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
               letterSpacing: '0.14em', textTransform: 'uppercase',
-              color: '#8A8A96', textDecoration: 'none',
+              color: 'var(--tekst-5-app)', textDecoration: 'none',
             }}>
             ← Klokkesync
           </Link>
@@ -69,7 +69,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
             <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
               <h2 className="flex items-center gap-3" style={{
                 fontFamily: "'Bebas Neue', sans-serif", fontSize: 24,
-                letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+                letterSpacing: '0.06em', color: 'var(--tekst-1-app)', margin: 0,
               }}>
                 <BrandMark brand={brand} size={44} />
                 {brand.name}
@@ -112,7 +112,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     minHeight: 44, padding: '11px 22px',
-                    background: brand.accent, color: '#F0F0F2',
+                    background: brand.accent, color: 'var(--tekst-1-app)',
                     borderRadius: 10, textDecoration: 'none',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                     fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -164,7 +164,7 @@ function BrandFacts({ brand }: { brand: KlokkesyncBrand }) {
           <p className="mb-2" style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
             letterSpacing: '0.16em', textTransform: 'uppercase',
-            color: block.tone === 'advarsel' ? '#F5C542' : '#8A8A96', margin: 0,
+            color: block.tone === 'advarsel' ? '#F5C542' : 'var(--tekst-5-app)', margin: 0,
           }}>
             {block.title}
           </p>
@@ -179,19 +179,19 @@ function BrandFacts({ brand }: { brand: KlokkesyncBrand }) {
 
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        color: '#555560', lineHeight: 1.7, margin: 0,
+        color: 'var(--tekst-8-app)', lineHeight: 1.7, margin: 0,
       }}>
         {brand.credit && <>Datakilde: {brand.credit}. </>}
         {brand.privacyUrl && (
           <>
             {brand.name} sin personvernerklæring:{' '}
-            <a href={brand.privacyUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#8A8A96' }}>
+            <a href={brand.privacyUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tekst-5-app)' }}>
               {brand.privacyLabel ?? brand.privacyUrl}
             </a>. {' '}
           </>
         )}
         Se også X-PULSE sin{' '}
-        <Link href="/personvern" style={{ color: '#8A8A96' }}>personvernerklæring</Link>.
+        <Link href="/personvern" style={{ color: 'var(--tekst-5-app)' }}>personvernerklæring</Link>.
       </p>
     </section>
   )

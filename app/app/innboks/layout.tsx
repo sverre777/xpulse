@@ -33,7 +33,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
         {activeRole === 'coach' ? (
           <CoachNav
             userName={profile?.full_name ?? null}
@@ -57,7 +57,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
             className="text-2xl mb-3"
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               letterSpacing: '0.06em',
             }}
           >

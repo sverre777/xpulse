@@ -38,7 +38,7 @@ export function DataExportButton() {
         className="block w-full text-center px-4 py-3 text-sm tracking-widest uppercase transition-opacity hover:opacity-90"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#FF4500', color: '#FFFFFF', border: 'none',
+          backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)', border: 'none',
           cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
         }}>
         {busy ? 'Genererer eksport…' : 'Last ned data (JSON)'}

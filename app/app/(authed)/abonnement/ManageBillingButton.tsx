@@ -17,7 +17,7 @@ export function ManageBillingButton({ label, accent }: Props) {
       className="inline-block px-4 py-3 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: accent, color: '#FFFFFF',
+        backgroundColor: accent, color: 'var(--tekst-1-ren)',
         textDecoration: 'none',
       }}>
       {label}

@@ -13,7 +13,7 @@ export default async function ProfilInnstillingerPage() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title="Profil" />
         <ProfileSection

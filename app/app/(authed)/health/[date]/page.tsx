@@ -26,15 +26,15 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
   const dateLabel = d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-lg mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#28A86E', display: 'inline-block' }} />
           <div>
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em', lineHeight: 1 }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em', lineHeight: 1 }}>
               Helse
             </h1>
-            <p className="text-sm capitalize mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p className="text-sm capitalize mt-0.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {dateLabel}
             </p>
           </div>
@@ -47,7 +47,7 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
         <div className="text-center mt-4">
           <Link href="/app/dagbok"
             className="text-sm tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', textDecoration: 'none' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-hover)', textDecoration: 'none' }}>
             ← Tilbake til dagen
           </Link>
         </div>

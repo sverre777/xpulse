@@ -16,9 +16,9 @@ const STATUS_INFO: Record<string, { text: string; color: string }> = {
   active:             { text: 'Aktiv',             color: '#28A86E' },
   trialing:           { text: 'Prøveperiode',      color: '#28A86E' },
   past_due:           { text: 'Forfallet betaling', color: '#E11D48' },
-  canceled:           { text: 'Kansellert',        color: '#8A8A96' },
+  canceled:           { text: 'Kansellert',        color: 'var(--tekst-5-app)' },
   incomplete:         { text: 'Ufullført',         color: '#FFB300' },
-  incomplete_expired: { text: 'Utløpt',            color: '#8A8A96' },
+  incomplete_expired: { text: 'Utløpt',            color: 'var(--tekst-5-app)' },
   unpaid:             { text: 'Ubetalt',           color: '#E11D48' },
 }
 
@@ -44,7 +44,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
 
   const sub = await getActiveSubscription(supabase, user.id)
   const active = hasActiveAccess(sub)
-  const statusInfo = sub ? STATUS_INFO[sub.status] ?? { text: sub.status, color: '#8A8A96' } : null
+  const statusInfo = sub ? STATUS_INFO[sub.status] ?? { text: sub.status, color: 'var(--data-ukjent)' } : null
 
   // Setemodellen: er tilgangen en utøverplass fra en trener, vises plass-
   // status i stedet for fakturadetaljer — utøveren betaler ingenting.
@@ -60,11 +60,11 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const totalMnd = sub ? tierPriceMonthly(sub.tier) + seatMnd : 0
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="flex items-center gap-3 mb-6">
           <span style={{ width: '24px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
             Abonnement
           </h1>
         </div>
@@ -91,7 +91,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
               border: '1px solid rgba(255,69,0,0.4)',
               borderLeft: '3px solid #FF4500',
             }}>
-            <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+            <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
               Utøverplassen din{seat.coachName ? ` fra ${seat.coachName}` : ''} er avsluttet.
               All treningsdata er trygt bevart — fortsett med Athlete Pro for 59 kr/mnd, så tar du opp tråden der du slapp.
             </p>
@@ -99,7 +99,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#FFFFFF', textDecoration: 'none',
+                backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)', textDecoration: 'none',
               }}>
               Fortsett selv for 59 kr/mnd →
             </Link>
@@ -110,7 +110,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
           <section className="p-6"
             style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
                 Athlete Pro · via {seat!.coachName ?? 'treneren din'}
               </h2>
               <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -121,7 +121,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 Utøverplass
               </span>
             </div>
-            <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               <Row label="Betaling" value="Plassen betales av treneren din — ingenting trekkes deg, og du trenger aldri legge inn kort." />
               {seat!.utloper ? (
                 <Row label="Plassen løper ut"
@@ -134,17 +134,17 @@ export default async function AbonnementPage({ searchParams }: Props) {
         ) : !sub ? (
           <section className="p-6"
             style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-            <h2 className="mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>
+            <h2 className="mb-2" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.04em' }}>
               Ingen aktivt abonnement
             </h2>
-            <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px', lineHeight: 1.6 }}>
+            <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', lineHeight: 1.6 }}>
               30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Promo-kode kan brukes ved kassen.
             </p>
             <Link href="/onboarding/abonnement"
               className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#FFFFFF', textDecoration: 'none',
+                backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)', textDecoration: 'none',
               }}>
               Velg abonnement →
             </Link>
@@ -154,7 +154,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
             <section className="p-6"
               style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em', margin: 0 }}>
                   {tierLabel(sub.tier)} · {totalMnd} kr/mnd
                 </h2>
                 {statusInfo && (
@@ -171,7 +171,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
                 )}
               </div>
 
-              <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              <dl className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 {sub.status === 'trialing' && (
                   <Row label="Prøveperioden slutter" value={fmtDate(sub.trial_end)} />
                 )}
@@ -225,10 +225,10 @@ export default async function AbonnementPage({ searchParams }: Props) {
 
             <section className="mt-4 p-6"
               style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
-              <h3 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em', margin: 0 }}>
+              <h3 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em', margin: 0 }}>
                 Administrer abonnement
               </h3>
-              <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', lineHeight: 1.6 }}>
+              <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', lineHeight: 1.6 }}>
                 Endre tier, oppdater betalingsmetode, last ned faktura eller kanseller — alt via Stripe sin sikre kundeportal.
               </p>
               <ManageBillingButton
@@ -252,7 +252,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2 flex-wrap">
-      <dt className="text-xs tracking-widest uppercase" style={{ color: '#8A8A96' }}>
+      <dt className="text-xs tracking-widest uppercase" style={{ color: 'var(--tekst-5-app)' }}>
         {label}:
       </dt>
       <dd style={{ margin: 0 }}>{value}</dd>

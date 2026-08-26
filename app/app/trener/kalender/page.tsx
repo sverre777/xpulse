@@ -32,19 +32,19 @@ export default async function CoachCalendarPage() {
   ])
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <div className="flex items-center gap-3 mb-2">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#1A6FD4', display: 'inline-block' }} />
           <h1 style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em',
+            color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em',
           }}>
             Trener-kalender
           </h1>
         </div>
         <p className="mb-6 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Konkurranser fra utøvere, økter du har markert deltakelse på, og egne notater.
             Klikk på en dato for å se detaljer eller legge til notat. Klikk på tom celle i Uke-visning for å opprette notat med tid pre-fylt.
         </p>

@@ -95,7 +95,7 @@ export function MalerClient({
         <button type="button" onClick={() => setShowOktmalBuilder(true)}
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
             backgroundColor: '#FF4500', border: 'none', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer',
           }}>
@@ -169,13 +169,13 @@ export function MalerClient({
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '7px 14px', minHeight: 36, cursor: 'pointer',
                 borderRadius: 999,
-                color: quick === c.key ? '#F0F0F2' : '#8A8A96',
+                color: quick === c.key ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                 backgroundColor: quick === c.key
                   ? (c.key === 'test' ? '#D4A01722' : '#FF450022')
                   : 'transparent',
                 border: `1px solid ${quick === c.key
                   ? (c.key === 'test' ? '#D4A017' : '#FF4500')
-                  : '#222228'}`,
+                  : 'var(--kant-4)'}`,
               }}>
               {c.label}
             </button>
@@ -327,7 +327,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? '#fff' : '#8A8A96',
+              color: active ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
               background: active ? 'var(--accent)' : 'none',
               border: `1px solid ${active ? 'var(--accent)' : 'var(--line2)'}`,
               borderRadius: 999,
@@ -484,7 +484,7 @@ function EmptyBox({ empty, kind }: { empty: boolean; kind: 'økt' | 'plan' }) {
   }
   return (
     <div className="p-8 text-center" style={{ border: '1px dashed var(--line2)', borderRadius: 14 }}>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Ingen maler matcher filtrene.
       </p>
     </div>
@@ -508,25 +508,25 @@ function TemplateRow({
   // Hele raden klikkbar → åpner edit. Knappene under stopper propagation
   // så Dupliser/Slett ikke trigger edit ved et uhell.
   return (
-    <div className="p-4 transition-colors hover:bg-[#1A1A22] cursor-pointer"
+    <div className="p-4 transition-colors hover:bg-[var(--flate-14)] cursor-pointer"
       onClick={onEdit}
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
             {name}
           </div>
           {description && (
             <p className="mt-1 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
               {description}
             </p>
           )}
           <div className="mt-2 flex flex-wrap gap-2 items-center text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {category && <Badge color="#D4A017">{category}</Badge>}
             {meta.map((m, i) => <span key={i}>· {m}</span>)}
           </div>
@@ -571,9 +571,9 @@ function ActionBtn({
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : '#8A8A96',
+        color: danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: 'none', borderRadius: 999,
-        border: `1px solid ${danger ? '#FF450066' : '#222228'}`,
+        border: `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
       }}>
@@ -586,7 +586,7 @@ const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
   borderRadius: 'var(--r-field)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   outline: 'none',
@@ -625,7 +625,7 @@ function BrukPaaDatoModal({
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '80px', paddingLeft: '12px', paddingRight: '12px',
       }}>
@@ -641,13 +641,13 @@ function BrukPaaDatoModal({
         </div>
 
         <p className="mb-4 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
-          Sett inn <strong style={{ color: '#F0F0F2' }}>{template.name}</strong> som planlagt
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
+          Sett inn <strong style={{ color: 'var(--tekst-1-app)' }}>{template.name}</strong> som planlagt
           økt på valgt dato i din Plan-kalender.
         </p>
 
         <label className="block mb-1 text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Dato
         </label>
         <input type="date" className="xp-input" value={date} min={today}
@@ -665,8 +665,8 @@ function BrukPaaDatoModal({
           <button type="button" onClick={onClose} disabled={pending}
             className="text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629', borderRadius: 999,
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)', borderRadius: 999,
               padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -675,7 +675,7 @@ function BrukPaaDatoModal({
             disabled={pending || !date}
             className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
               background: '#FF4500', border: 'none', borderRadius: 999,
               padding: '8px 14px',
               cursor: (pending || !date) ? 'not-allowed' : 'pointer',
@@ -722,7 +722,7 @@ function BrukPlanPaaDatoModal({
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '80px', paddingLeft: '12px', paddingRight: '12px',
       }}>
@@ -738,15 +738,15 @@ function BrukPlanPaaDatoModal({
         </div>
 
         <p className="mb-4 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', lineHeight: 1.6 }}>
-          Sett inn <strong style={{ color: '#F0F0F2' }}>{template.name}</strong>{' '}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', lineHeight: 1.6 }}>
+          Sett inn <strong style={{ color: 'var(--tekst-1-app)' }}>{template.name}</strong>{' '}
           ({template.duration_days} {template.duration_days === 1 ? 'dag' : 'dager'}
           {workoutCount > 0 ? `, ${workoutCount} ${workoutCount === 1 ? 'økt' : 'økter'}` : ''})
           som planlagte økter i din Plan-kalender, fra valgt startdato.
         </p>
 
         <label className="block mb-1 text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Startdato
         </label>
         <input type="date" className="xp-input" value={date} min={today}
@@ -764,8 +764,8 @@ function BrukPlanPaaDatoModal({
           <button type="button" onClick={onClose} disabled={pending}
             className="text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629', borderRadius: 999,
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)', borderRadius: 999,
               padding: '8px 14px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -774,7 +774,7 @@ function BrukPlanPaaDatoModal({
             disabled={pending || !date}
             className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
               background: '#FF4500', border: 'none', borderRadius: 999,
               padding: '8px 14px',
               cursor: (pending || !date) ? 'not-allowed' : 'pointer',
@@ -829,7 +829,7 @@ function StandardSerierPanel() {
 
   const inputStil: React.CSSProperties = {
     background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8,
-    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15,
+    color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15,
     padding: '9px 11px', outline: 'none', width: '100%',
   }
 
@@ -839,13 +839,13 @@ function StandardSerierPanel() {
         <button type="button" onClick={startNy}
           className="text-sm tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)',
             backgroundColor: '#FF8A5C', border: 'none', borderRadius: 999,
             padding: '10px 16px', cursor: 'pointer', fontWeight: 700,
           }}>
           + Ny standardøkt-serie
         </button>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Samme økt over tid — koble økter til serien fra øktskjemaet (⟳), og
           sammenlign gjennomføringene i analysen.
         </p>
@@ -865,12 +865,12 @@ function StandardSerierPanel() {
           <div className="flex gap-2">
             <button type="button" onClick={() => { void lagre() }} disabled={lagrer}
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '9px 18px', cursor: 'pointer', fontWeight: 700 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '9px 18px', cursor: 'pointer', fontWeight: 700 }}>
               {lagrer ? 'Lagrer…' : 'Lagre'}
             </button>
             <button type="button" onClick={() => setNyApen(false)}
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '9px 18px', cursor: 'pointer' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '9px 18px', cursor: 'pointer' }}>
               Avbryt
             </button>
           </div>
@@ -878,7 +878,7 @@ function StandardSerierPanel() {
       )}
 
       {serier === null ? (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 14 }}>Laster serier…</p>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>Laster serier…</p>
       ) : serier.length === 0 ? (
         <EmptyState
           title="Ingen standardøkt-serier ennå"
@@ -890,17 +890,17 @@ function StandardSerierPanel() {
             return (
               <div key={s.id} className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, letterSpacing: '0.04em', color: '#F0F0F2' }}>
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, letterSpacing: '0.04em', color: 'var(--tekst-1-app)' }}>
                     <span style={{ color: '#FF8A5C' }}>⟳</span> {s.name}
                   </span>
                 </div>
-                <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8A8A96' }}>
+                <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
                   {[sportLabel, s.movement_name, s.location,
                     `${s.workout_count} gjennomføring${s.workout_count !== 1 ? 'er' : ''}`]
                     .filter(Boolean).join(' · ')}
                 </p>
                 {s.description && (
-                  <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#C0C0CC' }}>{s.description}</p>
+                  <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-3-app)' }}>{s.description}</p>
                 )}
                 <div className="flex flex-wrap gap-2 mt-3">
                   <a href={`/app/analyse?tab=standardokter&serie=${s.id}`}
@@ -910,7 +910,7 @@ function StandardSerierPanel() {
                   </a>
                   <button type="button" onClick={() => startRediger(s)}
                     className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer' }}>
                     Rediger
                   </button>
                   <button type="button" onClick={() => { void slett(s) }}

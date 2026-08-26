@@ -1,15 +1,15 @@
 export default function AiCoachPage() {
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em' }}>
             AI Coach
           </h1>
         </div>
         <div className="p-12 text-center" style={{ border: '1px dashed var(--line2)', borderRadius: 14 }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '16px', letterSpacing: '0.05em' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '16px', letterSpacing: '0.05em' }}>
             Kommer snart
           </p>
         </div>

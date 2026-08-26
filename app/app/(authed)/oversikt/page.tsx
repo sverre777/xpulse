@@ -31,7 +31,7 @@ function SectionHeader({ label }: { label: string }) {
     <div className="flex items-center gap-3 mb-3">
       <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </span>
     </div>
@@ -43,18 +43,18 @@ function AiCoachTeaser() {
     <section className="p-5 mb-6"
       style={{
         backgroundColor: '#0F121A',
-        border: '1px solid #1E1E22',
+        border: '1px solid var(--kant-3)',
         backgroundImage: 'linear-gradient(135deg, rgba(26,111,212,0.08), transparent 60%)',
       }}>
       <SectionHeader label="AI Coach" />
       <p style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+        fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
         fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1,
       }}>
         Dagens anbefaling kommer her
       </p>
       <p className="mt-2 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {/* TODO: kobles mot ai-coach når endpoint er klart. */}
         AI Coach henter kontekst fra plan, siste økter og helse og foreslår dagens retning.
         Integrasjon er ikke aktiv enda.
@@ -74,7 +74,7 @@ export default async function OversiktPage() {
     // Død/utløpt sesjon: send til innlogging i stedet for feilboks.
     if (res.error === 'Ikke innlogget') redirect('/app')
     return (
-      <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+      <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
         <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
           <LoadError what="oversikten" detail={res.error} />
         </div>
@@ -88,7 +88,7 @@ export default async function OversiktPage() {
     : coachOverviewRaw
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />

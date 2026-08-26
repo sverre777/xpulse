@@ -48,7 +48,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   return (
     <RoleProvider value={{ activeRole: effectiveRole, hasAthleteRole, hasCoachRole }}>
       <CustomCursor color="#FF4500" />
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
         <MainNav
           userName={profile?.full_name ?? null}
           activeRole={effectiveRole}

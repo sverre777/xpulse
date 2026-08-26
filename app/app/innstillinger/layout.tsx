@@ -35,7 +35,7 @@ export default async function InnstillingerLayout({ children }: { children: Reac
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
         {activeRole === 'coach' ? (
           <CoachNav
             userName={profile?.full_name ?? null}

@@ -17,7 +17,7 @@ export default function RegisterPage() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: '#0A0A0B' }}
+      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       <AuthCard title="Opprett konto" subtitle="Velg din rolle og kom i gang">
         <form action={formAction} className="flex flex-col gap-5">
@@ -49,13 +49,13 @@ export default function RegisterPage() {
           {/* Primary sport */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Primærsport
             </label>
             <select name="primary_sport" required
               style={{
-                backgroundColor: '#1C1C21', border: '1px solid #222228',
-                color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+                backgroundColor: 'var(--flate-15)', border: '1px solid var(--kant-4)',
+                color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: '15px', padding: '12px 16px', outline: 'none',
               }}>
               {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -66,7 +66,7 @@ export default function RegisterPage() {
           <div className="flex flex-col gap-2">
             <span
               className="text-sm tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               Dine roller
             </span>
@@ -87,7 +87,7 @@ export default function RegisterPage() {
             </div>
             <p
               className="text-xs mt-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
             >
               Du kan velge begge — veksle senere i toppen av appen.
             </p>
@@ -103,7 +103,7 @@ export default function RegisterPage() {
             />
             <span
               className="text-xs tracking-wide"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.4 }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.4 }}
             >
               Jeg har lest og godtar{' '}
               <Link href="/vilkar" target="_blank" className="underline transition-opacity hover:opacity-80" style={{ color: '#FF4500' }}>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: pending ? '#7A2200' : '#FF4500',
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 cursor: pending ? 'not-allowed' : 'pointer',
                 opacity: pending ? 0.7 : 1,
                 border: 'none',
@@ -152,7 +152,7 @@ export default function RegisterPage() {
         <div className="mt-6 text-center">
           <p
             className="text-sm tracking-wide"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Har du allerede konto?{' '}
             <Link
@@ -188,8 +188,8 @@ function RoleOption({
     <label
       className="relative flex flex-col gap-1 p-4 cursor-pointer"
       style={{
-        border: `1px solid #222228`,
-        backgroundColor: '#1C1C21',
+        border: `1px solid var(--kant-4)`,
+        backgroundColor: 'var(--flate-15)',
       }}
     >
       <input
@@ -207,13 +207,13 @@ function RoleOption({
       />
       <span
         className="relative text-lg font-semibold tracking-widest uppercase z-10"
-        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2' }}
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)' }}
       >
         {label}
       </span>
       <span
         className="relative text-xs tracking-wide z-10"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
       >
         {description}
       </span>

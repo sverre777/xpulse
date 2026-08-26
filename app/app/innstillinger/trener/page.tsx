@@ -23,7 +23,7 @@ export default async function TrenerInnstillingerPage() {
   const activeRelations = relations.filter(r => r.status === 'active')
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title="Trener" />
 
@@ -41,7 +41,7 @@ export default async function TrenerInnstillingerPage() {
 
         <div className="mt-8">
           <p className="text-xs tracking-widest uppercase mb-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Aktive trenerkoblinger
           </p>
           <CoachRelationSettings relations={activeRelations} initialHealthPermissions={healthPermissions} />

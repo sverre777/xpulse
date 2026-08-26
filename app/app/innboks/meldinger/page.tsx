@@ -43,7 +43,7 @@ export default async function InboxMessagesPage({ searchParams }: Props) {
           <Link
             href="/app/innboks/meldinger"
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             ← Tilbake til meldinger
           </Link>

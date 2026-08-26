@@ -5,6 +5,9 @@ import { DialogHost } from "@/components/ui/ConfirmDialog";
 import { TEMA_INLINE_SKRIPT } from "@/lib/tema";
 
 export const viewport: Viewport = {
+  // FREDET i lysmodus: dette er metadata, ikke CSS — var() loser seg aldri opp her.
+  // Skal fargen folge temaet, ma den settes fra klienten via en <meta>-oppdatering.
+  // Se design/lysmodus-tvil.md.
   themeColor: "#0A0A0B",
 };
 
@@ -44,7 +47,7 @@ export default function RootLayout({
         <link rel="preload" href="/fonts/barlow-condensed-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/bebas-neue-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ backgroundColor: '#0A0A0B' }}>
+      <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
         {children}
         <CookieConsentBanner />
         <DialogHost />

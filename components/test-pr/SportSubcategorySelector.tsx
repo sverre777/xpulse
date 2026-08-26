@@ -6,8 +6,8 @@ import {
 } from '@/lib/types'
 
 const inputStyle: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+  color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
 
@@ -77,7 +77,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       {children}

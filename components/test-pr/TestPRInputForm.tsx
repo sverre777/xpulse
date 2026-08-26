@@ -4,8 +4,8 @@ import type { TestPRSport } from '@/lib/types'
 import { SportSubcategorySelector } from './SportSubcategorySelector'
 
 const inputStyle: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+  color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
 
@@ -59,8 +59,8 @@ interface Props {
 }
 
 const panelFieldStyle: React.CSSProperties = {
-  backgroundColor: 'var(--surface, #101014)', border: '1px solid var(--line2)',
-  borderRadius: 9, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  backgroundColor: 'var(--surface, var(--card))', border: '1px solid var(--line2)',
+  borderRadius: 9, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 15, padding: '10px 12px', outline: 'none', width: '100%', minHeight: 44,
 }
 
@@ -76,7 +76,7 @@ export function TestPRInputForm({
 
   return (
     <div className={erPanel ? undefined : 'p-4'}
-      style={erPanel ? undefined : { backgroundColor: '#13131A', border: `1px solid ${TEST_BLUE}44` }}>
+      style={erPanel ? undefined : { backgroundColor: 'var(--flate-12-alt)', border: `1px solid ${TEST_BLUE}44` }}>
       {!erPanel && (
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: TEST_BLUE, display: 'inline-block' }} />
@@ -153,7 +153,7 @@ export function TestPRInputForm({
 
       {!erPanel && (
       <p className="mt-3 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Test/PR-resultatet vises i «Tester & PR» i analyse — samme felter
         som test-protokoll i Dagbok.
       </p>
@@ -190,7 +190,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       {children}

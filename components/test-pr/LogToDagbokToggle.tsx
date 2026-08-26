@@ -21,7 +21,7 @@ export function LogToDagbokToggle({ checked, onChange, hint }: Props) {
           Logg også som økt i Dagbok?
         </span>
         <span className="block text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {hint ?? 'Når på opprettes også en test-økt i Dagbok på datoen, slik at den teller med i belastning og kalender.'}
         </span>
       </span>

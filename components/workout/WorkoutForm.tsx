@@ -678,7 +678,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       className={className}
       style={{
         backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
-        borderRadius: 'var(--r-field)', color: '#F0F0F2',
+        borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)',
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
         padding: '6px 10px', outline: 'none', minHeight: 34, width: bredde,
       }} />
@@ -833,7 +833,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
                   textTransform: 'uppercase', backgroundColor: '#28A86E',
-                  color: '#fff', border: '1px solid #28A86E', borderRadius: 12,
+                  color: 'var(--tekst-1-ren)', border: '1px solid #28A86E', borderRadius: 12,
                   padding: '13px 10px',
                   cursor: markingBusy ? 'default' : 'pointer',
                   opacity: markingBusy ? 0.6 : 1,
@@ -850,7 +850,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
                   textTransform: 'uppercase', backgroundColor: '#28A86E',
-                  color: '#fff', border: '1px solid #28A86E', borderRadius: 12,
+                  color: 'var(--tekst-1-ren)', border: '1px solid #28A86E', borderRadius: 12,
                   padding: '13px 10px', cursor: 'pointer',
                   boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
                 }}>
@@ -864,7 +864,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
                   textTransform: 'uppercase', backgroundColor: 'var(--accent)',
-                  color: '#fff', border: '1px solid var(--accent)', borderRadius: 12,
+                  color: 'var(--tekst-1-ren)', border: '1px solid var(--accent)', borderRadius: 12,
                   padding: '13px 10px',
                   cursor: startingLive ? 'default' : 'pointer',
                   opacity: startingLive ? 0.6 : 1,
@@ -875,7 +875,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             )}
           </div>
           {showMarkCompletedCTA && (
-            <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Planinnholdet forhåndsutfylles — juster til faktiske verdier og legg til dagsform, RPE, tagger og laktat.
             </p>
           )}
@@ -906,7 +906,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
                     borderRadius: 999, padding: '5px 11px', cursor: 'pointer',
-                    color: malHurtig === c.key ? '#F0F0F2' : '#8A8A96',
+                    color: malHurtig === c.key ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                     background: malHurtig === c.key ? 'var(--card2)' : 'none',
                     border: `1px solid ${malHurtig === c.key ? 'var(--accent)' : 'var(--line2)'}`,
                     fontWeight: malHurtig === c.key ? 700 : 400,
@@ -920,7 +920,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
                 letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: byggerFerdig ? '#0A0A0B' : 'var(--accent)',
+                color: byggerFerdig ? 'var(--flate-3)' : 'var(--accent)',
                 background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
                 border: '1px solid var(--accent)', borderRadius: 9,
                 padding: '7px 12px', cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
@@ -935,7 +935,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   className="flex-1 min-w-0 md:flex-none"
                   style={{
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
-                    borderRadius: 'var(--r-field)', color: malMovement ? 'var(--accent)' : '#8A8A96',
+                    borderRadius: 'var(--r-field)', color: malMovement ? 'var(--accent)' : 'var(--tekst-5-app)',
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
                     padding: '6px 8px', outline: 'none', minHeight: 34,
                   }}>
@@ -947,7 +947,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 className="flex-1 min-w-0 md:flex-none"
                 style={{
                   backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-field)', color: malType ? 'var(--accent)' : '#8A8A96',
+                  borderRadius: 'var(--r-field)', color: malType ? 'var(--accent)' : 'var(--tekst-5-app)',
                   fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
                   padding: '6px 8px', outline: 'none', minHeight: 34,
                 }}>
@@ -960,7 +960,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   className="flex-1 min-w-0 md:flex-none"
                   style={{
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
-                    borderRadius: 'var(--r-field)', color: malCategory ? 'var(--accent)' : '#8A8A96',
+                    borderRadius: 'var(--r-field)', color: malCategory ? 'var(--accent)' : 'var(--tekst-5-app)',
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
                     padding: '6px 8px', outline: 'none', minHeight: 34,
                   }}>
@@ -978,7 +978,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             <div className="xp-malrow flex-1 min-w-0" style={{ maxHeight: 150, overflowY: 'auto' }}>
             <span className="xp-mal-label">Fra mal</span>
             {visibleTemplates.length === 0 && (
-              <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Ingen maler matcher filtrene
               </span>
             )}
@@ -990,7 +990,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   if (erBibliotekMal(t)) setMalBygger(finnOktMal(t.id.slice(4)) ?? null)
                   else loadTemplate(t)
                 }} className="xp-mal"
-                style={erBibliotekMal(t) ? { color: '#A0A0AC', borderStyle: 'dashed' } : undefined}
+                style={erBibliotekMal(t) ? { color: 'var(--tekst-4-alt)', borderStyle: 'dashed' } : undefined}
                 title={erBibliotekMal(t) ? 'Fra biblioteket — alt kan endres etter valg' : undefined}>
                 {erBibliotekMal(t) ? '📚 ' : ''}{t.is_test ? '🧪 ' : ''}{t.standard_session_series_id ? '⟳ ' : ''}{t.name}
               </button>
@@ -1011,7 +1011,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               placeholder="F.eks. 5×5min terskelintervall" required
               className="w-full px-4 py-3"
               style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
+              onBlur={e => (e.currentTarget.style.borderColor='var(--line)')} />
           </div>
           <div>
             <Label>Dato</Label>
@@ -1029,7 +1029,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
               className="w-full px-4 py-3"
               style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='#1F1F26')} />
+              onBlur={e => (e.currentTarget.style.borderColor='var(--line)')} />
           </div>
           <div className="md:col-span-2">
             <Label>Økttype (valgfritt)</Label>
@@ -1136,12 +1136,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </span>
               <button type="button" onClick={() => selectSerie(serieSuggestion)}
                 className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontWeight: 700 }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '5px 12px', cursor: 'pointer', fontWeight: 700 }}>
                 Ja
               </button>
               <button type="button" onClick={() => setSerieSuggestionDismissed(true)}
                 className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '5px 12px', cursor: 'pointer' }}>
                 Nei takk
               </button>
             </div>
@@ -1150,7 +1150,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {/* Serie-velgeren: søkbar liste + opprett ny inline. */}
           {standardPickerOpen && (
             <div className="mt-1 mb-3 p-3" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
-              <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
                 Koble økta til en <b>standardøkt-serie</b> — samme økt over tid, sammenlignbar i analysen.
                 Henter <b>ikke</b> mal-data; økta beholder sine egne tall.
               </p>
@@ -1158,11 +1158,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 <input value={serieSearch} onChange={e => setSerieSearch(e.target.value)}
                   placeholder="Søk i serier…"
                   className="mb-2 px-3 py-2 w-full text-sm"
-                  style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", outline: 'none' }} />
+                  style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", outline: 'none' }} />
               )}
               <div className="flex items-center gap-2 flex-wrap">
                 {seriesList === null && (
-                  <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Laster serier…</span>
+                  <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Laster serier…</span>
                 )}
                 {(seriesList ?? [])
                   .filter(s => !serieSearch.trim() || s.name.toLowerCase().includes(serieSearch.trim().toLowerCase()))
@@ -1171,13 +1171,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                       className="px-3 py-1.5 text-sm transition-opacity hover:opacity-80"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: form.standard_session_series_id === s.id ? '#FF8A5C' : '#C0C0CC',
+                        color: form.standard_session_series_id === s.id ? '#FF8A5C' : 'var(--tekst-3-app)',
                         background: form.standard_session_series_id === s.id ? '#1A0F08' : 'none',
-                        border: `1px solid ${form.standard_session_series_id === s.id ? '#FF450088' : '#222228'}`,
+                        border: `1px solid ${form.standard_session_series_id === s.id ? '#FF450088' : 'var(--kant-4)'}`,
                         borderRadius: 999, cursor: 'pointer', minHeight: 36,
                       }}>
                       {s.name}
-                      <span style={{ color: '#555560', marginLeft: 6, fontSize: 12 }}>
+                      <span style={{ color: 'var(--tekst-8-app)', marginLeft: 6, fontSize: 12 }}>
                         {s.workout_count}×{s.location ? ` · ${s.location}` : ''}
                       </span>
                     </button>
@@ -1185,25 +1185,25 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 {newSerieName === null ? (
                   <button type="button" onClick={() => setNewSerieName(form.title.trim())}
                     className="px-3 py-1.5 text-sm"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer', minHeight: 36 }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer', minHeight: 36 }}>
                     + Ny serie
                   </button>
                 ) : (
                   <span className="flex items-center gap-2 flex-wrap">
                     <input value={newSerieName} onChange={e => setNewSerieName(e.target.value)}
                       placeholder="Navn på serien"
-                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 170, outline: 'none' }} />
+                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 170, outline: 'none' }} />
                     <input value={newSerieSted} onChange={e => setNewSerieSted(e.target.value)}
                       placeholder="Sted (valgfritt)"
-                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 140, outline: 'none' }} />
+                      style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 10px', minHeight: 36, width: 140, outline: 'none' }} />
                     <button type="button" onClick={() => { void createSerie() }}
                       disabled={!(newSerieName ?? '').trim()}
                       className="text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer', fontWeight: 700 }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)', background: '#FF8A5C', border: 'none', borderRadius: 999, padding: '8px 14px', minHeight: 36, cursor: 'pointer', fontWeight: 700 }}>
                       Opprett
                     </button>
                     <button type="button" onClick={() => { setNewSerieName(null); setNewSerieSted('') }} aria-label="Avbryt"
-                      style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', minHeight: 36, minWidth: 32 }}>✕</button>
+                      style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 36, minWidth: 32 }}>✕</button>
                   </span>
                 )}
               </div>
@@ -1219,12 +1219,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               </span>
               <button type="button" onClick={() => setStandardPickerOpen(true)}
                 className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer' }}>
                 Bytt serie
               </button>
               <button type="button" onClick={clearSerie}
                 className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer' }}>
                 Fjern kobling ✕
               </button>
               <a href={`/app/analyse?tab=standardokter&serie=${form.standard_session_series_id}`}
@@ -1240,7 +1240,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           {!form.standard_session_series_id && form.standard_workout_template_id && (
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', border: '1px solid var(--line2)', background: 'none', borderRadius: 999 }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', border: '1px solid var(--line2)', background: 'none', borderRadius: 999 }}>
                 ⟳ Standardøkt (gammel tagg): {form.standard_workout_template_name ?? 'mal'}
               </span>
             </div>
@@ -1264,7 +1264,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             {form.is_altitude_training && (
               <div>
                 <label className="text-xs tracking-widest uppercase block mb-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   Høyde (moh){inheritedAltitude && form.altitude_meters == null ? ' — arvet' : ''}
                 </label>
                 <input
@@ -1273,14 +1273,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   onChange={e => set('altitude_meters', e.target.value === '' ? null : Math.round(Number(e.target.value)))}
                   placeholder="f.eks. 1800"
                   className="px-3 py-2 text-sm w-40"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#F0F0F2', outline: 'none' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)', outline: 'none' }}
                 />
               </div>
             )}
             {form.is_heat_training && (
               <div>
                 <label className="text-xs tracking-widest uppercase block mb-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   Kroppstemperatur (°C)
                 </label>
                 <input
@@ -1289,7 +1289,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   onChange={e => set('body_temperature', e.target.value === '' ? null : Number(e.target.value))}
                   placeholder="f.eks. 38.5"
                   className="px-3 py-2 text-sm w-40"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#F0F0F2', outline: 'none' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)', outline: 'none' }}
                 />
               </div>
             )}
@@ -1298,7 +1298,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         {form.is_group_session && (
           <div className="mt-3">
             <label className="text-xs tracking-widest uppercase block mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Etikett (valgfri)
             </label>
             <input
@@ -1310,14 +1310,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               className="px-3 py-2 text-sm w-full max-w-md"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#1A1A22',
-                border: '1px solid #1E1E22',
-                color: '#F0F0F2',
+                backgroundColor: 'var(--flate-14)',
+                border: '1px solid var(--kant-3)',
+                color: 'var(--tekst-1-app)',
                 outline: 'none',
               }}
             />
             <p className="text-xs mt-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Flere økter med samme etikett = samme fellestrening i trener-oversikt.
             </p>
           </div>
@@ -1481,13 +1481,13 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       )}
 
       <Section label="Aktiviteter">
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
         {(byggerOpen || byggerFerdig) && (
           <div
             className={byggerOpen ? 'fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto' : undefined}
-            style={byggerOpen ? { backgroundColor: 'rgba(0,0,0,0.7)' } : undefined}
+            style={byggerOpen ? { backgroundColor: 'var(--scrim-70)' } : undefined}
             onClick={byggerOpen ? () => setByggerOpen(false) : undefined}>
             <div className={byggerOpen ? 'w-full max-w-xl' : undefined}
               onClick={e => { if (byggerOpen) e.stopPropagation() }}>
@@ -1613,7 +1613,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           placeholder={isPlanMode ? 'Beskrivelse av planlagt økt, intensjon, fokuspunkter...' : 'Kommentar, observasjoner, følelse...'}
           rows={3} style={{ ...iSt, resize: 'vertical' }} className="w-full px-4 py-3"
           onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
+          onBlur={e => (e.currentTarget.style.borderColor = 'var(--kant-3)')} />
 
         {!isPlanMode && (
           <>
@@ -1636,12 +1636,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 className="flex-1 px-3 py-2 text-sm"
                 style={{ ...iSt, fontSize: '13px', padding: '8px 12px' }}
                 onFocus={e => (e.currentTarget.style.borderColor = '#FF4500')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#1E1E22')} />
+                onBlur={e => (e.currentTarget.style.borderColor = 'var(--kant-3)')} />
               <button type="button" onClick={addCustomTag}
                 className="px-4 py-2 text-sm tracking-widest uppercase"
                 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                  background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                  background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
                 }}>
                 + Legg til
               </button>
@@ -1729,11 +1729,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {malBygger && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          style={{ backgroundColor: 'var(--scrim-70)' }}
           onClick={() => setMalBygger(null)}>
           <div className="w-full max-w-xl" onClick={e => e.stopPropagation()}>
             <p className="mb-1 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A0A0AC' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-4-alt)' }}>
               📚 {malBygger.navn}
             </p>
             <IntervallBygger
@@ -1814,8 +1814,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           <button type="button" onClick={() => onCancel ? onCancel() : router.back()}
             className="w-full sm:w-auto px-6 py-3 text-base tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              backgroundColor: 'transparent', border: '1px solid #222228', cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              backgroundColor: 'transparent', border: '1px solid var(--kant-4)', cursor: 'pointer',
             }}>
             Lukk
           </button>
@@ -1859,11 +1859,11 @@ function SaveAsTemplateModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--scrim-70)' }}
       onClick={onCancel}>
       <div className="w-full max-w-md p-5"
         onClick={e => e.stopPropagation()}
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
         <div className="flex items-center gap-2 mb-4">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
@@ -1875,7 +1875,7 @@ function SaveAsTemplateModal({
         <div className="space-y-3">
           <div>
             <label className="block mb-1 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Navn *
             </label>
             <input value={name} onChange={e => onName(e.target.value)}
@@ -1886,7 +1886,7 @@ function SaveAsTemplateModal({
 
           <div>
             <label className="block mb-1 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Beskrivelse
             </label>
             <textarea value={description} onChange={e => onDescription(e.target.value)}
@@ -1899,7 +1899,7 @@ function SaveAsTemplateModal({
             {!typeGitt && (
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Kategori
               </label>
               <select value={category} onChange={e => onCategory(e.target.value)}
@@ -1912,7 +1912,7 @@ function SaveAsTemplateModal({
             )}
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Sport
               </label>
               <select value={sport} onChange={e => onSport(e.target.value as Sport)}
@@ -1932,18 +1932,18 @@ function SaveAsTemplateModal({
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
               letterSpacing: '0.05em', borderRadius: 999, padding: '6px 12px',
               minHeight: 36, cursor: 'pointer',
-              color: isTest ? '#F0F0F2' : '#8A8A96',
+              color: isTest ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               background: isTest ? '#D4A01722' : 'transparent',
-              border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+              border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
             }}>
             🧪 Marker som test
-            <span style={{ color: '#555560', fontSize: 12 }}>
+            <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>
               {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
             </span>
           </button>
 
           {typeGitt && !isTest && (
-            <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {typeGitt === 'Konkurranse' ? '🏁' : '⏱'} Lagres som {typeGitt.toLowerCase()}-mal — kategorien følger økt-typen.
             </p>
           )}
@@ -1954,12 +1954,12 @@ function SaveAsTemplateModal({
           {!typeGitt && (
           <div className="mt-3">
             <label className="block text-xs mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', letterSpacing: '0.05em' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', letterSpacing: '0.05em' }}>
               Økttype (valgfritt)
             </label>
             <select value={oktType} onChange={e => onOktType(e.target.value)}
               className="w-full px-3 py-2"
-              style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
+              style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
               <option value="">— Ingen —</option>
               {OKT_MAL_TYPER.map(t => <option key={t.verdi} value={t.verdi}>{t.etikett}</option>)}
             </select>
@@ -1977,7 +1977,7 @@ function SaveAsTemplateModal({
               </label>
               <select value={serieId} onChange={e => onSerieId(e.target.value)}
                 className="w-full px-3 py-2"
-                style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
+                style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, outline: 'none' }}>
                 <option value="">— Ikke standardøkt —</option>
                 {seriesList.map(se => <option key={se.id} value={se.id}>{se.name}</option>)}
               </select>
@@ -2000,7 +2000,7 @@ function SaveAsTemplateModal({
             className="flex-1 py-2 text-sm tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: saving ? '#7A2200' : '#FF4500', color: '#F0F0F2',
+              backgroundColor: saving ? '#7A2200' : '#FF4500', color: 'var(--tekst-1-app)',
               border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
             }}>
             {saving ? 'Lagrer...' : 'Lagre mal'}
@@ -2008,8 +2008,8 @@ function SaveAsTemplateModal({
           <button type="button" onClick={onCancel}
             className="px-4 py-2 text-sm tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #222228', cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
             }}>
             Avbryt
           </button>
@@ -2034,34 +2034,34 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
   const zones = Object.entries(zoneTotals)
   const movements = plan.movements.filter(m => m.movement_name && (m.minutes || m.distance_km))
   return (
-    <div className="my-4 p-4" style={{ border: '1px solid #222228', backgroundColor: '#0D0D11' }}>
+    <div className="my-4 p-4" style={{ border: '1px solid var(--kant-4)', backgroundColor: 'var(--flate-6-alt)' }}>
       <div className="flex items-center gap-2 mb-3">
-        <span style={{ width: '12px', height: '2px', backgroundColor: '#555560', display: 'inline-block' }} />
+        <span style={{ width: '12px', height: '2px', backgroundColor: 'var(--tekst-8-app)', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Plan (referanse)
         </span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
         <div>
-          <div className="text-xs" style={{ color: '#555560' }}>Varighet</div>
+          <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Varighet</div>
           <div>{totalMinutes > 0 ? `${totalMinutes} min` : '—'}</div>
         </div>
         <div>
-          <div className="text-xs" style={{ color: '#555560' }}>Distanse</div>
+          <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Distanse</div>
           <div>{totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'}</div>
         </div>
         <div>
-          <div className="text-xs" style={{ color: '#555560' }}>Type</div>
+          <div className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>Type</div>
           <div>{plan.workout_type}</div>
         </div>
       </div>
       {movements.length > 0 && (
-        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
-          <div className="text-xs mb-1" style={{ color: '#555560' }}>Bevegelsesformer</div>
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: 'var(--tekst-8-app)' }}>Bevegelsesformer</div>
           <div className="flex flex-wrap gap-2">
             {movements.map((m, i) => (
-              <span key={i} style={{ border: '1px solid #222228', padding: '2px 8px' }}>
+              <span key={i} style={{ border: '1px solid var(--kant-4)', padding: '2px 8px' }}>
                 {m.movement_name}
                 {m.minutes ? ` · ${m.minutes} min` : ''}
                 {m.distance_km ? ` · ${m.distance_km} km` : ''}
@@ -2071,11 +2071,11 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
         </div>
       )}
       {zones.length > 0 && (
-        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
-          <div className="text-xs mb-1" style={{ color: '#555560' }}>Soner</div>
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: 'var(--tekst-8-app)' }}>Soner</div>
           <div className="flex flex-wrap gap-2">
             {zones.map(([name, mins]) => (
-              <span key={name} style={{ border: '1px solid #222228', padding: '2px 8px' }}>
+              <span key={name} style={{ border: '1px solid var(--kant-4)', padding: '2px 8px' }}>
                 {name} · {mins} min
               </span>
             ))}
@@ -2083,8 +2083,8 @@ function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
         </div>
       )}
       {plan.notes && (
-        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
-          <div className="text-xs mb-1" style={{ color: '#555560' }}>Notater</div>
+        <div className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
+          <div className="text-xs mb-1" style={{ color: 'var(--tekst-8-app)' }}>Notater</div>
           <div style={{ whiteSpace: 'pre-wrap' }}>{plan.notes}</div>
         </div>
       )}
@@ -2170,7 +2170,7 @@ function RPESelector({ value, onChange }: { value: number | null; onChange: (v: 
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: value === n ? RPE_COLORS[n - 1] : 'var(--card2)',
-            color: value === n ? '#fff' : 'var(--mut)',
+            color: value === n ? 'var(--tekst-1-ren)' : 'var(--mut)',
             border: `1px solid ${value === n ? 'transparent' : 'var(--line2)'}`,
             borderRadius: 8,
             boxShadow: value === n ? '0 0 14px var(--accent-soft)' : 'none',
@@ -2183,7 +2183,7 @@ function RPESelector({ value, onChange }: { value: number | null; onChange: (v: 
   )
 }
 
-function Chip({ active, onClick, children, color = '#555560' }: {
+function Chip({ active, onClick, children, color = 'var(--tekst-8-app)' }: {
   active: boolean; onClick: () => void; children: React.ReactNode; color?: string
 }) {
   return (

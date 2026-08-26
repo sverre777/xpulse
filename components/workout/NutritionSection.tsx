@@ -44,11 +44,11 @@ export function NutritionSection({
       <div className="flex items-center gap-3">
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         <h3 className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Ernæring
         </h3>
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {entries.length === 0 ? '— ingen rader' : `${entries.length} ${entries.length === 1 ? 'rad' : 'rader'}`}
         </span>
       </div>
@@ -70,7 +70,7 @@ export function NutritionSection({
       {!readOnly && (
         <button type="button" onClick={add}
           style={{
-            background: 'none', border: '1px dashed #2A2A30', color: '#FF4500',
+            background: 'none', border: '1px dashed var(--kant-6)', color: '#FF4500',
             padding: '10px 16px', cursor: 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
             fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -83,21 +83,21 @@ export function NutritionSection({
       {showTotals && (
         <div className="p-3 flex flex-wrap gap-x-6 gap-y-1"
           style={{
-            background: '#0F0F14', border: '1px solid #1E1E22',
+            background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
             color: 'rgba(242,240,236,0.7)',
           }}>
           {totals.carbs_g !== null && (
-            <span><span style={{ color: '#555560' }}>Karbo: </span>{totals.carbs_g} g</span>
+            <span><span style={{ color: 'var(--tekst-8-app)' }}>Karbo: </span>{totals.carbs_g} g</span>
           )}
           {totals.protein_g !== null && (
-            <span><span style={{ color: '#555560' }}>Protein: </span>{totals.protein_g} g</span>
+            <span><span style={{ color: 'var(--tekst-8-app)' }}>Protein: </span>{totals.protein_g} g</span>
           )}
           {totals.fat_g !== null && (
-            <span><span style={{ color: '#555560' }}>Fett: </span>{totals.fat_g} g</span>
+            <span><span style={{ color: 'var(--tekst-8-app)' }}>Fett: </span>{totals.fat_g} g</span>
           )}
           {totals.ketones_g !== null && (
-            <span><span style={{ color: '#555560' }}>Ketoner: </span>{totals.ketones_g} g</span>
+            <span><span style={{ color: 'var(--tekst-8-app)' }}>Ketoner: </span>{totals.ketones_g} g</span>
           )}
           {totals.carbs_per_hour !== null && (
             <span style={{ color: '#FF4500' }}>≈ {totals.carbs_per_hour} g karbo/time</span>
@@ -120,7 +120,7 @@ function NutritionRow({
     <div className="grid gap-2"
       style={{
         gridTemplateColumns: 'minmax(0, 70px) minmax(0, 1fr) minmax(0, 80px) minmax(0, 80px) minmax(0, 80px) minmax(0, 90px) auto',
-        background: '#13131A', border: '1px solid #1E1E22', padding: 8,
+        background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', padding: 8,
       }}>
       <input
         type="number" min="0" inputMode="numeric"
@@ -177,7 +177,7 @@ function NutritionRow({
         <button type="button" onClick={onRemove}
           aria-label="Fjern rad"
           style={{
-            background: 'none', border: 'none', color: '#555560',
+            background: 'none', border: 'none', color: 'var(--tekst-8-app)',
             cursor: 'pointer', fontSize: 18, padding: '0 6px',
           }}>×</button>
       )}
@@ -204,7 +204,7 @@ function NutritionRow({
       {!entry.notes && !readOnly && (
         <button type="button" onClick={() => onChange({ notes: ' ' })}
           style={{
-            background: 'none', border: 'none', color: '#555560',
+            background: 'none', border: 'none', color: 'var(--tekst-8-app)',
             cursor: 'pointer', fontSize: 11, gridColumn: '1 / -1',
             textAlign: 'left', padding: '2px 0',
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -217,8 +217,8 @@ function NutritionRow({
 }
 
 const inputStyle: React.CSSProperties = {
-  background: '#0F0F14', border: '1px solid #1E1E22',
-  color: '#F0F0F2', padding: '6px 8px', fontSize: 13,
+  background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
+  color: 'var(--tekst-1-app)', padding: '6px 8px', fontSize: 13,
   fontFamily: "'Barlow', sans-serif", outline: 'none',
   minWidth: 0,
 }

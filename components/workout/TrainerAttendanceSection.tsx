@@ -53,9 +53,9 @@ function CoachToggle({ workoutId }: { workoutId: string }) {
   if (attending === null) {
     return (
       <div className="px-4 py-3"
-        style={{ borderTop: '1px solid #1E1E22' }}>
+        style={{ borderTop: '1px solid var(--kant-3)' }}>
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Sjekker deltakelse…
         </p>
       </div>
@@ -64,15 +64,15 @@ function CoachToggle({ workoutId }: { workoutId: string }) {
 
   return (
     <div className="px-4 py-3"
-      style={{ borderTop: '1px solid #1E1E22' }}>
+      style={{ borderTop: '1px solid var(--kant-3)' }}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Skal delta
           </p>
           <p className="text-xs mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {attending
               ? 'Økten ligger i din trener-kalender. Utøveren ser badge på sin plan.'
               : 'Mark deltakelse for å legge økten i din trener-kalender.'}
@@ -82,7 +82,7 @@ function CoachToggle({ workoutId }: { workoutId: string }) {
           className="text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: attending ? '#F0F0F2' : COACH_BLUE,
+            color: attending ? 'var(--tekst-1-app)' : COACH_BLUE,
             background: attending ? COACH_BLUE : 'transparent',
             border: `1px solid ${COACH_BLUE}`,
             padding: '8px 16px',
@@ -128,7 +128,7 @@ function AthleteBadge({ workoutId }: { workoutId: string }) {
 
   return (
     <div className="px-4 py-3"
-      style={{ borderTop: '1px solid #1E1E22' }}>
+      style={{ borderTop: '1px solid var(--kant-3)' }}>
       <span className="inline-flex items-center gap-2 px-3 py-1"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",

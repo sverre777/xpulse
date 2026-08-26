@@ -211,7 +211,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
   const paceUnit: PaceUnit = resolvePaceUnit('', defaultPaceUnit)
 
   return (
-    <div className="p-4" style={{ background: 'linear-gradient(135deg, #131318 0%, #0E0E12 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
+    <div className="p-4" style={{ background: 'linear-gradient(135deg, var(--flate-12) 0%, var(--flate-7-alt) 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
@@ -246,13 +246,13 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
       {summary.movementList.length > 0 && (
         <div className="mb-3">
           <Label>Bevegelsesformer</Label>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
             {summary.movementList.map((m, i) => (
               <span key={m.name}>
-                {i > 0 && <span style={{ color: '#555560' }}> · </span>}
+                {i > 0 && <span style={{ color: 'var(--tekst-8-app)' }}> · </span>}
                 <span>{m.name} {m.minutes}min</span>
                 {m.avgPaceSeconds != null && (
-                  <span style={{ color: '#8A8A96' }}> ({formatPace(m.avgPaceSeconds, paceUnit)})</span>
+                  <span style={{ color: 'var(--tekst-5-app)' }}> ({formatPace(m.avgPaceSeconds, paceUnit)})</span>
                 )}
               </span>
             ))}
@@ -272,14 +272,14 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
               return (
                 <span key={k}>
                   <span style={{ color: ZONE_COLORS[k], letterSpacing: '0.08em' }}>{k}</span>
-                  <span style={{ color: '#C0C0CC' }}> {mins}min</span>
+                  <span style={{ color: 'var(--tekst-3-app)' }}> {mins}min</span>
                 </span>
               )
             })}
           </div>
           <p className="mt-1" style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#555560', fontSize: '13px',
+            color: 'var(--tekst-8-app)', fontSize: '13px',
           }}>
             OLT I-skala — basert på % av maksimal puls
           </p>
@@ -289,14 +289,14 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
       {/* Manglende puls-varsel */}
       {summary.missingHrCount > 0 && (
         <p className="mb-2 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {summary.missingHrCount} aktivitet{summary.missingHrCount > 1 ? 'er' : ''} mangler puls — ikke inkludert i sonefordelingen.
         </p>
       )}
 
       {/* Skytestatistikk — treff% bruker kun aktiviteter der treff er fylt inn. */}
       {hasShooting && (
-        <div className="mt-3 pt-3" style={{ borderTop: '1px solid #1E1E22' }}>
+        <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--kant-3)' }}>
           <Label>Skyting</Label>
           <div className="grid grid-cols-3 gap-3 mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
             <ShootingMetric
@@ -338,7 +338,7 @@ function ZoneBar({
       className="flex"
       style={{
         height: '8px', borderRadius: '4px', overflow: 'hidden',
-        backgroundColor: '#1A1A1E',
+        backgroundColor: 'var(--kant-2)',
       }}
     >
       {ALL_ZONE_NAMES.map(k => {
@@ -364,7 +364,7 @@ function Metric({ label, value, sub }: { label: string; value: string; sub?: str
         {value}
       </p>
       {sub && (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
           {sub}
         </p>
       )}
@@ -377,22 +377,22 @@ function ShootingMetric({
 }: {
   label: string; shots: number; hits: number; shotsScored: number; pct: number | null
 }) {
-  const pctColor = pct == null ? '#555560' : pct >= 80 ? '#28A86E' : pct >= 60 ? '#FF9500' : '#FF4500'
+  const pctColor = pct == null ? 'var(--tekst-8-app)' : pct >= 80 ? '#28A86E' : pct >= 60 ? '#FF9500' : '#FF4500'
   // Primær-visning: totalt antall skudd. Når treff er registrert på minst én
   // serie, vis også treff/nevner + %. Nevneren er kun skudd der treff var satt.
   const hasScored = shotsScored > 0
   return (
     <div>
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </span>
       <div className="flex items-baseline gap-2 flex-wrap">
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.05em' }}>
           {shots} skudd
         </span>
         {hasScored && (
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#C0C0CC', fontSize: '14px', letterSpacing: '0.05em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-3-app)', fontSize: '14px', letterSpacing: '0.05em' }}>
             · {hits}/{shotsScored}
           </span>
         )}

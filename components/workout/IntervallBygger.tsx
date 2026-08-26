@@ -34,11 +34,11 @@ const FONT = "'Barlow Condensed', sans-serif"
 
 const CAP: React.CSSProperties = {
   fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em',
-  textTransform: 'uppercase', color: '#55555F',
+  textTransform: 'uppercase', color: 'var(--tekst-8-alt)',
 }
 const FELT: React.CSSProperties = {
-  backgroundColor: '#0A0A0D', border: '1px solid var(--line2)', borderRadius: 8,
-  color: '#F0F0F2', fontFamily: FONT, fontSize: 15, padding: '8px 9px',
+  backgroundColor: 'var(--flate-3-b)', border: '1px solid var(--line2)', borderRadius: 8,
+  color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15, padding: '8px 9px',
   outline: 'none', width: '100%', minWidth: 0, minHeight: 40,
 }
 
@@ -178,7 +178,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 26 }}>
             {marks.map((m, i) => m && (
               <span key={i} style={{ position: 'absolute', top: 0, left: `${m.midt}%`, transform: 'translateX(-50%)', textAlign: 'center', lineHeight: 1, color: m.pos === 'L' ? LIGG : STAA }}>
-                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: '#fff', borderRadius: 3, width: 16, height: 16, lineHeight: '16px', background: m.pos === 'L' ? LIGG : STAA }}>{m.pos}</span>
+                <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: 'var(--tekst-1-ren)', borderRadius: 3, width: 16, height: 16, lineHeight: '16px', background: m.pos === 'L' ? LIGG : STAA }}>{m.pos}</span>
                 <span style={{ display: 'block', width: 1.5, height: 10, margin: '0 auto', background: 'currentColor', opacity: 0.6 }} />
               </span>
             ))}
@@ -204,14 +204,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       <div style={kort} className="flex items-center gap-3 flex-wrap">
         <div style={{ flex: '0 0 150px', minWidth: 110 }}><Stripe hoyde={16} /></div>
         <div style={{ flex: 1, minWidth: 160, fontFamily: FONT, fontSize: 14 }}>
-          <b style={{ display: 'block', color: '#F0F0F2', fontWeight: 700 }}>{tittel}</b>
-          <span style={{ color: '#55555F', fontSize: 13 }}>
+          <b style={{ display: 'block', color: 'var(--tekst-1-app)', fontWeight: 700 }}>{tittel}</b>
+          <span style={{ color: 'var(--tekst-8-alt)', fontSize: 13 }}>
             {fTid(total)} · {blokker.length} rader{serier > 0 ? ` · ${serier} skyteserier` : ''}
           </span>
         </div>
         <button type="button" onClick={() => setSteg('bygg')}
           className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: FONT, color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
+          style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
           Endre
         </button>
       </div>
@@ -234,9 +234,9 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             const sek = blokker.filter(b => b.sone === z).reduce((s, b) => s + b.sek, 0)
             if (sek <= 0) return null
             return (
-              <span key={z} style={{ fontFamily: FONT, fontSize: 13, color: '#C9C9D4' }}>
+              <span key={z} style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-3)' }}>
                 <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, background: ZONE_COLORS_V2[z], marginRight: 5 }} />
-                {z} <b style={{ color: '#F0F0F2' }}>{fTid(sek)}</b>
+                {z} <b style={{ color: 'var(--tekst-1-app)' }}>{fTid(sek)}</b>
               </span>
             )
           })}
@@ -244,12 +244,12 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
         <div className="flex items-baseline gap-3 mt-3">
           <span style={CAP}>Total varighet</span>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: '0.04em', color: '#F0F0F2' }}>{fTid(total)}</span>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: '0.04em', color: 'var(--tekst-1-app)' }}>{fTid(total)}</span>
         </div>
 
         <div className="mt-3">
           <div style={{ ...CAP, marginBottom: 5 }}>Tittel — fylles inn, fritt redigerbar</div>
-          <div style={{ fontFamily: FONT, fontSize: 15, color: '#F0F0F2' }}>{tittel}</div>
+          <div style={{ fontFamily: FONT, fontSize: 15, color: 'var(--tekst-1-app)' }}>{tittel}</div>
         </div>
 
         <div className="flex items-center gap-2 mt-4 flex-wrap">
@@ -258,7 +258,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             <button key={v} type="button" onClick={() => setGenForm(v)}
               style={{
                 fontFamily: FONT, fontSize: 13.5, borderRadius: 9, padding: '8px 15px', cursor: 'pointer',
-                color: genForm === v ? '#F0F0F2' : '#8A8A96', fontWeight: genForm === v ? 700 : 400,
+                color: genForm === v ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)', fontWeight: genForm === v ? 700 : 400,
                 background: genForm === v ? 'rgba(255,69,0,.10)' : 'var(--card2)',
                 border: `1px solid ${genForm === v ? 'var(--accent)' : 'var(--line2)'}`,
               }}>
@@ -271,28 +271,28 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         <div className="mt-2 flex flex-col gap-1">
           {genForm === 'splittet' ? blokker.map((b, i) => (
             <div key={i} className="flex items-center gap-2"
-              style={{ fontFamily: FONT, fontSize: 13.5, color: '#C0C0CC', background: b.posisjon ? 'rgba(226,58,90,.06)' : 'transparent', borderRadius: 6, padding: '3px 6px' }}>
-              <span style={{ color: '#3A3A44', width: 20, flexShrink: 0 }}>{i + 1}</span>
+              style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', background: b.posisjon ? 'rgba(226,58,90,.06)' : 'transparent', borderRadius: 6, padding: '3px 6px' }}>
+              <span style={{ color: 'var(--tekst-10)', width: 20, flexShrink: 0 }}>{i + 1}</span>
               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {b.posisjon && <span style={{ display: 'inline-block', width: 17, height: 17, lineHeight: '17px', textAlign: 'center', borderRadius: 4, fontSize: 10.5, fontWeight: 800, color: '#fff', marginRight: 7, background: b.posisjon === 'L' ? LIGG : STAA }}>{b.posisjon}</span>}
+                {b.posisjon && <span style={{ display: 'inline-block', width: 17, height: 17, lineHeight: '17px', textAlign: 'center', borderRadius: 4, fontSize: 10.5, fontWeight: 800, color: 'var(--tekst-1-ren)', marginRight: 7, background: b.posisjon === 'L' ? LIGG : STAA }}>{b.posisjon}</span>}
                 {NAVN[b.type] ?? b.type}{b.posisjon ? ' · 5 skudd' : ''}
-                {!b.posisjon && <span style={{ color: '#55555F' }}> {bev}{sub ? ` · ${sub}` : ''}</span>}
+                {!b.posisjon && <span style={{ color: 'var(--tekst-8-alt)' }}> {bev}{sub ? ` · ${sub}` : ''}</span>}
               </span>
-              <span style={{ fontVariantNumeric: 'tabular-nums', color: '#F0F0F2', fontSize: 13 }}>{fTid(b.sek)}</span>
+              <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(b.sek)}</span>
               <span style={{ color: ZONE_COLORS_V2[b.sone], fontWeight: 700, fontSize: 12, width: 60, textAlign: 'right', flexShrink: 0 }}>{b.sone}</span>
             </div>
           )) : (
             <>
-              <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: '#C0C0CC', padding: '3px 6px' }}>
-                <span style={{ color: '#3A3A44', width: 20 }}>1</span>
-                <span style={{ flex: 1 }}>Aktivitet <span style={{ color: '#55555F' }}>{bev}{sub ? ` · ${sub}` : ''} · sonetotaler</span></span>
-                <span style={{ fontVariantNumeric: 'tabular-nums', color: '#F0F0F2', fontSize: 13 }}>{fTid(bevBlokker.reduce((s, b) => s + b.sek, 0))}</span>
+              <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', padding: '3px 6px' }}>
+                <span style={{ color: 'var(--tekst-10)', width: 20 }}>1</span>
+                <span style={{ flex: 1 }}>Aktivitet <span style={{ color: 'var(--tekst-8-alt)' }}>{bev}{sub ? ` · ${sub}` : ''} · sonetotaler</span></span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(bevBlokker.reduce((s, b) => s + b.sek, 0))}</span>
               </div>
               {serier > 0 && (
-                <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: '#C0C0CC', background: 'rgba(226,58,90,.06)', borderRadius: 6, padding: '3px 6px' }}>
-                  <span style={{ color: '#3A3A44', width: 20 }}>2</span>
-                  <span style={{ flex: 1 }}>Skyting · {serier} serier · {serier * 5} skudd <span style={{ color: '#55555F' }}>{antallL} liggende, {antallS} stående</span></span>
-                  <span style={{ fontVariantNumeric: 'tabular-nums', color: '#F0F0F2', fontSize: 13 }}>{fTid(blokker.filter(b => b.posisjon).reduce((s, b) => s + b.sek, 0))}</span>
+                <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', background: 'rgba(226,58,90,.06)', borderRadius: 6, padding: '3px 6px' }}>
+                  <span style={{ color: 'var(--tekst-10)', width: 20 }}>2</span>
+                  <span style={{ flex: 1 }}>Skyting · {serier} serier · {serier * 5} skudd <span style={{ color: 'var(--tekst-8-alt)' }}>{antallL} liggende, {antallS} stående</span></span>
+                  <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(blokker.filter(b => b.posisjon).reduce((s, b) => s + b.sek, 0))}</span>
                 </div>
               )}
             </>
@@ -302,11 +302,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         <div className="flex items-center justify-between gap-3 mt-4 pt-3 flex-wrap" style={{ borderTop: '1px solid var(--line)' }}>
           <button type="button" onClick={() => setSteg('bygg')}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: FONT, color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '10px 18px', cursor: 'pointer' }}>
+            style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '10px 18px', cursor: 'pointer' }}>
             ← Tilbake
           </button>
           <button type="button" onClick={() => { void opprett() }}
-            style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: '12px 32px', cursor: 'pointer' }}>
+            style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: '12px 32px', cursor: 'pointer' }}>
             Ferdig
           </button>
         </div>
@@ -341,30 +341,30 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       </div>
 
       <div style={{ ...CAP, marginTop: 16 }}>Drag</div>
-      <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#55555F' }}>
+      <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
         <span>Antall</span><span /><span>Dragtid</span><span>Sone</span><span /><span>Pause</span><span />
       </div>
       {rader.map((r, i) => (
         <div key={i} className="grid gap-2 items-center mt-1.5" style={{ gridTemplateColumns: '52px 12px 1fr 74px 12px 1fr 32px' }}>
           <input value={r.antall} onChange={e => oppdater(i, 'antall', e.target.value)} inputMode="numeric" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
-          <span style={{ color: '#55555F', textAlign: 'center' }}>×</span>
+          <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>×</span>
           <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <select value={r.sone} onChange={e => oppdater(i, 'sone', e.target.value)}
             style={{ ...FELT, fontWeight: 700, color: ZONE_COLORS_V2[r.sone], padding: '8px 2px', fontSize: 14 }}>
             {ALL_ZONE_NAMES.map(z => <option key={z} value={z}>{z}</option>)}
           </select>
-          <span style={{ color: '#55555F', textAlign: 'center' }}>/</span>
+          <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>/</span>
           <input value={r.pause} onChange={e => oppdater(i, 'pause', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <button type="button" onClick={() => rader.length > 1 && setRader(rs => rs.filter((_, ri) => ri !== i))}
             aria-label="Fjern rad"
-            style={{ height: 38, borderRadius: 8, border: '1px solid var(--line2)', background: 'transparent', color: '#55555F', cursor: 'pointer', fontSize: 16 }}>
+            style={{ height: 38, borderRadius: 8, border: '1px solid var(--line2)', background: 'transparent', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>
             ×
           </button>
         </div>
       ))}
       <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00' }])}
         className="w-full mt-2"
-        style={{ fontFamily: FONT, fontSize: 14, color: '#8A8A96', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
+        style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-5-app)', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
         + Legg til rad
       </button>
 
@@ -375,7 +375,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <input value={ned} onChange={e => setNed(e.target.value)} inputMode="text" style={FELT} /></div>
       </div>
 
-      <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: '#8A8A96', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
+      <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
         {serier > 0
           ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd — skytingen erstatter pausen, totaltiden er uendret.`
           : 'Pausene blir vanlige aktive pauser.'}
@@ -385,13 +385,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         {onAvbryt && (
           <button type="button" onClick={onAvbryt}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: FONT, color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
+            style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
             Avbryt
           </button>
         )}
         <button type="button" onClick={() => setSteg('vis')}
           className="flex-1"
-          style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: '#fff', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
+          style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
           Opprett
         </button>
       </div>

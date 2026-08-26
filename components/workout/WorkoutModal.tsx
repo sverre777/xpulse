@@ -143,7 +143,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       onClick={onClose}
       className="px-2 md:px-3 xp-fade-in"
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         // Ingen paddingTop: sticky-headeren skal pinne HELT i toppen ved
         // scroll (padding ga gap der siden bak skinte gjennom). Avstanden i
@@ -166,10 +166,10 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       >
         {/* Header — sticky på mobil så close-knapp alltid er tilgjengelig ved scroll. */}
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-3)' }}>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-sm tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {state.kind === 'edit'
                 ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
                 : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
@@ -204,7 +204,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             )}
             <button type="button" onClick={onClose} aria-label="Lukk"
               style={{
-                color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
                 fontSize: 28, lineHeight: 1, padding: 0,
                 minHeight: '44px', minWidth: '44px',
               }}>
@@ -214,7 +214,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
         </div>
 
         {loading || !defaults ? (
-          <div style={{ padding: 60, textAlign: 'center', color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
             Laster...
           </div>
         ) : showOverview ? (
@@ -251,7 +251,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             )}
           </>
         ) : equipLoading ? (
-          <div style={{ padding: 60, textAlign: 'center', color: '#555560', fontFamily: "'Barlow Condensed', sans-serif" }}>
+          <div style={{ padding: 60, textAlign: 'center', color: 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
             Laster...
           </div>
         ) : (

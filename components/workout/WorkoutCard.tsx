@@ -9,13 +9,13 @@ interface WorkoutCardProps {
 export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
   const sportLabel = SPORTS.find(s => s.value === workout.sport)?.label ?? workout.sport
   const typeLabel  = WORKOUT_TYPES.find(t => t.value === workout.workout_type)?.label ?? ''
-  const typeColor  = TYPE_COLORS[workout.workout_type] ?? '#333'
+  const typeColor  = TYPE_COLORS[workout.workout_type] ?? 'var(--graa-33)'
   const totalMin   = workout.duration_minutes ?? 0
   const hours      = Math.floor(totalMin / 60)
   const mins       = totalMin % 60
   const durationStr = totalMin > 0 ? (hours > 0 ? `${hours}t ${mins > 0 ? mins + 'min' : ''}` : `${mins}min`) : null
 
-  const borderColor = workout.is_planned && !workout.is_completed ? '#444' : '#1E1E22'
+  const borderColor = workout.is_planned && !workout.is_completed ? 'var(--graa-44)' : 'var(--kant-3)'
   const borderStyle = workout.is_planned && !workout.is_completed ? 'dashed' : 'solid'
 
   return (
@@ -27,7 +27,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
       <div
         className="p-3 transition-colors"
         style={{
-          backgroundColor: '#1A1A22',
+          backgroundColor: 'var(--flate-14)',
           border: `1px ${borderStyle} ${borderColor}`,
           borderLeft: `3px solid ${workout.is_important ? '#FF4500' : typeColor}`,
         }}
@@ -35,7 +35,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
         {/* Type badge + time */}
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs px-1.5 py-0.5 tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: typeColor, color: '#F0F0F2', fontSize: '13px' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: typeColor, color: 'var(--tekst-1-app)', fontSize: '13px' }}>
             {typeLabel}
           </span>
           <div className="flex items-center gap-2">
@@ -43,7 +43,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
             {workout.is_altitude_training && <span title={workout.altitude_meters ? `Høydetrening · ${workout.altitude_meters} moh` : 'Høydetrening'} style={{ fontSize: '12px' }}>🏔️</span>}
             {workout.is_heat_training && <span title={workout.body_temperature ? `Varmetrening · ${workout.body_temperature}°C` : 'Varmetrening'} style={{ fontSize: '12px' }}>🌡️</span>}
             {workout.is_planned && !workout.is_completed && (
-              <span className="text-xs tracking-widest uppercase" style={{ color: '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
+              <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
                 Planlagt
               </span>
             )}
@@ -57,7 +57,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
         <h4 className="text-sm font-semibold leading-tight mt-1.5"
           title={workout.title ?? undefined}
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: compact ? '13px' : '14px',
             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             overflow: 'hidden', overflowWrap: 'anywhere',
@@ -68,7 +68,7 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
         {/* Stats row */}
         {!compact && (
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <span className="text-xs tracking-wide" style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <span className="text-xs tracking-wide" style={{ color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
               {sportLabel}
             </span>
             {durationStr && (
@@ -77,12 +77,12 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
               </span>
             )}
             {workout.distance_km && (
-              <span className="text-xs" style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <span className="text-xs" style={{ color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
                 {workout.distance_km.toFixed(1)} km
               </span>
             )}
             {workout.rpe && (
-              <span className="text-xs" style={{ color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
+              <span className="text-xs" style={{ color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
                 RPE {workout.rpe}
               </span>
             )}
@@ -96,8 +96,8 @@ export function WorkoutCard({ workout, compact = false }: WorkoutCardProps) {
               <span key={m.id} className="text-xs px-1.5 py-0.5"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: '#111115', color: '#8A8A96',
-                  border: '1px solid #1E1E22', fontSize: '13px',
+                  backgroundColor: 'var(--flate-10-alt)', color: 'var(--tekst-5-app)',
+                  border: '1px solid var(--kant-3)', fontSize: '13px',
                 }}>
                 {m.movement_name}{m.minutes ? ` ${m.minutes}min` : ''}
               </span>

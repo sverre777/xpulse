@@ -262,21 +262,21 @@ export function LiveSessionView({
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#0A0A0B', paddingBottom: 96 }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: 96 }}>
       {/* Topp: avbryt + tittel + total tid */}
       <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between">
           <button type="button" onClick={cancel}
-            style={{ background: 'none', border: 'none', color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
             ◀ Avbryt
           </button>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             Styrke-økt
           </span>
           <span style={{ width: 52 }} />
         </div>
         <div className="flex items-center justify-center gap-4 mt-1">
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 30, letterSpacing: '0.04em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 30, letterSpacing: '0.04em' }}>
             ⏱ {fmtClock(elapsedSec)}
           </span>
           {restSec != null && (
@@ -290,7 +290,7 @@ export function LiveSessionView({
       <div style={{ padding: '12px 12px 0' }}>
         {exercises.length === 0 && (
           <div style={{ textAlign: 'center', padding: '32px 16px', background: 'var(--card)', border: '1px dashed var(--line2)', borderRadius: 14, marginBottom: 16 }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 15, margin: 0 }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 15, margin: 0 }}>
               Ingen øvelser lagt til — legg til øvelser for å begynne.
             </p>
             <button type="button"
@@ -301,7 +301,7 @@ export function LiveSessionView({
               }}
               className="mt-4 transition-opacity hover:opacity-90"
               style={{
-                background: ORANGE, color: '#0A0A0B', border: 'none',
+                background: ORANGE, color: 'var(--flate-3)', border: 'none',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em',
                 padding: '10px 20px', cursor: 'pointer',
@@ -319,7 +319,7 @@ export function LiveSessionView({
           return (
             <div key={ex.id} style={{ background: 'var(--card)', border: '1px solid var(--line)', borderLeft: `3px solid ${accent}`, borderRadius: 12, padding: '12px', marginBottom: 12 }}>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 19, letterSpacing: '0.03em' }}>
+                <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 19, letterSpacing: '0.03em' }}>
                   {ssLetter && (
                     <span style={{ color: '#5B8DEF', fontSize: 14, marginRight: 6 }}>⛓ SS {ssLetter}</span>
                   )}
@@ -351,7 +351,7 @@ export function LiveSessionView({
                     </span>
                   )}
                   {ls && (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#6E6E78', fontSize: 12, fontStyle: 'italic' }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-7)', fontSize: 12, fontStyle: 'italic' }}>
                       Sist: {summarizeLast(ls)} ({daysAgoLabel(ls.date)})
                     </span>
                   )}
@@ -368,8 +368,8 @@ export function LiveSessionView({
                 const done = doneSets.has(s.id)
                 const active = s.id === activeSetId
                 return (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid #14141A' }}>
-                    <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: si === 0 ? 'none' : '1px solid var(--kant-1-app)' }}>
+                    <span style={{ width: 22, color: done ? '#28A86E' : active ? ORANGE : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
                       {done ? '✓' : si + 1}
                     </span>
                     <Stepper label="reps" value={s.reps} step={1}
@@ -383,13 +383,13 @@ export function LiveSessionView({
                           jobber {fmtClock(workSec ?? 0)}
                         </span>
                         <button type="button" onClick={() => logSet(s.id)}
-                          style={{ background: '#28A86E', color: '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                          style={{ background: '#28A86E', color: 'var(--flate-3)', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
                           ✓ logg
                         </button>
                       </div>
                     ) : (
                       <button type="button" onClick={() => startSet(s.id)}
-                        style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : '#0A0A0B', border: done ? '1px solid #1E4A38' : 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                        style={{ marginLeft: 'auto', background: done ? '#14241A' : ORANGE, color: done ? '#28A86E' : 'var(--flate-3)', border: done ? '1px solid #1E4A38' : 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 13, padding: '8px 12px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
                         {done ? '✓ logget' : 'Start'}
                       </button>
                     )}
@@ -399,7 +399,7 @@ export function LiveSessionView({
               })}
 
               <button type="button" onClick={() => addSet(ex.id)}
-                style={{ marginTop: 8, background: 'none', border: '1px dashed #2A2A30', color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, padding: '6px 10px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', width: '100%' }}>
+                style={{ marginTop: 8, background: 'none', border: '1px dashed var(--kant-6)', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, padding: '6px 10px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', width: '100%' }}>
                 + Legg til sett
               </button>
             </div>
@@ -412,15 +412,15 @@ export function LiveSessionView({
       {/* Bunn: volum + Fullfør */}
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between mb-2">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
-            Volum: <b style={{ color: '#F0F0F2' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
+            Volum: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>
           </span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12 }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12 }}>
             {exercises.length} øvelser
           </span>
         </div>
         <button type="button" onClick={finish} disabled={busy}
-          style={{ width: '100%', background: '#28A86E', color: '#0A0A0B', border: 'none', borderRadius: 12, boxShadow: '0 6px 24px rgba(40,168,110,.3)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+          style={{ width: '100%', background: '#28A86E', color: 'var(--flate-3)', border: 'none', borderRadius: 12, boxShadow: '0 6px 24px rgba(40,168,110,.3)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20, letterSpacing: '0.06em', padding: '12px', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           Fullfør økt ✓
         </button>
       </div>
@@ -429,7 +429,7 @@ export function LiveSessionView({
 }
 
 const btnIcon: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#555560', cursor: 'pointer',
+  background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer',
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '2px 6px',
 }
 
@@ -444,18 +444,18 @@ function Stepper({ label, value, step, onChange }: {
   }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <button type="button" onClick={() => bump(-1)} style={stepBtn}>−</button>
         <input value={value} onChange={e => onChange(e.target.value)} inputMode="decimal"
-          style={{ width: 46, textAlign: 'center', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '6px 0', outline: 'none' }} />
+          style={{ width: 46, textAlign: 'center', background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '6px 0', outline: 'none' }} />
         <button type="button" onClick={() => bump(1)} style={stepBtn}>+</button>
       </div>
     </div>
   )
 }
 const stepBtn: React.CSSProperties = {
-  background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: '#F0F0F2',
+  background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: 'var(--tekst-1-app)',
   width: 30, height: 34, fontSize: 18, cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif",
 }
 
@@ -463,9 +463,9 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
   const [open, setOpen] = useState(false)
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>RPE</span>
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em' }}>RPE</span>
       <button type="button" onClick={() => setOpen(o => !o)}
-        style={{ width: 38, height: 34, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: value ? '#F0F0F2' : '#555560', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
+        style={{ width: 38, height: 34, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8, color: value ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, cursor: 'pointer' }}>
         {value || '–'}
       </button>
       {open && (
@@ -473,7 +473,7 @@ function RpePicker({ value, onChange }: { value: string; onChange: (v: string) =
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
             <button key={n} type="button"
               onClick={() => { onChange(String(n)); setOpen(false) }}
-              style={{ width: 30, height: 30, background: String(n) === value ? ORANGE : 'none', color: String(n) === value ? '#0A0A0B' : '#C0C0CC', border: '1px solid #14141A', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+              style={{ width: 30, height: 30, background: String(n) === value ? ORANGE : 'none', color: String(n) === value ? 'var(--flate-3)' : 'var(--tekst-3-app)', border: '1px solid var(--kant-1-app)', cursor: 'pointer', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
               {n}
             </button>
           ))}
@@ -494,13 +494,13 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
       <div style={{ display: 'flex', gap: 8 }}>
         <input id="xp-live-add-exercise" value={q} onChange={e => setQ(e.target.value)}
           placeholder="Legg til øvelse (søk eller skriv eget)"
-          style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
+          style={{ flex: 1, background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, padding: '10px 12px', outline: 'none' }} />
         <button type="button" onClick={() => setBrowse(b => !b)} aria-label="Bla i biblioteket"
-          style={{ background: browse ? ORANGE : 'var(--card2)', color: browse ? '#0A0A0B' : '#C0C0CC', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 12px', cursor: 'pointer', minHeight: 40 }}>
+          style={{ background: browse ? ORANGE : 'var(--card2)', color: browse ? 'var(--flate-3)' : 'var(--tekst-3-app)', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 12px', cursor: 'pointer', minHeight: 40 }}>
           ▦ Bla
         </button>
         <button type="button" onClick={() => commit(q)} disabled={!q.trim()}
-          style={{ background: ORANGE, color: '#0A0A0B', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 16px', textTransform: 'uppercase', cursor: q.trim() ? 'pointer' : 'default', opacity: q.trim() ? 1 : 0.5 }}>
+          style={{ background: ORANGE, color: 'var(--flate-3)', border: 'none', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14, padding: '0 16px', textTransform: 'uppercase', cursor: q.trim() ? 'pointer' : 'default', opacity: q.trim() ? 1 : 0.5 }}>
           Legg til
         </button>
       </div>
@@ -513,7 +513,7 @@ function AddExerciseInline({ onAdd }: { onAdd: (name: string) => void }) {
         <div style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderTop: 'none', borderRadius: '0 0 10px 10px', overflow: 'hidden' }}>
           {matches.map(m => (
             <button key={m.name} type="button" onClick={() => commit(m.name)}
-              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid #14141A', color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 12px', cursor: 'pointer' }}>
+              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-1-app)', color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, padding: '8px 12px', cursor: 'pointer' }}>
               {m.name}
             </button>
           ))}

@@ -28,7 +28,7 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
       <div className="flex items-center gap-3">
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Ernæring · {entries.length} {entries.length === 1 ? 'rad' : 'rader'}
         </span>
       </div>
@@ -52,13 +52,13 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                 color: 'rgba(242,240,236,0.7)',
-                background: '#0F0F14', border: '1px solid #1A1A1E',
+                background: 'var(--flate-8-b)', border: '1px solid var(--kant-2)',
               }}>
               <span style={{ color: '#FF4500', minWidth: 50 }}>{time}</span>
-              <span style={{ color: '#F0F0F2', minWidth: 90 }}>{label}</span>
+              <span style={{ color: 'var(--tekst-1-app)', minWidth: 90 }}>{label}</span>
               <span style={{ color: 'rgba(242,240,236,0.55)' }}>{macros.join(' · ')}</span>
               {e.notes && (
-                <span style={{ color: '#555560', fontStyle: 'italic', marginLeft: 'auto' }}>
+                <span style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic', marginLeft: 'auto' }}>
                   — {e.notes}
                 </span>
               )}
@@ -69,11 +69,11 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
 
       <div className="px-3 py-2 flex flex-wrap gap-x-6 gap-y-1"
         style={{
-          background: '#0F0F14', border: '1px solid #1E1E22',
+          background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
           color: 'rgba(242,240,236,0.75)',
         }}>
-        <strong style={{ color: '#F0F0F2' }}>Total</strong>
+        <strong style={{ color: 'var(--tekst-1-app)' }}>Total</strong>
         {totals.carbs_g !== null && <span>{totals.carbs_g} g karbo</span>}
         {totals.protein_g !== null && <span>{totals.protein_g} g protein</span>}
         {totals.fat_g !== null && <span>{totals.fat_g} g fett</span>}

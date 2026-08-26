@@ -19,8 +19,8 @@ function durationSeconds(a: ActivityRow | null): number | null {
 }
 
 function deviationColor(planSec: number | null, actualSec: number | null): string {
-  if (planSec == null || actualSec == null) return '#C0C0CC' // grå — ikke sammenlignbart
-  if (planSec === 0) return '#C0C0CC'
+  if (planSec == null || actualSec == null) return 'var(--tekst-3-app)' // grå — ikke sammenlignbart
+  if (planSec === 0) return 'var(--tekst-3-app)'
   const diff = Math.abs(actualSec - planSec) / planSec
   return diff <= DEVIATION_THRESHOLD ? '#28A86E' : '#FF9500'
 }
@@ -66,7 +66,7 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
   if (rows.length === 0) return null
 
   return (
-    <div className="p-4" style={{ background: 'linear-gradient(135deg, #131318 0%, #0E0E12 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
+    <div className="p-4" style={{ background: 'linear-gradient(135deg, var(--flate-12) 0%, var(--flate-7-alt) 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
       <div className="flex items-center gap-2 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
@@ -78,8 +78,8 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
       {/* Header */}
       <div className="grid gap-3 px-1 pb-2 mb-2 text-xs tracking-widest uppercase"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid #1E1E22',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
+          gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--kant-3)',
         }}>
         <span>Planlagt</span>
         <span>Faktisk</span>
@@ -93,7 +93,7 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
           return (
             <div key={i} className="grid gap-3"
               style={{ gridTemplateColumns: '1fr 1fr', alignItems: 'start' }}>
-              <Cell activity={r.plan} durationColor="#C0C0CC" placeholder="—" />
+              <Cell activity={r.plan} durationColor="var(--tekst-3-app)" placeholder="—" />
               <Cell
                 activity={r.actual}
                 durationColor={color}
@@ -107,12 +107,12 @@ export function PlanVsActualComparison({ plan, actual }: Props) {
       {/* Forklaring fargekoder */}
       <div className="mt-3 pt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
-          borderTop: '1px solid #1E1E22',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
+          borderTop: '1px solid var(--kant-3)',
         }}>
         <LegendDot color="#28A86E" label="innenfor 10%" />
         <LegendDot color="#FF9500" label=">10% avvik" />
-        <LegendDot color="#C0C0CC" label="ikke sammenlignbart" />
+        <LegendDot color="var(--tekst-3-app)" label="ikke sammenlignbart" />
       </div>
     </div>
   )
@@ -127,7 +127,7 @@ function Cell({
 }) {
   if (!activity) {
     return (
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
         {placeholder}
       </div>
     )
@@ -138,7 +138,7 @@ function Cell({
     <div>
       <div className="flex items-baseline gap-2">
         <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px',
         }}>
           {describeActivity(activity)}
         </span>
@@ -150,7 +150,7 @@ function Cell({
         </span>
       </div>
       {extras(activity).map((line, i) => (
-        <div key={i} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+        <div key={i} style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>
           {line}
         </div>
       ))}

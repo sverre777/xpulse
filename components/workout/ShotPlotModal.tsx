@@ -42,19 +42,19 @@ function Blink({ point, isL, color, number, onPick, onClear }: {
     >
       {/* Skiva (115 mm) — hvit før plotting, svart etter. */}
       <circle cx={50} cy={50} r={SHOT_DISC_R * 100}
-        fill={plotted ? '#101014' : '#F2F2F0'}
-        stroke={plotted ? '#3A3A44' : '#8B8B95'} strokeWidth={2} />
+        fill={plotted ? 'var(--card)' : 'var(--ink)'}
+        stroke={plotted ? 'var(--tekst-10)' : 'var(--mut)'} strokeWidth={2} />
       {/* Liggende-sonen — kun L, stiplet, ingen pynte-ringer ellers. */}
       {isL && (
         <circle cx={50} cy={50} r={SHOT_INNER_R_DRAWN * 100} fill="none"
-          stroke={plotted ? '#55555F' : '#8B8B95'} strokeWidth={1.5}
+          stroke={plotted ? 'var(--tekst-8-alt)' : 'var(--mut)'} strokeWidth={1.5}
           strokeDasharray="4 3" />
       )}
       {plotted && point && (
         <>
           <circle cx={point.x * 100} cy={point.y * 100} r={8} fill={color} />
           <text x={point.x * 100} y={point.y * 100 + 3.5} textAnchor="middle"
-            fontSize={9.5} fontWeight={700} fill="#0A0A0B"
+            fontSize={9.5} fontWeight={700} fill="var(--flate-3)"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", pointerEvents: 'none' }}>
             {number}
           </text>
@@ -89,7 +89,7 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
   return (
     <div role="dialog" aria-modal="true" onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 70, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, zIndex: 70, backgroundColor: 'var(--scrim-75)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12,
       }}>
       <div onClick={e => e.stopPropagation()}
@@ -98,15 +98,15 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
           maxWidth: 560, width: '100%', maxHeight: '92vh', overflowY: 'auto', padding: '18px 16px',
         }}>
         <div className="flex items-center justify-between mb-2">
-          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 20, letterSpacing: '0.08em' }}>
+          <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 20, letterSpacing: '0.08em' }}>
             🎯 Skuddplott
           </h3>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, minWidth: 40, minHeight: 40 }}>
+            style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, minWidth: 40, minHeight: 40 }}>
             ×
           </button>
         </div>
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
           Trykk på blinken der skuddet satt — utenfor skiva = bom i randen.
           Stiplet sirkel = liggende-sonen. Dobbelttrykk fjerner et skudd.
           Delvis plotting er helt OK.
@@ -119,14 +119,14 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
             <div key={s.id} className="mb-3">
               <div className="flex items-center gap-2 mb-1">
                 <span aria-hidden style={{ width: 9, height: 9, borderRadius: '50%', background: color }} />
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700, color: '#F0F0F2', letterSpacing: '0.05em' }}>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700, color: 'var(--tekst-1-app)', letterSpacing: '0.05em' }}>
                   Serie {seriesNumbers[si]} · {s.position === 'S' ? 'Stående' : 'Liggende'}
                 </span>
                 {pts.some(p => p) && (
                   <button type="button"
                     onClick={() => setPlots(prev => ({ ...prev, [s.id]: prev[s.id].map(() => null) }))}
                     className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 8px' }}>
                     Nullstill
                   </button>
                 )}
@@ -145,13 +145,13 @@ export function ShotPlotModal({ series, seriesNumbers, onSave, onClose }: {
         <div className="flex justify-end gap-2 mt-2 pt-3" style={{ borderTop: '1px solid var(--line)' }}>
           <button type="button" onClick={onClose}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: '#F0F0F2', cursor: 'pointer', minHeight: 40 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--tekst-1-app)', cursor: 'pointer', minHeight: 40 }}>
             Avbryt
           </button>
           <button type="button"
             onClick={() => { onSave(series.map(s => ({ id: s.id, shot_plot: plots[s.id] }))); onClose() }}
             className="px-4 py-2 text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--accent)', border: 'none', borderRadius: 10, color: '#fff', cursor: 'pointer', minHeight: 40 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--accent)', border: 'none', borderRadius: 10, color: 'var(--tekst-1-ren)', cursor: 'pointer', minHeight: 40 }}>
             Lagre plott
           </button>
         </div>

@@ -28,7 +28,7 @@ export function StandardExerciseBrowser({ onPick }: {
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                 letterSpacing: '0.05em', borderRadius: 999, padding: '7px 12px',
                 minHeight: 32, cursor: 'pointer',
-                color: active ? '#0A0A0B' : '#C0C0CC',
+                color: active ? 'var(--flate-3)' : 'var(--tekst-3-app)',
                 background: active ? 'var(--accent)' : 'var(--card2)',
                 border: `1px solid ${active ? 'var(--accent)' : 'var(--line2)'}`,
               }}>
@@ -41,11 +41,11 @@ export function StandardExerciseBrowser({ onPick }: {
         <div style={{ maxHeight: 240, overflowY: 'auto', borderTop: '1px solid var(--line)' }}>
           {list.map(e => (
             <button key={e.name} type="button" onClick={() => onPick(e.name)}
-              className="transition-colors hover:bg-[#1E1E22]"
+              className="transition-colors hover:bg-[var(--kant-3)]"
               style={{
                 display: 'block', width: '100%', textAlign: 'left',
                 background: 'none', border: 'none', borderBottom: '1px solid var(--line)',
-                color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+                color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: 14, padding: '10px 12px', cursor: 'pointer', minHeight: 38,
               }}>
               {e.name}

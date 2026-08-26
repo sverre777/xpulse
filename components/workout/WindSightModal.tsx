@@ -48,8 +48,8 @@ export function VimpelIcon({ retning, styrke, size = 56 }: {
   }
   const inner = (
     <>
-      <line x1={32} y1={12} x2={32} y2={84} stroke="#55555F" strokeWidth={3.5} strokeLinecap="round" />
-      <circle cx={32} cy={10} r={3.5} fill="#8B8B95" />
+      <line x1={32} y1={12} x2={32} y2={84} stroke="var(--tekst-8-alt)" strokeWidth={3.5} strokeLinecap="round" />
+      <circle cx={32} cy={10} r={3.5} fill="var(--mut)" />
       {flag}
     </>
   )
@@ -73,7 +73,7 @@ export function FogIcon({ fog }: { fog: number }) {
     <svg width={18} height={14} viewBox="0 0 18 14" aria-hidden>
       {Array.from({ length: fog }, (_, i) => (
         <path key={i} d={`M2,${3 + i * 4} c3,-2 6,2 9,0 c2,-1 4,1 5,0`}
-          stroke="#8B8B95" strokeWidth={1.8} fill="none" strokeLinecap="round"
+          stroke="var(--mut)" strokeWidth={1.8} fill="none" strokeLinecap="round"
           opacity={0.5 + 0.17 * i} />
       ))}
     </svg>
@@ -135,13 +135,13 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
 
   const capStyle: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, letterSpacing: '0.16em',
-    textTransform: 'uppercase', color: '#55555F',
+    textTransform: 'uppercase', color: 'var(--tekst-8-alt)',
   }
 
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 70, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, zIndex: 70, backgroundColor: 'var(--scrim-75)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12,
       }}
       onClick={onClose}>
@@ -149,23 +149,23 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 640, maxHeight: '92dvh', overflowY: 'auto',
-          background: '#101014', border: '1px solid #2A2A33', borderRadius: 16,
+          background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 16,
           boxShadow: '0 24px 70px rgba(0,0,0,.55)',
         }}>
         {/* Header */}
-        <div className="flex items-center gap-2.5" style={{ padding: '16px 20px', borderBottom: '1px solid #1F1F26' }}>
+        <div className="flex items-center gap-2.5" style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
           <span aria-hidden style={{ color: '#E23A5A', fontSize: 16 }}>⚑</span>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.1em', color: '#F0F0F2' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.1em', color: 'var(--tekst-1-app)' }}>
             VIND &amp; SIKT
           </span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#55555F' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-8-alt)' }}>
             Serie {serieNo} · {position === 'L' ? 'Liggende' : 'Stående'}
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
             className="ml-auto"
             style={{
               width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer',
-              color: '#8B8B95', background: 'none', border: '1px solid #2A2A33', borderRadius: 8,
+              color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8,
             }}>
             ✕
           </button>
@@ -187,15 +187,15 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
                   aria-label={windText(st.d, st.l) ?? 'Vindstille'}
                   style={{
                     flex: '0 0 auto', width: 64, minHeight: 36, scrollSnapAlign: 'center',
-                    border: `1px solid ${active ? '#E23A5A' : '#1F1F26'}`,
-                    background: active ? 'rgba(226,58,90,.10)' : '#101014',
+                    border: `1px solid ${active ? '#E23A5A' : 'var(--line)'}`,
+                    background: active ? 'rgba(226,58,90,.10)' : 'var(--card)',
                     borderRadius: 10, padding: '8px 4px 6px', cursor: 'pointer', textAlign: 'center',
                   }}>
                   <VimpelIcon retning={st.d} styrke={st.l} size={46} />
                   <span style={{
                     display: 'block', marginTop: 4, fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
-                    color: active ? '#E23A5A' : '#55555F', fontWeight: active ? 700 : 400,
+                    color: active ? '#E23A5A' : 'var(--tekst-8-alt)', fontWeight: active ? 700 : 400,
                   }}>
                     {st.l === 0 ? '0' : `${st.d}${st.l}`}
                   </span>
@@ -205,7 +205,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
           </div>
           <p style={{
             marginTop: 10, textAlign: 'center', fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 15.5, color: '#8B8B95', minHeight: 22,
+            fontSize: 15.5, color: 'var(--mut)', minHeight: 22,
           }}>
             {valText ? (
               <>Vimpel <b style={{ color: '#E23A5A' }}>{valText.replace(/^Vimpel /, '')}</b></>
@@ -223,10 +223,10 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
                   className="flex items-center"
                   style={{
                     gap: 8, minHeight: 38, padding: '9px 14px', cursor: 'pointer',
-                    border: `1px solid ${active ? '#1A6FD4' : '#2A2A33'}`,
-                    background: active ? 'rgba(26,111,212,.12)' : '#101014',
+                    border: `1px solid ${active ? '#1A6FD4' : 'var(--line2)'}`,
+                    background: active ? 'rgba(26,111,212,.12)' : 'var(--card)',
                     borderRadius: 9, fontFamily: "'Barlow Condensed', sans-serif",
-                    fontSize: 14.5, color: active ? '#F0F0F2' : '#8B8B95',
+                    fontSize: 14.5, color: active ? 'var(--tekst-1-app)' : 'var(--mut)',
                     fontWeight: active ? 700 : 400,
                   }}>
                   <FogIcon fog={s.fog} />
@@ -239,10 +239,10 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
           {isSuggestion && (
             <p className="flex items-center" style={{
               gap: 10, marginTop: 16, fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 13.5, color: '#8B8B95',
+              fontSize: 13.5, color: 'var(--mut)',
             }}>
               <span aria-hidden style={{
-                width: 18, height: 18, border: '1.5px solid #2A2A33', borderRadius: 5,
+                width: 18, height: 18, border: '1.5px solid var(--line2)', borderRadius: 5,
                 display: 'grid', placeItems: 'center', color: '#28A86E', fontWeight: 800, fontSize: 12,
               }}>✓</span>
               Forslag fra forrige serie — lagres først når du trykker Lagre.
@@ -251,11 +251,11 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
         </div>
 
         {/* Footer */}
-        <div className="flex flex-wrap justify-end" style={{ gap: 10, padding: '14px 20px', borderTop: '1px solid #1F1F26' }}>
+        <div className="flex flex-wrap justify-end" style={{ gap: 10, padding: '14px 20px', borderTop: '1px solid var(--line)' }}>
           <button type="button" onClick={clear}
             style={{
               borderRadius: 9, padding: '9px 18px', minHeight: 38, cursor: 'pointer',
-              border: '1px solid #2A2A33', background: 'none', color: '#8B8B95',
+              border: '1px solid var(--line2)', background: 'none', color: 'var(--mut)',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
             }}>
             Fjern vind
@@ -263,7 +263,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
           <button type="button" onClick={onClose}
             style={{
               borderRadius: 9, padding: '9px 18px', minHeight: 38, cursor: 'pointer',
-              border: '1px solid #2A2A33', background: 'none', color: '#8B8B95',
+              border: '1px solid var(--line2)', background: 'none', color: 'var(--mut)',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
             }}>
             Avbryt
@@ -271,7 +271,7 @@ export function WindSightModal({ serieNo, position, value, suggestion, onSave, o
           <button type="button" onClick={save}
             style={{
               borderRadius: 9, padding: '9px 22px', minHeight: 38, cursor: 'pointer',
-              border: 'none', background: '#E23A5A', color: '#fff',
+              border: 'none', background: '#E23A5A', color: 'var(--tekst-1-ren)',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14.5,
             }}>
             Lagre

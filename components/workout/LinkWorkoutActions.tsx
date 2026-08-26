@@ -155,7 +155,7 @@ export function LinkWorkoutActions({
           className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#28A86E', color: '#FFFFFF', border: 'none',
+            backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: 'none',
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
             minHeight: '38px',
           }}>
@@ -170,10 +170,10 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={() => setShowPicker(true)}
           disabled={busy}
-          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[#8A8A96]"
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[var(--tekst-5-app)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent', color: '#55555F',
+            backgroundColor: 'transparent', color: 'var(--tekst-8-alt)',
             border: '1px solid var(--line2)', borderRadius: 8,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
             minHeight: '30px', fontSize: '11px',
@@ -186,10 +186,10 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={handleUnlink}
           disabled={busy}
-          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[#8A8A96]"
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[var(--tekst-5-app)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent', color: '#55555F',
+            backgroundColor: 'transparent', color: 'var(--tekst-8-alt)',
             border: '1px solid var(--line2)', borderRadius: 8,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
             minHeight: '30px', fontSize: '11px',
@@ -207,7 +207,7 @@ export function LinkWorkoutActions({
 
       {importedFrom && !isPlanned && !effectivelyLinked && (
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', marginLeft: '4px' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', marginLeft: '4px' }}>
           ({importedFrom === 'strava' ? 'Strava-importert' : importedFrom})
         </span>
       )}
@@ -276,21 +276,21 @@ function PickerModal({
   return (
     <div onClick={saving ? undefined : onClose}
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)',
           maxWidth: '480px', width: '100%', maxHeight: '80vh',
           display: 'flex', flexDirection: 'column',
         }}>
-        <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid #1E1E22' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>
+        <div className="px-5 pt-5 pb-3" style={{ borderBottom: '1px solid var(--kant-3)' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.04em' }}>
             {title}
           </h2>
-          <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Klikk en rad for å markere, deretter "Velg" for å bekrefte koblingen.
           </p>
         </div>
@@ -304,26 +304,26 @@ function PickerModal({
                 disabled={saving}
                 className="w-full p-3 text-left transition-colors"
                 style={{
-                  backgroundColor: isSelected ? 'rgba(40,168,110,0.12)' : '#13131A',
-                  border: `2px solid ${isSelected ? '#28A86E' : '#1E1E22'}`,
+                  backgroundColor: isSelected ? 'rgba(40,168,110,0.12)' : 'var(--flate-12-alt)',
+                  border: `2px solid ${isSelected ? '#28A86E' : 'var(--kant-3)'}`,
                   cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving && !isSelected ? 0.5 : 1,
                 }}>
                 <div className="flex items-start gap-2">
                   <span style={{
-                    color: isSelected ? '#28A86E' : '#555560',
+                    color: isSelected ? '#28A86E' : 'var(--tekst-8-app)',
                     fontSize: '16px', lineHeight: 1, marginTop: '1px',
                   }}>
                     {isSelected ? '●' : '○'}
                   </span>
                   <div className="flex-1">
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
+                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
                       {c.title}
                       {c.imported_from === 'strava' && (
                         <span style={{ color: '#FC4C02', marginLeft: '6px', fontSize: '11px' }}>↻ Strava</span>
                       )}
                     </div>
-                    <div className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    <div className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {c.duration_minutes != null ? `${c.duration_minutes} min` : '—'}
                       {c.distance_km != null ? ` · ${c.distance_km.toFixed(1)} km` : ''}
                       {c.sport ? ` · ${c.sport}` : ''}
@@ -343,12 +343,12 @@ function PickerModal({
         )}
 
         <div className="px-5 py-4 flex justify-end gap-2"
-          style={{ borderTop: '1px solid #1E1E22' }}>
+          style={{ borderTop: '1px solid var(--kant-3)' }}>
           <button type="button" onClick={onClose} disabled={saving}
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #1E1E22',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-3)',
               cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
             }}>
             Avbryt
@@ -358,8 +358,8 @@ function PickerModal({
             className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: !selectedId ? '#1E1E22' : '#28A86E',
-              color: '#FFFFFF', border: 'none',
+              backgroundColor: !selectedId ? 'var(--kant-3)' : '#28A86E',
+              color: 'var(--tekst-1-ren)', border: 'none',
               cursor: (!selectedId || saving) ? 'not-allowed' : 'pointer',
               opacity: (!selectedId || saving) ? 0.5 : 1,
             }}>

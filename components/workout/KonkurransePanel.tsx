@@ -29,13 +29,13 @@ const GULL2 = '#D4A017'
 const FONT = "'Barlow Condensed', sans-serif"
 
 const FELT: React.CSSProperties = {
-  backgroundColor: 'var(--surface, #101014)', border: '1px solid var(--line2)',
-  borderRadius: 9, color: '#F0F0F2', fontFamily: FONT, fontSize: 15,
+  backgroundColor: 'var(--surface, var(--card))', border: '1px solid var(--line2)',
+  borderRadius: 9, color: 'var(--tekst-1-app)', fontFamily: FONT, fontSize: 15,
   padding: '10px 12px', outline: 'none', width: '100%', minHeight: 44,
 }
 const LBL: React.CSSProperties = {
   display: 'block', fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.14em',
-  textTransform: 'uppercase', color: '#55555F', marginBottom: 6,
+  textTransform: 'uppercase', color: 'var(--tekst-8-alt)', marginBottom: 6,
 }
 
 export type PanelType = 'competition' | 'testlop' | 'test'
@@ -124,7 +124,7 @@ export function KonkurransePanel({
             <button key={c.verdi} type="button" onClick={() => onTypeChange(c.verdi)}
               style={{
                 padding: '8px 14px', fontFamily: FONT, fontSize: 14, cursor: 'pointer', border: 'none',
-                color: type === c.verdi ? GULL : '#8B8B95',
+                color: type === c.verdi ? GULL : 'var(--mut)',
                 background: type === c.verdi ? 'rgba(232,185,60,.14)' : 'transparent',
                 fontWeight: type === c.verdi ? 700 : 400,
               }}>
@@ -138,14 +138,14 @@ export function KonkurransePanel({
       {canAutoGenerate && (
         <div className="flex items-center gap-3 flex-wrap mx-4 mt-4 px-4 py-3"
           style={{ border: '1px solid rgba(232,185,60,.35)', background: 'rgba(232,185,60,.06)', borderRadius: 11 }}>
-          <span style={{ fontFamily: FONT, fontSize: 14.5, color: '#F0F0F2', minWidth: 180, flex: 1 }}>
+          <span style={{ fontFamily: FONT, fontSize: 14.5, color: 'var(--tekst-1-app)', minWidth: 180, flex: 1 }}>
             ⚡ <b style={{ color: GULL }}>{data.distance_format}</b>
             {type === 'testlop' ? ' (testløp)' : ''} genererer aktivitets-strukturen
             {sport === 'biathlon' ? ' — runder og skyteserier klare til føring' : ' — klar til føring'}
           </span>
           <button type="button" onClick={() => onRequestGenerate(data.distance_format, activityCount > 0)}
             style={{
-              background: GULL2, color: '#101014', fontFamily: FONT, fontWeight: 800, fontSize: 13.5,
+              background: GULL2, color: 'var(--card)', fontFamily: FONT, fontWeight: 800, fontSize: 13.5,
               letterSpacing: '0.06em', border: 'none', borderRadius: 9, padding: '10px 18px',
               cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
@@ -177,7 +177,7 @@ export function KonkurransePanel({
           {/* Protokoll/resultat hører til GJENNOMFØRINGEN — i plan holder
               navn + valgt test; resultatfeltene kommer i dagbok. */}
           {isPlan ? (
-            <p style={{ fontFamily: FONT, fontSize: 13, color: '#55555F' }}>
+            <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-alt)' }}>
               Resultat og protokoll føres når testen er gjennomført — feltene ligger klare i dagbok-visningen.
             </p>
           ) : (
@@ -200,7 +200,7 @@ export function KonkurransePanel({
             ) : (
               <div>
                 <label style={LBL}>Sport</label>
-                <div style={{ ...FELT, display: 'flex', alignItems: 'center', color: '#8B8B95' }}>
+                <div style={{ ...FELT, display: 'flex', alignItems: 'center', color: 'var(--mut)' }}>
                   {SPORTS.find(s => s.value === sport)?.label ?? sport}
                 </div>
               </div>
@@ -240,7 +240,7 @@ export function KonkurransePanel({
                         flex: 1, textAlign: 'center', borderRadius: 9, padding: '10px 0',
                         fontFamily: FONT, fontWeight: 800, fontSize: 14.5,
                         cursor: 'pointer',
-                        color: prioritet === p ? GULL : '#8B8B95',
+                        color: prioritet === p ? GULL : 'var(--mut)',
                         border: `1px solid ${prioritet === p ? GULL : 'var(--line2)'}`,
                         background: prioritet === p ? 'rgba(232,185,60,.12)' : 'transparent',
                       }}>
@@ -249,9 +249,9 @@ export function KonkurransePanel({
                   ))}
                 </div>
                 {keyDate && (
-                  <div className="flex items-center gap-2 mt-2" style={{ fontFamily: FONT, fontSize: 12.5, color: '#8B8B95' }}>
+                  <div className="flex items-center gap-2 mt-2" style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--mut)' }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#28A86E', flexShrink: 0 }} />
-                    Hentet fra <b style={{ color: '#F0F0F2' }}>årsplanen</b> — kan overstyres
+                    Hentet fra <b style={{ color: 'var(--tekst-1-app)' }}>årsplanen</b> — kan overstyres
                   </div>
                 )}
               </div>
@@ -294,13 +294,13 @@ export function KonkurransePanel({
 
           {/* Dagbok: «Fra planen»-banner (paritet) + Etter løpet-kollaps. */}
           {!isPlan && (data.goal.trim() !== '' || data.pre_comment.trim() !== '') && (
-            <div className="mt-3 p-3" style={{ background: 'var(--surface, #101014)', border: '1px solid var(--line)', borderRadius: 9 }}>
-              <div style={{ ...LBL, marginBottom: 4, color: '#8B8B95' }}>Fra planen</div>
+            <div className="mt-3 p-3" style={{ background: 'var(--surface, var(--card))', border: '1px solid var(--line)', borderRadius: 9 }}>
+              <div style={{ ...LBL, marginBottom: 4, color: 'var(--mut)' }}>Fra planen</div>
               {data.goal.trim() !== '' && (
-                <p style={{ fontFamily: FONT, fontSize: 14, color: '#F0F0F2', whiteSpace: 'pre-wrap' }}>🎯 {data.goal}</p>
+                <p style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-1-app)', whiteSpace: 'pre-wrap' }}>🎯 {data.goal}</p>
               )}
               {data.pre_comment.trim() !== '' && (
-                <p style={{ fontFamily: FONT, fontSize: 14, color: '#C0C0CC', whiteSpace: 'pre-wrap', marginTop: 4 }}>{data.pre_comment}</p>
+                <p style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-3-app)', whiteSpace: 'pre-wrap', marginTop: 4 }}>{data.pre_comment}</p>
               )}
             </div>
           )}
@@ -310,10 +310,10 @@ export function KonkurransePanel({
               <button type="button" onClick={() => setEtterApen(o => !o)}
                 className="flex items-center gap-3 w-full mt-5"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <span style={{ border: '1px solid var(--line2)', borderRadius: 7, padding: '2px 9px', fontSize: 12, color: '#8B8B95' }}>
+                <span style={{ border: '1px solid var(--line2)', borderRadius: 7, padding: '2px 9px', fontSize: 12, color: 'var(--mut)' }}>
                   {etterApen ? '▾' : '▸'}
                 </span>
-                <span style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#55555F' }}>
+                <span style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
                   Etter løpet — fyll ut når du er i mål
                 </span>
                 <span style={{ flex: 1, height: 1, background: 'var(--line)' }} />
@@ -352,11 +352,11 @@ export function KonkurransePanel({
           Skjules inne i mal-byggeren — ingen meta-oppretting av maler der. */}
       {kanLageNyMal && (
       <div className="flex items-center gap-3 flex-wrap px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
-        <span style={{ fontFamily: FONT, fontSize: 13, color: '#8B8B95', flex: 1, minWidth: 200 }}>
-          💾 <b style={{ color: '#F0F0F2' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> — ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
+        <span style={{ fontFamily: FONT, fontSize: 13, color: 'var(--mut)', flex: 1, minWidth: 200 }}>
+          💾 <b style={{ color: 'var(--tekst-1-app)' }}>Ny {erKonk ? 'konkurranse' : type === 'testlop' ? 'testløp' : 'test'}-mal</b> — ren struktur (navn, format, aktiviteter, serieoppsett). Aldri instansdata.
         </span>
         <button type="button" onClick={onNyMal}
-          style={{ fontFamily: FONT, fontWeight: 700, fontSize: 13, color: '#8B8B95', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
+          style={{ fontFamily: FONT, fontWeight: 700, fontSize: 13, color: 'var(--mut)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
           + Ny mal
         </button>
       </div>
@@ -408,12 +408,12 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
       className="flex justify-between items-center gap-3 w-full text-left"
       style={{
         border: `1px solid ${aktiv ? GULL : 'var(--line2)'}`,
-        background: aktiv ? 'rgba(232,185,60,.07)' : 'var(--surface, #101014)',
+        background: aktiv ? 'rgba(232,185,60,.07)' : 'var(--surface, var(--card))',
         borderRadius: 9, padding: '11px 14px', marginTop: 8, cursor: 'pointer',
       }}>
       <span>
-        <span style={{ display: 'block', fontFamily: FONT, fontWeight: 700, fontSize: 15, color: '#F0F0F2' }}>{navn}</span>
-        <span style={{ display: 'block', fontFamily: FONT, fontSize: 12, color: '#55555F', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>{detalj}</span>
+        <span style={{ display: 'block', fontFamily: FONT, fontWeight: 700, fontSize: 15, color: 'var(--tekst-1-app)' }}>{navn}</span>
+        <span style={{ display: 'block', fontFamily: FONT, fontSize: 12, color: 'var(--tekst-8-alt)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 1 }}>{detalj}</span>
       </span>
       {tag && (
         <span style={{
@@ -437,14 +437,14 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
             rad(t.id, t.name, `Din egen · ${t.config.series.length} serier`,
               'Egen test-mal', true, aktivSkytetestRef === t.id, () => onVelgSkytetest({ ref: t.id, navn: t.name, surface: t.config.surface ?? null, serier: t.config.series })))}
           {kanLageNyMal && rad('__ny', '+ Ny test-mal', 'Lag din egen — lagres i biblioteket', null, false, false, onNyMal)}
-          <p style={{ fontFamily: FONT, fontSize: 12.5, color: '#55555F', marginTop: 8 }}>
+          <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-alt)', marginTop: 8 }}>
             Samme bibliotek som skytetest-malene i skyting-delen — NSSF-malene er låste, dine egne er redigerbare. Ingen A/B/C på test.
           </p>
         </div>
       ) : (
         <div style={{ maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
           {relevanteMaler.length === 0 && (
-            <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#55555F', marginTop: 6 }}>
+            <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-8-alt)', marginTop: 6 }}>
               Ingen test-maler for idretten ennå — lag en med «+ Ny test-mal».
             </p>
           )}

@@ -19,7 +19,7 @@ export function ResumeSessionBanner() {
     <Link href={`/app/okt/${session.id}`} className="block mb-4 transition-opacity hover:opacity-90"
       style={{ background: '#1A0F08', border: '1px solid #3A2418', borderLeft: '3px solid #FF4500', padding: '12px 14px', textDecoration: 'none' }}>
       <div className="flex items-center justify-between gap-3">
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 15 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 15 }}>
           <span style={{ color: '#FF4500', fontWeight: 700 }}>▶ Pågående styrkeøkt</span>
           {' — '}{session.title || 'Styrke'}
         </span>

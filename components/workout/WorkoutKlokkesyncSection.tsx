@@ -60,8 +60,8 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
   if (state.error) {
     return (
       <div className="my-4 p-3 flex items-center gap-3"
-        style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderRadius: 10 }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
+        style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderRadius: 10 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
           Kunne ikke laste klokkedata.
         </span>
         <button type="button"
@@ -89,12 +89,12 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
     if (importedFrom === 'strava') {
       return (
         <div className="my-4 p-4"
-          style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: '3px solid #FC5200' }}>
+          style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #FC5200' }}>
           <p className="text-xs tracking-widest uppercase mb-2"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FC5200' }}>
             Sekund-data slettet
           </p>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', lineHeight: 1.5 }}>
             Sekund-for-sekund data og GPS-rute er slettet (Stravas 7-dagers regel).
             Grunndata, sonefordeling og lap-tider er beholdt og vises i seksjonene over.
           </p>
@@ -107,7 +107,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
   return (
     <div className="my-4 space-y-3">
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Klokkesync — sekund-for-sekund og per-lap
       </p>
 

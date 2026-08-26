@@ -67,7 +67,7 @@ function num(s: string | undefined | null): number {
 
 const K_STYLE: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-  letterSpacing: '0.18em', color: '#8B8B95', textTransform: 'uppercase',
+  letterSpacing: '0.18em', color: 'var(--mut)', textTransform: 'uppercase',
 }
 
 function Card({ title, aux, beamColor = 'var(--accent)', children }: {
@@ -77,10 +77,10 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
     <section className="p-5 mb-3.5" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
       <div className="flex items-center gap-2.5 mb-3.5">
         <span style={{ width: 20, height: 3.5, borderRadius: 2, background: beamColor }} />
-        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.12em', color: '#8B8B95', fontWeight: 400 }}>
+        <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '0.12em', color: 'var(--mut)', fontWeight: 400 }}>
           {title}
         </h3>
-        {aux && <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#55555F' }}>{aux}</span>}
+        {aux && <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-8-alt)' }}>{aux}</span>}
       </div>
       {children}
     </section>
@@ -146,11 +146,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
 
   const stats: { k: string; v: ReactNode; sm?: boolean }[] = []
   if (totalSec > 0) stats.push({ k: 'Total tid', v: fmtClock(totalSec) })
-  if (totalKm > 0) stats.push({ k: 'Distanse', v: <>{fmtNo(totalKm)} <span style={{ fontSize: 14, color: '#55555F' }}>km</span></> })
-  if (hrWeighted > 0) stats.push({ k: 'Snittpuls', v: <>{hrWeighted} <span style={{ fontSize: 14, color: '#55555F' }}>bpm</span></> })
-  if (speedKmh > 0) stats.push({ k: 'Snittfart', v: <>{fmtNo(speedKmh)} <span style={{ fontSize: 14, color: '#55555F' }}>km/t</span></> })
+  if (totalKm > 0) stats.push({ k: 'Distanse', v: <>{fmtNo(totalKm)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km</span></> })
+  if (hrWeighted > 0) stats.push({ k: 'Snittpuls', v: <>{hrWeighted} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>bpm</span></> })
+  if (speedKmh > 0) stats.push({ k: 'Snittfart', v: <>{fmtNo(speedKmh)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>km/t</span></> })
   if (maxHr > 0) stats.push({ k: 'Makspuls', v: String(Math.round(maxHr)), sm: true })
-  if (elevation > 0) stats.push({ k: 'Høydemeter', v: <>{Math.round(elevation)} <span style={{ fontSize: 14, color: '#55555F' }}>m</span></>, sm: true })
+  if (elevation > 0) stats.push({ k: 'Høydemeter', v: <>{Math.round(elevation)} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>m</span></>, sm: true })
   if (wattWeighted > 0) stats.push({ k: 'Snittwatt', v: String(wattWeighted), sm: true })
 
   // Sonefordeling
@@ -188,7 +188,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   })
   const chipStyle: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 600,
-    letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8B8B95',
+    letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--mut)',
     border: '1px solid var(--line2)', borderRadius: 999, padding: '6px 13px',
   }
 
@@ -203,7 +203,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               style={{
                 flex: 1, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 15, letterSpacing: '0.13em', textTransform: 'uppercase',
-                backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E',
+                backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: '1px solid #28A86E',
                 borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
                 boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
               }}>
@@ -216,7 +216,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               style={{
                 flex: 1, fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 15, letterSpacing: '0.13em', textTransform: 'uppercase',
-                backgroundColor: 'var(--accent)', color: '#fff', border: '1px solid var(--accent)',
+                backgroundColor: 'var(--accent)', color: 'var(--tekst-1-ren)', border: '1px solid var(--accent)',
                 borderRadius: 12, padding: '13px 10px', cursor: 'pointer',
                 boxShadow: '0 6px 24px var(--accent-soft)',
               }}>
@@ -230,7 +230,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       <div className="pb-4">
         <div className="flex flex-wrap gap-2 mb-3">
           {isPlannedView ? (
-            <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>🕒 Planlagt</span>
+            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>🕒 Planlagt</span>
           ) : (
             <span style={pillStyle('#28A86E', 'rgba(40,168,110,.12)', 'rgba(40,168,110,.4)')}>✓ Gjennomført</span>
           )}
@@ -240,10 +240,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             <ImportSourceBadge source="strava" />
           )}
           {data.imported_from && data.imported_from !== 'strava' && (
-            <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>
+            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>
           )}
           {fromTemplate && (
-            <span style={pillStyle('#8B8B95', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
+            <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
           )}
           {/* Kø #48: standardøkt-serie — diskret pille i heroen. */}
           {data.standard_session_series_name && (
@@ -252,16 +252,16 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             </span>
           )}
         </div>
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: '0.03em', lineHeight: 1.05, color: '#F2F2F0', fontWeight: 400 }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: '0.03em', lineHeight: 1.05, color: 'var(--ink)', fontWeight: 400 }}>
           {data.title || 'Økt'}
         </h2>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 16 }}>
-          {fmtDate(data.date) && <span><b style={{ color: '#F2F2F0', fontWeight: 600 }}>{fmtDate(data.date)}</b></span>}
-          {data.time_of_day && <span>Kl. <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{data.time_of_day.slice(0, 5)}</b></span>}
-          {data.location && <span><b style={{ color: '#F2F2F0', fontWeight: 600 }}>{data.location}</b></span>}
-          {typeLabel && <span>Type <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{typeLabel}</b></span>}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 16 }}>
+          {fmtDate(data.date) && <span><b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtDate(data.date)}</b></span>}
+          {data.time_of_day && <span>Kl. <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{data.time_of_day.slice(0, 5)}</b></span>}
+          {data.location && <span><b style={{ color: 'var(--ink)', fontWeight: 600 }}>{data.location}</b></span>}
+          {typeLabel && <span>Type <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{typeLabel}</b></span>}
           {sportLabel && (
-            <span>Sport <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{sportLabel}{primaryMovement ? ` · ${primaryMovement}` : ''}</b></span>
+            <span>Sport <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{sportLabel}{primaryMovement ? ` · ${primaryMovement}` : ''}</b></span>
           )}
         </div>
         {(data.is_important || data.is_altitude_training || data.is_heat_training || data.is_group_session || gearNames.length > 0) && (
@@ -277,7 +277,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             {/* Planlagt økt: utstyret er en intensjon — km/tid telles først
                 når økta markeres gjennomført. */}
             {gearNames.map(n => (
-              <span key={n} style={chipStyle}>{isPlannedView ? 'Planlagt utstyr' : 'Utstyr'} · <b style={{ color: '#F2F2F0' }}>{n}</b></span>
+              <span key={n} style={chipStyle}>{isPlannedView ? 'Planlagt utstyr' : 'Utstyr'} · <b style={{ color: 'var(--ink)' }}>{n}</b></span>
             ))}
           </div>
         )}
@@ -285,11 +285,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
 
       {/* ── HERO-STATS (tomme celler skjules) ── */}
       {stats.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 mb-3.5" style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', background: 'linear-gradient(135deg,#131318,#0E0E12)' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 mb-3.5" style={{ border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden', background: 'linear-gradient(135deg,var(--flate-12),var(--flate-7-alt))' }}>
           {stats.map((s, i) => (
             <div key={s.k} style={{ padding: '16px 18px', borderRight: (i + 1) % 4 !== 0 ? '1px solid var(--line)' : 'none', borderTop: i >= 4 ? '1px solid var(--line)' : 'none' }}>
               <span style={K_STYLE}>{s.k}</span>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: s.sm ? 23 : 30, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: s.sm ? 23 : 30, letterSpacing: '0.03em', marginTop: 2, color: 'var(--ink)' }}>
                 {s.v}
               </div>
             </div>
@@ -316,8 +316,8 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                   <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', color: ZONE_COLORS_V2[k] }}>
                     {k === 'Hurtighet' ? 'HURT.' : k}
                   </div>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.04em', color: '#F2F2F0' }}>{fmtZoneTime(sec)}</div>
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#55555F' }}>{Math.round((sec / zoneTotal) * 100)}%</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.04em', color: 'var(--ink)' }}>{fmtZoneTime(sec)}</div>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>{Math.round((sec / zoneTotal) * 100)}%</div>
                 </div>
               )
             })}
@@ -340,7 +340,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           «kun totaltid og tittel» er korrekt import av en tom kilde. */}
       {activities.length === 0 && data.imported_from && (
         <Card title="AKTIVITETER">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: '#8B8B95', lineHeight: 1.55 }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--mut)', lineHeight: 1.55 }}>
             Ingen detaljdata fulgte med denne økta fra {fitSourceLabel(data.imported_from) || 'kilden'} —
             trolig ført manuelt der, uten klokkeopptak. Du kan legge til aktiviteter selv via Rediger.
           </p>
@@ -367,17 +367,17 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               return (
                 <div key={a.id} className="relative flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
                   style={{ borderBottom: i < activities.length - 1 ? '1px solid var(--line)' : 'none' }}>
-                  <span style={{ position: 'absolute', left: -21, top: 18, width: 10, height: 10, borderRadius: '50%', background: 'var(--flate-3, #0A0A0B)', border: `3px solid ${isShooting ? '#E23A5A' : isPause ? '#55555F' : 'var(--accent)'}` }} />
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#F2F2F0' }}>
+                  <span style={{ position: 'absolute', left: -21, top: 18, width: 10, height: 10, borderRadius: '50%', background: 'var(--flate-3, var(--flate-3))', border: `3px solid ${isShooting ? '#E23A5A' : isPause ? 'var(--tekst-8-alt)' : 'var(--accent)'}` }} />
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
                     {activityLabel(a)}
-                    {a.movement_name && <small style={{ color: '#8B8B95', fontWeight: 500 }}> · {a.movement_name}{a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}</small>}
+                    {a.movement_name && <small style={{ color: 'var(--mut)', fontWeight: 500 }}> · {a.movement_name}{a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}</small>}
                   </span>
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 14.5 }}>
-                    {sec > 0 && <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{fmtZoneTime(sec)}</b>}
-                    {km > 0 && <> · <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{fmtNo(km)}</b> km</>}
-                    {hr > 0 && <> · <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{Math.round(hr)}</b> bpm</>}
-                    {watts > 0 && <> · <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{Math.round(watts)}</b> w</>}
-                    {isShooting && shots > 0 && <> · <b style={{ color: '#F2F2F0', fontWeight: 600 }}>{hits}/{shots}</b> treff</>}
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 14.5 }}>
+                    {sec > 0 && <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtZoneTime(sec)}</b>}
+                    {km > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtNo(km)}</b> km</>}
+                    {hr > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{Math.round(hr)}</b> bpm</>}
+                    {watts > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{Math.round(watts)}</b> w</>}
+                    {isShooting && shots > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{hits}/{shots}</b> treff</>}
                   </span>
                   {aZoneTotal > 0 && aZones && (
                     <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
@@ -439,16 +439,16 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '13px 15px', background: 'var(--card2)' }}>
             <span style={K_STYLE}>{k}</span>
             {s.pct != null ? (
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
-                {s.recordedHits}/{s.recordedShots} <span style={{ fontSize: 14, color: '#55555F' }}>{Math.round(s.pct)}%</span>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: 'var(--ink)' }}>
+                {s.recordedHits}/{s.recordedShots} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>{Math.round(s.pct)}%</span>
               </div>
             ) : (
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: '#F2F2F0' }}>
-                {s.shots} <span style={{ fontSize: 14, color: '#55555F' }}>skudd</span>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: '0.03em', marginTop: 2, color: 'var(--ink)' }}>
+                {s.shots} <span style={{ fontSize: 14, color: 'var(--tekst-8-alt)' }}>skudd</span>
               </div>
             )}
             {s.shots > s.recordedShots && s.pct != null && (
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
                 {s.recordedShots}/{s.shots} skudd m/ ført treff
               </span>
             )}
@@ -467,24 +467,24 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           const meta = SHOOTING_TYPES_V2.find(t => t.key === a.shooting_type)
           const legacyLabel = ACTIVITY_TYPES.find(t => t.value === a.activity_type)?.label
           const chips: ReactNode[] = []
-          if (a.shooting_is_innskyting) chips.push(chip('Innskyting', '#8B8B95'))
+          if (a.shooting_is_innskyting) chips.push(chip('Innskyting', 'var(--mut)'))
           if (a.shooting_is_test) chips.push(chip('🧪 Skytetest', '#D4A017'))
           if (data.workout_type === 'competition') chips.push(chip('🏁 Konkurranse', '#D4A017', true))
           if (data.workout_type === 'testlop') chips.push(chip('⏱ Testløp', '#D4A017', true))
-          if (a.shooting_is_test && a.shooting_surface) chips.push(chip(SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, '#8B8B95'))
+          if (a.shooting_is_test && a.shooting_surface) chips.push(chip(SURFACE_LABELS[a.shooting_surface] ?? a.shooting_surface, 'var(--mut)'))
           const blockSec = parseActivityDuration(a.duration) ?? 0
           return (
             <div className="flex flex-wrap items-center gap-2">
               {blocks.length > 1 && (
-                <span style={{ ...K_STYLE, color: '#55555F' }}>Blokk {idx + 1}</span>
+                <span style={{ ...K_STYLE, color: 'var(--tekst-8-alt)' }}>Blokk {idx + 1}</span>
               )}
-              <span className="flex items-center gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 600, color: '#F2F2F0' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta?.color ?? '#55555F', display: 'inline-block' }} />
+              <span className="flex items-center gap-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta?.color ?? 'var(--tekst-8-alt)', display: 'inline-block' }} />
                 {meta?.label ?? legacyLabel ?? 'Skyting'}
               </span>
               {chips}
               {blockSec > 0 && (
-                <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F' }}>
+                <span className="ml-auto" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
                   {fmtZoneTime(blockSec)} skytetid
                 </span>
               )}
@@ -501,28 +501,28 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           return (
             <div key={s.id}>
               <div className="flex items-center gap-2.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14 }}>
-                <span style={{ color: '#55555F', width: 16, textAlign: 'right' }}>{no}</span>
+                <span style={{ color: 'var(--tekst-8-alt)', width: 16, textAlign: 'right' }}>{no}</span>
                 <span style={{ color: posColor, fontWeight: 700, width: 14 }}>{s.position}</span>
-                <span style={{ color: '#F2F2F0', fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em' }}>
+                <span style={{ color: 'var(--ink)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em' }}>
                   {s.hits !== '' ? `${Math.min(num(s.hits), num(s.shots))}/${num(s.shots)}` : `${num(s.shots)} skudd`}
                 </span>
                 {s.hits === '' && (
-                  <span style={{ color: '#55555F', fontSize: 12.5 }}>treff ikke ført</span>
+                  <span style={{ color: 'var(--tekst-8-alt)', fontSize: 12.5 }}>treff ikke ført</span>
                 )}
                 {/* Kø #49 bolk 3: vind & sikt der ført — mini-vimpel + korttekst. */}
                 {(s.vind_styrke != null || s.sikt) && (
-                  <span className="inline-flex items-center" style={{ gap: 4, color: '#8B8B95', fontSize: 12.5 }}>
+                  <span className="inline-flex items-center" style={{ gap: 4, color: 'var(--mut)', fontSize: 12.5 }}>
                     {s.vind_styrke != null && <VimpelIcon retning={s.vind_retning} styrke={s.vind_styrke} size={18} />}
                     {s.vind_styrke != null && <span>{windShort(s.vind_retning, s.vind_styrke)}</span>}
                     {s.sikt && <span>{s.vind_styrke != null ? '· ' : ''}{sightLabel(s.sikt)?.replace(' sikt', '')}</span>}
                   </span>
                 )}
                 {parts.length > 0 && (
-                  <span className="ml-auto" style={{ color: '#8B8B95', fontSize: 13 }}>{parts.join(' · ')}</span>
+                  <span className="ml-auto" style={{ color: 'var(--mut)', fontSize: 13 }}>{parts.join(' · ')}</span>
                 )}
               </div>
               {s.note && (
-                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#55555F', margin: '1px 0 0 44px' }}>
+                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)', margin: '1px 0 0 44px' }}>
                   {s.note}
                 </p>
               )}
@@ -538,7 +538,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                 {sumS.shots > 0 && box('Stående', sumS)}
               </div>
             ) : dryBlocks.length === 0 ? (
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#8B8B95' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--mut)' }}>
                 Ingen skudd ført på denne økta ennå.
               </p>
             ) : null}
@@ -552,7 +552,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                     <div key={a.id} style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '11px 14px', background: 'var(--card2)' }}>
                       {blockHeader(a, idx)}
                       {isDryBlock(a) ? (
-                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8B8B95', marginTop: 5 }}>
+                        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)', marginTop: 5 }}>
                           Tørrtrening — kun skytetid føres.
                         </p>
                       ) : (
@@ -597,11 +597,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             <div className="flex flex-col gap-1.5">
               {rows.map((r, i) => (
                 <div key={i} className="grid items-center gap-2.5" style={{ gridTemplateColumns: '44px 1fr 64px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5 }}>
-                  <span style={{ color: '#55555F', letterSpacing: '0.05em' }}>{r.km}</span>
+                  <span style={{ color: 'var(--tekst-8-alt)', letterSpacing: '0.05em' }}>{r.km}</span>
                   <div style={{ height: 7, borderRadius: 4, background: 'var(--line)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${Math.round((best / r.sec) * 100)}%`, background: 'linear-gradient(90deg, var(--accent), rgba(255,69,0,.6))', borderRadius: 4 }} />
                   </div>
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em', textAlign: 'right', color: '#F2F2F0' }}>
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.04em', textAlign: 'right', color: 'var(--ink)' }}>
                     {fmtZoneTime(r.sec)}
                   </span>
                 </div>
@@ -638,12 +638,12 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                 <div style={{ ...K_STYLE, marginBottom: 6 }}>RPE</div>
                 <span style={{
                   display: 'inline-block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 24,
-                  letterSpacing: '0.04em', color: '#fff', borderRadius: 9, padding: '4px 14px 2px',
+                  letterSpacing: '0.04em', color: 'var(--tekst-1-ren)', borderRadius: 9, padding: '4px 14px 2px',
                   background: data.rpe >= 8 ? '#E23A5A' : data.rpe >= 6 ? '#FF8C00' : data.rpe >= 4 ? '#E8B93C' : '#28A86E',
                 }}>
                   {data.rpe}
                 </span>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#55555F', marginTop: 4 }}>av 10</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-8-alt)', marginTop: 4 }}>av 10</div>
               </div>
             )}
           </div>
@@ -657,8 +657,8 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         const nutrition = (data.nutrition_entries ?? []).filter(n => n.nutrition_type || num(n.carbs_g) > 0 || n.custom_label)
         if (!hasWeather && nutrition.length === 0) return null
         const wLabel = (list: { value: string; label: string }[], v: string) => list.find(o => o.value === v)?.label ?? v
-        const lineStyle: React.CSSProperties = { fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 15.5 }
-        const bStyle: React.CSSProperties = { color: '#F2F2F0', fontWeight: 600 }
+        const lineStyle: React.CSSProperties = { fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 15.5 }
+        const bStyle: React.CSSProperties = { color: 'var(--ink)', fontWeight: 600 }
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5" style={{ marginBottom: 0 }}>
             {hasWeather && w && (
@@ -669,7 +669,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                   )}
                   {w.wind_strength && <span>Vind <b style={bStyle}>{wLabel(WIND_STRENGTHS, w.wind_strength)}</b></span>}
                   {(w.surface_conditions?.length ?? 0) > 0 && <span>Føre <b style={bStyle}>{w.surface_conditions.join(', ')}</b></span>}
-                  {w.notes && <span style={{ width: '100%', color: '#8B8B95' }}>{w.notes}</span>}
+                  {w.notes && <span style={{ width: '100%', color: 'var(--mut)' }}>{w.notes}</span>}
                 </div>
               </Card>
             )}
@@ -684,7 +684,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                     ].filter(Boolean).join(' · ')
                     return (
                       <span key={n.id}>
-                        {n.time_offset_minutes && <span style={{ color: '#55555F' }}>{n.time_offset_minutes} min · </span>}
+                        {n.time_offset_minutes && <span style={{ color: 'var(--tekst-8-alt)' }}>{n.time_offset_minutes} min · </span>}
                         <b style={bStyle}>{label}</b>{parts ? ` · ${parts}` : ''}
                       </span>
                     )
@@ -700,7 +700,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       {(data.notes || (data.tags?.length ?? 0) > 0) && (
         <Card title="NOTATER">
           {data.notes && (
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16.5, lineHeight: 1.55, color: '#F2F2F0', whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 16.5, lineHeight: 1.55, color: 'var(--ink)', whiteSpace: 'pre-wrap' }}>
               {data.notes}
             </p>
           )}
@@ -718,7 +718,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
 
       {/* ── Sync-fot (diskret) ── */}
       {data.imported_from && (
-        <div className="flex items-center gap-2.5 mb-3.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#55555F' }}>
+        <div className="flex items-center gap-2.5 mb-3.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-8-alt)' }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
           Importert fra {data.imported_from === 'strava' ? 'Strava' : data.imported_from}
         </div>

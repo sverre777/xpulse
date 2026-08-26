@@ -35,8 +35,8 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
 
   if (!stats.hasAnyData) {
     return (
-      <div className="py-8 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+      <div className="py-8 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
           For lite data for dybdeanalyse — krever sek-for-sek puls fra klokken.
         </p>
       </div>
@@ -58,7 +58,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
             />
             <Metric label="Δ bpm" value={`${stats.drift.driftBpm >= 0 ? '+' : ''}${stats.drift.driftBpm}`} />
           </div>
-          <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <p className="mt-3 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {driftInterpretation(stats.drift.driftPct)}
           </p>
         </Card>
@@ -67,11 +67,11 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
       {/* Best efforts */}
       {stats.bestEfforts && (
         <Card title="Beste innsatser" subtitle="Høyeste snitt over rullende vinduer">
-          <div className="overflow-x-auto" style={{ border: '1px solid #1E1E22' }}>
+          <div className="overflow-x-auto" style={{ border: '1px solid var(--kant-3)' }}>
             <table className="w-full text-xs"
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#13131A' }}>
+                <tr style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-12-alt)' }}>
                   <Th>Vindu</Th>
                   {stats.bestEfforts.hr && <Th align="right">Puls</Th>}
                   {stats.bestEfforts.watts && <Th align="right">Watt</Th>}
@@ -79,7 +79,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
               </thead>
               <tbody>
                 {(['60','300','1200'] as const).map(k => (
-                  <tr key={k} style={{ borderBottom: '1px solid #14141A' }}>
+                  <tr key={k} style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
                     <Td>{k === '60' ? '1 min' : k === '300' ? '5 min' : '20 min'}</Td>
                     {stats.bestEfforts!.hr && (
                       <Td align="right">
@@ -127,7 +127,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
               accent={decouplingColor(stats.decoupling)}
             />
             <div>
-              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {stats.decoupling < 5
                   ? '✓ Stabil aerob form gjennom økten'
                   : stats.decoupling < 10
@@ -158,7 +158,7 @@ export function WorkoutDeepAnalysis({ samples, sport, heartZones, ftpWatts }: Pr
           </div>
           {stats.power.if == null && (
             <p className="mt-3 text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Sett FTP i innstillinger → Klokkesync for å se IF og TSS.
             </p>
           )}
@@ -174,14 +174,14 @@ function Card({ title, subtitle, children }: {
   title: string; subtitle?: string; children: React.ReactNode
 }) {
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         {title}
       </p>
       {subtitle && (
         <p className="text-xs mb-3 mt-0.5"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {subtitle}
         </p>
       )}
@@ -194,12 +194,12 @@ function Metric({ label, value, accent }: { label: string; value: string; accent
   return (
     <div>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
       <p style={{
         fontFamily: "'Bebas Neue', sans-serif",
-        color: accent ?? '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em',
+        color: accent ?? 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em',
       }}>
         {value}
       </p>
@@ -210,7 +210,7 @@ function Metric({ label, value, accent }: { label: string; value: string; accent
 function Th({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
   return (
     <th className="px-2 py-2 tracking-widest uppercase"
-      style={{ textAlign: align, color: '#8A8A96', fontWeight: 400, fontSize: '10px' }}>
+      style={{ textAlign: align, color: 'var(--tekst-5-app)', fontWeight: 400, fontSize: '10px' }}>
       {children}
     </th>
   )
@@ -218,7 +218,7 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
 
 function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) {
   return (
-    <td className="px-2 py-2" style={{ textAlign: align, color: '#F0F0F2' }}>
+    <td className="px-2 py-2" style={{ textAlign: align, color: 'var(--tekst-1-app)' }}>
       {children}
     </td>
   )
@@ -229,18 +229,18 @@ function ZoneRow({
 }: {
   zone: string; range: HeartZone | null; seconds: number; pct: number
 }) {
-  const color = ZONE_COLORS_V2[zone as ExtendedZoneName] ?? '#8A8A96'
+  const color = ZONE_COLORS_V2[zone as ExtendedZoneName] ?? 'var(--data-ukjent)'
   return (
     <div>
       <div className="flex items-center justify-between text-xs mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         <span>
           <span style={{ color, fontWeight: 600 }}>{zone}</span>
-          {range && <span style={{ color: '#555560' }}> · {range.min_bpm}-{range.max_bpm} bpm</span>}
+          {range && <span style={{ color: 'var(--tekst-8-app)' }}> · {range.min_bpm}-{range.max_bpm} bpm</span>}
         </span>
         <span>{fmtDuration(seconds)} · {pct.toFixed(1)}%</span>
       </div>
-      <div style={{ height: 6, backgroundColor: '#1E1E22' }}>
+      <div style={{ height: 6, backgroundColor: 'var(--kant-3)' }}>
         <div style={{ height: '100%', width: `${pct}%`, backgroundColor: color }} />
       </div>
     </div>

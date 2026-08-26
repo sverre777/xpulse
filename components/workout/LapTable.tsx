@@ -54,11 +54,11 @@ export function LapTable({ laps, sport }: Props) {
   const showNotes = laps.some(l => l.lap_notes && l.lap_notes.trim().length > 0)
 
   return (
-    <div className="overflow-x-auto" style={{ border: '1px solid #1E1E22' }}>
+    <div className="overflow-x-auto" style={{ border: '1px solid var(--kant-3)' }}>
       <table className="w-full text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#13131A' }}>
+          <tr style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-12-alt)' }}>
             <Th>#</Th>
             <Th>Type</Th>
             <Th align="right">Tid</Th>
@@ -77,11 +77,11 @@ export function LapTable({ laps, sport }: Props) {
         <tbody>
           {laps.map(lap => (
             <tr key={lap.id ?? lap.index}
-              style={{ borderBottom: '1px solid #14141A' }}>
+              style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
               <Td>{lap.index + 1}</Td>
               <Td>
                 {lap.lap_type ? <LapTypeChip type={lap.lap_type} /> : (
-                  <span style={{ color: '#3A3A42' }}>—</span>
+                  <span style={{ color: 'var(--tekst-10-alt)' }}>—</span>
                 )}
               </Td>
               <Td align="right">{fmtDuration(lap.duration_seconds)}</Td>
@@ -97,7 +97,7 @@ export function LapTable({ laps, sport }: Props) {
                 <Td align="right">
                   {lap.avg_watts != null ? `${Math.round(Number(lap.avg_watts))}` : '—'}
                   {lap.max_watts != null && (
-                    <span style={{ color: '#555560' }}> / {Math.round(Number(lap.max_watts))}</span>
+                    <span style={{ color: 'var(--tekst-8-app)' }}> / {Math.round(Number(lap.max_watts))}</span>
                   )}
                 </Td>
               )}
@@ -120,7 +120,7 @@ export function LapTable({ laps, sport }: Props) {
               )}
               {showNotes && (
                 <Td>
-                  <span style={{ color: '#8A8A96' }}>{lap.lap_notes ?? ''}</span>
+                  <span style={{ color: 'var(--tekst-5-app)' }}>{lap.lap_notes ?? ''}</span>
                 </Td>
               )}
             </tr>
@@ -138,7 +138,7 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
     <th className="px-2 py-2 tracking-widest uppercase"
       style={{
         textAlign: align,
-        color: '#8A8A96',
+        color: 'var(--tekst-5-app)',
         fontWeight: 400,
         fontSize: '10px',
       }}>
@@ -150,7 +150,7 @@ function Th({ children, align = 'left' }: { children: React.ReactNode; align?: '
 function Td({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' | 'center' }) {
   return (
     <td className="px-2 py-2"
-      style={{ textAlign: align, color: '#F0F0F2' }}>
+      style={{ textAlign: align, color: 'var(--tekst-1-app)' }}>
       {children}
     </td>
   )
@@ -160,11 +160,11 @@ function LapTypeChip({ type }: { type: string }) {
   const colors: Record<string, { bg: string; fg: string; label: string }> = {
     warmup:   { bg: '#2A2418', fg: '#FFB300', label: 'Oppvarming' },
     interval: { bg: '#2A1A1A', fg: '#FF4500', label: 'Intervall' },
-    rest:     { bg: '#1A1A22', fg: '#7AA2FF', label: 'Pause' },
+    rest:     { bg: 'var(--flate-14)', fg: '#7AA2FF', label: 'Pause' },
     skyting:  { bg: '#1A2418', fg: '#3DD68C', label: 'Skyting' },
     cooldown: { bg: '#241A24', fg: '#A855F7', label: 'Nedjogg' },
   }
-  const c = colors[type] ?? { bg: '#1A1A22', fg: '#8A8A96', label: type }
+  const c = colors[type] ?? { bg: 'var(--flate-14)', fg: 'var(--data-ukjent)', label: type }
   return (
     <span className="px-1.5 py-0.5 text-xs tracking-widest uppercase"
       style={{

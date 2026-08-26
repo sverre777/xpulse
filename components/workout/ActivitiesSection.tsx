@@ -273,7 +273,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   return (
     <div className="space-y-2">
       {rows.length === 0 && (
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen aktiviteter ennå. Legg til en for å logge bevegelse, pause eller skyting.
         </p>
       )}
@@ -462,12 +462,12 @@ function ActivityRowItem({
           <button type="button" onClick={onMoveUp} disabled={!onMoveUp} aria-label="Flytt opp"
             style={{
               background: 'none', border: 'none', padding: '2px 0', cursor: onMoveUp ? 'pointer' : 'default',
-              color: onMoveUp ? '#8A8A96' : '#2A2A30', fontSize: '13px', lineHeight: 1,
+              color: onMoveUp ? 'var(--tekst-5-app)' : 'var(--kant-6)', fontSize: '13px', lineHeight: 1,
             }}>▲</button>
           <button type="button" onClick={onMoveDown} disabled={!onMoveDown} aria-label="Flytt ned"
             style={{
               background: 'none', border: 'none', padding: '2px 0', cursor: onMoveDown ? 'pointer' : 'default',
-              color: onMoveDown ? '#8A8A96' : '#2A2A30', fontSize: '13px', lineHeight: 1,
+              color: onMoveDown ? 'var(--tekst-5-app)' : 'var(--kant-6)', fontSize: '13px', lineHeight: 1,
             }}>▼</button>
         </div>
 
@@ -475,7 +475,7 @@ function ActivityRowItem({
         <span style={{ fontSize: '14px' }}>{displayIcon}</span>
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           fontSize: '14px',
           fontWeight: 600,
         }}>
@@ -487,7 +487,7 @@ function ActivityRowItem({
           <span
             className="truncate"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
               fontSize: '13px', minWidth: 0,
             }}>
             · {row.movement_name}
@@ -504,7 +504,7 @@ function ActivityRowItem({
 
         {/* HR — skjules på aller smaleste skjermer for å unngå wrap-bloat */}
         {row.avg_heart_rate && (
-          <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '12px' }}>
+          <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '12px' }}>
             · {row.avg_heart_rate} bpm
           </span>
         )}
@@ -519,9 +519,9 @@ function ActivityRowItem({
               : 'Bytt utstyr for denne aktiviteten'}
             style={{
               background: 'none',
-              border: equipmentIds.length > 0 ? '1px solid #FF4500' : '1px solid #2A2A33',
+              border: equipmentIds.length > 0 ? '1px solid #FF4500' : '1px solid var(--line2)',
               borderRadius: 6, cursor: 'pointer',
-              color: equipmentIds.length > 0 ? '#FF4500' : '#555560',
+              color: equipmentIds.length > 0 ? '#FF4500' : 'var(--tekst-8-app)',
               fontSize: '12px', lineHeight: 1, padding: '4px 6px',
             }}>
             ⇄{equipmentIds.length > 0 ? equipmentIds.length : ''}
@@ -530,7 +530,7 @@ function ActivityRowItem({
 
         {/* Expand */}
         <span style={{
-          color: '#555560', fontSize: '12px',
+          color: 'var(--tekst-8-app)', fontSize: '12px',
           transform: expanded ? 'rotate(90deg)' : 'none',
           transition: 'transform 150ms',
           marginLeft: '4px',
@@ -543,7 +543,7 @@ function ActivityRowItem({
           aria-label="Slett aktivitet"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#555560', fontSize: '20px', lineHeight: 1,
+            color: 'var(--tekst-8-app)', fontSize: '20px', lineHeight: 1,
             padding: '6px 8px', marginRight: '-6px',
           }}>×</button>
       </div>
@@ -561,7 +561,7 @@ function ActivityRowItem({
 
       {/* Expanded body */}
       {expanded && (
-        <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid #262629' }}>
+        <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           {/* 2 kolonner på mobil (kortere liste enn én lang kolonne), 3 fra lg
               (1024px) som på desktop. Field har minWidth:0 og inputene width:100%
               + boxSizing:border-box, så de krymper innenfor cellen uten å kuttes. */}
@@ -835,10 +835,10 @@ function ZoneEditor({
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Sonefordeling
         </span>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '15px', letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', letterSpacing: '0.05em' }}>
           Σ {formatActivityDuration(totalSec) || '0:00'}
         </span>
       </div>
@@ -852,7 +852,7 @@ function ZoneEditor({
             <div key={k} style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_BAR[k] }} />
           ) : null
         })}
-        {totalSec === 0 && <div style={{ flex: 1, backgroundColor: '#1A1A1E' }} />}
+        {totalSec === 0 && <div style={{ flex: 1, backgroundColor: 'var(--kant-2)' }} />}
       </div>
 
       {/* ÉN grid som pakker N felter — ikke to hardkodede rader. På mobil gir
@@ -882,7 +882,7 @@ function ZoneEditor({
       </div>
 
       <p className="mt-2 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Skriv "60" for 60 minutter, eller "1:30" for 1 min 30 sek. Hurtighet føres manuelt — beregnes ikke fra puls.
       </p>
     </div>
@@ -1002,12 +1002,12 @@ function StrengthEditor({
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Øvelser
       </div>
 
       {exercises.length === 0 && (
-        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen øvelser. Trykk nedenfor for å legge til første.
         </p>
       )}
@@ -1029,7 +1029,7 @@ function StrengthEditor({
       {presetQuickAdds.length > 0 && (
         <div className="mt-3">
           <div className="text-xs tracking-widest uppercase mb-1.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Foreslått
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -1037,8 +1037,8 @@ function StrengthEditor({
               <button key={name} type="button" onClick={() => addExercise(name)}
                 className="text-xs tracking-widest uppercase"
                 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
-                  background: 'none', border: '1px solid #262629',
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
+                  background: 'none', border: '1px solid var(--kant-5)',
                   padding: '4px 10px', cursor: 'pointer',
                 }}>
                 {name}
@@ -1115,7 +1115,7 @@ function ExerciseBlock({
   }
 
   return (
-    <div style={{ border: '1px solid #262629', backgroundColor: '#1A1A1E', padding: '10px' }}>
+    <div style={{ border: '1px solid var(--kant-5)', backgroundColor: 'var(--kant-2)', padding: '10px' }}>
       <div className="flex items-center gap-2 mb-2">
         <ExerciseNameAutocomplete
           value={exercise.exercise_name}
@@ -1126,7 +1126,7 @@ function ExerciseBlock({
           libraryNames={libraryNames}
         />
         <button type="button" onClick={onDelete}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '16px', padding: '0 6px' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '16px', padding: '0 6px' }}
           title="Slett øvelse">×</button>
       </div>
 
@@ -1134,7 +1134,7 @@ function ExerciseBlock({
           + «Gjenta forrige» som fyller alle sett med forrige verdier på ett tap. */}
       {lastSession && (
         <div className="flex items-center gap-2 flex-wrap mb-2" style={{ marginTop: '-2px' }}>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#6E6E78', fontSize: '12px', fontStyle: 'italic' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-7)', fontSize: '12px', fontStyle: 'italic' }}>
             Sist: {summarizeLastSession(lastSession)} ({daysAgoLabel(lastSession.date)})
           </span>
           <button type="button" onClick={repeatLast}
@@ -1150,7 +1150,7 @@ function ExerciseBlock({
       <div className="space-y-1.5">
         <div className="grid gap-2 px-1 text-xs tracking-widest uppercase"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
             gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px',
           }}>
           <span>Sett</span>
@@ -1164,7 +1164,7 @@ function ExerciseBlock({
           <div key={s.id} className="grid gap-2 items-center"
             style={{ gridTemplateColumns: '36px 1fr 1fr 1fr 60px 22px' }}>
             <span style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#8A8A96', fontSize: '14px', textAlign: 'center',
+              fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px', textAlign: 'center',
             }}>{s.set_number}</span>
             <input value={s.reps}
               onChange={e => updateSet(s.id, { reps: e.target.value })}
@@ -1184,7 +1184,7 @@ function ExerciseBlock({
               inputMode="numeric" placeholder="—"
               style={{ ...iSt, textAlign: 'center' }} />
             <button type="button" onClick={() => deleteSet(s.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '14px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '14px' }}
               title="Slett sett">×</button>
           </div>
         ))}
@@ -1193,7 +1193,7 @@ function ExerciseBlock({
       <button type="button" onClick={addSet}
         className="mt-2 text-xs tracking-widest uppercase"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         }}>
         + Legg til sett
@@ -1286,22 +1286,22 @@ function ExerciseNameAutocomplete({
       {open && (suggestions.length > 0 || browsing) && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-          backgroundColor: '#1A1A22', border: '1px solid #262629',
+          backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-5)',
           marginTop: '2px', maxHeight: browsing ? '340px' : '260px', overflowY: 'auto',
         }}>
           {suggestions.map((s, i) => (
             <button key={`${s.kind}-${s.name}-${i}`} type="button"
               onClick={() => pick(s)}
-              className="w-full flex items-center justify-between px-3 py-1.5 transition-colors hover:bg-[#1E1E22]"
+              className="w-full flex items-center justify-between px-3 py-1.5 transition-colors hover:bg-[var(--kant-3)]"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
                 fontSize: '14px', textAlign: 'left',
               }}>
               <span>{s.name}</span>
               <span style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: s.kind === 'library' ? '#8A8A96' : '#555560',
+                color: s.kind === 'library' ? 'var(--tekst-5-app)' : 'var(--tekst-8-app)',
                 fontSize: '13px', letterSpacing: '0.05em', textTransform: 'uppercase',
               }}>
                 {s.kind === 'library'
@@ -1315,11 +1315,11 @@ function ExerciseNameAutocomplete({
           {/* Bla per kategori (kø #46-oppfølger): toggler kategorichips +
               øvelsesliste fra standardbiblioteket — 287 øvelser. */}
           <button type="button" onClick={() => setBrowsing(b => !b)}
-            className="w-full px-3 transition-colors hover:bg-[#1E1E22]"
+            className="w-full px-3 transition-colors hover:bg-[var(--kant-3)]"
             style={{
-              background: 'none', border: 'none', borderTop: '1px solid #262629',
+              background: 'none', border: 'none', borderTop: '1px solid var(--kant-5)',
               cursor: 'pointer', textAlign: 'left', minHeight: 38, padding: '9px 12px',
-              fontFamily: "'Barlow Condensed', sans-serif", color: browsing ? 'var(--accent)' : '#8A8A96',
+              fontFamily: "'Barlow Condensed', sans-serif", color: browsing ? 'var(--accent)' : 'var(--tekst-5-app)',
               fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase',
             }}>
             {browsing ? '▾' : '▸'} Bla i biblioteket per kategori
@@ -1350,14 +1350,14 @@ function LactateMeasurementsEditor({
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Laktat
       </div>
 
       {measurements.length > 0 && (
         <div className="grid gap-2 px-1 mb-1 text-xs tracking-widest uppercase"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
             gridTemplateColumns: '1fr 1fr 24px',
           }}>
           <span>mmol/L</span>
@@ -1378,7 +1378,7 @@ function LactateMeasurementsEditor({
               onChange={e => updateMeasurement(m.id, { measured_at: e.target.value })}
               style={{ ...iSt, textAlign: 'center' }} />
             <button type="button" onClick={() => deleteMeasurement(m.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', fontSize: '14px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tekst-8-app)', fontSize: '14px' }}
               title="Slett måling">×</button>
           </div>
         ))}
@@ -1410,8 +1410,8 @@ function VektTillegg({ row, onUpdate, biathlon }: {
   const erBorsa = val === '3.5'
   const ghost: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-    letterSpacing: '0.06em', color: '#555560', background: 'none',
-    border: '1px dashed #2A2A33', borderRadius: 999, padding: '3px 10px',
+    letterSpacing: '0.06em', color: 'var(--tekst-8-app)', background: 'none',
+    border: '1px dashed var(--line2)', borderRadius: 999, padding: '3px 10px',
     cursor: 'pointer',
   }
   if (val === '' && !open) {
@@ -1430,26 +1430,26 @@ function VektTillegg({ row, onUpdate, biathlon }: {
   }
   return (
     <div className="flex items-center gap-2 mt-2 flex-wrap">
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#8A8A96', letterSpacing: '0.06em' }}>
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', letterSpacing: '0.06em' }}>
         ⚖ Vekt
       </span>
       <input value={val} inputMode="decimal" placeholder="kg" autoFocus={open && val === ''}
         onChange={e => onUpdate({ pack_weight_kg: e.target.value })}
         style={{ ...iSt, width: 64, padding: '3px 8px', fontSize: 13 }} />
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#555560' }}>kg</span>
+      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-app)' }}>kg</span>
       {biathlon && (
         <button type="button"
           onClick={() => onUpdate({ pack_weight_kg: erBorsa ? '' : '3.5' })}
           style={{ ...ghost, borderStyle: 'solid',
-            color: erBorsa ? '#F0F0F2' : '#555560',
-            borderColor: erBorsa ? '#FF4500' : '#2A2A33',
+            color: erBorsa ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+            borderColor: erBorsa ? '#FF4500' : 'var(--line2)',
             background: erBorsa ? 'rgba(255,69,0,0.08)' : 'none' }}>
           🔫 Børsa 3,5 kg
         </button>
       )}
       <button type="button" aria-label="Fjern vekt"
         onClick={() => { onUpdate({ pack_weight_kg: '' }); setOpen(false) }}
-        style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: 13, padding: '0 2px' }}>
+        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer', fontSize: 13, padding: '0 2px' }}>
         ✕
       </button>
     </div>
@@ -1475,7 +1475,7 @@ function TurFields({
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
       <div className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Tur
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1499,7 +1499,7 @@ function TurFields({
           <Field label="Total vekt (kg)">
             <input value={total ? total.toFixed(1) : ''}
               readOnly
-              style={{ ...iSt, color: '#8A8A96', cursor: 'not-allowed' }} />
+              style={{ ...iSt, color: 'var(--tekst-5-app)', cursor: 'not-allowed' }} />
           </Field>
         )}
 
@@ -1634,8 +1634,8 @@ function ShootingFields({
   }
 
   const nSt: React.CSSProperties = {
-    backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
-    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
+    backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderRadius: 8,
+    color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
     padding: '8px 6px', minHeight: 40, textAlign: 'center', outline: 'none',
   }
 
@@ -1650,7 +1650,7 @@ function ShootingFields({
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, letterSpacing: '0.05em',
         borderRadius: 999, padding: '6px 12px', minHeight: 36,
         cursor: onClick ? 'pointer' : 'default',
-        color: active ? '#F0F0F2' : '#8B8B95',
+        color: active ? 'var(--tekst-1-app)' : 'var(--mut)',
         background: active ? `${color}22` : 'transparent',
         border: `1px ${opts?.dashed ? 'dashed' : 'solid'} ${active ? color : 'var(--line2)'}`,
         opacity: !onClick && !active ? 0.5 : 1,
@@ -1671,7 +1671,7 @@ function ShootingFields({
       {/* Type-chips — én type per blokk. */}
       <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 8 }}>
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', marginRight: 2 }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', marginRight: 2 }}>
           Type
         </span>
         {SHOOTING_TYPES_V2.map(t => chip(
@@ -1690,10 +1690,10 @@ function ShootingFields({
       {/* Markeringer: manuelle + automatiske (fra øktas chips). */}
       <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 10 }}>
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', marginRight: 2 }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', marginRight: 2 }}>
           Markering
         </span>
-        {chip('Innskyting', row.shooting_is_innskyting, '#8A8A96',
+        {chip('Innskyting', row.shooting_is_innskyting, 'var(--tekst-5-app)',
           () => onUpdate({ shooting_is_innskyting: !row.shooting_is_innskyting }))}
         {chip('🧪 Skytetest', row.shooting_is_test, '#D4A017',
           () => onUpdate({ shooting_is_test: !row.shooting_is_test }))}
@@ -1711,8 +1711,8 @@ function ShootingFields({
               value={row.shooting_test_ref}
               onChange={e => { void applyTest(e.target.value) }}
               style={{
-                backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
-                color: row.shooting_test_ref ? '#F0F0F2' : '#8A8A96',
+                backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderRadius: 8,
+                color: row.shooting_test_ref ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
                 padding: '8px 8px', minHeight: 40, maxWidth: 260, outline: 'none',
               }}>
@@ -1735,8 +1735,8 @@ function ShootingFields({
               onChange={e => onUpdate({ shooting_surface: e.target.value as ActivityRow['shooting_surface'] })}
               title="Underlag for testen"
               style={{
-                backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8,
-                color: row.shooting_surface ? '#F0F0F2' : '#8A8A96',
+                backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderRadius: 8,
+                color: row.shooting_surface ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
                 padding: '8px 8px', minHeight: 40, outline: 'none',
               }}>
@@ -1750,7 +1750,7 @@ function ShootingFields({
                 {series.some(s => (parseInt(s.shots) || 0) > 0) && (
                   <button type="button" onClick={() => setSaveTestName('')}
                     className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer', letterSpacing: '0.05em' }}>
                     Lagre som egen mal
                   </button>
                 )}
@@ -1782,20 +1782,20 @@ function ShootingFields({
               <span className="flex items-center" style={{ gap: 6 }}>
                 <input value={saveTestName} onChange={e => setSaveTestName(e.target.value)}
                   placeholder="Navn på malen"
-                  style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderRadius: 8, color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, padding: '8px 10px', minHeight: 40, width: 160, outline: 'none' }} />
+                  style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderRadius: 8, color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, padding: '8px 10px', minHeight: 40, width: 160, outline: 'none' }} />
                 <button type="button" onClick={() => { void saveAsOwnTest() }}
                   disabled={!(saveTestName ?? '').trim()}
                   className="text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', background: '#D4A017', border: 'none', borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer', fontWeight: 700 }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)', background: '#D4A017', border: 'none', borderRadius: 8, padding: '8px 12px', minHeight: 40, cursor: 'pointer', fontWeight: 700 }}>
                   Lagre
                 </button>
                 <button type="button" onClick={() => setSaveTestName(null)} aria-label="Avbryt"
-                  style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', minHeight: 40, minWidth: 32 }}>✕</button>
+                  style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 40, minWidth: 32 }}>✕</button>
               </span>
             )}
           </div>
           {(activeStd?.guidance || activeOwn) && (
-            <p className="text-xs mt-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.5 }}>
+            <p className="text-xs mt-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.5 }}>
               {activeStd?.guidance ?? 'Egen mal — samme mal gir sammenlignbar testserie over tid.'}
             </p>
           )}
@@ -1803,10 +1803,10 @@ function ShootingFields({
       )}
 
       {isDry ? (
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
           Tørrtrening: før kun total skytetid i Varighet-feltet over — ingen
           skudd/treff registreres.
-          <span style={{ display: 'block', color: '#555560' }}>
+          <span style={{ display: 'block', color: 'var(--tekst-8-app)' }}>
             NSSF-tips: 3×5 min er bedre enn 1×15 min.
           </span>
         </p>
@@ -1817,7 +1817,7 @@ function ShootingFields({
           {series.map((s, i) => (
             <div key={s.id} style={{ borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
               <div className="flex flex-wrap items-center" style={{ gap: 6, padding: '6px 0' }}>
-                <span style={{ width: 16, textAlign: 'right', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#55555F', flexShrink: 0 }}>
+                <span style={{ width: 16, textAlign: 'right', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)', flexShrink: 0 }}>
                   {i + 1}
                 </span>
                 <div className="flex" style={{ borderRadius: 9, overflow: 'hidden', border: '1px solid var(--line2)', flexShrink: 0 }}>
@@ -1829,7 +1829,7 @@ function ShootingFields({
                         minWidth: 40, minHeight: 40, border: 'none', cursor: 'pointer',
                         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 14,
                         background: s.position === pos ? POSITION_COLORS[pos] : 'var(--card2)',
-                        color: s.position === pos ? '#0A0A0B' : '#8B8B95',
+                        color: s.position === pos ? 'var(--flate-3)' : 'var(--mut)',
                       }}>
                       {pos}
                     </button>
@@ -1919,7 +1919,7 @@ function ShootingFields({
                     </button>
                     <button type="button" aria-label="Fjern serie"
                       onClick={() => removeSeries(s.id)}
-                      style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: '#8B8B95', fontSize: 13 }}>
+                      style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)', fontSize: 13 }}>
                       ✕
                     </button>
                   </div>
@@ -1927,7 +1927,7 @@ function ShootingFields({
                 {planMode && (
                   <button type="button" aria-label="Fjern serie"
                     onClick={() => removeSeries(s.id)}
-                    style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: '#8B8B95', fontSize: 13 }}>
+                    style={{ minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer', background: 'none', border: '1px solid var(--line2)', color: 'var(--mut)', fontSize: 13 }}>
                     ✕
                   </button>
                 )}
@@ -1947,22 +1947,22 @@ function ShootingFields({
           {/* Sum-strip (delt «kun førte»-beregning). */}
           {sum.totalSeries > 0 && (
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2"
-              style={{ borderTop: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: '#8A8A96' }}>
-              <span><b style={{ color: '#F0F0F2' }}>{sum.shots}</b> skudd</span>
+              style={{ borderTop: '1px solid var(--line)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: 'var(--tekst-5-app)' }}>
+              <span><b style={{ color: 'var(--tekst-1-app)' }}>{sum.shots}</b> skudd</span>
               {!planMode && (
                 <span>
-                  Treff <b style={{ color: '#F0F0F2' }}>{sum.recordedHits}</b>/{sum.recordedShots} ført
-                  {sum.pct != null && <> · <b style={{ color: '#F0F0F2' }}>{Math.round(sum.pct)} %</b></>}
+                  Treff <b style={{ color: 'var(--tekst-1-app)' }}>{sum.recordedHits}</b>/{sum.recordedShots} ført
+                  {sum.pct != null && <> · <b style={{ color: 'var(--tekst-1-app)' }}>{Math.round(sum.pct)} %</b></>}
                 </span>
               )}
               {!planMode && sum.timeSum != null && (
-                <span>Skytetid <b style={{ color: '#F0F0F2' }}>{Math.round(sum.timeSum)}s</b></span>
+                <span>Skytetid <b style={{ color: 'var(--tekst-1-app)' }}>{Math.round(sum.timeSum)}s</b></span>
               )}
               {!planMode && sum.avgHr != null && (
-                <span>Snittpuls <b style={{ color: '#F0F0F2' }}>{sum.avgHr}</b></span>
+                <span>Snittpuls <b style={{ color: 'var(--tekst-1-app)' }}>{sum.avgHr}</b></span>
               )}
               {!planMode && sum.maxHr != null && (
-                <span>Makspuls <b style={{ color: '#F0F0F2' }}>{sum.maxHr}</b></span>
+                <span>Makspuls <b style={{ color: 'var(--tekst-1-app)' }}>{sum.maxHr}</b></span>
               )}
               {showPoints && (() => {
                 const pts = series.reduce((acc, s) => {
@@ -2070,7 +2070,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )
@@ -2137,19 +2137,19 @@ function CreateMovementTypeModal({
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: 'rgba(0,0,0,0.7)', padding: '16px',
+        backgroundColor: 'var(--scrim-70)', padding: '16px',
       }}
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#13131A', border: '1px solid #262629',
+          backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-5)',
           width: '100%', maxWidth: '480px', padding: '20px',
         }}
       >
         <h3 style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '22px', letterSpacing: '0.05em', margin: 0, marginBottom: '16px',
         }}>
           NY BEVEGELSESFORM
@@ -2174,9 +2174,9 @@ function CreateMovementTypeModal({
                     className="text-xs tracking-widest uppercase transition-opacity"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: active ? '#FF4500' : '#C0C0CC',
-                      background: active ? '#1A1A1E' : 'none',
-                      border: '1px solid ' + (active ? '#FF4500' : '#262629'),
+                      color: active ? '#FF4500' : 'var(--tekst-3-app)',
+                      background: active ? 'var(--kant-2)' : 'none',
+                      border: '1px solid ' + (active ? '#FF4500' : 'var(--kant-5)'),
                       padding: '6px 12px', cursor: 'pointer',
                     }}>
                     {KIND_LABELS[k]}
@@ -2211,8 +2211,8 @@ function CreateMovementTypeModal({
           <button type="button" onClick={onClose} disabled={saving}
             className="px-4 py-2 text-sm tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)',
               cursor: saving ? 'not-allowed' : 'pointer',
             }}>
             Avbryt

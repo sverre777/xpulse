@@ -94,8 +94,8 @@ export function WorkoutDetailChart({
   const hasAnyData = merged.length > 0
   if (!hasAnyData) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen sekund-data registrert for denne økten.
           Importer fra Strava eller last opp .fit-fil for å se grafen.
         </p>
@@ -107,10 +107,10 @@ export function WorkoutDetailChart({
   const xTicks = computeXTicks(totalSeconds)
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Økt-graf
         </p>
         <div className="flex gap-1.5 flex-wrap">
@@ -131,7 +131,7 @@ export function WorkoutDetailChart({
               onClick={() => setActive(s => ({ ...s, cadence: !s.cadence }))} />
           )}
           {visibility.altitude && (
-            <ToggleChip color="#8A8A96" label="Høyde" on={active.altitude}
+            <ToggleChip color="var(--tekst-5-app)" label="Høyde" on={active.altitude}
               onClick={() => setActive(s => ({ ...s, altitude: !s.altitude }))} />
           )}
         </div>
@@ -181,7 +181,7 @@ export function WorkoutDetailChart({
                   key={`lap-${i}`}
                   yAxisId="left"
                   x={lap.t_start}
-                  stroke="#3A3A42"
+                  stroke="var(--tekst-10-alt)"
                   strokeDasharray="2 4"
                 />
               )
@@ -199,7 +199,7 @@ export function WorkoutDetailChart({
                   yAxisId="left"
                   r={5}
                   fill="#E23A5A"
-                  stroke="#0A0A0B"
+                  stroke="var(--flate-3)"
                   strokeWidth={1.5}
                   ifOverflow="visible"
                 />
@@ -217,7 +217,7 @@ export function WorkoutDetailChart({
                   yAxisId="left"
                   r={4}
                   fill="#FFB300"
-                  stroke="#0A0A0B"
+                  stroke="var(--flate-3)"
                   strokeWidth={1.5}
                   ifOverflow="visible"
                 />
@@ -236,7 +236,7 @@ export function WorkoutDetailChart({
                   yAxisId="left"
                   r={5}
                   fill={allHits ? '#3DD68C' : '#FF4500'}
-                  stroke="#0A0A0B"
+                  stroke="var(--flate-3)"
                   strokeWidth={1.5}
                   ifOverflow="visible"
                 />
@@ -249,7 +249,7 @@ export function WorkoutDetailChart({
                 type="monotone"
                 dataKey="alt"
                 name="Høyde (m)"
-                stroke="#8A8A96"
+                stroke="var(--tekst-5-app)"
                 strokeWidth={1}
                 dot={false}
                 isAnimationActive={false}
@@ -332,8 +332,8 @@ function ToggleChip({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         background: 'none',
-        border: `1px solid ${on ? color : '#1E1E22'}`,
-        color: on ? color : '#555560',
+        border: `1px solid ${on ? color : 'var(--kant-3)'}`,
+        color: on ? color : 'var(--tekst-8-app)',
         padding: '4px 10px',
         cursor: 'pointer',
         opacity: on ? 1 : 0.6,
@@ -358,7 +358,7 @@ function MarkerLegend({
   if (!hasLactate && !hasNutrition && !hasShooting && !hasLaps) return null
   return (
     <div className="flex gap-4 mt-2 flex-wrap text-xs"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {hasLaps && <span>┊ Lap-grense</span>}
       {hasLactate && <span style={{ color: '#E23A5A' }}>● Laktat</span>}
       {hasNutrition && <span style={{ color: '#FFB300' }}>● Ernæring</span>}

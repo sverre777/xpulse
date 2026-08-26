@@ -10,7 +10,7 @@ import {
 // select (snøen kan være flere ting samtidig). Samme stil som ernæring-seksjonen.
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22', border: '1px solid #1E1E22', color: '#F0F0F2',
+  backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
   padding: '6px 10px', outline: 'none', width: '100%', boxSizing: 'border-box', minWidth: 0,
 }
@@ -79,9 +79,9 @@ export function WeatherSection({ value, onChange, readOnly = false }: {
                   className="px-2 py-0.5 text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: active ? '#F0F0F2' : '#555560',
-                    background: active ? '#2A2A30' : 'transparent',
-                    border: '1px solid #222228', cursor: readOnly ? 'default' : 'pointer',
+                    color: active ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+                    background: active ? 'var(--kant-6)' : 'transparent',
+                    border: '1px solid var(--kant-4)', cursor: readOnly ? 'default' : 'pointer',
                   }}>
                   {lab}
                 </button>
@@ -118,7 +118,7 @@ function SurfaceGroup({ label, options, selected, onToggle, readOnly }: {
   return (
     <div className="mb-2">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
       <div className="flex flex-wrap gap-1.5 mt-1">
@@ -130,8 +130,8 @@ function SurfaceGroup({ label, options, selected, onToggle, readOnly }: {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: active ? '#FF4500' : 'transparent',
-                color: active ? '#F0F0F2' : '#555560',
-                border: `1px solid ${active ? '#FF4500' : '#222228'}`,
+                color: active ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+                border: `1px solid ${active ? '#FF4500' : 'var(--kant-4)'}`,
                 cursor: readOnly ? 'default' : 'pointer',
               }}>
               {o.label}
@@ -149,7 +149,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )

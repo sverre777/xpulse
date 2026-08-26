@@ -24,7 +24,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   const ctaStyle: CSSProperties = {
     display: 'inline-block',
-    backgroundColor: accent, color: '#F0F0F2',
+    backgroundColor: accent, color: 'var(--tekst-1-app)',
     padding: '10px 20px',
     fontFamily: "'Barlow Condensed', sans-serif",
     fontWeight: 600, fontSize: 13,
@@ -36,26 +36,26 @@ export function EmptyState({
   const secondaryStyle: CSSProperties = {
     ...ctaStyle,
     backgroundColor: 'transparent',
-    border: '1px solid #333340',
+    border: '1px solid var(--kant-hover)',
   }
   return (
     <div
       className="text-center"
       style={{
         padding: compact ? '20px 16px' : '40px 20px',
-        backgroundColor: '#13131A',
-        border: '1px dashed #333340',
+        backgroundColor: 'var(--flate-12-alt)',
+        border: '1px dashed var(--kant-hover)',
       }}
     >
       <p style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+        fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
         fontSize: compact ? 17 : 21, letterSpacing: '0.06em', margin: 0,
       }}>
         {title}
       </p>
       {body ? (
         <p className="mx-auto mt-2" style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
           fontSize: 14, lineHeight: 1.65, maxWidth: 460, marginBottom: 0,
         }}>
           {body}

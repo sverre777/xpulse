@@ -74,7 +74,7 @@ export function DialogHost() {
       className="xp-fade-in"
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.72)',
+        backgroundColor: 'var(--scrim-72)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}
@@ -92,7 +92,7 @@ export function DialogHost() {
         <p
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-            color: '#F0F0F2', fontSize: 16, lineHeight: 1.5, margin: 0,
+            color: 'var(--tekst-1-app)', fontSize: 16, lineHeight: 1.5, margin: 0,
           }}
         >
           {current.title}
@@ -101,7 +101,7 @@ export function DialogHost() {
           <p
             className="mt-2"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
               fontSize: 14, lineHeight: 1.6, margin: 0,
             }}
           >
@@ -117,8 +117,8 @@ export function DialogHost() {
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                backgroundColor: 'transparent', color: '#F0F0F2',
-                border: '1px solid #333340', cursor: 'pointer',
+                backgroundColor: 'transparent', color: 'var(--tekst-1-app)',
+                border: '1px solid var(--kant-hover)', cursor: 'pointer',
                 borderRadius: 'var(--r-field)',
               }}
             >
@@ -132,8 +132,8 @@ export function DialogHost() {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              backgroundColor: current.kind === 'confirm' ? '#E11D48' : '#333340',
-              color: '#F0F0F2', border: 'none', cursor: 'pointer',
+              backgroundColor: current.kind === 'confirm' ? '#E11D48' : 'var(--kant-hover)',
+              color: 'var(--tekst-1-app)', border: 'none', cursor: 'pointer',
               borderRadius: 'var(--r-field)',
             }}
           >

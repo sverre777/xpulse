@@ -8,7 +8,7 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
   return (
     <div
       className="p-5 mb-6"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22', borderLeft: '3px solid #E11D48' }}
+      style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #E11D48' }}
     >
       <p
         className="text-xs tracking-widest uppercase mb-1"
@@ -18,7 +18,7 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
       </p>
       <p
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#C9C9CE',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-alt)',
           fontSize: 14, lineHeight: 1.6, maxWidth: 560,
         }}
       >
@@ -31,8 +31,8 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
         className="mt-3 px-4 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-          backgroundColor: 'transparent', color: '#F0F0F2',
-          border: '1px solid #333340', cursor: 'pointer',
+          backgroundColor: 'transparent', color: 'var(--tekst-1-app)',
+          border: '1px solid var(--kant-hover)', cursor: 'pointer',
         }}
       >
         Last siden på nytt
@@ -41,13 +41,13 @@ export function LoadError({ what, detail }: { what: string; detail?: string | nu
         <details className="mt-3">
           <summary
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F', cursor: 'pointer' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', cursor: 'pointer' }}
           >
             Tekniske detaljer
           </summary>
           <pre
             className="whitespace-pre-wrap break-words mt-2"
-            style={{ fontFamily: 'ui-monospace, monospace', color: '#8A8A96', fontSize: 12 }}
+            style={{ fontFamily: 'ui-monospace, monospace', color: 'var(--tekst-5-app)', fontSize: 12 }}
           >
             {detail}
           </pre>

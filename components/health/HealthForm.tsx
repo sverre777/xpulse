@@ -49,7 +49,7 @@ function KildeMerke({ source }: { source?: string }) {
   return (
     <span
       title={`Hentet fra ${source.charAt(0).toUpperCase()}${source.slice(1)}`}
-      style={{ marginLeft: 6, fontSize: 11, color: '#8A8A96', whiteSpace: 'nowrap' }}>
+      style={{ marginLeft: 6, fontSize: 11, color: 'var(--tekst-5-app)', whiteSpace: 'nowrap' }}>
       ⌚ {source}
     </span>
   )
@@ -209,7 +209,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
   const iSt: React.CSSProperties = {
     backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
     borderRadius: 'var(--r-field)',
-    color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+    color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: '16px', padding: '10px 14px', outline: 'none', width: '100%',
   }
 
@@ -256,7 +256,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
           </Field>
         </div>
         {tidISeng && (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '6px 0 0' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: '6px 0 0' }}>
             {tidISeng} — søvntiden fyller du ut selv, siden den sjelden er hele tiden i senga.
           </p>
         )}
@@ -276,7 +276,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
           </Field>
         </div>
 
-        <p className="mt-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '16px 0 0' }}>
+        <p className="mt-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', margin: '16px 0 0' }}>
           Søvnfaser (minutter)
         </p>
         <div className="grid grid-cols-3 gap-3 mt-2">
@@ -307,7 +307,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
                 <button key={n} type="button" aria-label={`${n} av 5`}
                   onClick={() => set('sleep_quality', form.sleep_quality === n ? null : n)}
                   style={{
-                    fontSize: '24px', color: (form.sleep_quality ?? 0) >= n ? '#28A86E' : '#2A2A30',
+                    fontSize: '24px', color: (form.sleep_quality ?? 0) >= n ? '#28A86E' : 'var(--kant-6)',
                     background: 'none', border: 'none', cursor: 'pointer',
                     minWidth: 44, minHeight: 44, lineHeight: 1, padding: 0,
                   }}>★</button>
@@ -393,7 +393,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
           className="flex-1 py-4 text-lg tracking-widest uppercase font-semibold"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: saving ? '#1A5A3A' : '#28A86E', color: '#fff',
+            backgroundColor: saving ? '#1A5A3A' : '#28A86E', color: 'var(--tekst-1-ren)',
             border: 'none', borderRadius: 12, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
           }}>
           {saving ? 'Lagrer...' : existing ? 'Oppdater helse' : 'Lagre helse'}
@@ -401,7 +401,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
         <button type="button" onClick={() => (onCancel ? onCancel() : router.back())}
           className="px-6 py-4 text-lg tracking-widest uppercase"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
             backgroundColor: 'transparent', border: '1px solid var(--line2)', borderRadius: 12, cursor: 'pointer',
           }}>
           Avbryt
@@ -415,7 +415,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
       <span style={{ width: '16px', height: '2px', backgroundColor: '#28A86E', display: 'inline-block' }} />
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.08em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.08em' }}>
         {children}
       </span>
     </div>
@@ -426,7 +426,7 @@ function Field({ label, children }: { label: React.ReactNode; children: React.Re
   return (
     <div>
       <label className="block mb-1.5 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}

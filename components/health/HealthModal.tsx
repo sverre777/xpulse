@@ -77,7 +77,7 @@ export function HealthModal({ date, open, onClose, onSaved }: Props) {
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}
@@ -95,17 +95,17 @@ export function HealthModal({ date, open, onClose, onSaved }: Props) {
           <div className="flex items-center gap-3">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#28A86E', display: 'inline-block' }} />
             <div>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em', margin: 0 }}>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em', margin: 0 }}>
                 Helse
               </h2>
-              <p className="capitalize" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: 0 }}>
+              <p className="capitalize" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: 0 }}>
                 {dateLabel}
               </p>
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
-              color: '#555560', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: '22px', lineHeight: 1, minWidth: 44, minHeight: 44,
             }}>
             ×
@@ -113,7 +113,7 @@ export function HealthModal({ date, open, onClose, onSaved }: Props) {
         </div>
 
         {loading ? (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 14 }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 14 }}>
             Henter dagens verdier …
           </p>
         ) : (

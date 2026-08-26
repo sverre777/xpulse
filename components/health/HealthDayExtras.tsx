@@ -69,7 +69,7 @@ function BrandSection({ brand, metrics }: { brand: string; metrics: Record<strin
     <div className="p-4" style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="mb-2" style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8A8A96', margin: 0,
+        letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', margin: 0,
       }}>
         ⌚ Fra {merkenavn}
       </p>
@@ -80,15 +80,15 @@ function BrandSection({ brand, metrics }: { brand: string; metrics: Record<strin
           return (
             <div key={key} className="flex items-baseline justify-between gap-2"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
-              <span style={{ color: '#8A8A96' }}>{spec?.label ?? key}</span>
-              <span style={{ color: '#F0F0F2', fontWeight: 600 }}>{vist}</span>
+              <span style={{ color: 'var(--tekst-5-app)' }}>{spec?.label ?? key}</span>
+              <span style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{vist}</span>
             </div>
           )
         })}
       </div>
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        color: '#555560', lineHeight: 1.5, margin: '10px 0 0',
+        color: 'var(--tekst-8-app)', lineHeight: 1.5, margin: '10px 0 0',
       }}>
         {merkenavn} sine egne skårer, på {merkenavn} sin skala. De regnes ikke inn i
         trenden under, som bruker verdier som er sammenlignbare på tvers av kilder.
@@ -103,7 +103,7 @@ function TrendSection({ points }: { points: { date: string; resting_hr: number |
     <div className="p-4" style={{ background: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="mb-3" style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8A8A96', margin: 0,
+        letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-5-app)', margin: 0,
       }}>
         Siste 14 dager
       </p>
@@ -117,7 +117,7 @@ function TrendSection({ points }: { points: { date: string; resting_hr: number |
       </div>
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        color: '#555560', lineHeight: 1.5, margin: '10px 0 0',
+        color: 'var(--tekst-8-app)', lineHeight: 1.5, margin: '10px 0 0',
       }}>
         Snitt regnes kun av dager som faktisk har en verdi — dager uten føring teller ikke som null.
       </p>
@@ -147,9 +147,9 @@ function TrendRow({ label, unit, color, values }: {
     <div>
       <div className="flex items-baseline justify-between"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12 }}>
-        <span style={{ color: '#8A8A96' }}>{label}</span>
-        <span style={{ color: '#F0F0F2' }}>
-          {siste.v}{unit} <span style={{ color: '#555560' }}>· snitt {Math.round(snitt * 10) / 10}{unit} av {førte.length} dager</span>
+        <span style={{ color: 'var(--tekst-5-app)' }}>{label}</span>
+        <span style={{ color: 'var(--tekst-1-app)' }}>
+          {siste.v}{unit} <span style={{ color: 'var(--tekst-8-app)' }}>· snitt {Math.round(snitt * 10) / 10}{unit} av {førte.length} dager</span>
         </span>
       </div>
       <div className="flex items-end gap-0.5 mt-1" style={{ height: 28 }}>

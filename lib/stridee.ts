@@ -83,6 +83,46 @@ function dekodBase64Fritt(s: string): Uint8Array | null {
 }
 
 /**
+ * PKCS#8-PEM → JWK-er. Stridee leverer privatnøkkelen som .pem-fil.
+ *
+ * KUN «BEGIN PRIVATE KEY» (PKCS#8). «BEGIN EC PRIVATE KEY» (SEC1) og alt
+ * annet hoppes over — vi later ikke som vi forstår et format vi ikke har
+ * verifisert.
+ *
+ * MÅLT: en X25519 PKCS#8 er 48 byte, der de 16 første er OID-prefikset og de
+ * 32 siste er nøkkelen. En Ed25519-PEM er OGSÅ 48 byte og skiller seg bare på
+ * OID-en (…2b6570 mot …2b656e) — kutter man blindt de siste 32, får man en
+ * nøkkel av FEIL KURVE som ser gyldig ut og aldri dekrypterer. Derfor
+ * sammenlignes hele prefikset.
+ */
+function lesPemNokler(raa: string): JWK[] {
+  const ut: JWK[] = []
+  // Alt mellom BEGIN og END, uansett etikett — etiketten sjekkes etterpå, så
+  // en EC-blokk blir hoppet over i stedet for å bli feiltolket.
+  const blokker = raa.matchAll(/-----BEGIN ([A-Z0-9 ]+)-----([\s\S]*?)-----END \1-----/g)
+  for (const blokk of blokker) {
+    if (blokk[1] !== 'PRIVATE KEY') continue
+    // Linjeskift kan komme som ekte \n, \r\n — eller som de TO tegnene
+    // backslash+n hvis env-transporten har manglet dem. Backslash finnes
+    // ikke i base64-alfabetet, så begge kan fjernes uten tvetydighet.
+    const kropp = blokk[2].replace(/\\[rn]/g, '').replace(/\s+/g, '')
+    const der = dekodBase64Fritt(kropp)
+    if (!der || der.length !== PKCS8_X25519_PREFIX.length + 32) continue
+    let riktigKurve = true
+    for (let i = 0; i < PKCS8_X25519_PREFIX.length; i++) {
+      if (der[i] !== PKCS8_X25519_PREFIX[i]) { riktigKurve = false; break }
+    }
+    if (!riktigKurve) continue
+    ut.push({
+      kty: 'OKP',
+      crv: 'X25519',
+      d: base64url.encode(der.subarray(PKCS8_X25519_PREFIX.length)),
+    })
+  }
+  return ut
+}
+
+/**
  * Leser våre private nøkler. Env-verdien kan være:
  *   · én JWK             {"kty":"OKP",...}
  *   · et JWKS-objekt     {"keys":[...]}
@@ -90,6 +130,8 @@ function dekodBase64Fritt(s: string): Uint8Array | null {
  *   · RÅ base64(url) av de 32 private-nøkkelbytene — formatet flere
  *     nøkkeldashboards gir ut. Flere rå nøkler skilles med komma eller
  *     linjeskift, så begge Stridee-nøklene kan ligge inne samtidig.
+ *   · PKCS#8-PEM        -----BEGIN PRIVATE KEY----- … — formatet Stridee
+ *     faktisk leverer. Flere PEM-blokker i samme verdi gir flere nøkler.
  *
  * Flere former støttes fordi ET ENDEPUNKT KAN HOLDE TO NØKLER gjennom en
  * rotasjon. Vi slår opp på kid fra JWE-headeret i stedet for å anta at det
@@ -113,6 +155,10 @@ export function lesPrivateNokler(raa: string | undefined): JWK[] {
   } catch {
     // Ikke JSON — da er det (kanskje) rå nøkkelbytes.
   }
+
+  // PEM FØRST: en PEM-blokk inneholder linjeskift, og ville blitt hakket i
+  // biter av rå-splittingen under.
+  if (raa.includes('-----BEGIN')) return lesPemNokler(raa)
 
   const ut: JWK[] = []
   for (const bit of raa.split(/[,\n\r]+/)) {

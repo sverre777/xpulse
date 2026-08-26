@@ -8,7 +8,7 @@
  * vi det her og ikke i produksjon.
  */
 import {
-  generateKeyPair, exportJWK, importJWK, FlattenedSign, CompactEncrypt,
+  generateKeyPair, exportJWK, importJWK, exportPKCS8, FlattenedSign, CompactEncrypt,
   type JWK, type CryptoKey,
 } from 'jose'
 import {
@@ -206,6 +206,51 @@ async function main() {
   sjekk('kid-løs nøkkel er alltid kandidat', kand.length, 2)
   sjekk('ukjent kid → kun de kid-løse',
     velgNokkelKandidater([annenJwk, raaJwk], 'finnes-ikke').length, 1)
+
+  // ── PEM (bolk 1c) ──────────────────────────────────────────────────────
+  // Stridee leverer nøkkelen som .pem-fil. MÅLT: X25519 PKCS#8 er 48 byte
+  // (16 OID-prefiks + 32 nøkkel), og en Ed25519-PEM er OGSÅ 48 byte — de
+  // skiller seg bare på OID-en. Derfor sjekkes hele prefikset.
+  console.log('\n— PEM —')
+
+  const pem = await exportPKCS8(boks.privateKey)
+  const fraPem = lesPrivateNokler(pem)
+  sjekk('PKCS#8-PEM gir én nøkkel', fraPem.length, 1)
+  sjekk('PEM gir crv X25519', fraPem[0]?.crv, 'X25519')
+  sjekk('PEM gir samme d som JWK-eksporten', fraPem[0]?.d === boksPrivJwk.d, true)
+  sjekk('PEM-nøkkel har ingen kid', fraPem[0]?.kid, undefined)
+
+  // Linjeskift-varianter: env-transport kan gi \r\n — eller de TO tegnene
+  // backslash+n hvis ekte linjeskift ikke overlevde.
+  sjekk('CRLF tåles', lesPrivateNokler(pem.replace(/\n/g, '\r\n')).length, 1)
+  sjekk('literal backslash-n tåles', lesPrivateNokler(pem.replace(/\n/g, '\\n')).length, 1)
+  sjekk('ekstra blanke linjer tåles', lesPrivateNokler(`\n\n${pem}\n\n`).length, 1)
+
+  // Flere PEM-blokker i samme verdi.
+  const pem2 = await exportPKCS8(annenBoks.privateKey)
+  sjekk('to PEM-blokker gir to nøkler', lesPrivateNokler(`${pem}${pem2}`).length, 2)
+
+  // FEIL KURVE: Ed25519-PEM er også 48 byte — OID-sjekken må fange den.
+  const edPem = await exportPKCS8(sign.privateKey)
+  sjekk('Ed25519-PEM gir 0 nøkler (feil kurve)', lesPrivateNokler(edPem).length, 0)
+
+  // SEC1 («EC PRIVATE KEY») skal ikke godtas — kun PKCS#8.
+  const sec1 = '-----BEGIN EC PRIVATE KEY-----\n' +
+    b64u.encode(new Uint8Array(48).fill(3)) + '\n-----END EC PRIVATE KEY-----'
+  sjekk('EC PRIVATE KEY (SEC1) gir 0 nøkler', lesPrivateNokler(sec1).length, 0)
+  sjekk('avkortet PEM gir 0 nøkler',
+    lesPrivateNokler(pem.replace('-----END PRIVATE KEY-----', '')).length, 0)
+  sjekk('PEM m/ tullball-innhold gir 0 nøkler',
+    lesPrivateNokler('-----BEGIN PRIVATE KEY-----\ndette er ikke base64\n-----END PRIVATE KEY-----').length, 0)
+
+  // ── RUNDTUR: PEM som env-verdi må dekryptere en ekte JWE ────────────────
+  const rundturPem = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(pem))
+  sjekk('RUNDTUR PEM dekrypterer', rundturPem.ok, true)
+  sjekk('RUNDTUR PEM gir riktig nonce', rundturPem.data?.nonce, nonce)
+  const rundturPemKid = await dekrypterHendelse(jweFremmedKid, lesPrivateNokler(pem))
+  sjekk('RUNDTUR PEM m/ ukjent kid dekrypterer', rundturPemKid.ok, true)
+  const rundturPemCrlf = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(pem.replace(/\n/g, '\r\n')))
+  sjekk('RUNDTUR CRLF-PEM dekrypterer', rundturPemCrlf.ok, true)
 
   console.log('\n— kvittering —')
   const k = kvittering(nonce)

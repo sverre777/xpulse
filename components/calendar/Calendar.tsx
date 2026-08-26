@@ -342,7 +342,7 @@ function ZoneBar({ zones }: { zones: { zone_name: string; minutes: number }[] })
         <div key={z.zone_name}
           style={{
             width: `${(z.minutes / total) * 100}%`,
-            backgroundColor: ZONE_COLORS_V2[z.zone_name as ExtendedZoneName] ?? '#333',
+            backgroundColor: ZONE_COLORS_V2[z.zone_name as ExtendedZoneName] ?? 'var(--graa-33)',
           }} />
       ))}
     </div>
@@ -394,7 +394,7 @@ function WeekAnalysisStripe({
     >
       <span
         className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minWidth: '52px' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', minWidth: '52px' }}
       >
         Uke {weekNumber}
       </span>
@@ -416,7 +416,7 @@ function WeekAnalysisStripe({
       {empty ? (
         <span
           className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
         >
           Ingen aktivitet
           {plannedSeconds != null && ` · ${fmtDuration(Math.round(plannedSeconds / 60))} planlagt`}
@@ -428,16 +428,16 @@ function WeekAnalysisStripe({
           </span>
           {plannedSeconds != null && (
             <span title="Gjennomført av planlagt denne uka"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13.5px' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13.5px' }}>
               / {fmtDuration(Math.round(plannedSeconds / 60))} plan
             </span>
           )}
           {km > 0 && (
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
               {km.toLocaleString('nb-NO')} km
             </span>
           )}
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
             {sessions} økt{sessions !== 1 ? 'er' : ''}
           </span>
           {totalSeconds > 0 && (
@@ -448,20 +448,20 @@ function WeekAnalysisStripe({
               {totalZoneSec > 0 ? (
                 <span
                   className="text-xs tracking-wide"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                 >
                   <span style={{ color: ZONE_COLORS_V2.I1 }}>I1-2: {i12}%</span>
-                  <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                  <span style={{ color: 'var(--tekst-8-app)', margin: '0 6px' }}>·</span>
                   <span style={{ color: ZONE_COLORS_V2.I3 }}>I3: {i3}%</span>
-                  <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+                  <span style={{ color: 'var(--tekst-8-app)', margin: '0 6px' }}>·</span>
                   <span style={{ color: ZONE_COLORS_V2.I5 }}>I4-5+: {i45}%</span>
                 </span>
               ) : (
                 <span
                   className="text-xs tracking-wide"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                 >
-                  Uten soner (styrke o.l.): <b style={{ color: '#C0C0CC' }}>100%</b>
+                  Uten soner (styrke o.l.): <b style={{ color: 'var(--tekst-3-app)' }}>100%</b>
                 </span>
               )}
             </>
@@ -499,7 +499,7 @@ function AggZoneBar({
       {otherSeconds > 0 && (
         <div
           title={`Uten soner (styrke o.l.): ${Math.round(otherSeconds / 60)}min`}
-          style={{ width: `${(otherSeconds / total) * 100}%`, backgroundColor: '#3A3A42' }} />
+          style={{ width: `${(otherSeconds / total) * 100}%`, backgroundColor: 'var(--tekst-10-alt)' }} />
       )}
     </div>
   )
@@ -521,7 +521,7 @@ function ZoneLegend({
         return (
           <span key={k}>
             <span style={{ color: ZONE_COLORS_V2[k], letterSpacing: '0.08em' }}>{k}</span>
-            <span style={{ color: '#C0C0CC' }}> {mins}min</span>
+            <span style={{ color: 'var(--tekst-3-app)' }}> {mins}min</span>
           </span>
         )
       })}
@@ -570,12 +570,12 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
   dragging?: boolean
 }) {
   const comp = competitionChipStyle(w, mode)
-  const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+  const fallbackColor = TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'
   // Accent følger intensitet (sone-regelen over); konkurranse/testløp
   // beholder sine farger, styrke får design-grå, uten sonedata → type-farge.
   const isStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
   const color = comp?.color
-    ?? (isStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? fallbackColor))
+    ?? (isStrength ? 'var(--tekst-7)' : (intensityAccent(w, mode) ?? fallbackColor))
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
   // Trener-markering vises kun i planlagt tilstand (plan-kalender alltid, dagbok
@@ -639,7 +639,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             (aldri 'anywhere' — den brakk ord midt i på smale mobilceller).
             Varighet/bev.form ligger alltid i meta-linjen under. */}
         <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#DEDEE6',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-2)',
           fontSize: '14px', lineHeight: '15px',
           display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
@@ -665,7 +665,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
           {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.start_time && (
-            <span style={{ color: '#A9A9B5', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
+            <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
           )}
           {w.title}
         </span>
@@ -682,7 +682,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             {durationLabel ? <span style={{ color: '#FF4500', marginRight: '4px' }}>{durationLabel}</span> : null}
             {/* Underkategori + bev.form — på mobil kun én av de to (plassen). */}
             {(w.primary_subcategory || w.primary_movement) ? (
-              <span style={{ color: '#A9A9B5', marginRight: '4px' }}>
+              <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>
                 {w.primary_subcategory && w.primary_movement && w.primary_subcategory !== w.primary_movement ? (
                   <>
                     {w.primary_subcategory}
@@ -691,7 +691,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
                 ) : (w.primary_subcategory ?? w.primary_movement)}
               </span>
             ) : null}
-            {shootingLabel ? <span style={{ color: '#A9A9B5' }}>{shootingLabel}</span> : null}
+            {shootingLabel ? <span style={{ color: 'var(--tekst-4-kal)' }}>{shootingLabel}</span> : null}
             {/* Kø #48: diskret standardøkt-markør (serienavn i title). */}
             {w.standard_session_name ? (
               <span title={`Standardøkt: ${w.standard_session_name}`}
@@ -722,7 +722,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
   const comp = competitionChipStyle(w, mode)
   const isStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
   const color = comp?.color
-    ?? (isStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? '#555'))
+    ?? (isStrength ? 'var(--tekst-7)' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'))
   const isPlanned = planVisual(w, mode)
   const durationLabel = formatDurationShort(secondsFor(w, mode))
   return (
@@ -753,14 +753,14 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
       {comp && <span style={{ fontSize: 12, flexShrink: 0 }}>{comp.icon}</span>}
       {w.is_important && <span style={{ color: '#FF4500', fontSize: 12, flexShrink: 0 }}>★</span>}
       {w.start_time && (
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: '12.5px', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: '12.5px', flexShrink: 0 }}>
           {w.start_time.slice(0, 5)}
         </span>
       )}
       <span style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: 15,
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        minWidth: 0, color: '#F2F2F0',
+        minWidth: 0, color: 'var(--ink)',
       }}>
         {w.title}
       </span>
@@ -862,17 +862,17 @@ function CalendarAnalysisPanel({
         className="w-full flex items-center gap-2"
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
         <span style={{ color: 'var(--accent)', fontSize: 11, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform .2s' }}>▼</span>
-        <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: '#F0F0F2' }}>
+        <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, color: 'var(--tekst-1-app)' }}>
           Analyse {label}
         </span>
-        <span className="ml-auto text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <span className="ml-auto text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {open ? 'Skjul' : 'Vis'}
         </span>
       </button>
 
       {open && (
         <div className="mt-3">
-          <div className="grid grid-cols-3 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,#131318,#0E0E12)', borderColor: 'var(--line)' }}>
+          <div className="grid grid-cols-3 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,var(--flate-12),var(--flate-7-alt))', borderColor: 'var(--line)' }}>
             <div style={{ padding: '12px 16px' }}>
               <span className="xp-k">Total tid</span>
               <div className="xp-v" style={{ fontSize: 28 }}>{agg.seconds > 0 ? fmtT(agg.seconds) : '—'}</div>
@@ -909,16 +909,16 @@ function CalendarAnalysisPanel({
                   const secs = agg.zoneSeconds[k] ?? 0
                   if (secs <= 0) return null
                   return (
-                    <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#C9C9D4' }}>
+                    <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-3)' }}>
                       <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: ZONE_COLORS_V2[k], marginRight: 5 }} />
-                      {k} <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(secs)}</b>
+                      {k} <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtT(secs)}</b>
                     </span>
                   )
                 })}
                 {agg.seconds - zoneTotal > 0 && (
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#C9C9D4' }}>
-                    <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: '#3A3A44', marginRight: 5 }} />
-                    Annet <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(agg.seconds - zoneTotal)}</b>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-3)' }}>
+                    <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: 'var(--tekst-10)', marginRight: 5 }} />
+                    Annet <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtT(agg.seconds - zoneTotal)}</b>
                   </span>
                 )}
               </div>
@@ -930,7 +930,7 @@ function CalendarAnalysisPanel({
               {sports.map(sp => (
                 <span key={sp.label}
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 8, padding: '6px 12px' }}>
-                  {sp.label} · <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtT(sp.seconds)}</b>
+                  {sp.label} · <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtT(sp.seconds)}</b>
                 </span>
               ))}
             </div>
@@ -1043,13 +1043,13 @@ function MonthPicker({ year, month, onSelect, onClose }: {
   const [pickYear, setPickYear] = useState(year)
   return (
     <div className="absolute z-50 top-full left-1/2 mt-2 shadow-xl"
-      style={{ backgroundColor: '#1A1A22', border: '1px solid #2A2A30', transform: 'translateX(-50%)', minWidth: '280px' }}>
-      <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid #1A1A1E' }}>
+      style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-6)', transform: 'translateX(-50%)', minWidth: '280px' }}>
+      <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--kant-2)' }}>
         <button type="button" onClick={() => setPickYear(y => y - 1)}
-          style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>←</button>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.08em' }}>{pickYear}</span>
+          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>←</button>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.08em' }}>{pickYear}</span>
         <button type="button" onClick={() => setPickYear(y => y + 1)}
-          style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>→</button>
+          style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>→</button>
       </div>
       <div className="grid grid-cols-4 gap-1 p-2">
         {MONTHS_SHORT.map((m, i) => (
@@ -1058,7 +1058,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: pickYear === year && i + 1 === month ? '#FF4500' : 'transparent',
-              color: pickYear === year && i + 1 === month ? '#F0F0F2' : '#8A8A96',
+              color: pickYear === year && i + 1 === month ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               border: 'none', cursor: 'pointer',
             }}>
             {m}
@@ -1066,7 +1066,7 @@ function MonthPicker({ year, month, onSelect, onClose }: {
         ))}
       </div>
       <button type="button" onClick={onClose}
-        style={{ position: 'absolute', top: '6px', right: '8px', color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>×</button>
+        style={{ position: 'absolute', top: '6px', right: '8px', color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>×</button>
     </div>
   )
 }
@@ -1102,7 +1102,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
   const states = dayStatesByDate[dateStr] ?? []
   const stateBg = stateBgFor(states)
   const borderStyle = stateBorderFor(states)
-  const baseBg = isExpanded ? '#0F0F16' : isToday ? '#0D0D14' : '#0D0D11'
+  const baseBg = isExpanded ? 'var(--flate-8-c)' : isToday ? 'var(--flate-6-b)' : 'var(--flate-6-alt)'
 
   // Drop-sone for dra-og-slipp: slippes en økt her flyttes den til denne dagen.
   const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `day:${dateStr}`, data: { date: dateStr } })
@@ -1153,7 +1153,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
       <div className="flex items-center justify-between mb-1">
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: '15px', lineHeight: 1,
-          color: isToday ? '#fff' : '#F0F0F2',
+          color: isToday ? 'var(--tekst-1-ren)' : 'var(--tekst-1-app)',
           background: isToday ? 'var(--accent)' : 'none',
           borderRadius: isToday ? 6 : 0,
           padding: isToday ? '2px 5px 1px' : 0,
@@ -1230,7 +1230,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
             <div className="flex items-baseline justify-between mt-0.5"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#555560', fontSize: '13px', letterSpacing: '0.04em',
+                color: 'var(--tekst-8-app)', fontSize: '13px', letterSpacing: '0.04em',
               }}>
               <span>{kmLabel ?? ''}</span>
               <span>{timeLabel ?? ''}</span>
@@ -1427,13 +1427,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           <a href={volHref} title="Åpne årsplanens volum-seksjon"
             className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-4 md:px-6 py-2"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: '#8A8A96',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: 'var(--tekst-5-app)',
               borderBottom: CALENDAR_TOKENS.headerDivider, textDecoration: 'none',
             }}>
-            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: '#55555F' }}>
+            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: 'var(--tekst-8-alt)' }}>
               Mål fra årsplan
             </span>
-            <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtDuration(goalMins) ?? '0m'}</b>
+            <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtDuration(goalMins) ?? '0m'}</b>
             <span>· {fmtDuration(plannedMins) ?? '0m'} planlagt</span>
             {diffMins > 0
               ? <span style={{ color: '#FF8C00' }}>→ {fmtDuration(diffMins)} igjen</span>
@@ -1451,7 +1451,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const colorFor = (k: string) =>
           k === 'I1-2' ? ZONE_COLORS_V2.I1
           : k === 'I4-5' ? ZONE_COLORS_V2.I5
-          : (ZONE_COLORS_V2 as Record<string, string>)[k] ?? '#8B8B95'
+          : (ZONE_COLORS_V2 as Record<string, string>)[k] ?? 'var(--mut)'
         const zoneEntries = order
           .filter(k => (zh[k] ?? 0) > 0)
           .map(k => [k, zh[k] as number] as const)
@@ -1461,8 +1461,8 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const fmtN = (n: number) => n.toLocaleString('nb-NO', { maximumFractionDigits: 1 })
         return (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 md:px-6 py-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12.5px', color: '#8A8A96', borderBottom: CALENDAR_TOKENS.headerDivider }}>
-            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: '#55555F' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '12.5px', color: 'var(--tekst-5-app)', borderBottom: CALENDAR_TOKENS.headerDivider }}>
+            <span className="tracking-widest uppercase" style={{ fontSize: 11, color: 'var(--tekst-8-alt)' }}>
               Tenkt fordeling
             </span>
             {zoneEntries.length > 0 && (
@@ -1494,7 +1494,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
       <div className={layout === 'grid' ? 'hidden md:grid' : 'hidden'} style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '0 8px', borderBottom: CALENDAR_TOKENS.headerDivider }}>
         {DAYS_NO.map(d => (
           <div key={d} className="py-2 text-center text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{d}</div>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>{d}</div>
         ))}
       </div>
 
@@ -1506,7 +1506,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         const expandedInWeek = week.some(d => toISO(d) === expandedDay)
         const expandedDate = week.find(d => toISO(d) === expandedDay)
         const weekOverlay = weekOverlayFor(seasonPeriods, toISO(week[0]))
-        const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : '#2A2A30'
+        const rowAccent = weekOverlay.period ? INTENSITY_COLOR[weekOverlay.period.intensity] : 'var(--data-nopris)'
         // A2e: horisontal periodelinje over uka — start/stopp på riktig dag.
         const rowGradient = weekIntensityGradient(seasonPeriods, toISO(week[0]), '90deg')
         // B2: markeringer (📍/🏔) som overlapper uka — badges i wsum + mobil.
@@ -1629,13 +1629,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     Avvik notert; kan finjusteres etter live-test.) */}
                 <div className="flex items-center gap-2"
                   style={{ margin: '0 0 4px', padding: '4px 0' }}>
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px', letterSpacing: '0.22em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11.5px', letterSpacing: '0.22em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
                     Uke {wn}
                   </span>
                   {/* B2: samling/høyde-chips fra markeringslaget. */}
                   {weekMarkings.map(m => (
                     <span key={m.id} title={`${m.name} (${m.start_date} → ${m.end_date})`}
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 9px', letterSpacing: '0.06em' }}>
                       {m.is_training_camp ? `📍 ${m.location || m.name}` : ''}
                       {m.is_training_camp && m.is_altitude ? ' ' : ''}
                       {m.is_altitude ? `🏔${m.altitude_meters ? ` ${m.altitude_meters} moh` : !m.is_training_camp ? ` ${m.name}` : ''}` : ''}
@@ -1712,13 +1712,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         }} />
                       )}
                       <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3 }}>
-                        <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: isToday ? 'var(--accent)' : '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                        <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: isToday ? 'var(--accent)' : 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
                           {DAYS_NO[(date.getDay() + 6) % 7]}
                         </span>
                         <span style={{
                           display: 'block', fontFamily: "'Bebas Neue', sans-serif",
                           fontSize: empty ? 17 : 21, lineHeight: 1.15,
-                          color: isToday ? '#fff' : '#8B8B95',
+                          color: isToday ? 'var(--tekst-1-ren)' : 'var(--mut)',
                           opacity: empty && !isToday ? 0.7 : 1,
                           background: isToday ? 'var(--accent)' : 'transparent',
                           borderRadius: isToday ? 8 : 0, margin: isToday ? '1px 6px 0' : 0,
@@ -1737,7 +1737,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         )}
                       </div>
                       {empty ? (
-                        <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
+                        <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
                       ) : (
                         <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                           {dayWorkouts.map(w => (
@@ -1746,7 +1746,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               {/* Meta-linje m/ full dataparitet mot grid-chipen:
                                   underkategori · bev.form · skyting · plassering. */}
                               {(w.primary_subcategory || w.primary_movement || w.position_overall != null) && (
-                                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#A9A9B5', padding: '2px 2px 0 15px' }}>
+                                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-4-kal)', padding: '2px 2px 0 15px' }}>
                                   {w.position_overall != null && mode !== 'plan' && (
                                     <span style={{ fontWeight: 600, marginRight: 6 }}>#{w.position_overall}</span>
                                   )}
@@ -1762,7 +1762,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                         <button type="button"
                           onClick={e => { e.stopPropagation(); onCreateWorkout(ds) }}
                           aria-label={mode === 'plan' ? 'Planlegg økt' : 'Logg økt'}
-                          style={{ flexShrink: 0, color: '#55555F', fontSize: 15, padding: '6px 2px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
+                          style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', fontSize: 15, padding: '6px 2px 0', background: 'none', border: 'none', cursor: 'pointer' }}>
                           ＋
                         </button>
                       )}
@@ -1815,12 +1815,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             }} />
                           )}
                           <div style={{ flex: '0 0 44px', textAlign: 'center', paddingTop: 3, opacity: 0.75 }}>
-                            <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                            <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.18em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
                               {single
                                 ? DAYS_NO[(first.getDay() + 6) % 7]
                                 : `${DAYS_NO[(first.getDay() + 6) % 7]}–${DAYS_NO[(last.getDay() + 6) % 7]}`}
                             </span>
-                            <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, lineHeight: 1.3, color: '#8B8B95' }}>
+                            <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, lineHeight: 1.3, color: 'var(--mut)' }}>
                               {single ? first.getDate() : `${first.getDate()}–${last.getDate()}`}
                             </span>
                           </div>
@@ -1832,15 +1832,15 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             style={{
                               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                               border: '1px dashed var(--line2)', borderRadius: 9,
-                              padding: '8px 12px', color: '#55555F', background: 'none',
+                              padding: '8px 12px', color: 'var(--tekst-8-alt)', background: 'none',
                               cursor: 'pointer', minWidth: 0,
                             }}>
                             {single ? (
-                              <><b style={{ color: '#8B8B95', fontWeight: 600, letterSpacing: '0.04em' }}>{DAYS_NO_LONG[(first.getDay() + 6) % 7]} {first.getDate()}.</b> ingen økter</>
+                              <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{DAYS_NO_LONG[(first.getDay() + 6) % 7]} {first.getDate()}.</b> ingen økter</>
                             ) : (
-                              <><b style={{ color: '#8B8B95', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter — trykk for å utvide</>
+                              <><b style={{ color: 'var(--mut)', fontWeight: 600, letterSpacing: '0.04em' }}>{gapDays.length} dager</b> uten økter — trykk for å utvide</>
                             )}
-                            <span style={{ marginLeft: 'auto', color: '#55555F' }}>{single ? '＋' : '▾'}</span>
+                            <span style={{ marginLeft: 'auto', color: 'var(--tekst-8-alt)' }}>{single ? '＋' : '▾'}</span>
                           </button>
                         </div>
                       )
@@ -1878,14 +1878,14 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                   aria-modal="true"
                   onClick={() => setExpandedDay(null)}
                   className="fixed inset-0 z-50 sm:flex sm:items-start sm:justify-center sm:pt-12 sm:px-4"
-                  style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+                  style={{ backgroundColor: 'var(--scrim-70)' }}
                 >
                   <div
                     onClick={e => e.stopPropagation()}
                     className="w-full sm:max-w-2xl flex flex-col"
                     style={{
-                      backgroundColor: '#0F0F16',
-                      border: '1px solid #1E1E22',
+                      backgroundColor: 'var(--flate-8-c)',
+                      border: '1px solid var(--kant-3)',
                       borderTop: '2px solid #FF4500',
                       maxHeight: '100vh',
                     }}
@@ -1894,13 +1894,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-                        <h3 className="capitalize" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+                        <h3 className="capitalize" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
                           {fmt}
                         </h3>
                       </div>
                       <button type="button" onClick={() => setExpandedDay(null)}
                         aria-label="Lukk"
-                        style={{ color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
+                        style={{ color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', padding: '4px 8px' }}>×</button>
                     </div>
 
                     {/* B2 (kø #39): dagens periodiserings-kontekst — belastnings-
@@ -1937,7 +1937,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     })()}
 
                     {dayWorkouts.length === 0 ? (
-                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                         {mode === 'plan' ? 'Ingen planlagte økter' : 'Ingen økter'}
                       </p>
                     ) : (
@@ -1971,7 +1971,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           // Samme accent-regel som måneds-chipen (intensitet).
                           const wIsStrength = w.workout_type === 'strength' || w.primary_movement === 'Styrke'
                           const color = comp?.color
-                            ?? (wIsStrength ? '#6E6E78' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? '#555'))
+                            ?? (wIsStrength ? 'var(--tekst-7)' : (intensityAccent(w, mode) ?? TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'))
                           const isPlanned = planVisual(w, mode)
                           const isCoachEdited = !!w.created_by_coach_id
                           const showCoachStyle = isCoachEdited && isPlanned
@@ -1998,7 +1998,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               <button type="button" onClick={() => onEditWorkout(w, ds)}
                                 style={{ display: 'block', flex: 1, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                               <div className="p-3" style={{
-                                backgroundColor: '#1A1A22',
+                                backgroundColor: 'var(--flate-14)',
                                 // Nøytral hvitaktig ramme (stiplet plan / solid dagbok) —
                                 // fargen bor kun på accent-kanten. Trener beholder blå.
                                 border: showCoachStyle
@@ -2010,7 +2010,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                               }}>
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px', fontWeight: 600 }}>
+                                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', fontWeight: 600 }}>
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
                                       {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
                                       {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
@@ -2022,7 +2022,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                         </span>
                                       )}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}
-                                      {w.start_time && <span style={{ color: '#A9A9B5', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
+                                      {w.start_time && <span style={{ color: 'var(--tekst-4-kal)', marginRight: '6px' }}>{w.start_time.slice(0, 5)}</span>}
                                       {w.title}
                                       {w.position_overall != null && mode !== 'plan' && (
                                         <span style={{ color, marginLeft: '6px' }}>#{w.position_overall}</span>
@@ -2030,7 +2030,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     </div>
                                     {sportLine && (
                                       <div className="tracking-widest uppercase mt-0.5"
-                                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A9A9B5', fontSize: '13px' }}>
+                                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-4-kal)', fontSize: '13px' }}>
                                         {sportLine}
                                       </div>
                                     )}
@@ -2040,7 +2040,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                       <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
                                     )}
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
-                                    {isPlanned && <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
+                                    {isPlanned && <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))
                                       return lbl ? <span style={{ color: '#FF4500', fontSize: '15px', fontFamily: "'Bebas Neue', sans-serif" }}>{lbl}</span> : null
@@ -2051,7 +2051,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 {/* Stats-rad: km, snittpuls, maks-puls, RPE */}
                                 {(km !== null || hr != null || maxHr != null || rpe != null) && (
                                   <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5"
-                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#A9A9B5', fontSize: '14px' }}>
+                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-4-kal)', fontSize: '14px' }}>
                                     {km !== null && <span>{km.toLocaleString('nb-NO')} km</span>}
                                     {hr != null && <span>Snitt {hr} bpm</span>}
                                     {maxHr != null && <span>Maks {maxHr} bpm</span>}
@@ -2064,7 +2064,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
                                 {/* Skyting */}
                                 {w.shooting && (
-                                  <div className="mt-2 pt-2" style={{ borderTop: '1px solid #1E1E22' }}>
+                                  <div className="mt-2 pt-2" style={{ borderTop: '1px solid var(--kant-3)' }}>
                                     <TreffPercentageDisplay
                                       totals={{
                                         prone_shots: w.shooting.prone_shots,
@@ -2079,7 +2079,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
 
                                 {/* Ernæring (read-only) — vises hvis økten har rader */}
                                 {(nutritionByWorkout[w.id]?.length ?? 0) > 0 && (
-                                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid #1E1E22' }}>
+                                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--kant-3)' }}>
                                     <NutritionSummary
                                       entries={nutritionByWorkout[w.id]}
                                       durationMinutes={w.duration_minutes}
@@ -2092,7 +2092,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   <p className="mt-2 text-xs italic"
                                     style={{
                                       fontFamily: "'Barlow Condensed', sans-serif",
-                                      color: '#8A8A96',
+                                      color: 'var(--tekst-5-app)',
                                       display: '-webkit-box',
                                       WebkitLineClamp: 2,
                                       WebkitBoxOrient: 'vertical',
@@ -2111,9 +2111,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     aria-label="Flytt opp"
                                     style={{
                                       flex: 1, padding: '0 8px',
-                                      background: '#1A1A22',
-                                      border: '1px solid #1E1E22',
-                                      color: dayIdx === 0 ? '#333340' : '#8A8A96',
+                                      background: 'var(--flate-14)',
+                                      border: '1px solid var(--kant-3)',
+                                      color: dayIdx === 0 ? 'var(--kant-hover)' : 'var(--tekst-5-app)',
                                       cursor: dayIdx === 0 ? 'default' : 'pointer',
                                       fontFamily: "'Barlow Condensed', sans-serif",
                                       fontSize: '14px',
@@ -2124,9 +2124,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     aria-label="Flytt ned"
                                     style={{
                                       flex: 1, padding: '0 8px',
-                                      background: '#1A1A22',
-                                      border: '1px solid #1E1E22',
-                                      color: dayIdx === orderedIds.length - 1 ? '#333340' : '#8A8A96',
+                                      background: 'var(--flate-14)',
+                                      border: '1px solid var(--kant-3)',
+                                      color: dayIdx === orderedIds.length - 1 ? 'var(--kant-hover)' : 'var(--tekst-5-app)',
                                       cursor: dayIdx === orderedIds.length - 1 ? 'default' : 'pointer',
                                       fontFamily: "'Barlow Condensed', sans-serif",
                                       fontSize: '14px',
@@ -2139,7 +2139,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 onClick={() => router.push(`/app/okt/${w.id}`)}
                                 className="w-full transition-opacity hover:opacity-90"
                                 style={{
-                                  marginTop: '2px', background: '#FF4500', color: '#0A0A0B',
+                                  marginTop: '2px', background: '#FF4500', color: 'var(--flate-3)',
                                   border: 'none', fontFamily: "'Bebas Neue', sans-serif",
                                   fontSize: 16, letterSpacing: '0.06em', padding: '9px',
                                   cursor: 'pointer',
@@ -2164,12 +2164,12 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       return parts.length > 0 ? (
                         <div className="flex items-center gap-2 mb-3">
                           <span style={{ color: '#28A86E', fontSize: '9px' }}>●</span>
-                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px' }}>
                             {parts.join(' · ')}
                           </span>
                           {!readOnly && (
                             <button type="button" onClick={() => onEditHealth(ds)}
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid #333340', marginLeft: '4px', padding: 0, cursor: 'pointer' }}>
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-hover)', marginLeft: '4px', padding: 0, cursor: 'pointer' }}>
                               Rediger
                             </button>
                           )}
@@ -2188,19 +2188,19 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                           return (
                             <div key={r.id}
                               className="flex items-center justify-between p-2"
-                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E' }}>
+                              style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #28A86E' }}>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span style={{ fontSize: '14px' }}>{icon}</span>
-                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
+                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px', fontWeight: 600 }}>
                                   {label}
                                 </span>
                                 {meta.length > 0 && (
-                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>
                                     {meta.join(' · ')}
                                   </span>
                                 )}
                                 {r.notes && (
-                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', fontStyle: 'italic' }}>
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', fontStyle: 'italic' }}>
                                     — {r.notes}
                                   </span>
                                 )}
@@ -2211,7 +2211,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     const res = await deleteRecoveryEntry(r.id)
                                     if (!res.error) router.refresh()
                                   }}
-                                  style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
+                                  style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '0 4px' }}
                                   title="Slett">×</button>
                               )}
                             </div>
@@ -2242,35 +2242,35 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                             <>
                               <span className="flex items-center gap-2 flex-wrap">
                                 <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
-                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', fontWeight: 600 }}>
+                                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px', fontWeight: 600 }}>
                                   {label}
                                 </span>
                                 {meta.length > 0 && (
-                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>
                                     {meta.join(' · ')}
                                   </span>
                                 )}
                                 {s.notes && (
-                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '12px', fontStyle: 'italic' }}>
+                                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', fontStyle: 'italic' }}>
                                     — {s.notes}
                                   </span>
                                 )}
                               </span>
                               {!readOnly && (
-                                <span style={{ color: '#555560', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
+                                <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>REDIGER</span>
                               )}
                             </>
                           )
                           return readOnly ? (
                             <div key={s.id}
                               className="w-full flex items-center justify-between p-2 text-left"
-                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}` }}>
+                              style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderLeft: `3px solid ${color}` }}>
                               {rowInner}
                             </div>
                           ) : (
                             <button key={s.id} type="button" onClick={() => onEditDayState(s)}
                               className="w-full flex items-center justify-between p-2 text-left"
-                              style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
+                              style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)', borderLeft: `3px solid ${color}`, cursor: 'pointer' }}>
                               {rowInner}
                             </button>
                           )
@@ -2282,13 +2282,13 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                       // Felles knappestiler for dag-popupens handlingsrad (xp-stil).
                       const primaryBtn: React.CSSProperties = {
                         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                        backgroundColor: 'var(--accent)', color: '#fff',
+                        backgroundColor: 'var(--accent)', color: 'var(--tekst-1-ren)',
                         border: '1px solid var(--accent)', borderRadius: 9, cursor: 'pointer',
                         padding: '7px 14px', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase',
                       }
                       const ghostBtn: React.CSSProperties = {
                         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                        color: '#A9A9B5', backgroundColor: 'transparent',
+                        color: 'var(--tekst-4-kal)', backgroundColor: 'transparent',
                         border: '1px solid var(--line2)', borderRadius: 9, cursor: 'pointer',
                         padding: '7px 12px', fontSize: '13px', letterSpacing: '0.08em', textTransform: 'uppercase',
                         textDecoration: 'none',
@@ -2352,7 +2352,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           aria-label={mode === 'plan' ? 'Planlegg økt i dag' : 'Logg økt i dag'}
           style={{
             position: 'fixed', bottom: 18, right: 16, width: 50, height: 50,
-            borderRadius: '50%', background: 'var(--accent)', color: '#fff',
+            borderRadius: '50%', background: 'var(--accent)', color: 'var(--tekst-1-ren)',
             fontSize: 24, lineHeight: 1, border: 'none', cursor: 'pointer',
             boxShadow: '0 10px 30px rgba(255,69,0,.45)', zIndex: 40,
           }}>
@@ -2434,7 +2434,7 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
     <div>
       {/* ── Årssammendrag — samme statstripe-språk som analysepanelet ── */}
       <div className="px-4 md:px-6 pt-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,#131318,#0E0E12)', borderColor: 'var(--line)' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x" style={{ border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden', background: 'linear-gradient(135deg,var(--flate-12),var(--flate-7-alt))', borderColor: 'var(--line)' }}>
           <div style={{ padding: '12px 16px' }}>
             <span className="xp-k">Total tid</span>
             <div className="xp-v" style={{ fontSize: 26 }}>
@@ -2489,10 +2489,10 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
                 if (secs <= 0) return null
                 const pct = yearZoneTotal > 0 ? Math.round((secs / yearZoneTotal) * 100) : 0
                 return (
-                  <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#C9C9D4' }}>
+                  <span key={k} style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-3)' }}>
                     <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, backgroundColor: ZONE_COLORS_V2[k], marginRight: 5 }} />
-                    {k} <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtSec(secs)}</b>
-                    <span style={{ color: '#55555F' }}> {pct}%</span>
+                    {k} <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtSec(secs)}</b>
+                    <span style={{ color: 'var(--tekst-8-alt)' }}> {pct}%</span>
                   </span>
                 )
               })}
@@ -2505,11 +2505,11 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
             {yearSports.slice(0, 6).map(sp => (
               <span key={sp.label}
                 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--mut)', border: '1px solid var(--line2)', borderRadius: 8, padding: '4px 10px' }}>
-                {sp.label} · <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{fmtSec(sp.seconds)}</b>
+                {sp.label} · <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{fmtSec(sp.seconds)}</b>
               </span>
             ))}
             {yearSports.length > 6 && (
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#55555F', padding: '4px 4px' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-8-alt)', padding: '4px 4px' }}>
                 +{yearSports.length - 6} andre
               </span>
             )}
@@ -2518,7 +2518,7 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
       </div>
 
       {/* ── Månedsceller: 1 kol mobil, 3 tablet, 4 desktop ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: '#1A1A1E' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-px px-4 md:px-6 py-4" style={{ backgroundColor: 'var(--kant-2)' }}>
       {MONTHS_NO.map((name, mi) => {
         const dates = iterMonthDates(year, mi + 1)
         const agg = aggregateRange(byDate, dates, mode)
@@ -2529,18 +2529,18 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
         return (
           <button key={name} type="button" onClick={() => onSelectMonth(mi + 1)}
             className="text-left p-3 transition-colors hover:opacity-90"
-            style={{ backgroundColor: '#0D0D11', border: 'none', cursor: 'pointer', opacity: mins > 0 ? 1 : 0.45, position: 'relative' }}>
+            style={{ backgroundColor: 'var(--flate-6-alt)', border: 'none', cursor: 'pointer', opacity: mins > 0 ? 1 : 0.45, position: 'relative' }}>
             <div className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{name}</div>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>{name}</div>
             {mins > 0 ? (
               <>
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '22px', lineHeight: 1 }}>{fmtDuration(mins)}</span>
                   {km && (
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C9C9D4', fontSize: '13px' }}>{km}</span>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3)', fontSize: '13px' }}>{km}</span>
                   )}
                 </div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>{agg.sessions} økt{agg.sessions !== 1 ? 'er' : ''}</div>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>{agg.sessions} økt{agg.sessions !== 1 ? 'er' : ''}</div>
                 {/* Sonebar m/ hover-tooltip (XpTooltip fra graf-temaet) */}
                 <div className="mt-1.5"
                   onMouseEnter={() => setHoverMonth(mi)}
@@ -2564,7 +2564,7 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
                       const secs = agg.zoneSeconds[k] ?? 0
                       if (secs <= 0) return null
                       return (
-                        <span key={k} style={{ color: '#A9A9B5' }}>
+                        <span key={k} style={{ color: 'var(--tekst-4-kal)' }}>
                           <span style={{ color: ZONE_COLORS_V2[k], fontWeight: 600 }}>{k}</span> {fmtSec(secs)}
                         </span>
                       )
@@ -2586,12 +2586,12 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {monthSports.slice(0, 3).map(sp => (
                       <span key={sp.label}
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#A9A9B5', border: '1px solid var(--line2)', borderRadius: 6, padding: '1px 6px' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: 'var(--tekst-4-kal)', border: '1px solid var(--line2)', borderRadius: 6, padding: '1px 6px' }}>
                         {sp.label} {fmtSec(sp.seconds)}
                       </span>
                     ))}
                     {monthSports.length > 3 && (
-                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: '#55555F', padding: '1px 2px' }}>
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px', color: 'var(--tekst-8-alt)', padding: '1px 2px' }}>
                         +{monthSports.length - 3}
                       </span>
                     )}
@@ -2599,7 +2599,7 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
                 )}
               </>
             ) : (
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#2A2A30', fontSize: '13px' }}>—</div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-6)', fontSize: '13px' }}>—</div>
             )}
           </button>
         )
@@ -3003,7 +3003,7 @@ export function Calendar({
           bakgrunn satt så innholdet ikke skinner gjennom under scroll. */}
       <div
         className={`flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0 px-4 md:px-6 py-3 ${view === 'måned' ? 'sticky top-[52px] z-20 md:static' : ''}`}
-        style={{ borderBottom: '1px solid #1E1E22', backgroundColor: '#0A0A0B' }}>
+        style={{ borderBottom: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-3)' }}>
         {/* View switcher + (måned, desktop) layout-toggle Kalender/Liste */}
         <div className="flex items-center gap-2 self-center md:self-auto">
           <div className="xp-seg-pill">
@@ -3043,7 +3043,7 @@ export function Calendar({
           <button type="button" onClick={() => setShowPicker(p => !p)}
             className="flex-1 md:flex-none"
             style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
               fontSize: '18px', letterSpacing: '0.06em',
               background: 'none', border: 'none', cursor: 'pointer',
               minHeight: '44px', minWidth: '180px', textAlign: 'center',

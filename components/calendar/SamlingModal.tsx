@@ -74,16 +74,16 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
 
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 overflow-y-auto"
-      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }} onClick={onClose}>
+      style={{ backgroundColor: 'var(--scrim-75)' }} onClick={onClose}>
       <div className="w-full max-w-md p-5 mt-8" onClick={e => e.stopPropagation()}
-        style={{ backgroundColor: '#101014', border: '1px solid #2A2A33', borderRadius: 14 }}>
+        style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 14 }}>
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ORANGE }}>
             {existing ? 'Rediger samling/høyde' : 'Planlegg samling/høyde'}
           </span>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: 22 }}>
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: 22 }}>
             ×
           </button>
         </div>
@@ -133,7 +133,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
               className="w-full px-3 py-2" style={inp} />
           </Felt>
 
-          <p className="text-xs" style={{ color: '#555560' }}>
+          <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
             Vises i kalenderen (📍/🏔 per dag) og i årsplanen — dette er samme markering,
             endringer slår gjennom begge steder.
           </p>
@@ -158,7 +158,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid #2A2A33',
+                color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)',
                 borderRadius: 999, cursor: 'pointer',
               }}>
               Avbryt
@@ -167,7 +167,7 @@ export function SamlingModal({ existing, defaultDate, targetUserId, onClose, onS
               className="px-4 py-2 text-xs font-semibold tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: ORANGE, color: '#F0F0F2', border: 'none',
+                backgroundColor: ORANGE, color: 'var(--tekst-1-app)', border: 'none',
                 borderRadius: 999, cursor: 'pointer', opacity: pending ? 0.6 : 1,
               }}>
               {pending ? 'Lagrer…' : 'Lagre'}
@@ -186,8 +186,8 @@ function Chip({ aktiv, onClick, children }: { aktiv: boolean; onClick: () => voi
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         borderRadius: 999,
-        border: `1px solid ${aktiv ? ORANGE : '#2A2A33'}`,
-        color: aktiv ? '#F0F0F2' : '#8A8A96',
+        border: `1px solid ${aktiv ? ORANGE : 'var(--line2)'}`,
+        color: aktiv ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
         backgroundColor: aktiv ? 'rgba(255,69,0,0.10)' : 'transparent',
         cursor: 'pointer',
       }}>
@@ -200,7 +200,7 @@ function Felt({ label, children }: { label: string; children: React.ReactNode })
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}
@@ -210,6 +210,6 @@ function Felt({ label, children }: { label: string; children: React.ReactNode })
 
 const inp: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2', backgroundColor: '#0B0B0F',
-  border: '1px solid #2A2A33', borderRadius: 9, fontSize: 14,
+  color: 'var(--tekst-1-app)', backgroundColor: 'var(--flate-4-alt)',
+  border: '1px solid var(--line2)', borderRadius: 9, fontSize: 14,
 }

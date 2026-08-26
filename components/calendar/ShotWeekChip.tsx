@@ -33,7 +33,7 @@ export function ShotWeekChip({ stats, plannedShots }: {
     <>
       <span title={tooltip || undefined} className="inline-flex items-center gap-1.5"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: '#F0F0F2',
+          fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: 'var(--tekst-1-app)',
           border: '1px solid var(--line2)', borderRadius: 999, padding: '2px 10px',
           whiteSpace: 'nowrap', flexShrink: 0,
         }}>
@@ -41,10 +41,10 @@ export function ShotWeekChip({ stats, plannedShots }: {
         {stats.shots > 0 ? (
           <>
             <b>{stats.shots}{plannedShots ? `/${plannedShots}` : ''}</b>&nbsp;skudd
-            {pct != null && <span style={{ color: '#8B8B95' }}>· {pct} %</span>}
+            {pct != null && <span style={{ color: 'var(--mut)' }}>· {pct} %</span>}
           </>
         ) : (
-          <span style={{ color: '#8B8B95' }}>{dryMin} min tørr</span>
+          <span style={{ color: 'var(--mut)' }}>{dryMin} min tørr</span>
         )}
       </span>
       {segs.length > 0 && stats.shots > 0 && (

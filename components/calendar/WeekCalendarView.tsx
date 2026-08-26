@@ -258,17 +258,17 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
       {(weekOverlay.period || weekKeyDates.length > 0 || secondaryPeriods.length > 0 || weekMarkings.length > 0 || weeklyGuideMins != null) && (
         <div className="px-4 md:px-6 py-2 flex flex-wrap items-center gap-3"
           style={{
-            borderBottom: '1px solid #1A1A1E',
-            backgroundColor: '#13131A',
+            borderBottom: '1px solid var(--kant-2)',
+            backgroundColor: 'var(--flate-12-alt)',
             borderLeft: weekOverlay.period ? `3px solid ${INTENSITY_COLOR[weekOverlay.period.intensity]}` : 'none',
           }}>
           {weekOverlay.period && (
             <>
               <span className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Periode
               </span>
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.06em' }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.06em' }}>
                 {weekOverlay.period.name}
               </span>
               <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -280,7 +280,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
                 {INTENSITY_LABEL[weekOverlay.period.intensity]}
               </span>
               {weekOverlay.weekIndex && weekOverlay.weekCount && (
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
                   Uke {weekOverlay.weekIndex} av {weekOverlay.weekCount}
                 </span>
               )}
@@ -302,7 +302,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
           {weeklyGuideMins != null && (
             <span className="text-xs ml-auto"
               title={`Veiledende ukesnitt fra årsplanens månedsvolum (${monthGoalHours} t denne måneden)`}
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               ~{fmtDurationMin(weeklyGuideMins)}/uke veiledende
             </span>
           )}
@@ -324,20 +324,20 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
 
       {seconds > 0 && (
         <div className="px-4 md:px-6 py-3"
-          style={{ borderBottom: '1px solid #1A1A1E', backgroundColor: '#13131A' }}>
+          style={{ borderBottom: '1px solid var(--kant-2)', backgroundColor: 'var(--flate-12-alt)' }}>
           <div className="flex items-baseline gap-4 flex-wrap mb-2">
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.06em' }}>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.06em' }}>
               UKE {weekNum}:
             </span>
             <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--accent)', fontSize: '24px', letterSpacing: '0.06em' }}>
               {fmtDurationMin(totalMins)}
             </span>
             {km && (
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.06em' }}>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.06em' }}>
                 {km}
               </span>
             )}
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
               {sessions} økt{sessions !== 1 ? 'er' : ''}
             </span>
             <ShotWeekChip stats={shotAgg}
@@ -345,7 +345,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
           </div>
           {totalZoneSec > 0 && (
             <div className="flex w-full overflow-hidden"
-              style={{ height: '8px', backgroundColor: '#1A1A1E', borderRadius: '1px' }}>
+              style={{ height: '8px', backgroundColor: 'var(--kant-2)', borderRadius: '1px' }}>
               {(Object.keys(zoneSec) as ExtendedZoneName[]).map(k => {
                 const w = (zoneSec[k] / totalZoneSec) * 100
                 if (w <= 0) return null
@@ -378,7 +378,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
     disabled: !draggable,
   })
   const comp = competitionStyle(w)
-  const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+  const fallbackColor = TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
@@ -393,8 +393,8 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
     ? `1px dashed ${COACH_BLUE}`
     : `${borderWidth}px ${borderStyle} ${color}`
   const bg = comp
-    ? (isPlanned ? 'rgba(0,0,0,0.35)' : `${color}55`)
-    : isPlanned ? 'rgba(0,0,0,0.35)' : completedTone ? '#1A3A2A' : `${color}33`
+    ? (isPlanned ? 'var(--scrim-35)' : `${color}55`)
+    : isPlanned ? 'var(--scrim-35)' : completedTone ? '#1A3A2A' : `${color}33`
   const durLabel = formatDurationShort(secondsFor(w, mode))
 
   const widthPct = 100 / laneCount
@@ -428,13 +428,13 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
         overflow: 'hidden',
         textAlign: 'left',
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: '#F0F0F2',
+        color: 'var(--tekst-1-app)',
         fontSize: '13px',
         lineHeight: 1.2,
       }}
       title={`${w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}${coachTitle}`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F0F0F2' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--tekst-1-app)' }}>
         {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}
         {showCoachStyle && (
           <span aria-hidden="true"
@@ -464,7 +464,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
   onEdit: (w: CalendarWorkoutSummary, dateStr: string) => void
 }) {
   const comp = competitionStyle(w)
-  const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+  const fallbackColor = TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'
   const color = comp?.color ?? fallbackColor
   const isPlanned = planVisual(w, mode)
   const isCoachEdited = !!w.created_by_coach_id
@@ -493,7 +493,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         borderRadius: 7,
         padding: '2px 5px',
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: '#C0C0CC',
+        color: 'var(--tekst-3-app)',
         fontSize: '13px',
         textAlign: 'left',
         cursor: 'pointer',
@@ -522,7 +522,7 @@ function MobileWeekDropDay({ ds, disabled, children }: {
   return (
     <div ref={setNodeRef}
       style={{
-        borderBottom: '1px solid #1A1A1E', padding: '12px 16px',
+        borderBottom: '1px solid var(--kant-2)', padding: '12px 16px',
         ...(isOver ? {
           backgroundColor: 'rgba(255,69,0,0.10)',
           outline: '2px solid rgba(255,69,0,0.55)', outlineOffset: -2,
@@ -567,8 +567,8 @@ function DroppableDayColumn({ ds, isToday, canClick, dndEnabled, onColumnClick, 
       onClick={canClick ? onColumnClick : undefined}
       style={{
         position: 'relative',
-        borderLeft: '1px solid #1A1A1E',
-        backgroundColor: highlight ? 'rgba(255,69,0,0.10)' : (isToday ? '#0D0D14' : 'transparent'),
+        borderLeft: '1px solid var(--kant-2)',
+        backgroundColor: highlight ? 'rgba(255,69,0,0.10)' : (isToday ? 'var(--flate-6-b)' : 'transparent'),
         cursor: canClick ? 'pointer' : 'default',
         minHeight: `${24 * HOUR_HEIGHT}px`,
         outline: highlight ? '2px solid rgba(255,69,0,0.55)' : 'none',
@@ -698,12 +698,12 @@ export function WeekCalendarView({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : '#555560' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : 'var(--tekst-8-app)' }}>
                     {DAYS_NO[i]}
                   </span>
                   <span style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    color: isToday ? '#fff' : '#F0F0F2',
+                    color: isToday ? 'var(--tekst-1-ren)' : 'var(--tekst-1-app)',
                     background: isToday ? 'var(--accent)' : 'none',
                     borderRadius: isToday ? 6 : 0,
                     padding: isToday ? '2px 6px 1px' : 0,
@@ -754,14 +754,14 @@ export function WeekCalendarView({
                         <span aria-hidden style={{ fontSize: '14px' }}>{icon}</span>
                         <span style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
-                          color: '#F0F0F2', fontSize: '13px', fontWeight: 600,
+                          color: 'var(--tekst-1-app)', fontSize: '13px', fontWeight: 600,
                         }}>
                           {label}
                         </span>
                         {meta.length > 0 && (
                           <span style={{
                             fontFamily: "'Barlow Condensed', sans-serif",
-                            color: '#8A8A96', fontSize: '12px',
+                            color: 'var(--tekst-5-app)', fontSize: '12px',
                           }}>
                             {meta.join(' · ')}
                           </span>
@@ -771,8 +771,8 @@ export function WeekCalendarView({
                     const baseStyle: React.CSSProperties = {
                       display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
                       padding: '8px 10px',
-                      backgroundColor: '#1A1A22',
-                      border: '1px solid #1E1E22',
+                      backgroundColor: 'var(--flate-14)',
+                      border: '1px solid var(--kant-3)',
                       borderLeft: `3px solid ${color}`,
                       textAlign: 'left',
                     }
@@ -793,7 +793,7 @@ export function WeekCalendarView({
 
               {dayWorkouts.length === 0 ? (
                 <p className="text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-hover)' }}>
                   Ingen økter
                 </p>
               ) : (() => {
@@ -826,7 +826,7 @@ export function WeekCalendarView({
                     const dur = formatDurationShort(secondsFor(w, mode))
                     const km = fmtKm(metersFor(w, mode))
                     const planned = planVisual(w, mode)
-                    const fallbackColor = TYPE_COLORS[w.workout_type] ?? '#555'
+                    const fallbackColor = TYPE_COLORS[w.workout_type] ?? 'var(--graa-55)'
                     const accent = compStyle?.color ?? fallbackColor
                     // Trener-stil overstyrer ramme-fargen til blå dashed når
                     // økta er laget/endret av trener og fortsatt er planlagt
@@ -882,13 +882,13 @@ export function WeekCalendarView({
                                 style={{ color: '#28A86E', flexShrink: 0 }}>✓</span>
                             )}
                             <span className="text-sm truncate"
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                               {w.title}
                             </span>
                           </div>
                           {meta && (
                             <div className="text-xs tracking-widest uppercase mt-0.5"
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                               {meta}
                             </div>
                           )}
@@ -902,8 +902,8 @@ export function WeekCalendarView({
                             aria-label="Flytt opp"
                             style={{
                               flex: 1, padding: '0 10px',
-                              background: '#1A1A22', border: '1px solid #1E1E22',
-                              color: dayIdx === 0 ? '#333340' : '#8A8A96',
+                              background: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+                              color: dayIdx === 0 ? 'var(--kant-hover)' : 'var(--tekst-5-app)',
                               cursor: dayIdx === 0 ? 'default' : 'pointer',
                               fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
                             }}>↑</button>
@@ -913,8 +913,8 @@ export function WeekCalendarView({
                             aria-label="Flytt ned"
                             style={{
                               flex: 1, padding: '0 10px',
-                              background: '#1A1A22', border: '1px solid #1E1E22',
-                              color: dayIdx === orderedIds.length - 1 ? '#333340' : '#8A8A96',
+                              background: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+                              color: dayIdx === orderedIds.length - 1 ? 'var(--kant-hover)' : 'var(--tekst-5-app)',
                               cursor: dayIdx === orderedIds.length - 1 ? 'default' : 'pointer',
                               fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
                             }}>↓</button>
@@ -946,25 +946,25 @@ export function WeekCalendarView({
           <div style={{
             display: 'grid',
             gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(7, minmax(${DAY_MIN_WIDTH}px, 1fr))`,
-            borderBottom: '1px solid #1A1A1E',
-            backgroundColor: '#0D0D11',
+            borderBottom: '1px solid var(--kant-2)',
+            backgroundColor: 'var(--flate-6-alt)',
             position: 'sticky', top: 0, zIndex: 4,
           }}>
             {/* Hjørne-celle: sticky både top og left — z-index over andre sticky-kanter. */}
-            <div style={{ position: 'sticky', left: 0, backgroundColor: '#0D0D11', zIndex: 5 }} />
+            <div style={{ position: 'sticky', left: 0, backgroundColor: 'var(--flate-6-alt)', zIndex: 5 }} />
             {weekDates.map((d, i) => {
               const ds = toISO(d)
               const isToday = ds === today
               return (
                 <div key={ds} className="px-2 py-2"
-                  style={{ borderLeft: '1px solid #1A1A1E', textAlign: 'left' }}>
+                  style={{ borderLeft: '1px solid var(--kant-2)', textAlign: 'left' }}>
                   <div className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : '#555560' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: isToday ? '#FF4500' : 'var(--tekst-8-app)' }}>
                     {DAYS_NO[i]}
                   </div>
                   <div style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    color: isToday ? '#FF4500' : '#F0F0F2',
+                    color: isToday ? '#FF4500' : 'var(--tekst-1-app)',
                     fontSize: '18px', letterSpacing: '0.04em', lineHeight: 1,
                   }}>
                     {d.getDate()}. {MONTHS_SHORT_NO[d.getMonth()]}
@@ -979,15 +979,15 @@ export function WeekCalendarView({
             <div style={{
               display: 'grid',
               gridTemplateColumns: `${TIME_COL_WIDTH}px repeat(7, minmax(${DAY_MIN_WIDTH}px, 1fr))`,
-              borderBottom: '1px solid #1A1A1E',
-              backgroundColor: '#0C0C0F',
+              borderBottom: '1px solid var(--kant-2)',
+              backgroundColor: 'var(--flate-5)',
             }}>
               <div className="px-2 py-1 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#555560',
+                  color: 'var(--tekst-8-app)',
                   display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                  position: 'sticky', left: 0, backgroundColor: '#0C0C0F', zIndex: 3,
+                  position: 'sticky', left: 0, backgroundColor: 'var(--flate-5)', zIndex: 3,
                 }}>
                 Hele dagen
               </div>
@@ -996,7 +996,7 @@ export function WeekCalendarView({
                 const all = layouts[ds]?.allDay ?? []
                 return (
                   <div key={ds}
-                    style={{ borderLeft: '1px solid #1A1A1E', padding: '2px 4px', minHeight: '28px' }}>
+                    style={{ borderLeft: '1px solid var(--kant-2)', padding: '2px 4px', minHeight: '28px' }}>
                     {all.map(w => (
                       <AllDayCard key={w.id} w={w} dateStr={ds} mode={mode} onEdit={onEditWorkout} />
                     ))}
@@ -1016,17 +1016,17 @@ export function WeekCalendarView({
               {/* Klokkeslett-kolonne — sticky left så den følger med ved horisontal scroll. */}
               <div style={{
                 position: 'sticky', left: 0, zIndex: 2,
-                backgroundColor: '#0A0A0B', borderRight: '1px solid #14141A',
+                backgroundColor: 'var(--flate-3)', borderRight: '1px solid var(--kant-1-app)',
               }}>
                 {Array.from({ length: 24 }, (_, h) => (
                   <div key={h}
                     style={{
                       height: `${HOUR_HEIGHT}px`,
-                      borderBottom: '1px solid #14141A',
+                      borderBottom: '1px solid var(--kant-1-app)',
                       paddingRight: '6px',
                       textAlign: 'right',
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: '#555560',
+                      color: 'var(--tekst-8-app)',
                       fontSize: '13px',
                     }}>
                     {String(h).padStart(2, '0')}:00
@@ -1052,7 +1052,7 @@ export function WeekCalendarView({
                         style={{
                           position: 'absolute', left: 0, right: 0,
                           top: `${h * HOUR_HEIGHT}px`,
-                          borderTop: h === 0 ? 'none' : '1px solid #14141A',
+                          borderTop: h === 0 ? 'none' : '1px solid var(--kant-1-app)',
                           height: `${HOUR_HEIGHT}px`,
                         }} />
                     ))}
@@ -1062,7 +1062,7 @@ export function WeekCalendarView({
                         style={{
                           position: 'absolute', left: 0, right: 0,
                           top: `${h * HOUR_HEIGHT + HOUR_HEIGHT / 2}px`,
-                          borderTop: '1px dashed #121218',
+                          borderTop: '1px dashed var(--flate-11-alt)',
                         }} />
                     ))}
                     {/* Økt-kort */}
@@ -1082,8 +1082,8 @@ export function WeekCalendarView({
       {activeDrag ? (
         <div style={{
           width: DAY_MIN_WIDTH - 8, padding: '2px 4px',
-          background: '#1A1A22', border: '1px solid #FF4500', borderLeft: '3px solid #FF4500',
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px',
+          background: 'var(--flate-14)', border: '1px solid #FF4500', borderLeft: '3px solid #FF4500',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px',
           lineHeight: 1.2, cursor: 'grabbing', opacity: 0.95, overflow: 'hidden',
           textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>

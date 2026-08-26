@@ -27,17 +27,17 @@ export function PeriodNote({
     return (
       <div className="xp-mini-card mx-4 md:mx-6 my-3">
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {label}
         </p>
         {hasNote ? (
           <p className="text-sm whitespace-pre-wrap"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {initialNote}
           </p>
         ) : (
           <p className="text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#3A3A44', fontStyle: 'italic' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-10)', fontStyle: 'italic' }}>
             — Utøveren har ikke skrevet noe her.
           </p>
         )}
@@ -111,7 +111,7 @@ export function PeriodNote({
       {planNoteTrimmed.length > 0 && (
         <div className="mb-2 px-3 py-2"
           style={{
-            backgroundColor: '#0A0A0B',
+            backgroundColor: 'var(--flate-3)',
             borderLeft: '3px solid #FF4500',
           }}>
           <p className="text-xs tracking-widest uppercase mb-1"
@@ -119,17 +119,17 @@ export function PeriodNote({
             Plan
           </p>
           <p className="text-sm whitespace-pre-wrap"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
             {planNoteTrimmed}
           </p>
         </div>
       )}
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {label}
         </p>
-        <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {isPending || saved === 'saving' ? '…lagrer' : saved === 'ok' ? '✓ lagret' : saved === 'error' ? '✕ feil' : ''}
         </span>
       </div>
@@ -145,7 +145,7 @@ export function PeriodNote({
           backgroundColor: 'var(--card2)',
           border: '1px solid var(--line)',
           borderRadius: 'var(--r-field)',
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           outline: 'none',
         }}
       />

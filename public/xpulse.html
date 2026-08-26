@@ -144,7 +144,8 @@ document.documentElement.dataset.tema=v;}catch(e){}})()</script>
   --bg9:#F3F3F6;
 }
 /* PÅ FAST MØRK BUNN — fredet i lysmodus.
-   Heroen ligger på et fotografi, og nav-en på sin egen mørke gradient
+   Heroen ligger på et fotografi, sport-flisene (.dtile) har hver sitt foto
+   som bakgrunn, og nav-en ligger på sin egen mørke gradient
    (rgba(11,19,21,.75)). Ingen av dem blir lysere i lysmodus, så forgrunnen
    på dem er bundet til BUNNEN og ikke til temaet — samme prinsipp som
    Strava-blekket: nøytral i form, men bundet til noe som ikke følger temaet.
@@ -153,6 +154,7 @@ document.documentElement.dataset.tema=v;}catch(e){}})()</script>
    --bg står med vilje ikke her: .hero-fade må tone ned i sidas EKTE
    bakgrunn, ellers blir det en hard kant mot den lyse siden under. */
 :root[data-tema="lys"] .hero,
+:root[data-tema="lys"] .dtile,
 :root[data-tema="lys"] nav{
   /* color settes EKSPLISITT. Elementer som ikke har egen color arver den
      ferdig utregnede fargen fra body — ikke variabelen — sa det holder ikke

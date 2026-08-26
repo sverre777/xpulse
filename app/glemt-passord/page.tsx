@@ -16,7 +16,7 @@ export default function GlemtPassordPage() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: '#0A0A0B' }}
+      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       <AuthCard title="Tilbakestill passord" subtitle="Skriv inn e-postadressen din">
         {state?.sent ? (
@@ -35,7 +35,7 @@ export default function GlemtPassordPage() {
               className="text-center text-sm tracking-widest uppercase py-3 transition-opacity hover:opacity-80"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#F0F0F2',
+                backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
                 textDecoration: 'none',
               }}>
               Tilbake til innlogging
@@ -44,7 +44,7 @@ export default function GlemtPassordPage() {
         ) : (
           <form action={formAction} className="flex flex-col gap-5">
             <p className="text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Vi sender deg en link på e-post som du kan bruke til å sette et nytt passord.
             </p>
             <FormField
@@ -75,7 +75,7 @@ export default function GlemtPassordPage() {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: pending ? '#7A2200' : '#FF4500',
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 cursor: pending ? 'not-allowed' : 'pointer',
                 opacity: pending ? 0.7 : 1,
                 border: 'none',
@@ -87,7 +87,7 @@ export default function GlemtPassordPage() {
             <div className="text-center">
               <Link href="/app"
                 className="text-sm transition-opacity hover:opacity-80"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 ← Tilbake til innlogging
               </Link>
             </div>

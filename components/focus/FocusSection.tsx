@@ -21,7 +21,7 @@ interface Props {
 
 const ACCENT_PLAN = '#FF4500'
 const ACCENT_DAGBOK_HAS = '#28A86E'
-const ACCENT_EMPTY = '#1E1E22'
+const ACCENT_EMPTY = 'var(--data-tom)'
 
 export function FocusSection({
   scope, periodKey, context, title, showPlanFocus = false, compact = false, targetUserId,
@@ -110,9 +110,9 @@ export function FocusSection({
   const pad = compact ? 'p-2' : 'p-3'
   const inputStyle: React.CSSProperties = {
     width: '100%',
-    backgroundColor: '#0A0A0B',
-    border: '1px solid #1E1E22',
-    color: '#F0F0F2',
+    backgroundColor: 'var(--flate-3)',
+    border: '1px solid var(--kant-3)',
+    color: 'var(--tekst-1-app)',
     fontFamily: "'Barlow Condensed', sans-serif",
     fontSize: '13px',
     padding: '6px 8px',
@@ -121,8 +121,8 @@ export function FocusSection({
 
   return (
     <div style={{
-      backgroundColor: '#0D0D11',
-      border: '1px solid #1E1E22',
+      backgroundColor: 'var(--flate-6-alt)',
+      border: '1px solid var(--kant-3)',
       borderLeft: `3px solid ${accent}`,
     }}>
       <button type="button"
@@ -131,17 +131,17 @@ export function FocusSection({
         style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
         <div className="flex items-center gap-2">
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {title}
           </span>
           {loaded && (
             <span className="text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {ownPoints.length > 0 ? `${ownPoints.length}` : ''}
             </span>
           )}
         </div>
-        <span style={{ color: '#555560', fontSize: '14px', lineHeight: 1 }}>{open ? '−' : '+'}</span>
+        <span style={{ color: 'var(--tekst-8-app)', fontSize: '14px', lineHeight: 1 }}>{open ? '−' : '+'}</span>
       </button>
 
       {open && loaded && (
@@ -149,15 +149,15 @@ export function FocusSection({
           {showPlan && (
             <div className="space-y-1">
               <p className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Planlagt
               </p>
               {planPoints.map(p => (
                 <div key={p.id} className="px-2 py-1.5"
                   style={{
-                    backgroundColor: '#0A0A0B',
+                    backgroundColor: 'var(--flate-3)',
                     borderLeft: `2px solid ${ACCENT_PLAN}`,
-                    color: '#C0C0C8',
+                    color: 'var(--tekst-3-fok)',
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: '13px',
                   }}>
@@ -170,13 +170,13 @@ export function FocusSection({
           <div className="space-y-1">
             {showPlan && (
               <p className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Refleksjon
               </p>
             )}
             {emptyState && (
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {context === 'plan' ? 'Ingen fokus-punkter ennå.' : 'Ingen refleksjoner ennå.'}
               </p>
             )}
@@ -185,7 +185,7 @@ export function FocusSection({
               return (
                 <div key={p.id} className="flex items-start gap-2 px-2 py-1.5"
                   style={{
-                    backgroundColor: '#13131A',
+                    backgroundColor: 'var(--flate-12-alt)',
                     borderLeft: `2px solid ${context === 'plan' ? ACCENT_PLAN : ACCENT_DAGBOK_HAS}`,
                   }}>
                   {isEditing ? (
@@ -201,21 +201,21 @@ export function FocusSection({
                       <button type="button" onClick={() => handleUpdate(p.id)} disabled={pending}
                         style={{ background: 'none', border: 'none', color: '#28A86E', fontSize: '14px', cursor: 'pointer', padding: 0 }}>✓</button>
                       <button type="button" onClick={() => setEditingId(null)}
-                        style={{ background: 'none', border: 'none', color: '#555560', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
+                        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
                     </>
                   ) : (
                     <>
-                      <p className="flex-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+                      <p className="flex-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px' }}>
                         {p.content}
                       </p>
                       <button type="button"
                         onClick={() => { setEditingId(p.id); setEditContent(p.content) }}
-                        style={{ background: 'none', border: 'none', color: '#555560', fontSize: '13px', cursor: 'pointer', padding: 0 }}
+                        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '13px', cursor: 'pointer', padding: 0 }}
                         title="Rediger">✎</button>
                       <button type="button"
                         onClick={() => handleDelete(p.id)}
                         disabled={pending}
-                        style={{ background: 'none', border: 'none', color: '#555560', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '12px', cursor: 'pointer', padding: 0 }}
                         title="Slett">×</button>
                     </>
                   )}
@@ -237,11 +237,11 @@ export function FocusSection({
                 <button type="button" onClick={handleAdd} disabled={pending || !draftContent.trim()}
                   style={{
                     background: 'none', border: 'none',
-                    color: draftContent.trim() ? '#28A86E' : '#555560',
+                    color: draftContent.trim() ? '#28A86E' : 'var(--tekst-8-app)',
                     fontSize: '14px', cursor: 'pointer', padding: 0,
                   }}>✓</button>
                 <button type="button" onClick={() => { setDrafting(false); setDraftContent('') }}
-                  style={{ background: 'none', border: 'none', color: '#555560', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
+                  style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', fontSize: '14px', cursor: 'pointer', padding: 0 }}>×</button>
               </div>
             ) : (
               <button type="button"

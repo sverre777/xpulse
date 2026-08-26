@@ -40,10 +40,10 @@ export default function KlokkesyncPage() {
       <div style={{ padding: '0 24px', marginTop: '-8px', marginBottom: 8 }}>
         <div style={{
           maxWidth: 780, margin: '0 auto', padding: '16px 22px',
-          background: '#1A1A1E', border: '1px solid #262629', borderLeft: '3px solid #F5C542',
+          background: 'var(--kant-2)', border: '1px solid var(--kant-5)', borderLeft: '3px solid #F5C542',
           fontFamily: "'Barlow Condensed', sans-serif",
         }}>
-          <div style={{ color: '#F2F0EC', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ color: 'var(--tekst-1-land)', fontWeight: 700, fontSize: 13, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis
             <span style={{ color: '#28A86E' }}>· Polar-synk live nå!</span>
           </div>
@@ -109,7 +109,7 @@ export default function KlokkesyncPage() {
       />
 
       <section className="px-6 lg:px-14 py-20 md:py-24"
-        style={{ borderTop: '1px solid #1A1A1E' }}>
+        style={{ borderTop: '1px solid var(--kant-2)' }}>
         <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-2 items-start">
           <div>
             <div style={{
@@ -124,7 +124,7 @@ export default function KlokkesyncPage() {
             <h2 style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-              letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 18,
+              letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 18,
             }}>
               GI BESKJED NÅR<br/>FLERE MERKER ÅPNER.
             </h2>

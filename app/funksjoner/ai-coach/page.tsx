@@ -101,7 +101,7 @@ export default function AiCoachPage() {
       />
 
       <section className="px-6 lg:px-14 py-20 md:py-24"
-        style={{ borderTop: '1px solid #1A1A1E' }}>
+        style={{ borderTop: '1px solid var(--kant-2)' }}>
         <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-2 items-start">
           <div>
             <div style={{
@@ -116,7 +116,7 @@ export default function AiCoachPage() {
             <h2 style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-              letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 18,
+              letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 18,
             }}>
               GI BESKJED NÅR<br/>AI-COACH ÅPNER.
             </h2>
@@ -127,8 +127,8 @@ export default function AiCoachPage() {
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/pris"
                 style={{
-                  color: '#F2F0EC', padding: '10px 18px',
-                  border: '1px solid #262629', textDecoration: 'none',
+                  color: 'var(--tekst-1-land)', padding: '10px 18px',
+                  border: '1px solid var(--kant-5)', textDecoration: 'none',
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                   fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
                 }}>

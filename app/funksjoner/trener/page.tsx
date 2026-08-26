@@ -98,7 +98,7 @@ export default function TrenerPage() {
       />
 
       <section className="px-6 lg:px-14 py-20 md:py-24"
-        style={{ borderTop: '1px solid #1A1A1E', background: '#0D0D11' }}>
+        style={{ borderTop: '1px solid var(--kant-2)', background: 'var(--flate-6-alt)' }}>
         <div className="max-w-[1240px] mx-auto">
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
@@ -112,11 +112,11 @@ export default function TrenerPage() {
           <h2 style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-            letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 32,
+            letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 32,
           }}>
             VELG NIVÅET SOM PASSER LAGET DITT.
           </h2>
-          <div className="grid gap-px md:grid-cols-3" style={{ background: '#262629' }}>
+          <div className="grid gap-px md:grid-cols-3" style={{ background: 'var(--kant-5)' }}>
             <TierCard tier="Basic" price="199 kr/mnd"
               points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser — kjøp utøverplasser à 29 kr/mnd', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
             <TierCard tier="Pro" price="279 kr/mnd" featured
@@ -127,7 +127,7 @@ export default function TrenerPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/app/registrer?role=coach&amp;tier=pro"
               style={{
-                background: '#1A6FD4', color: '#F2F0EC', padding: '14px 28px',
+                background: '#1A6FD4', color: 'var(--tekst-1-land)', padding: '14px 28px',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
@@ -136,8 +136,8 @@ export default function TrenerPage() {
             </Link>
             <Link href="/xpulse.html#priser"
               style={{
-                color: '#F2F0EC', padding: '14px 28px',
-                border: '1px solid #262629', textDecoration: 'none',
+                color: 'var(--tekst-1-land)', padding: '14px 28px',
+                border: '1px solid var(--kant-5)', textDecoration: 'none',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                 fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
               }}>
@@ -165,7 +165,7 @@ function TierCard({
 }) {
   return (
     <div style={{
-      background: featured ? '#161A22' : '#1A1A1E',
+      background: featured ? '#161A22' : 'var(--kant-2)',
       padding: 28, position: 'relative',
       borderTop: featured ? '2px solid #1A6FD4' : '2px solid transparent',
       opacity: coming ? 0.78 : 1,
@@ -173,7 +173,7 @@ function TierCard({
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
         fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: '#F2F0EC', marginBottom: 12,
+        color: 'var(--tekst-1-land)', marginBottom: 12,
       }}>
         {tier}
         {coming && (
@@ -189,7 +189,7 @@ function TierCard({
       </div>
       <div style={{
         fontFamily: "'Bebas Neue', sans-serif", fontSize: 36,
-        letterSpacing: '0.04em', color: '#F2F0EC', marginBottom: 18,
+        letterSpacing: '0.04em', color: 'var(--tekst-1-land)', marginBottom: 18,
       }}>
         {price}
       </div>

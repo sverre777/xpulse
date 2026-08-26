@@ -11,6 +11,10 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/app',
     display: 'standalone',
     background_color: '#0A0A0B',
+    // Manifestet kan ikke være tema-avhengig — det leses ved installasjon og har
+    // ingen varianter. I en kjørende nettleser vinner <meta name="theme-color">
+    // over denne, og den settes per tema fra lib/tema.ts. Dette er altså
+    // installasjons-standarden, ikke det brukeren ser i appen.
     theme_color: '#0A0A0B',
     icons: [
       { src: '/x-pulse-icon-192.png', sizes: '192x192', type: 'image/png' },

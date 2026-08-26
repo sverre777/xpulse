@@ -23,7 +23,20 @@ function medNettleser(lagret: Store, osLys: boolean, kastVedSkriving = false) {
     },
     matchMedia: (q: string) => ({ matches: q.includes('light') ? osLys : !osLys }),
   }
-  g.document = { documentElement: { dataset: {} as Record<string, string> } }
+  const metaer: { name: string; content: string }[] = []
+  g.document = {
+    documentElement: { dataset: {} as Record<string, string> },
+    head: { appendChild: (m: { name: string; content: string }) => metaer.push(m) },
+    querySelector: (sel: string) =>
+      sel.includes('theme-color') ? metaer.find(m => m.name === 'theme-color') ?? null : null,
+    createElement: () => {
+      const m = { name: '', content: '', setAttribute(k: string, v: string) {
+        if (k === 'name') m.name = v; else if (k === 'content') m.content = v
+      }, getAttribute: (k: string) => (k === 'name' ? m.name : m.content) }
+      return m
+    },
+  }
+  g.__metaer = metaer
   return store
 }
 
@@ -77,6 +90,25 @@ async function main() {
   sjekk('umontert (null) -> neste er lys', tema.nesteTema(null), 'lys')
   sjekk('etikett sier hva knappen gjor', tema.temaEtikett('lys'), 'Bytt til lys modus')
   sjekk('etikett andre vei', tema.temaEtikett('mork'), 'Bytt til mørk modus')
+
+  // Statuslinja ma folge temaet, ellers far man mork statuslinje over lys app.
+  medNettleser({}, false)
+  tema.settTema('lys')
+  const metaLys = (globalThis as unknown as { __metaer: { name: string; content: string }[] }).__metaer
+  sjekk('statuslinja blir lys', metaLys.find(m => m.name === 'theme-color')?.content,
+    tema.TEMA_STATUSLINJE.lys)
+  tema.settTema('mork')
+  sjekk('statuslinja blir mork igjen', metaLys.find(m => m.name === 'theme-color')?.content,
+    tema.TEMA_STATUSLINJE.mork)
+  sjekk('kun EN theme-color-tagg lages',
+    metaLys.filter(m => m.name === 'theme-color').length, 1)
+
+  // Inline-skriptet ma sette statuslinja for forste maling.
+  sjekk('inline-skriptet setter theme-color',
+    tema.TEMA_INLINE_SKRIPT.includes('theme-color'), true)
+  sjekk('inline-skriptet baerer begge fargene',
+    tema.TEMA_INLINE_SKRIPT.includes(tema.TEMA_STATUSLINJE.lys) &&
+    tema.TEMA_INLINE_SKRIPT.includes(tema.TEMA_STATUSLINJE.mork), true)
 
   console.log(feil === 0 ? '\nAlle tester grønne.' : `\n${feil} feil.`)
   process.exit(feil === 0 ? 0 : 1)

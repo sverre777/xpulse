@@ -5,10 +5,15 @@ import { DialogHost } from "@/components/ui/ConfirmDialog";
 import { TEMA_INLINE_SKRIPT } from "@/lib/tema";
 
 export const viewport: Viewport = {
-  // FREDET i lysmodus: dette er metadata, ikke CSS — var() loser seg aldri opp her.
-  // Skal fargen folge temaet, ma den settes fra klienten via en <meta>-oppdatering.
-  // Se design/lysmodus-tvil.md.
-  themeColor: "#0A0A0B",
+  // themeColor settes IKKE her.
+  //
+  // Statuslinja må følge temaet, og metadata kan ikke inneholde var(). Legger
+  // vi en statisk tagg her, ender vi med TO <meta name="theme-color"> — React
+  // setter inn sin etter at inline-skriptet har laget sin, og nettleseren
+  // bruker den første. Det virker, men det avhenger av rekkefølgen og er
+  // skjørt. Skriptet i <head> er derfor eneste kilde, med TEMA_STATUSLINJE i
+  // lib/tema.ts som fasit. app/manifest.ts beholder sin theme_color som
+  // installasjons-standard.
 };
 
 export const metadata: Metadata = {

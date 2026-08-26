@@ -27,6 +27,36 @@ export const TEMA_STANDARD: Tema = 'mork'
 
 export const TEMA_NOKKEL = 'xpulse-tema'
 
+/**
+ * Nettleserens statuslinje, per tema.
+ *
+ * Verdiene MÅ følge bunnflata (`--flate-3`), ellers får du en mørk statuslinje
+ * over en lys app — det første man ser på mobil. Endres `--flate-3` i
+ * globals.css, skal disse endres i samme commit.
+ *
+ * Dette er ENESTE kilde: `app/layout.tsx` setter bevisst ingen `themeColor` i
+ * viewport, fordi to `<meta name="theme-color">` gjør at nettleseren velger
+ * etter rekkefølge. `app/manifest.ts` beholder sin `theme_color` som
+ * installasjons-standard — den kan ikke være tema-avhengig, og meta-taggen
+ * vinner over den i en kjørende nettleser.
+ */
+export const TEMA_STATUSLINJE: Record<Tema, string> = {
+  mork: '#0A0A0B',
+  lys: '#F4F4F5',
+}
+
+/** Oppdaterer <meta name="theme-color">. Lager taggen hvis den mangler. */
+export function settStatuslinje(tema: Tema): void {
+  if (typeof document === 'undefined') return
+  let tag = document.querySelector('meta[name="theme-color"]')
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute('name', 'theme-color')
+    document.head.appendChild(tag)
+  }
+  tag.setAttribute('content', TEMA_STATUSLINJE[tema])
+}
+
 const ER_TEMA = (v: unknown): v is Tema => v === 'mork' || v === 'lys'
 
 /** Brukerens eget valg, eller null hvis hen ikke har valgt. */
@@ -68,6 +98,7 @@ export function settTema(tema: Tema | null): Tema {
   }
   const aktivt = tema ?? gjeldendeTema()
   document.documentElement.dataset.tema = aktivt
+  settStatuslinje(aktivt)
   return aktivt
 }
 
@@ -96,4 +127,8 @@ export function temaEtikett(neste: Tema): string {
 export const TEMA_INLINE_SKRIPT = `(function(){try{
 var v=localStorage.getItem(${JSON.stringify(TEMA_NOKKEL)});
 if(v!=='mork'&&v!=='lys'){v=${TEMA_FOLG_OS}&&matchMedia('(prefers-color-scheme: light)').matches?'lys':${JSON.stringify(TEMA_STANDARD)};}
-document.documentElement.dataset.tema=v;}catch(e){}})()`
+document.documentElement.dataset.tema=v;
+var c=${JSON.stringify(TEMA_STATUSLINJE)}[v];
+var m=document.querySelector('meta[name="theme-color"]');
+if(!m){m=document.createElement('meta');m.setAttribute('name','theme-color');document.head.appendChild(m);}
+m.setAttribute('content',c);}catch(e){}})()`

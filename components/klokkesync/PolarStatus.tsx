@@ -102,7 +102,7 @@ const POLAR_STATUS: Record<string, { label: string; hint?: string; tone: 'ok' | 
 const TONE_COLOR: Record<'ok' | 'feil' | 'nøytral', string> = {
   ok: '#28A86E',
   feil: '#E11D48',
-  nøytral: '#8A8A96',
+  nøytral: 'var(--tekst-5-app)',
 }
 
 export function PolarStatusBanner({ status, detail }: { status: string | null; detail?: string | null }) {
@@ -168,15 +168,15 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
         <h2 className="flex items-center gap-3"
           style={{
             fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-            letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+            letterSpacing: '0.06em', color: 'var(--tekst-1-app)', margin: 0,
           }}>
           {polarBrand && <BrandMark brand={polarBrand} size={32} />}
           Polar
         </h2>
         <button type="button" onClick={() => setShowDisconnect(true)} disabled={pending}
           style={{
-            background: 'none', border: '1px solid #2A2A30', borderRadius: 10,
-            padding: '8px 14px', cursor: pending ? 'default' : 'pointer', color: '#8A8A96',
+            background: 'none', border: '1px solid var(--kant-6)', borderRadius: 10,
+            padding: '8px 14px', cursor: pending ? 'default' : 'pointer', color: 'var(--tekst-5-app)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
             letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
@@ -184,13 +184,13 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
         </button>
       </div>
 
-      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: '#F0F0F2' }}>
-        Koblet · polar-bruker <code style={{ color: '#8A8A96', fontSize: 13 }}>{conn.polar_user_id}</code>
+      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: 'var(--tekst-1-app)' }}>
+        Koblet · polar-bruker <code style={{ color: 'var(--tekst-5-app)', fontSize: 13 }}>{conn.polar_user_id}</code>
       </div>
 
       {conn.registered_at ? (
         <>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#555560', marginTop: 2 }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-app)', marginTop: 2 }}>
             Registrert hos Polar {new Date(conn.registered_at).toLocaleString('nb-NO')}
             {conn.last_sync_at
               ? <> · sist synket {new Date(conn.last_sync_at).toLocaleString('nb-NO')}</>
@@ -205,7 +205,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
             border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
             borderLeft: '3px solid #F5C542',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: '#F0F0F2', lineHeight: 1.6,
+            color: 'var(--tekst-1-app)', lineHeight: 1.6,
           }}>
           <div style={{ color: '#F5C542', fontWeight: 600, marginBottom: 4 }}>
             Registreringen hos Polar er ikke fullført
@@ -216,7 +216,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
           <div className="mt-3">
             <button type="button" onClick={handleRegister} disabled={pending}
               style={{
-                background: '#FF4500', color: '#F0F0F2', border: 'none', borderRadius: 10,
+                background: '#FF4500', color: 'var(--tekst-1-app)', border: 'none', borderRadius: 10,
                 padding: '9px 18px', cursor: pending ? 'default' : 'pointer',
                 opacity: pending ? 0.7 : 1,
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -235,7 +235,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
 
       {conn.registered_at && (
         <label className="flex items-center gap-2 mt-4"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2', minHeight: 44 }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)', minHeight: 44 }}>
           <input type="checkbox" checked={conn.auto_sync} disabled={pending}
             onChange={() => {
               startTransition(async () => {
@@ -250,15 +250,15 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
 
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-        color: '#8A8A96', lineHeight: 1.7, marginTop: 14, marginBottom: 0,
+        color: 'var(--tekst-5-app)', lineHeight: 1.7, marginTop: 14, marginBottom: 0,
       }}>
-        Polar gir kun økter fra de <strong style={{ color: '#F0F0F2' }}>siste 30 dagene</strong>, og kun
-        økter som lastes opp til Polar Flow <strong style={{ color: '#F0F0F2' }}>etter</strong> at du
+        Polar gir kun økter fra de <strong style={{ color: 'var(--tekst-1-app)' }}>siste 30 dagene</strong>, og kun
+        økter som lastes opp til Polar Flow <strong style={{ color: 'var(--tekst-1-app)' }}>etter</strong> at du
         koblet til. Eldre økter henter du inn med <strong style={{ color: '#FF4500' }}>.fit-opplasting</strong> under.
       </p>
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        color: '#555560', letterSpacing: '0.06em', marginTop: 8, marginBottom: 0,
+        color: 'var(--tekst-8-app)', letterSpacing: '0.06em', marginTop: 8, marginBottom: 0,
       }}>
         Datakilde: Polar Ecosystem
       </p>
@@ -284,7 +284,7 @@ function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
     return (
       <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: '#28A86E', marginTop: 4 }}>
         ✓ Direkte-varsling fra Polar er aktiv
-        {lastWebhookAt && <span style={{ color: '#555560' }}> · sist {new Date(lastWebhookAt).toLocaleString('nb-NO')}</span>}
+        {lastWebhookAt && <span style={{ color: 'var(--tekst-8-app)' }}> · sist {new Date(lastWebhookAt).toLocaleString('nb-NO')}</span>}
       </div>
     )
   }

@@ -139,13 +139,13 @@ export function PolarDisconnectModal({ open, onClose }: Props) {
   return (
     <div onClick={disconnecting ? undefined : onClose}
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #1E1E22',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)',
           maxWidth: '520px', width: '100%', padding: '24px',
           maxHeight: '90vh', overflowY: 'auto',
         }}>
@@ -180,14 +180,14 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
   const n = (v: number | undefined) => (preview === null ? '…' : String(v ?? 0))
   return (
     <>
-      <h2 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em' }}>
+      <h2 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em' }}>
         Frakoble Polar?
       </h2>
 
-      <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+      <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
         Dette sletter permanent:
       </p>
-      <ul className="mb-4 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5 }}>
+      <ul className="mb-4 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.5 }}>
         <li>• <strong>{n(preview?.workouts)}</strong> økter importert fra Polar, med all data</li>
         <li>• <strong>{n(preview?.activities)}</strong> tilhørende aktiviteter/lap i disse øktene</li>
         <li>• <strong>{n(preview?.samples)}</strong> rå-datasett (puls, watt, fart, høyde sekund for sekund)</li>
@@ -197,7 +197,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <li>• All analyse basert på disse øktene — PR-er og trender vil endres</li>
       </ul>
 
-      <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+      <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
         I tillegg <strong>avregistreres X-PULSE hos Polar</strong>: registreringen din
         fjernes og tilgangen vår (tokenet) trekkes tilbake. Vi kan ikke lese noe fra
         Polar etterpå. Dette er påkrevd av Polars egen API-avtale.
@@ -211,7 +211,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#28A86E', fontSize: '13px', fontWeight: 600 }}>
           Dette røres IKKE
         </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '12px', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
           → Økter du har lastet opp selv som .fit-filer
           <br />
           → Økter du har ført manuelt
@@ -230,7 +230,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F5C542', fontSize: '13px', fontWeight: 600 }}>
           Vil du beholde øktene først?
         </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '12px', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
           → Eksporter dem som .fit fra{' '}
           <a href="https://flow.polar.com" target="_blank" rel="noopener noreferrer"
             style={{ color: '#F5C542', textDecoration: 'underline' }}>
@@ -258,8 +258,8 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <button type="button" onClick={onCancel} disabled={disconnecting}
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-            background: 'none', border: '1px solid #1E1E22',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+            background: 'none', border: '1px solid var(--kant-3)',
             cursor: disconnecting ? 'not-allowed' : 'pointer',
             opacity: disconnecting ? 0.6 : 1,
           }}>
@@ -268,7 +268,7 @@ function ConfirmBody({ preview, disconnecting, error, onCancel, onConfirm }: {
         <button type="button" onClick={onConfirm} disabled={disconnecting}
           className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-ren)',
             backgroundColor: '#E11D48', border: '1px solid #E11D48',
             cursor: disconnecting ? 'not-allowed' : 'pointer',
             opacity: disconnecting ? 0.6 : 1,
@@ -295,7 +295,7 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
     : []
   return (
     <>
-      <h2 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em' }}>
+      <h2 className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em' }}>
         {leftovers ? 'Frakoblingen er ikke helt ferdig' : 'Lokal frakobling fullført'}
       </h2>
 
@@ -308,21 +308,21 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
           <p className="mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48', fontSize: '13px', fontWeight: 600 }}>
             Etterkontrollen fant data som fortsatt ligger igjen
           </p>
-          <ul className="mb-3 space-y-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px', lineHeight: 1.5 }}>
+          <ul className="mb-3 space-y-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px', lineHeight: 1.5 }}>
             {rest.map(([k, label]) => (
               <li key={k}>
                 • {leftovers[k] === -1 ? `${label}: kunne ikke verifiseres` : `${leftovers[k]} ${label}`}
               </li>
             ))}
           </ul>
-          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '12px', lineHeight: 1.6 }}>
+          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '12px', lineHeight: 1.6 }}>
             Slettingen er ufullstendig, ikke ødelagt — kjør frakoblingen en gang
             til, så ryddes resten. Alle stegene tåler gjentakelse.
           </p>
           <button type="button" onClick={onRetry} disabled={retrying}
             className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-ren)',
               backgroundColor: '#E11D48', border: '1px solid #E11D48',
               cursor: retrying ? 'not-allowed' : 'pointer', opacity: retrying ? 0.6 : 1,
             }}>
@@ -333,11 +333,11 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
 
       {manualUrl && (
         <>
-          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.6 }}>
+          <p className="mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.6 }}>
             Vi fikk ikke bekreftet avregistreringen hos Polar — gjør dette selv
             for å trekke tilgangen helt tilbake:
           </p>
-          <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5 }}>
+          <ol className="mb-4 pl-5 space-y-1.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.5 }}>
             <li>1. Åpne lenken under (Polar Flow → Innstillinger → Autorisasjoner)</li>
             <li>2. Finn X-PULSE i listen</li>
             <li>3. Fjern tilgangen</li>
@@ -345,13 +345,13 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
           <a href={manualUrl} target="_blank" rel="noopener noreferrer"
             className="block mb-4 px-4 py-3 text-xs tracking-widest uppercase text-center transition-opacity hover:opacity-90"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#FFFFFF',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-ren)',
               backgroundColor: '#FF4500', textDecoration: 'none',
             }}>
             Åpne Polar Flow-innstillinger →
           </a>
           {message && (
-            <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+            <p className="mb-4 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
               Teknisk detalj (til feilsøking): {message}
             </p>
           )}
@@ -362,8 +362,8 @@ function AftermathBody({ leftovers, manualUrl, message, retrying, onRetry, onDon
         <button type="button" onClick={onDone}
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2',
-            background: 'none', border: '1px solid #1E1E22', cursor: 'pointer',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
+            background: 'none', border: '1px solid var(--kant-3)', cursor: 'pointer',
           }}>
           {leftovers ? 'Lukk' : 'Forstått'}
         </button>

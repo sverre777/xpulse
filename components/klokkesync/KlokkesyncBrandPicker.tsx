@@ -38,7 +38,7 @@ export function KlokkesyncBrandPicker({
       <h2 className="mb-2 flex items-center gap-3"
         style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-          letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+          letterSpacing: '0.06em', color: 'var(--tekst-1-app)', margin: 0,
         }}>
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         {title}
@@ -69,7 +69,7 @@ export function KlokkesyncBrandPicker({
             color: 'rgba(242,240,236,0.8)', lineHeight: 1.6,
           }}>
           <strong style={{ color: '#28A86E' }}>Uansett merke:</strong> du kan alltid laste opp
-          {' '}<strong style={{ color: '#F0F0F2' }}>.fit-filer</strong> manuelt — fra alle klokkemerker,
+          {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>.fit-filer</strong> manuelt — fra alle klokkemerker,
           med full data, og uten noen tilkobling. Opplastingen ligger lenger ned på denne siden.
         </div>
       )}
@@ -87,7 +87,7 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
         padding: '12px 14px',
         background: 'var(--card)',
         border: '1px solid var(--line)',
-        borderLeft: `3px solid ${live ? brand.accent : '#2A2A30'}`,
+        borderLeft: `3px solid ${live ? brand.accent : 'var(--kant-6)'}`,
         borderRadius: 12,
         opacity: live ? 1 : 0.55,
       }}>
@@ -96,7 +96,7 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
         <div className="min-w-0">
         <div style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 18,
-          letterSpacing: '0.06em', color: '#F0F0F2',
+          letterSpacing: '0.06em', color: 'var(--tekst-1-app)',
         }}>
           {brand.name}
         </div>
@@ -111,7 +111,7 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
       <span className="shrink-0" style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
         letterSpacing: '0.14em', textTransform: 'uppercase',
-        color: connected ? '#28A86E' : live ? brand.accent : '#555560',
+        color: connected ? '#28A86E' : live ? brand.accent : 'var(--tekst-8-app)',
       }}>
         {connected ? '✓ Tilkoblet' : live ? 'Koble til →' : 'Kommer'}
       </span>
@@ -145,7 +145,7 @@ export function BrandMark({ brand, size = 40 }: { brand: KlokkesyncBrand; size?:
   // som ikke er live får dempet omriss, så de trer tydelig tilbake.
   const style: React.CSSProperties = live
     ? { background: brand.accent, border: 'none' }
-    : { background: 'transparent', border: '1px solid #2A2A30' }
+    : { background: 'transparent', border: '1px solid var(--kant-6)' }
   const inkColor = live ? '#0A0A0B' : '#555560'
 
   return (
@@ -159,7 +159,7 @@ export function BrandMark({ brand, size = 40 }: { brand: KlokkesyncBrand; size?:
           style={{ objectFit: 'contain' }} />
       ) : brand.branding === 'strava' ? (
         // Stravas egen logo, hvit på merkefargen — slik brand guidelines viser den.
-        <StravaLogo size={size * 0.58} color="#FFFFFF" />
+        <StravaLogo size={size * 0.58} color="var(--tekst-1-ren)" />
       ) : (
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",

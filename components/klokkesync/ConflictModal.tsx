@@ -20,14 +20,14 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
       onClick={onCancel}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.7)',
+        background: 'var(--scrim-70)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 16,
       }}>
       <div onClick={e => e.stopPropagation()}
         className="w-full"
         style={{
-          maxWidth: 480, background: '#0F0F16',
+          maxWidth: 480, background: 'var(--flate-8-c)',
           border: '1px solid var(--line)', borderTop: '2px solid #F5C542',
         }}>
         <div className="p-5">
@@ -40,7 +40,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
           </div>
           <h3 style={{
             fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-            letterSpacing: '0.06em', color: '#F0F0F2', marginBottom: 12,
+            letterSpacing: '0.06em', color: 'var(--tekst-1-app)', marginBottom: 12,
           }}>
             {title}
           </h3>
@@ -62,7 +62,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
             <ResolveButton color="#1A6FD4" label="Behold begge"
               desc="Lager en ny økt ved siden av den gamle."
               onClick={() => onResolve('keep_both')} />
-            <ResolveButton color="#8A8A96" label="Hopp over"
+            <ResolveButton color="var(--tekst-5-app)" label="Hopp over"
               desc="Ignorer denne import-aktiviteten. Ikke vist igjen."
               onClick={() => onResolve('skip')} />
           </div>
@@ -71,7 +71,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
             style={{
               marginTop: 12, padding: '8px 0', width: '100%',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#555560', fontSize: 12,
+              color: 'var(--tekst-8-app)', fontSize: 12,
               fontFamily: "'Barlow Condensed', sans-serif",
               letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>

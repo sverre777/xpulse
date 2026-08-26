@@ -66,7 +66,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
         className="relative inline-flex items-center justify-center"
         style={{
           width: 36, height: 36, background: 'none', border: 'none',
-          color: '#8A8A96', cursor: 'pointer', padding: 0,
+          color: 'var(--tekst-5-app)', cursor: 'pointer', padding: 0,
         }}>
         <RefreshCwIcon size={20} />
         <span aria-hidden="true"
@@ -74,7 +74,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
             position: 'absolute', top: 6, right: 6,
             width: 8, height: 8, borderRadius: '50%',
             background: dotColor,
-            border: '2px solid #0A0A0B',
+            border: '2px solid var(--flate-3)',
           }} />
       </button>
       {popupOpen && fullStatus && (
@@ -106,14 +106,14 @@ function KlokkesyncStatusPopup({
         style={{
           position: 'absolute', top: 'calc(100% + 8px)', right: 0,
           minWidth: 280, zIndex: 100,
-          background: 'var(--card)', border: '1px solid #262629',
+          background: 'var(--card)', border: '1px solid var(--kant-5)',
           padding: 16,
         }}>
         <div className="mb-2"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: '#8A8A96',
+            color: 'var(--tekst-5-app)',
           }}>
           Klokkesync
         </div>
@@ -124,7 +124,7 @@ function KlokkesyncStatusPopup({
             color: 'rgba(242,240,236,0.7)',
           }}>
           {status.lastSyncAt ? (
-            <>Sist synket: <span style={{ color: '#F0F0F2' }}>{formatRelative(status.lastSyncAt)}</span></>
+            <>Sist synket: <span style={{ color: 'var(--tekst-1-app)' }}>{formatRelative(status.lastSyncAt)}</span></>
           ) : (
             'Ingen synker enda'
           )}
@@ -132,7 +132,7 @@ function KlokkesyncStatusPopup({
 
         {status.lastWorkout && (
           <div className="p-2 mb-3"
-            style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
+            style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)' }}>
             <div style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -143,13 +143,13 @@ function KlokkesyncStatusPopup({
             <Link href={`/app/dagbok?edit=${status.lastWorkout.id}`}
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-                color: '#F0F0F2', textDecoration: 'none', display: 'block',
+                color: 'var(--tekst-1-app)', textDecoration: 'none', display: 'block',
               }}>
               {status.lastWorkout.title}
             </Link>
             <div style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-              color: '#555560',
+              color: 'var(--tekst-8-app)',
             }}>
               {status.lastWorkout.date} · {status.lastWorkout.source}
             </div>
@@ -162,7 +162,7 @@ function KlokkesyncStatusPopup({
             disabled={pending}
             style={{
               flex: 1, padding: '8px 12px',
-              background: '#FF4500', color: '#F0F0F2', border: 'none',
+              background: '#FF4500', color: 'var(--tekst-1-app)', border: 'none',
               cursor: pending ? 'default' : 'pointer',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -173,7 +173,7 @@ function KlokkesyncStatusPopup({
             onClick={onClose}
             style={{
               padding: '8px 12px', textDecoration: 'none',
-              border: '1px solid #2A2A30', color: '#8A8A96',
+              border: '1px solid var(--kant-6)', color: 'var(--tekst-5-app)',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
               fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
               display: 'inline-flex', alignItems: 'center',

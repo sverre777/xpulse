@@ -42,7 +42,7 @@ interface Props {
 
 const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   koblet:           { label: '✓ Strava er koblet til',                      color: '#28A86E' },
-  avbrutt:          { label: 'Du avbrøt Strava-tilkoblingen',              color: '#8A8A96' },
+  avbrutt:          { label: 'Du avbrøt Strava-tilkoblingen',              color: 'var(--tekst-5-app)' },
   'feil-state':     { label: 'Sikkerhetsfeil — prøv igjen',                color: '#E11D48' },
   'ikke-innlogget': { label: 'Logg inn først, så prøv igjen',              color: '#E11D48' },
   'lagring-feilet': { label: 'Kunne ikke lagre tilkoblingen',              color: '#E11D48' },
@@ -119,7 +119,7 @@ function StravaRolloutNote() {
         borderLeft: '3px solid #F5C542',
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
-      <div style={{ color: '#F0F0F2', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
+      <div style={{ color: 'var(--tekst-1-app)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
         📡 Strava-sync er i gradvis utrulling
       </div>
       <p style={{ color: 'rgba(242,240,236,0.62)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
@@ -149,7 +149,7 @@ function StravaSection({ conn }: { conn: StravaConn }) {
         <h2 className="flex items-center gap-2.5"
           style={{
             fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-            letterSpacing: '0.06em', color: '#F0F0F2', margin: 0,
+            letterSpacing: '0.06em', color: 'var(--tekst-1-app)', margin: 0,
           }}>
           <StravaLogo size={26} color="#FC5200" />
           Strava
@@ -270,13 +270,13 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
         <div>
           <div style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 15,
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 15,
           }}>
-            Koblet · athlete-id <code style={{ color: '#8A8A96', fontSize: 13 }}>{conn.athlete_id}</code>
+            Koblet · athlete-id <code style={{ color: 'var(--tekst-5-app)', fontSize: 13 }}>{conn.athlete_id}</code>
           </div>
           {conn.last_sync_at && (
             <div style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12,
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12,
             }}>
               Sist synket: {new Date(conn.last_sync_at).toLocaleString('nb-NO')}
             </div>
@@ -284,8 +284,8 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         </div>
         <button type="button" onClick={handleDisconnect} disabled={pending}
           style={{
-            background: 'none', border: '1px solid #2A2A30', borderRadius: 10,
-            padding: '8px 14px', cursor: 'pointer', color: '#8A8A96',
+            background: 'none', border: '1px solid var(--kant-6)', borderRadius: 10,
+            padding: '8px 14px', cursor: 'pointer', color: 'var(--tekst-5-app)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
             letterSpacing: '0.16em', textTransform: 'uppercase',
           }}>
@@ -294,7 +294,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       </div>
 
       <label className="flex items-center gap-2 mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)' }}>
         <input type="checkbox" checked={conn.auto_sync} onChange={handleAutoSyncToggle} disabled={pending} />
         Auto-synk nye aktiviteter (sjekkes hver 5. min)
       </label>
@@ -306,8 +306,8 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <select value={syncMode} onChange={e => setSyncMode(e.target.value as SyncMode)}
           style={{
-            background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
-            color: '#F0F0F2', padding: '8px 10px', fontSize: 13,
+            background: 'var(--flate-8-b)', border: '1px solid var(--line)', borderRadius: 10,
+            color: 'var(--tekst-1-app)', padding: '8px 10px', fontSize: 13,
             fontFamily: "'Barlow', sans-serif",
           }}>
           <option value="last_30d">Siste 30 dager</option>
@@ -317,7 +317,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         </select>
         <button type="button" onClick={handleSync} disabled={pending}
           style={{
-            background: '#FC4C02', color: '#FFFFFF', border: 'none', borderRadius: 10,
+            background: '#FC4C02', color: 'var(--tekst-1-ren)', border: 'none', borderRadius: 10,
             padding: '9px 18px', cursor: pending ? 'default' : 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -328,7 +328,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {progress && (
         <div className="p-3 mb-3"
-          style={{ background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#F0F0F2' }}>
+          style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)' }}>
           Importerer … {progress.done}/{progress.total}
         </div>
       )}
@@ -336,12 +336,12 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
       {previewList && previewList.length > 0 && (
         <div className="space-y-2 mt-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8A8A96' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
               Fant {previewList.length} aktiviteter
             </span>
             <button type="button" onClick={handleQuickSyncAll} disabled={pending}
               style={{
-                background: '#FF4500', color: '#F0F0F2', border: 'none', borderRadius: 10,
+                background: '#FF4500', color: 'var(--tekst-1-app)', border: 'none', borderRadius: 10,
                 padding: '8px 16px', cursor: pending ? 'default' : 'pointer',
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -366,7 +366,7 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
 
       {previewList && previewList.length === 0 && (
         <div className="p-3 mt-3"
-          style={{ background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560' }}>
+          style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)', borderRadius: 10, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-8-app)' }}>
           Ingen nye aktiviteter funnet i valgt periode.
         </div>
       )}
@@ -402,12 +402,12 @@ function ActivityRow({
   return (
     <div className="flex items-center justify-between gap-3 p-3"
       style={{
-        background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
+        background: 'var(--flate-8-b)', border: '1px solid var(--line)', borderRadius: 10,
         fontFamily: "'Barlow Condensed', sans-serif",
       }}>
       <div className="flex-1 min-w-0">
-        <div style={{ fontSize: 14, color: '#F0F0F2', fontWeight: 600 }}>{activity.name}</div>
-        <div style={{ fontSize: 12, color: '#8A8A96' }}>
+        <div style={{ fontSize: 14, color: 'var(--tekst-1-app)', fontWeight: 600 }}>{activity.name}</div>
+        <div style={{ fontSize: 12, color: 'var(--tekst-5-app)' }}>
           {date} · {activity.duration_minutes} min · {activity.distance_km} km · {activity.sport_type}
         </div>
       </div>
@@ -455,11 +455,11 @@ interface FileEntry {
 const UPLOAD_BATCH = 3
 
 const STATUS_VISUAL: Record<FileStatus, { label: string; color: string }> = {
-  pending:   { label: 'Klar',                color: '#8A8A96' },
+  pending:   { label: 'Klar',                color: 'var(--tekst-5-app)' },
   importing: { label: 'Importerer …',        color: '#F5C542' },
   imported:  { label: '✓ Importert',         color: '#28A86E' },
-  duplicate: { label: '⊘ Allerede importert', color: '#8A8A96' },
-  skipped:   { label: '⊘ Duplikat — hoppet over', color: '#8A8A96' },
+  duplicate: { label: '⊘ Allerede importert', color: 'var(--tekst-5-app)' },
+  skipped:   { label: '⊘ Duplikat — hoppet over', color: 'var(--tekst-5-app)' },
   failed:    { label: '✗ Feilet',            color: '#E11D48' },
 }
 
@@ -592,7 +592,7 @@ function FitUploadSection() {
       <h2 className="mb-2 flex items-center gap-3"
         style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 22,
-          letterSpacing: '0.06em', color: '#F0F0F2',
+          letterSpacing: '0.06em', color: 'var(--tekst-1-app)',
         }}>
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         .fit-fil-opplasting
@@ -609,7 +609,7 @@ function FitUploadSection() {
       {entries.length > 0 && (
         <div className="mt-4">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#8A8A96' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
               {entries.length} {entries.length === 1 ? 'fil' : 'filer'} valgt
               {progress && ` · importerer ${progress.done} av ${progress.total} …`}
             </span>
@@ -617,7 +617,7 @@ function FitUploadSection() {
               {!importing && (
                 <button type="button" onClick={clearAll}
                   style={{
-                    background: 'none', border: '1px solid #2A2A30', borderRadius: 10, color: '#8A8A96',
+                    background: 'none', border: '1px solid var(--kant-6)', borderRadius: 10, color: 'var(--tekst-5-app)',
                     padding: '8px 14px', cursor: 'pointer',
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
                     letterSpacing: '0.16em', textTransform: 'uppercase',
@@ -628,7 +628,7 @@ function FitUploadSection() {
               <button type="button" onClick={startImport} disabled={importing || pendingCount === 0}
                 style={{
                   background: importing || pendingCount === 0 ? '#7A2200' : '#FF4500',
-                  color: '#F0F0F2', border: 'none',
+                  color: 'var(--tekst-1-app)', border: 'none',
                   padding: '9px 18px', cursor: importing || pendingCount === 0 ? 'default' : 'pointer',
                   opacity: importing || pendingCount === 0 ? 0.7 : 1,
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -647,11 +647,11 @@ function FitUploadSection() {
               return (
                 <li key={`${e.name}:${e.file.size}:${i}`} className="p-3 flex items-start justify-between gap-3"
                   style={{
-                    background: '#0F0F14', border: '1px solid var(--line)', borderRadius: 10,
+                    background: 'var(--flate-8-b)', border: '1px solid var(--line)', borderRadius: 10,
                     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                   }}>
                   <span className="min-w-0 flex-1">
-                    <span className="block" style={{ color: '#F0F0F2', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span className="block" style={{ color: 'var(--tekst-1-app)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {e.name}
                     </span>
                     {/* Den FAKTISKE årsaken. Lå tidligere kun i en title-
@@ -669,7 +669,7 @@ function FitUploadSection() {
                     {!importing && e.status === 'pending' && (
                       <button type="button" onClick={() => removeEntry(i)}
                         aria-label={`Fjern ${e.name}`}
-                        style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}>
+                        style={{ background: 'none', border: 'none', color: 'var(--tekst-8-app)', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px' }}>
                         ×
                       </button>
                     )}
@@ -688,7 +688,7 @@ function FitUploadSection() {
             border: `1px solid ${summary.failed > 0 ? 'rgba(245,197,66,0.4)' : 'rgba(40,168,110,0.4)'}`,
             borderLeft: `3px solid ${summary.failed > 0 ? '#F5C542' : '#28A86E'}`,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: '#F0F0F2', lineHeight: 1.6,
+            color: 'var(--tekst-1-app)', lineHeight: 1.6,
           }}>
           Ferdig: <strong>{summary.imported}</strong> importert
           {summary.skipped > 0 && <> · <strong>{summary.skipped}</strong> duplikat hoppet over</>}
@@ -697,7 +697,7 @@ function FitUploadSection() {
           {summary.failed > 0 && (
             <ul className="list-none p-0 mt-2 space-y-1">
               {entries.filter(e => e.status === 'failed').map((e, i) => (
-                <li key={`feil:${e.name}:${i}`} style={{ fontSize: 12, color: '#F0F0F2' }}>
+                <li key={`feil:${e.name}:${i}`} style={{ fontSize: 12, color: 'var(--tekst-1-app)' }}>
                   <span style={{ color: '#E11D48' }}>✗</span>{' '}
                   <strong>{e.name}</strong>
                   {e.detail ? <> — {e.detail}</> : null}
@@ -749,12 +749,12 @@ const BRAND_GUIDES: { brand: string; steps: string[] }[] = [
 function FitHelpAccordion() {
   return (
     <details className="mb-4"
-      style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
+      style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)' }}>
       <summary
         style={{
           cursor: 'pointer', padding: '12px 14px', listStyle: 'none',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-          color: '#F0F0F2', letterSpacing: '0.04em',
+          color: 'var(--tekst-1-app)', letterSpacing: '0.04em',
         }}>
         ▸ Hvordan finne .fit-fil fra klokken din
       </summary>
@@ -801,8 +801,8 @@ function FitDropZone({ onFiles, disabled }: {
       }}
       style={{
         display: 'block', padding: '32px 24px', textAlign: 'center',
-        background: dragOver ? 'rgba(255,69,0,0.1)' : '#0F0F14',
-        border: `2px dashed ${dragOver ? '#FF4500' : '#262629'}`,
+        background: dragOver ? 'rgba(255,69,0,0.1)' : 'var(--flate-8-b)',
+        border: `2px dashed ${dragOver ? '#FF4500' : 'var(--kant-5)'}`,
         cursor: disabled ? 'default' : 'pointer',
         transition: 'background 0.15s, border-color 0.15s',
       }}>
@@ -812,13 +812,13 @@ function FitDropZone({ onFiles, disabled }: {
         style={{ display: 'none' }} />
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
-        color: disabled ? '#555560' : '#F0F0F2', marginBottom: 6,
+        color: disabled ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)', marginBottom: 6,
       }}>
         {disabled ? 'Behandler …' : 'Dra .fit-filer inn her, eller klikk for å velge (flere støttes)'}
       </div>
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,
-        color: '#555560', letterSpacing: '0.12em', textTransform: 'uppercase',
+        color: 'var(--tekst-8-app)', letterSpacing: '0.12em', textTransform: 'uppercase',
       }}>
         {/* Leses fra FIT_MAX_BYTES — teksten sa 20 MB mens den ekte grensen
             var 4 MB, så avvisningen kom som en overraskelse. Én kilde. */}

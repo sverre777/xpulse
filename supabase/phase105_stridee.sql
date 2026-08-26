@@ -102,7 +102,12 @@ select
 
 
 -- ══ FAKTISK KJØRING ════════════════════════════════════════════════════
--- Fyll inn når den er kjørt:
---   Kjørt (dato):
---   STEG 1:  tabell_finnes ___  antall_kolonner ___  antall_policyer ___
---   STEG 3:  tabell_finnes ___  antall_kolonner ___  antall_policyer ___
+-- KJØRT I PROD 2026-08-26 av Sverre. Alle tre steg gikk gjennom.
+--
+--   STEG 1:  tabell_finnes 0  antall_kolonner 0  antall_policyer 0
+--   STEG 2:  success
+--   STEG 3:  tabell_finnes 1  antall_kolonner 9  antall_policyer 1
+--
+-- Tallene er nøyaktig de ventede. Tabellen finnes, har alle ni kolonnene, og
+-- har én policy (service_role). Ingen policy for authenticated = deny by
+-- default, som tiltenkt.

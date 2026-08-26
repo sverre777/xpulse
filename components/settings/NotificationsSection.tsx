@@ -47,7 +47,7 @@ export function NotificationsSection({ initial }: Props) {
   return (
     <div className="p-6 mt-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Varsler
       </p>
 
@@ -55,11 +55,11 @@ export function NotificationsSection({ initial }: Props) {
         {ITEMS.map(item => (
           <div key={item.key} className="flex items-start justify-between gap-4">
             <div>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                 {item.label}
               </p>
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {item.desc}
               </p>
             </div>
@@ -85,7 +85,7 @@ function Toggle({ active, disabled, onClick }: { active: boolean; disabled?: boo
         width: '44px',
         height: '24px',
         borderRadius: '12px',
-        background: active ? '#FF4500' : '#262629',
+        background: active ? '#FF4500' : 'var(--kant-5)',
         border: 'none',
         position: 'relative',
         cursor: disabled ? 'default' : 'pointer',
@@ -99,7 +99,7 @@ function Toggle({ active, disabled, onClick }: { active: boolean; disabled?: boo
         width: '18px',
         height: '18px',
         borderRadius: '50%',
-        background: '#F0F0F2',
+        background: 'var(--tekst-1-app)',
         transition: 'left 0.15s',
       }} />
     </button>

@@ -14,7 +14,7 @@ export function SettingsPageHeader({ title, description, accent = '#FF4500' }: P
       <Link href="/app/innstillinger"
         className="text-xs tracking-widest uppercase inline-block mb-4 hover:opacity-80 transition-opacity"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
           textDecoration: 'none',
         }}>
         ← Innstillinger
@@ -23,7 +23,7 @@ export function SettingsPageHeader({ title, description, accent = '#FF4500' }: P
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '32px', height: '3px', backgroundColor: accent, display: 'inline-block' }} />
         <h1 style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '36px', letterSpacing: '0.08em',
         }}>
           {title}
@@ -32,7 +32,7 @@ export function SettingsPageHeader({ title, description, accent = '#FF4500' }: P
 
       {description && (
         <p className="mb-6 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {description}
         </p>
       )}

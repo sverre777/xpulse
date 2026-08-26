@@ -43,7 +43,7 @@ export function DefaultPermissionsSection({ initial }: Props) {
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}
     >
       <p className="text-sm mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Disse rettighetene blir foreslått automatisk når en utøver kobles til deg.
         Utøveren kan justere før godkjenning.
       </p>
@@ -111,7 +111,7 @@ function PermToggle({
         style={{ accentColor: COACH_BLUE }}
       />
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         {label}
       </span>
     </label>

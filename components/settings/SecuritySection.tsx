@@ -47,14 +47,14 @@ export function SecuritySection({ currentEmail, pendingEmail }: Props) {
   return (
     <div className="p-6 mt-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Sikkerhet
       </p>
 
       <div className="mb-6">
         <p className="text-xs mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-          E-post — nåværende: <span style={{ color: '#F0F0F2' }}>{currentEmail}</span>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+          E-post — nåværende: <span style={{ color: 'var(--tekst-1-app)' }}>{currentEmail}</span>
         </p>
         {pendingEmail && (
           <p className="text-xs mb-2"
@@ -88,7 +88,7 @@ export function SecuritySection({ currentEmail, pendingEmail }: Props) {
 
       <div>
         <p className="text-xs mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Endre passord — minst 8 tegn
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -121,9 +121,9 @@ export function SecuritySection({ currentEmail, pendingEmail }: Props) {
 
 const inputStyle: React.CSSProperties = {
   flex: 1,
-  background: '#0E0E10',
-  border: '1px solid #262629',
-  color: '#F0F0F2',
+  background: 'var(--flate-7)',
+  border: '1px solid var(--kant-5)',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '16px',
   padding: '8px 12px',
@@ -134,8 +134,8 @@ function buttonStyle(active: boolean): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
     background: active ? '#FF4500' : 'none',
-    border: '1px solid ' + (active ? '#FF4500' : '#262629'),
-    color: active ? '#0A0A0B' : '#555560',
+    border: '1px solid ' + (active ? '#FF4500' : 'var(--kant-5)'),
+    color: active ? 'var(--flate-3)' : 'var(--tekst-8-app)',
     padding: '8px 18px',
     cursor: active ? 'pointer' : 'default',
     minHeight: '40px',

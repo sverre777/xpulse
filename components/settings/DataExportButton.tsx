@@ -26,7 +26,7 @@ export function DataExportButton() {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Last ned alle dine data. Inkluderer profil, økter, planer, mål, helse-logg, mm.
       </p>
       <div className="flex gap-2 flex-wrap">
@@ -37,8 +37,8 @@ export function DataExportButton() {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             background: pending ? 'none' : '#FF4500',
-            border: '1px solid ' + (pending ? '#262629' : '#FF4500'),
-            color: pending ? '#555560' : '#0A0A0B',
+            border: '1px solid ' + (pending ? 'var(--kant-5)' : '#FF4500'),
+            color: pending ? 'var(--tekst-8-app)' : 'var(--flate-3)',
             padding: '8px 18px',
             cursor: pending ? 'default' : 'pointer',
             minHeight: '40px',
@@ -64,9 +64,9 @@ function FormatButton({ active, onClick, children }: {
       className="text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        background: active ? '#1A1A1E' : 'none',
-        border: '1px solid ' + (active ? '#FF4500' : '#262629'),
-        color: active ? '#FF4500' : '#8A8A96',
+        background: active ? 'var(--kant-2)' : 'none',
+        border: '1px solid ' + (active ? '#FF4500' : 'var(--kant-5)'),
+        color: active ? '#FF4500' : 'var(--tekst-5-app)',
         padding: '8px 14px',
         cursor: 'pointer',
         minHeight: '40px',

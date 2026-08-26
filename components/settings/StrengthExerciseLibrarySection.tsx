@@ -52,7 +52,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
     <div className="p-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Mitt øvelses-bibliotek
         </p>
         {!creating && (
@@ -69,7 +69,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
       </div>
 
       <p className="mb-4 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Bygg ditt eget styrkeøvelse-bibliotek. Øvelser dukker også opp automatisk i biblioteket
         når du lagrer en styrke-økt — her kan du legge til, redigere eller slette før første bruk.
         Default reps/vekt forhåndsutfyller første sett når du velger øvelsen i økt-skjemaet.
@@ -105,7 +105,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
       <div className="space-y-2 mt-2">
         {items.length === 0 && !creating && (
           <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Du har ingen øvelser i biblioteket ennå. Trykk &quot;+ Ny&quot; for å starte, eller registrer en styrke-økt så bygges biblioteket automatisk.
           </p>
         )}
@@ -128,7 +128,7 @@ export function StrengthExerciseLibrarySection({ initial }: Props) {
 
         {items.length > 0 && visible.length === 0 && (
           <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen treff på «{filter}».
           </p>
         )}
@@ -160,28 +160,28 @@ function ExerciseRow({
 
   return (
     <div className="flex items-center gap-3 px-3 py-2"
-      style={{ backgroundColor: '#1A1A1E', border: '1px solid #262629' }}>
+      style={{ backgroundColor: 'var(--kant-2)', border: '1px solid var(--kant-5)' }}>
       <div style={{ flex: 1 }}>
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px', fontWeight: 600 }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', fontWeight: 600 }}>
             {item.name}
           </span>
           {item.category && (
             <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {item.category}
             </span>
           )}
         </div>
         {detailParts.length > 0 && (
           <div className="mt-0.5 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {detailParts.join(' · ')}
           </div>
         )}
         {item.notes && (
           <div className="mt-0.5 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {item.notes}
           </div>
         )}
@@ -189,8 +189,8 @@ function ExerciseRow({
       <button type="button" onClick={onEdit}
         className="text-xs tracking-widest uppercase"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
-          background: 'none', border: '1px solid #262629',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
+          background: 'none', border: '1px solid var(--kant-5)',
           padding: '4px 10px', cursor: 'pointer',
         }}>
         Rediger
@@ -264,7 +264,7 @@ function ExerciseForm({
 
   return (
     <div className="p-3 mt-2"
-      style={{ backgroundColor: '#1A1A1E', border: '1px solid #FF4500' }}>
+      style={{ backgroundColor: 'var(--kant-2)', border: '1px solid #FF4500' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <Label>Navn *</Label>
@@ -314,9 +314,9 @@ function ExerciseForm({
 
       {confirmDelete && initial && (
         <div className="mt-3 p-3"
-          style={{ backgroundColor: '#0A0A0B', border: '1px solid #FF4500' }}>
+          style={{ backgroundColor: 'var(--flate-3)', border: '1px solid #FF4500' }}>
           <p className="text-sm mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {initial.times_used > 0
               ? `Denne øvelsen er brukt i ${initial.times_used} økt${initial.times_used === 1 ? '' : 'er'}. Historikk beholdes som tekst — men du må legge til navnet på nytt for å se det i autocomplete etter sletting.`
               : 'Er du sikker på at du vil slette denne øvelsen?'}
@@ -334,8 +334,8 @@ function ExerciseForm({
             <button type="button" onClick={() => setConfirmDelete(false)} disabled={pending}
               className="text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #262629',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-5)',
                 padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
               }}>
               Avbryt
@@ -362,8 +362,8 @@ function ExerciseForm({
           <button type="button" onClick={onCancel} disabled={pending}
             className="text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)',
               padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -389,7 +389,7 @@ function ExerciseForm({
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )
@@ -398,7 +398,7 @@ function Label({ children }: { children: React.ReactNode }) {
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '6px 10px',

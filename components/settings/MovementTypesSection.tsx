@@ -50,7 +50,7 @@ export function MovementTypesSection({ initial }: Props) {
     <div className="p-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Mine bevegelsesformer
         </p>
         {!creating && (
@@ -86,7 +86,7 @@ export function MovementTypesSection({ initial }: Props) {
       <div className="space-y-2 mt-2">
         {items.length === 0 && !creating && (
           <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Du har ingen egne bevegelsesformer ennå.
           </p>
         )}
@@ -119,26 +119,26 @@ function MovementTypeRow({
 }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2"
-      style={{ backgroundColor: '#1A1A1E', border: '1px solid #262629' }}>
+      style={{ backgroundColor: 'var(--kant-2)', border: '1px solid var(--kant-5)' }}>
       <div style={{ flex: 1 }}>
         <div className="flex items-baseline gap-2">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px', fontWeight: 600 }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', fontWeight: 600 }}>
             {item.name}
           </span>
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {KIND_LABELS[item.type]}
           </span>
         </div>
         {item.subcategories.length > 0 && (
           <div className="mt-0.5 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {item.subcategories.join(' · ')}
           </div>
         )}
         {item.notes && (
           <div className="mt-0.5 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {item.notes}
           </div>
         )}
@@ -146,8 +146,8 @@ function MovementTypeRow({
       <button type="button" onClick={onEdit}
         className="text-xs tracking-widest uppercase"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
-          background: 'none', border: '1px solid #262629',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
+          background: 'none', border: '1px solid var(--kant-5)',
           padding: '4px 10px', cursor: 'pointer',
         }}>
         Rediger
@@ -213,7 +213,7 @@ function MovementTypeForm({
 
   return (
     <div className="p-3 mt-2"
-      style={{ backgroundColor: '#1A1A1E', border: '1px solid #FF4500' }}>
+      style={{ backgroundColor: 'var(--kant-2)', border: '1px solid #FF4500' }}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <Label>Navn *</Label>
@@ -233,9 +233,9 @@ function MovementTypeForm({
                   className="text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: active ? '#FF4500' : '#C0C0CC',
+                    color: active ? '#FF4500' : 'var(--tekst-3-app)',
                     background: active ? 'var(--card2)' : 'none',
-                    border: '1px solid ' + (active ? '#FF4500' : '#262629'),
+                    border: '1px solid ' + (active ? '#FF4500' : 'var(--kant-5)'),
                     padding: '6px 10px', cursor: 'pointer',
                   }}>
                   {KIND_LABELS[k]}
@@ -269,9 +269,9 @@ function MovementTypeForm({
 
       {confirmDelete && (
         <div className="mt-3 p-3"
-          style={{ backgroundColor: '#0A0A0B', border: '1px solid #FF4500' }}>
+          style={{ backgroundColor: 'var(--flate-3)', border: '1px solid #FF4500' }}>
           <p className="text-sm mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {confirmDelete.usage > 0
               ? `Denne bevegelsesformen er brukt i ${confirmDelete.usage} aktivitet${confirmDelete.usage === 1 ? '' : 'er'}. Historikk beholdes som tekst — men du kan ikke velge formen på nye økter etter sletting.`
               : 'Er du sikker på at du vil slette denne bevegelsesformen?'}
@@ -289,8 +289,8 @@ function MovementTypeForm({
             <button type="button" onClick={() => setConfirmDelete(null)} disabled={pending}
               className="text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #262629',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-5)',
                 padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
               }}>
               Avbryt
@@ -317,8 +317,8 @@ function MovementTypeForm({
           <button type="button" onClick={onCancel} disabled={pending}
             className="text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)',
               padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -344,7 +344,7 @@ function MovementTypeForm({
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )
@@ -353,7 +353,7 @@ function Label({ children }: { children: React.ReactNode }) {
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '6px 10px',

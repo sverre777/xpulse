@@ -92,7 +92,7 @@ export function ProfileSection(props: Props) {
   return (
     <div className="p-6 mt-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Profil
       </p>
 
@@ -136,8 +136,8 @@ export function ProfileSection(props: Props) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             background: dirty ? '#FF4500' : 'none',
-            border: '1px solid ' + (dirty ? '#FF4500' : '#262629'),
-            color: dirty ? '#0A0A0B' : '#555560',
+            border: '1px solid ' + (dirty ? '#FF4500' : 'var(--kant-5)'),
+            color: dirty ? 'var(--flate-3)' : 'var(--tekst-8-app)',
             padding: '8px 18px',
             cursor: !dirty || pending ? 'default' : 'pointer',
             minHeight: '40px',
@@ -165,7 +165,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <p className="text-xs mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
       {children}
@@ -181,9 +181,9 @@ function Input({ value, onChange, type = 'text', placeholder }: {
       onChange={e => onChange(e.target.value)}
       style={{
         width: '100%',
-        background: '#0E0E10',
-        border: '1px solid #262629',
-        color: '#F0F0F2',
+        background: 'var(--flate-7)',
+        border: '1px solid var(--kant-5)',
+        color: 'var(--tekst-1-app)',
         fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: '16px',
         padding: '8px 12px',
@@ -199,9 +199,9 @@ function Select({ value, onChange, children }: {
     <select value={value} onChange={e => onChange(e.target.value)}
       style={{
         width: '100%',
-        background: '#0E0E10',
-        border: '1px solid #262629',
-        color: '#F0F0F2',
+        background: 'var(--flate-7)',
+        border: '1px solid var(--kant-5)',
+        color: 'var(--tekst-1-app)',
         fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: '16px',
         padding: '8px 12px',

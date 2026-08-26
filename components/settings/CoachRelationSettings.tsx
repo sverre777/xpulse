@@ -23,7 +23,7 @@ export function CoachRelationSettings({ relations, initialHealthPermissions = {}
     return (
       <p className="p-5 text-xs"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
           backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
         }}>
         Ingen aktive trenerkoblinger ennå. Del trener-koden over for å koble til en trener.
@@ -115,13 +115,13 @@ function RelationRow({
         <div className="flex-1 min-w-0">
           <div
             className="text-base"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+            style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
           >
             {relation.coachName ?? 'Ukjent trener'}
           </div>
           {relation.coachEmail && (
             <div className="text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {relation.coachEmail}
             </div>
           )}
@@ -148,7 +148,7 @@ function RelationRow({
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: 'transparent', color: '#8A8A96',
+                backgroundColor: 'transparent', color: 'var(--tekst-5-app)',
                 border: '1px solid var(--line)',
                 cursor: 'pointer',
               }}
@@ -162,7 +162,7 @@ function RelationRow({
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#E11D48', color: '#F0F0F2',
+                backgroundColor: '#E11D48', color: 'var(--tekst-1-app)',
                 border: 'none',
                 cursor: isPending ? 'not-allowed' : 'pointer',
               }}
@@ -213,7 +213,7 @@ function RelationRow({
           disabled={healthPending}
         />
         <p className="mt-1 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {canSeeHealthData
             ? 'Treneren ser helse-fane og helse-KPIer i analysen din.'
             : 'Treneren ser all annen analyse, men ikke helsedata.'}
@@ -250,7 +250,7 @@ function PermissionToggle({
         style={{ accentColor: COACH_BLUE }}
       />
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         {label}
       </span>
     </label>

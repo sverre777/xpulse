@@ -45,7 +45,7 @@ export function UnitsSection({
   return (
     <div className="p-6 mt-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Måleenheter
       </p>
 
@@ -98,12 +98,12 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   return (
     <div className="mb-4 last:mb-0">
       <p className="text-xs mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
       {hint && (
         <p className="text-xs mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {hint}
         </p>
       )}
@@ -125,9 +125,9 @@ function UnitButton({
       className="text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        background: active ? '#1A1A1E' : 'none',
-        border: '1px solid ' + (active ? '#FF4500' : '#262629'),
-        color: active ? '#FF4500' : '#8A8A96',
+        background: active ? 'var(--kant-2)' : 'none',
+        border: '1px solid ' + (active ? '#FF4500' : 'var(--kant-5)'),
+        color: active ? '#FF4500' : 'var(--tekst-5-app)',
         padding: '8px 16px',
         cursor: disabled ? 'default' : 'pointer',
         minHeight: '40px',

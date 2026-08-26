@@ -36,8 +36,8 @@ export function ProfileImageUploader({ initialUrl }: Props) {
         height: '72px',
         borderRadius: '50%',
         overflow: 'hidden',
-        background: '#0E0E10',
-        border: '1px solid #262629',
+        background: 'var(--flate-7)',
+        border: '1px solid var(--kant-5)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -46,7 +46,7 @@ export function ProfileImageUploader({ initialUrl }: Props) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="Profilbilde" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <span style={{ color: '#555560', fontSize: '24px' }}>👤</span>
+          <span style={{ color: 'var(--tekst-8-app)', fontSize: '24px' }}>👤</span>
         )}
       </div>
       <div className="flex flex-col gap-1">
@@ -55,8 +55,8 @@ export function ProfileImageUploader({ initialUrl }: Props) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             background: 'none',
-            border: '1px solid #262629',
-            color: '#F0F0F2',
+            border: '1px solid var(--kant-5)',
+            color: 'var(--tekst-1-app)',
             padding: '6px 14px',
             cursor: pending ? 'default' : 'pointer',
             minHeight: '32px',

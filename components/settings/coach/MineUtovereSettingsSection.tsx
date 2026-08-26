@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<CoachAthleteRelation['status'], string> = {
 const STATUS_COLOR: Record<CoachAthleteRelation['status'], string> = {
   pending: '#F59E0B',
   active: '#28A86E',
-  inactive: '#8A8A96',
+  inactive: 'var(--tekst-5-app)',
 }
 
 export function MineUtovereSettingsSection({ initial }: Props) {
@@ -39,7 +39,7 @@ export function MineUtovereSettingsSection({ initial }: Props) {
         style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}
       >
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Ingen utøvere er koblet til deg ennå.
         </p>
       </section>
@@ -123,14 +123,14 @@ function RelationCard({
         <div className="min-w-0">
           <p className="truncate"
             style={{
-              fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+              fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
               fontSize: '20px', letterSpacing: '0.05em',
             }}>
             {relation.athleteName ?? 'Ukjent utøver'}
           </p>
           {relation.athleteEmail && (
             <p className="text-xs truncate"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {relation.athleteEmail}
             </p>
           )}
@@ -235,7 +235,7 @@ function PermToggle({
         style={{ accentColor: COACH_BLUE }}
       />
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         {label}
       </span>
     </label>

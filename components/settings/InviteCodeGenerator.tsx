@@ -55,7 +55,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
   return (
     <section className="p-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Trener-kode
       </p>
 
@@ -65,7 +65,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
             <code
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                backgroundColor: '#0A0A0B',
+                backgroundColor: 'var(--flate-3)',
                 color: ATHLETE_ORANGE,
                 border: `1px solid ${ATHLETE_ORANGE}`,
                 padding: '10px 16px',
@@ -83,7 +83,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent',
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 border: '1px solid var(--line)',
                 cursor: 'pointer',
               }}
@@ -98,7 +98,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'transparent',
-                color: '#8A8A96',
+                color: 'var(--tekst-5-app)',
                 border: '1px solid var(--line)',
                 cursor: isPending ? 'not-allowed' : 'pointer',
               }}
@@ -107,14 +107,14 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
             </button>
           </div>
           <p className="text-xs mt-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Del denne koden med treneren din. {formatExpiry(code.expiresAt)}.
           </p>
         </>
       ) : (
         <>
           <p className="text-xs mb-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {hasActiveCoach
               ? 'Du har aktiv trener. Du kan generere en kode hvis du vil legge til en ny.'
               : 'Generer en kode og del den med treneren din for å koble dere sammen.'}
@@ -126,7 +126,7 @@ export function InviteCodeGenerator({ initialCode, hasActiveCoach }: Props) {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: ATHLETE_ORANGE, color: '#0A0A0B',
+              backgroundColor: ATHLETE_ORANGE, color: 'var(--flate-3)',
               border: 'none',
               cursor: isPending ? 'not-allowed' : 'pointer',
               opacity: isPending ? 0.6 : 1,

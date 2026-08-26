@@ -37,15 +37,15 @@ export function TrenerProfilSection({ initial }: Props) {
   }, [state.saved, router])
 
   const inputStyle = {
-    backgroundColor: '#0F0F12',
+    backgroundColor: 'var(--flate-8-alt)',
     border: '1px solid var(--line)',
-    color: '#F0F0F2',
+    color: 'var(--tekst-1-app)',
     fontFamily: "'Barlow Condensed', sans-serif",
   } as const
 
   const labelStyle = {
     fontFamily: "'Barlow Condensed', sans-serif",
-    color: '#8A8A96',
+    color: 'var(--tekst-5-app)',
   } as const
 
   return (
@@ -132,7 +132,7 @@ export function TrenerProfilSection({ initial }: Props) {
           style={{ accentColor: COACH_BLUE }}
         />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Synlig i trener-katalog
         </span>
       </label>
@@ -144,7 +144,7 @@ export function TrenerProfilSection({ initial }: Props) {
           className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: '#F0F0F2',
+            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}
         >

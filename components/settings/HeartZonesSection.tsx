@@ -153,7 +153,7 @@ export function HeartZonesSection({
       </div>
 
       <p className="mb-5 text-sm"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         OLT I-skala — basert på % av maksimal puls. HFmax måles best ved testløp;
         manuell verdi overstyrer auto-beregning fra fødselsår.
       </p>
@@ -179,7 +179,7 @@ export function HeartZonesSection({
 
       {thresholdNote && (
         <p className="mb-3 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {thresholdNote}
         </p>
       )}
@@ -188,7 +188,7 @@ export function HeartZonesSection({
         <button type="button" onClick={onSaveProfile} disabled={pending}
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: '#F0F0F2',
+            backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
             border: 'none', cursor: pending ? 'default' : 'pointer',
             padding: '8px 18px', fontSize: '13px', letterSpacing: '0.1em',
             opacity: pending ? 0.6 : 1,
@@ -196,8 +196,8 @@ export function HeartZonesSection({
           Lagre pulsprofil
         </button>
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-          Brukt HFmax: <span style={{ color: '#C0C0CC' }}>{resolvedMaxHr}</span>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          Brukt HFmax: <span style={{ color: 'var(--tekst-3-app)' }}>{resolvedMaxHr}</span>
           {!maxHr && birthYear && <span> (fra fødselsår {birthYear})</span>}
           {!maxHr && !birthYear && <span> (fallback 30 år)</span>}
         </span>
@@ -206,7 +206,7 @@ export function HeartZonesSection({
       {/* Soner */}
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Soner {customMode ? '(egne verdier)' : '(auto)'}
         </span>
         <div className="flex gap-2">
@@ -246,7 +246,7 @@ export function HeartZonesSection({
         <button type="button" onClick={onSaveZones} disabled={pending}
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: '#F0F0F2',
+            backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
             border: 'none', cursor: pending ? 'default' : 'pointer',
             padding: '8px 18px', fontSize: '13px', letterSpacing: '0.1em',
             opacity: pending ? 0.6 : 1,
@@ -285,7 +285,7 @@ function ZoneCard({
         {name}
       </span>
       <div className="flex-1 min-w-0">
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '13px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '13px' }}>
           {label}
         </p>
       </div>
@@ -294,12 +294,12 @@ function ZoneCard({
           disabled={!editable} inputMode="numeric"
           style={{ ...iSt, width: '72px', textAlign: 'center',
             opacity: editable ? 1 : 0.7 }} />
-        <span style={{ color: '#555560' }}>–</span>
+        <span style={{ color: 'var(--tekst-8-app)' }}>–</span>
         <input value={max} onChange={e => onMax(e.target.value)}
           disabled={!editable} inputMode="numeric"
           style={{ ...iSt, width: '72px', textAlign: 'center',
             opacity: editable ? 1 : 0.7 }} />
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
           bpm
         </span>
       </div>
@@ -311,7 +311,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}
@@ -322,7 +322,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '6px 10px',
@@ -332,9 +332,9 @@ const iSt: React.CSSProperties = {
 
 const miniBtn: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   background: 'none',
-  border: '1px solid #2A2A30',
+  border: '1px solid var(--kant-6)',
   cursor: 'pointer',
   padding: '6px 12px',
   fontSize: '12px',

@@ -80,7 +80,7 @@ export function EksportUtoverDataSection() {
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}
     >
       <p className="text-sm mb-4"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Last ned aggregert CSV med trening, konkurranser og tester per utøver.
         Inkluderer alle aktive koblinger.
       </p>
@@ -106,7 +106,7 @@ export function EksportUtoverDataSection() {
               style={{ accentColor: COACH_BLUE }}
             />
             <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               {opt.label}
             </span>
           </label>
@@ -120,7 +120,7 @@ export function EksportUtoverDataSection() {
         className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: COACH_BLUE, color: '#F0F0F2',
+          backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
           border: 'none', cursor: 'pointer',
         }}
       >

@@ -23,7 +23,7 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
     const scheduled = new Date(requested.getTime() + 7 * 24 * 60 * 60 * 1000)
     return (
       <div className="p-4 mt-2"
-        style={{ background: '#1A1A1E', border: '1px solid #D4A017' }}>
+        style={{ background: 'var(--kant-2)', border: '1px solid #D4A017' }}>
         <p className="text-xs"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
           Konto planlagt slettet {scheduled.toLocaleDateString('nb-NO')}.
@@ -44,7 +44,7 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif",
               background: '#FF4500',
               border: '1px solid #FF4500',
-              color: '#0A0A0B',
+              color: 'var(--flate-3)',
               padding: '8px 18px',
               cursor: pending ? 'default' : 'pointer',
               minHeight: '40px',
@@ -106,12 +106,12 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
 
   return (
     <div className="p-4 mt-2"
-      style={{ background: '#1A1A1E', border: '1px solid #E11D48' }}>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+      style={{ background: 'var(--kant-2)', border: '1px solid #E11D48' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
         Bekreft sletting
       </p>
       <p className="text-xs mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Kontoen din vil slettes om 7 dager. I løpet av angrefristen kan du
         logge inn og avbryte sletting. Skriv <span style={{ color: '#E11D48' }}>SLETT</span> for å bekrefte.
       </p>
@@ -121,9 +121,9 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
         style={{
           marginTop: '8px',
           width: '100%',
-          background: '#0E0E10',
-          border: '1px solid #262629',
-          color: '#F0F0F2',
+          background: 'var(--flate-7)',
+          border: '1px solid var(--kant-5)',
+          color: 'var(--tekst-1-app)',
           fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: '16px',
           padding: '8px 12px',
@@ -137,8 +137,8 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             background: 'none',
-            border: '1px solid #262629',
-            color: '#8A8A96',
+            border: '1px solid var(--kant-5)',
+            color: 'var(--tekst-5-app)',
             padding: '8px 18px',
             cursor: pending ? 'default' : 'pointer',
             minHeight: '40px',
@@ -160,8 +160,8 @@ export function DeleteAccountModal({ deletionRequestedAt }: Props) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             background: confirmText === 'SLETT' ? '#E11D48' : 'none',
-            border: '1px solid ' + (confirmText === 'SLETT' ? '#E11D48' : '#262629'),
-            color: confirmText === 'SLETT' ? '#F0F0F2' : '#555560',
+            border: '1px solid ' + (confirmText === 'SLETT' ? '#E11D48' : 'var(--kant-5)'),
+            color: confirmText === 'SLETT' ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
             padding: '8px 18px',
             cursor: confirmText === 'SLETT' && !pending ? 'pointer' : 'default',
             minHeight: '40px',

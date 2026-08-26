@@ -334,15 +334,19 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         </div>
       )}
 
-      {/* FEIL-2 (b): en importert økt uten aktivitetsrader skal SI det, ikke
-          bare se halvtom ut. Vanligste årsak: økta ble ført manuelt i
-          kilde-appen — da finnes det ingen laps/streams å lage rader av, og
-          «kun totaltid og tittel» er korrekt import av en tom kilde. */}
+      {/* En importert økt uten aktivitetsrader skal SI det, ikke bare se
+          halvtom ut.
+
+          Teksten sa tidligere «Ingen detaljdata fulgte med denne økta», og det
+          er misvisende: totalene OVER — km, tid, puls — kom fra samme import og
+          stemmer. Det som mangler er RUNDE-inndelingen. Målt i prod: økter uten
+          aktivitetsrader har km, tid og høyde utfylt på selve økta i 100 % av
+          tilfellene, så «ingen detaljdata» var feil om nettopp de øktene. */}
       {activities.length === 0 && data.imported_from && (
         <Card title="AKTIVITETER">
           <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--mut)', lineHeight: 1.55 }}>
-            Ingen detaljdata fulgte med denne økta fra {fitSourceLabel(data.imported_from) || 'kilden'} —
-            trolig ført manuelt der, uten klokkeopptak. Du kan legge til aktiviteter selv via Rediger.
+            Denne økta kom uten runder fra {fitSourceLabel(data.imported_from) || 'kilden'}.
+            Totalene over gjelder hele økta.
           </p>
         </Card>
       )}

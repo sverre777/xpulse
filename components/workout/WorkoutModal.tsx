@@ -70,23 +70,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       setActivityEquipment({})
     } else {
       setLoading(true)
-      // MIDLERTIDIG MÅLING (trener ser ikke økt). Fjernes når saken er lukket.
-      console.log('[MAAL-klient] kaller:', {
-        workoutId: state.workoutId, formMode: state.formMode,
-        targetUserId: targetUserId ?? null, readOnly,
-      })
       getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
-        console.log('[MAAL-klient] fikk:', d === null ? 'NULL' : {
-          user_id: (d as { user_id?: string }).user_id,
-          title: (d as { title?: string }).title,
-          activities: (d as { activities?: unknown[] }).activities?.length ?? 'mangler',
-          lactate: (d as { lactate_measurements?: unknown[] }).lactate_measurements?.length ?? 'mangler',
-          nokler: Object.keys(d as object).length,
-        })
         setDefaults(d)
-        setLoading(false)
-      }).catch(e => {
-        console.log('[MAAL-klient] KASTET:', e instanceof Error ? e.message : String(e))
         setLoading(false)
       })
     }

@@ -1338,12 +1338,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   // Henter kun embeds som faktisk brukes i return-mappingen nedenfor. Droppet
   // workout_zones + workout_exercises (return setter zones:[]/exercises:[] —
   // den nye aktivitets-modellen erstatter dem), så queryen blir lettere.
-  // MIDLERTIDIG MÅLING (trener ser ikke økt). Fjernes når saken er lukket.
-  console.log('[MAAL-server] inn:', JSON.stringify({
-    id, formMode, targetUserId: targetUserId ?? null,
-    resolvedUserId: resolved.userId,
-    erTrener: resolved.isCoachImpersonating,
-  }))
   const { data: workout, error } = await supabase
     .from('workouts')
     .select(`
@@ -1359,22 +1353,6 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     .eq('id', id).single()
   // Midlertidig timing-logg for å pinpointe treghet ved åpning av økt.
   console.log(`[getWorkoutForEdit] ${formMode} auth ${tAuth - t0}ms · query ${Date.now() - tAuth}ms · total ${Date.now() - t0}ms`)
-  // MIDLERTIDIG MÅLING. Viser om spørringen feilet, om raden kom, om eieren
-  // stemmer, og hvor mange barn hver embed ga.
-  console.log('[MAAL-server] ut:', JSON.stringify({
-    feil: error ? { code: error.code, message: error.message } : null,
-    radKom: !!workout,
-    eierStemmer: workout ? workout.user_id === resolved.userId : null,
-    barn: workout ? {
-      movements: workout.workout_movements?.length ?? 0,
-      tags: workout.workout_tags?.length ?? 0,
-      lactate: workout.workout_lactate_measurements?.length ?? 0,
-      shooting: workout.workout_shooting_blocks?.length ?? 0,
-      activities: workout.workout_activities?.length ?? 0,
-      weather: workout.workout_weather?.length ?? 0,
-      nutrition: workout.workout_nutrition_entries?.length ?? 0,
-    } : null,
-  }))
   if (error || !workout || workout.user_id !== resolved.userId) return null
 
   // workout_competition_data lastes som array (0..1 rad pga unique workout_id).

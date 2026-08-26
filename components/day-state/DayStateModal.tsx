@@ -139,7 +139,7 @@ export function DayStateModal({
     <ModalShell open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit}>
         <p className="text-xs mb-4"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {date}{isPlanned ? ' (planlagt)' : ''} — teller ikke som økt i totaler.
         </p>
 

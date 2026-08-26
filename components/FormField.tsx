@@ -20,7 +20,7 @@ export function FormField({
       <label
         htmlFor={name}
         className="text-sm tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
       >
         {label}
       </label>
@@ -33,14 +33,14 @@ export function FormField({
         autoComplete={autoComplete}
         className="w-full px-4 py-3 text-base transition-colors"
         style={{
-          backgroundColor: '#1C1C21',
-          border: '1px solid #222228',
-          color: '#F0F0F2',
+          backgroundColor: 'var(--flate-15)',
+          border: '1px solid var(--kant-4)',
+          color: 'var(--tekst-1-app)',
           fontFamily: "'Barlow Condensed', sans-serif",
           outline: 'none',
         }}
         onFocus={(e) => (e.currentTarget.style.borderColor = '#FF4500')}
-        onBlur={(e) => (e.currentTarget.style.borderColor = '#222228')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--kant-4)')}
       />
     </div>
   )

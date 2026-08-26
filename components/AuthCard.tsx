@@ -11,8 +11,8 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
     <div
       className="w-full max-w-md mx-auto"
       style={{
-        backgroundColor: '#1A1A22',
-        border: '1px solid #222228',
+        backgroundColor: 'var(--flate-14)',
+        border: '1px solid var(--kant-4)',
         padding: '2.5rem',
       }}
     >
@@ -33,14 +33,14 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
         </div>
         <h2
           className="text-3xl text-center"
-          style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.08em' }}
+          style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.08em' }}
         >
           {title}
         </h2>
         {subtitle && (
           <p
             className="text-sm text-center mt-1 tracking-wide"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             {subtitle}
           </p>

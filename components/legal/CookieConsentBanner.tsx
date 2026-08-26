@@ -36,16 +36,16 @@ export function CookieConsentBanner() {
       aria-label="Cookie-samtykke"
       className="fixed inset-x-0 bottom-0 z-50 px-4 py-4"
       style={{
-        backgroundColor: '#0D0D11',
-        borderTop: '1px solid #1E1E22',
-        boxShadow: '0 -4px 20px rgba(0,0,0,0.4)',
+        backgroundColor: 'var(--flate-6-alt)',
+        borderTop: '1px solid var(--kant-3)',
+        boxShadow: '0 -4px 20px var(--skygge-40)',
       }}
     >
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex-1">
           <p
             className="text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', lineHeight: 1.5 }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', lineHeight: 1.5 }}
           >
             X-PULSE bruker kun strengt nødvendige cookies for innlogging og funksjonalitet.
             Vi bruker ingen analyse- eller markedsføringscookies. Les mer i{' '}
@@ -73,7 +73,7 @@ export function CookieConsentBanner() {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: '#FF4500',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             border: 'none',
             cursor: 'pointer',
           }}

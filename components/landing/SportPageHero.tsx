@@ -6,6 +6,10 @@ import Link from 'next/link'
 // Når backgroundImage er satt vises bildet bak innholdet med en
 // venstre-vekt gradient-overlay så tekst er lesbar. Ikonet skjules da på
 // mobil for å gi bildet plass.
+//
+// Overlayet er hardkodet mørkt og følger IKKE temaet. Derfor får seksjonen
+// klassen xp-paa-foto når bildet er satt, som holder forgrunnen lys også i
+// lysmodus. Uten bilde følger den temaet som vanlig.
 
 export interface SportPageHeroProps {
   kicker: string
@@ -19,7 +23,7 @@ export function SportPageHero({
   kicker, title, description, icon, backgroundImage,
 }: SportPageHeroProps) {
   return (
-    <section className="relative overflow-hidden px-6 lg:px-14 pt-20 md:pt-28 pb-20 md:pb-24">
+    <section className={`relative overflow-hidden px-6 lg:px-14 pt-20 md:pt-28 pb-20 md:pb-24${backgroundImage ? ' xp-paa-foto' : ''}`}>
       {backgroundImage && (
         <>
           <div aria-hidden style={{

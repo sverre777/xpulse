@@ -70,7 +70,37 @@ alfa = mørk alfa × 0.22. Tresifret hex speilet som vanlig.
 
 ## 8. `TEMA_FOLG_OS`
 
-Står fortsatt `false`.
+Står `false` til du har klikket gjennom de innloggede flatene. Egen commit
+etterpå — det er én linje i `lib/tema.ts`.
+
+## 9. Statuslinja (`theme-color`)
+
+`<meta name="theme-color">` settes nå fra klienten sammen med `data-tema`:
+`#0A0A0B` mørk, `#F4F4F5` lys. Verdiene følger `--flate-3`, og det står i koden
+at de skal endres i samme commit som den.
+
+`themeColor` er **fjernet** fra `viewport` i `layout.tsx`. Med den på plass
+fikk vi to `theme-color`-tagger — inline-skriptet lagde sin før React rakk å
+sette inn sin, og nettleseren bruker den første. Det virket, men bare i kraft av
+rekkefølgen. Verifisert i nettleser: før fjerningen to tagger, etter fjerningen
+én, med riktig farge i begge tema.
+
+`app/manifest.ts` beholder sin `theme_color` som installasjons-standard.
+Manifestet leses ved installasjon og kan ikke ha temavarianter, men meta-taggen
+vinner over den i en kjørende nettleser. Begrunnelsen står i fila.
+
+## 10. Sport-ikonene
+
+Ingen endring var nødvendig, og konverteringen rørte dem aldri. I appen tvinges
+PNG-ene til ren `#FF4500` med CSS-filter — oransje er fredet. `StyrkeIcon`,
+`SkytingIcon` og `nav-icons` er SVG med `currentColor`, altså samme mønster som
+logoen. På landingssida står PNG-ene ufiltrert med kun drop-shadow, og en PNG
+speiles ikke av et tema.
+
+Den ekte feilen lå under ikonet: `.dtile` er foto-fliser, én per sport, og
+bildeteksten `.dcap` brukte `var(--hvit)` som flippet til svart på fotoet.
+Samme feil som heroen, i en seksjon som ikke lå inne i `.hero`. Løst ved å legge
+`.dtile` til den eksisterende fredningsregelen — null nye filer, null nye tokens.
 
 ---
 
@@ -109,14 +139,7 @@ Løst med ditt eget prinsipp fra Strava-blekket: bundet til bunnen, altså frede
 
 # Fortsatt åpent
 
-## 1. `themeColor` og manifestet
-
-`app/layout.tsx` og `app/manifest.ts` setter `#0A0A0B` som nettleserens
-temafarge. Det er metadata, ikke CSS — `var()` løser seg aldri opp der. Skal
-fargen følge temaet, må `<meta name="theme-color">` oppdateres fra klienten.
-Ikke gjort.
-
-## 2. De tonede flatene
+## 1. De tonede flatene
 
 Ti verdier med fargestikk står urørt i begge tema:
 `#0F121A` `#161A22` `#14110A` `#100F0A` `#1A1410` `#17110C` `#1A2418` `#241A24`
@@ -126,21 +149,22 @@ De grønne og gule ser ut som status-bakgrunner. På en lys flate vil de fortsat
 være mørke firkanter. De trenger egne lysvarianter, men å speile dem ville snudd
 stikket — en grønn flate blir rosa. Dette er en designjobb, ikke en mekanisk.
 
-## 3. Kontrasten er allerede lav i mørk modus
+## 2. Kontrasten er allerede lav i mørk modus
 
 `#555560` (544 treff, den dempede teksten) har **2,7:1** mot bunnflata i dag.
 WCAG AA krever 4,5:1. Speilingen gir 2,4:1 i lys — like lavt, ikke lavere.
 Lysmodus gjør det ikke verre, men det blir lettere å se.
 
-## 4. `var(--surface, var(--card))`
+## 3. `var(--surface, var(--card))`
 
 `KonkurransePanel.tsx` og `TestPRInputForm.tsx` bruker `--surface`, som ikke
 finnes i globals.css — den er et landingsside-token. Fallbacken til `--card`
 gjør at det virker i begge tema, så ingenting er brukket. Men den er eldre enn
 dette arbeidet og bør ryddes.
 
-## 5. Ikke visuelt verifisert
+## 4. Ikke visuelt verifisert
 
-Jeg har verifisert i nettleser: landingssida, `/funksjoner/trener` og `/vilkar`,
-i begge tema. **De innloggede flatene har jeg ikke sett** — de krever pålogging.
-Hjem, dagbok og analysesidene med grafer må du se på selv.
+Jeg har verifisert i nettleser: landingssida (hero, app-mockupene, sport-flisene),
+`/funksjoner/trener` og `/vilkar`, i begge tema. **De innloggede flatene har jeg
+ikke sett** — de krever pålogging. Hjem, dagbok og analysesidene med grafer må du
+se på selv, og det er den runden `TEMA_FOLG_OS` venter på.

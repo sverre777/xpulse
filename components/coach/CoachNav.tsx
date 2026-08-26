@@ -8,6 +8,7 @@ import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
+import { TemaBryter } from '@/components/layout/TemaBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
 
@@ -104,6 +105,9 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               v1.2
             </span>
           </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <TemaBryter accent={COACH_BLUE} storrelse={44} />
+
           <button
             type="button"
             onClick={() => setMenuOpen(o => !o)}
@@ -118,6 +122,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
           >
             <HamburgerIcon open={menuOpen} />
           </button>
+          </div>
         </nav>
 
         {menuOpen && (
@@ -380,6 +385,8 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
           unreadCount={unreadInboxCount}
           isActive={pathname === INBOX_HREF || pathname.startsWith(INBOX_HREF + '/')}
         />
+
+        <TemaBryter accent={COACH_BLUE} />
 
         <SettingsIconButton
           accent={COACH_BLUE}

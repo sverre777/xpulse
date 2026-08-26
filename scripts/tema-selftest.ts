@@ -71,6 +71,13 @@ async function main() {
   sjekk('inline-skriptet bærer nøkkelen',
     tema.TEMA_INLINE_SKRIPT.includes(tema.TEMA_NOKKEL), true)
 
+  // Bryter-regelen: ikonet og etiketten viser hva du BYTTER TIL.
+  sjekk('mork -> neste er lys', tema.nesteTema('mork'), 'lys')
+  sjekk('lys -> neste er mork', tema.nesteTema('lys'), 'mork')
+  sjekk('umontert (null) -> neste er lys', tema.nesteTema(null), 'lys')
+  sjekk('etikett sier hva knappen gjor', tema.temaEtikett('lys'), 'Bytt til lys modus')
+  sjekk('etikett andre vei', tema.temaEtikett('mork'), 'Bytt til mørk modus')
+
   console.log(feil === 0 ? '\nAlle tester grønne.' : `\n${feil} feil.`)
   process.exit(feil === 0 ? 0 : 1)
 }

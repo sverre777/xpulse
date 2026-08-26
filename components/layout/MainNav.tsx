@@ -7,6 +7,7 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
+import { TemaBryter } from './TemaBryter'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { UserMenu } from './UserMenu'
@@ -147,6 +148,8 @@ export function MainNav({
                 +
               </Link>
             )}
+          <TemaBryter accent={accent} storrelse={44} />
+
           <button
             type="button"
             onClick={() => setMenuOpen(o => !o)}
@@ -284,6 +287,8 @@ export function MainNav({
         />
 
         {activeRole !== 'coach' && <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />}
+
+        <TemaBryter accent={accent} />
 
         <SettingsIconButton
           accent={accent}

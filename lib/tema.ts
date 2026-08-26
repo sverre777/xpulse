@@ -71,6 +71,20 @@ export function settTema(tema: Tema | null): Tema {
   return aktivt
 }
 
+/** Temaet et trykk på bryteren fører til. */
+export function nesteTema(naa: Tema | null): Tema {
+  return naa === 'lys' ? 'mork' : 'lys'
+}
+
+/**
+ * Etiketten på bryteren. Sier hva knappen GJØR, ikke hvilken modus du er i —
+ * både for skjermlesere og som title. Ikonet følger samme regel: måne når du
+ * går til lys, sol når du går til mørk.
+ */
+export function temaEtikett(neste: Tema): string {
+  return neste === 'lys' ? 'Bytt til lys modus' : 'Bytt til mørk modus'
+}
+
 /**
  * Skriptet som kjører før første maling, slik at flata ikke rekker å blinke i
  * feil tema. Bygges som streng fordi den må ligge inline i <head>.

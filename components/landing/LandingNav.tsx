@@ -40,7 +40,7 @@ export function LandingNav() {
         className="flex items-center justify-between px-6 lg:px-14 py-7"
         style={{
           position: 'sticky', top: 0, zIndex: 100,
-          background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
+          background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
         }}
       >
         <Link href="/xpulse.html"

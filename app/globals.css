@@ -453,14 +453,14 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-tag b:hover { opacity: 1; }
 
 /* ── Sticky savebar — sticky i modalens SCROLL-CONTAINER, ikke viewport ── */
-.xp-savebar { position: sticky; bottom: 0; z-index: 40; background: linear-gradient(0deg, rgba(10, 10, 11, .98) 60%, rgba(10, 10, 11, 0)); padding: 18px 0 14px; display: flex; gap: 10px; }
+.xp-savebar { position: sticky; bottom: 0; z-index: 40; background: linear-gradient(0deg, var(--savebar-topp) 60%, var(--savebar-bunn)); padding: 18px 0 14px; display: flex; gap: 10px; }
 .xp-btn { border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: .15s; padding: 16px 10px; font-size: 15.5px; }
 .xp-btn.xp-primary { flex: 2.2; background: var(--accent); border: 1px solid var(--accent); color: var(--tekst-1-ren); box-shadow: 0 6px 24px var(--accent-soft); }
 .xp-btn.xp-primary:hover { filter: brightness(1.08); }
 .xp-btn.xp-primary:disabled { opacity: .6; cursor: default; }
-.xp-btn.xp-ghost { flex: 1; background: rgba(16, 16, 20, .9); border: 1px solid var(--line2); color: var(--mut); }
+.xp-btn.xp-ghost { flex: 1; background: var(--knapp-flate); border: 1px solid var(--line2); color: var(--mut); }
 .xp-btn.xp-ghost:hover { color: var(--ink); }
-.xp-btn.xp-icon { flex: 0 0 54px; background: rgba(16, 16, 20, .9); border: 1px solid var(--accent-50); color: var(--accent); font-size: 19px; }
+.xp-btn.xp-icon { flex: 0 0 54px; background: var(--knapp-flate); border: 1px solid var(--accent-50); color: var(--accent); font-size: 19px; }
 .xp-btn.xp-icon:hover { background: var(--accent-soft); }
 
 /* ── Mobil + reduced motion ── */
@@ -718,6 +718,20 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
      --tekst-1-ren, slik at logoen kan finstilles uten a rore teksten.
      All logo-rendering gar gjennom components/branding/XPulseIcon.tsx. */
   --logo-strek: #FFFFFF;
+
+  /* Nav-gradienten. Nav-en er sticky OVER vanlig sideinnhold, ikke over et
+     fotografi, saa den skal folge temaet. Landingssidas egen nav i
+     public/xpulse.html er fixed over heroen og er derfor fredet i stedet. */
+  --nav-scrim: rgba(11, 19, 21, 0.75);
+
+  /* Halvgjennomsiktige FLATER. Speiles som vanlige flater — de ligger over
+     sideinnhold, ikke over et fotografi. (Scrim og skygge er noe annet og
+     har sine egne regler lenger opp.) */
+  --knapp-flate: rgba(16, 16, 20, .9);  /* xp-btn ghost/icon */
+  --knapp-flate-97: rgba(16, 16, 20, .97);  /* xp-btn, tettere variant */
+  --savebar-topp: rgba(10, 10, 11, .98);  /* lagringslinja, toppen av gradienten */
+  --savebar-bunn: rgba(10, 10, 11, 0);  /* lagringslinja, gjennomsiktig ende */
+  --live-topp: rgba(14, 14, 18, 0.97);  /* sticky topp i live-okta */
 }
 
 :root[data-tema="lys"] {
@@ -826,6 +840,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --data-notat: #33333F;
   --data-nopris: #CFCFD5;
   --logo-strek: #000000;
+  --nav-scrim: rgba(234, 242, 244, 0.75);
 
   /* Det ETABLERTE settet (1 440 var()-treff). Kun noytralene - fargene
      --orange/--green/--blue/--gold og sonefargene er FREDET og gjelder
@@ -837,6 +852,13 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --ink: #0F0F0D;
   --mut: #6A6A74;
   --dim: #9B9BA5;
+
+  /* Halvgjennomsiktige flater. */
+  --knapp-flate: rgba(235, 235, 239, .9);
+  --knapp-flate-97: rgba(235, 235, 239, .97);
+  --savebar-topp: rgba(244, 244, 245, .98);
+  --savebar-bunn: rgba(244, 244, 245, 0);
+  --live-topp: rgba(237, 237, 241, 0.97);
 }
 
 

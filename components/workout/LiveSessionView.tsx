@@ -264,7 +264,7 @@ export function LiveSessionView({
   return (
     <div style={{ minHeight: '100dvh', background: 'var(--flate-3)', paddingBottom: 96 }}>
       {/* Topp: avbryt + tittel + total tid */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '10px 14px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderBottom: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between">
           <button type="button" onClick={cancel}
             style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, cursor: 'pointer' }}>
@@ -410,7 +410,7 @@ export function LiveSessionView({
       </div>
 
       {/* Bunn: volum + Fullfør */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'rgba(14,14,18,0.97)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between mb-2">
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
             Volum: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>

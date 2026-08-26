@@ -72,7 +72,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
         <nav
           className="flex items-center justify-between px-4 sticky top-0 z-40"
           style={{
-            background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
+            background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             height: '52px',
@@ -303,7 +303,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
     <nav
       className="flex items-center justify-between px-4 md:px-6 py-0 sticky top-0 z-40"
       style={{
-        background: 'linear-gradient(to bottom, rgba(11,19,21,0.75), transparent)',
+        background: 'linear-gradient(to bottom, var(--nav-scrim), transparent)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         height: '52px',

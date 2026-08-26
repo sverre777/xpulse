@@ -29,9 +29,9 @@ export interface KlokkesyncStatus extends KlokkesyncBadge {
 // Liten payload for badge-ren­dering. Brukes fra (authed)-layout server-
 // side så ikonet vises samtidig med de andre topbar-ikonene.
 export async function getKlokkesyncBadge(): Promise<KlokkesyncBadge> {
-  const supabase = await createClient()
   // Ren lesebane på hver sidelast — header-identitet, ingen Auth-rundtur.
-  const user = await getAuthUser()
+  // Cookies og headere leses parallelt; de avhenger ikke av hverandre.
+  const [supabase, user] = await Promise.all([createClient(), getAuthUser()])
   if (!user) {
     return { connected: false, lastSyncAt: null, hasError: false }
   }
@@ -90,29 +90,37 @@ function hasSyncError(strava: StravaConnRow | null, polar: PolarConnRow | null):
 }
 
 export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
-  const supabase = await createClient()
-  // Ren lesebane — header-identitet, ingen Auth-rundtur.
-  const user = await getAuthUser()
+  // createClient leser cookies, getAuthUser leser headere — begge lokale, og
+  // uavhengige av hverandre.
+  const [supabase, user] = await Promise.all([createClient(), getAuthUser()])
   if (!user) {
     return { connected: false, lastSyncAt: null, lastWorkout: null, hasError: false }
   }
 
-  const { strava, polar } = await readConnections(supabase, user.id)
+  // ÉN rundtur, ikke to. Den nyeste importerte aktiviteten trenger bare
+  // user.id og ventet tidligere på tilkoblingene uten grunn — det er denne
+  // funksjonen trykket på klokkesynk-knappen venter på.
+  //
+  // Prisen: en frakoblet bruker får nå ett spørsmål for mye. Det er greit,
+  // fordi en frakoblet bruker aldri kommer hit — da tar handleClick
+  // router.push-grenen i stedet.
+  const [{ strava, polar }, importedRes] = await Promise.all([
+    readConnections(supabase, user.id),
+    supabase
+      .from('imported_activities')
+      .select('workout_id, source, imported_at, workouts(id, title, date)')
+      .eq('user_id', user.id)
+      .not('workout_id', 'is', null)
+      .order('imported_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
   if (!strava && !polar) {
     return { connected: false, lastSyncAt: null, lastWorkout: null, hasError: false }
   }
 
   const hasError = hasSyncError(strava, polar)
-
-  // Hent nyeste importerte aktivitet (Strava, Polar eller .fit-upload).
-  const { data: imported } = await supabase
-    .from('imported_activities')
-    .select('workout_id, source, imported_at, workouts(id, title, date)')
-    .eq('user_id', user.id)
-    .not('workout_id', 'is', null)
-    .order('imported_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
+  const { data: imported } = importedRes
 
   const w = imported && Array.isArray(imported.workouts)
     ? imported.workouts[0]

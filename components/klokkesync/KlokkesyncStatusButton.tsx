@@ -25,6 +25,11 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
   }
   const [popupOpen, setPopupOpen] = useState(false)
   const [fullStatus, setFullStatus] = useState<KlokkesyncStatus | null>(null)
+  // Regel 20: en kontroll som ikke svarer under fingeren finnes ikke.
+  // Settes i SAMME tick som trykket, FØR noe async starter — vi kan ikke bygge
+  // på at server-actionen rekker å svare. Over 4G tok trykket flere sekunder
+  // uten et eneste tegn på at noe skjedde, og brukeren trykket på nytt.
+  const [jobber, setJobber] = useState(false)
   const router = useRouter()
 
   const dotColor = badge.hasError ? '#E11D48'
@@ -37,16 +42,25 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
       : 'Koble til klokken'
 
   const handleClick = async () => {
+    // Er popupen alt åpen, er lukking gratis — ingen ventetilstand da.
+    if (popupOpen) { setPopupOpen(false); return }
+    setJobber(true)
     if (!badge.connected || badge.hasError) {
+      // Navigasjonen tar ogsaa tid. Ventetilstanden nullstilles IKKE her —
+      // sida byttes ut, og knappen skal se opptatt ut helt til den er borte.
       router.push('/app/innstillinger/klokkesync')
       return
     }
-    // Lazy-fetch full status (med siste imported workout) ved første åpning.
-    if (!fullStatus) {
-      const s = await getKlokkesyncStatus()
-      setFullStatus(s)
+    try {
+      // Lazy-fetch full status (med siste imported workout) ved første åpning.
+      if (!fullStatus) {
+        const s = await getKlokkesyncStatus()
+        setFullStatus(s)
+      }
+      setPopupOpen(true)
+    } finally {
+      setJobber(false)
     }
-    setPopupOpen(prev => !prev)
   }
 
   const handleSyncNow = async () => {
@@ -61,12 +75,19 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
 
   return (
     <div className="relative">
-      <button type="button" onClick={handleClick} title={tooltip}
-        aria-label={tooltip}
+      <button type="button" onClick={handleClick}
+        disabled={jobber}
+        title={jobber ? 'Henter klokkestatus…' : tooltip}
+        aria-label={jobber ? 'Henter klokkestatus…' : tooltip}
+        aria-busy={jobber}
         className="relative inline-flex items-center justify-center"
         style={{
           width: 36, height: 36, background: 'none', border: 'none',
-          color: 'var(--tekst-5-app)', cursor: 'pointer', padding: 0,
+          color: jobber ? 'var(--accent)' : 'var(--tekst-5-app)',
+          cursor: jobber ? 'wait' : 'pointer', padding: 0,
+          // Ikonet er allerede en sirkelpil — la den snurre i stedet for å
+          // legge til et nytt element som flytter på layouten.
+          animation: jobber ? 'xp-spinn 900ms linear infinite' : undefined,
         }}>
         <RefreshCwIcon size={20} />
         <span aria-hidden="true"

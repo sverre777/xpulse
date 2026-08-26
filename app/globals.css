@@ -1031,3 +1031,13 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --tekst-1-rgb: 242 242 240;
   --tekst-3-rgb: 192 192 204;
 }
+
+/* Snurr for kontroller som venter på et svar. Brukes av klokkesynk-knappen:
+   ikonet er allerede en sirkelpil, så den snurrer i stedet for at vi legger
+   til et nytt element som ville flyttet på layouten. */
+@keyframes xp-spinn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  /* Uten bevegelse må ventetilstanden fortsatt SES — fargeskiftet til
+     var(--accent) og disabled står, men snurringen stanses. */
+  @keyframes xp-spinn { to { transform: none; } }
+}

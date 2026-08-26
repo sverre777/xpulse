@@ -16,24 +16,25 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   const user = await getAuthUser()
   if (!user) redirect('/app')
 
-  const { data: stravaConn } = await supabase
-    .from('strava_connections')
-    .select('strava_athlete_id, auto_sync, last_sync_at, scope, token_expires_at, created_at')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  // Polar-tilkoblingen (fase 89). Vises kun når raden finnes — det fulle
+  // ÉN rundtur, ikke tre. De to tilkoblingene er uavhengige av hverandre, og
+  // searchParams avhenger ikke av noe av det — de sto likevel på rad og ga
+  // mobilen full ventetid før noe kunne rendres.
+  //
+  // Polar-tilkoblingen (fase 89) vises kun når raden finnes — det fulle
   // Polar-kortet kommer i bolk 5, etter at frakoblingen (bolk 3) er på plass.
-  const { data: polarConn } = await supabase
-    .from('polar_connections')
-    .select('polar_user_id, auto_sync, last_sync_at, last_webhook_at, registered_at, created_at')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  // Henter Strava-athlete-navn fra profile-table om vi har det. (Strava
-  // returnerer firstname/lastname i athlete-objektet ved OAuth, men vi
-  // lagrer ikke det enda — viser bare athlete_id som fallback.)
-  const sp = await searchParams
+  const [{ data: stravaConn }, { data: polarConn }, sp] = await Promise.all([
+    supabase
+      .from('strava_connections')
+      .select('strava_athlete_id, auto_sync, last_sync_at, scope, token_expires_at, created_at')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabase
+      .from('polar_connections')
+      .select('polar_user_id, auto_sync, last_sync_at, last_webhook_at, registered_at, created_at')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    searchParams,
+  ])
   const stravaStatus = sp.strava ?? null
   const polarStatus = sp.polar ?? null
   // detail deles av begge flytene — kun én av dem redirecter av gangen.

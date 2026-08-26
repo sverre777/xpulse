@@ -33,7 +33,7 @@ export function SearchCategoryFilter({ options, active, onChange, accent }: Prop
               border: `1px solid ${isActive ? accent : 'var(--line)'}`,
               borderRadius: 999,
               backgroundColor: isActive ? accent : 'transparent',
-              color: isActive ? '#F0F0F2' : '#8A8A96',
+              color: isActive ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               cursor: 'pointer',
             }}
           >

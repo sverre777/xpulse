@@ -49,13 +49,13 @@ export function SearchActiveFiltersChips({ filters, onChange }: Props) {
             padding: '4px 8px',
             border: '1px solid var(--line)',
             backgroundColor: 'var(--card2)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             cursor: 'pointer',
           }}
           aria-label={`Fjern filter: ${c.label}`}
         >
           {c.label}
-          <span style={{ color: '#8A8A96' }}>×</span>
+          <span style={{ color: 'var(--tekst-5-app)' }}>×</span>
         </button>
       ))}
     </div>

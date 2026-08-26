@@ -24,14 +24,14 @@ export function SearchIconButton({ mode, accent }: Props) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#8A8A96',
+          color: 'var(--tekst-5-app)',
           background: 'none',
           border: 'none',
           cursor: 'pointer',
           transition: 'color 150ms',
         }}
         onMouseEnter={e => { e.currentTarget.style.color = accent }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#8A8A96' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--tekst-5-app)' }}
       >
         <SearchGlyph />
       </button>

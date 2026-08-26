@@ -61,12 +61,12 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
   return (
     <div
       className="px-4 py-3 flex flex-col gap-3"
-      style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0B0B0D' }}
+      style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--flate-4)' }}
     >
       <div>
         <p
           className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
         >
           Tidsrom
         </p>
@@ -82,7 +82,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
                 padding: '4px 10px',
                 border: '1px solid var(--line)',
                 backgroundColor: 'transparent',
-                color: '#8A8A96',
+                color: 'var(--tekst-5-app)',
                 cursor: 'pointer',
               }}
             >
@@ -100,11 +100,11 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'var(--card2)',
               border: '1px solid var(--line)',
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               outline: 'none',
             }}
           />
-          <span style={{ color: '#555560' }}>—</span>
+          <span style={{ color: 'var(--tekst-8-app)' }}>—</span>
           <input
             type="date"
             value={filters.toDate ?? ''}
@@ -114,7 +114,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'var(--card2)',
               border: '1px solid var(--line)',
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               outline: 'none',
             }}
           />
@@ -124,7 +124,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
       <div>
         <p
           className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
         >
           Sport
         </p>
@@ -142,7 +142,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
                   padding: '4px 10px',
                   border: `1px solid ${active ? accent : 'var(--line)'}`,
                   backgroundColor: active ? accent : 'transparent',
-                  color: active ? '#F0F0F2' : '#8A8A96',
+                  color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                   cursor: 'pointer',
                 }}
               >
@@ -162,7 +162,7 @@ export function SearchFilterPanel({ open, filters, onChange, accent }: Props) {
             fontFamily: "'Barlow Condensed', sans-serif",
             background: 'none',
             border: 'none',
-            color: '#8A8A96',
+            color: 'var(--tekst-5-app)',
             cursor: 'pointer',
             padding: 0,
             textDecoration: 'underline',

@@ -27,7 +27,7 @@ export function SearchResultGroup({ label, hits, accent, onSelect }: Props) {
               href={hit.href}
               onClick={onSelect}
               className="block px-3 py-2 transition-colors hover:bg-[rgba(255,255,255,0.04)]"
-              style={{ textDecoration: 'none', color: '#F0F0F2' }}
+              style={{ textDecoration: 'none', color: 'var(--tekst-1-app)' }}
             >
               <div className="flex items-baseline justify-between gap-3">
                 <span
@@ -39,7 +39,7 @@ export function SearchResultGroup({ label, hits, accent, onSelect }: Props) {
                 {hit.date && (
                   <span
                     className="text-xs tracking-widest shrink-0"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
                   >
                     {formatDate(hit.date)}
                   </span>
@@ -48,7 +48,7 @@ export function SearchResultGroup({ label, hits, accent, onSelect }: Props) {
               {hit.subtitle && (
                 <div
                   className="text-xs tracking-widest uppercase truncate"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                 >
                   {hit.subtitle}
                 </div>

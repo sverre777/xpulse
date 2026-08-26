@@ -21,7 +21,7 @@ export function SearchSortDropdown({ value, onChange }: Props) {
     <label className="flex items-center gap-2">
       <span
         className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
       >
         Sorter
       </span>
@@ -34,7 +34,7 @@ export function SearchSortDropdown({ value, onChange }: Props) {
           backgroundColor: 'var(--card2)',
           border: '1px solid var(--line)',
           borderRadius: 10,
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           outline: 'none',
         }}
       >

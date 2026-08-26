@@ -123,13 +123,13 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
       aria-label="Søk"
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-16 sm:pt-24"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--scrim-70)' }}
     >
       <div
         onClick={e => e.stopPropagation()}
         className="w-full max-w-2xl flex flex-col"
         style={{
-          backgroundColor: '#0E0E10',
+          backgroundColor: 'var(--flate-7)',
           border: '1px solid var(--line)',
           borderRadius: 14,
           overflow: 'hidden',
@@ -140,7 +140,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           className="flex items-center gap-2 px-4 py-3"
           style={{ borderBottom: '1px solid var(--line)' }}
         >
-          <SearchGlyph color="#8A8A96" />
+          <SearchGlyph color="var(--tekst-5-app)" />
           <input
             ref={inputRef}
             value={query}
@@ -149,7 +149,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
             className="flex-1 bg-transparent outline-none text-base"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
             }}
             autoComplete="off"
             spellCheck={false}
@@ -160,7 +160,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
             aria-label="Lukk søk"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#8A8A96', padding: '4px 8px',
+              color: 'var(--tekst-5-app)', padding: '4px 8px',
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: '14px',
             }}
@@ -194,7 +194,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
               border: `1px solid ${filterCount > 0 ? accent : 'var(--line)'}`,
               borderRadius: 10,
               backgroundColor: 'transparent',
-              color: filterCount > 0 ? accent : '#8A8A96',
+              color: filterCount > 0 ? accent : 'var(--tekst-5-app)',
               cursor: 'pointer',
             }}
           >
@@ -216,7 +216,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           {showHint && (
             <p
               className="text-sm text-center py-12"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
             >
               Skriv minst to tegn for å søke
             </p>
@@ -224,7 +224,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           {showEmpty && (
             <p
               className="text-sm text-center py-12"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
             >
               Ingen treff for &laquo;{trimmed}&raquo;
             </p>
@@ -232,7 +232,7 @@ export function SearchModal({ open, onClose, mode, accent }: Props) {
           {isPending && trimmed.length >= 2 && totalHits === 0 && (
             <p
               className="text-sm text-center py-12"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
             >
               Søker…
             </p>

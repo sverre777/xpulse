@@ -49,6 +49,12 @@ export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
   // ── NYE TING etter v1.2 legges HER (øverst, uten version) ──────────────
+  {
+    date: '2026-08-26',
+    title: 'Lys modus',
+    body: 'Hele appen kan nå stå lyst. Bryteren ligger i topplinja — sol når du er i mørk modus, måne når du er i lys — og valget huskes til neste gang du logger inn. Fargene som betyr noe er urørt: sonefargene, skytefargene og periodiseringen er de samme i begge tema, så en graf leses likt uansett hva du har valgt.',
+  },
+
 
   // ── X-PULSE V1.2 — alle punktene i slippet (Sverre 22. aug: siste
   //    endringer som egne punkter under v1.2) ───────────────────────────────

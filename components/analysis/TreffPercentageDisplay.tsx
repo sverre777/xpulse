@@ -74,9 +74,9 @@ export function TreffPercentageDisplay({ totals, variant = 'inline' }: Props) {
   return (
     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px' }}>
       <span style={{ color: COLOR_TOTAL }}>Total {fmtPct(s.total)}</span>
-      <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+      <span style={{ color: 'var(--tekst-8-app)', margin: '0 6px' }}>·</span>
       <span style={{ color: COLOR_PRONE }}>L {fmtPct(s.prone)}</span>
-      <span style={{ color: '#555560', margin: '0 6px' }}>·</span>
+      <span style={{ color: 'var(--tekst-8-app)', margin: '0 6px' }}>·</span>
       <span style={{ color: COLOR_STANDING }}>S {fmtPct(s.standing)}</span>
     </span>
   )
@@ -86,20 +86,20 @@ function Card({ label, value, sub, color }: { label: string; value: string; sub:
   return (
     <div className="p-3 flex flex-col gap-1"
       style={{
-        backgroundColor: '#13131A',
-        border: '1px solid #1E1E22',
+        backgroundColor: 'var(--flate-12-alt)',
+        border: '1px solid var(--kant-3)',
         borderLeft: `3px solid ${color}`,
       }}>
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </span>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', lineHeight: 1, letterSpacing: '0.03em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
       {sub && (
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {sub}
         </span>
       )}

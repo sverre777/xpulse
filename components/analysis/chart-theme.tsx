@@ -8,16 +8,16 @@
 import type { ReactNode } from 'react'
 
 // ===== Grid og akser =====
-export const CHART_GRID = '#1F1F26' // gridlinjer (--line)
-export const CHART_GRID_ZERO = '#2A2A33' // null-/akselinje (--line2)
+export const CHART_GRID = 'var(--line)' // gridlinjer (--line)
+export const CHART_GRID_ZERO = 'var(--line2)' // null-/akselinje (--line2)
 
 export const CHART_AXIS_TICK = {
-  fill: '#55555F',
+  fill: 'var(--tekst-8-alt)',
   fontSize: 12,
   fontFamily: "'Barlow Condensed', sans-serif",
 } as const
 
-export const CHART_AXIS_LINE = { stroke: '#2A2A33' } as const
+export const CHART_AXIS_LINE = { stroke: 'var(--line2)' } as const
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
 // ===== Sonefarger =====
@@ -53,7 +53,7 @@ export const CHART_CURSOR = { fill: 'var(--line)' } as const
 export const CHART_LEGEND_STYLE = {
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 13,
-  color: '#8B8B95',
+  color: 'var(--mut)',
   letterSpacing: '0.04em',
 } as const
 
@@ -87,29 +87,29 @@ type XpTooltipFormatter = (
 // slik at eksisterende felter bevares nøyaktig.
 export const CHART_TOOLTIP_BOX = {
   minWidth: 150,
-  backgroundColor: '#0C0C0F',
-  border: '1px solid #2A2A33',
+  backgroundColor: 'var(--flate-5)',
+  border: '1px solid var(--line2)',
   borderRadius: 12,
   padding: '12px 14px',
-  boxShadow: '0 12px 34px rgba(0,0,0,0.55)',
+  boxShadow: '0 12px 34px var(--skygge-55)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 14,
 } as const
 
 const TIP_BOX = {
   minWidth: 150,
-  backgroundColor: '#0C0C0F',
-  border: '1px solid #2A2A33',
+  backgroundColor: 'var(--flate-5)',
+  border: '1px solid var(--line2)',
   borderRadius: 12,
   padding: '12px 14px',
-  boxShadow: '0 12px 34px rgba(0,0,0,0.55)',
+  boxShadow: '0 12px 34px var(--skygge-55)',
 } as const
 
 const TIP_TITLE = {
   fontFamily: "'Bebas Neue', sans-serif",
   fontSize: 16,
   letterSpacing: '0.08em',
-  color: '#F2F2F0',
+  color: 'var(--ink)',
   marginBottom: 6,
 } as const
 
@@ -119,7 +119,7 @@ const TIP_ROW = {
   gap: 8,
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 14,
-  color: '#8B8B95',
+  color: 'var(--mut)',
   lineHeight: 1.6,
 } as const
 
@@ -131,7 +131,7 @@ const TIP_DOT = {
 } as const
 
 const TIP_VALUE = {
-  color: '#F2F2F0',
+  color: 'var(--ink)',
   fontWeight: 600,
   marginLeft: 'auto',
   paddingLeft: 12,
@@ -141,19 +141,19 @@ const TIP_TOTAL_ROW = {
   display: 'flex',
   justifyContent: 'space-between',
   gap: 12,
-  borderTop: '1px solid #1F1F26',
+  borderTop: '1px solid var(--line)',
   marginTop: 6,
   paddingTop: 6,
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 14,
-  color: '#8B8B95',
+  color: 'var(--mut)',
 } as const
 
 const TIP_TOTAL_VALUE = {
   fontFamily: "'Bebas Neue', sans-serif",
   fontSize: 16,
   letterSpacing: '0.05em',
-  color: '#F2F2F0',
+  color: 'var(--ink)',
 } as const
 
 export function XpTooltip({
@@ -204,7 +204,7 @@ export function XpTooltip({
         }
         return (
           <div key={`${String(entry.dataKey ?? entry.name ?? i)}-${i}`} style={TIP_ROW}>
-            <span style={{ ...TIP_DOT, background: entry.color ?? '#8B8B95' }} />
+            <span style={{ ...TIP_DOT, background: entry.color ?? 'var(--mut)' }} />
             <span>{name}</span>
             <b style={TIP_VALUE}>
               {value}

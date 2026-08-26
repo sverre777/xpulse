@@ -21,7 +21,7 @@ const SPORT_COLOR: Record<Sport, string> = {
   triathlon: '#8B5CF6',
   cycling: '#28A86E',
   long_distance_skiing: '#E8B93C',
-  endurance: '#8A8A96',
+  endurance: 'var(--tekst-5-app)',
 }
 
 function formatDuration(sec: number): string {
@@ -52,8 +52,8 @@ const COMP_TYPE_OPTIONS: { value: CompetitionTypeFilter; label: string }[] = [
 ]
 
 const EMPTY = (
-  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+  <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
       Ingen konkurranser eller testløp i valgt periode.
     </p>
   </div>
@@ -74,7 +74,7 @@ function buildSeriesLines(shooting: ShootingSeriesPoint[]) {
   const firstStanding: Line = { name: 'Første stående', color: '#FF4500', points: [] }
   const secondProne: Line = { name: 'Andre liggende', color: '#28A86E', points: [] }
   const secondStanding: Line = { name: 'Andre stående', color: '#E8B93C', points: [] }
-  const avg: Line = { name: 'Samlet snitt', color: '#F0F0F2', dashed: true, points: [] }
+  const avg: Line = { name: 'Samlet snitt', color: 'var(--tekst-1-app)', dashed: true, points: [] }
 
   for (const [date, series] of byDate) {
     let proneIdx = 0, standingIdx = 0
@@ -240,9 +240,9 @@ export function CompetitionsTab({
   return (
     <div className="space-y-5">
       {/* Type-filter */}
-      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Type konkurranse
         </p>
         <div className="flex flex-wrap items-center gap-2">
@@ -254,9 +254,9 @@ export function CompetitionsTab({
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: typeFilter.has(t.value) ? 'var(--line)' : '#0A0A0B',
-                border: '1px solid #1E1E22',
-                color: typeFilter.has(t.value) ? '#F0F0F2' : '#555560',
+                backgroundColor: typeFilter.has(t.value) ? 'var(--line)' : 'var(--flate-3)',
+                border: '1px solid var(--kant-3)',
+                color: typeFilter.has(t.value) ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 minHeight: '36px',
               }}
             >
@@ -268,7 +268,7 @@ export function CompetitionsTab({
 
       {/* Kommende planlagte konkurranser — vis alltid hvis det finnes. */}
       {data.upcomingPlanned.length > 0 && (
-        <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #D4A017' }}>
+        <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid #D4A017' }}>
           <p className="text-xs tracking-widest uppercase mb-3"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#D4A017' }}>
             Kommende planlagte ({data.upcomingPlanned.length})
@@ -276,7 +276,7 @@ export function CompetitionsTab({
           <div className="overflow-x-auto xp-hscroll">
             <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
               <thead>
-                <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
+                <tr style={{ color: 'var(--tekst-8-app)', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
                   <th className="text-left py-2 pr-3">Dato</th>
                   <th className="text-left py-2 pr-3">Navn</th>
                   <th className="text-left py-2 pr-3">Idrett</th>
@@ -287,17 +287,17 @@ export function CompetitionsTab({
               <tbody>
                 {data.upcomingPlanned.map(r => (
                   <tr key={r.id}
-                    style={{ borderTop: '1px solid #1E1E22', color: '#F0F0F2' }}
-                    className="hover:bg-[#1A1A1E]">
+                    style={{ borderTop: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)' }}
+                    className="hover:bg-[var(--kant-2)]">
                     <td className="py-2 pr-3" style={{ color: '#D4A017' }}>
                       <Link href={`/app/plan?edit=${r.id}`} className="block">{r.date}</Link>
                     </td>
                     <td className="py-2 pr-3">
                       <Link href={`/app/plan?edit=${r.id}`} className="block">{r.name || r.title || '—'}</Link>
                     </td>
-                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelSport(r.sport)}</td>
-                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelCompType(r.competition_type)}</td>
-                    <td className="py-2 pr-3" style={{ color: '#555560' }}>{r.distance_format ?? '—'}</td>
+                    <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelSport(r.sport)}</td>
+                    <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelCompType(r.competition_type)}</td>
+                    <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -309,15 +309,15 @@ export function CompetitionsTab({
       {rows.length === 0 ? EMPTY : (
         <>
           {/* Liste — klikk åpner i dagbok (ruting via query-param). */}
-          <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+          <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
             <p className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               Gjennomførte konkurranser i perioden ({rows.length})
             </p>
             <div className="overflow-x-auto xp-hscroll">
               <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
                 <thead>
-                  <tr style={{ color: '#555560', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
+                  <tr style={{ color: 'var(--tekst-8-app)', fontSize: '13px', letterSpacing: '0.1em' }} className="uppercase">
                     <th className="text-left py-2 pr-3">Dato</th>
                     <th className="text-left py-2 pr-3">Navn</th>
                     <th className="text-left py-2 pr-3">Idrett</th>
@@ -330,17 +330,17 @@ export function CompetitionsTab({
                 <tbody>
                   {rows.map(r => (
                     <tr key={r.id}
-                      style={{ borderTop: '1px solid #1E1E22', color: '#F0F0F2', cursor: 'pointer' }}
-                      className="hover:bg-[#1A1A1E]">
-                      <td className="py-2 pr-3" style={{ color: '#555560' }}>
+                      style={{ borderTop: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)', cursor: 'pointer' }}
+                      className="hover:bg-[var(--kant-2)]">
+                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>
                         <Link href={`/app/dagbok?edit=${r.id}`} className="block">{r.date}</Link>
                       </td>
                       <td className="py-2 pr-3">
                         <Link href={`/app/dagbok?edit=${r.id}`} className="block">{r.name || r.title || '—'}</Link>
                       </td>
-                      <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelSport(r.sport)}</td>
-                      <td className="py-2 pr-3" style={{ color: '#555560' }}>{labelCompType(r.competition_type)}</td>
-                      <td className="py-2 pr-3" style={{ color: '#555560' }}>{r.distance_format ?? '—'}</td>
+                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelSport(r.sport)}</td>
+                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{labelCompType(r.competition_type)}</td>
+                      <td className="py-2 pr-3" style={{ color: 'var(--tekst-8-app)' }}>{r.distance_format ?? '—'}</td>
                       <td className="py-2 pr-3 text-right">{formatDuration(r.duration_seconds)}</td>
                       <td className="py-2 text-right">
                         {r.position_overall != null
@@ -358,7 +358,7 @@ export function CompetitionsTab({
           <ChartWrapper chartKey="competitions_placement_over_time" title="Plasseringer over tid" subtitle="Lavere = bedre · farget per idrett">
             {positionBySport.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                   Ingen registrerte plasseringer.
                 </p>
               </div>
@@ -395,10 +395,10 @@ export function CompetitionsTab({
                 {Array.from(latestByFormat.entries()).map(([format, v]) => (
                   <div key={format}>
                     <p className="text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       Nyeste · {format}
                     </p>
-                    <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', lineHeight: 1 }}>
+                    <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', lineHeight: 1 }}>
                       {formatDuration(v.sec)}
                     </p>
                   </div>
@@ -431,7 +431,7 @@ export function CompetitionsTab({
               <div className="flex items-center gap-3 mt-2">
                 <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                   Skiskyting
                 </p>
               </div>
@@ -471,7 +471,7 @@ export function CompetitionsTab({
               <ChartWrapper chartKey="competitions_shooting_accuracy_over_time" title="Treff% per skyting over tid" subtitle="Første/Andre · Liggende/Stående · Samlet snitt">
                 {seriesLines.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                       Ingen registrerte skyteserier.
                     </p>
                   </div>
@@ -502,7 +502,7 @@ export function CompetitionsTab({
               <ChartWrapper chartKey="competitions_shooting_comp_vs_training" title="Treff% · konkurranse vs trening" subtitle="Aggregert per dag">
                 {compVsTrainingAcc.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                       Ingen datapunkter.
                     </p>
                   </div>
@@ -531,7 +531,7 @@ export function CompetitionsTab({
                 <ChartWrapper chartKey="competitions_shooting_time_per_series" title="Skytetid per serie" subtitle="Snitt sekunder per serie">
                   {(shootingTimeSeries.prone.length + shootingTimeSeries.standing.length) === 0 ? (
                     <div className="flex items-center justify-center h-full">
-                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                         Ingen skytetid registrert.
                       </p>
                     </div>
@@ -557,7 +557,7 @@ export function CompetitionsTab({
                 <ChartWrapper chartKey="competitions_shooting_hr" title="Snittpuls under skyting" subtitle="Aggregert per dag">
                   {shootingHrSeries.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
-                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+                      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
                         Ingen pulsdata under skyting.
                       </p>
                     </div>

@@ -18,25 +18,25 @@ export function VolumeProgressBar({
 
   return (
     <div className="p-4 mb-5"
-      style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <div className="flex items-baseline justify-between mb-2">
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {label ?? 'Planlagt volum — gjeldende periode'}
         </span>
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           fontSize: '20px',
           letterSpacing: '0.04em',
         }}>
-          {actualHours.toFixed(1)} <span style={{ color: '#8A8A96', fontSize: '13px' }}>av</span> {plannedHours.toFixed(0)} timer
+          {actualHours.toFixed(1)} <span style={{ color: 'var(--tekst-5-app)', fontSize: '13px' }}>av</span> {plannedHours.toFixed(0)} timer
         </span>
       </div>
       <div style={{
         width: '100%',
         height: '8px',
-        backgroundColor: '#1E1E22',
+        backgroundColor: 'var(--kant-3)',
         overflow: 'hidden',
       }}>
         <div style={{
@@ -48,7 +48,7 @@ export function VolumeProgressBar({
       </div>
       <div className="mt-1 flex items-center justify-between">
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {pct.toFixed(0)}% av plan
         </span>
       </div>

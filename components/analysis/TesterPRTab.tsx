@@ -44,17 +44,17 @@ const SPORT_COLOR: Record<string, string> = {
   triathlon: '#8B5CF6',
   cycling: '#28A86E',
   long_distance_skiing: '#E8B93C',
-  endurance: '#8A8A96',
+  endurance: 'var(--tekst-5-app)',
   // TestPRSport (ny modell)
   lop: '#FF4500',
   sykling: '#28A86E',
   svomming: '#1A6FD4',
   langrenn: '#1A6FD4',
   skiskyting: '#E23A5A',
-  styrke: '#6E6E78',
+  styrke: 'var(--tekst-7)',
   spenst: '#A855F7',
   skyting: '#0EA5E9',
-  annet: '#8A8A96',
+  annet: 'var(--tekst-5-app)',
 }
 
 // Sport-feltet kan inneholde TestPRSport (ny) eller Sport (eldre rader).
@@ -127,7 +127,7 @@ function ProgressionChart({ series }: { series: TestProgressionSeries }) {
 function PRSourceBadge({ pr }: { pr: PersonalRecordRow }) {
   const isLinked = !!pr.workout_id
   const label = isLinked ? 'Økt' : 'Manuell'
-  const color = isLinked ? TEST_BLUE : '#8A8A96'
+  const color = isLinked ? TEST_BLUE : 'var(--data-ukjent)'
   return (
     <span className="ml-2 px-1.5 py-0.5 text-[9px] tracking-widest uppercase"
       style={{
@@ -143,7 +143,7 @@ function PRRow({ pr, onEdit }: { pr: PersonalRecordRow; onEdit: () => void }) {
   return (
     <button type="button" onClick={onEdit}
       className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 flex-wrap hover:bg-white/5 transition-colors"
-      style={{ borderBottom: '1px solid #1E1E22' }}>
+      style={{ borderBottom: '1px solid var(--kant-3)' }}>
       <div>
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: GOLD }}>
@@ -151,15 +151,15 @@ function PRRow({ pr, onEdit }: { pr: PersonalRecordRow; onEdit: () => void }) {
           <PRSourceBadge pr={pr} />
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {pr.achieved_at}{pr.notes ? ` · ${pr.notes}` : ''}
         </p>
       </div>
       <p className="text-xl"
-        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
         {formatValue(pr.value, pr.unit)}
         <span className="ml-1 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {pr.unit}
         </span>
       </p>
@@ -171,7 +171,7 @@ function TestRowItem({ row }: { row: TestResultRow }) {
   return (
     <Link href={`/app/dagbok/${row.workout_id}`}
       className="block px-4 py-3 hover:bg-white/5 transition-colors"
-      style={{ borderBottom: '1px solid #1E1E22' }}>
+      style={{ borderBottom: '1px solid var(--kant-3)' }}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs tracking-widest uppercase"
@@ -179,17 +179,17 @@ function TestRowItem({ row }: { row: TestResultRow }) {
             {row.test_type} — {labelSport(row.sport)}
           </p>
           <p className="text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {row.date}{row.title ? ` · ${row.title}` : ''}
           </p>
         </div>
         <div className="text-right">
           <p className="text-xl"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+            style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
             {row.primary_result != null ? formatValue(row.primary_result, row.primary_unit) : '—'}
             {row.primary_unit && (
               <span className="ml-1 text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {row.primary_unit}
               </span>
             )}
@@ -198,7 +198,7 @@ function TestRowItem({ row }: { row: TestResultRow }) {
       </div>
       {(row.conditions || row.equipment) && (
         <p className="mt-1 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {[row.equipment, row.conditions].filter(Boolean).join(' · ')}
         </p>
       )}
@@ -272,7 +272,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: sportTab === 'all' ? TEST_BLUE + '33' : 'transparent',
               border: `1px solid ${sportTab === 'all' ? TEST_BLUE : 'var(--line)'}`,
-              color: sportTab === 'all' ? TEST_BLUE : '#8A8A96',
+              color: sportTab === 'all' ? TEST_BLUE : 'var(--tekst-5-app)',
               minHeight: '36px',
             }}>
             Alle
@@ -284,7 +284,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: sportTab === s ? TEST_BLUE + '33' : 'transparent',
                 border: `1px solid ${sportTab === s ? TEST_BLUE : 'var(--line)'}`,
-                color: sportTab === s ? TEST_BLUE : '#8A8A96',
+                color: sportTab === s ? TEST_BLUE : 'var(--tekst-5-app)',
                 minHeight: '36px',
               }}>
               {labelSport(s)}
@@ -307,7 +307,7 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
   const presetBar = (
     <div>
       <p className="mb-2 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Hurtig-PR
       </p>
       <div className="flex gap-2 flex-wrap">
@@ -372,10 +372,10 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
           ).map(([sport, groups]) => (
             <div key={sport}>
               <p className="mb-2 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: SPORT_COLOR[sport] ?? '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: SPORT_COLOR[sport] ?? 'var(--tekst-5-app)' }}>
                 <span style={{
                   display: 'inline-block', width: '8px', height: '8px',
-                  backgroundColor: SPORT_COLOR[sport] ?? '#8A8A96', marginRight: '6px',
+                  backgroundColor: SPORT_COLOR[sport] ?? 'var(--tekst-5-app)', marginRight: '6px',
                 }} />
                 {labelSport(sport)}
               </p>
@@ -385,9 +385,9 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
                     <p className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#8A8A96',
-                        backgroundColor: '#1A1A22',
-                        borderBottom: '1px solid #1E1E22',
+                        color: 'var(--tekst-5-app)',
+                        backgroundColor: 'var(--flate-14)',
+                        borderBottom: '1px solid var(--kant-3)',
                       }}>
                       {g.subcategory}
                     </p>
@@ -433,8 +433,8 @@ export function TesterPRTab({ data, targetUserId }: { data: TestsAndPRs; targetU
       )}
 
       {filteredPRs.length === 0 && filteredTests.length === 0 && (
-        <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+        <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
             Ingen tester eller PR-er for valgt sport.
           </p>
         </div>

@@ -98,9 +98,9 @@ export function MovementTab({
   return (
     <div className="space-y-5">
       {/* Movement-velger */}
-      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Bevegelsesform {isPending && <span className="ml-2 normal-case" style={{ color: '#FF4500' }}>…laster</span>}
         </p>
         <select
@@ -109,8 +109,8 @@ export function MovementTab({
           className="w-full md:w-auto px-3 py-2 text-sm"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#0A0A0B', color: '#F0F0F2',
-            border: '1px solid #1E1E22', minHeight: '44px', minWidth: '240px',
+            backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
+            border: '1px solid var(--kant-3)', minHeight: '44px', minWidth: '240px',
           }}
         >
           {opts.length === 0 && <option value={movement}>{movement}</option>}
@@ -122,15 +122,15 @@ export function MovementTab({
 
       {error && (
         <div className="p-3" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {error}
           </p>
         </div>
       )}
 
       {!data.hasData ? (
-        <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+        <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
             Ingen {movement}-økter i valgt periode.
           </p>
         </div>
@@ -215,9 +215,9 @@ function MovementTimeAndKm({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis dataKey="label" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
           <YAxis yAxisId="left" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32}
-            label={{ value: 't', angle: 0, position: 'insideLeft', fill: '#55555F', fontSize: 12 }} />
+            label={{ value: 't', angle: 0, position: 'insideLeft', fill: 'var(--tekst-8-alt)', fontSize: 12 }} />
           <YAxis yAxisId="right" orientation="right" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={32}
-            label={{ value: 'km', angle: 0, position: 'insideRight', fill: '#55555F', fontSize: 12 }} />
+            label={{ value: 'km', angle: 0, position: 'insideRight', fill: 'var(--tekst-8-alt)', fontSize: 12 }} />
           <Tooltip content={<XpTooltip />} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Line yAxisId="left" type="monotone" dataKey="hours" name="Timer" stroke="#FF4500" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
@@ -248,7 +248,7 @@ function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }
             labelFormatter={(v) => formatEpochAxis(Number(v))}
             formatter={(value) => [`${value} bpm`, 'Puls']} />
           <Line data={points} type="monotone" dataKey="y" name="Snittpuls" stroke="#E23A5A" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
-          {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+          {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
         </LineChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -308,14 +308,14 @@ function MovementBest({ data, movement }: { data: MovementAnalysis; movement: st
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         Beste prestasjoner i perioden
       </p>
       <ul className="space-y-1.5">
         {rows.map(r => (
           <li key={r.label} className="flex items-center justify-between text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-            <span style={{ color: '#8A8A96' }}>{r.label}</span>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
+            <span style={{ color: 'var(--tekst-5-app)' }}>{r.label}</span>
             {r.link ? (
               <Link href={r.link} className="hover:text-[#FF4500]">{r.value}</Link>
             ) : (
@@ -352,7 +352,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(value) => [formatPace(Number(value)), 'Tempo']} />
             <Line data={points} type="monotone" dataKey="y" name="Tempo" stroke="#E8B93C" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
-            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -380,7 +380,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(v) => [`${v} W`, 'Watt']} />
             <Line data={points} type="monotone" dataKey="y" name="Watt" stroke="#8B5CF6" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
-            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -408,7 +408,7 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
               labelFormatter={(v) => formatEpochAxis(Number(v))}
               formatter={(v) => [`${v} km/t`, 'Fart']} />
             <Line data={points} type="monotone" dataKey="y" name="Fart" stroke="#1A6FD4" strokeWidth={CHART_LINE_WIDTH} dot={{ r: 3 }} />
-            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+            {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
           </LineChart>
         </ResponsiveContainer>
       </ChartWrapper>
@@ -419,10 +419,10 @@ function MovementSportSpecific({ data, movement }: { data: MovementAnalysis; mov
     return (
       <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Høydemeter / sekkvekt
         </p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Aggregerte høydemeter og sekkvekt er ikke lagret per aktivitet enda — kommer i senere fase.
         </p>
       </div>

@@ -15,16 +15,16 @@ export function ChartWrapper({
   chartKey?: string
 }) {
   return (
-    <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {title}
           </p>
           {subtitle && (
             <p className="text-xs mt-0.5"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {subtitle}
             </p>
           )}
@@ -44,10 +44,10 @@ export function ChartWrapper({
 
 // Delt tooltip-stil for alle diagrammer (mørk).
 export const TOOLTIP_STYLE = {
-  backgroundColor: '#0A0A0B',
-  border: '1px solid #1E1E22',
+  backgroundColor: 'var(--flate-3)',
+  border: '1px solid var(--kant-3)',
   borderRadius: 0,
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '12px',
 } as const
@@ -55,7 +55,7 @@ export const TOOLTIP_STYLE = {
 export const AXIS_STYLE = {
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 11,
-  fill: '#555560',
+  fill: 'var(--tekst-8-app)',
 } as const
 
-export const GRID_COLOR = '#1E1E22'
+export const GRID_COLOR = 'var(--kant-3)'

@@ -51,9 +51,9 @@ export function BelastningTrendMini({ range, targetUserId }: Props) {
 
   if (loading) {
     return (
-      <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <div className="p-5" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Belastnings-trend … laster
         </p>
       </div>
@@ -68,11 +68,11 @@ export function BelastningTrendMini({ range, targetUserId }: Props) {
   const tickInterval = Math.max(0, Math.floor(rows.length / 8) - 1)
 
   return (
-    <div className="p-5" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-5" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: COLOR_CTL, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Belastnings-trend (CTL/ATL/TSB)
         </span>
       </div>
@@ -86,7 +86,7 @@ export function BelastningTrendMini({ range, targetUserId }: Props) {
             <YAxis yAxisId="tsb" orientation="right" tick={CHART_AXIS_TICK}
               axisLine={CHART_AXIS_LINE} tickLine={false} width={36}
               domain={[-50, 50]} />
-            <ReferenceLine yAxisId="tsb" y={0} stroke="#555560" strokeDasharray="2 2" />
+            <ReferenceLine yAxisId="tsb" y={0} stroke="var(--tekst-8-app)" strokeDasharray="2 2" />
             <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />

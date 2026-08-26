@@ -33,11 +33,11 @@ export function KlokkedataTrenderTab({ data }: Props) {
 
   if (!hasAnything) {
     return (
-      <div className="py-12 px-6 text-center" style={{ border: '1px dashed #1E1E22', backgroundColor: 'var(--card)' }}>
-        <p className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.04em' }}>
+      <div className="py-12 px-6 text-center" style={{ border: '1px dashed var(--kant-3)', backgroundColor: 'var(--card)' }}>
+        <p className="mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.04em' }}>
           Ingen klokkesync-data i perioden
         </p>
-        <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+        <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
           Koble til klokke (Strava eller .fit-fil-opplasting) for å se aerob effektivitet, cardiac drift,
           tid i sone, power curve og kadens-trender over tid.
         </p>
@@ -45,7 +45,7 @@ export function KlokkedataTrenderTab({ data }: Props) {
           className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: '#FFFFFF',
+            backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
             textDecoration: 'none',
           }}>
           Koble til klokke →
@@ -131,12 +131,12 @@ function Summary({ data }: { data: KlokkedataTrender }) {
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Klokkesync-dekning
       </p>
       <div className="flex items-baseline gap-3 flex-wrap">
         <span style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '28px', letterSpacing: '0.04em',
         }}>
           {data.workoutsWithKlokkesync}/{data.workoutsTotal}
@@ -236,7 +236,7 @@ function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
   return (
     <div>
       <p className="mb-2 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Snitt 80/20-polarisering (I1+I2 av total): <span style={{ color: avgPolarized >= 75 ? '#28A86E' : '#FFB300', fontWeight: 600 }}>{avgPolarized}%</span>
         {avgPolarized >= 75 ? ' — innenfor 80/20-prinsippet' : ' — for mye høyintensitet'}
       </p>

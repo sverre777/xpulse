@@ -29,7 +29,7 @@ const EVENT_TYPE_LABEL: Record<PeriodKeyDate['event_type'], string> = {
 
 const EVENT_TYPE_COLOR: Record<PeriodKeyDate['event_type'], string> = {
   competition_a: '#E11D48', competition_b: '#FF4500', competition_c: '#D4A017',
-  test: '#38BDF8', camp: '#28A86E', other: '#8A8A96',
+  test: '#38BDF8', camp: '#28A86E', other: 'var(--tekst-5-app)',
 }
 
 function formatDateShort(iso: string): string {
@@ -81,8 +81,8 @@ function downloadCsv(filename: string, rows: string[][]) {
 export function PeriodiseringTab({ data }: { data: PeriodizationOverview }) {
   if (!data.hasData || !data.season) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen sesong overlapper valgt periode. Opprett en sesong i Årsplan for å se oversikt her.
         </p>
       </div>
@@ -112,22 +112,22 @@ function SeasonHeader({ data }: { data: PeriodizationOverview }) {
   return (
     <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: '3px solid #FF4500' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Sesong
       </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', lineHeight: 1.05, letterSpacing: '0.03em' }}>
+      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', lineHeight: 1.05, letterSpacing: '0.03em' }}>
         {s.name}
       </p>
       <p className="text-xs mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {formatDateLong(s.start_date)} – {formatDateLong(s.end_date)} · {totalDays} dager
       </p>
       {/* Progress-bar for sesongen */}
-      <div className="mt-3" style={{ width: '100%', height: 6, backgroundColor: '#0A0A0B', border: '1px solid #1E1E22' }}>
+      <div className="mt-3" style={{ width: '100%', height: 6, backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)' }}>
         <div style={{ width: `${progressPct}%`, height: '100%', backgroundColor: '#FF4500' }} />
       </div>
       <p className="text-xs mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {progressPct}% gjennomført ({elapsed} av {totalDays} dager)
       </p>
     </div>
@@ -141,7 +141,7 @@ function SummaryCards({ data }: { data: PeriodizationOverview }) {
       <StatCard label="Perioder" value={`${data.periods.length}`}
         sub={current ? `Nåværende: ${current.name}` : 'Ingen aktiv periode'} accent="#FF4500" />
       <StatCard label="Total tid" value={formatHours(data.totals.total_seconds)}
-        sub={`${data.totals.sessions} økter i sesongen`} accent="#F0F0F2" />
+        sub={`${data.totals.sessions} økter i sesongen`} accent="var(--tekst-1-app)" />
       <StatCard label="Total TSS" value={`${data.totals.total_tss}`}
         sub="Sum belastning (alle perioder)" accent="#38BDF8" />
       <StatCard label="Konkurranser" value={`${data.totals.competitions_logged}`}
@@ -155,13 +155,13 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {sub}
       </p>
     </div>
@@ -179,13 +179,13 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Tidsbånd — periode-fordeling
         </p>
       </div>
-      <div className="p-5" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      <div className="p-5" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
         {/* Tidsbånd */}
-        <div style={{ position: 'relative', width: '100%', height: 56, backgroundColor: '#0A0A0B', border: '1px solid #1E1E22' }}>
+        <div style={{ position: 'relative', width: '100%', height: 56, backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)' }}>
           {data.periods.map(p => {
             const leftPct = Math.max(0, Math.min(100, (daysBetween(s.start_date, p.start_date) / totalDays) * 100))
             const widthPct = Math.max(0.5, Math.min(100 - leftPct, ((daysBetween(p.start_date, p.end_date) + 1) / totalDays) * 100))
@@ -196,12 +196,12 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
                   position: 'absolute', top: 0, height: '100%',
                   left: `${leftPct}%`, width: `${widthPct}%`,
                   backgroundColor: color, opacity: p.status === 'past' ? 0.5 : 0.85,
-                  borderRight: '1px solid #0A0A0B',
+                  borderRight: '1px solid var(--flate-3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden',
                 }}>
                 <span className="text-xs tracking-widest uppercase px-1 truncate"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#0A0A0B', fontWeight: 600 }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--flate-3)', fontWeight: 600 }}>
                   {p.name}
                 </span>
               </div>
@@ -211,7 +211,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
           {todayOffset >= 0 && todayOffset < totalDays && (
             <div style={{
               position: 'absolute', top: -4, bottom: -4, width: 2,
-              left: `${todayPct}%`, backgroundColor: '#F0F0F2',
+              left: `${todayPct}%`, backgroundColor: 'var(--tekst-1-app)',
               boxShadow: '0 0 6px rgba(240,240,242,0.6)',
             }} />
           )}
@@ -227,7 +227,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
                     position: 'absolute', top: 0, left: `${leftPct}%`,
                     width: 8, height: 8, transform: 'translateX(-50%)',
                     backgroundColor: EVENT_TYPE_COLOR[k.event_type],
-                    borderRadius: '50%', border: '1px solid #0A0A0B',
+                    borderRadius: '50%', border: '1px solid var(--flate-3)',
                   }} />
               )
             })}
@@ -235,10 +235,10 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
         </div>
         {/* Start / slutt-label */}
         <div className="flex justify-between mt-2">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             {formatDateShort(s.start_date)}
           </span>
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             {formatDateShort(s.end_date)}
           </span>
         </div>
@@ -247,7 +247,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
           {(['rolig','medium','hard'] as const).map(k => (
             <span key={k} className="flex items-center gap-2">
               <span style={{ width: 12, height: 12, backgroundColor: INTENSITY_COLORS[k] }} />
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
                 {INTENSITY_LABEL[k]}
               </span>
             </span>
@@ -255,7 +255,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
           {(Object.keys(EVENT_TYPE_LABEL) as PeriodKeyDate['event_type'][]).map(et => (
             <span key={et} className="flex items-center gap-2">
               <span style={{ width: 8, height: 8, backgroundColor: EVENT_TYPE_COLOR[et], borderRadius: '50%' }} />
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
                 {EVENT_TYPE_LABEL[et]}
               </span>
             </span>
@@ -279,7 +279,7 @@ export function LoadPerPeriod({ data }: { data: PeriodizationOverview }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Total belastning per periode
         </p>
       </div>
@@ -318,7 +318,7 @@ export function CompetitionsPerPeriod({ data }: { data: PeriodizationOverview })
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Konkurranser per periode
         </p>
       </div>
@@ -347,14 +347,14 @@ function PeriodTable({ data }: { data: PeriodizationOverview }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Perioder i detalj
         </p>
       </div>
       <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
-            <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
+            <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Periode</th>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Fokus</th>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Dato</th>
@@ -368,13 +368,13 @@ function PeriodTable({ data }: { data: PeriodizationOverview }) {
           </thead>
           <tbody>
             {data.periods.map(p => (
-              <tr key={p.id} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+              <tr key={p.id} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
                 <td className="px-3 py-2">
                   <span style={{ display: 'inline-block', width: 6, height: 6, backgroundColor: INTENSITY_COLORS[p.intensity], marginRight: 8 }} />
                   {p.name}
                 </td>
-                <td className="px-3 py-2" style={{ color: '#8A8A96' }}>{p.focus ?? '—'}</td>
-                <td className="px-3 py-2" style={{ color: '#8A8A96' }}>
+                <td className="px-3 py-2" style={{ color: 'var(--tekst-5-app)' }}>{p.focus ?? '—'}</td>
+                <td className="px-3 py-2" style={{ color: 'var(--tekst-5-app)' }}>
                   {formatDateShort(p.start_date)}–{formatDateShort(p.end_date)}
                 </td>
                 <td className="px-3 py-2 text-right">{p.sessions}</td>
@@ -383,7 +383,7 @@ function PeriodTable({ data }: { data: PeriodizationOverview }) {
                 <td className="px-3 py-2 text-right" style={{ color: '#38BDF8' }}>{p.total_tss}</td>
                 <td className="px-3 py-2 text-right">{p.competitions}</td>
                 <td className="px-3 py-2 text-xs tracking-widest uppercase"
-                  style={{ color: p.status === 'current' ? '#FF4500' : p.status === 'future' ? '#8A8A96' : '#555560' }}>
+                  style={{ color: p.status === 'current' ? '#FF4500' : p.status === 'future' ? 'var(--tekst-5-app)' : 'var(--tekst-8-app)' }}>
                   {p.status === 'current' ? 'Nå' : p.status === 'future' ? 'Kommende' : 'Fullført'}
                 </td>
               </tr>
@@ -403,7 +403,7 @@ function GoalsBlock({ data }: { data: PeriodizationOverview }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Mål og KPI-er
         </p>
       </div>
@@ -411,10 +411,10 @@ function GoalsBlock({ data }: { data: PeriodizationOverview }) {
         {s.goal_main && (
           <div>
             <p className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Hovedmål
             </p>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', lineHeight: 1.5 }}>
               {s.goal_main}
             </p>
           </div>
@@ -422,10 +422,10 @@ function GoalsBlock({ data }: { data: PeriodizationOverview }) {
         {s.goal_details && (
           <div>
             <p className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Detaljer
             </p>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
               {s.goal_details}
             </p>
           </div>
@@ -433,10 +433,10 @@ function GoalsBlock({ data }: { data: PeriodizationOverview }) {
         {s.kpi_notes && (
           <div>
             <p className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               KPI-er
             </p>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
               {s.kpi_notes}
             </p>
           </div>
@@ -472,11 +472,11 @@ function CsvExport({ data }: { data: PeriodizationOverview }) {
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Eksport
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Last ned periode-oversikt som CSV (én rad per periode med belastning og konkurranser).
         </p>
       </div>
@@ -484,7 +484,7 @@ function CsvExport({ data }: { data: PeriodizationOverview }) {
         className="px-4 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#FF4500', color: '#0A0A0B',
+          backgroundColor: '#FF4500', color: 'var(--flate-3)',
           border: 'none', minHeight: '40px', cursor: 'pointer',
         }}>
         Last ned CSV
@@ -495,16 +495,16 @@ function CsvExport({ data }: { data: PeriodizationOverview }) {
 
 function MethodNote() {
   return (
-    <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Slik beregnes tallene
       </p>
       <p className="text-xs leading-relaxed"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        <strong style={{ color: '#F0F0F2' }}>Sesongen</strong> er den du har opprettet i Årsplan — oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
-        {' '}<strong style={{ color: '#F0F0F2' }}>TSS</strong> per periode bruker samme formel som Belastning-fanen (minutter i sone × sone-vekt).
-        {' '}<strong style={{ color: '#F0F0F2' }}>Konkurranser</strong> teller økter markert som <em>competition</em>/<em>testlop</em> pluss nøkkeldatoer av typen A/B/C-løp i periodens datointervall — dobbelttelling kan forekomme hvis du har både nøkkeldato og registrert løpet som økt.
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        <strong style={{ color: 'var(--tekst-1-app)' }}>Sesongen</strong> er den du har opprettet i Årsplan — oversikten dekker hele sesongens datorange, uavhengig av periode-filteret over.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>TSS</strong> per periode bruker samme formel som Belastning-fanen (minutter i sone × sone-vekt).
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Konkurranser</strong> teller økter markert som <em>competition</em>/<em>testlop</em> pluss nøkkeldatoer av typen A/B/C-løp i periodens datointervall — dobbelttelling kan forekomme hvis du har både nøkkeldato og registrert løpet som økt.
         {' '}Oppdater mål og detaljer i Årsplan-seksjonen.
       </p>
     </div>

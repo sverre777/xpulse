@@ -109,7 +109,7 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
     <>
       <div className="flex items-center gap-3 mb-4 mt-8">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
           Skyting
         </h2>
       </div>
@@ -131,11 +131,11 @@ export function SkytingChartSection({ targetUserId }: { targetUserId?: string })
 
         {tomPeriode && (
           <div className="p-5 text-center"
-            style={{ border: '1px dashed #1E1E22', borderRadius: 'var(--r-card)' }}>
-            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ border: '1px dashed var(--kant-3)', borderRadius: 'var(--r-card)' }}>
+            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Ingen skyting ført i denne perioden.
             </p>
-            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Velg en lengre periode over for å se historikken.
             </p>
           </div>

@@ -98,10 +98,10 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
   const isEmpty = data !== null && data.current.workout_count === 0
 
   return (
-    <div style={{ borderBottom: '1px solid #1E1E22' }}>
+    <div style={{ borderBottom: '1px solid var(--kant-3)' }}>
       <div className="flex items-center justify-between px-4 md:px-6 pt-3 pb-2">
         <span className="flex items-center gap-2 text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           <span aria-hidden="true" style={{ color: '#FF4500' }}>▾</span>
           {headerLabel} {label}
           {isPending && <span className="ml-2" style={{ color: '#FF4500' }}>…laster</span>}
@@ -111,7 +111,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
       <div className="px-4 md:px-6 pb-4">
         {error && (
           <div className="p-3 mb-3" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               {error}
             </p>
           </div>
@@ -119,7 +119,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
 
         {isEmpty && !error && (
           <div className="flex items-center justify-between gap-4">
-            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Ingen data
             </p>
             <Link
@@ -141,17 +141,17 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
             <div className="flex gap-4 flex-wrap">
               <div>
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {timeLabel}
                 </p>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1 }}>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', lineHeight: 1 }}>
                   {formatDuration(data.current.total_seconds)}
                 </p>
                 {delta !== null && delta !== undefined && (
                   <p className="text-xs"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: delta > 0 ? '#28A86E' : delta < 0 ? '#E11D48' : '#8A8A96',
+                      color: delta > 0 ? '#28A86E' : delta < 0 ? '#E11D48' : 'var(--tekst-5-app)',
                     }}>
                     {delta > 0 ? '+' : ''}{delta}{deltaLabel}
                   </p>
@@ -159,19 +159,19 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
               </div>
               <div>
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   KM
                 </p>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1 }}>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', lineHeight: 1 }}>
                   {formatKm(data.current.total_meters)}
                 </p>
               </div>
               <div>
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {countLabel}
                 </p>
-                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1 }}>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', lineHeight: 1 }}>
                   {data.current.workout_count}
                 </p>
               </div>
@@ -182,7 +182,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
               {zones && zoneTotal > 0 ? (
                 <div>
                   <p className="text-xs tracking-widest uppercase mb-1"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     Soner
                   </p>
                   <div className="flex w-full overflow-hidden" style={{ height: 6 }}>
@@ -201,7 +201,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
                       className="text-xs px-1.5 py-0.5"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#13131A', border: '1px solid #1E1E22', color: '#F0F0F2',
+                        backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)',
                       }}>
                       {m.movement_name} · {formatDuration(m.seconds)}
                     </span>

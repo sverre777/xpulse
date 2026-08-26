@@ -49,7 +49,7 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
     return (
       <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Helse over tid … laster
         </p>
       </div>
@@ -75,7 +75,7 @@ export function HelseMiniDashboard({ range, targetUserId }: Props) {
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '16px', height: '2px', backgroundColor: COLOR_HRV, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Helse over tid
         </span>
       </div>
@@ -105,21 +105,21 @@ function MiniChart({
     <div>
       <div className="flex items-baseline justify-between mb-1">
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {title}
         </span>
         {latest !== null && (
           <span style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.03em',
           }}>
-            {latest} <span style={{ fontSize: '12px', color: '#8A8A96' }}>{unit}</span>
+            {latest} <span style={{ fontSize: '12px', color: 'var(--tekst-5-app)' }}>{unit}</span>
           </span>
         )}
       </div>
       {points.length === 0 ? (
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen data
         </p>
       ) : (
@@ -142,7 +142,7 @@ function MiniChart({
           </div>
           {avg !== null && (
             <p className="text-xs mt-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Snitt: {avg} {unit} · {points.length} dager
             </p>
           )}

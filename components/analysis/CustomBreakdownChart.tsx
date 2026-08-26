@@ -33,10 +33,10 @@ const NON_ENDURANCE_COLORS: Record<string, string> = {
   Snowboard: '#7A5A9A',
   Crossfit: '#A06A3A',
   Kampsport: '#9A4A4A',
-  Annet: '#6A6A6A',
+  Annet: 'var(--tekst-6-graa)',
 }
 
-const FALLBACK_NON_ENDURANCE = '#7A7A84'
+const FALLBACK_NON_ENDURANCE = 'var(--data-ovrig)'
 
 function colorForNonEndurance(name: string): string {
   return NON_ENDURANCE_COLORS[name] ?? FALLBACK_NON_ENDURANCE
@@ -100,7 +100,7 @@ function BarTotalLabel({ totals, x, y, width, index }: {
       x={Number(x) + Number(width) / 2}
       y={Number(y) - 6}
       textAnchor="middle"
-      fill="#F2F2F0"
+      fill="var(--ink)"
       style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, letterSpacing: '0.05em', opacity: 0.95 }}
     >
       {formatMinutesCompact(total)}
@@ -154,21 +154,21 @@ function PlanDoneTooltip({ active, payload, label }: {
   if (visible.length === 0) return null
   const doneTotal = visible.reduce((s, [, r]) => s + r.done, 0)
   const planTotal = visible.reduce((s, [, r]) => s + r.plan, 0)
-  const cell = { textAlign: 'right' as const, paddingLeft: 14, color: '#F2F2F0', fontWeight: 600 }
+  const cell = { textAlign: 'right' as const, paddingLeft: 14, color: 'var(--ink)', fontWeight: 600 }
   return (
     <div style={{
-      minWidth: 220, backgroundColor: '#0C0C0F', border: '1px solid #2A2A33',
-      borderRadius: 12, padding: '12px 14px', boxShadow: '0 12px 34px rgba(0,0,0,0.55)',
+      minWidth: 220, backgroundColor: 'var(--flate-5)', border: '1px solid var(--line2)',
+      borderRadius: 12, padding: '12px 14px', boxShadow: '0 12px 34px var(--skygge-55)',
       fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
     }}>
       {label != null && label !== '' && (
-        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: 'var(--ink)', marginBottom: 6 }}>
           {label}
         </div>
       )}
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
-          <tr style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#55555F' }}>
+          <tr style={{ fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
             <th style={{ textAlign: 'left', fontWeight: 400, paddingBottom: 3 }} />
             <th style={{ textAlign: 'right', fontWeight: 400, paddingBottom: 3, paddingLeft: 14 }}>Gjennomført</th>
             <th style={{ textAlign: 'right', fontWeight: 400, paddingBottom: 3, paddingLeft: 14 }}>Plan</th>
@@ -176,9 +176,9 @@ function PlanDoneTooltip({ active, payload, label }: {
         </thead>
         <tbody>
           {visible.map(([base, r]) => (
-            <tr key={base} style={{ color: '#8B8B95', lineHeight: 1.6 }}>
+            <tr key={base} style={{ color: 'var(--mut)', lineHeight: 1.6 }}>
               <td style={{ whiteSpace: 'nowrap' }}>
-                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: r.color ?? '#8B8B95', marginRight: 7 }} />
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: r.color ?? 'var(--mut)', marginRight: 7 }} />
                 {base}
               </td>
               <td style={cell}>{r.done > 0 ? formatMinutes(r.done * 60) : '—'}</td>
@@ -187,12 +187,12 @@ function PlanDoneTooltip({ active, payload, label }: {
           ))}
         </tbody>
         <tfoot>
-          <tr style={{ color: '#8B8B95' }}>
-            <td style={{ borderTop: '1px solid #1F1F26', paddingTop: 5 }}>Totalt</td>
-            <td style={{ ...cell, borderTop: '1px solid #1F1F26', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+          <tr style={{ color: 'var(--mut)' }}>
+            <td style={{ borderTop: '1px solid var(--line)', paddingTop: 5 }}>Totalt</td>
+            <td style={{ ...cell, borderTop: '1px solid var(--line)', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
               {formatMinutes(doneTotal * 60)}
             </td>
-            <td style={{ ...cell, borderTop: '1px solid #1F1F26', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
+            <td style={{ ...cell, borderTop: '1px solid var(--line)', paddingTop: 5, fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.05em' }}>
               {formatMinutes(planTotal * 60)}
             </td>
           </tr>
@@ -220,17 +220,17 @@ function XpWeekTick({ x, y, payload, periods, nowIndex, showPeriod, ghosts }: {
   const isGhost = idx >= 0 && !!ghosts?.[idx]
   return (
     <g transform={`translate(${x},${y})`}>
-      <text dy={12} textAnchor="middle" fill={isNow ? '#FF4500' : isGhost ? '#3A3A44' : '#8B8B95'}
+      <text dy={12} textAnchor="middle" fill={isNow ? '#FF4500' : isGhost ? 'var(--tekst-10)' : 'var(--mut)'}
         style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, letterSpacing: '0.08em' }}>
         {payload.value}
       </text>
       {isGhost ? (
-        <text dy={26} textAnchor="middle" fill="#3A3A44"
+        <text dy={26} textAnchor="middle" fill="var(--tekst-10)"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10 }}>
           ingen økter
         </text>
       ) : showPeriod && idx >= 0 && periods[idx] && (
-        <text dy={26} textAnchor="middle" fill="#55555F"
+        <text dy={26} textAnchor="middle" fill="var(--tekst-8-alt)"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11 }}>
           {periods[idx]}
         </text>
@@ -496,13 +496,13 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
             </div>
           ) : isPending && !dataCompleted && !dataPlanned ? (
             <div className="flex items-center justify-center" style={{ minHeight: 220 }}>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 13 }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
                 Laster…
               </p>
             </div>
           ) : !hasAny ? (
-            <div className="flex items-center justify-center" style={{ minHeight: 220, border: '1px dashed #1E1E22' }}>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 13 }}>
+            <div className="flex items-center justify-center" style={{ minHeight: 220, border: '1px dashed var(--kant-3)' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 13 }}>
                 Velg bevegelsesformer og tidsintervall for å se grafen
               </p>
             </div>
@@ -523,8 +523,8 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
                         gap: 7, padding: '5px 11px', borderRadius: 999,
-                        border: '1px solid #2A2A33', background: 'none',
-                        color: '#8B8B95', fontSize: 13, fontWeight: 600,
+                        border: '1px solid var(--line2)', background: 'none',
+                        color: 'var(--mut)', fontSize: 13, fontWeight: 600,
                         letterSpacing: '0.06em', cursor: 'pointer',
                         opacity: off ? 0.32 : 1,
                       }}
@@ -560,9 +560,9 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         if (props.active && ghostLabelSet.has(String(props.label ?? ''))) {
                           return (
                             <div style={{
-                              backgroundColor: '#0C0C0F', border: '1px solid #2A2A33', borderRadius: 12,
+                              backgroundColor: 'var(--flate-5)', border: '1px solid var(--line2)', borderRadius: 12,
                               padding: '10px 14px', fontFamily: "'Barlow Condensed', sans-serif",
-                              fontSize: 14, color: '#8B8B95',
+                              fontSize: 14, color: 'var(--mut)',
                             }}>
                               Ingen økter {grouping === 'week' ? 'denne uka' : grouping === 'month' ? 'denne måneden' : 'dette året'}
                             </div>
@@ -588,7 +588,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                         dataKey="__ghost"
                         stackId="breakdown"
                         fill="rgba(139, 139, 149, 0.06)"
-                        stroke="#3A3A44"
+                        stroke="var(--tekst-10)"
                         strokeDasharray="3 3"
                         legendType="none"
                         tooltipType="none"
@@ -748,7 +748,7 @@ function MovementMultiSelect({
   return (
     <div className="relative flex-1 min-w-0">
       <span className="text-xs tracking-widest uppercase block mb-1.5"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Bevegelsesformer ({selectedCount}/{totalCount})
       </span>
       <button
@@ -757,24 +757,24 @@ function MovementMultiSelect({
         className="w-full px-3.5 py-1.5 text-xs text-left flex items-center justify-between"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#0A0A0B',
-          border: '1px solid #1E1E22',
-          color: '#F0F0F2',
+          backgroundColor: 'var(--flate-3)',
+          border: '1px solid var(--kant-3)',
+          color: 'var(--tekst-1-app)',
           minHeight: 32,
           cursor: 'pointer',
           borderRadius: 999,
         }}
       >
         <span>{selectedCount === totalCount ? 'Alle' : `${selectedCount} valgt`}</span>
-        <span style={{ color: '#555560', fontSize: 10 }}>{open ? '▴' : '▾'}</span>
+        <span style={{ color: 'var(--tekst-8-app)', fontSize: 10 }}>{open ? '▴' : '▾'}</span>
       </button>
       {open && (
         <div
           className="absolute z-40 mt-1 w-full max-h-64 overflow-y-auto"
           style={{
-            backgroundColor: '#0A0A0B',
-            border: '1px solid #1E1E22',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            backgroundColor: 'var(--flate-3)',
+            border: '1px solid var(--kant-3)',
+            boxShadow: '0 8px 24px var(--skygge-50)',
             borderRadius: 12,
           }}
         >
@@ -798,7 +798,7 @@ function MovementGroup({
   return (
     <div className="py-1">
       <div className="px-3 py-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', backgroundColor: '#13131A' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', backgroundColor: 'var(--flate-12-alt)' }}>
         {title}
       </div>
       {options.map(name => {
@@ -809,7 +809,7 @@ function MovementGroup({
             className="flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: sel ? '#F0F0F2' : '#8A8A96',
+              color: sel ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
             }}
           >
             <input

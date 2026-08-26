@@ -35,8 +35,8 @@ export function IntensityTab({ data }: { data: IntensityDistribution }) {
 
   if (!data.hasData) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ikke nok puls-data til å vise intensitetsfordeling. Logg snittpuls på aktiviteter for å se fordeling.
         </p>
       </div>
@@ -59,14 +59,14 @@ function PeriodSummary({ data }: { data: IntensityDistribution }) {
   return (
     <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Total tid i soner
       </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '48px', lineHeight: 1 }}>
+      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '48px', lineHeight: 1 }}>
         {formatDuration(total)}
       </p>
       <div className="mt-4">
-        <div style={{ display: 'flex', width: '100%', height: 22, backgroundColor: '#0A0A0B' }}>
+        <div style={{ display: 'flex', width: '100%', height: 22, backgroundColor: 'var(--flate-3)' }}>
           {ZONE_KEYS.map(k => {
             const p = pct(data.totalZones[k], total)
             if (p <= 0) return null
@@ -77,7 +77,7 @@ function PeriodSummary({ data }: { data: IntensityDistribution }) {
           {ZONE_KEYS.map(k => (
             <div key={k} className="flex items-center gap-2">
               <span style={{ width: 12, height: 12, backgroundColor: CHART_ZONE_COLORS[k] }} />
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px' }}>
                 {k}: {pct(data.totalZones[k], total)}% ({formatDuration(data.totalZones[k])})
               </span>
             </div>
@@ -114,18 +114,18 @@ function WeeklyStack({
         <div className="flex items-center gap-3">
           <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             Utvikling per uke
           </p>
         </div>
-        <div className="flex" style={{ border: '1px solid #1E1E22' }}>
+        <div className="flex" style={{ border: '1px solid var(--kant-3)' }}>
           {(['pct', 'min'] as const).map(u => (
             <button key={u} type="button" onClick={() => onUnitChange(u)}
               className="px-3 py-1 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: unit === u ? '#FF4500' : 'transparent',
-                color: unit === u ? '#0A0A0B' : '#8A8A96',
+                color: unit === u ? 'var(--flate-3)' : 'var(--tekst-5-app)',
                 minHeight: '36px',
               }}>
               {u === 'pct' ? '%' : 'Min'}
@@ -184,14 +184,14 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Fordeling per bevegelsesform
         </p>
       </div>
       <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
-            <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
+            <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Bevegelse</th>
               {ZONE_KEYS.map(k => (
                 <th key={k} className="text-right px-3 py-2 text-xs tracking-widest uppercase"
@@ -204,14 +204,14 @@ function MovementTable({ data, unit }: { data: IntensityDistribution; unit: 'pct
           </thead>
           <tbody>
             {data.byMovement.map(row => (
-              <tr key={row.movement_name} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+              <tr key={row.movement_name} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
                 <td className="px-3 py-2">{row.movement_name}</td>
                 {ZONE_KEYS.map(k => (
                   <td key={k} className="px-3 py-2 text-right">
                     {cellValue(row.zones, row.total_seconds, k)}
                   </td>
                 ))}
-                <td className="px-3 py-2 text-right" style={{ color: '#8A8A96' }}>
+                <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>
                   {formatDuration(row.total_seconds)}
                 </td>
               </tr>
@@ -232,7 +232,7 @@ export function IntensiveWorkoutsLine({ data }: { data: IntensityDistribution })
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Hurtighet og høyintensive økter
         </p>
       </div>
@@ -277,7 +277,7 @@ export function PolarizedStack({ data, unit }: { data: IntensityDistribution; un
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Lav / Medium / Høy
         </p>
       </div>

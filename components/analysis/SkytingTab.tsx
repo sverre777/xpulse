@@ -59,8 +59,8 @@ export function SkytingTab({ data, range, targetUserId }: {
 }) {
   if (data.sportMismatch) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Skyting-dybde gjelder bare skiskyting. Endre sport-filter til «Alle» eller «Skiskyting» for å se dataene.
         </p>
       </div>
@@ -68,8 +68,8 @@ export function SkytingTab({ data, range, targetUserId }: {
   }
   if (!data.hasData) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen skyte-serier i perioden. Registrer skyting (liggende/stående/kombinert) på biathlon-økter for å se dybde-analyse.
         </p>
       </div>
@@ -134,10 +134,10 @@ function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
           <div>
             <div className="flex items-baseline justify-between mb-1.5"
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
-              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: '0.04em', color: '#F2F2F0' }}>
-                {fmtN(prog.shots)} <span style={{ fontSize: 15, color: '#8B8B95' }}>/ {fmtN(prog.goal)} skudd</span>
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 24, letterSpacing: '0.04em', color: 'var(--ink)' }}>
+                {fmtN(prog.shots)} <span style={{ fontSize: 15, color: 'var(--mut)' }}>/ {fmtN(prog.goal)} skudd</span>
               </span>
-              <span style={{ fontSize: 14, color: '#C0C0CC' }}>{Math.round((prog.shots / prog.goal) * 100)} %</span>
+              <span style={{ fontSize: 14, color: 'var(--tekst-3-app)' }}>{Math.round((prog.shots / prog.goal) * 100)} %</span>
             </div>
             <div style={{ height: 9, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
               <div style={{
@@ -148,17 +148,17 @@ function ShotGoalCard({ targetUserId }: { targetUserId?: string }) {
             </div>
           </div>
         ) : (
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen årsskuddmål satt — sett det på sesongen i årsplanen for å få fremdriftsbaren.
           </p>
         )}
         <div className="flex flex-wrap gap-x-5 gap-y-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: '#8A8A96' }}>
-          <span>Reelle skudd <b style={{ color: '#F0F0F2' }}>{fmtN(prog.shots)}</b></span>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13.5px', color: 'var(--tekst-5-app)' }}>
+          <span>Reelle skudd <b style={{ color: 'var(--tekst-1-app)' }}>{fmtN(prog.shots)}</b></span>
           <span>I konkurranse <b style={{ color: '#D4A017' }}>{fmtN(prog.competitionShots)}</b></span>
-          <span>Tørrtrening <b style={{ color: '#F0F0F2' }}>{Math.round(prog.drySeconds / 60)} min</b></span>
+          <span>Tørrtrening <b style={{ color: 'var(--tekst-1-app)' }}>{Math.round(prog.drySeconds / 60)} min</b></span>
           {prog.avgPerWeek != null && (
-            <span>Snitt <b style={{ color: '#F0F0F2' }}>{fmtN(prog.avgPerWeek)}</b> skudd/uke</span>
+            <span>Snitt <b style={{ color: 'var(--tekst-1-app)' }}>{fmtN(prog.avgPerWeek)}</b> skudd/uke</span>
           )}
         </div>
       </div>
@@ -181,7 +181,7 @@ export function AccuracyTrend({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Treff% per stilling over tid
         </p>
       </div>
@@ -216,7 +216,7 @@ export function HrZoneAccuracy({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Treff% i puls-soner
         </p>
       </div>
@@ -260,7 +260,7 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Første vs. siste serie
         </p>
       </div>
@@ -272,7 +272,7 @@ function FirstVsLast({ data }: { data: ShootingDepthAnalysis }) {
           sub={firstVsLast.last_avg_hr != null ? `snittpuls ${firstVsLast.last_avg_hr}` : undefined} />
         <InlineStat label="Endring treff%"
           value={delta == null ? '—' : (delta > 0 ? '+' : '') + delta.toFixed(1) + '%'}
-          color={delta != null ? (delta >= 0 ? '#28A86E' : '#E23A5A') : '#F0F0F2'}
+          color={delta != null ? (delta >= 0 ? '#28A86E' : '#E23A5A') : 'var(--tekst-1-app)'}
           sub="siste minus første" />
         <InlineStat label="Endring puls"
           value={deltaHr == null ? '—' : (deltaHr > 0 ? '+' : '') + deltaHr.toString()}
@@ -286,13 +286,13 @@ function InlineStat({ label, value, sub, color }: { label: string; value: string
   return (
     <div>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: color ?? '#F0F0F2', fontSize: '28px', lineHeight: 1 }}>
+      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: color ?? 'var(--tekst-1-app)', fontSize: '28px', lineHeight: 1 }}>
         {value}
       </p>
-      {sub && <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>{sub}</p>}
+      {sub && <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>{sub}</p>}
     </div>
   )
 }
@@ -308,7 +308,7 @@ export function TimeTrend({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Skytetid-progresjon
         </p>
       </div>
@@ -343,7 +343,7 @@ export function TrainingVsComp({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Trening vs. konkurranse
         </p>
       </div>
@@ -382,14 +382,14 @@ function PerWorkoutType({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Skyting per økt-type
         </p>
       </div>
       <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
-            <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
+            <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Økt-type</th>
               <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Serier</th>
               <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Skudd</th>
@@ -399,7 +399,7 @@ function PerWorkoutType({ data }: { data: ShootingDepthAnalysis }) {
           </thead>
           <tbody>
             {data.perWorkoutType.map(r => (
-              <tr key={r.workout_type} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+              <tr key={r.workout_type} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
                 <td className="px-3 py-2">{r.label}</td>
                 <td className="px-3 py-2 text-right">{r.series}</td>
                 <td className="px-3 py-2 text-right">{r.shots}</td>
@@ -446,11 +446,11 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Eksport
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Last ned hver skyte-serie med skudd, treff, varighet, puls og kontekst.
         </p>
       </div>
@@ -458,7 +458,7 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
         className="px-4 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#FF4500', color: '#0A0A0B',
+          backgroundColor: '#FF4500', color: 'var(--flate-3)',
           border: 'none', minHeight: '40px', cursor: 'pointer',
         }}>
         Last ned CSV
@@ -469,17 +469,17 @@ function CsvExport({ data }: { data: ShootingDepthAnalysis }) {
 
 function MethodNote() {
   return (
-    <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Slik beregnes tallene
       </p>
       <p className="text-xs leading-relaxed"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        Én <strong style={{ color: '#F0F0F2' }}>serie</strong> = én skyte-aktivitet (liggende, stående, kombinert, innskyting eller basis). Treff% = treff / skudd × 100.
-        {' '}<strong style={{ color: '#F0F0F2' }}>Puls-soner</strong> bruker aktivitetens snittpuls — lavere puls gir normalt bedre treff.
-        {' '}<strong style={{ color: '#F0F0F2' }}>Første vs. siste</strong> sammenligner første og siste serie <em>innen samme økt</em> — speiler tretthet og konsentrasjon.
-        {' '}<strong style={{ color: '#F0F0F2' }}>Trening vs. konkurranse</strong> splittes på økt-type <em>competition</em> og <em>testlop</em> mot alle andre.
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        Én <strong style={{ color: 'var(--tekst-1-app)' }}>serie</strong> = én skyte-aktivitet (liggende, stående, kombinert, innskyting eller basis). Treff% = treff / skudd × 100.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Puls-soner</strong> bruker aktivitetens snittpuls — lavere puls gir normalt bedre treff.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Første vs. siste</strong> sammenligner første og siste serie <em>innen samme økt</em> — speiler tretthet og konsentrasjon.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Trening vs. konkurranse</strong> splittes på økt-type <em>competition</em> og <em>testlop</em> mot alle andre.
       </p>
     </div>
   )

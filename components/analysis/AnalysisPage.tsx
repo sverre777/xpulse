@@ -127,7 +127,7 @@ function SammenlignSection({ title, accent, children }: { title: string; accent:
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '32px', height: '3px', backgroundColor: accent, display: 'inline-block' }} />
         <h2 style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '24px', letterSpacing: '0.06em',
         }}>
           {title}
@@ -140,7 +140,7 @@ function SammenlignSection({ title, accent, children }: { title: string; accent:
 
 function LoadingStub({ label }: { label: string }) {
   return (
-    <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
+    <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
       <p className="text-sm tracking-widest uppercase"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
         {label}
@@ -477,11 +477,11 @@ function AnalysisPageInner({
   }, [tab, favoriteKeys, belastning, terskel, skyting, periodisering, intensityDist, competitionsAnalysis, healthCorrelations])
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', letterSpacing: '0.08em' }}>
             Analyse
           </h1>
         </div>
@@ -491,7 +491,7 @@ function AnalysisPageInner({
             fra OverviewTab. Info-banner gjør synlig hva som er filtrert. */}
         {!canSeeHealthData && (
           <div className="mb-4 p-3"
-            style={{ backgroundColor: '#13131A', border: '1px solid #1A6FD4' }}>
+            style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid #1A6FD4' }}>
             <p className="text-xs"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#1A6FD4', letterSpacing: '0.08em' }}>
               Helsedata (HRV, søvn, vekt, hvilepuls) er skjult for deg — utøveren har valgt å ikke dele helsemålinger med deg.
@@ -512,7 +512,7 @@ function AnalysisPageInner({
                 backgroundColor: tab === key ? 'var(--accent)' : 'transparent',
                 border: `1px solid ${tab === key ? 'var(--accent)' : 'var(--line2)'}`,
                 borderRadius: 999,
-                color: tab === key ? '#F0F0F2' : '#555560',
+                color: tab === key ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 minHeight: '44px',
               }}
             >
@@ -526,14 +526,14 @@ function AnalysisPageInner({
           style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Periode {isPending && <span className="ml-2 normal-case" style={{ color: '#FF4500' }}>…laster</span>}
             </p>
             <DateRangePicker value={range} onChange={r => setRange(r)} />
           </div>
           <div className="md:min-w-[180px]">
             <p className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Sport
             </p>
             <select
@@ -542,8 +542,8 @@ function AnalysisPageInner({
               className="w-full px-3 py-2 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#0A0A0B', color: '#F0F0F2',
-                border: '1px solid #1E1E22', minHeight: '44px',
+                backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
+                border: '1px solid var(--kant-3)', minHeight: '44px',
               }}
             >
               <option value="">Alle</option>
@@ -555,7 +555,7 @@ function AnalysisPageInner({
           {surfaceFilterApplies && (
             <div className="md:min-w-[180px]">
               <p className="text-xs tracking-widest uppercase mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Føre
               </p>
               <select
@@ -564,8 +564,8 @@ function AnalysisPageInner({
                 className="w-full px-3 py-2 text-sm"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: '#0A0A0B', color: '#F0F0F2',
-                  border: '1px solid #1E1E22', minHeight: '44px',
+                  backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
+                  border: '1px solid var(--kant-3)', minHeight: '44px',
                 }}
               >
                 <option value="">Alle</option>
@@ -586,7 +586,7 @@ function AnalysisPageInner({
 
         {error && (
           <div className="p-4 mb-4" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
               {error}
             </p>
           </div>

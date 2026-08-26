@@ -118,10 +118,10 @@ export function PersonalRecordModal({ existing, preset, targetUserId, onClose, o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
+      style={{ backgroundColor: 'var(--scrim-80)' }}
       onClick={onClose}>
       <div className="w-full max-w-lg p-5"
-        style={{ backgroundColor: '#13131A', border: `1px solid ${GOLD}55` }}
+        style={{ backgroundColor: 'var(--flate-12-alt)', border: `1px solid ${GOLD}55` }}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function PersonalRecordModal({ existing, preset, targetUserId, onClose, o
           </div>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minHeight: '36px' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', minHeight: '36px' }}>
             Lukk
           </button>
         </div>
@@ -177,7 +177,7 @@ export function PersonalRecordModal({ existing, preset, targetUserId, onClose, o
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: GOLD, border: `1px solid ${GOLD}`,
-              color: '#0A0A0B', minHeight: '40px',
+              color: 'var(--flate-3)', minHeight: '40px',
             }}>
             {isPending ? 'Lagrer…' : existing ? 'Oppdater' : 'Lagre Test/PR'}
           </button>

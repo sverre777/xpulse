@@ -38,7 +38,7 @@ const LINJE_FARGER = ['#FF8A5C', '#1A6FD4', '#28A86E', '#E8B93C', '#8B5CF6']
 const FONT = "'Barlow Condensed', sans-serif"
 const T_LABEL: React.CSSProperties = {
   fontFamily: FONT, fontSize: 11, letterSpacing: '0.14em',
-  textTransform: 'uppercase', color: '#8A8A96',
+  textTransform: 'uppercase', color: 'var(--tekst-5-app)',
 }
 
 function fmtDato(iso: string): string {
@@ -241,7 +241,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
               style={{
                 fontFamily: FONT, fontSize: 12.5, borderRadius: 999, padding: '5px 11px',
                 cursor: 'pointer', minHeight: 32,
-                color: på ? '#0A0A0B' : '#8A8A96',
+                color: på ? 'var(--flate-3)' : 'var(--tekst-5-app)',
                 background: på ? ACCENT : 'none',
                 border: `1px solid ${på ? ACCENT : 'var(--line2)'}`,
                 fontWeight: på ? 700 : 400,
@@ -252,13 +252,13 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
         })}
       </div>
       {valgte.length < 2 && (
-        <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#555560' }}>
+        <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-8-app)' }}>
           Velg minst to gjennomføringer for å sammenligne.
         </p>
       )}
       {feil && <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#FF4500' }}>{feil}</p>}
       {valgte.length >= 2 && data === null && !feil && (
-        <p style={{ fontFamily: FONT, fontSize: 13.5, color: '#555560' }}>Henter øktene…</p>
+        <p style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-8-app)' }}>Henter øktene…</p>
       )}
 
       {rader.length >= 2 && (
@@ -276,7 +276,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                   ))}
                 </tr>
               </thead>
-              <tbody style={{ fontFamily: FONT, fontSize: 14, color: '#F0F0F2' }}>
+              <tbody style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-1-app)' }}>
                 <MetricRow label="Total tid" rader={rader}
                   verdi={w => w.total_seconds || null}
                   vis={v => fmtTid(v)}
@@ -328,7 +328,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                                   style={{ flex: min[z], background: ZONE_COLORS_V2[z] }} />
                               ))}
                             </span>
-                          ) : <span style={{ color: '#555560' }}>—</span>}
+                          ) : <span style={{ color: 'var(--tekst-8-app)' }}>—</span>}
                         </td>
                       )
                     })}
@@ -336,7 +336,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                 )}
               </tbody>
             </table>
-            <p className="mt-1 text-xs" style={{ fontFamily: FONT, color: '#555560' }}>
+            <p className="mt-1 text-xs" style={{ fontFamily: FONT, color: 'var(--tekst-8-app)' }}>
               Delta i parentes: mot forrige gjennomføring · mot beste. Veiledningstall, ikke dommer.
             </p>
           </div>
@@ -350,7 +350,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                   <button key={m.verdi} type="button" onClick={() => setDragMetrikk(m.verdi)}
                     style={{
                       fontFamily: FONT, fontSize: 12, borderRadius: 999, padding: '4px 10px', cursor: 'pointer',
-                      color: dragMetrikk === m.verdi ? '#F0F0F2' : '#8A8A96',
+                      color: dragMetrikk === m.verdi ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                       background: dragMetrikk === m.verdi ? 'var(--card2)' : 'none',
                       border: `1px solid ${dragMetrikk === m.verdi ? 'var(--line2)' : 'transparent'}`,
                     }}>
@@ -425,13 +425,13 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                     ))}
                   </tr>
                 </thead>
-                <tbody style={{ fontFamily: FONT, fontSize: 13.5, color: '#F0F0F2' }}>
+                <tbody style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-1-app)' }}>
                   {styrkeRader.map(r => (
                     <tr key={r.navn} style={{ borderTop: '1px solid var(--line)' }}>
-                      <td style={{ padding: '6px 10px 6px 0', position: 'sticky', left: 0, background: 'var(--card)', color: '#C0C0CC' }}>{r.navn}</td>
+                      <td style={{ padding: '6px 10px 6px 0', position: 'sticky', left: 0, background: 'var(--card)', color: 'var(--tekst-3-app)' }}>{r.navn}</td>
                       {rader.map(w => (
                         <td key={w.id} style={{ padding: '6px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          {r.perOkt.get(w.id) ?? <span style={{ color: '#555560' }}>—</span>}
+                          {r.perOkt.get(w.id) ?? <span style={{ color: 'var(--tekst-8-app)' }}>—</span>}
                         </td>
                       ))}
                     </tr>
@@ -454,7 +454,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                     ))}
                   </tr>
                 </thead>
-                <tbody style={{ fontFamily: FONT, fontSize: 13.5, color: '#F0F0F2' }}>
+                <tbody style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-1-app)' }}>
                   {([
                     ['Treff % totalt', (sk: (typeof skyting)[number]) => sk.pctTotal != null ? `${sk.pctTotal} %` : '—'],
                     ['Liggende', sk => sk.pctL != null ? `${sk.pctL} %` : '—'],
@@ -465,7 +465,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
                     <tr key={etikett} style={{ borderTop: '1px solid var(--line)' }}>
                       <td style={{
                         padding: '6px 10px 6px 0', position: 'sticky', left: 0, background: 'var(--card)',
-                        color: etikett === 'Liggende' ? POS_FARGE.L : etikett === 'Stående' ? POS_FARGE.S : '#C0C0CC',
+                        color: etikett === 'Liggende' ? POS_FARGE.L : etikett === 'Stående' ? POS_FARGE.S : 'var(--tekst-3-app)',
                       }}>{etikett}</td>
                       {rader.map(w => {
                         const sk = skyting.find(x => x.id === w.id)
@@ -478,7 +478,7 @@ export function SerieSammenligning({ serie }: { serie: SessionSeriesWithExecutio
               {/* Vind/sikt som KONTEKST — serie for serie per gjennomføring. */}
               <div className="flex flex-col gap-1 mt-2">
                 {skyting.filter(sk => sk.serier.some(sr => sr.vind_styrke != null || sr.sikt)).map(sk => (
-                  <p key={sk.id} style={{ fontFamily: FONT, fontSize: 12, color: '#8A8A96' }}>
+                  <p key={sk.id} style={{ fontFamily: FONT, fontSize: 12, color: 'var(--tekst-5-app)' }}>
                     {fmtDato(sk.dato)}: {sk.serier.map((sr, i) => {
                       const vind = sr.vind_styrke != null
                         ? (sr.vind_styrke === 0 ? 'stille' : `${sr.vind_styrke}${sr.vind_retning ?? ''}`)
@@ -527,7 +527,7 @@ function MetricRow({ label, rader, verdi, vis, deltaFmt, beste }: {
     <tr style={{ borderTop: '1px solid var(--line)' }}>
       <td style={{
         fontFamily: FONT, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-        color: '#8A8A96', padding: '6px 10px 6px 0', position: 'sticky', left: 0, background: 'var(--card)',
+        color: 'var(--tekst-5-app)', padding: '6px 10px 6px 0', position: 'sticky', left: 0, background: 'var(--card)',
       }}>{label}</td>
       {rader.map((w, i) => {
         const v = verdi(w)
@@ -536,9 +536,9 @@ function MetricRow({ label, rader, verdi, vis, deltaFmt, beste }: {
         const dBest = beste != null ? delta(v, beste, deltaFmt) : null
         return (
           <td key={w.id} style={{ padding: '6px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-            {v != null ? vis(v) : <span style={{ color: '#555560' }}>—</span>}
+            {v != null ? vis(v) : <span style={{ color: 'var(--tekst-8-app)' }}>—</span>}
             {(dPrev || (dBest && dBest !== '±0')) && (
-              <span style={{ display: 'block', fontSize: 11, color: '#555560' }}>
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--tekst-8-app)' }}>
                 {[dPrev, dBest && dBest !== '±0' ? `${dBest} vs beste` : null].filter(Boolean).join(' · ')}
               </span>
             )}

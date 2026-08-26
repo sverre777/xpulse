@@ -143,7 +143,7 @@ export function SkytingVindSiktCard({ data }: { data: ShootingDepthAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Treff% i vind og sikt
         </p>
       </div>
@@ -207,11 +207,11 @@ function Blokk({ tittel, rader, utelatt, utelattTekst }: {
   return (
     <div>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {tittel}
       </p>
       {rader.length === 0 ? (
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen serier med dette ført i perioden.
         </p>
       ) : (
@@ -219,7 +219,7 @@ function Blokk({ tittel, rader, utelatt, utelattTekst }: {
           {rader.map(rad => (
             <div key={rad.key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
               <span className="shrink-0 sm:w-28 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {rad.label}
               </span>
               <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -231,7 +231,7 @@ function Blokk({ tittel, rader, utelatt, utelattTekst }: {
         </div>
       )}
       {utelatt > 0 && (
-        <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {utelatt} serie{utelatt === 1 ? '' : 'r'} {utelattTekst} er holdt utenfor.
         </p>
       )}
@@ -248,10 +248,10 @@ function Maler({ navn, farge, rec, hits }: {
   const nokData = rec >= MIN_SKUDD && p != null
   return (
     <div className="flex items-center gap-2">
-      <span className="shrink-0 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', width: 64 }}>
+      <span className="shrink-0 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', width: 64 }}>
         {navn}
       </span>
-      <div className="flex-1 min-w-0" style={{ height: 10, backgroundColor: '#15151A', borderRadius: 999, overflow: 'hidden' }}>
+      <div className="flex-1 min-w-0" style={{ height: 10, backgroundColor: 'var(--flate-13)', borderRadius: 999, overflow: 'hidden' }}>
         {nokData && (
           <div style={{ width: `${p}%`, height: '100%', backgroundColor: farge, borderRadius: 999 }} />
         )}
@@ -259,11 +259,11 @@ function Maler({ navn, farge, rec, hits }: {
       <span className="shrink-0 text-xs tabular-nums" style={{ fontFamily: "'Barlow Condensed', sans-serif", width: 118, textAlign: 'right' }}>
         {nokData ? (
           <>
-            <b style={{ color: '#F0F0F2' }}>{p!.toFixed(1)}%</b>
-            <span style={{ color: '#555560' }}> · {rec} skudd</span>
+            <b style={{ color: 'var(--tekst-1-app)' }}>{p!.toFixed(1)}%</b>
+            <span style={{ color: 'var(--tekst-8-app)' }}> · {rec} skudd</span>
           </>
         ) : (
-          <span style={{ color: '#555560' }}>
+          <span style={{ color: 'var(--tekst-8-app)' }}>
             {rec === 0 ? '—' : `for lite data · ${rec}`}
           </span>
         )}
@@ -274,7 +274,7 @@ function Maler({ navn, farge, rec, hits }: {
 
 function Forklaring() {
   return (
-    <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+    <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       Tallene er veiledende, ikke en dom: de sier hvor du har skutt mye og hvor du har skutt lite.
       Serier uten ført vind eller sikt telles aldri som vindstille eller god sikt — de holdes utenfor.
     </p>

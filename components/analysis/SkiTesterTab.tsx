@@ -168,8 +168,8 @@ export function SkiTesterTab({ data }: Props) {
 
   if (data.tests.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px' }}>
           Ingen ski-tester i valgt periode. Logg en test fra Min skipark eller fra et skipars detaljside.
         </p>
       </div>
@@ -193,7 +193,7 @@ export function SkiTesterTab({ data }: Props) {
               <YAxis domain={[0, 10]} tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={28} />
               <Tooltip
                 content={<XpTooltip />}
-                labelStyle={{ color: '#F0F0F2' }}
+                labelStyle={{ color: 'var(--tekst-1-app)' }}
                 formatter={(val, key) => {
                   const info = skiById.get(String(key))
                   return [val as number, info?.name ?? String(key)]
@@ -221,9 +221,9 @@ export function SkiTesterTab({ data }: Props) {
       )}
 
       {/* Toppoversikt: ski rangert etter snitt-rating */}
-      <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase mb-3"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ski rangert etter snitt-rating ({data.tests.length} test{data.tests.length === 1 ? '' : 'er'} totalt)
         </p>
         <div className="space-y-2">
@@ -234,26 +234,26 @@ export function SkiTesterTab({ data }: Props) {
                 onClick={() => setSelectedSkiId(isSelected ? null : s.ski_id)}
                 className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left transition-colors"
                 style={{
-                  backgroundColor: isSelected ? '#1A0E08' : '#0F0F12',
+                  backgroundColor: isSelected ? '#1A0E08' : 'var(--flate-8-alt)',
                   border: `1px solid ${isSelected ? '#FF4500' : 'var(--line)'}`,
                   cursor: 'pointer',
                 }}>
                 <div className="min-w-0">
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                     {s.name}
                   </p>
                   <p className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {[s.subtitle, s.ski_type ? SKI_TYPE_LABELS[s.ski_type as SkiType] : null]
                       .filter(Boolean).join(' · ')}
                   </p>
                 </div>
                 <div className="text-right text-xs tracking-widest uppercase shrink-0"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                   {s.avg_rating != null
                     ? <>snitt {s.avg_rating.toFixed(1)}/10</>
-                    : <span style={{ color: '#555560' }}>ingen score</span>}
-                  <div style={{ color: '#8A8A96', fontSize: '13px', marginTop: 2 }}>
+                    : <span style={{ color: 'var(--tekst-8-app)' }}>ingen score</span>}
+                  <div style={{ color: 'var(--tekst-5-app)', fontSize: '13px', marginTop: 2 }}>
                     {s.test_count} test{s.test_count === 1 ? '' : 'er'}
                     {s.best_rank_avg != null && ` · #${s.best_rank_avg.toFixed(1)} snitt`}
                   </div>
@@ -263,9 +263,9 @@ export function SkiTesterTab({ data }: Props) {
           })}
         </div>
         {selectedSkiId && timeline.length > 0 && (
-          <div className="mt-4 pt-4" style={{ borderTop: '1px solid #1E1E22' }}>
+          <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--kant-3)' }}>
             <p className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Tidslinje for {skiById.get(selectedSkiId)?.name}
             </p>
             <RatingTimeline items={timeline} />
@@ -275,26 +275,26 @@ export function SkiTesterTab({ data }: Props) {
 
       {/* Beste ski per snøtype */}
       {byCondition.length > 0 && (
-        <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+        <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
           <p className="text-xs tracking-widest uppercase mb-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Beste ski per snøtype
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {byCondition.map(c => (
               <div key={c.snow_type} className="p-3"
-                style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+                style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--kant-3)' }}>
                 <p className="text-xs tracking-widest uppercase mb-2"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500' }}>
                   {c.snow_type}
                 </p>
                 {c.ranked.map((r, idx) => (
                   <div key={r.ski_id} className="flex items-center justify-between py-1">
-                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                       {idx + 1}. {r.name}
                     </span>
                     <span className="text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {r.avg_rating.toFixed(1)} · {r.test_count} test{r.test_count === 1 ? '' : 'er'}
                     </span>
                   </div>
@@ -316,20 +316,20 @@ function RatingTimeline({ items }: { items: Array<{
     <div className="space-y-1">
       {items.map(it => (
         <div key={it.test_id} className="flex items-center justify-between gap-2 px-3 py-2"
-          style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+          style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--kant-3)' }}>
           <div className="min-w-0">
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '13px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px' }}>
               {it.date}{it.location ? ` · ${it.location}` : ''}
             </p>
             {(it.snow_type || it.conditions) && (
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {[it.snow_type, it.conditions].filter(Boolean).join(' · ')}
               </p>
             )}
           </div>
           <span className="text-xs tracking-widest uppercase shrink-0"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {it.rating != null ? `${it.rating}/10` : '—'}
             {typeof it.rank === 'number' ? ` · #${it.rank}` : ''}
           </span>

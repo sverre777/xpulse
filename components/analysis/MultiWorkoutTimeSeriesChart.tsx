@@ -69,8 +69,8 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
 
   if (series.length === 0) {
     return (
-      <div className="py-12 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen data for {title.toLowerCase()} på de valgte øktene.
         </p>
       </div>
@@ -86,9 +86,9 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
     : (v: number) => String(v)
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         {title}
       </p>
       <div style={{ width: '100%', height }}>
@@ -97,10 +97,10 @@ export function MultiWorkoutTimeSeriesChart({ workouts, metric, title, yLabel, h
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" domain={[0, 'dataMax']}
               tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-              label={{ value: 'minutter inn i økten', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
+              label={{ value: 'minutter inn i økten', position: 'insideBottom', offset: -2, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
             <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={48} reversed={metric === 'pace'} tickFormatter={formatY}
-              label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+              label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }} />
             <Tooltip content={<XpTooltip />}
               formatter={(v) => [typeof v === 'number' ? formatY(v) : '—', yLabel]}
               labelFormatter={(v) => `${Math.round(Number(v))} min`} />

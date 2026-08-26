@@ -18,12 +18,12 @@ function fmtPace(sec: number | null): string {
 
 export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
   if (data === null) {
-    return <p className="text-xs text-center py-8" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Laster vær/føre-analyse…</p>
+    return <p className="text-xs text-center py-8" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Laster vær/føre-analyse…</p>
   }
   if (!data.hasData) {
     return (
-      <div className="p-6 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+      <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
           Ingen økter med registrert vær/føre i perioden ennå.
           Fyll inn «Vær og føre» på øktene dine for å se sammenhenger her.
         </p>
@@ -44,7 +44,7 @@ export function WeatherTab({ data }: { data: WeatherAnalysis | null }) {
             <ScatterChart margin={{ top: 8, right: 12, bottom: 28, left: 4 }}>
               <CartesianGrid stroke={CHART_GRID} strokeDasharray="2 2" />
               <XAxis type="number" dataKey="x" name="Temp" unit="°C" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-                label={{ value: 'Temperatur (°C)', position: 'bottom', offset: 12, fill: '#555560', fontSize: 11 }} />
+                label={{ value: 'Temperatur (°C)', position: 'bottom', offset: 12, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
               <YAxis type="number" dataKey="y" name="Puls" unit=" bpm" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={44} domain={['dataMin - 5', 'dataMax + 5']} />
               <ZAxis range={[60, 60]} />
               <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#FF4500' }}
@@ -76,13 +76,13 @@ function GroupTable({ groups, showPace = false }: { groups: WeatherGroupStat[]; 
     <div className="overflow-x-auto xp-hscroll">
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'Barlow Condensed', sans-serif", minWidth: 420 }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ borderBottom: '1px solid var(--kant-3)' }}>
             <Th left>Type</Th><Th>Økter</Th><Th>Snittpuls</Th><Th>RPE</Th>{showPace && <Th>Pace</Th>}
           </tr>
         </thead>
         <tbody>
           {groups.map(g => (
-            <tr key={g.key} style={{ borderBottom: '1px solid #14141A' }}>
+            <tr key={g.key} style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
               <Td left>{g.label}</Td>
               <Td>{g.count}</Td>
               <Td>{g.avg_hr != null ? `${g.avg_hr} bpm` : '—'}</Td>
@@ -98,19 +98,19 @@ function GroupTable({ groups, showPace = false }: { groups: WeatherGroupStat[]; 
 
 function Section({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '16px 18px' }}>
-      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: 0 }}>{title}</h3>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '2px 0 12px', lineHeight: 1.5 }}>{hint}</p>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--kant-3)', padding: '16px 18px' }}>
+      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 18, letterSpacing: '0.04em', margin: 0 }}>{title}</h3>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: '2px 0 12px', lineHeight: 1.5 }}>{hint}</p>
       {children}
     </div>
   )
 }
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 13 }}>{children}</p>
+  return <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 13 }}>{children}</p>
 }
 function Th({ children, left }: { children: React.ReactNode; left?: boolean }) {
   return <th style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>{children}</th>
 }
 function Td({ children, left }: { children: React.ReactNode; left?: boolean }) {
-  return <td style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: left ? '#F0F0F2' : '#C0C0CC', fontSize: 13 }}>{children}</td>
+  return <td style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: left ? 'var(--tekst-1-app)' : 'var(--tekst-3-app)', fontSize: 13 }}>{children}</td>
 }

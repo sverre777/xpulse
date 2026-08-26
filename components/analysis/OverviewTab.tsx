@@ -80,7 +80,7 @@ const EMPTY = (
 function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   const total = keys.reduce((s, k) => s + zones[k], 0)
-  if (total <= 0) return <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Ingen sonedata</p>
+  if (total <= 0) return <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Ingen sonedata</p>
 
   return (
     <div>
@@ -97,7 +97,7 @@ function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
           if (pct <= 0) return null
           return (
             <span key={k} className="text-xs tracking-wider"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               <span style={{ display: 'inline-block', width: 8, height: 8, backgroundColor: CHART_ZONE_COLORS[k], marginRight: 4 }} />
               {k} {Math.round(pct)}%
             </span>
@@ -109,7 +109,7 @@ function ZoneBar({ zones }: { zones: OverviewZoneSeconds }) {
 }
 
 function MovementChips({ rows }: { rows: MovementBreakdownRow[] }) {
-  if (rows.length === 0) return <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>Ingen bevegelser registrert</p>
+  if (rows.length === 0) return <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>Ingen bevegelser registrert</p>
   const top = rows.slice(0, 6)
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -118,9 +118,9 @@ function MovementChips({ rows }: { rows: MovementBreakdownRow[] }) {
           className="text-xs px-2 py-0.5"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#0A0A0B',
+            backgroundColor: 'var(--flate-3)',
             border: `1px solid ${paletteFor(i)}`,
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
           }}>
           {r.movement_name} · {formatDuration(r.seconds)}
           {r.meters > 0 && ` · ${formatKm(r.meters)}km`}
@@ -360,20 +360,20 @@ export function OverviewTab({ stats, overview, analysisRange, targetUserId, canS
           {overview.current.competitions.length > 0 && (
             <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <p className="text-xs tracking-widest uppercase mb-3"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 Konkurranser i perioden
               </p>
               <ul className="space-y-1.5">
                 {overview.current.competitions.map(c => (
                   <li key={c.id}
                     className="flex items-center justify-between text-sm"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                     <span className="truncate">
-                      <span style={{ color: '#8A8A96' }}>{c.date}</span>
+                      <span style={{ color: 'var(--tekst-5-app)' }}>{c.date}</span>
                       {' · '}
                       {c.title || '(uten tittel)'}
                     </span>
-                    <span style={{ color: '#8A8A96' }}>
+                    <span style={{ color: 'var(--tekst-5-app)' }}>
                       {c.position_overall ? `${c.position_overall}.` : ''}
                       {c.position_overall && c.participant_count ? `/${c.participant_count}` : ''}
                       {c.duration_seconds > 0 && ` · ${formatDuration(c.duration_seconds)}`}
@@ -420,7 +420,7 @@ export function OverviewTrainingVsRestVsSickness({ weekly }: { weekly: OverviewW
       height={280}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg hviledager eller sykdom i kalenderen for å se denne grafen.
           </p>
         </div>
@@ -501,7 +501,7 @@ export function OverviewKmPerMovement({ stats }: { stats: WorkoutStats }) {
     <ChartWrapper chartKey="overview_km_per_movement" title="Kilometer per bevegelsesform" subtitle="Stablet per uke" height={300}>
       {stats.movementNames.length === 0 ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Ingen distansedata registrert i perioden.
           </p>
         </div>

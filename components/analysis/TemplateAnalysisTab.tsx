@@ -44,7 +44,7 @@ function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: 
   if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   return (
-    <div style={{ display: 'flex', width: '100%', height, backgroundColor: '#0A0A0B' }}>
+    <div style={{ display: 'flex', width: '100%', height, backgroundColor: 'var(--flate-3)' }}>
       {keys.map(k => {
         const pct = (zones[k] / total) * 100
         if (pct <= 0) return null
@@ -62,8 +62,8 @@ export function TemplateAnalysisTab({ data }: { data: TemplateAnalysis }) {
 
   if (!data.hasData) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen maler brukt i valgt periode.
         </p>
       </div>
@@ -100,39 +100,39 @@ function TemplateRow({
         style={{ minHeight: '44px' }}
       >
         <div className="flex-1 min-w-0">
-          <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.03em' }}>
+          <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.03em' }}>
             {template.name}
           </p>
           <p className="text-xs tracking-widest uppercase mt-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {labelSport(template.sport)} {template.category ? `· ${template.category}` : ''}
           </p>
         </div>
         <div className="flex gap-6 items-baseline">
           <div>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Antall
             </p>
-            <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', lineHeight: 1 }}>
+            <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', lineHeight: 1 }}>
               {template.usage_count}
             </p>
           </div>
           <div>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Sist brukt
             </p>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
               {template.last_used ?? '—'}
             </p>
           </div>
           <div>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Snitt-tid
             </p>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
               {formatDuration(template.avg_duration_seconds)}
             </p>
           </div>
@@ -170,7 +170,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
   [execs])
 
   return (
-    <div className="p-4 space-y-5" style={{ borderTop: '1px solid #1E1E22', backgroundColor: '#1A1A22' }}>
+    <div className="p-4 space-y-5" style={{ borderTop: '1px solid var(--kant-3)', backgroundColor: 'var(--flate-14)' }}>
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Gjennomføringer" value={String(template.usage_count)} />
@@ -185,12 +185,12 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
       {/* Avg zones bar */}
       <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Snitt-sonefordeling (per gjennomføring)
         </p>
         <ZoneBar zones={template.avg_zones} height={18} />
         <div className="flex flex-wrap gap-3 mt-2 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {(['I1','I2','I3','I4','I5','Hurtighet'] as const).map(k => (
             <div key={k} className="flex items-center gap-1">
               <span style={{ width: 10, height: 10, backgroundColor: CHART_ZONE_COLORS[k] }} />
@@ -258,7 +258,7 @@ function TemplateDetail({ template }: { template: TemplateSummary }) {
                 <XAxis type="number" dataKey="x" domain={['dataMin', 'dataMax']}
                   tickFormatter={formatEpochAxis} tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} />
                 <YAxis type="number" dataKey="y" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
-                  label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+                  label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }} />
                 <Tooltip content={<XpTooltip />}
                   formatter={(v, k) => k === 'x' ? [formatEpochAxis(Number(v)), 'Dato'] : [`${v} mmol`, 'Laktat']} />
                 <Legend wrapperStyle={CHART_LEGEND_STYLE} />
@@ -302,7 +302,7 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
     <div className="overflow-x-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
             <Th label="Dato" k="date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
             <Th label="Tid" k="duration" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
             <Th label="Snittpuls" k="avg_hr" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
@@ -314,7 +314,7 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
         </thead>
         <tbody>
           {sorted.map(e => (
-            <tr key={e.workout_id} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+            <tr key={e.workout_id} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <td className="px-3 py-2">
                 <Link href={`/app/dagbok?edit=${e.workout_id}`}
                   style={{ color: '#FF4500' }}>
@@ -329,7 +329,7 @@ function ExecutionsTable({ executions }: { executions: TemplateExecution[] }) {
               </td>
               <td className="px-3 py-2">{e.lactate_mmol != null ? `${e.lactate_mmol.toFixed(1)}` : '—'}</td>
               <td className="px-3 py-2" style={{ maxWidth: 240 }}>
-                <span style={{ color: '#8A8A96' }}>
+                <span style={{ color: 'var(--tekst-5-app)' }}>
                   {e.notes ? (e.notes.length > 60 ? `${e.notes.slice(0, 60)}…` : e.notes) : '—'}
                 </span>
               </td>
@@ -350,7 +350,7 @@ function Th({
   return (
     <th className="px-3 py-2 text-left tracking-widest uppercase text-xs">
       <button type="button" onClick={() => onClick(k)}
-        style={{ color: active ? '#F0F0F2' : '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif" }}>
+        style={{ color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
         {label}{active && (sortDir === 'asc' ? ' ↑' : ' ↓')}
       </button>
     </th>

@@ -42,7 +42,7 @@ function TotalLabel({ totals, x, y, width, index }: {
   if (total <= 0) return null
   return (
     <text x={Number(x) + Number(width) / 2} y={Number(y) - 6} textAnchor="middle"
-      fill="#C0C0CC" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: '0.05em' }}>
+      fill="var(--tekst-3-app)" style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, letterSpacing: '0.05em' }}>
       {total}
     </text>
   )
@@ -58,29 +58,29 @@ function ShotTooltip({ active, label, buckets }: {
   if (!b) return null
   if (b.shots <= 0 && b.drySeconds <= 0) {
     return (
-      <div style={{ backgroundColor: '#0C0C0F', border: '1px solid #2A2A33', borderRadius: 12, padding: '10px 14px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: '#8B8B95' }}>
+      <div style={{ backgroundColor: 'var(--flate-5)', border: '1px solid var(--line2)', borderRadius: 12, padding: '10px 14px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--mut)' }}>
         Ingen skyting
       </div>
     )
   }
   return (
-    <div style={{ backgroundColor: '#0C0C0F', border: '1px solid #2A2A33', borderRadius: 12, padding: '12px 14px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, minWidth: 180 }}>
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
+    <div style={{ backgroundColor: 'var(--flate-5)', border: '1px solid var(--line2)', borderRadius: 12, padding: '12px 14px', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, minWidth: 180 }}>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: 'var(--ink)', marginBottom: 6 }}>
         {b.label} · {b.shots} skudd
       </div>
       {SHOT_TYPE_ORDER.filter(t => (b.byType[t.key] ?? 0) > 0).map(t => {
         const rec = b.recordedByType[t.key]
         const pct = rec && rec.shots > 0 ? Math.round((rec.hits / rec.shots) * 100) : null
         return (
-          <div key={t.key} style={{ color: '#8B8B95', lineHeight: 1.7, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div key={t.key} style={{ color: 'var(--mut)', lineHeight: 1.7, display: 'flex', alignItems: 'center', gap: 7 }}>
             <span style={{ width: 8, height: 8, borderRadius: 2, background: t.color, flexShrink: 0 }} />
-            {t.label}: <b style={{ color: '#F2F2F0' }}>{b.byType[t.key]}</b>
+            {t.label}: <b style={{ color: 'var(--ink)' }}>{b.byType[t.key]}</b>
             {pct != null && <span>· {pct} % ({rec!.hits}/{rec!.shots})</span>}
           </div>
         )
       })}
       {b.drySeconds > 0 && (
-        <div style={{ color: '#8B8B95', lineHeight: 1.7 }}>+ {Math.round(b.drySeconds / 60)} min tørr</div>
+        <div style={{ color: 'var(--mut)', lineHeight: 1.7 }}>+ {Math.round(b.drySeconds / 60)} min tørr</div>
       )}
     </div>
   )
@@ -173,7 +173,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
                   borderRadius: 999, padding: '5px 10px', minHeight: 30, cursor: 'pointer',
-                  color: active ? '#F0F0F2' : '#8B8B95',
+                  color: active ? 'var(--tekst-1-app)' : 'var(--mut)',
                   background: active ? `${t.color}22` : 'transparent',
                   border: `1px solid ${active ? t.color : 'var(--line2)'}`,
                 }}>
@@ -185,7 +185,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
           <select value={marking} onChange={e => setMarking(e.target.value as ShotMarkingFilter)}
             style={{
               backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 8,
-              color: marking !== 'alle' ? 'var(--accent)' : '#8A8A96',
+              color: marking !== 'alle' ? 'var(--accent)' : 'var(--tekst-5-app)',
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
               padding: '5px 8px', minHeight: 30, outline: 'none',
             }}>
@@ -204,7 +204,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
                 // Flat topp (radius 0) + mørk stroke = 2px gap mellom segmentene.
                 <Bar key={t.key} dataKey={t.key} stackId="shots" fill={t.color}
                   name={t.label}
-                  stroke="#0A0A0B" strokeWidth={1} isAnimationActive={false}>
+                  stroke="var(--flate-3)" strokeWidth={1} isAnimationActive={false}>
                   {t.key === lastKey && (
                     <LabelList content={<TotalLabel totals={totals} />} />
                   )}
@@ -235,12 +235,12 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
             return (
               <div key={b.bucketKey} className="flex-1 text-center"
                 title={pct != null ? `${b.recordedHits}/${b.recordedShots} ført` : 'Ingen førte treff'}
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: pct != null ? '#C0C0CC' : '#3A3A44', minWidth: 0 }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: pct != null ? 'var(--tekst-3-app)' : 'var(--tekst-10)', minWidth: 0 }}>
                 {pct != null ? (
                   <>
                     <span aria-hidden style={{ display: 'inline-block', width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)', marginRight: 3, verticalAlign: 'middle' }} />
                     {pct} %
-                    <span style={{ display: 'block', color: '#55555F', fontSize: 10 }}>{b.recordedHits}/{b.recordedShots}</span>
+                    <span style={{ display: 'block', color: 'var(--tekst-8-alt)', fontSize: 10 }}>{b.recordedHits}/{b.recordedShots}</span>
                   </>
                 ) : '—'}
               </div>

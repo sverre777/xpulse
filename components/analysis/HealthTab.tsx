@@ -82,8 +82,8 @@ function formatR(r: number | null): string {
 }
 
 const EMPTY = (
-  <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+  <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
       Logg helsedata i Dagbok for å se trender og korrelasjoner her.
     </p>
   </div>
@@ -125,8 +125,8 @@ function TrendChart({
             formatter={(value) => [`${value} ${unit}`, title]} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
           <Line data={points} type="monotone" dataKey="y" name="Daglig" stroke={color} strokeWidth={1} dot={{ r: 2 }} />
-          <Line data={smoothed} type="monotone" dataKey="y" name="7d snitt" stroke="#F0F0F2" strokeWidth={2} dot={false} />
-          {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="#8A8A96" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
+          <Line data={smoothed} type="monotone" dataKey="y" name="7d snitt" stroke="var(--tekst-1-app)" strokeWidth={2} dot={false} />
+          {trend && <Line data={trend} type="linear" dataKey="y" name="Trend" stroke="var(--tekst-5-app)" strokeWidth={1.5} strokeDasharray="4 4" dot={false} legendType="none" />}
         </LineChart>
       </ResponsiveContainer>
     </ChartWrapper>
@@ -149,7 +149,7 @@ function CorrelationScatter({
     return (
       <ChartWrapper chartKey={chartKey} title={title} subtitle={subtitle} height={100}>
         <div className="flex items-center justify-center h-full">
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {emptyMessage ?? 'Trenger minst 3 datapunkter for korrelasjon.'}
           </p>
         </div>
@@ -165,10 +165,10 @@ function CorrelationScatter({
           <CartesianGrid stroke={CHART_GRID} />
           <XAxis type="number" dataKey="x" name={xLabel}
             tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-            label={{ value: xLabel, position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
+            label={{ value: xLabel, position: 'insideBottom', offset: -2, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
           <YAxis type="number" dataKey="y" name={yLabel}
             tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false} width={40}
-            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }} />
           <Tooltip content={<XpTooltip />}
             cursor={{ stroke: 'var(--line)', strokeDasharray: '3 3' }}
             formatter={(value, key) => {
@@ -179,7 +179,7 @@ function CorrelationScatter({
           <Scatter data={points} fill={color} />
           {trend && (
             <Scatter data={trend} fill="transparent"
-              line={{ stroke: '#F0F0F2', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+              line={{ stroke: 'var(--tekst-1-app)', strokeWidth: 1.5, strokeDasharray: '4 4' }}
               shape={() => <g />} />
           )}
         </ScatterChart>
@@ -204,7 +204,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
       <div className="flex items-center gap-3">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Trender (med 7d glidende snitt)
         </p>
       </div>
@@ -221,7 +221,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
       <div className="flex items-center gap-3 mt-4">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Korrelasjoner
         </p>
       </div>
@@ -296,7 +296,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
       <div className="flex items-center gap-3 mt-4">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Ukesrefleksjon
         </p>
       </div>
@@ -309,7 +309,7 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           <div className="flex items-center gap-3 mt-4">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               Laktat-respons per mal
             </p>
           </div>
@@ -347,22 +347,22 @@ export function HealthTab({ data }: { data: HealthCorrelations }) {
           <div className="flex items-center gap-3 mt-4">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
               Recovery
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5">
             <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
               <p className="text-xs tracking-widest uppercase mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Antall recovery-tiltak
               </p>
-              <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
+              <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', lineHeight: 1 }}>
                 {data.recovery.total_entries}
               </p>
               <p className="text-xs mt-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
-                Du gjorde <span style={{ color: '#F0F0F2' }}>{data.recovery.entries_last_week}</span> tiltak siste 7 dager.
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+                Du gjorde <span style={{ color: 'var(--tekst-1-app)' }}>{data.recovery.entries_last_week}</span> tiltak siste 7 dager.
               </p>
             </div>
             <ChartWrapper chartKey="health_recovery_distribution" title="Recovery-fordeling" subtitle="Antall per type" height={220}>
@@ -455,11 +455,11 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Eksport
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Last ned helse-tall, ukesrefleksjoner og sykdomsmåneder som CSV.
         </p>
       </div>
@@ -468,7 +468,7 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: '#0A0A0B',
+            backgroundColor: '#FF4500', color: 'var(--flate-3)',
             border: 'none', minHeight: '40px', cursor: 'pointer',
           }}>
           Daglig CSV
@@ -480,7 +480,7 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'transparent',
             border: '1px solid #FF4500',
-            color: data.reflectionsTrend.length === 0 ? '#555560' : '#FF4500',
+            color: data.reflectionsTrend.length === 0 ? 'var(--tekst-8-app)' : '#FF4500',
             minHeight: '40px',
             cursor: data.reflectionsTrend.length === 0 ? 'not-allowed' : 'pointer',
           }}>
@@ -493,7 +493,7 @@ function HealthCsvExport({ data }: { data: HealthCorrelations }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'transparent',
             border: '1px solid #FF4500',
-            color: data.sicknessVsLoad.length === 0 ? '#555560' : '#FF4500',
+            color: data.sicknessVsLoad.length === 0 ? 'var(--tekst-8-app)' : '#FF4500',
             minHeight: '40px',
             cursor: data.sicknessVsLoad.length === 0 ? 'not-allowed' : 'pointer',
           }}>
@@ -521,7 +521,7 @@ export function HealthReflectionsTrend({ data }: { data: HealthCorrelations }) {
       height={280}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg ukesrefleksjon for å se denne grafen.
           </p>
         </div>
@@ -552,7 +552,7 @@ export function HealthInjuriesTimeline({ data }: { data: HealthCorrelations }) {
         subtitle="Markeringer for uker med skade-notater i ukesrefleksjon"
         height={140}>
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Ingen skade-notater registrert i perioden.
           </p>
         </div>
@@ -605,7 +605,7 @@ export function HealthSicknessVsLoad({ data }: { data: HealthCorrelations }) {
       height={280}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg sykdomsdager for å se denne grafen.
           </p>
         </div>

@@ -41,9 +41,9 @@ export function DateRangePicker({
           className="px-3 py-1.5 text-xs tracking-widest uppercase transition-colors"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: value.preset === p.key ? '#FF4500' : '#1A1A22',
-            border: value.preset === p.key ? '1px solid #FF4500' : '1px solid #1E1E22',
-            color: value.preset === p.key ? '#FFFFFF' : '#F0F0F2',
+            backgroundColor: value.preset === p.key ? '#FF4500' : 'var(--flate-14)',
+            border: value.preset === p.key ? '1px solid #FF4500' : '1px solid var(--kant-3)',
+            color: value.preset === p.key ? 'var(--tekst-1-ren)' : 'var(--tekst-1-app)',
           }}
         >
           {p.label}
@@ -58,13 +58,13 @@ export function DateRangePicker({
           className="px-2 py-1 text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#0A0A0B',
-            border: '1px solid #1E1E22',
-            color: '#F0F0F2',
+            backgroundColor: 'var(--flate-3)',
+            border: '1px solid var(--kant-3)',
+            color: 'var(--tekst-1-app)',
             colorScheme: 'dark',
           }}
         />
-        <span style={{ color: '#555560' }}>–</span>
+        <span style={{ color: 'var(--tekst-8-app)' }}>–</span>
         <input
           type="date"
           value={customTo}
@@ -73,9 +73,9 @@ export function DateRangePicker({
           className="px-2 py-1 text-xs"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#0A0A0B',
-            border: '1px solid #1E1E22',
-            color: '#F0F0F2',
+            backgroundColor: 'var(--flate-3)',
+            border: '1px solid var(--kant-3)',
+            color: 'var(--tekst-1-app)',
             colorScheme: 'dark',
           }}
         />

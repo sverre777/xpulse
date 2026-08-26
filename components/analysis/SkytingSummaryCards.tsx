@@ -17,7 +17,7 @@ export const COLOR_PRONE = '#38BDF8'
 /** Stående — oransje. */
 export const COLOR_STANDING = '#FF4500'
 /** Totalt — hvit. Bevisst nøytral: totalen er ingen av stillingene. */
-export const COLOR_TOTAL = '#F0F0F2'
+export const COLOR_TOTAL = 'var(--data-total)'
 /** Trening — grønn. */
 export const COLOR_TRAIN = '#28A86E'
 /** Konkurranse — rød. Merk: markering, ikke alarm. */
@@ -50,13 +50,13 @@ export function StatCard({ label, value, sub, accent }: {
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {sub}
       </p>
     </div>

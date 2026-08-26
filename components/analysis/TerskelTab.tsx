@@ -44,8 +44,8 @@ function downloadCsv(filename: string, rows: string[][]) {
 export function TerskelTab({ data }: { data: TerskelAnalysis }) {
   if (!data.hasData) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen laktatmålinger i perioden. Legg inn mmol/L-verdier på aktiviteter (test-økter og terskelintervaller) for å se laktatprofil og terskelpuls-estimat.
         </p>
       </div>
@@ -87,13 +87,13 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {sub}
       </p>
     </div>
@@ -125,10 +125,10 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
     return (
       <div className="p-5" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <p className="text-xs tracking-widest uppercase mb-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Laktatprofil
         </p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen målinger med snittpuls på samme aktivitet — legg inn pulsdata for å se mmol vs HR.
         </p>
       </div>
@@ -140,7 +140,7 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Laktatprofil — mmol/L vs puls
         </p>
       </div>
@@ -159,7 +159,7 @@ export function LactateProfile({ data }: { data: TerskelAnalysis }) {
             <ZAxis range={[40, 40]} />
             <ReferenceLine x={2} stroke={COLOR_LT1} strokeDasharray="3 3" label={{ value: 'LT1', position: 'top', fill: COLOR_LT1, fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif" }} />
             <ReferenceLine x={4} stroke={COLOR_LT2} strokeDasharray="3 3" label={{ value: 'LT2', position: 'top', fill: COLOR_LT2, fontSize: 11, fontFamily: "'Barlow Condensed', sans-serif" }} />
-            <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#555560' }}
+            <Tooltip content={<XpTooltip />} cursor={{ strokeDasharray: '3 3', stroke: 'var(--tekst-8-app)' }}
               formatter={(v, k) => {
                 if (k === 'x') return [`${v} mmol/L`, 'Laktat']
                 if (k === 'y') return [`${v}`, 'Puls']
@@ -196,7 +196,7 @@ export function LactateTrend({ data }: { data: TerskelAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Laktat over tid
         </p>
       </div>
@@ -229,14 +229,14 @@ function TemplateTable({ data }: { data: TerskelAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Laktat-respons per mal
         </p>
       </div>
       <div className="overflow-x-auto xp-hscroll" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
           <thead>
-            <tr style={{ color: '#8A8A96', borderBottom: '1px solid #1E1E22' }}>
+            <tr style={{ color: 'var(--tekst-5-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <th className="text-left px-3 py-2 text-xs tracking-widest uppercase">Mal</th>
               <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Målinger</th>
               <th className="text-right px-3 py-2 text-xs tracking-widest uppercase">Snitt mmol</th>
@@ -248,14 +248,14 @@ function TemplateTable({ data }: { data: TerskelAnalysis }) {
           </thead>
           <tbody>
             {data.byTemplate.map(t => (
-              <tr key={t.template_id} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+              <tr key={t.template_id} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
                 <td className="px-3 py-2">{t.template_name}</td>
                 <td className="px-3 py-2 text-right">{t.measurements}</td>
                 <td className="px-3 py-2 text-right" style={{ color: '#FF8C00' }}>{t.avg_mmol.toFixed(2)}</td>
-                <td className="px-3 py-2 text-right" style={{ color: '#8A8A96' }}>{t.min_mmol.toFixed(1)}</td>
-                <td className="px-3 py-2 text-right" style={{ color: '#8A8A96' }}>{t.max_mmol.toFixed(1)}</td>
+                <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>{t.min_mmol.toFixed(1)}</td>
+                <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>{t.max_mmol.toFixed(1)}</td>
                 <td className="px-3 py-2 text-right">{t.avg_hr ?? '—'}</td>
-                <td className="px-3 py-2 text-right" style={{ color: '#8A8A96' }}>
+                <td className="px-3 py-2 text-right" style={{ color: 'var(--tekst-5-app)' }}>
                   {t.recent_date ? `${formatDateShort(t.recent_date)} (${t.recent_mmol?.toFixed(1) ?? '—'})` : '—'}
                 </td>
               </tr>
@@ -292,11 +292,11 @@ function CsvExport({ data }: { data: TerskelAnalysis }) {
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Eksport
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Last ned alle laktatmålinger i perioden som CSV (dato, sport, mal, mmol, puls).
         </p>
       </div>
@@ -304,7 +304,7 @@ function CsvExport({ data }: { data: TerskelAnalysis }) {
         className="px-4 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#FF4500', color: '#0A0A0B',
+          backgroundColor: '#FF4500', color: 'var(--flate-3)',
           border: 'none', minHeight: '40px', cursor: 'pointer',
         }}>
         Last ned CSV
@@ -315,18 +315,18 @@ function CsvExport({ data }: { data: TerskelAnalysis }) {
 
 function MethodNote() {
   return (
-    <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Slik beregnes tallene
       </p>
       <p className="text-xs leading-relaxed"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        <strong style={{ color: '#F0F0F2' }}>LT1/LT2</strong> er puls-estimater ved 2 mmol hhv. 4 mmol, beregnet via lineær regresjon på (mmol, snittpuls) for alle aktiviteter med begge verdier.
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        <strong style={{ color: 'var(--tekst-1-app)' }}>LT1/LT2</strong> er puls-estimater ved 2 mmol hhv. 4 mmol, beregnet via lineær regresjon på (mmol, snittpuls) for alle aktiviteter med begge verdier.
         Pulsen er aktivitetens snittpuls — den beste proxyen vi har når målingen ikke kommer med eget pulstag.
-        {' '}<strong style={{ color: '#F0F0F2' }}>R²</strong> viser hvor godt linjen passer — jo høyere, jo mer pålitelig estimatet.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>R²</strong> viser hvor godt linjen passer — jo høyere, jo mer pålitelig estimatet.
         Gode data krever 5+ målinger spredt over lav til høy intensitet.
-        {' '}<strong style={{ color: '#F0F0F2' }}>Profil-terskel</strong> er verdien du selv har satt i innstillinger — sammenlign med LT2-estimatet for å validere.
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>Profil-terskel</strong> er verdien du selv har satt i innstillinger — sammenlign med LT2-estimatet for å validere.
         {' '}Trenden viser om laktat synker ved tilsvarende intensitet — et tegn på aerob forbedring.
       </p>
     </div>

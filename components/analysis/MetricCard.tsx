@@ -34,7 +34,7 @@ export function MetricCard({
   const isNegative = deltaPercent !== null && deltaPercent !== undefined && deltaPercent < 0
   const good = (positiveIsGood ? isPositive : isNegative)
   const bad = (positiveIsGood ? isNegative : isPositive)
-  const deltaColor = good ? '#28A86E' : bad ? '#E23A5A' : '#8A8A96'
+  const deltaColor = good ? '#28A86E' : bad ? '#E23A5A' : 'var(--tekst-5-app)'
 
   return (
     <div
@@ -54,7 +54,7 @@ export function MetricCard({
       )}
       <p
         className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', paddingRight: chartKey ? '24px' : undefined }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', paddingRight: chartKey ? '24px' : undefined }}
       >
         {label}
       </p>
@@ -62,7 +62,7 @@ export function MetricCard({
         <span
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontSize: '40px',
             lineHeight: 1,
             letterSpacing: '0.03em',
@@ -82,7 +82,7 @@ export function MetricCard({
       {sublabel && (
         <p
           className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
         >
           {sublabel}
         </p>

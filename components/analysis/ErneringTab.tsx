@@ -37,7 +37,7 @@ const SPORT_COLOR: Record<string, string> = {
   cycling:               '#F5C542',
   triathlon:             '#B04DE6',
   long_distance_skiing:  '#E23A5A',
-  endurance:             '#8A8A96',
+  endurance:             'var(--tekst-5-app)',
 }
 
 export function ErneringTab({ data }: { data: NutritionAnalysis }) {
@@ -45,10 +45,10 @@ export function ErneringTab({ data }: { data: NutritionAnalysis }) {
     return (
       <div className="p-8 text-center"
         style={{
-          background: 'var(--card)', border: '1px solid #1E1E22',
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+          background: 'var(--card)', border: '1px solid var(--kant-3)',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
         }}>
-        <p style={{ fontSize: 16, marginBottom: 6, color: '#F0F0F2' }}>
+        <p style={{ fontSize: 16, marginBottom: 6, color: 'var(--tekst-1-app)' }}>
           Ingen ernærings-data registrert i perioden
         </p>
         <p style={{ fontSize: 13 }}>
@@ -131,24 +131,24 @@ function SummaryCards({ summary }: { summary: NutritionAnalysis['summary'] }) {
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
       {cards.map(c => (
         <div key={c.label} className="p-4"
-          style={{ background: 'var(--card)', border: '1px solid #1E1E22' }}>
+          style={{ background: 'var(--card)', border: '1px solid var(--kant-3)' }}>
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 11, letterSpacing: '0.16em',
-            textTransform: 'uppercase', color: '#555560', marginBottom: 6,
+            textTransform: 'uppercase', color: 'var(--tekst-8-app)', marginBottom: 6,
           }}>
             {c.label}
           </div>
           <div style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 28, color: '#F0F0F2', lineHeight: 1,
+            fontSize: 28, color: 'var(--tekst-1-app)', lineHeight: 1,
           }}>
             {c.value}
           </div>
           {c.sub && (
             <div style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 11, color: '#8A8A96', marginTop: 4,
+              fontSize: 11, color: 'var(--tekst-5-app)', marginTop: 4,
             }}>
               {c.sub}
             </div>
@@ -168,19 +168,19 @@ function ChartCard({
 }) {
   return (
     <section className="p-5"
-      style={{ background: 'var(--card)', border: '1px solid #1E1E22' }}>
+      style={{ background: 'var(--card)', border: '1px solid var(--kant-3)' }}>
       <div className="flex items-center gap-3 mb-1">
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         <h3 style={{
           fontFamily: "'Bebas Neue', sans-serif", fontSize: 18,
-          letterSpacing: '0.06em', color: '#F0F0F2',
+          letterSpacing: '0.06em', color: 'var(--tekst-1-app)',
         }}>
           {title}
         </h3>
       </div>
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-        color: '#8A8A96', marginBottom: 16, marginLeft: 28,
+        color: 'var(--tekst-5-app)', marginBottom: 16, marginLeft: 28,
       }}>
         {subtitle}
       </p>
@@ -213,10 +213,10 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
           <YAxis type="number" dataKey="cph" name="Karbo/time"
             tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
             label={{ value: 'g karbo/time', angle: -90, position: 'insideLeft', style: CHART_AXIS_TICK }} />
-          <ReferenceLine y={REF_LOW}  stroke="#555560" strokeDasharray="2 4"
-            label={{ value: '30', position: 'right', fill: '#555560', fontSize: 10 }} />
-          <ReferenceLine y={REF_MID}  stroke="#8A8A96" strokeDasharray="2 4"
-            label={{ value: '60', position: 'right', fill: '#8A8A96', fontSize: 10 }} />
+          <ReferenceLine y={REF_LOW}  stroke="var(--tekst-8-app)" strokeDasharray="2 4"
+            label={{ value: '30', position: 'right', fill: 'var(--tekst-8-app)', fontSize: 10 }} />
+          <ReferenceLine y={REF_MID}  stroke="var(--tekst-5-app)" strokeDasharray="2 4"
+            label={{ value: '60', position: 'right', fill: 'var(--tekst-5-app)', fontSize: 10 }} />
           <ReferenceLine y={REF_HIGH} stroke="#FF4500" strokeDasharray="2 4"
             label={{ value: '90', position: 'right', fill: '#FF4500', fontSize: 10 }} />
           <Tooltip
@@ -225,8 +225,8 @@ function CarbsVsDuration({ workouts }: { workouts: NutritionAnalysisWorkout[] })
               const p = payload[0].payload as { hours: number; cph: number; title: string; date: string }
               return (
                 <div style={CHART_TOOLTIP_BOX}>
-                  <div style={{ color: '#F0F0F2', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
-                  <div style={{ color: '#8A8A96', fontSize: 11 }}>{p.date}</div>
+                  <div style={{ color: 'var(--tekst-1-app)', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
+                  <div style={{ color: 'var(--tekst-5-app)', fontSize: 11 }}>{p.date}</div>
                   <div style={{ color: '#FF4500', marginTop: 6 }}>
                     {p.cph} g/t · {p.hours} t
                   </div>
@@ -274,8 +274,8 @@ function CarbsVsHeartRate({ workouts }: { workouts: NutritionAnalysisWorkout[] }
               const p = payload[0].payload as { hr: number; cph: number; title: string; date: string }
               return (
                 <div style={CHART_TOOLTIP_BOX}>
-                  <div style={{ color: '#F0F0F2', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
-                  <div style={{ color: '#8A8A96', fontSize: 11 }}>{p.date}</div>
+                  <div style={{ color: 'var(--tekst-1-app)', fontWeight: 600, marginBottom: 2 }}>{p.title}</div>
+                  <div style={{ color: 'var(--tekst-5-app)', fontSize: 11 }}>{p.date}</div>
                   <div style={{ color: '#FF4500', marginTop: 6 }}>
                     {p.cph} g/t · {p.hr} bpm
                   </div>
@@ -332,7 +332,7 @@ function WorkoutTable({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
       }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #262629', color: '#8A8A96' }}>
+          <tr style={{ borderBottom: '1px solid var(--kant-5)', color: 'var(--tekst-5-app)' }}>
             <th style={th}>Dato</th>
             <th style={th}>Økt</th>
             <th style={thNum}>Varighet</th>
@@ -346,12 +346,12 @@ function WorkoutTable({ workouts }: { workouts: NutritionAnalysisWorkout[] }) {
         </thead>
         <tbody>
           {sorted.map(w => (
-            <tr key={w.id} style={{ borderBottom: '1px solid #1A1A1E' }}>
+            <tr key={w.id} style={{ borderBottom: '1px solid var(--kant-2)' }}>
               <td style={td}>{w.date}</td>
-              <td style={{ ...td, color: '#F0F0F2' }}>{w.title}</td>
+              <td style={{ ...td, color: 'var(--tekst-1-app)' }}>{w.title}</td>
               <td style={tdNum}>{w.duration_minutes ? `${Math.round(w.duration_minutes)} min` : '—'}</td>
               <td style={tdNum}>{w.total_carbs_g} g</td>
-              <td style={{ ...tdNum, color: w.carbs_per_hour !== null && w.carbs_per_hour < REF_MID ? '#F5C542' : '#F0F0F2' }}>
+              <td style={{ ...tdNum, color: w.carbs_per_hour !== null && w.carbs_per_hour < REF_MID ? '#F5C542' : 'var(--tekst-1-app)' }}>
                 {w.carbs_per_hour !== null ? `${w.carbs_per_hour} g/t` : '—'}
               </td>
               <td style={tdNum}>{w.total_protein_g > 0 ? `${w.total_protein_g} g` : '—'}</td>
@@ -381,7 +381,7 @@ function Empty({ msg }: { msg: string }) {
   return (
     <div style={{
       padding: 32, textAlign: 'center',
-      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#555560',
+      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-8-app)',
     }}>
       {msg}
     </div>

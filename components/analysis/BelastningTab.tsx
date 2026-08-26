@@ -18,7 +18,7 @@ const COLOR_CTL = '#38BDF8'  // Fitness (blå)
 const COLOR_ATL = '#E23A5A'  // Fatigue (rød)
 const COLOR_TSB = '#28A86E'  // Form (grønn)
 const COLOR_TSS = '#FF4500'  // Daglig TSS (oransje)
-const COLOR_TSS_AVG = '#F0F0F2'  // 7-dagers snitt
+const COLOR_TSS_AVG = 'var(--data-snitt)'  // 7-dagers snitt
 
 // Form-sone-farger for bakgrunnen på TSB-linjegrafen. Svakt mettede slik at
 // linjene leses tydelig over.
@@ -31,9 +31,9 @@ const FORM_ZONES: { from: number; to: number; color: string; label: string }[] =
 ]
 
 const FORM_LABELS: Record<FormStatus, { label: string; color: string; desc: string }> = {
-  detrained:      { label: 'Uttrent',          color: '#8A8A96', desc: 'TSB > 20 — for lite belastning, form synker.' },
+  detrained:      { label: 'Uttrent',          color: 'var(--tekst-5-app)', desc: 'TSB > 20 — for lite belastning, form synker.' },
   optimal:        { label: 'Optimal form',     color: '#28A86E', desc: 'TSB 10–20 — uthvilt og god form for konkurranse.' },
-  neutral:        { label: 'Nøytral',          color: '#8A8A96', desc: 'TSB −10 til 10 — balansert trening.' },
+  neutral:        { label: 'Nøytral',          color: 'var(--tekst-5-app)', desc: 'TSB −10 til 10 — balansert trening.' },
   hoy_belastning: { label: 'Høy belastning',   color: '#E8B93C', desc: 'TSB −30 til −10 — kropp jobber, monitorér restitusjon.' },
   overtrent:      { label: 'Overbelastet',     color: '#E23A5A', desc: 'TSB < −30 — akutt overbelastning, trappa ned.' },
 }
@@ -66,8 +66,8 @@ function downloadCsv(filename: string, rows: string[][]) {
 export function BelastningTab({ data }: { data: BelastningAnalysis }) {
   if (!data.hasData || data.daily.length === 0) {
     return (
-      <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+      <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ikke nok økter med sone-data til å beregne belastning. Logg økter med puls/soner for å bygge CTL og ATL over tid.
         </p>
       </div>
@@ -101,13 +101,13 @@ function CurrentStatus({ data }: { data: BelastningAnalysis }) {
       <div className="p-4 flex flex-col gap-1"
         style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${form.color}`, minHeight: '110px' }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Formstatus
         </p>
         <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: form.color, fontSize: '28px', lineHeight: 1.05, letterSpacing: '0.03em' }}>
           {form.label}
         </p>
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {form.desc}
         </p>
       </div>
@@ -120,13 +120,13 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
     <div className="p-4 flex flex-col gap-1"
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, borderLeft: `3px solid ${accent}`, minHeight: '110px' }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
-      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
+      <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '40px', lineHeight: 1, letterSpacing: '0.03em' }}>
         {value}
       </span>
-      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {sub}
       </p>
     </div>
@@ -161,7 +161,7 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
       <div className="flex items-center gap-3 mb-2 flex-wrap">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Fitness / Fatigue / Form
         </p>
         {altBands.length > 0 && (
@@ -192,7 +192,7 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
                 fill="rgba(91, 141, 239, 0.14)" stroke="#5B8DEF" strokeOpacity={0.4} strokeDasharray="3 3"
                 label={{ value: `🏔️ ${b.name}${b.moh ? ` ${b.moh}m` : ''}`, position: 'insideTop', fill: '#5B8DEF', fontSize: 10 }} />
             ))}
-            <ReferenceLine yAxisId="tsb" y={0} stroke="#555560" strokeDasharray="2 2" />
+            <ReferenceLine yAxisId="tsb" y={0} stroke="var(--tekst-8-app)" strokeDasharray="2 2" />
             <Tooltip content={<XpTooltip />}
               formatter={(v, k) => [typeof v === 'number' ? v.toFixed(1) : String(v ?? ''), String(k)]}
               labelFormatter={(l) => String(l)} />
@@ -206,8 +206,8 @@ export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
         {FORM_ZONES.map(z => (
           <span key={z.label} className="flex items-center gap-2">
-            <span style={{ width: 12, height: 12, backgroundColor: z.color, border: '1px solid #1E1E22' }} />
-            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+            <span style={{ width: 12, height: 12, backgroundColor: z.color, border: '1px solid var(--kant-3)' }} />
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
               {z.label}
             </span>
           </span>
@@ -232,7 +232,7 @@ export function DailyTssChart({ data }: { data: BelastningAnalysis }) {
       <div className="flex items-center gap-3 mb-2">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Daglig TSS
         </p>
       </div>
@@ -273,7 +273,7 @@ export function PerceivedVsCalculatedChart({ data }: { data: BelastningAnalysis 
       height={260}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg ukesrefleksjon for å se denne grafen.
           </p>
         </div>
@@ -313,7 +313,7 @@ export function EnergyStressOverTimeChart({ data }: { data: BelastningAnalysis }
       height={260}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg ukesrefleksjon for å se denne grafen.
           </p>
         </div>
@@ -351,28 +351,28 @@ export function RestDayStats({ data }: { data: BelastningAnalysis }) {
       height={220}>
       {!hasAny ? (
         <div className="flex items-center justify-center h-full">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
             Logg hviledag i kalenderen for å se denne grafen.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr] gap-4 items-stretch h-full">
           <div className="p-3 flex flex-col gap-1"
-            style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #28A86E', minWidth: '140px' }}>
+            style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #28A86E', minWidth: '140px' }}>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Totalt hviledager 🛌</p>
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Totalt hviledager 🛌</p>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', lineHeight: 1 }}>
               {r.total_rest_days}
             </span>
           </div>
           <div className="p-3 flex flex-col gap-1"
-            style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22', borderLeft: '3px solid #8B5CF6', minWidth: '140px' }}>
+            style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)', borderLeft: '3px solid #8B5CF6', minWidth: '140px' }}>
             <p className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Snitt dager mellom</p>
-            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '36px', lineHeight: 1 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Snitt dager mellom</p>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '36px', lineHeight: 1 }}>
               {r.avg_days_between_rest != null ? r.avg_days_between_rest : '—'}
             </span>
-            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {r.avg_days_between_rest != null ? 'dager' : 'Trenger ≥ 2 hviledager'}
             </p>
           </div>
@@ -437,11 +437,11 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
       style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Eksport
         </p>
         <p className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Last ned daglige tall eller ukesrefleksjoner som CSV — for videre analyse i Excel eller egne verktøy.
         </p>
       </div>
@@ -450,7 +450,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#FF4500', color: '#0A0A0B',
+            backgroundColor: '#FF4500', color: 'var(--flate-3)',
             border: 'none', minHeight: '40px', cursor: 'pointer',
           }}>
           Daglig CSV
@@ -462,7 +462,7 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'transparent',
             border: '1px solid #FF4500',
-            color: data.weeklyReflections.length === 0 ? '#555560' : '#FF4500',
+            color: data.weeklyReflections.length === 0 ? 'var(--tekst-8-app)' : '#FF4500',
             minHeight: '40px',
             cursor: data.weeklyReflections.length === 0 ? 'not-allowed' : 'pointer',
           }}>
@@ -475,16 +475,16 @@ function CsvExport({ data }: { data: BelastningAnalysis }) {
 
 function MethodNote() {
   return (
-    <div className="p-4" style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Slik beregnes tallene
       </p>
       <p className="text-xs leading-relaxed"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
-        <strong style={{ color: '#F0F0F2' }}>TSS</strong> = sum av minutter i sone × sone-vekt (I1=1, I2=2, I3=3, I4=4, I5=5, Hurtighet=5).
-        {' '}<strong style={{ color: '#F0F0F2' }}>ATL</strong> (akutt tretthet) og <strong style={{ color: '#F0F0F2' }}>CTL</strong> (form-base)
-        er eksponentielt vektede glidende snitt med tidskonstant 7 hhv. 42 dager. <strong style={{ color: '#F0F0F2' }}>TSB</strong> (form) = CTL − ATL.
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        <strong style={{ color: 'var(--tekst-1-app)' }}>TSS</strong> = sum av minutter i sone × sone-vekt (I1=1, I2=2, I3=3, I4=4, I5=5, Hurtighet=5).
+        {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>ATL</strong> (akutt tretthet) og <strong style={{ color: 'var(--tekst-1-app)' }}>CTL</strong> (form-base)
+        er eksponentielt vektede glidende snitt med tidskonstant 7 hhv. 42 dager. <strong style={{ color: 'var(--tekst-1-app)' }}>TSB</strong> (form) = CTL − ATL.
         {' '}Tallene forbehandles med 42 dagers oppvarming før periodestart for at CTL skal være stabilt.
         {' '}Positive TSB betyr uthvilt — kropp er klar for høy belastning eller konkurranse.
         {' '}Negative TSB betyr akkumulert belastning — planlegg restitusjon.

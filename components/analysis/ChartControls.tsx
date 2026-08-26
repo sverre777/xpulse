@@ -25,7 +25,7 @@ export function ChipSelector<T extends string>({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
       <div className="flex gap-1.5 flex-wrap">
@@ -41,9 +41,9 @@ export function ChipSelector<T extends string>({
               className="px-3.5 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: value === o.value ? '#FF4500' : '#0A0A0B',
-                border: value === o.value ? '1px solid #FF4500' : '1px solid #1E1E22',
-                color: value === o.value ? '#FFFFFF' : '#F0F0F2',
+                backgroundColor: value === o.value ? '#FF4500' : 'var(--flate-3)',
+                border: value === o.value ? '1px solid #FF4500' : '1px solid var(--kant-3)',
+                color: value === o.value ? 'var(--tekst-1-ren)' : 'var(--tekst-1-app)',
                 cursor: av ? 'not-allowed' : 'pointer',
                 opacity: av ? 0.45 : 1,
                 minHeight: 32,
@@ -70,7 +70,7 @@ export function SelectControl({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
       <select
@@ -79,9 +79,9 @@ export function SelectControl({
         className="px-3.5 py-1.5 text-xs"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#0A0A0B',
-          border: '1px solid #1E1E22',
-          color: '#F0F0F2',
+          backgroundColor: 'var(--flate-3)',
+          border: '1px solid var(--kant-3)',
+          color: 'var(--tekst-1-app)',
           minHeight: 32,
           borderRadius: 999,
         }}

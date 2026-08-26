@@ -55,9 +55,9 @@ export function PlanVsActualCard({ range, targetUserId }: Props) {
 
   if (loading) {
     return (
-      <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+      <section className="p-5 mb-6" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Plan vs faktisk … laster
         </p>
       </section>
@@ -75,11 +75,11 @@ export function PlanVsActualCard({ range, targetUserId }: Props) {
   const i3i4Pct = pctOf(data.actual.i3i4Minutes, data.planned.i3i4Minutes)
 
   return (
-    <section className="p-5 mb-6" style={{ backgroundColor: '#13131A', border: '1px solid #1E1E22' }}>
+    <section className="p-5 mb-6" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Plan vs faktisk
         </p>
       </div>
@@ -175,23 +175,23 @@ function Stat({
   pct: number | null
 }) {
   return (
-    <div className="p-3" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="p-3" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </p>
       <div className="flex items-baseline gap-2 mb-1">
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.03em', lineHeight: 1 }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.03em', lineHeight: 1 }}>
           {actualText}
         </span>
         <span className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           / {plannedText}
         </span>
       </div>
       {pct !== null && (
         <div className="flex items-center gap-2">
-          <div style={{ flex: 1, height: '4px', backgroundColor: '#0A0A0B' }}>
+          <div style={{ flex: 1, height: '4px', backgroundColor: 'var(--flate-3)' }}>
             <div style={{
               width: `${Math.min(100, pct)}%`,
               height: '100%',
@@ -212,7 +212,7 @@ function DetailBlock({ title, children }: { title: string; children: React.React
   return (
     <div>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {title}
       </p>
       <div className="flex flex-col">
@@ -233,15 +233,15 @@ function Row({
 }) {
   return (
     <div className="flex items-center gap-3 py-1.5"
-      style={{ borderBottom: '1px solid #1A1A1E' }}
+      style={{ borderBottom: '1px solid var(--kant-2)' }}
     >
       <span className="text-sm w-20 shrink-0"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: labelColor ?? '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: labelColor ?? 'var(--tekst-1-app)' }}>
         {label}
       </span>
       <span className="text-sm flex-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-        {actualText} <span style={{ color: '#555560' }}>/ {plannedText}</span>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
+        {actualText} <span style={{ color: 'var(--tekst-8-app)' }}>/ {plannedText}</span>
       </span>
       {pct !== null && (
         <span className="text-xs tracking-widest"

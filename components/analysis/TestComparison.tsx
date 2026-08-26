@@ -99,15 +99,15 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
 
   const capStyle: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-    letterSpacing: '0.16em', textTransform: 'uppercase', color: '#555560',
+    letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)',
   }
   const cellStyle: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
-    color: '#F0F0F2', padding: '7px 10px', whiteSpace: 'nowrap',
+    color: 'var(--tekst-1-app)', padding: '7px 10px', whiteSpace: 'nowrap',
     borderTop: '1px solid var(--line)', textAlign: 'right',
   }
   const rowLabelStyle: React.CSSProperties = {
-    ...cellStyle, textAlign: 'left', color: '#8A8A96', position: 'sticky',
+    ...cellStyle, textAlign: 'left', color: 'var(--tekst-5-app)', position: 'sticky',
     left: 0, background: 'var(--card)', zIndex: 1,
   }
 
@@ -135,12 +135,12 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.05em',
                 padding: '7px 12px', minHeight: 36, cursor: 'pointer', borderRadius: 8,
-                color: active ? '#F0F0F2' : '#8A8A96',
+                color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                 background: active ? `${GOLD}22` : 'transparent',
                 border: `1px solid ${active ? GOLD : 'var(--line2)'}`,
               }}>
               {g.name}
-              <span style={{ color: '#555560', marginLeft: 6 }}>
+              <span style={{ color: 'var(--tekst-8-app)', marginLeft: 6 }}>
                 {g.executions.length}× · {g.source === 'nssf' ? 'NSSF-mal' : 'Egen test-mal'}
               </span>
             </button>
@@ -166,7 +166,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '5px 10px', minHeight: 32, cursor: 'pointer', borderRadius: 999,
-                color: active ? '#0A0A0B' : '#8A8A96',
+                color: active ? 'var(--flate-3)' : 'var(--tekst-5-app)',
                 background: active ? GOLD : 'transparent',
                 border: `1px solid ${active ? GOLD : 'var(--line2)'}`,
                 fontWeight: active ? 700 : 400,
@@ -178,7 +178,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
       </div>
 
       {chosen.length < 2 ? (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: '#8A8A96' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-5-app)' }}>
           Velg minst to gjennomføringer for å sammenligne.
         </p>
       ) : (
@@ -188,7 +188,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
               <tr>
                 <th style={{ ...rowLabelStyle, ...capStyle, borderTop: 'none' }}>Metrikk</th>
                 {chosen.map(e => (
-                  <th key={keyOf(e)} style={{ ...cellStyle, ...capStyle, color: '#8A8A96', borderTop: 'none' }}>
+                  <th key={keyOf(e)} style={{ ...cellStyle, ...capStyle, color: 'var(--tekst-5-app)', borderTop: 'none' }}>
                     {fmtDate(e.date)}
                   </th>
                 ))}
@@ -254,7 +254,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
               </tr>
               <tr>
                 <td style={rowLabelStyle}>Underlag</td>
-                {chosen.map(e => <td key={keyOf(e)} style={{ ...cellStyle, color: '#8A8A96' }}>{e.surface || '—'}</td>)}
+                {chosen.map(e => <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-5-app)' }}>{e.surface || '—'}</td>)}
               </tr>
               {/* Per serie: treff · tid · puls · vind/sikt — kun førte deler vises. */}
               {Array.from({ length: maxSeries }, (_, i) => {
@@ -266,7 +266,7 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
                     </td>
                     {chosen.map(e => {
                       const s = e.series[i]
-                      if (!s) return <td key={keyOf(e)} style={{ ...cellStyle, color: '#555560' }}>—</td>
+                      if (!s) return <td key={keyOf(e)} style={{ ...cellStyle, color: 'var(--tekst-8-app)' }}>—</td>
                       const parts: string[] = []
                       parts.push(s.hits != null ? `${Math.min(s.hits, s.shots)}/${s.shots}` : `${s.shots} skudd`)
                       if (s.time_seconds != null) parts.push(`${Math.round(s.time_seconds)}s`)
@@ -294,8 +294,8 @@ export function TestComparison({ targetUserId }: { targetUserId?: string }) {
             <select value={metric} onChange={e => setMetric(e.target.value as MetricKey)}
               className="text-sm px-2 py-1"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: '#1A1A22',
-                border: '1px solid #1E1E22', color: '#F0F0F2', outline: 'none',
+                fontFamily: "'Barlow Condensed', sans-serif", backgroundColor: 'var(--flate-14)',
+                border: '1px solid var(--kant-3)', color: 'var(--tekst-1-app)', outline: 'none',
               }}>
               {METRICS.filter(m => m.show).map(m => (
                 <option key={m.key} value={m.key}>{m.label}</option>

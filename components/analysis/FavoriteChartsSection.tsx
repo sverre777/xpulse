@@ -148,12 +148,12 @@ export function FavoriteChartsSection(props: Props) {
   if (orderedKeys.length === 0) {
     return (
       <div className="p-6 flex flex-col items-center text-center gap-2"
-        style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E22' }}>
+        style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px dashed var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Mine grafer
         </p>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '13px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '13px' }}>
           Stjerne grafer i andre faner for å se dem her.
         </p>
       </div>
@@ -165,10 +165,10 @@ export function FavoriteChartsSection(props: Props) {
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Mine grafer
         </p>
-        <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {orderedKeys.length} stjerne-markert
         </span>
       </div>
@@ -324,14 +324,14 @@ function FallbackCard({
 }) {
   return (
     <div className="p-5 flex items-center justify-between gap-4"
-      style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+      style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <div className="min-w-0">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           {meta.title}
         </p>
         <p className="text-xs mt-0.5"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Kildefane: {meta.tabLabel}
         </p>
       </div>
@@ -359,9 +359,9 @@ function FallbackCard({
 function UnknownChart({ chartKey }: { chartKey: string }) {
   return (
     <div className="p-4 flex items-center justify-between gap-3"
-      style={{ backgroundColor: '#13131A', border: '1px dashed #1E1E22' }}>
+      style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px dashed var(--kant-3)' }}>
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Ukjent graf ({chartKey}) — kan ha blitt fjernet.
       </p>
       <StarButton chartKey={chartKey} />

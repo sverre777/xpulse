@@ -334,9 +334,9 @@ export function CustomSkytingChartBuilder({ data }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 padding: '4px 10px',
-                border: '1px solid #1E1E22',
+                border: '1px solid var(--kant-3)',
                 backgroundColor: 'transparent',
-                color: '#8A8A96',
+                color: 'var(--tekst-5-app)',
                 cursor: 'pointer',
               }}
             >
@@ -457,16 +457,16 @@ export function CustomSkytingChartBuilder({ data }: Props) {
                   className="flex items-center gap-2 px-3 py-1 text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    border: `1px solid ${av ? '#1E1E22' : t.color}`,
+                    border: `1px solid ${av ? 'var(--kant-3)' : t.color}`,
                     background: 'none',
-                    color: av ? '#555560' : '#F0F0F2',
+                    color: av ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)',
                     borderRadius: 999,
                     cursor: 'pointer',
                     opacity: av ? 0.5 : 1,
                   }}>
                   <span aria-hidden style={{
                     width: 8, height: 8, borderRadius: 999,
-                    backgroundColor: av ? '#2A2A33' : t.color, display: 'inline-block',
+                    backgroundColor: av ? 'var(--line2)' : t.color, display: 'inline-block',
                   }} />
                   {t.label}
                 </button>
@@ -479,7 +479,7 @@ export function CustomSkytingChartBuilder({ data }: Props) {
         {aktiveFiltre.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Filtre
             </span>
             {aktiveFiltre.map(f => (
@@ -496,7 +496,7 @@ export function CustomSkytingChartBuilder({ data }: Props) {
               className="px-3 py-1 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                border: '1px solid #1E1E22', color: '#8A8A96',
+                border: '1px solid var(--kant-3)', color: 'var(--tekst-5-app)',
                 borderRadius: 999, background: 'none', cursor: 'pointer',
               }}>
               Nullstill
@@ -505,7 +505,7 @@ export function CustomSkytingChartBuilder({ data }: Props) {
         )}
 
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {filter.modus === 'tester'
             ? (testSerier.length === 0
                 ? 'Ingen skytetester i perioden.'
@@ -516,12 +516,12 @@ export function CustomSkytingChartBuilder({ data }: Props) {
                 ? `${chartData.aggregert.skytinger} skytinger · ${chartData.aggregert.dager} dager · snitt per dag`
                 : `${chartData.points.length} datapunkt`}
           {filter.modus === 'serier' && chartData.aggregert && chartData.aggregert.skytinger > chartData.aggregert.dager && (
-            <span style={{ color: '#555560' }}>
+            <span style={{ color: 'var(--tekst-8-app)' }}>
               {' '}· Vil du se hver skyting for seg, velg Skyting-nr på X-aksen.
             </span>
           )}
           {filter.modus === 'serier' && erSammenheng && (
-            <span style={{ color: '#555560' }}> · {SAMMENHENG_FORKLARING}</span>
+            <span style={{ color: 'var(--tekst-8-app)' }}> · {SAMMENHENG_FORKLARING}</span>
           )}
         </p>
 
@@ -530,8 +530,8 @@ export function CustomSkytingChartBuilder({ data }: Props) {
           {filter.modus === 'tester' ? (
             testSerier.length === 0 ? (
               <div className="h-full flex items-center justify-center"
-                style={{ border: '1px dashed #1E1E22' }}>
-                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ border: '1px dashed var(--kant-3)' }}>
+                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Ingen skytetester i perioden. Marker en skyting som 🧪 test for å følge den over tid.
                 </p>
               </div>
@@ -540,8 +540,8 @@ export function CustomSkytingChartBuilder({ data }: Props) {
             )
           ) : chartData.points.length === 0 ? (
             <div className="h-full flex items-center justify-center"
-              style={{ border: '1px dashed #1E1E22' }}>
-              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ border: '1px dashed var(--kant-3)' }}>
+              <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Ingen treff for valgt kombinasjon.
               </p>
             </div>
@@ -737,23 +737,23 @@ function BuilderTip({ active, payload, yLabel, aggregert = false }: {
   if (!p) return null
   return (
     <div style={CHART_TOOLTIP_BOX}>
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: '#F2F2F0', marginBottom: 6 }}>
+      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: '0.08em', color: 'var(--ink)', marginBottom: 6 }}>
         {p.meta.date} · {aggregert
           ? `${p.meta.sort_order} skyting${p.meta.sort_order === 1 ? '' : 'er'} (snitt)`
           : `Skyting ${p.meta.sort_order}`}
       </div>
       {p.y != null && (
-        <div style={{ color: '#8B8B95' }}>
-          Verdi <b style={{ color: '#F2F2F0' }}>{p.y} {yLabel}</b>
+        <div style={{ color: 'var(--mut)' }}>
+          Verdi <b style={{ color: 'var(--ink)' }}>{p.y} {yLabel}</b>
         </div>
       )}
       {p.meta.avg_hr != null && (
-        <div style={{ color: '#8B8B95' }}>
-          Puls <b style={{ color: '#F2F2F0' }}>{p.meta.avg_hr}</b>
+        <div style={{ color: 'var(--mut)' }}>
+          Puls <b style={{ color: 'var(--ink)' }}>{p.meta.avg_hr}</b>
         </div>
       )}
       {p.meta.wind && (
-        <div style={{ color: '#8B8B95', marginTop: 4 }}>
+        <div style={{ color: 'var(--mut)', marginTop: 4 }}>
           <span aria-hidden style={{ color: '#E23A5A' }}>⚑</span> {p.meta.wind}
         </div>
       )}
@@ -792,7 +792,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
             width={48}
-            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }}
           />
           <Tooltip content={<XpTooltip />} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
@@ -838,7 +838,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
             axisLine={CHART_AXIS_LINE}
             tickLine={false}
             width={48}
-            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+            label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }}
           />
           <Tooltip content={<BuilderTip yLabel={yLabel} aggregert={!!data.aggregert} />} />
           <Legend wrapperStyle={CHART_LEGEND_STYLE} />
@@ -884,7 +884,7 @@ function CustomChart({ data, filter }: { data: ChartData; filter: FilterState })
           axisLine={CHART_AXIS_LINE}
           tickLine={false}
           width={48}
-          label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+          label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }}
         />
         <Tooltip content={<BuilderTip yLabel={yLabel} aggregert={!!data.aggregert} />} />
         <Line
@@ -927,7 +927,7 @@ function TestChart({ serier }: {
           axisLine={CHART_AXIS_LINE}
           tickLine={false}
           width={48}
-          label={{ value: '%', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }}
+          label={{ value: '%', angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }}
         />
         <Tooltip content={<XpTooltip />} />
         <Legend wrapperStyle={CHART_LEGEND_STYLE} />
@@ -960,7 +960,7 @@ function SelectField({ label, value, onChange, children }: {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </span>
       <select
@@ -969,9 +969,9 @@ function SelectField({ label, value, onChange, children }: {
         className="text-sm px-2 py-1"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#1A1A22',
-          border: '1px solid #1E1E22',
-          color: '#F0F0F2',
+          backgroundColor: 'var(--flate-14)',
+          border: '1px solid var(--kant-3)',
+          color: 'var(--tekst-1-app)',
           outline: 'none',
         }}
       >

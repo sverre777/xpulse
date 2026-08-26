@@ -38,7 +38,7 @@ function ZoneBar({ zones, height = 14 }: { zones: OverviewZoneSeconds; height?: 
   if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   return (
-    <div style={{ display: 'flex', width: '100%', height, backgroundColor: '#0A0A0B' }}>
+    <div style={{ display: 'flex', width: '100%', height, backgroundColor: 'var(--flate-3)' }}>
       {keys.map(k => {
         const pct = (zones[k] / total) * 100
         if (pct <= 0) return null
@@ -190,7 +190,7 @@ export function CompareWorkoutsTab({
             className="text-xs tracking-widest uppercase px-3 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: '#FF4500',
-              backgroundColor: 'transparent', border: '1px solid #1E1E22',
+              backgroundColor: 'transparent', border: '1px solid var(--kant-3)',
             }}>
             ← Tilbake til valg
           </button>
@@ -204,15 +204,15 @@ export function CompareWorkoutsTab({
                 className="px-2 py-1.5 text-sm"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: '#1A1A22', border: '1px solid #1E1E22',
-                  color: '#F0F0F2', outline: 'none',
+                  backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+                  color: 'var(--tekst-1-app)', outline: 'none',
                 }}
               />
               <button type="button" onClick={handleSave}
                 className="text-xs tracking-widest uppercase px-3 py-2"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: '#FF4500', color: '#0A0A0B',
+                  backgroundColor: '#FF4500', color: 'var(--flate-3)',
                   border: 'none', cursor: 'pointer',
                 }}>
                 Lagre
@@ -220,7 +220,7 @@ export function CompareWorkoutsTab({
               <button type="button" onClick={() => { setShowSaveInput(false); setSavingName('') }}
                 className="text-xs tracking-widest uppercase"
                 style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
                   background: 'none', border: 'none', cursor: 'pointer',
                 }}>
                 Avbryt
@@ -259,7 +259,7 @@ export function CompareWorkoutsTab({
           </div>
         ) : (
           <p className="text-xs text-center py-6"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Laster detaljerte tidsserier…
           </p>
         )}
@@ -279,8 +279,8 @@ export function CompareWorkoutsTab({
           className="w-full px-3 py-2 text-sm"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: '#0A0A0B', color: '#F0F0F2',
-            border: '1px solid #1E1E22', minHeight: '44px',
+            backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
+            border: '1px solid var(--kant-3)', minHeight: '44px',
           }}
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -310,7 +310,7 @@ export function CompareWorkoutsTab({
         <div className="p-3 flex flex-wrap items-center gap-2"
           style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <span className="text-xs tracking-widest uppercase mr-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Mine sammenligninger:
           </span>
           {savedComparisons.map(c => (
@@ -329,7 +329,7 @@ export function CompareWorkoutsTab({
                 className="text-xs"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#555560', background: 'none', border: 'none',
+                  color: 'var(--tekst-8-app)', background: 'none', border: 'none',
                   cursor: 'pointer', padding: '0 4px',
                 }}>
                 ×
@@ -341,15 +341,15 @@ export function CompareWorkoutsTab({
 
       {error && (
         <div className="p-3" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>{error}</p>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>{error}</p>
         </div>
       )}
 
       {/* Selected summary + compare button */}
       <div className="p-3 flex items-center justify-between gap-3 flex-wrap"
-        style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+        style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {selected.length} valgt
           {isPending && <span className="ml-2" style={{ color: '#FF4500' }}>…laster</span>}
         </p>
@@ -359,8 +359,8 @@ export function CompareWorkoutsTab({
             className="text-xs tracking-widest uppercase px-3 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: selected.length === 0 ? '#555560' : '#F0F0F2',
-              backgroundColor: 'transparent', border: '1px solid #1E1E22',
+              color: selected.length === 0 ? 'var(--tekst-8-app)' : 'var(--tekst-1-app)',
+              backgroundColor: 'transparent', border: '1px solid var(--kant-3)',
               cursor: selected.length === 0 ? 'not-allowed' : 'pointer',
               minHeight: '44px',
             }}>
@@ -371,7 +371,7 @@ export function CompareWorkoutsTab({
             className="text-xs tracking-widest uppercase px-4 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: selected.length < 2 ? '#555560' : '#0A0A0B',
+              color: selected.length < 2 ? 'var(--tekst-8-app)' : 'var(--flate-3)',
               backgroundColor: selected.length < 2 ? 'var(--line)' : '#FF4500',
               border: 'none', cursor: selected.length < 2 ? 'not-allowed' : 'pointer',
               minHeight: '44px',
@@ -385,8 +385,8 @@ export function CompareWorkoutsTab({
           å dra hele siden når den blir lang. Filters + selected-summary
           over står naturlig fast øverst på siden. */}
       {!data.hasData || (filtered.length === 0 && filteredDayStates.length === 0) ? (
-        <div className="py-16 text-center" style={{ border: '1px dashed #1E1E22' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+        <div className="py-16 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
             {!data.hasData ? 'Ingen økter i valgt periode.' : 'Ingen treff på filter.'}
           </p>
         </div>
@@ -396,7 +396,7 @@ export function CompareWorkoutsTab({
           style={{ maxHeight: 'calc(100vh - 320px)', minHeight: '320px', overflowY: 'auto' }}
         >
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {selectableWorkouts.length} valgbare · {filtered.length - selectableWorkouts.length} planlagte · {filteredDayStates.length} dag-tilstander
           </p>
           <div className="space-y-2">
@@ -422,7 +422,7 @@ export function CompareWorkoutsTab({
 function DayStateRow({ state }: { state: ComparableDayState }) {
   const color = state.kind === 'sickness' ? '#E11D48'
     : state.kind === 'injury' ? '#FF8C00'
-    : '#8A8A96'
+    : 'var(--tekst-5-app)'
   const label = state.kind === 'sickness' ? 'Sykdom'
     : state.kind === 'injury' ? 'Skade'
     : 'Hviledag'
@@ -430,7 +430,7 @@ function DayStateRow({ state }: { state: ComparableDayState }) {
     <div
       className="flex items-center gap-3 p-3"
       style={{
-        backgroundColor: '#0D0D10',
+        backgroundColor: 'var(--flate-6)',
         border: `1px dashed ${color}`,
         opacity: 0.75,
         minHeight: '44px',
@@ -439,7 +439,7 @@ function DayStateRow({ state }: { state: ComparableDayState }) {
       <div style={{ width: 18, height: 18, border: `1px solid ${color}`, backgroundColor: 'transparent' }} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
             {state.date}
           </span>
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", color, fontSize: '18px', letterSpacing: '0.03em' }}>
@@ -448,7 +448,7 @@ function DayStateRow({ state }: { state: ComparableDayState }) {
         </div>
         {state.notes && (
           <p className="text-xs mt-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {state.notes}
           </p>
         )}
@@ -466,15 +466,15 @@ function FilterSelect({
   return (
     <div>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
       <select value={value} onChange={e => onChange(e.target.value)}
         className="w-full px-3 py-2 text-sm"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: '#0A0A0B', color: '#F0F0F2',
-          border: '1px solid #1E1E22', minHeight: '44px',
+          backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
+          border: '1px solid var(--kant-3)', minHeight: '44px',
         }}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -495,7 +495,7 @@ function WorkoutRow({
     ? '1px solid #FF4500'
     : isPlannedOnly
       ? '1px dashed #D4A017'
-      : '1px solid #1E1E22'
+      : '1px solid var(--kant-3)'
   return (
     <label
       className="flex items-center gap-3 p-3"
@@ -516,14 +516,14 @@ function WorkoutRow({
       )}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
-          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
             {workout.date}
           </span>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.03em' }}>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.03em' }}>
             {workout.title || '(uten tittel)'}
           </span>
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
           </span>
           {isPlannedOnly && (
@@ -546,7 +546,7 @@ function WorkoutRow({
           )}
         </div>
         <p className="text-xs mt-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {formatDuration(workout.duration_seconds)}
           {workout.total_meters > 0 && ` · ${formatKm(workout.total_meters)}`}
           {workout.avg_heart_rate != null && ` · ${workout.avg_heart_rate} bpm`}
@@ -574,11 +574,11 @@ function rawWeatherSummary(w: {
 function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
   if (!workouts.some(w => rawWeatherSummary(w.weather))) return null
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '12px 14px' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--kant-3)', padding: '12px 14px' }}>
       <div className="flex items-center gap-2 mb-2">
         <span style={{ width: 14, height: 2, background: '#FF4500', display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Vær og føre
         </span>
       </div>
@@ -587,14 +587,14 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
           const s = rawWeatherSummary(w.weather)
           return (
             <div key={w.id} style={{ minWidth: 0, fontFamily: "'Barlow Condensed', sans-serif" }}>
-              <div style={{ color: '#555560', fontSize: 11, letterSpacing: '0.04em', marginBottom: 2 }}>
+              <div style={{ color: 'var(--tekst-8-app)', fontSize: 11, letterSpacing: '0.04em', marginBottom: 2 }}>
                 {new Date(w.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short' })}
               </div>
-              <div style={{ color: s ? '#C0C0CC' : '#444', fontSize: 13, lineHeight: 1.4 }}>
+              <div style={{ color: s ? 'var(--tekst-3-app)' : 'var(--graa-44)', fontSize: 13, lineHeight: 1.4 }}>
                 {s ?? '— ikke registrert'}
               </div>
               {w.weather?.notes && (
-                <div style={{ color: '#777', fontSize: 12, marginTop: 2, fontStyle: 'italic' }}>{w.weather.notes}</div>
+                <div style={{ color: 'var(--graa-77)', fontSize: 12, marginTop: 2, fontStyle: 'italic' }}>{w.weather.notes}</div>
               )}
             </div>
           )
@@ -609,21 +609,21 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
 function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
   const fmtPace = (sec: number | null) => sec == null ? '—' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
   const th: React.CSSProperties = { padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
-  const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }
+  const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }
   // Kø #49 bolk 6: skytedel (kolonne vises kun når mal-øktene har skyting).
   const hasShooting = rows.some(r => r.shooting != null)
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid #1E1E22', padding: '14px 16px' }}>
-      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 18, letterSpacing: '0.04em', margin: '0 0 2px' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--kant-3)', padding: '14px 16px' }}>
+      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 18, letterSpacing: '0.04em', margin: '0 0 2px' }}>
         Utvikling over tid
       </h3>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: 12, margin: '0 0 10px' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 12, margin: '0 0 10px' }}>
         {rows.length} {rows.length === 1 ? 'gjennomføring' : 'gjennomføringer'} — vurder form vs forhold (vær/føre).
       </p>
       <div className="overflow-x-auto xp-hscroll">
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #1E1E22' }}>
+            <tr style={{ borderBottom: '1px solid var(--kant-3)' }}>
               <th style={{ ...th, textAlign: 'left' }}>Dato</th>
               <th style={th}>Snittpuls</th>
               <th style={th}>Pace</th>
@@ -634,8 +634,8 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
           </thead>
           <tbody>
             {rows.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid #14141A' }}>
-                <td style={{ ...td, textAlign: 'left', color: '#F0F0F2' }}>
+              <tr key={r.id} style={{ borderBottom: '1px solid var(--kant-1-app)' }}>
+                <td style={{ ...td, textAlign: 'left', color: 'var(--tekst-1-app)' }}>
                   {new Date(r.date).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: '2-digit' })}
                 </td>
                 <td style={{ ...td, textAlign: 'center' }}>{r.avg_heart_rate != null ? `${r.avg_heart_rate} bpm` : '—'}</td>
@@ -656,7 +656,7 @@ function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
                     ) : '—'}
                   </td>
                 )}
-                <td style={{ ...td, textAlign: 'left', color: rawWeatherSummary(r.weather) ? '#C0C0CC' : '#444' }}>
+                <td style={{ ...td, textAlign: 'left', color: rawWeatherSummary(r.weather) ? 'var(--tekst-3-app)' : 'var(--graa-44)' }}>
                   {rawWeatherSummary(r.weather) ?? '— ikke registrert'}
                 </td>
               </tr>
@@ -696,18 +696,18 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
   return (
     <div className="p-4 space-y-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <div>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '12px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12px' }}>
           {workout.date}
         </p>
         <Link href={`/app/dagbok?edit=${workout.id}`}
           style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '22px', letterSpacing: '0.03em', textDecoration: 'none',
           }}>
           {workout.title || '(uten tittel)'}
         </Link>
         <p className="text-xs tracking-widest uppercase mt-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {labelSport(workout.sport)} · {labelWorkoutType(workout.workout_type)}
         </p>
       </div>
@@ -723,7 +723,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {/* Zone bar */}
       <div>
         <p className="text-xs tracking-widest uppercase mb-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Sonefordeling
         </p>
         <ZoneBar zones={workout.zones} />
@@ -733,15 +733,15 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {workout.movement_breakdown.length > 0 && (
         <div>
           <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Bevegelsesform
           </p>
           <ul className="text-xs space-y-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {workout.movement_breakdown.map(m => (
               <li key={m.movement_name} className="flex justify-between">
                 <span>{m.movement_name}</span>
-                <span style={{ color: '#8A8A96' }}>
+                <span style={{ color: 'var(--tekst-5-app)' }}>
                   {formatDuration(m.seconds)}{m.meters > 0 ? ` · ${formatKm(m.meters)}` : ''}
                 </span>
               </li>
@@ -754,14 +754,14 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {workout.lactate_values.length > 0 && (
         <div>
           <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Laktat
           </p>
           <ul className="text-xs space-y-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             {workout.lactate_values.map((l, i) => (
               <li key={i} className="flex justify-between gap-2">
-                <span style={{ color: '#8A8A96' }}>{l.activity_label}</span>
+                <span style={{ color: 'var(--tekst-5-app)' }}>{l.activity_label}</span>
                 <span>{l.mmol.toFixed(1)} mmol</span>
               </li>
             ))}
@@ -773,7 +773,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {workout.shooting && (
         <div>
           <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Skyting
           </p>
           <TreffPercentageDisplay
@@ -791,7 +791,7 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
             || workout.shooting.shooting_avg_hr != null
             || workout.shooting.wind
             || workout.shooting.sikt) && (
-            <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {[
                 workout.shooting.shooting_time_seconds != null ? `Skytetid ${workout.shooting.shooting_time_seconds}s` : null,
                 workout.shooting.shooting_avg_hr != null ? `Serie-puls ø${workout.shooting.shooting_avg_hr}` : null,
@@ -807,11 +807,11 @@ function WorkoutColumn({ workout }: { workout: ComparableWorkout }) {
       {workout.notes && (
         <div>
           <p className="text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Notat
           </p>
           <p className="text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', whiteSpace: 'pre-wrap' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', whiteSpace: 'pre-wrap' }}>
             {workout.notes}
           </p>
         </div>
@@ -824,11 +824,11 @@ function MiniStat({ label, value, suffix }: { label: string; value: string; suff
   return (
     <div>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', lineHeight: 1 }}>
-        {value}{suffix && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: '#8A8A96' }}> {suffix}</span>}
+      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', lineHeight: 1 }}>
+        {value}{suffix && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px', color: 'var(--tekst-5-app)' }}> {suffix}</span>}
       </p>
     </div>
   )
@@ -881,19 +881,19 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
       firstVal: `${first.max_heart_rate} bpm`,
       lastVal: `${last.max_heart_rate} bpm`,
       deltaText: `${mx > 0 ? '+' : ''}${mx} bpm`,
-      color: '#8A8A96',
+      color: 'var(--tekst-5-app)',
     })
   }
 
   return (
-    <div className="p-4" style={{ backgroundColor: '#1A1A22', border: '1px solid #1E1E22' }}>
+    <div className="p-4" style={{ backgroundColor: 'var(--flate-14)', border: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         Endring ({first.date} → {last.date})
       </p>
       <table className="w-full text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
         <thead>
-          <tr style={{ color: '#555560', borderBottom: '1px solid #1E1E22' }}>
+          <tr style={{ color: 'var(--tekst-8-app)', borderBottom: '1px solid var(--kant-3)' }}>
             <th className="text-left py-1 text-xs tracking-widest uppercase">Metrikk</th>
             <th className="text-right py-1 text-xs tracking-widest uppercase">Første</th>
             <th className="text-right py-1 text-xs tracking-widest uppercase">Siste</th>
@@ -902,9 +902,9 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
         </thead>
         <tbody>
           {rows.map(r => (
-            <tr key={r.label} style={{ color: '#F0F0F2', borderBottom: '1px solid #1E1E22' }}>
+            <tr key={r.label} style={{ color: 'var(--tekst-1-app)', borderBottom: '1px solid var(--kant-3)' }}>
               <td className="py-1">{r.label}</td>
-              <td className="py-1 text-right" style={{ color: '#8A8A96' }}>{r.firstVal}</td>
+              <td className="py-1 text-right" style={{ color: 'var(--tekst-5-app)' }}>{r.firstVal}</td>
               <td className="py-1 text-right">{r.lastVal}</td>
               <td className="py-1 text-right" style={{ color: r.color }}>{r.deltaText}</td>
             </tr>
@@ -916,7 +916,7 @@ function DiffRow({ first, last }: { first: ComparableWorkout; last: ComparableWo
 }
 
 function colorForDelta(diff: number, positiveIsGood: boolean): string {
-  if (diff === 0) return '#8A8A96'
+  if (diff === 0) return 'var(--tekst-5-app)'
   const good = positiveIsGood ? diff > 0 : diff < 0
   return good ? '#28A86E' : '#E23A5A'
 }
@@ -968,7 +968,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         Splits per km
       </p>
       <div style={{ width: '100%', height: 260 }}>
@@ -976,7 +976,7 @@ function SplitsCompareChart({ workouts }: { workouts: DetailedWorkout[] }) {
           <LineChart>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-              label={{ value: 'km', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
+              label={{ value: 'km', position: 'insideBottom', offset: -2, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
             <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={48} reversed tickFormatter={fmt} />
             <Tooltip content={<XpTooltip />}
@@ -1014,7 +1014,7 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
         Laktat-utvikling
       </p>
       <div style={{ width: '100%', height: 240 }}>
@@ -1022,10 +1022,10 @@ function LactateOverTimeChart({ workouts }: { workouts: DetailedWorkout[] }) {
           <LineChart>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis type="number" dataKey="x" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
-              label={{ value: 'minutter / aktivitet', position: 'insideBottom', offset: -2, fill: '#555560', fontSize: 11 }} />
+              label={{ value: 'minutter / aktivitet', position: 'insideBottom', offset: -2, fill: 'var(--tekst-8-app)', fontSize: 11 }} />
             <YAxis type="number" tick={CHART_AXIS_TICK} axisLine={CHART_AXIS_LINE} tickLine={false}
               width={40}
-              label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: '#555560', fontSize: 11 }} />
+              label={{ value: 'mmol', angle: -90, position: 'insideLeft', fill: 'var(--tekst-8-app)', fontSize: 11 }} />
             <Tooltip content={<XpTooltip />} />
             <Legend wrapperStyle={CHART_LEGEND_STYLE} />
             {series.map(s => (

@@ -32,7 +32,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
 
       <h3
         style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '22px', letterSpacing: '0.05em', margin: 0,
         }}
       >
@@ -42,7 +42,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
       <p
         className="mt-2"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
           fontSize: '14px', lineHeight: 1.65, maxWidth: '560px',
         }}
       >
@@ -53,7 +53,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
       <ul
         className="mt-3 flex flex-wrap gap-x-4 gap-y-1 list-none p-0"
         style={{
-          fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+          fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
           fontSize: '13px', letterSpacing: '0.04em',
         }}
       >
@@ -67,7 +67,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
         className="inline-block mt-4 text-sm tracking-widest uppercase transition-opacity hover:opacity-90"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: accent, color: '#F0F0F2',
+          backgroundColor: accent, color: 'var(--tekst-1-app)',
           padding: '9px 18px', textDecoration: 'none',
         }}
       >

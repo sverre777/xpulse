@@ -832,7 +832,20 @@ nav {
   transition:color .15s,border-color .15s}
 .nav-tema:hover{color:var(--orange);border-color:var(--orange)}
 .nav-tema svg{display:block;flex-shrink:0}
-@media(max-width:900px){.nav-tema span{display:none}.nav-tema{padding:8px 12px}}
+/* TO monteringsplasser, EN kilde til sannhet.
+   .nav-links skjules under 900px, saa knappen der forsvinner paa mobil.
+   Mobil-varianten ligger derfor rett i nav-baren, ved siden av hamburgeren -
+   den er et raskt bytte, ikke en innstilling man graver etter i en meny.
+   Tilstanden bor i data-tema og localStorage, ikke i knappene, saa de to kan
+   ikke komme ut av takt. */
+.nav-tema-mobil{display:none;min-width:44px;min-height:44px;justify-content:center;padding:8px}
+@media(max-width:900px){
+  /* Skjul KUN etiketten, ikke ikon-wrapperen. `.nav-tema span` traff begge,
+     og da fikk svg-en bredde 0 og knappen sto tom. */
+  .nav-tema span:not(.tema-ikon){display:none}
+  .nav-tema{padding:8px 12px}
+  .nav-tema-mobil{display:inline-flex}
+}
 
 .nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
 .dropdown-trigger {
@@ -927,10 +940,11 @@ nav {
     </li>
     <li><a href="#priser">Priser</a></li>
     <li><a href="#faq">FAQ</a></li>
-  <li><button type="button" class="nav-tema" id="temabryter"><span class="tema-ikon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span>Lys modus</span></button></li>
+  <li><button type="button" class="nav-tema"><span class="tema-ikon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span>Lys modus</span></button></li>
     <li><a href="/app" class="nav-login">Logg inn</a></li>
     <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
   </ul>
+  <button type="button" class="nav-tema nav-tema-mobil"><span class="tema-ikon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span></span></button>
   <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Åpne meny" aria-controls="navPanel" aria-expanded="false">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M4 7 H20"/><path d="M4 12 H20"/><path d="M4 17 H20"/>
@@ -1610,22 +1624,27 @@ nav {
 (function(){
   var SOL='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
   var MANE='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  var b=document.getElementById('temabryter');
-  if(!b)return;
+  var knapper=[].slice.call(document.querySelectorAll('.nav-tema'));
+  if(!knapper.length)return;
   function tegn(){
     var lys=document.documentElement.dataset.tema==='lys';
-    b.querySelector('.tema-ikon').innerHTML=lys?MANE:SOL;
-    b.querySelector('span:last-child').textContent=lys?'Mørk modus':'Lys modus';
-    b.setAttribute('aria-label',lys?'Bytt til mørk modus':'Bytt til lys modus');
-    b.setAttribute('title',b.getAttribute('aria-label'));
+    var etikett=lys?'Bytt til mørk modus':'Bytt til lys modus';
+    knapper.forEach(function(b){
+      b.querySelector('.tema-ikon').innerHTML=lys?MANE:SOL;
+      b.querySelector('span:last-child').textContent=lys?'Mørk modus':'Lys modus';
+      b.setAttribute('aria-label',etikett);
+      b.setAttribute('title',etikett);
+    });
     var m=document.querySelector('meta[name="theme-color"]');
     if(m)m.setAttribute('content',lys?'#F4F4F5':'#0A0A0B');
   }
-  b.addEventListener('click',function(){
-    var neste=document.documentElement.dataset.tema==='lys'?'mork':'lys';
-    document.documentElement.dataset.tema=neste;
-    try{localStorage.setItem('xpulse-tema',neste)}catch(e){}
-    tegn();
+  knapper.forEach(function(b){
+    b.addEventListener('click',function(){
+      var neste=document.documentElement.dataset.tema==='lys'?'mork':'lys';
+      document.documentElement.dataset.tema=neste;
+      try{localStorage.setItem('xpulse-tema',neste)}catch(e){}
+      tegn();
+    });
   });
   tegn();
 })()</script>

@@ -139,14 +139,22 @@ export function LandingNav() {
           </li>
         </ul>
 
-        <button type="button"
-          onClick={() => setPanelOpen(true)}
-          className="lg:hidden"
-          aria-label="Åpne meny"
-          style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
-        >
-          <MenuIcon size={26} />
-        </button>
+        {/* TO monteringsplasser, EN kilde til sannhet. Lista over er
+            `hidden lg:flex`, saa bryteren der forsvinner paa mobil. Denne
+            ligger i selve nav-baren ved siden av menyknappen — synlig UTEN aa
+            aapne noen meny. Tilstanden bor i data-tema og localStorage, ikke
+            i knappene, saa de to kan ikke komme ut av takt. */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <TemaBryter accent="#FF4500" storrelse={44} />
+
+          <button type="button"
+            onClick={() => setPanelOpen(true)}
+            aria-label="Åpne meny"
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
+          >
+            <MenuIcon size={26} />
+          </button>
+        </div>
       </nav>
 
       {panelOpen && (

@@ -717,7 +717,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                         position: 'absolute', top: -9, left: 5, zIndex: 2,
                         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, fontWeight: 700,
                         letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                        background: 'var(--bg-primary, #0A0A0B)', borderRadius: 5, padding: '1px 6px',
+                        background: 'var(--flate-3, #0A0A0B)', borderRadius: 5, padding: '1px 6px',
                         color: color ?? '#8B8B95', border: `1px solid ${color ? `${color}80` : 'var(--line2)'}`,
                         maxWidth: '160%', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>

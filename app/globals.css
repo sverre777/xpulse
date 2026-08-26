@@ -115,27 +115,10 @@
 
 @import "tailwindcss";
 
-:root {
-  --bg-primary: #0A0A0B;
-  --bg-secondary: #13131A;
-  --bg-card: #1A1A22;
-  --bg-elevated: #1C1C21;
-  --accent-orange: #FF4500;
-  --accent-orange-hover: #E03D00;
-  --accent-orange-dim: rgba(255, 69, 0, 0.15);
-  --accent-blue: #1A6FD4;
-  --accent-blue-hover: #155DB8;
-  --accent-blue-dim: rgba(26, 111, 212, 0.15);
-  --text-primary: #F0F0F2;
-  --text-secondary: #8A8A96;
-  --text-muted: #55555F;
-  --border: #222228;
-  --border-hover: #333340;
-}
 
 @theme inline {
-  --color-background: var(--bg-primary);
-  --color-foreground: var(--text-primary);
+  --color-background: var(--flate-3);
+  --color-foreground: var(--tekst-1-app);
 }
 
 /* Hev minste fontstørrelse for lesbarhet — text-xs løftes fra 12px til 13px globalt. */
@@ -149,12 +132,12 @@
 }
 
 html {
-  background-color: var(--bg-primary);
+  background-color: var(--flate-3);
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--flate-3);
+  color: var(--tekst-1-app);
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -180,21 +163,21 @@ h1, h2, h3, h4, h5, h6 {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: var(--flate-12-alt);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-hover);
+  background: var(--kant-hover);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--tekst-8-alt);
 }
 
 /* Input base */
 input, select, textarea {
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  background-color: var(--flate-15);
+  border: 1px solid var(--kant-4);
+  color: var(--tekst-1-app);
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 16px;
   transition: border-color 0.15s ease;
@@ -202,11 +185,11 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--accent-orange);
+  border-color: var(--orange);
 }
 
 input::placeholder {
-  color: var(--text-muted);
+  color: var(--tekst-8-alt);
 }
 
 /* Landing-undersider topbar — speiler xpulse.html nav-stil. Hover-effekt
@@ -428,7 +411,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-tl { position: relative; padding-left: 26px; }
 .xp-tl::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent-soft)); border-radius: 2px; }
 .xp-act { position: relative; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); }
-.xp-act::before { content: ''; position: absolute; left: -23px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg-primary); border: 3px solid var(--accent); }
+.xp-act::before { content: ''; position: absolute; left: -23px; top: 22px; width: 12px; height: 12px; border-radius: 50%; background: var(--flate-3); border: 3px solid var(--accent); }
 .xp-act-h { display: flex; align-items: center; gap: 10px; padding: 13px 14px; cursor: pointer; user-select: none; }
 .xp-act-t { font-weight: 700; font-size: 16.5px; letter-spacing: .02em; flex: 1; color: var(--ink); font-family: 'Barlow Condensed', sans-serif; }
 .xp-act-t small { color: var(--mut); font-weight: 500; }
@@ -439,7 +422,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .xp-sonebox { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--r-field); padding: 14px; }
 .xp-sonebar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; display: flex; }
 .xp-sonebar i { display: block; height: 100%; }
-.xp-zone-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; padding: 8px 4px; text-align: center; }
+.xp-zone-input { width: 100%; background: var(--flate-3); border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font-family: 'Barlow Condensed', sans-serif; font-size: 14px; padding: 8px 4px; text-align: center; }
 .xp-zone-input:focus { outline: none; border-color: var(--accent); }
 .xp-sonehint { font-size: 13.5px; color: var(--dim); margin-top: 10px; letter-spacing: .03em; font-family: 'Barlow Condensed', sans-serif; }
 
@@ -659,6 +642,8 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --kant-6-alt: #2A2A32;
   --kant-6-app: #2A2A33;  /* xpulse --line2 */
   --kant-7: #34343E;
+  --kant-hover: #333340;  /* var --border-hover. Kanalspenn 13, sa den
+                             falt utenfor noytral-grensa i steg 1. */
 
   /* Flater */
   --flate-1: #060607;
@@ -737,6 +722,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --kant-6-alt: #CDCDD5;
   --kant-6-app: #CCCCD5;  /* xpulse --line2 */
   --kant-7: #C1C1CB;
+  --kant-hover: #BFBFCC;
 
   /* Flater */
   --flate-1: #F8F8F9;

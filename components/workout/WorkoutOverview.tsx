@@ -367,7 +367,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               return (
                 <div key={a.id} className="relative flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
                   style={{ borderBottom: i < activities.length - 1 ? '1px solid var(--line)' : 'none' }}>
-                  <span style={{ position: 'absolute', left: -21, top: 18, width: 10, height: 10, borderRadius: '50%', background: 'var(--bg-primary, #0A0A0B)', border: `3px solid ${isShooting ? '#E23A5A' : isPause ? '#55555F' : 'var(--accent)'}` }} />
+                  <span style={{ position: 'absolute', left: -21, top: 18, width: 10, height: 10, borderRadius: '50%', background: 'var(--flate-3, #0A0A0B)', border: `3px solid ${isShooting ? '#E23A5A' : isPause ? '#55555F' : 'var(--accent)'}` }} />
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#F2F2F0' }}>
                     {activityLabel(a)}
                     {a.movement_name && <small style={{ color: '#8B8B95', fontWeight: 500 }}> · {a.movement_name}{a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}</small>}

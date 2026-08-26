@@ -99,7 +99,7 @@ export function PlanMalDayEditor({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: 'var(--bg-primary)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
           maxWidth: '820px', width: '100%',
           margin: '0 auto', marginBottom: '24px',
         }}

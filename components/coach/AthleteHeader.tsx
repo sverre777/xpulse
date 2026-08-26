@@ -15,7 +15,7 @@ function PermissionIcon({ label, granted }: { label: string; granted: boolean })
       className="text-xs tracking-widest uppercase px-2 py-0.5"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: granted ? '#F0F0F2' : '#555560',
+        color: granted ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
         border: `1px solid ${granted ? COACH_BLUE : 'var(--line)'}`,
         backgroundColor: granted ? 'rgba(26,111,212,0.1)' : 'transparent',
       }}
@@ -84,14 +84,14 @@ export function AthleteHeader({ context }: Props) {
               className="text-2xl sm:text-3xl md:text-4xl break-words"
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                color: '#F0F0F2', letterSpacing: '0.04em',
+                color: 'var(--tekst-1-app)', letterSpacing: '0.04em',
               }}
             >
               {displayName}
             </h1>
             <p
               className="text-xs tracking-wide mt-0.5 break-words"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               {sportLabel ? `${sportLabel}` : 'Ingen idrett valgt'}
               {profile.email && ` · ${profile.email}`}
@@ -117,7 +117,7 @@ export function AthleteHeader({ context }: Props) {
             className="flex-1 sm:flex-none text-center px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: '#F0F0F2',
+              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               textDecoration: 'none',
             }}
           >
@@ -133,7 +133,7 @@ export function AthleteHeader({ context }: Props) {
       >
         <span
           className="text-xs tracking-widest uppercase mr-2"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
         >
           Tilganger:
         </span>

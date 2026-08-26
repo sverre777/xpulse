@@ -50,7 +50,7 @@ export function CoachEquipmentView({
   if (equipment.length === 0) {
     return (
       <div className="p-12 text-center" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px' }}>
           Ingen utstyr registrert av utøveren.
         </p>
       </div>
@@ -87,7 +87,7 @@ export function CoachEquipmentView({
             className="xp-pill"
             style={{
               fontWeight: 700, fontSize: 12, letterSpacing: '0.18em',
-              background: COACH_BLUE, color: '#F0F0F2', borderColor: COACH_BLUE,
+              background: COACH_BLUE, color: 'var(--tekst-1-app)', borderColor: COACH_BLUE,
             }}>
             + Legg til ski-test
           </button>
@@ -100,7 +100,7 @@ export function CoachEquipmentView({
       ) : (canEditPlan && skiCount > 0 && skiEquipment.length > 0) ? (
         <p className="p-4 text-xs"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
             backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
           }}>
           Ingen ski-tester registrert enda — trykk "+ Legg til ski-test" for å logge dagens forhold.
@@ -127,19 +127,19 @@ function EquipmentCard({ equipment }: { equipment: EquipmentWithUsage }) {
     <div className="p-4"
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {EQUIPMENT_CATEGORY_LABELS[normalizeCategory(equipment.category)]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
       </p>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '17px' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '17px' }}>
         {equipment.name}
       </p>
       {subtitle && (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
           {subtitle}
         </p>
       )}
       <p className="text-xs tracking-widest uppercase mt-3"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {equipment.usage.total_km.toFixed(1)} km · {equipment.usage.workout_count} økter
       </p>
     </div>
@@ -158,7 +158,7 @@ function SkiTestsBlock({
     <div className="mt-8">
       <div className="flex items-center gap-3 mb-4">
         <span style={{ width: '24px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.06em' }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.06em' }}>
           Ski-tester
         </h2>
       </div>
@@ -171,11 +171,11 @@ function SkiTestsBlock({
               style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
               <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                 <div>
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                     {test.test_date}{test.location ? ` · ${test.location}` : ''}
                   </p>
                   <p className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {[test.snow_type, test.conditions].filter(Boolean).join(' · ') || '—'}
                     {test.air_temp != null ? ` · luft ${test.air_temp}°` : ''}
                     {test.snow_temp != null ? ` · snø ${test.snow_temp}°` : ''}
@@ -184,7 +184,7 @@ function SkiTestsBlock({
                 <div className="flex items-center gap-2 shrink-0">
                   {winnerSki && (
                     <span className="text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                       🏆 {winnerSki.name}
                     </span>
                   )}
@@ -204,12 +204,12 @@ function SkiTestsBlock({
                     const stats = testResultatDeler(en)
                     return (
                       <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
-                        style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)' }}>
-                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                        style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--line)' }}>
+                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                           {ski?.name ?? '—'}
                         </span>
                         <span className="text-xs tracking-widest uppercase"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                           {stats.join(' · ') || '—'}
                         </span>
                       </div>
@@ -233,7 +233,7 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
         // Pilleform som resten av utstyr-flaten; farge er trener-blaa her
         // (visningen er ikke pakket i .xp-coach, den setter blaatt selv).
         borderRadius: 999,
-        color: active ? '#F0F0F2' : '#8A8A96',
+        color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
         background: 'none',
         border: active ? `1px solid ${COACH_BLUE}` : '1px solid var(--line)',
         cursor: 'pointer',

@@ -83,7 +83,7 @@ export function PeriodiseringMalVolumeSection({
                 {labelFor(i)}
               </p>
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 {plan ? 'Planlagt' : 'Ingen plan'}
               </p>
             </div>
@@ -95,7 +95,7 @@ export function PeriodiseringMalVolumeSection({
               onChange={v => updateMonth(i, { planned_km: v })} />
             <div>
               <label className="block mb-1 text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Notat
               </label>
               <input
@@ -118,7 +118,7 @@ export function PeriodiseringMalVolumeSection({
         )
       })}
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Tomme måneder lagres ikke. La stå tom om du ikke vil sette volum-mål.
       </p>
     </div>
@@ -160,16 +160,16 @@ function MalVolumeBreakdown({
   const movSum = Object.values(mh ?? {}).reduce((s, n) => s + n, 0)
   const fmtN = (n: number) => n.toLocaleString('nb-NO', { maximumFractionDigits: 1 })
   const softColor = (sum: number) =>
-    plannedHours != null && sum > plannedHours ? '#FF8C00' : '#555560'
+    plannedHours != null && sum > plannedHours ? '#FF8C00' : 'var(--tekst-8-app)'
 
   return (
     <div>
       <button type="button" onClick={() => setOpen(!open)}
         className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0', letterSpacing: '0.06em', minHeight: 36 }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0', letterSpacing: '0.06em', minHeight: 36 }}>
         {open ? '▾' : '▸'} Fordeling
         {!open && (zoneSum > 0 || movSum > 0) && (
-          <span style={{ color: '#555560' }}>
+          <span style={{ color: 'var(--tekst-8-app)' }}>
             {zoneSum > 0 ? ` · soner ${fmtN(zoneSum)} t` : ''}
             {movSum > 0 ? ` · bev.form ${fmtN(movSum)} t` : ''}
           </span>
@@ -188,9 +188,9 @@ function MalVolumeBreakdown({
                 className="text-xs px-2 py-0.5"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: zoneMode === m ? '#F0F0F2' : '#555560',
-                  background: zoneMode === m ? '#1A1A22' : 'none',
-                  border: `1px solid ${zoneMode === m ? '#2A2A32' : '#1E1E22'}`,
+                  color: zoneMode === m ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
+                  background: zoneMode === m ? 'var(--flate-14)' : 'none',
+                  border: `1px solid ${zoneMode === m ? 'var(--kant-6-alt)' : 'var(--kant-3)'}`,
                   cursor: 'pointer',
                 }}>
                 {m === 'gruppert' ? 'I1–2 / I3 / I4–5' : 'I1…I5'}
@@ -231,7 +231,7 @@ function MalVolumeBreakdown({
                   placeholder="t" style={{ ...iSt, width: 72 }} />
                 <button type="button" aria-label="Fjern"
                   onClick={() => setMov(movEntries.filter((_, xi) => xi !== i))}
-                  style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
+                  style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '8px 10px', minHeight: 36 }}>
                   ✕
                 </button>
               </div>
@@ -239,7 +239,7 @@ function MalVolumeBreakdown({
             <button type="button"
               onClick={() => onPatch({ movement_hours: { ...(mh ?? {}), 'Ny bevegelsesform': 1 } })}
               className="text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: '1px dashed #1E1E22', padding: '3px 8px', cursor: 'pointer' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--kant-3)', padding: '3px 8px', cursor: 'pointer' }}>
               + Bevegelsesform
             </button>
             {movSum > 0 && plannedHours != null && (
@@ -264,7 +264,7 @@ function NumField({
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       <input
@@ -287,7 +287,7 @@ function NumField({
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

@@ -107,7 +107,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             minWidth: '160px',
           }}
@@ -119,7 +119,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
         >
@@ -135,7 +135,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
         >
@@ -152,7 +152,7 @@ export function UtovereGrid({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
         >
@@ -175,7 +175,7 @@ export function UtovereGrid({ athletes }: Props) {
           />
         ) : (
           <p className="px-4 py-6 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen utøvere matcher filteret.
           </p>
         )
@@ -216,7 +216,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
               href={`/app/trener/${athlete.id}`}
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 fontSize: '20px',
                 letterSpacing: '0.05em',
                 textDecoration: 'none',
@@ -229,7 +229,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
                 className="text-xs px-1.5"
                 style={{
                   backgroundColor: COACH_BLUE,
-                  color: '#F0F0F2',
+                  color: 'var(--tekst-1-app)',
                   fontFamily: "'Barlow Condensed', sans-serif",
                   minWidth: '18px',
                   textAlign: 'center',
@@ -240,12 +240,12 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
             )}
           </div>
           <p className="text-xs mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {sportLabel(athlete.primarySport)}
             {athlete.mainGoal && ` · ${athlete.mainGoal}`}
           </p>
           <p className="text-xs mt-0.5"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {formatLastWorkout(athlete.lastWorkoutDate, athlete.lastWorkoutTitle)}
           </p>
         </div>
@@ -288,8 +288,8 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96',
-            border: '1px solid #2A2A30',
+            color: 'var(--tekst-5-app)',
+            border: '1px solid var(--kant-6)',
             textDecoration: 'none',
           }}
         >
@@ -300,8 +300,8 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
           className="px-2 py-1 text-xs tracking-widest uppercase transition-colors hover:bg-[rgba(26,111,212,0.1)]"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96',
-            border: '1px solid #2A2A30',
+            color: 'var(--tekst-5-app)',
+            border: '1px solid var(--kant-6)',
             textDecoration: 'none',
           }}
         >
@@ -314,7 +314,7 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: COACH_BLUE,
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             textDecoration: 'none',
           }}
         >
@@ -327,15 +327,15 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
 
 function PeriodStats({ label, stats }: { label: string; stats: { sessions: number; minutes: number; km: number } }) {
   return (
-    <div className="px-4 py-3" style={{ backgroundColor: '#0D0D11' }}>
+    <div className="px-4 py-3" style={{ backgroundColor: 'var(--flate-6-alt)' }}>
       <p className="text-xs tracking-widest uppercase mb-1.5"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
       <div className="flex items-baseline gap-3 flex-wrap">
         <span style={{
           fontFamily: "'Bebas Neue', sans-serif",
-          color: stats.minutes > 0 ? COACH_BLUE : '#2A2A30',
+          color: stats.minutes > 0 ? COACH_BLUE : 'var(--kant-6)',
           fontSize: '22px',
           lineHeight: 1,
           letterSpacing: '0.04em',
@@ -345,7 +345,7 @@ function PeriodStats({ label, stats }: { label: string; stats: { sessions: numbe
         {stats.km > 0 && (
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96',
+            color: 'var(--tekst-5-app)',
             fontSize: '12px',
           }}>
             {fmtKm(stats.km)} km
@@ -353,7 +353,7 @@ function PeriodStats({ label, stats }: { label: string; stats: { sessions: numbe
         )}
       </div>
       <p className="text-xs mt-0.5"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {stats.sessions} økt{stats.sessions !== 1 ? 'er' : ''}
       </p>
     </div>

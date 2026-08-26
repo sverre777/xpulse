@@ -105,16 +105,16 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <div className="flex items-center gap-3 mb-2">
           <span style={{ width: '24px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
             Sammenligne utøvere
           </h1>
         </div>
         <p className="mb-6 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Velg utøvere, periode og fane for å sammenligne belastning, tester og konkurranser side om side.
         </p>
 
@@ -124,14 +124,14 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
           style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Periode {isPending && <span className="ml-2 normal-case" style={{ color: COACH_BLUE }}>…laster</span>}
             </p>
             <DateRangePicker value={range} onChange={r => { setRange(r); setMulti(null); setTests(null) }} />
           </div>
           <div className="md:min-w-[180px]">
             <p className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Sport
             </p>
             <select
@@ -143,7 +143,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               className="w-full px-3 py-2 text-sm"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#0A0A0B', color: '#F0F0F2',
+                backgroundColor: 'var(--flate-3)', color: 'var(--tekst-1-app)',
                 border: '1px solid var(--line)', minHeight: '44px',
               }}>
               <option value="">Alle</option>
@@ -155,7 +155,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: '#F0F0F2',
+              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               border: 'none', minHeight: '44px',
               opacity: hasValidSelection ? 1 : 0.4, cursor: hasValidSelection ? 'pointer' : 'not-allowed',
             }}>
@@ -172,7 +172,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: tab === t.key ? 'var(--card2)' : 'transparent',
                 borderBottom: tab === t.key ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
-                color: tab === t.key ? '#F0F0F2' : '#555560',
+                color: tab === t.key ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 minHeight: '44px',
               }}>
               {t.label}
@@ -182,7 +182,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
 
         {error && (
           <div className="p-4 mb-4" style={{ backgroundColor: '#2A0E0E', border: '1px solid #E11D48' }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
               {error}
             </p>
           </div>
@@ -190,7 +190,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
 
         {!hasValidSelection && (
           <div className="py-16 text-center" style={{ border: '1px dashed var(--line)' }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
               Velg minst én utøver å sammenligne.
             </p>
           </div>
@@ -243,7 +243,7 @@ function AthletePicker({
   if (athletes.length === 0) {
     return (
       <div className="p-6 text-center" style={{ border: '1px dashed var(--line)' }}>
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
           Ingen aktive utøvere.
         </p>
       </div>
@@ -252,7 +252,7 @@ function AthletePicker({
   return (
     <div>
       <p className="mb-2 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Utøvere ({selected.length} valgt)
       </p>
       <div className="flex gap-2 flex-wrap">
@@ -268,7 +268,7 @@ function AthletePicker({
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: active ? COACH_BLUE + '33' : 'transparent',
                 border: `1px solid ${active ? COACH_BLUE : 'var(--line)'}`,
-                color: disabled ? '#2A2A30' : active ? COACH_BLUE : '#8A8A96',
+                color: disabled ? 'var(--kant-6)' : active ? COACH_BLUE : 'var(--tekst-5-app)',
                 minHeight: '36px',
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 opacity: disabled ? 0.5 : 1,

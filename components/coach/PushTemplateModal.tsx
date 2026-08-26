@@ -60,7 +60,7 @@ export function PushTemplateModal({
       onClick={close}
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'var(--scrim-60)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '40px 16px',
       }}
@@ -83,7 +83,7 @@ export function PushTemplateModal({
             </div>
             <div
               className="text-lg"
-              style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+              style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
             >
               {athleteName}
             </div>
@@ -94,7 +94,7 @@ export function PushTemplateModal({
             className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
+              color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -178,7 +178,7 @@ function TabButton({ label, active, onClick, disabled }: {
       className="flex-1 px-3 py-2 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: disabled ? '#3A3A42' : (active ? '#F0F0F2' : '#8A8A96'),
+        color: disabled ? 'var(--tekst-10-alt)' : (active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)'),
         backgroundColor: 'transparent',
         border: 'none',
         borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
@@ -194,7 +194,7 @@ function inputStyle(): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
     backgroundColor: 'var(--card2)',
-    color: '#F0F0F2',
+    color: 'var(--tekst-1-app)',
     border: '1px solid var(--line)',
     padding: '6px 8px',
     width: '100%',
@@ -204,7 +204,7 @@ function inputStyle(): React.CSSProperties {
 function labelStyle(): React.CSSProperties {
   return {
     fontFamily: "'Barlow Condensed', sans-serif",
-    color: '#8A8A96',
+    color: 'var(--tekst-5-app)',
     fontSize: '13px',
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
@@ -224,7 +224,7 @@ function PrimaryButton({
       className="px-4 py-2 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: COACH_BLUE, color: '#F0F0F2',
+        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
         border: 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
@@ -353,7 +353,7 @@ function CompetitionPushForm({
       <label className="flex items-center gap-2 mt-1" style={{ cursor: 'pointer' }}>
         <input type="checkbox" checked={priorityA} onChange={e => setPriorityA(e.target.checked)} />
         <span className="text-xs tracking-wide"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           A-mål (viktig konkurranse)
         </span>
       </label>
@@ -419,12 +419,12 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
   }
   if (list === null) {
     return <p className="text-xs"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Laster maler…</p>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Laster maler…</p>
   }
   if (list.length === 0) {
     return (
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Ingen plan-maler ennå. Lag maler fra ditt eget Plan-tab for å kunne pushe dem til utøvere.
       </p>
     )
@@ -474,7 +474,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
               className="text-xs tracking-widest uppercase px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
+                color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
                 background: 'transparent',
                 border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',
@@ -501,7 +501,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
             className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
+              color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}
           >
@@ -513,7 +513,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                 border: '1px solid var(--line)', maxHeight: '260px', overflowY: 'auto',
               }}>
               <table className="w-full text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 <thead style={{ backgroundColor: 'var(--card2)' }}>
                   <tr>
                     <Th>Økt</Th>
@@ -533,13 +533,13 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
                           <span className="block truncate" style={{ maxWidth: '160px' }}>
                             {w.title}
                           </span>
-                          <span className="text-xs" style={{ color: '#555560' }}>
+                          <span className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
                             {w.sport} · {w.workoutType}
                           </span>
                         </Td>
-                        <Td><span style={{ color: '#8A8A96' }}>Dag {w.dayOffset + 1}</span></Td>
+                        <Td><span style={{ color: 'var(--tekst-5-app)' }}>Dag {w.dayOffset + 1}</span></Td>
                         <Td>
-                          <span style={{ color: isOverride ? '#8A8A96' : '#F0F0F2' }}>
+                          <span style={{ color: isOverride ? 'var(--tekst-5-app)' : 'var(--tekst-1-app)' }}>
                             {formatNorskKortDato(computed)}
                           </span>
                         </Td>
@@ -574,7 +574,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
       )}
 
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Eksisterende hviledager, perioden-notater og fokuspunkter på utøveren beholdes — bare nye legges til.
       </p>
 
@@ -588,7 +588,7 @@ function PlanTemplatePushForm({ athleteId, isPending, startTransition, onDone, o
 function Th({ children }: { children: React.ReactNode }) {
   return (
     <th className="text-left px-2 py-1.5 text-xs tracking-widest uppercase"
-      style={{ color: '#8A8A96', fontWeight: 'normal' }}>
+      style={{ color: 'var(--tekst-5-app)', fontWeight: 'normal' }}>
       {children}
     </th>
   )
@@ -622,12 +622,12 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
   }
   if (list === null) {
     return <p className="text-xs"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>Laster maler…</p>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>Laster maler…</p>
   }
   if (list.length === 0) {
     return (
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Ingen årsplan-maler ennå.
       </p>
     )
@@ -673,7 +673,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
               className="text-xs tracking-widest uppercase px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: usingOriginalStart ? '#8A8A96' : COACH_BLUE,
+                color: usingOriginalStart ? 'var(--tekst-5-app)' : COACH_BLUE,
                 background: 'transparent',
                 border: `1px solid ${usingOriginalStart ? 'var(--line)' : COACH_BLUE}`,
                 cursor: usingOriginalStart ? 'default' : 'pointer',
@@ -706,7 +706,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
       )}
 
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Eksisterende sesonger og perioder beholdes — den nye legges ved siden av.
       </p>
 

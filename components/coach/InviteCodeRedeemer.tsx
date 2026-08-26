@@ -58,7 +58,7 @@ export function InviteCodeRedeemer() {
         className="px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: COACH_BLUE, color: '#F0F0F2',
+          backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
           border: 'none', cursor: 'pointer',
         }}
       >
@@ -72,7 +72,7 @@ export function InviteCodeRedeemer() {
           onClick={close}
           style={{
             position: 'fixed', inset: 0, zIndex: 60,
-            backgroundColor: 'rgba(0,0,0,0.6)',
+            backgroundColor: 'var(--scrim-60)',
             display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
             padding: '60px 16px',
           }}
@@ -90,7 +90,7 @@ export function InviteCodeRedeemer() {
             >
               <div
                 className="text-lg"
-                style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+                style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
               >
                 Legg til utøver
               </div>
@@ -100,7 +100,7 @@ export function InviteCodeRedeemer() {
                 className="text-xs tracking-widest uppercase px-2 py-1"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
+                  color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
                   cursor: 'pointer',
                 }}
               >
@@ -110,7 +110,7 @@ export function InviteCodeRedeemer() {
 
             <div className="p-5 flex flex-col gap-3">
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Lim inn trener-koden fra utøveren for å opprette kobling.
               </p>
               <input
@@ -123,7 +123,7 @@ export function InviteCodeRedeemer() {
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   backgroundColor: 'var(--card2)',
-                  color: '#F0F0F2',
+                  color: 'var(--tekst-1-app)',
                   border: '1px solid var(--line)',
                   padding: '10px 12px',
                   fontSize: '20px',
@@ -151,7 +151,7 @@ export function InviteCodeRedeemer() {
                   className="px-4 py-2 text-xs tracking-widest uppercase"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                    backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                     border: 'none',
                     cursor: isPending || !code.trim() ? 'not-allowed' : 'pointer',
                     opacity: isPending || !code.trim() ? 0.5 : 1,

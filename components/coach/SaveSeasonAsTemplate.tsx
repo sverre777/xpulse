@@ -61,7 +61,7 @@ export function SaveSeasonAsTemplate({
         className="px-3 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          backgroundColor: COACH_BLUE, color: '#F0F0F2',
+          backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
           border: 'none', cursor: 'pointer',
         }}
       >
@@ -72,7 +72,7 @@ export function SaveSeasonAsTemplate({
         <div
           onClick={() => setOpen(false)}
           style={{
-            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+            position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
             zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
             paddingTop: '12vh',
           }}
@@ -80,7 +80,7 @@ export function SaveSeasonAsTemplate({
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+              backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
               maxWidth: '520px', width: '100%', margin: '0 16px',
             }}
           >
@@ -92,7 +92,7 @@ export function SaveSeasonAsTemplate({
               </span>
               <button type="button" onClick={() => setOpen(false)} aria-label="Lukk"
                 style={{
-                  color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
                   fontSize: 24, lineHeight: 1, padding: 0,
                 }}>
                 ×
@@ -102,15 +102,15 @@ export function SaveSeasonAsTemplate({
             <div className="p-4 flex flex-col gap-3">
               {done ? (
                 <>
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                     ✓ Mal lagret i ditt mal-bibliotek.
                   </p>
                   <div className="flex gap-2 justify-end">
                     <button type="button" onClick={() => setOpen(false)}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
-                        fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                        background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                        background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
                       }}>
                       Lukk
                     </button>
@@ -118,7 +118,7 @@ export function SaveSeasonAsTemplate({
                       className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                         border: 'none', cursor: 'pointer',
                         textDecoration: 'none',
                       }}>
@@ -129,21 +129,21 @@ export function SaveSeasonAsTemplate({
               ) : (
                 <>
                   <p className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     Snapshotter sesongens perioder og nøkkeldatoer som relativ mal
                     (dag-offset). Malen havner i ditt eget bibliotek — ikke utøverens.
                   </p>
 
                   <div>
                     <label className="block mb-1 text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       Mal-navn
                     </label>
                     <input value={name} onChange={e => setName(e.target.value)} style={iSt} />
                   </div>
                   <div>
                     <label className="block mb-1 text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       Sport-kategori
                     </label>
                     <select value={category} onChange={e => setCategory(e.target.value)} style={iSt}>
@@ -152,7 +152,7 @@ export function SaveSeasonAsTemplate({
                   </div>
                   <div>
                     <label className="block mb-1 text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       Beskrivelse (valgfri)
                     </label>
                     <textarea value={description} onChange={e => setDescription(e.target.value)}
@@ -173,8 +173,8 @@ export function SaveSeasonAsTemplate({
                     <button type="button" onClick={() => setOpen(false)}
                       className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
-                        fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                        background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                        background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
                       }}>
                       Avbryt
                     </button>
@@ -182,7 +182,7 @@ export function SaveSeasonAsTemplate({
                       className="px-4 py-2 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                         border: 'none',
                         cursor: pending ? 'not-allowed' : 'pointer',
                         opacity: pending ? 0.5 : 1,
@@ -203,7 +203,7 @@ export function SaveSeasonAsTemplate({
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

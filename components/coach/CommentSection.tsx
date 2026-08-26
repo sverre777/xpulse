@@ -83,7 +83,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
         <span style={{ width: '18px', height: '3px', borderRadius: 2, backgroundColor: COACH_BLUE, display: 'inline-block' }} />
         <span
           className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
         >
           {title ?? 'Kommentarer'} ({comments.length})
         </span>
@@ -92,7 +92,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
       <div className="px-4 py-3">
         {loading && (
           <p className="text-xs py-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Laster…
           </p>
         )}
@@ -104,7 +104,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
         )}
         {!loading && !error && comments.length === 0 && (
           <p className="text-xs py-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen kommentarer ennå.
           </p>
         )}
@@ -132,14 +132,14 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
                   <span className="flex-1" />
                   <span
                     className="text-xs tracking-wide"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
                   >
                     {timeLabel(c.createdAt)}
                   </span>
                 </div>
                 <p
                   className="text-sm whitespace-pre-wrap"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}
                 >
                   {c.content}
                 </p>
@@ -158,7 +158,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
             className="px-2 py-2 text-sm"
             style={{
               backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-              color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+              color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
               resize: 'vertical',
             }}
           />
@@ -170,7 +170,7 @@ export function CommentSection({ athleteId, context, scope, periodKey, viewerRol
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: viewerRole === 'coach' ? COACH_BLUE : ATHLETE_ORANGE,
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 border: 'none', cursor: 'pointer',
               }}
             >

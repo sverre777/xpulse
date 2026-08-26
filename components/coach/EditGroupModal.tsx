@@ -137,13 +137,13 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
       aria-modal="true"
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-10"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--scrim-70)' }}
     >
       <div
         onClick={e => e.stopPropagation()}
         className="w-full max-w-xl flex flex-col"
         style={{
-          backgroundColor: '#0E0E10',
+          backgroundColor: 'var(--flate-7)',
           border: '1px solid var(--line)',
           maxHeight: 'calc(100vh - 80px)',
         }}
@@ -164,7 +164,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
             aria-label="Lukk"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#8A8A96',
+              color: 'var(--tekst-5-app)',
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: '14px',
               padding: '4px 8px',
             }}
@@ -175,7 +175,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
 
         <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
           {loading && (
-            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Laster…
             </p>
           )}
@@ -193,7 +193,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
             <>
               <section className="flex flex-col gap-2">
                 <label className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   Navn
                 </label>
                 <input
@@ -204,11 +204,11 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-                    color: '#F0F0F2', outline: 'none',
+                    color: 'var(--tekst-1-app)', outline: 'none',
                   }}
                 />
                 <label className="text-xs tracking-widest uppercase mt-2"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   Beskrivelse
                 </label>
                 <textarea
@@ -219,7 +219,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-                    color: '#F0F0F2', outline: 'none', resize: 'vertical',
+                    color: 'var(--tekst-1-app)', outline: 'none', resize: 'vertical',
                   }}
                 />
                 <div className="flex justify-end">
@@ -230,7 +230,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                     className="px-3 py-1.5 text-xs tracking-widest uppercase"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                      backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                       border: 'none', cursor: isPending ? 'not-allowed' : 'pointer',
                       opacity: isPending ? 0.5 : 1,
                     }}
@@ -243,7 +243,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
               <section className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     Medlemmer ({details.members.length})
                   </span>
                   <button
@@ -267,7 +267,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                   >
                     {availableCandidates.length === 0 ? (
                       <p className="text-xs"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                         Ingen flere utøvere å legge til.
                       </p>
                     ) : (
@@ -276,7 +276,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                           className="flex items-center justify-between py-1"
                         >
                           <span className="text-sm"
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                             {c.athleteName ?? c.athleteEmail ?? 'Ukjent'}
                           </span>
                           <button
@@ -317,7 +317,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                 {confirmDelete ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                       Slett gruppe permanent?
                     </span>
                     <button
@@ -327,7 +327,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                       className="px-3 py-1.5 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#E11D48', color: '#F0F0F2',
+                        backgroundColor: '#E11D48', color: 'var(--tekst-1-app)',
                         border: 'none', cursor: 'pointer',
                       }}
                     >
@@ -339,7 +339,7 @@ export function EditGroupModal({ groupId, open, onClose }: Props) {
                       className="px-3 py-1.5 text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#8A8A96', border: '1px solid var(--line)',
+                        color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
                         background: 'none', cursor: 'pointer',
                       }}
                     >
@@ -384,12 +384,12 @@ function MemberRow({
     >
       <div className="min-w-0 flex-1">
         <span className="text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           {member.fullName ?? member.email ?? 'Ukjent'}
         </span>
         {member.isViewer && (
           <span className="text-xs tracking-widest uppercase ml-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             (deg)
           </span>
         )}
@@ -403,7 +403,7 @@ function MemberRow({
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-            color: '#F0F0F2', outline: 'none',
+            color: 'var(--tekst-1-app)', outline: 'none',
           }}
         >
           <option value="admin">Admin</option>
@@ -417,7 +417,7 @@ function MemberRow({
           className="text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96', background: 'none', border: 'none',
+            color: 'var(--tekst-5-app)', background: 'none', border: 'none',
             cursor: 'pointer', padding: '4px 6px',
           }}
           aria-label="Fjern medlem"

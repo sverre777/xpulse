@@ -116,9 +116,9 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
 
       {confirmDelete && (
         <div className="mb-3 p-3"
-          style={{ backgroundColor: '#0A0A0B', border: '1px solid #FF4500' }}>
+          style={{ backgroundColor: 'var(--flate-3)', border: '1px solid #FF4500' }}>
           <p className="text-sm mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
             Slette dette notatet permanent?
           </p>
           <div className="flex gap-2">
@@ -134,8 +134,8 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
             <button type="button" onClick={() => setConfirmDelete(false)} disabled={pending}
               className="text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #262629',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-5)',
                 padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
               }}>
               Avbryt
@@ -162,8 +162,8 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
           <button type="button" onClick={onCancel} disabled={pending}
             className="text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #262629',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-5)',
               padding: '6px 12px', cursor: pending ? 'not-allowed' : 'pointer',
             }}>
             Avbryt
@@ -189,7 +189,7 @@ export function NoteForm({ initial, defaults, onCancel, onSaved, onDeleted }: Pr
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )
@@ -199,7 +199,7 @@ const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
   borderRadius: 'var(--r-field)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '6px 10px',

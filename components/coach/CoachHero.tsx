@@ -19,14 +19,14 @@ export function CoachHero({ firstName, activeAthletes, unreadNotifications }: Pr
       <div>
         <h1
           className="text-5xl md:text-6xl"
-          style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.05em' }}
+          style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.05em' }}
         >
           Hei, {firstName}
         </h1>
         <div className="flex items-center gap-3 mt-2 flex-wrap">
           <span
             className="text-base tracking-wide"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             {statusParts.join(' · ')}
           </span>

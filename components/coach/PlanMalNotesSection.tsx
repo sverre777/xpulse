@@ -69,15 +69,15 @@ function CollapsibleSection({
         className="w-full flex items-center justify-between px-3 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#C0C0CC',
+          color: 'var(--tekst-3-app)',
           background: 'var(--card)',
           border: 'none',
           cursor: 'pointer',
         }}>
         <span>{title}</span>
-        <span style={{ color: '#555560', fontSize: '14px' }}>{open ? '−' : '+'}</span>
+        <span style={{ color: 'var(--tekst-8-app)', fontSize: '14px' }}>{open ? '−' : '+'}</span>
       </button>
-      {open && <div className="p-3" style={{ background: '#0D0D11' }}>{children}</div>}
+      {open && <div className="p-3" style={{ background: 'var(--flate-6-alt)' }}>{children}</div>}
     </div>
   )
 }
@@ -98,7 +98,7 @@ function NoteList({
         return (
           <div key={key}>
             <label className="block mb-1 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {labelFor(i)}
             </label>
             <textarea
@@ -173,7 +173,7 @@ function FocusPointsEditor({
     <div className="flex flex-col gap-3">
       {sorted.length === 0 ? (
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen fokuspunkter ennå. Legg til ett under for å fremheve mål, fokusområder eller beskjeder for spesifikke dager, uker eller måneder.
         </p>
       ) : (
@@ -184,7 +184,7 @@ function FocusPointsEditor({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <div>
                   <label className="block mb-1 text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     Type
                   </label>
                   <select value={f.scope}
@@ -202,7 +202,7 @@ function FocusPointsEditor({
                 </div>
                 <div>
                   <label className="block mb-1 text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {labelFor(f.scope, f.period_offset)}
                   </label>
                   <input type="number" min={0} max={maxFor(f.scope)}
@@ -271,7 +271,7 @@ function AddBtn({ onClick, children }: { onClick: () => void; children: React.Re
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

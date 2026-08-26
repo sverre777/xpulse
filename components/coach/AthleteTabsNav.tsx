@@ -47,7 +47,7 @@ export function AthleteTabsNav({ athleteId, permissions }: Props) {
               className="px-4 py-3 text-sm tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#3A3A42',
+                color: 'var(--tekst-10-alt)',
                 borderBottom: '2px solid transparent',
                 cursor: 'not-allowed',
               }}
@@ -63,7 +63,7 @@ export function AthleteTabsNav({ athleteId, permissions }: Props) {
             className="px-4 py-3 text-sm tracking-widest uppercase transition-colors"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? '#F0F0F2' : '#8A8A96',
+              color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               borderBottom: active ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
               textDecoration: 'none',
               whiteSpace: 'nowrap',

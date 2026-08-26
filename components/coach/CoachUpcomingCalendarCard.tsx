@@ -43,7 +43,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Neste på kalenderen
           </span>
         </div>
@@ -61,7 +61,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
 
       {events.length === 0 ? (
         <p className="px-5 py-4 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen kommende konkurranser eller fellestreninger registrert.
         </p>
       ) : (
@@ -80,7 +80,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
                     <div className="flex items-baseline flex-wrap gap-2">
                       <span style={{
                         fontFamily: "'Bebas Neue', sans-serif",
-                        color: '#F0F0F2',
+                        color: 'var(--tekst-1-app)',
                         fontSize: '16px',
                         letterSpacing: '0.04em',
                       }}>
@@ -88,7 +88,7 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
                       </span>
                       {e.context && (
                         <span className="text-xs"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                           {e.context}
                         </span>
                       )}
@@ -98,8 +98,8 @@ export function CoachUpcomingCalendarCard({ events }: Props) {
                       <span style={{ color: COACH_BLUE, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                         {formatRelativeDate(e.date)}
                       </span>
-                      <span style={{ color: '#555560' }}>·</span>
-                      <span style={{ color: '#8A8A96' }}>
+                      <span style={{ color: 'var(--tekst-8-app)' }}>·</span>
+                      <span style={{ color: 'var(--tekst-5-app)' }}>
                         {formatAbsoluteDate(e.date)}
                         {e.startTime ? ` · kl. ${e.startTime}` : ''}
                       </span>

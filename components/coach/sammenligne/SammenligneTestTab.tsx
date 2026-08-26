@@ -23,7 +23,7 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen utøvere har tester eller PR registrert.
         </p>
       </div>
@@ -78,8 +78,8 @@ export function SammenligneTestTab({ data }: { data: { athletes: AthleteTestsSna
                 {prKeys.map(([key, meta]) => (
                   <tr key={key} style={{ borderBottom: '1px solid var(--line)' }}>
                     <Td>
-                      <span style={{ color: '#F0F0F2' }}>{meta.record_type}</span>{' '}
-                      <span style={{ color: '#555560', fontSize: '13px' }}>{meta.sport}</span>
+                      <span style={{ color: 'var(--tekst-1-app)' }}>{meta.record_type}</span>{' '}
+                      <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px' }}>{meta.sport}</span>
                     </Td>
                     {valid.map(r => {
                       const pr = bestPR(r.tests!.personalRecords, meta)
@@ -181,8 +181,8 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
             if (!t) {
               return (
                 <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
-                  <td colSpan={3} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
+                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
+                  <td colSpan={3} className="py-2 px-3" style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
                   </td>
                 </tr>
@@ -191,7 +191,7 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
             const types = Array.from(new Set(t.tests.map(x => x.test_type))).join(', ')
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
+                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{t.tests.length}</Td>
                 <Td>{t.personalRecords.length}</Td>
                 <Td>{types || '—'}</Td>
@@ -206,8 +206,8 @@ function SummaryTable({ rows }: { rows: AthleteTestsSnapshot[] }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left py-2 px-3 text-xs tracking-widest uppercase"
-    style={{ color: '#555560', fontWeight: 'normal' }}>{children}</th>
+    style={{ color: 'var(--tekst-8-app)', fontWeight: 'normal' }}>{children}</th>
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="py-2 px-3" style={{ color: '#F0F0F2' }}>{children}</td>
+  return <td className="py-2 px-3" style={{ color: 'var(--tekst-1-app)' }}>{children}</td>
 }

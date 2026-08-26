@@ -14,7 +14,7 @@ import {
 
 const COACH_BLUE = '#1A6FD4'
 const COMP_RED = '#E11D48'
-const NOTE_GRAY = '#C0C0CC'
+const NOTE_GRAY = 'var(--data-notat)'
 
 type View = 'måned' | 'uke' | 'år'
 
@@ -148,7 +148,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
               className="px-4 py-2 text-sm tracking-widest uppercase transition-colors"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: view === v ? '#F0F0F2' : '#555560',
+                color: view === v ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: view === v ? `2px solid ${COACH_BLUE}` : '2px solid transparent',
                 minHeight: '44px',
@@ -162,7 +162,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
           <button type="button" onClick={prev} aria-label="Forrige periode"
             style={navBtnStyle}>←</button>
           <span style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '18px', letterSpacing: '0.06em',
             minWidth: '180px', textAlign: 'center', padding: '0 8px',
           }}>
@@ -173,8 +173,8 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
           <button type="button" onClick={goToday}
             className="ml-2 px-3 py-2 text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #222228',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-4)',
               cursor: 'pointer', minHeight: '44px',
             }}>
             I dag
@@ -253,7 +253,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
 }
 
 const navBtnStyle: React.CSSProperties = {
-  color: '#8A8A96', background: 'none', border: '1px solid #222228',
+  color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--kant-4)',
   cursor: 'pointer', padding: '8px 14px', minHeight: '44px', minWidth: '44px',
   fontFamily: "'Barlow Condensed', sans-serif", fontSize: '16px',
 }
@@ -279,7 +279,7 @@ function MonthView({
           <div key={d}
             className="px-2 py-2 text-xs tracking-widest uppercase text-center"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
               borderRight: '1px solid var(--line)',
             }}>
             {d}
@@ -309,7 +309,7 @@ function MonthView({
                 <div className="flex items-center justify-between">
                   <span style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    color: isToday ? COACH_BLUE : '#F0F0F2',
+                    color: isToday ? COACH_BLUE : 'var(--tekst-1-app)',
                     fontSize: '15px',
                     letterSpacing: '0.04em',
                   }}>
@@ -328,7 +328,7 @@ function MonthView({
                   ))}
                   {dayEvents.length > 3 && (
                     <span className="text-xs"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       +{dayEvents.length - 3} til
                     </span>
                   )}
@@ -375,10 +375,10 @@ function WeekView({
               style={{
                 borderRight: '1px solid var(--line)',
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: isToday ? COACH_BLUE : '#8A8A96',
+                color: isToday ? COACH_BLUE : 'var(--tekst-5-app)',
               }}>
               <div className="text-xs tracking-widest uppercase">{DAYS_NO[(d.getDay() + 6) % 7]}</div>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', color: isToday ? COACH_BLUE : '#F0F0F2' }}>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '20px', color: isToday ? COACH_BLUE : 'var(--tekst-1-app)' }}>
                 {d.getDate()}
               </div>
             </div>
@@ -391,10 +391,10 @@ function WeekView({
         style={{
           gridTemplateColumns: '60px repeat(7, 1fr)',
           borderBottom: '1px solid var(--line)',
-          backgroundColor: '#0F0F14',
+          backgroundColor: 'var(--flate-8-b)',
         }}>
         <div className="px-2 py-2 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Hele dagen
         </div>
         {weekDates.map(d => {
@@ -431,7 +431,7 @@ function WeekView({
                 top: `${i * HOUR_PX}px`,
                 right: 0, left: 0,
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#555560',
+                color: 'var(--tekst-8-app)',
                 transform: 'translateY(-6px)',
               }}>
               {String(h).padStart(2, '0')}:00
@@ -481,7 +481,7 @@ function WeekView({
                     }}>
                     <div style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: '#F0F0F2', fontSize: '12px', fontWeight: 600,
+                      color: 'var(--tekst-1-app)', fontSize: '12px', fontWeight: 600,
                       letterSpacing: '0.04em',
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                     }}>
@@ -490,7 +490,7 @@ function WeekView({
                     {e.context && (
                       <div className="text-xs" style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#8A8A96',
+                        color: 'var(--tekst-5-app)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                       }}>
                         {e.context}
@@ -535,14 +535,14 @@ function YearView({
           <div key={mi}
             className="p-3 xp-calcard" style={{ borderRadius: 'var(--r-card)' }}>
             <div className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {MONTHS_SHORT[mi]}
             </div>
             <div className="grid grid-cols-7 gap-px">
               {DAYS_NO.map(d => (
                 <div key={d}
                   className="text-center text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#333340', fontSize: '9px' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--kant-hover)', fontSize: '9px' }}>
                   {d.charAt(0)}
                 </div>
               ))}
@@ -562,7 +562,7 @@ function YearView({
                       aspectRatio: '1',
                       border: isToday ? `1px solid ${COACH_BLUE}` : 'none',
                       backgroundColor: bg,
-                      color: isCurMonth ? '#C0C0CC' : '#333340',
+                      color: isCurMonth ? 'var(--tekst-3-app)' : 'var(--kant-hover)',
                       fontFamily: "'Barlow Condensed', sans-serif",
                       fontSize: '10px',
                       cursor: 'pointer',
@@ -598,7 +598,7 @@ function DayEventsModal({
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '60px', paddingLeft: '12px', paddingRight: '12px',
         overflowY: 'auto',
@@ -609,14 +609,14 @@ function DayEventsModal({
         <div className="flex items-baseline justify-between mb-3">
           <span style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.05em',
+            color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.05em',
           }}>
             {dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
           </span>
           <button type="button" onClick={onClose}
             aria-label="Lukk"
             style={{
-              color: '#8A8A96', background: 'none', border: 'none',
+              color: 'var(--tekst-5-app)', background: 'none', border: 'none',
               cursor: 'pointer', fontSize: '24px', lineHeight: 1, padding: 0,
             }}>
             ×
@@ -625,7 +625,7 @@ function DayEventsModal({
 
         {events.length === 0 ? (
           <p className="text-sm mb-4"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Ingen events på denne datoen.
           </p>
         ) : (
@@ -635,7 +635,7 @@ function DayEventsModal({
               const noteId = isNote ? e.href.split('note=')[1] : null
               const inner = (
                 <div className="flex items-start gap-3 p-3 transition-colors hover:bg-[var(--card2)] cursor-pointer"
-                  style={{ background: '#0F0F14', border: '1px solid var(--line)' }}>
+                  style={{ background: 'var(--flate-8-b)', border: '1px solid var(--line)' }}>
                   <span aria-hidden style={{ fontSize: '18px', flexShrink: 0 }}>
                     {kindIcon(e.kind)}
                   </span>
@@ -643,7 +643,7 @@ function DayEventsModal({
                     <div className="flex items-baseline gap-2 flex-wrap">
                       <span style={{
                         fontFamily: "'Bebas Neue', sans-serif",
-                        color: '#F0F0F2', fontSize: '15px',
+                        color: 'var(--tekst-1-app)', fontSize: '15px',
                       }}>
                         {e.title}
                       </span>
@@ -656,7 +656,7 @@ function DayEventsModal({
                     </div>
                     {e.context && (
                       <p className="text-xs mt-0.5"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                         {e.context}
                       </p>
                     )}
@@ -713,7 +713,7 @@ function EventBadge({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: compact ? '11px' : '13px',
-        color: '#F0F0F2',
+        color: 'var(--tekst-1-app)',
         background: eventBg(event.kind),
         borderLeft: `2px solid ${color}`,
         padding: compact ? '1px 4px' : '2px 6px',

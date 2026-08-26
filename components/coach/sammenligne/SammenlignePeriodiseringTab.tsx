@@ -35,7 +35,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen utøvere har aktiv sesong eller årsplan-data.
         </p>
       </div>
@@ -56,10 +56,10 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
               style={{ borderBottom: '1px solid var(--line)' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colorFor(i), display: 'inline-block' }} />
               <p className="text-sm tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 {name}
                 {season && (
-                  <span style={{ color: '#555560', marginLeft: '8px', textTransform: 'none' }}>
+                  <span style={{ color: 'var(--tekst-8-app)', marginLeft: '8px', textTransform: 'none' }}>
                     — {season.name} ({season.start_date} → {season.end_date})
                   </span>
                 )}
@@ -69,10 +69,10 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
             {season?.goal_main && (
               <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--line)' }}>
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Hovedmål
                 </p>
-                <p className="text-sm" style={{ color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif" }}>
+                <p className="text-sm" style={{ color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
                   {season.goal_main}
                 </p>
               </div>
@@ -96,15 +96,15 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
                   <tbody>
                     {p.periods.map(period => (
                       <tr key={period.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                        <Td>{period.name}{period.focus && <span style={{ color: '#555560' }}> · {period.focus}</span>}</Td>
+                        <Td>{period.name}{period.focus && <span style={{ color: 'var(--tekst-8-app)' }}> · {period.focus}</span>}</Td>
                         <Td>
-                          <span style={{ color: period.status === 'current' ? '#1A6FD4' : '#8A8A96' }}>
+                          <span style={{ color: period.status === 'current' ? '#1A6FD4' : 'var(--tekst-5-app)' }}>
                             {STATUS_LABEL[period.status] ?? period.status}
                           </span>
                         </Td>
                         <Td>{period.start_date} → {period.end_date}</Td>
                         <Td>
-                          <span style={{ color: INTENSITY_COLOR[period.intensity] ?? '#8A8A96' }}>
+                          <span style={{ color: INTENSITY_COLOR[period.intensity] ?? 'var(--tekst-5-app)' }}>
                             {period.intensity}
                           </span>
                         </Td>
@@ -122,7 +122,7 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
             {p.keyDates.length > 0 && (
               <div className="px-4 py-3" style={{ borderTop: '1px solid var(--line)' }}>
                 <p className="text-xs tracking-widest uppercase mb-2"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Nøkkeldatoer ({p.keyDates.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -130,8 +130,8 @@ export function SammenlignePeriodiseringTab({ data }: { data: MultipleAthletesAn
                     <span key={k.id} className="px-2 py-1 text-xs"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
-                        color: '#F0F0F2',
+                        backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
+                        color: 'var(--tekst-1-app)',
                       }}>
                       {k.event_date} · {KEY_LABEL[k.event_type] ?? k.event_type} · {k.name}
                     </span>
@@ -167,8 +167,8 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
             if (!p?.hasData) {
               return (
                 <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
-                  <td colSpan={5} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
+                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
+                  <td colSpan={5} className="py-2 px-3" style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen aktiv sesong'}
                   </td>
                 </tr>
@@ -176,7 +176,7 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
             }
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
+                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{p.season?.name ?? '—'}</Td>
                 <Td>{p.periods.length}</Td>
                 <Td>{p.totals.sessions}</Td>
@@ -193,8 +193,8 @@ function SeasonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left py-2 px-3 text-xs tracking-widest uppercase"
-    style={{ color: '#555560', fontWeight: 'normal' }}>{children}</th>
+    style={{ color: 'var(--tekst-8-app)', fontWeight: 'normal' }}>{children}</th>
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="py-2 px-3" style={{ color: '#F0F0F2' }}>{children}</td>
+  return <td className="py-2 px-3" style={{ color: 'var(--tekst-1-app)' }}>{children}</td>
 }

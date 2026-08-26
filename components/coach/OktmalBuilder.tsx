@@ -81,7 +81,7 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
       onClick={onClose}
       className="px-2 md:px-3"
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '12px', paddingBottom: '12px', overflowY: 'auto',
       }}
@@ -89,15 +89,15 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
           maxWidth: '820px', width: '100%', position: 'relative',
           margin: '0 auto', marginBottom: '24px',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--flate-3)' }}>
           <span className="text-sm tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {editing ? 'Rediger øktmal' : 'Ny øktmal'}
           </span>
           {editing && (
@@ -107,16 +107,16 @@ export function OktmalBuilder({ primarySport, templates, defaultValues, editing,
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
                 letterSpacing: '0.05em', borderRadius: 999, padding: '4px 12px',
                 minHeight: 32, cursor: 'pointer', marginLeft: 'auto', marginRight: 8,
-                color: isTest ? '#F0F0F2' : '#8A8A96',
+                color: isTest ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                 background: isTest ? '#D4A01722' : 'transparent',
-                border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+                border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
               }}>
               🧪 Test-mal
             </button>
           )}
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
-              color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
               minHeight: '44px', minWidth: '44px',
             }}>

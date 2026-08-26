@@ -132,7 +132,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
             onClick={() => setMenuOpen(false)}
             style={{
               position: 'fixed', inset: 0, zIndex: 50,
-              backgroundColor: '#0A0A0B',
+              backgroundColor: 'var(--flate-3)',
               display: 'flex', flexDirection: 'column',
             }}
           >
@@ -191,7 +191,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                   position: 'relative',
                   width: '50px', height: '50px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#F0F0F2', textDecoration: 'none',
+                  color: 'var(--tekst-1-app)', textDecoration: 'none',
                 }}
               >
                 <MailIcon />
@@ -213,7 +213,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 style={{
                   width: '50px', height: '50px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#F0F0F2', textDecoration: 'none',
+                  color: 'var(--tekst-1-app)', textDecoration: 'none',
                 }}
               >
                 <GearIcon />
@@ -240,7 +240,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                       fontFamily: "'Barlow Condensed', sans-serif",
                       fontSize: '17px',
                       letterSpacing: '0.1em',
-                      color: active ? '#F0F0F2' : 'rgba(242,240,236,0.7)',
+                      color: active ? 'var(--tekst-1-app)' : 'rgba(242,240,236,0.7)',
                       textDecoration: 'none',
                       backgroundColor: active ? 'var(--blue-soft)' : 'transparent',
                       borderRadius: 12,
@@ -248,7 +248,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                       textTransform: 'uppercase',
                     }}
                   >
-                    {Glyph ? <span style={{ color: active ? COACH_BLUE : '#8A8A96', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
+                    {Glyph ? <span style={{ color: active ? COACH_BLUE : 'var(--tekst-5-app)', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
                     <span>{label}</span>
                   </Link>
                 )
@@ -270,7 +270,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               {userName && (
                 <span style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#55555F',
+                  color: 'var(--tekst-8-alt)',
                   fontSize: '13px',
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase',
@@ -421,7 +421,7 @@ function InboxIconLink({ unreadCount, isActive }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: isActive ? COACH_BLUE : '#8A8A96',
+        color: isActive ? COACH_BLUE : 'var(--tekst-5-app)',
         textDecoration: 'none',
         transition: 'color 150ms',
       }}
@@ -435,7 +435,7 @@ function InboxIconLink({ unreadCount, isActive }: {
             top: '4px',
             right: '2px',
             backgroundColor: COACH_BLUE,
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '13px',
             padding: '0 4px',
@@ -496,7 +496,7 @@ function UnreadBadge({ count }: { count: number }) {
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         backgroundColor: COACH_BLUE,
-        color: '#F0F0F2',
+        color: 'var(--tekst-1-app)',
         padding: '1px 6px',
         minWidth: '18px',
         textAlign: 'center',
@@ -514,7 +514,7 @@ function HamburgerIcon({ open }: { open: boolean }) {
     left: 0,
     width: '100%',
     height: '2px',
-    backgroundColor: '#F0F0F2',
+    backgroundColor: 'var(--tekst-1-app)',
     transition: 'transform 200ms ease, opacity 150ms ease, top 200ms ease',
   }
   return (

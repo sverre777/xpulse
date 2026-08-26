@@ -59,7 +59,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'var(--scrim-60)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '40px 16px',
       }}
@@ -79,7 +79,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
             className="text-xs tracking-widest uppercase px-2 py-1"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96', background: 'transparent', border: '1px solid var(--line)',
+              color: 'var(--tekst-5-app)', background: 'transparent', border: '1px solid var(--line)',
               cursor: 'pointer',
             }}>
             Lukk
@@ -121,25 +121,25 @@ export function OktmalEditModal({ template, onClose }: Props) {
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
               letterSpacing: '0.05em', borderRadius: 999, padding: '6px 12px',
               minHeight: 36, cursor: 'pointer',
-              color: isTest ? '#F0F0F2' : '#8A8A96',
+              color: isTest ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               background: isTest ? '#D4A01722' : 'transparent',
-              border: `1px solid ${isTest ? '#D4A017' : '#222228'}`,
+              border: `1px solid ${isTest ? '#D4A017' : 'var(--kant-4)'}`,
             }}>
             🧪 Marker som test
-            <span style={{ color: '#555560', fontSize: 12 }}>
+            <span style={{ color: 'var(--tekst-8-app)', fontSize: 12 }}>
               {isTest ? 'økter fra malen får 🧪' : 'valgfritt'}
             </span>
           </button>
           <p className="text-xs mt-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Aktiviteter, soner og øvelser i malen endres ikke her. Du kan dupliser og bygg ny om du trenger endringer i innholdet.
           </p>
           <div className="flex justify-end gap-2 mt-3">
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
               }}>
               Avbryt
             </button>
@@ -147,7 +147,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                 border: 'none',
                 cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.5 : 1,
@@ -165,7 +165,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       {children}
@@ -176,7 +176,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

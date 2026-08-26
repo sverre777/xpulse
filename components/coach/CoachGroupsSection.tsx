@@ -45,7 +45,7 @@ export function CoachGroupsSection({ groups }: Props) {
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Grupper ({groups.length})
           </span>
@@ -82,7 +82,7 @@ export function CoachGroupsSection({ groups }: Props) {
             className="px-2 py-2 text-sm"
             style={{
               backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-              color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+              color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
           <input
@@ -94,7 +94,7 @@ export function CoachGroupsSection({ groups }: Props) {
             className="px-2 py-2 text-sm"
             style={{
               backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-              color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+              color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
             }}
           />
           {error && (
@@ -109,7 +109,7 @@ export function CoachGroupsSection({ groups }: Props) {
               className="px-3 py-1.5 text-xs tracking-widest uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                 border: 'none', cursor: 'pointer',
               }}
             >
@@ -121,7 +121,7 @@ export function CoachGroupsSection({ groups }: Props) {
               className="px-3 py-1.5 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', border: '1px solid var(--line)',
+                color: 'var(--tekst-5-app)', border: '1px solid var(--line)',
                 background: 'none', cursor: 'pointer',
               }}
             >
@@ -134,7 +134,7 @@ export function CoachGroupsSection({ groups }: Props) {
       {groups.length === 0 ? (
         <p
           className="px-5 py-6 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
         >
           Ingen grupper ennå.
         </p>
@@ -150,13 +150,13 @@ export function CoachGroupsSection({ groups }: Props) {
               >
                 <span
                   className="text-sm"
-                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.05em' }}
+                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.05em' }}
                 >
                   {g.name}
                 </span>
                 <span
                   className="text-xs tracking-wide"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                 >
                   {g.memberCount} {g.memberCount === 1 ? 'medlem' : 'medlemmer'} · Rediger
                 </span>

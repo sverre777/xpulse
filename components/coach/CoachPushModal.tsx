@@ -216,7 +216,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
       onClick={onClose}
       className="px-2 md:px-3"
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 110, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '24px', paddingBottom: '24px', overflowY: 'auto',
       }}
@@ -224,25 +224,25 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
           maxWidth: '640px', width: '100%',
           margin: '0 auto',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--flate-3)' }}>
           <div>
             <div className="text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
               Send {kindLabel(kind)}
             </div>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '18px', letterSpacing: '0.05em' }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '18px', letterSpacing: '0.05em' }}>
               {templateName}
             </div>
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
-              color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
               minHeight: '44px', minWidth: '44px',
             }}>
@@ -262,11 +262,11 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
           )}
 
           {loading ? (
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Laster utøvere…
             </p>
           ) : athletes.length === 0 ? (
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Du har ingen aktive utøvere koblet til konto.
             </p>
           ) : (
@@ -291,15 +291,15 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                         className="px-3 py-2 text-xs tracking-widest uppercase whitespace-nowrap"
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
-                          color: '#8A8A96', background: 'none',
-                          border: '1px solid #222228', cursor: 'pointer',
+                          color: 'var(--tekst-5-app)', background: 'none',
+                          border: '1px solid var(--kant-4)', cursor: 'pointer',
                         }}>
                         Forslag
                       </button>
                     )}
                   </div>
                   <p className="text-xs mt-1"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                     {durationDays
                       ? `Malens varighet: ${durationDays} dager. La stå tom for 1:1-dato.`
                       : 'La stå tom for 1:1-dato.'}
@@ -308,7 +308,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
               )}
               {kind === 'periodization' && (
                 <p className="text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Varigheten er låst fra malen. Eksisterende sesonger overskrives ikke.
                 </p>
               )}
@@ -324,9 +324,9 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                           className="px-3 py-1.5 text-xs tracking-widest uppercase"
                           style={{
                             fontFamily: "'Barlow Condensed', sans-serif",
-                            color: active ? '#F0F0F2' : '#8A8A96',
+                            color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                             backgroundColor: active ? COACH_BLUE : 'transparent',
-                            border: `1px solid ${active ? COACH_BLUE : '#222228'}`,
+                            border: `1px solid ${active ? COACH_BLUE : 'var(--kant-4)'}`,
                             cursor: 'pointer',
                           }}>
                           {g.name} ({g.athleteIds.length})
@@ -347,19 +347,19 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       <label key={a.id}
                         className="flex items-center gap-3 px-3 py-2 cursor-pointer"
                         style={{
-                          backgroundColor: checked ? 'var(--card2)' : '#0D0D11',
+                          backgroundColor: checked ? 'var(--card2)' : 'var(--flate-6-alt)',
                           borderBottom: '1px solid var(--card)',
                         }}>
                         <input type="checkbox" checked={checked}
                           onChange={() => toggleAthlete(a.id)}
                           style={{ accentColor: COACH_BLUE }} />
                         <span className="flex-1"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                           {a.name}
                         </span>
                         {a.primarySport && (
                           <span className="text-xs tracking-widest uppercase"
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                             {a.primarySport}
                           </span>
                         )}
@@ -383,7 +383,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                       backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14,
                     }}>
                     <span>{o.ok ? '✓' : '✕'}</span>
-                    <span className="flex-1" style={{ color: '#F0F0F2' }}>{o.athleteName}</span>
+                    <span className="flex-1" style={{ color: 'var(--tekst-1-app)' }}>{o.athleteName}</span>
                     <span>{o.message}</span>
                   </div>
                 ))}
@@ -401,7 +401,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 Overlapp med eksisterende sesonger
               </p>
               <p className="text-xs mb-3"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
                 {pendingOverlap.size} utøver{pendingOverlap.size === 1 ? '' : 'e'} har allerede sesong i samme periode. Eksisterende beholdes — ny legges til som tillegg.
               </p>
               <div className="flex flex-col gap-1 mb-3">
@@ -411,10 +411,10 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                     <div key={aid} className="text-xs px-2 py-1"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        backgroundColor: 'var(--card)', color: '#C0C0CC',
+                        backgroundColor: 'var(--card)', color: 'var(--tekst-3-app)',
                       }}>
-                      <span style={{ color: '#F0F0F2' }}>{a?.name ?? 'Utøver'}</span>
-                      <span style={{ color: '#8A8A96' }}>
+                      <span style={{ color: 'var(--tekst-1-app)' }}>{a?.name ?? 'Utøver'}</span>
+                      <span style={{ color: 'var(--tekst-5-app)' }}>
                         {' '}· {infos.map(i => `${i.name} (${i.start_date} → ${i.end_date})`).join(', ')}
                       </span>
                     </div>
@@ -427,7 +427,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 className="px-3 py-1.5 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#0A0A0B', backgroundColor: '#D4A017',
+                  color: 'var(--flate-3)', backgroundColor: '#D4A017',
                   border: 'none',
                   cursor: isPending ? 'not-allowed' : 'pointer',
                   opacity: isPending ? 0.5 : 1,
@@ -441,8 +441,8 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
             <button type="button" onClick={onClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
               }}>
               {allDone ? 'Lukk' : 'Avbryt'}
             </button>
@@ -452,7 +452,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
                 className="px-4 py-2 text-xs tracking-widest uppercase"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                  backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                   border: 'none',
                   cursor: (isPending || !hasTargets) ? 'not-allowed' : 'pointer',
                   opacity: (isPending || !hasTargets) ? 0.5 : 1,
@@ -470,7 +470,7 @@ export function CoachPushModal({ kind, templateId, templateName, onClose, durati
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
       {children}
     </label>
   )
@@ -516,7 +516,7 @@ function labelForKind(kind: PushKind, hasTargets: boolean, n: number): string {
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

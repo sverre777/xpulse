@@ -38,7 +38,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen utøvere har analyse-data i valgt periode.
         </p>
       </div>
@@ -94,7 +94,7 @@ export function SammenligneOverviewTab({ data }: { data: MultipleAthletesAnalysi
       </ChartWrapper>
 
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Periode: {data.range.from} → {data.range.to}{data.sportFilter ? ` · ${data.sportFilter}` : ''}
       </p>
     </div>
@@ -127,10 +127,10 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
                 <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <Td>
                     <span style={{ color: colorFor(i) }}>● </span>
-                    <span style={{ color: '#F0F0F2' }}>{name}</span>
+                    <span style={{ color: 'var(--tekst-1-app)' }}>{name}</span>
                   </Td>
                   <td colSpan={8} className="py-2 px-3"
-                    style={{ color: '#555560', fontStyle: 'italic' }}>
+                    style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
                   </td>
                 </tr>
@@ -140,7 +140,7 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
                 <Td>
                   <span style={{ color: colorFor(i) }}>● </span>
-                  <span style={{ color: '#F0F0F2' }}>{name}</span>
+                  <span style={{ color: 'var(--tekst-1-app)' }}>{name}</span>
                 </Td>
                 <Td>{fmtHours(o.current.total_seconds)}</Td>
                 <Td>{fmtKm(o.current.total_meters)}</Td>
@@ -162,7 +162,7 @@ function ComparisonTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] 
 function Th({ children }: { children: React.ReactNode }) {
   return (
     <th className="text-left py-2 px-3 text-xs tracking-widest uppercase"
-      style={{ color: '#555560', fontWeight: 'normal' }}>
+      style={{ color: 'var(--tekst-8-app)', fontWeight: 'normal' }}>
       {children}
     </th>
   )
@@ -170,7 +170,7 @@ function Th({ children }: { children: React.ReactNode }) {
 
 function Td({ children }: { children: React.ReactNode }) {
   return (
-    <td className="py-2 px-3" style={{ color: '#F0F0F2' }}>
+    <td className="py-2 px-3" style={{ color: 'var(--tekst-1-app)' }}>
       {children}
     </td>
   )

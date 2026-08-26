@@ -127,13 +127,13 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
       aria-modal="true"
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-10"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--scrim-70)' }}
     >
       <div
         onClick={e => e.stopPropagation()}
         className="w-full max-w-2xl flex flex-col"
         style={{
-          backgroundColor: '#0E0E10',
+          backgroundColor: 'var(--flate-7)',
           border: '1px solid var(--line)',
           maxHeight: 'calc(100vh - 80px)',
         }}
@@ -147,7 +147,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: '#8A8A96', fontFamily: "'Barlow Condensed', sans-serif",
+              color: 'var(--tekst-5-app)', fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: '14px', padding: '4px 8px',
             }}>
             ESC
@@ -206,7 +206,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
             <label className="flex items-center gap-2 mt-7">
               <input type="checkbox" checked={important} onChange={e => setImportant(e.target.checked)} />
               <span className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 ★ Viktig økt
               </span>
             </label>
@@ -215,7 +215,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
           <section>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Mottakere ({selectedIds.size} valgt)
               </span>
               <div className="flex gap-2">
@@ -230,7 +230,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                 <button type="button" onClick={() => setSelectedIds(new Set())}
                   className="text-xs tracking-widest uppercase"
                   style={{
-                    fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+                    fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
                     background: 'none', border: '1px solid var(--line)', cursor: 'pointer', padding: '4px 8px',
                   }}>
                   Tøm
@@ -240,7 +240,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
 
             {loading ? (
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Laster…
               </p>
             ) : (
@@ -248,7 +248,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                 {groups.length > 0 && (
                   <div className="mb-3">
                     <p className="text-xs tracking-widest uppercase mb-1"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                       Grupper
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -261,7 +261,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                             className="text-xs tracking-widest uppercase px-2 py-1"
                             style={{
                               fontFamily: "'Barlow Condensed', sans-serif",
-                              color: all ? '#0A0A0B' : '#F0F0F2',
+                              color: all ? 'var(--flate-3)' : 'var(--tekst-1-app)',
                               backgroundColor: all ? COACH_BLUE : (some ? 'rgba(26,111,212,0.2)' : 'transparent'),
                               border: `1px solid ${all || some ? COACH_BLUE : 'var(--line)'}`,
                               cursor: 'pointer',
@@ -275,7 +275,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                 )}
 
                 <p className="text-xs tracking-widest uppercase mb-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Utøvere
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
@@ -291,7 +291,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
                         }}>
                         <input type="checkbox" checked={checked} onChange={() => toggleAthlete(a.id)} />
                         <span className="text-sm"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                           {a.name}
                         </span>
                       </label>
@@ -308,7 +308,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase px-3 py-2"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
               background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
             }}>
             Avbryt
@@ -317,7 +317,7 @@ export function PushGroupSessionModal({ open, onClose, defaultDate, defaultSport
             className="text-xs tracking-widest uppercase px-4 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: COACH_BLUE, color: '#F0F0F2',
+              backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
               border: 'none', cursor: isPending ? 'not-allowed' : 'pointer',
               opacity: isPending || selectedIds.size === 0 || !title.trim() ? 0.5 : 1,
             }}>
@@ -333,7 +333,7 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   outline: 'none',
 }
 
@@ -341,7 +341,7 @@ function Field({ label, children, required }: { label: string; children: React.R
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}{required && <span style={{ color: '#E11D48', marginLeft: '4px' }}>*</span>}
       </span>
       {children}

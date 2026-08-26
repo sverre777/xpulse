@@ -23,7 +23,7 @@ import { xpConfirm } from '@/components/ui/ConfirmDialog'
 const COACH_BLUE = '#1A6FD4'
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12,
-  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', outline: 'none', padding: '8px 10px', width: '100%',
 }
 
@@ -45,14 +45,14 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
     <div>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {testMaler.length} test-mal{testMaler.length === 1 ? '' : 'er'}
         </p>
         <button type="button" onClick={() => setNyTestMal(true)}
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: '#F0F0F2',
+            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}>
           + Ny test-mal
@@ -61,7 +61,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
 
       {testMaler.length === 0 ? (
         <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen test-maler ennå. «+ Ny test-mal» åpner struktur-byggeren —
             test-mal er en øktmal med 🧪-flagg, akkurat som hos utøverne.
           </p>
@@ -75,7 +75,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
               style={{ borderBottom: '1px solid var(--line)' }}>
               <div>
                 <p className="text-sm"
-                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+                  style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
                   🧪 {t.name}
                 </p>
                 <p className="text-xs tracking-widest uppercase"
@@ -84,7 +84,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
                 </p>
               </div>
               <p className="text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Rediger →
               </p>
             </button>
@@ -95,7 +95,7 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
       {initialTemplates.length > 0 && (
         <div className="mt-8">
           <p className="text-xs tracking-widest uppercase mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Eldre test-maler (protokollskjema) — nye lages med byggeren over
           </p>
           <div style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
@@ -106,11 +106,11 @@ export function TestMalTab({ initialTemplates, primarySport, workoutTemplates }:
                 style={{ borderBottom: '1px solid var(--line)' }}>
                 <div>
                   <p className="text-sm"
-                    style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}>
+                    style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}>
                     {t.name}
                   </p>
                   <p className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {t.test_type} · {SPORTS.find(s => s.value === t.sport)?.label ?? t.sport}
                     {t.is_shared_with_athletes && <span className="ml-2">· delt</span>}
                   </p>
@@ -199,7 +199,7 @@ function TestMalEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.8)' }} onClick={onClose}>
+      style={{ backgroundColor: 'var(--scrim-80)' }} onClick={onClose}>
       <div className="w-full max-w-xl p-5"
         style={{ backgroundColor: 'var(--card)', border: `1px solid ${COACH_BLUE}55` }}
         onClick={e => e.stopPropagation()}>
@@ -213,7 +213,7 @@ function TestMalEditModal({
           </div>
           <button type="button" onClick={onClose}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', minHeight: '36px' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', minHeight: '36px' }}>
             Lukk
           </button>
         </div>
@@ -261,7 +261,7 @@ function TestMalEditModal({
           </Field>
 
           <label className="flex items-center gap-2 text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             <input type="checkbox" checked={shared} onChange={e => setShared(e.target.checked)} />
             Del med utøvere (de kan lese malen)
           </label>
@@ -291,7 +291,7 @@ function TestMalEditModal({
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: COACH_BLUE, border: `1px solid ${COACH_BLUE}`,
-              color: '#F0F0F2', minHeight: '40px',
+              color: 'var(--tekst-1-app)', minHeight: '40px',
             }}>
             {isPending ? 'Lagrer…' : template ? 'Oppdater' : 'Lagre mal'}
           </button>
@@ -305,7 +305,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       {children}

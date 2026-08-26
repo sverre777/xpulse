@@ -91,7 +91,7 @@ export function PlanMalDayEditor({
       onClick={requestClose}
       className="px-2 md:px-3"
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 100, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '12px', paddingBottom: '12px', overflowY: 'auto',
       }}
@@ -105,14 +105,14 @@ export function PlanMalDayEditor({
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--flate-3)' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {title}
           </span>
           <button type="button" onClick={requestClose} aria-label="Lukk"
             style={{
-              color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
               minHeight: '44px', minWidth: '44px',
             }}>
@@ -201,18 +201,18 @@ function MenuView({
       {existingWorkouts.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Økter på denne dagen
           </p>
           {existingWorkouts.map((w, i) => (
             <div key={i} className="p-3 flex items-start justify-between gap-3"
               style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
               <div className="flex-1 min-w-0">
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
                   {w.title || '(uten tittel)'}
                 </div>
                 <div className="text-xs mt-0.5"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {w.sport}{w.workout_type ? ` · ${w.workout_type}` : ''}
                   {w.duration_minutes ? ` · ${w.duration_minutes}min` : ''}
                   {w.distance_km ? ` · ${w.distance_km}km` : ''}
@@ -239,7 +239,7 @@ function MenuView({
 
       {workoutTemplates.length === 0 && (
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Du har ingen øktmaler å velge fra. Lag noen i Øktmaler-fanen først.
         </p>
       )}
@@ -258,7 +258,7 @@ function FromTemplateView({
     <div className="p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Velg øktmal
         </p>
         <BtnSm onClick={onCancel}>Tilbake</BtnSm>
@@ -271,17 +271,17 @@ function FromTemplateView({
               backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)',
               cursor: 'pointer',
             }}>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
               {t.name}
             </div>
             {t.description && (
               <div className="text-xs mt-0.5"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {t.description}
               </div>
             )}
             <div className="text-xs mt-1 tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {t.sport ?? '—'}{t.category ? ` · ${t.category}` : ''}
             </div>
           </button>
@@ -297,7 +297,7 @@ function BtnPrimary({ onClick, children }: { onClick: () => void; children: Reac
       className="px-4 py-2 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        backgroundColor: COACH_BLUE, color: '#F0F0F2',
+        backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
         border: 'none', cursor: 'pointer',
       }}>
       {children}
@@ -311,8 +311,8 @@ function BtnSecondary({ onClick, children, disabled }: { onClick: () => void; ch
       className="px-4 py-2 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: '#8A8A96',
-        background: 'none', border: '1px solid #222228',
+        color: 'var(--tekst-5-app)',
+        background: 'none', border: '1px solid var(--kant-4)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
       }}>
@@ -327,8 +327,8 @@ function BtnSm({ onClick, children, danger }: { onClick: () => void; children: R
       className="px-3 py-1 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : '#8A8A96',
-        background: 'none', border: `1px solid ${danger ? '#FF450066' : '#222228'}`,
+        color: danger ? '#FF4500' : 'var(--tekst-5-app)',
+        background: 'none', border: `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: 'pointer',
       }}>
       {children}

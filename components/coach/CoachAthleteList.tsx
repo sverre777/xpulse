@@ -58,7 +58,7 @@ export function CoachAthleteList({ athletes }: Props) {
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Utøvere ({athletes.length})
           </span>
@@ -73,7 +73,7 @@ export function CoachAthleteList({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             minWidth: '160px',
           }}
@@ -85,7 +85,7 @@ export function CoachAthleteList({ athletes }: Props) {
           style={{
             backgroundColor: 'var(--card2)',
             border: '1px solid var(--line)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
           }}
         >
@@ -97,7 +97,7 @@ export function CoachAthleteList({ athletes }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="px-5 py-6 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="px-5 py-6 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {athletes.length === 0 ? 'Ingen utøvere koblet til ennå.' : 'Ingen utøvere matcher filteret.'}
         </p>
       ) : (
@@ -123,7 +123,7 @@ export function CoachAthleteList({ athletes }: Props) {
                       className="text-base"
                       style={{
                         fontFamily: "'Bebas Neue', sans-serif",
-                        color: '#F0F0F2',
+                        color: 'var(--tekst-1-app)',
                         letterSpacing: '0.05em',
                         textDecoration: 'none',
                       }}
@@ -135,7 +135,7 @@ export function CoachAthleteList({ athletes }: Props) {
                         className="text-xs px-1.5"
                         style={{
                           backgroundColor: COACH_BLUE,
-                          color: '#F0F0F2',
+                          color: 'var(--tekst-1-app)',
                           fontFamily: "'Barlow Condensed', sans-serif",
                           minWidth: '18px', textAlign: 'center',
                         }}
@@ -146,14 +146,14 @@ export function CoachAthleteList({ athletes }: Props) {
                   </div>
                   <p
                     className="text-xs tracking-wide mt-0.5"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                   >
                     {sportLabel(a.primarySport)}
                     {a.mainGoal && ` · ${a.mainGoal}`}
                   </p>
                   <p
                     className="text-xs mt-0.5"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
                   >
                     {formatLastWorkout(a.lastWorkoutDate, a.lastWorkoutTitle)}
                   </p>
@@ -188,7 +188,7 @@ export function CoachAthleteList({ athletes }: Props) {
                     className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                      backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                       textDecoration: 'none',
                     }}
                   >

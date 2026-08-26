@@ -55,13 +55,13 @@ function MalChip({ w, compact }: { w: PlanTemplateWorkout; compact?: boolean }) 
         minWidth: 0,
       }}>
       {w.time_of_day && (
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: compact ? '11px' : '12.5px', flexShrink: 0 }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: compact ? '11px' : '12.5px', flexShrink: 0 }}>
           {w.time_of_day.slice(0, 5)}
         </span>
       )}
       <span style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-        fontSize: compact ? 13 : 15, color: '#DEDEE6',
+        fontSize: compact ? 13 : 15, color: 'var(--tekst-2)',
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0,
       }}>
         {w.title || '(uten tittel)'}
@@ -141,7 +141,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
         <div className="grid grid-cols-7 gap-px mb-1" style={{ backgroundColor: 'var(--line)' }}>
           {DAY_NAMES.map(n => (
             <div key={n} className="px-2 py-1 text-center text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', backgroundColor: '#0A0A0B' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', backgroundColor: 'var(--flate-3)' }}>
               {n}
             </div>
           ))}
@@ -150,14 +150,14 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
         {weeks.map((row, wi) => (
           <div key={wi} className="mb-2">
             <div className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {weekLabel(row, wi)}
             </div>
             <div className="grid grid-cols-7 gap-px" style={{ backgroundColor: 'var(--line)' }}>
               {Array.from({ length: 7 }).map((_, di) => {
                 const day = row[di]
                 if (day === undefined) {
-                  return <div key={di} style={{ minHeight: '88px', backgroundColor: '#09090B' }} />
+                  return <div key={di} style={{ minHeight: '88px', backgroundColor: 'var(--flate-2)' }} />
                 }
                 const dayWorkouts = workoutsByDay.get(day) ?? []
                 const state = stateByDay.get(day) ?? null
@@ -167,24 +167,24 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                     className="text-left px-2 py-1.5 transition-colors hover:bg-[var(--card2)]"
                     style={{
                       minHeight: '88px',
-                      background: stateTint(state) ?? (hasContent ? 'var(--card2)' : '#0D0D11'),
+                      background: stateTint(state) ?? (hasContent ? 'var(--card2)' : 'var(--flate-6-alt)'),
                       border: 'none', borderRadius: 6, cursor: 'pointer',
                       display: 'flex', flexDirection: 'column', gap: 2,
                     }}>
                     <div className="flex items-center justify-between mb-0.5 gap-1">
                       <span className="text-xs tracking-widest uppercase"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                         Dag {day + 1}
                       </span>
                       {startDate && (
                         <span className="text-xs tracking-widest uppercase truncate"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                           {formatNorskKortDato(addDays(startDate, day))}
                         </span>
                       )}
                     </div>
                     {stateLabel(state) && (
-                      <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      <span className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                         {stateLabel(state)}
                       </span>
                     )}
@@ -193,7 +193,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                     ))}
                     {dayWorkouts.length > 2 && (
                       <span className="text-xs mt-0.5"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                         +{dayWorkouts.length - 2} flere
                       </span>
                     )}
@@ -210,7 +210,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
         {weeks.map((row, wi) => (
           <div key={wi} className="mb-3">
             <div className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F', letterSpacing: '0.22em', fontWeight: 700 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', letterSpacing: '0.22em', fontWeight: 700 }}>
               {weekLabel(row, wi)}
             </div>
             {row.map(day => {
@@ -231,24 +231,24 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                     borderBottom: '1px solid var(--line)',
                   }}>
                   <div style={{ flex: '0 0 52px', textAlign: 'center', paddingTop: 3 }}>
-                    <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.16em', color: '#55555F', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.16em', color: 'var(--tekst-8-alt)', textTransform: 'uppercase', fontWeight: 700 }}>
                       {DAY_NAMES[day % 7]}
                     </span>
-                    <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: empty ? 15 : 18, lineHeight: 1.15, color: '#8B8B95', opacity: empty ? 0.7 : 1 }}>
+                    <span style={{ display: 'block', fontFamily: "'Bebas Neue', sans-serif", fontSize: empty ? 15 : 18, lineHeight: 1.15, color: 'var(--mut)', opacity: empty ? 0.7 : 1 }}>
                       Dag {day + 1}
                     </span>
                     {startDate && (
-                      <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, color: '#55555F' }}>
+                      <span style={{ display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, color: 'var(--tekst-8-alt)' }}>
                         {formatNorskKortDato(addDays(startDate, day))}
                       </span>
                     )}
                   </div>
                   {empty ? (
-                    <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
+                    <span style={{ flex: 1, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)', fontSize: '12.5px', paddingTop: 7, letterSpacing: '0.04em' }}>—</span>
                   ) : (
                     <div className="flex-1 flex flex-col min-w-0" style={{ gap: 6 }}>
                       {stateLabel(state) && (
-                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8B8B95', fontSize: 13, paddingTop: 4 }}>
+                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 13, paddingTop: 4 }}>
                           {stateLabel(state)}
                         </span>
                       )}
@@ -257,7 +257,7 @@ export function RelativeDateCalendar({ durationDays, workouts, dayStates, startD
                       ))}
                     </div>
                   )}
-                  <span aria-hidden style={{ flexShrink: 0, color: '#55555F', fontSize: 13, paddingTop: 8 }}>›</span>
+                  <span aria-hidden style={{ flexShrink: 0, color: 'var(--tekst-8-alt)', fontSize: 13, paddingTop: 8 }}>›</span>
                 </div>
               )
             })}

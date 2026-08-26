@@ -28,7 +28,7 @@ function typeColor(type: CoachFeedItem['type']): string {
     case 'injury':            return '#FF8C00'
     case 'rest':              return '#D4A017'
     case 'goal_reached':      return '#FF4500'
-    default:                  return '#8A8A96'
+    default:                  return 'var(--tekst-5-app)'
   }
 }
 
@@ -40,7 +40,7 @@ export function CoachActivityFeed({ items }: Props) {
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
           >
             Aktivitet fra utøvere
           </span>
@@ -48,7 +48,7 @@ export function CoachActivityFeed({ items }: Props) {
       </div>
 
       {items.length === 0 ? (
-        <p className="px-5 py-6 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        <p className="px-5 py-6 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen aktivitet ennå.
         </p>
       ) : (
@@ -72,13 +72,13 @@ export function CoachActivityFeed({ items }: Props) {
                 />
                 <span
                   className="text-sm flex-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}
                 >
                   {it.label}
                 </span>
                 <span
                   className="text-xs tracking-wide"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}
                 >
                   {timeAgo(it.timestamp)}
                 </span>

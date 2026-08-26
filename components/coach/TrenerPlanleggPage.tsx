@@ -41,16 +41,16 @@ export function TrenerPlanleggPage({
   }
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <div className="flex items-center gap-3 mb-2">
           <span style={{ width: '24px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
             Planlegg
           </h1>
         </div>
         <p className="mb-6 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Bygg øktmaler, plan-maler og årsplan-maler — push til utøvere eller grupper.
         </p>
 
@@ -103,7 +103,7 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? COACH_BLUE : '#8A8A96',
+              color: active ? COACH_BLUE : 'var(--tekst-5-app)',
               background: 'none',
               border: 'none',
               borderBottom: `2px solid ${active ? COACH_BLUE : 'transparent'}`,

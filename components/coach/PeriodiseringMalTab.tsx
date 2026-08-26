@@ -55,14 +55,14 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
     <div>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {initialTemplates.length} årsplan-mal{initialTemplates.length === 1 ? '' : 'er'}
         </p>
         <button type="button" onClick={() => { setBuildingFrom(null); setBuilderOpen(true) }}
           className="px-4 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: '#F0F0F2',
+            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
             border: 'none', cursor: 'pointer',
           }}>
           + Ny årsplan-mal
@@ -82,7 +82,7 @@ export function PeriodiseringMalTab({ initialTemplates, primarySport }: Props) {
 
       {filtered.length === 0 ? (
         <div className="p-8 text-center" style={{ border: '1px dashed var(--line)' }}>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             {initialTemplates.length === 0
               ? 'Ingen årsplan-maler ennå. Trykk "+ Ny årsplan-mal" for å bygge din første mal.'
               : 'Ingen årsplan-maler matcher filtrene.'}
@@ -182,19 +182,19 @@ function Row({
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
           <div style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.05em',
           }}>
             {template.name}
           </div>
           {template.description && (
             <p className="mt-1 text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
               {template.description}
             </p>
           )}
           <div className="mt-2 flex flex-wrap gap-2 items-center text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             <span>{template.duration_days} dager / {weeks} uker</span>
             <span>· {periodCount} periode{periodCount === 1 ? '' : 'r'}</span>
             <span>· {keyDateCount} hendelse{keyDateCount === 1 ? '' : 'r'}</span>
@@ -228,9 +228,9 @@ function ActionBtn({
       className="px-3 py-1.5 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: primary ? '#F0F0F2' : danger ? '#FF4500' : '#8A8A96',
+        color: primary ? 'var(--tekst-1-app)' : danger ? '#FF4500' : 'var(--tekst-5-app)',
         background: primary ? COACH_BLUE : 'none',
-        border: primary ? 'none' : `1px solid ${danger ? '#FF450066' : '#222228'}`,
+        border: primary ? 'none' : `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
       }}>
@@ -242,7 +242,7 @@ function ActionBtn({
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   outline: 'none',

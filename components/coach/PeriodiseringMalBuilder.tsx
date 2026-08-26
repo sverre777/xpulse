@@ -395,7 +395,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
       onClick={requestClose}
       className="px-2 md:px-3"
       style={{
-        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)',
+        position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)',
         zIndex: 90, display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '12px', paddingBottom: '12px', overflowY: 'auto',
       }}
@@ -403,20 +403,20 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
           maxWidth: '960px', width: '100%',
           margin: '0 auto', marginBottom: '24px',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid var(--line)', backgroundColor: '#0A0A0B' }}>
+          style={{ borderBottom: '1px solid var(--line)', backgroundColor: 'var(--flate-3)' }}>
           <span className="text-sm tracking-widest uppercase"
             style={{ fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE }}>
             {editing ? 'Rediger årsplan-mal' : 'Ny årsplan-mal'}
           </span>
           <button type="button" onClick={requestClose} aria-label="Lukk"
             style={{
-              color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer',
               fontSize: 28, lineHeight: 1, padding: 0,
               minHeight: '44px', minWidth: '44px',
             }}>
@@ -458,7 +458,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   onChange={e => setDurationDays(parseInt(e.target.value) || 1)}
                   style={iSt} />
                 <p className="text-xs mt-1 tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   ≈ {totalWeeks} uker
                 </p>
               </Field>
@@ -468,7 +468,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
                   onChange={e => setStartDate(e.target.value)}
                   style={iSt} />
                 <p className="text-xs mt-1 tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   {startDate
                     ? `Slutt ${deriveEndDate(startDate, durationDays) ?? '—'}`
                     : 'La stå tom for relativ mal'}
@@ -640,8 +640,8 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
             <button type="button" onClick={requestClose}
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-                background: 'none', border: '1px solid #222228', cursor: 'pointer',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+                background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
               }}>
               Avbryt
             </button>
@@ -649,7 +649,7 @@ export function PeriodiseringMalBuilder({ editing, defaultSport, onClose }: Prop
               className="px-4 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: COACH_BLUE, color: '#F0F0F2',
+                backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
                 border: 'none',
                 cursor: isPending ? 'not-allowed' : 'pointer',
                 opacity: isPending ? 0.5 : 1,
@@ -747,13 +747,13 @@ function MarkingRow({
         </Field>
         <div className="flex items-end gap-4 pb-1">
           <label className="flex items-center gap-2 cursor-pointer"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 14 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
             <input type="checkbox" checked={marking.is_training_camp}
               onChange={e => onChange({ is_training_camp: e.target.checked })} />
             <span>📍 Samling</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 14 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
             <input type="checkbox" checked={marking.is_altitude}
               onChange={e => onChange({ is_altitude: e.target.checked })} />
             <span>🏔️ Høyde</span>
@@ -883,7 +883,7 @@ function KeyDateRow({
             Form-topp-mål
           </span>
           <span className="block text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Markér som peiling for toppform. Gir gull-glød i utøverens kalender.
           </span>
         </span>
@@ -898,7 +898,7 @@ function KeyDateRow({
 function SectionTitle({ children, compact }: { children: React.ReactNode; compact?: boolean }) {
   return (
     <h3 className={compact ? 'text-xs tracking-widest uppercase' : 'text-xs tracking-widest uppercase mb-3'}
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
       {children}
     </h3>
   )
@@ -908,7 +908,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block mb-1 text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {label}
       </label>
       {children}
@@ -948,7 +948,7 @@ function DateOrDayField({
           style={iSt}
         />
         <p className="text-xs mt-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {formatNorskKortDato(value)}
         </p>
       </Field>
@@ -965,7 +965,7 @@ function DateOrDayField({
         style={iSt}
       />
       <p className="text-xs mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {offsetToWeekDayLabel(offset)}
       </p>
     </Field>
@@ -976,7 +976,7 @@ function EmptyHint({ children }: { children: React.ReactNode }) {
   return (
     <p className="p-4 text-xs text-center"
       style={{
-        fontFamily: "'Barlow Condensed', sans-serif", color: '#555560',
+        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)',
         border: '1px dashed var(--line)',
       }}>
       {children}
@@ -990,8 +990,8 @@ function BtnSm({ onClick, children, danger }: { onClick: () => void; children: R
       className="px-3 py-1 text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: danger ? '#FF4500' : '#8A8A96',
-        background: 'none', border: `1px solid ${danger ? '#FF450066' : '#222228'}`,
+        color: danger ? '#FF4500' : 'var(--tekst-5-app)',
+        background: 'none', border: `1px solid ${danger ? '#FF450066' : 'var(--kant-4)'}`,
         cursor: 'pointer',
       }}>
       {children}
@@ -1008,7 +1008,7 @@ function offsetToWeekDayLabel(offset: number): string {
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)',
   border: '1px solid var(--line)',
-  color: '#F0F0F2',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   padding: '8px 10px',

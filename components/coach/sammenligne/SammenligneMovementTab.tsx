@@ -31,7 +31,7 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen utøvere har bevegelsesdata for primærsporten i valgt periode.
         </p>
       </div>
@@ -52,7 +52,7 @@ export function SammenligneMovementTab({ data }: { data: MultipleAthletesAnalysi
   return (
     <div className="space-y-5">
       <p className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Bevegelse vises basert på hver utøvers primærsport — løping, langrenn, sykling, etc.
       </p>
 
@@ -144,8 +144,8 @@ function MovementTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             if (!m?.hasData) {
               return (
                 <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
-                  <td colSpan={6} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
+                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
+                  <td colSpan={6} className="py-2 px-3" style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
                   </td>
                 </tr>
@@ -153,7 +153,7 @@ function MovementTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             }
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
+                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{m.movementName}</Td>
                 <Td>{fmtHours(m.current.total_seconds)}</Td>
                 <Td>{fmtKm(m.current.total_meters)}</Td>
@@ -171,8 +171,8 @@ function MovementTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left py-2 px-3 text-xs tracking-widest uppercase"
-    style={{ color: '#555560', fontWeight: 'normal' }}>{children}</th>
+    style={{ color: 'var(--tekst-8-app)', fontWeight: 'normal' }}>{children}</th>
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="py-2 px-3" style={{ color: '#F0F0F2' }}>{children}</td>
+  return <td className="py-2 px-3" style={{ color: 'var(--tekst-1-app)' }}>{children}</td>
 }

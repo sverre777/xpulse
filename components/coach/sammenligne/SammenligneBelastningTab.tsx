@@ -26,7 +26,7 @@ export function SammenligneBelastningTab({ data }: { data: MultipleAthletesAnaly
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--line)' }}>
         <p className="text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen utøvere har belastningsdata i valgt periode.
         </p>
       </div>
@@ -85,7 +85,7 @@ function MultiLineChart({
         <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
         <Tooltip content={<XpTooltip />} cursor={{ stroke: 'var(--line)' }} />
         <Legend wrapperStyle={CHART_LEGEND_STYLE} />
-        {withZeroLine && <ReferenceLine y={0} stroke="#555560" strokeDasharray="3 3" />}
+        {withZeroLine && <ReferenceLine y={0} stroke="var(--tekst-8-app)" strokeDasharray="3 3" />}
         {rows.map((r, i) => {
           const name = r.athlete.fullName ?? r.athlete.id.slice(0, 6)
           return (
@@ -119,8 +119,8 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             if (!b?.hasData) {
               return (
                 <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
-                  <td colSpan={5} className="py-2 px-3" style={{ color: '#555560', fontStyle: 'italic' }}>
+                  <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
+                  <td colSpan={5} className="py-2 px-3" style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic' }}>
                     {r.errors[0] ?? 'Ingen data'}
                   </td>
                 </tr>
@@ -128,7 +128,7 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
             }
             return (
               <tr key={r.athlete.id} style={{ borderBottom: '1px solid var(--line)' }}>
-                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: '#F0F0F2' }}>{name}</span></Td>
+                <Td><span style={{ color: colorFor(i) }}>● </span><span style={{ color: 'var(--tekst-1-app)' }}>{name}</span></Td>
                 <Td>{b.current.ctl.toFixed(1)}</Td>
                 <Td>{b.current.atl.toFixed(1)}</Td>
                 <Td>{b.current.tsb.toFixed(1)}</Td>
@@ -145,8 +145,8 @@ function SnapshotTable({ rows }: { rows: MultipleAthletesAnalysis['athletes'] })
 
 function Th({ children }: { children: React.ReactNode }) {
   return <th className="text-left py-2 px-3 text-xs tracking-widest uppercase"
-    style={{ color: '#555560', fontWeight: 'normal' }}>{children}</th>
+    style={{ color: 'var(--tekst-8-app)', fontWeight: 'normal' }}>{children}</th>
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="py-2 px-3" style={{ color: '#F0F0F2' }}>{children}</td>
+  return <td className="py-2 px-3" style={{ color: 'var(--tekst-1-app)' }}>{children}</td>
 }

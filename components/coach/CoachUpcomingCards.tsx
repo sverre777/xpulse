@@ -68,7 +68,7 @@ function AthleteAvatarRow({ athletes, max = 8 }: { athletes: CoachOverviewAthlet
           className="text-xs tracking-widest uppercase px-2 py-1"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96',
+            color: 'var(--tekst-5-app)',
             border: '1px solid var(--line)',
           }}
         >
@@ -87,12 +87,12 @@ function EmptyCard({ title, message }: { title: string; message: string }) {
     >
       <span
         className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
       >
         {title}
       </span>
       <p
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontSize: '14px' }}
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}
       >
         {message}
       </p>
@@ -125,7 +125,7 @@ export async function CoachUpcomingCards() {
           <div className="flex items-center justify-between mb-3">
             <span
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               Neste konkurranse / test
             </span>
@@ -144,7 +144,7 @@ export async function CoachUpcomingCards() {
             <span
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 fontSize: '28px',
                 letterSpacing: '0.04em',
                 lineHeight: 1,
@@ -154,14 +154,14 @@ export async function CoachUpcomingCards() {
             </span>
             <span
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               · {formatAbsoluteDate(competition.date)}
             </span>
           </div>
           <p
             className="text-sm mb-3"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}
           >
             {competition.title}
           </p>
@@ -188,7 +188,7 @@ export async function CoachUpcomingCards() {
           <div className="flex items-center justify-between mb-3">
             <span
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               Neste fellestrening
             </span>
@@ -198,7 +198,7 @@ export async function CoachUpcomingCards() {
             <span
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 fontSize: '28px',
                 letterSpacing: '0.04em',
                 lineHeight: 1,
@@ -208,21 +208,21 @@ export async function CoachUpcomingCards() {
             </span>
             <span
               className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               · {formatAbsoluteDate(session.date)}
             </span>
           </div>
           <p
             className="text-sm mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}
           >
             {session.label ?? session.title}
           </p>
           {session.label && (
             <p
               className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               {session.title} · {session.sport}
             </p>
@@ -230,7 +230,7 @@ export async function CoachUpcomingCards() {
           {!session.label && (
             <p
               className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
             >
               {session.sport}
             </p>

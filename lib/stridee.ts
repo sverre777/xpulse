@@ -56,37 +56,122 @@ export const CLAIM_TIMESTAMP = 'webhook-timestamp'
 // ─────────────────────────────────────────────────────────────────────────
 
 /**
+ * De 32 rå private-nøkkelbytene pakket som PKCS#8 for X25519 (OID 1.3.101.110).
+ * Prefikset er fast: SEQUENCE, version 0, AlgorithmIdentifier, OCTET STRING.
+ * Brukes til å utlede den offentlige delen — se fullforRaaNokkel.
+ */
+const PKCS8_X25519_PREFIX = new Uint8Array([
+  0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
+  0x03, 0x2b, 0x65, 0x6e, 0x04, 0x22, 0x04, 0x20,
+])
+
+/**
+ * Dekoder base64url ELLER vanlig base64, med eller uten padding.
+ *
+ * jose sin base64url.decode avviser `+` og `/` (målt), og nøkkeldashboards
+ * gir ut begge former. Vi normaliserer derfor til base64url først.
+ * Returnerer null når strengen ikke er gyldig base64 i det hele tatt.
+ */
+function dekodBase64Fritt(s: string): Uint8Array | null {
+  const normalisert = s.trim().replace(/\+/g, '-').replace(/\//g, '_')
+  if (!normalisert || /[^A-Za-z0-9\-_=]/.test(normalisert)) return null
+  try {
+    return base64url.decode(normalisert)
+  } catch {
+    return null
+  }
+}
+
+/**
  * Leser våre private nøkler. Env-verdien kan være:
  *   · én JWK             {"kty":"OKP",...}
  *   · et JWKS-objekt     {"keys":[...]}
  *   · en liste med JWK-er [...]
+ *   · RÅ base64(url) av de 32 private-nøkkelbytene — formatet flere
+ *     nøkkeldashboards gir ut. Flere rå nøkler skilles med komma eller
+ *     linjeskift, så begge Stridee-nøklene kan ligge inne samtidig.
  *
  * Flere former støttes fordi ET ENDEPUNKT KAN HOLDE TO NØKLER gjennom en
  * rotasjon. Vi slår opp på kid fra JWE-headeret i stedet for å anta at det
  * bare finnes én.
+ *
+ * En rå nøkkel gir JWK-en {kty,crv,d} UTEN kid og UTEN x. Den offentlige
+ * delen utledes først ved bruk (fullforRaaNokkel) — jose avviser en X25519-JWK
+ * uten x, og x kan ikke leses ut av env, bare regnes ut av d.
  */
 export function lesPrivateNokler(raa: string | undefined): JWK[] {
   if (!raa || !raa.trim()) return []
-  let parset: unknown
   try {
-    parset = JSON.parse(raa)
-  } catch {
+    const parset: unknown = JSON.parse(raa)
+    if (Array.isArray(parset)) return parset as JWK[]
+    if (parset && typeof parset === 'object') {
+      const o = parset as { keys?: unknown }
+      if (Array.isArray(o.keys)) return o.keys as JWK[]
+      return [parset as JWK]
+    }
     return []
+  } catch {
+    // Ikke JSON — da er det (kanskje) rå nøkkelbytes.
   }
-  if (Array.isArray(parset)) return parset as JWK[]
-  if (parset && typeof parset === 'object') {
-    const o = parset as { keys?: unknown }
-    if (Array.isArray(o.keys)) return o.keys as JWK[]
-    return [parset as JWK]
+
+  const ut: JWK[] = []
+  for (const bit of raa.split(/[,\n\r]+/)) {
+    const token = bit.trim()
+    if (!token) continue
+    const bytes = dekodBase64Fritt(token)
+    // Ikke gjett: bare nøyaktig 32 byte er en X25519-privatnøkkel.
+    if (!bytes || bytes.length !== 32) continue
+    ut.push({ kty: 'OKP', crv: 'X25519', d: base64url.encode(bytes) })
   }
-  return []
+  return ut
 }
 
-/** Nøkkelen som matcher kid, eller den eneste hvis leveringen ikke oppgir kid. */
+/**
+ * Nøklene som kan ha forseglet leveringen, i den rekkefølgen de skal prøves.
+ *
+ * En RÅ nøkkel har ingen kid, og leveringen kan likevel oppgi en. Derfor er
+ * kid-løse nøkler ALLTID kandidater: eksakt kid-treff først, deretter alle
+ * uten kid. Å prøve en nøkkel som ikke passer koster bare et mislykket
+ * dekrypteringsforsøk — å ikke prøve den koster hele leveringen.
+ */
+export function velgNokkelKandidater(nokler: JWK[], kid: string | undefined): JWK[] {
+  if (nokler.length === 0) return []
+  const utenKid = nokler.filter(k => !k.kid)
+  if (kid) {
+    const eksakt = nokler.filter(k => k.kid === kid)
+    return [...eksakt, ...utenKid]
+  }
+  // Uten kid i leveringen: én nøkkel er utvetydig, ellers er de kid-løse de
+  // eneste vi kan forsvare å prøve.
+  if (nokler.length === 1) return [nokler[0]]
+  return utenKid
+}
+
+/** Første kandidat. Beholdt for kallere som bare vil ha én nøkkel. */
 export function velgNokkel(nokler: JWK[], kid: string | undefined): JWK | null {
-  if (nokler.length === 0) return null
-  if (kid) return nokler.find(k => k.kid === kid) ?? null
-  return nokler.length === 1 ? nokler[0] : null
+  return velgNokkelKandidater(nokler, kid)[0] ?? null
+}
+
+/**
+ * Fyller inn den offentlige delen (x) på en rå nøkkel.
+ *
+ * MÅLT: jose avviser {kty,crv,d} uten x med «Invalid JWK». x er ikke noe vi
+ * kan lese fra env — den må regnes ut av d. Vi pakker de 32 bytene som PKCS#8
+ * og lar WebCrypto gjøre kurvematematikken; egen X25519-implementasjon ville
+ * vært hjemmesnekret krypto.
+ */
+async function fullforRaaNokkel(jwk: JWK): Promise<JWK> {
+  if (jwk.x || !jwk.d) return jwk
+  const d = dekodBase64Fritt(jwk.d)
+  if (!d || d.length !== 32) return jwk
+  const der = new Uint8Array(PKCS8_X25519_PREFIX.length + 32)
+  der.set(PKCS8_X25519_PREFIX)
+  der.set(d, PKCS8_X25519_PREFIX.length)
+  const key = await crypto.subtle.importKey(
+    'pkcs8', der as unknown as ArrayBuffer, 'X25519', true, ['deriveBits'],
+  )
+  const full = await crypto.subtle.exportKey('jwk', key)
+  return { ...jwk, x: full.x }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -222,7 +307,9 @@ export interface DekrypteringsResultat {
  * AAD er det beskyttede headeret, som compactDecrypt håndterer selv.
  *
  * kid leses UT AV JWE-headeret og brukes til å velge riktig privatnøkkel —
- * et endepunkt kan holde to gjennom en rotasjon.
+ * et endepunkt kan holde to gjennom en rotasjon. Rå nøkler har ingen kid, så
+ * de prøves etter et eventuelt eksakt treff, og vi gir først opp når alle
+ * kandidatene har feilet.
  */
 export async function dekrypterHendelse(
   jwe: string,
@@ -234,26 +321,33 @@ export async function dekrypterHendelse(
   } catch {
     return { ok: false, grunn: 'JWE-headeret kunne ikke leses' }
   }
-  const jwk = velgNokkel(nokler, kid)
-  if (!jwk) {
+  // Kandidatene i rekkefølge: eksakt kid-treff først, så alle kid-løse (rå)
+  // nøkler. Vi gir først opp når ALLE har feilet — en rå nøkkel bærer ingen
+  // kid, og leveringen kan likevel oppgi en.
+  const kandidater = velgNokkelKandidater(nokler, kid)
+  if (kandidater.length === 0) {
     return {
       ok: false,
       kid,
       grunn: kid
-        ? `ingen privatnokkel med kid ${kid}`
-        : 'leveringen oppgir ingen kid og vi har flere nokler',
+        ? `ingen privatnokkel med kid ${kid} og ingen kid-lose nokler`
+        : 'leveringen oppgir ingen kid og vi har flere nokler med kid',
     }
   }
-  try {
-    const key = (await importJWK(jwk, 'ECDH-ES')) as CryptoKey
-    const { plaintext } = await compactDecrypt(jwe, key, {
-      keyManagementAlgorithms: ['ECDH-ES'],
-      contentEncryptionAlgorithms: ['A256GCM'],
-    })
-    return { ok: true, kid, data: JSON.parse(new TextDecoder().decode(plaintext)) }
-  } catch (e) {
-    return { ok: false, kid, grunn: e instanceof Error ? e.message : 'dekryptering feilet' }
+  let sisteGrunn = 'dekryptering feilet'
+  for (const jwk of kandidater) {
+    try {
+      const key = (await importJWK(await fullforRaaNokkel(jwk), 'ECDH-ES')) as CryptoKey
+      const { plaintext } = await compactDecrypt(jwe, key, {
+        keyManagementAlgorithms: ['ECDH-ES'],
+        contentEncryptionAlgorithms: ['A256GCM'],
+      })
+      return { ok: true, kid, data: JSON.parse(new TextDecoder().decode(plaintext)) }
+    } catch (e) {
+      sisteGrunn = e instanceof Error ? e.message : 'dekryptering feilet'
+    }
   }
+  return { ok: false, kid, grunn: sisteGrunn }
 }
 
 // ─────────────────────────────────────────────────────────────────────────

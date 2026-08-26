@@ -90,8 +90,25 @@ export async function POST(req: NextRequest) {
   }
   if (!kropp.enc) return avvis(400, 'kroppen mangler enc')
 
-  const nokler = lesPrivateNokler(process.env.STRIDEE_WEBHOOK_PRIVATE_KEY)
-  if (nokler.length === 0) return avvis(500, 'STRIDEE_WEBHOOK_PRIVATE_KEY mangler')
+  // To ULIKE feil, som skal hete to ulike ting: «mangler» sendte oss en time
+  // inn i Netlify-UI-et etter en variabel som HELE TIDEN var satt — den var
+  // bare ikke JSON. Skill årsakene, alltid.
+  const raaNokkel = process.env.STRIDEE_WEBHOOK_PRIVATE_KEY
+  if (!raaNokkel || !raaNokkel.trim()) {
+    return avvis(500, 'STRIDEE_WEBHOOK_PRIVATE_KEY er ikke satt')
+  }
+  const nokler = lesPrivateNokler(raaNokkel)
+  if (nokler.length === 0) {
+    // Nok til å kjenne igjen formatet, for lite til å rekonstruere noe:
+    // lengden og FØRSTE tegn. Aldri verdien, aldri et utsnitt av den.
+    const trimmet = raaNokkel.trim()
+    console.warn(
+      `[stridee-webhook] STRIDEE_WEBHOOK_PRIVATE_KEY: ${trimmet.length} tegn, ` +
+      `første tegn '${trimmet[0]}'`,
+    )
+    return avvis(500,
+      'STRIDEE_WEBHOOK_PRIVATE_KEY kunne ikke tolkes (verken JWK-JSON eller rå base64 32 byte)')
+  }
 
   const klar = await dekrypterHendelse(kropp.enc, nokler)
   if (!klar.ok || !klar.data) return avvis(400, klar.grunn ?? 'dekryptering feilet')

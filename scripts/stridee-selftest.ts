@@ -13,7 +13,7 @@ import {
 } from 'jose'
 import {
   verifiserLevering, dekrypterHendelse, forGammel, alderSekunder,
-  lesPrivateNokler, velgNokkel, kvittering,
+  lesPrivateNokler, velgNokkel, velgNokkelKandidater, kvittering, b64u,
   CLAIM_ID, CLAIM_TIMESTAMP, STRIDEE_MAKS_ALDER_SEKUNDER,
 } from '../lib/stridee'
 
@@ -131,6 +131,81 @@ async function main() {
   sjekk('ukjent kid gir null', velgNokkel([boksPrivJwk], 'finnes-ikke'), null)
   sjekk('uten kid og EN nokkel gaar bra', velgNokkel([boksPrivJwk], undefined)?.kid, 'boks-1')
   sjekk('uten kid og TO nokler gir null', velgNokkel([annenJwk, boksPrivJwk], undefined), null)
+
+  // ── RÅ NØKLER (bolk 1b) ────────────────────────────────────────────────
+  // Env-verdien kan være en bar base64url-streng — formatet flere
+  // nøkkeldashboards gir ut. Det var dette som fikk prod til å melde
+  // «mangler» om en variabel som hele tiden var satt.
+  console.log('\n— rå nøkler —')
+
+  // Selve råformatet: d fra en ekte jose-generert X25519-nøkkel ER de 32
+  // private bytene i base64url.
+  const raaD = boksPrivJwk.d as string
+  const fraRaa = lesPrivateNokler(raaD)
+  sjekk('rå base64url gir én nøkkel', fraRaa.length, 1)
+  sjekk('rå nøkkel får crv X25519', fraRaa[0]?.crv, 'X25519')
+  sjekk('rå nøkkel får kty OKP', fraRaa[0]?.kty, 'OKP')
+  sjekk('rå nøkkel har ingen kid', fraRaa[0]?.kid, undefined)
+  sjekk('rå nøkkel bevarer d uendret', fraRaa[0]?.d === raaD, true)
+
+  // Vanlig base64 (+ / =) er samme nøkkel — dashboards gir ut begge former.
+  const raaBytes = b64u.decode(raaD)
+  const raaStd = Buffer.from(raaBytes).toString('base64')
+  sjekk('vanlig base64 m/ padding godtas', lesPrivateNokler(raaStd).length, 1)
+  sjekk('vanlig base64 gir samme d', lesPrivateNokler(raaStd)[0]?.d === raaD, true)
+
+  // To rå nøkler samtidig — begge Stridee-nøklene kan ligge inne i rotasjon.
+  const annenRaaD = (await exportJWK(annenBoks.privateKey)).d as string
+  sjekk('to rå nøkler på hver sin linje', lesPrivateNokler(`${raaD}\n${annenRaaD}`).length, 2)
+  sjekk('to rå nøkler med komma', lesPrivateNokler(`${raaD},${annenRaaD}`).length, 2)
+  sjekk('linjeskift m/ mellomrom tåles', lesPrivateNokler(`  ${raaD}  \n  ${annenRaaD}  `).length, 2)
+
+  // Ikke gjett: feil lengde er ikke en X25519-nøkkel.
+  const kort = b64u.encode(new Uint8Array(31).fill(9))
+  sjekk('31 byte gir ingen nøkler', lesPrivateNokler(kort).length, 0)
+  const lang = b64u.encode(new Uint8Array(33).fill(9))
+  sjekk('33 byte gir ingen nøkler', lesPrivateNokler(lang).length, 0)
+  sjekk('tullestreng gir ingen nøkler', lesPrivateNokler('dette er ikke en nøkkel').length, 0)
+  sjekk('halvveis base64 gir ingen nøkler', lesPrivateNokler('!!!!').length, 0)
+
+  // JSON-formene skal være UENDRET (regresjon på dagens oppførsel).
+  sjekk('regresjon: JWK-objekt gir 1', lesPrivateNokler(JSON.stringify(boksPrivJwk)).length, 1)
+  sjekk('regresjon: {keys:[a,b]} gir 2',
+    lesPrivateNokler(JSON.stringify({ keys: [boksPrivJwk, annenJwk] })).length, 2)
+  sjekk('regresjon: JWK beholder kid', lesPrivateNokler(JSON.stringify(boksPrivJwk))[0]?.kid, 'boks-1')
+
+  // ── RUNDTUR: rå nøkkel må faktisk kunne dekryptere en ekte JWE ──────────
+  // Uten kid i leveringen.
+  const jweUtenKid = await new CompactEncrypt(new TextEncoder().encode(klartekst))
+    .setProtectedHeader({ alg: 'ECDH-ES', enc: 'A256GCM' })
+    .encrypt(pub)
+  const rundtur = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(raaD))
+  sjekk('RUNDTUR rå nøkkel dekrypterer', rundtur.ok, true)
+  sjekk('RUNDTUR gir riktig nonce', rundtur.data?.nonce, nonce)
+
+  // Leveringen oppgir en kid vi IKKE har — den rå nøkkelen må prøves likevel.
+  const jweFremmedKid = await new CompactEncrypt(new TextEncoder().encode(klartekst))
+    .setProtectedHeader({ alg: 'ECDH-ES', enc: 'A256GCM', kid: 'kid-vi-ikke-har' })
+    .encrypt(pub)
+  const rundturKid = await dekrypterHendelse(jweFremmedKid, lesPrivateNokler(raaD))
+  sjekk('RUNDTUR ukjent kid + rå nøkkel dekrypterer', rundturKid.ok, true)
+  sjekk('RUNDTUR ukjent kid gir riktig nonce', rundturKid.data?.nonce, nonce)
+
+  // Rå nøkkel som IKKE passer skal feile ærlig (ikke krasje).
+  const feilRaa = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(annenRaaD))
+  sjekk('feil rå nøkkel feiler ærlig', feilRaa.ok, false)
+
+  // Blandet: riktig rå nøkkel ligger BAK en feil — alle kandidater prøves.
+  const blandet = await dekrypterHendelse(jweFremmedKid, lesPrivateNokler(`${annenRaaD}\n${raaD}`))
+  sjekk('alle kandidater prøves til én lykkes', blandet.ok, true)
+
+  // Kandidatrekkefølgen: eksakt kid-treff først, så de kid-løse.
+  const raaJwk = lesPrivateNokler(raaD)[0]
+  const kand = velgNokkelKandidater([annenJwk, raaJwk], 'boks-0')
+  sjekk('eksakt kid-treff først', kand[0]?.kid, 'boks-0')
+  sjekk('kid-løs nøkkel er alltid kandidat', kand.length, 2)
+  sjekk('ukjent kid → kun de kid-løse',
+    velgNokkelKandidater([annenJwk, raaJwk], 'finnes-ikke').length, 1)
 
   console.log('\n— kvittering —')
   const k = kvittering(nonce)

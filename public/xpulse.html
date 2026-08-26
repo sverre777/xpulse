@@ -831,6 +831,7 @@ nav {
   letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap;
   transition:color .15s,border-color .15s}
 .nav-tema:hover{color:var(--orange);border-color:var(--orange)}
+.nav-tema:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 .nav-tema svg{display:block;flex-shrink:0}
 /* TO monteringsplasser, EN kilde til sannhet.
    .nav-links skjules under 900px, saa knappen der forsvinner paa mobil.
@@ -839,12 +840,33 @@ nav {
    Tilstanden bor i data-tema og localStorage, ikke i knappene, saa de to kan
    ikke komme ut av takt. */
 .nav-tema-mobil{display:none;min-width:44px;min-height:44px;justify-content:center;padding:8px}
-@media(max-width:900px){
-  /* Skjul KUN etiketten, ikke ikon-wrapperen. `.nav-tema span` traff begge,
-     og da fikk svg-en bredde 0 og knappen sto tom. */
+/* Mobil-bryter og hamburger i EGEN boks. Nav-en er justify-content:space-between,
+   saa et tredje synlig barn ville dyttet lenkelista til midten paa desktop og
+   plassert bryteren midt i raden paa mobil. */
+.nav-mobilhoyre{display:none;align-items:center;gap:8px}
+/* TELEFON I LANDSKAP (844–932px) er en visning ingen tester og alle bruker.
+   Etiketten sto full helt ned til 900px, og da ble lenkelista presset sammen:
+   naturlig bredde 701px mot 664px tilgjengelig ved 901px, saa LOGG INN og
+   START GRATIS PRØVE ble klemt.
+
+   Derfor gaar etiketten bort allerede paa 1100px. Mellom 900 og 1100 er den
+   VANLIGE knappen i lenkelista ikon-only — mobil-varianten dukker fortsatt
+   forst opp under 900px, der lista skjules helt.
+
+   Skjul KUN etiketten, ikke ikon-wrapperen: `.nav-tema span` traff begge, og
+   da fikk svg-en bredde 0 og knappen sto tom. */
+@media(max-width:1100px){
   .nav-tema span:not(.tema-ikon){display:none}
-  .nav-tema{padding:8px 12px}
-  .nav-tema-mobil{display:inline-flex}
+  /* Ikon-only skal fortsatt ha ekte treffflate, ikke bli en smal pille. */
+  .nav-tema{padding:8px;min-width:40px;justify-content:center}
+  .nav-links{gap:20px}
+}
+@media(max-width:900px){
+  /* 44px paa mobil, ikke 40. Gjentas her fordi 1100-blokka over setter
+     min-width:40px paa .nav-tema, og den kommer senere i fila enn
+     .nav-tema-mobil sin egen regel. */
+  .nav-tema-mobil{display:inline-flex;min-width:44px;min-height:44px}
+  .nav-mobilhoyre{display:flex}
 }
 
 .nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
@@ -944,12 +966,14 @@ nav {
     <li><a href="/app" class="nav-login">Logg inn</a></li>
     <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
   </ul>
-  <button type="button" class="nav-tema nav-tema-mobil"><span class="tema-ikon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span></span></button>
-  <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Åpne meny" aria-controls="navPanel" aria-expanded="false">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M4 7 H20"/><path d="M4 12 H20"/><path d="M4 17 H20"/>
-    </svg>
-  </button>
+  <div class="nav-mobilhoyre">
+    <button type="button" class="nav-tema nav-tema-mobil"><span class="tema-ikon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span></span></button>
+    <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Åpne meny" aria-controls="navPanel" aria-expanded="false">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 7 H20"/><path d="M4 12 H20"/><path d="M4 17 H20"/>
+      </svg>
+    </button>
+  </div>
 </nav>
 
 <div class="nav-panel" id="navPanel" role="dialog" aria-modal="true" aria-label="Hovedmeny">

@@ -47,7 +47,7 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
         className="text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#8A8A96',
+          color: 'var(--tekst-5-app)',
           background: 'none',
           border: 'none',
           padding: '4px 0',
@@ -60,7 +60,7 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
         <div className="mt-2">
           {splits.length === 0 ? (
             <p className="text-xs mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Ingen splits ført ennå.
             </p>
           ) : (
@@ -89,7 +89,7 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
                       style={inputStyle} />
                     <span style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: sec ? '#F0F0F2' : '#555560',
+                      color: sec ? 'var(--tekst-1-app)' : 'var(--tekst-8-app)',
                       fontSize: '13px',
                     }}>
                       {sec ? formatPace(sec, unit) : '—'}
@@ -99,7 +99,7 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
                       aria-label="Fjern split"
                       style={{
                         background: 'none', border: 'none',
-                        color: '#555560', fontSize: '18px',
+                        color: 'var(--tekst-8-app)', fontSize: '18px',
                         cursor: 'pointer', lineHeight: 1,
                       }}>×</button>
                   </div>
@@ -129,9 +129,9 @@ export function SplitsTable({ splits, onChange, unit }: Props) {
 }
 
 const inputStyle: React.CSSProperties = {
-  backgroundColor: '#0F0F11',
-  border: '1px solid #262629',
-  color: '#F0F0F2',
+  backgroundColor: 'var(--flate-8)',
+  border: '1px solid var(--kant-5)',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '13px',
   padding: '6px 8px',
@@ -141,7 +141,7 @@ const inputStyle: React.CSSProperties = {
 function Header({ children }: { children: React.ReactNode }) {
   return (
     <span className="text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </span>
   )

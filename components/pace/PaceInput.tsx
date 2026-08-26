@@ -71,7 +71,7 @@ export function PaceInput({
   return (
     <div>
       <label className="block mb-1 text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
 
@@ -85,9 +85,9 @@ export function PaceInput({
           disabled={disabled}
           style={{
             flex: 1,
-            backgroundColor: '#0F0F11',
-            border: '1px solid #262629',
-            color: '#F0F0F2',
+            backgroundColor: 'var(--flate-8)',
+            border: '1px solid var(--kant-5)',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '14px',
             padding: '8px 10px',
@@ -131,7 +131,7 @@ export function PaceInput({
           finnes, slik at brukeren ser begge representasjonene samtidig. */}
       {value != null && value > 0 && !error && (
         <p className="mt-1 text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           = {formatPace(value, unit === 'min_per_km' ? 'km_per_h' : 'min_per_km')}
         </p>
       )}
@@ -151,9 +151,9 @@ function UnitToggle({
     fontSize: '13px',
     letterSpacing: '0.08em',
     textTransform: 'uppercase',
-    border: '1px solid #262629',
-    background: '#0F0F11',
-    color: '#8A8A96',
+    border: '1px solid var(--kant-5)',
+    background: 'var(--flate-8)',
+    color: 'var(--tekst-5-app)',
     cursor: disabled ? 'default' : 'pointer',
     padding: '0 10px',
     minHeight: '40px',
@@ -161,8 +161,8 @@ function UnitToggle({
   }
   const activeStyle: React.CSSProperties = {
     ...baseStyle,
-    background: '#1A1A1E',
-    color: '#F0F0F2',
+    background: 'var(--kant-2)',
+    color: 'var(--tekst-1-app)',
     borderColor: '#FF4500',
   }
   return (

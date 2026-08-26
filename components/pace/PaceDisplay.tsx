@@ -13,7 +13,7 @@ export function PaceDisplay({
 }) {
   if (secondsPerKm == null || secondsPerKm <= 0) return null
   return (
-    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC', fontSize: '12px' }}>
+    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '12px' }}>
       {prefix}{formatPace(secondsPerKm, unit)}
     </span>
   )

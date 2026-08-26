@@ -35,7 +35,7 @@ export function ConversationList({ conversations }: Props) {
       {conversations.map(c => {
         const accent = c.kind === 'dm'
           ? (c.counterpartIsCoach ? COACH_BLUE : ATHLETE_ORANGE)
-          : '#8A8A96'
+          : 'var(--tekst-5-app)'
         return (
           <li key={c.key} style={{ borderTop: '1px solid var(--line)' }}>
             <Link
@@ -46,7 +46,7 @@ export function ConversationList({ conversations }: Props) {
               <span
                 style={{
                   width: '8px', height: '8px', borderRadius: '50%',
-                  backgroundColor: c.unreadCount > 0 ? accent : '#2A2A30',
+                  backgroundColor: c.unreadCount > 0 ? accent : 'var(--kant-6)',
                   flexShrink: 0,
                 }}
               />
@@ -56,7 +56,7 @@ export function ConversationList({ conversations }: Props) {
                     className="text-sm"
                     style={{
                       fontFamily: "'Bebas Neue', sans-serif",
-                      color: '#F0F0F2',
+                      color: 'var(--tekst-1-app)',
                       letterSpacing: '0.04em',
                     }}
                   >
@@ -67,8 +67,8 @@ export function ConversationList({ conversations }: Props) {
                       className="text-[9px] tracking-widest uppercase px-1.5 py-0.5"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#8A8A96',
-                        border: '1px solid #2A2A30',
+                        color: 'var(--tekst-5-app)',
+                        border: '1px solid var(--kant-6)',
                       }}
                     >
                       Gruppe
@@ -87,7 +87,7 @@ export function ConversationList({ conversations }: Props) {
                   className="text-xs truncate"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: c.unreadCount > 0 ? '#F0F0F2' : '#8A8A96',
+                    color: c.unreadCount > 0 ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                     marginTop: '2px',
                   }}
                 >
@@ -96,7 +96,7 @@ export function ConversationList({ conversations }: Props) {
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <span className="text-xs tracking-wider uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {timeAgo(c.lastAt)}
                 </span>
                 {c.unreadCount > 0 && (
@@ -104,7 +104,7 @@ export function ConversationList({ conversations }: Props) {
                     className="text-xs px-1.5 py-0.5"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      backgroundColor: accent, color: '#0A0A0B',
+                      backgroundColor: accent, color: 'var(--flate-3)',
                       minWidth: '18px', textAlign: 'center',
                     }}
                   >

@@ -31,7 +31,7 @@ export function InboxTabs({ activeRole }: { activeRole: Role }) {
             className="px-4 py-2 text-sm tracking-widest uppercase transition-colors"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: active ? '#F0F0F2' : '#8A8A96',
+              color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
               borderBottom: active ? `2px solid ${accent}` : '2px solid transparent',
               marginBottom: '-1px',
               textDecoration: 'none',

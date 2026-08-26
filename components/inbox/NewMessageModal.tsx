@@ -91,13 +91,13 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--scrim-70)' }}
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0E0E10',
+          backgroundColor: 'var(--flate-7)',
           border: '1px solid var(--line)',
           width: '100%',
           maxWidth: '520px',
@@ -108,14 +108,14 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
       >
         <div className="px-4 py-3 flex items-center justify-between"
           style={{ borderBottom: '1px solid var(--line)' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '20px', letterSpacing: '0.04em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '20px', letterSpacing: '0.04em' }}>
             Ny melding
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Lukk
           </button>
@@ -133,7 +133,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: mode === m ? 'var(--card2)' : 'transparent',
                   border: `1px solid ${mode === m ? COACH_BLUE : 'var(--line)'}`,
-                  color: mode === m ? '#F0F0F2' : '#8A8A96',
+                  color: mode === m ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                   cursor: 'pointer',
                 }}
               >
@@ -154,7 +154,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 backgroundColor: 'var(--card2)',
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 border: '1px solid var(--line)',
                 outline: 'none',
               }}
@@ -170,7 +170,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'var(--card2)',
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               border: '1px solid var(--line)',
               outline: 'none',
             }}
@@ -179,7 +179,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
           <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
             {loading && (
               <p className="p-4 text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 Laster…
               </p>
             )}
@@ -191,7 +191,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
             )}
             {!loading && !loadError && filtered.length === 0 && (
               <p className="p-4 text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                 Ingen mulige mottakere.
               </p>
             )}
@@ -218,7 +218,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                           style={{
                             width: '14px',
                             height: '14px',
-                            border: `1px solid ${selected ? accent : '#2A2A30'}`,
+                            border: `1px solid ${selected ? accent : 'var(--kant-6)'}`,
                             backgroundColor: selected ? accent : 'transparent',
                             flexShrink: 0,
                           }}
@@ -233,13 +233,13 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                       <div className="flex-1 min-w-0">
                         <div
                           className="text-sm"
-                          style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+                          style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
                         >
                           {r.fullName ?? 'Ukjent bruker'}
                         </div>
                         <div
                           className="text-xs tracking-widest uppercase"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}
                         >
                           {r.source === 'coach' && 'Din trener'}
                           {r.source === 'athlete' && 'Din utøver'}
@@ -269,7 +269,7 @@ export function NewMessageModal({ open, onClose, viewerIsCoach }: Props) {
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   backgroundColor: COACH_BLUE,
-                  color: '#0A0A0B',
+                  color: 'var(--flate-3)',
                   border: 'none',
                   cursor: isPending || !groupName.trim() || selectedIds.size === 0 ? 'not-allowed' : 'pointer',
                   opacity: isPending || !groupName.trim() || selectedIds.size === 0 ? 0.5 : 1,

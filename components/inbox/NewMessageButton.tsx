@@ -19,7 +19,7 @@ export function NewMessageButton({ viewerIsCoach }: { viewerIsCoach: boolean }) 
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           backgroundColor: accent,
-          color: '#0A0A0B',
+          color: 'var(--flate-3)',
           border: 'none',
           cursor: 'pointer',
         }}

@@ -58,8 +58,8 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
                   className="text-[9px] tracking-widest uppercase px-1.5 py-0.5"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: '#8A8A96',
-                    border: '1px solid #2A2A30',
+                    color: 'var(--tekst-5-app)',
+                    border: '1px solid var(--kant-6)',
                   }}
                 >
                   {CONTEXT_LABEL[c.context]} · {c.periodKey}
@@ -73,7 +73,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
                   />
                 )}
                 <span className="ml-auto text-xs tracking-wider uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
                   {timeAgo(c.createdAt)}
                 </span>
               </div>
@@ -81,7 +81,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
                 className="text-sm"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#F0F0F2',
+                  color: 'var(--tekst-1-app)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                 }}
@@ -90,7 +90,7 @@ export function CommentFeedList({ comments }: { comments: InboxCommentItem[] }) 
               </p>
               {c.athleteName && (
                 <p className="text-xs tracking-widest uppercase mt-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
                   Om: {c.athleteName}
                 </p>
               )}

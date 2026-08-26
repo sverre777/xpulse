@@ -76,7 +76,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
   const myColor = viewerIsCoach ? COACH_BLUE : ATHLETE_ORANGE
   const headerAccent = header.kind === 'dm'
     ? (header.counterpartIsCoach ? COACH_BLUE : ATHLETE_ORANGE)
-    : '#8A8A96'
+    : 'var(--tekst-5-app)'
 
   const onSend = () => {
     const text = draft.trim()
@@ -96,7 +96,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         <Link
           href="/app/innboks/meldinger"
           className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textDecoration: 'none' }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', textDecoration: 'none' }}
         >
           ← Samtaler
         </Link>
@@ -115,13 +115,13 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         <div className="flex-1">
           <div
             className="text-base"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+            style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
           >
             {header.title}
           </div>
           {header.subtitle && (
             <div className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               {header.subtitle}
             </div>
           )}
@@ -132,7 +132,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         ref={scrollRef}
         className="flex-1 px-4 py-3 flex flex-col gap-3 overflow-y-auto"
         style={{
-          backgroundColor: '#0E0E10',
+          backgroundColor: 'var(--flate-7)',
           border: '1px solid var(--line)',
           borderTop: 'none',
           minHeight: '320px',
@@ -147,7 +147,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
         )}
         {messages.length === 0 && !error && (
           <p className="text-xs text-center my-8"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ingen meldinger i denne tråden ennå.
           </p>
         )}
@@ -163,7 +163,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
             <div key={m.id} className="flex flex-col">
               {showDivider && (
                 <div className="text-xs tracking-widest uppercase text-center my-2"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
                   {formatDate(m.createdAt)}
                 </div>
               )}
@@ -175,7 +175,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
                       className="text-xs"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",
-                        color: '#F0F0F2',
+                        color: 'var(--tekst-1-app)',
                         fontWeight: 600,
                       }}
                     >
@@ -192,7 +192,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
                     </span>
                     <span
                       className="text-xs tracking-widest uppercase"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}
                     >
                       {formatTime(m.createdAt)}
                     </span>
@@ -201,7 +201,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
                     className="px-3 py-2 text-sm"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: '#F0F0F2',
+                      color: 'var(--tekst-1-app)',
                       backgroundColor: mine ? 'transparent' : 'var(--card)',
                       border: '1px solid var(--line)',
                       borderLeftWidth: mine ? '1px' : '3px',
@@ -240,7 +240,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'var(--card2)',
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             border: '1px solid var(--line)',
             outline: 'none',
           }}
@@ -253,7 +253,7 @@ export function MessageThread({ viewerId, viewerIsCoach, header, messages, error
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: myColor,
-            color: '#0A0A0B',
+            color: 'var(--flate-3)',
             border: 'none',
             cursor: isPending || !draft.trim() ? 'not-allowed' : 'pointer',
             opacity: isPending || !draft.trim() ? 0.5 : 1,

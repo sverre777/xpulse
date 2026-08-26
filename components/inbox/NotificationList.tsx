@@ -30,11 +30,11 @@ const TYPE_COLORS: Record<string, string> = {
   template_push: '#1A6FD4',
   periodization_push: '#1A6FD4',
   competition_push: '#1A6FD4',
-  system: '#8A8A96',
+  system: 'var(--tekst-5-app)',
 }
 
 function colorFor(type: string): string {
-  return TYPE_COLORS[type] ?? '#8A8A96'
+  return TYPE_COLORS[type] ?? 'var(--tekst-5-app)'
 }
 
 interface Props {
@@ -79,7 +79,7 @@ export function NotificationList({ notifications }: Props) {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: 'transparent',
-              color: '#8A8A96',
+              color: 'var(--tekst-5-app)',
               border: '1px solid var(--line)',
               cursor: isPending ? 'not-allowed' : 'pointer',
             }}
@@ -104,14 +104,14 @@ export function NotificationList({ notifications }: Props) {
                   className="text-sm"
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
-                    color: '#F0F0F2',
+                    color: 'var(--tekst-1-app)',
                     letterSpacing: '0.04em',
                   }}
                 >
                   {n.title}
                 </span>
                 <span className="ml-auto text-xs tracking-wider uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
                   {timeAgo(n.createdAt)}
                 </span>
               </div>
@@ -119,7 +119,7 @@ export function NotificationList({ notifications }: Props) {
                 <p className="text-xs"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
-                    color: n.isRead ? '#8A8A96' : '#F0F0F2',
+                    color: n.isRead ? 'var(--tekst-5-app)' : 'var(--tekst-1-app)',
                     whiteSpace: 'pre-wrap',
                   }}>
                   {n.content}

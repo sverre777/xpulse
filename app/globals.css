@@ -593,3 +593,182 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   .xp-menu-item { animation: none; opacity: 1; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LYSMODUS — STEG 1: TOKENSTILLASET
+   ───────────────────────────────────────────────────────────────────
+   Kartlegging: design/lysmodus-kartlegging.md
+   Åpne spørsmål: design/lysmodus-tvil.md
+
+   VAKT 1: mørkverdiene under er EKSAKT de hardkodede hex-verdiene som
+   allerede står i koden. Ingen av dem er justert, og nesten-duplikater
+   har hvert sitt token med hver sin verdi. Mørk modus er pikselidentisk.
+
+   Ingen komponent bruker disse tokenene ennå — bulk-konverteringen er
+   steg 2. Dette er kun stillaset.
+
+   FREDET og IKKE med her: sone-, skyting-, merke- og periodiseringsfarger.
+   De gjelder i begge tema.
+
+   Lysverdiene er regnet mekanisk: samme nyanse og metning, lyshet speilet
+   (L → 1−L i HSL). Ikke håndplukket, så du kan regne etter.
+
+   Temaet styres KUN av data-tema på <html>, satt av lib/tema.ts. Ingen
+   @media (prefers-color-scheme) her — én mekanisme, ikke to som kan bli
+   uenige. Skriptet leser OS-preferansen når TEMA_FOLG_OS slås på.
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* Tekst */
+  --tekst-1: #F2F2F0;  /* xpulse --paper / globals --ink */
+  --tekst-1-app: #F0F0F2;  /* globals --text-primary — appens dominerende */
+  --tekst-1-land: #F2F0EC;  /* landingsflatene */
+  --tekst-1-ren: #FFFFFF;  /* ren hvit */
+  --tekst-2: #DEDEE6;
+  --tekst-3: #C9C9D4;
+  --tekst-3-alt: #C9C9CE;
+  --tekst-3-app: #C0C0CC;
+  --tekst-3-fok: #C0C0C8;
+  --tekst-4: #B0B0B8;
+  --tekst-4-kal: #A9A9B5;  /* kun kalenderen */
+  --tekst-4-alt: #A0A0AC;
+  --tekst-5: #8B8B95;  /* xpulse --dim / globals --mut */
+  --tekst-5-app: #8A8A96;  /* globals --text-secondary — appens dominerende */
+  --tekst-6: #7A7A84;
+  --tekst-6-graa: #6A6A6A;  /* ekte gra, ingen blatone */
+  --tekst-7: #6E6E78;  /* OBS: identisk med Styrke-sonefargen — se tvilsfil */
+  --tekst-8: #5A5A64;  /* globals --dim */
+  --tekst-8-alt: #55555F;  /* xpulse --mute / globals --text-muted */
+  --tekst-8-app: #555560;  /* appens dominerende dempede */
+  --tekst-9: #4A4A54;
+  --tekst-9-graa: #4A4A4A;  /* ekte gra, kun lib/ */
+  --tekst-10: #3A3A44;
+  --tekst-10-alt: #3A3A42;
+
+  /* Kanter */
+  --kant-1: #141417;
+  --kant-1-alt: #141419;
+  --kant-1-app: #14141A;
+  --kant-2: #1A1A1E;
+  --kant-2-alt: #1A1A1F;
+  --kant-3: #1E1E22;  /* appens dominerende kant */
+  --kant-3-alt: #1F1F26;  /* xpulse --line */
+  --kant-4: #222228;  /* globals --border */
+  --kant-4-alt: #22222A;
+  --kant-5: #262629;
+  --kant-6: #2A2A30;
+  --kant-6-alt: #2A2A32;
+  --kant-6-app: #2A2A33;  /* xpulse --line2 */
+  --kant-7: #34343E;
+
+  /* Flater */
+  --flate-1: #060607;
+  --flate-2: #09090B;
+  --flate-2-alt: #09090C;
+  --flate-3: #0A0A0B;  /* globals --bg-primary — appens dominerende bunn */
+  --flate-3-alt: #0A0A0C;
+  --flate-3-b: #0A0A0D;
+  --flate-4: #0B0B0D;
+  --flate-4-alt: #0B0B0F;
+  --flate-5: #0C0C0F;
+  --flate-6: #0D0D10;
+  --flate-6-alt: #0D0D11;  /* xpulse --bg */
+  --flate-6-b: #0D0D14;
+  --flate-7: #0E0E10;
+  --flate-7-alt: #0E0E12;
+  --flate-8: #0F0F11;
+  --flate-8-alt: #0F0F12;
+  --flate-8-b: #0F0F14;
+  --flate-8-c: #0F0F16;
+  --flate-9: #101014;  /* xpulse --surface / globals --card */
+  --flate-10: #111113;  /* xpulse --mid */
+  --flate-10-alt: #111115;
+  --flate-11: #121216;
+  --flate-11-alt: #121218;
+  --flate-11-b: #12121A;
+  --flate-12: #131318;
+  --flate-12-alt: #13131A;  /* globals --bg-secondary */
+  --flate-13: #15151A;
+  --flate-13-alt: #15151B;  /* globals --card2 / xpulse --card */
+  --flate-14: #1A1A22;  /* globals --bg-card */
+  --flate-15: #1C1C21;  /* globals --bg-elevated */
+  --flate-16: #1E1E26;
+  --flate-17: #26262E;
+}
+
+:root[data-tema="lys"] {
+  /* Tekst */
+  --tekst-1: #0F0F0D;  /* xpulse --paper / globals --ink */
+  --tekst-1-app: #0D0D0F;  /* globals --text-primary — appens dominerende */
+  --tekst-1-land: #13110D;  /* landingsflatene */
+  --tekst-1-ren: #000000;  /* ren hvit */
+  --tekst-2: #191921;
+  --tekst-3: #2B2B36;
+  --tekst-3-alt: #313136;
+  --tekst-3-app: #33333F;
+  --tekst-3-fok: #37373F;
+  --tekst-4: #47474F;
+  --tekst-4-kal: #4A4A56;  /* kun kalenderen */
+  --tekst-4-alt: #53535F;
+  --tekst-5: #6A6A74;  /* xpulse --dim / globals --mut */
+  --tekst-5-app: #696975;  /* globals --text-secondary — appens dominerende */
+  --tekst-6: #7B7B85;
+  --tekst-6-graa: #959595;  /* ekte gra, ingen blatone */
+  --tekst-7: #878791;  /* OBS: identisk med Styrke-sonefargen — se tvilsfil */
+  --tekst-8: #9B9BA5;  /* globals --dim */
+  --tekst-8-alt: #A0A0AA;  /* xpulse --mute / globals --text-muted */
+  --tekst-8-app: #9F9FAA;  /* appens dominerende dempede */
+  --tekst-9: #ABABB5;
+  --tekst-9-graa: #B5B5B5;  /* ekte gra, kun lib/ */
+  --tekst-10: #BBBBC5;
+  --tekst-10-alt: #BDBDC5;
+
+  /* Kanter */
+  --kant-1: #E8E8EB;
+  --kant-1-alt: #E6E6EB;
+  --kant-1-app: #E5E5EB;
+  --kant-2: #E1E1E5;
+  --kant-2-alt: #E0E0E5;
+  --kant-3: #DDDDE1;  /* appens dominerende kant */
+  --kant-3-alt: #D9D9E0;  /* xpulse --line */
+  --kant-4: #D7D7DD;  /* globals --border */
+  --kant-4-alt: #D5D5DD;
+  --kant-5: #D6D6D9;
+  --kant-6: #CFCFD5;
+  --kant-6-alt: #CDCDD5;
+  --kant-6-app: #CCCCD5;  /* xpulse --line2 */
+  --kant-7: #C1C1CB;
+
+  /* Flater */
+  --flate-1: #F8F8F9;
+  --flate-2: #F4F4F6;
+  --flate-2-alt: #F3F3F6;
+  --flate-3: #F4F4F5;  /* globals --bg-primary — appens dominerende bunn */
+  --flate-3-alt: #F3F3F5;
+  --flate-3-b: #F2F2F5;
+  --flate-4: #F2F2F4;
+  --flate-4-alt: #F0F0F4;
+  --flate-5: #F0F0F3;
+  --flate-6: #EFEFF2;
+  --flate-6-alt: #EEEEF2;  /* xpulse --bg */
+  --flate-6-b: #EBEBF2;
+  --flate-7: #EFEFF1;
+  --flate-7-alt: #EDEDF1;
+  --flate-8: #EEEEF0;
+  --flate-8-alt: #EDEDF0;
+  --flate-8-b: #EBEBF0;
+  --flate-8-c: #E9E9F0;
+  --flate-9: #EBEBEF;  /* xpulse --surface / globals --card */
+  --flate-10: #ECECEE;  /* xpulse --mid */
+  --flate-10-alt: #EAEAEE;
+  --flate-11: #E9E9ED;
+  --flate-11-alt: #E7E7ED;
+  --flate-11-b: #E5E5ED;
+  --flate-12: #E7E7EC;
+  --flate-12-alt: #E5E5EC;  /* globals --bg-secondary */
+  --flate-13: #E5E5EA;
+  --flate-13-alt: #E4E4EA;  /* globals --card2 / xpulse --card */
+  --flate-14: #DDDDE5;  /* globals --bg-card */
+  --flate-15: #DEDEE3;  /* globals --bg-elevated */
+  --flate-16: #D9D9E1;
+  --flate-17: #D1D1D9;
+}

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 import { DialogHost } from "@/components/ui/ConfirmDialog";
+import { TEMA_INLINE_SKRIPT } from "@/lib/tema";
 
 export const viewport: Viewport = {
   themeColor: "#0A0A0B",
@@ -32,8 +33,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="no" className="h-full">
+    <html lang="no" className="h-full" suppressHydrationWarning>
       <head>
+        {/* Setter data-tema før første maling, ellers blinker flata i feil
+            tema. Fasiten for reglene er lib/tema.ts. Lysmodus er opt-in til
+            steg 2 er ferdig — se design/lysmodus-tvil.md. */}
+        <script dangerouslySetInnerHTML={{ __html: TEMA_INLINE_SKRIPT }} />
         {/* Preload av de to mest brukte fontfilene — resten hentes ved behov
             via @font-face i globals.css (self-hostet, samme familienavn). */}
         <link rel="preload" href="/fonts/barlow-condensed-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />

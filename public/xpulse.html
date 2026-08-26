@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
+<script>/* Tema for landingssida. KOPI av reglene i lib/tema.ts — statisk HTML kan
+   ikke importere TypeScript. Endres reglene der, MÅ de endres her i samme
+   commit. Samme situasjon som sonefargene i globals.css.
+   Lysmodus er opt-in til steg 2 er ferdig: FOLG_OS er false. */
+(function(){try{var FOLG_OS=false;var v=localStorage.getItem('xpulse-tema');
+if(v!=='mork'&&v!=='lys'){v=FOLG_OS&&matchMedia('(prefers-color-scheme: light)').matches?'lys':'mork';}
+document.documentElement.dataset.tema=v;}catch(e){}})()</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>X-PULSE – Treningsdagbok og planlegger for utholdenhetsutøvere</title>
@@ -63,6 +70,33 @@
   /* Merkefarger til klokkesynk-raden. --strava er verifisert mot Stravas
      brand guidelines; --polar er anslag til den offisielle verdien foreligger. */
   --strava:#FC5200; --polar:#E4002B;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LYSMODUS — steg 1. Kartlegging: design/lysmodus-kartlegging.md
+   Åpne spørsmål: design/lysmodus-tvil.md
+
+   Denne fila er statisk og bruker sine EGNE tokens, ikke globals.css.
+   «Begge settene» er derfor mørksettet over (uendret) og lysoverstyret
+   under. Appens 70 tokens hører hjemme i globals.css og ville vært død
+   vekt her.
+
+   Kun nøytraler. --orange, --blue, --gold, --green, --red, sonefargene
+   og merkefargene står med vilje ikke her — de gjelder i begge tema.
+
+   Verdiene er speilet lyshet (L → 1−L i HSL), samme regel som i appen.
+   ═══════════════════════════════════════════════════════════════════ */
+:root[data-tema="lys"]{
+  --bg:#EEEEF2;
+  --surface:#EBEBEF;
+  --card:#E4E4EA;
+  --line:#D9D9E0;
+  --line2:#CCCCD5;
+  --paper:#0F0F0D;
+  --dim:#6A6A74;
+  --mute:#A0A0AA;
+  --darker:#F4F4F5;
+  --mid:#ECECEE;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}

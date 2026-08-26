@@ -77,7 +77,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
   }, [filtered])
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         {/* Topplinja: tittel og de to knappene delte én linje og ble trange på
             375px. På mobil stables de, og knappene deler bredden likt. Fra md
@@ -85,7 +85,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <span style={{ width: '32px', height: '3px', backgroundColor: ATHLETE_ORANGE, display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
               Utstyr
             </h1>
           </div>
@@ -126,12 +126,12 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
           <div className="mb-6 px-4 py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1"
             style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <span className="text-xs tracking-widest uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Totalbruk
             </span>
             {topUsage.map(d => (
               <span key={d.id} className="min-w-0 truncate"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
                 {d.name} · <b style={{ color: ATHLETE_ORANGE }}>{d.km} km</b>
                 {' · '}<b style={{ color: '#1A6FD4' }}>{d.hours} t</b>
               </span>
@@ -142,23 +142,23 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
         {topUsage.length > 2 && (
           <div className="mb-8 p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
             <p className="text-xs tracking-widest uppercase mb-3"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Totalbruk — topp {topUsage.length}
             </p>
             <div className="h-[200px] md:h-[240px]" style={{ width: '100%' }}>
               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={topUsage} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
-                  <CartesianGrid stroke="#1F1F26" />
+                  <CartesianGrid stroke="var(--line)" />
                   <XAxis
                     dataKey="name"
-                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: '#55555F' }}
-                    stroke="#2A2A33"
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: 'var(--tekst-8-alt)' }}
+                    stroke="var(--line2)"
                     interval={0}
                     tickFormatter={(n: string) => n.length > 12 ? `${n.slice(0, 12)}…` : n}
                   />
                   <YAxis
-                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: '#55555F' }}
-                    stroke="#2A2A33"
+                    tick={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, fill: 'var(--tekst-8-alt)' }}
+                    stroke="var(--line2)"
                     width={36}
                   />
                   <Tooltip
@@ -187,7 +187,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
             />
           ) : (
             <div className="p-12 text-center" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px' }}>
                 Ingen utstyr matcher filtrene.
               </p>
             </div>
@@ -199,7 +199,7 @@ export function UtstyrPageView({ initialEquipment, ski = [] }: Props) {
             return (
               <section key={cat} className="mb-8">
                 <h2 className="text-xs tracking-widest uppercase mb-3"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   {EQUIPMENT_CATEGORY_LABELS[cat]} · {items.length}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -283,7 +283,7 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
           fyller plassen (samme fasit som velgeren i økta). */}
       <div className="w-11 h-11 md:w-[52px] md:h-[52px] shrink-0 flex items-center justify-center"
         style={{
-          backgroundColor: '#0F0F12',
+          backgroundColor: 'var(--flate-8-alt)',
           backgroundImage: equipment.image_url ? `url(${equipment.image_url})` : undefined,
           backgroundSize: 'cover', backgroundPosition: 'center',
         }}>
@@ -293,7 +293,7 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '16px' }}
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px' }}
             className="truncate">
             {equipment.name}
           </p>
@@ -301,28 +301,28 @@ function EquipmentCard({ equipment, maxKm, skiInfo }: {
         </div>
         {(subtitle || metaDeler.length > 0) && (
           <p className="truncate"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
             {[subtitle, ...metaDeler].filter(Boolean).join(' · ')}
           </p>
         )}
         <p className="text-xs tracking-widest uppercase mt-1"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {equipment.usage.total_km.toFixed(1)} km · {Math.round(equipment.usage.total_minutes / 60)} t · {equipment.usage.workout_count} økt{equipment.usage.workout_count === 1 ? '' : 'er'}
           {equipment.status !== 'active' && ` · ${EQUIPMENT_STATUS_LABELS[equipment.status]}`}
         </p>
         {maxKm > 0 && (
-          <div style={{ height: 5, borderRadius: 3, backgroundColor: '#1E1E26', marginTop: 7, overflow: 'hidden' }}>
+          <div style={{ height: 5, borderRadius: 3, backgroundColor: 'var(--flate-16)', marginTop: 7, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 3, width: `${Math.round(kmAndel * 100)}%`, backgroundColor: ATHLETE_ORANGE }} />
           </div>
         )}
         {cat === 'ski' && skiInfo?.km_since_slip != null && (
           <p className="text-xs mt-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {skiInfo.km_since_slip.toFixed(0)} km siden siste slip
           </p>
         )}
       </div>
-      <span style={{ color: '#555560', fontSize: '18px' }}>›</span>
+      <span style={{ color: 'var(--tekst-8-app)', fontSize: '18px' }}>›</span>
     </Link>
   )
 }
@@ -345,7 +345,7 @@ function FilterGroup({ label, children, fade = false }: { label: string; childre
   return (
     <div className="flex items-center gap-1 min-w-0">
       <span className="text-xs tracking-widest uppercase mr-1 shrink-0"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
       {/* Etiketten staar i ro — bare knappene scroller (kun paa mobil). */}
@@ -428,23 +428,23 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '5vh', paddingBottom: '5vh', overflow: 'auto',
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B',
-          border: '1px solid #1E1E22',
+          backgroundColor: 'var(--flate-3)',
+          border: '1px solid var(--kant-3)',
           width: '92%', maxWidth: '560px',
         }}>
         <div className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: '1px solid #1E1E22' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.08em' }}>
+          style={{ borderBottom: '1px solid var(--kant-3)' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.08em' }}>
             Nytt utstyr
           </h2>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: '22px' }}>
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
             ×
           </button>
         </div>
@@ -494,7 +494,7 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
             <input type="text" inputMode="decimal" value={form.start_km}
               onChange={e => set({ start_km: e.target.value })}
               placeholder="0" className="w-full px-4 py-3" style={inputStyle} />
-            <p className="text-xs mt-1" style={{ color: '#555560' }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--tekst-8-app)' }}>
               Start-km — historisk utstyr starter ikke på null. Legges til km-telleren.
             </p>
           </Field>
@@ -524,9 +524,9 @@ function NewEquipmentModal({ onClose }: { onClose: () => void }) {
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2',
-  backgroundColor: '#0F0F12',
-  border: '1px solid #1E1E22',
+  color: 'var(--tekst-1-app)',
+  backgroundColor: 'var(--flate-8-alt)',
+  border: '1px solid var(--kant-3)',
   fontSize: '15px',
 }
 
@@ -534,7 +534,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}

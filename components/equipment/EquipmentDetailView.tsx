@@ -153,13 +153,13 @@ export function EquipmentDetailView({
   const subtitle = [equipment.brand, equipment.model].filter(Boolean).join(' ')
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <Link href="/app/utstyr"
           className="text-xs tracking-widest uppercase inline-block mb-4"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96', textDecoration: 'none',
+            color: 'var(--tekst-5-app)', textDecoration: 'none',
           }}>
           ‹ Tilbake til utstyr
         </Link>
@@ -167,21 +167,21 @@ export function EquipmentDetailView({
         <div className="flex items-start gap-4 mb-8 flex-wrap">
           <div style={{
             width: '88px', height: '88px',
-            backgroundColor: '#0F0F12',
+            backgroundColor: 'var(--flate-8-alt)',
             backgroundImage: equipment.image_url ? `url(${equipment.image_url})` : undefined,
             backgroundSize: 'cover', backgroundPosition: 'center',
             flexShrink: 0,
           }} />
           <div className="flex-1 min-w-0">
             <p className="text-xs tracking-widest uppercase mb-1"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               {EQUIPMENT_CATEGORY_LABELS[normalizeCategory(equipment.category)]} · {EQUIPMENT_STATUS_LABELS[equipment.status]}
             </p>
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '32px', letterSpacing: '0.06em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.06em' }}>
               {equipment.name}
             </h1>
             {subtitle && (
-              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px' }}>
                 {subtitle}
               </p>
             )}
@@ -219,7 +219,7 @@ export function EquipmentDetailView({
             <Row label="Hjulsett" value={equipment.wheelset ?? null} />
             <Row label="Notater" value={equipment.notes} multiline />
             <div className="flex items-center gap-2 flex-wrap pt-3 mt-3"
-              style={{ borderTop: '1px solid #1E1E22' }}>
+              style={{ borderTop: '1px solid var(--kant-3)' }}>
               <button type="button" onClick={() => setEditing(true)} disabled={pending}
                 className="xp-pill xp-pill-primary">Rediger</button>
               <button type="button" onClick={handleDuplicate} disabled={pending}
@@ -336,11 +336,11 @@ export function EquipmentDetailView({
         )}
 
         <h2 className="text-xs tracking-widest uppercase mb-3"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Brukt på {workouts.length} økt{workouts.length === 1 ? '' : 'er'}
         </h2>
         {workouts.length === 0 ? (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
             Ingen økter ennå. Legg til utstyr i en økt fra dagboken.
           </p>
         ) : (
@@ -350,16 +350,16 @@ export function EquipmentDetailView({
                 style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
                 <div className="min-w-0">
                   <p className="truncate"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                     {w.title}
                   </p>
                   <p className="text-xs"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {w.date} · {w.sport}
                   </p>
                 </div>
                 <div className="text-right text-xs tracking-widest uppercase shrink-0"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {w.distance_km ? `${w.distance_km.toFixed(1)} km` : ''}
                   {w.duration_minutes ? ` · ${w.duration_minutes} min` : ''}
                 </div>
@@ -412,7 +412,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
       <div className="p-6 mb-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Ski-data
           </p>
           <button type="button" onClick={() => setEditing(true)} className="xp-pill xp-pill-ghost">
@@ -420,7 +420,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
           </button>
         </div>
         {!skiData ? (
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
             Ingen ski-data ennå. Legg til ski-type, lengde, slip og smøring for å vise i Min skipark.
           </p>
         ) : (
@@ -441,7 +441,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
     <form onSubmit={handleSave} className="p-6 mb-6 space-y-4"
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Ski-data
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -479,7 +479,7 @@ function SkiDataSection({ equipmentId, skiData }: { equipmentId: string; skiData
           placeholder="F.eks. Swix HF6"
           className="w-full px-4 py-3" style={inputStyle} />
       </Field>
-      <p className="text-xs" style={{ color: '#555560' }}>
+      <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
         Slip registreres i sliphistorikken under — «+ Ny slip» legger alltid en ny rad oppå.
       </p>
       <Field label="Notater">
@@ -544,7 +544,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
     <div className="p-6 mb-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Sliphistorikk
         </p>
         <button type="button" onClick={() => setAdding(a => !a)} className="xp-pill xp-pill-primary">
@@ -554,7 +554,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
 
       {adding && (
         <form onSubmit={handleAdd} className="space-y-3 mb-4 p-4"
-          style={{ border: '1px solid #1E1E22', borderRadius: 9 }}>
+          style={{ border: '1px solid var(--kant-3)', borderRadius: 9 }}>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Slip">
               <input value={form.grind} onChange={e => setForm(f => ({ ...f, grind: e.target.value }))}
@@ -575,8 +575,8 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
                 className="w-full px-4 py-3" style={inputStyle} />
             </Field>
           </div>
-          <p className="text-xs" style={{ color: '#8A8A96' }}>
-            Ny slip legges <b style={{ color: '#F0F0F2' }}>oppå</b> — historikken beholdes, og
+          <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>
+            Ny slip legges <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> — historikken beholdes, og
             «km siden siste slip» nullstilles.
           </p>
           {error && <p className="text-sm" style={{ color: '#FF4500' }}>{error}</p>}
@@ -591,7 +591,7 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
       )}
 
       {grinds.length === 0 ? (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
           Ingen slip registrert ennå.
         </p>
       ) : (
@@ -602,12 +602,12 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
             return (
               <div key={g.id} className="flex items-center justify-between gap-2 px-4 py-3"
                 style={{
-                  border: '1px solid #1E1E22', borderRadius: 9,
+                  border: '1px solid var(--kant-3)', borderRadius: 9,
                   opacity: i === 0 ? 1 : 0.55,
                 }}>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                    <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                       {g.grind}
                     </p>
                     {i === 0 && (
@@ -622,13 +622,13 @@ function SliphistorikkSection({ equipmentId, grinds, workouts, kmSinceSlip }: {
                     )}
                   </div>
                   {(g.ground_by || g.notes) && (
-                    <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                    <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {[g.ground_by, g.notes].filter(Boolean).join(' · ')}
                     </p>
                   )}
                 </div>
                 <p className="text-xs shrink-0 text-right"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {visSlipDato(g.grind_date)}
                   {km != null && (i === 0 ? ` · ${km.toFixed(0)} km siden` : ` · gikk ${km.toFixed(0)} km`)}
                 </p>
@@ -663,7 +663,7 @@ function SkiTestHistorySection({
   const headerWithButton = (
     <div className="flex items-center justify-between mb-3">
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Ski-tester ({myEntries.length})
       </p>
       <button type="button" onClick={() => setShowModal(true)} className="xp-pill xp-pill-primary">
@@ -677,7 +677,7 @@ function SkiTestHistorySection({
       <>
         <div className="p-6 mb-6" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
           {headerWithButton}
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '14px' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
             Ingen tester registrert for dette skiparet ennå.
           </p>
         </div>
@@ -702,18 +702,18 @@ function SkiTestHistorySection({
       {headerWithButton}
 
       {bestConditions.length > 0 && (
-        <div className="mb-4 p-3" style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+        <div className="mb-4 p-3" style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--kant-3)' }}>
           <p className="text-xs tracking-widest uppercase mb-2"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             Beste forhold for paret
           </p>
           {bestConditions.map(c => (
             <div key={c.label} className="flex items-center justify-between py-1">
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                 {c.label}
               </span>
               <span className="text-xs tracking-widest uppercase"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 snitt {c.avgRating.toFixed(1)} · {c.count} test{c.count === 1 ? '' : 'er'}
               </span>
             </div>
@@ -727,15 +727,15 @@ function SkiTestHistorySection({
           const stats = testResultatDeler(entry)
           return (
             <div key={entry.id} className="px-3 py-2"
-              style={{ backgroundColor: '#0F0F12', border: '1px solid #1E1E22' }}>
+              style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--kant-3)' }}>
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="min-w-0">
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                     {test.test_date}{test.location ? ` · ${test.location}` : ''}
                   </p>
                   {condition && (
                     <p className="text-xs"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {condition}
                       {test.air_temp != null ? ` · luft ${test.air_temp}°` : ''}
                       {test.snow_temp != null ? ` · snø ${test.snow_temp}°` : ''}
@@ -744,7 +744,7 @@ function SkiTestHistorySection({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-xs tracking-widest uppercase"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                     {stats.join(' · ') || '—'}
                   </span>
                   <button type="button" onClick={() => setEditTest(test)}
@@ -756,7 +756,7 @@ function SkiTestHistorySection({
               </div>
               {(entry.wax_used || entry.slip_used) && (
                 <p className="text-xs mt-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {[entry.wax_used && `Smøring: ${entry.wax_used}`, entry.slip_used && `Slip: ${entry.slip_used}`]
                     .filter(Boolean).join(' · ')}
                 </p>
@@ -804,10 +804,10 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
       <p className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
-      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.04em' }}>
+      <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.04em' }}>
         {value}
       </p>
     </div>
@@ -817,13 +817,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 function Row({ label, value, multiline }: { label: string; value: string | null | undefined; multiline?: boolean }) {
   if (!value) return null
   return (
-    <div className="py-2" style={{ borderBottom: '1px solid #1E1E22' }}>
+    <div className="py-2" style={{ borderBottom: '1px solid var(--kant-3)' }}>
       <p className="text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
       <p style={{
-        fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px',
+        fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px',
         whiteSpace: multiline ? 'pre-wrap' : undefined,
       }}>
         {value}
@@ -834,9 +834,9 @@ function Row({ label, value, multiline }: { label: string; value: string | null 
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2',
-  backgroundColor: '#0F0F12',
-  border: '1px solid #1E1E22',
+  color: 'var(--tekst-1-app)',
+  backgroundColor: 'var(--flate-8-alt)',
+  border: '1px solid var(--kant-3)',
   fontSize: '15px',
 }
 
@@ -844,7 +844,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}

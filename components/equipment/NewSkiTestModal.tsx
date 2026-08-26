@@ -300,23 +300,23 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '5vh', paddingBottom: '5vh', overflow: 'auto',
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid var(--line)',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line)',
           borderRadius: 14,
           width: '94%', maxWidth: '760px',
         }}>
         <div className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: '1px solid var(--line)' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '24px', letterSpacing: '0.08em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '24px', letterSpacing: '0.08em' }}>
             {redigerer ? 'Rediger skitest' : 'Ny skitest'}
           </h2>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: '22px' }}>
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
             ×
           </button>
         </div>
@@ -325,7 +325,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {/* Testtype (fasit seksjon 3) */}
           <div>
             <p className="text-xs tracking-widest uppercase mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Testtype
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -334,14 +334,14 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                   onClick={() => { setTestType(t); setEgenMal(null); setRunder(null) }}
                   className="p-3 text-left"
                   style={{
-                    background: testType === t && !egenMal ? 'rgba(255,69,0,0.07)' : '#0B0B0F',
-                    border: `1px solid ${testType === t && !egenMal ? ATHLETE_ORANGE : 'var(--line2, #2A2A33)'}`,
+                    background: testType === t && !egenMal ? 'rgba(255,69,0,0.07)' : 'var(--flate-4-alt)',
+                    border: `1px solid ${testType === t && !egenMal ? ATHLETE_ORANGE : 'var(--line2, var(--line2))'}`,
                     borderRadius: 12, cursor: 'pointer',
                   }}>
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px', fontWeight: 600 }}>
+                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
                     {SKI_TEST_TYPE_LABELS[t]}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#555560' }}>
+                  <p className="text-xs mt-1" style={{ color: 'var(--tekst-8-app)' }}>
                     {SKI_TEST_TYPE_DESCRIPTIONS[t]}
                   </p>
                 </button>
@@ -355,7 +355,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     className="px-3 py-2 text-xs"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      color: egenMal?.id === m.id ? '#F0F0F2' : '#8A8A96',
+                      color: egenMal?.id === m.id ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
                       background: egenMal?.id === m.id ? 'rgba(255,69,0,0.07)' : 'none',
                       border: `1px solid ${egenMal?.id === m.id ? ATHLETE_ORANGE : 'var(--line)'}`,
                       borderRadius: 999, cursor: 'pointer',
@@ -370,7 +370,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {/* Forhold — registreres på alle tester (fasit) */}
           <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase mt-3 mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Forhold — registreres på alle tester
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -430,7 +430,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {/* Ski i testen — under skiene per ski */}
           <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
             <p className="text-xs tracking-widest uppercase mt-4 mb-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Ski i testen — under skiene per ski ({entries.length}/10)
             </p>
 
@@ -440,7 +440,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                 rettet skrivefeil i tida stille skrevet om plasseringene. */}
             {redigerer && (
               <p className="text-xs mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 {erParallell
                   ? 'Rangeringen fra parallelltesten beholdes. Trykk «Sett opp paringene» for å kjøre duellene om igjen.'
                   : 'Rangeringen beholdes som den er. Tøm rangerings-feltene hvis du vil at den skal regnes ut på nytt fra målingene.'}
@@ -449,9 +449,9 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
 
             {entries.map((en, idx) => (
               <div key={idx} className="p-3 mb-2"
-                style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)', borderRadius: 9 }}>
+                style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--line)', borderRadius: 9 }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                     {entryNavn(idx)}
                   </span>
                   <button type="button" onClick={() => removeEntry(idx)}
@@ -523,7 +523,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
               </select>
             )}
             {(testType === 'tidtaker' || testType === 'lengde') && (
-              <p className="text-xs mt-2" style={{ color: '#555560' }}>
+              <p className="text-xs mt-2" style={{ color: 'var(--tekst-8-app)' }}>
                 {testType === 'tidtaker'
                   ? 'Rangeringen fylles automatisk fra tidene (lavest vinner) hvis du ikke setter den selv.'
                   : 'Rangeringen fylles automatisk fra lengdene (lengst glid vinner) hvis du ikke setter den selv.'}
@@ -537,7 +537,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
             <div className="pt-2" style={{ borderTop: '1px solid var(--line)' }}>
               <div className="flex items-center justify-between mt-4 mb-2 gap-2 flex-wrap">
                 <p className="text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                   Parallelltesten — to og to · vinneren videre
                 </p>
                 <button type="button" onClick={startBracket}
@@ -546,7 +546,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                 </button>
               </div>
               {!runder && (
-                <p className="text-xs" style={{ color: '#555560' }}>
+                <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
                   Paringene settes opp automatisk fra skia over (oddetall → frirunde).
                   Ett trykk per par markerer vinneren — runde for runde til finalen.
                 </p>
@@ -558,17 +558,17 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                     return (
                       <div key={ri}>
                         <p className="text-xs tracking-widest uppercase mb-2 text-center"
-                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                           {erSisteRunde && runde.par.length === 1 ? 'Finale' : `Runde ${ri + 1}`}
                         </p>
                         {runde.par.map((p, pi) => (
                           <div key={pi} className="mb-3"
-                            style={{ border: '1px solid var(--line2, #2A2A33)', borderRadius: 10, overflow: 'hidden', backgroundColor: '#0B0B0F' }}>
+                            style={{ border: '1px solid var(--line2, var(--line2))', borderRadius: 10, overflow: 'hidden', backgroundColor: 'var(--flate-4-alt)' }}>
                             {[p.a, p.b].map(deltaker => {
                               if (deltaker === null) {
                                 return (
                                   <div key="fri" className="px-3 py-2 text-xs tracking-widest uppercase"
-                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                                     Frirunde
                                   </div>
                                 )
@@ -581,7 +581,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                                   style={{
                                     fontFamily: "'Barlow Condensed', sans-serif",
                                     fontSize: '13px',
-                                    color: '#F0F0F2',
+                                    color: 'var(--tekst-1-app)',
                                     background: vant ? 'rgba(40,168,110,0.10)' : 'none',
                                     border: 'none',
                                     borderBottom: deltaker === p.a && p.b !== null ? '1px solid var(--line)' : 'none',
@@ -589,7 +589,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                                   }}>
                                   <span>{entryNavn(parseInt(deltaker))}{vant ? ' ✓' : ''}</span>
                                   {entries[parseInt(deltaker)]?.wax_used && (
-                                    <span className="text-xs" style={{ color: '#555560' }}>
+                                    <span className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
                                       {entries[parseInt(deltaker)].wax_used}
                                     </span>
                                   )}
@@ -615,7 +615,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
                             <div key={key} className="flex items-center justify-between py-1"
                               style={{ borderBottom: '1px solid var(--line)', fontSize: '13px' }}>
                               <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#D4A017', width: 26 }}>{plass}</span>
-                              <span className="flex-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                              <span className="flex-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                                 {entryNavn(parseInt(key))}{plass === 1 ? ' 🏆' : ''}
                               </span>
                             </div>
@@ -631,7 +631,7 @@ export function NewSkiTestModal({ ski, templates, defaultSkiId, onClose, targetU
           {/* Egen test kan lagres som mal (fase 100) */}
           {testType === 'egen' && !egenMal && !targetUserId && (
             <div className="flex items-center gap-2 flex-wrap">
-              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: '#8A8A96' }}>
+              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--tekst-5-app)' }}>
                 <input type="checkbox" checked={lagreSomMal} onChange={e => setLagreSomMal(e.target.checked)}
                   disabled={redigerer} />
                 Lagre oppsettet som egen test-mal
@@ -727,7 +727,7 @@ function ComboInput({
               className="px-3 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#8A8A96', background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
+                color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line)', cursor: 'pointer',
               }}>
               Lagre som mal
             </button>
@@ -744,8 +744,8 @@ function makeEntry(ski_id: string): EntryRow {
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2',
-  backgroundColor: '#0F0F12',
+  color: 'var(--tekst-1-app)',
+  backgroundColor: 'var(--flate-8-alt)',
   border: '1px solid var(--line)',
   fontSize: '15px',
 }
@@ -770,19 +770,19 @@ function SkiFraUtstyret({ ski, href, lagretSlip = null }: {
 
   const mangler = (
     <Link href={href}
-      style={{ color: '#8A8A96', textDecoration: 'underline' }}>
+      style={{ color: 'var(--tekst-5-app)', textDecoration: 'underline' }}>
       — (legg inn på utstyret)
     </Link>
   )
 
   return (
     <p className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
-      <span className="text-xs tracking-widest uppercase" style={{ color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
+      <span className="text-xs tracking-widest uppercase" style={{ color: 'var(--tekst-8-app)' }}>
         Fra utstyret
       </span>
-      <span>Slip: {slip ? <b style={{ color: '#F0F0F2' }}>{slip}</b> : mangler}</span>
-      <span>Lengde: {lengde ? <b style={{ color: '#F0F0F2' }}>{lengde}</b> : mangler}</span>
+      <span>Slip: {slip ? <b style={{ color: 'var(--tekst-1-app)' }}>{slip}</b> : mangler}</span>
+      <span>Lengde: {lengde ? <b style={{ color: 'var(--tekst-1-app)' }}>{lengde}</b> : mangler}</span>
     </p>
   )
 }
@@ -791,7 +791,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}

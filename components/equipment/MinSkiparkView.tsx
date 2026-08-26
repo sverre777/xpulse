@@ -67,18 +67,18 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
   const maxKm = useMemo(() => Math.max(...ski.map(s => s.usage.total_km), 0), [ski])
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <Link href="/app/utstyr"
           className="text-xs tracking-widest uppercase inline-block mb-4"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textDecoration: 'none' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', textDecoration: 'none' }}>
           ‹ Tilbake til utstyr
         </Link>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8 gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <span style={{ width: '32px', height: '3px', backgroundColor: ATHLETE_ORANGE, display: 'inline-block' }} />
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 'clamp(28px, 7vw, 36px)', letterSpacing: '0.08em' }}>
               Min skipark
             </h1>
           </div>
@@ -126,7 +126,7 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
 
         {filtered.length === 0 ? (
           <div className="p-12 text-center" style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12 }}>
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '15px' }}>
+            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '15px' }}>
               {ski.length === 0
                 ? 'Ingen ski registrert ennå. Legg til ski via «Nytt utstyr» på utstyr-siden.'
                 : 'Ingen ski matcher denne typen. Sett ski-type fra utstyrets detaljside.'}
@@ -169,14 +169,14 @@ function SkiCard({ ski, maxKm }: { ski: SkiEquipment; maxKm: number }) {
       className="block p-4 transition-opacity hover:opacity-80"
       style={{ backgroundColor: 'var(--card2)', border: '1px solid var(--line)', borderRadius: 12, textDecoration: 'none' }}>
       <div className="flex items-center gap-2 flex-wrap">
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '17px' }}>
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '17px' }}>
           {ski.name}
         </p>
         {skiData?.usage_type === 'konkurranse' && <SkiBadge text="🏁 KONK" color="#D4A017" />}
         {skiData?.usage_type === 'trening' && <SkiBadge text="TRENING" color="#28A86E" />}
         {skiData?.ski_type && <SkiBadge text={SKI_TYPE_LABELS[skiData.ski_type].toUpperCase()} color="#1A6FD4" />}
       </div>
-      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: '13px' }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
         {[
           subtitle,
           skiData?.length_cm ? `${skiData.length_cm} cm` : null,
@@ -184,26 +184,26 @@ function SkiCard({ ski, maxKm }: { ski: SkiEquipment; maxKm: number }) {
         ].filter(Boolean).join(' · ') || 'Type ikke satt'}
       </p>
       <div className="flex items-end justify-between gap-2 mt-3">
-        <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '26px', lineHeight: 1, letterSpacing: '0.03em' }}>
+        <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '26px', lineHeight: 1, letterSpacing: '0.03em' }}>
           {ski.usage.total_km.toFixed(0)}
           <span className="ml-1 text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560', fontWeight: 600 }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontWeight: 600 }}>
             km
           </span>
         </p>
         {skiData?.current_wax && (
-          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Smøring: {skiData.current_wax}
           </p>
         )}
       </div>
       {maxKm > 0 && (
-        <div style={{ height: 5, borderRadius: 3, backgroundColor: '#1E1E26', marginTop: 9, overflow: 'hidden' }}>
+        <div style={{ height: 5, borderRadius: 3, backgroundColor: 'var(--flate-16)', marginTop: 9, overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 3, width: `${Math.round(kmAndel * 100)}%`, backgroundColor: ATHLETE_ORANGE }} />
         </div>
       )}
       <p className="text-xs tracking-widest uppercase mt-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {ski.km_since_slip != null
           ? `${ski.km_since_slip.toFixed(0)} km siden siste slip · ${ski.usage.workout_count} økter`
           : `${ski.usage.workout_count} økter`}
@@ -229,7 +229,7 @@ function SkiBadge({ text, color }: { text: string; color: string }) {
 function FilterLabel({ children }: { children: React.ReactNode }) {
   return (
     <span className="text-xs tracking-widest uppercase mr-1"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </span>
   )
@@ -252,7 +252,7 @@ function TestsSection({ tests, ski, onEdit }: {
     <div className="mt-10">
       <div className="flex items-center justify-between gap-2 mb-3">
         <h2 className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Tester ({tests.length})
         </h2>
         {tests.length > 5 && (
@@ -278,24 +278,24 @@ function TestsSection({ tests, ski, onEdit }: {
                 style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <span className="min-w-0">
                   <span className="block"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '15px' }}>
+                    style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px' }}>
                     {t.test_date}{t.location ? ` · ${t.location}` : ''}
                   </span>
                   {forhold && (
                     <span className="block text-xs"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       {forhold}
                     </span>
                   )}
                 </span>
                 <span className="flex items-center gap-2 shrink-0 text-xs tracking-widest uppercase"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   <span>
                     {t.entries.length} ski
                     {vinnerSki && <> · 🏆 {vinnerSki.name}</>}
                   </span>
                   <span style={{
-                    color: '#555560', fontSize: '12px',
+                    color: 'var(--tekst-8-app)', fontSize: '12px',
                     transform: eråpen ? 'rotate(90deg)' : 'none',
                     transition: 'transform 150ms',
                   }}>▶</span>
@@ -315,21 +315,21 @@ function TestsSection({ tests, ski, onEdit }: {
                       ].filter(Boolean).join(' · ')
                       return (
                         <div key={en.id} className="flex items-center justify-between gap-2 px-3 py-2"
-                          style={{ backgroundColor: '#0F0F12', border: '1px solid var(--line)', borderRadius: 9 }}>
+                          style={{ backgroundColor: 'var(--flate-8-alt)', border: '1px solid var(--line)', borderRadius: 9 }}>
                           <span className="min-w-0">
                             <span className="block truncate"
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                               {en.rank_in_test === 1 ? '🏆 ' : ''}{s?.name ?? 'Slettet ski'}
                             </span>
                             {under && (
                               <span className="block text-xs"
-                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                                 {under}
                               </span>
                             )}
                           </span>
                           <span className="shrink-0 text-xs tracking-widest uppercase"
-                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                             {deler.join(' · ') || '—'}
                           </span>
                         </div>
@@ -339,7 +339,7 @@ function TestsSection({ tests, ski, onEdit }: {
 
                   {t.notes && (
                     <p className="text-xs mt-2"
-                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                       Notat: {t.notes}
                     </p>
                   )}

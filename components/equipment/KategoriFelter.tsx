@@ -123,10 +123,10 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
                 placeholder="2026" className="w-full px-4 py-3" style={inputStyle} />
             </Field>
           </div>
-          <p className="text-xs" style={{ color: '#8A8A96' }}>
-            Ny slip legges senere <b style={{ color: '#F0F0F2' }}>oppå</b> — historikken beholdes.
+          <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>
+            Ny slip legges senere <b style={{ color: 'var(--tekst-1-app)' }}>oppå</b> — historikken beholdes.
           </p>
-          <p className="text-xs px-3 py-2" style={{ color: '#F0F0F2', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
+          <p className="text-xs px-3 py-2" style={{ color: 'var(--tekst-1-app)', border: '1px solid rgba(40,168,110,0.4)', backgroundColor: 'rgba(40,168,110,0.07)', borderRadius: 8 }}>
             ✓ Skia legges automatisk i skiparken når du lagrer — med type, bruk og slip som filtre der.
           </p>
         </DetailSection>
@@ -161,7 +161,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
               </Field>
             )}
           </div>
-          <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: '#8A8A96' }}>
+          <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--tekst-5-app)' }}>
             <input type="checkbox" checked={v.splitResistance}
               onChange={e => set({ splitResistance: e.target.checked })} />
             Ulik motstand foran/bak
@@ -283,7 +283,7 @@ export function KategoriFelter({ category, verdier: v, onChange: set, visSki = f
       )}
 
       {(category === 'klokke' || category === 'annet') && (
-        <p className="text-xs" style={{ color: '#555560' }}>
+        <p className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>
           Klokke og annet utstyr bruker kun basen over.
         </p>
       )}
@@ -303,8 +303,8 @@ export function FormChip({ active, onClick, children }: {
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         borderRadius: 999,
-        border: `1px solid ${active ? ATHLETE_ORANGE : '#2A2A33'}`,
-        color: active ? '#F0F0F2' : '#8A8A96',
+        border: `1px solid ${active ? ATHLETE_ORANGE : 'var(--line2)'}`,
+        color: active ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)',
         backgroundColor: active ? 'rgba(255,69,0,0.10)' : 'transparent',
         cursor: 'pointer',
       }}>
@@ -321,13 +321,13 @@ function DetailSection({ title, aux, children }: {
 }) {
   return (
     <div className="space-y-4 pt-1">
-      <div className="flex items-center gap-2 flex-wrap" style={{ borderTop: '1px solid #1E1E22', paddingTop: 14 }}>
+      <div className="flex items-center gap-2 flex-wrap" style={{ borderTop: '1px solid var(--kant-3)', paddingTop: 14 }}>
         <span className="text-xs font-semibold tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {title}
         </span>
         {aux && (
-          <span className="text-xs" style={{ color: '#555560' }}>· {aux}</span>
+          <span className="text-xs" style={{ color: 'var(--tekst-8-app)' }}>· {aux}</span>
         )}
       </div>
       {children}
@@ -339,7 +339,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}
@@ -349,8 +349,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2',
-  backgroundColor: '#0F0F12',
-  border: '1px solid #1E1E22',
+  color: 'var(--tekst-1-app)',
+  backgroundColor: 'var(--flate-8-alt)',
+  border: '1px solid var(--kant-3)',
   fontSize: '15px',
 }

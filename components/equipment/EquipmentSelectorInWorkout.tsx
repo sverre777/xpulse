@@ -33,14 +33,14 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
     .filter((e): e is Equipment => !!e)
 
   return (
-    <div className="mb-4 pb-4" style={{ borderBottom: '1px solid #1A1A1E' }}>
+    <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--kant-2)' }}>
       <div className="flex items-baseline gap-2 flex-wrap" style={{ padding: '12px 0 8px' }}>
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           {planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}
         </span>
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#3A3A42' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-10-alt)' }}>
           {planlagt
             ? 'Km og tid telles først når økta er markert gjennomført'
             : 'Gjelder hele økta · overstyr per aktivitet ved behov'}
@@ -52,15 +52,15 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
           <span key={e.id} className="flex items-center gap-2 px-3 py-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#F0F0F2', fontSize: '13px',
-              border: '1px solid #2A2A33', borderRadius: 999,
+              color: 'var(--tekst-1-app)', fontSize: '13px',
+              border: '1px solid var(--line2)', borderRadius: 999,
               backgroundColor: 'rgba(255,69,0,0.06)',
             }}>
             <span aria-hidden>{EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]}</span>
             {e.name}
             <button type="button" aria-label={`Fjern ${e.name}`}
               onClick={() => onChange(selectedIds.filter(id => id !== e.id))}
-              style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: '13px', padding: 0 }}>
+              style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '13px', padding: 0 }}>
               ✕
             </button>
           </span>
@@ -69,8 +69,8 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
           className="px-3 py-2 text-xs tracking-widest uppercase"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96', background: 'none',
-            border: '1px dashed #2A2A33', borderRadius: 999, cursor: 'pointer',
+            color: 'var(--tekst-5-app)', background: 'none',
+            border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer',
           }}>
           + Velg utstyr
         </button>

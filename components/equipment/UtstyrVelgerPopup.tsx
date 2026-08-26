@@ -56,34 +56,34 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
         // z 200: økt-modalen ligger på 100 — 70 la velgeren BAK overlayet,
         // så klikkene traff modalens bakgrunn og lukket hele økta i stedet.
         position: 'fixed', inset: 0, zIndex: 200,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         paddingTop: '6vh', paddingBottom: '6vh', overflow: 'auto',
       }}>
       <div onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#0A0A0B', border: '1px solid #2A2A33',
+          backgroundColor: 'var(--flate-3)', border: '1px solid var(--line2)',
           borderRadius: 14, width: '94%', maxWidth: '520px',
         }}>
         <div className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: '1px solid #1E1E22' }}>
+          style={{ borderBottom: '1px solid var(--kant-3)' }}>
           <div>
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
               {title}
             </h2>
             {hint && (
-              <p className="text-xs" style={{ color: '#8A8A96' }}>{hint}</p>
+              <p className="text-xs" style={{ color: 'var(--tekst-5-app)' }}>{hint}</p>
             )}
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ background: 'none', border: 'none', color: '#8A8A96', cursor: 'pointer', fontSize: '22px' }}>
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '22px' }}>
             ×
           </button>
         </div>
 
         <div className="px-5 py-4">
           {aktive.length === 0 ? (
-            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Du har ingen aktivt utstyr. Legg til på <Link href="/app/utstyr"
                 style={{ color: ATHLETE_ORANGE, textDecoration: 'underline' }}>/app/utstyr</Link>.
             </p>
@@ -94,8 +94,8 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
                 className="w-full px-4 py-2 mb-3"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  color: '#F0F0F2', backgroundColor: '#0F0F12',
-                  border: '1px solid #1E1E22', borderRadius: 9, fontSize: '14px',
+                  color: 'var(--tekst-1-app)', backgroundColor: 'var(--flate-8-alt)',
+                  border: '1px solid var(--kant-3)', borderRadius: 9, fontSize: '14px',
                 }} />
               <div style={{ maxHeight: 380, overflowY: 'auto' }}>
                 {EQUIPMENT_CATEGORIES.map(cat => {
@@ -104,7 +104,7 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
                   return (
                     <div key={cat} className="mb-3">
                       <p className="text-xs tracking-widest uppercase mb-1"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+                        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
                         {EQUIPMENT_CATEGORY_LABELS[cat]}
                       </p>
                       {items.map(e => {
@@ -116,27 +116,27 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
                             className="w-full flex items-center gap-3 px-3 py-2 mb-1 text-left"
                             style={{
                               background: valgt ? 'rgba(255,69,0,0.07)' : 'none',
-                              border: `1px solid ${valgt ? ATHLETE_ORANGE : '#1E1E22'}`,
+                              border: `1px solid ${valgt ? ATHLETE_ORANGE : 'var(--kant-3)'}`,
                               borderRadius: 9, cursor: 'pointer',
                             }}>
                             <span aria-hidden style={{
                               width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                              border: `1px solid ${valgt ? ATHLETE_ORANGE : '#2A2A33'}`,
+                              border: `1px solid ${valgt ? ATHLETE_ORANGE : 'var(--line2)'}`,
                               backgroundColor: valgt ? ATHLETE_ORANGE : 'transparent',
-                              color: '#F0F0F2', fontSize: 11, lineHeight: '15px', textAlign: 'center',
+                              color: 'var(--tekst-1-app)', fontSize: 11, lineHeight: '15px', textAlign: 'center',
                             }}>{valgt ? '✓' : ''}</span>
                             <span className="flex-1 min-w-0">
                               <span className="block truncate"
-                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: '14px' }}>
+                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px' }}>
                                 {e.name}
                               </span>
                               {subtitle && (
-                                <span className="block truncate text-xs" style={{ color: '#555560' }}>{subtitle}</span>
+                                <span className="block truncate text-xs" style={{ color: 'var(--tekst-8-app)' }}>{subtitle}</span>
                               )}
                             </span>
                             {usage && (
                               <span className="text-xs shrink-0 tracking-widest uppercase"
-                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                                 {usage.total_km.toFixed(0)} km
                               </span>
                             )}
@@ -152,7 +152,7 @@ export function UtstyrVelgerPopup({ available, selectedIds, title = 'Velg utstyr
         </div>
 
         <div className="flex items-center justify-end gap-3 px-5 py-4"
-          style={{ borderTop: '1px solid #1E1E22' }}>
+          style={{ borderTop: '1px solid var(--kant-3)' }}>
           <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
             Avbryt
           </button>

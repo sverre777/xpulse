@@ -252,6 +252,47 @@ async function main() {
   const rundturPemCrlf = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(pem.replace(/\n/g, '\r\n')))
   sjekk('RUNDTUR CRLF-PEM dekrypterer', rundturPemCrlf.ok, true)
 
+  // ── BAR PKCS#8-DER (bolk 1d) ───────────────────────────────────────────
+  // MÅLT I PROD: env-verdien er 64 tegn og starter på 'M' — altså 48 byte
+  // PKCS#8 DER uten PEM-armor. Samme nøkkel som PEM-en, bare uten rammen.
+  console.log('\n— bar PKCS#8-DER —')
+
+  const stripArmor = (s: string) => s.replace(/-----[A-Z ]+-----/g, '').replace(/\s+/g, '')
+  const derB64 = stripArmor(pem)
+  sjekk('prod-signaturen: 64 tegn', derB64.length, 64)
+  sjekk('prod-signaturen: starter på M', derB64[0], 'M')
+
+  const fraDer = lesPrivateNokler(derB64)
+  sjekk('bar DER gir én nøkkel', fraDer.length, 1)
+  sjekk('bar DER gir crv X25519', fraDer[0]?.crv, 'X25519')
+  sjekk('bar DER gir samme d som PEM-en', fraDer[0]?.d === fraPem[0]?.d, true)
+  sjekk('bar DER = samme d som JWK-eksporten', fraDer[0]?.d === boksPrivJwk.d, true)
+
+  // Samme toleranse som ellers: padding, mellomrom, flere nøkler.
+  sjekk('bar DER m/ omkringliggende mellomrom', lesPrivateNokler(`  ${derB64}  `).length, 1)
+  const derB64_2 = stripArmor(pem2)
+  sjekk('to bare DER-er på hver sin linje',
+    lesPrivateNokler(`${derB64}\n${derB64_2}`).length, 2)
+  sjekk('bar DER + rå 32-byte i samme verdi',
+    lesPrivateNokler(`${derB64}\n${raaD}`).length, 2)
+
+  // FEIL KURVE uten armor: Ed25519-DER er også 48 byte — OID-sjekken fanger
+  // den, og det er den SAMME sjekken som PEM-grenen bruker.
+  const edDerB64 = stripArmor(edPem)
+  sjekk('Ed25519-DER er også 48 byte', b64u.decode(edDerB64.replace(/\+/g, '-').replace(/\//g, '_')).length, 48)
+  sjekk('Ed25519-DER uten armor gir 0 nøkler', lesPrivateNokler(edDerB64).length, 0)
+
+  // 48 byte som IKKE er en PKCS#8 i det hele tatt.
+  sjekk('48 byte tullball gir 0 nøkler',
+    lesPrivateNokler(b64u.encode(new Uint8Array(48).fill(1))).length, 0)
+
+  // ── RUNDTUR: bar DER som env-verdi må dekryptere en ekte JWE ────────────
+  const rundturDer = await dekrypterHendelse(jweUtenKid, lesPrivateNokler(derB64))
+  sjekk('RUNDTUR bar DER dekrypterer', rundturDer.ok, true)
+  sjekk('RUNDTUR bar DER gir riktig nonce', rundturDer.data?.nonce, nonce)
+  const rundturDerKid = await dekrypterHendelse(jweFremmedKid, lesPrivateNokler(derB64))
+  sjekk('RUNDTUR bar DER m/ ukjent kid dekrypterer', rundturDerKid.ok, true)
+
   console.log('\n— kvittering —')
   const k = kvittering(nonce)
   sjekk('nonce ligger paa TOPPNIVA', k.nonce, nonce)

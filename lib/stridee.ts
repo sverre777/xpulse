@@ -83,17 +83,36 @@ function dekodBase64Fritt(s: string): Uint8Array | null {
 }
 
 /**
+ * PKCS#8 DER (48 byte) → JWK, eller null.
+ *
+ * ÉN SANNHET OM KURVEN. Både PEM-grenen og den bare base64-grenen går
+ * gjennom denne — to kopier av OID-sjekken ville før eller siden vært
+ * uenige, og den uenigheten ville sett ut som «nøkkelen virker ikke».
+ *
+ * MÅLT: en X25519 PKCS#8 er 48 byte (16 OID-prefiks + 32 nøkkel), og en
+ * Ed25519 er OGSÅ 48 byte — de skiller seg bare på OID-en (…2b6570 mot
+ * …2b656e). Derfor sammenlignes hele prefikset, aldri bare lengden.
+ */
+function pkcs8DerTilJwk(der: Uint8Array | null): JWK | null {
+  if (!der || der.length !== PKCS8_X25519_PREFIX.length + 32) return null
+  for (let i = 0; i < PKCS8_X25519_PREFIX.length; i++) {
+    if (der[i] !== PKCS8_X25519_PREFIX[i]) return null
+  }
+  return {
+    kty: 'OKP',
+    crv: 'X25519',
+    d: base64url.encode(der.subarray(PKCS8_X25519_PREFIX.length)),
+  }
+}
+
+/**
  * PKCS#8-PEM → JWK-er. Stridee leverer privatnøkkelen som .pem-fil.
  *
  * KUN «BEGIN PRIVATE KEY» (PKCS#8). «BEGIN EC PRIVATE KEY» (SEC1) og alt
  * annet hoppes over — vi later ikke som vi forstår et format vi ikke har
  * verifisert.
  *
- * MÅLT: en X25519 PKCS#8 er 48 byte, der de 16 første er OID-prefikset og de
- * 32 siste er nøkkelen. En Ed25519-PEM er OGSÅ 48 byte og skiller seg bare på
- * OID-en (…2b6570 mot …2b656e) — kutter man blindt de siste 32, får man en
- * nøkkel av FEIL KURVE som ser gyldig ut og aldri dekrypterer. Derfor
- * sammenlignes hele prefikset.
+ * Selve DER-en går gjennom pkcs8DerTilJwk, som eier kurvesjekken.
  */
 function lesPemNokler(raa: string): JWK[] {
   const ut: JWK[] = []
@@ -106,18 +125,8 @@ function lesPemNokler(raa: string): JWK[] {
     // backslash+n hvis env-transporten har manglet dem. Backslash finnes
     // ikke i base64-alfabetet, så begge kan fjernes uten tvetydighet.
     const kropp = blokk[2].replace(/\\[rn]/g, '').replace(/\s+/g, '')
-    const der = dekodBase64Fritt(kropp)
-    if (!der || der.length !== PKCS8_X25519_PREFIX.length + 32) continue
-    let riktigKurve = true
-    for (let i = 0; i < PKCS8_X25519_PREFIX.length; i++) {
-      if (der[i] !== PKCS8_X25519_PREFIX[i]) { riktigKurve = false; break }
-    }
-    if (!riktigKurve) continue
-    ut.push({
-      kty: 'OKP',
-      crv: 'X25519',
-      d: base64url.encode(der.subarray(PKCS8_X25519_PREFIX.length)),
-    })
+    const jwk = pkcs8DerTilJwk(dekodBase64Fritt(kropp))
+    if (jwk) ut.push(jwk)
   }
   return ut
 }
@@ -131,7 +140,12 @@ function lesPemNokler(raa: string): JWK[] {
  *     nøkkeldashboards gir ut. Flere rå nøkler skilles med komma eller
  *     linjeskift, så begge Stridee-nøklene kan ligge inne samtidig.
  *   · PKCS#8-PEM        -----BEGIN PRIVATE KEY----- … — formatet Stridee
- *     faktisk leverer. Flere PEM-blokker i samme verdi gir flere nøkler.
+ *     leverer som fil. Flere PEM-blokker i samme verdi gir flere nøkler.
+ *   · BAR PKCS#8-DER    samme nøkkel som PEM-en, bare uten armor: 48 byte,
+ *     64 tegn base64. Dette er det env-verdien faktisk inneholder.
+ *
+ * Rekkefølgen er JSON → PEM → 48 byte (DER) → 32 byte (rå nøkkel), og hver
+ * form kjennes igjen på struktur, aldri gjettes på.
  *
  * Flere former støttes fordi ET ENDEPUNKT KAN HOLDE TO NØKLER gjennom en
  * rotasjon. Vi slår opp på kid fra JWE-headeret i stedet for å anta at det
@@ -165,9 +179,18 @@ export function lesPrivateNokler(raa: string | undefined): JWK[] {
     const token = bit.trim()
     if (!token) continue
     const bytes = dekodBase64Fritt(token)
-    // Ikke gjett: bare nøyaktig 32 byte er en X25519-privatnøkkel.
-    if (!bytes || bytes.length !== 32) continue
-    ut.push({ kty: 'OKP', crv: 'X25519', d: base64url.encode(bytes) })
+    if (!bytes) continue
+    // 48 byte = PKCS#8 DER uten PEM-armor. Dette er formatet prod faktisk
+    // fikk. Samme OID-sjekk som PEM-grenen — feil kurve gir ingen nøkkel.
+    if (bytes.length === PKCS8_X25519_PREFIX.length + 32) {
+      const jwk = pkcs8DerTilJwk(bytes)
+      if (jwk) ut.push(jwk)
+      continue
+    }
+    // 32 byte = de bare private-nøkkelbytene. Ikke gjett på noe annet.
+    if (bytes.length === 32) {
+      ut.push({ kty: 'OKP', crv: 'X25519', d: base64url.encode(bytes) })
+    }
   }
   return ut
 }

@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     )
     return avvis(500,
       'STRIDEE_WEBHOOK_PRIVATE_KEY kunne ikke tolkes ' +
-      '(verken JWK-JSON, PKCS#8-PEM eller rå base64 32 byte)')
+      '(verken JWK-JSON, PKCS#8 som PEM eller bar base64, eller rå 32 byte)')
   }
 
   const klar = await dekrypterHendelse(kropp.enc, nokler)

@@ -57,7 +57,7 @@ export function SportPageHero({
           <h1 style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: 'clamp(56px, 8vw, 96px)', lineHeight: 0.92,
-            letterSpacing: '0.04em', color: '#F2F0EC', marginBottom: 24,
+            letterSpacing: '0.04em', color: 'var(--tekst-1-land)', marginBottom: 24,
           }}>
             {title}
           </h1>
@@ -69,7 +69,7 @@ export function SportPageHero({
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/xpulse.html#priser" style={{
-              background: '#FF4500', color: '#F2F0EC',
+              background: '#FF4500', color: 'var(--tekst-1-land)',
               padding: '14px 28px', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -77,8 +77,8 @@ export function SportPageHero({
               Start 30 dagers gratis prøve
             </Link>
             <Link href="/xpulse.html#faq" style={{
-              color: '#F2F0EC', padding: '14px 28px',
-              border: '1px solid #262629', textDecoration: 'none',
+              color: 'var(--tekst-1-land)', padding: '14px 28px',
+              border: '1px solid var(--kant-5)', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
             }}>
@@ -90,7 +90,7 @@ export function SportPageHero({
           <div style={{
             width: 220, height: 220, position: 'relative',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid #262629', background: '#111113',
+            border: '1px solid var(--kant-5)', background: 'var(--flate-10)',
             color: '#FF4500',
           }}>
             {icon}

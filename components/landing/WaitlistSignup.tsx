@@ -46,7 +46,7 @@ export function WaitlistSignup({
 
   return (
     <div id="waitlist" style={{
-      background: '#13131A', border: '1px solid #262629',
+      background: 'var(--flate-12-alt)', border: '1px solid var(--kant-5)',
       padding: 32, maxWidth: 560,
     }}>
       {intro && (
@@ -69,8 +69,8 @@ export function WaitlistSignup({
             disabled={pending || success}
             style={{
               width: '100%',
-              background: '#1A1A1E', border: '1px solid #262629',
-              padding: '14px 16px', color: '#F2F0EC', outline: 'none',
+              background: 'var(--kant-2)', border: '1px solid var(--kant-5)',
+              padding: '14px 16px', color: 'var(--tekst-1-land)', outline: 'none',
               fontFamily: "'Barlow', sans-serif", fontSize: 14,
               opacity: success ? 0.6 : 1,
             }}
@@ -80,7 +80,7 @@ export function WaitlistSignup({
           className="inline-flex items-center justify-center gap-2"
           style={{
             background: success ? '#155DB8' : '#FF4500',
-            color: '#F2F0EC', padding: '14px 22px', border: 'none',
+            color: 'var(--tekst-1-land)', padding: '14px 22px', border: 'none',
             cursor: pending || success ? 'default' : 'pointer',
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',

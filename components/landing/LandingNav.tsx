@@ -52,7 +52,7 @@ export function LandingNav() {
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 600, fontSize: '20px', letterSpacing: '0.4em',
-            color: '#F2F0EC', textTransform: 'uppercase',
+            color: 'var(--tekst-1-land)', textTransform: 'uppercase',
           }}>PULSE</span>
         </Link>
 
@@ -75,7 +75,7 @@ export function LandingNav() {
               className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all"
               style={{
                 position: 'absolute', top: 'calc(100% + 14px)', left: 0,
-                minWidth: '220px', background: '#111113', border: '1px solid #262629',
+                minWidth: '220px', background: 'var(--flate-10)', border: '1px solid var(--kant-5)',
                 padding: '8px 0',
               }}
             >
@@ -92,7 +92,7 @@ export function LandingNav() {
                   {s.label}
                 </Link>
               ))}
-              <div style={{ height: 1, background: '#262629', margin: '6px 12px' }} />
+              <div style={{ height: 1, background: 'var(--kant-5)', margin: '6px 12px' }} />
               {MODULE_LINKS.map(m => (
                 <Link key={m.href} href={m.href}
                   className="landing-dropdown-link"
@@ -139,7 +139,7 @@ export function LandingNav() {
           onClick={() => setPanelOpen(true)}
           className="lg:hidden"
           aria-label="Åpne meny"
-          style={{ background: 'none', border: 'none', color: '#F2F0EC', padding: 6, cursor: 'pointer' }}
+          style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
         >
           <MenuIcon size={26} />
         </button>
@@ -150,7 +150,7 @@ export function LandingNav() {
           role="dialog" aria-modal="true" aria-label="Hovedmeny"
           style={{
             position: 'fixed', inset: 0, zIndex: 200,
-            background: '#060607', padding: 24,
+            background: 'var(--flate-1)', padding: 24,
             display: 'flex', flexDirection: 'column', gap: 20,
             overflowY: 'auto',
           }}
@@ -164,12 +164,12 @@ export function LandingNav() {
               <span style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 600, fontSize: '18px', letterSpacing: '0.4em',
-                color: '#F2F0EC', textTransform: 'uppercase',
+                color: 'var(--tekst-1-land)', textTransform: 'uppercase',
               }}>PULSE</span>
             </Link>
             <button type="button" onClick={() => setPanelOpen(false)}
               aria-label="Lukk meny"
-              style={{ background: 'none', border: 'none', color: '#F2F0EC', padding: 6, cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: 'var(--tekst-1-land)', padding: 6, cursor: 'pointer' }}
             >
               <CloseIcon size={26} />
             </button>
@@ -199,11 +199,11 @@ export function LandingNav() {
               {[...SPORT_LINKS.map(s => ({ href: `/funksjoner/${s.slug}`, label: s.label })), ...MODULE_LINKS].map(l => (
                 <Link key={l.href} href={l.href} onClick={() => setPanelOpen(false)}
                   style={{
-                    padding: '14px 28px', background: '#111113',
+                    padding: '14px 28px', background: 'var(--flate-10)',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                     fontSize: '13px', letterSpacing: '0.12em', textTransform: 'uppercase',
                     color: 'rgba(242,240,236,0.7)', textDecoration: 'none',
-                    borderTop: '1px solid #262629',
+                    borderTop: '1px solid var(--kant-5)',
                   }}>
                   {l.label}
                 </Link>
@@ -217,7 +217,7 @@ export function LandingNav() {
           <Link href="/xpulse.html#priser" onClick={() => setPanelOpen(false)}
             style={{
               marginTop: 'auto', padding: 18, background: '#FF4500',
-              color: '#F2F0EC', textAlign: 'center', textDecoration: 'none',
+              color: 'var(--tekst-1-land)', textAlign: 'center', textDecoration: 'none',
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: '13px', letterSpacing: '2.5px', textTransform: 'uppercase',
             }}>
@@ -236,18 +236,18 @@ const navLinkStyle: React.CSSProperties = {
 }
 
 const panelIconStyle: React.CSSProperties = {
-  padding: '14px 8px', background: '#1A1A1E', border: '1px solid #262629',
+  padding: '14px 8px', background: 'var(--kant-2)', border: '1px solid var(--kant-5)',
   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-  color: '#F2F0EC', textDecoration: 'none',
+  color: 'var(--tekst-1-land)', textDecoration: 'none',
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
   fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
 }
 
 const panelLinkStyle: React.CSSProperties = {
-  padding: '18px 16px', background: '#1A1A1E',
+  padding: '18px 16px', background: 'var(--kant-2)',
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
   fontSize: '14px', letterSpacing: '0.14em', textTransform: 'uppercase',
-  color: '#F2F0EC', textDecoration: 'none',
+  color: 'var(--tekst-1-land)', textDecoration: 'none',
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   cursor: 'pointer',
 }

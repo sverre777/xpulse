@@ -7,7 +7,7 @@ import { CustomCursor } from '@/components/cursor/CustomCursor'
 
 export function LandingShell({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ background: '#0A0A0B', minHeight: '100vh', color: '#F2F0EC' }}
+    <div style={{ background: 'var(--flate-3)', minHeight: '100vh', color: 'var(--tekst-1-land)' }}
       className="flex flex-col">
       <CustomCursor color="#FF4500" />
       <LandingNav />

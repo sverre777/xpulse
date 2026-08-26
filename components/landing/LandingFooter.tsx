@@ -7,7 +7,7 @@ import { XPulseIcon } from '@/components/branding/XPulseIcon'
 export function LandingFooter() {
   return (
     <footer style={{
-      background: '#060607', borderTop: '1px solid #262629',
+      background: 'var(--flate-1)', borderTop: '1px solid var(--kant-5)',
       padding: '48px 24px 28px', marginTop: 'auto',
     }}>
       <div className="max-w-[1240px] mx-auto grid gap-8 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
@@ -16,7 +16,7 @@ export function LandingFooter() {
             className="inline-flex items-center gap-2"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              fontSize: '16px', letterSpacing: '0.4em', color: '#F2F0EC',
+              fontSize: '16px', letterSpacing: '0.4em', color: 'var(--tekst-1-land)',
               textTransform: 'uppercase', textDecoration: 'none',
             }}>
             <XPulseIcon size={28} />
@@ -27,7 +27,7 @@ export function LandingFooter() {
           </p>
           <p style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px',
-            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#6E6E78',
+            letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--tekst-7)',
           }}>
             Bygget i Norge 🇳🇴
           </p>
@@ -79,9 +79,9 @@ export function LandingFooter() {
 
       <div className="max-w-[1240px] mx-auto pt-5 mt-8 flex flex-col sm:flex-row justify-between items-center gap-3"
         style={{
-          borderTop: '1px solid #262629',
+          borderTop: '1px solid var(--kant-5)',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: '11px',
-          letterSpacing: '0.12em', color: '#6E6E78',
+          letterSpacing: '0.12em', color: 'var(--tekst-7)',
         }}>
         <span>© 2026 X-PULSE</span>
         <span>support@x-pulse.no</span>
@@ -96,8 +96,8 @@ const socialStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: 32,
   height: 32,
-  border: '1px solid #262629',
-  color: '#8A8A96',
+  border: '1px solid var(--kant-5)',
+  color: 'var(--tekst-5-app)',
   transition: 'color 0.15s, border-color 0.15s',
 }
 

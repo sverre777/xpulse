@@ -6,41 +6,41 @@
 const CSS = `
 .xm-grid{display:grid;grid-template-columns:minmax(0,1.6fr) 240px;gap:20px;align-items:start;max-width:1240px;margin:0 auto}
 @media(max-width:900px){.xm-grid{grid-template-columns:1fr}.xm-cal-card{display:none}.xm-phone{width:100%;max-width:320px;margin:0 auto}}
-.xm-app{border:1px solid #2A2A33;background:#101014;border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-.xm-app-h{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid #1F1F26}
+.xm-app{border:1px solid var(--line2);background:var(--card);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.xm-app-h{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line)}
 .xm-app-h .xm-beam{width:22px;height:4px;border-radius:2px;background:#FF4500}
-.xm-app-h h4{font:400 17px/1 'Bebas Neue',sans-serif;letter-spacing:.14em;color:#8B8B95;margin:0}
-.xm-app-h .xm-aux{margin-left:auto;font:600 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;color:#55555F}
+.xm-app-h h4{font:400 17px/1 'Bebas Neue',sans-serif;letter-spacing:.14em;color:var(--mut);margin:0}
+.xm-app-h .xm-aux{margin-left:auto;font:600 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.1em;color:var(--tekst-8-alt)}
 .xm-app-b{padding:18px}
 .xm-cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.xm-cal .xm-dh{font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;color:#55555F;text-align:center;padding-bottom:4px}
-.xm-day{position:relative;min-height:118px;border:1px solid #1F1F26;border-radius:9px;background:#0B0B0F;padding:4px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.xm-cal .xm-dh{font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;color:var(--tekst-8-alt);text-align:center;padding-bottom:4px}
+.xm-day{position:relative;min-height:118px;border:1px solid var(--line);border-radius:9px;background:var(--flate-4-alt);padding:4px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .xm-okt{border-radius:6px;padding:5px 6px;font:600 11px/1.25 'Barlow Condensed',sans-serif;letter-spacing:.02em;min-width:0}
-.xm-okt .xm-t{display:block;color:#F2F2F0;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xm-okt .xm-m{display:block;color:#55555F;font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xm-okt.xm-done{background:#14141A;border-left:3px solid #28A86E}
+.xm-okt .xm-t{display:block;color:var(--ink);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xm-okt .xm-m{display:block;color:var(--tekst-8-alt);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xm-okt.xm-done{background:var(--kant-1-app);border-left:3px solid #28A86E}
 .xm-okt.xm-done.xm-i3{border-left-color:#E8B93C}
 .xm-okt.xm-done.xm-i5{border-left-color:#E23A5A}
-.xm-okt.xm-plan{border:1.5px dashed #34343E;background:transparent}
+.xm-okt.xm-plan{border:1.5px dashed var(--kant-7);background:transparent}
 .xm-okt.xm-komp{background:rgba(212,160,23,.10);border-left:3px solid #D4A017}
 .xm-okt.xm-komp .xm-t{color:#E8B93C}
 .xm-zstrip{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:4px}
-.xm-note{margin-top:12px;font-size:12.5px;color:#55555F}
-.xm-note i{font-style:normal;color:#8B8B95}
+.xm-note{margin-top:12px;font-size:12.5px;color:var(--tekst-8-alt)}
+.xm-note i{font-style:normal;color:var(--mut)}
 .xm-pbar{height:4px;border-radius:2px;margin-bottom:2px}
 .xm-pchip{display:inline-block;font:700 9px/1.3 'Barlow Condensed',sans-serif;letter-spacing:.07em;text-transform:uppercase;border:1px solid;border-radius:5px;padding:0 4px;margin-bottom:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xm-pedge{position:absolute;top:5px;bottom:5px;width:2.5px;border-radius:2px;z-index:1}
 .xm-pper{font:600 10px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:9px 6px 3px}
-.xm-phone{border:1px solid #2A2A33;border-radius:26px;background:#0A0A0D;padding:10px 10px 14px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-.xm-phone .xm-notch{width:74px;height:5px;border-radius:3px;background:#1E1E26;margin:4px auto 10px}
-.xm-phone .xm-ph-h{font:400 14px 'Bebas Neue',sans-serif;letter-spacing:.12em;color:#8B8B95;padding:0 6px 8px;display:flex;justify-content:space-between}
-.xm-phone .xm-ph-h span{color:#55555F;font:600 10px 'Barlow Condensed',sans-serif;letter-spacing:.1em}
-.xm-pday{border-bottom:1px solid #14141A;padding:7px 6px}
-.xm-pday .xm-d{font:600 9.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;color:#55555F}
-.xm-pokt{margin-top:4px;border-left:3px solid #28A86E;background:#12121A;border-radius:5px;padding:5px 7px;font:600 10.5px/1.3 'Barlow Condensed',sans-serif}
-.xm-pokt.xm-plan{border:1.2px dashed #34343E;border-left:1.2px dashed #34343E;background:transparent}
+.xm-phone{border:1px solid var(--line2);border-radius:26px;background:var(--flate-3-b);padding:10px 10px 14px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.xm-phone .xm-notch{width:74px;height:5px;border-radius:3px;background:var(--flate-16);margin:4px auto 10px}
+.xm-phone .xm-ph-h{font:400 14px 'Bebas Neue',sans-serif;letter-spacing:.12em;color:var(--mut);padding:0 6px 8px;display:flex;justify-content:space-between}
+.xm-phone .xm-ph-h span{color:var(--tekst-8-alt);font:600 10px 'Barlow Condensed',sans-serif;letter-spacing:.1em}
+.xm-pday{border-bottom:1px solid var(--kant-1-app);padding:7px 6px}
+.xm-pday .xm-d{font:600 9.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;color:var(--tekst-8-alt)}
+.xm-pokt{margin-top:4px;border-left:3px solid #28A86E;background:var(--flate-11-b);border-radius:5px;padding:5px 7px;font:600 10.5px/1.3 'Barlow Condensed',sans-serif}
+.xm-pokt.xm-plan{border:1.2px dashed var(--kant-7);border-left:1.2px dashed var(--kant-7);background:transparent}
 .xm-pokt.xm-komp{border-left-color:#D4A017;background:rgba(212,160,23,.09);color:#E8B93C}
-.xm-pokt .xm-pm{display:block;color:#55555F;font-size:9.5px;font-weight:400}
+.xm-pokt .xm-pm{display:block;color:var(--tekst-8-alt);font-size:9.5px;font-weight:400}
 `
 
 export function InsideMockups() {

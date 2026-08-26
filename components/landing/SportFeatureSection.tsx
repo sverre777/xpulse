@@ -32,7 +32,7 @@ export function SportFeatureSection({
   const accentColor = accent === 'blue' ? '#1A6FD4' : '#FF4500'
   return (
     <section id={id} className="px-6 lg:px-14 py-20 md:py-24"
-      style={{ borderTop: '1px solid #1A1A1E' }}>
+      style={{ borderTop: '1px solid var(--kant-2)' }}>
       <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-2 items-start">
         <div>
           {kicker && (
@@ -49,7 +49,7 @@ export function SportFeatureSection({
           <h2 style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-            letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 24,
+            letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 24,
           }}>
             {title}
           </h2>
@@ -73,7 +73,7 @@ export function SportFeatureSection({
                     <div style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                       fontSize: 14, letterSpacing: '0.06em',
-                      textTransform: 'uppercase', color: '#F2F0EC',
+                      textTransform: 'uppercase', color: 'var(--tekst-1-land)',
                       marginBottom: 4,
                     }}>
                       {b.title}
@@ -116,7 +116,7 @@ export function SportPageCTA({
   const glow = accent === 'blue' ? 'rgba(26,111,212,0.07)' : 'rgba(255,69,0,0.07)'
   return (
     <section className="px-6 lg:px-14 py-24 md:py-28 text-center relative overflow-hidden"
-      style={{ borderTop: '1px solid #1A1A1E' }}>
+      style={{ borderTop: '1px solid var(--kant-2)' }}>
       <div aria-hidden style={{
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%,-50%)', width: 700, height: 350,
@@ -126,7 +126,7 @@ export function SportPageCTA({
       <h2 style={{
         fontFamily: "'Bebas Neue', sans-serif",
         fontSize: 'clamp(40px, 6vw, 72px)', lineHeight: 0.95,
-        letterSpacing: '0.05em', color: '#F2F0EC', marginBottom: 14,
+        letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 14,
         position: 'relative',
       }}>
         {title}
@@ -139,7 +139,7 @@ export function SportPageCTA({
       </p>
       <Link href={href} className="inline-flex items-center gap-3"
         style={{
-          background: accentColor, color: '#F2F0EC',
+          background: accentColor, color: 'var(--tekst-1-land)',
           padding: '16px 36px', position: 'relative',
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
           fontSize: 13, letterSpacing: '0.18em',

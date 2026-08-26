@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   verifiserLevering, forGammel, dekrypterHendelse, lesPrivateNokler,
-  stirdeeJwks, kvittering, kreverKonto, STRIDEE_AKTIV,
+  stirdeeJwks, kvittering, kreverKonto, subjektFraHendelse, STRIDEE_AKTIV,
   type StrideeKropp,
 } from '@/lib/stridee'
 
@@ -114,18 +114,33 @@ export async function POST(req: NextRequest) {
   const klar = await dekrypterHendelse(kropp.enc, nokler)
   if (!klar.ok || !klar.data) return avvis(400, klar.grunn ?? 'dekryptering feilet')
 
-  // ── 5. FØRST NÅ account_id. Den ligger inne i ciphertext, og det er hele
+  // ── 5. FØRST NÅ subjektet. Det ligger inne i ciphertext, og det er hele
   //      poenget: en avsender uten nøkkelen kan ikke påstå hvem den er.
+  //
+  //      ══ STRIDEE_SUBJEKT — LES DETTE FØR DU «RETTER» FELTNAVNET ══
+  //      Stridees dokumentasjon motsier seg selv:
+  //        · /docs/webhooks  sier «Check account_id against your own records»
+  //                          (10 treff på account_id, 0 på user_id)
+  //        · /docs/events    viser den ordrette payloaden med user_id
+  //                          (21 treff på user_id, 0 på account_id) og sier
+  //                          rett ut: «user_id is the subject … Not a Stridee
+  //                          account — the athlete has none»
+  //      VI MÅLTE DEN FAKTISKE LEVERINGEN (pingen i prod, 26. aug): feltene
+  //      var created/data/id/nonce/type/webhook_id — altså ingen av delene,
+  //      nøyaktig som /docs/events beskriver ping. Events-sida stemmer med
+  //      virkeligheten; webhooks-sida er foreldet.
+  //      Vi leser derfor user_id først og account_id som fallback, og kaller
+  //      det stridee_user_id overalt — DERES id, aldri vår.
   //
   //      TYPEN LESES OGSÅ FRA KLARTEKSTEN, ikke fra kropp.type — ellers
   //      kunne hvem som helst merket en levering som kontoløs ping utenpå
-  //      konvolutten og sluppet unna konto-kravet.
+  //      konvolutten og sluppet unna kravet.
   const type = typeof klar.data.type === 'string' ? klar.data.type : null
-  const accountId = typeof klar.data.account_id === 'string' ? klar.data.account_id : null
+  const strideeUserId = subjektFraHendelse(klar.data)
   // En ping tilhører ingen bruker. Alt annet — inkludert ukjente typer —
-  // krever konto (se KONTOLOSE_HENDELSER).
-  if (!accountId && kreverKonto(type)) {
-    return avvis(400, `klarteksten mangler account_id (type=${type ?? 'ukjent'})`)
+  // krever subjekt (se KONTOLOSE_HENDELSER).
+  if (!strideeUserId && kreverKonto(type)) {
+    return avvis(400, `klarteksten mangler subjekt (user_id) (type=${type ?? 'ukjent'})`)
   }
 
   const nonce = typeof klar.data.nonce === 'string' ? klar.data.nonce : null
@@ -138,7 +153,10 @@ export async function POST(req: NextRequest) {
     const { error: skrivFeil } = await db.from('stridee_events').insert({
       webhook_id: sig.id,
       event_type: type ?? kropp.type ?? null,
-      account_id: accountId,
+      // account_id beholdes urørt (pingens historikk). Subjektet vi faktisk
+      // kobler på er stridee_user_id — se STRIDEE_SUBJEKT over.
+      account_id: typeof klar.data.account_id === 'string' ? klar.data.account_id : null,
+      stridee_user_id: strideeUserId,
       payload: klar.data,
     })
     // Unik-brudd her betyr at en parallell retry vant kappløpet. Det er ikke
@@ -150,7 +168,7 @@ export async function POST(req: NextRequest) {
 
   console.log(
     `[stridee-webhook] ${finnes ? 'retry' : 'ny'} ${sig.id} ` +
-    `type=${type ?? 'ukjent'} konto=${accountId ?? 'ingen (kontolos hendelse)'}`,
+    `type=${type ?? 'ukjent'} subjekt=${strideeUserId ?? 'ingen (kontolos hendelse)'}`,
   )
 
   // ── 7. Kvitteringen. nonce på TOPPNIVÅ.

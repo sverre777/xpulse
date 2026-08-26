@@ -14,7 +14,7 @@ import {
 import {
   verifiserLevering, dekrypterHendelse, forGammel, alderSekunder,
   lesPrivateNokler, velgNokkel, velgNokkelKandidater, kvittering, b64u,
-  kreverKonto, KONTOLOSE_HENDELSER,
+  kreverKonto, KONTOLOSE_HENDELSER, subjektFraHendelse,
   CLAIM_ID, CLAIM_TIMESTAMP, STRIDEE_MAKS_ALDER_SEKUNDER,
 } from '../lib/stridee'
 
@@ -348,6 +348,42 @@ async function main() {
   const juksKlar = await dekrypterHendelse((JSON.parse(juksKropp) as { enc: string }).enc, [boksPrivJwk])
   const juksType = typeof juksKlar.data?.type === 'string' ? juksKlar.data.type : null
   sjekk('ping utenpå konvolutten hjelper ikke', kreverKonto(juksType), true)
+
+  // ── SUBJEKTET (bolk 2) ─────────────────────────────────────────────────
+  // Dokumentasjonen deres motsier seg selv: /docs/webhooks sier account_id,
+  // /docs/events sier user_id. Vi målte den leverte pingen — den har ingen
+  // av delene, nøyaktig som /docs/events beskriver ping. Vi leser user_id
+  // først og account_id som fallback, slik at vi er robuste uansett hvem av
+  // sidene som stemmer for en hendelsestype vi ikke har sett ennå.
+  console.log('\n— subjekt —')
+
+  sjekk('user_id er subjektet', subjektFraHendelse({ user_id: 'su_1' }), 'su_1')
+  sjekk('account_id godtas som fallback', subjektFraHendelse({ account_id: 'ac_1' }), 'ac_1')
+  sjekk('user_id VINNER over account_id',
+    subjektFraHendelse({ user_id: 'su_1', account_id: 'ac_1' }), 'su_1')
+  sjekk('ping (ingen av delene) gir null', subjektFraHendelse({ nonce: 'n', type: 'ping' }), null)
+  sjekk('tom user_id faller tilbake', subjektFraHendelse({ user_id: '', account_id: 'ac_2' }), 'ac_2')
+  sjekk('ingenting gir null', subjektFraHendelse({}), null)
+
+  // Den EKTE envelopen fra /docs/events — activity.created bærer user_id.
+  const ekteAktivitet = {
+    id: 'evt', type: 'activity.created', created: '2026-08-04T06:14:02Z',
+    webhook_id: 'wh', nonce: 'n-1',
+    user_id: '4c9a7e15-6d3b-42f8-91c0-8e5b2a7d04f6', provider: 'coros', data: {},
+  }
+  sjekk('ekte activity.created gir subjekt',
+    subjektFraHendelse(ekteAktivitet), '4c9a7e15-6d3b-42f8-91c0-8e5b2a7d04f6')
+  sjekk('STEG 5: activity.created m/ user_id slipper gjennom',
+    !subjektFraHendelse(ekteAktivitet) && kreverKonto('activity.created'), false)
+
+  // Den EKTE pingen slik den faktisk lå i prod (målt 26. aug).
+  const ektePing = {
+    id: '9f2c1e7a', type: 'ping', created: '2026-08-04T06:14:02Z',
+    webhook_id: '2d7b45c1', nonce: 'Kd4nWpLb', data: {},
+  }
+  sjekk('ekte ping har ingen subjekt', subjektFraHendelse(ektePing), null)
+  sjekk('STEG 5: ekte ping slipper likevel gjennom',
+    !subjektFraHendelse(ektePing) && kreverKonto('ping'), false)
 
   console.log('\n— kvittering —')
   const k = kvittering(nonce)

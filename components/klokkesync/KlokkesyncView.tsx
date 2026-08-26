@@ -20,6 +20,7 @@ import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
 import { ConflictModal } from './ConflictModal'
 import { KlokkesyncBrandPicker } from './KlokkesyncBrandPicker'
 import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
+import { StrideeReauthVarsel, StrideeConnectionListe, type StrideeConnection } from './StrideeStatus'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 
 interface StravaConn {
@@ -37,6 +38,8 @@ interface Props {
   // Polar (fase 89 / bolk 2). Tilkoblings-blokken vises kun når raden finnes;
   // status-banneret vises når callbacken har redirectet hit med ?polar=…
   polarConnection?: PolarConn | null
+  /** Klokker koblet via klokkesynk-leverandøren (BETA). Tom liste = ingen. */
+  strideeConnections?: StrideeConnection[]
   polarStatus?: string | null
 }
 
@@ -51,6 +54,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 
 export function KlokkesyncView({
   stravaConnection, status, detail, polarConnection = null, polarStatus = null,
+  strideeConnections = [],
 }: Props) {
   const hasConnection = !!stravaConnection || !!polarConnection
   const connectedSlugs = [
@@ -59,6 +63,9 @@ export function KlokkesyncView({
   ]
   return (
     <div className="space-y-8">
+      {/* Reauth-varselet står ØVERST: en klokke som stille slutter å synke
+          er den verste feilen i integrasjonen. */}
+      <StrideeReauthVarsel connections={strideeConnections} />
       <PolarStatusBanner status={polarStatus} detail={detail} />
 
       {status && STATUS_LABEL[status] && (
@@ -88,6 +95,7 @@ export function KlokkesyncView({
         <>
           {stravaConnection && <StravaSection conn={stravaConnection} />}
           {polarConnection && <PolarConnectionBlock conn={polarConnection} />}
+          <StrideeConnectionListe connections={strideeConnections} />
           <KlokkesyncBrandPicker
             title="Koble til flere"
             intro="Du kan ha flere klokkemerker koblet til samtidig."

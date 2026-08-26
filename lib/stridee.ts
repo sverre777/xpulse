@@ -388,9 +388,36 @@ export interface StrideeKropp {
 
 export interface DekryptertHendelse {
   nonce?: string
+  /**
+   * DERES id for personen — aldri vår. Se STRIDEE_SUBJEKT-notatet i
+   * webhook-ruta for hvorfor feltet heter user_id hos dem og
+   * stridee_user_id overalt hos oss.
+   */
+  user_id?: string
+  /** Foreldet subjekt-felt fra /docs/webhooks. Leses defensivt. */
   account_id?: string
+  /** garmin | coros | wahoo | zepp (polar går direkte via AccessLink). */
+  provider?: string
   type?: string
   [k: string]: unknown
+}
+
+/**
+ * Subjektet i en levering: HVEM hendelsen gjelder, med DERES id.
+ *
+ * Heter stridee_user_id og ikke user_id med vilje — vår egen user_id står
+ * side om side med denne i prosesseringen, og to navn som ser like ut og
+ * betyr ulike ting blir forvekslet før eller siden. Her ville forvekslingen
+ * bety at én utøver fikk en annens treningsdata.
+ */
+export function subjektFraHendelse(data: DekryptertHendelse): string | null {
+  if (typeof data.user_id === 'string' && data.user_id) return data.user_id
+  // Fallback: /docs/webhooks påstår account_id. Vi målte at pingen har
+  // ingen av delene og at /docs/events (user_id) stemmer — men koster
+  // ingenting å godta begge, og sparer oss en runde hvis de er uenige med
+  // seg selv også i en hendelsestype vi ikke har sett ennå.
+  if (typeof data.account_id === 'string' && data.account_id) return data.account_id
+  return null
 }
 
 export interface DekrypteringsResultat {

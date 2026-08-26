@@ -22,7 +22,11 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
   //
   // Polar-tilkoblingen (fase 89) vises kun når raden finnes — det fulle
   // Polar-kortet kommer i bolk 5, etter at frakoblingen (bolk 3) er på plass.
-  const [{ data: stravaConn }, { data: polarConn }, sp] = await Promise.all([
+  // Stridee-lenken hentes i samme rundtur. TÅLER AT TABELLEN IKKE FINNES:
+  // migreringen (fase 106) venter på godkjenning, og sida skal ikke feile av
+  // at en tabell mangler — da får utøveren en hvit skjerm av noe som ikke
+  // engang er skrudd på ennå. Feil ⇒ ingen Stridee-seksjon, ingenting mer.
+  const [{ data: stravaConn }, { data: polarConn }, strideeSvar, sp] = await Promise.all([
     supabase
       .from('strava_connections')
       .select('strava_athlete_id, auto_sync, last_sync_at, scope, token_expires_at, created_at')
@@ -33,8 +37,19 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
       .select('polar_user_id, auto_sync, last_sync_at, last_webhook_at, registered_at, created_at')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase
+      .from('stridee_link')
+      .select('status, stridee_connections(provider, status, koblet_at)')
+      .eq('user_id', user.id)
+      .maybeSingle(),
     searchParams,
   ])
+  // Ingen rad, eller tabellen finnes ikke ennå: ingen klokker å vise.
+  const strideeConnections = (strideeSvar?.data?.stridee_connections ?? []) as Array<{
+    provider: 'garmin' | 'coros' | 'wahoo' | 'zepp'
+    status: 'aktiv' | 'reauth_required' | 'frakoblet'
+    koblet_at: string
+  }>
   const stravaStatus = sp.strava ?? null
   const polarStatus = sp.polar ?? null
   // detail deles av begge flytene — kun én av dem redirecter av gangen.
@@ -63,6 +78,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
             connected_at: polarConn.created_at,
           } : null}
           polarStatus={polarStatus}
+          strideeConnections={strideeConnections}
         />
       </div>
     </div>

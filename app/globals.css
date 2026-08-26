@@ -712,6 +712,12 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --data-tom: #1E1E22;  /* tom tilstand ved siden av ekte aksenter */
   --data-notat: #C0C0CC;  /* notatfarge i trenerkalenderen */
   --data-nopris: #2A2A30;  /* uke uten periodiseringsintensitet */
+
+  /* LOGOEN — vakt 3, lost ETT sted. Merkets diagonal og arm er hvite pa
+     mork bunn og SVARTE pa lys, slik logofasiten sier. Eget token og ikke
+     --tekst-1-ren, slik at logoen kan finstilles uten a rore teksten.
+     All logo-rendering gar gjennom components/branding/XPulseIcon.tsx. */
+  --logo-strek: #FFFFFF;
 }
 
 :root[data-tema="lys"] {
@@ -819,6 +825,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --data-tom: #DDDDE1;
   --data-notat: #33333F;
   --data-nopris: #CFCFD5;
+  --logo-strek: #000000;
 
   /* Det ETABLERTE settet (1 440 var()-treff). Kun noytralene - fargene
      --orange/--green/--blue/--gold og sonefargene er FREDET og gjelder

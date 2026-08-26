@@ -6,6 +6,8 @@
 // eller hvilken som helst flate uten boks rundt.
 //
 // TRE VARIANTER, og fargespråket er det samme som ellers i appen:
+// I lysmodus blir "hvit" til svart via --logo-strek. Armen og pila beholder
+// merkefargene sine i begge tema.
 //   hero    — hvit X med BLÅ arm og ORANSJE pil. Nøytral merkevare-bruk:
 //             forside, innlogging, footere.
 //   utover  — hvit X med ORANSJE pil. Utøvermodus.
@@ -16,7 +18,8 @@
 // Den nye har ingen id-bærende <defs> i det hele tatt — tre paths med hver
 // sin fill holder — så telleverket er fjernet framfor å stå igjen ubrukt.
 
-const HVIT = 'var(--tekst-1-ren)'
+// Hvit pa mork bunn, svart pa lys. Vakt 3 loses her, ikke per komponent.
+const HVIT = 'var(--logo-strek)'
 const BLA = '#1A6FD4'
 const ORANSJE = '#FF4500'
 

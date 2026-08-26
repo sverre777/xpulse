@@ -60,6 +60,28 @@ async function main() {
   const { error: e3 } = await db.from('stridee_events').insert(rad)
   sjekk('duplikat gir unik-brudd 23505', e3?.code, '23505')
 
+  // ── PING: kontoløs hendelse må kunne lagres (bolk 1e) ────────────────
+  // Ruta setter account_id = null for ping. Kolonnen ER nullable i fase 105,
+  // men det er skjemaet i REPOET — her sjekkes prod-tabellen.
+  const PING_ID = ID + '-ping'
+  const { error: p1 } = await db.from('stridee_events').insert({
+    webhook_id: PING_ID,
+    event_type: 'ping',
+    account_id: null,
+    payload: { nonce: 'ping-n1', type: 'ping' },
+  })
+  sjekk('ping lagres UTEN konto', p1?.message ?? 'ok', 'ok')
+  const { data: pingRad, error: p2 } = await db
+    .from('stridee_events')
+    .select('webhook_id, event_type, account_id')
+    .eq('webhook_id', PING_ID)
+    .single()
+  sjekk('ping-raden kan leses tilbake', p2?.message ?? 'ok', 'ok')
+  sjekk('ping-raden har account_id null', pingRad?.account_id, null)
+  sjekk('ping-raden beholder event_type', pingRad?.event_type, 'ping')
+  const { error: p3 } = await db.from('stridee_events').delete().eq('webhook_id', PING_ID)
+  sjekk('opprydding ping', p3?.message ?? 'ok', 'ok')
+
   const { error: e4 } = await db.from('stridee_events').delete().eq('webhook_id', ID)
   sjekk('opprydding', e4?.message ?? 'ok', 'ok')
   const { count } = await db

@@ -14,6 +14,7 @@ import {
 import {
   verifiserLevering, dekrypterHendelse, forGammel, alderSekunder,
   lesPrivateNokler, velgNokkel, velgNokkelKandidater, kvittering, b64u,
+  kreverKonto, KONTOLOSE_HENDELSER,
   CLAIM_ID, CLAIM_TIMESTAMP, STRIDEE_MAKS_ALDER_SEKUNDER,
 } from '../lib/stridee'
 
@@ -292,6 +293,61 @@ async function main() {
   sjekk('RUNDTUR bar DER gir riktig nonce', rundturDer.data?.nonce, nonce)
   const rundturDerKid = await dekrypterHendelse(jweFremmedKid, lesPrivateNokler(derB64))
   sjekk('RUNDTUR bar DER m/ ukjent kid dekrypterer', rundturDerKid.ok, true)
+
+  // ── KONTOLØSE HENDELSER (bolk 1e) ──────────────────────────────────────
+  // MÅLT I PROD: en ping ble avvist med «klarteksten mangler account_id».
+  // Pingen er testen på at vi kan åpne konvolutten — den har ingen konto, og
+  // vi avviste altså den ene hendelsen som skulle bevise at alt virker.
+  console.log('\n— kontoløse hendelser —')
+
+  sjekk('ping krever IKKE konto', kreverKonto('ping'), false)
+  sjekk('activity.created krever konto', kreverKonto('activity.created'), true)
+  sjekk('daily.summary krever konto', kreverKonto('daily.summary'), true)
+  sjekk('workout.pushed krever konto', kreverKonto('workout.pushed'), true)
+  sjekk('UKJENT type krever konto', kreverKonto('noe.helt.nytt'), true)
+  sjekk('type null krever konto', kreverKonto(null), true)
+  sjekk('type tom streng krever konto', kreverKonto(''), true)
+  sjekk('kun ping er kontoløs', KONTOLOSE_HENDELSER.size, 1)
+
+  // Hele kjeden, ikke bare beslutningen: ekte JWE → ekte dekryptering → den
+  // faktiske beslutningen ruta tar på steg 5.
+  const forsegl = async (payload: unknown) =>
+    new CompactEncrypt(new TextEncoder().encode(JSON.stringify(payload)))
+      .setProtectedHeader({ alg: 'ECDH-ES', enc: 'A256GCM', kid: 'boks-1' })
+      .encrypt(pub)
+
+  // Ping UTEN account_id — slik Stridee faktisk sender den.
+  const pingNonce = 'ping-' + Math.random().toString(36).slice(2)
+  const pingJwe = await forsegl({ nonce: pingNonce, type: 'ping' })
+  const pingKlar = await dekrypterHendelse(pingJwe, [boksPrivJwk])
+  sjekk('ping dekrypteres', pingKlar.ok, true)
+  const pingType = typeof pingKlar.data?.type === 'string' ? pingKlar.data.type : null
+  const pingKonto = typeof pingKlar.data?.account_id === 'string' ? pingKlar.data.account_id : null
+  sjekk('ping har ingen konto i klarteksten', pingKonto, null)
+  sjekk('STEG 5: ping slipper gjennom uten konto', !pingKonto && kreverKonto(pingType), false)
+  sjekk('ping har nonce å ekko', pingKlar.data?.nonce, pingNonce)
+  // Nonce-kravet står uendret — også for ping.
+  sjekk('ping-kvittering har nonce på TOPPNIVÅ', kvittering(pingNonce).nonce, pingNonce)
+
+  // activity.created UTEN account_id — skal fortsatt avvises.
+  const aktJwe = await forsegl({ nonce: 'n-akt', type: 'activity.created' })
+  const aktKlar = await dekrypterHendelse(aktJwe, [boksPrivJwk])
+  const aktType = typeof aktKlar.data?.type === 'string' ? aktKlar.data.type : null
+  const aktKonto = typeof aktKlar.data?.account_id === 'string' ? aktKlar.data.account_id : null
+  sjekk('STEG 5: activity.created uten konto AVVISES', !aktKonto && kreverKonto(aktType), true)
+
+  // Ukjent type uten konto — skal også avvises.
+  const ukjentJwe = await forsegl({ nonce: 'n-ukj', type: 'noe.nytt' })
+  const ukjentKlar = await dekrypterHendelse(ukjentJwe, [boksPrivJwk])
+  const ukjentType = typeof ukjentKlar.data?.type === 'string' ? ukjentKlar.data.type : null
+  sjekk('STEG 5: ukjent type uten konto AVVISES', kreverKonto(ukjentType), true)
+
+  // FORFALSKNING: «ping» utenpå konvolutten skal ikke hjelpe når klarteksten
+  // sier noe annet — typen leses fra ciphertext, aldri fra kropp.type.
+  const juksKropp = JSON.stringify({ id: 'x', type: 'ping', enc: aktJwe })
+  const juksKlar = await dekrypterHendelse((JSON.parse(juksKropp) as { enc: string }).enc, [boksPrivJwk])
+  const juksType = typeof juksKlar.data?.type === 'string' ? juksKlar.data.type : null
+  sjekk('ping utenpå konvolutten hjelper ikke', kreverKonto(juksType), true)
 
   console.log('\n— kvittering —')
   const k = kvittering(nonce)

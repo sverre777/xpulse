@@ -243,6 +243,35 @@ async function fullforRaaNokkel(jwk: JWK): Promise<JWK> {
   return { ...jwk, x: full.x }
 }
 
+/**
+ * Hendelsestyper som IKKE tilhører en konto.
+ *
+ * En PING er en test av at vi kan åpne konvolutten. Den finnes for å bevise
+ * at nøkkelen virker, tilhører ingen bruker og har ingen konto — så å kreve
+ * account_id på den ville avvist nettopp den ene hendelsen som skal si at
+ * hele kjeden er i orden. (Det gjorde vi, og det kostet en deploy å se.)
+ *
+ * ALT ANNET krever konto. Stridee har ingen offentlig webhook-dokumentasjon
+ * — sjekket 26. aug 2026: stridee.fit, api.stridee.fit, docs./developers.-
+ * subdomener, /docs, /api, /developers, hjelpesenteret og robots.txt gir
+ * ingen event-referanse. Når kilden er taus, utvider vi ikke lista på
+ * antakelser: en ukjent type uten konto skal fortsatt avvises, ellers har vi
+ * åpnet for at hva som helst kan komme kontoløst inn.
+ */
+export const KONTOLOSE_HENDELSER: ReadonlySet<string> = new Set(['ping'])
+
+/**
+ * Krever denne hendelsestypen en account_id?
+ *
+ * `type` skal komme fra KLARTEKSTEN, aldri fra den ukrypterte kroppen — at
+ * typen ligger inne i ciphertext er hele poenget: en avsender uten nøkkelen
+ * skal ikke kunne påstå at leveringen er en kontoløs ping.
+ */
+export function kreverKonto(type: string | null | undefined): boolean {
+  if (!type) return true          // ukjent type ⇒ konto kreves
+  return !KONTOLOSE_HENDELSER.has(type)
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Steg 1 — signaturen
 // ─────────────────────────────────────────────────────────────────────────

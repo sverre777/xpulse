@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   verifiserLevering, forGammel, dekrypterHendelse, lesPrivateNokler,
-  stirdeeJwks, kvittering, STRIDEE_AKTIV,
+  stirdeeJwks, kvittering, kreverKonto, STRIDEE_AKTIV,
   type StrideeKropp,
 } from '@/lib/stridee'
 
@@ -116,8 +116,17 @@ export async function POST(req: NextRequest) {
 
   // ── 5. FØRST NÅ account_id. Den ligger inne i ciphertext, og det er hele
   //      poenget: en avsender uten nøkkelen kan ikke påstå hvem den er.
+  //
+  //      TYPEN LESES OGSÅ FRA KLARTEKSTEN, ikke fra kropp.type — ellers
+  //      kunne hvem som helst merket en levering som kontoløs ping utenpå
+  //      konvolutten og sluppet unna konto-kravet.
+  const type = typeof klar.data.type === 'string' ? klar.data.type : null
   const accountId = typeof klar.data.account_id === 'string' ? klar.data.account_id : null
-  if (!accountId) return avvis(400, 'klarteksten mangler account_id')
+  // En ping tilhører ingen bruker. Alt annet — inkludert ukjente typer —
+  // krever konto (se KONTOLOSE_HENDELSER).
+  if (!accountId && kreverKonto(type)) {
+    return avvis(400, `klarteksten mangler account_id (type=${type ?? 'ukjent'})`)
+  }
 
   const nonce = typeof klar.data.nonce === 'string' ? klar.data.nonce : null
   if (!nonce) return avvis(400, 'klarteksten mangler nonce')
@@ -128,7 +137,7 @@ export async function POST(req: NextRequest) {
   if (!finnes) {
     const { error: skrivFeil } = await db.from('stridee_events').insert({
       webhook_id: sig.id,
-      event_type: typeof klar.data.type === 'string' ? klar.data.type : (kropp.type ?? null),
+      event_type: type ?? kropp.type ?? null,
       account_id: accountId,
       payload: klar.data,
     })
@@ -141,7 +150,7 @@ export async function POST(req: NextRequest) {
 
   console.log(
     `[stridee-webhook] ${finnes ? 'retry' : 'ny'} ${sig.id} ` +
-    `type=${klar.data.type ?? 'ukjent'} konto=${accountId}`,
+    `type=${type ?? 'ukjent'} konto=${accountId ?? 'ingen (kontolos hendelse)'}`,
   )
 
   // ── 7. Kvitteringen. nonce på TOPPNIVÅ.

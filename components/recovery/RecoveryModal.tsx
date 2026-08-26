@@ -55,7 +55,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',
       }}
@@ -72,12 +72,12 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
               Legg til recovery
             </h2>
           </div>
           <button type="button" onClick={onClose}
-            style={{ color: '#555560', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>
+            style={{ color: 'var(--tekst-8-app)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '22px', lineHeight: 1 }}>
             ×
           </button>
         </div>
@@ -142,7 +142,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
               className="flex-1 py-3 text-base tracking-widest uppercase font-semibold"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: canSubmit ? 'var(--accent)' : '#3A1A0A', color: '#fff',
+                backgroundColor: canSubmit ? 'var(--accent)' : '#3A1A0A', color: 'var(--tekst-1-ren)',
                 border: 'none', borderRadius: 12, cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.7,
               }}>
               {saving ? 'Lagrer...' : 'Lagre'}
@@ -150,7 +150,7 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
             <button type="button" onClick={onClose}
               className="px-6 py-3 text-base tracking-widest uppercase"
               style={{
-                fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
+                fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
                 backgroundColor: 'transparent', border: '1px solid var(--line2)', borderRadius: 12, cursor: 'pointer',
               }}>
               Avbryt
@@ -165,14 +165,14 @@ export function RecoveryModal({ date, open, onClose, onSaved }: RecoveryModalPro
 const iSt: React.CSSProperties = {
   backgroundColor: 'var(--card2)', border: '1px solid var(--line)',
   borderRadius: 'var(--r-field)',
-  color: '#F0F0F2', fontFamily: "'Barlow Condensed', sans-serif",
+  color: 'var(--tekst-1-app)', fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '15px', padding: '10px 12px', outline: 'none', width: '100%',
 }
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label className="block mb-1.5 text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {children}
     </label>
   )

@@ -10,6 +10,8 @@ import {
   type StravaStreamSet,
   type StravaLap,
   syntetiskLapFraAktivitet,
+  avrundEllerNull,
+  kolonneFraNotNullFeil,
 } from '@/lib/strava'
 import { getHeartZonesForUser, computeZoneSecondsFromSamples } from '@/lib/heart-zones'
 
@@ -212,8 +214,10 @@ async function createWorkoutFromStrava(
       activity_type: 'aktivitet',
       movement_name: mapping.movement,
       movement_subcategory: mapping.subcategory,
-      duration_seconds: lap.elapsed_time,
-      distance_meters: Math.round(lap.distance),
+      // Se avrundEllerNull i lib/strava.ts. duration_seconds er NOT NULL, de
+      // to andre er nullable — verifisert mot prod, ikke mot migreringsfila.
+      duration_seconds: avrundEllerNull(lap.elapsed_time) ?? 0,
+      distance_meters: avrundEllerNull(lap.distance),
       avg_heart_rate: lap.average_heartrate ?? null,
       max_hr: lap.max_heartrate ?? null,
       avg_watts: lap.average_watts ?? null,
@@ -221,7 +225,7 @@ async function createWorkoutFromStrava(
       avg_speed_ms: lap.average_speed ?? null,
       max_speed_ms: lap.max_speed ?? null,
       avg_cadence: lap.average_cadence ?? null,
-      elevation_gain_m: Math.round(lap.total_elevation_gain),
+      elevation_gain_m: avrundEllerNull(lap.total_elevation_gain),
       sort_order: idx,
       strava_lap_index: harEkteLaps ? lap.lap_index : null,
       external_id: harEkteLaps ? `strava_lap_${lap.id}` : `strava_activity_${lap.id}`,
@@ -231,7 +235,35 @@ async function createWorkoutFromStrava(
       .insert(rows)
       .select('id, sort_order')
     if (lapErr) {
-      console.error(`[strava-cron] workout_activities insert FAILED for ${detail.id}:`, lapErr.message)
+      // Insert av en array er ETT statement og dermed alt-eller-ingenting: én
+      // ødelagt lap felte tidligere alle de andre, og økta sto igjen uten
+      // aktiviteter. Er feilen et NOT NULL-brudd, navngir Postgres kolonnen —
+      // da kaster vi kun de radene som mangler den, logger hvilke, og lagrer
+      // resten i ett nytt statement.
+      const kolonne = kolonneFraNotNullFeil(lapErr.message)
+      const beholdt = kolonne
+        ? rows.filter(r => (r as Record<string, unknown>)[kolonne] != null)
+        : []
+      const avvisteIdx = kolonne
+        ? rows.filter(r => (r as Record<string, unknown>)[kolonne] == null).map(r => r.sort_order)
+        : []
+      if (kolonne && beholdt.length > 0) {
+        console.error(
+          `[strava-cron] ${avvisteIdx.length} av ${rows.length} laps avvist for ${detail.id}: ` +
+          `"${kolonne}" var null (sort_order ${avvisteIdx.join(', ')}). Lagrer de ${beholdt.length} andre.`,
+        )
+        const { data: redda, error: redErr } = await supabase
+          .from('workout_activities')
+          .insert(beholdt)
+          .select('id, sort_order')
+        if (redErr) {
+          console.error(`[strava-cron] redningsinsert FAILED for ${detail.id}:`, redErr.message)
+        } else {
+          activityIds = (redda ?? []) as Array<{ id: string; sort_order: number }>
+        }
+      } else {
+        console.error(`[strava-cron] workout_activities insert FAILED for ${detail.id}:`, lapErr.message)
+      }
     } else {
       activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
     }

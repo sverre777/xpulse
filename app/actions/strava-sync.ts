@@ -14,6 +14,8 @@ import {
   type StravaLap,
   type StravaStreamSet,
   syntetiskLapFraAktivitet,
+  avrundEllerNull,
+  kolonneFraNotNullFeil,
 } from '@/lib/strava'
 import { computeZoneSecondsFromSamples, type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
@@ -581,7 +583,35 @@ async function createWorkoutFromStrava(
       .insert(activityRows)
       .select('id, sort_order')
     if (lapErr) {
-      console.error(`[strava-sync] workout_activities insert FAILED for ${detail.id}:`, lapErr.message, lapErr.details ?? '')
+      // Insert av en array er ETT statement og dermed alt-eller-ingenting: én
+      // ødelagt lap felte tidligere alle de andre, og økta sto igjen uten
+      // aktiviteter. Er feilen et NOT NULL-brudd, navngir Postgres kolonnen —
+      // da kaster vi kun de radene som mangler den, logger hvilke, og lagrer
+      // resten i ett nytt statement.
+      const kolonne = kolonneFraNotNullFeil(lapErr.message)
+      const beholdt = kolonne
+        ? activityRows.filter(r => (r as Record<string, unknown>)[kolonne] != null)
+        : []
+      const avvisteIdx = kolonne
+        ? activityRows.filter(r => (r as Record<string, unknown>)[kolonne] == null).map(r => r.sort_order)
+        : []
+      if (kolonne && beholdt.length > 0) {
+        console.error(
+          `[strava-sync] ${avvisteIdx.length} av ${activityRows.length} laps avvist for ${detail.id}: ` +
+          `"${kolonne}" var null (sort_order ${avvisteIdx.join(', ')}). Lagrer de ${beholdt.length} andre.`,
+        )
+        const { data: redda, error: redErr } = await supabase
+          .from('workout_activities')
+          .insert(beholdt)
+          .select('id, sort_order')
+        if (redErr) {
+          console.error(`[strava-sync] redningsinsert FAILED for ${detail.id}:`, redErr.message)
+        } else {
+          activityIds = (redda ?? []) as Array<{ id: string; sort_order: number }>
+        }
+      } else {
+        console.error(`[strava-sync] workout_activities insert FAILED for ${detail.id}:`, lapErr.message, lapErr.details ?? '')
+      }
     } else {
       activityIds = (inserted ?? []) as Array<{ id: string; sort_order: number }>
       console.log(`[strava-sync] activity ${detail.id} — ${activityIds.length} laps lagret`)
@@ -732,10 +762,17 @@ function mapLapToActivity(
     activity_type: 'aktivitet',
     movement_name: mapping.movement,
     movement_subcategory: mapping.subcategory,
-    duration_seconds: lap.elapsed_time,
-    distance_meters: Math.round(lap.distance),
+    // duration_seconds er NOT NULL (verifisert mot prod: null gir 23502).
+    // 0 er riktig her fordi en lap uten varighet ikke bidrar med tid — summen
+    // over runder blir da korrekt. Kolonnen kan ikke bære «ukjent», og å
+    // hoppe over raden ville mistet distansen og pulsen som FINNES.
+    duration_seconds: avrundEllerNull(lap.elapsed_time) ?? 0,
+    // distance_meters og elevation_gain_m er nullable (verifisert mot prod).
+    // null = «Strava sendte det ikke», og det er sant. En 0 her ville logget
+    // en flat runde uten distanse, altså en påstand vi ikke har dekning for.
+    distance_meters: avrundEllerNull(lap.distance),
     avg_heart_rate: lap.average_heartrate ?? null,
-    elevation_gain_m: Math.round(lap.total_elevation_gain),
+    elevation_gain_m: avrundEllerNull(lap.total_elevation_gain),
     sort_order: idx,
     strava_lap_index: erEkteLap ? lap.lap_index : null,
     external_id: erEkteLap ? `strava_lap_${lap.id}` : `strava_activity_${lap.id}`,

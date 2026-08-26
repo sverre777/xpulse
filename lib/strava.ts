@@ -266,6 +266,32 @@ export interface StravaLap {
 // Denne lager én lap av øktas egne totaler, slik at aktivitetsraden og
 // sone-beregningen får noe å jobbe med. Brukes av BEGGE import-veiene
 // (server-action og cron) så de ikke driver fra hverandre.
+/**
+ * Avrunder et tall fra Strava, eller gir null når feltet ikke finnes.
+ *
+ * FEILEN DENNE FINNES FOR: `Math.round(undefined)` gir `NaN`, og
+ * `JSON.stringify` gjør `NaN` om til `null` før det når Postgres. Feilen kom
+ * derfor ut som et NOT NULL-brudd (23502) og ikke som «NaN» — og var dermed
+ * usynlig i loggen for den som lette etter et talltype-problem.
+ *
+ * Den GJETTER ALDRI en verdi. Mangler feltet, er svaret null, og kalleren må
+ * ta stilling til hva null betyr for nettopp sin kolonne.
+ */
+export function avrundEllerNull(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.round(v) : null
+}
+
+/**
+ * Plukker kolonnenavnet ut av et NOT NULL-brudd fra Postgres (23502).
+ *
+ * Brukes til å redde en aktivitets-insert: én ødelagt lap skal ikke felle de
+ * andre 22. Postgres navngir kolonnen i meldingen, så vi kan kaste nøyaktig
+ * de radene som mangler den — og logge hvilke — i stedet for å miste alt.
+ */
+export function kolonneFraNotNullFeil(melding: string): string | null {
+  return /null value in column "([^"]+)"/.exec(melding)?.[1] ?? null
+}
+
 export function syntetiskLapFraAktivitet(detail: StravaActivityDetail): StravaLap {
   return {
     id: detail.id,

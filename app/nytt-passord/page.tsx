@@ -25,7 +25,7 @@ export default async function NyttPassordPage() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: '#0A0A0B' }}
+      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       {user ? (
         <AuthCard title="Sett nytt passord" subtitle={`Logget inn som ${user.email ?? 'recovery-sesjon'}`}>
@@ -35,12 +35,12 @@ export default async function NyttPassordPage() {
         <AuthCard title="Lenken er utløpt" subtitle="Recovery-sesjon mangler">
           <div className="flex flex-col gap-5">
             <p className="text-sm"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
               Denne siden krever en aktiv recovery-sesjon fra reset-lenken i e-posten.
               Vanlige årsaker til at den mangler:
             </p>
             <ul className="text-sm pl-5"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', lineHeight: 1.6 }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', lineHeight: 1.6 }}>
               <li>Lenken ble klikket på en annen enhet enn der reset ble bedt om.</li>
               <li>Lenken er allerede brukt (engangs-token).</li>
               <li>Lenken er utløpt (vanligvis 1 time).</li>
@@ -49,7 +49,7 @@ export default async function NyttPassordPage() {
               className="text-center text-sm tracking-widest uppercase py-3 transition-opacity hover:opacity-80"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                backgroundColor: '#FF4500', color: '#F0F0F2',
+                backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
                 textDecoration: 'none',
               }}>
               Be om ny reset-link
@@ -57,7 +57,7 @@ export default async function NyttPassordPage() {
             <div className="text-center">
               <Link href="/app"
                 className="text-sm transition-opacity hover:opacity-80"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                 ← Tilbake til innlogging
               </Link>
             </div>

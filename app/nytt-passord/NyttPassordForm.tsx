@@ -48,7 +48,7 @@ export function NyttPassordForm() {
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
           backgroundColor: pending ? '#7A2200' : '#FF4500',
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           cursor: pending ? 'not-allowed' : 'pointer',
           opacity: pending ? 0.7 : 1,
           border: 'none',
@@ -60,7 +60,7 @@ export function NyttPassordForm() {
       <div className="text-center">
         <Link href="/app"
           className="text-sm transition-opacity hover:opacity-80"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           ← Tilbake til innlogging
         </Link>
       </div>

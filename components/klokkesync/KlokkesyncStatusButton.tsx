@@ -121,7 +121,7 @@ function KlokkesyncStatusPopup({
         <div className="mb-3"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: 'rgba(242,240,236,0.7)',
+            color: 'rgb(var(--tekst-land-rgb) / 0.7)',
           }}>
           {status.lastSyncAt ? (
             <>Sist synket: <span style={{ color: 'var(--tekst-1-app)' }}>{formatRelative(status.lastSyncAt)}</span></>

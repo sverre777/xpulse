@@ -743,7 +743,7 @@ function eventBg(kind: CoachUpcomingEvent['kind']): string {
   switch (kind) {
     case 'competition': return 'rgba(225, 29, 72, 0.12)'
     case 'attendance':  return 'rgba(26, 111, 212, 0.12)'
-    case 'note':        return 'rgba(192, 192, 204, 0.08)'
+    case 'note':        return 'rgb(var(--tekst-3-rgb) / 0.08)'
   }
 }
 

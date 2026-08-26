@@ -47,13 +47,13 @@ export default function KlokkesyncPage() {
             <span aria-hidden="true">🟡</span> Strava-sync rulles ut gradvis
             <span style={{ color: '#28A86E' }}>· Polar-synk live nå!</span>
           </div>
-          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.6)', margin: '0 0 6px' }}>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgb(var(--tekst-land-rgb) / 0.6)', margin: '0 0 6px' }}>
             Direkte Strava-synkronisering er i utrulling og tilgjengelig for et begrenset antall brukere nå mens vi utvider kapasiteten. Full tilgang for alle kommer snart.
           </p>
-          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.82)', margin: 0 }}>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgb(var(--tekst-land-rgb) / 0.82)', margin: 0 }}>
             I mellomtiden kan <strong style={{ color: '#FF4500' }}>alle</strong> laste opp .fit-filer fra Strava, Garmin, Polar, Coros, Suunto og Wahoo — med full pulskurve, lap-data og sone-fordeling.
           </p>
-          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgba(242,240,236,0.82)', margin: '6px 0 0' }}>
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'rgb(var(--tekst-land-rgb) / 0.82)', margin: '6px 0 0' }}>
             <strong style={{ color: '#28A86E' }}>Polar-synk er live</strong> — direkte-tilkobling mot Polar Flow er åpen for alle, uten utrulling og uten venteliste.
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function KlokkesyncPage() {
             }}>
               GI BESKJED NÅR<br/>FLERE MERKER ÅPNER.
             </h2>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)', maxWidth: 460 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.62)', maxWidth: 460 }}>
               Strava og Polar er live nå. Skriv inn e-postadressen så får du beskjed når Garmin-,
               Apple Health- og Coros-koblingene åpner. Du blir også prioritert i beta-tilgangen.
             </p>

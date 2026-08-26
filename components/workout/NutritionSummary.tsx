@@ -51,12 +51,12 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
               className="flex items-baseline gap-3 px-2 py-1"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-                color: 'rgba(242,240,236,0.7)',
+                color: 'rgb(var(--tekst-land-rgb) / 0.7)',
                 background: 'var(--flate-8-b)', border: '1px solid var(--kant-2)',
               }}>
               <span style={{ color: '#FF4500', minWidth: 50 }}>{time}</span>
               <span style={{ color: 'var(--tekst-1-app)', minWidth: 90 }}>{label}</span>
-              <span style={{ color: 'rgba(242,240,236,0.55)' }}>{macros.join(' · ')}</span>
+              <span style={{ color: 'rgb(var(--tekst-land-rgb) / 0.55)' }}>{macros.join(' · ')}</span>
               {e.notes && (
                 <span style={{ color: 'var(--tekst-8-app)', fontStyle: 'italic', marginLeft: 'auto' }}>
                   — {e.notes}
@@ -71,7 +71,7 @@ export function NutritionSummary({ entries, durationMinutes }: Props) {
         style={{
           background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-          color: 'rgba(242,240,236,0.75)',
+          color: 'rgb(var(--tekst-land-rgb) / 0.75)',
         }}>
         <strong style={{ color: 'var(--tekst-1-app)' }}>Total</strong>
         {totals.carbs_g !== null && <span>{totals.carbs_g} g karbo</span>}

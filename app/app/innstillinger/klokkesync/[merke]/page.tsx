@@ -83,7 +83,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
             {brand.intro && (
               <p style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14,
-                color: 'rgba(242,240,236,0.75)', lineHeight: 1.7, marginBottom: 18,
+                color: 'rgb(var(--tekst-land-rgb) / 0.75)', lineHeight: 1.7, marginBottom: 18,
               }}>
                 {brand.intro}
               </p>
@@ -95,7 +95,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
                   background: 'rgba(40,168,110,0.08)',
                   border: '1px solid rgba(40,168,110,0.4)', borderRadius: 10,
                   fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-                  color: 'rgba(242,240,236,0.85)', lineHeight: 1.6,
+                  color: 'rgb(var(--tekst-land-rgb) / 0.85)', lineHeight: 1.6,
                 }}>
                 <strong style={{ color: '#28A86E' }}>✓ {brand.name} er koblet til.</strong>
                 <br />
@@ -120,7 +120,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
                   Koble til {brand.name}
                 </a>
                 <p style={{
-                  marginTop: 10, fontSize: 12, color: 'rgba(242,240,236,0.5)',
+                  marginTop: 10, fontSize: 12, color: 'rgb(var(--tekst-land-rgb) / 0.5)',
                   fontFamily: "'Barlow Condensed', sans-serif",
                 }}>
                   Ved tilkobling samtykker du til {brand.name} sine vilkår og X-PULSE sine vilkår.
@@ -170,7 +170,7 @@ function BrandFacts({ brand }: { brand: KlokkesyncBrand }) {
           </p>
           <ul className="mt-2 space-y-1.5 list-none p-0" style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: 'rgba(242,240,236,0.8)', lineHeight: 1.6,
+            color: 'rgb(var(--tekst-land-rgb) / 0.8)', lineHeight: 1.6,
           }}>
             {block.items!.map(item => <li key={item}>• {item}</li>)}
           </ul>

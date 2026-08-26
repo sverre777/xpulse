@@ -22,7 +22,7 @@ export function LandingFooter() {
             <XPulseIcon size={28} />
             <span>PULSE</span>
           </Link>
-          <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'rgba(242,240,236,0.55)', maxWidth: 280 }}>
+          <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'rgb(var(--tekst-land-rgb) / 0.55)', maxWidth: 280 }}>
             Treningsdagbok og planlegger for utholdenhet.
           </p>
           <p style={{
@@ -117,7 +117,7 @@ function FooterCol({ label, items }: { label: string; items: { href: string; lab
             <Link href={i.href}
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontSize: '13px',
-                letterSpacing: '0.08em', color: 'rgba(242,240,236,0.62)',
+                letterSpacing: '0.08em', color: 'rgb(var(--tekst-land-rgb) / 0.62)',
                 textDecoration: 'none',
               }}>
               {i.label}

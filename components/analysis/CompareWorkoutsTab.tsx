@@ -500,7 +500,7 @@ function WorkoutRow({
     <label
       className="flex items-center gap-3 p-3"
       style={{
-        backgroundColor: selected ? 'var(--line)' : isPlannedOnly ? '#100F0A' : 'var(--card)',
+        backgroundColor: selected ? 'var(--line)' : isPlannedOnly ? 'var(--tonet-gul)' : 'var(--card)',
         border: borderStyle,
         cursor: isPlannedOnly ? 'default' : (disabled ? 'not-allowed' : 'pointer'),
         opacity: isPlannedOnly ? 0.75 : (disabled ? 0.5 : 1),
@@ -608,7 +608,7 @@ function WeatherCompareRow({ workouts }: { workouts: DetailedWorkout[] }) {
 // siden av hvert resultat — så bruker kan vurdere form vs forhold (#4).
 function TemplateTrendTable({ rows }: { rows: WorkoutFromTemplate[] }) {
   const fmtPace = (sec: number | null) => sec == null ? '—' : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}/km`
-  const th: React.CSSProperties = { padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
+  const th: React.CSSProperties = { padding: '8px 10px', color: 'rgb(var(--tekst-land-rgb) / 0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif" }
   const td: React.CSSProperties = { padding: '8px 10px', fontSize: 13, fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }
   // Kø #49 bolk 6: skytedel (kolonne vises kun når mal-øktene har skyting).
   const hasShooting = rows.some(r => r.shooting != null)

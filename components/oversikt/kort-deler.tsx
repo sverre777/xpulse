@@ -86,7 +86,7 @@ export function ShotChip({ shots }: { shots: OversiktShots | null }) {
       <span className="inline-flex items-center gap-2 shrink-0"
         style={{
           border: '1px solid var(--line2)', borderRadius: 999,
-          padding: '5px 12px 5px 10px', background: 'rgba(255,255,255,0.02)',
+          padding: '5px 12px 5px 10px', background: 'rgb(var(--tekst-ren-rgb) / 0.02)',
         }}>
         <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>🎯</span>
         <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.02em', color: 'var(--ink)', lineHeight: 1 }}>

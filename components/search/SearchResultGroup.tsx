@@ -26,7 +26,7 @@ export function SearchResultGroup({ label, hits, accent, onSelect }: Props) {
             <Link
               href={hit.href}
               onClick={onSelect}
-              className="block px-3 py-2 transition-colors hover:bg-[rgba(255,255,255,0.04)]"
+              className="block px-3 py-2 transition-colors hover:bg-[rgb(var(--tekst-ren-rgb) / 0.04)]"
               style={{ textDecoration: 'none', color: 'var(--tekst-1-app)' }}
             >
               <div className="flex items-baseline justify-between gap-3">

@@ -124,7 +124,7 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: 13 }}>{children}</p>
 }
 function Th({ children, left }: { children: React.ReactNode; left?: boolean }) {
-  return <th style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: 'rgba(242,240,236,0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>{children}</th>
+  return <th style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: 'rgb(var(--tekst-land-rgb) / 0.7)', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>{children}</th>
 }
 function Td({ children, left }: { children: React.ReactNode; left?: boolean }) {
   return <td style={{ textAlign: left ? 'left' : 'center', padding: '8px 10px', color: left ? 'var(--tekst-1-app)' : 'var(--tekst-3-app)', fontSize: 13 }}>{children}</td>

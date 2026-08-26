@@ -104,7 +104,7 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
         <p className="mt-3 p-3 text-sm italic"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
-            backgroundColor: '#0F121A', border: '1px solid var(--kant-3)',
+            backgroundColor: 'var(--tonet-bla-1)', border: '1px solid var(--kant-3)',
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',

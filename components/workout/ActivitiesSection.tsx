@@ -1900,7 +1900,7 @@ function ShootingFields({
                           className="inline-flex items-center justify-center"
                           style={{
                             minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
-                            background: hasWind ? '#1A1218' : 'var(--card2)',
+                            background: hasWind ? 'var(--tonet-lilla-2)' : 'var(--card2)',
                             border: `1px solid ${hasWind ? '#E23A5A55' : 'var(--line2)'}`,
                             opacity: hasWind ? 1 : 0.75,
                           }}>
@@ -1912,7 +1912,7 @@ function ShootingFields({
                       onClick={() => setNoteOpenId(noteOpenId === s.id ? null : s.id)}
                       style={{
                         minWidth: 40, minHeight: 40, borderRadius: 8, cursor: 'pointer',
-                        background: noteOpenId === s.id || s.note ? '#1E2A22' : 'var(--card2)',
+                        background: noteOpenId === s.id || s.note ? 'var(--tonet-gronn-2)' : 'var(--card2)',
                         border: '1px solid var(--line2)', fontSize: 14,
                       }}>
                       📝

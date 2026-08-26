@@ -244,7 +244,7 @@ export function MainNav({
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
                   letterSpacing: '0.16em',
-                  color: active ? accent : 'rgba(242,240,236,0.55)',
+                  color: active ? accent : 'rgb(var(--tekst-land-rgb) / 0.55)',
                   height: '36px',
                   alignSelf: 'center',
                   borderRadius: 999,
@@ -473,7 +473,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: '17px',
                 letterSpacing: '0.1em',
-                color: active ? accent : 'rgba(242,240,236,0.7)',
+                color: active ? accent : 'rgb(var(--tekst-land-rgb) / 0.7)',
                 textDecoration: 'none',
                 backgroundColor: active ? 'var(--accent-soft)' : 'transparent',
                 borderRadius: 12,
@@ -523,7 +523,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: '24px',
               letterSpacing: '0.1em',
-              color: 'rgba(242,240,236,0.6)',
+              color: 'rgb(var(--tekst-land-rgb) / 0.6)',
               background: 'none', border: 'none', cursor: 'pointer',
             }}
           >

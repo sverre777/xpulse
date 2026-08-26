@@ -240,7 +240,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                       fontFamily: "'Barlow Condensed', sans-serif",
                       fontSize: '17px',
                       letterSpacing: '0.1em',
-                      color: active ? 'var(--tekst-1-app)' : 'rgba(242,240,236,0.7)',
+                      color: active ? 'var(--tekst-1-app)' : 'rgb(var(--tekst-land-rgb) / 0.7)',
                       textDecoration: 'none',
                       backgroundColor: active ? 'var(--blue-soft)' : 'transparent',
                       borderRadius: 12,
@@ -285,7 +285,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: '24px',
                     letterSpacing: '0.1em',
-                    color: 'rgba(242,240,236,0.6)',
+                    color: 'rgb(var(--tekst-land-rgb) / 0.6)',
                     background: 'none', border: 'none', cursor: 'pointer',
                   }}
                 >
@@ -361,7 +361,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 600,
                   letterSpacing: '0.16em',
-                  color: active ? COACH_BLUE : 'rgba(242,240,236,0.55)',
+                  color: active ? COACH_BLUE : 'rgb(var(--tekst-land-rgb) / 0.55)',
                   height: '36px',
                   alignSelf: 'center',
                   borderRadius: 999,

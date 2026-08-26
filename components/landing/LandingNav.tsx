@@ -202,7 +202,7 @@ export function LandingNav() {
                     padding: '14px 28px', background: 'var(--flate-10)',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
                     fontSize: '13px', letterSpacing: '0.12em', textTransform: 'uppercase',
-                    color: 'rgba(242,240,236,0.7)', textDecoration: 'none',
+                    color: 'rgb(var(--tekst-land-rgb) / 0.7)', textDecoration: 'none',
                     borderTop: '1px solid var(--kant-5)',
                   }}>
                   {l.label}

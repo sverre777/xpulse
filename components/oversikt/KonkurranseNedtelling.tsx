@@ -23,7 +23,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
   return (
     <section className="p-5 h-full"
       style={{
-        backgroundColor: '#14110A',
+        backgroundColor: 'var(--tonet-oransje-1)',
         border: '1px solid var(--line)',
         borderLeft: `3px solid ${gold}`,
         borderRadius: 16,

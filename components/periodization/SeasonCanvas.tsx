@@ -678,7 +678,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                                 outline: daySel ? '2px solid var(--accent)' : (iso === todayISO ? '1.5px solid var(--accent)' : 'none'),
                                 outlineOffset: 0,
                                 // Håndtak-hint: kant-dager markeres i ✋-modus.
-                                boxShadow: isEdge && brush === 'pick' && canEdit ? 'inset 0 0 0 1.5px rgba(242,242,240,0.75)' : 'none',
+                                boxShadow: isEdge && brush === 'pick' && canEdit ? 'inset 0 0 0 1.5px rgb(var(--tekst-1-rgb) / 0.75)' : 'none',
                                 cursor: isEdge && brush === 'pick' && canEdit ? 'ew-resize' : undefined,
                               }} />
                           )

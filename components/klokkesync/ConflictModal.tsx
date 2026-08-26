@@ -46,7 +46,7 @@ export function ConflictModal({ title, newSourceLabel, onResolve, onCancel }: Pr
           </h3>
           <p style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: 'rgba(242,240,236,0.7)', lineHeight: 1.7, marginBottom: 16,
+            color: 'rgb(var(--tekst-land-rgb) / 0.7)', lineHeight: 1.7, marginBottom: 16,
           }}>
             En eksisterende økt overlapper med {newSourceLabel.toLowerCase()}.
             Hvordan vil du håndtere det?
@@ -108,7 +108,7 @@ function ResolveButton({
       </div>
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-        color: 'rgba(242,240,236,0.7)', lineHeight: 1.5,
+        color: 'rgb(var(--tekst-land-rgb) / 0.7)', lineHeight: 1.5,
       }}>
         {desc}
       </div>

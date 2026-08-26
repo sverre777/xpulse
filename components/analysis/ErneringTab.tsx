@@ -373,7 +373,7 @@ const th: React.CSSProperties = {
 }
 const thNum: React.CSSProperties = { ...th, textAlign: 'right' }
 const td: React.CSSProperties = {
-  padding: '10px 12px', color: 'rgba(242,240,236,0.7)',
+  padding: '10px 12px', color: 'rgb(var(--tekst-land-rgb) / 0.7)',
 }
 const tdNum: React.CSSProperties = { ...td, textAlign: 'right' }
 

@@ -598,7 +598,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
   // med accent-kant + ikon, ikke lenger farget ramme/fyll.
   const border = showCoachStyle
     ? `1px dashed ${COACH_BLUE}`
-    : (isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid rgba(242,240,236,0.16)')
+    : (isPlanned ? '1px dashed rgb(var(--tekst-land-rgb) / 0.38)' : '1px solid rgb(var(--tekst-land-rgb) / 0.16)')
   const bg = isPlanned ? 'transparent' : 'var(--card2)'
   const coachTitle = showCoachStyle
     ? `Endret av ${w.coach_name ?? 'trener'}${w.updated_at ? ` · ${new Date(w.updated_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', year: 'numeric' })}` : ''}`
@@ -733,7 +733,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
       onClick={e => { e.stopPropagation(); onClick() }}
       className="flex items-center gap-2 text-left w-full"
       style={{
-        border: isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid var(--line)',
+        border: isPlanned ? '1px dashed rgb(var(--tekst-land-rgb) / 0.38)' : '1px solid var(--line)',
         borderLeft: `4px solid ${w.is_important ? '#FF4500' : color}`,
         background: isPlanned ? 'transparent' : 'var(--card2)',
         borderRadius: 9, padding: '8px 11px', minWidth: 0,
@@ -2003,7 +2003,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                 // fargen bor kun på accent-kanten. Trener beholder blå.
                                 border: showCoachStyle
                                   ? `1px dashed ${COACH_BLUE}`
-                                  : (isPlanned ? '1px dashed rgba(242,240,236,0.38)' : '1px solid rgba(242,240,236,0.16)'),
+                                  : (isPlanned ? '1px dashed rgb(var(--tekst-land-rgb) / 0.38)' : '1px solid rgb(var(--tekst-land-rgb) / 0.16)'),
                                 // Etter border-shorthanden så accent-kanten vinner.
                                 borderLeft: `3px solid ${w.is_important ? '#FF4500' : color}`,
                                 borderRadius: 8,

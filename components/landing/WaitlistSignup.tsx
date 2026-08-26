@@ -51,7 +51,7 @@ export function WaitlistSignup({
     }}>
       {intro && (
         <p style={{
-          fontSize: 14, lineHeight: 1.7, color: 'rgba(242,240,236,0.65)',
+          fontSize: 14, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.65)',
           marginBottom: 20,
         }}>
           {intro}

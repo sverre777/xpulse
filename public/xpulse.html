@@ -94,6 +94,9 @@ document.documentElement.dataset.tema=v;}catch(e){}})()</script>
   --bg7:#0B0B0F;
   --bg8:#0A0A0D;
   --bg9:#09090C;
+  --paper-rgb:242 240 236;
+  --hvit-rgb:255 255 255;
+  --tonet-oransje:#17110C;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -142,6 +145,9 @@ document.documentElement.dataset.tema=v;}catch(e){}})()</script>
   --bg7:#F0F0F4;
   --bg8:#F2F2F5;
   --bg9:#F3F3F6;
+  --paper-rgb:19 17 13;
+  --hvit-rgb:0 0 0;
+  --tonet-oransje:#F3EDE8;
 }
 /* PÅ FAST MØRK BUNN — fredet i lysmodus.
    Heroen ligger på et fotografi, sport-flisene (.dtile) har hver sitt foto
@@ -193,6 +199,9 @@ document.documentElement.dataset.tema=v;}catch(e){}})()</script>
   --bg9:#09090C;
   --darker:#0A0A0B;
   --mid:#111113;
+  --paper-rgb:242 240 236;
+  --hvit-rgb:255 255 255;
+  --tonet-oransje:var(--tonet-oransje);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -239,7 +248,7 @@ section{padding:88px 0}
 .hver{font:700 12px/1 'Barlow Condensed';letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
 h1{font:400 clamp(40px,11vw,104px)/0.98 'Bebas Neue';letter-spacing:.012em}
 h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
-.hdesc{margin:22px auto 30px;color:rgba(242,240,236,.72);font-size:17.5px;max-width:54ch}
+.hdesc{margin:22px auto 30px;color:rgb(var(--paper-rgb) / .72);font-size:17.5px;max-width:54ch}
 .hacts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:11px;padding:16px 30px;font:800 15px/1 'Inter';cursor:pointer}
 .btn.pri{background:var(--orange);color:var(--hvit);box-shadow:0 18px 50px rgba(255,69,0,.35)}
@@ -273,7 +282,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
   position:relative;
   z-index:1;
   width:100%;
-  border-top:1px solid rgba(255,255,255,.06);
+  border-top:1px solid rgb(var(--hvit-rgb) / .06);
   background:transparent;
   padding:18px 34px 26px;
 }
@@ -540,7 +549,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .faq summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;gap:14px}
 .faq summary::after{content:'+';color:var(--orange);font-weight:800}
 .faq p{color:var(--dim);font-size:14px;margin-top:10px;max-width:66ch}
-.cta{background:linear-gradient(160deg,#17110C,var(--bg));border-top:1px solid var(--line);text-align:center}
+.cta{background:linear-gradient(160deg,var(--tonet-oransje),var(--bg));border-top:1px solid var(--line);text-align:center}
 .cta h2{font-size:clamp(38px,9vw,64px)}
 .cta .lead{margin:0 auto 30px}
 footer{border-top:1px solid var(--line);padding:34px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:var(--mute);font-size:13px}
@@ -692,7 +701,7 @@ body.nav-locked { overflow:hidden; }
     padding:13px 18px 13px 32px; background:var(--mid); border-radius:10px;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:13px; letter-spacing:1.5px; text-transform:uppercase;
-    color:rgba(242,240,236,0.65); text-decoration:none;
+    color:rgb(var(--paper-rgb) / 0.65); text-decoration:none;
     transition:background 0.15s, color 0.15s;
     width:100%; box-sizing:border-box; display:block;
   }
@@ -746,9 +755,9 @@ body.nav-locked { overflow:hidden; }
     font-size:11px; letter-spacing:2px; text-transform:uppercase;
     color:var(--white); background:var(--mid);
   }
-.price-compare-table th.pc-feat, .price-compare-table td:first-child { text-align:left; color:rgba(242,240,236,0.85); }
-.price-compare-table tbody tr:hover { background:rgba(255,255,255,0.02); }
-.price-compare-table td { color:rgba(242,240,236,0.6); }
+.price-compare-table th.pc-feat, .price-compare-table td:first-child { text-align:left; color:rgb(var(--paper-rgb) / 0.85); }
+.price-compare-table tbody tr:hover { background:rgb(var(--hvit-rgb) / 0.02); }
+.price-compare-table td { color:rgb(var(--paper-rgb) / 0.6); }
 .price-trust {
     list-style:none; display:flex; flex-wrap:wrap; gap:8px 28px; padding:0;
     font-family:'Barlow Condensed',sans-serif; font-size:12px;
@@ -761,8 +770,8 @@ body.nav-locked { overflow:hidden; }
   .price-coming-strip { display:flex; flex-direction:column; gap:2px; margin-top:2px; }
 .price-coming-row { border-radius:var(--r-sm); display:flex; align-items:center; gap:20px; flex-wrap:wrap; background:var(--surface); opacity:0.85; padding:16px 24px; }
 .price-coming-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); }
-.price-coming-price { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:rgba(242,240,236,0.55); }
-.price-coming-desc { font-size:12.5px; line-height:1.6; color:rgba(242,240,236,0.5); flex:1; min-width:220px; }
+.price-coming-price { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; color:rgb(var(--paper-rgb) / 0.55); }
+.price-coming-desc { font-size:12.5px; line-height:1.6; color:rgb(var(--paper-rgb) / 0.5); flex:1; min-width:220px; }
 .price-coming-link { border-radius:var(--r-sm);
     font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px; letter-spacing:2px;
     text-transform:uppercase; color:var(--white); text-decoration:none;
@@ -802,7 +811,7 @@ nav {
 .nav-links a {
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:11px; letter-spacing:2.5px; text-transform:uppercase;
-    color:rgba(242,240,236,0.55); text-decoration:none; transition:color 0.3s;
+    color:rgb(var(--paper-rgb) / 0.55); text-decoration:none; transition:color 0.3s;
   }
 .nav-links a:hover, .nav-links a.active { color:var(--white); }
 .nav-cta { border-radius:999px; background:var(--orange) !important; color:var(--white) !important; padding:9px 20px !important; }
@@ -814,7 +823,7 @@ nav {
     background:none; border:none; cursor:none;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:11px; letter-spacing:2.5px; text-transform:uppercase;
-    color:rgba(242,240,236,0.55); padding:0; transition:color 0.3s;
+    color:rgb(var(--paper-rgb) / 0.55); padding:0; transition:color 0.3s;
     display:inline-flex; align-items:center; gap:6px;
   }
 .dropdown-trigger:hover, .has-dropdown:hover .dropdown-trigger,
@@ -831,7 +840,7 @@ nav {
     display:block; padding:11px 20px;
     font-family:'Barlow Condensed',sans-serif; font-weight:600;
     font-size:11px; letter-spacing:2px; text-transform:uppercase;
-    color:rgba(242,240,236,0.6); text-decoration:none;
+    color:rgb(var(--paper-rgb) / 0.6); text-decoration:none;
     transition:background 0.15s, color 0.15s;
   }
 .dropdown-panel a:hover { background:var(--surface); color:var(--white); }

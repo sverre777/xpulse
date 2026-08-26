@@ -55,7 +55,7 @@ export function SportFeatureSection({
           </h2>
           {intro && (
             <p style={{
-              fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)',
+              fontSize: 15, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.62)',
               maxWidth: 520, marginBottom: bullets.length > 0 ? 28 : 0,
             }}>
               {intro}
@@ -78,7 +78,7 @@ export function SportFeatureSection({
                     }}>
                       {b.title}
                     </div>
-                    <div style={{ fontSize: 14, lineHeight: 1.7, color: 'rgba(242,240,236,0.6)' }}>
+                    <div style={{ fontSize: 14, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.6)' }}>
                       {b.body}
                     </div>
                   </div>
@@ -132,7 +132,7 @@ export function SportPageCTA({
         {title}
       </h2>
       <p style={{
-        fontSize: 15, color: 'rgba(242,240,236,0.55)', maxWidth: 460,
+        fontSize: 15, color: 'rgb(var(--tekst-land-rgb) / 0.55)', maxWidth: 460,
         margin: '0 auto 32px', position: 'relative',
       }}>
         {subtitle}

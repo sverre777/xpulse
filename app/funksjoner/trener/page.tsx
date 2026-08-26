@@ -165,7 +165,7 @@ function TierCard({
 }) {
   return (
     <div style={{
-      background: featured ? '#161A22' : 'var(--kant-2)',
+      background: featured ? 'var(--tonet-bla-2)' : 'var(--kant-2)',
       padding: 28, position: 'relative',
       borderTop: featured ? '2px solid #1A6FD4' : '2px solid transparent',
       opacity: coming ? 0.78 : 1,
@@ -196,7 +196,7 @@ function TierCard({
       <ul className="list-none p-0 flex flex-col gap-2">
         {points.map(p => (
           <li key={p} style={{
-            fontSize: 13, lineHeight: 1.6, color: 'rgba(242,240,236,0.62)',
+            fontSize: 13, lineHeight: 1.6, color: 'rgb(var(--tekst-land-rgb) / 0.62)',
             paddingLeft: 18, position: 'relative',
           }}>
             <span style={{

@@ -85,7 +85,7 @@ export function NutritionSection({
           style={{
             background: 'var(--flate-8-b)', border: '1px solid var(--kant-3)',
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: 'rgba(242,240,236,0.7)',
+            color: 'rgb(var(--tekst-land-rgb) / 0.7)',
           }}>
           {totals.carbs_g !== null && (
             <span><span style={{ color: 'var(--tekst-8-app)' }}>Karbo: </span>{totals.carbs_g} g</span>

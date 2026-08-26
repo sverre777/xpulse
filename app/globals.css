@@ -195,12 +195,12 @@ input::placeholder {
 /* Landing-undersider topbar — speiler xpulse.html nav-stil. Hover-effekt
    krever ekte CSS-klasse siden inline style ikke støtter pseudo-states. */
 .landing-nav-link {
-  color: rgba(242, 240, 236, 0.55);
+  color: rgb(var(--tekst-land-rgb) / 0.55);
   transition: color 0.3s;
 }
 .landing-nav-link:hover { color: var(--tekst-1-land); }
 .landing-dropdown-link {
-  color: rgba(242, 240, 236, 0.6);
+  color: rgb(var(--tekst-land-rgb) / 0.6);
   transition: background-color 0.15s, color 0.15s;
 }
 .landing-dropdown-link:hover {
@@ -732,6 +732,32 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --savebar-topp: rgba(10, 10, 11, .98);  /* lagringslinja, toppen av gradienten */
   --savebar-bunn: rgba(10, 10, 11, 0);  /* lagringslinja, gjennomsiktig ende */
   --live-topp: rgba(14, 14, 18, 0.97);  /* sticky topp i live-okta */
+
+  /* RGB-tripler for farger som brukes MED alfa. rgba() med hardkodet
+     lys RGB overlevde hele konverteringen og ble liggende lys paa lys
+     bunn - det var toppnavigasjonen som forsvant. rgb(var(--x) / a)
+     lar alfaen staa i bruksstedet mens fargen folger temaet. */
+  --tekst-land-rgb: 242 240 236;
+  --tekst-ren-rgb: 255 255 255;
+  --tekst-app-rgb: 240 240 242;
+  --tekst-1-rgb: 242 242 240;
+  --tekst-3-rgb: 192 192 204;
+
+  /* TONEDE FLATER. Statusbakgrunner med bevisst fargestikk.
+     De ble holdt utenfor steg 2 fordi jeg trodde speiling ville snu
+     stikket. Det var feil: speiling i HLS endrer bare lysheten og
+     beholder nyanse og metning, saa en mork gronn flate blir en LYS
+     gronn flate. Kontrollert paa alle ti - nyansen er bevart i alle. */
+  --tonet-bla-1: #0F121A;
+  --tonet-bla-2: #161A22;
+  --tonet-gul: #100F0A;
+  --tonet-oransje-1: #14110A;
+  --tonet-oransje-2: #1A1410;
+  --tonet-oransje-3: #17110C;
+  --tonet-gronn-1: #1A2418;
+  --tonet-gronn-2: #1E2A22;
+  --tonet-lilla-1: #241A24;
+  --tonet-lilla-2: #1A1218;
 }
 
 :root[data-tema="lys"] {
@@ -859,6 +885,25 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --savebar-topp: rgba(244, 244, 245, .98);
   --savebar-bunn: rgba(244, 244, 245, 0);
   --live-topp: rgba(237, 237, 241, 0.97);
+
+  /* RGB-tripler, speilet. */
+  --tekst-land-rgb: 19 17 13;
+  --tekst-ren-rgb: 0 0 0;
+  --tekst-app-rgb: 13 13 15;
+  --tekst-1-rgb: 15 15 13;
+  --tekst-3-rgb: 51 51 63;
+
+  /* Tonede flater, speilet. Nyansen er bevart. */
+  --tonet-bla-1: #E5E8F0;
+  --tonet-bla-2: #DDE1E9;
+  --tonet-gul: #F5F4EF;
+  --tonet-oransje-1: #F5F2EB;
+  --tonet-oransje-2: #EFE9E5;
+  --tonet-oransje-3: #F3EDE8;
+  --tonet-gronn-1: #DDE7DB;
+  --tonet-gronn-2: #D5E1D9;
+  --tonet-lilla-1: #E5DBE5;
+  --tonet-lilla-2: #EDE5EB;
 }
 
 
@@ -980,4 +1025,9 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --tekst-8-app: #555560;
   --tekst-9: #4A4A54;
   --tekst-9-graa: #4A4A4A;
+  --tekst-land-rgb: 242 240 236;
+  --tekst-ren-rgb: 255 255 255;
+  --tekst-app-rgb: 240 240 242;
+  --tekst-1-rgb: 242 242 240;
+  --tekst-3-rgb: 192 192 204;
 }

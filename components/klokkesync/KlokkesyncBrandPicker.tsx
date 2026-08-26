@@ -46,7 +46,7 @@ export function KlokkesyncBrandPicker({
       {intro && (
         <p style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-          color: 'rgba(242,240,236,0.6)', lineHeight: 1.7, margin: '8px 0 14px',
+          color: 'rgb(var(--tekst-land-rgb) / 0.6)', lineHeight: 1.7, margin: '8px 0 14px',
         }}>
           {intro}
         </p>
@@ -66,7 +66,7 @@ export function KlokkesyncBrandPicker({
             background: 'rgba(40,168,110,0.06)',
             border: '1px solid rgba(40,168,110,0.3)', borderRadius: 10,
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-            color: 'rgba(242,240,236,0.8)', lineHeight: 1.6,
+            color: 'rgb(var(--tekst-land-rgb) / 0.8)', lineHeight: 1.6,
           }}>
           <strong style={{ color: '#28A86E' }}>Uansett merke:</strong> du kan alltid laste opp
           {' '}<strong style={{ color: 'var(--tekst-1-app)' }}>.fit-filer</strong> manuelt — fra alle klokkemerker,
@@ -102,7 +102,7 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
         </div>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,
-          color: 'rgba(242,240,236,0.6)', lineHeight: 1.5,
+          color: 'rgb(var(--tekst-land-rgb) / 0.6)', lineHeight: 1.5,
         }}>
           {brand.tagline}
         </div>

@@ -122,7 +122,7 @@ export function PolarStatusBanner({ status, detail }: { status: string | null; d
       }}>
       <div style={{ fontWeight: 600 }}>Polar: {s.label}</div>
       {s.hint && (
-        <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(242,240,236,0.72)', lineHeight: 1.6 }}>
+        <div style={{ marginTop: 6, fontSize: 12, color: 'rgb(var(--tekst-land-rgb) / 0.72)', lineHeight: 1.6 }}>
           {s.hint}
         </div>
       )}
@@ -226,7 +226,7 @@ export function PolarConnectionBlock({ conn }: { conn: PolarConn }) {
             </button>
           </div>
           {lastResult && (
-            <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(242,240,236,0.72)' }}>
+            <div style={{ marginTop: 8, fontSize: 12, color: 'rgb(var(--tekst-land-rgb) / 0.72)' }}>
               {lastResult}
             </div>
           )}
@@ -296,7 +296,7 @@ function WebhookStatus({ lastWebhookAt }: { lastWebhookAt: string | null }) {
         border: '1px solid rgba(245,197,66,0.4)', borderRadius: 10,
         borderLeft: '3px solid #F5C542',
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
-        color: 'rgba(242,240,236,0.8)', lineHeight: 1.6,
+        color: 'rgb(var(--tekst-land-rgb) / 0.8)', lineHeight: 1.6,
       }}>
       <span style={{ color: '#F5C542', fontWeight: 600 }}>
         {days == null

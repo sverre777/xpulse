@@ -47,7 +47,7 @@ function MalChip({ w, compact }: { w: PlanTemplateWorkout; compact?: boolean }) 
     <div
       className="flex items-center gap-1.5"
       style={{
-        border: '1px dashed rgba(242,240,236,0.38)',
+        border: '1px dashed rgb(var(--tekst-land-rgb) / 0.38)',
         borderLeft: `3px solid ${color}`,
         borderRadius: 7,
         background: 'transparent',

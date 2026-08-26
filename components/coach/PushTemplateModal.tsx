@@ -689,7 +689,7 @@ function PeriodizationTemplatePushForm({ athleteId, isPending, startTransition, 
         <div className="text-xs px-3 py-2"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", color: '#E0A030',
-            border: '1px solid #E0A03066', background: '#1A1410',
+            border: '1px solid #E0A03066', background: 'var(--tonet-oransje-2)',
           }}>
           <p className="mb-1">Utøveren har allerede sesong som overlapper:</p>
           <ul className="list-disc pl-4">

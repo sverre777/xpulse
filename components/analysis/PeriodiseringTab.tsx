@@ -212,7 +212,7 @@ function Timeline({ data }: { data: PeriodizationOverview }) {
             <div style={{
               position: 'absolute', top: -4, bottom: -4, width: 2,
               left: `${todayPct}%`, backgroundColor: 'var(--tekst-1-app)',
-              boxShadow: '0 0 6px rgba(240,240,242,0.6)',
+              boxShadow: '0 0 6px rgb(var(--tekst-app-rgb) / 0.6)',
             }} />
           )}
           {/* Nøkkeldatoer som prikker under båndet */}

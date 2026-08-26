@@ -122,12 +122,12 @@ function StravaRolloutNote() {
       <div style={{ color: 'var(--tekst-1-app)', fontSize: 14, fontWeight: 600, letterSpacing: '0.04em', marginBottom: 6 }}>
         📡 Strava-sync er i gradvis utrulling
       </div>
-      <p style={{ color: 'rgba(242,240,236,0.62)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+      <p style={{ color: 'rgb(var(--tekst-land-rgb) / 0.62)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
         Direkte Strava-tilkobling er for øyeblikket tilgjengelig for et begrenset
         antall brukere mens vi utvider kapasiteten. Får du ikke koblet til ennå?
         Det kommer snart.
       </p>
-      <p style={{ color: 'rgba(242,240,236,0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
+      <p style={{ color: 'rgb(var(--tekst-land-rgb) / 0.82)', fontSize: 13, lineHeight: 1.6, margin: '8px 0 0' }}>
         <span style={{ color: '#28A86E' }}>✓</span>{' '}
         Du kan alltid laste opp <strong style={{ color: '#FF4500' }}>.fit-filer</strong> manuelt
         — fungerer for alle, fra alle klokkemerker, med full data.
@@ -597,7 +597,7 @@ function FitUploadSection() {
         <span style={{ width: 16, height: 2, background: '#FF4500' }} />
         .fit-fil-opplasting
       </h2>
-      <p style={{ fontSize: 13, color: 'rgba(242,240,236,0.6)', lineHeight: 1.7, marginBottom: 16 }}>
+      <p style={{ fontSize: 13, color: 'rgb(var(--tekst-land-rgb) / 0.6)', lineHeight: 1.7, marginBottom: 16 }}>
         Last opp .fit-filer fra Garmin, Coros, Polar, Wahoo, Suunto eller andre.
         Velg eller dra inn flere filer samtidig — et helt år går fint på én gang.
       </p>
@@ -773,7 +773,7 @@ function FitHelpAccordion() {
             <ol style={{
               margin: '8px 0 4px', paddingLeft: 20,
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
-              color: 'rgba(242,240,236,0.75)', lineHeight: 1.7,
+              color: 'rgb(var(--tekst-land-rgb) / 0.75)', lineHeight: 1.7,
             }}>
               {g.steps.map((s, i) => <li key={i}>{s}</li>)}
             </ol>

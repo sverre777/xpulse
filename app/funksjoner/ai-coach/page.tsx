@@ -120,7 +120,7 @@ export default function AiCoachPage() {
             }}>
               GI BESKJED NÅR<br/>AI-COACH ÅPNER.
             </h2>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(242,240,236,0.62)', maxWidth: 460 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.62)', maxWidth: 460 }}>
               Lanseres snart. Modulen kommer for utøvere (Pro AI · 129 og Ultimate AI · 399 kr/mnd)
               og trenere (Pro AI · 499 og Ultimate AI · 999 kr/mnd). Beta-tilgang prioriteres til de på listen.
             </p>

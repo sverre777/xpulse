@@ -66,7 +66,7 @@ export function SportPageHero({
             {title}
           </h1>
           <p style={{
-            fontSize: 16, lineHeight: 1.75, color: 'rgba(242,240,236,0.62)',
+            fontSize: 16, lineHeight: 1.75, color: 'rgb(var(--tekst-land-rgb) / 0.62)',
             maxWidth: 540, marginBottom: 32,
           }}>
             {description}

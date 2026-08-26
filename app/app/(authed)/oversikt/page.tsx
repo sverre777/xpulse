@@ -42,7 +42,7 @@ function AiCoachTeaser() {
   return (
     <section className="p-5 mb-6"
       style={{
-        backgroundColor: '#0F121A',
+        backgroundColor: 'var(--tonet-bla-1)',
         border: '1px solid var(--kant-3)',
         backgroundImage: 'linear-gradient(135deg, rgba(26,111,212,0.08), transparent 60%)',
       }}>

@@ -161,8 +161,8 @@ function LapTypeChip({ type }: { type: string }) {
     warmup:   { bg: '#2A2418', fg: '#FFB300', label: 'Oppvarming' },
     interval: { bg: '#2A1A1A', fg: '#FF4500', label: 'Intervall' },
     rest:     { bg: 'var(--flate-14)', fg: '#7AA2FF', label: 'Pause' },
-    skyting:  { bg: '#1A2418', fg: '#3DD68C', label: 'Skyting' },
-    cooldown: { bg: '#241A24', fg: '#A855F7', label: 'Nedjogg' },
+    skyting:  { bg: 'var(--tonet-gronn-1)', fg: '#3DD68C', label: 'Skyting' },
+    cooldown: { bg: 'var(--tonet-lilla-1)', fg: '#A855F7', label: 'Nedjogg' },
   }
   const c = colors[type] ?? { bg: 'var(--flate-14)', fg: 'var(--data-ukjent)', label: type }
   return (

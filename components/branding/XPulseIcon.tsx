@@ -16,7 +16,7 @@
 // Den nye har ingen id-bærende <defs> i det hele tatt — tre paths med hver
 // sin fill holder — så telleverket er fjernet framfor å stå igjen ubrukt.
 
-const HVIT = '#FFFFFF'
+const HVIT = 'var(--tekst-1-ren)'
 const BLA = '#1A6FD4'
 const ORANSJE = '#FF4500'
 

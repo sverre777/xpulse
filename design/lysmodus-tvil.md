@@ -1,171 +1,146 @@
-# Lysmodus — tvilslogg fra steg 1
+# Lysmodus — tvilslogg
 
-Skrevet 2026-08-26. Regel 2 sier stopp-og-logg framfor gjetting. Under står alt jeg
-ikke kunne avgjøre selv, sortert etter hvor mye det blokkerer steg 2.
-
-Ingenting her er endret i koden. Kartleggingen ligger i `lysmodus-kartlegging.md`.
+Oppdatert 2026-08-26, etter at steg 2 er kjørt. Punktene du har avgjort står
+først, med hva som faktisk ble gjort. Det som fortsatt er åpent står nederst.
 
 ---
 
-## 1. `globals.css` har to konkurrerende `:root`-sett — BLOKKERER
+# Avgjort og utført
 
-`app/globals.css` definerer nøytraler to steder, med ulike verdier for samme rolle:
+## 1. De to `:root`-settene i globals.css
 
-| Rolle | Linje 118-sett | Linje 321-sett |
-|---|---|---|
-| Bunnflate | `--bg-primary: #0A0A0B` | — |
-| Kortflate | `--bg-card: #1A1A22` | `--card: #101014` |
-| Kort nivå 2 | `--bg-elevated: #1C1C21` | `--card2: #15151B` |
-| Kant | `--border: #222228` | `--line: #1F1F26` |
-| Sterk tekst | `--text-primary: #F0F0F2` | `--ink: #F2F2F0` |
-| Sekundær tekst | `--text-secondary: #8A8A96` | `--mut: #8B8B95` |
-| Dempet tekst | `--text-muted: #55555F` | `--dim: #5A5A64` |
+**Din avgjørelse:** finn hvilket som rendrer, det er fasit, slett det andre.
 
-Begge er i bruk. Steg 2 kan ikke velge «riktig» token uten at du sier hvilket sett som
-er fasit — eller om begge skal leve videre som to lag med hver sin lysvariant.
+**Retting av premisset:** de to blokkene delte **null tokennavn**, så de
+konkurrerte aldri i kaskaden. «Senere definisjon vinner» avgjorde ingenting,
+og en ren sletting ville fjernet 19 levende referanser — ikke døde duplikater.
 
-**Mitt forslag:** begge lever videre uendret i mørk modus (vakt 1), og begge får
-lysvarianter. Sammenslåing er en egen opprydding etter at lysmodus står.
+**Avgjort på faktisk bruk i stedet:**
 
-## 2. `--dim` og `--gold` betyr to forskjellige ting — BLOKKERER
+| Blokk | `var()`-treff |
+|---|---:|
+| Linje 321 (`--card`, `--line`, `--ink` …) | **1 440** |
+| Linje 118 (`--bg-primary`, `--text-primary` …) | 27 (8 av dem i xpulse.html, som har sin egen `--border`) |
 
-| Token | `globals.css` | `public/xpulse.html` |
-|---|---|---|
-| `--dim` | `#5A5A64` | `#8B8B95` |
-| `--gold` | `#F5C542` | `#E8B93C` |
+Blokk 118 er slettet. De 19 referansene er flyttet til tokens med **identisk**
+verdi, verifisert i kode før byttet. Sju tokens hadde null bruk og er bare
+fjernet. `--border-hover: #333340` ble `--kant-hover` — den har kanalspenn 13
+og falt utenfor nøytralgrensa på 12 i steg 1. Commit `73739f2`.
 
-Prompten oppgir `--dim #8B8B95` og `--gold #E8B93C` som fasit — det er `xpulse.html`
-sine verdier. `globals.css` avviker på begge.
+## 2. `--dim` og `--gold`
 
-`--dim` er nøytral og min sak: én av dem må endre navn, ellers gjør steg 2 samme
-konvertering til to ulike resultater avhengig av hvilken fil komponenten treffes fra.
+App og landingsside er separate tokensett og er ikke forent. `--gold` er ikke
+rørt. **Ført opp som egen sak:** `--gold` er `#F5C542` i globals.css men
+`#E8B93C` i xpulse.html, og fargefasiten sier graf-gull `#E8B93C` og kort-gull
+`#D4A017`. `#F5C542` står ikke i fasiten i det hele tatt.
 
-`--gold` er en **farge** og dermed fredet — jeg har ikke rørt den. Men den er ulik i
-de to filene, og det bør noen se på uavhengig av lysmodus.
+## 3. Halen på 30 verdier
 
-## 3. `#1E1E22` — avgjort, sier ifra
+Beholdt. Ingen sammenslåing. Alle 70 nøytralene har hvert sitt token.
 
-266 treff i kode, 1 i CSS. Ligger ikke i noe `:root`. Ligger 1 steg fra `--line`
-(`#1F1F26`, 17 treff).
+## 4. Logoen
 
-**Jeg valgte eget token: `--kant-3`.** To grunner. Vakt 1 forbyr sammenslåing, og
-`#1E1E22` er brukt 15× oftere enn `#1F1F26` — det er `--line` som ser ut som avviket
-her, ikke omvendt. Å mappe det mest brukte inn i det minst brukte hadde vært å velge
-side i en strid du ikke har tatt stilling til.
+Ingen logofil er referert noe sted i repoet — heller ikke
+`xpulse-logo-currentcolor.svg`. All logo-rendering går gjennom inline-SVG i
+`components/branding/XPulseIcon.tsx`, brukt i MainNav, CoachNav, AppFooter,
+LandingNav, LandingFooter og AuthCard.
 
-## 4. VAKT 2 — alle datafargene jeg fant
+Å bytte til fila ville betydd å bygge om seks brukssteder og miste variantene
+hero/utøver/trener. Løst med **ett token i stedet**: `--logo-strek`, hvit på
+mørk bunn og svart på lys, brukt ett sted. Samme resultat som currentColor-fila,
+uten filavhengigheten.
 
-Du ba om å få rapportert alle av samme mønster som `COLOR_TOTAL`, også de i tvil.
-Dette er nøytraler som **betyr noe i dataene** og ikke skal følge temaet mekanisk.
+## 5. Strava-blekket
 
-**Sikre datafarger — trenger egen lysvariant, ikke tematoken:**
+`KlokkesyncBrandPicker.tsx:149` er fredet i sin helhet. Hele
+`components/strava/`, `lib/strava.ts` og `app/actions/strava-sync.ts` er også
+holdt utenfor konverteringen.
 
-| Sted | Verdi | Hva den betyr |
-|---|---|---|
-| `analysis/SkytingSummaryCards.tsx:20` | `COLOR_TOTAL = #F0F0F2` | skytingens «begge/total» — den kjente |
-| `analysis/BelastningTab.tsx:21` | `COLOR_TSS_AVG = #F0F0F2` | 7-dagers snitt-linja i grafen |
-| `analysis/CustomBreakdownChart.tsx:39` | `FALLBACK_NON_ENDURANCE = #7A7A84` | seriefarge for ikke-utholdenhet |
-| `oversikt/UkensTotaler.tsx:24` | `#8A8A96` | «flat» trend — står side om side med grønn og rød |
-| `workout/WorkoutDeepAnalysis.tsx:232` | `#8A8A96` | fallback når sonen er ukjent |
-| `analysis/TesterPRTab.tsx:130` | `#8A8A96` | «ikke koblet»-tilstand mot TEST_BLUE |
-| `abonnement/page.tsx:47` | `#8A8A96` | ukjent abonnementsstatus |
-| `workout/LapTable.tsx:167` | `#1A1A22` + `#8A8A96` | chip for ukjent lap-type |
-| `focus/FocusSection.tsx:24` | `ACCENT_EMPTY = #1E1E22` | «tom» ved siden av ekte aksenter |
+## 6. Datafargene
 
-**I tvil — du bør se på disse selv:**
+`COLOR_TOTAL`, `COLOR_TSS_AVG` og `#8A8A96`-som-flat-trend fikk `--data-*`-tokens
+med egen lysvariant. Det samme fikk de øvrige jeg fant: ukjent sone/status/
+lap-type, seriefarge for ikke-utholdenhet, tom tilstand, notatfarge, og uke uten
+periodiseringsintensitet.
 
-- `klokkesync/KlokkesyncBrandPicker.tsx:149` — `live ? '#0A0A0B' : '#555560'`. Dette er
-  blekk **på en merkefarge**, ikke på temaflata. Strava-oransje er like oransje i lys
-  modus, så svart blekk skal bli værende svart. Speiles det, blir det hvitt på oransje.
-  Nøytral i form, men merkefarge i funksjon.
-- `calendar/Calendar.tsx:1509` og `periodization/MonthFullCalendar.tsx:127` — `#2A2A30`
-  som fallback når uka ikke har periodiseringsintensitet. Nabo til de fredede
-  periodiseringsfargene. Tema eller data?
-- `coach/trener-kalender/TrenerKalender.tsx:17` — `NOTE_GRAY = #C0C0CC`. Navnet sier
-  data, bruken ser ut som tema.
-- `branding/XPulseIcon.tsx:19` — `HVIT = '#FFFFFF'`. Se punkt 6.
+## 7. Scrim og skygge
 
-**Trygge tematokens** (verifisert, tar jeg i steg 2 uten å spørre): `CHART_GRID`,
-`CHART_GRID_ZERO`, `CHART_AXIS_LINE`, `GRID_COLOR`, `Calendar.tsx:1105` sin
-bakgrunnstrio, tekstfargen i `CustomBreakdownChart.tsx:157`.
+Egne lysverdier, ikke speilet. Scrim: lys alfa = mørk alfa × 0.55. Skygge: lys
+alfa = mørk alfa × 0.22. Tresifret hex speilet som vanlig.
 
-## 5. `#6E6E78` er både tekstfarge og fredet sonefarge
+## 8. `TEMA_FOLG_OS`
 
-12 treff som tekstfarge. Samtidig er `#6E6E78` **Styrke-fargen i `ZONE_COLORS_V2`**,
-som er fredet i begge tema.
+Står fortsatt `false`.
 
-Verdien må splittes i to: sonefargen står urørt, tekstbruken blir `--tekst-7`. Jeg har
-ikke sjekket hvert av de 12 treffene ennå — det hører til steg 2, og jeg gjør det ikke
-uten at du har sett at problemet finnes.
+---
 
-## 6. Logoen — VAKT 3
+# To feil funnet underveis
 
-Det finnes **ingen fil med svart midtstrek** i `public/logo/`. Varianten du beskriver
-er ikke laget.
+## A. Jeg korrumperte `public/xpulse.html`
 
-Men `public/logo/xpulse-logo-currentcolor.svg` finnes, og alle tre formene i den bruker
-`fill="currentColor"`. Den løser vakt 3 på ett sted: sett `color` på en forelder, og
-midtstreken følger temaet uten en eneste betingelse per komponent.
+Konverteringsskriptet maskerer `:root`-blokker, kommentarer og `<script>` for å
+la dem stå urørt. Når en kommentar ligger **inne i** et script, ble kommentaren
+maskert først og scriptet etterpå — og gjenopprettingen gikk i stigende
+rekkefølge, så den ytre masken skrev den indre markøren tilbake etter at den var
+behandlet. To NUL-bytes og en tapt kommentar.
 
-**Jeg trenger å vite:** skal jeg bruke `currentColor`-fila, eller vil du at det lages
-en egen SVG med svart strek? Ingen komponent refererer til noen av logofilene ved navn
-i dag, så begge veier er åpne.
+Det skjulte seg godt: NUL gjør at `grep` leser fila som binær og tier helt, så
+et søk etter «hero» ga null treff i en fil full av dem. Reparert i `2a46ac1`.
 
-## 7. Hull i kartleggingen jeg fant til slutt
+## B. Flater på fotografi ble uleselige i lysmodus
 
-Skanneren min krevde 6-sifret hex. Disse er derfor **ikke** med blant de 70:
+Heroen på landingssida ligger på et bilde, nav-en på sin egen mørke gradient, og
+`SportPageHero` på hardkodede overlegg. Ingen av dem blir lysere i lysmodus, men
+forgrunnen fulgte temaet og ble svart på mørkt. H1 forsvant helt.
 
-| Form | Antall | Merknad |
-|---|---|---|
-| 3-sifret hex | 43 | `#FFF` 31, `#555` 6, `#444` 3, `#333` 2, `#777` 1 |
-| `rgba(0,0,0,·)` | 56 | mest modal-scrim og skygge |
-| `rgba(255,255,255,·)` | 2 | |
+Løst med ditt eget prinsipp fra Strava-blekket: bundet til bunnen, altså fredet.
+`.hero` + `nav` i xpulse.html, og klassen `.xp-paa-foto` i globals.css som
+`SportPageHero` setter kun når `backgroundImage` er satt.
 
-`#444` i `workout/WorkoutCard.tsx:18` er kanten på planlagte økter — den er 3-sifret og
-slapp unna hele kartleggingen.
+**To CSS-feller måtte løses først:**
 
-Scrims og skygger er egen sak: en modal-scrim er svart i begge tema, men en fade som
-ligger over en kortflate må snu. Jeg har ikke klassifisert alle 56.
+1. `color` må settes **eksplisitt**. Barn uten egen `color` arver den ferdig
+   utregnede fargen fra forelderen, ikke variabelen. Å frede tokenene alene lot
+   h1 stå svart.
+2. Alias-tokens (`--white: var(--paper)`) løses opp på `:root` og arves ferdig
+   utregnet. Å frede `--paper` hjelper ikke — aliaset må fredes selv.
 
-## 8. Halen: 30 verdier med 1–3 treff
+---
 
-Av de 70 nøytralene har 30 stykker 1–3 treff. De ligger typisk 1–2 steg fra en verdi
-som brukes hundrevis av ganger — `#0A0A0C` (1 treff) mot `#0A0A0B` (166), `#141419`
-(1) mot `#14141A` (19).
+# Fortsatt åpent
 
-Dette er drift, ikke design. Men vakt 1 er tydelig, så jeg har gitt hver av dem sitt
-eget token og lar det være med det.
+## 1. `themeColor` og manifestet
 
-**Spørsmålet er ditt:** skal halen slås inn i nærmeste nabo i steg 2? Det ville tatt
-token-tallet fra 70 til rundt 40 og gjort resten av jobben vesentlig lettere å lese.
-Mørk modus blir da ikke pikselidentisk — den blir 1–2 verdier unna på ~60 steder.
+`app/layout.tsx` og `app/manifest.ts` setter `#0A0A0B` som nettleserens
+temafarge. Det er metadata, ikke CSS — `var()` løser seg aldri opp der. Skal
+fargen følge temaet, må `<meta name="theme-color">` oppdateres fra klienten.
+Ikke gjort.
 
-## 9. Tonede flater — holdt utenfor med vilje
+## 2. De tonede flatene
 
-Ti verdier ser nøytrale ut i en liste, men har fargestikk:
-
+Ti verdier med fargestikk står urørt i begge tema:
 `#0F121A` `#161A22` `#14110A` `#100F0A` `#1A1410` `#17110C` `#1A2418` `#241A24`
 `#1A1218` `#1E2A22`
 
-De grønne og gule ser ut som status-bakgrunner (medhold/varsel). Speiling ville snudd
-stikket og gjort en grønn flate rosa. Jeg har latt dem stå helt urørt.
+De grønne og gule ser ut som status-bakgrunner. På en lys flate vil de fortsatt
+være mørke firkanter. De trenger egne lysvarianter, men å speile dem ville snudd
+stikket — en grønn flate blir rosa. Dette er en designjobb, ikke en mekanisk.
 
-## 10. Kontrasten er allerede lav i mørk modus
+## 3. Kontrasten er allerede lav i mørk modus
 
-Ikke en tvil, men noe du bør vite før du ser på lysmodus og tror jeg har ødelagt noe.
+`#555560` (544 treff, den dempede teksten) har **2,7:1** mot bunnflata i dag.
+WCAG AA krever 4,5:1. Speilingen gir 2,4:1 i lys — like lavt, ikke lavere.
+Lysmodus gjør det ikke verre, men det blir lettere å se.
 
-`#555560` (544 treff, den dempede teksten) har **2,7:1** mot bunnflata i mørk modus i
-dag. WCAG AA krever 4,5:1. Speilingen gir 2,4:1 i lys — altså like lavt, ikke lavere.
+## 4. `var(--surface, var(--card))`
 
-Lysmodus gjør ikke dette verre. Men det er lettere å se i lys modus, og det kommer nok
-til å se ut som en ny feil når det egentlig er en gammel.
+`KonkurransePanel.tsx` og `TestPRInputForm.tsx` bruker `--surface`, som ikke
+finnes i globals.css — den er et landingsside-token. Fallbacken til `--card`
+gjør at det virker i begge tema, så ingenting er brukket. Men den er eldre enn
+dette arbeidet og bør ryddes.
 
-## 11. `prefers-color-scheme` er skrudd av med vilje
+## 5. Ikke visuelt verifisert
 
-Bryteren er bygget, men lys modus slår **kun** inn når du velger den selv
-(`data-tema="lys"`). Automatikken etter operativsystemet ligger klar bak flagget
-`TEMA_FOLG_OS`, satt til `false`.
-
-Grunnen: steg 2 er ikke gjort. Slo automatikken inn nå, ville alle med lyst OS fått en
-halvkonvertert flate — 3 500 hardkodede hex-verdier står fortsatt mørke. Flagget settes
-til `true` når bulk-konverteringen er ferdig.
+Jeg har verifisert i nettleser: landingssida, `/funksjoner/trener` og `/vilkar`,
+i begge tema. **De innloggede flatene har jeg ikke sett** — de krever pålogging.
+Hjem, dagbok og analysesidene med grafer må du se på selv.

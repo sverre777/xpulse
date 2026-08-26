@@ -79,7 +79,7 @@ export function UserMenu({ userName, accent }: Props) {
                 padding: '12px 14px',
                 borderBottom: '1px solid var(--line)',
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 fontSize: '14px',
               }}
             >
@@ -97,7 +97,7 @@ export function UserMenu({ userName, accent }: Props) {
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                color: '#8A8A96',
+                color: 'var(--tekst-5-app)',
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: '14px',
                 letterSpacing: '0.1em',

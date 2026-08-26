@@ -678,6 +678,40 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --flate-15: #1C1C21;  /* globals --bg-elevated */
   --flate-16: #1E1E26;
   --flate-17: #26262E;
+
+  /* Rene graatoner fra 3-sifret hex. Speilet som vanlig. */
+  --graa-33: #333333;
+  --graa-44: #444444;
+  --graa-55: #555555;
+  --graa-77: #777777;
+
+  /* Scrim og skygge. IKKE speilet - det er hele poenget.
+     Scrim: i lys modus star bakteppet mot en LYS side, sa mindre svart trengs
+     for a skille modalen ut. Regel: lys alfa = mork alfa x 0.55.
+     Skygge: en svart skygge er nesten usynlig mot mork bunn og patrengende mot
+     hvit. Regel: lys alfa = mork alfa x 0.22. */
+  --scrim-60: rgba(0, 0, 0, 0.6);
+  --scrim-70: rgba(0, 0, 0, 0.7);
+  --scrim-72: rgba(0, 0, 0, 0.72);
+  --scrim-75: rgba(0, 0, 0, 0.75);
+  --scrim-80: rgba(0, 0, 0, 0.8);
+  --scrim-35: rgba(0, 0, 0, 0.35);
+  --skygge-40: rgba(0, 0, 0, 0.4);
+  --skygge-50: rgba(0, 0, 0, 0.5);
+  --skygge-55: rgba(0, 0, 0, 0.55);
+  --skygge-60: rgba(0, 0, 0, 0.6);
+
+  /* DATAFARGER. Noytrale i form, men de BETYR noe i dataene og skal derfor
+     kunne finstilles uten a rore temaskalaen. Morkverdiene er dagens.
+     Se design/lysmodus-tvil.md punkt 4. */
+  --data-total: #F0F0F2;  /* skytingens "begge/total" */
+  --data-snitt: #F0F0F2;  /* 7-dagers snitt i belastningsgrafen */
+  --data-flat: #8A8A96;  /* trend "flat", ved siden av gronn og rod */
+  --data-ukjent: #8A8A96;  /* ukjent sone/status/lap-type */
+  --data-ovrig: #7A7A84;  /* seriefarge for ikke-utholdenhet */
+  --data-tom: #1E1E22;  /* tom tilstand ved siden av ekte aksenter */
+  --data-notat: #C0C0CC;  /* notatfarge i trenerkalenderen */
+  --data-nopris: #2A2A30;  /* uke uten periodiseringsintensitet */
 }
 
 :root[data-tema="lys"] {
@@ -757,4 +791,43 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --flate-15: #DEDEE3;  /* globals --bg-elevated */
   --flate-16: #D9D9E1;
   --flate-17: #D1D1D9;
+
+  /* Rene graatoner fra 3-sifret hex. */
+  --graa-33: #CCCCCC;
+  --graa-44: #BBBBBB;
+  --graa-55: #AAAAAA;
+  --graa-77: #888888;
+
+  /* Scrim og skygge - egne verdier, ikke speilet. */
+  --scrim-60: rgba(0, 0, 0, 0.33);
+  --scrim-70: rgba(0, 0, 0, 0.39);
+  --scrim-72: rgba(0, 0, 0, 0.40);
+  --scrim-75: rgba(0, 0, 0, 0.41);
+  --scrim-80: rgba(0, 0, 0, 0.44);
+  --scrim-35: rgba(0, 0, 0, 0.19);
+  --skygge-40: rgba(0, 0, 0, 0.09);
+  --skygge-50: rgba(0, 0, 0, 0.11);
+  --skygge-55: rgba(0, 0, 0, 0.12);
+  --skygge-60: rgba(0, 0, 0, 0.13);
+
+  /* Datafarger - beholder rollen, mork pa lys bunn. */
+  --data-total: #0D0D0F;
+  --data-snitt: #0D0D0F;
+  --data-flat: #696975;
+  --data-ukjent: #696975;
+  --data-ovrig: #7B7B85;
+  --data-tom: #DDDDE1;
+  --data-notat: #33333F;
+  --data-nopris: #CFCFD5;
+
+  /* Det ETABLERTE settet (1 440 var()-treff). Kun noytralene - fargene
+     --orange/--green/--blue/--gold og sonefargene er FREDET og gjelder
+     i begge tema, sa de star med vilje ikke her. */
+  --card: #EBEBEF;
+  --card2: #E4E4EA;
+  --line: #D9D9E0;
+  --line2: #CCCCD5;
+  --ink: #0F0F0D;
+  --mut: #6A6A74;
+  --dim: #9B9BA5;
 }

@@ -55,7 +55,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
         position: 'fixed',
         inset: 0,
         zIndex: 80,
-        backgroundColor: 'rgba(0,0,0,0.75)',
+        backgroundColor: 'var(--scrim-75)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -65,8 +65,8 @@ export function RoleActivationModal({ role, onClose }: Props) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: '#13131A',
-          border: '1px solid #1E1E22',
+          backgroundColor: 'var(--flate-12-alt)',
+          border: '1px solid var(--kant-3)',
           maxWidth: 480,
           width: '100%',
           padding: 24,
@@ -77,7 +77,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
           id="role-activation-title"
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontSize: 28,
             letterSpacing: '0.05em',
             margin: 0,
@@ -90,7 +90,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
         <p
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#B0B0B8',
+            color: 'var(--tekst-4)',
             fontSize: 15,
             lineHeight: 1.5,
             margin: 0,
@@ -107,7 +107,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
             margin: 0,
             marginBottom: 24,
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96',
+            color: 'var(--tekst-5-app)',
             fontSize: 14,
           }}
         >
@@ -141,9 +141,9 @@ export function RoleActivationModal({ role, onClose }: Props) {
             onClick={onClose}
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              color: '#8A8A96',
+              color: 'var(--tekst-5-app)',
               background: 'none',
-              border: '1px solid #2A2A30',
+              border: '1px solid var(--kant-6)',
               padding: '8px 16px',
               cursor: 'pointer',
               letterSpacing: '0.15em',
@@ -160,7 +160,7 @@ export function RoleActivationModal({ role, onClose }: Props) {
               disabled={pending}
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: '#F0F0F2',
+                color: 'var(--tekst-1-app)',
                 backgroundColor: color,
                 border: 'none',
                 padding: '8px 18px',

@@ -52,7 +52,7 @@ export function TemaBryter({ accent, storrelse = 40 }: Props) {
         border: 'none',
         padding: 0,
         cursor: 'pointer',
-        color: hover ? accent : '#8A8A96',
+        color: hover ? accent : 'var(--tekst-5-app)',
         transition: 'color 150ms',
       }}
     >

@@ -20,7 +20,7 @@ export function SettingsIconButton({ isActive, accent }: Props) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: isActive ? accent : '#8A8A96',
+        color: isActive ? accent : 'var(--tekst-5-app)',
         textDecoration: 'none',
         transition: 'color 150ms',
       }}

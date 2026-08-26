@@ -138,7 +138,7 @@ export function MainNav({
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '38px', height: '38px',
-                  backgroundColor: accent, color: '#F0F0F2',
+                  backgroundColor: accent, color: 'var(--tekst-1-app)',
                   borderRadius: 999,
                   textDecoration: 'none',
                   fontFamily: "'Barlow Condensed', sans-serif",
@@ -269,7 +269,7 @@ export function MainNav({
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: accent,
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               borderRadius: 10,
               textDecoration: 'none',
             }}
@@ -334,7 +334,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        backgroundColor: '#0A0A0B',
+        backgroundColor: 'var(--flate-3)',
         animation: 'xp-overlay-in 200ms ease-out',
         display: 'flex', flexDirection: 'column',
       }}
@@ -384,7 +384,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       <div
         className="flex items-center justify-around px-6 py-3"
         onClick={e => e.stopPropagation()}
-        style={{ borderBottom: '1px solid #1E1E22' }}
+        style={{ borderBottom: '1px solid var(--kant-3)' }}
       >
         <div onClick={onClose}>
           <SearchIconButton mode={activeRole === 'coach' ? 'coach' : 'athlete'} accent={accent} />
@@ -397,7 +397,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             position: 'relative',
             width: '50px', height: '50px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#F0F0F2', textDecoration: 'none',
+            color: 'var(--tekst-1-app)', textDecoration: 'none',
           }}
         >
           <MailIcon />
@@ -424,7 +424,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
           style={{
             width: '50px', height: '50px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#F0F0F2', textDecoration: 'none',
+            color: 'var(--tekst-1-app)', textDecoration: 'none',
           }}
         >
           <GearIcon />
@@ -441,7 +441,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               backgroundColor: accent,
-              color: '#F0F0F2',
+              color: 'var(--tekst-1-app)',
               textDecoration: 'none',
               padding: '10px 24px',
               borderRadius: 10,
@@ -482,7 +482,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
                 animationDelay: `${i * 35}ms`,
               }}
             >
-              {Glyph ? <span style={{ color: active ? accent : '#8A8A96', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
+              {Glyph ? <span style={{ color: active ? accent : 'var(--tekst-5-app)', display: 'inline-flex' }}><Glyph size={22} /></span> : null}
               <span>{label}</span>
             </Link>
           )
@@ -493,7 +493,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
       <div
         className="flex flex-col items-center gap-3 px-6 pt-4 pb-4"
         onClick={e => e.stopPropagation()}
-        style={{ borderTop: '1px solid #1E1E22' }}
+        style={{ borderTop: '1px solid var(--kant-3)' }}
       >
         <RoleSwitcher
           activeRole={activeRole}
@@ -508,7 +508,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         {userName && (
           <span style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#55555F',
+            color: 'var(--tekst-8-alt)',
             fontSize: '13px',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
@@ -551,7 +551,7 @@ function InboxIconLink({ unreadCount, accent, isActive }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: isActive ? accent : '#8A8A96',
+        color: isActive ? accent : 'var(--tekst-5-app)',
         textDecoration: 'none',
         transition: 'color 150ms',
       }}
@@ -565,7 +565,7 @@ function InboxIconLink({ unreadCount, accent, isActive }: {
             top: '4px',
             right: '2px',
             backgroundColor: accent,
-            color: '#F0F0F2',
+            color: 'var(--tekst-1-app)',
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: '13px',
             padding: '0 4px',
@@ -626,7 +626,7 @@ function UnreadBadge({ count, accent }: { count: number; accent: string }) {
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         backgroundColor: accent,
-        color: '#F0F0F2',
+        color: 'var(--tekst-1-app)',
         padding: '1px 6px',
         minWidth: '18px',
         textAlign: 'center',
@@ -644,7 +644,7 @@ function HamburgerIcon({ open }: { open: boolean }) {
     left: 0,
     width: '100%',
     height: '2px',
-    backgroundColor: '#F0F0F2',
+    backgroundColor: 'var(--tekst-1-app)',
     transition: 'transform 200ms ease, opacity 150ms ease, top 200ms ease',
   }
   return (

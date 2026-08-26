@@ -61,7 +61,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
         className="flex items-center gap-0 transition-colors"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           background: 'none',
           border: '1px solid var(--line2)',
           borderRadius: 999,
@@ -77,7 +77,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
               style={{
                 padding: '4px 12px', borderRadius: 999,
                 backgroundColor: activeRole === 'athlete' ? ATHLETE_ORANGE : 'transparent',
-                color: activeRole === 'athlete' ? '#fff' : '#8A8A96',
+                color: activeRole === 'athlete' ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
               }}>
               Utøver
             </span>
@@ -85,7 +85,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
               style={{
                 padding: '4px 12px', borderRadius: 999,
                 backgroundColor: activeRole === 'coach' ? COACH_BLUE : 'transparent',
-                color: activeRole === 'coach' ? '#fff' : '#8A8A96',
+                color: activeRole === 'coach' ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
               }}>
               Trener
             </span>
@@ -96,7 +96,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             <span className="text-xs tracking-widest uppercase" style={{ padding: '4px 10px 4px 8px' }}>{label}</span>
           </>
         )}
-        <span style={{ color: '#8A8A96', fontSize: 10, paddingRight: 8 }}>▾</span>
+        <span style={{ color: 'var(--tekst-5-app)', fontSize: 10, paddingRight: 8 }}>▾</span>
       </button>
 
       {open && (
@@ -111,7 +111,7 @@ export function RoleSwitcher({ activeRole, hasAthleteRole, hasCoachRole, hasCoac
             border: '1px solid var(--line)',
             borderRadius: 12,
             overflow: 'hidden',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            boxShadow: '0 8px 24px var(--skygge-50)',
             zIndex: 60,
           }}
         >
@@ -160,8 +160,8 @@ function AddTrenerProfileMenuItem({
       className="w-full flex items-center gap-2 px-3 py-2 text-left"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        color: '#B0B0B8',
-        borderTop: '1px solid #1E1E22',
+        color: 'var(--tekst-4)',
+        borderTop: '1px solid var(--kant-3)',
       }}
     >
       <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
@@ -223,8 +223,8 @@ function RoleMenuItem({
         className="w-full flex items-center gap-2 px-3 py-2 text-left"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: active ? '#F0F0F2' : '#B0B0B8',
-          background: active ? '#1E1E22' : 'transparent',
+          color: active ? 'var(--tekst-1-app)' : 'var(--tekst-4)',
+          background: active ? 'var(--kant-3)' : 'transparent',
           border: 'none',
           cursor: active || pending ? 'default' : 'pointer',
           opacity: pending ? 0.6 : 1,
@@ -241,7 +241,7 @@ function RoleMenuItem({
         />
         <span className="text-xs tracking-widest uppercase">{label}</span>
         {active && (
-          <span style={{ marginLeft: 'auto', color: '#8A8A96', fontSize: 11 }}>AKTIV</span>
+          <span style={{ marginLeft: 'auto', color: 'var(--tekst-5-app)', fontSize: 11 }}>AKTIV</span>
         )}
       </button>
       {state?.error && !active && (

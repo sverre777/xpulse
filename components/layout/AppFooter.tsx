@@ -12,10 +12,10 @@ export function AppFooter() {
     <footer
       className="px-4 pt-6 pb-5 mt-8"
       style={{
-        borderTop: '1px solid #1A1A1E',
+        borderTop: '1px solid var(--kant-2)',
         fontFamily: "'Barlow Condensed', sans-serif",
         fontSize: 12,
-        color: '#555560',
+        color: 'var(--tekst-8-app)',
       }}
     >
       <div className="max-w-[1800px] mx-auto flex flex-col gap-4">
@@ -25,14 +25,14 @@ export function AppFooter() {
               className="inline-flex items-center gap-2"
               style={{
                 fontWeight: 600, fontSize: 13, letterSpacing: '0.35em',
-                color: '#F2F0EC', textTransform: 'uppercase',
+                color: 'var(--tekst-1-land)', textTransform: 'uppercase',
               }}
             >
               <XPulseIcon size={20} />
               <span>PULSE</span>
             </span>
             <Dot />
-            <span style={{ color: '#8A8A96' }}>Treningsdagbok og planlegger for utholdenhet.</span>
+            <span style={{ color: 'var(--tekst-5-app)' }}>Treningsdagbok og planlegger for utholdenhet.</span>
             <Dot />
             <span style={{ letterSpacing: '0.15em', textTransform: 'uppercase' }}>Bygget i Norge 🇳🇴</span>
           </div>
@@ -73,7 +73,7 @@ export function AppFooter() {
 
         <div
           className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-3"
-          style={{ borderTop: '1px solid #141417', letterSpacing: '0.12em' }}
+          style={{ borderTop: '1px solid var(--kant-1)', letterSpacing: '0.12em' }}
         >
           <span>© 2026 X-PULSE</span>
           <a href="mailto:support@x-pulse.no" style={linkStyle}>support@x-pulse.no</a>
@@ -84,11 +84,11 @@ export function AppFooter() {
 }
 
 function Dot() {
-  return <span style={{ color: '#2A2A30' }} aria-hidden="true">·</span>
+  return <span style={{ color: 'var(--kant-6)' }} aria-hidden="true">·</span>
 }
 
 const linkStyle: React.CSSProperties = {
-  color: '#8A8A96',
+  color: 'var(--tekst-5-app)',
   textDecoration: 'none',
   transition: 'color 0.15s',
 }
@@ -99,7 +99,7 @@ const socialStyle: React.CSSProperties = {
   justifyContent: 'center',
   width: 28,
   height: 28,
-  border: '1px solid #262629',
-  color: '#8A8A96',
+  border: '1px solid var(--kant-5)',
+  color: 'var(--tekst-5-app)',
   transition: 'color 0.15s, border-color 0.15s',
 }

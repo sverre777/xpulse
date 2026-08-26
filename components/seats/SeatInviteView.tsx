@@ -50,17 +50,17 @@ export function SeatInviteView({ token, info }: Props) {
   }
 
   return (
-    <div style={{ backgroundColor: '#0A0A0B', minHeight: '100vh' }}
+    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}
       className="flex items-start justify-center px-4 py-16">
       <div className="w-full" style={{ maxWidth: 460 }}>
         <div className="flex items-center gap-3 mb-6">
           <span style={{ width: 32, height: 3, backgroundColor: ORANGE, display: 'inline-block' }} />
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 32, letterSpacing: '0.08em' }}>
+          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 32, letterSpacing: '0.08em' }}>
             Utøverplass
           </h1>
         </div>
 
-        <div className="p-6" style={{ backgroundColor: '#101014', border: '1px solid #2A2A33', borderRadius: 14 }}>
+        <div className="p-6" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 14 }}>
           {!info.gyldig ? (
             <p style={tekst}>{info.feilmelding ?? 'Lenka er ikke gyldig.'}</p>
           ) : info.full && !(info.preview?.alleredePaaPlass) ? (
@@ -98,7 +98,7 @@ export function SeatInviteView({ token, info }: Props) {
                   {pending ? 'Oppretter…' : 'Opprett bruker og ta plassen'}
                 </button>
               </form>
-              <p className="text-xs mt-4" style={{ color: '#8A8A96' }}>
+              <p className="text-xs mt-4" style={{ color: 'var(--tekst-5-app)' }}>
                 Har du allerede en bruker?{' '}
                 <Link href={`/app?return_to=/plass/${token}`}
                   style={{ color: ORANGE, textDecoration: 'underline' }}>
@@ -158,7 +158,7 @@ function Punkt({ children, varsel = false }: { children: React.ReactNode; varsel
   return (
     <li className="flex gap-2 text-sm" style={{
       fontFamily: "'Barlow Condensed', sans-serif",
-      color: varsel ? '#E8B93C' : '#C0C0CC',
+      color: varsel ? '#E8B93C' : 'var(--tekst-3-app)',
     }}>
       <span aria-hidden style={{ color: varsel ? '#E8B93C' : ORANGE }}>{varsel ? '⚠' : '✓'}</span>
       <span>{children}</span>
@@ -170,7 +170,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div>
       <label className="block text-xs tracking-widest uppercase mb-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </label>
       {children}
@@ -180,19 +180,19 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const tittel: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2', fontSize: 18, fontWeight: 600, marginBottom: 6,
+  color: 'var(--tekst-1-app)', fontSize: 18, fontWeight: 600, marginBottom: 6,
 }
 const tekst: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#8A8A96', fontSize: 15,
+  color: 'var(--tekst-5-app)', fontSize: 15,
 }
 const inputStyle: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#F0F0F2', backgroundColor: '#0F0F12',
-  border: '1px solid #2A2A33', borderRadius: 9, fontSize: 15,
+  color: 'var(--tekst-1-app)', backgroundColor: 'var(--flate-8-alt)',
+  border: '1px solid var(--line2)', borderRadius: 9, fontSize: 15,
 }
 const knapp: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
-  backgroundColor: ORANGE, color: '#F0F0F2',
+  backgroundColor: ORANGE, color: 'var(--tekst-1-app)',
   border: 'none', borderRadius: 9, cursor: 'pointer',
 }

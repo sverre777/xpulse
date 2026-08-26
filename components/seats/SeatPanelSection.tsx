@@ -101,13 +101,13 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
 
   return (
     <section className="mt-6 p-5"
-      style={{ backgroundColor: 'var(--card, #101014)', border: '1px solid var(--line, #1E1E22)', borderRadius: 14 }}>
+      style={{ backgroundColor: 'var(--card, var(--card))', border: '1px solid var(--line, var(--kant-3))', borderRadius: 14 }}>
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 20, letterSpacing: '0.08em', margin: 0 }}>
+        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 20, letterSpacing: '0.08em', margin: 0 }}>
           Utøverplasser
         </h2>
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           {status.inUse} i bruk · {status.available} ledig{status.available === 1 ? '' : 'e'}
         </span>
       </div>
@@ -117,18 +117,18 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
         <Tall label="Inkludert" verdi={status.included} />
         <Tall label="Kjøpte" verdi={status.purchased} />
         <Tall label="I bruk" verdi={status.inUse} />
-        <Tall label="Ledige" verdi={status.available} farge={status.available > 0 ? '#28A86E' : '#8A8A96'} />
+        <Tall label="Ledige" verdi={status.available} farge={status.available > 0 ? '#28A86E' : 'var(--tekst-5-app)'} />
       </div>
 
       {/* Invitasjonslenka */}
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Invitasjonslenke — utøveren registrerer seg og er koblet + lisensiert på under et minutt
       </p>
       <div className="flex items-center gap-2 flex-wrap mb-5">
         <code className="px-3 py-2 text-xs truncate" style={{
-          fontFamily: 'monospace', color: '#C0C0CC',
-          backgroundColor: '#0B0B0F', border: '1px solid #2A2A33', borderRadius: 8,
+          fontFamily: 'monospace', color: 'var(--tekst-3-app)',
+          backgroundColor: 'var(--flate-4-alt)', border: '1px solid var(--line2)', borderRadius: 8,
           maxWidth: '100%', flex: '1 1 260px',
         }}>
           {inviteUrl}
@@ -143,12 +143,12 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
 
       {/* Kjøp/endre antall */}
       <p className="text-xs tracking-widest uppercase mb-2"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         Ekstra plasser — 29 kr/mnd per plass, prorert av Stripe
       </p>
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <button type="button" onClick={() => setAntall(a => Math.max(0, a - 1))} style={knappSekundar} aria-label="Færre plasser">−</button>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 22, minWidth: 28, textAlign: 'center' }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 22, minWidth: 28, textAlign: 'center' }}>
           {antall}
         </span>
         <button type="button" onClick={() => setAntall(a => Math.min(200, a + 1))} style={knappSekundar} aria-label="Flere plasser">+</button>
@@ -165,25 +165,25 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
         <div onClick={() => setPreview(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 80,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: 'var(--scrim-70)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
           }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ backgroundColor: '#0A0A0B', border: '1px solid #2A2A33', borderRadius: 14, maxWidth: 420, width: '100%', padding: 22 }}>
-            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: 20, letterSpacing: '0.08em', marginBottom: 10 }}>
+            style={{ backgroundColor: 'var(--flate-3)', border: '1px solid var(--line2)', borderRadius: 14, maxWidth: 420, width: '100%', padding: 22 }}>
+            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 20, letterSpacing: '0.08em', marginBottom: 10 }}>
               {preview.til > preview.fra ? 'Bekreft kjøp av plasser' : 'Bekreft endring'}
             </h3>
-            <div className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC' }}>
-              <p>Kjøpte utøverplasser: <b style={{ color: '#F0F0F2' }}>{preview.fra} → {preview.til}</b></p>
-              <p>Ny månedspris for plassene: <b style={{ color: '#F0F0F2' }}>{preview.nyMndOre / 100} kr/mnd</b> (fra neste faktura)</p>
+            <div className="space-y-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
+              <p>Kjøpte utøverplasser: <b style={{ color: 'var(--tekst-1-app)' }}>{preview.fra} → {preview.til}</b></p>
+              <p>Ny månedspris for plassene: <b style={{ color: 'var(--tekst-1-app)' }}>{preview.nyMndOre / 100} kr/mnd</b> (fra neste faktura)</p>
               {preview.prorationOre > 0 && (
-                <p>Belastes nå (resten av perioden): <b style={{ color: '#F0F0F2' }}>{(preview.prorationOre / 100).toFixed(2)} kr</b></p>
+                <p>Belastes nå (resten av perioden): <b style={{ color: 'var(--tekst-1-app)' }}>{(preview.prorationOre / 100).toFixed(2)} kr</b></p>
               )}
               {preview.prorationOre < 0 && (
                 <p>Godskrives på neste faktura: <b style={{ color: '#28A86E' }}>{(Math.abs(preview.prorationOre) / 100).toFixed(2)} kr</b></p>
               )}
               {preview.prorationOre === 0 && preview.til !== preview.fra && (
-                <p style={{ color: preview.harRabatt ? '#28A86E' : '#8A8A96' }}>
+                <p style={{ color: preview.harRabatt ? '#28A86E' : 'var(--tekst-5-app)' }}>
                   {preview.harRabatt
                     ? 'Dekkes av rabatten din — ingenting belastes.'
                     : preview.status === 'trialing'
@@ -216,7 +216,7 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
         }}>
           <p className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48' }}>{error}</p>
           {mustFree != null && (
-            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Velg selv hvem som skal miste plassen i listen under — ingen fjernes automatisk.
             </p>
           )}
@@ -227,21 +227,21 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
       {(aktive.length > 0 || utlopende.length > 0) && (
         <>
           <p className="text-xs tracking-widest uppercase mb-2 mt-4"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
             På plass
           </p>
           <div className="space-y-2">
             {[...aktive, ...utlopende].map(a => (
               <div key={a.userId} className="flex items-center justify-between gap-2 px-3 py-2"
                 style={{
-                  border: `1px solid ${mustFree != null && a.status !== 'utloper' ? 'rgba(225,29,72,0.5)' : '#1E1E22'}`,
+                  border: `1px solid ${mustFree != null && a.status !== 'utloper' ? 'rgba(225,29,72,0.5)' : 'var(--kant-3)'}`,
                   borderRadius: 9, opacity: a.status === 'utloper' ? 0.6 : 1,
                 }}>
                 <div className="min-w-0">
-                  <p className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2', fontSize: 14 }}>
+                  <p className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: 14 }}>
                     {a.name}
                   </p>
-                  <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                     {a.status === 'utloper'
                       ? `Fjernet — beholder tilgang til ${fmtDato(a.currentPeriodEnd)}`
                       : 'Athlete Pro via din plass'}
@@ -268,12 +268,12 @@ export function SeatPanelSection({ status, inviteUrl }: Props) {
   )
 }
 
-function Tall({ label, verdi, farge = '#F0F0F2' }: { label: string; verdi: number; farge?: string }) {
+function Tall({ label, verdi, farge = 'var(--tekst-1-app)' }: { label: string; verdi: number; farge?: string }) {
   return (
-    <div className="p-3 text-center" style={{ backgroundColor: '#0B0B0F', border: '1px solid #1E1E22', borderRadius: 10 }}>
+    <div className="p-3 text-center" style={{ backgroundColor: 'var(--flate-4-alt)', border: '1px solid var(--kant-3)', borderRadius: 10 }}>
       <p style={{ fontFamily: "'Bebas Neue', sans-serif", color: farge, fontSize: 26, lineHeight: 1 }}>{verdi}</p>
       <p className="text-xs tracking-widest uppercase mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </p>
     </div>
@@ -283,12 +283,12 @@ function Tall({ label, verdi, farge = '#F0F0F2' }: { label: string; verdi: numbe
 const knappPrimar: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
-  backgroundColor: COACH_BLUE, color: '#F0F0F2',
+  backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)',
   border: 'none', borderRadius: 999, padding: '8px 16px', cursor: 'pointer',
 }
 const knappSekundar: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: '#8A8A96', background: 'none',
-  border: '1px solid #2A2A33', borderRadius: 999, padding: '8px 14px', cursor: 'pointer',
+  color: 'var(--tekst-5-app)', background: 'none',
+  border: '1px solid var(--line2)', borderRadius: 999, padding: '8px 14px', cursor: 'pointer',
 }

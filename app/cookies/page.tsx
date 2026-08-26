@@ -24,7 +24,7 @@ export default function CookiesPage() {
 
       <h3
         className="text-lg mt-4 mb-1"
-        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
       >
         Strengt nødvendige
       </h3>
@@ -38,7 +38,7 @@ export default function CookiesPage() {
 
       <h3
         className="text-lg mt-4 mb-1"
-        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
       >
         Funksjonelle (lokal lagring)
       </h3>
@@ -49,7 +49,7 @@ export default function CookiesPage() {
 
       <h3
         className="text-lg mt-4 mb-1"
-        style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', letterSpacing: '0.04em' }}
+        style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', letterSpacing: '0.04em' }}
       >
         Analyse og markedsføring
       </h3>

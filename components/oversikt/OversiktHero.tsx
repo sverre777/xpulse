@@ -47,7 +47,7 @@ export function OversiktHero({
           <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#1A6FD4', color: '#F0F0F2',
+              backgroundColor: '#1A6FD4', color: 'var(--tekst-1-app)',
             }}>
             {hero.unreadCoachComments} nye kommentarer
           </span>
@@ -93,7 +93,7 @@ export function OversiktHero({
             }}>
               <span aria-hidden>{icon}</span>
               {label}
-              {sub && <span style={{ color: '#C9C9D4', fontWeight: 600 }}>· {sub}</span>}
+              {sub && <span style={{ color: 'var(--tekst-3)', fontWeight: 600 }}>· {sub}</span>}
           </div>
         )
       })()}

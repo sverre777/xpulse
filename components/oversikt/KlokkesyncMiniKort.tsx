@@ -67,32 +67,32 @@ export function KlokkesyncMiniKort({ badge }: { badge: KlokkesyncBadge }) {
         </>
       ) : badge.connected ? (
         <>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 14 }}>
-            Sist synket: <b style={{ color: '#F0F0F2', fontWeight: 600 }}>{lastSyncAt ? formatRelative(lastSyncAt) : 'aldri'}</b>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
+            Sist synket: <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{lastSyncAt ? formatRelative(lastSyncAt) : 'aldri'}</b>
           </p>
           <div className="flex gap-2 mt-3 flex-wrap">
             <button type="button" onClick={handleSyncNow} disabled={syncing}
               className="transition-opacity hover:opacity-90"
               style={{
-                ...BTN, backgroundColor: 'var(--accent)', color: '#fff',
+                ...BTN, backgroundColor: 'var(--accent)', color: 'var(--tekst-1-ren)',
                 border: '1px solid var(--accent)', opacity: syncing ? 0.6 : 1,
               }}>
               {syncing ? 'Synker …' : '↻ Synk nå'}
             </button>
             <Link href="/app/innstillinger/klokkesync"
-              style={{ ...BTN, color: '#8A8A96', border: '1px solid var(--line2)' }}>
+              style={{ ...BTN, color: 'var(--tekst-5-app)', border: '1px solid var(--line2)' }}>
               Innstillinger
             </Link>
           </div>
         </>
       ) : (
         <>
-          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', fontSize: 14 }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
             Koble klokken — øktene kommer inn av seg selv.
           </p>
           <div className="mt-3">
             <Link href="/app/innstillinger/klokkesync"
-              style={{ ...BTN, backgroundColor: 'var(--accent)', color: '#fff', border: '1px solid var(--accent)' }}>
+              style={{ ...BTN, backgroundColor: 'var(--accent)', color: 'var(--tekst-1-ren)', border: '1px solid var(--accent)' }}>
               + Koble klokke
             </Link>
           </div>

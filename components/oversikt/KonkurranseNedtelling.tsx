@@ -40,7 +40,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex-1 min-w-[220px]">
           <h3 style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '26px', letterSpacing: '0.04em', lineHeight: 1.1,
           }}>
             {comp.name}
@@ -50,7 +50,7 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
             {fmtLongDate(comp.date)}
           </p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             {sport && <span>{sport}</span>}
             {comp.distance_format && <span>{comp.distance_format}</span>}
             {comp.location && <span>{comp.location}</span>}

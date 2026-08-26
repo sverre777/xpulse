@@ -40,7 +40,7 @@ export function KortPopup({
     <div onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        backgroundColor: 'rgba(0,0,0,0.72)',
+        backgroundColor: 'var(--scrim-72)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '6vh 16px', overflowY: 'auto',
       }}>
@@ -55,20 +55,20 @@ export function KortPopup({
         <div className="flex items-start gap-3"
           style={{ marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--line)' }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8B8B95' }}>
+            <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--mut)' }}>
               {kicker}
             </div>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, lineHeight: 1.05, letterSpacing: '0.03em', color: '#F2F2F0', marginTop: 7 }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, lineHeight: 1.05, letterSpacing: '0.03em', color: 'var(--ink)', marginTop: 7 }}>
               {tittel}
             </div>
             {undertittel && (
-              <div style={{ fontFamily: FONT, fontSize: 11.5, color: '#55555F', marginTop: 6 }}>
+              <div style={{ fontFamily: FONT, fontSize: 11.5, color: 'var(--tekst-8-alt)', marginTop: 6 }}>
                 {undertittel}
               </div>
             )}
           </div>
           <button type="button" onClick={onClose} aria-label="Lukk"
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: '#8B8B95', fontSize: 18, lineHeight: 1, minWidth: 44, minHeight: 44 }}>
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mut)', fontSize: 18, lineHeight: 1, minWidth: 44, minHeight: 44 }}>
             ✕
           </button>
         </div>
@@ -93,7 +93,7 @@ export function KortPopup({
 export function PopupSeksjon({ tittel, children }: { tittel: string; children: React.ReactNode }) {
   return (
     <div style={{ marginTop: 16 }}>
-      <span style={{ display: 'block', fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#55555F', marginBottom: 10 }}>
+      <span style={{ display: 'block', fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', marginBottom: 10 }}>
         {tittel}
       </span>
       {children}
@@ -110,14 +110,14 @@ export function PopupTall({ celler }: { celler: { k: string; v: string | null; e
     <div className="grid grid-cols-2 md:grid-cols-4"
       style={{ gap: 1, background: 'var(--line)', border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden' }}>
       {celler.map(c => (
-        <div key={c.k} style={{ background: 'var(--card2, #15151B)', padding: '10px 11px' }}>
-          <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#55555F' }}>
+        <div key={c.k} style={{ background: 'var(--card2, var(--card2))', padding: '10px 11px' }}>
+          <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
             {c.k}
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: c.v ? '#F2F2F0' : '#55555F' }}>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: c.v ? 'var(--ink)' : 'var(--tekst-8-alt)' }}>
             {c.v ?? '—'}
             {c.v && c.enhet && (
-              <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9, color: '#8B8B95', marginLeft: 2 }}>{c.enhet}</small>
+              <small style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9, color: 'var(--mut)', marginLeft: 2 }}>{c.enhet}</small>
             )}
           </div>
         </div>

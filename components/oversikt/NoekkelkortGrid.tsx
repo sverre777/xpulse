@@ -46,7 +46,7 @@ function Card({
     textDecoration: 'none', display: 'flex',
   }
   if (href) {
-    return <Link href={href} className={cls + ' hover:border-[#2A2A30] transition-colors'} style={style}>{body}</Link>
+    return <Link href={href} className={cls + ' hover:border-[var(--kant-6)] transition-colors'} style={style}>{body}</Link>
   }
   return <div className={cls} style={style}>{body}</div>
 }
@@ -90,8 +90,8 @@ function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
               letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? '#8B8B95',
-              border: `1px solid ${ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? '#2A2A33'}`,
+              color: ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? 'var(--mut)',
+              border: `1px solid ${ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] ?? 'var(--line2)'}`,
               borderRadius: 999, padding: '1px 7px',
             }}>{sone}</span>
           )}
@@ -99,7 +99,7 @@ function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
       </CardMeta>
 
       {/* Tid + snittpuls. «—» der noe ikke er foert, aldri 0. */}
-      <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: '#8B8B95' }}>
+      <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--mut)' }}>
         {w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : '—'}
         {' · '}
         {w.avg_heart_rate != null ? `${w.avg_heart_rate} bpm snitt` : '— puls ikke ført'}
@@ -148,11 +148,11 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
       {progress !== null && (
         <div className="mt-3">
           <div className="flex justify-between text-xs tracking-widest uppercase mb-1"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             <span>Volum hittil</span>
-            <span style={{ color: '#F0F0F2' }}>{progress}%</span>
+            <span style={{ color: 'var(--tekst-1-app)' }}>{progress}%</span>
           </div>
-          <div className="h-1.5" style={{ backgroundColor: '#1E1E22' }}>
+          <div className="h-1.5" style={{ backgroundColor: 'var(--kant-3)' }}>
             <div style={{
               width: `${Math.min(100, Math.max(0, progress))}%`,
               height: '100%',
@@ -160,7 +160,7 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
             }} />
           </div>
           <p className="mt-1 text-xs tracking-wider"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
             {goal.actual_hours_to_date!.toFixed(0)}t av {goal.planned_hours_total!.toFixed(0)}t
           </p>
         </div>
@@ -217,9 +217,9 @@ function HealthCardActions({ today, onVisMer }: { today: string; onVisMer?: () =
   return (
     <div className="flex gap-2 mt-3 flex-wrap">
       <HelseLoggKnapp date={today}
-        style={{ ...linkBase, backgroundColor: '#28A86E', color: '#fff', border: '1px solid #28A86E' }} />
+        style={{ ...linkBase, backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: '1px solid #28A86E' }} />
       <Link href="/app/analyse?tab=helse"
-        style={{ ...linkBase, color: '#8A8A96', border: '1px solid var(--line2)' }}>
+        style={{ ...linkBase, color: 'var(--tekst-5-app)', border: '1px solid var(--line2)' }}>
         Analyse →
       </Link>
       {onVisMer && <VisMer onClick={onVisMer} />}
@@ -251,7 +251,7 @@ function HelseTall({ label, verdi, enhet, snitt, hoyereErBra, farge }: {
 }) {
   const diff = verdi != null && snitt != null ? Math.round((verdi - snitt) * 10) / 10 : null
   let retning: string | null = null
-  let retningsfarge = '#8B8B95'
+  let retningsfarge = 'var(--mut)'
   if (diff != null && Math.abs(diff) >= 0.1) {
     const over = diff > 0
     retning = `${Math.abs(diff)} ${over ? 'over' : 'under'} snitt`
@@ -263,16 +263,16 @@ function HelseTall({ label, verdi, enhet, snitt, hoyereErBra, farge }: {
   return (
     <div className="flex flex-col" style={{ minWidth: 0 }}>
       <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {label}
       </span>
       <span style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: verdi != null ? farge : '#55555F',
+        fontFamily: "'Bebas Neue', sans-serif", color: verdi != null ? farge : 'var(--tekst-8-alt)',
         fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1,
       }}>
         {/* «—» naar ikke foert i dag — 30-dagers snittet blir staaende. */}
         {verdi != null ? `${verdi}` : '—'}
-        {verdi != null && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: '#8B8B95', marginLeft: 3 }}>{enhet}</span>}
+        {verdi != null && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: 'var(--mut)', marginLeft: 3 }}>{enhet}</span>}
       </span>
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, color: retningsfarge, marginTop: 2 }}>
         {retning ?? (snitt != null ? `snitt ${snitt}${enhet ? ' ' + enhet : ''}` : '—')}

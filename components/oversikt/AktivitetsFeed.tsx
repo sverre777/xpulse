@@ -31,20 +31,20 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
         <div className="flex items-center gap-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Siste aktiviteter
           </span>
         </div>
         <Link href="/app/historikk"
           className="text-xs tracking-widest uppercase hover:opacity-80"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96', textDecoration: 'none' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', textDecoration: 'none' }}>
           Alle →
         </Link>
       </div>
 
       {feed.length === 0 ? (
         <p className="text-xs"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
           Ingen gjennomførte økter enda.
         </p>
       ) : (
@@ -52,26 +52,26 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
           {feed.map((e, i) => (
             <li key={e.id}
               className="py-3 flex items-center justify-between gap-3"
-              style={{ borderTop: i === 0 ? 'none' : '1px solid #1E1E22' }}>
+              style={{ borderTop: i === 0 ? 'none' : '1px solid var(--kant-3)' }}>
               {/* Sonefarge-prikk: dominerende sone i oekta. Uten sonedata
                   staar den daempet — aldri en falsk farge. */}
               <span aria-hidden style={{
                 width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
                 background: e.primary_intensity_zone
-                  ? (ZONE_COLORS_V2[e.primary_intensity_zone as keyof typeof ZONE_COLORS_V2] ?? '#2A2A33')
-                  : '#2A2A33',
+                  ? (ZONE_COLORS_V2[e.primary_intensity_zone as keyof typeof ZONE_COLORS_V2] ?? 'var(--line2)')
+                  : 'var(--line2)',
               }} />
               <Link href={`/app/dagbok?edit=${e.id}`}
                 className="flex-1 min-w-0 hover:opacity-90"
                 style={{ textDecoration: 'none' }}>
                 <p className="truncate" style={{
-                  fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+                  fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
                   fontSize: '18px', letterSpacing: '0.04em', lineHeight: 1.1,
                 }}>
                   {e.title}
                 </p>
                 <p className="mt-0.5 text-xs"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                  style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {fmtDate(e.date)} · {sportLabel(e.sport)} · {workoutTypeLabel(e.workout_type)}
                 </p>
               </Link>
@@ -80,14 +80,14 @@ export function AktivitetsFeed({ feed }: { feed: OversiktFeedEntry[] }) {
                   de maales i oevelser (notat pkt 5). «—» der ingenting er
                   foert, aldri 0. */}
               <div className="flex flex-col items-end shrink-0 text-xs"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                 <span>
                   {fmtDuration(e.duration_minutes)}
                   {e.exercise_count === 0 && e.distance_km !== null && e.distance_km > 0 && (
-                    <span style={{ color: '#8A8A96' }}> · {e.distance_km.toFixed(1)} km</span>
+                    <span style={{ color: 'var(--tekst-5-app)' }}> · {e.distance_km.toFixed(1)} km</span>
                   )}
                 </span>
-                <span style={{ color: '#8A8A96' }}>
+                <span style={{ color: 'var(--tekst-5-app)' }}>
                   {e.exercise_count > 0
                     ? `${e.exercise_count} øvelser`
                     : e.shots

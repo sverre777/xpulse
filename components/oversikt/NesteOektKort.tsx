@@ -27,7 +27,7 @@ function fmtDate(iso: string): string {
 function Label({ text }: { text: string }) {
   return (
     <span className="text-xs tracking-widest uppercase"
-      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
       {text}
     </span>
   )
@@ -62,7 +62,7 @@ function CardShell({
       {ctaHref && ctaLabel && (
         <div className="mt-4">
           <Link href={ctaHref} className="xp-hbtn"
-            style={{ backgroundColor: accent, color: '#fff' }}>
+            style={{ backgroundColor: accent, color: 'var(--tekst-1-ren)' }}>
             {ctaLabel}
           </Link>
         </div>
@@ -75,30 +75,30 @@ function WorkoutBody({ w }: { w: OversiktWorkoutCard }) {
   return (
     <>
       <h2 style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+        fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
         fontSize: '34px', letterSpacing: '0.03em', lineHeight: 1.05,
       }}>
         {w.title}
       </h2>
       <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
-        <span><span style={{ color: '#8A8A96' }}>Sport: </span>{sportLabel(w.sport)}</span>
-        <span><span style={{ color: '#8A8A96' }}>Type: </span>{workoutTypeLabel(w.workout_type)}</span>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
+        <span><span style={{ color: 'var(--tekst-5-app)' }}>Sport: </span>{sportLabel(w.sport)}</span>
+        <span><span style={{ color: 'var(--tekst-5-app)' }}>Type: </span>{workoutTypeLabel(w.workout_type)}</span>
         {/* effective_duration_minutes faller tilbake paa summen av
             aktivitetsradene: planlagte oekter har sjelden duration_minutes
             paa selve okta, og det var aarsaken til «Varighet: —». */}
-        <span><span style={{ color: '#8A8A96' }}>Varighet: </span>{fmtDuration(w.effective_duration_minutes)}</span>
+        <span><span style={{ color: 'var(--tekst-5-app)' }}>Varighet: </span>{fmtDuration(w.effective_duration_minutes)}</span>
         {w.shots && w.shots.shots > 0 && (
-          <span><span style={{ color: '#8A8A96' }}>Skudd: </span>{w.shots.shots}</span>
+          <span><span style={{ color: 'var(--tekst-5-app)' }}>Skudd: </span>{w.shots.shots}</span>
         )}
         {w.distance_km !== null && w.distance_km > 0 && (
-          <span><span style={{ color: '#8A8A96' }}>Distanse: </span>{w.distance_km.toFixed(1)} km</span>
+          <span><span style={{ color: 'var(--tekst-5-app)' }}>Distanse: </span>{w.distance_km.toFixed(1)} km</span>
         )}
         {w.time_of_day && (
-          <span><span style={{ color: '#8A8A96' }}>Tid: </span>{w.time_of_day.slice(0, 5)}</span>
+          <span><span style={{ color: 'var(--tekst-5-app)' }}>Tid: </span>{w.time_of_day.slice(0, 5)}</span>
         )}
         {w.primary_intensity_zone && (
-          <span><span style={{ color: '#8A8A96' }}>Hovedsone: </span>{w.primary_intensity_zone}</span>
+          <span><span style={{ color: 'var(--tekst-5-app)' }}>Hovedsone: </span>{w.primary_intensity_zone}</span>
         )}
       </div>
     </>
@@ -129,20 +129,20 @@ export function NesteOektKort({
   if (next.kind === 'none') {
     return (
       <CardShell
-        accent="#8A8A96"
+        accent="var(--tekst-5-app)"
         tittel="I dag"
         kicker="Ingenting planlagt"
         ctaHref={`/app/plan?new=${today}`}
         ctaLabel="+ Planlegg økt"
       >
         <h2 style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '26px', letterSpacing: '0.04em',
         }}>
           Ingen planlagt økt
         </h2>
         <p className="mt-1 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Legg inn en økt eller marker dagen som hviledag.
         </p>
       </CardShell>

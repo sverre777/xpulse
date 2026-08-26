@@ -24,18 +24,18 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
         <div className="flex items-center gap-3 mb-3">
           <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
           <span className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
             Trener
           </span>
         </div>
         <p style={{
-          fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+          fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
           fontSize: '20px', letterSpacing: '0.04em', lineHeight: 1.1,
         }}>
           Ingen trener tilkoblet
         </p>
         <p className="mt-1 text-sm"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Få tilbakemelding på plan og økter ved å koble en trener til kontoen din.
         </p>
         <div className="mt-4">
@@ -58,7 +58,7 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
       <div className="flex items-center gap-3 mb-3">
         <span style={{ width: '16px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />
         <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
           Din trener
         </span>
       </div>
@@ -81,19 +81,19 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
         )}
         <div className="min-w-0">
           <p style={{
-            fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2',
+            fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)',
             fontSize: '20px', letterSpacing: '0.04em', lineHeight: 1.1,
           }}>
             {c.name ?? 'Ukjent trener'}
           </p>
           {overview.lastActivity ? (
             <p className="mt-1 text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
               Siste kommentar · {fmtRelative(overview.lastActivity.createdAt)}
             </p>
           ) : (
             <p className="mt-1 text-xs"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#555560' }}>
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
               Ingen aktivitet enda
             </p>
           )}
@@ -103,8 +103,8 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
       {overview.lastActivity && (
         <p className="mt-3 p-3 text-sm italic"
           style={{
-            fontFamily: "'Barlow Condensed', sans-serif", color: '#C0C0CC',
-            backgroundColor: '#0F121A', border: '1px solid #1E1E22',
+            fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)',
+            backgroundColor: '#0F121A', border: '1px solid var(--kant-3)',
             display: '-webkit-box',
             WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
@@ -119,7 +119,7 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
           className="inline-block px-3 py-2 text-xs tracking-widest uppercase hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: COACH_BLUE, color: '#F0F0F2', textDecoration: 'none',
+            backgroundColor: COACH_BLUE, color: 'var(--tekst-1-app)', textDecoration: 'none',
           }}>
           Send melding
         </Link>
@@ -127,7 +127,7 @@ export function TrenerKort({ overview }: { overview: AthleteCoachOverview }) {
           className="inline-block px-3 py-2 text-xs tracking-widest uppercase hover:opacity-90"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: '#8A8A96', border: '1px solid #2A2A30', textDecoration: 'none',
+            color: 'var(--tekst-5-app)', border: '1px solid var(--kant-6)', textDecoration: 'none',
           }}>
           Se profil
         </Link>

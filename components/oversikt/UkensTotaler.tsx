@@ -14,14 +14,14 @@ function DeltaBadge({ pct }: { pct: number | null }) {
   if (pct === null) {
     return (
       <span className="text-xs"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#55555F' }}>
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-alt)' }}>
         —
       </span>
     )
   }
   const up = pct > 0
   const flat = pct === 0
-  const color = flat ? '#8A8A96' : up ? '#28A86E' : '#E11D48'
+  const color = flat ? 'var(--data-flat)' : up ? '#28A86E' : '#E11D48'
   const arrow = flat ? '→' : up ? '↑' : '↓'
   return (
     <span className="text-xs tracking-wide"

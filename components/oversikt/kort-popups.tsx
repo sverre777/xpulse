@@ -23,20 +23,20 @@ function SkyteSplitt({ shots }: { shots: OversiktShots }) {
   const rader = [
     { navn: 'Liggende', farge: COLOR_PRONE, d: shots.prone },
     { navn: 'Stående', farge: COLOR_STANDING, d: shots.standing },
-    { navn: 'Totalt', farge: '#F2F2F0', d: shots },
+    { navn: 'Totalt', farge: 'var(--ink)', d: shots },
   ]
   return (
     <div className="grid grid-cols-3 gap-2">
       {rader.map(r => (
         <div key={r.navn}
           style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 11px', borderLeft: `2px solid ${r.farge}` }}>
-          <div style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#55555F' }}>
+          <div style={{ fontFamily: FONT, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
             {r.navn}
           </div>
-          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: r.d.accuracy_pct != null ? '#F2F2F0' : '#55555F' }}>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 19, marginTop: 6, color: r.d.accuracy_pct != null ? 'var(--ink)' : 'var(--tekst-8-alt)' }}>
             {r.d.accuracy_pct != null ? `${r.d.accuracy_pct} %` : '—'}
           </div>
-          <div style={{ fontFamily: FONT, fontSize: 10, color: '#55555F', marginTop: 3 }}>
+          <div style={{ fontFamily: FONT, fontSize: 10, color: 'var(--tekst-8-alt)', marginTop: 3 }}>
             {r.d.accuracy_pct != null
               ? `${r.d.hits}/${r.d.recorded_shots} treff`
               : r.d.shots > 0 ? `${r.d.shots} skudd · treff ikke ført` : 'ikke skutt'}
@@ -80,8 +80,8 @@ export function HardoktPopup({ w, onClose }: { w: OversiktWorkoutCard; onClose: 
           <div className="flex flex-col gap-1">
             {w.activities.map((a, i) => (
               <div key={i} className="flex items-center justify-between gap-3"
-                style={{ fontFamily: FONT, fontSize: 12, color: '#8B8B95', padding: '5px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
-                <span style={{ color: '#F2F2F0' }}>{a.movement_name || a.activity_type || 'Aktivitet'}</span>
+                style={{ fontFamily: FONT, fontSize: 12, color: 'var(--mut)', padding: '5px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
+                <span style={{ color: 'var(--ink)' }}>{a.movement_name || a.activity_type || 'Aktivitet'}</span>
                 <span>
                   {a.duration_seconds ? fmtHM(a.duration_seconds) : '—'}
                   {a.distance_meters ? ` · ${(a.distance_meters / 1000).toFixed(1)} km` : ''}
@@ -99,13 +99,13 @@ export function HardoktPopup({ w, onClose }: { w: OversiktWorkoutCard; onClose: 
         </PopupSeksjon>
       )}
       {w.lactate_mmol != null && (
-        <p style={{ fontFamily: FONT, fontSize: 12, color: '#8B8B95', marginTop: 10 }}>
-          Høyeste laktat <b style={{ color: '#F2F2F0' }}>{w.lactate_mmol} mmol</b>
+        <p style={{ fontFamily: FONT, fontSize: 12, color: 'var(--mut)', marginTop: 10 }}>
+          Høyeste laktat <b style={{ color: 'var(--ink)' }}>{w.lactate_mmol} mmol</b>
         </p>
       )}
       {w.notes && (
         <PopupSeksjon tittel="Notat">
-          <p style={{ fontFamily: FONT, fontSize: 12.5, color: '#C0C0CC', whiteSpace: 'pre-wrap' }}>{w.notes}</p>
+          <p style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-3-app)', whiteSpace: 'pre-wrap' }}>{w.notes}</p>
         </PopupSeksjon>
       )}
     </KortPopup>
@@ -138,8 +138,8 @@ export function HelsePopup({ h, onClose }: { h: OversiktHealthSummary; onClose: 
 
       {rader.map(r => (
         <PopupSeksjon key={r.navn} tittel={r.navn}>
-          <div className="flex items-baseline gap-3" style={{ fontFamily: FONT, fontSize: 12, color: '#8B8B95' }}>
-            <span style={{ color: r.verdi != null ? '#F2F2F0' : '#55555F', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20 }}>
+          <div className="flex items-baseline gap-3" style={{ fontFamily: FONT, fontSize: 12, color: 'var(--mut)' }}>
+            <span style={{ color: r.verdi != null ? 'var(--ink)' : 'var(--tekst-8-alt)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20 }}>
               {r.verdi != null ? r.verdi : '—'}
             </span>
             <span>{r.enhet} i dag</span>

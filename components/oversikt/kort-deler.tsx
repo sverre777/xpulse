@@ -46,7 +46,7 @@ export function ZoneBar({ zones, legend = true }: {
   const synlige = ZONE_KEYS.filter(k => (zones[k] ?? 0) > 0)
   return (
     <>
-      <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', background: '#0A0A0C', marginTop: 12 }}>
+      <div style={{ display: 'flex', height: 7, borderRadius: 4, overflow: 'hidden', background: 'var(--flate-3-alt)', marginTop: 12 }}>
         {synlige.map(k => (
           <span key={k} style={{ display: 'block', width: `${(zones[k] / total) * 100}%`, background: ZONE_COLORS_V2[k] }} />
         ))}
@@ -55,7 +55,7 @@ export function ZoneBar({ zones, legend = true }: {
         <div className="flex flex-wrap gap-x-3 gap-y-1" style={{ marginTop: 8 }}>
           {synlige.map(k => (
             <span key={k} className="inline-flex items-center gap-1.5"
-              style={{ fontFamily: FONT, fontSize: 10.5, color: '#8B8B95' }}>
+              style={{ fontFamily: FONT, fontSize: 10.5, color: 'var(--mut)' }}>
               <b style={{ width: 6, height: 6, borderRadius: 2, background: ZONE_COLORS_V2[k], display: 'inline-block' }} />
               {k} {fmtHM(zones[k])}
             </span>
@@ -89,20 +89,20 @@ export function ShotChip({ shots }: { shots: OversiktShots | null }) {
           padding: '5px 12px 5px 10px', background: 'rgba(255,255,255,0.02)',
         }}>
         <span aria-hidden style={{ fontSize: 13, lineHeight: 1 }}>🎯</span>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.02em', color: '#F2F2F0', lineHeight: 1 }}>
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.02em', color: 'var(--ink)', lineHeight: 1 }}>
           {harTreff ? `${shots.hits}/${shots.recorded_shots}` : shots.shots}
         </span>
-        <span style={{ fontFamily: FONT, fontSize: 11.5, color: '#8B8B95' }}>
+        <span style={{ fontFamily: FONT, fontSize: 11.5, color: 'var(--mut)' }}>
           {harTreff ? 'treff' : 'skudd'}
         </span>
         {harTreff && (
-          <span style={{ fontFamily: FONT, fontSize: 11.5, color: '#8B8B95' }}>
+          <span style={{ fontFamily: FONT, fontSize: 11.5, color: 'var(--mut)' }}>
             · {shots.accuracy_pct} %
           </span>
         )}
       </span>
       {harTreff && (
-        <span className="flex-1 min-w-0" style={{ height: 8, borderRadius: 999, background: '#26262E', overflow: 'hidden' }}>
+        <span className="flex-1 min-w-0" style={{ height: 8, borderRadius: 999, background: 'var(--flate-17)', overflow: 'hidden' }}>
           <span style={{ display: 'block', height: '100%', width: `${shots.accuracy_pct}%`, background: COLOR_STANDING, borderRadius: 999 }} />
         </span>
       )}
@@ -120,7 +120,7 @@ export function VisMer({ onClick }: { onClick: () => void }) {
       style={{
         marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
         fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.08em',
-        textTransform: 'uppercase', color: '#8B8B95', padding: '4px 0',
+        textTransform: 'uppercase', color: 'var(--mut)', padding: '4px 0',
       }}>
       Vis mer ⤢
     </button>

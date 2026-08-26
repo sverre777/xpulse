@@ -67,12 +67,12 @@ export function InstallHint() {
     >
       <div
         className="flex items-center gap-3 p-3"
-        style={{ backgroundColor: '#13131A', border: '1px solid #262629', borderLeft: '3px solid #FF4500' }}
+        style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-5)', borderLeft: '3px solid #FF4500' }}
       >
         <img src="/x-pulse-icon-64.png" alt="" width={28} height={28} aria-hidden="true" />
         <p
           className="flex-1 m-0"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#C9C9CE', fontSize: 13, lineHeight: 1.5 }}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-alt)', fontSize: 13, lineHeight: 1.5 }}
         >
           {mode === 'android'
             ? 'Legg X-PULSE på hjemskjermen for raskere tilgang.'
@@ -85,7 +85,7 @@ export function InstallHint() {
             className="px-3 py-2 text-xs tracking-widest uppercase shrink-0"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              backgroundColor: '#FF4500', color: '#F0F0F2', border: 'none', cursor: 'pointer',
+              backgroundColor: '#FF4500', color: 'var(--tekst-1-app)', border: 'none', cursor: 'pointer',
             }}
           >
             Installer
@@ -97,7 +97,7 @@ export function InstallHint() {
           aria-label="Lukk"
           className="shrink-0"
           style={{
-            background: 'none', border: 'none', color: '#8A8A96',
+            background: 'none', border: 'none', color: 'var(--tekst-5-app)',
             fontSize: 18, lineHeight: 1, cursor: 'pointer', padding: '6px',
           }}
         >

@@ -21,7 +21,7 @@ function SectionHeader() {
   return (
     <div className="flex items-center gap-3 mb-4">
       <span style={{ width: '20px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
         Treningsfaser
       </h2>
     </div>
@@ -30,8 +30,8 @@ function SectionHeader() {
 
 function EmptyCTA({ message }: { message: string }) {
   return (
-    <div className="p-6 text-center" style={{ border: '1px dashed #1E1E22' }}>
-      <p className="text-sm mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+    <div className="p-6 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
+      <p className="text-sm mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         {message}
       </p>
       <Link href="/app/periodisering"
@@ -85,18 +85,18 @@ export function PlanPhasesSection({
               key={p.id}
               type="button"
               onClick={() => setEditing(p)}
-              className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[#1A1A22]"
+              className="w-full p-3 flex items-start gap-3 text-left transition-colors hover:bg-[var(--flate-14)]"
               style={{
-                backgroundColor: '#13131A',
+                backgroundColor: 'var(--flate-12-alt)',
                 borderLeft: `3px solid ${INTENSITY_COLOR[p.intensity]}`,
-                border: `1px solid ${isCurrent ? '#FF4500' : '#1E1E22'}`,
+                border: `1px solid ${isCurrent ? '#FF4500' : 'var(--kant-3)'}`,
                 cursor: 'pointer',
                 boxShadow: isCurrent ? '0 0 0 1px rgba(255, 69, 0, 0.3)' : undefined,
               }}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '16px', letterSpacing: '0.04em' }}>
+                  <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '16px', letterSpacing: '0.04em' }}>
                     {p.name}
                   </span>
                   <span className="px-2 py-0.5 text-xs tracking-widest uppercase"
@@ -111,11 +111,11 @@ export function PlanPhasesSection({
                   )}
                 </div>
                 {p.focus && (
-                  <p className="text-xs mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F0F0F2' }}>
+                  <p className="text-xs mb-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
                     {p.focus}
                   </p>
                 )}
-                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96' }}>
+                <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
                   {startLabel} → {endLabel}
                 </p>
               </div>

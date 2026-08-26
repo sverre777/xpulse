@@ -17,7 +17,7 @@ export function SavePlanTemplateButton({ isoWeekStart, monthStart, monthEnd }: P
         className="px-3 py-2 text-xs tracking-widest uppercase"
         style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          color: '#F0F0F2',
+          color: 'var(--tekst-1-app)',
           background: 'none',
           border: '1px solid #FF4500',
           cursor: 'pointer',

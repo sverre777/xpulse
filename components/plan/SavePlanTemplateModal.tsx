@@ -58,15 +58,15 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.72)' }}
+      style={{ backgroundColor: 'var(--scrim-72)' }}
       onClick={onClose}>
       <div className="w-full max-w-lg p-6"
-        style={{ backgroundColor: '#0D0D11', border: '1px solid #1E1E22' }}
+        style={{ backgroundColor: 'var(--flate-6-alt)', border: '1px solid var(--kant-3)' }}
         onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center gap-3 mb-5">
           <span style={{ width: '18px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#F0F0F2', fontSize: '22px', letterSpacing: '0.08em' }}>
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '22px', letterSpacing: '0.08em' }}>
             Lagre plan som mal
           </h2>
         </div>
@@ -78,9 +78,9 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
               className="flex-1 px-3 py-2 text-xs tracking-widest uppercase"
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                color: mode === m ? '#FF4500' : '#8A8A96',
+                color: mode === m ? '#FF4500' : 'var(--tekst-5-app)',
                 background: 'none',
-                border: `1px solid ${mode === m ? '#FF4500' : '#222228'}`,
+                border: `1px solid ${mode === m ? '#FF4500' : 'var(--kant-4)'}`,
                 cursor: 'pointer',
               }}>
               {m === 'week' ? 'Uke' : m === 'month' ? 'Måned' : 'Tilpasset'}
@@ -128,8 +128,8 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
           <button type="button" onClick={onClose} disabled={isPending}
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: '#8A8A96',
-              background: 'none', border: '1px solid #222228', cursor: 'pointer',
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)',
+              background: 'none', border: '1px solid var(--kant-4)', cursor: 'pointer',
             }}>
             Avbryt
           </button>
@@ -137,7 +137,7 @@ export function SavePlanTemplateModal({ isoWeekStart, monthStart, monthEnd, onCl
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: '#FF4500', color: '#F0F0F2',
+              backgroundColor: '#FF4500', color: 'var(--tekst-1-app)',
               border: 'none', cursor: isPending ? 'not-allowed' : 'pointer',
               opacity: isPending ? 0.5 : 1,
             }}>
@@ -158,7 +158,7 @@ function addDays(iso: string, n: number): string {
 const label: React.CSSProperties = {
   display: 'block',
   fontFamily: "'Barlow Condensed', sans-serif",
-  color: '#8A8A96',
+  color: 'var(--tekst-5-app)',
   fontSize: '13px',
   letterSpacing: '0.15em',
   textTransform: 'uppercase',
@@ -166,9 +166,9 @@ const label: React.CSSProperties = {
 }
 
 const iSt: React.CSSProperties = {
-  backgroundColor: '#1A1A22',
-  border: '1px solid #1E1E22',
-  color: '#F0F0F2',
+  backgroundColor: 'var(--flate-14)',
+  border: '1px solid var(--kant-3)',
+  color: 'var(--tekst-1-app)',
   fontFamily: "'Barlow Condensed', sans-serif",
   fontSize: '14px',
   outline: 'none',

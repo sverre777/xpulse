@@ -8,6 +8,12 @@ interface Props {
   accent: string
   /** Mobil trenger 44px treffflate; desktop-raden bruker 40px som tannhjulet. */
   storrelse?: 40 | 44
+  /**
+   * 'ikon' er standard: bart ikon, som de andre knappene i ikonraden.
+   * 'tydelig' er pille med ikon OG tekst — brukes på landingssida, der
+   * bryteren også er en funksjon vi viser fram og ikke bare en innstilling.
+   */
+  variant?: 'ikon' | 'tydelig'
 }
 
 /**
@@ -21,7 +27,7 @@ interface Props {
  * Selve blinke-problemet løses ikke her, men av inline-skriptet i app/layout.tsx
  * som setter data-tema før React hydrerer.
  */
-export function TemaBryter({ accent, storrelse = 40 }: Props) {
+export function TemaBryter({ accent, storrelse = 40, variant = 'ikon' }: Props) {
   // Serveren vet ikke hva brukeren har valgt. Vi starter derfor på null og
   // leser først etter montering — ellers ville markup fra serveren og klienten
   // sprikt, og React hadde byttet den ut med et blaff.
@@ -32,6 +38,36 @@ export function TemaBryter({ accent, storrelse = 40 }: Props) {
 
   const neste = nesteTema(tema)
   const etikett = temaEtikett(neste)
+
+  if (variant === 'tydelig') {
+    return (
+      <button
+        type="button"
+        onClick={() => setTemaState(settTema(neste))}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        aria-label={etikett}
+        title={etikett}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          minHeight: 40, padding: '8px 16px',
+          background: 'none',
+          border: `1px solid ${hover ? accent : 'var(--kant-6-app)'}`,
+          borderRadius: 999,
+          cursor: 'pointer',
+          color: hover ? accent : 'var(--tekst-1-land)',
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 600, fontSize: 11, letterSpacing: '2.5px',
+          textTransform: 'uppercase',
+          transition: 'color 150ms, border-color 150ms',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {tema === 'lys' ? <ManeGlyph /> : <SolGlyph />}
+        {neste === 'lys' ? 'Lys modus' : 'Mørk modus'}
+      </button>
+    )
+  }
 
   return (
     <button

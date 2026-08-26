@@ -818,6 +818,22 @@ nav {
   /* Logg inn: pill-omriss uten fyll (Sverre 20. aug). */
   .nav-login { border:1px solid var(--border); border-radius:999px; padding:8px 18px; background:rgba(16,16,20,.65); backdrop-filter:blur(6px); box-shadow:0 4px 18px rgba(0,0,0,.35); }
   .nav-login:hover { border-color:var(--muted); }
+
+/* Tema-bryteren. Staar SYNLIG i topplinja, ikke gjemt bak et ikon: lys/mørk
+   er en funksjon vi viser fram her. Ikonet og teksten sier hva du BYTTER
+   TIL — sol/«Lys modus» når det er mørkt, måne/«Mørk modus» når det er lyst.
+   Nav-en er fredet mørk (den ligger på heroen), så knappen holder lys tekst
+   i begge tema. */
+.nav-tema{display:inline-flex;align-items:center;gap:8px;min-height:40px;
+  padding:8px 16px;border:1px solid var(--line2);border-radius:999px;
+  background:rgba(16,16,20,.55);backdrop-filter:blur(6px);cursor:pointer;
+  color:var(--white);font:600 11px/1 'Barlow Condensed',sans-serif;
+  letter-spacing:2.5px;text-transform:uppercase;white-space:nowrap;
+  transition:color .15s,border-color .15s}
+.nav-tema:hover{color:var(--orange);border-color:var(--orange)}
+.nav-tema svg{display:block;flex-shrink:0}
+@media(max-width:900px){.nav-tema span{display:none}.nav-tema{padding:8px 12px}}
+
 .nav-cta:hover { background:var(--orange-dark) !important; color:var(--white) !important; }
 .dropdown-trigger {
     background:none; border:none; cursor:none;
@@ -911,6 +927,7 @@ nav {
     </li>
     <li><a href="#priser">Priser</a></li>
     <li><a href="#faq">FAQ</a></li>
+  <li><button type="button" class="nav-tema" id="temabryter"><span class="tema-ikon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span><span>Lys modus</span></button></li>
     <li><a href="/app" class="nav-login">Logg inn</a></li>
     <li><a href="#priser" class="nav-cta">Start gratis prøve</a></li>
   </ul>
@@ -1586,5 +1603,31 @@ nav {
     });
   })();
 </script>
+<script>/* Tema-bryteren paa landingssida. KOPI av reglene i lib/tema.ts og
+   TemaBryter.tsx — statisk HTML kan ikke importere dem. Endres reglene der,
+   MAA de endres her i samme commit.
+   Ikonet og teksten viser hva du BYTTER TIL, ikke hvilken modus du staar i. */
+(function(){
+  var SOL='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  var MANE='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  var b=document.getElementById('temabryter');
+  if(!b)return;
+  function tegn(){
+    var lys=document.documentElement.dataset.tema==='lys';
+    b.querySelector('.tema-ikon').innerHTML=lys?MANE:SOL;
+    b.querySelector('span:last-child').textContent=lys?'Mørk modus':'Lys modus';
+    b.setAttribute('aria-label',lys?'Bytt til mørk modus':'Bytt til lys modus');
+    b.setAttribute('title',b.getAttribute('aria-label'));
+    var m=document.querySelector('meta[name="theme-color"]');
+    if(m)m.setAttribute('content',lys?'#F4F4F5':'#0A0A0B');
+  }
+  b.addEventListener('click',function(){
+    var neste=document.documentElement.dataset.tema==='lys'?'mork':'lys';
+    document.documentElement.dataset.tema=neste;
+    try{localStorage.setItem('xpulse-tema',neste)}catch(e){}
+    tegn();
+  });
+  tegn();
+})()</script>
 </body>
 </html>

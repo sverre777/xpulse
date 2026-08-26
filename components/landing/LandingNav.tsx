@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { TemaBryter } from '@/components/layout/TemaBryter'
 import {
   MenuIcon, CloseIcon, ChevronDownIcon, SearchIcon, MailIcon,
 } from '@/components/branding/nav-icons'
@@ -120,6 +121,9 @@ export function LandingNav() {
           </li>
           <li><Link href="/xpulse.html#priser" className="landing-nav-link" style={navLinkStyle}>Priser</Link></li>
           <li><Link href="/xpulse.html#faq"    className="landing-nav-link" style={navLinkStyle}>FAQ</Link></li>
+          {/* Bryteren staar SYNLIG paa landingssida, ikke gjemt bak et ikon:
+              lys/moerk er en funksjon vi viser fram her, ikke en innstilling. */}
+          <li><TemaBryter accent="#FF4500" variant="tydelig" /></li>
           <li><Link href="/app"                className="landing-nav-link" style={navLinkStyle}>Logg inn</Link></li>
           <li>
             <Link href="/xpulse.html#priser"

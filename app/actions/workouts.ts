@@ -1318,7 +1318,21 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   const t0 = Date.now()
   const supabase = await createClient()
   // Ren lesebane (åpne økt for redigering) — header-identitet, ingen Auth-rundtur.
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan', 'read')
+  //
+  // MINST ÉN av de to leserettene kreves, ikke can_edit_plan alene. Denne
+  // funksjonen serverer BÅDE dagbok-fanen (der treneren er readOnly) og
+  // plan-fanen (der han redigerer), så begge tilgangene er legitime her.
+  //
+  // Sto tidligere som 'can_edit_plan' alene, og var da den ENESTE av åtte
+  // lesestier i denne fila som krevde skrive-tillatelsen. En trener med kun
+  // can_view_dagbok — nøyaktig den tilgangen dagbok-sida selv sjekker før den
+  // rendrer — fikk null herfra, og modalen ble stående på «Laster...».
+  //
+  // Selve REDIGERINGEN er ikke berørt: alle mutasjonene i denne fila kaller
+  // resolveTargetUser uten 'read' og med 'can_edit_plan', og de er urørt.
+  const resolved = await resolveTargetUser(
+    supabase, targetUserId, ['can_view_dagbok', 'can_edit_plan'], 'read',
+  )
   if ('error' in resolved) return null
   const tAuth = Date.now()
   // Henter kun embeds som faktisk brukes i return-mappingen nedenfor. Droppet

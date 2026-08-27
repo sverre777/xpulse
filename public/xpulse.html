@@ -557,8 +557,13 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* testimonials */
 .testi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:36px}
 @media(max-width:900px){.testi{grid-template-columns:1fr}}
+/* Ett sitat foreløpig: kortet sentreres i full bredde — med flere sitater
+   faller gridet tilbake til tre kolonner av seg selv. */
+.testi .tcard:only-child{grid-column:1/-1;max-width:760px;justify-self:center}
 .tcard{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:26px;display:flex;flex-direction:column;gap:16px}
 .tcard .q{font-size:15px;line-height:1.7;color:var(--dim);flex:1}
+.tcard .q p{margin:0 0 10px}
+.tcard .q p:last-child{margin-bottom:0}
 .tcard .q::before{content:'«';color:var(--orange);font:400 30px 'Bebas Neue';display:block;line-height:.6;margin-bottom:8px}
 .tcard .who b{display:block;font-size:14px}
 .tcard .who span{color:var(--mute);font-size:12.5px}
@@ -959,35 +964,6 @@ nav {
 /* Seksjonene er gjennomsiktige — body-gradienten er den ene flaten.
    (De vekslende surface/bg9-bakgrunnene utgikk med samlet bakgrunn.) */
 
-/* ═══ Sitater fra utøvere — LISTE med ett sitat foreløpig; flere blir en
-   stille rad/karusell uten ombygging. Ordrett gjengivelse, aldri klippet
-   (ingen line-clamp). Tema-tokens overalt (regel 23). ═══ */
-#utsagn{padding-top:20px}
-.sitater{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;margin-top:30px}
-.sitat{
-  flex:1 1 560px;max-width:760px;position:relative;
-  border-left:3px solid var(--orange);
-  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--orange);
-  border-radius:0 14px 14px 0;padding:26px 28px 22px 30px;
-}
-.sitat::before{
-  content:'«';position:absolute;top:2px;left:12px;
-  font:400 64px/1 'Bebas Neue';color:var(--orange);opacity:.9;
-}
-.sitat blockquote{margin:0;padding-left:26px}
-.sitat blockquote p{
-  font:400 17px/1.65 'Barlow Condensed';color:var(--paper);margin:0 0 12px;
-}
-.sitat blockquote p:last-child{margin-bottom:0}
-.sitat figcaption{
-  margin-top:14px;padding-left:26px;
-  font:600 13px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim);
-}
-html.js .sitat{opacity:0;transform:translateY(22px);transition:opacity .38s ease,transform .38s ease}
-html.js .sitat.vis{opacity:1;transform:none}
-@media(max-width:620px){.sitat{padding:22px 18px 18px 24px}.sitat blockquote p{font-size:16px}}
-
 /* ═══ Interaktiv hero — design/xpulse-hero-interaktiv-design.html er fasit
    for oppførsel og timing. Kun opacity/transform animeres; alle
    skjult-fra-start-tilstander er gated på html.js. ═══ */
@@ -1050,8 +1026,8 @@ html.js .solution{opacity:0;transform:translateY(16px);transition:opacity .4s .1
 html.js .solution.vis{opacity:1;transform:none}
 
 @media (prefers-reduced-motion: reduce){
-  .ipane,.ishot,.prob,.solution,.istep,.idot,.sitat{transition:none !important}
-  html.js .ishot,html.js .prob,html.js .solution,html.js .sitat{opacity:1;transform:none}
+  .ipane,.ishot,.prob,.solution,.istep,.idot{transition:none !important}
+  html.js .ishot,html.js .prob,html.js .solution{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
 </style>
@@ -1366,22 +1342,6 @@ html.js .solution.vis{opacity:1;transform:none}
       </div>
 </section>
 
-<!-- ═══════════ FRA UTØVERNE — ekte sitater, gjengitt ORDRETT ═══════════ -->
-<section id="utsagn">
-  <div class="wrap">
-    <div class="label">Fra utøverne</div>
-    <div class="sitater" id="sitatSec">
-      <figure class="sitat">
-        <blockquote>
-          <p>«X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p>
-          <p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.»</p>
-        </blockquote>
-        <figcaption>— Gustav Heldal</figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
-
 <section id="nytt" style="padding-top:0">
   <div class="wrap">
     <div class="label gold">Nytt i V1.2</div>
@@ -1608,14 +1568,15 @@ html.js .solution.vis{opacity:1;transform:none}
 <!-- ═══════════ TESTIMONIALS — klargjort, plassholdere ═══════════ -->
 <!-- Testimonials: SKJULT (hidden) til tre ekte, godkjente sitater finnes.
      Kortene under er plassholdere — ALDRI fiktive sitater synlig på live. -->
-<section id="testimonials" style="padding-top:20px" hidden>
+<section id="testimonials" style="padding-top:20px">
   <div class="wrap">
     <div class="label">Fra brukerne</div>
     <h2>HVA UTØVERNE <span class="o">SIER.</span></h2>
     <div class="testi">
-      <div class="tcard"><p class="q">Sitat fra testbruker — 1–2 setninger om hva som faktisk ble bedre i hverdagen. Ekte ord, ikke reklame.</p><div class="who"><b>Navn Navnesen</b><span>Skiskyting · junior</span></div></div>
-      <div class="tcard"><p class="q">Sitat fra trener — gjerne om troppen-oversikten eller plan-push. Det trenere sier selger til trenere.</p><div class="who"><b>Navn Navnesen</b><span>Trener · langrenn</span></div></div>
-      <div class="tcard"><p class="q">Sitat om klokkesynk/kontinuitet — «det er der når jeg kommer tilbake»-følelsen fra Whoop-samtalen.</p><div class="who"><b>Navn Navnesen</b><span>Langløp · senior</span></div></div>
+      <!-- EKTE sitater, gjengitt ORDRETT — «-tegnet kommer fra designet
+           (.q::before), derfor står ikke anførselstegn i selve teksten.
+           Ingen tittel/klubb/bilde uten at Sverre leverer det. -->
+      <div class="tcard"><div class="q"><p>X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p><p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.</p></div><div class="who"><b>Gustav Heldal</b></div></div>
     </div>
   </div>
 </section>
@@ -1908,10 +1869,9 @@ html.js .solution.vis{opacity:1;transform:none}
         setTimeout(function(){var s=document.getElementById('solution');if(s)s.classList.add('vis')},3*160+120);
       }
       if(el.id==='flowSec') stagger(el,'.istep',180);
-      if(el.id==='sitatSec') stagger(el,'.sitat',160);
     });
   },{threshold:.35});
-  ['shootSec','probSec','flowSec','sitatSec'].forEach(function(id){
+  ['shootSec','probSec','flowSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });

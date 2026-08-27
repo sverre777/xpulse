@@ -311,6 +311,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .syncrow .bcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:2px}
 .syncrow .bcard.strava::before{background:var(--strava)}
 .syncrow .bcard.polar::before{background:var(--polar)}
+.syncrow .bcard.klokke::before{background:#E8B93C}
+.syncrow .bstat .dot.beta{background:#E8B93C}
 
 /* Logo-slot. Her legges den offisielle SVG-en inn — høyden er låst til
    20px, bredden flyter: logoer har ulike proporsjoner og skal aldri
@@ -1087,13 +1089,38 @@ nav {
         <span class="bstat rolling"><span class="dot"></span>Gradvis utrulling</span>
       </span>
     </div>
+
+    <!-- DE FIRE NYE — tekstkort uten logo (klareringene mangler, se over).
+         Gull-aksent + gull-dot = beta; grønn dot er reservert for live
+         uten forbehold. -->
+    <div class="bcard klokke">
+      <span class="bmeta">
+        <span class="bname">Garmin</span>
+        <span class="bstat"><span class="dot beta"></span>Direktesynk — beta</span>
+      </span>
+    </div>
+    <div class="bcard klokke">
+      <span class="bmeta">
+        <span class="bname">COROS</span>
+        <span class="bstat"><span class="dot beta"></span>Direktesynk — beta</span>
+      </span>
+    </div>
+    <div class="bcard klokke">
+      <span class="bmeta">
+        <span class="bname">Wahoo</span>
+        <span class="bstat"><span class="dot beta"></span>Direktesynk — beta</span>
+      </span>
+    </div>
+    <div class="bcard klokke">
+      <span class="bmeta">
+        <span class="bname">Zepp</span>
+        <span class="bstat"><span class="dot beta"></span>Direktesynk — beta</span>
+      </span>
+    </div>
   </div>
 
   <!-- Nivå 2: filimport. Tekst, ingen logoer — vi kobler oss ikke til dem. -->
   <div class="tier2">
-    <span class="k">Direktesynk (beta):</span>
-    <span>Garmin · COROS · Wahoo · Zepp</span>
-    <span class="pipe">|</span>
     <span class="k">.fit-import:</span>
     <span>Alle merker, inkl. Suunto</span>
     <span class="pipe">|</span>

@@ -45,8 +45,10 @@ export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
           }}>
             {comp.name}
           </h3>
+          {/* Datoen var #F5E7B0 — blek gull som forsvant på lys flate.
+              Samme gull som resten av kortet leser i begge temaer. */}
           <p className="mt-1 text-sm"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#F5E7B0' }}>
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: gold }}>
             {fmtLongDate(comp.date)}
           </p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs"

@@ -308,7 +308,8 @@ async function importerWellness(
       ['bodyBatteryDrainedValue', 'body_battery_drained'],
       ['averageStressLevel', 'avg_stress'],
       ['maxStressLevel', 'max_stress'],
-      ['activeKilocalories', 'active_kcal'],
+      // Kalorier hentes BEVISST ikke (helse-prinsippet + personvern §12) —
+      // activeKilocalories står i payloaden, men skal aldri lagres.
     ] as const) {
       const v = tall(s[fra])
       if (v != null) merke[til] = v

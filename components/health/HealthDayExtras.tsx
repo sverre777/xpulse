@@ -31,6 +31,38 @@ const LABELS: Record<string, { label: string; format?: (v: unknown) => string }>
   group_duration_score: { label: 'Varighet-skår' },
   group_solidity_score: { label: 'Soliditet-skår' },
   group_regeneration_score: { label: 'Regenerering-skår' },
+  // Klokkesynk-merkene (garmin/coros) — nøklene settes i lib/stridee-import.ts
+  sleep_validation: { label: 'Målestatus', format: v => String(v).endsWith('FINAL') ? 'endelig' : 'foreløpig' },
+  nap_minutes: { label: 'Høneblund', format: v => `${v} min` },
+  body_battery_charged: { label: 'Body Battery ladet' },
+  body_battery_drained: { label: 'Body Battery tappet' },
+  avg_stress: { label: 'Stress (snitt)' },
+  max_stress: { label: 'Stress (maks)' },
+  stress_qualifier: { label: 'Stressprofil', format: v => STRESSPROFIL_NO[String(v)] ?? String(v).replace(/_/g, ' ') },
+  hrv_5min_high: { label: 'HRV natt-topp (5 min)', format: v => `${v} ms` },
+  vo2max: { label: 'VO₂maks' },
+  fitness_age: { label: 'Kondisjonsalder' },
+}
+
+const STRESSPROFIL_NO: Record<string, string> = {
+  calm: 'rolig', balanced: 'balansert', stressful: 'stresset',
+  very_stressful: 'svært stresset', calm_awake: 'rolig våken tid',
+  balanced_awake: 'balansert våken tid', stressful_awake: 'stresset våken tid',
+}
+
+// Garmins delskårer for søvn (sleep_scores-objektet) — flates ut til egne
+// rader. Kvalifikatorene er Garmins egne trinn.
+const SOVNSKAR_NO: Record<string, string> = {
+  totalDuration: 'Søvn: varighet',
+  stress: 'Søvn: stress',
+  awakeCount: 'Søvn: oppvåkninger',
+  restlessness: 'Søvn: urolighet',
+  remPercentage: 'Søvn: REM-andel',
+  deepPercentage: 'Søvn: dypsøvn-andel',
+  lightPercentage: 'Søvn: lettsøvn-andel',
+}
+const KVALIFIKATOR_NO: Record<string, string> = {
+  EXCELLENT: 'svært god', GOOD: 'god', FAIR: 'middels', POOR: 'svak',
 }
 
 export function HealthDayExtras({ date }: { date: string }) {
@@ -60,8 +92,36 @@ export function HealthDayExtras({ date }: { date: string }) {
   )
 }
 
+// En verdi uten innhold vises ikke i det hele tatt.
+function harInnhold(v: unknown): boolean {
+  if (v == null) return false
+  if (typeof v === 'string') return v.trim() !== '' && v.toLowerCase() !== 'unknown'
+  return true
+}
+
 function BrandSection({ brand, metrics }: { brand: string; metrics: Record<string, unknown> }) {
-  const rader = Object.entries(metrics).filter(([, v]) => v != null)
+  // Kun felter med norsk etikett rendres — et rått API-navn eller et objekt
+  // gjennom String() er en bug, ikke en visning. Ukjente/nye felter fra en
+  // import ligger trygt i tabellen til de får etikett her.
+  const rader: { key: string; label: string; vist: string }[] = []
+  for (const [key, value] of Object.entries(metrics)) {
+    if (!harInnhold(value)) continue
+    if (key === 'sleep_scores' && typeof value === 'object') {
+      // Garmins delskårer: én rad per delskår, med norsk etikett og trinn.
+      for (const [del, obj] of Object.entries(value as Record<string, unknown>)) {
+        const label = SOVNSKAR_NO[del]
+        const kval = (obj as { qualifierKey?: unknown } | null)?.qualifierKey
+        if (!label || typeof kval !== 'string' || !harInnhold(kval)) continue
+        rader.push({ key: `sleep_scores.${del}`, label, vist: KVALIFIKATOR_NO[kval] ?? kval.toLowerCase() })
+      }
+      continue
+    }
+    const spec = LABELS[key]
+    if (!spec || typeof value === 'object') continue
+    const vist = spec.format ? spec.format(value) : String(value)
+    if (!harInnhold(vist)) continue
+    rader.push({ key, label: spec.label, vist })
+  }
   if (rader.length === 0) return null
   const merkenavn = brand.charAt(0).toUpperCase() + brand.slice(1)
 
@@ -74,17 +134,13 @@ function BrandSection({ brand, metrics }: { brand: string; metrics: Record<strin
         ⌚ Fra {merkenavn}
       </p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
-        {rader.map(([key, value]) => {
-          const spec = LABELS[key]
-          const vist = spec?.format ? spec.format(value) : String(value)
-          return (
-            <div key={key} className="flex items-baseline justify-between gap-2"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
-              <span style={{ color: 'var(--tekst-5-app)' }}>{spec?.label ?? key}</span>
-              <span style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{vist}</span>
-            </div>
-          )
-        })}
+        {rader.map(rad => (
+          <div key={rad.key} className="flex items-baseline justify-between gap-2"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+            <span style={{ color: 'var(--tekst-5-app)' }}>{rad.label}</span>
+            <span style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{rad.vist}</span>
+          </div>
+        ))}
       </div>
       <p style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11,

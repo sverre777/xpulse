@@ -980,7 +980,9 @@ html.js .istep.vis{opacity:1}
 @container (max-width: 700px){
   .iflow{flex-wrap:wrap;justify-content:center;overflow-x:visible;row-gap:20px;padding-bottom:0}
   .istep{flex:0 0 33.33%;min-width:0}
-  .istep::before{display:none}
+  /* Streken beholdes INNAD i hver rad (1–2, 2–3 og 4–5) — den skjules kun
+     på siste steg i hver rad, der den ellers ville stukket ut i lufta. */
+  .istep:nth-child(3)::before{display:none}
 }
 
 /* PC/mobil-bryteren */

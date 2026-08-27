@@ -1,5 +1,6 @@
 'use server'
 
+import { slettStrideeKonto } from '@/lib/stridee-api'
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { ZONE_NAMES, ZoneName } from '@/lib/heart-zones'
@@ -457,6 +458,25 @@ export async function confirmAccountDeletion(): Promise<{ error?: string }> {
     .select('deletion_requested_at').eq('id', user.id).single()
   if (!prof?.deletion_requested_at) {
     return { error: 'Ingen aktiv sletteforespørsel' }
+  }
+
+  // Klokkesynk-leverandøren: slett kontoen der FØR radene våre forsvinner
+  // (vi trenger stridee_user_id fra lenka). Best effort — feiler kallet,
+  // logges det og slettinga hos oss fortsetter; leverandørens konto rydder
+  // seg selv når webhooken vår slutter å svare, og vilkårene peker på at
+  // tilgangen også kan trekkes hos klokkeprodusenten.
+  try {
+    const { data: strideeLenke } = await supabase
+      .from('stridee_link')
+      .select('stridee_user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (strideeLenke?.stridee_user_id) {
+      const res = await slettStrideeKonto(strideeLenke.stridee_user_id)
+      if (!res.ok) console.warn(`[konto-sletting] leverandør-sletting feilet: ${res.feil}`)
+    }
+  } catch (e) {
+    console.warn(`[konto-sletting] leverandør-sletting kastet: ${e instanceof Error ? e.message : e}`)
   }
 
   // Profil cascades via foreign keys (on delete cascade). Auth-bruker må slettes

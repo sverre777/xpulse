@@ -43,7 +43,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
       .maybeSingle(),
     supabase
       .from('stridee_link')
-      .select('status, stridee_connections(provider, status, koblet_at)')
+      .select('status, stridee_connections(connection_id, provider, status, koblet_at)')
       .eq('user_id', user.id)
       .maybeSingle(),
     searchParams,
@@ -61,7 +61,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
     // Les lenken på nytt så den ferske tilkoblingen vises i SAMME render.
     const { data: fersk } = await supabase
       .from('stridee_link')
-      .select('status, stridee_connections(provider, status, koblet_at)')
+      .select('status, stridee_connections(connection_id, provider, status, koblet_at)')
       .eq('user_id', user.id)
       .maybeSingle()
     if (fersk) strideeEtterSynk = fersk
@@ -69,6 +69,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
 
   // Ingen rad, eller tabellen finnes ikke ennå: ingen klokker å vise.
   const strideeConnections = (strideeEtterSynk?.stridee_connections ?? []) as Array<{
+    connection_id: string
     provider: 'garmin' | 'coros' | 'wahoo' | 'zepp'
     status: 'aktiv' | 'reauth_required' | 'frakoblet'
     koblet_at: string

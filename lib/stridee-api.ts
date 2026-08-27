@@ -25,7 +25,7 @@ interface KallInput {
  * Ett signert kall. Feil er verdier, ikke unntak — kallerne er redirects og
  * sider som skal vise en lesbar melding, aldri en 500.
  */
-async function strideeKall<T>(input: KallInput): Promise<{ data?: T; feil?: string }> {
+async function strideeKall<T>(input: KallInput): Promise<{ data?: T; feil?: string; status?: number }> {
   const nokkel = lesSigneringsnokkel()
   if ('feil' in nokkel) return { feil: nokkel.feil }
 
@@ -52,13 +52,60 @@ async function strideeKall<T>(input: KallInput): Promise<{ data?: T; feil?: stri
   if (!svar.ok) {
     // Statuskoden er diagnosen; kroppen deres logges ikke (kan inneholde
     // detaljer vi ikke eier). 401/403 her betyr signatur/keyid-trøbbel.
-    return { feil: `leverandøren svarte ${svar.status} på ${input.metode} ${input.sti}` }
+    return { feil: `leverandøren svarte ${svar.status} på ${input.metode} ${input.sti}`, status: svar.status }
   }
+  if (svar.status === 204) return { data: undefined as T }
   try {
     return { data: (await svar.json()) as T }
   } catch {
     return { feil: 'leverandøren svarte uten gyldig JSON' }
   }
+}
+
+/**
+ * Kobler fra ÉN klokke hos leverandøren. 204 = frakoblet; 404 = «isn't
+ * yours or is already disconnected» — regnes som allerede borte (målet er
+ * nådd). account.disconnected-hendelsen kommer i tillegg via webhooken og
+ * er idempotent mot vår lokale oppdatering.
+ */
+export async function slettStrideeConnection(
+  connectionId: string,
+): Promise<{ ok: boolean; alleredeBorte: boolean; feil?: string }> {
+  const res = await strideeKall<void>({ metode: 'DELETE', sti: `/v1/connections/${connectionId}` })
+  if (!res.feil) return { ok: true, alleredeBorte: false }
+  if (res.status === 404) return { ok: true, alleredeBorte: true }
+  return { ok: false, alleredeBorte: false, feil: res.feil }
+}
+
+/**
+ * Sletter hele kontoen hos leverandøren (deres user_id): vår referanse,
+ * alle connections og nedlastingstilgangen. Utløser ÉN account.deleted-
+ * hendelse. Brukes ved siste frakobling og ved kontosletting hos oss.
+ */
+export async function slettStrideeKonto(
+  strideeUserId: string,
+): Promise<{ ok: boolean; alleredeBorte: boolean; feil?: string }> {
+  const res = await strideeKall<void>({ metode: 'DELETE', sti: `/v1/accounts/${strideeUserId}` })
+  if (!res.feil) return { ok: true, alleredeBorte: false }
+  if (res.status === 404) return { ok: true, alleredeBorte: true }
+  return { ok: false, alleredeBorte: false, feil: res.feil }
+}
+
+/**
+ * Leverandørens egen administrasjonsside for personens tilkoblinger hos
+ * OSS (med frakoblingsknapper). Lenka varer 30 dager, men skal mintes
+ * fersk per besøk — aldri lagres.
+ */
+export async function hentManageLink(
+  externalUserId: string,
+): Promise<{ url?: string; feil?: string }> {
+  const res = await strideeKall<{ manage_url: string }>({
+    metode: 'POST',
+    sti: '/v1/connections/manage-link',
+    body: { external_user_id: externalUserId },
+  })
+  if (res.feil || !res.data?.manage_url) return { feil: res.feil ?? 'svar uten manage_url' }
+  return { url: res.data.manage_url }
 }
 
 /** Største fil vi laster ned. En times økt med 1s-opptak er ~0,5 MB —

@@ -222,7 +222,7 @@ export default function PersonvernPage() {
         <LegalLI>Ved tilkobling hentes rundt 90 dager historikk fra klokkekontoen din</LegalLI>
         <LegalLI>Frakobling stopper all ny synk. Allerede importerte økter er dine originalfiler og beholdes i dagboka — ingen produsent krever sletting av dem</LegalLI>
         <LegalLI>Helse- og søvnverdier importert fra et merke slettes når merket kobles fra, i tråd med helse-avsnittet. Verdier du har ført manuelt slettes aldri</LegalLI>
-        <LegalLI>Sletter du X-PULSE-kontoen, slettes alle importerte data sammen med resten av kontoen. Du kan i tillegg alltid trekke tilgangen tilbake direkte hos klokkeprodusenten (f.eks. i Garmin Connect) — det stopper delingen ved kilden</LegalLI>
+        <LegalLI>Sletter du X-PULSE-kontoen, slettes alle importerte data sammen med resten av kontoen, og kontoen din hos Stridee avsluttes samtidig. Du kan i tillegg alltid trekke tilgangen tilbake direkte hos klokkeprodusenten (f.eks. i Garmin Connect) — det stopper delingen ved kilden</LegalLI>
       </LegalUL>
       <LegalP><strong>Sikkerhet:</strong></LegalP>
       <LegalUL>

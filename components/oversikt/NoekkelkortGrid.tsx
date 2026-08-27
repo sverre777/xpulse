@@ -1,14 +1,14 @@
 'use client'
 
+import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { useState } from 'react'
 import Link from 'next/link'
-import { HelseLoggKnapp } from './HelseLoggKnapp'
 import type {
-  OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus, OversiktHealthSummary,
+  OversiktWorkoutCard, OversiktMainGoal, OversiktPhase, OversiktPhaseStatus,
 } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import { ZoneBar, ShotChip, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
-import { HardoktPopup, HelsePopup } from './kort-popups'
+import { HardoktPopup } from './kort-popups'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 
 function sportLabel(v: string): string {
@@ -207,121 +207,16 @@ function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseS
   )
 }
 
-// Liten grønn logg-knapp + dim analyse-lenke — brukes i begge helse-tilstander.
-function HealthCardActions({ today, onVisMer }: { today: string; onVisMer?: () => void }) {
-  const linkBase: React.CSSProperties = {
-    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
-    letterSpacing: '0.13em', textTransform: 'uppercase', textDecoration: 'none',
-    borderRadius: 9, padding: '7px 12px', display: 'inline-block',
-  }
-  return (
-    <div className="flex gap-2 mt-3 flex-wrap">
-      <HelseLoggKnapp date={today}
-        style={{ ...linkBase, backgroundColor: '#28A86E', color: 'var(--tekst-1-ren)', border: '1px solid #28A86E' }} />
-      <Link href="/app/analyse?tab=helse"
-        style={{ ...linkBase, color: 'var(--tekst-5-app)', border: '1px solid var(--line2)' }}>
-        Analyse →
-      </Link>
-      {onVisMer && <VisMer onClick={onVisMer} />}
-    </div>
-  )
-}
-
-function todayLocalISO(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-/**
- * Ett helsetall maalt mot brukerens EGET 30-dagers snitt (notat pkt 8).
- * «42 bpm» sier ingenting alene — «1 under ditt eget snitt» sier alt.
- *
- * Retningen staar i ORD, ikke bare fortegn: HRV over snittet er bra,
- * hvilepuls over snittet er det ikke, og «+5» uten kontekst leses feil
- * begge veier. Fargene er varsomme: groent naar det peker riktig vei, gult
- * naar det er verdt et blikk, ALDRI roedt. Dette er veiledningstall.
- */
-function HelseTall({ label, verdi, enhet, snitt, hoyereErBra, farge }: {
-  label: string
-  verdi: number | null
-  enhet: string
-  snitt: number | null
-  hoyereErBra: boolean
-  farge: string
-}) {
-  const diff = verdi != null && snitt != null ? Math.round((verdi - snitt) * 10) / 10 : null
-  let retning: string | null = null
-  let retningsfarge = 'var(--mut)'
-  if (diff != null && Math.abs(diff) >= 0.1) {
-    const over = diff > 0
-    retning = `${Math.abs(diff)} ${over ? 'over' : 'under'} snitt`
-    const bra = over === hoyereErBra
-    retningsfarge = bra ? '#28A86E' : '#E8B93C'
-  } else if (diff != null) {
-    retning = 'som snitt'
-  }
-  return (
-    <div className="flex flex-col" style={{ minWidth: 0 }}>
-      <span className="text-xs tracking-widest uppercase"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        {label}
-      </span>
-      <span style={{
-        fontFamily: "'Bebas Neue', sans-serif", color: verdi != null ? farge : 'var(--tekst-8-alt)',
-        fontSize: '22px', letterSpacing: '0.04em', lineHeight: 1.1,
-      }}>
-        {/* «—» naar ikke foert i dag — 30-dagers snittet blir staaende. */}
-        {verdi != null ? `${verdi}` : '—'}
-        {verdi != null && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, color: 'var(--mut)', marginLeft: 3 }}>{enhet}</span>}
-      </span>
-      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, color: retningsfarge, marginTop: 2 }}>
-        {retning ?? (snitt != null ? `snitt ${snitt}${enhet ? ' ' + enhet : ''}` : '—')}
-      </span>
-    </div>
-  )
-}
-
-function HealthCard({ h }: { h: OversiktHealthSummary }) {
-  const [apen, setApen] = useState(false)
-  const hasAny = h.last_entry_date !== null
-  const today = todayLocalISO()
-  if (!hasAny) {
-    return (
-      <Card kicker="Helse" accent="#28A86E">
-        <CardTitle>Ingen data</CardTitle>
-        <CardMeta>Logg hvilepuls, HRV og søvn for å følge form.</CardMeta>
-        <HealthCardActions today={today} />
-      </Card>
-    )
-  }
-  return (
-    <Card kicker="Helse" accent="#28A86E">
-      {/* Fargene er de samme som «Helse over tid» brukte: hvilepuls roed,
-          HRV lilla, soevn blaa (notat pkt 10). */}
-      <div className="grid grid-cols-3 gap-3">
-        <HelseTall label="Hvilepuls" verdi={h.resting_hr} enhet="bpm"
-          snitt={h.avg_resting_hr_30d} hoyereErBra={false} farge="#E23A5A" />
-        <HelseTall label="HRV" verdi={h.hrv_ms} enhet="ms"
-          snitt={h.avg_hrv_30d} hoyereErBra={true} farge="#8B5CF6" />
-        <HelseTall label="Søvn" verdi={h.sleep_hours} enhet="t"
-          snitt={h.avg_sleep_30d} hoyereErBra={true} farge="#1A6FD4" />
-      </div>
-      <CardMeta>Sist ført: {fmtDate(h.last_entry_date!)}</CardMeta>
-      <Spacer />
-      <HealthCardActions today={today} onVisMer={() => setApen(true)} />
-      {apen && <HelsePopup h={h} onClose={() => setApen(false)} />}
-    </Card>
-  )
-}
+// HealthCard/HelseTall/HealthCardActions/HelsePopup ble AVLØST av
+// KompaktHelseKort (helse-designet, bolk 2) og er slettet (regel 21).
 
 export function NoekkelkortGrid({
-  lastHardWorkout, mainGoal, phase, phaseStatus, health,
+  lastHardWorkout, mainGoal, phase, phaseStatus,
 }: {
   lastHardWorkout: OversiktWorkoutCard | null
   mainGoal: OversiktMainGoal | null
   phase: OversiktPhase | null
   phaseStatus: OversiktPhaseStatus
-  health: OversiktHealthSummary
 }) {
   return (
     <section className="mb-6 grid gap-4"
@@ -329,7 +224,9 @@ export function NoekkelkortGrid({
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
       <PhaseCard phase={phase} phaseStatus={phaseStatus} />
-      <HealthCard h={health} />
+      {/* Helse: det kompakte kortet fra helseflaten — klikk åpner hele
+          oversikten som pop-up (visning C → A i designet). */}
+      <KompaktHelseKort tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
     </section>
   )
 }

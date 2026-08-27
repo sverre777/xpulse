@@ -13,7 +13,8 @@ import { resolveHealthTargetUser } from '@/lib/target-user'
 //                                     håndhevet ved skriving.
 //   health_brand_metrics            — merkespesifikke skårer (Garmins skala),
 //                                     vises kun i egen gruppe, aldri i trender.
-//   workouts.day_form_*             — dagsformen (manuell, 1–5) fra øktene.
+//   daily_health.day_form           — daglig dagsform/følelse (manuell, 1–5,
+//                                     fase 108 — samme skala som øktenes).
 // Kalorier hentes ALDRI (konvensjonen står).
 
 export interface HelseDag {
@@ -31,6 +32,7 @@ export interface HelseDag {
   awake_minutes: number | null
   sleep_start: string | null
   sleep_end: string | null
+  body_weight_kg: number | null
   /** Kilde per felt ('manual' | merkenavn) — M-badgen leser denne. */
   kilder: Record<string, string>
   day_form: number | null
@@ -81,20 +83,20 @@ export async function getHelseOversikt(
   if ('error' in resolved) return { error: resolved.error }
   const userId = resolved.userId
 
-  const [sovnRes, helseRes, merkeRes, okterRes] = await Promise.all([
+  const [sovnRes, helseRes, merkeRes, dagsformRes] = await Promise.all([
     supabase.from('sleep_records')
       .select('date, total_sleep_minutes, deep_minutes, light_minutes, rem_minutes, awake_minutes, sleep_score, sleep_start, sleep_end, sources, updated_at')
       .eq('user_id', userId).gte('date', fra).lte('date', til).order('date'),
     supabase.from('health_metrics')
-      .select('date, resting_hr, hrv_ms, steps, daily_distance_m, stairs_climbed, sources, updated_at')
+      .select('date, resting_hr, hrv_ms, steps, daily_distance_m, stairs_climbed, body_weight_kg, sources, updated_at')
       .eq('user_id', userId).gte('date', fra).lte('date', til).order('date'),
     supabase.from('health_brand_metrics')
       .select('date, brand, metrics')
       .eq('user_id', userId).gte('date', fra).lte('date', til).order('date'),
-    supabase.from('workouts')
-      .select('date, day_form_physical, day_form_mental')
+    supabase.from('daily_health')
+      .select('date, day_form')
       .eq('user_id', userId).gte('date', fra).lte('date', til)
-      .or('day_form_physical.not.is.null,day_form_mental.not.is.null'),
+      .not('day_form', 'is', null),
   ])
 
   type SovnRad = {
@@ -106,6 +108,7 @@ export async function getHelseOversikt(
   type HelseRad = {
     date: string; resting_hr: number | null; hrv_ms: number | null; steps: number | null
     daily_distance_m: number | null; stairs_climbed: number | null
+    body_weight_kg: number | null
     sources: Record<string, string> | null; updated_at: string | null
   }
 
@@ -113,13 +116,11 @@ export async function getHelseOversikt(
   const helse = (helseRes.data ?? []) as HelseRad[]
   const merker = (merkeRes.data ?? []) as { date: string; brand: string; metrics: Record<string, unknown> }[]
 
-  // Dagsform: snitt av fysisk/mental per dag — samme regel som analysen.
-  const dagsform = new Map<string, number[]>()
-  for (const w of (okterRes.data ?? []) as { date: string; day_form_physical: number | null; day_form_mental: number | null }[]) {
-    const liste = dagsform.get(w.date) ?? []
-    if (w.day_form_physical != null) liste.push(w.day_form_physical)
-    if (w.day_form_mental != null) liste.push(w.day_form_mental)
-    if (liste.length > 0) dagsform.set(w.date, liste)
+  // Daglig dagsform (fase 108) — eget felt for dagen, adskilt fra øktenes,
+  // men samme skala. Øktenes day_form lever videre i økt-analysene.
+  const dagsform = new Map<string, number>()
+  for (const r of (dagsformRes.data ?? []) as { date: string; day_form: number | null }[]) {
+    if (r.day_form != null) dagsform.set(r.date, r.day_form)
   }
 
   // Slå sammen per dato.
@@ -129,7 +130,7 @@ export async function getHelseOversikt(
     if (!d) {
       d = {
         date, resting_hr: null, hrv_ms: null, steps: null, daily_distance_m: null,
-        stairs_climbed: null, sleep_score: null, total_sleep_minutes: null,
+        stairs_climbed: null, body_weight_kg: null, sleep_score: null, total_sleep_minutes: null,
         deep_minutes: null, light_minutes: null, rem_minutes: null, awake_minutes: null,
         sleep_start: null, sleep_end: null, kilder: {}, day_form: null,
       }
@@ -156,10 +157,11 @@ export async function getHelseOversikt(
     d.steps = r.steps
     d.daily_distance_m = r.daily_distance_m
     d.stairs_climbed = r.stairs_climbed
+    d.body_weight_kg = r.body_weight_kg
     Object.assign(d.kilder, r.sources ?? {})
   }
-  for (const [date, liste] of dagsform) {
-    dag(date).day_form = Math.round((liste.reduce((a, b) => a + b, 0) / liste.length) * 10) / 10
+  for (const [date, verdi] of dagsform) {
+    dag(date).day_form = verdi
   }
   const dager = [...perDato.values()].sort((a, b) => a.date.localeCompare(b.date))
 

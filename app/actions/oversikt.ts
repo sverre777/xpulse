@@ -143,41 +143,8 @@ export interface OversiktPhase {
   phase_weeks_total: number
 }
 
-export interface OversiktHealthSummary {
-  // Siste logget rad.
-  last_entry_date: string | null
-  resting_hr: number | null
-  hrv_ms: number | null
-  sleep_hours: number | null
-  // 7-dagers snitt basert på dagens dato.
-  avg_resting_hr_7d: number | null
-  avg_hrv_7d: number | null
-  avg_sleep_7d: number | null
-  /**
-   * 30-dagers snitt. Sju dager er for kort baseline for hvilepuls og HRV —
-   * én dårlig natt flytter snittet merkbart (notat pkt 2).
-   * Kun-førte: snittet regnes bare over dager som ER ført.
-   */
-  avg_resting_hr_30d: number | null
-  avg_hrv_30d: number | null
-  avg_sleep_30d: number | null
-  /** Søvnscore bor i søvnmodellen (sleep_records), ikke i daily_health. */
-  sleep_score: number | null
-  avg_sleep_score_30d: number | null
-  /**
-   * Dekningsgrad: hvor mange av de 30 dagene som faktisk er ført. Et
-   * 30-dagers snitt bygget på fire målinger er ingen baseline (notat pkt 8).
-   */
-  days_logged_30d: number
-  days_in_window: number
-  /**
-   * Dagsserien bak snittene, eldste først. Ingen ny spørring — dette er de
-   * samme 30 radene som allerede er hentet, bare eksponert. Brukes til
-   * sparklinjene i helse-popupen (notat pkt 11): retningsindikatorer uten
-   * akser, ikke grafer.
-   */
-  trend_30d: { date: string; resting_hr: number | null; hrv_ms: number | null; sleep_hours: number | null }[]
-}
+// OversiktHealthSummary/hjem-helsedelen ble AVLØST av KompaktHelseKort
+// (helseflaten, bolk 2) — summeringen er slettet (regel 21).
 
 export interface OversiktFeedEntry {
   id: string
@@ -220,7 +187,6 @@ export interface OversiktData {
   mainGoal: OversiktMainGoal | null
   phase: OversiktPhase | null
   phaseStatus: OversiktPhaseStatus
-  health: OversiktHealthSummary
   feed: OversiktFeedEntry[]
   focusPoints: OversiktFocusPoints
   weeklyReflection: OversiktWeeklyReflectionBadge
@@ -512,27 +478,6 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .order('start_date', { ascending: false })
       .limit(1)
 
-    // 10. Helse — siste 30 dager (for snitt + siste).
-    const healthLookbackStart = toISO(new Date(today.getTime() - 30 * 86400000))
-    const healthPromise = supabase
-      .from('daily_health')
-      .select('date,resting_hr,hrv_ms,sleep_hours')
-      .eq('user_id', user.id)
-      .gte('date', healthLookbackStart)
-      .lte('date', todayISO)
-      .order('date', { ascending: false })
-      .limit(30)
-
-    // 10b. Søvnscore ligger IKKE i daily_health — den bor i søvnmodellen
-    //      (sleep_records, fase 103). Samme 30-dagers vindu som helsa.
-    const sleepPromise = supabase
-      .from('sleep_records')
-      .select('date,sleep_score')
-      .eq('user_id', user.id)
-      .gte('date', healthLookbackStart)
-      .lte('date', todayISO)
-      .order('date', { ascending: false })
-      .limit(30)
 
     // 11. Dagens + ukens fokus-punkter (plan-context).
     const dayFocusPromise = supabase
@@ -565,13 +510,13 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     const [
       dayStateRes, todayWorkoutsRes, futurePlannedRes,
       weekWorkoutsRes, prevWeekWorkoutsRes, keyDateRes, compWorkoutRes,
-      recentCompletedRes, seasonRes, healthRes, sleepRes,
+      recentCompletedRes, seasonRes,
       dayFocusRes, weekFocusRes, reflectionRes,
     ] = await Promise.all([
       dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
       weekWorkoutsPromise, prevWeekWorkoutsPromise, upcomingKeyDatePromise,
       upcomingCompetitionWorkoutPromise, recentCompletedPromise, seasonPromise,
-      healthPromise, sleepPromise, dayFocusPromise, weekFocusPromise, reflectionPromise,
+      dayFocusPromise, weekFocusPromise, reflectionPromise,
     ])
 
     // Hero — bruk navn fra cache-dedupert profil.
@@ -813,50 +758,6 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       }
     }
 
-    // Helse-summering
-    const healthRows = (healthRes.data ?? []) as {
-      date: string
-      resting_hr: number | null
-      hrv_ms: number | null
-      sleep_hours: number | null
-    }[]
-    const last = healthRows[0] ?? null
-    const sevenDaysAgo = toISO(new Date(today.getTime() - 7 * 86400000))
-    const last7 = healthRows.filter(r => r.date >= sevenDaysAgo)
-    const avg = (vals: (number | null)[]) => {
-      const xs = vals.filter((v): v is number => v !== null && Number.isFinite(v))
-      if (xs.length === 0) return null
-      return Math.round((xs.reduce((s, v) => s + v, 0) / xs.length) * 10) / 10
-    }
-    const sleepRows = (sleepRes.data ?? []) as { date: string; sleep_score: number | null }[]
-    // Kun-førte: en dag teller som ført hvis MINST én verdi er registrert.
-    // Tomme rader skal ikke dra dekningsgraden opp.
-    const dagerFort = healthRows.filter(r =>
-      r.resting_hr != null || r.hrv_ms != null || r.sleep_hours != null).length
-
-    const health: OversiktHealthSummary = {
-      last_entry_date: last?.date ?? null,
-      resting_hr: last?.resting_hr ?? null,
-      hrv_ms: last?.hrv_ms ?? null,
-      sleep_hours: last?.sleep_hours ?? null,
-      avg_resting_hr_7d: avg(last7.map(r => r.resting_hr)),
-      avg_hrv_7d: avg(last7.map(r => r.hrv_ms)),
-      avg_sleep_7d: avg(last7.map(r => r.sleep_hours)),
-      avg_resting_hr_30d: avg(healthRows.map(r => r.resting_hr)),
-      avg_hrv_30d: avg(healthRows.map(r => r.hrv_ms)),
-      avg_sleep_30d: avg(healthRows.map(r => r.sleep_hours)),
-      sleep_score: sleepRows[0]?.sleep_score ?? null,
-      avg_sleep_score_30d: avg(sleepRows.map(r => r.sleep_score)),
-      days_logged_30d: dagerFort,
-      days_in_window: 30,
-      // healthRows kommer nyeste først — snus her så linja leses venstre→høyre.
-      trend_30d: [...healthRows].reverse().map(r => ({
-        date: r.date,
-        resting_hr: r.resting_hr,
-        hrv_ms: r.hrv_ms,
-        sleep_hours: r.sleep_hours,
-      })),
-    }
 
     // Aktivitets-feed: siste 5 fullførte.
     const feed: OversiktFeedEntry[] = recentCompleted.slice(0, 5).map(w => {
@@ -906,7 +807,6 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       mainGoal,
       phase,
       phaseStatus,
-      health,
       feed,
       focusPoints,
       weeklyReflection,

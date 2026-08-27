@@ -4,9 +4,9 @@
 // ingen nye kall, samme datasett i to detaljnivåer (notat pkt 1).
 
 import type {
-  OversiktWorkoutCard, OversiktHealthSummary, OversiktWeekTotals,
+  OversiktWorkoutCard, OversiktWeekTotals,
 } from '@/app/actions/oversikt'
-import { KortPopup, PopupSeksjon, PopupTall, Sparkline } from './KortPopup'
+import { KortPopup, PopupSeksjon, PopupTall } from './KortPopup'
 import { ZoneBar, fmtHM, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
 import type { OversiktShots } from '@/app/actions/oversikt'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
@@ -112,47 +112,9 @@ export function HardoktPopup({ w, onClose }: { w: OversiktWorkoutCard; onClose: 
   )
 }
 
-export function HelsePopup({ h, onClose }: { h: OversiktHealthSummary; onClose: () => void }) {
-  const rader: { navn: string; farge: string; verdi: number | null; snitt: number | null; enhet: string; serie: (number | null)[] }[] = [
-    { navn: 'Hvilepuls', farge: '#E23A5A', verdi: h.resting_hr, snitt: h.avg_resting_hr_30d, enhet: 'bpm', serie: h.trend_30d.map(d => d.resting_hr) },
-    { navn: 'HRV', farge: '#8B5CF6', verdi: h.hrv_ms, snitt: h.avg_hrv_30d, enhet: 'ms', serie: h.trend_30d.map(d => d.hrv_ms) },
-    { navn: 'Søvn', farge: '#1A6FD4', verdi: h.sleep_hours, snitt: h.avg_sleep_30d, enhet: 't', serie: h.trend_30d.map(d => d.sleep_hours) },
-  ]
-  return (
-    <KortPopup
-      kicker="Helse"
-      tittel="Siste 30 dager"
-      // DEKNINGSGRAD (notat pkt 8): et 30-dagers snitt bygget på fire
-      // målinger er ingen baseline, og da skal det stå.
-      undertittel={`${h.days_logged_30d} av ${h.days_in_window} dager ført`}
-      videreHref="/app/analyse?tab=helse"
-      videreTekst="Se i analysen"
-      onClose={onClose}
-    >
-      <PopupTall celler={[
-        { k: 'Hvilepuls snitt', v: h.avg_resting_hr_30d != null ? String(h.avg_resting_hr_30d) : null, enhet: 'bpm' },
-        { k: 'HRV snitt', v: h.avg_hrv_30d != null ? String(h.avg_hrv_30d) : null, enhet: 'ms' },
-        { k: 'Søvn snitt', v: h.avg_sleep_30d != null ? h.avg_sleep_30d.toFixed(1) : null, enhet: 't' },
-        { k: 'Søvnscore snitt', v: h.avg_sleep_score_30d != null ? String(Math.round(h.avg_sleep_score_30d)) : null },
-      ]} />
+// HelsePopup ble AVLØST av KompaktHelseKortets popup (helseflaten,
+// bolk 2) og er slettet (regel 21).
 
-      {rader.map(r => (
-        <PopupSeksjon key={r.navn} tittel={r.navn}>
-          <div className="flex items-baseline gap-3" style={{ fontFamily: FONT, fontSize: 12, color: 'var(--mut)' }}>
-            <span style={{ color: r.verdi != null ? 'var(--ink)' : 'var(--tekst-8-alt)', fontFamily: "'Bebas Neue', sans-serif", fontSize: 20 }}>
-              {r.verdi != null ? r.verdi : '—'}
-            </span>
-            <span>{r.enhet} i dag</span>
-            <span style={{ marginLeft: 'auto' }}>
-              {r.snitt != null ? `30d snitt ${r.snitt} ${r.enhet}` : 'ingen baseline'}
-            </span>
-          </div>
-          <Sparkline verdier={r.serie} farge={r.farge} />
-        </PopupSeksjon>
-      ))}
-    </KortPopup>
-  )
-}
 
 export function UkePopup({ totals, weekNumber, onClose }: {
   totals: OversiktWeekTotals

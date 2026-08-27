@@ -11,6 +11,8 @@ export async function saveDailyHealth(data: {
   hrv_ms: string
   sleep_hours: string
   sleep_quality: number | null
+  /** Daglig dagsform/følelse (1–5) — samme skala som øktenes (regel 11). */
+  day_form?: number | null
   body_weight_kg: string
   notes: string
   targetUserId?: string
@@ -26,6 +28,7 @@ export async function saveDailyHealth(data: {
     hrv_ms: parseDecimal(data.hrv_ms) || null,
     sleep_hours: parseDecimal(data.sleep_hours) || null,
     sleep_quality: data.sleep_quality,
+    day_form: data.day_form ?? null,
     body_weight_kg: parseDecimal(data.body_weight_kg) || null,
     notes: data.notes || null,
     updated_at: new Date().toISOString(),
@@ -36,6 +39,26 @@ export async function saveDailyHealth(data: {
 
   revalidatePath('/app/dagbok')
   revalidatePath(`/app/health/${data.date}`)
+  return {}
+}
+
+/**
+ * Hurtigføring av daglig dagsform (1–5) fra helsekortet — rører ingen andre
+ * felter. Kun for utøveren selv, som all annen helse-skriving.
+ */
+export async function settDagsform(date: string, verdi: number | null): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveHealthTargetUser(supabase, undefined)
+  if ('error' in resolved) return { error: resolved.error }
+  if (verdi != null && (verdi < 1 || verdi > 5)) return { error: 'Dagsform er 1–5' }
+  const { error } = await supabase.from('daily_health').upsert({
+    user_id: resolved.userId,
+    date,
+    day_form: verdi,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,date' })
+  if (error) return { error: error.message }
+  revalidatePath('/app/dagbok')
   return {}
 }
 

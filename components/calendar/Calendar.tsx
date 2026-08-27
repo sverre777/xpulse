@@ -1,5 +1,6 @@
 'use client'
 
+import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -2158,26 +2159,21 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                     )}
                     {/* Health summary row */}
                     {mode !== 'plan' && healthData[ds] && (() => {
-                      const h = healthData[ds]
-                      const parts: string[] = []
-                      if (h.hrv_ms != null) parts.push(`HRV ${h.hrv_ms}`)
-                      if (h.resting_hr != null) parts.push(`Hvilepuls ${h.resting_hr}`)
-                      if (h.sleep_hours != null) parts.push(`Søvn ${h.sleep_hours}t`)
-                      if (h.body_weight_kg != null) parts.push(`Vekt ${h.body_weight_kg}kg`)
-                      return parts.length > 0 ? (
-                        <div className="flex items-center gap-2 mb-3">
-                          <span style={{ color: '#28A86E', fontSize: '9px' }}>●</span>
-                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '13px' }}>
-                            {parts.join(' · ')}
-                          </span>
+                      // Helse-linja er AVLØST av det kompakte helsekortet
+                      // (helse-designet, bolk 2): fliser + natt-miniatyr,
+                      // klikk åpner hele oversikten ankret til dagen.
+                      // Rediger-knappen (manuell føring) består ved siden av.
+                      return (
+                        <div className="mb-3">
+                          <KompaktHelseKort targetUserId={targetUserId} sluttDato={ds} />
                           {!readOnly && (
                             <button type="button" onClick={() => onEditHealth(ds)}
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-hover)', marginLeft: '4px', padding: 0, cursor: 'pointer' }}>
-                              Rediger
+                              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '12px', background: 'none', border: 'none', borderBottom: '1px solid var(--kant-hover)', marginTop: 6, padding: 0, cursor: 'pointer' }}>
+                              Rediger føring
                             </button>
                           )}
                         </div>
-                      ) : null
+                      )
                     })()}
 
                     {/* Recovery list */}

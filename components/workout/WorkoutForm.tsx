@@ -1,5 +1,6 @@
 'use client'
 
+import { StarRating } from '@/components/ui/StarRating'
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout, markCompleted } from '@/app/actions/workouts'
@@ -2146,18 +2147,8 @@ function Label({ children }: { children: React.ReactNode }) {
   return <label className="xp-label" style={{ marginTop: 0 }}>{children}</label>
 }
 
-function StarRating({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
-  return (
-    <div className="flex gap-0.5 mt-1">
-      {[1,2,3,4,5].map(n => (
-        <button key={n} type="button" onClick={() => onChange(value === n ? null : n)}
-          style={{ fontSize: '26px', color: (value ?? 0) >= n ? 'var(--i3)' : 'var(--line2)', textShadow: (value ?? 0) >= n ? '0 0 12px rgba(232,185,60,.35)' : 'none', background: 'none', border: 'none', cursor: 'pointer', padding: '2px', lineHeight: 1 }}>
-          ★
-        </button>
-      ))}
-    </div>
-  )
-}
+// StarRating er flyttet til components/ui/StarRating.tsx — ÉN følelses-
+// skala i hele appen (regel 11), delt med den daglige energiføringen.
 
 const RPE_COLORS = ['#28A86E', '#3BA45C', '#63A94A', '#8FAC3C', '#BCA735', '#E8B93C', '#F09A2E', '#FF8C00', '#F0592B', '#E23A5A']
 

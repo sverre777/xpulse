@@ -6,6 +6,8 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import { getHelseOversikt, type HelseOversiktData, type HelseDag } from '@/app/actions/helse-oversikt'
+import { settDagsform } from '@/app/actions/health'
+import { StarRating } from '@/components/ui/StarRating'
 import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE } from '@/components/analysis/chart-theme'
 import { StadieStabler, formatTimer } from './SovnGrafikk'
@@ -29,6 +31,11 @@ function dagerSiden(n: number): string {
   const d = new Date(); d.setDate(d.getDate() - n)
   return isoDato(d)
 }
+function dagerSidenAnker(n: number, anker?: string): string {
+  const d = anker ? new Date(`${anker}T12:00:00`) : new Date()
+  d.setDate(d.getDate() - n)
+  return isoDato(d)
+}
 
 const FLIS_L: React.CSSProperties = {
   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
@@ -39,13 +46,19 @@ const FLIS_V: React.CSSProperties = {
   marginTop: 4, color: 'var(--tekst-1-app)',
 }
 
-export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata }: {
+export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata, sluttDato, foringsDato }: {
   targetUserId?: string
   /** Pop-up-konteksten (bolk 2) bruker en litt strammere header. */
   kompaktHeader?: boolean
   /** Ferdig hentet data for standardperioden (30 d) — popupen og server-
    * prefetch slipper dobbelthenting; periodebytte henter som vanlig. */
   forhandsdata?: HelseOversiktData
+  /** Anker for periodene (dag-klikk i kalenderen): «30 dager» betyr da
+   * 30 dager FREM TIL denne dagen. Uten = i dag. */
+  sluttDato?: string
+  /** Datoen «Før manuelt» og følelses-føringen retter seg mot (dag-klikk).
+   * Uten = i dag. */
+  foringsDato?: string
 }) {
   const [periode, setPeriode] = useState<Periode>('30d')
   const [egenFra, setEgenFra] = useState(dagerSiden(30))
@@ -54,17 +67,18 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
   // av at svaret er merket med nøkkelen sin.
   const [svar, setSvar] = useState<{ nokkel: string; data: HelseOversiktData } | null>(
     forhandsdata
-      ? { nokkel: `${dagerSiden(30)}|${isoDato(new Date())}|${targetUserId ?? ''}`, data: forhandsdata }
+      ? { nokkel: `${dagerSidenAnker(30, sluttDato)}|${sluttDato ?? isoDato(new Date())}|${targetUserId ?? ''}`, data: forhandsdata }
       : null,
   )
   const [visDybde, setVisDybde] = useState(false)
 
+  const anker = sluttDato ?? isoDato(new Date())
   const [fra, til] = useMemo((): [string, string] => {
-    if (periode === '7d') return [dagerSiden(7), isoDato(new Date())]
-    if (periode === '30d') return [dagerSiden(30), isoDato(new Date())]
-    if (periode === '1y') return [dagerSiden(365), isoDato(new Date())]
+    if (periode === '7d') return [dagerSidenAnker(7, anker), anker]
+    if (periode === '30d') return [dagerSidenAnker(30, anker), anker]
+    if (periode === '1y') return [dagerSidenAnker(365, anker), anker]
     return [egenFra, egenTil]
-  }, [periode, egenFra, egenTil])
+  }, [periode, egenFra, egenTil, anker])
 
   const nokkel = `${fra}|${til}|${targetUserId ?? ''}`
   useEffect(() => {
@@ -98,6 +112,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
     return v.reduce((a, b) => a + b, 0) / v.length
   }
   const idag = isoDato(new Date())
+  const foring = foringsDato ?? idag
 
   const kildeNavn = data.kilde.navn === 'manual'
     ? 'manuell føring'
@@ -177,42 +192,17 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
             </div>
           </div>
 
-          {/* ── Dagsform (manuell, 1–5) — prikkeraden er klikkbar inn til føringen ── */}
-          <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-            <SeksjonsTittel tittel="DAGSFORM" merknad="manuell · 1–5 fra øktene · siste 14 dager · klikk åpner dagens føring" />
-            <div className="flex items-center gap-2 flex-wrap">
-              {sisteDatoer(14).map(dato => {
-                const d = dager.find(x => x.date === dato)
-                const v = d?.day_form ?? null
-                return (
-                  <Link key={dato} href={`/app/health/${dato}`} title={`${dato}${v != null ? ` · ${v}` : ''}`}
-                    style={{
-                      width: 26, height: 26, borderRadius: '50%', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center', fontSize: 11,
-                      textDecoration: 'none',
-                      background: v != null ? '#28A86E' : 'var(--card)',
-                      border: `1px solid ${v != null ? '#28A86E' : 'var(--line2)'}`,
-                      color: v != null ? '#08231a' : 'var(--tekst-8-app)',
-                      fontWeight: v != null ? 700 : 400,
-                      outline: dato === idag ? '2px solid #FF4500' : undefined,
-                      outlineOffset: 2,
-                    }}>
-                    {v != null ? v : '–'}
-                  </Link>
-                )
-              })}
-              {snitt('day_form') != null && (
-                <span style={{ color: 'var(--tekst-8-app)', fontSize: 12, marginLeft: 8 }}>
-                  snitt {(Math.round((snitt('day_form') as number) * 10) / 10).toLocaleString('nb-NO')}
-                </span>
-              )}
-            </div>
-          </div>
+          {/* ── Følelse (daglig dagsform, manuell 1–5 — SAMME skala som
+                 øktenes, fase 108). Føringsdagens prikk er hurtigføring
+                 rett på kortet; de andre lenker til dagens føringsskjema. ── */}
+          <FolelseRad dager={dager} foringsDato={foring} snitt={snitt('day_form')}
+            kanFore={!targetUserId} sisteDato={anker}
+            onFort={() => setSvar(null)} />
 
           {/* ── Handlingsrad ── */}
           <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
             <button type="button" onClick={() => setVisDybde(true)} style={btnPrimar}>VIS MER</button>
-            <Link href={`/app/health/${idag}`} style={btnGhost}>✎ FØR MANUELT</Link>
+            <Link href={`/app/health/${foring}`} style={btnGhost}>✎ FØR MANUELT</Link>
           </div>
         </>
       )}
@@ -220,10 +210,72 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
   )
 }
 
-function sisteDatoer(n: number): string[] {
+function sisteDatoer(n: number, tilDato: string): string[] {
   const ut: string[] = []
-  for (let i = n - 1; i >= 0; i--) ut.push(dagerSiden(i))
+  for (let i = n - 1; i >= 0; i--) ut.push(dagerSidenAnker(i, tilDato))
   return ut
+}
+
+function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
+  dager: HelseDag[]
+  foringsDato: string
+  snitt: number | null
+  /** Trener-visning er lese-only — helse føres bare av utøveren selv. */
+  kanFore: boolean
+  sisteDato: string
+  onFort: () => void
+}) {
+  const [lagrer, setLagrer] = useState(false)
+  const foringsVerdi = dager.find(x => x.date === foringsDato)?.day_form ?? null
+
+  const lagre = async (v: number | null) => {
+    if (lagrer) return
+    setLagrer(true)
+    const res = await settDagsform(foringsDato, v)
+    setLagrer(false)
+    if (!res.error) onFort()
+  }
+
+  return (
+    <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
+      <SeksjonsTittel tittel="FØLELSE" merknad="manuell · 1–5 · samme skala som øktene · siste 14 dager" />
+      <div className="flex items-center gap-2 flex-wrap">
+        {sisteDatoer(14, sisteDato).map(dato => {
+          const v = dager.find(x => x.date === dato)?.day_form ?? null
+          const erForing = dato === foringsDato
+          return (
+            <Link key={dato} href={`/app/health/${dato}`} title={`${dato}${v != null ? ` · ${v}` : ''}`}
+              style={{
+                width: 26, height: 26, borderRadius: '50%', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', fontSize: 11,
+                textDecoration: 'none',
+                background: v != null ? '#28A86E' : 'var(--card)',
+                border: `1px solid ${v != null ? '#28A86E' : 'var(--line2)'}`,
+                color: v != null ? '#08231a' : 'var(--tekst-8-app)',
+                fontWeight: v != null ? 700 : 400,
+                outline: erForing ? '2px solid #FF4500' : undefined,
+                outlineOffset: 2,
+              }}>
+              {v != null ? v : '–'}
+            </Link>
+          )
+        })}
+        {snitt != null && (
+          <span style={{ color: 'var(--tekst-8-app)', fontSize: 12, marginLeft: 8 }}>
+            snitt {(Math.round(snitt * 10) / 10).toLocaleString('nb-NO')}
+          </span>
+        )}
+      </div>
+      {kanFore && (
+        <div className="flex items-center gap-3 mt-2 flex-wrap" style={{ opacity: lagrer ? 0.6 : 1 }}>
+          <span style={{ fontSize: 12, color: 'var(--tekst-8-app)', fontFamily: "'Barlow Condensed', sans-serif" }}>
+            {foringsVerdi != null ? `Ført ${foringsDato === isoDato(new Date()) ? 'i dag' : foringsDato}:` : 'Før dagen:'}
+          </span>
+          <StarRating value={foringsVerdi} onChange={lagre} size={22} />
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function SeksjonsTittel({ tittel, merknad }: { tittel: string; merknad?: string }) {
@@ -282,7 +334,7 @@ function Flis({ navn, enhet, felt, sisteMed, snittAv, lavereErBedre = false, som
   )
 }
 
-function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt }: {
+export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt }: {
   navn: string
   enhet: string
   farge: string

@@ -1,5 +1,6 @@
 'use client'
 
+import { StarRating } from '@/components/ui/StarRating'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveDailyHealth } from '@/app/actions/health'
@@ -97,6 +98,7 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
     hrv_ms:         existing?.hrv_ms?.toString() ?? metrics?.hrv_ms?.toString() ?? '',
     sleep_hours:    existing?.sleep_hours?.toString() ?? importertTimer,
     sleep_quality:  existing?.sleep_quality ?? sleep?.perceived_quality ?? null as number | null,
+    day_form:       (existing?.day_form ?? null) as number | null,
     body_weight_kg: existing?.body_weight_kg?.toString() ?? metrics?.body_weight_kg?.toString() ?? '',
     notes:          existing?.notes ?? '',
   })
@@ -229,6 +231,11 @@ export function HealthForm({ date, existing, sleep = null, metrics = null, onSav
             <input type="number" step="0.1" value={form.hrv_ms} onChange={e => set('hrv_ms', e.target.value)}
               placeholder="65" style={iSt} onFocus={e => (e.currentTarget.style.borderColor = '#28A86E')}
               onBlur={e => (e.currentTarget.style.borderColor = 'var(--line)')} />
+          </Field>
+          <Field label="Dagsform (1–5)">
+            {/* SAMME skala og komponent som øktenes følelse (regel 11) —
+                daglig felt, adskilt fra øktenes, aldri rørt av importer. */}
+            <StarRating value={form.day_form} onChange={v => set('day_form', v)} />
           </Field>
           <Field label={<>Kroppsvekt (kg)<KildeMerke source={kildeM.body_weight_kg} /></>}>
             <input type="number" step="0.1" value={form.body_weight_kg} onChange={e => set('body_weight_kg', e.target.value)}

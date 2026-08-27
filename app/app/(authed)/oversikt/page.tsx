@@ -106,7 +106,6 @@ export default async function OversiktPage() {
           mainGoal={res.mainGoal}
           phase={res.phase}
           phaseStatus={res.phaseStatus}
-          health={res.health}
         />
 
         {/* Trener-kort + klokkesync side om side. Om utøver ikke har trener

@@ -51,8 +51,13 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── NYE TING etter v1.2 legges HER (øverst, uten version) ──────────────
   {
     date: '2026-08-27',
+    title: 'Ny helseoversikt fra klokka',
+    body: 'Helse har fått en helt ny flate: søvnstadier per natt, hypnogram av siste natt (når klokka leverer stadie-tidslinja), HRV-, hvilepuls-, søvnscore- og vekt-trender, og en dybdevisning med restitusjon, søvn, aktivitet og klokkas egne skårer. Et kompakt helsekort ligger på hjem-skjermen og på dager med helsedata i kalenderen — klikk åpner hele oversikten. Du kan også føre dagens følelse (1–5, samme skala som øktene) rett fra kortet, og som alltid vinner det du fører selv over det klokka sier.',
+  },
+  {
+    date: '2026-08-27',
     title: 'Garmin, COROS, Wahoo og Zepp synker direkte (beta)',
-    body: 'Koble klokka én gang under Innstillinger → Klokkesync, så kommer nye økter inn av seg selv — med full pulskurve, runder og sonefordeling fra originalfila. Tilkoblingen henter også rundt 90 dager historikk. Fra Garmin og COROS følger helsedata med: søvn med faser og score, natt-HRV, hvilepuls og skritt lander i helse-loggen hver natt — og det du fører selv vinner alltid over klokka.',
+    body: 'Koble klokka én gang under Innstillinger → Klokkesync, så kommer nye økter inn av seg selv — med full pulskurve, runder og sonefordeling fra originalfila. Tilkoblingen henter også rundt 90 dager historikk. Fra Garmin og COROS følger helsedata med: søvn med faser og score, natt-HRV, hvilepuls og skritt lander i helse-loggen hver natt — og det du fører selv vinner alltid over klokka. Hver importerte økt gir deg et varsel i innboksen.',
   },
   {
     date: '2026-08-27',

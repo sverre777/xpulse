@@ -986,6 +986,8 @@ export interface DailyHealth {
   hrv_ms: number | null
   sleep_hours: number | null
   sleep_quality: number | null
+  /** Daglig dagsform/følelse (1–5) — samme skala som øktenes (fase 108). */
+  day_form: number | null
   body_weight_kg: number | null
   notes: string | null
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { getHelseOversikt, type HelseOversiktData, type HelseDag } from '@/app/actions/helse-oversikt'
 import { HELSE_TREND_FARGER } from '@/lib/helse-farger'
 import { Hypnogram, FallbackStripe, formatTimer } from './SovnGrafikk'
+import { TrendPanel } from './HelseOversikt'
 import { SeksjonsTittel } from './HelseOversikt'
 
 // HELSE — DETALJER (visning B fra design/xpulse-helse-oversikt-design.html).
@@ -136,6 +137,19 @@ export function HelseDybde({ data, targetUserId, onTilbake }: {
           </Gruppe>
         )}
       </div>
+
+      {/* ── Vekt — reddet fra det gamle helse-fanen (Sverres beslutning
+             27. aug): klokker og manuell føring leverer den, og stien
+             føring → health_metrics → visning er hel igjen her. ── */}
+      {data.dager.some(d => d.body_weight_kg != null) && (
+        <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
+          <SeksjonsTittel tittel="VEKT" merknad="kg · valgt periode" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <TrendPanel navn="VEKT" enhet="kg" farge="#E8B93C" dager={data.dager}
+              felt="body_weight_kg" ukesnitt={false} />
+          </div>
+        </div>
+      )}
 
       {/* ── Lang trend — HRV, 1 år, ukesnitt ── */}
       <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>

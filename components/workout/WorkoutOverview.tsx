@@ -12,7 +12,7 @@
 // SAMME delte kilde som kalender/analyse (minutt-semantikk på varighet,
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import {
   WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES, WEATHER_TYPES, WIND_STRENGTHS,
@@ -104,6 +104,9 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   onStartLive?: () => void
 }) {
   const isPlannedView = status === 'planned'
+  // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
+  // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
+  const [erKoblet, setErKoblet] = useState(false)
   const activities: ActivityRow[] = data.activities ?? []
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
@@ -214,9 +217,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               formMode="plan"
               hideMarkCompleted
               prominent
+              onLinkStateChange={setErKoblet}
             />
           )}
-          {onMarkCompleted && (
+          {onMarkCompleted && !erKoblet && (
             <button type="button" onClick={onMarkCompleted}
               className="transition-opacity hover:opacity-90"
               style={{

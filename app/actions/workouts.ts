@@ -995,6 +995,20 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
     .single()
   if (wErr || !workout) return { error: wErr?.message ?? 'Fant ikke økten' }
 
+  // Koblet mot en synket økt? Da ER den gjennomført — som klokkesynk-økta.
+  // Manuell markering i tillegg ville vist økta dobbelt i Dagbok. UI-et
+  // skjuler knappen, men regelen håndheves her.
+  const { data: peker } = await supabase
+    .from('workouts')
+    .select('id')
+    .eq('user_id', resolved.userId)
+    .eq('linked_workout_id', workoutId)
+    .limit(1)
+    .maybeSingle()
+  if (peker) {
+    return { error: 'Økta er koblet til en synket økt og er allerede gjennomført. Fjern koblingen først hvis du vil markere manuelt.' }
+  }
+
   const { count } = await supabase
     .from('workout_activities')
     .select('*', { count: 'exact', head: true })

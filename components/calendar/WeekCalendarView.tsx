@@ -105,7 +105,10 @@ function zoneSecondsFor(w: CalendarWorkoutSummary, mode: Mode): Record<ExtendedZ
 
 function filterByMode(workouts: CalendarWorkoutSummary[], mode: Mode) {
   if (mode === 'plan') return workouts.filter(w => w.is_planned)
-  return workouts
+  // Dagbok: en planlagt økt gjennomført VIA KOBLING representeres av den
+  // synkede raden — plan-raden skjules her, ellers vises økta dobbelt.
+  // (I Plan-modus vises den fortsatt, med ✓ og plan-tallene.)
+  return workouts.filter(w => !(w.is_planned && w.completed_via_link))
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: Mode): boolean {

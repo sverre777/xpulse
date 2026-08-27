@@ -50,6 +50,16 @@ export const CHANGELOG_VISIBLE = 12
 export const CHANGELOG: ChangelogEntry[] = [
   // ── NYE TING etter v1.2 legges HER (øverst, uten version) ──────────────
   {
+    date: '2026-08-27',
+    title: 'Garmin, COROS, Wahoo og Zepp synker direkte (beta)',
+    body: 'Koble klokka én gang under Innstillinger → Klokkesync, så kommer nye økter inn av seg selv — med full pulskurve, runder og sonefordeling fra originalfila. Tilkoblingen henter også rundt 90 dager historikk. Fra Garmin og COROS følger helsedata med: søvn med faser og score, natt-HRV, hvilepuls og skritt lander i helse-loggen hver natt — og det du fører selv vinner alltid over klokka.',
+  },
+  {
+    date: '2026-08-27',
+    title: 'Koble synket økt til planen',
+    body: 'En synket økt kan knyttes til en planlagt økt — også når planen sa en annen dag (±3 dager). Da ser du plan mot gjennomført, og planen markeres som fullført uten å dupliseres i dagboka. Fra en planlagt økt velger du «Knytt til synket økt» i stedet for å markere manuelt.',
+  },
+  {
     date: '2026-08-26',
     title: 'Lys modus',
     body: 'Hele appen kan nå stå lyst. Bryteren ligger i topplinja — sol når du er i mørk modus, måne når du er i lys — og valget huskes til neste gang du logger inn. Fargene som betyr noe er urørt: sonefargene, skytefargene og periodiseringen er de samme i begge tema, så en graf leses likt uansett hva du har valgt.',

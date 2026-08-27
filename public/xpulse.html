@@ -567,6 +567,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    faller gridet tilbake til tre kolonner av seg selv. */
 .testi .tcard:only-child{grid-column:1/-1;max-width:760px;justify-self:center}
 .tcard{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:26px;display:flex;flex-direction:column;gap:16px}
+/* Fem stjerner — subtilt: små, dempet gull, over sitatet. */
+.tcard .stars{font-size:13px;letter-spacing:4px;color:var(--gold);opacity:.7;line-height:1}
 .tcard .q{font-size:15px;line-height:1.7;color:var(--dim);flex:1}
 .tcard .q p{margin:0 0 10px}
 .tcard .q p:last-child{margin-bottom:0}
@@ -1582,7 +1584,7 @@ html.js .solution.vis{opacity:1;transform:none}
       <!-- EKTE sitater, gjengitt ORDRETT — «-tegnet kommer fra designet
            (.q::before), derfor står ikke anførselstegn i selve teksten.
            Ingen tittel/klubb/bilde uten at Sverre leverer det. -->
-      <div class="tcard"><div class="q"><p>X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p><p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.</p></div><div class="who"><b>Langløper Gustav Heldal</b></div></div>
+      <div class="tcard"><div class="stars" aria-label="5 av 5 stjerner">★★★★★</div><div class="q"><p>X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p><p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.</p></div><div class="who"><b>Langløper Gustav Heldal</b></div></div>
     </div>
   </div>
 </section>

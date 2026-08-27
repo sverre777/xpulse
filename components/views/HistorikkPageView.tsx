@@ -18,7 +18,7 @@ export async function HistorikkPageView({ viewContext, searchParams }: Props) {
   })) as Workout[]
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-8">
 
         <div className="flex items-center gap-3 mb-8">

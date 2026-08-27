@@ -117,7 +117,7 @@ export async function DagbokPageView({ viewContext }: Props) {
     : (dayHour < 10 ? 'God morgen' : dayHour < 12 ? 'Formiddag' : dayHour < 17 ? 'God dag' : dayHour < 21 ? 'God kveld' : 'God natt')
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
 
         {/* Gjenoppta-banneret viser INNLOGGET brukers aktive live-økt —

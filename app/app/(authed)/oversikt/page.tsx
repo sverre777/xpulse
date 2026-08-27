@@ -74,7 +74,7 @@ export default async function OversiktPage() {
     // Død/utløpt sesjon: send til innlogging i stedet for feilboks.
     if (res.error === 'Ikke innlogget') redirect('/app')
     return (
-      <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+      <div style={{ minHeight: '100vh' }}>
         <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
           <LoadError what="oversikten" detail={res.error} />
         </div>
@@ -88,7 +88,7 @@ export default async function OversiktPage() {
     : coachOverviewRaw
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />

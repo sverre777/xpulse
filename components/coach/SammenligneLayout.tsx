@@ -105,7 +105,7 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
         <div className="flex items-center gap-3 mb-2">
           <span style={{ width: '24px', height: '2px', backgroundColor: COACH_BLUE, display: 'inline-block' }} />

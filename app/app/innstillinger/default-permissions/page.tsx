@@ -28,7 +28,7 @@ export default async function DefaultPermissionsPage() {
   const loadError = 'error' in res ? res.error : null
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader
           title="Standard rettigheter"

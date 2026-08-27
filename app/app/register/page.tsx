@@ -17,7 +17,6 @@ export default function RegisterPage() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       <AuthCard title="Opprett konto" subtitle="Velg din rolle og kom i gang">
         <form action={formAction} className="flex flex-col gap-5">

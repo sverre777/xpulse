@@ -3,7 +3,7 @@
 // siden ikke åpner. Samme skeleton-språk som øvrige loading.tsx-flater.
 export default function Loading() {
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="animate-pulse">
           <div style={{ width: 180, height: 28, background: 'var(--flate-14)', borderRadius: 8, marginBottom: 24 }} />

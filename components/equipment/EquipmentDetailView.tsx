@@ -153,7 +153,7 @@ export function EquipmentDetailView({
   const subtitle = [equipment.brand, equipment.model].filter(Boolean).join(' ')
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <Link href="/app/utstyr"
           className="text-xs tracking-widest uppercase inline-block mb-4"

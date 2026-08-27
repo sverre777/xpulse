@@ -33,7 +33,7 @@ export default async function InboxLayout({ children }: { children: React.ReactN
 
   return (
     <RoleProvider value={{ activeRole, hasAthleteRole, hasCoachRole }}>
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
+      <div className="min-h-screen flex flex-col">
         {activeRole === 'coach' ? (
           <CoachNav
             userName={profile?.full_name ?? null}

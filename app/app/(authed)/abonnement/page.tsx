@@ -60,7 +60,7 @@ export default async function AbonnementPage({ searchParams }: Props) {
   const totalMnd = sub ? tierPriceMonthly(sub.tier) + seatMnd : 0
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="flex items-center gap-3 mb-6">
           <span style={{ width: '24px', height: '3px', backgroundColor: '#FF4500', display: 'inline-block' }} />

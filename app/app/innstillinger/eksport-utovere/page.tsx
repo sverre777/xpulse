@@ -21,7 +21,7 @@ export default async function EksportUtovereDataPage() {
   if (activeRole !== 'coach' || !hasCoachRole) redirect('/app/innstillinger')
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader
           title="Eksport av utøver-data"

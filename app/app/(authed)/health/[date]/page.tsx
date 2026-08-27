@@ -26,7 +26,7 @@ export default async function HealthPage({ params }: { params: Promise<{ date: s
   const dateLabel = d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-lg mx-auto px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: '#28A86E', display: 'inline-block' }} />

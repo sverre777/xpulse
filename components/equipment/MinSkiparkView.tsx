@@ -67,7 +67,7 @@ export function MinSkiparkView({ ski, templates, tests, testTemplates = [] }: Pr
   const maxKm = useMemo(() => Math.max(...ski.map(s => s.usage.total_km), 0), [ski])
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-12">
         <Link href="/app/utstyr"
           className="text-xs tracking-widest uppercase inline-block mb-4"

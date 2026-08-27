@@ -25,7 +25,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
   const unreadInboxCount = await getInboxUnreadCount()
 
   return (
-    <div className="min-h-screen flex flex-col xp-coach" style={{ backgroundColor: 'var(--flate-3)' }}>
+    <div className="min-h-screen flex flex-col xp-coach">
       <CustomCursor color="#1A6FD4" />
       <CoachNav
         userName={profile?.full_name ?? null}

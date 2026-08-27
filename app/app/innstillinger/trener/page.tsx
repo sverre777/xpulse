@@ -23,7 +23,7 @@ export default async function TrenerInnstillingerPage() {
   const activeRelations = relations.filter(r => r.status === 'active')
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title="Trener" />
 

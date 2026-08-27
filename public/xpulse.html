@@ -582,7 +582,10 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .faq summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;gap:14px}
 .faq summary::after{content:'+';color:var(--orange);font-weight:800}
 .faq p{color:var(--dim);font-size:14px;margin-top:10px;max-width:66ch}
-.cta{background:linear-gradient(160deg,var(--tonet-oransje),var(--bg));border-top:1px solid var(--line);text-align:center}
+.cta{background:linear-gradient(115deg,#F04A10 0%,#9A4A55 35%,#2268BE 78%,#1E5FAF 100%);border-top:1px solid var(--line);text-align:center}
+/* Hvit knapp mot den kraftige gradienten — oransje ville druknet. */
+.cta .btn.pri{background:#fff;border-color:#fff;color:#0A0A0B}
+.cta .btn.pri:hover{background:rgba(255,255,255,.92)}
 .cta h2{font-size:clamp(38px,9vw,64px)}
 .cta .lead{margin:0 auto 30px}
 footer{border-top:1px solid var(--line);padding:34px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:var(--mute);font-size:13px}
@@ -946,11 +949,14 @@ nav {
     opacity:1; visibility:visible; transform:translateY(0);
   }
 
-/* ═══ Vekslende seksjonsbakgrunner — som forrige forside. Skiskyting- og
-   CTA-seksjonene beholder sine egne gradienter. ═══ */
-#nytt, #trener, #faq { background:var(--surface) }
-#problem, #priser { background:var(--bg9) }
-#sports, .drow, .dwrap { background:var(--bg9) }
+/* ═══ Vekslende seksjonsbakgrunner + gradient-sløret (del A, Sverre
+   27. aug — fasit variant 3). Sløret ligger fixed over seksjonene UNDER
+   heroen; hero-bildet røres ikke. Skiskyting-seksjonen beholder sin egen
+   gradient; CTA-en har fått full-styrke-gradienten (variant 5). ═══ */
+body { --slor: linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%); }
+#nytt, #trener, #faq { background:var(--slor) fixed, var(--surface) }
+#problem, #priser { background:var(--slor) fixed, var(--bg9) }
+#sports, .drow, .dwrap { background:var(--slor) fixed, var(--bg9) }
 
 /* ═══ Interaktiv hero — design/xpulse-hero-interaktiv-design.html er fasit
    for oppførsel og timing. Kun opacity/transform animeres; alle
@@ -1032,8 +1038,8 @@ html.js .solution.vis{opacity:1;transform:none}
     <svg width="35" height="35" viewBox="-93 -132 1450 1450" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <g transform="translate(86,0) skewX(-8)">
         <path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="48" stroke-linejoin="round"/>
-        <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="#1A6FD4" stroke="#1A6FD4" stroke-width="44" stroke-linejoin="round"/>
-        <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/>
+        <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="44" stroke-linejoin="round"/>
+        <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="38" stroke-linejoin="round"/>
       </g>
     </svg>
     <span>PULSE</span>
@@ -1082,8 +1088,8 @@ html.js .solution.vis{opacity:1;transform:none}
       <svg width="32" height="32" viewBox="-93 -132 1450 1450" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <g transform="translate(86,0) skewX(-8)">
           <path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="48" stroke-linejoin="round"/>
-          <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="#1A6FD4" stroke="#1A6FD4" stroke-width="44" stroke-linejoin="round"/>
-          <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/>
+          <path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="44" stroke-linejoin="round"/>
+          <path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="38" stroke-linejoin="round"/>
         </g>
       </svg>
       <span>PULSE</span>
@@ -1720,7 +1726,7 @@ html.js .solution.vis{opacity:1;transform:none}
     <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px 12px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 12px">
         <span style="display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px;letter-spacing:0.35em;color:var(--paper2);text-transform:uppercase">
-          <svg width="20" height="20" viewBox="-93 -132 1450 1450" aria-hidden="true"><g transform="translate(86,0) skewX(-8)"><path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="48" stroke-linejoin="round"/><path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="#1A6FD4" stroke="#1A6FD4" stroke-width="44" stroke-linejoin="round"/><path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="#FF4500" stroke="#FF4500" stroke-width="38" stroke-linejoin="round"/></g></svg>
+          <svg width="20" height="20" viewBox="-93 -132 1450 1450" aria-hidden="true"><g transform="translate(86,0) skewX(-8)"><path d="M62 125 L362 125 L1231 1068 L931 1068 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="48" stroke-linejoin="round"/><path d="M906 117 L1194 117 L850 510 L710 371 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="44" stroke-linejoin="round"/><path d="M132 331 L556 777 L279 1073 L61 1073 L349 706 Z" fill="var(--hvit)" stroke="var(--hvit)" stroke-width="38" stroke-linejoin="round"/></g></svg>
           <span>PULSE</span>
         </span>
         <span style="color:var(--line3)" aria-hidden="true">·</span>

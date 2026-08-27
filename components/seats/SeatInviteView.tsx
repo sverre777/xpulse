@@ -50,7 +50,7 @@ export function SeatInviteView({ token, info }: Props) {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}
+    <div style={{ minHeight: '100vh' }}
       className="flex items-start justify-center px-4 py-16">
       <div className="w-full" style={{ maxWidth: 460 }}>
         <div className="flex items-center gap-3 mb-6">

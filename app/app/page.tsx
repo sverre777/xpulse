@@ -28,7 +28,6 @@ function LoginInner() {
     <>
     <main
       className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ backgroundColor: 'var(--flate-3)' }}
     >
       <AuthCard title="Logg inn" subtitle="Velkommen tilbake">
         <form action={formAction} className="flex flex-col gap-5">

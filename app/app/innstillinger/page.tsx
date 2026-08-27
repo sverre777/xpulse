@@ -32,7 +32,7 @@ export default async function InnstillingerPage({ searchParams }: Props) {
   const accent = isCoachMode ? COACH_BLUE : ATHLETE_ORANGE
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="flex items-center gap-3 mb-8">
           <span style={{ width: '32px', height: '3px', backgroundColor: accent, display: 'inline-block' }} />

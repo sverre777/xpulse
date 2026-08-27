@@ -89,7 +89,7 @@ export async function PlanPageView({ viewContext }: Props) {
   const prevWorkoutsByDate = parseWorkoutsByDate(prevRawWorkouts as unknown as RawCalendarWorkout[], heartZones)
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
       <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6 overflow-x-hidden">
 
         <div className="flex items-center justify-between gap-3 mb-6">

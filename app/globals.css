@@ -136,7 +136,9 @@ html {
 }
 
 body {
-  background-color: var(--flate-3);
+  /* Sløret er fixed: 115°-gradienten skal ligge over VIEWPORTET, ikke
+     strekkes over dokumenthøyden (ellers blir den striper på lange sider). */
+  background: var(--app-bakgrunn) fixed;
   color: var(--tekst-1-app);
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 16px;
@@ -650,6 +652,10 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --flate-2: #09090B;
   --flate-2-alt: #09090C;
   --flate-3: #0A0A0B;  /* globals --bg-primary — appens dominerende bunn */
+  /* Gradient del A (Sverre 27. aug, fasit variant 3): sløret ligger på
+     BODY som eneste flate — aldri per komponent. Lys-verdien byttes inn
+     her i del B (claude/lysmodus.md); til da er lys uendret flat. */
+  --app-bakgrunn: linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%), #0A0A0B;
   --flate-3-alt: #0A0A0C;
   --flate-3-b: #0A0A0D;
   --flate-4: #0B0B0D;
@@ -809,6 +815,7 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
   --flate-2: #F4F4F6;
   --flate-2-alt: #F3F3F6;
   --flate-3: #F4F4F5;  /* globals --bg-primary — appens dominerende bunn */
+  --app-bakgrunn: #F4F4F5;  /* del B: lys gradient-verdi hit */
   --flate-3-alt: #F3F3F5;
   --flate-3-b: #F2F2F5;
   --flate-4: #F2F2F4;

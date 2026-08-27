@@ -118,7 +118,7 @@ export default async function OnboardingAbonnementPage() {
   if (hasActiveAccess(sub)) redirect('/app/oversikt')
 
   return (
-    <main style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <main style={{ minHeight: '100vh' }}>
       <div className="max-w-[1400px] mx-auto px-4 lg:px-6 py-12 lg:py-16">
         <div className="text-center mb-8">
           <h1 className="mb-3"

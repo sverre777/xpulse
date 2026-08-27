@@ -62,7 +62,7 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
   const isConnected = connectedSlugs.includes(brand.slug)
 
   return (
-    <div style={{ backgroundColor: 'var(--flate-3)', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-3xl mx-auto px-4 py-12">
         <SettingsPageHeader title={brand.name} />
 

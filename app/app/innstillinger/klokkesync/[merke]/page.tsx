@@ -34,7 +34,23 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
   // Hvilke merker brukeren allerede har koblet til — brukes både til å vise
   // riktig tilstand her og til å markere dem i velgeren nederst.
   const connectedSlugs: string[] = []
+  // Leverandør-klokkene deler lenke-rad og sjekkes PER PROVIDER — én
+  // spørring for alle fire, så ikke Garmin-tilkobling viser COROS som koblet.
+  const { data: strideeLink } = await supabase
+    .from('stridee_link')
+    .select('stridee_connections(provider, status)')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  const strideeKoblet = new Set(
+    ((strideeLink?.stridee_connections ?? []) as Array<{ provider: string; status: string }>)
+      .filter(c => c.status !== 'frakoblet')
+      .map(c => c.provider),
+  )
   for (const b of KLOKKESYNC_BRANDS) {
+    if (b.via === 'stridee') {
+      if (strideeKoblet.has(b.slug)) connectedSlugs.push(b.slug)
+      continue
+    }
     if (!b.connectionTable) continue
     const { data } = await supabase
       .from(b.connectionTable)
@@ -73,6 +89,16 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
               }}>
                 <BrandMark brand={brand} size={44} />
                 {brand.name}
+                {brand.beta && (
+                  <span style={{
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+                    fontWeight: 700, letterSpacing: '0.14em', color: '#E8B93C',
+                    border: '1px solid rgba(232,185,60,0.4)', borderRadius: 5,
+                    padding: '2px 7px',
+                  }}>
+                    BETA
+                  </span>
+                )}
               </h2>
               {/* Stravas brand guidelines krever «Powered by Strava»-merking
                   der Strava-data vises. Polar har motsatt regel: navnet brukes

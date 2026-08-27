@@ -126,3 +126,41 @@ export function StrideeConnectionListe({ connections }: { connections: StrideeCo
     </div>
   )
 }
+
+/**
+ * Banner etter retur fra leverandørens tilkoblingsside (?status=…) eller
+ * fra vår egen connect-rute (?klokke=…). REN TEKST: parametrene er usignerte
+ * og styrer aldri hva som faktisk er koblet — det gjør API-synken.
+ */
+export function StrideeCallbackBanner({ status }: { status: string | null }) {
+  if (!status) return null
+  const [farge, tekst] = ((): [string, string] => {
+    switch (status) {
+      case 'success':
+        return [GRONN, '✓ Klokka er koblet til. Nye økter kommer inn automatisk — den første synken kan ta noen minutter.']
+      case 'denied':
+        return [VARSEL, 'Tilkoblingen ble avbrutt hos klokkeleverandøren. Ingenting er endret — prøv igjen når du vil.']
+      case 'error':
+        return [VARSEL, 'Noe gikk galt hos klokkeleverandøren under tilkoblingen. Prøv igjen — ingenting er endret hos oss.']
+      case 'avslatt':
+        return [VARSEL, 'Klokkesynk via leverandør er slått av for øyeblikket.']
+      case 'ukjent-merke':
+        return [VARSEL, 'Ukjent klokkemerke — velg et merke fra lista under.']
+      case 'feil':
+        return [VARSEL, 'Tilkoblingen kunne ikke startes. Prøv igjen om litt — vedvarer det, si fra til support.']
+      default:
+        return [VARSEL, 'Uventet status fra tilkoblingen. Sjekk lista under om klokka likevel kom inn.']
+    }
+  })()
+  return (
+    <div role="status" className="mb-4 p-3"
+      style={{
+        backgroundColor: `${farge}14`, border: `1px solid ${farge}66`,
+        borderLeft: `3px solid ${farge}`, borderRadius: 10,
+      }}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: farge, fontSize: 14 }}>
+        {tekst}
+      </p>
+    </div>
+  )
+}

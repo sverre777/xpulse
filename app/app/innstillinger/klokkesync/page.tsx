@@ -3,9 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { KlokkesyncView } from '@/components/klokkesync/KlokkesyncView'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { synkConnectionsFraApi } from '@/lib/stridee-api'
 
 interface Props {
-  searchParams: Promise<{ strava?: string; polar?: string; detail?: string }>
+  // status kommer fra klokkesynk-leverandørens return_uri (?status=success|
+  // denied|error), klokke fra vår egen connect-rute ved feil før redirect.
+  searchParams: Promise<{ strava?: string; polar?: string; detail?: string; status?: string; klokke?: string }>
 }
 
 export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
@@ -44,8 +48,27 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
       .maybeSingle(),
     searchParams,
   ])
+  // Retur fra leverandørens tilkoblingsside: ?status=… i return_uri.
+  // Parametrene er USIGNERTE — hvem som helst kan skrive dem i adressefeltet.
+  // Derfor kobles ALDRI noe på dem: ved success spør vi leverandørens API
+  // med vår egen signatur og skriver det DET svarer. Banneret er bare tekst.
+  const leverandorStatus = sp.status ?? sp.klokke ?? null
+  let strideeEtterSynk = strideeSvar?.data ?? null
+  if (sp.status === 'success') {
+    const admin = createAdminClient()
+    const synk = await synkConnectionsFraApi(admin, user.id)
+    if (!synk.ok) console.error(`[klokkesync] leverandor-synk feilet: ${synk.feil}`)
+    // Les lenken på nytt så den ferske tilkoblingen vises i SAMME render.
+    const { data: fersk } = await supabase
+      .from('stridee_link')
+      .select('status, stridee_connections(provider, status, koblet_at)')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (fersk) strideeEtterSynk = fersk
+  }
+
   // Ingen rad, eller tabellen finnes ikke ennå: ingen klokker å vise.
-  const strideeConnections = (strideeSvar?.data?.stridee_connections ?? []) as Array<{
+  const strideeConnections = (strideeEtterSynk?.stridee_connections ?? []) as Array<{
     provider: 'garmin' | 'coros' | 'wahoo' | 'zepp'
     status: 'aktiv' | 'reauth_required' | 'frakoblet'
     koblet_at: string
@@ -79,6 +102,7 @@ export default async function KlokkesyncInnstillinger({ searchParams }: Props) {
           } : null}
           polarStatus={polarStatus}
           strideeConnections={strideeConnections}
+          leverandorStatus={leverandorStatus}
         />
       </div>
     </div>

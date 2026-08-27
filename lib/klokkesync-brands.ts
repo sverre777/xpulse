@@ -38,6 +38,14 @@ export interface KlokkesyncBrand {
    * ett felt per merke, ingen kodeendring.
    */
   logoSrc?: string
+  /** Live, men via tredjeparts-leverandør under utprøving — merkes BETA i UI. */
+  beta?: boolean
+  /**
+   * Merker som går via klokkesynk-leverandøren. Tilkoblet-sjekken slår da
+   * opp i stridee_connections PER PROVIDER — de fire deler lenke-rad, og en
+   * felles connectionTable ville vist alle som tilkoblet når én er det.
+   */
+  via?: 'stridee'
   /** OAuth-inngang. Kun satt for live merker. */
   connectPath?: string
   /** Tabellen som holder brukerens tilkobling. Kun satt for live merker. */
@@ -131,18 +139,142 @@ export const KLOKKESYNC_BRANDS: KlokkesyncBrand[] = [
   {
     slug: 'garmin',
     name: 'Garmin',
-    status: 'kommer',
-    tagline: 'Direkte-synk fra Garmin Connect. Bruk .fit-opplasting i mellomtiden.',
-    accent: 'var(--tekst-5-app)',
+    status: 'live',
+    beta: true,
+    tagline: 'Automatisk import fra Garmin-klokka — via vår klokkesynk-leverandør (beta).',
+    accent: 'var(--tekst-1-app)',
     branding: 'tekst',
+    via: 'stridee',
+    connectPath: '/api/klokkesync/stridee/connect?provider=garmin',
+    intro:
+      'Koble til Garmin én gang. Tilkoblingen går gjennom vår klokkesynk-leverandør ' +
+      '(beta) — du logger inn hos Garmin, og nye økter varsles til oss automatisk. ' +
+      'Vi får originale .fit-filer, samme format som manuell opplasting.',
+    fetches: [
+      'Treningsøkter som originale .fit-filer: sport, varighet, distanse, dato og klokkeslett',
+      'Puls, fart, kadens og høyde slik klokka har lagret det',
+      'Lap-tider der klokka har dem',
+      'Sonefordeling regnes ut hos oss, fra DIN pulsskala',
+    ],
+    stores: [
+      'Økta og de aggregerte verdiene lagres som ved .fit-opplasting',
+      'Vi lagrer ingen profildata (navn, fødselsdato, vekt) fra Garmin-kontoen',
+    ],
+    limits: [
+      'BETA: tilkoblingen er ny og går via en tredjepart under utprøving — si fra om noe ser galt ut',
+      'Aktivitets-importen rulles ut gradvis — tilkoblingen registreres med én gang, og øktene begynner å komme når importen er skrudd på for kontoen din',
+      'Mister leverandøren tilgangen (f.eks. ved passordbytte hos Garmin), varsler vi deg her og du kobler til på nytt',
+    ],
+    deletion: [
+      'Ved frakobling stoppes importen og tilgangen trekkes hos leverandøren',
+      'Økter som allerede er importert beholdes i dagboka di — de er dine',
+      'Du kan alltid laste opp .fit-filer manuelt i stedet',
+    ],
   },
   {
     slug: 'coros',
     name: 'COROS',
-    status: 'kommer',
-    tagline: 'Direkte-synk fra COROS. Bruk .fit-opplasting i mellomtiden.',
-    accent: 'var(--tekst-5-app)',
+    status: 'live',
+    beta: true,
+    tagline: 'Automatisk import fra COROS-klokka — via vår klokkesynk-leverandør (beta).',
+    accent: 'var(--tekst-1-app)',
     branding: 'tekst',
+    via: 'stridee',
+    connectPath: '/api/klokkesync/stridee/connect?provider=coros',
+    intro:
+      'Koble til COROS én gang. Tilkoblingen går gjennom vår klokkesynk-leverandør ' +
+      '(beta) — du logger inn hos COROS, og nye økter varsles til oss automatisk. ' +
+      'Vi får originale .fit-filer, samme format som manuell opplasting.',
+    fetches: [
+      'Treningsøkter som originale .fit-filer: sport, varighet, distanse, dato og klokkeslett',
+      'Puls, fart, kadens og høyde slik klokka har lagret det',
+      'Lap-tider der klokka har dem',
+      'Sonefordeling regnes ut hos oss, fra DIN pulsskala',
+    ],
+    stores: [
+      'Økta og de aggregerte verdiene lagres som ved .fit-opplasting',
+      'Vi lagrer ingen profildata (navn, fødselsdato, vekt) fra COROS-kontoen',
+    ],
+    limits: [
+      'BETA: tilkoblingen er ny og går via en tredjepart under utprøving — si fra om noe ser galt ut',
+      'Aktivitets-importen rulles ut gradvis — tilkoblingen registreres med én gang, og øktene begynner å komme når importen er skrudd på for kontoen din',
+      'Mister leverandøren tilgangen (f.eks. ved passordbytte hos COROS), varsler vi deg her og du kobler til på nytt',
+    ],
+    deletion: [
+      'Ved frakobling stoppes importen og tilgangen trekkes hos leverandøren',
+      'Økter som allerede er importert beholdes i dagboka di — de er dine',
+      'Du kan alltid laste opp .fit-filer manuelt i stedet',
+    ],
+  },
+  {
+    slug: 'wahoo',
+    name: 'Wahoo',
+    status: 'live',
+    beta: true,
+    tagline: 'Automatisk import fra Wahoo-enheten — via vår klokkesynk-leverandør (beta).',
+    accent: 'var(--tekst-1-app)',
+    branding: 'tekst',
+    via: 'stridee',
+    connectPath: '/api/klokkesync/stridee/connect?provider=wahoo',
+    intro:
+      'Koble til Wahoo én gang. Tilkoblingen går gjennom vår klokkesynk-leverandør ' +
+      '(beta) — du logger inn hos Wahoo, og nye økter varsles til oss automatisk. ' +
+      'Vi får originale .fit-filer, samme format som manuell opplasting.',
+    fetches: [
+      'Treningsøkter som originale .fit-filer: sport, varighet, distanse, dato og klokkeslett',
+      'Puls, fart, kadens og høyde slik klokka har lagret det',
+      'Lap-tider der klokka har dem',
+      'Sonefordeling regnes ut hos oss, fra DIN pulsskala',
+    ],
+    stores: [
+      'Økta og de aggregerte verdiene lagres som ved .fit-opplasting',
+      'Vi lagrer ingen profildata (navn, fødselsdato, vekt) fra Wahoo-kontoen',
+    ],
+    limits: [
+      'BETA: tilkoblingen er ny og går via en tredjepart under utprøving — si fra om noe ser galt ut',
+      'Aktivitets-importen rulles ut gradvis — tilkoblingen registreres med én gang, og øktene begynner å komme når importen er skrudd på for kontoen din',
+      'Mister leverandøren tilgangen (f.eks. ved passordbytte hos Wahoo), varsler vi deg her og du kobler til på nytt',
+    ],
+    deletion: [
+      'Ved frakobling stoppes importen og tilgangen trekkes hos leverandøren',
+      'Økter som allerede er importert beholdes i dagboka di — de er dine',
+      'Du kan alltid laste opp .fit-filer manuelt i stedet',
+    ],
+  },
+  {
+    slug: 'zepp',
+    name: 'Zepp',
+    status: 'live',
+    beta: true,
+    tagline: 'Automatisk import fra Zepp/Amazfit-klokka — via vår klokkesynk-leverandør (beta).',
+    accent: 'var(--tekst-1-app)',
+    branding: 'tekst',
+    via: 'stridee',
+    connectPath: '/api/klokkesync/stridee/connect?provider=zepp',
+    intro:
+      'Koble til Zepp én gang. Tilkoblingen går gjennom vår klokkesynk-leverandør ' +
+      '(beta) — du logger inn hos Zepp, og nye økter varsles til oss automatisk. ' +
+      'Vi får originale .fit-filer, samme format som manuell opplasting.',
+    fetches: [
+      'Treningsøkter som originale .fit-filer: sport, varighet, distanse, dato og klokkeslett',
+      'Puls, fart, kadens og høyde slik klokka har lagret det',
+      'Lap-tider der klokka har dem',
+      'Sonefordeling regnes ut hos oss, fra DIN pulsskala',
+    ],
+    stores: [
+      'Økta og de aggregerte verdiene lagres som ved .fit-opplasting',
+      'Vi lagrer ingen profildata (navn, fødselsdato, vekt) fra Zepp-kontoen',
+    ],
+    limits: [
+      'BETA: tilkoblingen er ny og går via en tredjepart under utprøving — si fra om noe ser galt ut',
+      'Aktivitets-importen rulles ut gradvis — tilkoblingen registreres med én gang, og øktene begynner å komme når importen er skrudd på for kontoen din',
+      'Mister leverandøren tilgangen (f.eks. ved passordbytte hos Zepp), varsler vi deg her og du kobler til på nytt',
+    ],
+    deletion: [
+      'Ved frakobling stoppes importen og tilgangen trekkes hos leverandøren',
+      'Økter som allerede er importert beholdes i dagboka di — de er dine',
+      'Du kan alltid laste opp .fit-filer manuelt i stedet',
+    ],
   },
   {
     slug: 'suunto',

@@ -99,6 +99,16 @@ function BrandRow({ brand, connected }: { brand: KlokkesyncBrand; connected: boo
           letterSpacing: '0.06em', color: 'var(--tekst-1-app)',
         }}>
           {brand.name}
+          {brand.beta && (
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9,
+              fontWeight: 700, letterSpacing: '0.14em', color: '#E8B93C',
+              border: '1px solid rgba(232,185,60,0.4)', borderRadius: 5,
+              padding: '1px 6px', marginLeft: 8, verticalAlign: 'middle',
+            }}>
+              BETA
+            </span>
+          )}
         </div>
         <div style={{
           fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5,

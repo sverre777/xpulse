@@ -20,7 +20,7 @@ import { FIT_MAX_BYTES, formatMB } from '@/lib/fit-limits'
 import { ConflictModal } from './ConflictModal'
 import { KlokkesyncBrandPicker } from './KlokkesyncBrandPicker'
 import { PolarStatusBanner, PolarConnectionBlock, type PolarConn } from './PolarStatus'
-import { StrideeReauthVarsel, StrideeConnectionListe, type StrideeConnection } from './StrideeStatus'
+import { StrideeReauthVarsel, StrideeConnectionListe, StrideeCallbackBanner, type StrideeConnection } from './StrideeStatus'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 
 interface StravaConn {
@@ -40,6 +40,8 @@ interface Props {
   polarConnection?: PolarConn | null
   /** Klokker koblet via klokkesynk-leverandøren (BETA). Tom liste = ingen. */
   strideeConnections?: StrideeConnection[]
+  /** ?status=/-?klokke=-param etter tilkoblingsforsøk. Ren tekst, styrer ingenting. */
+  leverandorStatus?: string | null
   polarStatus?: string | null
 }
 
@@ -54,17 +56,23 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 
 export function KlokkesyncView({
   stravaConnection, status, detail, polarConnection = null, polarStatus = null,
-  strideeConnections = [],
+  strideeConnections = [], leverandorStatus = null,
 }: Props) {
-  const hasConnection = !!stravaConnection || !!polarConnection
+  // Leverandør-klokkene teller PER PROVIDER — frakoblede rader teller ikke.
+  const strideeSlugs = [...new Set(
+    strideeConnections.filter(c => c.status !== 'frakoblet').map(c => c.provider),
+  )]
+  const hasConnection = !!stravaConnection || !!polarConnection || strideeSlugs.length > 0
   const connectedSlugs = [
     ...(stravaConnection ? ['strava'] : []),
     ...(polarConnection ? ['polar'] : []),
+    ...strideeSlugs,
   ]
   return (
     <div className="space-y-8">
       {/* Reauth-varselet står ØVERST: en klokke som stille slutter å synke
           er den verste feilen i integrasjonen. */}
+      <StrideeCallbackBanner status={leverandorStatus} />
       <StrideeReauthVarsel connections={strideeConnections} />
       <PolarStatusBanner status={polarStatus} detail={detail} />
 

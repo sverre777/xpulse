@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-PULSE — synk-raden på heroen · designutkast</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0A0A0B; --orange:#FF4500; --blue:#1A6FD4; --green:#28A86E; --amber:#E8B93C;
+  --paper:#F2F2F0; --dim:rgba(242,242,240,.62); --hair:rgba(242,242,240,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0A0B;color:var(--paper);font-family:'Barlow Condensed',system-ui,sans-serif;padding:34px 20px 90px}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:.02em;line-height:1}
+h1 em{font-style:normal;color:var(--orange)}
+.sub{color:var(--dim);font-size:17px;max-width:70ch;margin-top:9px;line-height:1.45}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+button,label.up{font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;background:transparent;color:var(--paper);border:1px solid var(--hair);padding:10px 17px;border-radius:9px}
+button:hover,label.up:hover{border-color:var(--orange);color:var(--orange)}
+label.up input{display:none}
+button.on{background:var(--orange);border-color:var(--orange);color:#fff}
+
+.vlabel{margin:52px 0 14px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.vlabel h2{font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:.05em}
+.vlabel h2 em{font-style:normal;color:var(--orange)}
+.vlabel .tag{font-size:11.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;border:1px solid rgba(40,168,110,.5);color:var(--green);background:rgba(40,168,110,.1);border-radius:999px;padding:4px 11px}
+.vlabel p{color:var(--dim);font-size:15.5px;flex:1 1 320px}
+
+/* ===== hero-flate (demoscene) ===== */
+.stage{position:relative;border-radius:20px;overflow:hidden;border:1px solid #1F1F26;display:flex;align-items:center;justify-content:center;padding:52px 30px}
+.stage .bg{position:absolute;inset:0;background-size:cover;background-position:center;
+  background-image:linear-gradient(180deg,#243040 0%,#3d4a3a 42%,#2b2a24 70%,#15161a 100%);}
+.stage .bg::after{content:'';position:absolute;inset:0;
+  background:
+   radial-gradient(120% 80% at 20% 15%, rgba(120,150,170,.35), transparent 60%),
+   radial-gradient(90% 60% at 78% 30%, rgba(90,110,80,.4), transparent 65%),
+   radial-gradient(140% 90% at 50% 105%, rgba(20,20,22,.95), transparent 60%);}
+.stage .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,11,.42),rgba(10,10,11,.72))}
+.stage .inner{position:relative;z-index:2;width:100%}
+
+.eyeb{font-size:12.5px;font-weight:800;letter-spacing:.32em;text-transform:uppercase;color:rgba(242,242,240,.5);text-align:center;margin-bottom:16px}
+.note{text-align:center;font-size:13px;color:rgba(242,242,240,.38);margin-top:16px}
+.note b{color:rgba(242,242,240,.6);font-weight:600}
+
+/* ===================================================================
+   SYNK-RADEN — produksjonskoden. Container query, ikke media query:
+   raden bryter etter sin EGEN bredde, ikke skjermens.
+   =================================================================== */
+.syncrow{container-type:inline-size;width:100%}
+.syncrow .row{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
+
+.chip{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:9px 15px 8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 6px 22px rgba(0,0,0,.35);
+  transition:border-color .18s ease, transform .18s ease, background .18s ease;
+  white-space:nowrap;
+}
+.chip:hover{border-color:rgba(255,255,255,.24);transform:translateY(-2px);
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.045))}
+
+.chip .top{display:inline-flex;align-items:center;gap:9px}
+.chip .dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:var(--green);color:var(--green);box-shadow:0 0 8px currentColor}
+.chip .nm{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.14em;color:var(--paper);line-height:1}
+.chip .beta{
+  font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(242,242,240,.55);
+  border:1px solid rgba(255,255,255,.18);border-radius:5px;
+  padding:3px 6px 2px;line-height:1;margin-left:1px;
+}
+.chip .strava{display:flex;flex-direction:column;gap:2px;line-height:1}
+.chip .strava i{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.16em;color:rgba(242,242,240,.45)}
+.chip .strava b{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.1em;font-weight:400}
+
+/* 3 + 3 når raden blir smal — rutenett, ikke fri flyt */
+.syncrow .brk{flex-basis:100%;height:0;display:none}
+
+@container (max-width: 620px){
+  .syncrow .row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;justify-items:stretch}
+  .syncrow .brk{display:none}
+  .chip{flex-direction:column;justify-content:center;gap:5px;padding:10px 6px 9px;border-radius:11px}
+  .chip .top{gap:6px}
+  .chip .nm{font-size:15.5px;letter-spacing:.1em}
+  .chip .strava b{font-size:15.5px}
+  .chip .strava i{font-size:7px;letter-spacing:.12em}
+  .chip .beta{font-size:7.5px;padding:2px 5px 1px;margin-left:0}
+}
+@container (max-width: 380px){
+  .syncrow .row{gap:6px}
+  .chip{padding:9px 4px 8px}
+  .chip .nm{font-size:14px}
+  .chip .strava b{font-size:14px}
+}
+
+/* ===== mobilramme for forhåndsvisning ===== */
+.mobwrap{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:16px}
+.phone{width:390px;flex:0 0 auto;border:1px solid #2A2A33;border-radius:38px;padding:11px;background:#0C0C0F;box-shadow:0 26px 70px rgba(0,0,0,.6)}
+.phone .scr{border-radius:28px;overflow:hidden;position:relative;min-height:230px;display:flex;align-items:center;padding:26px 14px}
+.phone .cap{text-align:center;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#55555F;margin-top:12px}
+.mobnote{flex:1 1 300px;color:var(--dim);font-size:16px;line-height:1.5}
+.mobnote b{color:var(--paper);font-weight:600}
+
+/* ===== notat ===== */
+.rules{margin-top:64px;border-top:1px solid var(--hair);padding-top:26px}
+.rules h2{font-family:'Bebas Neue',sans-serif;font-size:29px;letter-spacing:.04em}
+.rules h2 em{font-style:normal;color:var(--orange)}
+.rules h3{font-size:17px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--paper);margin-top:26px}
+.rules ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:9px}
+.rules li{color:var(--dim);font-size:16px;line-height:1.45;display:flex;gap:11px;align-items:flex-start}
+.rules li::before{content:'';width:6px;height:6px;border-radius:2px;background:var(--orange);flex:0 0 auto;margin-top:8px}
+.rules li b{color:var(--paper);font-weight:600}
+.rules li.no::before{background:#E23A5A}
+.rules li.ok::before{background:var(--green)}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#9FB6D0;background:#101014;border:1px solid #1F1F26;border-radius:10px;padding:14px 16px;margin-top:12px;overflow-x:auto;white-space:pre;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Synk-raden på <em>heroen</em></h1>
+  <p class="sub">Én linje på desktop, to på mobil. Alle seks merker med grønn status — BETA-merke bare på de fire som går via klokkesynk-leverandøren. Last opp det faktiske hero-bildet for å se glasset mot riktig bakgrunn.</p>
+
+  <div class="tools">
+    <label class="up">Last opp bakgrunn<input type="file" accept="image/*" id="bgup"></label>
+    <button onclick="setBg('')">Nullstill bakgrunn</button>
+    <button id="blurBtn" onclick="toggleBlur()">Slå av blur (fallback-test)</button>
+  </div>
+
+  <!-- ============ DESKTOP ============ -->
+  <div class="vlabel">
+    <h2>Desktop — <em>én linje</em></h2>
+    <span class="tag">Fasit</span>
+    <p>Seks piller, samme høyde, ett grønt punkt hver. BETA-merket er dempet med vilje — det er en fotnote, ikke en advarsel.</p>
+  </div>
+  <div class="stage">
+    <div class="bg"></div><div class="veil"></div>
+    <div class="inner">
+      <div class="eyeb">Synker med</div>
+      <div class="syncrow">
+        <div class="row">
+          <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Polar</span></span></span>
+          <span class="chip"><span class="top"><span class="dot"></span><span class="strava"><i>Compatible with</i><b>STRAVA</b></span></span></span>
+          <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Garmin</span></span><span class="beta">Beta</span></span>
+          <span class="brk"></span>
+          <span class="chip"><span class="top"><span class="dot"></span><span class="nm">COROS</span></span><span class="beta">Beta</span></span>
+          <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Wahoo</span></span><span class="beta">Beta</span></span>
+          <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Zepp</span></span><span class="beta">Beta</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MOBIL ============ -->
+  <div class="vlabel">
+    <h2>Mobil — <em>to linjer</em></h2>
+    <p>Bruddet er styrt, ikke tilfeldig: 3 + 3, med Strava på første linje.</p>
+  </div>
+  <div class="mobwrap">
+    <div>
+      <div class="phone">
+        <div class="scr stage" style="border:none;border-radius:28px;padding:26px 14px">
+          <div class="bg"></div><div class="veil"></div>
+          <div class="inner">
+            <div class="eyeb" style="font-size:11px;letter-spacing:.28em">Synker med</div>
+            <div class="syncrow">
+              <div class="row">
+                <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Polar</span></span></span>
+                <span class="chip"><span class="top"><span class="dot"></span><span class="strava"><i>Compatible with</i><b>STRAVA</b></span></span></span>
+                <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Garmin</span></span><span class="beta">Beta</span></span>
+                <span class="brk"></span>
+                <span class="chip"><span class="top"><span class="dot"></span><span class="nm">COROS</span></span><span class="beta">Beta</span></span>
+                <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Wahoo</span></span><span class="beta">Beta</span></span>
+                <span class="chip"><span class="top"><span class="dot"></span><span class="nm">Zepp</span></span><span class="beta">Beta</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">390 px</div>
+    </div>
+    <p class="mobnote">Under 620 px bytter raden fra fri flyt til et <b>3 × 2-rutenett</b>. Da er to linjer garantert — fri flyt ga fire linjer på 390 px fordi pillene har ulik bredde. BETA-merket legger seg under merkenavnet så cellene holder seg smale.<br><br>Fordi det er en <b>container query</b> og ikke en media query, bryter raden etter sin egen bredde. Da oppfører den seg riktig også hvis heroen senere får en smalere spalte på desktop.</p>
+  </div>
+
+  <!-- ============ NOTAT ============ -->
+  <div class="rules">
+    <h2>Notat — <em>regler</em></h2>
+
+    <h3>Status</h3>
+    <ul>
+      <li class="ok">Alle seks har <b>grønt punkt</b> — de synker alle direkte i dag. Punktet gløder i sin egen farge, ikke hvitt.</li>
+      <li>De fire Stridee-merkene får <b>BETA</b> i en dempet ramme (55 % hvit). Dempet med vilje: merkenavnet er budskapet, betaen er forbeholdet.</li>
+      <li>Når betaen er over, fjernes bare de fire <b>&lt;span class="beta"&gt;</b> — ingen annen endring.</li>
+      <li>Dagens fargede venstrekant utgår. Seks konkurrerende aksenter i en rad som skal være rolig.</li>
+    </ul>
+
+    <h3>Merkevare</h3>
+    <ul>
+      <li class="ok"><b>Strava</b> er det eneste merket som har lov til grafisk merking. Teksten «Compatible with STRAVA» her er en <b>plassholder</b> — bytt inn den offisielle SVG-en (hvit variant på mørk flate) fra developers.strava.com/guidelines. Aldri omfarget, strukket eller animert.</li>
+      <li class="no"><b>Polar</b> har ikke skriftlig klarering ennå (AccessLink-avtalen begrenser logobruk). Ren tekst til polar@miltton.com svarer.</li>
+      <li class="no"><b>Garmin, COROS, Wahoo og Zepp</b> — tekst, ikke logo. Størrelse gir ikke tillatelse.</li>
+      <li>Ingen merker mer fremtredende enn X-PULSE-logoen. Klokkesynk-leverandøren navngis ikke på heroen, men <b>skal navngis som databehandler i personvern og vilkår</b>.</li>
+    </ul>
+
+    <h3>Glasset</h3>
+    <ul>
+      <li>Lys på lys, ikke mørk boks: hvit gradient 7,5 % → 3 %, kant på 12 %, og innvendig topplinje på 12 % som gir kanten liv.</li>
+      <li><b>saturate(140%)</b> sammen med blur er det som får bildet bak til å se ut som glass i stedet for tåke.</li>
+      <li>Glass krever noe bak seg. Mot ren svart flate blir det nesten usynlig — bruk da kant på 18 %.</li>
+      <li><b>Fallback:</b> uten backdrop-filter blir pillen bare gjennomsiktig. Test med knappen øverst, og legg ev. inn en solid <span style="color:#9FB6D0">rgba(16,16,20,.72)</span> under <span style="color:#9FB6D0">@supports not (backdrop-filter: blur(1px))</span>.</li>
+    </ul>
+
+    <div class="code">/* raden */
+.syncrow { container-type: inline-size; }
+.syncrow .row { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; }
+.syncrow .brk { flex-basis:100%; height:0; display:none; }
+
+@container (max-width: 620px) { .syncrow .brk { display:block; } }
+
+/* pillen */
+.chip {
+  display:inline-flex; align-items:center; gap:9px;
+  padding:9px 15px 8px; border-radius:13px; white-space:nowrap;
+  background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 6px 22px rgba(0,0,0,.35);
+}
+.chip .dot  { width:6px; height:6px; border-radius:50%; background:#28A86E;
+              color:#28A86E; box-shadow:0 0 8px currentColor; }
+.chip .beta { font-size:9px; font-weight:800; letter-spacing:.15em; text-transform:uppercase;
+              color:rgba(242,242,240,.55); border:1px solid rgba(255,255,255,.18);
+              border-radius:5px; padding:3px 6px 2px; }</div>
+  </div>
+
+</div>
+
+<script>
+function setBg(url){
+  document.querySelectorAll('.bg').forEach(b=>{
+    b.style.backgroundImage = url ? `url(${url})` : '';
+  });
+}
+document.getElementById('bgup').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>setBg(r.result);
+  r.readAsDataURL(f);
+});
+let blurOn=true;
+function toggleBlur(){
+  blurOn=!blurOn;
+  document.querySelectorAll('.chip').forEach(g=>{
+    g.style.backdropFilter = blurOn ? '' : 'none';
+    g.style.webkitBackdropFilter = blurOn ? '' : 'none';
+  });
+  const b=document.getElementById('blurBtn');
+  b.textContent = blurOn ? 'Slå av blur (fallback-test)' : 'Slå på blur';
+  b.classList.toggle('on',!blurOn);
+}
+</script>
+</body>
+</html>

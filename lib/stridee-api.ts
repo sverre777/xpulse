@@ -61,6 +61,76 @@ async function strideeKall<T>(input: KallInput): Promise<{ data?: T; feil?: stri
   }
 }
 
+/** Største fil vi laster ned. En times økt med 1s-opptak er ~0,5 MB —
+ * 20 MB rommer selv fjelløkter på mange timer, og stopper det som ikke
+ * er en aktivitetsfil. */
+const STRIDEE_FIL_MAKS_BYTE = 20 * 1024 * 1024
+
+/**
+ * Laster ned en originalfil (FIT) fra hendelsens data.file.url.
+ *
+ * Dokumentert flyt (/docs/events): URL-en i hendelsen utløper ALDRI og er
+ * et vanlig signert kall; svaret er 302 til en kortlevd URL som bærer sin
+ * egen autorisasjon. Vi følger redirecten MANUELT: signaturen vår er bundet
+ * til @target-uri og ville uansett vært ugyldig for redirect-målet, og
+ * målet trenger den ikke.
+ *
+ * URL-en må ligge under vårt API-base. Den kommer riktignok fra en
+ * verifisert og dekryptert levering, men vi signerer aldri kall mot en
+ * adresse payloaden selv har valgt utenfor leverandørens vert.
+ */
+export async function lastNedStrideeFil(
+  filUrl: string,
+): Promise<{ data?: Buffer; feil?: string }> {
+  if (!filUrl.startsWith(`${STRIDEE_API_BASE}/`)) {
+    return { feil: `fil-URL utenfor leverandørens API avvist (${filUrl.slice(0, 40)}…)` }
+  }
+  const nokkel = lesSigneringsnokkel()
+  if ('feil' in nokkel) return { feil: nokkel.feil }
+
+  const signatur = await signerStrideeKall({
+    metode: 'GET', url: filUrl,
+    nokkel: nokkel.nokkel, keyid: nokkel.keyid,
+  })
+  let hopp: Response
+  try {
+    hopp = await fetch(filUrl, {
+      method: 'GET',
+      headers: {
+        'Signature-Input': signatur['Signature-Input'],
+        'Signature': signatur['Signature'],
+      },
+      redirect: 'manual',
+    })
+  } catch (e) {
+    return { feil: `nettverksfeil mot leverandøren: ${e instanceof Error ? e.message : String(e)}` }
+  }
+
+  let filSvar: Response
+  if (hopp.status >= 300 && hopp.status < 400) {
+    const mål = hopp.headers.get('location')
+    if (!mål) return { feil: `302 uten Location fra ${filUrl.slice(0, 60)}` }
+    try {
+      filSvar = await fetch(mål)
+    } catch (e) {
+      return { feil: `nedlasting fra kortlevd URL feilet: ${e instanceof Error ? e.message : String(e)}` }
+    }
+  } else if (hopp.ok) {
+    // Skulle de begynne å svare 200 med bytes direkte, tar vi det også.
+    filSvar = hopp
+  } else {
+    return { feil: `leverandøren svarte ${hopp.status} på fil-kallet` }
+  }
+
+  if (!filSvar.ok) return { feil: `fil-nedlastingen svarte ${filSvar.status}` }
+  const bytes = Buffer.from(await filSvar.arrayBuffer())
+  if (bytes.length === 0) return { feil: 'fila var tom' }
+  if (bytes.length > STRIDEE_FIL_MAKS_BYTE) {
+    return { feil: `fila er ${(bytes.length / 1048576).toFixed(1)} MB — grensen er 20 MB` }
+  }
+  return { data: bytes }
+}
+
 export interface ConnectSvar {
   connect_url: string
   user_id: string

@@ -127,7 +127,7 @@ export async function prosesserKontoHendelser(
   return res
 }
 
-async function merkBehandlet(db: SupabaseClient, id: string, feil: string | null) {
+export async function merkBehandlet(db: SupabaseClient, id: string, feil: string | null) {
   if (feil) {
     // Feil: la den være ubehandlet så den prøves igjen, men noter grunnen.
     const { data } = await db.from('stridee_events').select('attempts').eq('id', id).maybeSingle()

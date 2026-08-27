@@ -248,9 +248,18 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
   // bakoverkomp med andre kallere, men UI bruker modalen + API-rute.
   void disconnectStrava
 
+  const [autoSyncFeil, setAutoSyncFeil] = useState<string | null>(null)
   const handleAutoSyncToggle = () => {
+    setAutoSyncFeil(null)
     startTransition(async () => {
-      await setStravaAutoSync(!conn.auto_sync)
+      // Feil ble slukt stille her — vises nå med årsaken, så en feilmelding
+      // faktisk kan feilsøkes i stedet for å bare «komme opp».
+      const res = await setStravaAutoSync(!conn.auto_sync)
+      if ('error' in res) {
+        console.error('[strava-autosync]', res.error)
+        setAutoSyncFeil(res.error)
+        return
+      }
       router.refresh()
     })
   }
@@ -314,6 +323,15 @@ function StravaConnected({ conn }: { conn: StravaConn }) {
         <input type="checkbox" checked={conn.auto_sync} onChange={handleAutoSyncToggle} disabled={pending} />
         Auto-synk nye aktiviteter (sjekkes hver 5. min)
       </label>
+      {autoSyncFeil && (
+        <p className="text-xs -mt-2 mb-4 px-3 py-2"
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48',
+            border: '1px solid rgba(225,29,72,0.4)', borderRadius: 8,
+          }}>
+          Kunne ikke endre auto-synk: {autoSyncFeil}
+        </p>
+      )}
 
       {/* Kompakt regel-påminnelse — vises etter tilkobling som lite-dominant
           motvekt til StravaInfoBox-en (som vises før tilkobling). */}

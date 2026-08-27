@@ -8,6 +8,9 @@
 (function(){try{var FOLG_OS=false;var v=localStorage.getItem('xpulse-tema');
 if(v!=='mork'&&v!=='lys'){v=FOLG_OS&&matchMedia('(prefers-color-scheme: light)').matches?'lys':'mork';}
 document.documentElement.dataset.tema=v;}catch(e){}})()</script>
+<script>/* Interaktiv hero: animasjon er forsterkning, aldri gate. All
+   skjult-fra-start-CSS er gated på html.js — uten JS er alt synlig. */
+document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>X-PULSE – Treningsdagbok og planlegger for utholdenhetsutøvere</title>
@@ -369,8 +372,8 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 }
 
 /* ── INNI APPEN (nye mockups) ── */
-.inside-grid{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(0,.66fr) 206px;gap:20px;margin-top:38px;align-items:start}
-@media(max-width:1100px){.inside-grid{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}.phone{display:none}}
+.inside-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;margin-top:38px;align-items:start}
+@media(max-width:1100px){.inside-grid{grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr)}}
 .phone{border:1px solid var(--line2);border-radius:26px;background:var(--bg8);padding:10px 10px 14px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .phone .notch{width:74px;height:5px;border-radius:3px;background:var(--surface2);margin:4px auto 10px}
 .phone .ph-h{font:400 14px 'Bebas Neue';letter-spacing:.12em;color:var(--dim);padding:0 6px 8px;display:flex;justify-content:space-between}
@@ -381,7 +384,16 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .pokt.plan{border:1.2px dashed var(--line4);border-left:1.2px dashed var(--line4);background:transparent}
 .pokt.komp{border-left-color:#D4A017;background:rgba(212,160,23,.09);color:#E8B93C}
 .pokt .pm{display:block;color:var(--mute);font-size:9.5px;font-weight:400}
-@media(max-width:900px){.inside-grid{grid-template-columns:1fr}.calcard{display:none}.inside-grid .phone{display:block;width:100%;max-width:320px;margin:0 auto;order:-1}}
+@media(max-width:900px){.inside-grid{grid-template-columns:1fr}
+  /* PC-visningen skjules IKKE lenger på smale skjermer (notat-regelen):
+     uka får horisontal scroll i stedet, så begge visninger kan ses. */
+  /* Grid-items har min-width:auto — uten min-width:0 blåser kalenderens
+     min-bredde opp slotten og gir hele SIDA horisontal scroll. */
+  .islot{min-height:600px;min-width:0;max-width:100%}
+  .islot .calcard{max-width:100%}
+  .islot .calcard .app-b{overflow-x:auto}
+  .islot .cal{min-width:540px}
+  .inside-grid .phone{width:100%;max-width:320px;margin:0 auto}}
 .app{border:1px solid var(--line2);background:var(--surface);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .app-h{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line)}
 .app-h .beam{width:22px;height:4px;border-radius:2px;background:var(--orange)}
@@ -922,6 +934,64 @@ nav {
 #nytt, #trener, #faq { background:var(--surface) }
 #problem, #priser { background:var(--bg9) }
 #sports, .drow, .dwrap { background:var(--bg9) }
+
+/* ═══ Interaktiv hero — design/xpulse-hero-interaktiv-design.html er fasit
+   for oppførsel og timing. Kun opacity/transform animeres; alle
+   skjult-fra-start-tilstander er gated på html.js. ═══ */
+
+/* Tall-opptellingen: tabular-nums så sifrene ikke dirrer i bredden mens
+   det telles. Suffikser finnes ikke i dagens tall. */
+.proof .n{font-variant-numeric:tabular-nums}
+
+/* Flyt-stripa */
+.iflow-sec{padding:36px 0 6px}
+.iflow{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:8px}
+.istep{flex:1;min-width:130px;text-align:center;position:relative;transition:opacity .35s}
+html.js .istep{opacity:.28}
+html.js .istep.vis{opacity:1}
+.istep::before{content:'';position:absolute;top:23px;left:calc(50% + 26px);right:calc(-50% + 26px);height:2px;background:var(--line2)}
+.istep:last-child::before{display:none}
+.istep.vis::before{background:linear-gradient(90deg,var(--orange),var(--line2))}
+.idot{width:46px;height:46px;border-radius:50%;border:2px solid var(--line2);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative;z-index:1;transition:border-color .35s}
+.istep.vis .idot{border-color:var(--orange)}
+.idot svg{width:20px;height:20px;stroke:var(--paper);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.istep h4{font:700 15px 'Barlow Condensed';letter-spacing:.12em;margin:0 0 3px}
+.istep p{color:var(--mute);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0}
+
+/* PC/mobil-bryteren */
+.vtoggle{display:inline-flex;gap:0;margin:26px 0 4px;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--surface)}
+.vtoggle button{appearance:none;border:0;background:transparent;color:var(--dim);
+  font:700 15px 'Barlow Condensed';letter-spacing:.14em;
+  padding:10px 26px;border-radius:999px;transition:background .18s,color .18s;
+  display:flex;align-items:center;gap:8px}
+.vtoggle button svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+.vtoggle button[aria-pressed="true"]{background:var(--orange);color:#fff}
+.vtoggle button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+/* Slotten: fast min-høyde — ingenting under skal hoppe når det byttes.
+   Panene bytter med opacity/transform; av-panelet ligger absolutt. */
+.islot{position:relative;min-height:560px}
+.ipane{position:absolute;inset:0 0 auto 0;opacity:0;transform:translateX(14px) scale(.99);pointer-events:none;transition:opacity .28s,transform .28s}
+.ipane.on{position:relative;opacity:1;transform:none;pointer-events:auto}
+.islot .phone{max-width:340px;margin:0 auto}
+
+/* Skuddene — pop-easing fra utkastet; transform-box trengs for SVG */
+html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
+  transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
+html.js .ishot.vis{opacity:1;transform:scale(1)}
+
+/* Problemkortene + svaret */
+html.js .prob{opacity:0;transform:translateY(22px);transition:opacity .38s ease,transform .38s ease}
+html.js .prob.vis{opacity:1;transform:none}
+html.js .solution{opacity:0;transform:translateY(16px);transition:opacity .4s .1s,transform .4s .1s}
+html.js .solution.vis{opacity:1;transform:none}
+
+@media (prefers-reduced-motion: reduce){
+  .ipane,.ishot,.prob,.solution,.istep,.idot{transition:none !important}
+  html.js .ishot,html.js .prob,html.js .solution{opacity:1;transform:none}
+  html.js .istep{opacity:1}
+}
 </style>
 </head>
 <body>
@@ -1058,10 +1128,10 @@ nav {
     </div>
     <div class="hfree"><b>30 dager gratis</b> — Kort, Klarna eller Apple Pay. Ingen bindingstid.</div>
     <div class="proof">
-      <div><div class="n">58</div><div class="t">Ferdige øktmaler fra OLT-skalaen</div></div>
-      <div><div class="n">287</div><div class="t">Øvelser i styrke­biblioteket</div></div>
-      <div><div class="n">7</div><div class="t">Idretter med egne verktøy</div></div>
-      <div><div class="n">6</div><div class="t">Merker med direktesynk</div></div>
+      <div><div class="n" data-mal="58">58</div><div class="t">Ferdige øktmaler fra OLT-skalaen</div></div>
+      <div><div class="n" data-mal="287">287</div><div class="t">Øvelser i styrke­biblioteket</div></div>
+      <div><div class="n" data-mal="7">7</div><div class="t">Idretter med egne verktøy</div></div>
+      <div><div class="n" data-mal="6">6</div><div class="t">Merker med direktesynk</div></div>
     </div>
   </div>
 <div class="syncrow">
@@ -1135,6 +1205,35 @@ nav {
 </div>
 </header>
 
+<!-- ═══ FLYT-STRIPA — hele sløyfa, fem steg. Fra designutkastet
+     (design/xpulse-hero-interaktiv-design.html); lyser opp i rekkefølge. -->
+<section class="iflow-sec" aria-label="Slik henger det sammen">
+  <div class="wrap">
+    <div class="iflow" id="flowSec">
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+        <h4>PLANLEGG</h4><p>Årsplan, uker og økter — maler eller egne.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/></svg></div>
+        <h4>TREN</h4><p>Gjennomfør. Live styrke om du vil.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2M12 2v3M12 19v3"/></svg></div>
+        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv — puls, runder, søvn.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat — det klokka ikke vet.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 16V5"/></svg></div>
+        <h4>ANALYSER</h4><p>Én dagbok. Analysen ser hele bildet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="devnote">Garmin, COROS, Wahoo og Zepp synker nå <b>direkte</b> (beta). Og uansett klokkemerke: last opp <b>.fit-filer</b> — inkl. Suunto — med full pulskurve, lap-data og sonefordeling.</div>
 
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->
@@ -1144,7 +1243,22 @@ nav {
     <h2>SLIK SER DET <span class="o">FAKTISK UT.</span></h2>
     <p class="lead">Ikke skisser. Dette er kalenderen og øktføringen slik de er i appen — planlagt trening ligger stiplet, gjennomført ligger fylt, og planen står urørt uansett hva dagen ble.</p>
 
+    <div class="vtoggle" role="group" aria-label="Velg visning">
+      <button type="button" id="btnPc" aria-pressed="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        PC-VISNING
+      </button>
+      <button type="button" id="btnMob" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
+        MOBILVISNING
+      </button>
+    </div>
+
     <div class="inside-grid">
+      <!-- VENSTRE SLOT: bryteren bytter uke-kalender ↔ telefon-dagbok.
+           LIVE STYRKEØKT står ALLTID uendret ved siden av. -->
+      <div class="islot">
+      <div class="ipane on" id="panePc">
       <div class="app calcard">
         <div class="app-h"><span class="beam"></span><h4>DAGBOK · UKE 34</h4><span class="aux">9:20 t · 6 økter</span></div>
         <div class="app-b">
@@ -1184,6 +1298,21 @@ nav {
           <p class="cal-note"><i>Stiplet = planlagt · fylt = gjennomført · gull = konkurranse fra årsplanen.</i> Stripa over uka er PERIODEN fra årsplanen — grønn grunnperiode, gull konkurransehelg. Du huker av, noterer avvik — og planen forblir planen.</p>
         </div>
       </div>
+      </div>
+      <div class="ipane" id="paneMob">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="ph-h">DAGBOK <span>UKE 34</span></div>
+        <div class="pper" style="color:var(--green)">● Grunnperiode · 17.–21. aug</div>
+        <div class="pday"><div class="d">MANDAG 17.</div><div class="pokt">Rolig 60 min<span class="pm">Løping · ✓ som planlagt</span></div></div>
+        <div class="pday"><div class="d">TIRSDAG 18.</div><div class="pokt" style="border-left-color:var(--i3)">6 × 6 min I3<span class="pm">Rulleski · 1:26 · RPE 7</span></div><div class="pokt">Styrke basis<span class="pm">45 min · 4 350 kg</span></div></div>
+        <div class="pday"><div class="d">ONSDAG 19.</div><div class="pokt plan">Hvile<span class="pm">Søvn 7:42 · hvilepuls 44</span></div></div>
+        <div class="pday"><div class="d">TORSDAG 20.</div><div class="pokt" style="border-left-color:var(--i5)">Hard komb 5×4<span class="pm">Skiskyting · 18/20 treff</span></div></div>
+        <div class="pper" style="color:#E8B93C">● Konk.helg · 22.–23. aug</div>
+        <div class="pday"><div class="d">SØNDAG 23.</div><div class="pokt komp">🏁 NC Simostranda<span class="pm">Jaktstart · A-løp</span></div></div>
+      </div>
+      </div>
+      </div>
 
       <div class="app">
         <div class="app-h"><span class="beam gold"></span><h4>LIVE STYRKEØKT</h4><span class="aux">⏱ 12:47</span></div>
@@ -1202,17 +1331,7 @@ nav {
         </div>
       </div>
 
-      <div class="phone">
-        <div class="notch"></div>
-        <div class="ph-h">DAGBOK <span>UKE 34</span></div>
-        <div class="pper" style="color:var(--green)">● Grunnperiode · 17.–21. aug</div>
-        <div class="pday"><div class="d">MANDAG 17.</div><div class="pokt">Rolig 60 min<span class="pm">Løping · ✓ som planlagt</span></div></div>
-        <div class="pday"><div class="d">TIRSDAG 18.</div><div class="pokt" style="border-left-color:var(--i3)">6 × 6 min I3<span class="pm">Rulleski · 1:26 · RPE 7</span></div><div class="pokt">Styrke basis<span class="pm">45 min · 4 350 kg</span></div></div>
-        <div class="pday"><div class="d">ONSDAG 19.</div><div class="pokt plan">Hvile<span class="pm">Søvn 7:42 · hvilepuls 44</span></div></div>
-        <div class="pday"><div class="d">TORSDAG 20.</div><div class="pokt" style="border-left-color:var(--i5)">Hard komb 5×4<span class="pm">Skiskyting · 18/20 treff</span></div></div>
-        <div class="pper" style="color:#E8B93C">● Konk.helg · 22.–23. aug</div>
-        <div class="pday"><div class="d">SØNDAG 23.</div><div class="pokt komp">🏁 NC Simostranda<span class="pm">Jaktstart · A-løp</span></div></div>
-      </div>
+
     </div>
 
       </div>
@@ -1308,13 +1427,13 @@ nav {
         </div>
         <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie — analysen viser treff mot forholdene, over hele sesongen.</p>
       </div>
-      <div class="blinkwrap">
+      <div class="blinkwrap" id="shootSec">
         <svg width="230" height="230" viewBox="0 0 200 200">
           <circle cx="100" cy="100" r="86" fill="var(--bg3)" stroke="var(--line2)" stroke-width="2"/>
           <circle cx="100" cy="100" r="40" fill="var(--bg8)" stroke="var(--mute4)" stroke-width="2"/>
-          <circle cx="88" cy="86" r="8" fill="#28A86E"/><circle cx="112" cy="104" r="8" fill="#28A86E"/>
-          <circle cx="96" cy="118" r="8" fill="#28A86E"/><circle cx="118" cy="80" r="8" fill="#28A86E"/>
-          <circle cx="150" cy="62" r="8" fill="#E23A5A"/>
+          <circle class="ishot" cx="88" cy="86" r="8" fill="#28A86E"/><circle class="ishot" cx="112" cy="104" r="8" fill="#28A86E"/>
+          <circle class="ishot" cx="96" cy="118" r="8" fill="#28A86E"/><circle class="ishot" cx="118" cy="80" r="8" fill="#28A86E"/>
+          <circle class="ishot ismiss" cx="150" cy="62" r="8" fill="#E23A5A"/>
         </svg>
         <div class="blinkstats">
           Serie 2 · Stående<br>
@@ -1333,12 +1452,12 @@ nav {
 <section id="problem" style="padding-top:20px">
   <div class="wrap">
     <h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2>
-    <div class="problems">
+    <div class="problems" id="probSec">
       <div class="prob"><div class="n">PROBLEM 01</div><b>Planen lever i Excel eller på papir</b><p>Den vet ikke om du gjennomførte økten, traff sonene eller måtte flytte den.</p></div>
       <div class="prob"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted — dataene dine et annet. De møtes aldri.</p></div>
       <div class="prob"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der — uten å vite hva du planla, følte eller endret.</p></div>
     </div>
-    <div class="solution">
+    <div class="solution" id="solution">
       <div>
         <div class="big">X-PULSE kobler plan, dagbok og analyse i ett — så hver økt faktisk lærer deg noe.</div>
         <div class="sub">Bygget av aktive utøvere som savnet nettopp dette.</div>
@@ -1709,5 +1828,73 @@ nav {
   });
   tegn();
 })()</script>
+<script>
+/* ═══ Interaktiv hero — oppførsel og timing fra
+   design/xpulse-hero-interaktiv-design.html. IntersectionObserver, aldri
+   scroll-lyttere; alt fyrer ÉN gang og reverserer ikke ved scroll opp. ═══ */
+(function(){
+  /* PC/mobil-bryteren — ren klient-bytting i samme slot */
+  var panePc=document.getElementById('panePc'), paneMob=document.getElementById('paneMob');
+  var btnPc=document.getElementById('btnPc'), btnMob=document.getElementById('btnMob');
+  function settVisning(pc){
+    panePc.classList.toggle('on',pc);
+    paneMob.classList.toggle('on',!pc);
+    btnPc.setAttribute('aria-pressed',pc);
+    btnMob.setAttribute('aria-pressed',!pc);
+  }
+  if(btnPc&&btnMob&&panePc&&paneMob){
+    btnPc.addEventListener('click',function(){settVisning(true)});
+    btnMob.addEventListener('click',function(){settVisning(false)});
+  }
+
+  /* Scroll-avsløringer — én gang per seksjon */
+  function stagger(el,sel,gap){
+    var items=el.querySelectorAll(sel);
+    items.forEach(function(it,i){setTimeout(function(){it.classList.add('vis')},i*gap)});
+  }
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var el=e.target;
+      io.unobserve(el);
+      if(el.id==='shootSec') stagger(el,'.ishot',140);
+      if(el.id==='probSec'){
+        stagger(el,'.prob',160);
+        setTimeout(function(){var s=document.getElementById('solution');if(s)s.classList.add('vis')},3*160+120);
+      }
+      if(el.id==='flowSec') stagger(el,'.istep',180);
+    });
+  },{threshold:.35});
+  ['shootSec','probSec','flowSec'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) io.observe(el);
+  });
+
+  /* Tall-opptellingen — ~900 ms, kubisk ease-out, én gang, threshold 0.5.
+     Sluttallet står i markupen fra før (synlig uten JS); reduced motion
+     lar det stå urørt. Dagens tall har ingen suffikser. */
+  var reduser=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var proof=document.querySelector('.proof');
+  if(proof&&!reduser){
+    var ioTall=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting) return;
+        ioTall.unobserve(e.target);
+        e.target.querySelectorAll('.n[data-mal]').forEach(function(n){
+          var mal=+n.dataset.mal, t0=performance.now(), dur=900;
+          (function tikk(tid){
+            /* rAF-tidsstempelet kan ligge FØR t0 (frame-start) — klem til 0,
+               ellers blinker negative tall i første frame. */
+            var p=Math.max(0,Math.min((tid-t0)/dur,1)), e2=1-Math.pow(1-p,3);
+            n.textContent=Math.round(mal*e2);
+            if(p<1) requestAnimationFrame(tikk);
+          })(t0);
+        });
+      });
+    },{threshold:.5});
+    ioTall.observe(proof);
+  }
+})();
+</script>
 </body>
 </html>

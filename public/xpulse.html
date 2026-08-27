@@ -209,7 +209,10 @@ document.documentElement.classList.add('js');</script>
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif}
+/* ÉN samlet gradient-flate for hele sida (Sverre 27. aug) — fixed så
+   115°-sløret ligger rolig over viewportet. Hero-bildet og CTA-ens egen
+   gradient maler oppå som før. */
+body{background:linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%) fixed, var(--bg);color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif}
 img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
@@ -372,7 +375,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 :root[data-tema="lys"] .syncrow .tier2 .soon{color:#6A6A74}
 
 .devnote{
-  padding:10px 34px; background:var(--surface);
+  padding:10px 34px;
   border-bottom:1px solid var(--line); font-size:13px; color:var(--dim);
   text-align:center;
 }
@@ -953,10 +956,8 @@ nav {
    27. aug — fasit variant 3). Sløret ligger fixed over seksjonene UNDER
    heroen; hero-bildet røres ikke. Skiskyting-seksjonen beholder sin egen
    gradient; CTA-en har fått full-styrke-gradienten (variant 5). ═══ */
-body { --slor: linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%); }
-#nytt, #trener, #faq { background:var(--slor) fixed, var(--surface) }
-#problem, #priser { background:var(--slor) fixed, var(--bg9) }
-#sports, .drow, .dwrap { background:var(--slor) fixed, var(--bg9) }
+/* Seksjonene er gjennomsiktige — body-gradienten er den ene flaten.
+   (De vekslende surface/bg9-bakgrunnene utgikk med samlet bakgrunn.) */
 
 /* ═══ Sitater fra utøvere — LISTE med ett sitat foreløpig; flere blir en
    stille rad/karusell uten ombygging. Ordrett gjengivelse, aldri klippet

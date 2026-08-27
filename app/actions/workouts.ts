@@ -1093,12 +1093,22 @@ export async function getSameDateLinkCandidates(
     .maybeSingle()
   if (!source) return { error: 'Fant ikke økten' }
 
-  // Hent alle workouts samme dato unntatt selve raden.
+  // Kandidater i et ±3-dagers vindu, ikke bare eksakt samme dato: planen
+  // sier tirsdag, klokka synket økta onsdag — det er nettopp de tilfellene
+  // koblingen finnes for. Med kun samme-dato ble knappen usynlig for de
+  // fleste synkede økter (målt i prod 27. aug: 17 av 20 hadde ingen
+  // planlagt økt på eksakt dato). Nærmeste dato sorteres først.
+  const d0 = new Date(`${source.date}T00:00:00`)
+  const vindu = (dager: number) => {
+    const d = new Date(d0); d.setDate(d.getDate() + dager)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
   const { data: rows, error } = await supabase
     .from('workouts')
     .select('id, title, date, sport, workout_type, duration_minutes, distance_km, imported_from, is_planned, is_completed, linked_workout_id')
     .eq('user_id', resolved.userId)
-    .eq('date', source.date)
+    .gte('date', vindu(-3))
+    .lte('date', vindu(3))
     .neq('id', workoutId)
   if (error) return { error: error.message }
 
@@ -1113,14 +1123,25 @@ export async function getSameDateLinkCandidates(
 
   // Synket source: peker raden vår til en planlagt? (egen linked_workout_id)
   const sourceLinkedToId = !sourceIsPlanned ? (source.linked_workout_id ?? null) : null
-  // Planlagt source: er det noen synket samme dato som peker hit?
-  const sourceLinkedFromId = sourceIsPlanned
-    ? all.find(r => !r.is_planned && r.linked_workout_id === workoutId)?.id ?? null
-    : null
+  // Planlagt source: er det noen synket som peker hit? Slås opp direkte,
+  // ikke bare i vinduet — en kobling utenfor vinduet er fortsatt en kobling.
+  let sourceLinkedFromId: string | null = null
+  if (sourceIsPlanned) {
+    const { data: peker } = await supabase
+      .from('workouts')
+      .select('id')
+      .eq('user_id', resolved.userId)
+      .eq('linked_workout_id', workoutId)
+      .limit(1)
+      .maybeSingle()
+    sourceLinkedFromId = peker?.id ?? null
+  }
 
-  const candidates = sourceIsPlanned
+  const avstand = (d: string) => Math.abs(new Date(`${d}T00:00:00`).getTime() - d0.getTime())
+  const candidates = (sourceIsPlanned
     ? all.filter(r => !r.is_planned && (r.linked_workout_id == null || r.linked_workout_id === workoutId))
     : all.filter(r => r.is_planned && !plannedAlreadyLinkedFromAnother.has(r.id))
+  ).sort((a, b) => avstand(a.date) - avstand(b.date))
 
   return {
     candidates: candidates.map(({ linked_workout_id: _, ...c }) => c),

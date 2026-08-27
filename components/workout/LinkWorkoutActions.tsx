@@ -142,6 +142,10 @@ export function LinkWorkoutActions({
   const showMarkCompleted = isPlanned && !effectivelyLinked && !isCompleted && formMode === 'plan' && !hideMarkCompleted
   const showLinkButton = !effectivelyLinked
   const linkButtonLabel = isPlanned ? '🔄 Knytt til synket økt' : '📋 Knytt til planlagt økt'
+  // I plan-modus på en planlagt økt er koblingen ALTERNATIVET til «Marker
+  // som fullført» (Sverre 27. aug) — da skal den synes, ikke være ghost.
+  // Ellers beholdes den diskrete stilen (eldre bruker-ønske).
+  const prominentLink = isPlanned && formMode === 'plan' && !isCompleted
 
   if (isFutureDate) return null
   if (!showMarkCompleted && !showLinkButton && !effectivelyLinked) return null
@@ -170,8 +174,14 @@ export function LinkWorkoutActions({
         <button type="button"
           onClick={() => setShowPicker(true)}
           disabled={busy}
-          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:text-[var(--tekst-5-app)]"
-          style={{
+          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:opacity-90"
+          style={prominentLink ? {
+            fontFamily: "'Barlow Condensed', sans-serif",
+            backgroundColor: 'rgba(40,168,110,0.10)', color: '#28A86E',
+            border: '1px solid rgba(40,168,110,0.55)', borderRadius: 8,
+            cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
+            minHeight: '38px', fontSize: '12px', padding: '0 16px', fontWeight: 700,
+          } : {
             fontFamily: "'Barlow Condensed', sans-serif",
             backgroundColor: 'transparent', color: 'var(--tekst-8-alt)',
             border: '1px solid var(--line2)', borderRadius: 8,
@@ -324,7 +334,8 @@ function PickerModal({
                       )}
                     </div>
                     <div className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                      {c.duration_minutes != null ? `${c.duration_minutes} min` : '—'}
+                      {new Date(`${c.date}T00:00:00`).toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {c.duration_minutes != null ? ` · ${c.duration_minutes} min` : ' · —'}
                       {c.distance_km != null ? ` · ${c.distance_km.toFixed(1)} km` : ''}
                       {c.sport ? ` · ${c.sport}` : ''}
                     </div>

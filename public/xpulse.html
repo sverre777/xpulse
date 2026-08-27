@@ -958,6 +958,35 @@ body { --slor: linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 
 #problem, #priser { background:var(--slor) fixed, var(--bg9) }
 #sports, .drow, .dwrap { background:var(--slor) fixed, var(--bg9) }
 
+/* ═══ Sitater fra utøvere — LISTE med ett sitat foreløpig; flere blir en
+   stille rad/karusell uten ombygging. Ordrett gjengivelse, aldri klippet
+   (ingen line-clamp). Tema-tokens overalt (regel 23). ═══ */
+#utsagn{padding-top:20px}
+.sitater{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;margin-top:30px}
+.sitat{
+  flex:1 1 560px;max-width:760px;position:relative;
+  border-left:3px solid var(--orange);
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--orange);
+  border-radius:0 14px 14px 0;padding:26px 28px 22px 30px;
+}
+.sitat::before{
+  content:'«';position:absolute;top:2px;left:12px;
+  font:400 64px/1 'Bebas Neue';color:var(--orange);opacity:.9;
+}
+.sitat blockquote{margin:0;padding-left:26px}
+.sitat blockquote p{
+  font:400 17px/1.65 'Barlow Condensed';color:var(--paper);margin:0 0 12px;
+}
+.sitat blockquote p:last-child{margin-bottom:0}
+.sitat figcaption{
+  margin-top:14px;padding-left:26px;
+  font:600 13px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);
+}
+html.js .sitat{opacity:0;transform:translateY(22px);transition:opacity .38s ease,transform .38s ease}
+html.js .sitat.vis{opacity:1;transform:none}
+@media(max-width:620px){.sitat{padding:22px 18px 18px 24px}.sitat blockquote p{font-size:16px}}
+
 /* ═══ Interaktiv hero — design/xpulse-hero-interaktiv-design.html er fasit
    for oppførsel og timing. Kun opacity/transform animeres; alle
    skjult-fra-start-tilstander er gated på html.js. ═══ */
@@ -1020,8 +1049,8 @@ html.js .solution{opacity:0;transform:translateY(16px);transition:opacity .4s .1
 html.js .solution.vis{opacity:1;transform:none}
 
 @media (prefers-reduced-motion: reduce){
-  .ipane,.ishot,.prob,.solution,.istep,.idot{transition:none !important}
-  html.js .ishot,html.js .prob,html.js .solution{opacity:1;transform:none}
+  .ipane,.ishot,.prob,.solution,.istep,.idot,.sitat{transition:none !important}
+  html.js .ishot,html.js .prob,html.js .solution,html.js .sitat{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
 </style>
@@ -1334,6 +1363,22 @@ html.js .solution.vis{opacity:1;transform:none}
     </div>
 
       </div>
+</section>
+
+<!-- ═══════════ FRA UTØVERNE — ekte sitater, gjengitt ORDRETT ═══════════ -->
+<section id="utsagn">
+  <div class="wrap">
+    <div class="label">Fra utøverne</div>
+    <div class="sitater" id="sitatSec">
+      <figure class="sitat">
+        <blockquote>
+          <p>«X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p>
+          <p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.»</p>
+        </blockquote>
+        <figcaption>— Gustav Heldal</figcaption>
+      </figure>
+    </div>
+  </div>
 </section>
 
 <section id="nytt" style="padding-top:0">
@@ -1862,9 +1907,10 @@ html.js .solution.vis{opacity:1;transform:none}
         setTimeout(function(){var s=document.getElementById('solution');if(s)s.classList.add('vis')},3*160+120);
       }
       if(el.id==='flowSec') stagger(el,'.istep',180);
+      if(el.id==='sitatSec') stagger(el,'.sitat',160);
     });
   },{threshold:.35});
-  ['shootSec','probSec','flowSec'].forEach(function(id){
+  ['shootSec','probSec','flowSec','sitatSec'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) io.observe(el);
   });

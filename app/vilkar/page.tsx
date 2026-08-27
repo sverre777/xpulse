@@ -189,7 +189,24 @@ export default function VilkarPage() {
         begrenses eller fjernes.
       </LegalP>
 
-      <LegalH2>13. Helse- og søvndata</LegalH2>
+      <LegalH2>13. Klokkesynk for Garmin, COROS, Wahoo og Zepp</LegalH2>
+      <LegalP>
+        Direktesynk for Garmin, COROS, Wahoo og Zepp leveres gjennom tredjeparts-leverandøren
+        Stridee (stridee.fit), som behandler klokkedata på våre vegne under databehandleravtale.
+        Integrasjonen er i beta. Ved å koble en av disse klokkene samtykker du til at
+        aktivitetsfiler og helse-sammendrag fra klokkekontoen din formidles til X-PULSE via
+        Stridee — se personvernerklæringens avsnitt om klokkesynk for detaljene.
+      </LegalP>
+      <LegalP>Du forstår at:</LegalP>
+      <LegalUL>
+        <LegalLI>Tilkoblingen skjer med samtykke hos klokkeprodusenten, og rundt 90 dager historikk hentes inn ved tilkobling</LegalLI>
+        <LegalLI>Frakobling stopper all ny synk — allerede importerte økter er dine originalfiler og beholdes i dagboka</LegalLI>
+        <LegalLI>Helse- og søvnverdier importert fra merket slettes ved frakobling av merket; manuelt førte verdier røres aldri</LegalLI>
+        <LegalLI>Tjenesten er i beta: forsinkelser og hull i synken kan forekomme, og .fit-opplasting er alltid tilgjengelig som reserve</LegalLI>
+        <LegalLI>Endringer hos klokkeprodusentene eller leverandøren kan begrense eller stanse integrasjonen; vi varsler dersom det skjer</LegalLI>
+      </LegalUL>
+
+      <LegalH2>14. Helse- og søvndata</LegalH2>
       <LegalP>
         Helse- og søvndata er særlige kategorier av personopplysninger (GDPR artikkel 9).
         Du bestemmer selv om de registreres, og hvem som ser dem.
@@ -203,14 +220,14 @@ export default function VilkarPage() {
         <LegalLI>Helse- og søvndata brukes aldri til AI/ML-trening og deles aldri med tredjeparter</LegalLI>
       </LegalUL>
 
-      <LegalH2>14. Endringer i vilkårene</LegalH2>
+      <LegalH2>15. Endringer i vilkårene</LegalH2>
       <LegalP>
         Vi kan endre vilkårene. Vesentlige endringer varsles på e-post eller i appen minst
         30 dager før de trer i kraft. Hvis du ikke godtar endringene, kan du si opp
         kontoen.
       </LegalP>
 
-      <LegalH2>15. Lovvalg og tvisteløsning</LegalH2>
+      <LegalH2>16. Lovvalg og tvisteløsning</LegalH2>
       <LegalP>
         Vilkårene reguleres av norsk rett. Tvister søkes løst i minnelighet. Hvis det
         ikke lykkes, er <strong>[Verneting]</strong> avtalt verneting.
@@ -220,7 +237,7 @@ export default function VilkarPage() {
         nettbaserte tvisteløsningsplattform.
       </LegalP>
 
-      <LegalH2>16. Kontakt</LegalH2>
+      <LegalH2>17. Kontakt</LegalH2>
       <LegalP>
         Spørsmål om vilkårene? Kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

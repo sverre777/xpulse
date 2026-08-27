@@ -48,6 +48,7 @@ export default function PersonvernPage() {
       <LegalUL>
         <LegalLI><strong>Supabase (databehandler):</strong> hosting av database og autentisering. Data lagres på servere i EU.</LegalLI>
         <LegalLI><strong>Netlify (databehandler):</strong> hosting av nettapplikasjonen.</LegalLI>
+        <LegalLI><strong>Stridee (databehandler):</strong> formidler klokkedata (aktivitetsfiler og helse-sammendrag) fra Garmin, COROS, Wahoo og Zepp til oss. Se eget avsnitt om klokkesynk.</LegalLI>
         <LegalLI><strong>Trener-tilkobling:</strong> hvis du som utøver kobler deg til en trener, vil treneren se treningsdata, planer og notater du deler. Du kan når som helst koble fra i innstillingene.</LegalLI>
       </LegalUL>
       <LegalP>
@@ -152,7 +153,7 @@ export default function PersonvernPage() {
       <LegalP><strong>Hva vi IKKE henter:</strong></LegalP>
       <LegalUL>
         <LegalLI>Vi lagrer ingen personopplysninger fra Polar-profilen din — ikke navn, fødselsdato, kjønn eller vekt</LegalLI>
-        <LegalLI>Vi henter ikke søvn-, døgnpuls- eller aktivitetsdata utenfor trening</LegalLI>
+        <LegalLI>Søvn og nattlig restitusjon (Nightly Recharge) hentes til helse-loggen hvis du har koblet Polar — se avsnittet om helse- og søvndata for reglene som gjelder disse</LegalLI>
       </LegalUL>
       <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
       <LegalUL>
@@ -188,7 +189,52 @@ export default function PersonvernPage() {
         For Polar sin egen personvernerklæring: <a href="https://www.polar.com/en/legal/privacy-notice" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>polar.com/legal/privacy-notice</a>.
       </LegalP>
 
-      <LegalH2 id="helse">11. Helse- og søvndata</LegalH2>
+      <LegalH2 id="klokkesynk">11. Klokkesynk for Garmin, COROS, Wahoo og Zepp (Stridee)</LegalH2>
+      <LegalP>
+        Direktesynk for Garmin, COROS, Wahoo og Zepp går gjennom <strong>Stridee</strong>{' '}
+        (stridee.fit), som er vår <strong>databehandler</strong> for klokkedata. Stridee holder
+        API-tilgangene hos klokkeprodusentene og formidler dataene til oss; det er derfor synken
+        for disse merkene finnes. Stridee behandler data kun etter instruks fra oss, under en
+        databehandleravtale etter GDPR artikkel 28. Integrasjonen er i beta.
+      </LegalP>
+      <LegalP><strong>Hvilke data som går gjennom Stridee:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Aktivitetsfiler: original treningsfil (.fit) fra klokka, med sport, varighet, distanse, puls, fart, kadens og høyde</LegalLI>
+        <LegalLI>Helse-sammendrag fra tilkoblede klokker: søvn (faser, varighet, skår), natt-HRV, hvilepuls, skritt og daglig aktivitet — der klokka leverer det (Garmin og COROS; Wahoo og Zepp leverer kun økter)</LegalLI>
+        <LegalLI>Tilkoblingsstatus: hvilke klokker som er koblet, og om tilgangen må fornyes</LegalLI>
+        <LegalLI>Stridee får ALDRI navnet, e-postadressen eller andre personopplysninger dine fra oss — koblingen skjer med en tilfeldig generert id som ikke kan spores tilbake til deg</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hva vi lagrer hos oss:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Mottatte hendelser fra leverandøren, som råmateriale for importen — behandlede hendelser slettes automatisk etter 30 dager</LegalLI>
+        <LegalLI>Tilkoblingsstatus per klokke</LegalLI>
+        <LegalLI>Importerte økter med full pulskurve, lap-data og sonefordeling (innholdet i originalfila)</LegalLI>
+        <LegalLI>Søvn, HRV, hvilepuls og skritt i helse-loggen — med kilde per verdi, etter reglene i avsnittet om helse- og søvndata</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Samme regler som øvrige integrasjoner: data vises kun til deg, trenere kun med ditt eksplisitte samtykke</LegalLI>
+        <LegalLI>Brukes ALDRI til AI/ML-modelltrening, deles ALDRI med tredjeparter, annonsører eller datameglere, kombineres ALDRI for aggregat-analyse</LegalLI>
+        <LegalLI>Sonefordeling regnes ut hos oss fra din egen pulsskala</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Lagring, frakobling og sletting:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Ved tilkobling hentes rundt 90 dager historikk fra klokkekontoen din</LegalLI>
+        <LegalLI>Frakobling stopper all ny synk. Allerede importerte økter er dine originalfiler og beholdes i dagboka — ingen produsent krever sletting av dem</LegalLI>
+        <LegalLI>Helse- og søvnverdier importert fra et merke slettes når merket kobles fra, i tråd med helse-avsnittet. Verdier du har ført manuelt slettes aldri</LegalLI>
+        <LegalLI>Sletter du X-PULSE-kontoen, slettes alle importerte data sammen med resten av kontoen. Du kan i tillegg alltid trekke tilgangen tilbake direkte hos klokkeprodusenten (f.eks. i Garmin Connect) — det stopper delingen ved kilden</LegalLI>
+      </LegalUL>
+      <LegalP><strong>Sikkerhet:</strong></LegalP>
+      <LegalUL>
+        <LegalLI>Alle leveringer fra leverandøren er ende-til-ende-krypterte og signerte; signaturen verifiseres før noe som helst behandles</LegalLI>
+        <LegalLI>Alle våre kall til leverandøren signeres kryptografisk (RFC 9421)</LegalLI>
+        <LegalLI>Nøkler lagres kun server-side og er utilgjengelige for nettleseren</LegalLI>
+      </LegalUL>
+      <LegalP>
+        For Stridee sin egen personvernerklæring: <a href="https://stridee.fit/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#FF4500' }}>stridee.fit/privacy</a>.
+      </LegalP>
+
+      <LegalH2 id="helse">12. Helse- og søvndata</LegalH2>
       <LegalP>
         Helseopplysninger er <strong>særlige kategorier av personopplysninger</strong> etter
         GDPR artikkel 9. De behandles strengere enn treningsøkter, og du bestemmer selv om
@@ -200,7 +246,7 @@ export default function PersonvernPage() {
         <LegalLI>Puls og restitusjon: hvilepuls, HRV, makspuls</LegalLI>
         <LegalLI>Kropp: vekt</LegalLI>
         <LegalLI>Daglig aktivitet: skritt, aktiv og inaktiv tid, distanse i dagliglivet, trappetrinn og høydemeter</LegalLI>
-        <LegalLI>Merkespesifikke skårer fra klokka (f.eks. Polars Nightly Recharge og søvnskår), lagret for seg og aldri blandet med de øvrige verdiene</LegalLI>
+        <LegalLI>Merkespesifikke skårer fra klokka (f.eks. Polars Nightly Recharge, Garmins Body Battery, stressnivå og søvnskår), lagret for seg og aldri blandet med de øvrige verdiene</LegalLI>
       </LegalUL>
       <LegalP><strong>Vi henter IKKE:</strong></LegalP>
       <LegalUL>
@@ -231,7 +277,7 @@ export default function PersonvernPage() {
         <LegalLI>Du kan eksportere alt, inkludert kilde per verdi, via data-eksporten</LegalLI>
       </LegalUL>
 
-      <LegalH2 id="stripe">12. Stripe (betalingsbehandling)</LegalH2>
+      <LegalH2 id="stripe">13. Stripe (betalingsbehandling)</LegalH2>
       <LegalP>
         X-PULSE bruker Stripe (Stripe Inc., USA / Stripe Ireland Limited, EU) for å håndtere abonnement og betalinger.
       </LegalP>
@@ -255,7 +301,7 @@ export default function PersonvernPage() {
         Du kan be Stripe om sletting direkte hvis du ønsker det.
       </LegalP>
 
-      <LegalH2 id="data-eksport">13. Data-eksport (Right to Data Portability)</LegalH2>
+      <LegalH2 id="data-eksport">14. Data-eksport (Right to Data Portability)</LegalH2>
       <LegalP>
         Du har til enhver tid rett til å eksportere alle dine personopplysninger lagret i X-PULSE.
         Eksport er tilgjengelig via{' '}
@@ -277,7 +323,7 @@ export default function PersonvernPage() {
         <LegalLI>Strava raw-data eldre enn 7 dager (Strava API Agreement § 7)</LegalLI>
       </LegalUL>
 
-      <LegalH2 id="sletting">14. Sletting av data (Right to Erasure)</LegalH2>
+      <LegalH2 id="sletting">15. Sletting av data (Right to Erasure)</LegalH2>
       <LegalP>
         Du kan slette kontoen og all data permanent når som helst ved å kontakte{' '}
         <a href="mailto:support@x-pulse.no?subject=Sletting%20av%20konto" style={{ color: '#FF4500' }}>support@x-pulse.no</a>.
@@ -289,13 +335,13 @@ export default function PersonvernPage() {
         1 dag før slettingen skjer, så du har full mulighet til å eksportere først eller reaktivere.
       </LegalP>
 
-      <LegalH2>15. Endringer</LegalH2>
+      <LegalH2>16. Endringer</LegalH2>
       <LegalP>
         Vi kan oppdatere denne erklæringen. Vesentlige endringer varsles på e-post eller
         i appen før de trer i kraft. Sist oppdatert: <strong>2026-05-16</strong>.
       </LegalP>
 
-      <LegalH2>16. Kontakt</LegalH2>
+      <LegalH2>17. Kontakt</LegalH2>
       <LegalP>
         For spørsmål om personvern, kontakt <strong>X-PULSE AS</strong> (org.nr 923 830 146)
         på <strong><a href="mailto:support@x-pulse.no" style={{ color: '#FF4500' }}>support@x-pulse.no</a></strong>.

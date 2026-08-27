@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useTransition } from 'react'
+import { useEffect, useRef, useTransition } from 'react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import {
   markAllNotificationsRead,
@@ -43,16 +43,20 @@ interface Props {
 
 export function NotificationList({ notifications }: Props) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   const hasUnread = notifications.some(n => !n.isRead)
 
-  const onMarkAll = () => {
-    startTransition(async () => {
-      await markAllNotificationsRead()
-      router.refresh()
-    })
-  }
+  // Å ÅPNE varsellista ER å se varslene (Sverre 27. aug) — alt merkes lest
+  // med en gang, uten at brukeren må inn i hver økt. Lista du fikk servert
+  // står synlig dette besøket (ingen refresh her); neste besøk er den tom.
+  const merket = useRef(false)
+  useEffect(() => {
+    if (!hasUnread || merket.current) return
+    merket.current = true
+    markAllNotificationsRead()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onOpen = async (id: string) => {
     startTransition(async () => {
@@ -69,25 +73,7 @@ export function NotificationList({ notifications }: Props) {
 
   return (
     <div>
-      {hasUnread && (
-        <div className="flex justify-end mb-2">
-          <button
-            type="button"
-            onClick={onMarkAll}
-            disabled={isPending}
-            className="text-xs tracking-widest uppercase px-2 py-1"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              backgroundColor: 'transparent',
-              color: 'var(--tekst-5-app)',
-              border: '1px solid var(--line)',
-              cursor: isPending ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {isPending ? 'Merker…' : 'Merk alle som lest'}
-          </button>
-        </div>
-      )}
+      {/* Ingen «merk alle»-knapp: åpningen av lista merker alt som lest. */}
       <ul style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
         {notifications.map(n => {
           const accent = colorFor(n.type)

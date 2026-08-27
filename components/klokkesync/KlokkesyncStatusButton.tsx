@@ -17,9 +17,12 @@ interface Props {
   // Server-side fetched i layout. Hvis ikke gitt rendres ikonet som
   // "ikke koblet" inntil videre.
   initialBadge?: KlokkesyncBadge
+  /** Mobilmenyen: menyen lukkes ved trykk, så popupen ville forsvunnet
+   * sammen med den. Naviger rett til klokkesync-innstillingene i stedet. */
+  navigerDirekte?: boolean
 }
 
-export function KlokkesyncStatusButton({ initialBadge }: Props) {
+export function KlokkesyncStatusButton({ initialBadge, navigerDirekte = false }: Props) {
   const badge: KlokkesyncBadge = initialBadge ?? {
     connected: false, lastSyncAt: null, hasError: false,
   }
@@ -45,7 +48,7 @@ export function KlokkesyncStatusButton({ initialBadge }: Props) {
     // Er popupen alt åpen, er lukking gratis — ingen ventetilstand da.
     if (popupOpen) { setPopupOpen(false); return }
     setJobber(true)
-    if (!badge.connected || badge.hasError) {
+    if (navigerDirekte || !badge.connected || badge.hasError) {
       // Navigasjonen tar ogsaa tid. Ventetilstanden nullstilles IKKE her —
       // sida byttes ut, og knappen skal se opptatt ut helt til den er borte.
       router.push('/app/innstillinger/klokkesync')

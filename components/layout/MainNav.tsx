@@ -414,7 +414,9 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
         </Link>
         {activeRole !== 'coach' && (
           <div onClick={onClose}>
-            <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />
+            {/* Menyen lukkes ved trykk — popupen ville forsvunnet med den.
+                Naviger rett til klokkesync-innstillingene i stedet. */}
+            <KlokkesyncStatusButton initialBadge={klokkesyncBadge} navigerDirekte />
           </div>
         )}
         <Link

@@ -34,11 +34,14 @@ interface Props {
   // opp via onLinkStateChange.
   hideMarkCompleted?: boolean
   onLinkStateChange?: (effectivelyLinked: boolean) => void
+  // Tving den grønne, synlige stilen uansett kontekst — brukes i
+  // lesevisningen (WorkoutOverview), der knappen er hovedinngangen.
+  prominent?: boolean
 }
 
 export function LinkWorkoutActions({
   workoutId, date, isPlanned, isCompleted, importedFrom, alreadyLinked, targetUserId, formMode = 'dagbok', onMarkCompletedRequested,
-  hideMarkCompleted = false, onLinkStateChange,
+  hideMarkCompleted = false, onLinkStateChange, prominent = false,
 }: Props) {
   const router = useRouter()
   const [busy, startBusy] = useTransition()
@@ -145,7 +148,7 @@ export function LinkWorkoutActions({
   // I plan-modus på en planlagt økt er koblingen ALTERNATIVET til «Marker
   // som fullført» (Sverre 27. aug) — da skal den synes, ikke være ghost.
   // Ellers beholdes den diskrete stilen (eldre bruker-ønske).
-  const prominentLink = isPlanned && formMode === 'plan' && !isCompleted
+  const prominentLink = prominent || (isPlanned && formMode === 'plan' && !isCompleted)
 
   if (isFutureDate) return null
   if (!showMarkCompleted && !showLinkButton && !effectivelyLinked) return null

@@ -229,6 +229,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               equipmentIds={equipmentIds}
               heartZones={heartZones}
               workoutId={state.workoutId}
+              targetUserId={targetUserId}
               status={overviewStatus}
               onMarkCompleted={overviewStatus === 'planned' && !overviewIsFuture && !readOnly
                 ? () => { setAutoMark(state.formMode === 'dagbok'); setShowEditForm(true) }

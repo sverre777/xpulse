@@ -13,6 +13,7 @@
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
 import type { ReactNode } from 'react'
+import { LinkWorkoutActions } from './LinkWorkoutActions'
 import {
   WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES, WEATHER_TYPES, WIND_STRENGTHS,
   NUTRITION_TYPES,
@@ -87,7 +88,7 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
   )
 }
 
-export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive }: {
+export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
   canEdit: boolean
@@ -95,6 +96,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   equipmentIds: string[]
   heartZones?: HeartZone[]
   workoutId?: string
+  targetUserId?: string
   // 'planned': samme oversikt for planlagt økt — handlingsknappene
   // (Marker som gjennomført / Start live / Rediger) ligger øverst.
   status?: 'completed' | 'planned'
@@ -196,7 +198,24 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
     <div className="px-4 py-4 max-w-3xl mx-auto">
       {/* ── HANDLINGSRAD (planlagt økt): marker/live/rediger øverst ── */}
       {isPlannedView && canEdit && (onMarkCompleted || onStartLive) && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-4 items-stretch flex-wrap">
+          {/* Kobling til synket økt — alternativet til manuell markering,
+              rett ved siden av CTA-en (Sverre 27. aug). Rendres kun når
+              kandidater finnes (komponentens egen logikk). */}
+          {workoutId && data.date && (
+            <LinkWorkoutActions
+              workoutId={workoutId}
+              date={data.date}
+              isPlanned
+              isCompleted={false}
+              importedFrom={null}
+              alreadyLinked={false}
+              targetUserId={targetUserId}
+              formMode="plan"
+              hideMarkCompleted
+              prominent
+            />
+          )}
           {onMarkCompleted && (
             <button type="button" onClick={onMarkCompleted}
               className="transition-opacity hover:opacity-90"
@@ -252,6 +271,22 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             </span>
           )}
         </div>
+        {/* Kobling mot planlagt økt — lever i VISNINGEN, øverst (Sverre
+            27. aug: knappen fantes bare i redigeringsskjemaet, og der
+            fant ingen den). Viser også «Fjern kobling»/✓ når koblet. */}
+        {!isPlannedView && canEdit && workoutId && data.date && (
+          <LinkWorkoutActions
+            workoutId={workoutId}
+            date={data.date}
+            isPlanned={false}
+            isCompleted
+            importedFrom={data.imported_from ?? null}
+            alreadyLinked={false}
+            targetUserId={targetUserId}
+            formMode="dagbok"
+            prominent
+          />
+        )}
         <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: '0.03em', lineHeight: 1.05, color: 'var(--ink)', fontWeight: 400 }}>
           {data.title || 'Økt'}
         </h2>

@@ -247,7 +247,13 @@ section{padding:88px 0}
 .hero{position:relative;min-height:88vh;display:flex;flex-direction:column;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat;filter:saturate(.92)}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,13,17,.88) 0%,rgba(13,13,17,.62) 55%,rgba(13,13,17,.45) 100%);}
-.hero-fade{position:absolute;left:0;right:0;bottom:0;height:180px;background:linear-gradient(to bottom,transparent,var(--bg))}
+/* Faden toner ut i NØYAKTIG samme fixed gradient som body — samme
+   viewport-koordinater gjør overgangen sømløs. En flat --bg her ga en
+   synlig linje mot den tonede bakgrunnen. */
+.hero-fade{position:absolute;left:0;right:0;bottom:0;height:240px;
+  background:linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%) fixed, var(--bg);
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 85%);
+  mask-image:linear-gradient(to bottom,transparent,#000 85%)}
 .hero-in{position:relative;margin:auto;padding:110px 0 46px;text-align:center;display:flex;flex-direction:column;align-items:center;width:100%}
 .hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
 .htag{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}

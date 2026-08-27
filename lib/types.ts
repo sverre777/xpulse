@@ -1083,6 +1083,11 @@ export interface CalendarWorkoutSummary {
   title: string
   is_planned: boolean
   is_completed: boolean
+  /** Planlagt økt som er gjennomført VIA KOBLING til en synket økt.
+   * Koblingen setter bevisst is_completed=false på plan-raden (mot dublett i
+   * Dagbok) — visningen skal likevel vise ✓. Kun visning: filtre og
+   * aggregering skal fortsatt lese is_completed. */
+  completed_via_link?: boolean
   /** Live-økt startet men aldri fullført — telles IKKE som gjennomført. */
   is_live_draft?: boolean
   is_important: boolean

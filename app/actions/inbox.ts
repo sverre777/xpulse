@@ -581,10 +581,17 @@ export async function getInboxNotifications(): Promise<InboxNotification[] | { e
   if (!res.ok) return { error: res.error }
   const supabase = await createClient()
 
+  // Lest = borte fra lista (Sverre 27. aug: «når varslingene er sett skal
+  // de forsvinne»), og uleste vises maks 30 dager — så et gammelt varsel
+  // aldri blir liggende uansett. Radene slettes fysisk av den daglige
+  // oppryddings-cronen; filteret her gjør at visningen ikke venter på den.
+  const grense = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
   const { data, error } = await supabase
     .from('notifications')
     .select('id, type, title, content, link_url, is_read, created_at')
     .eq('user_id', res.viewer.userId)
+    .eq('is_read', false)
+    .gte('created_at', grense)
     .order('created_at', { ascending: false })
     .limit(200)
   if (error) return { error: error.message }

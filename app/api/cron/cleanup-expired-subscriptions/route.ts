@@ -34,6 +34,18 @@ async function handler(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Varsel-opprydding (daglig): leste varsler slettes etter 7 dager, alt
+  // annet etter 30 — lista viser dem uansett ikke lenger (inbox.ts), dette
+  // er den fysiske slettingen bak filteret.
+  const { error: varselFeil } = await supabase.from('notifications').delete()
+    .eq('is_read', true)
+    .lt('created_at', new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString())
+  const { error: varselFeil2 } = await supabase.from('notifications').delete()
+    .lt('created_at', new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString())
+  if (varselFeil || varselFeil2) {
+    console.warn(`[cleanup] varsel-opprydding: ${varselFeil?.message ?? varselFeil2?.message}`)
+  }
+
   const results: Array<{ user_id: string; deleted: boolean; error?: string }> = []
 
   for (const row of due ?? []) {

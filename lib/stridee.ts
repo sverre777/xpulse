@@ -56,14 +56,29 @@ export const CLAIM_TIMESTAMP = 'webhook-timestamp'
 // ─────────────────────────────────────────────────────────────────────────
 
 /**
- * De 32 rå private-nøkkelbytene pakket som PKCS#8 for X25519 (OID 1.3.101.110).
- * Prefikset er fast: SEQUENCE, version 0, AlgorithmIdentifier, OCTET STRING.
- * Brukes til å utlede den offentlige delen — se fullforRaaNokkel.
+ * De 32 rå private-nøkkelbytene pakket som PKCS#8: SEQUENCE, version 0,
+ * AlgorithmIdentifier, OCTET STRING. Prefiksene for de to OKP-kurvene er
+ * identiske bortsett fra ÉN byte i OID-en: X25519 er 1.3.101.110 (…6e),
+ * Ed25519 er 1.3.101.112 (…70). Det er nettopp den byten kurvesjekken
+ * finnes for — å kutte de siste 32 bytene blindt ville gitt en nøkkel av
+ * feil kurve som ser gyldig ut og aldri virker.
+ *
+ * TO KURVER, TO ROLLER — bland dem aldri (se toppen av fila):
+ *   X25519  = webhook-DEKRYPTERING (STRIDEE_WEBHOOK_PRIVATE_KEY)
+ *   Ed25519 = SIGNERING av våre API-kall (STRIDEE_SIGNING_PRIVATE_KEY)
  */
-const PKCS8_X25519_PREFIX = new Uint8Array([
-  0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
-  0x03, 0x2b, 0x65, 0x6e, 0x04, 0x22, 0x04, 0x20,
-])
+export type OkpKurve = 'X25519' | 'Ed25519'
+const PKCS8_OKP_PREFIX: Record<OkpKurve, Uint8Array> = {
+  X25519: new Uint8Array([
+    0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
+    0x03, 0x2b, 0x65, 0x6e, 0x04, 0x22, 0x04, 0x20,
+  ]),
+  Ed25519: new Uint8Array([
+    0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
+    0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20,
+  ]),
+}
+const PKCS8_X25519_PREFIX = PKCS8_OKP_PREFIX.X25519
 
 /**
  * Dekoder base64url ELLER vanlig base64, med eller uten padding.
@@ -93,15 +108,16 @@ function dekodBase64Fritt(s: string): Uint8Array | null {
  * Ed25519 er OGSÅ 48 byte — de skiller seg bare på OID-en (…2b6570 mot
  * …2b656e). Derfor sammenlignes hele prefikset, aldri bare lengden.
  */
-function pkcs8DerTilJwk(der: Uint8Array | null): JWK | null {
-  if (!der || der.length !== PKCS8_X25519_PREFIX.length + 32) return null
-  for (let i = 0; i < PKCS8_X25519_PREFIX.length; i++) {
-    if (der[i] !== PKCS8_X25519_PREFIX[i]) return null
+export function pkcs8DerTilJwk(der: Uint8Array | null, kurve: OkpKurve = 'X25519'): JWK | null {
+  const prefiks = PKCS8_OKP_PREFIX[kurve]
+  if (!der || der.length !== prefiks.length + 32) return null
+  for (let i = 0; i < prefiks.length; i++) {
+    if (der[i] !== prefiks[i]) return null
   }
   return {
     kty: 'OKP',
-    crv: 'X25519',
-    d: base64url.encode(der.subarray(PKCS8_X25519_PREFIX.length)),
+    crv: kurve,
+    d: base64url.encode(der.subarray(prefiks.length)),
   }
 }
 
@@ -114,7 +130,7 @@ function pkcs8DerTilJwk(der: Uint8Array | null): JWK | null {
  *
  * Selve DER-en går gjennom pkcs8DerTilJwk, som eier kurvesjekken.
  */
-function lesPemNokler(raa: string): JWK[] {
+function lesPemNokler(raa: string, kurve: OkpKurve): JWK[] {
   const ut: JWK[] = []
   // Alt mellom BEGIN og END, uansett etikett — etiketten sjekkes etterpå, så
   // en EC-blokk blir hoppet over i stedet for å bli feiltolket.
@@ -125,7 +141,7 @@ function lesPemNokler(raa: string): JWK[] {
     // backslash+n hvis env-transporten har manglet dem. Backslash finnes
     // ikke i base64-alfabetet, så begge kan fjernes uten tvetydighet.
     const kropp = blokk[2].replace(/\\[rn]/g, '').replace(/\s+/g, '')
-    const jwk = pkcs8DerTilJwk(dekodBase64Fritt(kropp))
+    const jwk = pkcs8DerTilJwk(dekodBase64Fritt(kropp), kurve)
     if (jwk) ut.push(jwk)
   }
   return ut
@@ -155,7 +171,7 @@ function lesPemNokler(raa: string): JWK[] {
  * delen utledes først ved bruk (fullforRaaNokkel) — jose avviser en X25519-JWK
  * uten x, og x kan ikke leses ut av env, bare regnes ut av d.
  */
-export function lesPrivateNokler(raa: string | undefined): JWK[] {
+export function lesPrivateNokler(raa: string | undefined, kurve: OkpKurve = 'X25519'): JWK[] {
   if (!raa || !raa.trim()) return []
   try {
     const parset: unknown = JSON.parse(raa)
@@ -172,7 +188,7 @@ export function lesPrivateNokler(raa: string | undefined): JWK[] {
 
   // PEM FØRST: en PEM-blokk inneholder linjeskift, og ville blitt hakket i
   // biter av rå-splittingen under.
-  if (raa.includes('-----BEGIN')) return lesPemNokler(raa)
+  if (raa.includes('-----BEGIN')) return lesPemNokler(raa, kurve)
 
   const ut: JWK[] = []
   for (const bit of raa.split(/[,\n\r]+/)) {
@@ -182,14 +198,14 @@ export function lesPrivateNokler(raa: string | undefined): JWK[] {
     if (!bytes) continue
     // 48 byte = PKCS#8 DER uten PEM-armor. Dette er formatet prod faktisk
     // fikk. Samme OID-sjekk som PEM-grenen — feil kurve gir ingen nøkkel.
-    if (bytes.length === PKCS8_X25519_PREFIX.length + 32) {
-      const jwk = pkcs8DerTilJwk(bytes)
+    if (bytes.length === 48) {
+      const jwk = pkcs8DerTilJwk(bytes, kurve)
       if (jwk) ut.push(jwk)
       continue
     }
     // 32 byte = de bare private-nøkkelbytene. Ikke gjett på noe annet.
     if (bytes.length === 32) {
-      ut.push({ kty: 'OKP', crv: 'X25519', d: base64url.encode(bytes) })
+      ut.push({ kty: 'OKP', crv: kurve, d: base64url.encode(bytes) })
     }
   }
   return ut

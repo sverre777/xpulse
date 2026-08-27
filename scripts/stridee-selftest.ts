@@ -11,6 +11,7 @@ import {
   generateKeyPair, exportJWK, importJWK, exportPKCS8, FlattenedSign, CompactEncrypt,
   type JWK, type CryptoKey,
 } from 'jose'
+import { byggSignaturBase, signerStrideeKall, lesSigneringsnokkel } from '../lib/stridee-signering'
 import {
   verifiserLevering, dekrypterHendelse, forGammel, alderSekunder,
   lesPrivateNokler, velgNokkel, velgNokkelKandidater, kvittering, b64u,
@@ -384,6 +385,106 @@ async function main() {
   sjekk('ekte ping har ingen subjekt', subjektFraHendelse(ektePing), null)
   sjekk('STEG 5: ekte ping slipper likevel gjennom',
     !subjektFraHendelse(ektePing) && kreverKonto('ping'), false)
+
+  // ── SIGNERING AV UTGÅENDE KALL (RFC 9421, bolk 2/3) ────────────────────
+  // Verifiseres med den OFFENTLIGE nøkkelen mot signature base — beviser at
+  // både basen og signeringen stemmer, mot ekte krypto.
+  console.log('\n— signering —')
+
+  // Kurve-argumentet: Ed25519-PEM godtas PÅ SIGNERINGSVEIEN…
+  const edFraPem = lesPrivateNokler(edPem, 'Ed25519')
+  sjekk('Ed25519-PEM godtas på signeringsveien', edFraPem.length, 1)
+  sjekk('…med crv Ed25519', edFraPem[0]?.crv, 'Ed25519')
+  // …mens dekrypteringsveien (default) fortsatt avviser den — fella er tett
+  // begge veier.
+  sjekk('Ed25519-PEM avvises fortsatt på webhook-veien', lesPrivateNokler(edPem).length, 0)
+  sjekk('X25519-PEM avvises på signeringsveien', lesPrivateNokler(pem, 'Ed25519').length, 0)
+  // Bar DER og rå 32 byte følger samme kurve-argument.
+  sjekk('bar Ed25519-DER godtas på signeringsveien',
+    lesPrivateNokler(edDerB64, 'Ed25519').length, 1)
+  const edRaaD = (await exportJWK(sign.privateKey)).d as string
+  sjekk('rå 32-byte på signeringsveien får crv Ed25519',
+    lesPrivateNokler(edRaaD, 'Ed25519')[0]?.crv, 'Ed25519')
+
+  // Full signering av et kall MED kropp — dokumentasjonens eksempel-form.
+  const kropp2 = JSON.stringify({ provider: 'coros', external_user_id: 'u1', return_uri: 'https://x-pulse.no/x' })
+  const headere = await signerStrideeKall({
+    metode: 'post',
+    url: 'https://api.stridee.fit/v1/connect',
+    body: kropp2,
+    nokkel: edFraPem[0],
+    keyid: 'test-key-1',
+    createdUnixSekunder: 1770124811,
+    nonce: 'test-nonce',
+  })
+  sjekk('Signature-Input starter med sig1=(', headere['Signature-Input'].startsWith('sig1=("@method" "@target-uri" "content-digest")'), true)
+  sjekk('created står i params', headere['Signature-Input'].includes(';created=1770124811;'), true)
+  sjekk('keyid er sitert', headere['Signature-Input'].includes('keyid="test-key-1"'), true)
+  sjekk('alg er ed25519', headere['Signature-Input'].endsWith('alg="ed25519"'), true)
+  sjekk('Content-Digest har sha-256-kolonneform',
+    /^sha-256=:[A-Za-z0-9+/]+=*:$/.test(headere['Content-Digest'] ?? ''), true)
+  sjekk('Signature har kolonneform', /^sig1=:[A-Za-z0-9+/]+=*:$/.test(headere['Signature']), true)
+
+  // Digesten mot en UAVHENGIG beregning (Buffer, ikke vår egen hjelper).
+  const uavhengig = 'sha-256=:' + Buffer.from(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(kropp2)),
+  ).toString('base64') + ':'
+  sjekk('digest matcher uavhengig beregning', headere['Content-Digest'], uavhengig)
+
+  // VERIFISER signaturen med den offentlige nøkkelen over basen.
+  const params2 = headere['Signature-Input'].slice('sig1='.length)
+  const base2 = byggSignaturBase('POST', 'https://api.stridee.fit/v1/connect', headere['Content-Digest']!, params2)
+  sjekk('basen slutter uten linjeskift', base2.endsWith('\n'), false)
+  sjekk('basen har 4 linjer for kall m/ kropp', base2.split('\n').length, 4)
+  const sigB64 = headere['Signature'].slice('sig1=:'.length, -1)
+  const sigBytes = Uint8Array.from(Buffer.from(sigB64, 'base64'))
+  const pubEd = await crypto.subtle.importKey('jwk',
+    { kty: 'OKP', crv: 'Ed25519', x: (await exportJWK(sign.publicKey)).x },
+    'Ed25519', false, ['verify'])
+  sjekk('signaturen VERIFISERER med offentlig nøkkel',
+    await crypto.subtle.verify('Ed25519', pubEd, sigBytes, new TextEncoder().encode(base2)), true)
+  // Tuklet base skal feile — beviser at verifikasjonen faktisk biter.
+  sjekk('tuklet base feiler verifikasjon',
+    await crypto.subtle.verify('Ed25519', pubEd, sigBytes, new TextEncoder().encode(base2 + ' ')), false)
+
+  // GET uten kropp: ingen content-digest, komponentlista uten den.
+  const getHeadere = await signerStrideeKall({
+    metode: 'GET',
+    url: 'https://api.stridee.fit/v1/connections?external_user_id=u1',
+    nokkel: edFraPem[0],
+    keyid: 'test-key-1',
+  })
+  sjekk('GET har ingen Content-Digest', getHeadere['Content-Digest'], undefined)
+  sjekk('GET-komponentene er method+target-uri',
+    getHeadere['Signature-Input'].startsWith('sig1=("@method" "@target-uri")'), true)
+  const getParams = getHeadere['Signature-Input'].slice('sig1='.length)
+  const getBase = byggSignaturBase('GET', 'https://api.stridee.fit/v1/connections?external_user_id=u1', null, getParams)
+  sjekk('GET-basen har 3 linjer', getBase.split('\n').length, 3)
+  const getSig = Uint8Array.from(Buffer.from(getHeadere['Signature'].slice('sig1=:'.length, -1), 'base64'))
+  sjekk('GET-signaturen verifiserer',
+    await crypto.subtle.verify('Ed25519', pubEd, getSig, new TextEncoder().encode(getBase)), true)
+
+  // Ferske nonce-er per kall (server avviser gjentak).
+  const a1 = await signerStrideeKall({ metode: 'GET', url: 'https://x/1', nokkel: edFraPem[0], keyid: 'k' })
+  const a2 = await signerStrideeKall({ metode: 'GET', url: 'https://x/1', nokkel: edFraPem[0], keyid: 'k' })
+  sjekk('nonce er fersk per kall', a1['Signature-Input'] === a2['Signature-Input'], false)
+
+  // Feil kurve inn i signeringen skal kaste, ikke signere søppel.
+  let kastet = false
+  try { await signerStrideeKall({ metode: 'GET', url: 'https://x', nokkel: boksPrivJwk, keyid: 'k' }) }
+  catch { kastet = true }
+  sjekk('X25519-nøkkel inn i signeringen kaster', kastet, true)
+
+  // Env-lesingen: begge variablene må være satt.
+  delete process.env.STRIDEE_SIGNING_PRIVATE_KEY
+  sjekk('uten env: ærlig feil', 'feil' in lesSigneringsnokkel(), true)
+  process.env.STRIDEE_SIGNING_PRIVATE_KEY = edPem
+  delete process.env.STRIDEE_SIGNING_KEY_ID
+  sjekk('uten keyid: ærlig feil', 'feil' in lesSigneringsnokkel(), true)
+  process.env.STRIDEE_SIGNING_KEY_ID = 'kid-1'
+  const lest = lesSigneringsnokkel()
+  sjekk('med env: nøkkel + keyid', !('feil' in lest) && lest.keyid === 'kid-1'
+    && lest.nokkel.crv === 'Ed25519', true)
 
   console.log('\n— kvittering —')
   const k = kvittering(nonce)

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Helseoversikt fra klokka (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══ Tokens — samme fasit som appen ═══ */
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --lilla:#8B5CF6; --lysblaa:#38BDF8;
+  /* Søvnstadier — ÉN kilde i koden: SOVN_STAGE_FARGER */
+  --st-dyp:#1A6FD4; --st-lett:#38BDF8; --st-rem:#8B5CF6; --st-vaken:#E8B93C;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+h1,h2{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em}
+h1{font-size:clamp(38px,6vw,58px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 30px;max-width:640px}
+.viewsw{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--surface);margin-bottom:34px}
+.viewsw button{border:0;background:transparent;color:var(--dim);cursor:pointer;padding:9px 22px;border-radius:999px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.14em}
+.viewsw button.on{background:var(--orange);color:#fff}
+
+/* ═══ Kortet ═══ */
+.hcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.hhead{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.htitle{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.16em;font-size:15px}
+.htitle .dash{display:inline-block;width:26px;height:4px;border-radius:2px;background:var(--orange);margin-right:10px;vertical-align:middle}
+.htitle .src{color:var(--mute);font-weight:500;letter-spacing:.06em;margin-left:10px;font-size:12.5px}
+
+/* Periodevelger */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line2);background:var(--card);color:var(--dim);border-radius:999px;padding:6px 14px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.1em}
+.chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.custom{display:none;gap:8px;align-items:center;color:var(--mute);font-size:12.5px;padding:10px 22px 0}
+.custom.vis{display:flex}
+.custom input{background:var(--card);border:1px solid var(--line2);border-radius:8px;color:var(--paper);padding:6px 10px;font:inherit}
+
+/* Statfliser */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+@media(max-width:760px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--surface);padding:18px 20px}
+.tile .l{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.16em;font-size:12px;color:var(--dim)}
+.tile .v{font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1.05;margin-top:4px}
+.tile .v small{font-size:19px;color:var(--dim);letter-spacing:.04em}
+.tile .s{font-size:12px;color:var(--mute);margin-top:2px}
+.tile .s b{color:var(--dim);font-weight:600}
+.tile .delta{font-size:12px;margin-left:6px}
+.up{color:var(--green)} .dn{color:var(--red)}
+.tile .manuell{display:inline-block;font-size:10px;border:1px solid var(--line2);border-radius:4px;padding:0 5px;color:var(--mute);margin-left:6px;vertical-align:2px}
+
+/* Seksjoner i kortet */
+.sec{padding:20px 22px;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.sech{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.sech h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.16em;font-size:13.5px;color:var(--dim)}
+.sech .m{font-size:12px;color:var(--mute)}
+
+/* Legend */
+.leg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:10px}
+.leg span{display:flex;align-items:center;gap:6px}
+.leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* Grafer (SVG-mock) */
+.gwrap{overflow-x:auto}
+svg{display:block}
+.axis{stroke:var(--line2);stroke-width:1}
+.gtxt{font:10.5px 'Inter',sans-serif;fill:var(--mute)}
+.gtxt2{font:11px 'Inter',sans-serif;fill:var(--dim)}
+
+/* Trend-småpaneler — ALDRI dobbel y-akse: tre paneler, hver sin skala */
+.trends{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.trends{grid-template-columns:1fr}}
+.tpanel{background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:12px 14px}
+.tpanel .th{display:flex;justify-content:space-between;align-items:baseline;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.12em;font-size:12px;color:var(--dim)}
+.tpanel .th b{font-family:'Inter';font-size:15px;color:var(--paper);letter-spacing:0}
+
+/* Følelse */
+.folelse{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fdot{width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mute)}
+.fdot.fylt{background:var(--green);border-color:var(--green);color:#08231a;font-weight:700}
+.fdot.idag{outline:2px solid var(--orange);outline-offset:2px}
+
+/* Knapperad */
+.actions{display:flex;gap:10px;padding:18px 22px;flex-wrap:wrap}
+.btn{border-radius:10px;padding:11px 22px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.12em;font-size:14px}
+.btn.primar{background:var(--orange);border:1px solid var(--orange);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--paper)}
+
+/* Vis mer-grupper */
+.grupper{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 22px;border-bottom:1px solid var(--line)}
+@media(max-width:760px){.grupper{grid-template-columns:1fr}}
+.grp{background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:16px}
+.grp h4{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.16em;font-size:12.5px;color:var(--dim);margin-bottom:10px}
+.rowi{display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px;border-bottom:1px dashed var(--line)}
+.rowi:last-child{border-bottom:0}
+.rowi .k{color:var(--dim)}
+.rowi .v{font-weight:600}
+.grp .fotn{font-size:11.5px;color:var(--mute);margin-top:10px;line-height:1.45}
+
+/* Natt-detalj: stadiestripe */
+.natt{display:flex;height:26px;border-radius:7px;overflow:hidden;gap:2px;background:var(--surface)}
+.natt div{height:100%}
+.natttider{display:flex;justify-content:space-between;color:var(--mute);font-size:11.5px;margin-top:6px}
+
+/* Notat */
+.notat{margin-top:60px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-size:24px;color:var(--paper);margin-bottom:10px}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>HELSE FRA <span class="acc">KLOKKA.</span></h1>
+<p class="sub">Samme kort tre steder: dag-klikk (når dagen har helsedata), Helse-fanen, og hjem-skjermens helsedel. Generell øverst — «Vis mer» åpner dybden.</p>
+
+<div class="viewsw">
+  <button class="on" id="swA" onclick="sw('A')">OVERSIKT</button>
+  <button id="swB" onclick="sw('B')">VIS MER — DYBDEN</button>
+  <button id="swC" onclick="sw('C')">KOMPAKT KORT</button>
+</div>
+
+<!-- ═══════════════ VISNING A — GENERELL ═══════════════ -->
+<div id="viewA">
+<div class="hcard">
+  <div class="hhead">
+    <div class="htitle"><span class="dash"></span>HELSE<span class="src">⌚ Garmin · synket 07:12</span></div>
+    <div class="chips">
+      <button class="chip">7 DAGER</button>
+      <button class="chip on">30 DAGER</button>
+      <button class="chip">1 ÅR</button>
+      <button class="chip" onclick="document.getElementById('cust').classList.toggle('vis')">EGENDEFINERT</button>
+    </div>
+  </div>
+  <div class="custom" id="cust">Fra <input type="date" value="2026-07-01"> til <input type="date" value="2026-08-27"> <button class="chip on">BRUK</button></div>
+
+  <!-- Toppfliser: i dag + snitt for valgt periode -->
+  <div class="tiles">
+    <div class="tile"><div class="l">HVILEPULS</div><div class="v">44<small> slag</small></div><div class="s"><b>snitt 46</b><span class="delta up">▼ 2</span></div></div>
+    <div class="tile"><div class="l">HRV (NATT)</div><div class="v">95<small> ms</small></div><div class="s"><b>snitt 88</b><span class="delta up">▲ 7</span></div></div>
+    <div class="tile"><div class="l">SØVNSCORE</div><div class="v">82</div><div class="s"><b>snitt 76</b><span class="delta up">▲ 6</span></div></div>
+    <div class="tile"><div class="l">SØVNTID</div><div class="v">7:42</div><div class="s"><b>snitt 7:15</b><span class="delta up">▲ 27 min</span></div></div>
+  </div>
+
+  <!-- Søvnstadier per natt — stablede søyler (varigheter; hypnogram når serien er verifisert) -->
+  <div class="sec">
+    <div class="sech"><h3>SØVNSTADIER — PER NATT</h3><span class="m">timer · siste 14 netter i perioden</span></div>
+    <div class="gwrap">
+    <svg viewBox="0 0 640 180" width="100%" height="180" aria-label="Stablede søyler per natt: dyp, lett, REM og våken">
+      <line x1="34" y1="150" x2="630" y2="150" class="axis"/>
+      <text x="4" y="34" class="gtxt">8 t</text><text x="4" y="94" class="gtxt">4 t</text><text x="4" y="152" class="gtxt">0</text>
+      <!-- 14 netter, hver søyle: våken(topp) REM lett dyp(bunn), 2px mellomrom -->
+      <g>
+        <!-- gjentatt mønster med varierte høyder -->
+        <g transform="translate(40,0)"><rect x="0" y="128" width="26" height="22" fill="var(--st-dyp)" rx="3"/><rect x="0" y="86" width="26" height="40" fill="var(--st-lett)"/><rect x="0" y="58" width="26" height="26" fill="var(--st-rem)"/><rect x="0" y="50" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(82,0)"><rect x="0" y="124" width="26" height="26" fill="var(--st-dyp)" rx="3"/><rect x="0" y="78" width="26" height="44" fill="var(--st-lett)"/><rect x="0" y="52" width="26" height="24" fill="var(--st-rem)"/><rect x="0" y="46" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(124,0)"><rect x="0" y="132" width="26" height="18" fill="var(--st-dyp)" rx="3"/><rect x="0" y="96" width="26" height="34" fill="var(--st-lett)"/><rect x="0" y="72" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="62" width="26" height="8" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(166,0)"><rect x="0" y="122" width="26" height="28" fill="var(--st-dyp)" rx="3"/><rect x="0" y="74" width="26" height="46" fill="var(--st-lett)"/><rect x="0" y="50" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="44" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(208,0)"><rect x="0" y="126" width="26" height="24" fill="var(--st-dyp)" rx="3"/><rect x="0" y="84" width="26" height="40" fill="var(--st-lett)"/><rect x="0" y="60" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="52" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(250,0)"><rect x="0" y="136" width="26" height="14" fill="var(--st-dyp)" rx="3"/><rect x="0" y="104" width="26" height="30" fill="var(--st-lett)"/><rect x="0" y="84" width="26" height="18" fill="var(--st-rem)"/><rect x="0" y="72" width="26" height="10" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(292,0)"><rect x="0" y="120" width="26" height="30" fill="var(--st-dyp)" rx="3"/><rect x="0" y="72" width="26" height="46" fill="var(--st-lett)"/><rect x="0" y="46" width="26" height="24" fill="var(--st-rem)"/><rect x="0" y="40" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(334,0)"><rect x="0" y="126" width="26" height="24" fill="var(--st-dyp)" rx="3"/><rect x="0" y="82" width="26" height="42" fill="var(--st-lett)"/><rect x="0" y="58" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="50" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(376,0)"><rect x="0" y="130" width="26" height="20" fill="var(--st-dyp)" rx="3"/><rect x="0" y="92" width="26" height="36" fill="var(--st-lett)"/><rect x="0" y="68" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="60" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(418,0)"><rect x="0" y="124" width="26" height="26" fill="var(--st-dyp)" rx="3"/><rect x="0" y="80" width="26" height="42" fill="var(--st-lett)"/><rect x="0" y="54" width="26" height="24" fill="var(--st-rem)"/><rect x="0" y="48" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(460,0)"><rect x="0" y="128" width="26" height="22" fill="var(--st-dyp)" rx="3"/><rect x="0" y="88" width="26" height="38" fill="var(--st-lett)"/><rect x="0" y="64" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="56" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(502,0)"><rect x="0" y="118" width="26" height="32" fill="var(--st-dyp)" rx="3"/><rect x="0" y="70" width="26" height="46" fill="var(--st-lett)"/><rect x="0" y="46" width="26" height="22" fill="var(--st-rem)"/><rect x="0" y="40" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(544,0)"><rect x="0" y="126" width="26" height="24" fill="var(--st-dyp)" rx="3"/><rect x="0" y="84" width="26" height="40" fill="var(--st-lett)"/><rect x="0" y="58" width="26" height="24" fill="var(--st-rem)"/><rect x="0" y="52" width="26" height="4" fill="var(--st-vaken)" rx="3"/></g>
+        <g transform="translate(586,0)"><rect x="0" y="122" width="26" height="28" fill="var(--st-dyp)" rx="3"/><rect x="0" y="76" width="26" height="44" fill="var(--st-lett)"/><rect x="0" y="50" width="26" height="24" fill="var(--st-rem)"/><rect x="0" y="42" width="26" height="6" fill="var(--st-vaken)" rx="3"/></g>
+      </g>
+      <text x="40" y="166" class="gtxt">14. aug</text><text x="586" y="166" class="gtxt">27. aug</text>
+    </svg>
+    </div>
+    <div class="leg">
+      <span><i style="background:var(--st-dyp)"></i>Dyp</span>
+      <span><i style="background:var(--st-lett)"></i>Lett</span>
+      <span><i style="background:var(--st-rem)"></i>REM</span>
+      <span><i style="background:var(--st-vaken)"></i>Våken</span>
+    </div>
+  </div>
+
+  <!-- Trender — tre småpaneler, hver sin skala (aldri dobbel y-akse) -->
+  <div class="sec">
+    <div class="sech"><h3>TRENDER — SISTE 30 DAGER</h3><span class="m">hold over for verdi per dag</span></div>
+    <div class="trends">
+      <div class="tpanel">
+        <div class="th"><span>HRV</span><b>95 ms</b></div>
+        <svg viewBox="0 0 200 64" width="100%" height="64">
+          <path d="M2 44 C20 40,30 46,44 38 S70 30,86 34 100 26,116 28 140 20,158 24 184 14,198 16" fill="none" stroke="var(--lilla)" stroke-width="2"/>
+          <circle cx="198" cy="16" r="4" fill="var(--lilla)"/>
+        </svg>
+      </div>
+      <div class="tpanel">
+        <div class="th"><span>HVILEPULS</span><b>44</b></div>
+        <svg viewBox="0 0 200 64" width="100%" height="64">
+          <path d="M2 22 C24 26,40 20,56 26 S84 34,102 30 130 38,150 36 178 44,198 42" fill="none" stroke="var(--red)" stroke-width="2"/>
+          <circle cx="198" cy="42" r="4" fill="var(--red)"/>
+        </svg>
+      </div>
+      <div class="tpanel">
+        <div class="th"><span>SØVNSCORE</span><b>82</b></div>
+        <svg viewBox="0 0 200 64" width="100%" height="64">
+          <path d="M2 40 C22 42,36 34,52 36 S80 28,98 30 126 22,146 26 176 16,198 18" fill="none" stroke="var(--blue)" stroke-width="2"/>
+          <circle cx="198" cy="18" r="4" fill="var(--blue)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Følelse (manuell) -->
+  <div class="sec">
+    <div class="sech"><h3>FØLELSE</h3><span class="m">manuell · 1–10 · siste 14 dager</span></div>
+    <div class="folelse">
+      <div class="fdot fylt">6</div><div class="fdot fylt">7</div><div class="fdot">–</div><div class="fdot fylt">5</div>
+      <div class="fdot fylt">7</div><div class="fdot fylt">8</div><div class="fdot fylt">7</div><div class="fdot">–</div>
+      <div class="fdot fylt">6</div><div class="fdot fylt">8</div><div class="fdot fylt">8</div><div class="fdot fylt">7</div>
+      <div class="fdot fylt">9</div><div class="fdot fylt idag">8</div>
+      <span style="color:var(--mute);font-size:12px;margin-left:8px">snitt 7,1</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primar" onclick="sw('B')">VIS MER</button>
+    <button class="btn ghost">✎ FØR MANUELT</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ VISNING B — DYBDEN ═══════════════ -->
+<div id="viewB" class="hidden">
+<div class="hcard">
+  <div class="hhead">
+    <div class="htitle"><span class="dash"></span>HELSE — DETALJER<span class="src">⌚ Garmin · torsdag 27. aug</span></div>
+    <div class="chips">
+      <button class="chip">7 DAGER</button><button class="chip on">30 DAGER</button><button class="chip">1 ÅR</button><button class="chip">EGENDEFINERT</button>
+    </div>
+  </div>
+
+  <!-- Samme toppfliser -->
+  <div class="tiles">
+    <div class="tile"><div class="l">HVILEPULS</div><div class="v">44<small> slag</small></div><div class="s"><b>snitt 46</b><span class="delta up">▼ 2</span></div></div>
+    <div class="tile"><div class="l">HRV (NATT)</div><div class="v">95<small> ms</small></div><div class="s"><b>snitt 88</b><span class="delta up">▲ 7</span></div></div>
+    <div class="tile"><div class="l">SØVNSCORE</div><div class="v">82</div><div class="s"><b>snitt 76</b><span class="delta up">▲ 6</span></div></div>
+    <div class="tile"><div class="l">SØVNTID</div><div class="v">7:42</div><div class="s"><b>snitt 7:15</b><span class="delta up">▲ 27 min</span></div></div>
+  </div>
+
+  <!-- SISTE NATT — HYPNOGRAM (stadiene GJENNOM natta) -->
+  <div class="sec">
+    <div class="sech"><h3>SISTE NATT — HYPNOGRAM</h3><span class="m">leggetid 22:41 · våknet 06:31</span></div>
+    <svg viewBox="0 0 640 150" width="100%" height="150" aria-label="Hypnogram: søvnstadier gjennom natta, våken øverst, dyp nederst">
+      <!-- radlinjer + etiketter: Våken / REM / Lett / Dyp -->
+      <text x="0" y="26" class="gtxt2">Våken</text><line x1="46" y1="22" x2="636" y2="22" class="axis" stroke-dasharray="2 4"/>
+      <text x="0" y="58" class="gtxt2">REM</text><line x1="46" y1="54" x2="636" y2="54" class="axis" stroke-dasharray="2 4"/>
+      <text x="0" y="90" class="gtxt2">Lett</text><line x1="46" y1="86" x2="636" y2="86" class="axis" stroke-dasharray="2 4"/>
+      <text x="0" y="122" class="gtxt2">Dyp</text><line x1="46" y1="118" x2="636" y2="118" class="axis" stroke-dasharray="2 4"/>
+      <!-- trappekurve: blokker per stadium-intervall, farget per stadium -->
+      <g>
+        <rect x="50"  y="16" width="14" height="12" rx="3" fill="var(--st-vaken)"/>
+        <rect x="64"  y="80" width="52" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="116" y="112" width="64" height="12" rx="3" fill="var(--st-dyp)"/>
+        <rect x="180" y="80" width="34" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="214" y="48" width="40" height="12" rx="3" fill="var(--st-rem)"/>
+        <rect x="254" y="80" width="40" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="294" y="112" width="52" height="12" rx="3" fill="var(--st-dyp)"/>
+        <rect x="346" y="80" width="30" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="376" y="48" width="54" height="12" rx="3" fill="var(--st-rem)"/>
+        <rect x="430" y="16" width="10" height="12" rx="3" fill="var(--st-vaken)"/>
+        <rect x="440" y="80" width="52" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="492" y="48" width="66" height="12" rx="3" fill="var(--st-rem)"/>
+        <rect x="558" y="80" width="60" height="12" rx="3" fill="var(--st-lett)"/>
+        <rect x="618" y="16" width="14" height="12" rx="3" fill="var(--st-vaken)"/>
+      </g>
+      <line x1="46" y1="138" x2="636" y2="138" class="axis"/>
+      <text x="50" y="149" class="gtxt">22:41</text><text x="330" y="149" class="gtxt">02:30</text><text x="606" y="149" class="gtxt">06:31</text>
+    </svg>
+    <div class="natttider"><span>Dyp 1:24</span><span>Lett 4:02</span><span>REM 1:58</span><span>Våken 0:18</span><span style="color:var(--mute)">Høneblund: 23 min (14:10)</span></div>
+    <div class="leg" style="margin-top:8px"><span style="color:var(--mute)">Krever serie-data. Uten serie: fallback-stripa under.</span></div>
+    <div class="natt" style="margin-top:8px" aria-label="Fallback: fordeling av natta som stripe">
+      <div style="flex:84;background:var(--st-dyp)"></div>
+      <div style="flex:242;background:var(--st-lett)"></div>
+      <div style="flex:118;background:var(--st-rem)"></div>
+      <div style="flex:18;background:var(--st-vaken)"></div>
+    </div>
+  </div>
+
+  <!-- Grupper: det viktigste for utholdenhet øverst -->
+  <div class="grupper">
+    <div class="grp">
+      <h4>RESTITUSJON</h4>
+      <div class="rowi"><span class="k">Natt-HRV (snitt)</span><span class="v">95 ms</span></div>
+      <div class="rowi"><span class="k">HRV 5-min høyeste</span><span class="v">135 ms</span></div>
+      <div class="rowi"><span class="k">Hvilepuls</span><span class="v">44 <span class="manuell" title="manuelt ført — vinner over klokka">M</span></span></div>
+      <div class="rowi"><span class="k">Laveste puls i natt</span><span class="v">36</span></div>
+      <div class="fotn">Manuelt førte verdier (M) vinner alltid over klokka.</div>
+    </div>
+    <div class="grp">
+      <h4>SØVN</h4>
+      <div class="rowi"><span class="k">Total søvn</span><span class="v">7:42</span></div>
+      <div class="rowi"><span class="k">Søvnscore</span><span class="v">82 — «god»</span></div>
+      <div class="rowi"><span class="k">Dypsøvn-andel</span><span class="v">18 % — «svært god»</span></div>
+      <div class="rowi"><span class="k">REM-andel</span><span class="v">26 %</span></div>
+      <div class="rowi"><span class="k">Oppvåkninger</span><span class="v">2</span></div>
+    </div>
+    <div class="grp">
+      <h4>AKTIVITET</h4>
+      <div class="rowi"><span class="k">Skritt</span><span class="v">11 240</span></div>
+      <div class="rowi"><span class="k">Daglig distanse</span><span class="v">8,4 km</span></div>
+      <div class="rowi"><span class="k">Etasjer</span><span class="v">14</span></div>
+      <div class="fotn">Kalorier vises ikke — estimatene spriker for mye mellom merker.</div>
+    </div>
+    <div class="grp">
+      <h4>FRA GARMIN — DERES SKALA</h4>
+      <div class="rowi"><span class="k">Body Battery ladet / tappet</span><span class="v">56 / 25</span></div>
+      <div class="rowi"><span class="k">Stress (snitt / maks)</span><span class="v">15 / 99</span></div>
+      <div class="rowi"><span class="k">Fitness age</span><span class="v">24</span></div>
+      <div class="fotn">Garmins egne skårer, på Garmins skala. Regnes ikke inn i trendene over, som bruker verdier som er sammenlignbare på tvers av kilder.</div>
+    </div>
+  </div>
+
+  <!-- 1-års-trend eksempel (uke-aggregert) -->
+  <div class="sec">
+    <div class="sech"><h3>LANG TREND — HRV</h3><span class="m">1 år · ukesnitt · samme mønster for hvilepuls og søvnscore</span></div>
+    <svg viewBox="0 0 640 90" width="100%" height="90">
+      <line x1="0" y1="78" x2="640" y2="78" class="axis"/>
+      <path d="M4 60 C40 56,70 62,100 54 S160 44,200 48 260 38,300 42 360 34,400 30 460 36,500 26 580 22,636 24"
+            fill="none" stroke="var(--lilla)" stroke-width="2"/>
+      <text x="4" y="88" class="gtxt">sep 25</text><text x="600" y="88" class="gtxt">aug 26</text>
+    </svg>
+  </div>
+
+  <div class="actions">
+    <button class="btn ghost" onclick="sw('A')">← TILBAKE</button>
+    <button class="btn ghost">✎ FØR MANUELT</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ VISNING C — KOMPAKT KORT (hjem + dag-klikk) ═══════════════ -->
+<div id="viewC" class="hidden">
+<p class="sub" style="margin-top:0">Slik ser kortet ut som ett av kortene på hjem-skjermen, og når man trykker på en dag med helsedata. Klikk hvor som helst på kortet → hele oversikten åpnes som pop-up (visning A, med Vis mer inni).</p>
+<div class="hcard" style="max-width:420px;cursor:pointer" onclick="sw('A')" title="Klikk → åpner hele oversikten som pop-up">
+  <div class="hhead" style="padding:14px 18px">
+    <div class="htitle"><span class="dash"></span>HELSE<span class="src">⌚ i natt</span></div>
+    <span style="color:var(--mute);font-size:12px">åpne →</span>
+  </div>
+  <div class="tiles" style="grid-template-columns:repeat(2,1fr)">
+    <div class="tile" style="padding:12px 18px"><div class="l">HVILEPULS</div><div class="v" style="font-size:30px">44</div><div class="s"><b>snitt 46</b></div></div>
+    <div class="tile" style="padding:12px 18px"><div class="l">HRV</div><div class="v" style="font-size:30px">95</div><div class="s"><b>snitt 88</b></div></div>
+    <div class="tile" style="padding:12px 18px"><div class="l">SØVN</div><div class="v" style="font-size:30px">7:42</div><div class="s"><b>score 82</b></div></div>
+    <div class="tile" style="padding:12px 18px"><div class="l">FØLELSE</div><div class="v" style="font-size:30px">8<small>/10</small></div><div class="s"><b>+ før i dag</b></div></div>
+  </div>
+  <div class="sec" style="padding:12px 18px">
+    <div class="natt" style="height:16px" aria-label="Natta i miniatyr">
+      <div style="flex:84;background:var(--st-dyp)"></div>
+      <div style="flex:242;background:var(--st-lett)"></div>
+      <div style="flex:118;background:var(--st-rem)"></div>
+      <div style="flex:18;background:var(--st-vaken)"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════ NOTAT — REGLER ═══════════════ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <ul>
+    <li><b>LYS OG MØRK MODUS — påkrevd, som alt som bygges nå.</b> Alle flater
+    bruker temavariablene fra lysmodus-arbeidet (aldri hardkodet grått/hvitt/
+    svart). Fargede verdier (stadiefargene, trendlinjene, oransje/grønn/rød)
+    er UENDRET i begge temaer per Sverres regel — kun nøytralene bytter.
+    Recharts sender farger som SVG-attributter der <code>var()</code> ikke
+    alltid virker — bruk samme løsning som de eksisterende grafene fikk i
+    lysmodus-runden. QA i BEGGE temaer før rapport, spesielt
+    <code>M</code>-badgen, dashed-linjene og «Fra Garmin»-gruppa.</li>
+    <li><b>ETT kort, to størrelser, fire monteringspunkter</b> (regel 11 — aldri kopier):
+      <br>· <b>Hjem:</b> KOMPAKT kort (visning C) som ERSTATTER dagens helsedel — klikk åpner hele oversikten som POP-UP (visning A, med Vis mer inni).
+      <br>· <b>Dag-klikk</b> (dag med helsedata): samme kompakte kort → samme pop-up.
+      <br>· <b>Helse-fanen:</b> full visning (A) direkte, ERSTATTER dagens helseinnhold der.
+      <br>· <b>Analyse:</b> ERSTATTER helsedata-delen som ligger der i dag med denne.
+      <br>· <b>Dagbok:</b> full visning NEDERST — under kalenderen og under alle grafene som ligger der (skyting m.m.). Sist i rekkefølgen.
+      Alt gammelt helse-UI som erstattes ryddes i SAMME runde — ikke to versjoner side om side. Avløst → slett (regel 21), men rapporter hva som fjernes.</li>
+    <li><b>Hypnogrammet</b> (stadiene gjennom natta) bygges mot <code>series_url</code>-dataene — VENT på serie-målingens rapport før implementasjon, og verifiser stadiekodingen mot målt form. Uten serie for en natt: fallback-stripa (fordeling) vises i stedet, automatisk per natt. Begge er tegnet i visning B.</li>
+    <li><b>«Før manuelt»</b> åpner DAGENS manuelle føringsskjema — gjenbruk flyten som finnes, ingen ny. Følelse/følt energi skal kunne føres også når dagen HAR klokkedata — føringen er alltid tilgjengelig fra kortet, og prikke-raden/FØLELSE-flisen er klikkbar inn til den.</li>
+    <li><b>Periodevelgeren</b> (7 d / 30 d / 1 år / egendefinert m/ to datofelt) bor PÅ kortet og styrer fliser, stadiegraf og trender sammen. Snitt-tallene i flisene følger valgt periode. 1 år aggregeres til ukesnitt.</li>
+    <li><b>Aldri dobbel y-akse:</b> HRV, hvilepuls og søvnscore er TRE småpaneler med hver sin skala — ikke tre linjer i én graf. Crosshair + tooltip per panel.</li>
+    <li><b>Søvnstadier:</b> i dag har vi kun VARIGHETER per natt → stablede søyler (2px mellomrom mellom segmenter, dyp nederst). Hypnogram (stadiekart gjennom natta) bygges FØRST når serie-målingen (<code>series_url</code>) er verifisert — designet oppgraderes da, ikke før. Høneblunder finnes som intervaller og kan vises som egen merknad.</li>
+    <li><b>Stadiefargene = én kilde</b> (<code>SOVN_STAGE_FARGER</code>): dyp <code>#1A6FD4</code> · lett <code>#38BDF8</code> · REM <code>#8B5CF6</code> · våken <code>#E8B93C</code>. CVD-validert (verste nabopar ΔE 17,5); lett/våken ligger over lyshetsbåndet — derfor er 2px-gap + legend PÅKREVD, ikke pynt.</li>
+    <li><b>Garmin-skala-verdier</b> (Body Battery, stress, fitness age, søvnscore-delskårer) vises i egen gruppe med forklaringsteksten, og regnes ALDRI inn i trendene — trendene bruker kun kildenøytrale verdier. (Prinsippet fra «Fra Garmin»-kortet står.)</li>
+    <li><b>Kalorier vises aldri.</b> Konvensjonen står.</li>
+    <li><b>Manuell føring uendret:</b> «Før manuelt»-knappen åpner dagens skjema. Manuelt førte verdier vinner over klokka og merkes med <code>M</code>-badge der de vises.</li>
+    <li><b>Tomtilstander:</b> mangler perioden data → «for lite data», aldri tomme grafer eller villedende snitt. Kortet som helhet vises hvis brukeren HAR helsedata i det hele tatt (regel 20 — selvskjuling på «finnes», ikke på «valgt periode er tom»).</li>
+    <li><b>Kort med kontrollrad over graf → <code>height="auto"</code></b> (regel 17) når dette bygges i Recharts.</li>
+    <li>Følelse er manuell (1–10) og hentes fra dagens føring — prikkeraden er lesevisning, klikk åpner føringen.</li>
+    <li>Kildemerket i headeren («⌚ Garmin · synket 07:12») viser NYESTE kilde; ved flere kilder samme dag vises den som vant per felt-prioritering.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+function sw(v){
+  ['A','B','C'].forEach(k=>{
+    document.getElementById('view'+k).classList.toggle('hidden', v!==k);
+    document.getElementById('sw'+k).classList.toggle('on', v===k);
+  });
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{
+  if(!e.target.classList.contains('chip')) return;
+  g.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  e.target.classList.add('on');
+}));
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { prosesserKontoHendelser } from '@/lib/stridee-prosessering'
-import { prosesserDataHendelser, ryddGamleHendelser } from '@/lib/stridee-import'
+import { prosesserDataHendelser, ryddGamleHendelser, backfillSovnstadier } from '@/lib/stridee-import'
 import { lastNedStrideeFil } from '@/lib/stridee-api'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { STRIDEE_AKTIV } from '@/lib/stridee'
@@ -44,6 +44,15 @@ async function handler(request: Request) {
   //    FORMEN på ÉN Garmin-søvnserie — feltnavn, oppløsning, stadiekoding,
   //    lengder — ALDRI råverdiene i sin helhet. Kjøres manuelt én gang;
   //    FJERNES i samme bolk som hypnogrammet bygges. Ingen skriving.
+  // Engangs-backfill av søvnstadier for netter importert FØR serie-
+  //    hentingen fantes. Kjøres manuelt; trygg å kjøre flere ganger
+  //    (hopper over datoer som alt har stadier).
+  if (new URL(request.url).searchParams.get('maal') === 'sovnstadier') {
+    const resultat = await backfillSovnstadier(db)
+    console.log(`[stridee-hendelser] sovnstadier-backfill: ${resultat.join(' | ')}`)
+    return NextResponse.json({ ok: true, resultat })
+  }
+
   if (new URL(request.url).searchParams.get('maal') === 'serie') {
     const maalt = await maalSovnserie(db)
     console.log('[stridee-hendelser] målekall:', JSON.stringify(maalt).slice(0, 4000))

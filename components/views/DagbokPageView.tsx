@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
+import { HelseOversikt } from '@/components/helse/HelseOversikt'
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
 import { Calendar } from '@/components/calendar/Calendar'
@@ -202,6 +203,13 @@ export async function DagbokPageView({ viewContext }: Props) {
             periode, med egen periodevelger. Skjuler seg selv for brukere
             uten skytedata. */}
         <SkytingChartSection targetUserId={targetId} />
+
+        {/* Helse fra klokka — full oversikt NEDERST (helse-designet):
+            under kalenderen og alle grafene. Skjuler seg selv uten
+            helsedata (regel 20). */}
+        <div className="mt-8">
+          <HelseOversikt targetUserId={targetId} />
+        </div>
 
       </div>
     </div>

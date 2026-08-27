@@ -285,10 +285,28 @@ async function importerWellness(
     if (s.sleepScores && typeof s.sleepScores === 'object') merke.sleep_scores = s.sleepScores
     const napSek = tall(s.totalNapDurationInSeconds)
     if (napSek) merke.nap_minutes = Math.round(napSek / 60)
+
+    // Stadie-tidslinja fra serien (hypnogrammet). Formen er MÅLT i prod:
+    // sleepLevelsMap.{deep,light,rem,awake} = intervaller med
+    // {startTimeInSeconds, endTimeInSeconds}. SpO2 og respirasjon i samme
+    // serie hentes BEVISST ikke (personvern §12: biosensing utelates).
+    // Feiler serien, står natta med fallback-stripa — aldri feil hendelsen.
+    let serieNotat = ''
+    const serieUrl = typeof data.series_url === 'string' ? data.series_url : null
+    if (serieUrl) {
+      const stadier = await hentSovnstadier(serieUrl)
+      if (stadier === null) {
+        serieNotat = ', serie utilgjengelig (fallback-stripe)'
+      } else if (stadier.length > 0) {
+        merke.sleep_stages = stadier
+        serieNotat = `, ${stadier.length} stadie-intervaller`
+      }
+    }
+
     const merkeFeil = await lagreMerkeverdier(db, userId, dato, provider, merke)
     if (merkeFeil) throw new Error(`merkeverdier: ${merkeFeil}`)
 
-    return `søvn ${dato}: ${skrevet.written} felt skrevet${skrevet.keptManual.length ? `, manuell beholdt: ${skrevet.keptManual.join(',')}` : ''}`
+    return `søvn ${dato}: ${skrevet.written} felt skrevet${serieNotat}${skrevet.keptManual.length ? `, manuell beholdt: ${skrevet.keptManual.join(',')}` : ''}`
   }
 
   if (kind === 'daily') {
@@ -350,6 +368,83 @@ async function importerWellness(
   if (kind === 'stress') return `stress ${dato}: ingen verdier i payloaden (kommer via daily)`
 
   return `ukjent wellness-kind «${kind}» — hoppet over`
+}
+
+/**
+ * Henter søvnserien og trekker ut stadie-tidslinja — KUN sleepLevelsMap
+ * (aldri SpO2/respirasjon, personvern §12). Normaliseres til vårt eget
+ * navnesett (dyp/lett/rem/vaken) med epoch-sekunder, sortert.
+ * null = serien var utilgjengelig; [] = serie uten stadier.
+ */
+export async function hentSovnstadier(
+  serieUrl: string,
+): Promise<{ s: string; fra: number; til: number }[] | null> {
+  const svar = await lastNedStrideeFil(serieUrl)
+  if (!svar.data) {
+    console.warn(`[stridee-import] søvnserie feilet: ${svar.feil}`)
+    return null
+  }
+  let serie: Record<string, unknown>
+  try {
+    serie = JSON.parse(svar.data.toString('utf8')) as Record<string, unknown>
+  } catch {
+    return null
+  }
+  const kart = serie.sleepLevelsMap as Record<string, unknown> | undefined
+  if (!kart || typeof kart !== 'object') return []
+  const NAVN: Record<string, string> = { deep: 'dyp', light: 'lett', rem: 'rem', awake: 'vaken' }
+  const ut: { s: string; fra: number; til: number }[] = []
+  for (const [deres, vaart] of Object.entries(NAVN)) {
+    const liste = kart[deres]
+    if (!Array.isArray(liste)) continue
+    for (const iv of liste) {
+      const fra = (iv as Record<string, unknown>)?.startTimeInSeconds
+      const til = (iv as Record<string, unknown>)?.endTimeInSeconds
+      if (typeof fra === 'number' && typeof til === 'number' && til > fra) {
+        ut.push({ s: vaart, fra, til })
+      }
+    }
+  }
+  return ut.sort((a, b) => a.fra - b.fra)
+}
+
+/**
+ * Engangs-backfill: netter som alt er importert (hendelsen behandlet) får
+ * stadie-tidslinja i etterkant. Leser lagrede sleep-hendelser og henter
+ * seriene deres — hopper over datoer som allerede har sleep_stages.
+ * Kalles fra cron-ruta (CRON_SECRET), kjøres manuelt én gang etter deploy.
+ */
+export async function backfillSovnstadier(db: SupabaseClient): Promise<string[]> {
+  const ut: string[] = []
+  const { data: rader } = await db
+    .from('stridee_events')
+    .select('stridee_user_id, payload')
+    .in('event_type', ['wellness.created', 'wellness.updated'])
+    .order('received_at', { ascending: true })
+  type P = { provider?: string; data?: { kind?: string; series_url?: string; calendar_date?: string } }
+  for (const rad of rader ?? []) {
+    const p = rad.payload as P
+    if (p?.data?.kind !== 'sleep' || typeof p.data.series_url !== 'string' || !p.data.calendar_date) continue
+    if (!erStrideeProvider(p.provider)) continue
+    const { data: lenke } = await db.from('stridee_link')
+      .select('user_id').eq('stridee_user_id', rad.stridee_user_id).maybeSingle()
+    if (!lenke) continue
+    const dato = p.data.calendar_date
+    const { data: finnes } = await db.from('health_brand_metrics')
+      .select('metrics').eq('user_id', lenke.user_id).eq('date', dato).eq('brand', p.provider).maybeSingle()
+    if ((finnes?.metrics as Record<string, unknown> | null)?.sleep_stages) {
+      ut.push(`${dato}: har alt stadier`)
+      continue
+    }
+    const stadier = await hentSovnstadier(p.data.series_url)
+    if (!stadier || stadier.length === 0) {
+      ut.push(`${dato}: serie ${stadier === null ? 'utilgjengelig' : 'uten stadier'}`)
+      continue
+    }
+    const feil = await lagreMerkeverdier(db, lenke.user_id as string, dato, p.provider, { sleep_stages: stadier })
+    ut.push(`${dato}: ${feil ?? `${stadier.length} intervaller lagret`}`)
+  }
+  return ut
 }
 
 // Merkespesifikke verdier (health_brand_metrics) — slås sammen med det som

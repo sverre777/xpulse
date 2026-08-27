@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { HelseOversikt } from '@/components/helse/HelseOversikt'
 import {
   getWorkoutStats, getAnalysisOverview,
   getCompetitionAnalysis, getMovementAnalysis, getHealthCorrelations,
@@ -34,8 +35,6 @@ const CompetitionsTab = dynamic(() => import('./CompetitionsTab').then(m => ({ d
   { loading: () => <LoadingStub label="Laster konkurranser…" />, ssr: false })
 const MovementTab = dynamic(() => import('./MovementTab').then(m => ({ default: m.MovementTab })),
   { loading: () => <LoadingStub label="Laster bevegelsesdata…" />, ssr: false })
-const HealthTab = dynamic(() => import('./HealthTab').then(m => ({ default: m.HealthTab })),
-  { loading: () => <LoadingStub label="Laster helsedata…" />, ssr: false })
 const TemplateAnalysisTab = dynamic(() => import('./TemplateAnalysisTab').then(m => ({ default: m.TemplateAnalysisTab })),
   { loading: () => <LoadingStub label="Laster mal-analyse…" />, ssr: false })
 const CompareWorkoutsTab = dynamic(() => import('./CompareWorkoutsTab').then(m => ({ default: m.CompareWorkoutsTab })),
@@ -626,11 +625,9 @@ function AnalysisPageInner({
               />
             : <LoadingStub label="Laster bevegelsesdata…" />
         )}
-        {tab === 'helse' && (
-          healthCorrelations
-            ? <HealthTab data={healthCorrelations} />
-            : <LoadingStub label="Laster helsedata…" />
-        )}
+        {/* Helse-fanen = den nye helseflaten (HelseOversikt) — erstattet
+            HealthTab-trendene/korrelasjonene 27. aug (helse-designet). */}
+        {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} />}
         {tab === 'ernering' && (
           nutritionAnalysis
             ? <ErneringTab data={nutritionAnalysis} />

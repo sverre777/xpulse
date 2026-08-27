@@ -48,6 +48,7 @@ interface EventRad {
   id: string
   event_type: string | null
   stridee_user_id: string | null
+  attempts: number | null
   payload: DekryptertHendelse
 }
 
@@ -61,7 +62,7 @@ export async function prosesserDataHendelser(
 
   const { data: rader, error } = await db
     .from('stridee_events')
-    .select('id, event_type, stridee_user_id, payload')
+    .select('id, event_type, stridee_user_id, attempts, payload')
     .is('processed_at', null)
     .in('event_type', [...DATA_HENDELSER])
     .order('received_at', { ascending: true })
@@ -93,6 +94,23 @@ export async function prosesserDataHendelser(
       await merkBehandlet(db, rad.id, null)
       res.hoppet_over++
       res.detaljer.push(`${rad.id}: ${type} uten lenket bruker — hoppet over`)
+      continue
+    }
+
+    // Optimistisk krav på raden (CAS på attempts): to samtidige kjøringer —
+    // f.eks. en timeout-avbrutt som fortsetter i bakgrunnen ved siden av
+    // retry-kallet — skal aldri behandle SAMME hendelse. Bare den som vinner
+    // oppdateringen går videre; taperen hopper over og lar vinneren fullføre.
+    const { data: krav } = await db
+      .from('stridee_events')
+      .update({ attempts: (rad.attempts ?? 0) + 1 })
+      .eq('id', rad.id)
+      .eq('attempts', rad.attempts ?? 0)
+      .is('processed_at', null)
+      .select('id')
+    if (!krav || krav.length === 0) {
+      res.hoppet_over++
+      res.detaljer.push(`${rad.id}: ${type} behandles av en annen kjøring — hoppet over`)
       continue
     }
 

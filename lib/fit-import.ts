@@ -256,10 +256,20 @@ export async function createWorkoutFromFit(
     external_id: externalId,
     workout_id: workout.id,
   })
-  if (impErr && impErr.code !== '23505') {
-    console.error(`[fit-import] imported_activities-insert feilet (${impErr.message}) — ruller tilbake økta`)
+  if (impErr) {
+    // 23505: en parallell kjøring sporet samme aktivitet FØRST — dens økt er
+    // den som gjelder, og VÅR er dubletten. Målt i prod 27. aug: en timeout-
+    // avbrutt cron-kjøring fortsatte i bakgrunnen ved siden av retry-kallet,
+    // og taperen beholdt økta si — fire dublett-økter i dagboka. Taperen
+    // skal rydde etter seg, uansett feilårsak.
+    console.error(`[fit-import] imported_activities-insert feilet (${impErr.code}: ${impErr.message}) — ruller tilbake økta`)
     await supabase.from('workouts').delete().eq('id', workout.id).eq('user_id', userId)
-    return { ok: false, error: `import-sporing feilet: ${impErr.message}` }
+    return {
+      ok: false,
+      error: impErr.code === '23505'
+        ? 'en parallell kjøring importerte samme aktivitet — dubletten er fjernet'
+        : `import-sporing feilet: ${impErr.message}`,
+    }
   }
 
   return { ok: true, workout_id: workout.id }

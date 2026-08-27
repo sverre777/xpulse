@@ -961,7 +961,7 @@ nav {
 .proof .n{font-variant-numeric:tabular-nums}
 
 /* Flyt-stripa */
-.iflow-sec{padding:36px 0 6px}
+.iflow-sec{padding:36px 0 6px;container-type:inline-size}
 .iflow{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:8px}
 .istep{flex:1;min-width:130px;text-align:center;position:relative;transition:opacity .35s}
 html.js .istep{opacity:.28}
@@ -975,6 +975,13 @@ html.js .istep.vis{opacity:1}
 .idot svg{width:20px;height:20px;stroke:var(--paper);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .istep h4{font:700 15px 'Barlow Condensed';letter-spacing:.12em;margin:0 0 3px}
 .istep p{color:var(--mute);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0}
+/* Smal skjerm: to rader (3+2, sentrert) i stedet for horisontal scroll.
+   Forbindelseslinjene skjules — de gir ikke mening på tvers av radbrudd. */
+@container (max-width: 700px){
+  .iflow{flex-wrap:wrap;justify-content:center;overflow-x:visible;row-gap:20px;padding-bottom:0}
+  .istep{flex:0 0 33.33%;min-width:0}
+  .istep::before{display:none}
+}
 
 /* PC/mobil-bryteren */
 .vtoggle{display:inline-flex;gap:0;margin:26px 0 4px;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--surface)}

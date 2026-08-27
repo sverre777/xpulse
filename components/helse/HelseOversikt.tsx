@@ -197,7 +197,23 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
                  rett på kortet; de andre lenker til dagens føringsskjema. ── */}
           <FolelseRad dager={dager} foringsDato={foring} snitt={snitt('day_form')}
             kanFore={!targetUserId} sisteDato={anker}
-            onFort={() => setSvar(null)} />
+            onFort={v => setSvar(s => {
+              // Optimistisk: patch dagen lokalt — ALDRI nullstill svaret
+              // (det ville re-hentet og fått hele kortet til å blinke).
+              if (!s) return s
+              const dager = [...s.data.dager]
+              const i = dager.findIndex(d => d.date === foring)
+              if (i >= 0) dager[i] = { ...dager[i], day_form: v }
+              else dager.push({
+                date: foring, resting_hr: null, hrv_ms: null, steps: null,
+                daily_distance_m: null, stairs_climbed: null, body_weight_kg: null,
+                sleep_score: null, total_sleep_minutes: null, deep_minutes: null,
+                light_minutes: null, rem_minutes: null, awake_minutes: null,
+                sleep_start: null, sleep_end: null, kilder: {}, day_form: v,
+              })
+              dager.sort((a, b) => a.date.localeCompare(b.date))
+              return { ...s, data: { ...s.data, dager } }
+            })} />
 
           {/* ── Handlingsrad ── */}
           <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
@@ -223,7 +239,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
   /** Trener-visning er lese-only — helse føres bare av utøveren selv. */
   kanFore: boolean
   sisteDato: string
-  onFort: () => void
+  onFort: (verdi: number | null) => void
 }) {
   const [lagrer, setLagrer] = useState(false)
   const foringsVerdi = dager.find(x => x.date === foringsDato)?.day_form ?? null
@@ -233,7 +249,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
     setLagrer(true)
     const res = await settDagsform(foringsDato, v)
     setLagrer(false)
-    if (!res.error) onFort()
+    if (!res.error) onFort(v)
   }
 
   return (

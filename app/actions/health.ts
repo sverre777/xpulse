@@ -58,7 +58,9 @@ export async function settDagsform(date: string, verdi: number | null): Promise<
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id,date' })
   if (error) return { error: error.message }
-  revalidatePath('/app/dagbok')
+  // Ingen revalidatePath her med vilje: stjernene på helsekortet skal føre
+  // uten at hele sida lastes på nytt (Sverre 27. aug). Kortet oppdaterer
+  // sin egen tilstand optimistisk; sidene leser ferskt ved neste besøk.
   return {}
 }
 

@@ -138,7 +138,13 @@ export default async function KlokkesyncMerkeSide({ params }: Props) {
                   style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     minHeight: 44, padding: '11px 22px',
-                    background: brand.accent, color: 'var(--tekst-1-app)',
+                    background: brand.accent,
+                    /* Monokrome merker har accent = tekstfargen — da må
+                       knappteksten være flate-fargen (inversen i BEGGE
+                       temaer), ellers blir det hvitt på hvitt / svart på
+                       svart. Fargede accents (oransje) beholder tekst-1. */
+                    color: brand.accent === 'var(--tekst-1-app)'
+                      ? 'var(--flate-1)' : 'var(--tekst-1-app)',
                     borderRadius: 10, textDecoration: 'none',
                     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                     fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase',

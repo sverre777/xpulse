@@ -66,6 +66,7 @@ export async function listAthleteEquipmentWithUsage(
       .from('workouts')
       .select('id, distance_km, duration_minutes, is_completed')
       .in('id', workoutIds)
+      .is('merged_into_workout_id', null)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
     const activityIds = Array.from(new Set(links.map(l => l.activity_id).filter((x): x is string => x !== null)))
     if (activityIds.length > 0) {

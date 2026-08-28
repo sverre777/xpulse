@@ -32,7 +32,6 @@ export type RawCalendarActivity = {
 export type RawCalendarWorkout = {
   id: string; title: string; date: string; workout_type: string
   is_planned: boolean; is_completed: boolean; is_important: boolean
-  linked_workout_id?: string | null
   live_started_at?: string | null
   is_altitude_training?: boolean | null
   is_heat_training?: boolean | null
@@ -475,17 +474,13 @@ export function parseWorkoutsByDate(
   raw: RawCalendarWorkout[],
   heartZones: HeartZone[] = [],
 ): Record<string, CalendarWorkoutSummary[]> {
-  // Planlagte økter gjennomført via kobling: en synket rad i samme batch
-  // peker på dem (pekeren bor på synket-raden, phase 67c+). Krysser
-  // koblingen en månedsgrense, mangler ✓-en til begge er i samme henting —
-  // kjent og akseptert kant.
-  const koblet = new Set(raw.map(w => w.linked_workout_id).filter(Boolean))
+  // Fase 109: pekermodellen (completed_via_link) er avløst av fletten —
+  // mål-økta er selv is_completed og den konsumerte kilden filtreres bort
+  // server-side (merged_into_workout_id), så ingen dublett-håndtering her.
   const byDate: Record<string, CalendarWorkoutSummary[]> = {}
   for (const w of raw) {
     if (!byDate[w.date]) byDate[w.date] = []
-    const s = toCalendarSummary(w, heartZones)
-    if (w.is_planned && koblet.has(w.id)) s.completed_via_link = true
-    byDate[w.date].push(s)
+    byDate[w.date].push(toCalendarSummary(w, heartZones))
   }
   return byDate
 }

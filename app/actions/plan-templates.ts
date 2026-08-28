@@ -313,6 +313,7 @@ export async function buildPlanTemplateDataFromRange(
       workout_activities(*, workout_activity_exercises(*, workout_activity_exercise_sets(*)), workout_activity_lactate_measurements(*))
     `)
     .eq('user_id', user.id)
+    .is('merged_into_workout_id', null)
     .eq('is_planned', true)
     .gte('date', fromDate)
     .lte('date', toDate)

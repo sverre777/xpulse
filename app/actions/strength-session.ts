@@ -354,6 +354,7 @@ export async function getActiveLiveSession(): Promise<ActiveLiveSession | null> 
     .from('workouts')
     .select('id, title, date, live_started_at')
     .eq('user_id', user.id)
+    .is('merged_into_workout_id', null)
     .eq('is_completed', false)
     .not('live_started_at', 'is', null)
     .order('live_started_at', { ascending: false })

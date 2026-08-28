@@ -33,6 +33,7 @@ export async function getTemplateOptions(): Promise<TemplateOption[] | { error: 
     .from('workouts')
     .select('template_id, template_name, standard_workout_template_id')
     .eq('user_id', user.id)
+    .is('merged_into_workout_id', null)
     .or('template_id.not.is.null,standard_workout_template_id.not.is.null')
   if (error) return { error: error.message }
 
@@ -109,6 +110,7 @@ export async function getWorkoutsByTemplate(templateId: string): Promise<Workout
         workout_shooting_series ( position, shots, hits, time_seconds, avg_heart_rate, vind_retning, vind_styrke, sikt ) )
     `)
     .eq('user_id', user.id)
+    .is('merged_into_workout_id', null)
     // Fase 76: følg standardøkten — match både økter opprettet FRA malen
     // (template_id) og økter TAGGET som standardøkten (standard_workout_template_id).
     .or(`template_id.eq.${templateId},standard_workout_template_id.eq.${templateId}`)

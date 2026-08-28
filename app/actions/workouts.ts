@@ -995,18 +995,19 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
     .single()
   if (wErr || !workout) return { error: wErr?.message ?? 'Fant ikke økten' }
 
-  // Koblet mot en synket økt? Da ER den gjennomført — som klokkesynk-økta.
-  // Manuell markering i tillegg ville vist økta dobbelt i Dagbok. UI-et
-  // skjuler knappen, men regelen håndheves her.
-  const { data: peker } = await supabase
+  // Flettet med en synket økt? Da ER den gjennomført — klokkedataen ligger
+  // allerede bak økta. UI-et skjuler knappen, men regelen håndheves her.
+  // (Fase 109: fletten setter is_completed selv, så denne treffer bare
+  // rariteter som direkte kall.)
+  const { data: kilde } = await supabase
     .from('workouts')
     .select('id')
     .eq('user_id', resolved.userId)
-    .eq('linked_workout_id', workoutId)
+    .eq('merged_into_workout_id', workoutId)
     .limit(1)
     .maybeSingle()
-  if (peker) {
-    return { error: 'Økta er koblet til en synket økt og er allerede gjennomført. Fjern koblingen først hvis du vil markere manuelt.' }
+  if (kilde) {
+    return { error: 'Økta er flettet med en synket økt og er allerede gjennomført. Angre fletten først hvis du vil markere manuelt.' }
   }
 
   const { count } = await supabase
@@ -1032,9 +1033,8 @@ export async function markCompleted(workoutId: string, targetUserId?: string): P
   return {}
 }
 
-// Reverser markCompleted: planlagt økt får is_completed=false + completed_at=null,
-// linked_workout_id beholdes (tipisk null på planlagte uansett). Brukeren har
-// tilfeldig markert ferdig og vil tilbake til planlagt-tilstand.
+// Reverser markCompleted: planlagt økt får is_completed=false + completed_at=null.
+// Brukeren har tilfeldig markert ferdig og vil tilbake til planlagt-tilstand.
 export async function markUncompleted(workoutId: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
@@ -1049,16 +1049,12 @@ export async function markUncompleted(workoutId: string, targetUserId?: string):
   return {}
 }
 
-// ── Plan ↔ faktisk kobling ──────────────────────────────────
+// ── Kobling & flett (fase 109) ──────────────────────────────
 //
-// linked_workout_id sitter på SYNKET-raden (faktisk gjennomført, typisk
-// Strava-importert) og peker til den planlagte. Den synkede er den gjeldende
-// i Dagbok; planlagt forblir kun i Plan med stiplet visning. Begge retninger
-// av brukerens kobling-klikk (fra planlagt eller fra synket) ender opp i
-// samme update — vi setter feltet på synket og lar planlagt være urørt.
-//
-// Hvis planlagt tidligere var manuelt markert fullført (is_completed=true),
-// reverserer vi det ved kobling så den ikke duplikat-vises i Dagbok.
+// Kobling ER flett: den synkede økta (kilden) KONSUMERES inn i mål-økta
+// (merged_into_workout_id på kilden) og skjules fra alle lister — aldri
+// slettet. Selve fletten bor i app/actions/flett.ts + Postgres-RPC-ene.
+// Her ligger bare kandidat-oppslaget for pickeren.
 
 export interface LinkCandidate {
   id: string
@@ -1073,16 +1069,12 @@ export interface LinkCandidate {
   is_completed: boolean
 }
 
-// Returnerer kandidater for kobling samme dato + info om eksisterende kobling.
-//   - sourceIsPlanned + sourceLinkedFromId: en synket-rad samme dato peker hit
-//     (planlagt-rad er allerede koblet)
-//   - !sourceIsPlanned + sourceLinkedToId: source-radens egen linked_workout_id
-//     peker til en planlagt (synket-rad er allerede koblet)
-//
-// Kandidater filtreres for å unngå allerede-koblede:
-//   - For planlagt source: ikke-planlagte samme dato hvor linked_workout_id IKKE
-//     allerede peker mot en annen planlagt
-//   - For synket source: planlagte samme dato hvor INGEN annen synket peker hit
+// Returnerer flett-kandidater i ±3-dagers-vinduet + info om eksisterende
+// flett for økta brukeren står i:
+//   - sourceLinkedFromId: en kilde er flettet inn i denne økta (økta er mål)
+//   - sourceLinkedToId: økta er selv konsumert av en flett (skjult rad,
+//     direkte besøk)
+// Konsumerte økter og mål som allerede bærer en flett tilbys aldri.
 export async function getSameDateLinkCandidates(
   workoutId: string,
   targetUserId?: string,
@@ -1101,7 +1093,7 @@ export async function getSameDateLinkCandidates(
 
   const { data: source } = await supabase
     .from('workouts')
-    .select('id, date, is_planned, linked_workout_id')
+    .select('id, date, is_planned, imported_from, merged_into_workout_id')
     .eq('id', workoutId)
     .eq('user_id', resolved.userId)
     .maybeSingle()
@@ -1119,157 +1111,90 @@ export async function getSameDateLinkCandidates(
   }
   const { data: rows, error } = await supabase
     .from('workouts')
-    .select('id, title, date, sport, workout_type, duration_minutes, distance_km, imported_from, is_planned, is_completed, linked_workout_id')
+    .select('id, title, date, sport, workout_type, duration_minutes, distance_km, imported_from, is_planned, is_completed, merged_into_workout_id')
     .eq('user_id', resolved.userId)
     .gte('date', vindu(-3))
     .lte('date', vindu(3))
     .neq('id', workoutId)
   if (error) return { error: error.message }
 
+  // Kilde i en flett er ALLTID en synket økt (imported_from satt); mål kan
+  // være planlagt ELLER ført manuelt. «Source» her er økta brukeren står i.
+  const sourceIsSynced = source.imported_from != null
   const sourceIsPlanned = source.is_planned
-  type Row = LinkCandidate & { linked_workout_id: string | null }
+  type Row = LinkCandidate & { merged_into_workout_id: string | null }
   const all = (rows ?? []) as Row[]
 
-  // Sett av planlagt-id-er som allerede har en synket peker mot seg.
-  const plannedAlreadyLinkedFromAnother = new Set(
-    all.filter(r => !r.is_planned && r.linked_workout_id).map(r => r.linked_workout_id!),
+  // Mål-id-er som allerede har konsumert en kilde (kan ikke flettes igjen).
+  const maalMedFlett = new Set(
+    all.filter(r => r.merged_into_workout_id).map(r => r.merged_into_workout_id!),
   )
 
-  // Synket source: peker raden vår til en planlagt? (egen linked_workout_id)
-  const sourceLinkedToId = !sourceIsPlanned ? (source.linked_workout_id ?? null) : null
-  // Planlagt source: er det noen synket som peker hit? Slås opp direkte,
-  // ikke bare i vinduet — en kobling utenfor vinduet er fortsatt en kobling.
+  // Synket source: er den selv konsumert? (Skjult i lister, men direkte
+  // besøk skal vite det.)
+  const sourceLinkedToId = sourceIsSynced ? (source.merged_into_workout_id ?? null) : null
+  // Mål-source: har den allerede en flettet kilde? Slås opp direkte, ikke
+  // bare i vinduet — en flett utenfor vinduet gjelder like fullt.
   let sourceLinkedFromId: string | null = null
-  if (sourceIsPlanned) {
-    const { data: peker } = await supabase
+  if (!sourceIsSynced) {
+    const { data: kilde } = await supabase
       .from('workouts')
       .select('id')
       .eq('user_id', resolved.userId)
-      .eq('linked_workout_id', workoutId)
+      .eq('merged_into_workout_id', workoutId)
       .limit(1)
       .maybeSingle()
-    sourceLinkedFromId = peker?.id ?? null
+    sourceLinkedFromId = kilde?.id ?? null
   }
 
   const avstand = (d: string) => Math.abs(new Date(`${d}T00:00:00`).getTime() - d0.getTime())
-  const candidates = (sourceIsPlanned
-    ? all.filter(r => !r.is_planned && (r.linked_workout_id == null || r.linked_workout_id === workoutId))
-    : all.filter(r => r.is_planned && !plannedAlreadyLinkedFromAnother.has(r.id))
+  // Konsumerte økter er aldri kandidater. Fra en synket økt tilbys mål
+  // (planlagte og førte, uten eksisterende flett); fra en vanlig økt
+  // tilbys synkede kilder som ennå ikke er konsumert.
+  const candidates = (sourceIsSynced
+    ? all.filter(r => r.imported_from == null
+        && r.merged_into_workout_id == null
+        && !maalMedFlett.has(r.id))
+    : all.filter(r => r.imported_from != null
+        && r.merged_into_workout_id == null)
   ).sort((a, b) => avstand(a.date) - avstand(b.date))
 
   return {
-    candidates: candidates.map(({ linked_workout_id: _, ...c }) => c),
+    candidates: candidates.map(({ merged_into_workout_id: _, ...c }) => c),
     sourceIsPlanned,
     sourceLinkedToId,
     sourceLinkedFromId,
   }
 }
 
-// Knytt en planlagt rad til en faktisk gjennomført (synket) rad.
-// Semantikk (phase 67c+): linked_workout_id sitter på SYNKET-raden og peker
-// til den planlagte. Ingen ny rad opprettes — kun update. Hvis planlagt
-// tidligere var manuelt markert fullført (is_completed=true), reverseres
-// det så raden ikke duplikat-vises i Dagbok.
-//
-// Begge id-argumenter aksepteres uavhengig av rekkefølge — funksjonen
-// finner selv hvilken som er planlagt vs synket basert på is_planned.
-export async function linkPlannedToActual(
-  plannedId: string,
-  actualId: string,
-  targetUserId?: string,
-): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
-  if ('error' in resolved) return { error: resolved.error }
-
-  // Verifiser at begge eksisterer og tilhører samme bruker.
-  const { data: both } = await supabase
-    .from('workouts')
-    .select('id, is_planned, is_completed, user_id')
-    .in('id', [plannedId, actualId])
-    .eq('user_id', resolved.userId)
-  if (!both || both.length !== 2) return { error: 'Fant ikke begge økter' }
-
-  const planned = both.find(r => r.is_planned)
-  const actual  = both.find(r => !r.is_planned)
-  if (!planned || !actual) {
-    return { error: 'Trenger én planlagt og én ikke-planlagt økt for å koble' }
-  }
-
-  const now = new Date().toISOString()
-
-  // 1) Sett peker på synket-raden. Det er den koblings-bærende raden.
-  const { error: actualErr } = await supabase.from('workouts')
-    .update({ linked_workout_id: planned.id, updated_at: now })
-    .eq('id', actual.id)
-    .eq('user_id', resolved.userId)
-  if (actualErr) return { error: actualErr.message }
-
-  // 2) Hvis planlagt-raden tidligere var manuelt markert fullført, reverser
-  // is_completed så den ikke duplikat-vises i Dagbok ved siden av synket.
-  // (markCompleted setter ikke flagg på en separat rad — flagget sitter på
-  // planlagt-raden selv, så reversering er trygt og målrettet.)
-  if (planned.is_completed) {
-    const { error: plannedErr } = await supabase.from('workouts')
-      .update({ is_completed: false, completed_at: null, linked_workout_id: null, updated_at: now })
-      .eq('id', planned.id)
-      .eq('user_id', resolved.userId)
-    if (plannedErr) return { error: plannedErr.message }
-  }
-
-  revalidateWorkoutPaths(resolved.userId)
-  return {}
-}
-
-// Fjern koblingen. Workout-raden kan være enten den synkede (har feltet
-// linked_workout_id satt) eller den planlagte (en synket samme dato peker
-// hit). I begge tilfeller nullstilles linked_workout_id på SYNKET-raden.
-// Planlagt-raden røres ikke (forblir planlagt og ikke fullført).
-export async function unlinkWorkout(
-  workoutId: string,
-  targetUserId?: string,
-): Promise<{ error?: string }> {
-  const supabase = await createClient()
-  const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
-  if ('error' in resolved) return { error: resolved.error }
-
-  const { data: row } = await supabase
-    .from('workouts')
-    .select('id, is_planned, linked_workout_id')
-    .eq('id', workoutId)
-    .eq('user_id', resolved.userId)
-    .maybeSingle()
-  if (!row) return { error: 'Fant ikke økten' }
-
-  // Finn synket-raden hvor koblings-feltet sitter.
-  let syncedId: string | null = null
-  if (!row.is_planned && row.linked_workout_id) {
-    syncedId = row.id
-  } else if (row.is_planned) {
-    const { data: synced } = await supabase
-      .from('workouts')
-      .select('id')
-      .eq('user_id', resolved.userId)
-      .eq('linked_workout_id', workoutId)
-      .maybeSingle()
-    syncedId = synced?.id ?? null
-  }
-  if (!syncedId) return { error: 'Ingen kobling å fjerne' }
-
-  const now = new Date().toISOString()
-  const { error } = await supabase.from('workouts')
-    .update({ linked_workout_id: null, updated_at: now })
-    .eq('id', syncedId)
-    .eq('user_id', resolved.userId)
-  if (error) return { error: error.message }
-  revalidateWorkoutPaths(resolved.userId)
-  return {}
-}
+// linkPlannedToActual/unlinkWorkout (pekermodellen) er AVLØST av
+// flettOkter/angreFlett i app/actions/flett.ts (fase 109) og slettet
+// (regel 21).
 
 export async function deleteWorkout(id: string, targetUserId?: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, targetUserId, 'can_edit_plan')
   if ('error' in resolved) return { error: resolved.error }
+
+  // Bærer økta en flettet kilde, angres fletten FØRST: kilden gjenoppstår
+  // komplett (rader, samples, proveniens) i stedet for å dukke opp tom når
+  // FK-en nuller pekeren. Feiler angringen, sletter vi ikke — halv-tilstand
+  // er verre enn en feilmelding. (Ryddetriggeren i fase 109 er sikkerhets-
+  // nett for sletteveier utenom appen.)
+  const { data: kilde } = await supabase
+    .from('workouts')
+    .select('id')
+    .eq('user_id', resolved.userId)
+    .eq('merged_into_workout_id', id)
+    .maybeSingle()
+  if (kilde) {
+    const { data: angre, error: angreErr } = await supabase.rpc('angre_flett', { p_maal: id })
+    const res = angre as { error?: string } | null
+    if (angreErr || res?.error) {
+      return { error: `Kunne ikke gjenopprette den synkede økta før sletting: ${angreErr?.message ?? res?.error}` }
+    }
+  }
+
   const { error } = await supabase.from('workouts').delete().eq('id', id).eq('user_id', resolved.userId)
   if (error) return { error: error.message }
   revalidateWorkoutPaths(resolved.userId)
@@ -1305,8 +1230,9 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,linked_workout_id,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
+    .is('merged_into_workout_id', null)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
@@ -1320,8 +1246,9 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,linked_workout_id,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
+    .is('merged_into_workout_id', null)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, data ?? [])
@@ -1335,6 +1262,7 @@ export async function getWorkoutsForWeek(userId: string, startDate: string, endD
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId)
+    .is('merged_into_workout_id', null)
     .gte('date', startDate).lte('date', endDate)
     .order('date').order('sort_order').order('time_of_day').order('created_at')
   return await attachCoachNames(supabase, (data ?? []) as { created_by_coach_id?: string | null }[])
@@ -1627,6 +1555,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       group_session_label: workout.group_session_label ?? '',
       imported_from: (workout.imported_from as string | null | undefined) ?? null,
       linked_workout_id: (workout.linked_workout_id as string | null | undefined) ?? null,
+      merged_source: (workout.merged_source as string | null | undefined) ?? null,
       notes:        snap.notes ?? '',
       day_form_physical: null,
       day_form_mental:   null,
@@ -1665,6 +1594,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     is_group_session: workout.is_group_session ?? false,
     group_session_label: workout.group_session_label ?? '',
     imported_from: (workout.imported_from as string | null | undefined) ?? null,
+    merged_source: (workout.merged_source as string | null | undefined) ?? null,
     notes:        workout.notes ?? '',
     day_form_physical: workout.day_form_physical,
     day_form_mental:   workout.day_form_mental,
@@ -1817,6 +1747,7 @@ export async function getWorkoutsForDay(userId: string, date: string) {
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
     .eq('user_id', resolved.userId).eq('date', date)
+    .is('merged_into_workout_id', null)
     .order('sort_order').order('time_of_day').order('created_at')
   return data ?? []
 }
@@ -1899,7 +1830,9 @@ export async function searchWorkouts(userId: string, query: string, filters: {
   let req = supabase
     .from('workouts')
     .select('*, workout_movements(*), workout_zones(*), workout_tags(*)')
-    .eq('user_id', resolved.userId).order('date', { ascending: false }).limit(50)
+    .eq('user_id', resolved.userId)
+    .is('merged_into_workout_id', null)
+    .order('date', { ascending: false }).limit(50)
   if (query) req = req.ilike('title', `%${query}%`)
   if (filters.sport) req = req.eq('sport', filters.sport)
   if (filters.workout_type) req = req.eq('workout_type', filters.workout_type)

@@ -84,6 +84,7 @@ export async function getPlanVsActual(
       workout_activities (activity_type, duration_seconds, distance_meters, avg_heart_rate, zones)
     `)
     .eq('user_id', userId)
+    .is('merged_into_workout_id', null)
     .gte('date', fromDate)
     .lte('date', toDate)
   if (error) return { error: error.message }

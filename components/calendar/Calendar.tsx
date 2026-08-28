@@ -212,7 +212,7 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: CalendarMode) {
   // Dagbok: en planlagt økt gjennomført VIA KOBLING representeres av den
   // synkede raden — plan-raden skjules her, ellers vises økta dobbelt.
   // (I Plan-modus vises den fortsatt, med ✓ og plan-tallene.)
-  return workouts.filter(w => !(w.is_planned && w.completed_via_link))
+  return workouts
 }
 
 // Visuell tilstand: dashed (plan-look) eller solid (gjennomført-look).
@@ -667,7 +667,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             </span>
           )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
-          {(w.is_completed || w.completed_via_link) && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
+          {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.start_time && (
             <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
           )}
@@ -746,7 +746,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
         // Long-press (TouchSensor delay) starter drag — vanlig scroll bevares.
         touchAction: 'manipulation',
       }}>
-      {(w.is_completed || w.completed_via_link) && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
+      {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
       {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
           — aldri rød trekant. */}
       {w.imported_from && (
@@ -2016,7 +2016,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                   <div className="min-w-0 flex-1">
                                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '15px', fontWeight: 600 }}>
                                       {w.is_important && <span style={{ color: '#FF4500', marginRight: '4px' }}>★</span>}
-                                      {(w.is_completed || w.completed_via_link) && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
+                                      {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '4px' }}>✓</span>}
                                       {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
                                       {w.is_heat_training && <span title="Varmetrening" style={{ marginRight: '4px' }}>🌡️</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
@@ -2043,7 +2043,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     {showCoachStyle && w.updated_at && (
                                       <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
                                     )}
-                                    {(w.is_completed || w.completed_via_link) && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
+                                    {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
                                     {isPlanned && <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {
                                       const lbl = formatDurationShort(secondsFor(w, mode))

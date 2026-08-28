@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { flettOkter } from './flett'
 import { createClient } from '@/lib/supabase/server'
 import {
   getStravaConnection,
@@ -156,9 +157,9 @@ export async function listSyncableActivities(
 //   - replace: slett eksisterende, opprett ny fra Strava
 //   - keep_both: opprett ny rad — eksisterende rør ikke (default ved bulk-import)
 //   - skip: hopp over import, marker som behandlet
-//   - mark_planned_completed: marker eksisterende planlagt-økt som gjennomført
-//     + opprett importert som separat rad + sett linked_workout_id på planlagt
-//     så UI kan vise "Se faktisk økt"-lenke. Mest vanlig user-valg ved samme-dato-konflikt.
+//   - mark_planned_completed: opprett importert rad og flett den inn i den
+//     planlagte (legg bak, fase 109) — planlagt markeres gjennomført,
+//     importraden konsumeres. Mest vanlig user-valg ved samme-dato-konflikt.
 //
 // Felles type med fit-upload (klokkesync-arbeid) holdes på 4-tilstandene; den
 // femte er kun støttet av Strava-import per nå.
@@ -235,14 +236,18 @@ export async function importStravaActivity(
     await supabase.from('workouts').delete().eq('id', options.conflictWorkoutId).eq('user_id', user.id)
     result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
   } else if (options.conflictResolution === 'mark_planned_completed' && options.conflictWorkoutId) {
-    // Marker planlagt-økt som gjennomført + opprett importert separat + lenk dem.
+    // Opprett importert rad og FLETT den inn i den planlagte (legg bak) —
+    // samme semantikk som pekermodellen hadde, nå via fase 109-fletten:
+    // planlagt markeres gjennomført, klokkedataen legges bak, importraden
+    // konsumeres (skjult, aldri slettet). Kun dette konfliktvalget er
+    // endret — hentingen (regel 1) er urørt.
     result = await createWorkoutFromStrava(supabase, user.id, detail, streams, externalId)
     if (result.ok && result.workout_id) {
-      const now = new Date().toISOString()
-      await supabase.from('workouts')
-        .update({ is_completed: true, completed_at: now, linked_workout_id: result.workout_id, updated_at: now })
-        .eq('id', options.conflictWorkoutId)
-        .eq('user_id', user.id)
+      const flett = await flettOkter(options.conflictWorkoutId, result.workout_id, 'legg_bak')
+      if (flett.error) {
+        // Importen står (økta finnes), bare koblingen manglet — si det.
+        console.warn(`[strava-sync] flett etter mark_planned_completed feilet: ${flett.error}`)
+      }
     }
   } else {
     // keep_both eller ingen konflikt: opprett ny workout direkte.

@@ -49,7 +49,7 @@ export async function generateDataExport(): Promise<{ json?: string; error?: str
     seasonsRes, periodsRes, keyDatesRes,
     importsRes,
   ] = await Promise.all([
-    supabase.from('workouts').select('*').eq('user_id', user.id),
+    supabase.from('workouts').select('*').eq('user_id', user.id).is('merged_into_workout_id', null),
     supabase.from('workout_activities')
       .select('*, workout:workouts!inner(user_id)')
       .eq('workout.user_id', user.id),

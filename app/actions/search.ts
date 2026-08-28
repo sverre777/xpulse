@@ -72,6 +72,7 @@ export async function searchAcrossCategories(
       let req = supabase
         .from('workouts')
         .select('id, title, sport, workout_type, date, notes, description, user_id, duration_minutes, distance_km')
+        .is('merged_into_workout_id', null)
         .or(
           `title.ilike.${like},notes.ilike.${like},description.ilike.${like},sport.ilike.${like}`,
         )

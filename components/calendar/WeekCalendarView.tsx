@@ -108,7 +108,7 @@ function filterByMode(workouts: CalendarWorkoutSummary[], mode: Mode) {
   // Dagbok: en planlagt økt gjennomført VIA KOBLING representeres av den
   // synkede raden — plan-raden skjules her, ellers vises økta dobbelt.
   // (I Plan-modus vises den fortsatt, med ✓ og plan-tallene.)
-  return workouts.filter(w => !(w.is_planned && w.completed_via_link))
+  return workouts
 }
 
 function includeInSum(w: CalendarWorkoutSummary, mode: Mode): boolean {
@@ -389,7 +389,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
   // lik ut som enhver annen gjennomført.
   const showCoachStyle = isCoachEdited && isPlanned
   // Grønn når gjennomført (ikke konkurranse/testløp).
-  const completedTone = !isPlanned && !comp && (w.is_completed || w.completed_via_link)
+  const completedTone = !isPlanned && !comp && w.is_completed
   const borderStyle = isPlanned && !comp ? 'dashed' : 'solid'
   const borderWidth = comp ? 2 : 1
   const border = showCoachStyle
@@ -445,7 +445,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
           />
         )}
         {comp && <span>{comp.icon}</span>}
-        {(w.is_completed || w.completed_via_link) && mode !== 'plan' && <span style={{ color: '#28A86E' }}>✓</span>}
+        {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E' }}>✓</span>}
         <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {w.title}
         </span>
@@ -508,7 +508,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
         />
       )}
       {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
-      {(w.is_completed || w.completed_via_link) && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
+      {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
       {w.title}
       {durLabel && <span style={{ color: '#FF4500', marginLeft: '4px' }}>{durLabel}</span>}
     </button>

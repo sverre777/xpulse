@@ -39,6 +39,7 @@ export async function listMySessionSeries(): Promise<StandardSessionSeries[] | {
         .from('workouts')
         .select('standard_session_series_id, date')
         .eq('user_id', user.id)
+        .is('merged_into_workout_id', null)
         .not('standard_session_series_id', 'is', null),
     ])
     if (error) return { error: error.message }
@@ -165,6 +166,7 @@ export async function getSessionSeriesLibrary(
         .from('workouts')
         .select('id, date, title, duration_minutes, distance_km, avg_heart_rate, standard_session_series_id')
         .eq('user_id', userId)
+        .is('merged_into_workout_id', null)
         .not('standard_session_series_id', 'is', null)
         .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
         .order('date', { ascending: true }),

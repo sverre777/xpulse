@@ -942,6 +942,7 @@ export async function getSeasonCalendarData(
         .from('workouts')
         .select('id,date,title,workout_type,sport,is_planned')
         .eq('user_id', resolved.userId)
+        .is('merged_into_workout_id', null)
         .eq('is_planned', true)
         .gte('date', s.start_date)
         .lte('date', s.end_date)

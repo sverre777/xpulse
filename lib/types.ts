@@ -253,6 +253,10 @@ export interface WorkoutFormData {
   // Read-only kobling planlagt → faktisk gjennomført (typisk synket-økt).
   // Bare meningsfull på planlagte rader. saveWorkout overstyrer ikke dette.
   linked_workout_id?: string | null
+  // Read-only (fase 109): satt på MÅL-økta når en synket økt er flettet inn
+  // — kilden ('strava'/'fit_garmin'/…). Bærer ⌚-badgen. saveWorkout
+  // overstyrer ikke dette.
+  merged_source?: string | null
   movements: MovementRow[]
   zones: ZoneRow[]
   exercises: ExerciseRow[]
@@ -1089,7 +1093,6 @@ export interface CalendarWorkoutSummary {
    * Koblingen setter bevisst is_completed=false på plan-raden (mot dublett i
    * Dagbok) — visningen skal likevel vise ✓. Kun visning: filtre og
    * aggregering skal fortsatt lese is_completed. */
-  completed_via_link?: boolean
   /** Live-økt startet men aldri fullført — telles IKKE som gjennomført. */
   is_live_draft?: boolean
   is_important: boolean

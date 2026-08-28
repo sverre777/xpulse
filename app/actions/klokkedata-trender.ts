@@ -83,6 +83,7 @@ export async function getKlokkedataTrender(
         workout_activities(activity_type, avg_heart_rate, avg_watts, avg_speed_ms, avg_cadence, duration_seconds, zones)
       `)
       .eq('user_id', user.id)
+      .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,is_planned.eq.false')
       .gte('date', fromDate)
       .lte('date', toDate)

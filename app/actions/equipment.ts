@@ -80,6 +80,7 @@ export async function listEquipmentWithUsage(filter?: {
       .from('workouts')
       .select('id, distance_km, duration_minutes, is_completed')
       .in('id', workoutIds)
+      .is('merged_into_workout_id', null)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
 
     // Aktivitets-tall trengs kun for overstyrte rader.
@@ -157,6 +158,7 @@ export async function listWorkoutsForEquipment(equipmentId: string): Promise<Arr
     .select('id, date, title, sport, distance_km, duration_minutes, user_id')
     .in('id', workoutIds)
     .eq('user_id', user.id)
+    .is('merged_into_workout_id', null)
     .eq('is_completed', true)
     .order('date', { ascending: false })
 
@@ -633,6 +635,7 @@ export async function listSkiEquipment(filter?: { ski_type?: SkiType | null }): 
       .from('workouts')
       .select('id, date, distance_km, is_completed')
       .in('id', workoutIds)
+      .is('merged_into_workout_id', null)
     for (const w of (workouts ?? [])) workoutById.set(w.id, w)
   }
 

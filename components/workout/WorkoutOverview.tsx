@@ -12,8 +12,9 @@
 // SAMME delte kilde som kalender/analyse (minutt-semantikk på varighet,
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
+import { hentFlettStatus, angreFlett, type FlettStatus } from '@/app/actions/flett'
 import {
   WORKOUT_TYPES_BIATHLON, SPORTS, ACTIVITY_TYPES, WEATHER_TYPES, WIND_STRENGTHS,
   NUTRITION_TYPES,
@@ -108,6 +109,31 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
   const [erKoblet, setErKoblet] = useState(false)
   const activities: ActivityRow[] = data.activities ?? []
+
+  // Fase 109: «fra klokka»-blokka + angre-raden (fasit seksjon 3). Hentes
+  // kun når økta faktisk bærer en flett (merged_source på mål-økta).
+  // Lagres med økt-id-en oppslaget gjaldt — visningen gater på match, så
+  // ingen nullstilling (og ingen sync setState) trengs ved bytte av økt.
+  const [flettSvar, setFlettSvar] = useState<{ id: string; status: FlettStatus } | null>(null)
+  const [visAngre, setVisAngre] = useState(false)
+  const [angrer, setAngrer] = useState(false)
+  const [angreFeil, setAngreFeil] = useState<string | null>(null)
+  useEffect(() => {
+    if (!workoutId || !data.merged_source) return
+    let cancelled = false
+    const id = workoutId
+    hentFlettStatus(id, targetUserId).then(res => {
+      if (cancelled || !res || 'error' in res) return
+      setFlettSvar({ id, status: res })
+    })
+    return () => { cancelled = true }
+  }, [workoutId, data.merged_source, targetUserId])
+  const flett = workoutId && flettSvar?.id === workoutId ? flettSvar.status : null
+
+  // Samlet/Splittet (fasit seksjon 4) — KUN visning, dataene er alltid
+  // splittet. Bryteren finnes på flettede OG rene klokkesynk-økter.
+  const [visning, setVisning] = useState<'splittet' | 'samlet'>('splittet')
+  const harKlokkeRader = !!(data.imported_from || data.merged_source)
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
   const trainingLikes: ActivityLike[] = []
@@ -212,7 +238,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               isPlanned
               isCompleted={false}
               importedFrom={null}
-              alreadyLinked={false}
+              alreadyLinked={!!data.merged_source}
               targetUserId={targetUserId}
               formMode="plan"
               hideMarkCompleted
@@ -265,6 +291,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           {data.imported_from && data.imported_from !== 'strava' && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>
           )}
+          {/* Flettet økt: bærer klokkedata bak egne rader (fase 109).
+              Treneren ser samme badge. */}
+          {data.merged_source && (
+            <span style={pillStyle('#1A6FD4', 'rgba(26,111,212,.10)', 'rgba(26,111,212,.4)')}>⌚ + klokke</span>
+          )}
           {fromTemplate && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
           )}
@@ -285,7 +316,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             isPlanned={false}
             isCompleted
             importedFrom={data.imported_from ?? null}
-            alreadyLinked={false}
+            alreadyLinked={!!data.merged_source}
             targetUserId={targetUserId}
             formMode="dagbok"
             prominent
@@ -367,9 +398,117 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       {/* ── KLOKKEDATA — HØYT og synlig (pulskurve/høyde/watt + laps).
           Gjenbruker WorkoutKlokkesyncSection 1:1 (WorkoutDetailChart er på
           graf-temaet); egen data-finnes-sjekk, kun importerte økter. ── */}
-      {workoutId && data.imported_from && (
+      {workoutId && (data.imported_from || data.merged_source) && (
         <div className="mb-3.5">
-          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? null} />
+          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} />
+        </div>
+      )}
+
+      {/* ── FRA KLOKKA (fase 109, fasit seksjon 3): flettet klokkedata +
+          angre-raden. Angre er uten frist; dialogen varsler når målet er
+          endret ETTER fletten (krav 3) — aldri stille gjenoppretting. ── */}
+      {data.merged_source && flett && (
+        <div className="mb-3.5 p-4" style={{ border: '1px solid rgba(26,111,212,.35)', borderRadius: 14, background: 'rgba(26,111,212,.05)' }}>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: '#1A6FD4', textTransform: 'uppercase' }}>
+            ⌚ Fra klokka — {flett.modus === 'legg_bak' ? 'lagt bak' : 'aktivitetene byttet'}
+          </div>
+          <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: 'var(--mut)' }}>
+            {flett.snittpuls != null && <span>Snittpuls <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{flett.snittpuls}</b></span>}
+            {flett.makspuls != null && <span>Makspuls <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{flett.makspuls}</b></span>}
+            {flett.totaltidMin != null && <span>Totaltid <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{flett.totaltidMin} min</b> (klokkas)</span>}
+          </div>
+          {flett.modus === 'legg_bak' && flett.soner.length > 0 && (() => {
+            const tot = flett.soner.reduce((sum, z) => sum + z.minutes, 0)
+            return tot > 0 ? (
+              <>
+                <div className="flex overflow-hidden mt-3" style={{ height: 8, borderRadius: 4, background: 'var(--line)' }}>
+                  {flett.soner.map(z => (
+                    <div key={z.zone_name} style={{ width: `${(z.minutes / tot) * 100}%`, background: ZONE_COLORS_V2[z.zone_name as ExtendedZoneName] ?? 'var(--line2)' }} />
+                  ))}
+                </div>
+                <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)' }}>
+                  Sonefordeling regnet fra pulskurven — radene dine er ikke rørt.
+                </p>
+              </>
+            ) : null
+          })()}
+          <div className="flex items-center justify-between gap-3 mt-3 pt-3" style={{ borderTop: '1px solid rgba(26,111,212,.2)' }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--mut)' }}>
+              Flettet med «{flett.kildeTittel}» ⌚{flett.flettetAt ? ` · ${new Date(flett.flettetAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}` : ''}
+            </span>
+            {canEdit && (
+              <button type="button" onClick={() => { setAngreFeil(null); setVisAngre(true) }}
+                className="text-xs tracking-widest uppercase transition-colors hover:text-[var(--ink)]"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)',
+                  background: 'none', border: '1px solid var(--line2)', borderRadius: 8,
+                  padding: '6px 12px', cursor: 'pointer',
+                }}>
+                Angre flett
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {visAngre && flett && (
+        <div onClick={angrer ? undefined : () => setVisAngre(false)}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'var(--scrim-75)', zIndex: 210, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} className="p-5"
+            style={{ backgroundColor: 'var(--flate-3)', border: '1px solid var(--kant-3)', maxWidth: 440, width: '100%' }}>
+            <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--ink)', fontSize: 20, letterSpacing: '0.04em' }}>
+              Angre fletten?
+            </h3>
+            <p className="mt-2 text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', lineHeight: 1.5 }}>
+              Begge økter gjenopprettes slik de var da fletten ble gjort.
+              «{flett.kildeTittel}» kommer tilbake i dagboka.
+            </p>
+            {flett.endretEtterFlett && (
+              <p className="mt-2 text-sm px-3 py-2" style={{
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#E2A33A', lineHeight: 1.5,
+                border: '1px solid rgba(226,163,58,.4)', background: 'rgba(226,163,58,.08)',
+              }}>
+                ⚠ Økta er endret ETTER fletten — de endringene går tapt når
+                fletten angres.
+              </p>
+            )}
+            {angreFeil && (
+              <p className="mt-2 text-xs px-3 py-2" style={{
+                fontFamily: "'Barlow Condensed', sans-serif", color: '#E11D48',
+                backgroundColor: 'rgba(225,29,72,0.08)', border: '1px solid rgba(225,29,72,0.3)',
+              }}>
+                {angreFeil}
+              </p>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <button type="button" onClick={() => setVisAngre(false)} disabled={angrer}
+                className="px-4 py-2 text-xs tracking-widest uppercase"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)',
+                  background: 'none', border: '1px solid var(--kant-3)',
+                  cursor: angrer ? 'not-allowed' : 'pointer', opacity: angrer ? 0.6 : 1,
+                }}>
+                Avbryt
+              </button>
+              <button type="button" disabled={angrer}
+                onClick={async () => {
+                  if (!workoutId || angrer) return
+                  setAngrer(true)
+                  setAngreFeil(null)
+                  const res = await angreFlett(workoutId, targetUserId)
+                  if (res.error) { setAngreFeil(res.error); setAngrer(false); return }
+                  window.location.reload()
+                }}
+                className="px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  backgroundColor: '#E23A5A', color: 'var(--tekst-1-ren)', border: 'none',
+                  cursor: angrer ? 'not-allowed' : 'pointer', opacity: angrer ? 0.6 : 1,
+                }}>
+                {angrer ? 'Angrer…' : 'Angre flett'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -392,7 +531,105 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
 
       {/* ── AKTIVITETER (read-only tidslinje) ── */}
       {activities.length > 0 && (
-        <Card title="AKTIVITETER" aux="Kronologisk">
+        <Card title="AKTIVITETER" aux={visning === 'samlet' && harKlokkeRader ? 'Samlet' : 'Kronologisk'}>
+          {/* Fasit seksjon 4: Samlet/Splittet — KUN visning. Bryteren står
+              på flettede OG rene klokkesynk-økter med mer enn én rad. */}
+          {harKlokkeRader && activities.length > 1 && (
+            <div className="flex gap-1.5 mb-3">
+              {(['splittet', 'samlet'] as const).map(v => (
+                <button key={v} type="button" onClick={() => setVisning(v)}
+                  className="text-xs tracking-widest uppercase"
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+                    color: visning === v ? 'var(--accent)' : 'var(--mut)',
+                    background: visning === v ? 'rgba(255,69,0,.08)' : 'none',
+                    border: `1px solid ${visning === v ? 'var(--accent)' : 'var(--line2)'}`,
+                    borderRadius: 999, padding: '5px 14px', cursor: 'pointer',
+                  }}>
+                  {v === 'splittet' ? 'Splittet' : 'Samlet'}
+                </button>
+              ))}
+            </div>
+          )}
+          {visning === 'samlet' && harKlokkeRader ? (() => {
+            // Gruppering: KUN lik aktivitetstype + bevegelsesform +
+            // underkategori. Én totalrad per gruppe, rekkefølge = første
+            // forekomst. Snittpuls tidsvektes over gruppa.
+            type Grp = {
+              first: ActivityRow; n: number; sec: number; km: number
+              hrW: number; hrSec: number
+              zones: Partial<Record<ExtendedZoneName, number>>
+              shots: number; hits: number
+            }
+            const grupper: Grp[] = []
+            const byKey = new Map<string, Grp>()
+            for (const a of activities) {
+              const like = allLikes.get(a.id)
+              const key = `${a.activity_type}|${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
+              let g = byKey.get(key)
+              if (!g) {
+                g = { first: a, n: 0, sec: 0, km: 0, hrW: 0, hrSec: 0, zones: {}, shots: 0, hits: 0 }
+                byKey.set(key, g)
+                grupper.push(g)
+              }
+              g.n++
+              const sec = like?.duration_seconds ?? 0
+              g.sec += sec
+              g.km += (like?.distance_meters ?? 0) / 1000
+              const hr = num(a.avg_heart_rate)
+              if (hr > 0 && sec > 0) { g.hrW += hr * sec; g.hrSec += sec }
+              if (like) {
+                const t = computeActivityTotals([like], [])
+                for (const k of ALL_ZONE_NAMES) {
+                  const zs = t.zoneSeconds[k] ?? 0
+                  if (zs > 0) g.zones[k] = (g.zones[k] ?? 0) + zs
+                }
+              }
+              g.shots += num(a.prone_shots) + num(a.standing_shots)
+              g.hits += num(a.prone_hits) + num(a.standing_hits)
+            }
+            return (
+              <div>
+                {grupper.map((g, i) => {
+                  const hr = g.hrSec > 0 ? g.hrW / g.hrSec : 0
+                  const zTotal = ALL_ZONE_NAMES.reduce((sum, k) => sum + (g.zones[k] ?? 0), 0)
+                  return (
+                    <div key={i} className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
+                      style={{ borderBottom: i < grupper.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
+                        {activityLabel(g.first)}
+                        <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
+                          {g.first.movement_name ? ` · ${g.first.movement_name}${g.first.movement_subcategory ? ` ${g.first.movement_subcategory}` : ''}` : ''}
+                          {` · ${g.n} ${g.n === 1 ? 'runde' : 'runder'}`}
+                        </small>
+                      </span>
+                      <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 14.5 }}>
+                        {g.sec > 0 && <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtZoneTime(g.sec)}</b>}
+                        {g.km > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtNo(g.km)}</b> km</>}
+                        {hr > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{Math.round(hr)}</b> bpm</>}
+                        {g.shots > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{g.hits}/{g.shots}</b> treff</>}
+                      </span>
+                      {zTotal > 0 && (
+                        <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
+                          {ALL_ZONE_NAMES.map(k => {
+                            const zs = g.zones[k] ?? 0
+                            if (zs <= 0) return null
+                            return <div key={k} style={{ width: `${(zs / zTotal) * 100}%`, background: ZONE_COLORS_V2[k] }} />
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)' }}>
+                  Samlet slår kun sammen rader med lik aktivitetstype +
+                  bevegelsesform + underkategori. Rekkefølgen følger første
+                  forekomst. Snittpuls er tidsvektet. Dataene lagres alltid
+                  splittet.
+                </p>
+              </div>
+            )
+          })() : (
           <div className="relative" style={{ paddingLeft: 24 }}>
             <div style={{ position: 'absolute', left: 7, top: 6, bottom: 6, width: 2, background: 'linear-gradient(180deg, var(--accent), rgba(255,69,0,.15))', borderRadius: 2 }} />
             {activities.map((a, i) => {
@@ -435,6 +672,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               )
             })}
           </div>
+          )}
         </Card>
       )}
 

@@ -224,6 +224,7 @@ export async function getCoachAthleteRelations(): Promise<
       .from('workouts')
       .select('user_id, date, is_completed, is_planned')
       .in('user_id', athleteIds)
+      .is('merged_into_workout_id', null)
       .eq('is_planned', false)
       .eq('is_completed', true)
       .gte('date', horizon7Iso),
@@ -247,6 +248,7 @@ export async function getCoachAthleteRelations(): Promise<
     .from('workouts')
     .select('user_id, date')
     .in('user_id', athleteIds)
+    .is('merged_into_workout_id', null)
     .eq('is_planned', false)
     .eq('is_completed', true)
     .order('date', { ascending: false })
@@ -369,6 +371,7 @@ export async function getCoachAthleteExport(
       .from('workouts')
       .select('user_id, date, duration_minutes, distance_km, workout_type, is_planned, is_completed')
       .in('user_id', athleteIds)
+      .is('merged_into_workout_id', null)
       .eq('is_planned', false)
       .eq('is_completed', true)
       .gte('date', horizonIso),

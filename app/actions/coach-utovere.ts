@@ -91,6 +91,7 @@ export async function getCoachUtovere(): Promise<
       .from('workouts')
       .select('id, user_id, title, date, duration_minutes, distance_km, is_planned, is_completed')
       .in('user_id', athleteIds)
+      .is('merged_into_workout_id', null)
       .gte('date', horizon30Iso)
       .eq('is_planned', false),
     supabase

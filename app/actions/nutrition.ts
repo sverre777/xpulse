@@ -182,6 +182,7 @@ export async function getNutritionAnalysis(
       )
     `)
     .eq('user_id', resolved.userId)
+    .is('merged_into_workout_id', null)
     .gte('date', from).lte('date', to)
     .order('date', { ascending: true })
   if (error) return { error: error.message }

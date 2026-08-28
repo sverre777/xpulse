@@ -35,8 +35,9 @@ export function KlokkedataTrenderTab({ data }: Props) {
           Ingen klokkesync-data i perioden
         </p>
         <p className="mb-4" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '14px' }}>
-          Koble til klokke (Strava eller .fit-fil-opplasting) for å se aerob effektivitet, cardiac drift,
-          tid i sone, power curve og kadens-trender over tid.
+          Koble til klokke (Strava eller .fit-fil-opplasting) for å se tid i sone,
+          power curve og watt- og kadens-trender over tid. Effektivitetsfaktor og
+          aerob frakobling bor i Prestasjon-fanen.
         </p>
         <Link href="/app/innstillinger/klokkesync"
           className="inline-block px-4 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-90"

@@ -28,6 +28,8 @@ import { LactateProfile, LactateTrend } from './TerskelTab'
 import { AccuracyTrend, HrZoneAccuracy, TimeTrend, TrainingVsComp } from './SkytingTab'
 import { LoadPerPeriod, CompetitionsPerPeriod } from './PeriodiseringTab'
 import { IntensiveWorkoutsLine, PolarizedStack } from './IntensityTab'
+import { EfSection, FrakoblingSection } from './PrestasjonTab'
+import type { PrestasjonAnalyse } from '@/app/actions/prestasjon-analyse'
 
 // ── Metadata ────────────────────────────────────────────────
 // Hver chart_key mapper til tab-etikett + menneskevennlig tittel. Brukes både
@@ -37,6 +39,7 @@ import { IntensiveWorkoutsLine, PolarizedStack } from './IntensityTab'
 export type FavoriteTabKey = 'oversikt' | 'belastning' | 'terskel' | 'skyting'
   | 'periodisering' | 'intensitet' | 'konkurranser' | 'helse'
   | 'per_bevegelsesform' | 'mal_analyse' | 'tester_pr' | 'ski_tester'
+  | 'prestasjon'
 type TabKey = FavoriteTabKey
 
 const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string }> = {
@@ -58,6 +61,10 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   belastning_perceived_vs_calculated: { tab: 'belastning', tabLabel: 'Belastning', title: 'Opplevd vs. beregnet belastning' },
   belastning_energy_stress_over_time: { tab: 'belastning', tabLabel: 'Belastning', title: 'Overskudd og stress over tid' },
   belastning_rest_day_stats: { tab: 'belastning', tabLabel: 'Belastning', title: 'Hviledag-statistikk' },
+
+  // Prestasjon (bolk 3)
+  prestasjon_ef: { tab: 'prestasjon', tabLabel: 'Prestasjon', title: 'Effektivitetsfaktor' },
+  prestasjon_frakobling: { tab: 'prestasjon', tabLabel: 'Prestasjon', title: 'Aerob frakobling' },
 
   // Terskel
   terskel_lactate_profile: { tab: 'terskel', tabLabel: 'Terskel', title: 'Laktatprofil (mmol vs puls)' },
@@ -123,10 +130,25 @@ const CHART_META: Record<string, { tab: TabKey; tabLabel: string; title: string 
   helse_day_form: { tab: 'helse', tabLabel: 'Helse', title: 'Dagsform over tid' },
 }
 
+// LESE-side-alias for avløste nøkler (bolk 3): gamle stjerner på
+// Klokkedata-grafene viser den nye grafen i stedet for død fallback.
+// Ingen prod-skriving — toggling av en aliaset stjerne skjer på den
+// NYE nøkkelen (StarButton i grafen eier den), og den gamle ryddes
+// naturlig når brukeren av-stjerner det gamle kortet.
+const KEY_ALIASES: Record<string, string> = {
+  klokke_aerob_efficiency: 'prestasjon_ef',
+  klokke_watt_per_hr: 'prestasjon_ef',
+  klokke_cardiac_drift: 'prestasjon_frakobling',
+}
+
+export function resolveChartKeyAlias(chartKey: string): string {
+  return KEY_ALIASES[chartKey] ?? chartKey
+}
+
 // Hjelper for AnalysisPage: hvilken fane-kilde må lazy-fetches for å rendre
 // denne grafen i FavoriteChartsSection?
 export function sourceTabForChartKey(chartKey: string): FavoriteTabKey | null {
-  return CHART_META[chartKey]?.tab ?? null
+  return CHART_META[resolveChartKeyAlias(chartKey)]?.tab ?? null
 }
 
 interface Props {
@@ -138,6 +160,7 @@ interface Props {
   intensity: IntensityDistribution | null
   overview: AnalysisOverview | null
   health: HealthCorrelations | null
+  prestasjon: PrestasjonAnalyse | null
   analysisRange: DateRange
   onNavigate: (tab: TabKey) => void
 }
@@ -185,6 +208,7 @@ export function FavoriteChartsSection(props: Props) {
             intensity={props.intensity}
             overview={props.overview}
             health={props.health}
+            prestasjon={props.prestasjon}
             analysisRange={props.analysisRange}
             onNavigate={props.onNavigate}
           />
@@ -195,14 +219,16 @@ export function FavoriteChartsSection(props: Props) {
 }
 
 function FavoriteChartSlot({
-  chartKey, stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange, onNavigate,
+  chartKey: raaKey, stats, belastning, terskel, skyting, periodisering, intensity, overview, health, prestasjon, analysisRange, onNavigate,
 }: Props & { chartKey: string }) {
+  // Avløste nøkler vises som sin arvtaker (lese-side-alias, bolk 3).
+  const chartKey = resolveChartKeyAlias(raaKey)
   const meta = CHART_META[chartKey]
   if (!meta) {
-    return <UnknownChart chartKey={chartKey} />
+    return <UnknownChart chartKey={raaKey} />
   }
 
-  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange })
+  const rendered = renderKnownChart(chartKey, { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, prestasjon, analysisRange })
   if (rendered) return <div>{rendered}</div>
 
   // Kjent chart_key, men data-kilden er ikke lastet enda (eller grafen er ikke
@@ -223,11 +249,14 @@ function renderKnownChart(
     intensity: IntensityDistribution | null
     overview: AnalysisOverview | null
     health: HealthCorrelations | null
+    prestasjon: PrestasjonAnalyse | null
     analysisRange: DateRange
   },
 ): ReactNode | null {
-  const { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, analysisRange } = data
+  const { stats, belastning, terskel, skyting, periodisering, intensity, overview, health, prestasjon, analysisRange } = data
   switch (chartKey) {
+    case 'prestasjon_ef': return prestasjon ? <EfSection data={prestasjon} /> : null
+    case 'prestasjon_frakobling': return prestasjon ? <FrakoblingSection data={prestasjon} /> : null
     case 'overview_hours_per_week': return <OverviewHoursPerWeek stats={stats} />
     case 'overview_zones_per_week': return <OverviewZonesPerWeek stats={stats} />
     case 'overview_km_per_movement': return <OverviewKmPerMovement stats={stats} />

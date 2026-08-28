@@ -456,6 +456,12 @@ function AnalysisPageInner({
         if (!('error' in res)) setTerskel(res)
       })
     }
+    if (neededTabs.has('prestasjon') && prestasjon === null) {
+      startTransition(async () => {
+        const res = await getPrestasjonAnalyse(range.from, range.to, targetUserId)
+        if (!('error' in res)) setPrestasjon(res)
+      })
+    }
     if (neededTabs.has('skyting') && skyting === null) {
       startTransition(async () => {
         const res = await getShootingDepthAnalysis(range.from, range.to, sportFilter)
@@ -487,7 +493,7 @@ function AnalysisPageInner({
       })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, favoriteKeys, belastning, terskel, skyting, periodisering, intensityDist, competitionsAnalysis, healthCorrelations])
+  }, [tab, favoriteKeys, belastning, terskel, skyting, periodisering, intensityDist, competitionsAnalysis, healthCorrelations, prestasjon])
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -618,6 +624,7 @@ function AnalysisPageInner({
               intensity={intensityDist}
               overview={overview}
               health={healthCorrelations}
+              prestasjon={prestasjon}
               analysisRange={range}
               onNavigate={(t) => setTab(t)}
             />

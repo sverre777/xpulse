@@ -23,12 +23,6 @@ import {
 const GRAD_FARGER = { god: '#28A86E', middels: '#E2A33A', svak: '#E23A5A' } as const
 
 export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
-  const [valgtBevegelse, setValgtBevegelse] = useState<string | null>(null)
-  const serie = useMemo(() => {
-    if (data.efSerier.length === 0) return null
-    return data.efSerier.find(s => s.bevegelse === valgtBevegelse) ?? data.efSerier[0]
-  }, [data.efSerier, valgtBevegelse])
-
   return (
     <div className="space-y-4">
       {data.stravaEkskludert > 0 && (
@@ -41,11 +35,27 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
           utenfor trendene (Stravas vilkår) — grafene viser en delmengde av treningen.
         </p>
       )}
+      <EfSection data={data} />
+      <FrakoblingSection data={data} />
+    </div>
+  )
+}
 
-      {/* ── EF — effektivitetsfaktor ── */}
+// Eksportert også til FavoriteChartsSection (stjernede grafer på
+// Oversikt) — samme komponent begge steder, regel 11. Utvalgs-
+// etikettene er del av grafen: et skjult filter skal aldri være
+// usynlig på flaten (konvensjonen).
+export function EfSection({ data }: { data: PrestasjonAnalyse }) {
+  const [valgtBevegelse, setValgtBevegelse] = useState<string | null>(null)
+  const serie = useMemo(() => {
+    if (data.efSerier.length === 0) return null
+    return data.efSerier.find(s => s.bevegelse === valgtBevegelse) ?? data.efSerier[0]
+  }, [data.efSerier, valgtBevegelse])
+
+  return (
       <ChartWrapper
         title="Effektivitetsfaktor"
-        subtitle="Output per pulsslag — stigende = aerob fremgang uten test"
+        subtitle="Output per pulsslag — stigende = aerob fremgang uten test · kun rolige økter, intervaller og konkurranser holdes utenfor"
         height="auto"
         chartKey="prestasjon_ef">
         {serie ? (
@@ -78,11 +88,15 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
           </p>
         )}
       </ChartWrapper>
+  )
+}
 
-      {/* ── Aerob frakobling ── */}
+export function FrakoblingSection({ data }: { data: PrestasjonAnalyse }) {
+  return (
+    <div>
       <ChartWrapper
         title="Aerob frakobling"
-        subtitle="Pw:Hr / Pa:Hr på jevne økter over 40 min — under 5 % betyr at pulsen holder følge hele veien"
+        subtitle="Utvalg: jevne økter over 40 min med pulskurve og fart/watt — under 5 % betyr at pulsen holder følge hele veien"
         height={data.frakobling.length > 0 ? 300 : 'auto'}
         chartKey="prestasjon_frakobling">
         {data.frakobling.length > 0 ? (
@@ -96,7 +110,7 @@ export function PrestasjonTab({ data }: { data: PrestasjonAnalyse }) {
         )}
       </ChartWrapper>
       {data.frakoblingCapNaadd && (
-        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+        <p className="text-xs mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Frakoblingsgrafen viser de 50 nyeste kandidat-øktene i perioden.
         </p>
       )}

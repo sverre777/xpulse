@@ -4127,7 +4127,12 @@ export async function getPeriodizationOverview(
       const totals = computeActivityTotals(acts, heartZones)
       const secs = totals.totalSeconds > 0 ? totals.totalSeconds : (w.duration_minutes ? w.duration_minutes * 60 : 0)
       const meters = totals.totalMeters > 0 ? totals.totalMeters : (w.distance_km ? w.distance_km * 1000 : 0)
-      // TSS (same formula as Belastning)
+      // TSS — sone-veien (minutter × sonevekt). MIDLERTIDIG AVVIK
+      // (Sverre 28. aug): Belastning bruker watt-IF-vekt der watt +
+      // FTP finnes (bolk 2), denne oversikten gjør det IKKE ennå —
+      // watt-økter kan derfor vise annen vekt her enn i Belastning
+      // til delt TSS-helper (+ evt. cachet NP per økt) er på plass.
+      // Ligger i småsaks-køen; ikke dupliser watt-veien hit.
       const z = totals.zoneSeconds
       const tss = (z.I1 / 60) * 1 + (z.I2 / 60) * 2 + (z.I3 / 60) * 3 + (z.I4 / 60) * 4 + (z.I5 / 60) * 5 + (z.Hurtighet / 60) * 5
       metrics.push({

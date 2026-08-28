@@ -8,6 +8,8 @@ import type {
 import type { LapRow } from '@/components/workout/LapTable'
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
+import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -17,8 +19,21 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 // utøvere de har aktiv relasjon til. RLS-en på tabellene tar seg av
 // authorisasjon — vi videresender bare workout_id.
 
+// Øktnivå NP/IF (prestasjonsmodellen bolk 2, plasseringskartet):
+// beregnes ved visning fra watt_samples; FTP leses fra terskeltabellen
+// (nyeste gyldige versjon på øktas dato, arv via dominant bevegelses-
+// form) — aldri egen kopi. iff/merkelapp er null når FTP mangler →
+// UI-et viser «sett FTP først»-lenken (regel 20).
+export interface OktWattMetrikker {
+  np: number
+  iff: number | null
+  merkelapp: string | null
+  ftpMangler: boolean
+}
+
 export interface WorkoutKlokkesyncData {
   sport: Sport | null
+  wattMetrikker: OktWattMetrikker | null
   samples: WorkoutSamples | null
   laps: LapRow[]
   lapMarkers: LapMarker[]
@@ -40,7 +55,7 @@ export async function getWorkoutKlokkesyncData(
   // workout er resolvert.
   const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
     supabase.from('workouts')
-      .select('id, sport, time_of_day, date')
+      .select('id, sport, time_of_day, date, user_id')
       .eq('id', workoutId)
       .maybeSingle(),
     supabase.from('workout_samples')
@@ -163,8 +178,33 @@ export async function getWorkoutKlokkesyncData(
     shotCum += a.duration_seconds ?? 0
   }
 
+  // NP/IF fra watt-kurven + terskeltabellen (øktas dato, eierens
+  // terskler — RLS gir trener med plan-rett de samme radene).
+  let wattMetrikker: WorkoutKlokkesyncData['wattMetrikker'] = null
+  const np = beregnNP(samples?.watt_samples ?? null)
+  if (np != null) {
+    const { data: terskelRader } = await supabase
+      .from('user_thresholds')
+      .select('movement_name, movement_subcategory, threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
+      .eq('user_id', workout.user_id)
+    const dominant = dominantBevegelse(activities ?? [])
+    const rad = resolveTerskel(
+      (terskelRader ?? []) as TerskelDbRad[],
+      workout.date, dominant.name, dominant.sub,
+    )
+    const ftp = rad?.ftp_watts ?? null
+    const iff = ftp != null && ftp > 0 ? Math.round((np / ftp) * 100) / 100 : null
+    wattMetrikker = {
+      np,
+      iff,
+      merkelapp: iff != null ? ifMerkelapp(iff) : null,
+      ftpMangler: iff == null,
+    }
+  }
+
   return {
     sport: (workout.sport ?? null) as Sport | null,
+    wattMetrikker,
     samples,
     laps,
     lapMarkers,

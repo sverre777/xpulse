@@ -5,6 +5,8 @@ import { resolveTargetUser } from '@/lib/target-user'
 import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-summary'
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
+import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
 import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
@@ -2805,6 +2807,10 @@ export async function getIntensityDistribution(
 // fallback håndteres i computeActivityTotals) får vekting fra den sonen HR
 // faller innenfor. Totalen per dag = daily TSS.
 //
+// Bolk 2: økter med watt-kurve OG FTP i terskeltabellen får vekten fra
+// watt-IF (vektFraIF(NP/FTP)) i stedet for HR-sonene — samme skala,
+// bedre intensitetsmål der watt finnes. Én terskel-kilde (regel 11).
+//
 // ATL (fatigue, 7d) og CTL (fitness, 42d) = eksponensielt vektet glidende snitt.
 // α = 1 - exp(-1/n) der n er tidskonstant i dager.
 // TSB (form) = CTL - ATL.
@@ -2890,6 +2896,8 @@ type RawBelastningRow = {
   workout_weather?: RawWeatherEmbed
   workout_activities: {
     activity_type: string
+    movement_name: string | null
+    movement_subcategory: string | null
     duration_seconds: number | null
     distance_meters: number | null
     avg_heart_rate: number | null
@@ -2917,7 +2925,7 @@ export async function getBelastningAnalysis(
 
     let q = supabase
       .from('workouts')
-      .select('id,date,workout_weather(surface_conditions),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones)')
+      .select('id,date,workout_weather(surface_conditions),workout_activities(activity_type,movement_name,movement_subcategory,duration_seconds,distance_meters,avg_heart_rate,zones)')
       .eq('user_id', userId)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -2928,10 +2936,51 @@ export async function getBelastningAnalysis(
 
     const { data, error } = await q
     if (error) return { error: error.message }
+    const rows = (data ?? []) as RawBelastningRow[]
+
+    // Watt-veien inn i TSS-sporet (bolk 2): der en økt har watt-kurve
+    // og FTP finnes i terskeltabellen, vektes treningsminuttene med
+    // vektFraIF(NP/FTP) i stedet for HR-sonene — SAMME skala
+    // (minutter × vekt 1–5), ingen parallell beregningsvei. Krav:
+    // watt-dekningen må være minst 80 % av treningstiden, ellers er
+    // HR-sonene det ærligste målet for økta.
+    const wattVekt = new Map<string, number>() // workout_id → vekt 1–5
+    if (rows.length > 0) {
+      const ids = rows.map(r => r.id)
+      const [terskelRes, sampleRes] = await Promise.all([
+        supabase.from('user_thresholds')
+          .select('movement_name, movement_subcategory, threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
+          .eq('user_id', userId),
+        supabase.from('workout_samples')
+          .select('workout_id, watt_samples')
+          .in('workout_id', ids)
+          .not('watt_samples', 'is', null),
+      ])
+      const terskelRader = (terskelRes.data ?? []) as TerskelDbRad[]
+      const harFtp = terskelRader.some(r => r.ftp_watts != null)
+      if (harFtp) {
+        const rowById = new Map(rows.map(r => [r.id, r]))
+        for (const sRow of sampleRes.data ?? []) {
+          const w = rowById.get(sRow.workout_id as string)
+          if (!w) continue
+          const watt = (sRow.watt_samples ?? []) as { t: number; w: number }[]
+          const np = beregnNP(watt)
+          if (np == null) continue
+          const dominant = dominantBevegelse(w.workout_activities ?? [])
+          const rad = resolveTerskel(terskelRader, w.date, dominant.name, dominant.sub)
+          if (rad?.ftp_watts == null || rad.ftp_watts <= 0) continue
+          const treningsSek = (w.workout_activities ?? [])
+            .reduce((sum, a) => sum + (a.duration_seconds ?? 0), 0)
+          if (treningsSek <= 0) continue
+          if (wattDekningSek(watt) < treningsSek * 0.8) continue
+          wattVekt.set(w.id, vektFraIF(np / rad.ftp_watts))
+        }
+      }
+    }
 
     // Aggreger daglig TSS over hele warm-up-rangen.
     const tssByDate = new Map<string, number>()
-    for (const w of (data ?? []) as RawBelastningRow[]) {
+    for (const w of rows) {
       if (!matchesSurface(w.workout_weather, surfaceFilter)) continue
       const acts: ActivityLike[] = (w.workout_activities ?? []).map(a => ({
         activity_type: a.activity_type,
@@ -2942,12 +2991,19 @@ export async function getBelastningAnalysis(
       }))
       const totals = computeActivityTotals(acts, heartZones)
       let tss = 0
-      tss += (totals.zoneSeconds.I1 / 60) * ZONE_WEIGHTS.I1
-      tss += (totals.zoneSeconds.I2 / 60) * ZONE_WEIGHTS.I2
-      tss += (totals.zoneSeconds.I3 / 60) * ZONE_WEIGHTS.I3
-      tss += (totals.zoneSeconds.I4 / 60) * ZONE_WEIGHTS.I4
-      tss += (totals.zoneSeconds.I5 / 60) * ZONE_WEIGHTS.I5
-      tss += (totals.zoneSeconds.Hurtighet / 60) * ZONE_WEIGHTS.Hurtighet
+      const vekt = wattVekt.get(w.id)
+      if (vekt != null) {
+        // Watt-veien: treningstid (pauser/skyting alt holdt utenfor av
+        // computeActivityTotals) × IF-vekt.
+        tss = (totals.totalSeconds / 60) * vekt
+      } else {
+        tss += (totals.zoneSeconds.I1 / 60) * ZONE_WEIGHTS.I1
+        tss += (totals.zoneSeconds.I2 / 60) * ZONE_WEIGHTS.I2
+        tss += (totals.zoneSeconds.I3 / 60) * ZONE_WEIGHTS.I3
+        tss += (totals.zoneSeconds.I4 / 60) * ZONE_WEIGHTS.I4
+        tss += (totals.zoneSeconds.I5 / 60) * ZONE_WEIGHTS.I5
+        tss += (totals.zoneSeconds.Hurtighet / 60) * ZONE_WEIGHTS.Hurtighet
+      }
       if (tss > 0) tssByDate.set(w.date, (tssByDate.get(w.date) ?? 0) + tss)
     }
 
@@ -3976,6 +4032,8 @@ type RawPeriodWorkout = {
   duration_minutes: number | null; distance_km: number | null
   workout_activities: {
     activity_type: string
+    movement_name: string | null
+    movement_subcategory: string | null
     duration_seconds: number | null
     distance_meters: number | null
     avg_heart_rate: number | null

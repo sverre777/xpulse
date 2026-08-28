@@ -6,6 +6,7 @@ import { WorkoutDetailChart } from './WorkoutDetailChart'
 import { LapTable } from './LapTable'
 import { WorkoutDeepAnalysis } from './WorkoutDeepAnalysis'
 import { ImportSourceBadge } from './ImportSourceBadge'
+import Link from 'next/link'
 
 // Viser klokkesync-data (samples + per-lap-tabell) for én økt.
 // Hentes lazy når komponenten mountes — vi vil ikke forsinke modal-åpning
@@ -110,6 +111,29 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
         Klokkesync — sekund-for-sekund og per-lap
       </p>
+
+      {/* NP/IF (prestasjonsmodellen bolk 2) — kun der watt finnes.
+          Uten FTP: ærlig tomtilstand med lenke til terskelen
+          (regel 20), aldri et tall som ser komplett ut. */}
+      {data.wattMetrikker && (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--tekst-5-app)' }}>
+          NP <b style={{ color: 'var(--tekst-1-app)' }}>{data.wattMetrikker.np} W</b>
+          {data.wattMetrikker.iff != null ? (
+            <>
+              {' · '}IF <b style={{ color: 'var(--tekst-1-app)' }}>{data.wattMetrikker.iff.toFixed(2).replace('.', ',')}</b>
+              <span style={{ color: 'var(--tekst-8-alt)' }}> — {data.wattMetrikker.merkelapp}</span>
+            </>
+          ) : (
+            <>
+              {' · '}IF krever FTP —{' '}
+              <Link href="/app/innstillinger/profil/terskler"
+                style={{ color: '#FF4500', textDecoration: 'none' }}>
+                sett terskel først →
+              </Link>
+            </>
+          )}
+        </p>
+      )}
 
       {hasSamples && data.samples && data.sport && (
         <WorkoutDetailChart

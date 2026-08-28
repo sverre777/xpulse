@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Terskler, soner & prestasjonsmodell (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A; --lilla:#8B5CF6;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(36px,6vw,54px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 30px;max-width:660px}
+.viewsw{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--surface);margin-bottom:34px;flex-wrap:wrap}
+.viewsw button{border:0;background:transparent;color:var(--dim);cursor:pointer;padding:9px 18px;border-radius:999px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:.12em}
+.viewsw button.on{background:var(--orange);color:#fff}
+.hidden{display:none}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:30px 0 12px}
+.demo b{color:var(--dim)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+
+/* Brødsmule / plassering */
+.crumb{font-size:12.5px;color:var(--mute);margin-bottom:14px}
+.crumb b{color:var(--dim)}
+
+/* Bev.form-liste */
+.bfrow{border:1px solid var(--line2);border-radius:11px;background:var(--card);margin-bottom:9px;overflow:hidden}
+.bfhead{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;flex-wrap:wrap}
+.bfhead .n{font-weight:600;min-width:200px}
+.bfhead .n span{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.vals{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap;font-size:13px}
+.vals .v{color:var(--dim)} .vals .v b{color:var(--paper);font-weight:600}
+.sonetag{font-size:11px;border:1px solid var(--line2);border-radius:6px;padding:2px 8px;color:var(--dim);letter-spacing:.06em}
+.sonetag.egne{color:var(--gold);border-color:rgba(232,185,60,.5)}
+.pil{color:var(--mute)}
+.bfbody{border-top:1px solid var(--line);padding:16px;display:none}
+.bfrow.open .bfbody{display:block}
+.felter{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.felt label{display:block;font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:11.5px;color:var(--dim);margin-bottom:5px}
+.felt input{width:100%;background:var(--surface);border:1px solid var(--line2);border-radius:9px;color:var(--paper);padding:9px 12px;font:inherit}
+.felt .u{font-size:11.5px;color:var(--mute);margin-top:3px}
+.hist{margin-top:14px;font-size:12.5px;color:var(--mute);border-top:1px dashed var(--line);padding-top:10px}
+.hist b{color:var(--dim)}
+.hist .opp{color:var(--green)}
+
+/* Egne soner */
+.sonesw{display:flex;align-items:center;gap:10px;margin:16px 0 10px;font-size:13.5px}
+.toggle{width:40px;height:22px;border-radius:999px;background:var(--line2);position:relative;cursor:pointer;transition:background .15s}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--paper);transition:left .15s}
+.toggle.on{background:var(--orange)} .toggle.on::after{left:21px}
+.soneed{display:none}
+.soneed.vis{display:block}
+.sonerad{display:grid;grid-template-columns:44px 1fr 1fr;gap:10px;align-items:center;margin-bottom:7px;font-size:13px}
+.sd{width:34px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:12px;color:#fff}
+.sonerad input{background:var(--surface);border:1px solid var(--line2);border-radius:8px;color:var(--paper);padding:7px 10px;font:inherit;font-size:13px}
+
+/* Fase-kort */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.stat{font-family:'Bebas Neue';font-size:38px;line-height:1}
+.stat small{font-size:17px;color:var(--dim)}
+.lbl{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14px;letter-spacing:.14em;font-size:12px;color:var(--dim)}
+.godt{color:var(--green)} .middels{color:var(--gold)} .svakt{color:var(--red)}
+svg{display:block}
+.gtxt{font:10.5px 'Inter';fill:var(--mute)}
+.tabell{width:100%;border-collapse:collapse;font-size:13px}
+.tabell th{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:11.5px;color:var(--mute);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tabell td{padding:8px;border-bottom:1px dashed var(--line)}
+.ny{color:var(--gold);font-size:11px;border:1px solid rgba(232,185,60,.5);border-radius:6px;padding:1px 6px;margin-left:6px}
+.forslag{border:1px solid rgba(26,111,212,.4);background:rgba(26,111,212,.06);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13.5px}
+.forslag b{color:var(--blue)}
+.forslag .knapper{margin-top:10px;display:flex;gap:8px}
+.pillbtn{border-radius:999px;padding:8px 18px;cursor:pointer;border:0;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:13px}
+.pillbtn.o{background:var(--orange);color:#fff}
+.pillbtn.g{background:transparent;border:1.5px solid var(--line2);color:var(--paper)}
+
+.notat{margin-top:60px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>TERSKLER, SONER & <span class="acc">PRESTASJON.</span></h1>
+<p class="sub">Redesign av «Helse og soner»: flyttes under Profil og blir stedet for ALT av prestasjonsdata — terskler per bevegelsesform og underkategori, valgfri FTP, egne soner, helse. Pluss fase 1- og fase 2-visningene som bygger på dem.</p>
+
+<div class="viewsw">
+  <button class="on" id="swI" onclick="sw('I')">INNSTILLINGENE</button>
+  <button id="sw1" onclick="sw('1')">FASE 1 — MÅLENE</button>
+  <button id="sw2" onclick="sw('2')">FASE 2 — KURVER & ESTIMAT</button>
+</div>
+
+<!-- ═══════════ INNSTILLINGENE ═══════════ -->
+<div id="viewI">
+<div class="crumb">Profil › <b>Terskler, soner & helse</b> <span style="color:var(--mute)">(flyttet fra Innstillinger › Helse og soner)</span></div>
+
+<div class="demo"><b>A · Terskler & soner</b> — per bevegelsesform og underkategori. Klikk en rad.</div>
+
+<div class="bfrow open">
+  <div class="bfhead" onclick="this.parentElement.classList.toggle('open')">
+    <span class="n">Rulleski · skøyting<span>underkategori av rulleski</span></span>
+    <span class="vals">
+      <span class="v">Terskelpuls <b>172</b></span>
+      <span class="v">Terskelfart <b>3:12 /km</b></span>
+      <span class="v">FTP <b>310 W</b></span>
+    </span>
+    <span class="sonetag egne">EGNE SONER</span><span class="pil">▾</span>
+  </div>
+  <div class="bfbody">
+    <div class="felter">
+      <div class="felt"><label>TERSKELPULS</label><input value="172"><div class="u">slag/min</div></div>
+      <div class="felt"><label>TERSKELFART</label><input value="3:12"><div class="u">min/km</div></div>
+      <div class="felt"><label>FTP (VALGFRITT)</label><input value="310"><div class="u">watt — for NP/IF og W′</div></div>
+      <div class="felt"><label>GJELDER FRA</label><input value="28.08.2026" type="text"><div class="u">historikk beholdes</div></div>
+    </div>
+    <div class="hist">Historikk: <b>167 → 170</b> <span class="opp">▲</span> 12. mai · <b>170 → 172</b> <span class="opp">▲</span> 28. aug — terskelen overskrives aldri, den versjoneres.</div>
+
+    <div class="sonesw">
+      <div class="toggle on" onclick="this.classList.toggle('on');document.getElementById('se').classList.toggle('vis')"></div>
+      <span>Egne soner for denne bevegelsesformen <span style="color:var(--mute)">(av = Olympiatoppens standard fra terskelpulsen)</span></span>
+    </div>
+    <div class="soneed vis" id="se">
+      <div class="sonerad"><span class="sd" style="background:var(--i1)">I1</span><input value="60–72 % av makspuls"><input value="< 138"></div>
+      <div class="sonerad"><span class="sd" style="background:var(--i2)">I2</span><input value="72–82 %"><input value="138–158"></div>
+      <div class="sonerad"><span class="sd" style="background:var(--i3)">I3</span><input value="82–87 %"><input value="158–167"></div>
+      <div class="sonerad"><span class="sd" style="background:var(--i4)">I4</span><input value="87–92 %"><input value="167–177"></div>
+      <div class="sonerad"><span class="sd" style="background:var(--i5)">I5</span><input value="92–100 %"><input value="> 177"></div>
+
+      <div class="sonesw" style="margin-top:14px">
+        <div class="toggle" onclick="this.classList.toggle('on');document.getElementById('ut').classList.toggle('vis')"></div>
+        <span>Utvidet skala I6–I8 <span style="color:var(--mute)">(anaerob — defineres av innsats/laktat, IKKE puls. Makspulsen er toppen av I5 uansett.)</span></span>
+      </div>
+      <div class="soneed" id="ut">
+        <div class="sonerad"><span class="sd" style="background:#B23BC9">I6</span><input value="Anaerob toleranse"><input value="laktat/innsats — ingen puls" disabled style="color:var(--mute)"></div>
+        <div class="sonerad"><span class="sd" style="background:#D24B8F">I7</span><input value="Produksjon / hurtighet"><input value="laktat/innsats — ingen puls" disabled style="color:var(--mute)"></div>
+        <div class="sonerad"><span class="sd" style="background:#E85C5C">I8</span><input value="Maksimal"><input value="laktat/innsats — ingen puls" disabled style="color:var(--mute)"></div>
+        <p style="color:var(--mute);font-size:12px;margin-top:6px">Forholdet til Hurtighet-kategorien er IKKE avgjort — se notatet. I6–I8-fargene her er forslag, må inn i fargefasiten før bygging.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bfrow">
+  <div class="bfhead" onclick="this.parentElement.classList.toggle('open')">
+    <span class="n">Løping<span>alle underkategorier</span></span>
+    <span class="vals"><span class="v">Terskelpuls <b>174</b></span><span class="v">Terskelfart <b>3:45 /km</b></span><span class="v">FTP <b>—</b></span></span>
+    <span class="sonetag">STANDARD (OT)</span><span class="pil">▾</span>
+  </div>
+  <div class="bfbody"><p style="color:var(--mute);font-size:13px">Samme felter som over. FTP står tom — watt er valgfritt per bevegelsesform.</p></div>
+</div>
+
+<div class="bfrow">
+  <div class="bfhead" onclick="this.parentElement.classList.toggle('open')">
+    <span class="n">Langrenn · klassisk<span>underkategori av langrenn</span></span>
+    <span class="vals"><span class="v">Terskelpuls <b>170</b></span><span class="v">Terskelfart <b>—</b></span><span class="v">FTP <b>—</b></span></span>
+    <span class="sonetag">STANDARD (OT)</span><span class="pil">▾</span>
+  </div>
+  <div class="bfbody"><p style="color:var(--mute);font-size:13px">Fart gir lite mening i kupert terreng — feltet kan stå tomt uten at noe mangler.</p></div>
+</div>
+
+<div class="bfrow">
+  <div class="bfhead">
+    <span class="n" style="color:var(--dim)">+ Legg til bevegelsesform / underkategori</span>
+  </div>
+</div>
+
+<div class="demo"><b>B · Helse</b> — samme flate, egen gruppe (som i dag, bare flyttet hit)</div>
+<div class="card">
+  <div class="felter">
+    <div class="felt"><label>MAKSPULS</label><input value="192"><div class="u">brukes av sone-prosentene</div></div>
+    <div class="felt"><label>HVILEPULS (MANUELL)</label><input value="44"><div class="u">vinner over klokka (M)</div></div>
+    <div class="felt"><label>VEKT</label><input value="72,4"><div class="u">kg · historikk i helseflaten</div></div>
+    <div class="felt"><label>SØVNMÅL</label><input value="8:00"><div class="u">timer per natt</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ FASE 1 ═══════════ -->
+<div id="view1" class="hidden">
+<div class="demo"><b>Fase 1</b> — beregnet fra samples vi allerede har + terskelene fra innstillingene</div>
+
+<div class="grid2">
+  <div class="card">
+    <div class="ch"><h3>AEROB FRAKOBLING</h3><span class="m">på jevne økter > 40 min</span></div>
+    <div class="stat godt">3,8 %</div>
+    <div class="lbl">Pa:Hr — rolig langtur i går</div>
+    <p style="color:var(--dim);font-size:13px;margin-top:8px">Under 5 % = pulsen holder følge med farten hele veien. Vises på økta og som trend.</p>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>EFFEKTIVITETSFAKTOR</h3><span class="m">12 uker · rulleski skøyting</span></div>
+    <svg viewBox="0 0 300 70" width="100%" height="70">
+      <path d="M4 52 C40 50,70 46,110 44 S190 36,240 30 286 24,296 22" fill="none" stroke="var(--green)" stroke-width="2"/>
+      <circle cx="296" cy="22" r="4" fill="var(--green)"/>
+      <text x="4" y="66" class="gtxt">jun</text><text x="276" y="66" class="gtxt">aug</text>
+    </svg>
+    <div class="lbl" style="margin-top:6px">Fart per pulsslag — stigende = aerob fremgang uten test</div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>GAP</h3><span class="m">løping, per aktivitet</span></div>
+    <div style="font-size:14px">Rådata <b>4:32 /km</b> → stigningsjustert <b class="godt">4:11 /km</b></div>
+    <p style="color:var(--dim);font-size:13px;margin-top:8px">Vises ved siden av fart på løpe-aktiviteter med høydeprofil.</p>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>NP / IF</h3><span class="m">krever FTP satt</span></div>
+    <div style="font-size:14px">NP <b>287 W</b> · IF <b>0,93</b> <span class="middels">— hard økt</span></div>
+    <p style="color:var(--dim);font-size:13px;margin-top:8px">Kun der watt finnes. IF = NP/FTP — leser terskelen fra innstillingene, aldri egen kopi.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch"><h3>SESONG MOT SESONG</h3><span class="m">timer per måned · valgbar metrikk (timer/km/økter/EF)</span></div>
+  <svg viewBox="0 0 640 120" width="100%" height="120">
+    <line x1="30" y1="100" x2="630" y2="100" stroke="var(--line2)"/>
+    <!-- i fjor (dempet) og i år (oransje), par per måned -->
+    <g>
+      <rect x="50" y="55" width="16" height="45" fill="var(--line2)" rx="3"/><rect x="69" y="45" width="16" height="55" fill="var(--orange)" rx="3"/>
+      <rect x="140" y="60" width="16" height="40" fill="var(--line2)" rx="3"/><rect x="159" y="42" width="16" height="58" fill="var(--orange)" rx="3"/>
+      <rect x="230" y="50" width="16" height="50" fill="var(--line2)" rx="3"/><rect x="249" y="38" width="16" height="62" fill="var(--orange)" rx="3"/>
+      <rect x="320" y="46" width="16" height="54" fill="var(--line2)" rx="3"/><rect x="339" y="50" width="16" height="50" fill="var(--orange)" rx="3"/>
+      <rect x="410" y="40" width="16" height="60" fill="var(--line2)" rx="3"/><rect x="429" y="30" width="16" height="70" fill="var(--orange)" rx="3"/>
+      <rect x="500" y="58" width="16" height="42" fill="var(--line2)" rx="3"/><rect x="519" y="36" width="16" height="64" fill="var(--orange)" rx="3"/>
+    </g>
+    <text x="50" y="114" class="gtxt">mai</text><text x="140" y="114" class="gtxt">jun</text><text x="230" y="114" class="gtxt">jul</text><text x="320" y="114" class="gtxt">aug</text><text x="410" y="114" class="gtxt">sep</text><text x="500" y="114" class="gtxt">okt</text>
+  </svg>
+  <div style="display:flex;gap:16px;font-size:12px;color:var(--dim);margin-top:6px">
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--line2)"></i> 2025/26</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--orange)"></i> 2026/27</span>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ FASE 2 ═══════════ -->
+<div id="view2" class="hidden">
+<div class="demo"><b>Fase 2</b> — bygger på fase 1: kurven → eFTP → W′</div>
+
+<div class="card">
+  <div class="ch"><h3>FARTSKURVE / EFFEKTKURVE</h3><span class="m">bestenoteringer · sesong vs. noensinne</span></div>
+  <table class="tabell">
+    <tr><th>VARIGHET</th><th>DENNE SESONGEN</th><th>NOENSINNE</th></tr>
+    <tr><td>5 sek</td><td>612 W</td><td>640 W</td></tr>
+    <tr><td>1 min</td><td>438 W <span class="ny">NY BESTE</span></td><td>438 W</td></tr>
+    <tr><td>5 min</td><td>352 W</td><td>361 W</td></tr>
+    <tr><td>20 min</td><td>318 W <span class="ny">NY BESTE</span></td><td>318 W</td></tr>
+  </table>
+  <p style="color:var(--dim);font-size:13px;margin-top:10px">Samme tabell for FART (min/km) i løping. «NY BESTE» gir innboksvarsel — mest motiverende enkeltelement i pakka.</p>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <div class="ch"><h3>eFTP — ESTIMERT TERSKEL</h3><span class="m">fra kurven, uten test</span></div>
+    <div class="stat">304<small> W</small></div>
+    <div class="forslag">
+      <b>Forslag:</b> estimatet (304 W) avviker fra satt FTP (310 W).
+      <div class="knapper"><button class="pillbtn o">OPPDATER TERSKEL</button><button class="pillbtn g">BEHOLD 310</button></div>
+    </div>
+    <p style="color:var(--dim);font-size:13px;margin-top:10px">Manuelt satt vinner ALLTID — estimatet er et forslag, aldri en overskriving. Strava-økter holdes utenfor estimatet (regel 2).</p>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>W′-BALANSE</h3><span class="m">anaerobt batteri · intervalløkta</span></div>
+    <svg viewBox="0 0 300 90" width="100%" height="90">
+      <line x1="0" y1="78" x2="300" y2="78" stroke="var(--line2)"/>
+      <path d="M2 14 L40 14 L58 52 L74 26 L92 60 L108 30 L126 66 L142 34 L160 70 L176 38 L194 74 L230 22 L298 16"
+            fill="none" stroke="var(--lilla)" stroke-width="2"/>
+      <text x="2" y="88" class="gtxt">0:00</text><text x="266" y="88" class="gtxt">46:00</text>
+    </svg>
+    <div class="lbl" style="margin-top:6px">Tømmes i dragene, lades i pausene — krever kritisk effekt fra kurven</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════ NOTAT ═══════════ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <ul>
+    <li><b>Planfasit:</b> <code>claude/prestasjonsmodell-plan.md</code> (i claude.ai-prosjektet — innholdet gjengis i prompten). Denne fila viser HVORDAN.</li>
+    <li><b>Plassering:</b> hele seksjonen flyttes fra Innstillinger › «Helse og soner» til <b>Profil</b>. Gammel plassering ryddes (redirect/peker så ingen lenker dør), ingen to versjoner.</li>
+    <li><b>Terskler = ÉN fasit-tabell</b> per bruker × bevegelsesform × underkategori, med <code>gjelder_fra</code> — VERSJONERT, aldri overskrevet. Soner, IF, TSS og alle fase 1/2-mål leser derfra (regel 11). En økt bruker terskelen som gjaldt PÅ ØKTAS DATO.</li>
+    <li><b>Felter:</b> terskelpuls (alltid) · terskelfart (valgfri — tom er lov der fart ikke gir mening) · FTP (valgfri). Underkategori arver fra bevegelsesform hvis ikke satt egen.</li>
+    <li><b>Egne soner:</b> valgfri per bevegelsesform, toggle — AV betyr Olympiatoppens standard regnet fra terskel/makspuls (dagens oppførsel er default, ingen migrasjonssmerte). Sonefargene I1–I5 er fredet.</li>
+    <li><b>Helse-gruppa</b> beholder dagens felter, bare flyttet. Manuell hvilepuls vinner over klokka (M) som i helseflaten.</li>
+    <li><b>Fase 1</b> (frakobling, EF, GAP, NP/IF, sesongsammenligning) beregnes fra eksisterende samples + terskeltabellen. NP/IF vises kun der watt finnes; IF leser FTP fra tabellen, aldri egen kopi.</li>
+    <li><b>Fase 2</b> (kurve → eFTP → W′) bygges i den rekkefølgen — avhengighetene er ekte. eFTP er FORSLAG med eksplisitt godkjenning; manuelt satt vinner alltid.</li>
+    <li><b>Regel 2:</b> Strava-importerte økter holdes UTENFOR alle estimater og bestenoteringer (eFTP, kurver, EF-trend) — fail-closed, og flaten sier fra at den ser en delmengde.</li>
+    <li><b>Tomtilstander:</b> ingen terskel satt → målene som trenger den viser «sett terskel først» med lenke hit — aldri tomme grafer (regel 20).</li>
+    <li><b>Dataviz:</b> aldri dobbel y-akse · sesongsammenligning = par-søyler m/ dempet fjorår · tooltips/crosshair som i helseflaten · regel 17 (height="auto").</li>
+    <li><b>Utvidet skala I6–I8 (Sverre 28. aug):</b> bruker-toggle, AV som
+    standard. I6–I8 er IKKE pulssoner — de defineres av innsats/laktat og
+    får aldri pulsspenn; <b>makspuls = toppen av I5 uansett</b>. De er
+    intensitetsmerker for planlegging/føring. Krever tre nye farger inn i
+    fargefasiten (én kilde) og at sonefordeling/grafer tåler 5 ELLER 8
+    soner — egen bolk. <b>UAVKLART: forholdet til Hurtighet-kategorien</b>
+    («kan beholdes… kanskje») — avgjøres FØR bygging; to måter å si det
+    samme på er regel 11-brudd, så beslutningen må tas eksplisitt.</li>
+    <li><b>Lys + mørk</b> (regel 23).</li>
+  </ul>
+</section>
+
+</div>
+<script>
+function sw(v){
+  ['I','1','2'].forEach(k=>{
+    document.getElementById('view'+k).classList.toggle('hidden', v!==k);
+    document.getElementById('sw'+k).classList.toggle('on', v===k);
+  });
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>

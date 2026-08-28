@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
 import { ZONE_NAMES, type ZoneName } from '@/lib/heart-zones'
+import { resolveTerskel, type TerskelDbRad } from '@/lib/terskel-oppslag'
 
 // Prestasjonsmodellen bolk 1 (fase 110): terskler som data.
 // ÉN fasit-tabell (user_thresholds) per bruker × bevegelsesform ×
@@ -157,25 +158,20 @@ export async function hentTerskelForDato(
   const resolved = await resolveTargetUser(supabase, targetUserId, ['can_edit_plan', 'can_view_dagbok'], 'read')
   if ('error' in resolved) return { error: resolved.error }
 
-  const nivaer: [string, string][] = [
-    [movementName, movementSubcategory],
-    [movementName, ''],
-    ['', ''],
-  ]
-  for (const [navn, sub] of nivaer) {
-    const { data } = await supabase
-      .from('user_thresholds')
-      .select('threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
-      .eq('user_id', resolved.userId)
-      .eq('movement_name', navn)
-      .eq('movement_subcategory', sub)
-      .lte('valid_from', dato)
-      .order('valid_from', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (data) return data
+  const { data } = await supabase
+    .from('user_thresholds')
+    .select('movement_name, movement_subcategory, threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
+    .eq('user_id', resolved.userId)
+  const rad = resolveTerskel(
+    (data ?? []) as TerskelDbRad[], dato, movementName, movementSubcategory,
+  )
+  if (!rad) return null
+  return {
+    threshold_hr: rad.threshold_hr,
+    threshold_pace_sec_km: rad.threshold_pace_sec_km,
+    ftp_watts: rad.ftp_watts,
+    valid_from: rad.valid_from,
   }
-  return null
 }
 
 // ── Egne soner per bevegelsesform ('' × '' = globalnivået) ──

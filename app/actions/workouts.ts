@@ -619,12 +619,22 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   const movementMinutes = data.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)
   const movementKm      = data.movements.reduce((s, m) => s + (parseDecimal(m.distance_km) || 0), 0)
-  const totalElev       = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
+  const movementElev    = data.movements.reduce((s, m) => s + (parseInt(m.elevation_meters) || 0), 0)
   // Hurtigføring (simple_duration_minutes/simple_distance_km) er fjernet.
-  // Aktivitets-summen er nå primær kilde — fallback til movements-aggregatet for
-  // gamle økter som fortsatt bruker workout_movements (legacy phase 2.5-flyt).
-  const totalMinutes  = movementMinutes
-  const totalKm       = movementKm
+  // Aktivitets-summen er primær kilde — fallback til movements-aggregatet
+  // for gamle økter som fortsatt bruker workout_movements (legacy phase
+  // 2.5-flyt). Kommentaren her LØY tidligere: koden summerte kun
+  // movements, så på aktivitetsmodell-økter ble øktnivå-feltene nullet
+  // ved hver lagring — klokkas totaltid/distanse forsvant fra importerte
+  // økter ved første redigering (målt i prod 28. aug: «Terrengløp_på_
+  // kvelden» mistet varigheten 4 min etter import).
+  const acts = data.activities ?? []
+  const activityMinutes = Math.round(acts.reduce((s, a) => s + (parseActivityDuration(a.duration) ?? 0), 0) / 60)
+  const activityKm      = acts.reduce((s, a) => s + (parseDecimal(a.distance_km) || 0), 0)
+  const activityElev    = acts.reduce((s, a) => s + (parseInt(a.elevation_gain_m) || 0), 0)
+  const totalMinutes  = activityMinutes || movementMinutes
+  const totalKm       = activityKm || movementKm
+  const totalElev     = activityElev || movementElev
 
   // Aggreger samlet skytestatistikk fra shooting_blocks (kun Skiskyting/biathlon).
   // Brukes til bakover-kompatibel workouts.shooting_data-kolonne.

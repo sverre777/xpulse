@@ -21,3 +21,17 @@ export function hentUtvidetSkalaCached(targetUserId?: string): Promise<boolean> 
 export function nullstillSonesprakCache() {
   cache.clear()
 }
+
+// Delt hook for visningsflatene (5b): flagget hentes cached, null til
+// det er kjent — flatene rendrer standardspråket imens.
+import { useEffect, useState } from 'react'
+
+export function useUtvidetSkala(targetUserId?: string): boolean | null {
+  const [utvidet, setUtvidet] = useState<boolean | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    hentUtvidetSkalaCached(targetUserId).then(v => { if (!cancelled) setUtvidet(v) })
+    return () => { cancelled = true }
+  }, [targetUserId])
+  return utvidet
+}

@@ -9,6 +9,8 @@ import {
   useDraggable, useDroppable, type DragStartEvent, type DragEndEvent,
 } from '@dnd-kit/core'
 import { ExtendedZoneName } from '@/lib/heart-zones'
+import { visningsFordeling } from '@/lib/sonesprak'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate, SeasonMarking } from '@/app/actions/seasons'
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
@@ -105,9 +107,6 @@ function zoneSecondsFor(w: CalendarWorkoutSummary, mode: Mode): Record<ExtendedZ
 
 function filterByMode(workouts: CalendarWorkoutSummary[], mode: Mode) {
   if (mode === 'plan') return workouts.filter(w => w.is_planned)
-  // Dagbok: en planlagt økt gjennomført VIA KOBLING representeres av den
-  // synkede raden — plan-raden skjules her, ellers vises økta dobbelt.
-  // (I Plan-modus vises den fortsatt, med ✓ og plan-tallene.)
   return workouts
 }
 
@@ -195,6 +194,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
   seasonMarkings?: SeasonMarking[]
   targetUserId?: string
 }) {
+  const utvidetSkala = useUtvidetSkala(targetUserId)
   // Del D (kø #39): veiledende ukesnitt fra årsplanens månedsvolum — KUN i
   // Plan, merket «~». Én kilde (monthly_volume_plans); uker uten månedsvolum
   // viser ingenting. Måneden bestemmes av ukas mandag.
@@ -349,11 +349,14 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
           {totalZoneSec > 0 && (
             <div className="flex w-full overflow-hidden"
               style={{ height: '8px', backgroundColor: 'var(--kant-2)', borderRadius: '1px' }}>
-              {(Object.keys(zoneSec) as ExtendedZoneName[]).map(k => {
-                const w = (zoneSec[k] / totalZoneSec) * 100
+              {visningsFordeling(zoneSec, utvidetSkala === true).map(v => {
+                const w = (v.sek / totalZoneSec) * 100
                 if (w <= 0) return null
-                return <div key={k} title={`${k}: ${Math.round(zoneSec[k] / 60)}min`}
-                  style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+                return <div key={v.navn}
+                  title={v.inklHurtighet
+                    ? `I7 (inkl. eldre Hurtighet): ${Math.round(v.sek / 60)}min`
+                    : `${v.navn}: ${Math.round(v.sek / 60)}min`}
+                  style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[v.navn] }} />
               })}
             </div>
           )}

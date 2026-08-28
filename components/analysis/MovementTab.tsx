@@ -12,6 +12,7 @@ import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
   CHART_LEGEND_STYLE, CHART_CURSOR, CHART_LINE_WIDTH,
 } from './chart-theme'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { MetricCard } from './MetricCard'
 
 function formatDuration(sec: number): string {
@@ -256,8 +257,12 @@ function MovementHrChart({ activities }: { activities: MovementActivityPoint[] }
 }
 
 function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
+  // Sonespråket (5b): utvidet skala legger eldre Hurtighet i I7 med
+  // synlig fotnote — aldri stille (lib/sonesprak-mønsteret).
+  const utvidet = useUtvidetSkala()
   if (weeks.length === 0) return null
-  const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+  const ZONE_KEYS = ['I1','I2','I3','I4','I5','I6','I7','I8','Hurtighet'] as const
+  const flytt = utvidet === true
   const data = weeks.map(w => ({
     label: w.label,
     I1: Math.round(w.zones.I1 / 60),
@@ -266,10 +271,11 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
     I4: Math.round(w.zones.I4 / 60),
     I5: Math.round(w.zones.I5 / 60),
     I6: Math.round((w.zones.I6 ?? 0) / 60),
-    I7: Math.round((w.zones.I7 ?? 0) / 60),
+    I7: Math.round(((w.zones.I7 ?? 0) + (flytt ? w.zones.Hurtighet : 0)) / 60),
     I8: Math.round((w.zones.I8 ?? 0) / 60),
-    Hurtighet: Math.round(w.zones.Hurtighet / 60),
+    Hurtighet: flytt ? 0 : Math.round(w.zones.Hurtighet / 60),
   }))
+  const harFlyttet = flytt && weeks.some(w => w.zones.Hurtighet > 0)
   const totalZones = data.reduce((s, r) => s + r.I1 + r.I2 + r.I3 + r.I4 + r.I5 + (r.I6 ?? 0) + (r.I7 ?? 0) + (r.I8 ?? 0) + r.Hurtighet, 0)
   if (totalZones === 0) return null
   return (
@@ -286,6 +292,11 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      {harFlyttet && (
+        <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          I7 inkluderer eldre Hurtighet-føringer (lagret urørt).
+        </p>
+      )}
     </ChartWrapper>
   )
 }

@@ -1,5 +1,7 @@
 'use client'
 
+import { useMemo } from 'react'
+
 import Link from 'next/link'
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
@@ -7,6 +9,7 @@ import {
 } from 'recharts'
 import type { KlokkedataTrender, TrendPoint, ZoneWeekPoint } from '@/app/actions/klokkedata-trender'
 import { ChartWrapper } from './ChartWrapper'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import {
   XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_ZONE_COLORS,
@@ -157,6 +160,13 @@ function SimpleLineChart({
 const ZONE_COLORS = CHART_ZONE_COLORS
 
 function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
+  // Sonespråket (5b): med utvidet skala legges eldre Hurtighet i I7 og
+  // fotnoten sier det — aldri stille blanding.
+  const utvidet = useUtvidetSkala()
+  const vistePunkter = useMemo(() => utvidet === true
+    ? points.map(p => ({ ...p, I7: p.I7 + p.Hurtighet, Hurtighet: 0 }))
+    : points, [points, utvidet])
+  const harFlyttet = utvidet === true && points.some(p => p.Hurtighet > 0)
   const avgPolarized = points.length > 0
     ? Math.round(points.reduce((s, p) => s + p.polarized_pct, 0) / points.length)
     : 0
@@ -168,7 +178,7 @@ function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
         {avgPolarized >= 75 ? ' — innenfor 80/20-prinsippet' : ' — for mye høyintensitet'}
       </p>
       <ResponsiveContainer width="100%" height={260} minWidth={0}>
-        <BarChart data={points}>
+        <BarChart data={vistePunkter}>
           <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis dataKey="week" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
           <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42}
@@ -187,9 +197,17 @@ function ZonesPerWeekChart({ points }: { points: ZoneWeekPoint[] }) {
           <Bar dataKey="I3" stackId="z" fill={ZONE_COLORS.I3} />
           <Bar dataKey="I4" stackId="z" fill={ZONE_COLORS.I4} />
           <Bar dataKey="I5" stackId="z" fill={ZONE_COLORS.I5} />
+          <Bar dataKey="I6" stackId="z" fill={ZONE_COLORS.I6} />
+          <Bar dataKey="I7" stackId="z" fill={ZONE_COLORS.I7} />
+          <Bar dataKey="I8" stackId="z" fill={ZONE_COLORS.I8} />
           <Bar dataKey="Hurtighet" stackId="z" fill={ZONE_COLORS.Hurtighet} />
         </BarChart>
       </ResponsiveContainer>
+      {harFlyttet && (
+        <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          I7 inkluderer eldre Hurtighet-føringer (lagret urørt).
+        </p>
+      )}
     </div>
   )
 }

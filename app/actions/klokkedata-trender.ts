@@ -40,6 +40,9 @@ export interface ZoneWeekPoint {
   I3: number
   I4: number
   I5: number
+  I6: number
+  I7: number
+  I8: number
   Hurtighet: number
   total: number
   polarized_pct: number  // (I1+I2)/total * 100
@@ -170,6 +173,9 @@ export async function getKlokkedataTrender(
           I3: round1(z.I3 / 3600),
           I4: round1(z.I4 / 3600),
           I5: round1(z.I5 / 3600),
+          I6: round1(z.I6 / 3600),
+          I7: round1(z.I7 / 3600),
+          I8: round1(z.I8 / 3600),
           Hurtighet: round1(z.Hurtighet / 3600),
           total: round1(total / 3600),
           polarized_pct: total > 0 ? Math.round((easy / total) * 100) : 0,

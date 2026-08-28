@@ -7,6 +7,8 @@ import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ActivityType, CalendarWorkoutSummary, Sport, SPORTS, TYPE_COLORS, WorkoutTemplate } from '@/lib/types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from '@/lib/heart-zones'
+import { visningsFordeling } from '@/lib/sonesprak'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
@@ -382,7 +384,7 @@ function WeekAnalysisStripe({
     totalZoneSec > 0 ? Math.round((zoneSeconds[k] / totalZoneSec) * 100) : 0
   const i12 = pct('I1') + pct('I2')
   const i3 = pct('I3')
-  const i45 = pct('I4') + pct('I5') + pct('Hurtighet')
+  const i45 = pct('I4') + pct('I5') + pct('I6') + pct('I7') + pct('I8') + pct('Hurtighet')
   const empty = sessions === 0
 
   return (
@@ -476,7 +478,9 @@ function WeekAnalysisStripe({
   )
 }
 
-// Kompakt sonebar basert på aggregerte sekunder per sone (6 segmenter inkl. Hurtighet).
+// Kompakt sonebar basert på aggregerte sekunder per sone. Sonespråket
+// (fase 111/5b): med utvidet skala vises eldre Hurtighet-føringer som
+// I7 — med merking i tooltip, aldri stille (lib/sonesprak).
 function AggZoneBar({
   zoneSeconds, height = 3, otherSeconds = 0,
 }: {
@@ -485,19 +489,23 @@ function AggZoneBar({
   // Treningstid uten sone-fordeling (styrke o.l.) — grått segment sist.
   otherSeconds?: number
 }) {
+  const { targetUserId } = useCalendarActions()
+  const utvidet = useUtvidetSkala(targetUserId)
   const zoneTotal = ALL_ZONE_NAMES.reduce((s, k) => s + (zoneSeconds[k] ?? 0), 0)
   const total = zoneTotal + Math.max(0, otherSeconds)
   if (total <= 0) return null
   return (
     <div className="flex w-full overflow-hidden"
       style={{ height: `${height}px`, backgroundColor: 'var(--line)', borderRadius: `${height / 2}px` }}>
-      {ALL_ZONE_NAMES.map(k => {
-        const w = (zoneSeconds[k] / total) * 100
+      {visningsFordeling(zoneSeconds, utvidet === true).map(v => {
+        const w = (v.sek / total) * 100
         if (w <= 0) return null
         return (
-          <div key={k}
-            title={`${k}: ${Math.round(zoneSeconds[k] / 60)}min`}
-            style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[k] }} />
+          <div key={v.navn}
+            title={v.inklHurtighet
+              ? `I7 (inkl. eldre Hurtighet): ${Math.round(v.sek / 60)}min`
+              : `${v.navn}: ${Math.round(v.sek / 60)}min`}
+            style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_V2[v.navn] }} />
         )
       })}
       {otherSeconds > 0 && (
@@ -515,16 +523,18 @@ function ZoneLegend({
   zoneSeconds: Record<ExtendedZoneName, number>
   size?: 'sm' | 'md'
 }) {
+  const { targetUserId } = useCalendarActions()
+  const utvidet = useUtvidetSkala(targetUserId)
   const fontSize = size === 'sm' ? '11px' : '12px'
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-0.5"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize }}>
-      {ALL_ZONE_NAMES.map(k => {
-        const mins = Math.round((zoneSeconds[k] ?? 0) / 60)
+      {visningsFordeling(zoneSeconds, utvidet === true).map(v => {
+        const mins = Math.round(v.sek / 60)
         if (mins <= 0) return null
         return (
-          <span key={k}>
-            <span style={{ color: ZONE_COLORS_V2[k], letterSpacing: '0.08em' }}>{k}</span>
+          <span key={v.navn} title={v.inklHurtighet ? 'Inkluderer eldre Hurtighet-føringer' : undefined}>
+            <span style={{ color: ZONE_COLORS_V2[v.navn], letterSpacing: '0.08em' }}>{v.navn}{v.inklHurtighet ? '*' : ''}</span>
             <span style={{ color: 'var(--tekst-3-app)' }}> {mins}min</span>
           </span>
         )

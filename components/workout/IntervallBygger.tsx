@@ -20,6 +20,8 @@ import {
   type GenerertBlokk, type IntervallKonfig, type SkyteMonster,
 } from '@/lib/intervall-generator'
 import type { BlokkSone } from '@/lib/okt-template-library'
+import { foringsSoner } from '@/lib/sonesprak'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import {
   MOVEMENT_CATEGORIES, getSubcategories, DEFAULT_MOVEMENTS_BY_SPORT,
   type ActivityRow, type Sport,
@@ -98,6 +100,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   /** Bump for å gjenåpne byggeren fra kollapset tilstand. */
   apneSignal?: number
 }) {
+  // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
+  const utvidetSkala = useUtvidetSkala()
   const [steg, settStegIntern] = useState<'bygg' | 'vis' | 'ferdig'>('bygg')
   const setSteg = (st: 'bygg' | 'vis' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
   const [rader, setRader] = useState<Rad[]>(() =>
@@ -351,7 +355,12 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <select value={r.sone} onChange={e => oppdater(i, 'sone', e.target.value)}
             style={{ ...FELT, fontWeight: 700, color: ZONE_COLORS_V2[r.sone], padding: '8px 2px', fontSize: 14 }}>
-            {ALL_ZONE_NAMES.map(z => <option key={z} value={z}>{z}</option>)}
+            {foringsSoner(utvidetSkala === true).map(z => <option key={z} value={z}>{z}</option>)}
+            {/* Radens egen sone beholdes i lista selv om språket ikke
+                tilbyr den (eldre Hurtighet-rad m/ utvidet skala). */}
+            {!foringsSoner(utvidetSkala === true).includes(r.sone) && (
+              <option value={r.sone}>{r.sone} (eldre)</option>
+            )}
           </select>
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>/</span>
           <input value={r.pause} onChange={e => oppdater(i, 'pause', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />

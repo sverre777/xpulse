@@ -18,6 +18,7 @@ import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
   CHART_CURSOR, CHART_AVG_LINE, BAR_RADIUS, BAR_RADIUS_FLAT,
 } from './chart-theme'
+import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 
 const CHART_KEY = 'overview_custom_breakdown'
 
@@ -42,7 +43,7 @@ function colorForNonEndurance(name: string): string {
   return NON_ENDURANCE_COLORS[name] ?? FALLBACK_NON_ENDURANCE
 }
 
-const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet'] as const
+const ZONE_KEYS = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet'] as const
 
 function formatMinutes(seconds: number): string {
   if (seconds <= 0) return '0 min'
@@ -256,6 +257,7 @@ interface Props {
 type BreakdownViewMode = 'completed' | 'planned' | 'both'
 
 export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId }: Props) {
+  const utvidetSkala = useUtvidetSkala()
   const [grouping, setGrouping] = useState<CustomBreakdownGrouping>(initialGrouping ?? 'week')
   const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>(initialPreset ?? 'inherit')
   const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(null)
@@ -355,6 +357,13 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
     return Array.from(map.values()).sort((a, b) => a.startDate.localeCompare(b.startDate))
   }, [dataCompleted, dataPlanned, viewMode])
 
+  const harFlyttetHurtighet = useMemo(() =>
+    utvidetSkala === true && anyEnduranceSelected &&
+    displayBuckets.some(b =>
+      ((b.done?.endurance_zone_seconds.Hurtighet ?? 0) > 0) ||
+      ((b.plan?.endurance_zone_seconds.Hurtighet ?? 0) > 0)),
+  [utvidetSkala, anyEnduranceSelected, displayBuckets])
+
   const chartData = useMemo(() => {
     return displayBuckets.map(e => {
       const row: Record<string, string | number> = { label: e.label }
@@ -362,6 +371,11 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
         if (anyEnduranceSelected) {
           for (const k of ZONE_KEYS) {
             row[prefix + k] = b ? Math.round((b.endurance_zone_seconds[k] / 60)) : 0
+          }
+          // Sonespråket (5b): eldre Hurtighet vises som I7 m/ fotnote.
+          if (utvidetSkala === true) {
+            row[prefix + 'I7'] = (row[prefix + 'I7'] as number) + (row[prefix + 'Hurtighet'] as number)
+            row[prefix + 'Hurtighet'] = 0
           }
         } else {
           for (const k of ZONE_KEYS) row[prefix + k] = 0
@@ -375,7 +389,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
       else { fill(e.done, ''); fill(e.plan, 'p_') }
       return row
     })
-  }, [displayBuckets, anyEnduranceSelected, activeNonEnduranceKeys, viewMode])
+  }, [displayBuckets, anyEnduranceSelected, activeNonEnduranceKeys, viewMode, utvidetSkala])
 
   // G4 (kø #47): ghost-kolonner — buckets uten en eneste verdi > 0 (server
   // fyller nå hull i intervallet). Ghost-verdien er en lav stiplet markør i
@@ -674,6 +688,11 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
                     ))}
                   </BarChart>
                 </ResponsiveContainer>
+                {harFlyttetHurtighet && (
+                  <p className="mt-1 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+                    I7 inkluderer eldre Hurtighet-føringer (lagret urørt).
+                  </p>
+                )}
               </div>
             </div>
           )}

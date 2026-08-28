@@ -25,8 +25,11 @@
 
 // ── TYPER ────────────────────────────────────────────────────────────────
 
-/** Sonene en blokk kan ligge i. Hurtighet føres manuelt, aldri fra puls. */
-export type BlokkSone = 'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet'
+/** Sonene en blokk kan ligge i. Hurtighet føres manuelt, aldri fra puls.
+ * I6–I8 (fase 111): anaerobe intensitetsmerker — tilbys i velgeren kun
+ * når utøverens utvidede skala er på (lib/sonesprak). MERK: kun typen
+ * og sonelista er utvidet — MALDATAENE i denne fila er urørt (SF-10). */
+export type BlokkSone = 'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'I6' | 'I7' | 'I8' | 'Hurtighet'
 
 /** Hva blokken er til for. Styrer visning, ikke beregning. */
 export type BlokkRolle = 'oppvarming' | 'arbeid' | 'pause' | 'nedjogg'
@@ -151,7 +154,7 @@ export function arbeidISone(blokker: readonly Blokk[], sone: BlokkSone): number 
   return blokker.reduce((s, b) => (b.sone === sone && b.rolle === 'arbeid' ? s + b.sek : s), 0)
 }
 
-const SONER: readonly BlokkSone[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'Hurtighet']
+const SONER: readonly BlokkSone[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
 
 /** Sekunder → "MM:SS" (eller "H:MM:SS" over en time), formatet ActivityRow bruker. */
 export function sekTilKlokke(sek: number): string {

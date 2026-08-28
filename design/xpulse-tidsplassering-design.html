@@ -233,6 +233,17 @@ svg{display:block}
     statistikktall fra et vindu uten ført tid. Uansett utgangspunkt:
     vinduet kan alltid dras og strekkes etterpå — forslaget låser aldri
     (drag endrer plassering/pulsvindu, ikke statistikk-status).</li>
+    <li><b>PUNKTMARKØRER — LAKTAT OG ERNÆRING (Sverre 28. aug):</b> i
+    tillegg til vinduer (skyting) kan PUNKTER settes inn i tid på kurven:
+    <b>laktatmåling</b> (verdi i mmol, draggbar prikk — tooltip viser puls/
+    fart ved punktet) og <b>ernæring</b> (inntak: gel/drikke/mat på
+    tidspunkt). Punkter vises i 1c-oversikten som små markører OVER
+    segmentbåndet, ikke som segmenter. Regel 11: finnes laktat allerede
+    som felt på økta/serier, er tidspunktet et TILLEGG på samme data —
+    aldri en parallell føring. Ernæring: CC MÅLER FØRST hva som finnes av
+    ernæringsfelter i prod (regel 5/8) før datamodell foreslås. Punkt =
+    kun tidspunkt + verdi; ingen varighet, ingen statistikk-port (den
+    gjelder bare skytetid).</li>
     <li><b>Vinduet</b> er draggbart (flytt) med håndtak i begge ender (endre lengde), touch-vennlig (håndtak ≥ 36px treffflate — regel om treffflater), verdiene under oppdateres live. Lagre/Avbryt svarer i samme tick (regel 20).</li>
     <li><b>Skyteserier:</b> når en rad med serier får tidsvindu, arver serie-visningen vinduets puls («puls inn» per serie kan settes senere — ikke i denne bolken).</li>
     <li><b>Vinduer kan ikke overlappe</b> et eksisterende klokke-vindu på samme økt; to manuelt plasserte vinduer kan heller ikke overlappe hverandre. Valider ved lagring, ærlig feilmelding (regel 22).</li>

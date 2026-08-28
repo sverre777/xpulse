@@ -41,23 +41,78 @@ export type ChangelogEntry = {
 }
 
 /** Vises som diskret merkelapp øverst på /nytt. Løftes ved større leveranser. */
-export const CHANGELOG_VERSION = '1.2'
+export const CHANGELOG_VERSION = '1.3'
 
 /** Hvor mange av de nyeste «nye ting»-punktene (uten version) sida viser.
  * Versjonsslipp (f.eks. v1.2-seksjonen) vises alltid i sin helhet. */
 export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
-  // ── NYE TING etter v1.2 legges HER (øverst, uten version) ──────────────
+  // ── NYE TING etter v1.3 legges HER (øverst, uten version) ──────────────
+  // MERK (Sverre 28. aug): v1.3 er ÅPEN — leveringer resten av dagen
+  // legges med version '1.3', ikke som nye u-versjonerte punkter.
+  // Ingen v1.4 før Sverre sier det.
+
+  // ── v1.3 — 28. august 2026 ─────────────────────────────────────────────
+  {
+    date: '2026-08-28',
+    title: 'Koble og flett klokkeøkter med planen',
+    body: 'Synkede økter og planlagte/førte økter kan nå flettes til én: velg «Bytt ut aktivitetene» for å hente klokkas runder inn i økta di, eller «Legg bak» for å beholde alt du har ført og bare hente puls, totaltid og soner fra klokka. Notater, skyting, tags og konkurranseskjema står alltid urørt, klokkeøkta gjemmes uten å slettes, og alt kan angres — uten frist. Flettede og synkede økter har også fått en Samlet/Splittet-bryter som slår like runder sammen i visningen.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Terskler, soner og helse — samlet på profilen',
+    body: 'Ny flate under Profil: sett terskelpuls, terskelfart og FTP per bevegelsesform og underkategori. Terskelen versjoneres — ny verdi overskriver aldri den gamle, og hver økt bruker terskelen som gjaldt den dagen. Egne pulssoner kan slås på per bevegelsesform (av betyr Olympiatoppens standard, som før), og makspuls/hvilepuls bor på samme flate. Gamle lenker til «Helse og soner» sendes automatisk hit.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'NP og IF på økter med watt',
+    body: 'Økter med wattmåler viser nå normalisert effekt (NP) og intensitetsfaktor (IF) i klokkedata-seksjonen — IF regnes mot FTP-en du har satt på profilen. Belastningsgrafen bruker også watt-intensiteten der den finnes, i stedet for bare puls.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Ny analysefane: Prestasjon',
+    body: 'Effektivitetsfaktor-trenden (fart per pulsslag på rolige økter — stiger den, blir du sprekere uten å teste) og aerob frakobling (holder pulsen følge med farten gjennom lange, jevne økter?) har fått egen fane i analysen. Frakoblingen vises også på selve økta, og løperunder med høydeprofil får stigningsjustert fart (GAP) ved siden av tempoet. Strava-økter holdes utenfor trendene, og fanen sier fra når det skjer.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Sesong mot sesong',
+    body: 'Sammenlign hvilke som helst to sesonger måned for måned — timer, kilometer, økter eller effektivitetsfaktor. Grafen ligger i analysens oversikt og nederst under Årsplan, og sesongene følger grensene du har satt i årsplanen.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Utvidet intensitetsskala I6–I8',
+    body: 'For deg som planlegger anaerob trening: slå på I6–I8 på profilen, så erstatter de Hurtighet i føring, planlegging og grafer — hos deg og treneren din. I6–I8 styres av innsats og laktat, aldri puls; pulssonene er fortsatt I1–I5. Eldre Hurtighet-føringer vises som I7, tydelig merket, og ingenting skrives om.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Fyldigere profil — og en liten påminnelse',
+    body: 'Profilen har fått brukernavn, fødselsdato, høyde, vekt og valgfri sekundærsport — vekta er samme tall som helse-loggen, ført ett sted. Nye og eksisterende brukere uten terskler får en liten påminnelse nederst på skjermen om å legge dem inn; den huskes på tvers av enheter og maser aldri etter at du har lukket den.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
+    title: 'Klokkesynk-status rett i mobil-toppen',
+    body: 'Klokkesynk-merket med statusprikk ligger nå i topplinja på mobil — du ser tilkoblingsstatusen uten å åpne menyen, og ett trykk tar deg til innstillingene.',
+    version: '1.3',
+  },
   {
     date: '2026-08-27',
     title: 'Ny helseoversikt fra klokka',
     body: 'Helse har fått en helt ny flate: søvnstadier per natt, hypnogram av siste natt (når klokka leverer stadie-tidslinja), HRV-, hvilepuls-, søvnscore- og vekt-trender, og en dybdevisning med restitusjon, søvn, aktivitet og klokkas egne skårer. Et kompakt helsekort ligger på hjem-skjermen og på dager med helsedata i kalenderen — klikk åpner hele oversikten. Du kan også føre dagens følelse (1–5, samme skala som øktene) rett fra kortet, og som alltid vinner det du fører selv over det klokka sier.',
+    version: '1.3',
   },
   {
     date: '2026-08-27',
     title: 'Garmin, COROS, Wahoo og Zepp synker direkte (beta)',
     body: 'Koble klokka én gang under Innstillinger → Klokkesync, så kommer nye økter inn av seg selv — med full pulskurve, runder og sonefordeling fra originalfila. Tilkoblingen henter også rundt 90 dager historikk. Fra Garmin og COROS følger helsedata med: søvn med faser og score, natt-HRV, hvilepuls og skritt lander i helse-loggen hver natt — og det du fører selv vinner alltid over klokka. Hver importerte økt gir deg et varsel i innboksen.',
+    version: '1.3',
   },
   {
     date: '2026-08-27',

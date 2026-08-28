@@ -28,9 +28,14 @@ interface Props {
   sisteVektKg: number | null
 }
 
+// Kun Mann/Kvinne i VALGET (Sverre 28. aug). Eldre lagrede verdier
+// («Annet»/«Vil ikke oppgi») forblir gyldige i basen og vises som
+// gjeldende valg til brukeren selv endrer.
 const GENDER_LABELS: Record<string, string> = {
   male: 'Mann',
   female: 'Kvinne',
+}
+const GAMLE_GENDER_LABELS: Record<string, string> = {
   other: 'Annet',
   prefer_not_to_say: 'Vil ikke oppgi',
 }
@@ -170,6 +175,9 @@ export function ProfileSection(props: Props) {
             {Object.entries(GENDER_LABELS).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
             ))}
+            {gender && !GENDER_LABELS[gender] && (
+              <option value={gender}>{GAMLE_GENDER_LABELS[gender] ?? gender}</option>
+            )}
           </Select>
         </Field>
         <Field label="Land">

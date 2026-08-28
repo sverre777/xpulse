@@ -126,7 +126,7 @@ export function MainNav({
                 padding: '1px 7px',
               }}
             >
-              v1.2
+              v1.3
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -229,7 +229,7 @@ export function MainNav({
               padding: '1px 7px',
             }}
           >
-            v1.2
+            v1.3
           </span>
         </Link>
 
@@ -366,7 +366,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               padding: '1px 7px',
             }}
           >
-            v1.2
+            v1.3
           </span>
         </div>
         <button

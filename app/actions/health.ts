@@ -46,6 +46,27 @@ export async function saveDailyHealth(data: {
  * Hurtigføring av daglig dagsform (1–5) fra helsekortet — rører ingen andre
  * felter. Kun for utøveren selv, som all annen helse-skriving.
  */
+// Vekt fra PROFILEN (bolk 6): SAMME felt som helseflaten —
+// daily_health.body_weight_kg, lagret som dagens måling. Aldri en
+// kopi på profiles (regel 11). Partial upsert som settDagsform.
+export async function settVekt(kg: number | null): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const resolved = await resolveHealthTargetUser(supabase, undefined)
+  if ('error' in resolved) return { error: resolved.error }
+  if (kg != null && (kg < 25 || kg > 250)) return { error: 'Vekt må være mellom 25 og 250 kg' }
+  const d = new Date()
+  const dato = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const { error } = await supabase.from('daily_health').upsert({
+    user_id: resolved.userId,
+    date: dato,
+    body_weight_kg: kg,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id,date' })
+  if (error) return { error: error.message }
+  revalidatePath('/app/innstillinger/profil')
+  return {}
+}
+
 export async function settDagsform(date: string, verdi: number | null): Promise<{ error?: string }> {
   const supabase = await createClient()
   const resolved = await resolveHealthTargetUser(supabase, undefined)

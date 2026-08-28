@@ -6,6 +6,7 @@ import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { CustomCursor } from '@/components/cursor/CustomCursor'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { InstallHint } from '@/components/pwa/InstallHint'
+import { ProfilVarselBanner } from '@/components/layout/ProfilVarselBanner'
 import { getCurrentUserAndProfile } from '@/lib/profile-cache'
 import { getAuthUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -45,6 +46,26 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     ? 'athlete'
     : rawActiveRole
 
+  // Førstegangsvarselet (bolk 6): vises for utøvere til minst én
+  // terskel er satt ELLER varselet er lukket (husket server-side).
+  // Gjelder også eksisterende brukere første gang etter deploy.
+  let visProfilvarsel = false
+  // Ren trener (uten utøverrolle) skal aldri se det — heller ikke i
+  // degenerert coach-uten-tier-tilstand der effectiveRole faller til
+  // athlete for fargenes skyld.
+  if (effectiveRole === 'athlete' && hasAthleteRole && profile?.id) {
+    const [{ data: varsel }, { count: terskler }] = await Promise.all([
+      supabase.from('profiles')
+        .select('profilvarsel_lukket_at')
+        .eq('id', profile.id)
+        .maybeSingle(),
+      supabase.from('user_thresholds')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', profile.id),
+    ])
+    visProfilvarsel = varsel?.profilvarsel_lukket_at == null && (terskler ?? 0) === 0
+  }
+
   return (
     <RoleProvider value={{ activeRole: effectiveRole, hasAthleteRole, hasCoachRole }}>
       <CustomCursor color="#FF4500" />
@@ -63,6 +84,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         </div>
         <AppFooter />
         <InstallHint />
+        {visProfilvarsel && <ProfilVarselBanner />}
       </div>
     </RoleProvider>
   )

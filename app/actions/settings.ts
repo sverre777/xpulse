@@ -3,7 +3,6 @@
 import { slettStrideeKonto } from '@/lib/stridee-api'
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { ZONE_NAMES, ZoneName } from '@/lib/heart-zones'
 import type { PaceUnit } from '@/lib/pace-utils'
 import type { Sport } from '@/lib/types'
 
@@ -57,7 +56,16 @@ export interface ProfileUpdateInput {
   primary_sport: string
   gender: string
   country: string
+  // Bolk 6 — nye felter (alle valgfrie i input; tomt = null).
+  username?: string
+  birth_date?: string       // YYYY-MM-DD; birth_year avledes når satt
+  height_cm?: string
+  secondary_sport?: string  // én valgfri sekundærsport (lagres i arrayen)
 }
+
+// Brukernavn: 3–20 tegn, a–z/0–9/._ — normaliseres til lowercase før
+// lagring, og unikheten håndheves case-insensitivt i basen.
+const BRUKERNAVN_REGEX = /^[a-z0-9_.]{3,20}$/
 
 function nullifyEmpty(v: string): string | null {
   const s = v.trim()
@@ -94,20 +102,69 @@ export async function updateProfile(input: ProfileUpdateInput): Promise<{ error?
 
   const country = nullifyEmpty(input.country)
 
+  // Bolk 6-feltene.
+  const usernameRaw = nullifyEmpty(input.username ?? '')
+  const username = usernameRaw ? usernameRaw.toLowerCase() : null
+  if (username && !BRUKERNAVN_REGEX.test(username)) {
+    return { error: 'Brukernavn må være 3–20 tegn: små bokstaver a–z, tall, punktum eller understrek' }
+  }
+  const birthDate = nullifyEmpty(input.birth_date ?? '')
+  if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    return { error: 'Ugyldig fødselsdato' }
+  }
+  const heightRaw = nullifyEmpty(input.height_cm ?? '')
+  const heightCm = heightRaw ? parseInt(heightRaw, 10) : null
+  if (heightCm != null && (!Number.isFinite(heightCm) || heightCm < 100 || heightCm > 250)) {
+    return { error: 'Høyde må være mellom 100 og 250 cm' }
+  }
+  const secondaryRaw = nullifyEmpty(input.secondary_sport ?? '')
+  const secondarySports = secondaryRaw && VALID_SPORTS.includes(secondaryRaw as Sport)
+    ? [secondaryRaw]
+    : []
+  // Fødselsdato er fasit når den finnes — birth_year AVLEDES (sone-
+  // fallback leser år; én kilde, aldri to som kan sprike).
+  const birthYearEndelig = birthDate
+    ? parseInt(birthDate.slice(0, 4), 10)
+    : birthYear
+
   const { error } = await supabase.from('profiles').update({
     first_name: first,
     last_name: last,
     full_name: fullName,
-    birth_year: birthYear,
+    birth_year: birthYearEndelig,
+    birth_date: birthDate,
+    username,
+    height_cm: heightCm,
+    secondary_sports: secondarySports,
     primary_sport,
     gender,
     country,
     updated_at: new Date().toISOString(),
   }).eq('id', user.id)
-  if (error) return { error: error.message }
+  if (error) {
+    // Unik-indeksen på lower(username): ærlig melding, ikke DB-språk.
+    if (error.code === '23505' && error.message.includes('username')) {
+      return { error: 'Brukernavnet er opptatt — velg et annet' }
+    }
+    return { error: error.message }
+  }
   // birth_year styrer auto-HFmax → påvirker auto-soner.
   updateTag(`heart-zones-${user.id}`)
   revalidatePath('/app/innstillinger')
+  return {}
+}
+
+// Førstegangsvarselet (bolk 6): lukking huskes SERVER-SIDE — aldri
+// localStorage alene (glemmes per enhet). Vises til minst én terskel
+// er satt ELLER brukeren har lukket det; aldri mas etterpå.
+export async function lukkProfilvarsel(): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { error } = await supabase.from('profiles')
+    .update({ profilvarsel_lukket_at: new Date().toISOString() })
+    .eq('id', user.id)
+  if (error) return { error: error.message }
   return {}
 }
 

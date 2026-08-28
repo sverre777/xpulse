@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateProfile } from '@/app/actions/settings'
+import { settVekt } from '@/app/actions/health'
 import type { Sport } from '@/lib/types'
 import { SPORTS } from '@/lib/types'
 import { ProfileImageUploader } from './ProfileImageUploader'
@@ -16,6 +17,15 @@ interface Props {
   initialGender: 'male' | 'female' | 'other' | 'prefer_not_to_say' | null
   initialCountry: string | null
   initialProfileImageUrl: string | null
+  // Bolk 6.
+  initialUsername: string | null
+  initialBirthDate: string | null
+  initialHeightCm: number | null
+  initialSecondarySport: Sport | null
+  email: string | null
+  // Vekt: SAMME kilde som helseflaten (daily_health.body_weight_kg) —
+  // siste måling vises, lagring skriver dagens rad (regel 11).
+  sisteVektKg: number | null
 }
 
 const GENDER_LABELS: Record<string, string> = {
@@ -48,10 +58,17 @@ export function ProfileSection(props: Props) {
   const [pending, startTransition] = useTransition()
   const [firstName, setFirstName] = useState(props.initialFirstName ?? '')
   const [lastName, setLastName] = useState(props.initialLastName ?? '')
-  const [birthYear, setBirthYear] = useState(props.initialBirthYear?.toString() ?? '')
+  // Fødselsår vises ikke lenger som felt — det avledes av fødselsdato
+  // server-side; verdien sendes uendret med så den ikke nulles.
+  const [birthYear] = useState(props.initialBirthYear?.toString() ?? '')
   const [primarySport, setPrimarySport] = useState<string>(props.initialPrimarySport ?? '')
   const [gender, setGender] = useState<string>(props.initialGender ?? '')
   const [country, setCountry] = useState(props.initialCountry ?? '')
+  const [username, setUsername] = useState(props.initialUsername ?? '')
+  const [birthDate, setBirthDate] = useState(props.initialBirthDate ?? '')
+  const [heightCm, setHeightCm] = useState(props.initialHeightCm?.toString() ?? '')
+  const [secondarySport, setSecondarySport] = useState<string>(props.initialSecondarySport ?? '')
+  const [vektKg, setVektKg] = useState(props.sisteVektKg?.toString() ?? '')
   const [error, setError] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
 
@@ -62,6 +79,11 @@ export function ProfileSection(props: Props) {
     primarySport: props.initialPrimarySport ?? '',
     gender: props.initialGender ?? '',
     country: props.initialCountry ?? '',
+    username: props.initialUsername ?? '',
+    birthDate: props.initialBirthDate ?? '',
+    heightCm: props.initialHeightCm?.toString() ?? '',
+    secondarySport: props.initialSecondarySport ?? '',
+    vektKg: props.sisteVektKg?.toString() ?? '',
   }
   const dirty =
     firstName !== initial.firstName ||
@@ -69,7 +91,12 @@ export function ProfileSection(props: Props) {
     birthYear !== initial.birthYear ||
     primarySport !== initial.primarySport ||
     gender !== initial.gender ||
-    country !== initial.country
+    country !== initial.country ||
+    username !== initial.username ||
+    birthDate !== initial.birthDate ||
+    heightCm !== initial.heightCm ||
+    secondarySport !== initial.secondarySport ||
+    vektKg !== initial.vektKg
 
   const save = () => {
     setError(null)
@@ -81,8 +108,19 @@ export function ProfileSection(props: Props) {
         primary_sport: primarySport,
         gender,
         country,
+        username,
+        birth_date: birthDate,
+        height_cm: heightCm,
+        secondary_sport: secondarySport,
       })
       if (res.error) { setError(res.error); return }
+      // Vekt lagres i helse-loggen (dagens måling) — kun når endret.
+      if (vektKg !== initial.vektKg) {
+        const kg = vektKg.trim() ? Number(vektKg.replace(',', '.')) : null
+        if (kg != null && !Number.isFinite(kg)) { setError('Ugyldig vekt'); return }
+        const vres = await settVekt(kg)
+        if (vres.error) { setError(vres.error); return }
+      }
       setSavedFlash(true)
       router.refresh()
       setTimeout(() => setSavedFlash(false), 1500)
@@ -105,8 +143,20 @@ export function ProfileSection(props: Props) {
         <Field label="Etternavn">
           <Input value={lastName} onChange={setLastName} />
         </Field>
-        <Field label="Fødselsår">
-          <Input value={birthYear} onChange={setBirthYear} type="number" placeholder="ÅÅÅÅ" />
+        <Field label="Brukernavn">
+          <Input value={username} onChange={v => setUsername(v.toLowerCase())}
+            placeholder="f.eks. sverre_h" />
+          <Hint>3–20 tegn: a–z, tall, punktum, understrek — små bokstaver</Hint>
+        </Field>
+        <Field label="E-post">
+          <Input value={props.email ?? ''} onChange={() => {}} disabled />
+          <Hint>Endres under Innstillinger → Sikkerhet (bekreftes på e-post)</Hint>
+        </Field>
+        <Field label="Fødselsdato">
+          <Input value={birthDate} onChange={setBirthDate} type="date" />
+          {!birthDate && birthYear && (
+            <Hint>Fødselsår {birthYear} er registrert — sett full dato når du vil</Hint>
+          )}
         </Field>
         <Field label="Hovedsport">
           <Select value={primarySport} onChange={setPrimarySport}>
@@ -126,6 +176,21 @@ export function ProfileSection(props: Props) {
           <Select value={country} onChange={setCountry}>
             <option value="">— Velg —</option>
             {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+          </Select>
+        </Field>
+        <Field label="Høyde (cm)">
+          <Input value={heightCm} onChange={setHeightCm} type="number" placeholder="f.eks. 182" />
+        </Field>
+        <Field label="Vekt (kg)">
+          <Input value={vektKg} onChange={setVektKg} placeholder="f.eks. 72,4" />
+          <Hint>Samme felt som helse-loggen — lagres som dagens måling</Hint>
+        </Field>
+        <Field label="Sekundærsport (valgfri)">
+          <Select value={secondarySport} onChange={setSecondarySport}>
+            <option value="">— Ingen —</option>
+            {SPORTS.filter(sp => sp.value !== primarySport).map(sp => (
+              <option key={sp.value} value={sp.value}>{sp.label}</option>
+            ))}
           </Select>
         </Field>
       </div>
@@ -173,11 +238,20 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Input({ value, onChange, type = 'text', placeholder }: {
-  value: string; onChange: (v: string) => void; type?: string; placeholder?: string
+function Hint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs mt-1"
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+      {children}
+    </p>
+  )
+}
+
+function Input({ value, onChange, type = 'text', placeholder, disabled = false }: {
+  value: string; onChange: (v: string) => void; type?: string; placeholder?: string; disabled?: boolean
 }) {
   return (
-    <input type={type} value={value} placeholder={placeholder}
+    <input type={type} value={value} placeholder={placeholder} disabled={disabled}
       onChange={e => onChange(e.target.value)}
       style={{
         width: '100%',
@@ -188,6 +262,7 @@ function Input({ value, onChange, type = 'text', placeholder }: {
         fontSize: '16px',
         padding: '8px 12px',
         minHeight: '40px',
+        opacity: disabled ? 0.6 : 1,
       }} />
   )
 }

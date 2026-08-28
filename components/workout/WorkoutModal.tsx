@@ -174,8 +174,8 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                 ? (state.formMode === 'plan' ? 'Rediger plan' : 'Økt')
                 : (state.formMode === 'plan' ? 'Planlegg økt' : 'Logg økt')}
             </span>
-            {defaults?.imported_from && (
-              <ImportSourceBadge source={defaults.imported_from} />
+            {(defaults?.imported_from ?? defaults?.merged_source) && (
+              <ImportSourceBadge source={defaults.imported_from ?? defaults.merged_source} />
             )}
           </div>
           <div className="flex items-center gap-2">

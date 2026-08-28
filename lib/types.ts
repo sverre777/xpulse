@@ -1106,8 +1106,10 @@ export interface CalendarWorkoutSummary {
   is_heat_training?: boolean
   group_session_label?: string | null
   // Kilde for badge-visning. 'strava' | 'fit' | null. Viser "Importert"-tag
-  // i kalender og workout-detalj.
+  // i kalender og workout-detalj. Flettede økter (fase 109) har kilden i
+  // merged_source i stedet — badge-visning faller tilbake på den.
   imported_from?: string | null
+  merged_source?: string | null
   // Kø #48: standardøkt-serie — navn for diskret ⟳-markør (null = ukoblet).
   standard_session_name?: string | null
   workout_type: WorkoutType

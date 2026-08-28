@@ -26,6 +26,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
+import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -296,7 +297,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           )}
           {/* Strava-synk vises med offisiell Strava-logo (attribution) —
               aldri den røde trekanten. */}
-          {data.imported_from === 'strava' && (
+          {(data.imported_from === 'strava' || data.merged_source === 'strava') && (
             <ImportSourceBadge source="strava" />
           )}
           {data.imported_from && data.imported_from !== 'strava' && (
@@ -305,7 +306,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           {/* Flettet økt: bærer klokkedata bak egne rader (fase 109).
               Treneren ser samme badge. */}
           {data.merged_source && (
-            <span style={pillStyle('#1A6FD4', 'rgba(26,111,212,.10)', 'rgba(26,111,212,.4)')}>⌚ + klokke</span>
+            <span style={pillStyle('#1A6FD4', 'rgba(26,111,212,.10)', 'rgba(26,111,212,.4)')}>⌚ + klokke{data.merged_source !== 'strava' ? ` · ${fitSourceLabel(data.merged_source)}` : ''}</span>
           )}
           {fromTemplate && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>Fra mal: {fromTemplate}</span>
@@ -410,6 +411,16 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             </p>
           )}
         </Card>
+      )}
+
+      {/* ── PLAN VS GJENNOMFØRT — samme sammenligning som skjemaet viser etter
+          «Marker som gjennomført» (der ekspandert som standard). Flettede økter
+          (fase 109) har planen i planned_snapshot og klokkas rader som
+          activities — blokka står MELLOM øktas egne kort og klokkedataene. */}
+      {!isPlannedView && (data.planned_activities?.length ?? 0) > 0 && activities.length > 0 && (
+        <div className="mb-3.5">
+          <PlanVsActualComparison plan={data.planned_activities ?? []} actual={activities} />
+        </div>
       )}
 
       {/* ── KLOKKEDATA — HØYT og synlig (pulskurve/høyde/watt + laps).
@@ -1017,10 +1028,12 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       )}
 
       {/* ── Sync-fot (diskret) ── */}
-      {data.imported_from && (
+      {(data.imported_from || data.merged_source) && (
         <div className="flex items-center gap-2.5 mb-3.5" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-8-alt)' }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)' }} />
-          Importert fra {data.imported_from === 'strava' ? 'Strava' : data.imported_from}
+          {data.imported_from
+            ? `Importert fra ${fitSourceLabel(data.imported_from)}`
+            : `Flettet med klokkedata fra ${fitSourceLabel(data.merged_source ?? '')}`}
         </div>
       )}
 

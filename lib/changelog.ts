@@ -56,6 +56,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — 28. august 2026 ─────────────────────────────────────────────
   {
     date: '2026-08-28',
+    title: 'Flettede økter beholder klokkemerket og plan-sammenligningen',
+    body: 'Når en planlagt økt flettes med en klokkeøkt, vises nå klokkemerket (f.eks. Garmin eller Strava) på økta, i kalenderen og i økt-headeren — det forsvant tidligere ved fletting. Økt-visningen viser også «Plan vs faktisk»-sammenligningen mellom planen og det gjennomførte, akkurat som når du markerer en økt som gjennomført.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
     title: 'Koble og flett klokkeøkter med planen',
     body: 'Synkede økter og planlagte/førte økter kan nå flettes til én: velg «Bytt ut aktivitetene» for å hente klokkas runder inn i økta di, eller «Legg bak» for å beholde alt du har ført og bare hente puls, totaltid og soner fra klokka. Notater, skyting, tags og konkurranseskjema står alltid urørt, klokkeøkta gjemmes uten å slettes, og alt kan angres — uten frist. Flettede og synkede økter har også fått en Samlet/Splittet-bryter som slår like runder sammen i visningen.',
     version: '1.3',

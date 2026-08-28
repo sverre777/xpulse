@@ -671,9 +671,9 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
               }}
             />
           )}
-          {w.imported_from && (
+          {(w.imported_from ?? w.merged_source) && (
             <span style={{ marginRight: '3px', verticalAlign: 'middle' }}>
-              <ImportSourceBadge source={w.imported_from} compact />
+              <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
             </span>
           )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
@@ -759,9 +759,9 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
       {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
       {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
           — aldri rød trekant. */}
-      {w.imported_from && (
+      {(w.imported_from ?? w.merged_source) && (
         <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-          <ImportSourceBadge source={w.imported_from} compact />
+          <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
         </span>
       )}
       {comp && <span style={{ fontSize: 12, flexShrink: 0 }}>{comp.icon}</span>}
@@ -2030,9 +2030,9 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                       {w.is_altitude_training && <span title="Høydetrening" style={{ marginRight: '4px' }}>🏔️</span>}
                                       {w.is_heat_training && <span title="Varmetrening" style={{ marginRight: '4px' }}>🌡️</span>}
                                       {w.is_group_session && <span style={{ color: COACH_BLUE, marginRight: '4px' }} aria-label="Fellestrening">👥</span>}
-                                      {w.imported_from && (
+                                      {(w.imported_from ?? w.merged_source) && (
                                         <span style={{ marginRight: '4px', verticalAlign: 'middle' }}>
-                                          <ImportSourceBadge source={w.imported_from} compact />
+                                          <ImportSourceBadge source={w.imported_from ?? w.merged_source} compact />
                                         </span>
                                       )}
                                       {comp && <span style={{ marginRight: '4px' }}>{comp.icon}</span>}

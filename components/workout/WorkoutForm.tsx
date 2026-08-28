@@ -1659,11 +1659,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           og rendrer kun hvis det finnes sample-data eller laps fra import.
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
       {workoutId && !templateBuildingMode && (
-        <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={defaultValues?.imported_from ?? null} />
+        <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
       )}
 
       {/* Strava API Agreement § 2.3 — synlig attribusjon for Strava-data. */}
-      {workoutId && defaultValues?.imported_from === 'strava' && (
+      {workoutId && (defaultValues?.imported_from === 'strava' || defaultValues?.merged_source === 'strava') && (
         <div className="my-4 flex justify-center">
           <PoweredByStravaAttribution />
         </div>

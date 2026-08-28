@@ -148,6 +148,12 @@ export function MainNav({
                 +
               </Link>
             )}
+          {/* Klokkesynk-merket skal være synlig UTEN å åpne menyen
+              (Sverre 28. aug, #31). navigerDirekte beholdes — popupen
+              hører ikke hjemme på mobil. */}
+          {activeRole !== 'coach' && (
+            <KlokkesyncStatusButton initialBadge={klokkesyncBadge} navigerDirekte />
+          )}
           <TemaBryter accent={accent} storrelse={44} />
 
           <button
@@ -179,7 +185,6 @@ export function MainNav({
             hasCoachRole={hasCoachRole}
             hasCoachTier={hasCoachTier}
             unreadInboxCount={unreadInboxCount}
-            klokkesyncBadge={klokkesyncBadge}
             onClose={() => setMenuOpen(false)}
           />
         )}
@@ -308,7 +313,7 @@ export function MainNav({
   )
 }
 
-function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, hasCoachTier, unreadInboxCount, klokkesyncBadge, onClose }: {
+function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRole, hasAthleteRole, hasCoachRole, hasCoachTier, unreadInboxCount, onClose }: {
   pathname: string
   userName: string | null
   logHref: string
@@ -319,7 +324,6 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
   hasCoachRole: boolean
   hasCoachTier: boolean
   unreadInboxCount: number
-  klokkesyncBadge?: KlokkesyncBadge
   onClose: () => void
 }) {
   // Menyen skal KUN lukkes eksplisitt: klikk på X, klikk på et menyvalg, eller
@@ -412,13 +416,6 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
             />
           )}
         </Link>
-        {activeRole !== 'coach' && (
-          <div onClick={onClose}>
-            {/* Menyen lukkes ved trykk — popupen ville forsvunnet med den.
-                Naviger rett til klokkesync-innstillingene i stedet. */}
-            <KlokkesyncStatusButton initialBadge={klokkesyncBadge} navigerDirekte />
-          </div>
-        )}
         <Link
           href="/app/innstillinger"
           onClick={onClose}

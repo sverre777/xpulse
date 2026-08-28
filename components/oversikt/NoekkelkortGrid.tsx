@@ -221,12 +221,11 @@ export function NoekkelkortGrid({
   return (
     <section className="mb-6 grid gap-4"
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+      {/* Helse HELT til venstre i raden (Sverre 28. aug) — det kompakte
+          kortet fra helseflaten; klikk åpner hele oversikten som pop-up. */}
+      <KompaktHelseKort tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
-      {/* Helse: det kompakte kortet fra helseflaten — klikk åpner hele
-          oversikten som pop-up. FØRST på rad to (Sverre 28. aug); fasen
-          står til høyre for den. */}
-      <KompaktHelseKort tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
       <PhaseCard phase={phase} phaseStatus={phaseStatus} />
     </section>
   )

@@ -51,7 +51,6 @@ export function LinkWorkoutActions({
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [linkedToId, setLinkedToId] = useState<string | null>(null)
   const [linkedFromId, setLinkedFromId] = useState<string | null>(null)
-  const [hasCandidates, setHasCandidates] = useState<boolean | null>(null)
 
   const todayStr = (() => {
     const d = new Date()
@@ -65,23 +64,33 @@ export function LinkWorkoutActions({
     setCandidates(null)
     setLinkedToId(null)
     setLinkedFromId(null)
-    setHasCandidates(null)
   }, [workoutId, date])
 
+  // Kun koblet-TILSTANDEN sjekkes ved mount (den kan snu knappen til
+  // «Fjern kobling»). Kandidatene hentes først når pickeren åpnes —
+  // koble-knappen selv står i kortet fra første render (fasit: aldri
+  // etterlastet).
   useEffect(() => {
     let cancelled = false
     getSameDateLinkCandidates(workoutId, targetUserId).then(res => {
-      if (cancelled) return
-      if ('error' in res) { setHasCandidates(false); return }
+      if (cancelled || 'error' in res) return
       setLinkedToId(res.sourceLinkedToId)
       setLinkedFromId(res.sourceLinkedFromId)
-      setHasCandidates(res.candidates.length > 0)
-      setCandidates(res.candidates)
       onLinkStateChange?.(res.sourceLinkedToId !== null || res.sourceLinkedFromId !== null || alreadyLinked)
     })
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workoutId, date, targetUserId])
+
+  const apnePicker = () => {
+    // Regel 20: dialogen åpner i samme tick; lastingen skjer inni den.
+    setShowPicker(true)
+    setCandidates(null)
+    getSameDateLinkCandidates(workoutId, targetUserId).then(res => {
+      if ('error' in res) { setCandidates([]); return }
+      setCandidates(res.candidates)
+    })
+  }
 
   // Phase 67c+: linked_workout_id sitter på SYNKET-raden. Dermed:
   // - Synket-rad er koblet hvis sourceLinkedToId !== null
@@ -91,18 +100,20 @@ export function LinkWorkoutActions({
 
   const handleLink = async (otherId: string) => {
     setError(null)
+    const plannedId = isPlanned ? workoutId : otherId
     const res = await linkPlannedToActual(
-      isPlanned ? workoutId : otherId,
+      plannedId,
       isPlanned ? otherId : workoutId,
       targetUserId,
     )
     if (res.error) { setError(res.error); return false }
     setShowPicker(false)
-    setSuccessMsg('Knyttet til synket økt')
-    router.refresh()
-    // Full reload garanterer at WorkoutForm-defaults og kalender oppdateres
-    // (client-state useState reaktiveres ikke av router.refresh alene).
-    setTimeout(() => { window.location.reload() }, 600)
+    setSuccessMsg('Koblet')
+    // Fasit (flett-designet pkt 3): etter kobling mot planlagt økt åpnes
+    // NØYAKTIG samme plan-vs-gjennomført-visning som fullført-markering gir
+    // — dagbok-redigeringen med sammenligningen (regel 11, gjenbruk, ingen
+    // variant). Full reload er dermed også historie.
+    window.location.assign(`/app/dagbok?edit=${plannedId}`)
     return true
   }
 
@@ -144,11 +155,8 @@ export function LinkWorkoutActions({
   // - "Fjern kobling": koblet (overstyrer alle andre)
   const showMarkCompleted = isPlanned && !effectivelyLinked && !isCompleted && formMode === 'plan' && !hideMarkCompleted
   const showLinkButton = !effectivelyLinked
-  const linkButtonLabel = isPlanned ? '🔄 Knytt til synket økt' : '📋 Knytt til planlagt økt'
-  // I plan-modus på en planlagt økt er koblingen ALTERNATIVET til «Marker
-  // som fullført» (Sverre 27. aug) — da skal den synes, ikke være ghost.
-  // Ellers beholdes den diskrete stilen (eldre bruker-ønske).
-  const prominentLink = prominent || (isPlanned && formMode === 'plan' && !isCompleted)
+  const linkButtonLabel = isPlanned ? '🔗 Koble / flett med synket økt' : '🔗 Koble / flett med økt'
+  void prominent  // fasit-stilen styres nå av konteksten, ikke av callers
 
   if (isFutureDate) return null
   if (!showMarkCompleted && !showLinkButton && !effectivelyLinked) return null
@@ -170,26 +178,27 @@ export function LinkWorkoutActions({
         </button>
       )}
 
-      {/* Koble-knappene holdes bevisst diskrete (bruker-ønske): små, dempet
-          ghost-stil — funksjonen finnes, men skal ikke konkurrere med
-          hoved-CTA-ene. */}
-      {showLinkButton && hasCandidates === true && (
+      {/* Fasit (flett-designet seksjon 1): fyldig pill, samme tyngde som
+          «Marker som gjennomført». Oransje på synket økt, ghost på planlagt
+          (ved siden av den grønne). Rendres MED kortet — kandidat-oppslaget
+          skjer først når pickeren åpnes. */}
+      {showLinkButton && (
         <button type="button"
-          onClick={() => setShowPicker(true)}
+          onClick={apnePicker}
           disabled={busy}
-          className="px-3 py-1 text-xs tracking-widest uppercase transition-colors hover:opacity-90"
-          style={prominentLink ? {
+          className="text-xs font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"
+          style={isPlanned ? {
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'rgba(40,168,110,0.10)', color: '#28A86E',
-            border: '1px solid rgba(40,168,110,0.55)', borderRadius: 8,
+            backgroundColor: 'transparent', color: 'var(--tekst-1-app)',
+            border: '1.5px solid var(--line2)', borderRadius: 999,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-            minHeight: '38px', fontSize: '12px', padding: '0 16px', fontWeight: 700,
+            minHeight: '38px', padding: '0 20px', fontSize: '12px',
           } : {
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: 'transparent', color: 'var(--tekst-8-alt)',
-            border: '1px solid var(--line2)', borderRadius: 8,
+            backgroundColor: '#FF4500', color: 'var(--tekst-1-ren)',
+            border: 'none', borderRadius: 999,
             cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-            minHeight: '30px', fontSize: '11px',
+            minHeight: '38px', padding: '0 20px', fontSize: '12px',
           }}>
           {linkButtonLabel}
         </button>
@@ -245,7 +254,7 @@ export function LinkWorkoutActions({
         </p>
       )}
 
-      {showPicker && candidates && (
+      {showPicker && (
         <PickerModal
           isPlanned={isPlanned}
           candidates={candidates}
@@ -264,7 +273,8 @@ function PickerModal({
   isPlanned, candidates, onConfirm, onClose,
 }: {
   isPlanned: boolean
-  candidates: LinkCandidate[]
+  /** null = kandidatene laster fortsatt (spinner-tilstand i pickeren). */
+  candidates: LinkCandidate[] | null
   onConfirm: (id: string) => Promise<boolean>
   onClose: () => void
 }) {
@@ -309,7 +319,21 @@ function PickerModal({
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {candidates.map(c => {
+          {candidates === null && (
+            <p className="py-6 text-center text-sm"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+              Henter økter …
+            </p>
+          )}
+          {candidates !== null && candidates.length === 0 && (
+            <p className="py-6 text-center text-sm"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+              {isPlanned
+                ? 'Ingen synkede økter å koble til innen ±3 dager.'
+                : 'Ingen planlagte økter å koble til innen ±3 dager.'}
+            </p>
+          )}
+          {(candidates ?? []).map(c => {
             const isSelected = c.id === selectedId
             return (
               <button key={c.id} type="button"

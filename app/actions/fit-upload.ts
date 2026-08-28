@@ -34,7 +34,12 @@ import {
 // revalidatePath. Mapper til samme struktur som Strava-importen — ingen
 // forskjell etter import.
 
-export type { FitImportResult, FitParsedPreview }
+// MERK: ALDRI type-re-eksport fra en 'use server'-fil. Turbopack visker
+// den IKKE ut — den blir en runtime-referanse som kaster
+// «FitImportResult is not defined» ved module-evaluering, og da dør ALLE
+// server actions i sidens chunk (målt i prod 28. aug: Strava-bryteren ga
+// 500 på grunn av nettopp denne linja). Typene importeres fra
+// lib/fit-import der de trengs.
 
 // Hovedfunksjon: motta FormData m/file. Hvis conflictResolution er null og
 // det finnes konflikt → returnerer preview. Ellers → fullfør import.

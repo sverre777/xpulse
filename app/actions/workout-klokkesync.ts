@@ -11,6 +11,7 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
+import { beregnSegmenter, type Segment } from '@/lib/segmenter'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -45,6 +46,10 @@ export interface WorkoutKlokkesyncData {
   lactate: LactateMarker[]
   nutrition: NutritionMarker[]
   shooting: ShootingMarker[]
+  // «Legg til detaljer» bolk 2: segmentbånd + skytevinduer på kurven.
+  // Beregnes fra aktivitetsradene (runder flislegger; window_*-kolonnene
+  // for manuelt plasserte) — ren visning, se lib/segmenter.
+  segmenter: Segment[]
   heartZones: HeartZone[]
 }
 
@@ -75,6 +80,8 @@ export async function getWorkoutKlokkesyncData(
         avg_watts, max_watts, avg_speed_ms, max_speed_ms,
         avg_cadence, max_cadence,
         elevation_gain_m, rpe, lap_notes,
+        window_start_seconds, window_duration_seconds,
+        external_id, strava_lap_index,
         prone_hits, prone_shots, standing_hits, standing_shots,
         activity_type, movement_name, movement_subcategory
       `)
@@ -232,6 +239,24 @@ export async function getWorkoutKlokkesyncData(
     }
   }
 
+  // Segmenter for båndet/vinduene: kurvens lengde er tidslinjens fasit.
+  const totalSek = kurveLengdeSek(samples)
+  const segmenter = totalSek > 0
+    ? beregnSegmenter((activities ?? []).map(a => ({
+        id: a.id,
+        activity_type: a.activity_type,
+        movement_name: a.movement_name,
+        duration_seconds: a.duration_seconds,
+        window_start_seconds: a.window_start_seconds,
+        window_duration_seconds: a.window_duration_seconds,
+        prone_shots: a.prone_shots,
+        prone_hits: a.prone_hits,
+        standing_shots: a.standing_shots,
+        standing_hits: a.standing_hits,
+        harKlokkeProveniens: !!a.external_id || a.strava_lap_index != null,
+      })), totalSek)
+    : []
+
   return {
     sport: (workout.sport ?? null) as Sport | null,
     wattMetrikker,
@@ -242,6 +267,7 @@ export async function getWorkoutKlokkesyncData(
     lactate,
     nutrition,
     shooting,
+    segmenter,
     heartZones,
   }
 }
@@ -280,4 +306,19 @@ function secondsFromStart(
   if (Number.isNaN(h) || Number.isNaN(m)) return null
   const ms = new Date(`${date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`).getTime()
   return Math.max(0, Math.round((ms - startEpoch) / 1000))
+}
+
+// Kurvens lengde i sekunder = siste t på tvers av sample-seriene.
+function kurveLengdeSek(samples: WorkoutSamples | null): number {
+  if (!samples) return 0
+  let maks = 0
+  const serier = [
+    samples.hr_samples, samples.watt_samples, samples.pace_samples,
+    samples.speed_samples, samples.altitude_samples, samples.cadence_samples,
+  ]
+  for (const serie of serier) {
+    const siste = serie?.[serie.length - 1]
+    if (siste && siste.t > maks) maks = siste.t
+  }
+  return maks
 }

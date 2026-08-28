@@ -160,6 +160,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
           lactate={data.lactate}
           nutrition={data.nutrition}
           shooting={data.shooting}
+          segmenter={data.segmenter}
         />
       )}
 

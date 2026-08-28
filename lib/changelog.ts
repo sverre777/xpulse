@@ -56,6 +56,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — 28. august 2026 ─────────────────────────────────────────────
   {
     date: '2026-08-28',
+    title: 'Økta som fortelling under pulskurven',
+    body: 'Klokkesynkede økter med runder viser nå et segmentbånd under økt-grafen: oppvarming, drag, pauser, skyting og nedjogg tegnes i tid, med egne farger for liggende og stående skyting. Skytingene markeres også som vinduer på selve pulskurven med treff og «puls inn». Hold over et segment for tid, varighet og snittpuls — og laktatmålinger og ernæring med tidspunkt vises som små markører over båndet.',
+    version: '1.3',
+  },
+  {
+    date: '2026-08-28',
     title: 'Flettede økter beholder klokkemerket og plan-sammenligningen',
     body: 'Når en planlagt økt flettes med en klokkeøkt, vises nå klokkemerket (f.eks. Garmin eller Strava) på økta, i kalenderen og i økt-headeren — det forsvant tidligere ved fletting. Økt-visningen viser også «Plan vs faktisk»-sammenligningen mellom planen og det gjennomførte, akkurat som når du markerer en økt som gjennomført.',
     version: '1.3',

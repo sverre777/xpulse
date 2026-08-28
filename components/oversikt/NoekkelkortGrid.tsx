@@ -223,10 +223,11 @@ export function NoekkelkortGrid({
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
-      <PhaseCard phase={phase} phaseStatus={phaseStatus} />
       {/* Helse: det kompakte kortet fra helseflaten — klikk åpner hele
-          oversikten som pop-up (visning C → A i designet). */}
+          oversikten som pop-up. FØRST på rad to (Sverre 28. aug); fasen
+          står til høyre for den. */}
       <KompaktHelseKort tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
+      <PhaseCard phase={phase} phaseStatus={phaseStatus} />
     </section>
   )
 }

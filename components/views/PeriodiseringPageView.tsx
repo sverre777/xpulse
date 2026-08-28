@@ -14,6 +14,7 @@ import { YearCalendarView } from '@/components/periodization/YearCalendarView'
 import { MonthFullCalendar } from '@/components/periodization/MonthFullCalendar'
 import { WeekOverviewCalendar } from '@/components/periodization/WeekOverviewCalendar'
 import { PeriodsSection } from '@/components/periodization/PeriodsSection'
+import { SesongSammenligning } from '@/components/analysis/SesongSammenligning'
 import { KeyDatesSection } from '@/components/periodization/KeyDatesSection'
 import { MonthlyVolumeSection } from '@/components/periodization/MonthlyVolumeSection'
 import { SaveSeasonAsTemplate } from '@/components/coach/SaveSeasonAsTemplate'
@@ -184,6 +185,12 @@ export async function PeriodiseringPageView({ viewContext, searchParams }: Props
 
             <PeriodsSection season={activeSeason} periods={periods} markings={markings} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
             <KeyDatesSection season={activeSeason} keyDates={keyDates} targetUserId={targetId} canEdit={canEdit} />
+
+            {/* Sesong mot sesong (bolk 4) — samme komponent som i
+                Analyse › Oversikt (avtalt dobbel-montering). */}
+            <div className="mt-6">
+              <SesongSammenligning initialSeasons={seasons} targetUserId={targetId} />
+            </div>
           </>
         )}
 

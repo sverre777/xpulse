@@ -60,6 +60,8 @@ const KlokkedataTrenderTab = dynamic(() => import('./KlokkedataTrenderTab').then
   { loading: () => <LoadingStub label="Laster klokkedata-trender…" />, ssr: false })
 const PrestasjonTab = dynamic(() => import('./PrestasjonTab').then(m => ({ default: m.PrestasjonTab })),
   { loading: () => <LoadingStub label="Laster prestasjonsmål…" />, ssr: false })
+const SesongSammenligning = dynamic(() => import('./SesongSammenligning').then(m => ({ default: m.SesongSammenligning })),
+  { loading: () => <LoadingStub label="Laster sesongsammenligning…" />, ssr: false })
 const WeatherTab = dynamic(() => import('./WeatherTab').then(m => ({ default: m.WeatherTab })),
   { loading: () => <LoadingStub label="Laster vær/føre-analyse…" />, ssr: false })
 const AltitudeHeatTab = dynamic(() => import('./AltitudeHeatTab').then(m => ({ default: m.AltitudeHeatTab })),
@@ -629,6 +631,9 @@ function AnalysisPageInner({
               onNavigate={(t) => setTab(t)}
             />
             <OverviewTab stats={stats} overview={overview} analysisRange={range} targetUserId={targetUserId} canSeeHealthData={canSeeHealthData} />
+            {/* Sesong mot sesong (bolk 4) — samme komponent står også
+                nederst under Årsplan (avtalt unntak fra én-plassering). */}
+            <SesongSammenligning targetUserId={targetUserId} />
           </div>
         )}
         {tab === 'konkurranser' && (

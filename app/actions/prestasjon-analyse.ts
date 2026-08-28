@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { resolveTargetUser } from '@/lib/target-user'
-import { beregnEf, beregnFrakobling } from '@/lib/prestasjon'
+import { beregnEf, beregnFrakobling, EF_OKTTYPER, EF_MIN_SEK } from '@/lib/prestasjon'
 import { dominantBevegelse } from '@/lib/terskel-oppslag'
 
 // Analyse › Prestasjon (bolk 3): EF-trend per bevegelsesform +
@@ -93,10 +93,9 @@ export async function getPrestasjonAnalyse(
   const rows = alle.filter(w => !erStrava(w))
 
   // ── EF-serien (aggregater) ──
-  // EF er en AEROB metrikk: kun rolige/jevne økttyper. En intervalløkt
-  // gir lav EF uten at formen er dårligere — den skal ikke lage dupp i
-  // trenden. (Målt i E2E: intervalløkta la seg som villedende bunnpunkt.)
-  const EF_OKTTYPER = new Set(['easy', 'long_run', 'recovery', 'endurance'])
+  // EF-gaten (EF_OKTTYPER i lib/prestasjon): kun rolige økttyper — en
+  // intervalløkt gir lav EF uten at formen er dårligere (målt i E2E:
+  // den la seg som villedende bunnpunkt).
   const serier = new Map<string, EfPunkt[]>()
   for (const w of rows) {
     if (!EF_OKTTYPER.has(w.workout_type)) continue
@@ -114,8 +113,7 @@ export async function getPrestasjonAnalyse(
         wattVekt += Number(a.avg_watts) * s; wattSek += s
       }
     }
-    // EF på korte økter er støy — 20 min treningstid er gulvet.
-    if (sek < 20 * 60) continue
+    if (sek < EF_MIN_SEK) continue
     const hr = hrSek > 0 ? hrVekt / hrSek : (w.avg_heart_rate ?? 0)
     // Watt-kilden krever at watt dekker minst halve treningstiden.
     const nettoWatt = wattSek >= sek * 0.5 ? wattVekt / wattSek : null

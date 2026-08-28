@@ -155,6 +155,15 @@ export function stigningPctForVindu(
   return (netto / distanseMeter) * 100
 }
 
+// EF-kvalifiserte økttyper — EF er en AEROB metrikk; intervaller og
+// konkurranser gir kunstige bunnpunkter. Delt av Prestasjon-fanen og
+// sesongsammenligningen (regel 11).
+export const EF_OKTTYPER = new Set(['easy', 'long_run', 'recovery', 'endurance'])
+
+// EF-gulvet: under 20 min treningstid er output/puls-forholdet støy.
+// Én kilde for Prestasjon-fanen OG sesongsammenligningen (regel 11).
+export const EF_MIN_SEK = 20 * 60
+
 // ── EF — effektivitetsfaktor ─────────────────────────────────
 // Output per pulsslag for én økt: (m/s eller watt) / snittpuls.
 // Beregnes fra økt-aggregater (trend-serien trenger ikke samples).

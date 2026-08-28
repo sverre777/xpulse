@@ -413,10 +413,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     router.push(`/app/okt/${workoutId}`)
   }
 
-  // Fase 77: arv av høyde fra årsplan-periode. Når øktens dato faller i en
-  // høyde-periode, arver nye økter automatisk høydetrening + periodens moh
-  // (kan overstyres per økt). Eksisterende økter mutéres ikke — men vi viser
-  // kontekst-hintet uansett.
+  // Fase 77 + quick fix (Sverre 28. aug): arv av høyde fra årsplan-periode.
+  // Når øktens dato faller i en høyde-periode, arver økta automatisk
+  // høydetrening + periodens moh — også EKSISTERENDE økter som åpnes:
+  // hint-setningen lover at økta arver høyden, og da skal chipen faktisk
+  // stå markert og moh være satt (persisteres ved lagring). Egen moh
+  // vinner alltid (?? -fallback), og en alt markert økt røres ikke.
   const [inheritedAltitude, setInheritedAltitude] = useState<{ altitude_meters: number | null; period_name: string } | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -424,8 +426,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     getAltitudePeriodForDate(form.date, targetUserId).then(res => {
       if (cancelled) return
       setInheritedAltitude(res)
-      if (res && !workoutId) {
-        // Auto-arv kun for nye økter, og kun om de ikke alt er markert.
+      if (res) {
+        // Auto-arv når økta ikke alt er markert — nye OG eksisterende.
         setForm(f => f.is_altitude_training ? f : {
           ...f,
           is_altitude_training: true,
@@ -1266,7 +1268,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               <div>
                 <label className="text-xs tracking-widest uppercase block mb-1"
                   style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-                  Høyde (moh){inheritedAltitude && form.altitude_meters == null ? ' — arvet' : ''}
+                  Høyde (moh){inheritedAltitude && (form.altitude_meters == null || form.altitude_meters === inheritedAltitude.altitude_meters) ? ' — arvet' : ''}
                 </label>
                 <input
                   type="number" inputMode="numeric" min={0} max={9000} step={50}

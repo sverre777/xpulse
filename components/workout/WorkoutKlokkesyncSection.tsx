@@ -112,6 +112,23 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
         Klokkesync — sekund-for-sekund og per-lap
       </p>
 
+      {/* Aerob frakobling (bolk 3) — kun jevne økter > 40 min. Farge
+          etter utkastets terskler: < 5 % god, 5–10 middels, > 10 svak. */}
+      {data.frakobling && (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14.5, color: 'var(--tekst-5-app)' }}>
+          Aerob frakobling{' '}
+          <b style={{
+            color: data.frakobling.grad === 'god' ? '#28A86E'
+              : data.frakobling.grad === 'middels' ? '#E2A33A' : '#E23A5A',
+          }}>
+            {data.frakobling.driftPct.toFixed(1).replace('.', ',')} %
+          </b>
+          <span style={{ color: 'var(--tekst-8-alt)' }}>
+            {' '}— {data.frakobling.kilde === 'watt' ? 'Pw:Hr' : 'Pa:Hr'}, under 5 % betyr at pulsen holder følge hele veien
+          </span>
+        </p>
+      )}
+
       {/* NP/IF (prestasjonsmodellen bolk 2) — kun der watt finnes.
           Uten FTP: ærlig tomtilstand med lenke til terskelen
           (regel 20), aldri et tall som ser komplett ut. */}

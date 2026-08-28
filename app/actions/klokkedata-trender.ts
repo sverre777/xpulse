@@ -13,9 +13,6 @@ import type { Sport } from '@/lib/types'
 export interface KlokkedataTrender {
   // Aerob effektivitet: hastighet (m/s) per puls (bpm) per økt. Stigende
   // verdi over tid = bedre form (mer fart for samme puls).
-  aerobEfficiency: TrendPoint[]
-  // Avg-watt / avg-HR — gir samme idé for sykling/skiing m/power-meter.
-  wattPerHr: TrendPoint[]
   // Suffer score (Strava) — hvor "hardt" Strava synes økten var.
   sufferScore: TrendPoint[]
   // Snitt-kadens per økt.
@@ -24,10 +21,6 @@ export interface KlokkedataTrender {
   // på samples for økter med tilgjengelig data. Tom array hvis ingen
   // watt-samples i perioden.
   powerCurve: { duration_label: string; duration_sec: number; watts: number }[]
-  // Cardiac drift per økt: HR-stigning fra første halvdel til siste.
-  // Krever samples — beregnes for opp til 50 nyeste økter for å holde
-  // kostnaden lav.
-  cardiacDrift: TrendPoint[]
   // Tid i sone per uke for stacked-bar. polarized_pct = (I1+I2) andel av total
   // — 80%+ indikerer 80/20-prinsippet er fulgt. Verdier i timer (decimal).
   zonesPerWeek: ZoneWeekPoint[]
@@ -115,8 +108,8 @@ export async function getKlokkedataTrender(
     const rows = (data ?? []) as Row[]
     const workoutsTotal = rows.length
 
-    const aerobEfficiency: TrendPoint[] = []
-    const wattPerHr: TrendPoint[] = []
+    // aerobEfficiency/wattPerHr/cardiacDrift er AVLØST av Analyse ›
+    // Prestasjon (bolk 3) og fjernet herfra (regel 11/21).
     const sufferScore: TrendPoint[] = []
     const cadence: TrendPoint[] = []
     // Aggregér zones-sekunder per ISO-uke. zones-jsonb er i SEKUNDER (phase 64+),
@@ -129,31 +122,7 @@ export async function getKlokkedataTrender(
       // Aggreger snittet av aktiviteter, vektet på varighet.
       const wactsAgg = aggregateActivities(w.workout_activities)
 
-      const avgHr = w.avg_heart_rate ?? wactsAgg.avgHr
-      const avgSpeed = wactsAgg.avgSpeedMs
-      const avgWatts = wactsAgg.avgWatts
       const avgCadence = wactsAgg.avgCadence
-
-      // Aerob effektivitet: speed/hr. Bare gyldig om begge er > 0.
-      if (avgHr && avgHr > 0 && avgSpeed && avgSpeed > 0.5) {
-        const speedKmh = avgSpeed * 3.6
-        // Vis verdi som m/min per slag (intuitivt) → speed/hr * 60.
-        const efficiency = (avgSpeed / avgHr) * 60
-        aerobEfficiency.push({
-          date: w.date, workout_id: w.id, title: w.title, sport: w.sport,
-          value: Math.round(efficiency * 1000) / 1000,
-          hr: avgHr, speed: speedKmh,
-        })
-      }
-
-      // Watt/HR — bra for sykling/ski.
-      if (avgHr && avgHr > 0 && avgWatts && avgWatts > 0) {
-        wattPerHr.push({
-          date: w.date, workout_id: w.id, title: w.title, sport: w.sport,
-          value: Math.round((avgWatts / avgHr) * 100) / 100,
-          hr: avgHr, speed: avgWatts,
-        })
-      }
 
       // Suffer score direkte fra Strava.
       if (w.suffer_score != null) {
@@ -213,7 +182,6 @@ export async function getKlokkedataTrender(
       .slice(-50)
       .map(r => r.id)
     let powerCurve: { duration_label: string; duration_sec: number; watts: number }[] = []
-    let cardiacDrift: TrendPoint[] = []
     let workoutsWithKlokkesync = 0
 
     if (recentIds.length > 0) {
@@ -252,34 +220,12 @@ export async function getKlokkedataTrender(
         .map(([sec, label]) => ({ duration_label: label, duration_sec: sec, watts: bests[sec] }))
         .filter(p => p.watts > 0)
 
-      // Cardiac drift per workout som har hr_samples.
-      const workoutById = new Map(rows.map(r => [r.id, r]))
-      for (const [wid, s] of samplesByWorkout) {
-        const hr = s.hr_samples
-        if (!hr || hr.length < 60) continue
-        const wRow = workoutById.get(wid)
-        if (!wRow) continue
-        const drift = computeDriftPct(hr)
-        if (drift == null) continue
-        cardiacDrift.push({
-          date: wRow.date,
-          workout_id: wRow.id,
-          title: wRow.title,
-          sport: wRow.sport,
-          value: Math.round(drift * 10) / 10,
-        })
-      }
-      // Sortér på dato.
-      cardiacDrift = cardiacDrift.sort((a, b) => a.date.localeCompare(b.date))
     }
 
     return {
-      aerobEfficiency,
-      wattPerHr,
       sufferScore,
       cadence,
       powerCurve,
-      cardiacDrift,
       zonesPerWeek,
       workoutsWithKlokkesync,
       workoutsTotal,
@@ -367,14 +313,4 @@ function isoWeekKey(dateStr: string): string {
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
 }
 
-function computeDriftPct(hr: Array<{ t: number; hr: number }>): number | null {
-  if (hr.length < 30) return null
-  const mid = Math.floor(hr.length / 2)
-  const first = hr.slice(0, mid)
-  const second = hr.slice(mid)
-  const avg = (arr: typeof hr) => arr.reduce((a, b) => a + b.hr, 0) / arr.length
-  const a1 = avg(first)
-  const a2 = avg(second)
-  if (a1 <= 0) return null
-  return ((a2 - a1) / a1) * 100
-}
+

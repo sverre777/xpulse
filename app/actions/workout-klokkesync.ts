@@ -10,6 +10,7 @@ import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
+import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -34,6 +35,10 @@ export interface OktWattMetrikker {
 export interface WorkoutKlokkesyncData {
   sport: Sport | null
   wattMetrikker: OktWattMetrikker | null
+  // Aerob frakobling for økta (bolk 3) — kun jevne økter > 40 min med
+  // puls + watt/fart-kurve. null = ikke kvalifisert (vises ikke; en
+  // intervalløkt skal ikke ha et meningsløst driftstall).
+  frakobling: FrakoblingsResultat | null
   samples: WorkoutSamples | null
   laps: LapRow[]
   lapMarkers: LapMarker[]
@@ -202,9 +207,35 @@ export async function getWorkoutKlokkesyncData(
     }
   }
 
+  // Frakobling (bolk 3): beregnes ved visning fra kurvene.
+  const frakoblingRes = beregnFrakobling(
+    samples?.hr_samples ?? null,
+    samples?.watt_samples ?? null,
+    samples?.speed_samples ?? null,
+  )
+  const frakobling = frakoblingRes.kvalifisert ? frakoblingRes : null
+
+  // GAP (bolk 3): stigningsjustert fart per LØPE-lap med høydeprofil —
+  // «ved siden av farten» i lap-tabellen (plasseringskartet).
+  if (samples?.altitude_samples && samples.altitude_samples.length > 4) {
+    let fra = 0
+    for (let i = 0; i < laps.length; i++) {
+      const til = fra + laps[i].duration_seconds
+      const akt = (activities ?? [])[i]
+      if (akt?.movement_name === 'Løping' && laps[i].avg_speed_ms != null) {
+        const stigning = stigningPctForVindu(
+          samples.altitude_samples, fra, til, laps[i].distance_meters,
+        )
+        laps[i].gap_speed_ms = gapFart(laps[i].avg_speed_ms, stigning)
+      }
+      fra = til
+    }
+  }
+
   return {
     sport: (workout.sport ?? null) as Sport | null,
     wattMetrikker,
+    frakobling,
     samples,
     laps,
     lapMarkers,

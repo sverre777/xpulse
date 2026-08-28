@@ -24,6 +24,7 @@ import { OverviewTab } from './OverviewTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
 import { getKlokkedataTrender, type KlokkedataTrender } from '@/app/actions/klokkedata-trender'
+import { getPrestasjonAnalyse, type PrestasjonAnalyse } from '@/app/actions/prestasjon-analyse'
 
 // Lazy-load alle ikke-Oversikt-tabs. Hver tab importerer recharts som er
 // ~50-100 KB per chunk — eager import av alle 13 tabs sammen var den største
@@ -57,6 +58,8 @@ const ErneringTab = dynamic(() => import('./ErneringTab').then(m => ({ default: 
   { loading: () => <LoadingStub label="Laster ernærings-data…" />, ssr: false })
 const KlokkedataTrenderTab = dynamic(() => import('./KlokkedataTrenderTab').then(m => ({ default: m.KlokkedataTrenderTab })),
   { loading: () => <LoadingStub label="Laster klokkedata-trender…" />, ssr: false })
+const PrestasjonTab = dynamic(() => import('./PrestasjonTab').then(m => ({ default: m.PrestasjonTab })),
+  { loading: () => <LoadingStub label="Laster prestasjonsmål…" />, ssr: false })
 const WeatherTab = dynamic(() => import('./WeatherTab').then(m => ({ default: m.WeatherTab })),
   { loading: () => <LoadingStub label="Laster vær/føre-analyse…" />, ssr: false })
 const AltitudeHeatTab = dynamic(() => import('./AltitudeHeatTab').then(m => ({ default: m.AltitudeHeatTab })),
@@ -70,6 +73,7 @@ type Tab =
   | 'oversikt'
   | 'klokkedata'
   | 'belastning'
+  | 'prestasjon'
   | 'terskel'
   | 'skyting'
   | 'sammenlign'
@@ -103,6 +107,7 @@ const TABS: [Tab, string][] = [
   ['oversikt', 'Oversikt'],
   ['klokkedata', 'Klokkedata-trender'],
   ['belastning', 'Belastning'],
+  ['prestasjon', 'Prestasjon'],
   ['terskel', 'Terskel'],
   ['skyting', 'Skyting-dybde'],
   ['sammenlign', 'Sammenligning'],
@@ -218,6 +223,7 @@ function AnalysisPageInner({
   const [skiTesterData, setSkiTesterData] = useState<SkiTestAnalysisData | null>(null)
   const [nutritionAnalysis, setNutritionAnalysis] = useState<NutritionAnalysis | null>(null)
   const [klokkedata, setKlokkedata] = useState<KlokkedataTrender | null>(null)
+  const [prestasjon, setPrestasjon] = useState<PrestasjonAnalyse | null>(null)
 
   const resetLazyCache = () => {
     setCompetitionsAnalysis(null)
@@ -417,8 +423,16 @@ function AnalysisPageInner({
         setKlokkedata(res)
       })
     }
+    if (tab === 'prestasjon' && prestasjon === null) {
+      startTransition(async () => {
+        setError(null)
+        const res = await getPrestasjonAnalyse(range.from, range.to, targetUserId)
+        if ('error' in res) { setError(res.error); return }
+        setPrestasjon(res)
+      })
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, weatherAnalysis, altitudeHeatAnalysis, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata])
+  }, [tab, competitionsAnalysis, movementAnalysis, healthCorrelations, weatherAnalysis, altitudeHeatAnalysis, templateAnalysis, compareWorkouts, intensityDist, belastning, terskel, skyting, periodisering, testsAndPRs, skiTesterData, klokkedata, prestasjon])
 
   // Når Oversikt er aktiv og brukeren har stjerne-markerte grafer: forhånds-hent
   // kildedata for de fanene favorittene peker til, så FavoriteChartsSection får
@@ -706,6 +720,11 @@ function AnalysisPageInner({
           klokkedata
             ? <KlokkedataTrenderTab data={klokkedata} />
             : <LoadingStub label="Laster klokkedata-trender…" />
+        )}
+        {tab === 'prestasjon' && (
+          prestasjon
+            ? <PrestasjonTab data={prestasjon} />
+            : <LoadingStub label="Laster prestasjonsmål…" />
         )}
         </div>
       </div>

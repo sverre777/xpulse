@@ -16,6 +16,9 @@ export interface LapRow {
   avg_watts: number | null
   max_watts: number | null
   avg_speed_ms: number | null
+  // GAP — stigningsjustert fart (bolk 3). Settes kun på løpe-laps med
+  // høydeprofil; beregnes ved visning, lagres aldri.
+  gap_speed_ms?: number | null
   max_speed_ms: number | null
   avg_cadence: number | null
   max_cadence: number | null
@@ -91,7 +94,14 @@ export function LapTable({ laps, sport }: Props) {
                 <Td align="right">{lap.max_hr != null ? `${lap.max_hr}` : '—'}</Td>
               )}
               {showPace && (
-                <Td align="right">{fmtPace(lap.avg_speed_ms, sport)}</Td>
+                <Td align="right">
+                  {fmtPace(lap.avg_speed_ms, sport)}
+                  {lap.gap_speed_ms != null && (
+                    <span style={{ color: 'var(--tekst-8-app)' }}>
+                      {' '}→ <span title="GAP — stigningsjustert fart (tilnærming)" style={{ color: 'var(--tekst-3-app)' }}>{fmtPace(lap.gap_speed_ms, sport)}</span>
+                    </span>
+                  )}
+                </Td>
               )}
               {showWatt && (
                 <Td align="right">

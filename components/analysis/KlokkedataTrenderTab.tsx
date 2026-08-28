@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts'
 import type { KlokkedataTrender, TrendPoint, ZoneWeekPoint } from '@/app/actions/klokkedata-trender'
 import { ChartWrapper } from './ChartWrapper'
@@ -23,12 +23,9 @@ interface Props {
 
 export function KlokkedataTrenderTab({ data }: Props) {
   const hasAnything =
-    data.aerobEfficiency.length > 0 ||
-    data.wattPerHr.length > 0 ||
     data.sufferScore.length > 0 ||
     data.cadence.length > 0 ||
     data.powerCurve.length > 0 ||
-    data.cardiacDrift.length > 0 ||
     data.zonesPerWeek.length > 0
 
   if (!hasAnything) {
@@ -73,29 +70,10 @@ export function KlokkedataTrenderTab({ data }: Props) {
         </ChartWrapper>
       )}
 
-      {data.aerobEfficiency.length > 0 && (
-        <ChartWrapper title="Aerob effektivitet"
-          subtitle="Hastighet per slag — stigende over tid = bedre form"
-          chartKey="klokke_aerob_efficiency">
-          <EfficiencyChart points={data.aerobEfficiency} unitLabel="m/min per slag" />
-        </ChartWrapper>
-      )}
-
-      {data.cardiacDrift.length > 0 && (
-        <ChartWrapper title="Cardiac drift over tid"
-          subtitle="HR-stigning fra første til andre halvdel — lavere = bedre"
-          chartKey="klokke_cardiac_drift">
-          <DriftChart points={data.cardiacDrift} />
-        </ChartWrapper>
-      )}
-
-      {data.wattPerHr.length > 0 && (
-        <ChartWrapper title="Watt per puls"
-          subtitle="Power-effektivitet — sykling/ski med watt-meter"
-          chartKey="klokke_watt_per_hr">
-          <SimpleLineChart points={data.wattPerHr} unitLabel="W/bpm" color="#FFB300" />
-        </ChartWrapper>
-      )}
+      {/* «Aerob effektivitet», «Cardiac drift» og «Watt per puls» er
+          AVLØST av Analyse › Prestasjon (EF per bevegelsesform + ekte
+          Pw:Hr/Pa:Hr-frakobling, bolk 3) og fjernet herfra (regel 11/21).
+          Denne fanen beholder rå klokke-trendene. */}
 
       {data.powerCurve.length > 0 && (
         <ChartWrapper title="Power curve"
@@ -147,58 +125,6 @@ function Summary({ data }: { data: KlokkedataTrender }) {
         </span>
       </div>
     </div>
-  )
-}
-
-function EfficiencyChart({ points, unitLabel }: { points: TrendPoint[]; unitLabel: string }) {
-  return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-      <LineChart data={points}>
-        <CartesianGrid stroke={CHART_GRID} vertical={false} />
-        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
-        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={48} />
-        <Tooltip
-          content={<XpTooltip />}
-          formatter={(v, name, item) => {
-            const p = item.payload as TrendPoint
-            return [
-              <span key="row">
-                <strong>{Number(v).toFixed(2)}</strong> {unitLabel}
-                <br />Puls: {p.hr} bpm{p.speed != null ? ` · Fart: ${p.speed.toFixed(1)} km/t` : ''}
-              </span>,
-              p.title,
-            ]
-          }}
-        />
-        <Line type="monotone" dataKey="value" stroke="#3DD68C" strokeWidth={1.5}
-          dot={{ r: 3, fill: '#3DD68C' }} isAnimationActive={false} />
-      </LineChart>
-    </ResponsiveContainer>
-  )
-}
-
-function DriftChart({ points }: { points: TrendPoint[] }) {
-  return (
-    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-      <LineChart data={points}>
-        <CartesianGrid stroke={CHART_GRID} vertical={false} />
-        <XAxis dataKey="date" tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} />
-        <YAxis tick={CHART_AXIS_TICK} stroke={CHART_GRID_ZERO} width={42}
-          tickFormatter={v => `${v}%`} />
-        <Tooltip
-          content={<XpTooltip />}
-          formatter={(v, _name, item) => {
-            const p = item.payload as TrendPoint
-            return [`${Number(v).toFixed(1)}%`, p.title]
-          }}
-        />
-        {/* 5%-grense — over dette er drift markant. */}
-        <ReferenceLine y={5} stroke="#FFB300" strokeDasharray="4 4" />
-        <ReferenceLine y={0} stroke={CHART_GRID_ZERO} />
-        <Line type="monotone" dataKey="value" stroke="#FF4500" strokeWidth={1.5}
-          dot={{ r: 3, fill: '#FF4500' }} isAnimationActive={false} />
-      </LineChart>
-    </ResponsiveContainer>
   )
 }
 

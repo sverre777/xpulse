@@ -52,8 +52,14 @@ export function LinkWorkoutActions({
   const [showPicker, setShowPicker] = useState(false)
   const [flettMedId, setFlettMedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [linkedToId, setLinkedToId] = useState<string | null>(null)
-  const [linkedFromId, setLinkedFromId] = useState<string | null>(null)
+  // Lagres med økt-id-en svaret gjaldt — lesing gater på match, så
+  // ingen nullstillings-effect (og ingen sync setState) trengs ved
+  // bytte av økt i samme montering.
+  const [linkedSvar, setLinkedSvar] = useState<{
+    id: string; to: string | null; from: string | null
+  } | null>(null)
+  const linkedToId = linkedSvar?.id === workoutId ? linkedSvar.to : null
+  const linkedFromId = linkedSvar?.id === workoutId ? linkedSvar.from : null
 
   // Kilden i en flett er ALLTID den synkede økta; mål kan være planlagt
   // eller ført. Denne komponenten kan stå i begge.
@@ -65,21 +71,15 @@ export function LinkWorkoutActions({
   })()
   const isFutureDate = date > todayStr
 
-  useEffect(() => {
-    setCandidates(null)
-    setLinkedToId(null)
-    setLinkedFromId(null)
-  }, [workoutId, date])
-
   // Kun flett-TILSTANDEN sjekkes ved mount (den bytter pillen mot merket).
   // Kandidatene hentes først når pickeren åpnes — pillen selv står i kortet
   // fra første render (fasit: aldri etterlastet).
   useEffect(() => {
     let cancelled = false
-    getSameDateLinkCandidates(workoutId, targetUserId).then(res => {
+    const id = workoutId
+    getSameDateLinkCandidates(id, targetUserId).then(res => {
       if (cancelled || 'error' in res) return
-      setLinkedToId(res.sourceLinkedToId)
-      setLinkedFromId(res.sourceLinkedFromId)
+      setLinkedSvar({ id, to: res.sourceLinkedToId, from: res.sourceLinkedFromId })
       onLinkStateChange?.(res.sourceLinkedToId !== null || res.sourceLinkedFromId !== null || alreadyLinked)
     })
     return () => { cancelled = true }
@@ -355,7 +355,9 @@ function FlettDialog({
   targetUserId?: string
   onClose: () => void
 }) {
-  const [modus, setModus] = useState<FlettModus>('legg_bak')
+  // «Bytt ut» øverst og forvalgt (Sverre 28. aug) — det er modusen som
+  // kommer til å bli brukt mest.
+  const [modus, setModus] = useState<FlettModus>('bytt_ut')
   const [grunnlag, setGrunnlag] = useState<FlettGrunnlag | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -412,6 +414,24 @@ function FlettDialog({
         </div>
 
         <div className="p-4 space-y-3">
+          <button type="button" onClick={() => setModus('bytt_ut')} style={radioStyle(modus === 'bytt_ut')}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
+              {modus === 'bytt_ut' ? '●' : '○'} BYTT UT AKTIVITETENE — klokkas runder inn
+            </div>
+            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+              Klokkas runder, rundetider, distanse og soner erstatter
+              aktivitetene i økta. Notater, følelse, skyting og tags står.
+            </p>
+            <p className="text-xs mt-2 px-2 py-1" style={{
+              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
+              border: '1px dashed var(--kant-3)',
+            }}>
+              {grunnlag
+                ? <>Aktivitetene dine: <b>{grunnlag.maalRader} {grunnlag.maalRader === 1 ? 'rad' : 'rader'} erstattes</b> · Inn: <b>{grunnlag.kildeRader} {grunnlag.kildeRader === 1 ? 'runde' : 'runder'} fra klokka</b></>
+                : 'Henter tall …'}
+            </p>
+          </button>
+
           <button type="button" onClick={() => setModus('legg_bak')} style={radioStyle(modus === 'legg_bak')}>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
               {modus === 'legg_bak' ? '●' : '○'} LEGG BAK — økta di er sjefen
@@ -427,24 +447,6 @@ function FlettDialog({
             }}>
               {grunnlag
                 ? <>Aktivitetene dine: <b>0 endres</b> · Inn: puls, kurve, totaltid{grunnlag.kildeVarighetMin != null ? ` (${grunnlag.kildeVarighetMin} min)` : ''}, soner</>
-                : 'Henter tall …'}
-            </p>
-          </button>
-
-          <button type="button" onClick={() => setModus('bytt_ut')} style={radioStyle(modus === 'bytt_ut')}>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 700, letterSpacing: '0.04em' }}>
-              {modus === 'bytt_ut' ? '●' : '○'} BYTT UT AKTIVITETENE — klokkas runder inn
-            </div>
-            <p className="text-xs mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-              Klokkas runder, rundetider, distanse og soner erstatter
-              aktivitetene i økta. Notater, følelse, skyting og tags står.
-            </p>
-            <p className="text-xs mt-2 px-2 py-1" style={{
-              fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)',
-              border: '1px dashed var(--kant-3)',
-            }}>
-              {grunnlag
-                ? <>Aktivitetene dine: <b>{grunnlag.maalRader} {grunnlag.maalRader === 1 ? 'rad' : 'rader'} erstattes</b> · Inn: <b>{grunnlag.kildeRader} {grunnlag.kildeRader === 1 ? 'runde' : 'runder'} fra klokka</b></>
                 : 'Henter tall …'}
             </p>
           </button>

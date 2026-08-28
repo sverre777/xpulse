@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Plasser aktivitet i tid + drag-rekkefølge (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --prone:#38BDF8; --staa:#FF4500;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 34px;max-width:660px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:30px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+
+/* Pulsgraf med draggbart vindu */
+.grafboks{position:relative;user-select:none}
+svg{display:block}
+.gtxt{font:10.5px 'Inter';fill:var(--mute)}
+.vindu{position:absolute;top:8px;bottom:26px;background:rgba(255,69,0,.16);border:1.5px solid var(--orange);border-radius:6px;cursor:grab;touch-action:none}
+.vindu:active{cursor:grabbing}
+.vindu .h{position:absolute;top:0;bottom:0;width:12px;cursor:ew-resize}
+.vindu .h.l{left:-7px}.vindu .h.r{right:-7px}
+.vindu .h::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:26px;border-radius:2px;background:var(--orange)}
+.vindu .lab{position:absolute;top:-2px;left:50%;transform:translate(-50%,-100%);white-space:nowrap;
+  font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.08em;color:var(--orange)}
+.leser{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:13.5px}
+.leser b{font-weight:700}
+.leser .dim{color:var(--dim)}
+.knapper{display:flex;gap:10px;margin-top:14px}
+.pill{border-radius:999px;padding:10px 22px;cursor:pointer;border:0;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:13.5px}
+.pill.o{background:var(--orange);color:#fff}
+.pill.g{background:transparent;border:1.5px solid var(--line2);color:var(--paper)}
+
+/* Drag-rekkefølge */
+.akt{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line2);border-left:3px solid var(--green);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:13.5px}
+.akt .grip{color:var(--mute);cursor:grab;font-size:16px;letter-spacing:-2px}
+.akt .n{font-weight:600}
+.akt .n span{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.akt .m{margin-left:auto;color:var(--dim);text-align:right}
+.akt.sky{border-left-color:var(--staa)}
+.akt.dragges{opacity:.45;border-style:dashed}
+.slipp{border:2px dashed var(--orange);border-radius:10px;height:44px;margin-bottom:8px;display:none;
+  align-items:center;justify-content:center;color:var(--orange);font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.12em}
+.slipp.vis{display:flex}
+
+.notat{margin-top:60px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>PLASSER I TID + <span class="acc">DRA I REKKEFØLGE.</span></h1>
+<p class="sub">To små, adskilte ting: (1) sett en aktivitet inn i øktas tidslinje ved å dra et vindu på pulsgrafen — for økter UTEN runder, der klokka bare har totalen. (2) drag-and-drop-rekkefølge på radene — ren visning. Finnes runder fra klokka, trengs ingen av delene: omdøp runden, den har alt.</p>
+
+<!-- ═══ 1 · VINDUET PÅ PULSGRAFEN ═══ -->
+<div class="demo"><b>1 · «Plasser i tid»</b> — dra vinduet, håndtakene endrer lengden. Prøv.</div>
+
+<div class="card">
+  <div class="ch"><h3>TESTLØP 12,5 KM — SETT INN SKYTINGA</h3><span class="m">økta har ingen runder · klokke: 38:12 totalt</span></div>
+  <div class="grafboks" id="gb">
+    <svg viewBox="0 0 640 150" width="100%" height="150">
+      <line x1="0" y1="124" x2="640" y2="124" stroke="var(--line2)"/>
+      <path d="M0 96 C20 70,36 58,60 54 S110 44,140 42 170 40,190 46 210 78,228 82 246 60,270 48 300 40,330 38 352 36,368 44 388 84,404 88 420 64,450 50 480 40,540 36 600 32,640 34"
+            fill="none" stroke="var(--red)" stroke-width="2"/>
+      <text x="4" y="140" class="gtxt">0:00</text><text x="300" y="140" class="gtxt">19:00</text><text x="600" y="140" class="gtxt">38:12</text>
+    </svg>
+    <div class="vindu" id="vin" style="left:31%;width:8%">
+      <div class="lab" id="vlab">SKYTING · LIGG</div>
+      <div class="h l" data-h="l"></div><div class="h r" data-h="r"></div>
+    </div>
+  </div>
+  <div class="leser">
+    <span class="dim">Vindu:</span><span><b id="vt">11:52 – 14:56</b></span>
+    <span class="dim">Varighet:</span><span><b id="vd">3:04</b></span>
+    <span class="dim">Puls i vinduet (fra kurven):</span><span><b id="vp">snitt 148 · inn 168</b></span>
+  </div>
+  <div class="knapper">
+    <button class="pill o">LAGRE PLASSERING ✓</button>
+    <button class="pill g">AVBRYT</button>
+  </div>
+</div>
+
+<!-- ═══ 1b · SAMME VISNING MED RUNDER ═══ -->
+<div class="demo"><b>1b · Med runder fra klokka</b> — omdøpt runde til skyting: samme kurvevisning, vinduet er LÅST til rundens tid</div>
+
+<div class="card">
+  <div class="ch"><h3>HARD KOMB 5×4 — SKYTINGA PÅ KURVEN</h3><span class="m">runder finnes · vinduet følger runden, kan ikke dras</span></div>
+  <div class="grafboks">
+    <svg viewBox="0 0 640 150" width="100%" height="150">
+      <line x1="0" y1="124" x2="640" y2="124" stroke="var(--line2)"/>
+      <path d="M0 100 C24 72,44 60,70 56 S120 46,150 44 176 42,196 50 216 88,236 92 258 62,286 50 316 42,346 40 368 38,386 48 406 90,424 94 446 66,478 52 510 42,570 38 620 34,640 36"
+            fill="none" stroke="var(--red)" stroke-width="2"/>
+      <!-- to låste skytevinduer (rundenes grenser) -->
+      <rect x="196" y="8" width="44" height="116" rx="6" fill="rgba(56,189,248,.14)" stroke="var(--prone)" stroke-width="1.5"/>
+      <rect x="386" y="8" width="42" height="116" rx="6" fill="rgba(255,69,0,.13)" stroke="var(--staa)" stroke-width="1.5"/>
+      <text x="199" y="20" class="gtxt" fill="var(--prone)">LIGG 5/5</text>
+      <text x="389" y="20" class="gtxt" fill="var(--staa)">STÅ 4/5</text>
+      <text x="4" y="140" class="gtxt">0:00</text><text x="600" y="140" class="gtxt">42:30</text>
+    </svg>
+  </div>
+  <div class="leser">
+    <span class="dim">Ligg:</span><span><b>12:04–13:31 · puls inn 168 · snitt 151</b></span>
+    <span class="dim">Stå:</span><span><b>24:40–26:02 · puls inn 172 · snitt 156</b></span>
+  </div>
+</div>
+
+<!-- ═══ 1c · HELE ØKTA SOM FORTELLING ═══ -->
+<div class="demo"><b>1c · Hele økta på kurven</b> — alle radene med tidsvindu blir segmenter: oppvarming, drag, skyting, nedjogg</div>
+
+<div class="card">
+  <div class="ch"><h3>ØKTA SOM FORTELLING</h3><span class="m">segmentbånd under kurven · gjelder alle idretter, ikke bare skiskyting</span></div>
+  <svg viewBox="0 0 640 168" width="100%" height="168">
+    <line x1="0" y1="118" x2="640" y2="118" stroke="var(--line2)"/>
+    <path d="M0 104 C24 84,50 72,84 66 S150 56,180 50 216 44,236 48 260 88,280 92 306 56,336 46 366 40,388 44 410 88,428 92 452 58,484 48 516 42,556 60 600 84,640 88"
+          fill="none" stroke="var(--red)" stroke-width="2"/>
+    <!-- segmentbånd -->
+    <g>
+      <rect x="0"   y="126" width="118" height="14" rx="4" fill="var(--green)" opacity=".8"/>
+      <rect x="122" y="126" width="112" height="14" rx="4" fill="var(--gold)" opacity=".85"/>
+      <rect x="238" y="126" width="40"  height="14" rx="4" fill="var(--prone)"/>
+      <rect x="282" y="126" width="120" height="14" rx="4" fill="var(--gold)" opacity=".85"/>
+      <rect x="406" y="126" width="40"  height="14" rx="4" fill="var(--staa)"/>
+      <rect x="450" y="126" width="106" height="14" rx="4" fill="var(--gold)" opacity=".85"/>
+      <rect x="560" y="126" width="80"  height="14" rx="4" fill="var(--green)" opacity=".8"/>
+    </g>
+    <text x="2"   y="156" class="gtxt">Oppv.</text>
+    <text x="150" y="156" class="gtxt">Drag 1</text>
+    <text x="238" y="156" class="gtxt">Ligg</text>
+    <text x="316" y="156" class="gtxt">Drag 2</text>
+    <text x="406" y="156" class="gtxt">Stå</text>
+    <text x="484" y="156" class="gtxt">Drag 3</text>
+    <text x="562" y="156" class="gtxt">Nedjogg</text>
+    <text x="4" y="114" class="gtxt">0:00</text><text x="600" y="114" class="gtxt">52:40</text>
+  </svg>
+  <div class="leser"><span class="dim">Hold over et segment:</span><span><b>tid · varighet · snittpuls · (treff for skyting)</b></span></div>
+</div>
+
+<!-- ═══ 2 · DRAG-REKKEFØLGE ═══ -->
+<div class="demo"><b>2 · Rekkefølge</b> — grip ⣿ og dra en rad. Ren visning, aldri data.</div>
+
+<div class="card" id="liste">
+  <div class="akt" draggable="true"><span class="grip">⣿</span><span class="n">Oppvarming<span>Løping · 15:02</span></span><span class="m">2,4 km<br>snitt 121</span></div>
+  <div class="akt sky" draggable="true"><span class="grip">⣿</span><span class="n">Skyting · liggende<span>plassert 11:52–14:56 ⌚</span></span><span class="m">4/5 treff<br>snitt 148</span></div>
+  <div class="akt" draggable="true"><span class="grip">⣿</span><span class="n">Konkurransefart<span>Rulleski · skøyting · 19:40</span></span><span class="m">8,1 km<br>snitt 164</span></div>
+  <div class="akt" draggable="true"><span class="grip">⣿</span><span class="n">Nedjogg<span>Løping · 8:10</span></span><span class="m">1,2 km<br>snitt 122</span></div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <ul>
+    <li><b>MENTAL MODELL (Sverre 28. aug): «intervall-byggeren, bare for
+    klokkesynk».</b> Byggeren tegner strukturen FØR økta — dette tegner
+    den PÅ den gjennomførte, med pulskurven som lerret. Gjenbruk
+    byggerens designspråk (blokker, håndtak, interaksjonsmønster) der
+    det passer, så flaten forklarer seg selv.</li>
+    <li><b>NAVN OG INNGANGER (Sverre 28. aug, låst):</b> funksjonen heter
+    <b>«BYGG ØKTEN»</b> (spiller bevisst på intervall-byggeren; ⌚ eller
+    underteksten «på klokkedataene» skiller dem). TO innganger i
+    økt-visningen, samme pop-up (regel 11 — én komponent):
+    <br>· nede ved <b>AKTIVITETENE</b> (der radene bor)
+    <br>· i <b>KLOKKESYNC-seksjonen</b> (ved økt-grafen — der kurven bor)
+    <br>Begge rendres med sida, pill-stil, svarer i samme tick.</li>
+    <li><b>KOLLAPSET I ØKTA, REDIGERING I POP-UP (Sverre 28. aug):</b>
+    samme mønster som byggeren — i økt-visningen ligger dette som et
+    KOLLAPSET segmentbånd (1c-miniatyren: kurve + bånd, lesevisning).
+    Klikk/«Rediger» åpner POP-UPEN med full flate: dra vinduer, plasser
+    skyting, endre rekkefølge. Konvensjonen «tunge byggere i
+    analysen/pop-up, lette kort i økta» gjelder. Pop-upen åpner i samme
+    tick (regel 20), kollapset visning koster aldri en ekstra lasting.</li>
+    <li><b>AVGRENSNINGEN ER HELE POENGET:</b> «Plasser i tid» (draggbart vindu) finnes KUN på økter uten runder. Finnes runder: omdøp runden (virker i dag) — den har tid og puls.</li>
+    <li><b>HELE ØKTA SOM SEGMENTBÅND (1c, Sverre 28. aug):</b> alle rader
+    med tidsvindu tegnes som segmenter under pulskurven — oppvarming,
+    drag, pause, skyting, nedjogg — OG BYTTE AV BEVEGELSESFORM (løping →
+    rulleski i en kombi-økt vises som egne segmenter med bev.form i
+    etiketten). Gjelder alle idretter. Tooltip per segment: tid,
+    varighet, snittpuls, treff for skyting. Segmentfarger: skyting bruker
+    skytefargene (ligg #38BDF8 / stå #FF4500); øvrige typer får dempede
+    nøytrale/eksisterende typefarger — IKKE sonefargene I1–I5 (de betyr
+    intensitet, ikke aktivitetstype — to betydninger på samme farge er
+    regel 11-brudd). Fargevalget legges fram før bygging.</li>
+    <li><b>VISNINGEN ER UNIVERSELL (Sverre 28. aug):</b> kurve-visningen med skytevindu + puls gjelder BEGGE veier — omdøpt runde får samme markering på pulskurven, bare med vinduet LÅST til rundens grenser (ikke draggbart). Én komponent, to modi: låst (fra runde) / draggbar (manuelt plassert). Liggende bruker prone-blå (#38BDF8), stående #FF4500 — skytefargefasiten.</li>
+    <li><b>To adskilte ting:</b> tidsplassering = DATA (valgfrie kolonner start-offset + varighet på aktivitetsraden, forankret i øktas tidslinje) · drag-rekkefølge = VISNING (<code>sort_order</code>, aldri data). Bland dem aldri.</li>
+    <li><b>Puls i vinduet</b> regnes fra workout_samples i [start, start+varighet] — snitt/maks + «puls inn» (siste verdi før vinduet). Lagres IKKE som kopi: beregnes ved visning fra samples (én kilde, regel 11). Ingen samples i vinduet → «for lite data».</li>
+    <li><b>SPLITT AV RUNDE/PAUSE (Sverre 28. aug):</b> plasseres et
+    skytevindu INNI en eksisterende runde/pause, splittes raden: skyting
+    får sitt vindu (f.eks. 30 sek fra valgt tidspunkt), og RESTEN av
+    radens tid blir pause eller AKTIV PAUSE — brukeren velger type i
+    dialogen (husk siste valg). Splitten skjer i data (nye rader med
+    tidsvinduer), er angrbar, og original-raden kan gjenopprettes.
+    CC foreslår implementasjonen (splitt-mekanikken) til godkjenning
+    før bygging.</li>
+    <li><b>KONKURRANSE (Sverre 28. aug):</b> på en konkurranse-økt skal
+    skytingene kunne plasseres på kurven på samme måte — og
+    <b>STRAFFERUNDER</b> som egne segmenter (egen type/merking, valgfritt
+    — kun når man faktisk gikk dem). Strafferunde-segmentet viser tid og
+    puls som andre segmenter.</li>
+    <li><b>STAFETT — RESERVESKUDD (Sverre 28. aug):</b> serie-modellen må
+    støtte reserveskudd (0–3 ekstra skudd per skyting, stafett).
+    CC MÅLER FØRST om workout_shooting_blocks har felt for dette i prod
+    (regel 5/8) — mangler det, er det en egen liten migrering til
+    godkjenning + visning i serien («5 + 2 reserve · 8/10»). Gjelder
+    skyting-modellen generelt, ikke bare denne flaten.</li>
+    <li><b>KUN KLOKKESYNKET ØKT (Sverre 28. aug):</b> «Bygg økten» vises
+    KUN på økter som har klokkesynket data (pulskurve/samples). Manuelle
+    økter uten kurve får ikke inngangen — verken ved Aktivitetene eller i
+    Klokkesync-seksjonen.</li>
+    <li><b>SKYTETID = STATISTIKK-PORTEN (Sverre 28. aug, overstyrer
+    tidligere startlengde-punkt):</b> brukeren velger hvor skytingen
+    <b>STARTER</b> på kurven. Uten ført skytetid er vinduet <b>KUN en
+    puls-markering</b> — standard <b>~40 sek</b> for pulsvinduets skyld —
+    og holdes <b>UTENFOR all skytetid-statistikk</b> (snitt skytetid,
+    grafer, sammenligninger). Føres en faktisk skytetid, brukes DEN som
+    vinduslengde automatisk (én kilde — skytetid-feltet er fasit for
+    lengden) OG skytingen regnes inn i statistikken. Prinsipp: aldri et
+    statistikktall fra et vindu uten ført tid. Uansett utgangspunkt:
+    vinduet kan alltid dras og strekkes etterpå — forslaget låser aldri
+    (drag endrer plassering/pulsvindu, ikke statistikk-status).</li>
+    <li><b>Vinduet</b> er draggbart (flytt) med håndtak i begge ender (endre lengde), touch-vennlig (håndtak ≥ 36px treffflate — regel om treffflater), verdiene under oppdateres live. Lagre/Avbryt svarer i samme tick (regel 20).</li>
+    <li><b>Skyteserier:</b> når en rad med serier får tidsvindu, arver serie-visningen vinduets puls («puls inn» per serie kan settes senere — ikke i denne bolken).</li>
+    <li><b>Vinduer kan ikke overlappe</b> et eksisterende klokke-vindu på samme økt; to manuelt plasserte vinduer kan heller ikke overlappe hverandre. Valider ved lagring, ærlig feilmelding (regel 22).</li>
+    <li><b>Migrering:</b> nye valgfrie kolonner, ingen backfill — eksisterende rader står uten vindu. SQL m/ før/etter til Sverre.</li>
+    <li><b>Uavhengig av flett-motoren</b> — flett_okter røres ikke. Skyting-fredingen i modus B står som sikkerhetsnett.</li>
+    <li><b>Lys + mørk</b> (regel 23) · regel 17 · regel 24.</li>
+    <li>«Flytt serier mellom rader»-verktøyet er VURDERT OG DROPPET (28. aug) — like mange klikk som å føre på nytt. Ikke gjenoppliv det.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+/* Vindu-drag (mock) */
+const gb=document.getElementById('gb'),vin=document.getElementById('vin');
+let mode=null,startX=0,startL=0,startW=0;
+const TOT=38.2*60;
+function pct(p){return Math.max(0,Math.min(100,p))}
+function fmt(s){s=Math.round(s);const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0')}
+function oppdater(){
+  const l=parseFloat(vin.style.left),w=parseFloat(vin.style.width);
+  const a=TOT*l/100,b=TOT*(l+w)/100;
+  document.getElementById('vt').textContent=fmt(a)+' – '+fmt(b);
+  document.getElementById('vd').textContent=fmt(b-a);
+  const snitt=Math.round(140+20*Math.sin(l/8)),inn=snitt+18;
+  document.getElementById('vp').textContent='snitt '+snitt+' · inn '+inn;
+}
+vin.addEventListener('pointerdown',e=>{
+  mode=e.target.dataset.h||'m';startX=e.clientX;
+  startL=parseFloat(vin.style.left);startW=parseFloat(vin.style.width);
+  vin.setPointerCapture(e.pointerId);e.preventDefault();
+});
+vin.addEventListener('pointermove',e=>{
+  if(!mode)return;
+  const dx=(e.clientX-startX)/gb.offsetWidth*100;
+  if(mode==='m'){vin.style.left=pct(Math.min(startL+dx,100-startW))+'%'}
+  else if(mode==='l'){const nl=pct(Math.min(startL+dx,startL+startW-3));vin.style.left=nl+'%';vin.style.width=(startL+startW-nl)+'%'}
+  else{vin.style.width=Math.max(3,Math.min(startW+dx,100-startL))+'%'}
+  oppdater();
+});
+vin.addEventListener('pointerup',()=>mode=null);
+oppdater();
+
+/* Drag-rekkefølge (mock) */
+const liste=document.getElementById('liste');let dra=null;
+liste.querySelectorAll('.akt').forEach(a=>{
+  a.addEventListener('dragstart',()=>{dra=a;setTimeout(()=>a.classList.add('dragges'))});
+  a.addEventListener('dragend',()=>{dra&&dra.classList.remove('dragges');dra=null});
+  a.addEventListener('dragover',e=>{
+    e.preventDefault();
+    if(!dra||dra===a)return;
+    const r=a.getBoundingClientRect();
+    liste.insertBefore(dra, e.clientY < r.top+r.height/2 ? a : a.nextSibling);
+  });
+});
+</script>
+</body>
+</html>

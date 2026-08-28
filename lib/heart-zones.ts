@@ -66,10 +66,15 @@ export async function getHeartZonesForUser(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<HeartZone[]> {
+  // Fase 110: user_heart_zones har movement-nøkkel — '' × '' er
+  // globalnivået (dagens rader). Denne funksjonen er den GLOBALE
+  // oppslagsveien; per-bevegelsesform-soner kobles på i senere bolker.
   const { data: zones } = await supabase
     .from('user_heart_zones')
     .select('zone_name, min_bpm, max_bpm')
     .eq('user_id', userId)
+    .eq('movement_name', '')
+    .eq('movement_subcategory', '')
 
   if (zones && zones.length === ZONE_NAMES.length) {
     const byName = new Map(zones.map(z => [z.zone_name, z]))

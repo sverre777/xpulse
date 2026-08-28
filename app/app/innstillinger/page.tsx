@@ -100,10 +100,10 @@ export default async function InnstillingerPage({ searchParams }: Props) {
 
           {!isCoachMode && (
             <SettingsCategoryCard
-              href="/app/innstillinger/helse"
+              href="/app/innstillinger/profil/terskler"
               glyph="♥"
-              title="Helse og soner"
-              description="HFmaks, terskel, hvilepuls og pulssoner"
+              title="Terskler, soner & helse"
+              description="Terskler per bevegelsesform, pulssoner og helseprofil — under Profil"
               accent={accent}
             />
           )}

@@ -3110,7 +3110,7 @@ export async function getBelastningAnalysis(
 // ── Terskel: laktat-profil, LT1/LT2-estimat, laktat-respons per mal ──
 // Én måling = én punkt i scatter (mmol, HR). Regression gir grov estimat
 // for HR ved mmol=2 (LT1) og mmol=4 (LT2). Brukerens satte terskelpuls
-// (profiles.lactate_threshold_hr) vises for sammenligning.
+// (user_thresholds, nyeste gyldige versjon) vises for sammenligning.
 
 export interface LactatePoint {
   date: string                   // YYYY-MM-DD
@@ -3216,10 +3216,19 @@ export async function getTerskelAnalysis(
       .order('date', { ascending: true })
     if (sportFilter) q = q.eq('sport', sportFilter)
 
-    const [workoutsRes, templatesRes, profileRes] = await Promise.all([
+    // Terskelen leses fra user_thresholds (fase 110) — nyeste gyldige
+    // versjon per i dag, globalnivået ('' × '') først, ellers nyeste
+    // satte nøkkel. profiles.lactate_threshold_hr er FROSSET (leses og
+    // skrives ikke; pensjoneres i egen opprydding).
+    const iDag = new Date().toISOString().slice(0, 10)
+    const [workoutsRes, templatesRes, terskelRes] = await Promise.all([
       q,
       supabase.from('workout_templates').select('id,name').eq('user_id', userId),
-      supabase.from('profiles').select('lactate_threshold_hr').eq('id', userId).single(),
+      supabase.from('user_thresholds')
+        .select('threshold_hr, movement_name, movement_subcategory, valid_from')
+        .eq('user_id', userId)
+        .lte('valid_from', iDag)
+        .order('valid_from', { ascending: false }),
     ])
     if (workoutsRes.error) return { error: workoutsRes.error.message }
     if (templatesRes.error) return { error: templatesRes.error.message }
@@ -3276,7 +3285,12 @@ export async function getTerskelAnalysis(
     const reg = linearRegression(withHr)
     const lt1 = reg ? reg.slope * 2 + reg.intercept : null
     const lt2 = reg ? reg.slope * 4 + reg.intercept : null
-    const profileThresholdHr = (profileRes.data as { lactate_threshold_hr: number | null } | null)?.lactate_threshold_hr ?? null
+    type TerskelRow = { threshold_hr: number; movement_name: string; movement_subcategory: string }
+    const terskelRows = (terskelRes.data ?? []) as TerskelRow[]
+    const profileThresholdHr =
+      terskelRows.find(t => t.movement_name === '' && t.movement_subcategory === '')?.threshold_hr
+      ?? terskelRows[0]?.threshold_hr
+      ?? null
 
     // Per-mal statistikk.
     const byTemplateMap = new Map<string, LactatePoint[]>()

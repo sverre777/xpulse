@@ -7,8 +7,8 @@ import { getHeartZonesForUser, type HeartZone } from './heart-zones'
 // `getHeartZonesForUser` kalles 10+ ganger per Analyse-sidelast og 1+ ganger
 // per Dagbok/Plan/workout-modal — uten cache er det 10+ DB-roundtrips per request.
 //
-// Tag-basert invalidering: bruker-endring (saveCustomHeartZones,
-// resetHeartZonesToAuto, saveHeartRateProfile, updateProfile) kaller
+// Tag-basert invalidering: bruker-endring (lagreEgneSoner,
+// slaaAvEgneSoner, lagreHelseProfil i terskler.ts + updateProfile) kaller
 // `updateTag('heart-zones-{userId}')` i samme server-action så
 // read-your-own-write fungerer (ingen stale data etter lagring).
 //

@@ -1517,6 +1517,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           </div>
         )}
         <ActivitiesSection
+          targetUserId={targetUserId}
           rows={form.activities}
           onChange={a => set('activities', a)}
           sport={form.sport}

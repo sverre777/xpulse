@@ -265,9 +265,12 @@ function MovementZones({ weeks }: { weeks: MovementAnalysis['weeks'] }) {
     I3: Math.round(w.zones.I3 / 60),
     I4: Math.round(w.zones.I4 / 60),
     I5: Math.round(w.zones.I5 / 60),
+    I6: Math.round((w.zones.I6 ?? 0) / 60),
+    I7: Math.round((w.zones.I7 ?? 0) / 60),
+    I8: Math.round((w.zones.I8 ?? 0) / 60),
     Hurtighet: Math.round(w.zones.Hurtighet / 60),
   }))
-  const totalZones = data.reduce((s, r) => s + r.I1 + r.I2 + r.I3 + r.I4 + r.I5 + r.Hurtighet, 0)
+  const totalZones = data.reduce((s, r) => s + r.I1 + r.I2 + r.I3 + r.I4 + r.I5 + (r.I6 ?? 0) + (r.I7 ?? 0) + (r.I8 ?? 0) + r.Hurtighet, 0)
   if (totalZones === 0) return null
   return (
     <ChartWrapper chartKey="bevegelse_zones_per_week" title="Sonefordeling per uke" subtitle="Minutter">

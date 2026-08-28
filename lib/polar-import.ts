@@ -325,7 +325,7 @@ async function computeZonesForWorkout(
   const seconds = computeZoneSecondsFromSamples(hr, zones, 0, durationSec > 0 ? durationSec : undefined)
   const total = seconds.I1 + seconds.I2 + seconds.I3 + seconds.I4 + seconds.I5
   if (total <= 0) return null
-  return { ...seconds, Hurtighet: 0 }
+  return { ...seconds, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
 }
 
 interface SameDayWorkout {

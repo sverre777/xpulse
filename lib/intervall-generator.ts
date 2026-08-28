@@ -13,6 +13,7 @@
 // `workout_type` settes IKKE. Det er mal-fiksens felt — se SF-10.
 // Ingenting låses: radene er helt vanlige og fritt redigerbare etterpå.
 
+import { emptyActivityZones } from './types'
 import {
   blokkerTilSoner,
   sekTilKlokke,
@@ -182,7 +183,7 @@ function skyterad(blokker: GenerertBlokk[]): ActivityRow {
       shooting_series: blokker.map(b => serie(b.posisjon as 'L' | 'S')),
     }),
     duration: sekTilKlokke(totalSekunder(blokker)),
-    zones: blokkerTilSoner(blokker),
+    zones: { ...emptyActivityZones(), ...blokkerTilSoner(blokker) },
   }
 }
 
@@ -211,7 +212,7 @@ export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
       rader.push({
         ...makeActivity({ activity_type: 'aktivitet', ...bevegelseFor('aktivitet', konfig) }),
         duration: sekTilKlokke(totalSekunder(bevegelse)),
-        zones: blokkerTilSoner(bevegelse),
+        zones: { ...emptyActivityZones(), ...blokkerTilSoner(bevegelse) },
       })
     }
     if (skyting.length > 0) rader.push(skyterad(skyting))
@@ -224,7 +225,7 @@ export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
       : {
           ...makeActivity({ activity_type: b.type, ...bevegelseFor(b.type, konfig) }),
           duration: sekTilKlokke(b.sek),
-          zones: blokkerTilSoner([b]),
+          zones: { ...emptyActivityZones(), ...blokkerTilSoner([b]) },
         }
   ))
 }

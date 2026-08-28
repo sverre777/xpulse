@@ -8,8 +8,20 @@ export const ZONE_NAMES: ZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5']
 // ZoneName/ZONE_NAMES (som brukes av zoneForHeartRate og user_heart_zones).
 export const SPEED_ZONE = 'Hurtighet' as const
 export type SpeedZone = typeof SPEED_ZONE
-export type ExtendedZoneName = ZoneName | SpeedZone
-export const ALL_ZONE_NAMES: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', SPEED_ZONE]
+
+// Utvidet skala (fase 111): I6–I8 er INTENSITETSMERKER for
+// planlegging/føring — aldri pulssoner. De får aldri pulsspenn, og
+// makspulsen er toppen av I5 uansett. Om skalaen er PÅ styres av
+// profiles.utvidet_skala (én sannhet per utøver); språkvalget leses
+// KUN via lib/sonesprak.
+export const UTVIDET_SONER = ['I6', 'I7', 'I8'] as const
+export type UtvidetSone = (typeof UTVIDET_SONER)[number]
+
+export type ExtendedZoneName = ZoneName | SpeedZone | UtvidetSone
+// I6–I8 ligger FØR Hurtighet: aggregeringsbøttene finnes alltid
+// (data-drevet visning viser kun bøtter med innhold), og Hurtighet
+// beholder sisteplassen den alltid har hatt.
+export const ALL_ZONE_NAMES: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', SPEED_ZONE]
 
 export interface HeartZone {
   zone_name: ZoneName

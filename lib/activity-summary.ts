@@ -25,6 +25,15 @@ export const ZONE_COLORS_V2: Record<ExtendedZoneName, string> = {
   I3: '#E8B93C',
   I4: '#FF8C00',
   I5: '#E23A5A',
+  // I6–I8 (fase 111, CVD-validert nabopar-ΔE ≥ 44 i verste tilfelle):
+  // MERK: I6-fiolett ligger bevisst nær Hurtighet-lilla. Det er trygt
+  // KUN fordi språkene aldri co-eksisterer på én flate (togglen velger
+  // I6–I8 ELLER Hurtighet). Får en fremtidig flate begge samtidig
+  // (f.eks. gruppevisning på tvers av utøvere), må fargene revurderes
+  // DER før den bygges.
+  I6: '#7C3AED',
+  I7: '#E879F9',
+  I8: '#881337',
   Hurtighet: '#8B5CF6',
 }
 
@@ -49,7 +58,7 @@ export interface ActivityTotals {
 }
 
 export function emptyZoneSeconds(): Record<ExtendedZoneName, number> {
-  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
 }
 
 export function emptyTotals(): ActivityTotals {

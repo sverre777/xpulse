@@ -89,7 +89,7 @@ export interface OversiktActivityRow {
 }
 
 export interface OversiktZoneSeconds {
-  I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number
+  I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number
 }
 
 export interface OversiktWeekTotals {
@@ -198,7 +198,7 @@ const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
 type ZoneKey = (typeof ZONE_KEYS)[number]
 
 function zeroZones(): OversiktZoneSeconds {
-  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
 }
 
 function percentChange(current: number, previous: number): number | null {

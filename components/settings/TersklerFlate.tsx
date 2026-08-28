@@ -412,6 +412,92 @@ function sonerPaaColor(paa: boolean): string {
   return paa ? '#28A86E' : 'var(--mut)'
 }
 
+// ── Utvidet skala I6–I8 (fase 111) ──
+// Innstillingen er PER UTØVER (én sannhet — gjelder plan, dagbok,
+// analyse, sonefordeling, øktmaler og intervall-byggeren, og treneren
+// ser automatisk utøverens språk). Utkastet tegnet togglen inne i
+// sone-editoren per bevegelsesform; den bor her som egen blokk fordi
+// den IKKE er per bevegelsesform — rapportert som bevisst avvik.
+export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
+  const router = useRouter()
+  const [paa, setPaa] = useState(initialPaa)
+  const [pending, startTransition] = useTransition()
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  const toggle = () => {
+    if (pending) return
+    const ny = !paa
+    setPaa(ny) // svarer i samme tick (regel 20); rulles tilbake ved feil
+    setMsg(null)
+    startTransition(async () => {
+      const { settUtvidetSkala } = await import('@/app/actions/sonesprak')
+      const { nullstillSonesprakCache } = await import('@/lib/sonesprak-klient')
+      const res = await settUtvidetSkala(ny)
+      if (res.error) { setPaa(!ny); setMsg({ kind: 'err', text: res.error }); return }
+      nullstillSonesprakCache()
+      setMsg({ kind: 'ok', text: ny
+        ? 'Utvidet skala på — I6–I8 erstatter Hurtighet i valgene'
+        : 'Utvidet skala av — Hurtighet er tilbake i valgene' })
+      router.refresh()
+    })
+  }
+
+  return (
+    <div className="mt-8">
+      <div className="mb-3 text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        Utvidet skala — I6–I8
+      </div>
+      <div className="p-4" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14 }}>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={toggle} role="switch" aria-checked={paa}
+            aria-label="Utvidet skala I6–I8"
+            style={{
+              width: 40, height: 22, borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: paa ? '#28A86E' : 'var(--line2)', position: 'relative', flexShrink: 0,
+            }}>
+            <span style={{
+              position: 'absolute', top: 3, left: paa ? 21 : 3,
+              width: 16, height: 16, borderRadius: '50%', background: 'var(--tekst-1-ren)',
+              transition: 'left 120ms',
+            }} />
+          </button>
+          <span className="text-sm" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)' }}>
+            Anaerobe intensitetsmerker for planlegging og føring.{' '}
+            <span style={{ color: 'var(--mut)' }}>
+              Defineres av innsats/laktat — ALDRI puls; makspulsen er toppen
+              av I5 uansett. Med skalaen på erstatter I6–I8 Hurtighet i
+              valgene (aldri begge). Treneren din ser samme skala.
+            </span>
+          </span>
+        </div>
+        <div className="flex gap-2 mt-3">
+          {(['I6', 'I7', 'I8'] as const).map(n => (
+            <span key={n} style={{
+              fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, color: 'var(--tekst-1-ren)',
+              background: ZONE_COLORS[n], borderRadius: 6, padding: '2px 10px',
+              opacity: paa ? 1 : 0.45,
+            }}>
+              {n}
+            </span>
+          ))}
+          <span className="text-xs self-center" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)' }}>
+            {paa ? 'I6 toleranse · I7 produksjon/hurtighet · I8 maksimal' : 'av — Olympiatoppens I1–I5 + Hurtighet gjelder'}
+          </span>
+        </div>
+        {msg && (
+          <p className="mt-2 text-xs" style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            color: msg.kind === 'ok' ? '#28A86E' : '#E11D48',
+          }}>
+            {msg.text}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── B · Helse — dagens felter, bare flyttet hit ──
 export function HelseGruppe({
   birthYear, initialMaxHr, initialResting,

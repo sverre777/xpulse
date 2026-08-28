@@ -231,7 +231,7 @@ function WeekStatsBanner({ weekDates, weekNum, byDate, mode, seasonPeriods, seas
     p.start_date <= weekEndISO && p.end_date >= weekStartISO && p.id !== weekOverlay.period?.id)
   const weekMarkings = seasonMarkings.filter(m => m.start_date <= weekEndISO && m.end_date >= weekStartISO)
   let seconds = 0, sessions = 0, meters = 0
-  const zoneSec: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  const zoneSec: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
   // Kø #47 bolk 5: ukens skudd-statistikk (delt kilde/aggregering).
   const shotAgg = emptyShotStats()
   let plannedShotsTotal = 0

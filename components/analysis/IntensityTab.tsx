@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -11,8 +11,11 @@ import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE, CHART_ZONE_COLORS,
   CHART_LEGEND_STYLE, CHART_CURSOR, CHART_LINE_WIDTH,
 } from './chart-theme'
+import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-const ZONE_KEYS = ['I1','I2','I3','I4','I5','Hurtighet'] as const
+// I6–I8 (fase 111): data-drevet — kolonnene finnes alltid, vises kun
+// med innhold (stacken hopper over 0-bøtter).
+const ZONE_KEYS = ['I1','I2','I3','I4','I5','I6','I7','I8','Hurtighet'] as const
 type ZoneKey = typeof ZONE_KEYS[number]
 
 function formatDuration(sec: number): string {
@@ -93,19 +96,40 @@ function WeeklyStack({
 }: {
   data: IntensityDistribution; unit: 'pct' | 'min'; onUnitChange: (u: 'pct' | 'min') => void
 }) {
-  // Transform weeks -> per-week zone numbers (pct or min).
-  const rows = data.weeks.map(w => {
-    const total = w.zones.I1 + w.zones.I2 + w.zones.I3 + w.zones.I4 + w.zones.I5 + w.zones.Hurtighet
-    const out: { label: string } & Record<ZoneKey, number> = {
-      label: w.label, I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0,
-    }
-    for (const k of ZONE_KEYS) {
-      if (unit === 'pct') out[k] = total > 0 ? Math.round((w.zones[k] / total) * 1000) / 10 : 0
-      else out[k] = Math.round(w.zones[k] / 60)
-    }
-    return out
-  })
+  // Sonespråket (fase 111): med utvidet skala legges eldre Hurtighet-
+  // føringer i I7 — og fotnoten under grafen SIER det (aldri stille
+  // blanding). null = flagget ikke hentet ennå → standardspråket.
+  const [utvidet, setUtvidet] = useState<boolean | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    hentUtvidetSkalaCached().then(v => { if (!cancelled) setUtvidet(v) })
+    return () => { cancelled = true }
+  }, [])
 
+  // Transform weeks -> per-week zone numbers (pct or min).
+  const rows = useMemo(() => data.weeks.map(w => {
+    const total = w.zones.I1 + w.zones.I2 + w.zones.I3 + w.zones.I4 + w.zones.I5 + w.zones.I6 + w.zones.I7 + w.zones.I8 + w.zones.Hurtighet
+    const flytt = utvidet === true && w.zones.Hurtighet > 0
+    const zonesVist = {
+      ...w.zones,
+      I7: flytt ? w.zones.I7 + w.zones.Hurtighet : w.zones.I7,
+      Hurtighet: flytt ? 0 : w.zones.Hurtighet,
+    }
+    const verdi = (k: ZoneKey) => unit === 'pct'
+      ? (total > 0 ? Math.round((zonesVist[k] / total) * 1000) / 10 : 0)
+      : Math.round(zonesVist[k] / 60)
+    return {
+      label: w.label,
+      I1: verdi('I1'), I2: verdi('I2'), I3: verdi('I3'), I4: verdi('I4'),
+      I5: verdi('I5'), I6: verdi('I6'), I7: verdi('I7'), I8: verdi('I8'),
+      Hurtighet: verdi('Hurtighet'),
+    }
+  }), [data.weeks, unit, utvidet])
+  const harFlyttetHurtighet = utvidet === true && data.weeks.some(w => w.zones.Hurtighet > 0)
+
+  const fotnote = utvidet === true && harFlyttetHurtighet
+    ? 'I7 inkluderer eldre Hurtighet-føringer (lagret urørt — vises på utvidet skala).'
+    : null
   const unitSuffix = unit === 'pct' ? '%' : 'min'
 
   return (
@@ -167,6 +191,11 @@ function WeeklyStack({
           )}
         </ResponsiveContainer>
       </ChartWrapper>
+      {fotnote && (
+        <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          {fotnote}
+        </p>
+      )}
     </div>
   )
 }

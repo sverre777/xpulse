@@ -29,6 +29,8 @@ import { ImportSourceBadge } from './ImportSourceBadge'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
+import { visningsFordeling } from '@/lib/sonesprak'
+import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 import { computeActivityTotals, ZONE_COLORS_V2, type ActivityLike } from '@/lib/activity-summary'
 
 const SHOOTING_TYPES = new Set(['skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting', 'skyting_basis'])
@@ -133,6 +135,15 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   // Samlet/Splittet (fasit seksjon 4) — KUN visning, dataene er alltid
   // splittet. Bryteren finnes på flettede OG rene klokkesynk-økter.
   const [visning, setVisning] = useState<'splittet' | 'samlet'>('splittet')
+
+  // Sonespråket (fase 111): med utvidet skala vises eldre Hurtighet-
+  // føringer som I7 i sonebarene — med tooltip-merking, aldri stille.
+  const [utvidetSkala, setUtvidetSkala] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    hentUtvidetSkalaCached(targetUserId).then(v => { if (!cancelled && v) setUtvidetSkala(v) })
+    return () => { cancelled = true }
+  }, [targetUserId])
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
@@ -371,27 +382,33 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       {zoneTotal > 0 && (
         <Card title="SONEFORDELING" aux={`Σ ${fmtClock(zoneTotal)}`}>
           <div className="flex overflow-hidden mb-3" style={{ height: 10, borderRadius: 5, background: 'var(--line)' }}>
-            {ALL_ZONE_NAMES.map(k => {
-              const sec = totals.zoneSeconds[k] ?? 0
-              if (sec <= 0) return null
-              return <div key={k} style={{ width: `${(sec / zoneTotal) * 100}%`, background: ZONE_COLORS_V2[k] }} />
+            {visningsFordeling(totals.zoneSeconds, utvidetSkala).map(v => {
+              if (v.sek <= 0) return null
+              return <div key={v.navn}
+                title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                style={{ width: `${(v.sek / zoneTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
             })}
           </div>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-            {ALL_ZONE_NAMES.map(k => {
-              const sec = totals.zoneSeconds[k] ?? 0
-              if (sec <= 0) return null
+            {visningsFordeling(totals.zoneSeconds, utvidetSkala).map(v => {
+              if (v.sek <= 0) return null
               return (
-                <div key={k} className="text-center">
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', color: ZONE_COLORS_V2[k] }}>
-                    {k === 'Hurtighet' ? 'HURT.' : k}
+                <div key={v.navn} className="text-center"
+                  title={v.inklHurtighet ? 'Inkluderer eldre Hurtighet-føringer (lagret urørt)' : undefined}>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, fontWeight: 700, letterSpacing: '0.08em', color: ZONE_COLORS_V2[v.navn] }}>
+                    {v.navn === 'Hurtighet' ? 'HURT.' : v.navn}{v.inklHurtighet ? ' *' : ''}
                   </div>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.04em', color: 'var(--ink)' }}>{fmtZoneTime(sec)}</div>
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>{Math.round((sec / zoneTotal) * 100)}%</div>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 17, letterSpacing: '0.04em', color: 'var(--ink)' }}>{fmtZoneTime(v.sek)}</div>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>{Math.round((v.sek / zoneTotal) * 100)}%</div>
                 </div>
               )
             })}
           </div>
+          {utvidetSkala && visningsFordeling(totals.zoneSeconds, utvidetSkala).some(v => v.inklHurtighet) && (
+            <p className="mt-2 text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
+              * I7 inkluderer eldre Hurtighet-føringer — de er lagret urørt.
+            </p>
+          )}
         </Card>
       )}
 
@@ -611,10 +628,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                       </span>
                       {zTotal > 0 && (
                         <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
-                          {ALL_ZONE_NAMES.map(k => {
-                            const zs = g.zones[k] ?? 0
-                            if (zs <= 0) return null
-                            return <div key={k} style={{ width: `${(zs / zTotal) * 100}%`, background: ZONE_COLORS_V2[k] }} />
+                          {visningsFordeling(g.zones, utvidetSkala).map(v => {
+                            if (v.sek <= 0) return null
+                            return <div key={v.navn}
+                              title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                              style={{ width: `${(v.sek / zTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
                           })}
                         </div>
                       )}
@@ -661,10 +679,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
                   </span>
                   {aZoneTotal > 0 && aZones && (
                     <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
-                      {ALL_ZONE_NAMES.map(k => {
-                        const zs = aZones.zoneSeconds[k as ExtendedZoneName] ?? 0
-                        if (zs <= 0) return null
-                        return <div key={k} style={{ width: `${(zs / aZoneTotal) * 100}%`, background: ZONE_COLORS_V2[k as ExtendedZoneName] }} />
+                      {visningsFordeling(aZones.zoneSeconds, utvidetSkala).map(v => {
+                        if (v.sek <= 0) return null
+                        return <div key={v.navn}
+                          title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
+                          style={{ width: `${(v.sek / aZoneTotal) * 100}%`, background: ZONE_COLORS_V2[v.navn] }} />
                       })}
                     </div>
                   )}

@@ -233,7 +233,7 @@ function zonesFor(w: CalendarWorkoutSummary, mode: CalendarMode): { zone_name: s
 }
 
 function emptyZoneSec(): Record<ExtendedZoneName, number> {
-  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  return { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
 }
 
 // Aggregerte verdier for én økt (plan eller faktisk, basert på modus).

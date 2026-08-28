@@ -20,7 +20,7 @@ export interface WeekBucket {
   label: string                   // 'U12' — vises på x-akse
   startDate: string               // 'YYYY-MM-DD' (mandag)
   totalSeconds: number
-  zones: { I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number } // sekunder
+  zones: { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number } // sekunder
   kmByMovement: Record<string, number>
   intensiveCount: number
   sessionCount: number
@@ -100,7 +100,7 @@ function buildWeekSkeleton(fromDate: string, toDate: string): WeekBucket[] {
       buckets.set(weekKey, {
         weekKey, label, startDate,
         totalSeconds: 0,
-        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
         kmByMovement: {},
         intensiveCount: 0,
         sessionCount: 0,
@@ -237,7 +237,8 @@ export async function getWorkoutStats(
 // ── Overview-aggregat (metric cards + sammenligning) ────
 
 export interface OverviewZoneSeconds {
-  I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number
+  I1: number; I2: number; I3: number; I4: number; I5: number
+  I6: number; I7: number; I8: number; Hurtighet: number
 }
 
 export interface MovementBreakdownRow {
@@ -397,7 +398,7 @@ function emptyOverviewMetrics(sport: Sport): OverviewMetrics {
     total_meters: 0,
     workout_count: 0,
     planned_count: 0,
-    zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+    zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
     movement_breakdown: [],
     competitions: [],
     health_averages: { hrv_ms: null, resting_hr: null, sleep_hours: null, body_weight_kg: null, days_with_data: 0 },
@@ -1506,7 +1507,7 @@ async function computeMovementMetrics(
   let hrSum = 0, hrCount = 0
   let paceSecSum = 0, paceMeterSum = 0
   let wattSum = 0, wattCount = 0
-  const zones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  const zones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
   const workoutIds = new Set<string>()
   const best: MovementBestPerformances = {}
 
@@ -1521,7 +1522,7 @@ async function computeMovementMetrics(
       bucket = {
         weekKey, label, startDate,
         total_seconds: 0, total_meters: 0, activity_count: 0,
-        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
       }
       weekMap.set(weekKey, bucket)
     }
@@ -1542,6 +1543,9 @@ async function computeMovementMetrics(
     bucket.zones.I3 += totals.zoneSeconds.I3
     bucket.zones.I4 += totals.zoneSeconds.I4
     bucket.zones.I5 += totals.zoneSeconds.I5
+    bucket.zones.I6 += totals.zoneSeconds.I6
+    bucket.zones.I7 += totals.zoneSeconds.I7
+    bucket.zones.I8 += totals.zoneSeconds.I8
     bucket.zones.Hurtighet += totals.zoneSeconds.Hurtighet
     zones.I1 += totals.zoneSeconds.I1
     zones.I2 += totals.zoneSeconds.I2
@@ -2274,7 +2278,8 @@ export async function getTemplateAnalysis(
         max_heart_rate: maxHr,
         zones: {
           I1: totals.zoneSeconds.I1, I2: totals.zoneSeconds.I2, I3: totals.zoneSeconds.I3,
-          I4: totals.zoneSeconds.I4, I5: totals.zoneSeconds.I5, Hurtighet: totals.zoneSeconds.Hurtighet,
+          I4: totals.zoneSeconds.I4, I5: totals.zoneSeconds.I5, I6: totals.zoneSeconds.I6,
+          I7: totals.zoneSeconds.I7, I8: totals.zoneSeconds.I8, Hurtighet: totals.zoneSeconds.Hurtighet,
         },
         lactate_mmol: lactate,
         notes: w.notes,
@@ -2290,7 +2295,7 @@ export async function getTemplateAnalysis(
       if (!t) continue
       execs.sort((a, b) => a.date.localeCompare(b.date))
       const hrs = execs.map(e => e.avg_heart_rate).filter((v): v is number => v != null)
-      const avgZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+      const avgZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
       for (const e of execs) {
         avgZones.I1 += e.zones.I1; avgZones.I2 += e.zones.I2; avgZones.I3 += e.zones.I3
         avgZones.I4 += e.zones.I4; avgZones.I5 += e.zones.I5; avgZones.Hurtighet += e.zones.Hurtighet
@@ -2704,13 +2709,13 @@ export async function getIntensityDistribution(
     for (const w of skeleton) {
       weeksByKey.set(w.weekKey, {
         weekKey: w.weekKey, label: w.label, startDate: w.startDate,
-        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+        zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
         totalSeconds: 0, intensiveSessions: 0,
         polarized: { low: 0, mid: 0, high: 0 },
       })
     }
 
-    const totalZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+    const totalZones: OverviewZoneSeconds = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
     let totalSeconds = 0
 
     const movementMap = new Map<string, IntensityMovementRow>()
@@ -2742,9 +2747,9 @@ export async function getIntensityDistribution(
 
       bucket.polarized.low += totals.zoneSeconds.I1 + totals.zoneSeconds.I2
       bucket.polarized.mid += totals.zoneSeconds.I3
-      bucket.polarized.high += totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.Hurtighet
+      bucket.polarized.high += totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.I6 + totals.zoneSeconds.I7 + totals.zoneSeconds.I8 + totals.zoneSeconds.Hurtighet
 
-      if (totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.Hurtighet > 0) {
+      if (totals.zoneSeconds.I4 + totals.zoneSeconds.I5 + totals.zoneSeconds.I6 + totals.zoneSeconds.I7 + totals.zoneSeconds.I8 + totals.zoneSeconds.Hurtighet > 0) {
         bucket.intensiveSessions += 1
       }
 
@@ -2770,7 +2775,7 @@ export async function getIntensityDistribution(
         if (subTotals.zoneTotalSec === 0) continue
         const row = movementMap.get(a.movement_name) ?? {
           movement_name: a.movement_name,
-          zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+          zones: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
           total_seconds: 0,
         }
         row.zones.I1 += subTotals.zoneSeconds.I1
@@ -2866,8 +2871,10 @@ export interface BelastningAnalysis {
   altitudePeriods: { name: string; start_date: string; end_date: string; altitude_meters: number | null }[]
 }
 
-const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'Hurtighet', number> = {
-  I1: 1, I2: 2, I3: 3, I4: 4, I5: 5, Hurtighet: 5,
+const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'I6'|'I7'|'I8'|'Hurtighet', number> = {
+  // I6–I8 (fase 111) vektes som maks-intensitet, likt Hurtighet — de er
+  // anaerobe merker uten pulsspenn.
+  I1: 1, I2: 2, I3: 3, I4: 4, I5: 5, I6: 5, I7: 5, I8: 5, Hurtighet: 5,
 }
 
 function classifyForm(tsb: number): FormStatus {
@@ -3002,6 +3009,9 @@ export async function getBelastningAnalysis(
         tss += (totals.zoneSeconds.I3 / 60) * ZONE_WEIGHTS.I3
         tss += (totals.zoneSeconds.I4 / 60) * ZONE_WEIGHTS.I4
         tss += (totals.zoneSeconds.I5 / 60) * ZONE_WEIGHTS.I5
+        tss += (totals.zoneSeconds.I6 / 60) * ZONE_WEIGHTS.I6
+        tss += (totals.zoneSeconds.I7 / 60) * ZONE_WEIGHTS.I7
+        tss += (totals.zoneSeconds.I8 / 60) * ZONE_WEIGHTS.I8
         tss += (totals.zoneSeconds.Hurtighet / 60) * ZONE_WEIGHTS.Hurtighet
       }
       if (tss > 0) tssByDate.set(w.date, (tssByDate.get(w.date) ?? 0) + tss)
@@ -4134,7 +4144,7 @@ export async function getPeriodizationOverview(
       // til delt TSS-helper (+ evt. cachet NP per økt) er på plass.
       // Ligger i småsaks-køen; ikke dupliser watt-veien hit.
       const z = totals.zoneSeconds
-      const tss = (z.I1 / 60) * 1 + (z.I2 / 60) * 2 + (z.I3 / 60) * 3 + (z.I4 / 60) * 4 + (z.I5 / 60) * 5 + (z.Hurtighet / 60) * 5
+      const tss = (z.I1 / 60) * 1 + (z.I2 / 60) * 2 + (z.I3 / 60) * 3 + (z.I4 / 60) * 4 + (z.I5 / 60) * 5 + ((z.I6 + z.I7 + z.I8 + z.Hurtighet) / 60) * 5
       metrics.push({
         date: w.date, seconds: secs, meters, tss,
         isComp: w.workout_type === 'competition' || w.workout_type === 'testlop',
@@ -4205,7 +4215,7 @@ export interface CustomBreakdownBucket {
   label: string             // 'U12' | 'mar 26' | '2026'
   startDate: string         // ISO 'YYYY-MM-DD' — brukes til sortering
   total_seconds: number
-  endurance_zone_seconds: { I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number }
+  endurance_zone_seconds: { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number }
   // Nøkkel = bevegelsesnavn (f.eks. 'Styrke'), verdi = sekunder.
   non_endurance_seconds: Record<string, number>
   // G4 (kø #47): true = perioden hadde ingen økter — utfylt server-side
@@ -4308,7 +4318,7 @@ export async function getCustomBreakdown(
         bucket = {
           bucketKey, label, startDate,
           total_seconds: 0,
-          endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+          endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
           non_endurance_seconds: {},
         }
         buckets.set(bucketKey, bucket)
@@ -4365,7 +4375,7 @@ export async function getCustomBreakdown(
           buckets.set(bucketKey, {
             bucketKey, label, startDate,
             total_seconds: 0,
-            endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+            endurance_zone_seconds: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
             non_endurance_seconds: {},
             ghost: true,
           })

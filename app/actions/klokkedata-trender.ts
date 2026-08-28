@@ -114,7 +114,7 @@ export async function getKlokkedataTrender(
     const cadence: TrendPoint[] = []
     // Aggregér zones-sekunder per ISO-uke. zones-jsonb er i SEKUNDER (phase 64+),
     // pause + skyting ekskluderes via activity_type-filter.
-    const zonesByWeek = new Map<string, { I1: number; I2: number; I3: number; I4: number; I5: number; Hurtighet: number }>()
+    const zonesByWeek = new Map<string, { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number }>()
     const SHOOTING_TYPES = new Set(['skyting_liggende','skyting_staaende','skyting_kombinert','skyting_innskyting','skyting_basis'])
     const PAUSE_TYPES = new Set(['pause','aktiv_pause'])
 
@@ -143,7 +143,7 @@ export async function getKlokkedataTrender(
       // Sone-tid per uke fra workout_activities.zones (sekunder fra phase 64).
       // Ekskluderer pauser + skyting per activity_type.
       const weekKey = isoWeekKey(w.date)
-      const bucket = zonesByWeek.get(weekKey) ?? { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+      const bucket = zonesByWeek.get(weekKey) ?? { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
       for (const a of w.workout_activities ?? []) {
         const at = (a.activity_type ?? '').toLowerCase()
         if (PAUSE_TYPES.has(at) || SHOOTING_TYPES.has(at)) continue
@@ -161,7 +161,7 @@ export async function getKlokkedataTrender(
     const zonesPerWeek: ZoneWeekPoint[] = [...zonesByWeek.entries()]
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([week, z]) => {
-        const total = z.I1 + z.I2 + z.I3 + z.I4 + z.I5 + z.Hurtighet
+        const total = z.I1 + z.I2 + z.I3 + z.I4 + z.I5 + z.I6 + z.I7 + z.I8 + z.Hurtighet
         const easy = z.I1 + z.I2
         return {
           week,

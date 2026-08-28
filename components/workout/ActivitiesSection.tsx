@@ -68,6 +68,8 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
 }
 
 interface Props {
+  // Trener-redigering: sonespråket skal være UTØVERENS (fase 111).
+  targetUserId?: string
   rows: ActivityRow[]
   onChange: (rows: ActivityRow[]) => void
   sport: Sport
@@ -168,19 +170,24 @@ function emptySet(n: number): StrengthSetRow {
   }
 }
 
-const ZONE_KEYS: (keyof ActivityZoneMinutes)[] = ['I1','I2','I3','I4','I5','Hurtighet']
+// ALLE bøttene (summer/kollaps-visning). Hvilke soner som TILBYS i
+// editoren styres av utøverens sonespråk (lib/sonesprak, fase 111).
+const ZONE_KEYS: (keyof ActivityZoneMinutes)[] = ['I1','I2','I3','I4','I5','I6','I7','I8','Hurtighet']
 
 // Summen av alle sone-tider i sekunder. Hver verdi i z[k] er en MM:SS-streng
 // (eller "60" som tolkes som 60 minutter via parseActivityDuration).
 function sumZoneSeconds(z: ActivityZoneMinutes): number {
-  return ZONE_KEYS.reduce((s, k) => s + (parseActivityDuration(z[k]) ?? 0), 0)
+  // Eldre rader (DB/snapshot) mangler I6–I8-nøklene — null-trygt.
+  return ZONE_KEYS.reduce((s, k) => s + (parseActivityDuration(z[k] ?? '') ?? 0), 0)
 }
 
 // Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
 // Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
 import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
+import { foringsSoner } from '@/lib/sonesprak'
+import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -281,6 +288,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
       <div className="xp-tl">
       {rows.map((row, idx) => (
         <ActivityRowItem
+          targetUserId={targetUserId}
           key={row.id}
           row={row}
           expanded={expandedId === row.id}
@@ -340,8 +348,9 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
   typeOptions, favoriteTypes, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
-  defaultPaceUnit, workoutType, equipment, equipmentIds = [], onEquipmentChange,
+  defaultPaceUnit, workoutType, equipment, equipmentIds = [], onEquipmentChange, targetUserId,
 }: {
+  targetUserId?: string
   row: ActivityRow
   expanded: boolean
   onToggle: () => void
@@ -775,6 +784,7 @@ function ActivityRowItem({
           {isEndurance && !meta?.isShooting && (
             <ZoneEditor
               zones={row.zones}
+              targetUserId={targetUserId}
               onChange={z => {
                 const totalSec = sumZoneSeconds(z)
                 // Når soner summerer > 0, synk totaltid (MM:SS). Tomme soner → la manuell varighet stå.
@@ -824,12 +834,28 @@ function ActivityRowItem({
 // ── Sonefordeling ──────────────────────────────────────────
 
 function ZoneEditor({
-  zones, onChange,
+  zones, onChange, targetUserId,
 }: {
   zones: ActivityZoneMinutes
   onChange: (z: ActivityZoneMinutes) => void
+  targetUserId?: string
 }) {
-  const keys = ZONE_KEYS
+  // Sonespråket (fase 111): null = ikke hentet ennå → standardspråket
+  // vises (riktig for de aller fleste; utvidet-brukere får byttet når
+  // flagget lander). Hurtighet-feltet vises i utvidet språk KUN når
+  // økta har en eldre føring — merket, aldri stille (Sverre-krav 2).
+  const [utvidet, setUtvidet] = useState<boolean | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    hentUtvidetSkalaCached(targetUserId).then(v => { if (!cancelled) setUtvidet(v) })
+    return () => { cancelled = true }
+  }, [targetUserId])
+  const gammelHurtighet = (parseActivityDuration(zones.Hurtighet ?? '') ?? 0) > 0
+  const keys = useMemo(() => {
+    const base = foringsSoner(utvidet === true) as (keyof ActivityZoneMinutes)[]
+    if (utvidet === true && gammelHurtighet) return [...base, 'Hurtighet' as const]
+    return base
+  }, [utvidet, gammelHurtighet])
   const totalSec = sumZoneSeconds(zones)
   return (
     <div className="mt-3 p-3" style={{ backgroundColor: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--r-field)' }}>
@@ -846,7 +872,7 @@ function ZoneEditor({
       {/* Color bar — 6 segmenter når Hurtighet > 0, ellers 5 */}
       <div className="flex mb-2" style={{ height: '8px', border: '1px solid var(--line)', borderRadius: 4, overflow: 'hidden' }}>
         {keys.map(k => {
-          const sec = parseActivityDuration(zones[k]) ?? 0
+          const sec = parseActivityDuration(zones[k] ?? '') ?? 0
           const w = totalSec > 0 ? (sec / totalSec) * 100 : 0
           return w > 0 ? (
             <div key={k} style={{ width: `${w}%`, backgroundColor: ZONE_COLORS_BAR[k] }} />
@@ -865,14 +891,14 @@ function ZoneEditor({
           <div key={k}>
             <label className="block text-center mb-1 text-xs tracking-widest uppercase"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", color: ZONE_COLORS_BAR[k] }}>
-              {k === 'Hurtighet' ? 'Hurt.' : k}
+              {k === 'Hurtighet' ? (utvidet === true ? 'Hurt. (eldre)' : 'Hurt.') : k}
             </label>
             {/* padding nulles ut fra iSt her — inline style slår Tailwind, så
                 padding-klassene ville ikke hatt effekt ellers. Den delte
                 iSt-konstanten er urørt; kun denne inputen overstyres.
                 min-h-[40px] gir touch-høyde på mobil uansett fontmetrikk, og
                 md:min-h-0 + md:py-1.5 beholder dagens høyde fra md og opp. */}
-            <input value={zones[k]}
+            <input value={zones[k] ?? ''}
               onChange={e => onChange({ ...zones, [k]: e.target.value })}
               inputMode="text" placeholder="MM:SS"
               className="min-h-[40px] py-2.5 px-2 md:min-h-0 md:py-1.5 md:px-2.5"
@@ -883,8 +909,18 @@ function ZoneEditor({
 
       <p className="mt-2 text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-        Skriv "60" for 60 minutter, eller "1:30" for 1 min 30 sek. Hurtighet føres manuelt — beregnes ikke fra puls.
+        {'Skriv "60" for 60 minutter, eller "1:30" for 1 min 30 sek.'}{' '}
+        {utvidet === true
+          ? 'I6–I8 føres manuelt (innsats/laktat) — beregnes aldri fra puls.'
+          : 'Hurtighet føres manuelt — beregnes ikke fra puls.'}
       </p>
+      {utvidet === true && gammelHurtighet && (
+        <p className="mt-1 text-xs"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
+          Hurtighet-feltet vises fordi økta har en eldre føring — den lagres
+          urørt og vises som I7 i fordelinger. Nye føres som I7.
+        </p>
+      )}
     </div>
   )
 }

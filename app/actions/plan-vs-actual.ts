@@ -43,7 +43,7 @@ function emptyBucket(): Bucket {
     sessions: 0,
     i3i4Minutes: 0,
     perSport: {},
-    perZone: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 },
+    perZone: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 },
   }
 }
 

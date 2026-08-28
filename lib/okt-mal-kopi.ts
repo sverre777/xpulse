@@ -1,3 +1,4 @@
+import { emptyActivityZones } from './types'
 // Bibliotekmal → helt vanlig øktmal.
 //
 // Resultatet skal være umulig å skille fra en mal brukeren lagde selv. Det er
@@ -92,7 +93,7 @@ export function oktMalTilAktiviteter(mal: OktMalDef): ActivityRow[] {
       movement_name: '',
     }),
     duration: sekTilKlokke(totalSekunder(mal.blokker)),
-    zones: blokkerTilSoner(mal.blokker),
+    zones: { ...emptyActivityZones(), ...blokkerTilSoner(mal.blokker) },
   }]
 
   if (mal.skyting) rader.push(skyteRad(mal.skyting))

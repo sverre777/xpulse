@@ -558,11 +558,16 @@ export interface ActivityZoneMinutes {
   I3: string
   I4: string
   I5: string
+  // Utvidet skala (fase 111) — vises kun når utøverens språk er I6–I8;
+  // Hurtighet og I6–I8 tilbys ALDRI samtidig (lib/sonesprak velger).
+  I6: string
+  I7: string
+  I8: string
   Hurtighet: string
 }
 
 export function emptyActivityZones(): ActivityZoneMinutes {
-  return { I1: '', I2: '', I3: '', I4: '', I5: '', Hurtighet: '' }
+  return { I1: '', I2: '', I3: '', I4: '', I5: '', I6: '', I7: '', I8: '', Hurtighet: '' }
 }
 
 // Laktatmåling i en aktivitet (én av flere).
@@ -1149,13 +1154,13 @@ export interface CalendarWorkoutSummary {
   total_seconds: number
   total_meters: number
   shooting_seconds: number
-  zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
+  zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'I6' | 'I7' | 'I8' | 'Hurtighet', number>
   // Aggregert fra planned_snapshot.activities (planlagt) — faller tilbake til
   // planned_duration_minutes*60 hvis snapshot-activities mangler.
   planned_total_seconds: number
   planned_total_meters: number
   planned_shooting_seconds: number
-  planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'Hurtighet', number>
+  planned_zone_seconds: Record<'I1' | 'I2' | 'I3' | 'I4' | 'I5' | 'I6' | 'I7' | 'I8' | 'Hurtighet', number>
   // Fase 8: konkurranse-markør for kalender-chips.
   // Kun satt når workout_type='competition'|'testlop' OG rad finnes i workout_competition_data.
   competition_type: CompetitionType | null

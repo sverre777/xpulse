@@ -50,7 +50,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
     const movementPaceSeconds: Record<string, number> = {}
     let bestPaceSeconds: number | null = null
     let bestPaceMovement: string | null = null
-    const zoneSeconds: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+    const zoneSeconds: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
     let missingHrCount = 0
 
     // Fleksibel skyting: skudd telles alltid, treff og nevner i %-regnestykket

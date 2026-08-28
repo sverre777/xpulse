@@ -582,7 +582,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
 
 // Konverter sone-jsonb (sekunder fra phase 64) til MM:SS-strenger for UI.
 function zoneRecordToStrings(z: Record<string, number> | null): ActivityRow['zones'] {
-  const base: ActivityRow['zones'] = { I1: '', I2: '', I3: '', I4: '', I5: '', Hurtighet: '' }
+  const base: ActivityRow['zones'] = { I1: '', I2: '', I3: '', I4: '', I5: '', I6: '', I7: '', I8: '', Hurtighet: '' }
   if (!z) return base
   for (const k of Object.keys(base) as (keyof typeof base)[]) {
     const n = z[k]

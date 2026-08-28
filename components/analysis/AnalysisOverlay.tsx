@@ -91,7 +91,7 @@ export function AnalysisOverlay({ view, refDate, mode, targetUserId }: AnalysisO
   }, [from, to, isPlan, targetUserId])
 
   const zones = data?.current.zone_seconds
-  const zoneTotal = zones ? zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet : 0
+  const zoneTotal = zones ? zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.I6 + zones.I7 + zones.I8 + zones.Hurtighet : 0
   const topMovements = data?.current.movement_breakdown.slice(0, 5) ?? []
   const delta = data?.percent_changes.total_seconds
   const hasData = data !== null && data.current.workout_count > 0

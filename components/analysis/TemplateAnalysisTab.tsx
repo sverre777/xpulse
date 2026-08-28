@@ -40,7 +40,7 @@ function formatEpochAxis(ms: number): string {
 
 // Stacked mini zone bar showing % distribution across zones.
 function ZoneBar({ zones, height = 10 }: { zones: OverviewZoneSeconds; height?: number }) {
-  const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + zones.Hurtighet
+  const total = zones.I1 + zones.I2 + zones.I3 + zones.I4 + zones.I5 + (zones.I6 ?? 0) + (zones.I7 ?? 0) + (zones.I8 ?? 0) + zones.Hurtighet
   if (total === 0) return <div style={{ height, backgroundColor: 'var(--line)' }} />
   const keys = ['I1','I2','I3','I4','I5','Hurtighet'] as const
   return (

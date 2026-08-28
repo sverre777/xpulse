@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 import { hentTerskelOversikt } from '@/app/actions/terskler'
-import { TersklerFlate, HelseGruppe } from '@/components/settings/TersklerFlate'
+import { TersklerFlate, HelseGruppe, UtvidetSkalaBlokk } from '@/components/settings/TersklerFlate'
 import { SettingsPageHeader } from '@/components/settings/SettingsPageHeader'
 import { MOVEMENT_CATEGORIES, isEnduranceMovement } from '@/lib/types'
 
@@ -18,7 +18,7 @@ export default async function TersklerPage() {
 
   const [{ data: profile }, oversikt, { data: userTypes }] = await Promise.all([
     supabase.from('profiles')
-      .select('birth_year, max_heart_rate, resting_heart_rate')
+      .select('birth_year, max_heart_rate, resting_heart_rate, utvidet_skala')
       .eq('id', user.id).single(),
     hentTerskelOversikt(),
     supabase.from('user_movement_types')
@@ -58,6 +58,7 @@ export default async function TersklerPage() {
           birthYear={profile?.birth_year ?? null}
           initialMaxHr={profile?.max_heart_rate ?? null}
         />
+        <UtvidetSkalaBlokk initialPaa={profile?.utvidet_skala === true} />
         <HelseGruppe
           birthYear={profile?.birth_year ?? null}
           initialMaxHr={profile?.max_heart_rate ?? null}

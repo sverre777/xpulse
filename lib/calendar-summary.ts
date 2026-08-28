@@ -181,7 +181,7 @@ function totalsFromSnapshot(
 function legacyZonesToSeconds(
   zones: { zone_name: string; minutes: number }[],
 ): Record<ExtendedZoneName, number> {
-  const out: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, Hurtighet: 0 }
+  const out: Record<ExtendedZoneName, number> = { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0, Hurtighet: 0 }
   const valid = new Set<string>(ALL_ZONE_NAMES)
   for (const z of zones) {
     if (valid.has(z.zone_name)) {

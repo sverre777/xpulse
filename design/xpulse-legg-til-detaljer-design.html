@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Legg til detaljer (designfasit)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --prone:#38BDF8; --staa:#FF4500;
+  /* segmentfasit (validert, i SEGMENT_FARGER) */
+  --seg-oppv:#BBAA55; --seg-drag:#1E2AA8; --seg-ned:#64748B; --seg-pause:#43434B; --seg-bev:#A6A6AF;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 34px;max-width:700px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:30px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+
+.knapprad{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.pill{border-radius:999px;padding:9px 20px;cursor:pointer;border:0;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:13px;white-space:nowrap}
+.pill.o{background:var(--orange);color:#fff}
+.pill.g{background:transparent;border:1.5px solid var(--line2);color:var(--paper)}
+.pill.sky{background:transparent;border:1.5px solid var(--staa);color:var(--staa)}
+.pill.sm{padding:7px 15px;font-size:12px}
+
+.akt{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line2);border-left:3px solid var(--green);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:13.5px}
+.akt .grip{color:var(--mute);cursor:grab;font-size:16px;letter-spacing:-2px}
+.akt .n{font-weight:600}
+.akt .n span{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.akt .m{margin-left:auto;color:var(--dim);text-align:right;font-size:12.5px}
+.akt.ligg{border-left-color:var(--prone)}
+.akt.staa{border-left-color:var(--staa)}
+.akt.pause{border-left-color:var(--seg-pause)}
+.akt.drag{border-left-color:var(--seg-drag)}
+.akt .live{color:var(--orange);font-size:11px;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em}
+
+/* Kollapset bånd i økta */
+.kollaps{background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:14px 16px;cursor:pointer}
+.kollaps .topp{display:flex;align-items:center;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+.kollaps .topp .t{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.12em;font-size:12.5px;color:var(--dim)}
+.kollaps .topp .r{margin-left:auto;font-size:12px;color:var(--orange);font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em}
+
+/* Pop-up */
+.overlay{background:rgba(0,0,0,.55);border-radius:var(--r);padding:22px}
+.modal{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.mhead{display:flex;align-items:center;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mhead h3{font-family:'Bebas Neue';font-size:24px;letter-spacing:.03em}
+.mhead .sub2{font-size:12.5px;color:var(--dim)}
+.mhead .hoyre{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.mbody{padding:16px 20px 18px}
+
+/* Kurvevelger */
+.velger{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:3px;background:var(--card);margin-bottom:12px}
+.velger button{border:0;background:transparent;color:var(--dim);cursor:pointer;padding:7px 16px;border-radius:999px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.12em}
+.velger button.on{background:var(--orange);color:#fff}
+
+.grafboks{position:relative;user-select:none}
+svg{display:block}
+.gtxt{font:10.5px 'Inter';fill:var(--mute)}
+.vindu{position:absolute;top:6px;height:96px;background:rgba(56,189,248,.16);border:1.5px solid var(--prone);border-radius:6px;cursor:grab;touch-action:none}
+.vindu.staa{background:rgba(255,69,0,.14);border-color:var(--staa)}
+.vindu .h{position:absolute;top:-4px;bottom:-4px;width:36px;cursor:ew-resize}
+.vindu .h.l{left:-24px}.vindu .h.r{right:-24px}
+.vindu .h::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:30px;border-radius:2px;background:currentColor}
+.vindu.ligg .h::after{background:var(--prone)}
+.vindu.staa .h::after{background:var(--staa)}
+.vindu .lab{position:absolute;top:-3px;left:50%;transform:translate(-50%,-100%);white-space:nowrap;
+  font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.08em}
+.vindu.ligg .lab{color:var(--prone)}.vindu.staa .lab{color:var(--staa)}
+
+.leser{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;padding-top:10px;border-top:1px solid var(--line)}
+.leser .dim{color:var(--mute)}
+.leser b{font-weight:700}
+.port{font-size:12px;border-radius:6px;padding:2px 9px;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em}
+.port.inn{color:var(--green);border:1px solid rgba(40,168,110,.5)}
+.port.ut{color:var(--gold);border:1px solid rgba(232,185,60,.5)}
+
+.legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:11px;font-size:11.5px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.notat{margin-top:60px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+.notat .ny{color:var(--orange)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>LEGG TIL <span class="acc">DETALJER.</span></h1>
+<p class="sub">Én flate der økta settes sammen i tid: skyting, pauser, drag, veksling og bevegelsesform-bytter plasseres på kurven, laktat og ernæring settes som punkter — og aktivitetsradene under oppdaterer seg live. <b>Ikke et parallelt system:</b> det samme kan føres i radene som før. Pop-upen finnes for å gjøre det enklere og mer presist når klokka har gitt oss en kurve.</p>
+
+<!-- ═══ 1 · I ØKTA ═══ -->
+<div class="demo"><b>1 · I økta</b> — knapperad over radene, og det kollapsede båndet i Klokkesync-blokka</div>
+
+<div class="card">
+  <div class="ch"><h3>NM SPRINT — AKTIVITETENE</h3><span class="m">klokkesynket ⌚ Garmin · 38:12</span></div>
+  <div class="knapprad">
+    <button class="pill sky">🎯 PLOTT TREFF</button>
+    <button class="pill g">⌚ LEGG TIL DETALJER</button>
+    <button class="pill g">+ LEGG TIL AKTIVITET</button>
+    <button class="pill g">+ LEGG TIL SKYTING</button>
+  </div>
+
+  <!-- båndet ligger RETT OVER radene -->
+  <div class="kollaps" style="margin-bottom:12px">
+    <div class="topp"><span class="t">ØKTA I TID</span><span style="font-size:12px;color:var(--mute)">dra i båndet eller endre radene under — det henger sammen</span><span class="r">REDIGER →</span></div>
+    <svg viewBox="0 0 640 74" width="100%" height="74">
+      <path d="M0 56 L60 56 L60 38 L140 32 L190 34 L210 52 L246 40 L300 28 L368 30 L388 54 L420 44 L480 28 L600 22 L640 24 L640 58 L0 58 Z" fill="rgba(139,139,149,.10)"/>
+      <path d="M0 56 C20 44,36 40,60 38 S110 34,140 32 170 30,190 34 210 52,228 54 246 40,270 34 300 28,330 27 352 26,368 30 388 54,404 56 420 44,450 34 480 28,540 25 600 22,640 24"
+            fill="none" stroke="var(--red)" stroke-width="1.8"/>
+      <g>
+        <rect x="0"   y="62" width="112" height="9" rx="3" fill="var(--seg-oppv)"/>
+        <rect x="116" y="62" width="86"  height="9" rx="3" fill="var(--seg-drag)"/>
+        <rect x="206" y="62" width="30"  height="9" rx="3" fill="var(--prone)"/>
+        <rect x="240" y="62" width="140" height="9" rx="3" fill="var(--seg-drag)"/>
+        <rect x="384" y="62" width="30"  height="9" rx="3" fill="var(--staa)"/>
+        <rect x="418" y="62" width="24"  height="9" rx="3" fill="var(--seg-pause)"/>
+        <rect x="446" y="62" width="110" height="9" rx="3" fill="var(--seg-drag)"/>
+        <rect x="560" y="62" width="80"  height="9" rx="3" fill="var(--seg-ned)"/>
+      </g>
+      <circle cx="300" cy="12" r="3.5" fill="var(--gold)"/><circle cx="470" cy="12" r="3.5" fill="var(--green)"/>
+    </svg>
+  </div>
+
+  <div class="akt"><span class="grip">⣿</span><span class="n">Oppvarming<span>Løping · 15:02</span></span><span class="m">2,4 km<br>snitt 121</span></div>
+  <div class="akt ligg"><span class="grip">⣿</span><span class="n">Skyting · liggende<span>plassert 11:52–12:32 ⌚ · 5 serier</span></span><span class="m">23/25 treff<br>snitt 148</span></div>
+  <div class="akt drag"><span class="grip">⣿</span><span class="n">Konkurransefart<span>Rulleski · skøyting · 19:40</span></span><span class="m">8,1 km<br>snitt 164</span></div>
+  <div class="akt staa"><span class="grip">⣿</span><span class="n">Skyting · stående<span>plassert 24:40–25:22 ⌚ · 5 serier</span></span><span class="m">21/25 treff<br>snitt 156</span></div>
+  <div class="akt pause"><span class="grip">⣿</span><span class="n">Veksling · T2<span>bytt-tid · 0:48</span></span><span class="m">—</span></div>
+</div>
+
+<div class="card">
+  <div class="ch"><h3>KLOKKESYNC</h3><span class="m">kollapset visning — klikk for å redigere</span></div>
+  <div class="kollaps">
+    <div class="topp"><span class="t">ØKTA I TID</span><span style="font-size:12px;color:var(--mute)">7 segmenter · 2 skytinger · 2 punkter</span><span class="r">REDIGER →</span></div>
+    <svg viewBox="0 0 640 96" width="100%" height="96">
+      <path d="M0 74 L60 74 L60 52 L110 50 L140 44 L170 42 L190 46 L210 70 L228 72 L246 56 L270 46 L300 40 L330 38 L352 36 L368 42 L388 74 L404 76 L420 60 L450 48 L480 40 L540 36 L600 32 L640 34 L640 78 L0 78 Z" fill="rgba(139,139,149,.10)"/>
+      <path d="M0 74 C20 60,36 54,60 52 S110 46,140 44 170 42,190 46 210 70,228 72 246 56,270 46 300 40,330 38 352 36,368 42 388 74,404 76 420 60,450 48 480 40,540 36 600 32,640 34"
+            fill="none" stroke="var(--red)" stroke-width="1.8"/>
+      <g>
+        <rect x="0"   y="82" width="112" height="10" rx="3" fill="var(--seg-oppv)"/>
+        <rect x="116" y="82" width="86"  height="10" rx="3" fill="var(--seg-drag)"/>
+        <rect x="206" y="82" width="30"  height="10" rx="3" fill="var(--prone)"/>
+        <rect x="240" y="82" width="140" height="10" rx="3" fill="var(--seg-drag)"/>
+        <rect x="384" y="82" width="30"  height="10" rx="3" fill="var(--staa)"/>
+        <rect x="418" y="82" width="24"  height="10" rx="3" fill="var(--seg-pause)"/>
+        <rect x="446" y="82" width="110" height="10" rx="3" fill="var(--seg-drag)"/>
+        <rect x="560" y="82" width="80"  height="10" rx="3" fill="var(--seg-ned)"/>
+      </g>
+      <circle cx="300" cy="14" r="4" fill="var(--gold)"/><text x="308" y="18" class="gtxt">laktat 4,2</text>
+      <circle cx="470" cy="14" r="4" fill="var(--green)"/><text x="478" y="18" class="gtxt">gel</text>
+    </svg>
+    <div class="legend">
+      <span><i style="background:var(--seg-oppv)"></i>Oppvarming</span>
+      <span><i style="background:var(--seg-drag)"></i>Drag</span>
+      <span><i style="background:var(--prone)"></i>Ligg</span>
+      <span><i style="background:var(--staa)"></i>Stå</span>
+      <span><i style="background:var(--seg-pause)"></i>Pause / veksling</span>
+      <span><i style="background:var(--seg-ned)"></i>Nedjogg</span>
+      <span><i style="background:var(--seg-bev)"></i>Bev.form-bytte</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 2 · POP-UPEN ═══ -->
+<div class="demo"><b>2 · Pop-upen</b> — kurvevelger, høydesilhuett bak, draggbare vinduer og punkter. Dra vinduet under.</div>
+
+<div class="overlay">
+<div class="modal">
+  <div class="mhead">
+    <h3>LEGG TIL DETALJER</h3>
+    <span class="sub2">NM Sprint · ⌚ Garmin · 38:12</span>
+    <span class="hoyre">
+      <button class="pill sky sm">🎯 PLOTT TREFF</button>
+      <button class="pill g sm">+ LEGG TIL AKTIVITET</button>
+    </span>
+  </div>
+
+  <div class="mbody">
+    <div class="velger">
+      <button class="on">PULS</button><button>FART</button><button>WATT</button>
+    </div>
+
+    <div class="grafboks" id="gb">
+      <svg viewBox="0 0 640 132" width="100%" height="132">
+        <!-- høydesilhuett bak -->
+        <path d="M0 96 L40 88 L90 92 L140 74 L200 80 L260 62 L320 70 L380 58 L440 72 L500 66 L560 84 L640 90 L640 108 L0 108 Z" fill="rgba(139,139,149,.13)"/>
+        <line x1="0" y1="108" x2="640" y2="108" stroke="var(--line2)"/>
+        <path d="M0 84 C20 66,36 58,60 55 S110 48,140 46 170 43,190 48 210 76,228 78 246 60,270 49 300 42,330 40 352 38,368 45 388 80,404 82 420 64,450 51 480 42,540 38 600 34,640 36"
+              fill="none" stroke="var(--red)" stroke-width="2"/>
+        <text x="4" y="124" class="gtxt">0:00</text><text x="296" y="124" class="gtxt">19:00</text><text x="596" y="124" class="gtxt">38:12</text>
+        <circle cx="300" cy="16" r="4.5" fill="var(--gold)"/><text x="309" y="20" class="gtxt">laktat 4,2</text>
+        <circle cx="470" cy="16" r="4.5" fill="var(--green)"/><text x="479" y="20" class="gtxt">gel</text>
+      </svg>
+      <div class="vindu ligg" id="vin" style="left:31%;width:6%">
+        <div class="lab" id="vlab">LIGG · 5/5</div>
+        <div class="h l" data-h="l"></div><div class="h r" data-h="r"></div>
+      </div>
+      <div class="vindu staa" style="left:59%;width:6%">
+        <div class="lab">STÅ · 4/5</div>
+      </div>
+    </div>
+
+    <div class="leser">
+      <span><span class="dim">Vindu:</span> <b id="vt">11:52 – 12:32</b></span>
+      <span><span class="dim">Varighet:</span> <b id="vd">0:40</b></span>
+      <span><span class="dim">Puls:</span> <b id="vp">snitt 148 · inn 168</b></span>
+      <span><span class="dim">Fart:</span> <b>snitt 0,4 m/s</b></span>
+      <span class="port inn" id="vport">FØRT SKYTETID · TELLER I STATISTIKKEN</span>
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.12em;font-size:12px;color:var(--mute);margin-bottom:9px">AKTIVITETSRADENE — OPPDATERES MENS DU DRAR</div>
+      <div class="akt ligg"><span class="grip">⣿</span><span class="n">Skyting · liggende<span><span class="live" id="radtid">plassert 11:52–12:32 ⌚</span> · 5 serier</span></span><span class="m">23/25 treff<br><span id="radpuls">snitt 148</span></span></div>
+      <div class="akt drag"><span class="grip">⣿</span><span class="n">Konkurransefart<span>Rulleski · skøyting · 19:40</span></span><span class="m">8,1 km<br>snitt 164</span></div>
+      <div class="akt pause"><span class="grip">⣿</span><span class="n">Veksling · T2<span>bytt-tid · plassert 27:10–27:58 ⌚</span></span><span class="m">—</span></div>
+    </div>
+  </div>
+
+  <div class="mfoot" style="display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--mute);margin-right:auto">Uten ført skytetid: 40 s puls-markering, utenfor skytetid-statistikken</span>
+    <button class="pill g">SORTÉR ETTER TID</button>
+    <button class="pill g">AVBRYT</button>
+    <button class="pill o">LAGRE ✓</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <p style="margin-bottom:10px">Denne fila er <b>fasiten for «Legg til detaljer»</b> og avløser
+  <code>design/xpulse-tidsplassering-design.html</code> (slett den — regel 21).
+  «Plott treff» har egen fasit: <code>design/xpulse-plott-treff-design.html</code>.</p>
+  <ul>
+    <li class="ny"><b>ÉN FLYT, ÉN DATAKILDE (Sverre 28. aug — overordnet):</b>
+    aktivitetsradene og pop-upen er SAMME data, ikke to måter å føre på.
+    Pop-upen finnes KUN for å gjøre føringen enklere og mer presis når
+    klokkesynk finnes — den legger tid og puls på det som ellers føres
+    for hånd. Den er en LUPE, ikke et parallelt system. Ingen felter,
+    tabeller eller kolonner som bare pop-upen bruker. En bruker som aldri
+    åpner den skal kunne føre nøyaktig det samme, bare uten
+    tid/kurve-presisjonen.</li>
+    <li><b>MENTAL MODELL: «intervall-byggeren, bare for klokkesynk».</b>
+    Byggeren tegner strukturen FØR økta — dette tegner den PÅ den
+    gjennomførte, med kurven som lerret. Gjenbruk byggerens designspråk
+    (blokker, håndtak, interaksjonsmønster) der det passer.</li>
+    <li><b>NAVN OG INNGANGER:</b> funksjonen heter <b>«LEGG TIL
+    DETALJER»</b> («Bygg økten» er forkastet — forveksles med
+    intervall-byggeren). TO innganger, samme pop-up (regel 11):
+    i knapperaden ved <b>AKTIVITETENE</b> og i <b>KLOKKESYNC</b>-blokka.
+    Begge rendres med sida, pill-stil, svarer i samme tick.
+    <b>Knapperaden (godkjent):</b> «🎯 Plott treff» · «⌚ Legg til
+    detaljer» · «+ Legg til aktivitet» · «+ Legg til skyting».</li>
+    <li class="ny"><b>KNAPPERADEN ER FELLES — OGSÅ I PLAN OG DAGBOK
+    (Sverre 28. aug):</b> raden med knapper over aktivitetsradene er ÉN
+    komponent (regel 11) som brukes både i planlegging og i dagboka, ikke
+    bare på den gjennomførte økta. Hver knapp har sin egen betingelse:
+    <br>· <b>+ Legg til aktivitet</b> — ALLTID synlig (plan og dagbok)
+    <br>· <b>+ Legg til skyting</b> — når idretten er skiskyting
+    (samme regel som skyting ellers styres av)
+    <br>· <b>🎯 Plott treff</b> — i DAGBOKA når økta har minst én
+    skyting-aktivitet (uavhengig av klokkesynk). IKKE i plan — man
+    plotter ikke treff på noe som ikke er gjennomført.
+    <br>· <b>⌚ Legg til detaljer</b> — KUN på klokkesynket økt
+    (dagbok). Aldri i plan.
+    <br>Samme plassering, rekkefølge og stil overalt; knappene skjules
+    (ikke deaktiveres) når betingelsen ikke er oppfylt, og raden rendres
+    med sida — knapper etterlastes aldri (regel 20).</li>
+    <li class="ny"><b>«PLOTT TREFF» OGSÅ INNE I POP-UPEN (Sverre 28. aug):</b>
+    knappen ligger i pop-upens topplinje når økta har skyting — man
+    plasserer skytingene i tid og fører treffene derfra uten å lukke.
+    Samme komponent som fra knapperaden (regel 11). Ved lukking
+    returneres man hit med oppdaterte tall i radene.</li>
+    <li><b>KUN KLOKKESYNKET ØKT:</b> «Legg til detaljer» vises kun på
+    økter med klokkedata (kurve/samples). «Plott treff» har ingen slik
+    begrensning.</li>
+    <li class="ny"><b>BÅNDET ER ØKTAS ANSIKT — FLERE MONTERINGSPUNKTER
+    (Sverre 28. aug):</b> den kollapsede visningen (kurve + segmentbånd +
+    punktmarkører) er den fineste oppsummeringen vi har av en økt, og
+    skal derfor vises der økta oppsummeres — ikke bare i
+    Klokkesync-blokka: <b>øktoversikten</b>, dags-/dagbokvisningen av
+    økta, og andre steder økta presenteres i sin helhet. ÉN komponent,
+    flere monteringspunkter (regel 11 — mønsteret fra helseflaten), i
+    lesevisning; «Rediger» åpner pop-upen bare der redigering hører
+    hjemme. <b>Vises KUN når noe faktisk er ført</b> (minst ett segment
+    eller punkt) — aldri et tomt bånd, aldri en tomtilstand som tar
+    plass (regel 20). CC foreslår den fulle lista over
+    monteringspunkter til godkjenning før bygging.</li>
+    <li class="ny"><b>BÅNDET SITTER RETT OVER AKTIVITETSRADENE (Sverre
+    28. aug):</b> i økt-visningen ligger båndet kollapset RETT OVER
+    aktivitetsradene (under knapperaden) — kurven og radene under er
+    samme økt, lest ovenfra og nedenfra. Man kan redigere BEGGE veier og
+    det henger sammen live: drar man i båndet, endres radene; endrer man
+    en rad (tid, type, rekkefølge), flytter segmentet seg i båndet. Det
+    er ikke «se her, rediger der» — det er én flate med to lag.
+    Pop-upen er kun forstørrelsen når man vil dra presist.</li>
+    <li><b>KOLLAPSET I ØKTA, REDIGERING I POP-UP:</b> i økt-visningen
+    ligger dette som et kollapset bånd (kurve + segmenter + punkter,
+    lesevisning). Klikk/«Rediger» åpner pop-upen i samme tick — kollapset
+    visning koster aldri en ekstra lasting. «Tunge byggere i pop-up,
+    lette kort i økta».</li>
+    <li class="ny"><b>ALLE AKTIVITETSTYPER PÅ KURVEN:</b> alt som kan
+    ligge i en aktivitetsrad skal kunne plasseres i tid — pause, aktiv
+    pause, skyting, oppvarming, nedjogg, <b>veksling/bytt-tid</b>, drag
+    og ANDRE BEVEGELSESFORMER (kombi/triatlon). Ikke en
+    skiskyting-spesialitet: «legg inn pause der» må virke i triatlon like
+    godt. Finnes runder fra klokka ligger de ALLEREDE inne som segmenter
+    — de kan dras og endres derfra, og radene følger med.</li>
+    <li class="ny"><b>VEKSLING / BYTT-TID:</b> i dag løst som
+    <code>aktiv_pause</code> med navn «T1»/«T2» (se triatlon-malen i
+    <code>lib/types.ts</code>) — en skjult konvensjon, ikke en type.
+    CC MÅLER og FORESLÅR til godkjenning: egen ActivityType
+    <code>veksling</code>? Svar på: teller den som treningstid eller
+    pausetid (forslag: egen kategori, IKKE i pausesummen), hva skjer med
+    eksisterende T1/T2-rader (forslag: visnings-migrering foreslås,
+    aldri stille datamutasjon), og hvilken segmentfarge (samme validering
+    som SEGMENT_FARGER). Ikke bygg før godkjent.</li>
+    <li><b>To adskilte ting:</b> tidsplassering = DATA
+    (<code>window_start_seconds</code> + <code>window_duration_seconds</code>,
+    fase 113) · rekkefølge = VISNING (<code>sort_order</code>). Bland
+    dem aldri. Rekkefølgen kan FORESLÅS fra tiden («Sortér etter tid»),
+    men overstyres alltid av drag.</li>
+    <li class="ny"><b>RADENE OPPDATERES LIVE:</b> drar man et vindu eller
+    et punkt, oppdateres raden umiddelbart (tid, varighet, puls,
+    «plassert 11:52–12:32 ⌚») uten omlasting — og endrer man tid i raden,
+    flytter markøren seg på kurven. Ingen «lagre og se»-runde.</li>
+    <li><b>SKYTETID = STATISTIKK-PORTEN:</b> brukeren velger hvor
+    skytingen STARTER. Uten ført skytetid er vinduet KUN en
+    puls-markering (~40 s) og holdes UTENFOR all skytetid-statistikk.
+    Føres skytetid, blir DEN vinduslengden OG skytingen teller.
+    Prinsipp: aldri et statistikktall fra et vindu uten ført tid. Vinduet
+    kan alltid dras og strekkes — drag endrer plassering, ikke
+    statistikk-status.</li>
+    <li><b>KURVEVELGER — PULS / FART / WATT:</b> vinduer og punkter er de
+    samme uansett valg, kun lerretet bytter. Skyting leses ofte bedre på
+    fartskurven (flater ut på standplass). Leser-raden viser tid ·
+    varighet · snittpuls · snittfart samtidig. Kurver uten data vises
+    ikke i velgeren. Regel 17 (height="auto").
+    <b>Høyde</b> ligger som stille bakgrunnssilhuett bak valgt kurve der
+    <code>altitude_samples</code> finnes — ikke egen fane.</li>
+    <li><b>PUNKTMARKØRER — LAKTAT OG ERNÆRING:</b> draggbare punkter i
+    tid (laktat: mmol; ernæring: gel/drikke/mat). Skriver de
+    EKSISTERENDE feltene (laktat øktnivå/aktivitetsnivå,
+    <code>time_offset_minutes</code> for ernæring) — aldri nye kopier.
+    Vises over segmentbåndet, ikke som segmenter. Punkt = tidspunkt +
+    verdi; ingen varighet, ingen statistikk-port.</li>
+    <li><b>SEGMENTBÅNDET:</b> alle rader med tidsvindu tegnes som
+    segmenter under kurven — inkl. bevegelsesform-bytter (etiketten
+    bærer navnet). Tooltip: tid, varighet, snittpuls, treff for skyting.
+    <b>Fargefasit (validert, i SEGMENT_FARGER):</b> ligg #38BDF8 · stå
+    #FF4500 · oppvarming #BBAA55 · drag #1E2AA8 · nedjogg #64748B ·
+    pause #43434B · bev.form #A6A6AF. Aldri sonefargene I1–I8.</li>
+    <li><b>VISNINGEN ER UNIVERSELL:</b> omdøpt runde får samme markering
+    på kurven, bare med vinduet LÅST til rundens grenser. Én komponent,
+    to modi: låst (fra runde) / draggbar (manuelt plassert). Draggbar
+    plassering finnes kun på økter uten runder.</li>
+    <li><b>Puls i vinduet</b> regnes ved visning fra
+    <code>workout_samples</code> i [start, start+varighet] — snitt/maks +
+    «puls inn». Lagres ALDRI som kopi (regel 11). Ingen samples → «for
+    lite data».</li>
+    <li><b>SPLITT AV RUNDE/PAUSE:</b> plasseres et skytevindu INNI en
+    runde/pause, splittes raden: originalen kortes til delen før,
+    skytingen får sitt vindu, og resten blir pause eller AKTIV PAUSE
+    (brukeren velger, siste valg huskes). <code>split_backup</code>
+    skrives FØR enhver endring; angre gjenoppretter originalen fullt.
+    Splitt av en allerede splittet rad: støttes eksplisitt eller avvises
+    med ærlig melding (regel 22) — aldri udefinert.</li>
+    <li><b>KONKURRANSE:</b> skytinger plasseres som ellers, og
+    <b>STRAFFERUNDER</b> som egne segmenter (egen type/merking, valgfritt
+    — kun når de faktisk ble gått), med tid og puls som andre segmenter.</li>
+    <li><b>STAFETT — RESERVESKUDD:</b> serie-modellen må støtte 0–3
+    ekstra skudd per skyting. CC MÅLER FØRST i prod (regel 5/8) — mangler
+    feltet, er det egen liten migrering til godkjenning + visning
+    («5 + 2 reserve · 8/10»). Gjelder skyting-modellen generelt.</li>
+    <li><b>GPS:</b> MÅLT 28. aug — finnes IKKE i prod (ingen posisjonsfelt
+    i <code>workout_samples</code>, ingen rute-tabeller). Kart med
+    standplass, høydeprofil på ekte posisjon og GAP på ekte stigning
+    krever at importene begynner å lagre posisjon — egen fremtidig sak,
+    ingenting bygges nå.</li>
+    <li><b>Vinduer kan ikke overlappe</b> — verken klokke-vinduer eller
+    manuelt plasserte. Valideres i klienten OG mot basens tilstand ved
+    lagring (to faner / trener+utøver), ærlig feilmelding (regel 22).</li>
+    <li><b>Håndtak</b> ≥36 px treffflate, plassert utenfor vinduskanten
+    (smale vinduer må kunne flyttes, ikke bare strekkes).</li>
+    <li>«Flytt serier mellom rader»-verktøyet er VURDERT OG DROPPET
+    (28. aug) — like mange klikk som å føre på nytt. Ikke gjenoppliv.</li>
+    <li><b>Lys + mørk</b> (regel 23) · regel 17 · regel 20 · regel 24.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+const gb=document.getElementById('gb'),vin=document.getElementById('vin');
+let mode=null,startX=0,startL=0,startW=0;
+const TOT=38.2*60;
+function pct(p){return Math.max(0,Math.min(100,p))}
+function fmt(s){s=Math.round(s);const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0')}
+function oppdater(){
+  const l=parseFloat(vin.style.left),w=parseFloat(vin.style.width);
+  const a=TOT*l/100,b=TOT*(l+w)/100;
+  document.getElementById('vt').textContent=fmt(a)+' – '+fmt(b);
+  document.getElementById('vd').textContent=fmt(b-a);
+  const snitt=Math.round(140+18*Math.sin(l/7)),inn=snitt+20;
+  document.getElementById('vp').textContent='snitt '+snitt+' · inn '+inn;
+  document.getElementById('radtid').textContent='plassert '+fmt(a)+'–'+fmt(b)+' ⌚';
+  document.getElementById('radpuls').textContent='snitt '+snitt;
+  const p=document.getElementById('vport');
+  if(Math.abs((b-a)-40)<2){p.textContent='FØRT SKYTETID · TELLER I STATISTIKKEN';p.className='port inn'}
+  else{p.textContent='KUN PULS-MARKERING · UTENFOR SKYTETID-STATISTIKK';p.className='port ut'}
+}
+vin.addEventListener('pointerdown',e=>{
+  mode=e.target.dataset.h||'m';startX=e.clientX;
+  startL=parseFloat(vin.style.left);startW=parseFloat(vin.style.width);
+  vin.setPointerCapture(e.pointerId);e.preventDefault();
+});
+vin.addEventListener('pointermove',e=>{
+  if(!mode)return;
+  const dx=(e.clientX-startX)/gb.offsetWidth*100;
+  if(mode==='m'){vin.style.left=pct(Math.min(startL+dx,100-startW))+'%'}
+  else if(mode==='l'){const nl=pct(Math.min(startL+dx,startL+startW-2));vin.style.left=nl+'%';vin.style.width=(startL+startW-nl)+'%'}
+  else{vin.style.width=Math.max(2,Math.min(startW+dx,100-startL))+'%'}
+  oppdater();
+});
+vin.addEventListener('pointerup',()=>{mode=null});
+document.querySelectorAll('.velger button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.velger button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+oppdater();
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Plott treff: samlet serie-føring (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --prone:#38BDF8; --staa:#FF4500;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 34px;max-width:700px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:30px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+
+.knapprad{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.pill{border-radius:999px;padding:9px 20px;cursor:pointer;border:0;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:13px;white-space:nowrap}
+.pill.o{background:var(--orange);color:#fff}
+.pill.g{background:transparent;border:1.5px solid var(--line2);color:var(--paper)}
+.pill.sky{background:transparent;border:1.5px solid var(--staa);color:var(--staa)}
+.akt{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line2);border-left:3px solid var(--green);border-radius:10px;padding:11px 14px;margin-bottom:8px;font-size:13.5px}
+.akt .grip{color:var(--mute);font-size:16px;letter-spacing:-2px}
+.akt .n{font-weight:600}
+.akt .n span{display:block;font-size:12px;color:var(--mute);font-weight:400}
+.akt .m{margin-left:auto;color:var(--dim);text-align:right;font-size:12.5px}
+.akt.ligg{border-left-color:var(--prone)}
+.akt.staa{border-left-color:var(--staa)}
+.akt.pause{border-left-color:#43434B}
+
+.overlay{background:rgba(0,0,0,.55);border-radius:var(--r);padding:22px}
+.modal{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);overflow:hidden}
+.mhead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mhead h3{font-family:'Bebas Neue';font-size:24px;letter-spacing:.03em}
+.mhead .kilde{font-size:12px;color:var(--mute);margin-left:auto;max-width:330px;text-align:right}
+.mbody{padding:6px 20px 18px}
+
+.gruppe{margin-top:18px}
+.ghead{display:flex;align-items:center;gap:10px;padding:9px 0 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:3px}
+.ghead .t{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.12em;font-size:13px}
+.ghead .tid{font-size:12px;color:var(--mute)}
+.ghead .sum{margin-left:auto;font-size:12.5px;color:var(--dim)}
+.ghead .sum b{color:var(--paper)}
+
+/* Plassholder for EKSISTERENDE føringskomponent */
+.gjenbruk{border:1.5px dashed var(--line2);border-radius:11px;padding:16px;margin-top:10px;background:rgba(255,69,0,.03)}
+.gjenbruk .tag{display:inline-block;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.12em;font-size:11px;color:var(--orange);border:1px solid rgba(255,69,0,.45);border-radius:6px;padding:2px 9px;margin-bottom:10px}
+.gjenbruk p{font-size:13px;color:var(--dim)}
+.gjenbruk .liste{margin:10px 0 0 18px;font-size:12.5px;color:var(--mute)}
+.gjenbruk .liste li{margin:3px 0}
+.pulsrad{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);font-size:12.5px}
+.badge{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em;font-size:10.5px;border-radius:5px;padding:2px 7px}
+.badge.auto{color:var(--blue);border:1px solid rgba(26,111,212,.5)}
+.badge.m{color:var(--gold);border:1px solid rgba(232,185,60,.5)}
+
+.mfoot{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.mfoot .info{font-size:12px;color:var(--mute);margin-right:auto;max-width:520px}
+
+.notat{margin-top:60px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>PLOTT <span class="acc">TREFF.</span></h1>
+<p class="sub">Én knapp som samler ALLE seriene i økta på ett sted — på tvers av skyting-radene, også når skytingene er splittet. <b>Selve føringen er uendret:</b> vimplene, vind, sikt og alle feltene er nøyaktig dagens plotte-komponent, bare montert i én liste. Det eneste nye er samlingen, grupperingen og auto-pulsen. Virker uansett om økta er klokkesynket eller ført for hånd.</p>
+
+<!-- ═══ 1 · KNAPPERADEN ═══ -->
+<div class="demo"><b>1 · Knapperaden</b> — over aktivitetsradene. «Plott treff» vises når økta har minst én skyting.</div>
+
+<div class="card">
+  <div class="ch"><h3>NM SPRINT — AKTIVITETENE</h3><span class="m">3 skyting-rader · 15 serier å føre</span></div>
+  <div class="knapprad">
+    <button class="pill sky">🎯 PLOTT TREFF</button>
+    <button class="pill g">⌚ LEGG TIL DETALJER</button>
+    <button class="pill g">+ LEGG TIL AKTIVITET</button>
+    <button class="pill g">+ LEGG TIL SKYTING</button>
+  </div>
+  <div class="akt"><span class="grip">⣿</span><span class="n">Oppvarming<span>Løping · 15:02</span></span><span class="m">2,4 km<br>snitt 121</span></div>
+  <div class="akt ligg"><span class="grip">⣿</span><span class="n">Skyting · liggende<span>plassert 11:52–12:32 ⌚ · 5 serier</span></span><span class="m">23/25 treff<br>snitt 148</span></div>
+  <div class="akt"><span class="grip">⣿</span><span class="n">Konkurransefart<span>Rulleski · skøyting · 19:40</span></span><span class="m">8,1 km<br>snitt 164</span></div>
+  <div class="akt staa"><span class="grip">⣿</span><span class="n">Skyting · stående<span>plassert 24:40–25:22 ⌚ · 5 serier</span></span><span class="m">21/25 treff<br>snitt 156</span></div>
+  <div class="akt pause"><span class="grip">⣿</span><span class="n">Veksling · T2<span>bytt-tid · 0:48</span></span><span class="m">—</span></div>
+</div>
+
+<!-- ═══ 2 · POP-UPEN ═══ -->
+<div class="demo"><b>2 · Pop-upen</b> — gruppert per skyting-rad. Innholdet i hver gruppe er DAGENS føringskomponent, uendret.</div>
+
+<div class="overlay">
+<div class="modal">
+  <div class="mhead">
+    <h3>PLOTT TREFF</h3>
+    <span style="font-size:12.5px;color:var(--dim)">NM Sprint · 15 serier i 3 rader</span>
+    <span class="kilde">Samme serier som skyting-kortene og statistikken — endringer her slår gjennom overalt</span>
+  </div>
+
+  <div class="mbody">
+
+    <div class="gruppe">
+      <div class="ghead">
+        <span class="dot" style="background:var(--prone)"></span>
+        <span class="t" style="color:var(--prone)">LIGGENDE</span>
+        <span class="tid">plassert 11:52–12:32 ⌚</span>
+        <span class="sum">Sum <b>23/25</b> · snitt tid <b>26,4 s</b></span>
+      </div>
+      <div class="gjenbruk">
+        <span class="tag">EKSISTERENDE FØRINGSKOMPONENT — UENDRET</span>
+        <p>Her rendres den skyting-føringen som allerede finnes i appen, én gang per serie i denne raden:</p>
+        <ul class="liste">
+          <li>vimpel-/treffplottet slik det ser ut i dag</li>
+          <li>vind (styrke + retning), sikt, skytetid, notat — samme felter, samme oppsett</li>
+          <li>ingen redesign, ingen nye felter, ingen ny komponent</li>
+        </ul>
+        <div class="pulsrad">
+          <span style="color:var(--dim)">Det eneste tillegget i raden:</span>
+          <span>Puls <b>148</b> <span class="badge auto">AUTO</span> <span style="color:var(--mute)">lest fra kurven i skytevinduet</span></span>
+          <span>— skriver du selv: <span class="badge m">M</span> <span style="color:var(--mute)">og manuelt vinner</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gruppe">
+      <div class="ghead">
+        <span class="dot" style="background:var(--staa)"></span>
+        <span class="t" style="color:var(--staa)">STÅENDE</span>
+        <span class="tid">plassert 24:40–25:22 ⌚</span>
+        <span class="sum">Sum <b>21/25</b> · snitt tid <b>31,2 s</b></span>
+      </div>
+      <div class="gjenbruk">
+        <span class="tag">EKSISTERENDE FØRINGSKOMPONENT — UENDRET</span>
+        <p>Samme komponent, 5 serier. Gruppens sum og snitt regnes ved visning fra seriene.</p>
+      </div>
+    </div>
+
+    <div class="gruppe">
+      <div class="ghead">
+        <span class="dot" style="background:var(--prone)"></span>
+        <span class="t" style="color:var(--prone)">LIGGENDE · 2. SKYTING</span>
+        <span class="tid" style="color:var(--mute)">ikke plassert i tid — puls føres manuelt</span>
+        <span class="sum">Sum <b>—</b></span>
+      </div>
+      <div class="gjenbruk">
+        <span class="tag">EKSISTERENDE FØRINGSKOMPONENT — UENDRET</span>
+        <p>Uten tidsplassering står puls-feltet tomt og merkes ikke AUTO — aldri et tall som ser målt ut når det ikke er det.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mfoot">
+    <span class="info">Puls merket <b style="color:var(--blue)">AUTO</b> er lest fra pulskurven i skytevinduet · <b style="color:var(--gold)">M</b> = manuelt ført, vinner alltid · alt lagres i én operasjon</span>
+    <button class="pill g">AVBRYT</button>
+    <button class="pill o">LAGRE ALLE SERIER ✓</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <ul>
+    <li><b>DET NYE ER SAMLINGEN — IKKE FØRINGEN (Sverre 28. aug):</b>
+    selve plottingen beholdes <b>nøyaktig som den er i dag</b>: vimplene,
+    vind-føringen, sikt, skytetid, notat, alle felter og hele oppsettet.
+    Ingen redesign av serie-føringen, ingen nye felter, ingen ny
+    komponent. Det som bygges er: fellesknappen, pop-upen, grupperingen
+    per skyting-rad, gruppe-summene, auto-pulsen og lagringen i én
+    operasjon. <b>GJENBRUK den eksisterende føringskomponenten</b> —
+    finnes den ikke som gjenbrukbar komponent, høstes mønsteret først
+    (regel 18) og brukes BEGGE steder etterpå, aldri to varianter.</li>
+    <li><b>EGEN BOLK, IKKE INNE I «LEGG TIL DETALJER».</b> «Legg til
+    detaljer» krever klokkesynk. <b>«Plott treff» krever det IKKE</b> —
+    den skal virke like godt på en økt ført for hånd i dagboka. Knappen
+    ligger i knapperaden OVER aktivitetsradene og vises når økta har
+    minst én skyting-aktivitet (uansett kilde).</li>
+    <li><b>KNAPPERADEN — ÉN FELLES KOMPONENT (Sverre 28. aug):</b>
+    «🎯 Plott treff» · «⌚ Legg til detaljer» · «+ Legg til aktivitet» ·
+    «+ Legg til skyting» — i den rekkefølgen, pill-stil, over
+    aktivitetsradene. Brukes BÅDE i plan og i dagbok (regel 11 — én
+    komponent, ikke to varianter). Betingelser: «Legg til aktivitet»
+    alltid · «Legg til skyting» når idretten er skiskyting · «Plott
+    treff» i dagboka når økta har skyting (uansett klokkesynk), aldri i
+    plan · «Legg til detaljer» kun på klokkesynket økt i dagboka, aldri
+    i plan. Knapper skjules (ikke deaktiveres) når betingelsen ikke er
+    oppfylt; raden rendres med sida — etterlastes aldri (regel 20).</li>
+    <li><b>OGSÅ INNE I «LEGG TIL DETALJER» (Sverre 28. aug):</b>
+    «Plott treff»-knappen skal ALTSÅ også ligge synlig inne i
+    «Legg til detaljer»-pop-upen (når økta har skyting) — man plasserer
+    skytingene i tid, og fører treffene med ett klikk derfra, uten å
+    lukke og finne knappen igjen. SAMME komponent begge steder (regel 11
+    — én pop-up, to innganger). Åpnes den derfra, er skytingene nettopp
+    plassert, så auto-pulsen er allerede riktig; ved lukking returneres
+    man til «Legg til detaljer» med oppdaterte tall i radene.</li>
+    <li><b>REGEL 11 — ÉN KILDE:</b> pop-upen skriver de SAMME
+    <code>workout_shooting_series</code>-radene som skyting-kortene,
+    skytestatistikken og dagens per-skyting-føring leser. Annen inngang
+    til samme data — aldri en parallell føring, aldri en ny serietabell,
+    aldri kopier av treff-tall. Endring her slår gjennom overalt, og
+    omvendt.</li>
+    <li><b>GRUPPERING:</b> én gruppe per skyting-AKTIVITETSRAD (ligg /
+    stå / kombinert / innskyting), med stilling-farge (ligg #38BDF8,
+    stå #FF4500) og gruppe-sum (treff + snitt skytetid, regnet ved
+    visning). Rekkefølge: tidsplasserte først i tidsrekkefølge, deretter
+    uplasserte i radenes rekkefølge. Splittede skytinger blir flere
+    grupper — det er riktig, de er ulike rader.</li>
+    <li><b>PULS AUTO (Sverre 28. aug):</b> er skytingen plassert i tid OG
+    økta har pulskurve, fylles puls per serie automatisk fra kurven
+    (serien får sin del av vinduet). Merkes <b>AUTO</b>. Skriver
+    brukeren et tall selv, merkes det <b>M</b> og vinner alltid —
+    konvensjonen «manuelt ført vinner og merkes M». Beregn ved visning
+    der det er mulig; må det lagres, skal lagringen være eksplisitt og
+    merket (regel 11).</li>
+    <li><b>UTEN TID:</b> uplasserte skytinger får tomt puls-felt og
+    tydelig undertekst «ikke plassert i tid — puls føres manuelt» —
+    aldri et auto-tall som ser målt ut når det ikke er det (regel 22).</li>
+    <li><b>LAGRING:</b> alt lagres i ÉN operasjon (ikke per rad),
+    knappen svarer i samme tick (regel 20), full rollback ved feil
+    (skriving = alt eller ingenting). Lukk uten lagring spør hvis noe er
+    endret.</li>
+    <li><b>RESERVESKUDD (stafett):</b> når den modellen kommer, må
+    listen tåle 5 + 0–3 skudd per serie uten omlegging. Måles i
+    skyting-modellens egen bolk, ikke her.</li>
+    <li><b>MOBIL:</b> gruppene stables; føringskomponenten beholder sine
+    egne treffflater (≥36–44px). Bredt innhold skroller i EGEN container,
+    aldri hele sida.</li>
+    <li><b>Lys + mørk</b> (regel 23) · regel 17 · regel 24 ·
+    skytefargene er fasit.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>

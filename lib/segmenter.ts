@@ -12,11 +12,11 @@
 //
 // Flislegging krever at radene faktisk dekker kurven: alle rader har
 // varighet, summen treffer samples-lengden innenfor toleransen, OG minst
-// én rad er beviselig en klokke-runde (external_id/strava_lap_index —
+// TO rader er beviselig klokke-runder (external_id/strava_lap_index —
 // målt 28. aug: 76 av 118 rader på klokkeøkter bærer proveniens). Uten
-// den siste betingelsen ville en manuelt ført økt hvis varigheter
-// tilfeldigvis summerer til kurvens lengde blitt «flislagt» til en
-// tidslinje ingen klokke har målt. En økt der noen har lagt til manuelle
+// det ville en manuelt ført økt — eller en økt der klokka bare ga
+// totalen som én rad — blitt «flislagt» til en tidslinje ingen klokke
+// har målt, bare fordi varighetene tilfeldigvis summerte riktig. En økt der noen har lagt til manuelle
 // rader i etterkant (f.eks. fredet skyting-rad fra flett) består heller
 // ikke gaten (summen sprekker) — da vises KUN manuelt plasserte vinduer,
 // aldri en gjettet tidslinje.
@@ -82,7 +82,10 @@ const SKYTING_PREFIX = 'skyting'
 // kurvens lengde innenfor maks(60 s, 10 %). Ærlig heller enn gjettende.
 export function kanFlislegge(rader: SegmentRad[], totalSek: number): boolean {
   if (rader.length < 2 || totalSek <= 0) return false
-  if (!rader.some(r => r.harKlokkeProveniens)) return false
+  // Minst TO klokke-runder: en økt der klokka bare ga totalen (én rad)
+  // pluss manuelt tillagte rader er nettopp «økt uten runder» — selv om
+  // varighetene tilfeldigvis summerer til kurvens lengde.
+  if (rader.filter(r => r.harKlokkeProveniens).length < 2) return false
   let sum = 0
   for (const r of rader) {
     const d = r.duration_seconds ?? 0

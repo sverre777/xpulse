@@ -27,6 +27,7 @@ import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
+import { LeggTilDetaljerInngang, LeggTilDetaljerPopup } from './LeggTilDetaljer'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -111,6 +112,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
   // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
   const [erKoblet, setErKoblet] = useState(false)
+  // «Legg til detaljer» (fase 113): pop-up + oppfrisking av klokkeseksjonen
+  // etter lagring. Inngangene rendres statisk og åpner i samme tick (regel 20).
+  const [visDetaljer, setVisDetaljer] = useState(false)
+  const [detaljerTick, setDetaljerTick] = useState(0)
   const activities: ActivityRow[] = data.activities ?? []
 
   // Fase 109: «fra klokka»-blokka + angre-raden (fasit seksjon 3). Hentes
@@ -146,6 +151,9 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
     return () => { cancelled = true }
   }, [targetUserId])
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
+  // «Legg til detaljer» KUN på klokkesynkede økter (fasit-avgrensningen) —
+  // manuelle økter uten kurve får ikke inngangen.
+  const kanLeggeTilDetaljer = !isPlannedView && canEdit && !!workoutId && harKlokkeRader
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
   const trainingLikes: ActivityLike[] = []
@@ -428,7 +436,12 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           graf-temaet); egen data-finnes-sjekk, kun importerte økter. ── */}
       {workoutId && (data.imported_from || data.merged_source) && (
         <div className="mb-3.5">
-          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} />
+          {kanLeggeTilDetaljer && (
+            <div className="mb-2 flex justify-end">
+              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+            </div>
+          )}
+          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} />
         </div>
       )}
 
@@ -554,6 +567,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
             Denne økta kom uten runder fra {fitSourceLabel(data.imported_from) || 'kilden'}.
             Totalene over gjelder hele økta.
           </p>
+          {kanLeggeTilDetaljer && (
+            <div className="mt-3">
+              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+            </div>
+          )}
         </Card>
       )}
 
@@ -702,6 +720,11 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
               )
             })}
           </div>
+          )}
+          {kanLeggeTilDetaljer && (
+            <div className="mt-3">
+              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+            </div>
           )}
         </Card>
       )}
@@ -1049,6 +1072,14 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           }}>
           ✎ Rediger økt
         </button>
+      )}
+
+      {visDetaljer && workoutId && (
+        <LeggTilDetaljerPopup
+          workoutId={workoutId}
+          onClose={() => setVisDetaljer(false)}
+          onLagret={() => setDetaljerTick(t => t + 1)}
+        />
       )}
     </div>
   )

@@ -17,6 +17,9 @@ import Link from 'next/link'
 
 interface Props {
   workoutId: string
+  // Bumpes av «Legg til detaljer» etter lagring — tvinger refetch så
+  // segmentbånd/vinduer viser det som nettopp ble plassert.
+  refreshTick?: number
   // Strava-importerte økter eldre enn 7 dager har fått samples slettet av
   // /api/cron/cleanup-strava-samples (Strava API Agreement § 7). Vi viser
   // info-tekst i stedet for grafen så brukeren forstår at grunndata er der.
@@ -32,7 +35,7 @@ interface FetchState {
   error: boolean
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0 }: Props) {
   const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true, error: false })
   const [showDeep, setShowDeep] = useState(false)
   const [retryTick, setRetryTick] = useState(0)
@@ -55,7 +58,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom }: Props) {
         setState({ workoutId, data: null, loading: false, error: true })
       })
     return () => { cancelled = true }
-  }, [workoutId, retryTick])
+  }, [workoutId, retryTick, refreshTick])
 
   if (state.loading) return null
   if (state.error) {

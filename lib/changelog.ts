@@ -55,6 +55,12 @@ export const CHANGELOG: ChangelogEntry[] = [
 
   // ── v1.3 — 28. august 2026 ─────────────────────────────────────────────
   {
+    date: '2026-08-29',
+    title: 'Legg til detaljer — plasser skyting og målinger på kurven',
+    body: 'Klokkesynkede økter har fått «Legg til detaljer»: plasser skytingene dine i tid ved å dra vinduer direkte på kurven — med puls, fart eller watt som lerret, og høydeprofilen i bakgrunnen. Ført skytetid brukes automatisk som vinduslengde og teller i statistikken; uten ført tid er vinduet en ren pulsmarkering. Laktatmålinger og ernæring kan dras inn som punkter, og radene kan sorteres etter tid. På økter med runder fra klokka er vinduene låst til rundene, som før.',
+    version: '1.3',
+  },
+  {
     date: '2026-08-28',
     title: 'Økta som fortelling under pulskurven',
     body: 'Klokkesynkede økter med runder viser nå et segmentbånd under økt-grafen: oppvarming, drag, pauser, skyting og nedjogg tegnes i tid, med egne farger for liggende og stående skyting. Skytingene markeres også som vinduer på selve pulskurven med treff og «puls inn». Hold over et segment for tid, varighet og snittpuls — og laktatmålinger og ernæring med tidspunkt vises som små markører over båndet.',

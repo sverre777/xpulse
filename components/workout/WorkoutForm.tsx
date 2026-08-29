@@ -23,6 +23,7 @@ import {
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
+import { LeggTilDetaljerPopup } from './LeggTilDetaljer'
 import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'
@@ -304,6 +305,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
+  // «Legg til detaljer» fra knapperaden (fasit) — kun dagbok + klokkesynket.
+  const [visDetaljerPopup, setVisDetaljerPopup] = useState(false)
 
   // Kø #48 bolk 2: standardøkt-SERIE-velger (erstatter mal-tagge-modusen).
   // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
@@ -1518,6 +1521,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
         <ActivitiesSection
           targetUserId={targetUserId}
+          erKlokkesynket={!!workoutId && !!(defaultValues?.imported_from ?? defaultValues?.merged_source)}
+          onLeggTilDetaljer={workoutId ? () => setVisDetaljerPopup(true) : undefined}
           rows={form.activities}
           onChange={a => set('activities', a)}
           sport={form.sport}
@@ -1660,6 +1665,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
       {workoutId && !templateBuildingMode && (
         <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
+      )}
+
+      {visDetaljerPopup && workoutId && (
+        <LeggTilDetaljerPopup
+          workoutId={workoutId}
+          onClose={() => setVisDetaljerPopup(false)}
+          onLagret={() => { /* skjemaets rader hentes på nytt ved neste åpning;
+              vindus-/tidsdata eies av basen og overlever lagring (fase 113-vern) */ }}
+        />
       )}
 
       {/* Strava API Agreement § 2.3 — synlig attribusjon for Strava-data. */}

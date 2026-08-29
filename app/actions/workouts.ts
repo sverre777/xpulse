@@ -248,17 +248,38 @@ async function learnUserExercises(
 // 2-pass insert av hele aktivitet-treet (aktiviteter → øvelser+sett → laktatmålinger).
 // Brukes av både saveWorkout og markCompleted (hydrering fra planned_snapshot).
 // Returnerer feilmelding hvis noe gikk galt, null ved suksess.
+//
+// skjulteFelter (fase 113/114-vern): kolonner skjemaet ikke eier —
+// klokke-proveniens (external_id/strava_lap_index), tidsvinduene
+// (window_*) og splitt-feltene — hentet fra radene FØR slettingen,
+// nøklet på rad-id. Rader med db_id gjenskapes med SAMME id og får
+// disse feltene kopiert inn, så «Legg til detaljer»-plasseringer og
+// splitt-relasjoner (split_parent_id peker på rad-id!) overlever en
+// vanlig skjema-lagring. Uten dette slettet hver redigering dem stille.
+type SkjulteAktivitetsFelter = {
+  external_id: string | null
+  strava_lap_index: number | null
+  window_start_seconds: number | null
+  window_duration_seconds: number | null
+  split_parent_id: string | null
+  split_backup: unknown
+}
 async function insertActivitiesWithChildren(
   supabase: Awaited<ReturnType<typeof createClient>>,
   workoutId: string,
   activities: ActivityRow[],
+  skjulteFelter?: Map<string, SkjulteAktivitetsFelter>,
 ): Promise<string | null> {
   if (activities.length === 0) return null
 
   const activityRows = activities.map((a, ai) => {
     const durSec = parseActivityDuration(a.duration) ?? 0
     const km = parseDecimal(a.distance_km)
+    const skjult = a.db_id ? skjulteFelter?.get(a.db_id) : undefined
     return {
+      // Behold identiteten når raden fantes fra før — split_parent_id og
+      // alt annet som peker på rad-id forblir gyldig etter gjenskaping.
+      ...(skjult && a.db_id ? { id: a.db_id, ...skjult } : {}),
       workout_id: workoutId,
       activity_type: a.activity_type,
       movement_name: a.movement_name || null,
@@ -765,6 +786,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   const workoutPayload = basePayload
 
   let savedId = workoutId
+  const skjulteAktivitetsFelter = new Map<string, SkjulteAktivitetsFelter>()
 
   if (workoutId) {
     // Trener-stempel bevares mellom redigeringer:
@@ -773,6 +795,22 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     if (resolved.isCoachImpersonating) workoutPayload.created_by_coach_id = resolved.coachId
     const { error } = await supabase.from('workouts').update(workoutPayload).eq('id', workoutId).eq('user_id', resolved.userId)
     if (error) return { error: error.message }
+    // Fase 113/114-vern: les de skjulte kolonnene FØR radene slettes.
+    {
+      const { data: skjulte } = await supabase.from('workout_activities')
+        .select('id, external_id, strava_lap_index, window_start_seconds, window_duration_seconds, split_parent_id, split_backup')
+        .eq('workout_id', workoutId)
+      for (const r of (skjulte ?? [])) {
+        skjulteAktivitetsFelter.set(r.id as string, {
+          external_id: (r.external_id as string | null) ?? null,
+          strava_lap_index: (r.strava_lap_index as number | null) ?? null,
+          window_start_seconds: (r.window_start_seconds as number | null) ?? null,
+          window_duration_seconds: (r.window_duration_seconds as number | null) ?? null,
+          split_parent_id: (r.split_parent_id as string | null) ?? null,
+          split_backup: r.split_backup ?? null,
+        })
+      }
+    }
     await Promise.all([
       supabase.from('workout_movements').delete().eq('workout_id', workoutId),
       supabase.from('workout_zones').delete().eq('workout_id', workoutId),
@@ -875,7 +913,7 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   }
 
   // Fase 7: kronologisk aktivitetsliste (intern parent→child-sekvensering).
-  childOps.push(insertActivitiesWithChildren(supabase, savedId!, data.activities ?? []))
+  childOps.push(insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [], skjulteAktivitetsFelter))
 
   // Fase 13: lær personlig øvelsesbibliotek (kun faktisk bruk, ikke plan-save).
   if (!isPlanSave) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { AktivitetKnapperad } from './AktivitetKnapperad'
 import {
   ActivityRow, ActivityType, ACTIVITY_TYPES, findActivityType,
   Sport, DEFAULT_MOVEMENTS_BY_SPORT, MOVEMENT_CATEGORIES,
@@ -68,6 +69,11 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
 }
 
 interface Props {
+  // Felles knapperad (fasit): ⌚/🎯-inngangene gjelder kun dagbok — plan
+  // og manuelle økter skjuler dem via betingelsene i AktivitetKnapperad.
+  erKlokkesynket?: boolean
+  onLeggTilDetaljer?: () => void
+  onPlottTreff?: () => void
   // Trener-redigering: sonespråket skal være UTØVERENS (fase 111).
   targetUserId?: string
   rows: ActivityRow[]
@@ -187,7 +193,7 @@ import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, erKlokkesynket = false, onLeggTilDetaljer, onPlottTreff }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -277,8 +283,23 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   // skjules, men gamle rader beholder verdi + label (egen option under).
   const typeOptions = ACTIVITY_TYPES.filter(t => (!t.biathlonOnly || userHasBiathlon) && !t.legacy)
 
+  const harSkyting = rows.some(r => (r.activity_type ?? '').startsWith('skyting'))
+
   return (
     <div className="space-y-2">
+      {/* Felles knapperad (regel 11) — over radene, i plan OG dagbok.
+          Var tidligere to knapper nederst; fasiten flytter dem hit og
+          legger 🎯/⌚-inngangene i samme rad. */}
+      <AktivitetKnapperad
+        isPlanMode={isPlanMode}
+        harSkyting={harSkyting}
+        erKlokkesynket={erKlokkesynket}
+        userHasBiathlon={userHasBiathlon}
+        onPlottTreff={onPlottTreff}
+        onLeggTilDetaljer={onLeggTilDetaljer}
+        onLeggTilAktivitet={addRow}
+        onLeggTilSkyting={addShootingRow}
+      />
       {rows.length === 0 && (
         <p className="text-xs" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Ingen aktiviteter ennå. Legg til en for å logge bevegelse, pause eller skyting.
@@ -310,27 +331,6 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
           onEquipmentChange={onActivityEquipmentChange ? ids => onActivityEquipmentChange(row.id, ids) : undefined}
         />
       ))}
-      </div>
-
-      <div className="mt-3 flex flex-col sm:flex-row gap-2">
-        <button
-          type="button"
-          onClick={addRow}
-          className="xp-add"
-          style={{ flex: 1 }}
-        >
-          + Legg til aktivitet
-        </button>
-        {userHasBiathlon && (
-          <button
-            type="button"
-            onClick={addShootingRow}
-            className="xp-add"
-            style={{ flex: 1 }}
-          >
-            🎯 + Legg til skyting
-          </button>
-        )}
       </div>
 
       {createModalRowId !== null && (

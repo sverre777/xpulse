@@ -39,6 +39,14 @@ export interface DetaljerRad {
   /** Plassering i tid, beregnet med lib/segmenter (runde ELLER vindu). */
   startSek: number | null
   sluttSek: number | null
+  /** Feltene segment-editoren eier (bolk 2). */
+  distanseKm: number | null
+  snittpuls: number | null
+  makspuls: number | null
+  /** Sonen med tid på raden (zones-jsonb: {I3: sek}) — én sone per segment. */
+  sone: string | null
+  beskrivelse: string | null
+  gruppeId: string | null
 }
 
 export interface DetaljerLaktat {
@@ -80,7 +88,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     supabase.from('workout_samples').select('hr_samples, pace_samples, speed_samples, watt_samples, altitude_samples, created_at')
       .eq('workout_id', workoutId).order('created_at', { ascending: false }).limit(1),
     supabase.from('workout_activities')
-      .select('id, activity_type, movement_name, duration_seconds, sort_order, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, lap_notes, workout_shooting_series(time_seconds)')
+      .select('id, activity_type, movement_name, duration_seconds, sort_order, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, lap_notes, distance_meters, avg_heart_rate, max_heart_rate, zones, notes, workout_shooting_series(time_seconds)')
       .eq('workout_id', workoutId).order('sort_order', { ascending: true }),
     supabase.from('workout_lactate_measurements')
       .select('id, mmol, measured_at_time')
@@ -129,6 +137,12 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
       navn: (a.lap_notes as string | null) ?? null,
       startSek: sg?.startSek ?? null,
       sluttSek: sg?.sluttSek ?? null,
+      distanseKm: a.distance_meters != null ? Math.round(Number(a.distance_meters) / 10) / 100 : null,
+      snittpuls: a.avg_heart_rate != null ? Number(a.avg_heart_rate) : null,
+      makspuls: a.max_heart_rate != null ? Number(a.max_heart_rate) : null,
+      sone: dominantSone(a.zones as Record<string, number> | null),
+      beskrivelse: (a.notes as string | null) ?? null,
+      gruppeId: null,
     }
   })
 
@@ -332,6 +346,9 @@ function sekTilKlokkeslett(sek: number): string {
 // skytetiden er statistikk-porten og ikke skal endres av at man drar
 // vinduet (fasiten).
 
+/** Settes til true når supabase/phase117_gruppe.sql er kjørt i prod. */
+const GRUPPE_KOLONNE_FINNES = false
+
 export interface TidslinjeSegment {
   /** db-id for eksisterende rad, null for nytt segment. */
   dbId: string | null
@@ -343,6 +360,14 @@ export interface TidslinjeSegment {
   startSek: number
   varighetSek: number
   sortOrder: number
+  /** Segment-editorens felter (bolk 2). Tom streng = ikke ført. */
+  distanseKm?: string
+  snittpuls?: string
+  makspuls?: string
+  sone?: string
+  beskrivelse?: string
+  /** Fase 117 — settes KUN for repetisjoner i en kortintervall-gruppe. */
+  gruppeId?: string | null
 }
 
 export async function lagreTidslinje(
@@ -380,6 +405,15 @@ export async function lagreTidslinje(
 
   for (const s of segmenter) {
     const erSkyting = s.activityType.startsWith('skyting')
+    const tall = (v?: string) => {
+      if (v == null || v.trim() === '') return null
+      const n = Number(v.replace(',', '.'))
+      return Number.isFinite(n) ? n : null
+    }
+    const km = tall(s.distanseKm)
+    // Sonen lagres som tid i den sonen (zones-jsonb), samme form som
+    // intervall-generatoren bruker — ingen ny representasjon.
+    const soner = s.sone ? { [s.sone]: Math.round(s.varighetSek) } : null
     const felter = {
       activity_type: s.activityType,
       movement_name: s.bevegelsesform || null,
@@ -387,6 +421,16 @@ export async function lagreTidslinje(
       window_start_seconds: Math.round(s.startSek),
       window_duration_seconds: Math.round(s.varighetSek),
       sort_order: s.sortOrder,
+      distance_meters: km != null ? Math.round(km * 1000) : null,
+      avg_heart_rate: tall(s.snittpuls),
+      max_heart_rate: tall(s.makspuls),
+      notes: s.beskrivelse || null,
+      ...(soner ? { zones: soner } : {}),
+      // gruppe_id skrives FØRST når fase 117 er kjørt — kolonnen finnes
+      // ikke ennå, og et forsøk ville gjort at HELE lagringen feilet for
+      // den som deler et drag i repetisjoner. Repetisjonene lagres som
+      // ekte rader uansett; det er bare klammen som mangler til da.
+      ...(GRUPPE_KOLONNE_FINNES && s.gruppeId ? { gruppe_id: s.gruppeId } : {}),
       // Skyting: varigheten er skytetid-statistikk og røres ikke av drag.
       ...(erSkyting ? {} : { duration_seconds: Math.round(s.varighetSek) }),
     }
@@ -454,4 +498,16 @@ export async function lagreNyePunkter(
     }
   }
   return { ok: true }
+}
+
+
+/** Sonen med mest tid på raden — «segmentets sone» (zones er {I3: sek}). */
+function dominantSone(zones: Record<string, number> | null): string | null {
+  if (!zones) return null
+  let beste: string | null = null, mest = 0
+  for (const [k, v] of Object.entries(zones)) {
+    const n = Number(v) || 0
+    if (n > mest) { mest = n; beste = k }
+  }
+  return mest > 0 ? beste : null
 }

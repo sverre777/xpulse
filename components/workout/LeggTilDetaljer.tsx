@@ -16,6 +16,8 @@ import {
   STANDARD_LENGDE, type Utkast, type PunktVerktoy,
 } from './TidslinjeRedigering'
 import { lagreTidslinje, lagreNyePunkter } from '@/app/actions/tidsplassering'
+import { SegmentEditor } from './SegmentEditor'
+import { antallRepetisjoner, type Kortintervall } from '@/lib/intervall-monstre'
 import { PlottTreffPopup } from './PlottTreff'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upen. Fasit: design/
@@ -143,6 +145,12 @@ export function LeggTilDetaljerPopup({
               startSek: r.startSek!,
               varighetSek: Math.max(1, r.sluttSek! - r.startSek!),
               skytetidSek: r.skytetidSek,
+              distanseKm: r.distanseKm != null ? String(r.distanseKm) : '',
+              snittpuls: r.snittpuls != null ? String(r.snittpuls) : '',
+              makspuls: r.makspuls != null ? String(r.makspuls) : '',
+              sone: r.sone ?? '',
+              beskrivelse: r.beskrivelse ?? '',
+              gruppeId: r.gruppeId ?? null,
             })))
           if (d.hr.length === 0) setKurve(d.fart.length > 0 ? 'fart' : 'watt')
         }
@@ -237,6 +245,7 @@ export function LeggTilDetaljerPopup({
       id: `ny-${crypto.randomUUID()}`, dbId: null, type,
       navn: '', bevegelsesform: '', startSek: start, varighetSek: Math.max(5, slutt - start),
       skytetidSek: null,
+      distanseKm: '', snittpuls: '', makspuls: '', sone: '', beskrivelse: '', gruppeId: null,
     }
     // SETTES INN i tidslinja, ikke oppå den: en tidslinje fra klokka er
     // sammenhengende, så et nytt segment må gjøre plass til seg selv.
@@ -268,6 +277,53 @@ export function LeggTilDetaljerPopup({
     })
     setValgtSegment(nytt.id)
     setPalettType(null)
+  }
+
+  /** Det klokka MÅLTE i segmentets vindu — grunnlaget for «MÅLT»-merket
+      og for plassholderne i editoren. Uten klokkedata: null overalt. */
+  const maaltForSegment = (u: Utkast) => {
+    if (!data || data.hr.length === 0) return null
+    const p2 = pulsIVindu(data.hr, u.startSek, u.startSek + u.varighetSek)
+    return { snittpuls: p2.snitt, makspuls: p2.maks, distanseKm: null }
+  }
+
+  /** Deler draget i repetisjoner etter mønsteret. Repetisjonene er EKTE
+      rader med samme gruppe_id — «én flyt» krever at den som aldri åpner
+      byggeren ser de samme radene. Rest som ikke går opp blir liggende
+      som et eget segment, aldri skjult. */
+  const delIRepetisjoner = (u: Utkast, m: Kortintervall) => {
+    const antall = antallRepetisjoner(u.varighetSek, m)
+    if (antall < 1) return
+    const gruppeId = crypto.randomUUID()
+    endreUtkast(liste => {
+      const uten = liste.filter(x => x.id !== u.id)
+      const nye: Utkast[] = []
+      let t = u.startSek
+      for (let i = 0; i < antall; i++) {
+        nye.push({
+          ...u, id: `ny-${crypto.randomUUID()}`, dbId: i === 0 ? u.dbId : null,
+          type: u.type, startSek: t, varighetSek: m.paaSek, gruppeId, navn: '',
+        })
+        t += m.paaSek
+        if (m.avSek > 0) {
+          nye.push({
+            ...u, id: `ny-${crypto.randomUUID()}`, dbId: null,
+            type: 'pause' as ActivityType, startSek: t, varighetSek: m.avSek,
+            gruppeId, navn: '', distanseKm: '', snittpuls: '', makspuls: '', sone: '',
+          })
+          t += m.avSek
+        }
+      }
+      const rest = (u.startSek + u.varighetSek) - t
+      if (rest >= 5) {
+        nye.push({
+          ...u, id: `ny-${crypto.randomUUID()}`, dbId: null,
+          startSek: t, varighetSek: rest, gruppeId: null, navn: '',
+        })
+      }
+      return [...uten, ...nye]
+    })
+    setValgtSegment(null)
   }
 
   /** Skriver man starttid i en rad, flyttes GRENSEN mot forrige segment —
@@ -348,6 +404,14 @@ export function LeggTilDetaljerPopup({
         startSek: u.startSek,
         varighetSek: u.varighetSek,
         sortOrder: i,
+        distanseKm: u.distanseKm,
+        snittpuls: u.snittpuls,
+        makspuls: u.makspuls,
+        sone: u.sone,
+        beskrivelse: u.beskrivelse,
+        // gruppe_id sendes KUN for repetisjoner — kolonnen kommer med
+        // fase 117, og resten av lagringen skal ikke avhenge av den.
+        gruppeId: u.gruppeId,
       })),
       slettede,
     )
@@ -531,6 +595,36 @@ export function LeggTilDetaljerPopup({
                     setValgtSegment(null)
                     return liste.filter(x => x.id !== valgtUtkast.id)
                   })}
+                />
+              )}
+
+              {valgtUtkast && (
+                <SegmentEditor
+                  segment={valgtUtkast}
+                  alle={utkast}
+                  sport={(data.sport ?? null) as Sport | null}
+                  userHasBiathlon={data.sport === 'biathlon'}
+                  felter={{
+                    distanseKm: valgtUtkast.distanseKm,
+                    snittpuls: valgtUtkast.snittpuls,
+                    makspuls: valgtUtkast.makspuls,
+                    sone: valgtUtkast.sone,
+                    beskrivelse: valgtUtkast.beskrivelse,
+                    bevegelsesform: valgtUtkast.bevegelsesform,
+                    kortintervall: null,
+                  }}
+                  maalt={maaltForSegment(valgtUtkast)}
+                  onFelt={patch => endreUtkast(liste => liste.map(x =>
+                    x.id === valgtUtkast.id ? { ...x, ...patch } : x))}
+                  onTid={patch => {
+                    if (patch.startSek != null) settRadStart(valgtUtkast, patch.startSek)
+                    if (patch.varighetSek != null) settRadVarighet(valgtUtkast, patch.varighetSek)
+                  }}
+                  onType={t => endreUtkast(liste => liste.map(x =>
+                    x.id === valgtUtkast.id ? { ...x, type: t } : x))}
+                  onNavn={navn => endreUtkast(liste => liste.map(x =>
+                    x.id === valgtUtkast.id ? { ...x, navn } : x))}
+                  onDelIRepetisjoner={m => delIRepetisjoner(valgtUtkast, m)}
                 />
               )}
 

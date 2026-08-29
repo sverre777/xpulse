@@ -20,6 +20,7 @@ import {
   type GenerertBlokk, type IntervallKonfig, type SkyteMonster,
 } from '@/lib/intervall-generator'
 import type { BlokkSone } from '@/lib/okt-template-library'
+import { KORTINTERVALL_HURTIGVALG, antallRepetisjoner, kortintervallEtikett } from '@/lib/intervall-monstre'
 import { foringsSoner } from '@/lib/sonesprak'
 import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import {
@@ -44,7 +45,12 @@ const FELT: React.CSSProperties = {
   outline: 'none', width: '100%', minWidth: 0, minHeight: 40,
 }
 
-interface Rad { antall: string; drag: string; sone: BlokkSone; pause: string }
+interface Rad {
+  antall: string; drag: string; sone: BlokkSone; pause: string
+  // Kortintervaller INNI draget (Øktbyggeren bolk 2). Frie sekundverdier
+  // — hurtigvalgene under fyller dem bare inn.
+  kortPaa: string; kortAv: string
+}
 
 const SKYTEVALG: { verdi: '' | SkyteMonster; etikett: string }[] = [
   { verdi: '', etikett: 'Ingen skyting' },
@@ -108,10 +114,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     forhandsutfylt
       ? forhandsutfylt.rader.map(r => ({
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
+          kortPaa: '', kortAv: '',
         }))
       : [
-          { antall: '2', drag: '10:00', sone: 'I3', pause: '3:00' },
-          { antall: '3', drag: '5:00', sone: 'I4', pause: '2:00' },
+          { antall: '2', drag: '10:00', sone: 'I3', pause: '3:00', kortPaa: '', kortAv: '' },
+          { antall: '3', drag: '5:00', sone: 'I4', pause: '2:00', kortPaa: '', kortAv: '' },
         ])
   const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState('')
@@ -369,9 +376,50 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             style={{ height: 38, borderRadius: 8, border: '1px solid var(--line2)', background: 'transparent', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>
             ×
           </button>
+          {/* KORTINTERVALLER inni draget — frie sekundfelter, alltid
+              synlige. Hurtigvalgene deles med segment-editoren
+              (lib/intervall-monstre, regel 18: aldri to lister). */}
+          <div className="col-span-full flex items-center gap-1.5 flex-wrap"
+            style={{ marginTop: -2, marginBottom: 4 }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
+              Kort
+            </span>
+            <input value={r.kortPaa} onChange={e => oppdater(i, 'kortPaa', e.target.value)}
+              inputMode="numeric" placeholder="på s" aria-label="Kortintervall arbeid (sekunder)"
+              style={{ ...FELT, width: 58, textAlign: 'center', padding: '6px 2px', fontSize: 13 }} />
+            <span style={{ color: 'var(--tekst-8-alt)' }}>/</span>
+            <input value={r.kortAv} onChange={e => oppdater(i, 'kortAv', e.target.value)}
+              inputMode="numeric" placeholder="av s" aria-label="Kortintervall pause (sekunder)"
+              style={{ ...FELT, width: 58, textAlign: 'center', padding: '6px 2px', fontSize: 13 }} />
+            {KORTINTERVALL_HURTIGVALG.map(h => (
+              <button key={h.etikett} type="button"
+                onClick={() => { oppdater(i, 'kortPaa', String(h.verdi.paaSek)); oppdater(i, 'kortAv', String(h.verdi.avSek)) }}
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700,
+                  color: 'var(--tekst-8-alt)', background: 'none', border: '1px solid var(--line2)',
+                  borderRadius: 999, padding: '4px 8px', minHeight: 30, cursor: 'pointer',
+                }}>
+                {h.etikett}
+              </button>
+            ))}
+            {Number(r.kortPaa) > 0 && (() => {
+              const m = { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 }
+              const dragSek = (() => {
+                const d = r.drag.split(':').map(Number)
+                return d.length >= 2 ? d[0] * 60 + d[1] : 0
+              })()
+              return (
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, color: 'var(--tekst-5-app)' }}>
+                  {antallRepetisjoner(dragSek, m) > 0
+                    ? kortintervallEtikett(dragSek, m)
+                    : 'draget er kortere enn én repetisjon'}
+                </span>
+              )
+            })()}
+          </div>
         </div>
       ))}
-      <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00' }])}
+      <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' }])}
         className="w-full mt-2"
         style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-5-app)', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
         + Legg til rad

@@ -29,6 +29,14 @@ export interface Utkast {
   startSek: number
   varighetSek: number
   skytetidSek: number | null
+  /** Feltene segment-editoren eier (bolk 2). Tomt = ikke ført. */
+  distanseKm: string
+  snittpuls: string
+  makspuls: string
+  sone: string
+  beskrivelse: string
+  /** Repetisjoner fra samme kortintervall deler gruppe (fase 117). */
+  gruppeId: string | null
 }
 
 const STANDARD_LENGDE: Partial<Record<string, number>> = {

@@ -7,7 +7,8 @@ import {
   type LeggTilDetaljerData, type DetaljerRad,
 } from '@/app/actions/tidsplassering'
 import { SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu } from '@/lib/segmenter'
-import { findActivityType, type ActivityType } from '@/lib/types'
+import { findActivityType, type ActivityType, type ShootingSeriesRow } from '@/lib/types'
+import { PlottTreffPopup } from './PlottTreff'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upen. Fasit: design/
 // xpulse-tidsplassering-design.html V9.3, seksjon 1 + 2 + NOTAT.
@@ -50,11 +51,13 @@ export function LeggTilDetaljerInngang({ onClick }: { onClick: () => void }) {
 interface VinduLokal { startSek: number; varighetSek: number }
 
 export function LeggTilDetaljerPopup({
-  workoutId, onClose, onLagret,
+  workoutId, onClose, onLagret, onSerierLagret,
 }: {
   workoutId: string
   onClose: () => void
   onLagret: () => void
+  /** Videresendes fra «Plott treff» når serier lagres derfra. */
+  onSerierLagret?: (lagret: Array<{ activityId: string; serier: ShootingSeriesRow[] }>) => void
 }) {
   const [data, setData] = useState<LeggTilDetaljerData | null>(null)
   const [laster, setLaster] = useState(true)
@@ -69,6 +72,9 @@ export function LeggTilDetaljerPopup({
   const [rekkefolge, setRekkefolge] = useState<string[]>([])
   const [rekkefolgeEndret, setRekkefolgeEndret] = useState(false)
   const [aktivtVindu, setAktivtVindu] = useState<string | null>(null)
+  // «Plott treff» åpnes herfra (fasit) — skytingene er nettopp plassert, så
+  // AUTO-pulsen er riktig. Lukking returnerer hit med oppdaterte tall.
+  const [visPlottTreff, setVisPlottTreff] = useState(false)
   // Kurvevelger (V9.4): hvilken kurve man plasserer PÅ. Vinduer og punkter
   // er de samme uansett — kun lerretet bytter.
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>('puls')
@@ -117,6 +123,8 @@ export function LeggTilDetaljerPopup({
     setAktivtVindu(rad.id)
   }
 
+  const skytingRader = data?.rader.filter(r => (r.activity_type ?? '').startsWith('skyting')) ?? []
+
   const lagre = async () => {
     if (!data) return
     // Klient-validering av overlapp — samme regel som serveren (regel 22).
@@ -159,8 +167,6 @@ export function LeggTilDetaljerPopup({
     onClose()
   }
 
-  const skytingRader = data?.rader.filter(r => (r.activity_type ?? '').startsWith('skyting')) ?? []
-
   const body = (
     <div onClick={onClose}
       style={{
@@ -180,6 +186,21 @@ export function LeggTilDetaljerPopup({
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 22, letterSpacing: '0.08em' }}>
             Legg til detaljer
           </h2>
+          {/* Fasit: «Plott treff» ligger synlig HER når økta har skyting —
+              man plasserer skytingene i tid og fører treffene uten å lukke.
+              Samme komponent som fra knapperaden (regel 11). */}
+          {skytingRader.length > 0 && (
+            <button type="button" onClick={() => setVisPlottTreff(true)}
+              className="ml-auto mr-2"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                letterSpacing: '0.1em', fontSize: 12, textTransform: 'uppercase',
+                color: '#FF4500', background: 'none', border: '1.5px solid #FF4500',
+                borderRadius: 999, padding: '6px 14px', cursor: 'pointer', minHeight: 34,
+              }}>
+              🎯 Plott treff
+            </button>
+          )}
           <button type="button" onClick={onClose} aria-label="Lukk"
             style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>
             ×
@@ -420,7 +441,35 @@ export function LeggTilDetaljerPopup({
   )
 
   if (typeof document === 'undefined') return null
-  return createPortal(body, document.body)
+  return (
+    <>
+      {createPortal(body, document.body)}
+      {visPlottTreff && (
+        <PlottTreffPopup
+          workoutId={workoutId}
+          onClose={() => setVisPlottTreff(false)}
+          onLagret={lagret => {
+            // Skytetiden er PORTEN — den kan nettopp ha endret seg. Patches
+            // lokalt fra det som ble lagret, så vindus-dragene brukeren har
+            // gjort her ikke kastes av en re-henting.
+            setData(d => d && ({
+              ...d,
+              rader: d.rader.map(r => {
+                const t = lagret.find(l => l.activityId === r.id)
+                if (!t) return r
+                const sum = t.serier.reduce((n, s) => {
+                  const v = parseFloat(String(s.time_seconds).replace(',', '.'))
+                  return Number.isFinite(v) ? n + v : n
+                }, 0)
+                return { ...r, skytetidSek: sum > 0 ? sum : null }
+              }),
+            }))
+            onSerierLagret?.(lagret)
+          }}
+        />
+      )}
+    </>
+  )
 }
 
 // ── Kurven med draggbare vinduer og punkter ─────────────────

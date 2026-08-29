@@ -24,6 +24,7 @@ import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
 import { LeggTilDetaljerPopup } from './LeggTilDetaljer'
+import { PlottTreffPopup } from './PlottTreff'
 import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
 import { createPortal } from 'react-dom'
@@ -307,6 +308,22 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
   // «Legg til detaljer» fra knapperaden (fasit) — kun dagbok + klokkesynket.
   const [visDetaljerPopup, setVisDetaljerPopup] = useState(false)
+  // «Plott treff» (bolk B) — vises i knapperaden når økta har skyting.
+  const [visPlottTreff, setVisPlottTreff] = useState(false)
+  // Seriene skrives til basen av pop-upen; skjemaets draft må oppdateres i
+  // samme slengen, ellers ville neste «Lagre endringer» skrevet tilbake de
+  // gamle seriene (regel 11 — én sannhet, ikke to drafts).
+  const flettInnLagredeSerier = (
+    lagret: Array<{ activityId: string; serier: ActivityRow['shooting_series'] }>,
+  ) => {
+    setForm(f => ({
+      ...f,
+      activities: (f.activities ?? []).map(a => {
+        const t = a.db_id ? lagret.find(l => l.activityId === a.db_id) : undefined
+        return t ? { ...a, shooting_series: t.serier } : a
+      }),
+    }))
+  }
 
   // Kø #48 bolk 2: standardøkt-SERIE-velger (erstatter mal-tagge-modusen).
   // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
@@ -1533,6 +1550,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           targetUserId={targetUserId}
           erKlokkesynket={!!workoutId && !!(defaultValues?.imported_from ?? defaultValues?.merged_source)}
           onLeggTilDetaljer={workoutId ? () => setVisDetaljerPopup(true) : undefined}
+          onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}
           onChange={a => set('activities', a)}
           sport={form.sport}
@@ -1677,9 +1695,18 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
       )}
 
+      {visPlottTreff && workoutId && (
+        <PlottTreffPopup
+          workoutId={workoutId}
+          onClose={() => setVisPlottTreff(false)}
+          onLagret={flettInnLagredeSerier}
+        />
+      )}
+
       {visDetaljerPopup && workoutId && (
         <LeggTilDetaljerPopup
           workoutId={workoutId}
+          onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisDetaljerPopup(false)}
           onLagret={() => { /* skjemaets rader hentes på nytt ved neste åpning;
               vindus-/tidsdata eies av basen og overlever lagring (fase 113-vern) */ }}

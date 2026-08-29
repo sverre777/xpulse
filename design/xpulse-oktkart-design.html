@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Øktkartet: planlagt økt som diagram (designfasit)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --red:#E23A5A;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --i6:#7C3AED; --i7:#E879F9; --i8:#881337; --hurt:#8B5CF6; --styrke:#6E6E78;
+  --prone:#38BDF8; --staa:#FF4500;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 30px;max-width:720px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:28px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+svg{display:block;width:100%}
+.gtxt{font:10.5px 'Inter';fill:var(--mute)}
+.gtxt.b{fill:var(--dim)}
+.etik{font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.06em;fill:var(--paper)}
+.etik2{font:11px 'Inter';fill:var(--dim)}
+
+/* Nøkkeltall */
+.nokkel{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:11px;margin-top:14px;overflow:hidden;background:var(--card)}
+.nokkel .c{flex:1 1 120px;padding:12px 14px;border-right:1px solid var(--line)}
+.nokkel .c:last-child{border-right:0}
+.nokkel .k{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10.5px;color:var(--mute)}
+.nokkel .v{font-family:'Bebas Neue';font-size:24px;letter-spacing:.02em;line-height:1.2}
+.nokkel .v small{font-size:12px;color:var(--dim);font-family:'Inter';letter-spacing:0}
+
+/* Sonelinjal */
+.linjal{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--dim)}
+.linjal i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Kompaktkort */
+.mini{background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:12px 14px;max-width:380px}
+.mini .t{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.mini .t b{font-size:14px}
+.mini .t span{font-size:12px;color:var(--mute);margin-left:auto}
+
+/* Plan vs faktisk */
+.vsrad{display:flex;align-items:center;gap:10px;margin:2px 0 8px;flex-wrap:wrap}
+.tagg{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.13em;font-size:10.5px;border-radius:6px;padding:2px 9px}
+.tagg.plan{color:var(--dim);border:1px solid var(--line2)}
+.tagg.faktisk{color:var(--red);border:1px solid rgba(226,58,90,.5)}
+.avvik{margin-left:auto;font-size:12.5px;color:var(--dim)}
+.avvik b{color:var(--paper)}
+
+.notat{margin-top:56px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+.notat .ny{color:var(--orange)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ØKTKARTET — <span class="acc">PLANEN SOM BILDE.</span></h1>
+<p class="sub">Den planlagte økta tegnet som blokker: bredde = varighet, høyde og farge = sone. Man ser strukturen på ett blikk — oppvarming, hoveddel, pauser, nedjogg — uten å lese en tabell. Kartet finnes fra økta opprettes (også uten intervall-byggeren), er redigerbart, og er planleggingens motstykke til «Legg til detaljer» i dagboka.</p>
+
+<div class="card" style="border-color:rgba(255,69,0,.35);background:rgba(255,69,0,.04)">
+  <div style="font-family:'Barlow Condensed';font-weight:700;letter-spacing:.14em;font-size:11.5px;color:var(--orange);margin-bottom:6px">SAMME STRUKTUR I PLAN OG DAGBOK</div>
+  <div style="font-size:13.5px;color:var(--dim)">
+    <b style="color:var(--paper)">PLAN:</b> knapperad → <b style="color:var(--paper)">øktkartet</b> (redigerbart) → aktivitetsradene<br>
+    <b style="color:var(--paper)">DAGBOK:</b> knapperad → <b style="color:var(--paper)">økt-grafen m/ segmentbånd</b> («Legg til detaljer») → aktivitetsradene
+  </div>
+</div>
+
+<!-- ═══ 1 · FULL VISNING ═══ -->
+<div class="demo"><b>1 · I den planlagte økta</b> — full visning med etiketter, klammer og nøkkeltall</div>
+
+<div class="card">
+  <div class="ch"><h3>DOBBEL TERSKEL · 6 × 8 MIN</h3><span class="m">Rulleski · skøyting · planlagt tirsdag 2. sep</span></div>
+
+  <svg viewBox="0 -58 660 250">
+    <!-- etiketter m/ pekelinjer -->
+    <text x="86" y="-40" class="etik" text-anchor="middle">OPPVARMING</text>
+    <text x="86" y="-26" class="etik2" text-anchor="middle">30 min · I1</text>
+    <line x1="86" y1="-20" x2="86" y2="96" stroke="var(--line2)"/>
+
+    <text x="330" y="-46" class="etik" text-anchor="middle">HOVEDDEL</text>
+    <text x="330" y="-32" class="etik2" text-anchor="middle">6 × 8 min · I3 · 2,5–3 mmol</text>
+    <text x="330" y="-19" class="etik2" text-anchor="middle" style="fill:var(--mute)">90–120 s pause</text>
+    <!-- klamme over hoveddelen -->
+    <path d="M158 -12 v-4 h344 v4" fill="none" stroke="var(--line2)"/>
+
+    <text x="592" y="-40" class="etik" text-anchor="middle">NEDJOGG</text>
+    <text x="592" y="-26" class="etik2" text-anchor="middle">20 min · I1</text>
+    <line x1="592" y1="-20" x2="592" y2="96" stroke="var(--line2)"/>
+
+    <!-- grunnflate: I1 gjennom hele økta -->
+    <rect x="10" y="96" width="640" height="72" rx="3" fill="var(--i1)" opacity=".30"/>
+
+    <!-- blokker: høyde = sone, bredde = varighet -->
+    <g>
+      <!-- oppvarming (I1, full høyde av grunnflaten) -->
+      <rect x="10" y="96" width="142" height="72" rx="3" fill="var(--i1)" opacity=".62"/>
+      <!-- 6 × 8 min I3 -->
+      <rect x="158" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <rect x="216" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <rect x="274" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <rect x="332" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <rect x="390" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <rect x="448" y="46" width="52" height="122" rx="3" fill="var(--i3)"/>
+      <!-- nedjogg -->
+      <rect x="536" y="96" width="114" height="72" rx="3" fill="var(--i1)" opacity=".62"/>
+    </g>
+
+    <!-- laktat/ernæring som punkt i planen -->
+    <circle cx="268" cy="36" r="3.5" fill="var(--i3)"/>
+    <circle cx="384" cy="36" r="3.5" fill="var(--i3)"/>
+    <text x="326" y="30" class="etik2" text-anchor="middle" style="fill:var(--mute)">laktat + karbo i pausene</text>
+
+    <line x1="10" y1="168" x2="650" y2="168" stroke="var(--line2)"/>
+    <text x="10" y="184" class="gtxt b">0:00</text>
+    <text x="330" y="184" class="gtxt b" text-anchor="middle">1:00</text>
+    <text x="650" y="184" class="gtxt b" text-anchor="end">1:35</text>
+  </svg>
+
+  <div class="nokkel">
+    <div class="c"><div class="k">VARIGHET</div><div class="v">1t 35<small> min</small></div></div>
+    <div class="c"><div class="k">HOVEDSONE</div><div class="v" style="color:var(--i3)">I3</div></div>
+    <div class="c"><div class="k">I3-TID</div><div class="v">48<small> min</small></div></div>
+    <div class="c"><div class="k">BELASTNING</div><div class="v">112<small> TSS</small></div></div>
+    <div class="c" style="background:#17171E"><div class="k">FORVENTET BELASTNING <span style="color:var(--orange)">· FØRES</span></div><div class="v">6<small> /10</small></div></div>
+  </div>
+
+  <div class="linjal">
+    <span><i style="background:var(--i1)"></i>I1</span><span><i style="background:var(--i2)"></i>I2</span>
+    <span><i style="background:var(--i3)"></i>I3</span><span><i style="background:var(--i4)"></i>I4</span>
+    <span><i style="background:var(--i5)"></i>I5</span>
+    <span style="color:var(--mute)">· utvidet skala: </span>
+    <span><i style="background:var(--i6)"></i>I6</span><span><i style="background:var(--i7)"></i>I7</span>
+    <span><i style="background:var(--i8)"></i>I8</span>
+    <span style="color:var(--mute)">· </span><span><i style="background:var(--prone)"></i>Ligg</span>
+    <span><i style="background:var(--staa)"></i>Stå</span><span><i style="background:var(--styrke)"></i>Styrke</span>
+  </div>
+</div>
+
+<!-- ═══ 2 · KOMPAKT ═══ -->
+<div class="demo"><b>2 · Kompakt</b> — samme diagram uten etiketter, i kalender, øktliste og planoversikt</div>
+
+<div class="mini">
+  <div class="t"><b>Dobbel terskel · 6 × 8 min</b><span>1t 35 · 112 TSS</span></div>
+  <svg viewBox="0 0 320 44">
+    <rect x="0" y="18" width="320" height="22" rx="2" fill="var(--i1)" opacity=".30"/>
+    <rect x="0" y="18" width="70" height="22" rx="2" fill="var(--i1)" opacity=".62"/>
+    <rect x="76" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="105" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="134" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="163" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="192" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="221" y="6" width="25" height="34" rx="2" fill="var(--i3)"/>
+    <rect x="264" y="18" width="56" height="22" rx="2" fill="var(--i1)" opacity=".62"/>
+  </svg>
+</div>
+
+<!-- ═══ 3 · SKISKYTING ═══ -->
+<div class="demo"><b>3 · Med skyting</b> — skytefargene inn i samme diagram (skiskyting og kombi)</div>
+
+<div class="card">
+  <div class="ch"><h3>KOMB 5 × 4 MIN + SKYTING</h3><span class="m">planlagt · 5 skytinger</span></div>
+  <svg viewBox="0 -34 660 200">
+    <text x="330" y="-20" class="etik" text-anchor="middle">HOVEDDEL · 5 × (4 MIN I4 + SKYTING)</text>
+    <path d="M120 -12 v-4 h420 v4" fill="none" stroke="var(--line2)"/>
+    <rect x="10" y="96" width="640" height="60" rx="3" fill="var(--i1)" opacity=".30"/>
+    <rect x="10" y="96" width="104" height="60" rx="3" fill="var(--i1)" opacity=".62"/>
+    <g>
+      <rect x="120" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
+      <rect x="186" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+      <rect x="206" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
+      <rect x="272" y="70" width="16" height="86" rx="3" fill="var(--staa)"/>
+      <rect x="292" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
+      <rect x="358" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+      <rect x="378" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
+      <rect x="444" y="70" width="16" height="86" rx="3" fill="var(--staa)"/>
+      <rect x="464" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
+      <rect x="530" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+    </g>
+    <rect x="560" y="96" width="90" height="60" rx="3" fill="var(--i1)" opacity=".62"/>
+    <line x1="10" y1="156" x2="650" y2="156" stroke="var(--line2)"/>
+    <text x="10" y="172" class="gtxt b">0:00</text><text x="650" y="172" class="gtxt b" text-anchor="end">1:12</text>
+  </svg>
+</div>
+
+<!-- ═══ 3b · ROLIG LANGTUR ═══ -->
+<div class="demo"><b>3b · Uten intervaller</b> — en I1-langtur er én blokk, og har fortsatt kart: ernæringsplan, laktatpunkt og notat</div>
+
+<div class="card">
+  <div class="ch"><h3>ROLIG LANGTUR 2t 30</h3><span class="m">planlagt lørdag · byggeren ikke brukt</span></div>
+  <svg viewBox="0 -40 660 176">
+    <text x="200" y="-24" class="etik2" style="fill:var(--mute)" text-anchor="middle">planlagt inntak</text>
+    <line x1="200" y1="-18" x2="200" y2="60" stroke="var(--line2)" stroke-dasharray="3 3"/>
+    <circle cx="200" cy="60" r="4" fill="none" stroke="var(--i3)" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <text x="200" y="-11" class="etik" text-anchor="middle" style="font-size:11.5px">GEL + 500 ML · 45 MIN</text>
+    <text x="430" y="-24" class="etik" text-anchor="middle" style="font-size:11.5px">GEL · 1t 30</text>
+    <line x1="430" y1="-18" x2="430" y2="60" stroke="var(--line2)" stroke-dasharray="3 3"/>
+    <circle cx="430" cy="60" r="4" fill="none" stroke="var(--i3)" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+    <rect x="10" y="76" width="640" height="52" rx="3" fill="var(--i1)" opacity=".62"/>
+    <text x="330" y="107" class="etik" text-anchor="middle" style="fill:#0D0D11">I1 · 2t 30 · ROLIG</text>
+    <text x="24" y="122" class="gtxt" style="fill:#0D0D11;opacity:.75">📝 Hold pulsen under 135 hele veien</text>
+    <line x1="10" y1="128" x2="650" y2="128" stroke="var(--line2)"/>
+    <text x="10" y="144" class="gtxt b">0:00</text><text x="650" y="144" class="gtxt b" text-anchor="end">2:30</text>
+  </svg>
+  <div style="margin-top:10px;font-size:12.5px;color:var(--mute)">Stiplet, hul markør = <b>planlagt</b> · fylt markør = <b>ført</b>. Klikk blokken for å legge inn notat, ernæring eller laktatpunkt.</div>
+</div>
+
+<!-- ═══ 4 · PLAN MOT GJENNOMFØRT ═══ -->
+<div class="demo"><b>4 · Plan mot gjennomført</b> — samme tidsakse, plan over, faktisk kurve under</div>
+
+<div class="card">
+  <div class="ch"><h3>PLAN MOT GJENNOMFØRT</h3><span class="m">tirsdag 2. sep · ⌚ Garmin</span></div>
+
+  <div class="vsrad"><span class="tagg plan">PLANLAGT</span><span style="font-size:12.5px;color:var(--dim)">6 × 8 min I3 · 1t 35</span></div>
+  <svg viewBox="0 0 660 74">
+    <rect x="10" y="18" width="640" height="46" rx="3" fill="var(--i1)" opacity=".28"/>
+    <rect x="10" y="18" width="142" height="46" rx="3" fill="var(--i1)" opacity=".55"/>
+    <rect x="158" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="216" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="274" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="332" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="390" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="448" y="2" width="52" height="62" rx="3" fill="var(--i3)" opacity=".75"/>
+    <rect x="536" y="18" width="114" height="46" rx="3" fill="var(--i1)" opacity=".55"/>
+  </svg>
+
+  <div class="vsrad" style="margin-top:14px"><span class="tagg faktisk">GJENNOMFØRT</span><span style="font-size:12.5px;color:var(--dim)">5 × 8 min + 1 × 6 min · 1t 31</span>
+    <span class="avvik">Avvik: <b>−4 min</b> · I3-tid <b>42 av 48 min</b></span></div>
+  <svg viewBox="0 0 660 128">
+    <!-- planens blokker som svake spøkelser bak den faktiske kurven -->
+    <g opacity=".16">
+      <rect x="158" y="6" width="52" height="92" fill="var(--i3)"/><rect x="216" y="6" width="52" height="92" fill="var(--i3)"/>
+      <rect x="274" y="6" width="52" height="92" fill="var(--i3)"/><rect x="332" y="6" width="52" height="92" fill="var(--i3)"/>
+      <rect x="390" y="6" width="52" height="92" fill="var(--i3)"/><rect x="448" y="6" width="52" height="92" fill="var(--i3)"/>
+    </g>
+    <path d="M10 92 C30 60,50 44,86 40 S140 44,158 36 172 22,186 20 200 24,210 34 218 22,232 18 246 22,268 34 276 20,290 17 304 21,326 34 334 19,348 16 362 20,384 34 392 20,406 18 420 22,442 36 452 26,466 24 480 28,500 40 520 62,560 70 600 78,650 84"
+          fill="none" stroke="var(--red)" stroke-width="2"/>
+    <!-- segmentbånd fra den gjennomførte økta -->
+    <g>
+      <rect x="10"  y="104" width="140" height="9" rx="3" fill="#BBAA55"/>
+      <rect x="158" y="104" width="50"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="216" y="104" width="50"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="274" y="104" width="50"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="332" y="104" width="50"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="390" y="104" width="50"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="448" y="104" width="38"  height="9" rx="3" fill="#1E2AA8"/>
+      <rect x="520" y="104" width="106" height="9" rx="3" fill="#64748B"/>
+    </g>
+    <line x1="10" y1="98" x2="650" y2="98" stroke="var(--line2)"/>
+    <text x="10" y="126" class="gtxt b">0:00</text><text x="650" y="126" class="gtxt b" text-anchor="end">1:31</text>
+  </svg>
+  <div style="margin-top:10px;font-size:12.5px;color:var(--mute)">Siste drag ble 6 min i stedet for 8 — synlig som at kurven faller før planens siste blokk slutter.</div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <p style="margin-bottom:10px">Ny komponent: <b>ØKTKARTET</b> — den planlagte
+  økta tegnet som blokkdiagram. Egen bolk. Bygges ETTER økt-grafens redesign,
+  fordi den låner segmentbånd, klammer og pekelinje-etiketter derfra.</p>
+  <ul>
+    <li><b>GEOMETRIEN:</b> bredde = varighet (proporsjonal med øktas totale
+    tid) · høyde = intensitet (sone) · farge = SONEFARGEN fra
+    <code>ZONE_COLORS_V2</code> (regel 11 — ingen egen palett her).
+    I1 tegnes som en gjennomgående grunnflate i lav opacity, med
+    oppvarming/nedjogg som tydeligere blokker oppå — samme lesning som
+    referansebildene Sverre sendte.</li>
+    <li><b>SKALAEN FØLGER UTØVEREN:</b> 5 eller 8 soner fra
+    <code>lib/sonesprak</code> (regel 11). Har brukeren utvidet skala, kan
+    blokker ligge i I6–I8 med de fargene; ellers brukes Hurtighet som i dag.
+    Høyde-trinnene må tåle begge uten omlegging.</li>
+    <li><b>SKYTING I SAMME DIAGRAM:</b> skyting tegnes som smale blokker i
+    skytefargene (ligg #38BDF8 / stå #FF4500) — de er aktiviteter, ikke soner.
+    Styrke bruker sin egen farge (#6E6E78). Gjelder skiskyting og kombi.</li>
+    <li><b>ETIKETTER OG KLAMMER</b> — samme språk som økt-grafen: etikett over
+    med tynn pekelinje ned, klamme over en repetert gruppe med én etikett
+    («6 × 8 min · I3 · 2,5–3 mmol»), notat under klammen for pausene
+    («90–120 s pause»). Planlagt laktat/ernæring vises som små punkter der de
+    er lagt inn.</li>
+    <li><b>NØKKELTALL UNDER:</b> varighet · hovedsone · tid i hovedsonen ·
+    beregnet belastning (TSS fra eksisterende spor, aldri ny beregningsvei)
+    · forventet opplevd belastning.
+    <br>· <b>BEREGNET, IKKE FØRT (Sverre 29. aug):</b> varighet, HOVEDSONE,
+    tid i hovedsonen og TSS regnes automatisk fra blokkene ved visning —
+    ingen lagrede kopier, ingen felter å fylle ut (regel 11). Hovedsonen er
+    sonen med mest tid; ved uavgjort vinner den høyeste.
+    <br>· <b>FORVENTET BELASTNING 1–10 FØRES MANUELT (Sverre 29. aug):</b>
+    det ene tallet som er brukerens vurdering, ikke systemets — planleggeren
+    (utøver eller trener) setter det på skalaen 1–10. Valgfritt: står det
+    tomt, vises feltet som «—» med mulighet for å sette det, aldri et gjettet
+    tall. Bruk SAMME skala-komponent som den opplevde belastningen på den
+    gjennomførte økta (regel 11 — én følelses-skala), så «forventet 6 →
+    opplevd 8» kan sammenlignes direkte i plan mot gjennomført. Trener med
+    plan-rett setter det samme feltet, aldri en trener-kopi (regel 19).
+    <br>· CC MÅLER FØRST om planlagt/forventet belastning finnes som felt i
+    prod (regel 5/8) — mangler det, er det en liten migrering til
+    godkjenning.</li>
+    <li class="ny"><b>TRE MONTERINGSPUNKTER (Sverre 29. aug):</b>
+    <br>· <b>full visning</b> i den planlagte økta (med etiketter, klammer,
+    nøkkeltall)
+    <br>· <b>kompakt visning</b> i oversikten over planlagte økter, i
+    kalenderen og i øktlister — samme komponent, etiketter av, ~44 px høy
+    <br>· <b>plan mot gjennomført</b> (se under)
+    ÉN komponent, tre tettheter — aldri tre implementasjoner. Vises kun når
+    økta faktisk HAR en struktur (blokker); en plan uten struktur får
+    ingenting, ikke et tomt diagram.</li>
+    <li class="ny"><b>PLAN MOT GJENNOMFØRT (Sverre 29. aug — målet på sikt):</b>
+    planens blokkdiagram og den faktiske pulskurven vises på SAMME TIDSAKSE,
+    planen øverst og den gjennomførte under (ikke ved siden av — forskyvninger
+    i tid er hele poenget, og de er bare synlige når aksene er felles).
+    Planens blokker gjentas som svake spøkelser bak den faktiske kurven, så
+    man ser hvor virkeligheten forlot planen. Avviksraden over den faktiske
+    viser total tid mot planlagt og tid i hovedsonen mot planlagt.
+    Bygges når økt-grafens redesign og øktkartet begge står — det er den
+    dypere «plan vs gjennomført»-analysen, en egen senere bolk.</li>
+    <li class="ny"><b>KNAPPERADEN I PLAN — INTERVALL-BYGGEREN FLYTTES HIT
+    (Sverre 29. aug):</b> knappen for intervall-byggeren flyttes opp i den
+    felles knapperaden over radene, sammen med de andre:
+    <br><code>+ LEGG TIL AKTIVITET</code> · <code>🎯 + LEGG TIL SKYTING</code>
+    (ved skiskyting) · <code>⚡ INTERVALL-BYGGER</code>
+    <br>Samme komponent som i dagboka (regel 11), bare med plan-settet av
+    knapper. Rendres med sida, svarer i samme tick (regel 20).</li>
+    <li class="ny"><b>STRUKTUREN ER LIK I PLAN OG DAGBOK (Sverre 29. aug):</b>
+    <br>· <b>PLAN:</b> knapperad → <b>øktkartet</b> (redigerbart) →
+    aktivitetsradene
+    <br>· <b>DAGBOK:</b> knapperad → <b>økt-grafen m/ segmentbånd</b>
+    («Legg til detaljer») → aktivitetsradene
+    <br>Samme oppbygging, samme interaksjoner, samme sted på skjermen — man
+    lærer flaten én gang og kan begge. Øktkartet er alltid det FØRSTE man
+    ser i oversikten over en planlagt økt.</li>
+    <li class="ny"><b>KARTET FINNES FRA ØKTA OPPRETTES (Sverre 29. aug):</b>
+    det lages samtidig som økta lages — ikke som en følge av at
+    intervall-byggeren brukes. Uten byggeren tegnes det fra aktivitetsradene
+    (en I1-langtur = én blokk); brukes byggeren, vises SAMME kart inne i
+    byggerens pop-up, der man drar og bygger. Én komponent, to steder
+    (regel 11) — byggeren er forstørrelsen, kartet er alltid der.</li>
+    <li class="ny"><b>«LEGG TIL PÅ TIDSLINJA» I PLANEN (Sverre 29. aug):</b>
+    kartet er planleggingens motstykke til «Legg til detaljer». Man skal
+    kunne legge inn direkte på tidslinja:
+    <br>· <b>skyting</b> — dras inn og plasseres der den skal komme
+    (skytefargene, som i den gjennomførte visningen)
+    <br>· <b>planlagt laktatmåling</b> — «her skal du måle», hul/stiplet
+    markør
+    <br>· <b>planlagt ernæring</b> — gel/drikke/mat på tidspunkt, hul markør
+    <br>· <b>notat</b> — på økta eller på en enkelt blokk
+    <br>· <b>pause / aktiv pause / veksling / bevegelsesform-bytte</b> — alt
+    som kan ligge i en aktivitetsrad, som på den gjennomførte siden
+    <br>Alt havner i de samme radene og feltene som skjemaet under bruker
+    (regel 11 — «én flyt»-prinsippet gjelder her akkurat som i dagboka).</li>
+    <li class="ny"><b>ØKTKARTET ER INTERVALL-BYGGERENS GRAFISKE LAG
+    (Sverre 29. aug):</b> byggeren tegner ikke lenger bare en liste av
+    blokker — den tegner DETTE diagrammet, og diagrammet kan redigeres
+    direkte. Kollapset i den planlagte økta, full redigering ved klikk:
+    <br>· <b>dra en blokkgrense</b> = endre varighet · <b>dra blokken opp
+    eller ned</b> = endre sone · <b>klikk en blokk</b> = åpne dens felter
+    (navn, bevegelsesform, beskrivelse) · <b>dra i rekkefølge</b> som i
+    dag.
+    <br>· Blokk-lista og diagrammet er SAMME data (regel 11) og oppdateres
+    live begge veier — nøyaktig som segmentbåndet og aktivitetsradene på
+    den gjennomførte siden. Listen forsvinner ikke: den som vil skrive
+    tall skriver tall, den som vil dra drar.
+    <br>· <b>Speilingen er poenget:</b> PLAN = øktkartet (intervall-
+    byggeren) · GJENNOMFØRT = økt-grafen med segmentbånd («Legg til
+    detaljer»). Samme designspråk, samme interaksjoner, samme klammer og
+    etiketter — så «plan mot gjennomført» blir to bilder man kan lese med
+    ett øye hver.</li>
+    <li class="ny"><b>VISES ALLTID, OGSÅ UTEN INTERVALLER (Sverre
+    29. aug):</b> diagrammet er ikke forbeholdt intervalløkter. En rolig
+    I1-langtur tegnes som ÉN blokk over hele bredden — og den kan
+    fortsatt klikkes for å legge inn ernæringsplan, laktatpunkter eller
+    notat. Byggeren trenger altså ikke å ha vært brukt: hver planlagt økt
+    har et øktkart fra den er opprettet. (Tomtilstanden fra forrige punkt
+    gjelder kun økter uten varighet i det hele tatt.)</li>
+    <li class="ny"><b>PLANLAGT ERNÆRING OG LAKTAT (Sverre 29. aug):</b> i
+    planen legges de inn som PLANLAGTE punkter på tidslinja — «laktat
+    etter drag 2», «gel + 500 ml ved 45 min», med samme pekelinje-etiketter
+    som ellers. De er PLANER, ikke målinger: vises med hul/stiplet markør
+    mot den fylte markøren som brukes for ført verdi, og teller aldri i
+    statistikk. Når økta gjennomføres, kan planpunktet fylles ut med
+    faktisk verdi — da blir det en ekte føring på det eksisterende feltet
+    (samme rad, regel 11), og «plan mot gjennomført» kan vise planlagt mot
+    faktisk inntak/laktat.
+    <br>· CC MÅLER FØRST hva som finnes av planlagt ernæring/laktat i prod
+    (regel 5/8) og foreslår datamodell til godkjenning — dette er nye
+    felter hvis de ikke finnes, og da med migrering m/ før/etter.</li>
+    <li class="ny"><b>NOTATER (Sverre 29. aug):</b> notat kan legges på
+    ØKTA (som i dag) og på EN ENKELT BLOKK i diagrammet — «hold farten
+    lav her», «fokus på staking». Blokk-notat vises som et lite merke på
+    blokken og i tooltip; det følger med når økta gjennomføres, så
+    utøveren ser trenerens beskjed på riktig sted i økta. Mål først om
+    blokk-notat allerede finnes i byggerens datamodell før du foreslår
+    nye felter.</li>
+    <li><b>PLANEN ER KILDEN:</b> diagrammet leses fra den planlagte økta /
+    intervall-byggerens struktur — ingen ny tabell, ingen kopi av strukturen
+    (regel 11). Er økta laget fra en mal, er malens gruppering fasit for
+    klammene.</li>
+    <li><b>Interaksjon:</b> hover/trykk på en blokk gir varighet, sone og
+    beskrivelse; klikk i den planlagte økta hopper til den blokken i
+    intervall-byggeren. Kompaktvisningen er ren lesning.</li>
+    <li><b>Lys + mørk</b> (regel 23) — sonefargene står uendret i begge, kun
+    grunnflatens opacity justeres. Regel 17 · regel 20 · regel 22 · regel 24.
+    Treffflater ≥36 px. Diagrammet skalerer med bredden; på smal skjerm
+    beholdes proporsjonene, etikettene reduseres til klammene.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Økt-grafen, redesign (designfasit)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --prone:#38BDF8; --staa:#FF4500; --lilla:#8B5CF6;
+  --seg-oppv:#BBAA55; --seg-drag:#1E2AA8; --seg-ned:#64748B; --seg-pause:#43434B; --seg-bev:#A6A6AF;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 30px;max-width:720px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:28px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+
+/* ── Kontrollrad: to grupper ── */
+.ktrl{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:14px}
+.grp{display:flex;flex-direction:column;gap:6px}
+.grp .tit{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.16em;font-size:10.5px;color:var(--mute)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);background:var(--card);color:var(--dim);
+  border-radius:999px;padding:7px 13px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.09em;
+  min-height:36px}
+.chip i{width:9px;height:9px;border-radius:3px;background:var(--mute);flex:none}
+.chip.on{color:var(--paper);border-color:var(--line2);background:#1A1A21}
+.chip.fokus{border-color:var(--paper)}
+.chip.av i{background:var(--mute)!important;opacity:.35}
+.modus{margin-left:auto;display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:3px;background:var(--card);align-self:flex-end}
+.modus button{border:0;background:transparent;color:var(--dim);cursor:pointer;padding:7px 15px;border-radius:999px;
+  font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.1em;min-height:32px}
+.modus button.on{background:var(--orange);color:#fff}
+
+/* ── Graf ── */
+.grafboks{position:relative;user-select:none;touch-action:pan-y}
+svg{display:block;width:100%}
+.gtxt{font:10.5px 'Inter';fill:var(--mute)}
+.gtxt.b{fill:var(--dim)}
+.krysshår{position:absolute;top:0;bottom:26px;width:1px;background:var(--line2);pointer-events:none;display:none}
+.krysshår.vis{display:block}
+
+/* Lesepanel — erstatter andre y-akse */
+.les{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:11px;margin-top:12px;overflow:hidden;background:var(--card)}
+.les .celle{flex:1 1 96px;padding:9px 12px;border-right:1px solid var(--line)}
+.les .celle:last-child{border-right:0}
+.les .k{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.13em;font-size:10px;color:var(--mute);display:flex;align-items:center;gap:5px}
+.les .k i{width:8px;height:8px;border-radius:2px}
+.les .v{font-family:'Bebas Neue';font-size:20px;letter-spacing:.02em;line-height:1.25}
+.les .v small{font-size:11px;color:var(--dim);font-family:'Inter';letter-spacing:0}
+.les .tid{background:#1A1A21}
+
+/* Zoom-brush */
+.brush{position:relative;margin-top:10px;border:1px solid var(--line);border-radius:9px;background:var(--card);padding:5px 6px}
+.brushvin{position:absolute;top:3px;bottom:3px;background:rgba(255,69,0,.13);border:1px solid var(--orange);border-radius:6px;cursor:grab;touch-action:none}
+.brushvin .h{position:absolute;top:-6px;bottom:-6px;width:32px}
+.brushvin .h.l{left:-20px;cursor:ew-resize}.brushvin .h.r{right:-20px;cursor:ew-resize}
+.brushvin .h::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:16px;border-radius:2px;background:var(--orange)}
+.zoomrad{display:flex;gap:8px;align-items:center;margin-top:9px;flex-wrap:wrap;font-size:12px;color:var(--mute)}
+.zbtn{border:1px solid var(--line2);background:transparent;color:var(--dim);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;min-height:34px}
+
+.tip{margin-top:10px;font-size:12.5px;color:var(--mute)}
+.legendrad{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--dim)}
+.legendrad i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.notat{margin-top:56px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+.notat .ny{color:var(--orange)}
+.feil{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ØKT-GRAFEN, <span class="acc">LESBAR.</span></h1>
+<p class="sub">Samme data som i dag — ny lesbarhet. Tre grep: <b>én y-akse</b> (fokus-serien eier aksen, resten leses i panelet under), <b>annoteringene skrus av og på for seg</b> (skyting og segmenter henger ikke lenger på puls-serien), og <b>x-aksen kan zoomes</b> så et 40-sekunders skytevindu faktisk er treffbart.</p>
+
+<!-- ═══ 1 · SAMLET ═══ -->
+<div class="demo"><b>1 · Samlet</b> — fokus-serien tegnes kraftig og eier aksen, øvrige dempet. Klikk en chip for å bytte fokus, klikk igjen for å skru av.</div>
+
+<div class="card">
+  <div class="ch"><h3>ØKT-GRAF</h3><span class="m">Rulleski · skøyting · 15:56 · ⌚ Garmin</span></div>
+
+  <div class="ktrl">
+    <div class="grp">
+      <span class="tit">DATA</span>
+      <div class="chips" id="dataChips">
+        <button class="chip on fokus" data-s="puls"><i style="background:var(--red)"></i>PULS</button>
+        <button class="chip on" data-s="watt"><i style="background:var(--gold)"></i>WATT</button>
+        <button class="chip on" data-s="tempo"><i style="background:var(--green)"></i>TEMPO</button>
+        <button class="chip" data-s="kadens"><i style="background:var(--blue)"></i>KADENS</button>
+        <button class="chip on" data-s="hoyde"><i style="background:var(--seg-bev)"></i>HØYDE</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="tit">PÅ GRAFEN</span>
+      <div class="chips" id="annChips">
+        <button class="chip on" data-a="skyting"><i style="background:var(--prone)"></i>SKYTING</button>
+        <button class="chip on" data-a="segment"><i style="background:var(--seg-drag)"></i>SEGMENTER</button>
+        <button class="chip on" data-a="punkt"><i style="background:var(--gold)"></i>LAKTAT / ERNÆRING</button>
+        <button class="chip" data-a="runder"><i style="background:var(--mute)"></i>RUNDER</button>
+      </div>
+    </div>
+    <div class="modus">
+      <button class="on" id="mSamlet">SAMLET</button><button id="mStablet">STABLET</button>
+    </div>
+  </div>
+
+  <div class="grafboks" id="gb">
+    <svg viewBox="0 -52 660 292" id="graf">
+      <!-- y-akse (kun fokus-serien) -->
+      <g id="yakse">
+        <text x="2" y="24" class="gtxt">160</text>
+        <text x="2" y="76" class="gtxt">140</text>
+        <text x="2" y="128" class="gtxt">120</text>
+        <text x="2" y="180" class="gtxt">100</text>
+        <line x1="30" y1="18" x2="30" y2="196" stroke="var(--line)"/>
+      </g>
+      <!-- grid -->
+      <g stroke="var(--line)" stroke-dasharray="2 4">
+        <line x1="30" y1="20" x2="650" y2="20"/><line x1="30" y1="72" x2="650" y2="72"/>
+        <line x1="30" y1="124" x2="650" y2="124"/><line x1="30" y1="176" x2="650" y2="176"/>
+      </g>
+
+      <!-- høyde som areal bak (kontekst, aldri konkurrent) -->
+      <path id="sHoyde" d="M30 186 L90 180 L150 184 L210 172 L270 176 L330 166 L390 170 L450 162 L510 174 L570 168 L650 178 L650 196 L30 196 Z"
+            fill="rgba(166,166,175,.13)"/>
+
+      <!-- dempede serier -->
+      <path id="sWatt" d="M30 150 C60 120,80 160,110 140 S150 96,180 120 210 150,235 100 260 140,290 118 320 96,350 130 380 108,410 142 440 100,470 122 500 96,530 128 560 104,590 96 620 108,650 150"
+            fill="none" stroke="var(--gold)" stroke-width="1.5" opacity=".42"/>
+      <path id="sTempo" d="M30 188 C70 184,110 190,150 186 S230 188,270 184 350 190,390 186 470 184,510 188 590 186,650 188"
+            fill="none" stroke="var(--green)" stroke-width="1.5" opacity=".42"/>
+      <path id="sKadens" d="M30 130 C80 128,120 132,170 130 S260 132,310 129 400 131,450 130 540 129,650 132"
+            fill="none" stroke="var(--blue)" stroke-width="1.5" opacity=".42" style="display:none"/>
+
+      <!-- fokus-serie: puls -->
+      <path id="sPuls" d="M30 190 C42 120,52 66,66 60 S96 76,120 82 150 86,176 74 200 56,224 50 250 44,276 48 300 62,326 70 350 78,376 66 400 56,426 60 450 70,476 62 500 50,526 44 550 40,576 46 600 54,650 44"
+            fill="none" stroke="var(--red)" stroke-width="2"/>
+
+      <!-- annotering: skytevindu -->
+      <g id="aSkyting">
+        <rect x="228" y="18" width="26" height="178" rx="5" fill="rgba(56,189,248,.15)" stroke="var(--prone)" stroke-width="1.2"/>
+        <text x="241" y="14" class="gtxt" fill="var(--prone)" text-anchor="middle" style="font-weight:700">LIGG 5/5</text>
+        <rect x="436" y="18" width="24" height="178" rx="5" fill="rgba(255,69,0,.13)" stroke="var(--staa)" stroke-width="1.2"/>
+        <text x="448" y="14" class="gtxt" fill="var(--staa)" text-anchor="middle" style="font-weight:700">STÅ 4/5</text>
+      </g>
+
+      <!-- annotering: punkter — etikett øverst, pekelinje ned til tidspunktet -->
+      <g id="aPunkt">
+        <!-- nivå 1 -->
+        <line x1="330" y1="-30" x2="330" y2="66" stroke="var(--gold)" stroke-width="1" opacity=".5"/>
+        <circle cx="330" cy="66" r="3.5" fill="var(--gold)"/>
+        <text x="330" y="-38" class="gtxt" fill="var(--gold)" text-anchor="middle" style="font-weight:700">LAKTAT 4,2</text>
+        <text x="330" y="-25" class="gtxt" text-anchor="middle">etter drag 2 · 8:00</text>
+        <!-- nivå 2 (forskjøvet ned så etikettene ikke kolliderer) -->
+        <line x1="464" y1="-8" x2="464" y2="120" stroke="var(--green)" stroke-width="1" opacity=".5"/>
+        <circle cx="464" cy="120" r="3.5" fill="var(--green)"/>
+        <text x="464" y="-16" class="gtxt" fill="var(--green)" text-anchor="middle" style="font-weight:700">GEL + 500 ML</text>
+        <line x1="520" y1="-30" x2="520" y2="52" stroke="var(--gold)" stroke-width="1" opacity=".5"/>
+        <circle cx="520" cy="52" r="3.5" fill="var(--gold)"/>
+        <text x="520" y="-38" class="gtxt" fill="var(--gold)" text-anchor="middle" style="font-weight:700">LAKTAT 6,8</text>
+        <text x="520" y="-25" class="gtxt" text-anchor="middle">etter stå · 12:30</text>
+      </g>
+
+      <!-- annotering: runder -->
+      <g id="aRunder" style="display:none" stroke="var(--mute)" stroke-dasharray="3 3" opacity=".55">
+        <line x1="150" y1="18" x2="150" y2="196"/><line x1="300" y1="18" x2="300" y2="196"/>
+        <line x1="450" y1="18" x2="450" y2="196"/><line x1="580" y1="18" x2="580" y2="196"/>
+      </g>
+
+      <!-- segmentbånd + gruppeklammer -->
+      <g id="aSegment">
+        <rect x="30"  y="202" width="96"  height="11" rx="3" fill="var(--seg-oppv)"/>
+        <!-- repetert drag-blokk: åtte smale striper, én klamme -->
+        <g fill="var(--seg-drag)">
+          <rect x="130" y="202" width="8" height="11" rx="2"/><rect x="141" y="202" width="8" height="11" rx="2"/>
+          <rect x="152" y="202" width="8" height="11" rx="2"/><rect x="163" y="202" width="8" height="11" rx="2"/>
+          <rect x="174" y="202" width="8" height="11" rx="2"/><rect x="185" y="202" width="8" height="11" rx="2"/>
+          <rect x="196" y="202" width="8" height="11" rx="2"/><rect x="207" y="202" width="8" height="11" rx="2"/>
+        </g>
+        <rect x="228" y="202" width="26"  height="11" rx="3" fill="var(--prone)"/>
+        <g fill="var(--seg-drag)">
+          <rect x="262" y="202" width="9" height="11" rx="2"/><rect x="274" y="202" width="9" height="11" rx="2"/>
+          <rect x="286" y="202" width="9" height="11" rx="2"/><rect x="298" y="202" width="9" height="11" rx="2"/>
+          <rect x="310" y="202" width="9" height="11" rx="2"/><rect x="322" y="202" width="9" height="11" rx="2"/>
+          <rect x="334" y="202" width="9" height="11" rx="2"/><rect x="346" y="202" width="9" height="11" rx="2"/>
+          <rect x="358" y="202" width="9" height="11" rx="2"/><rect x="370" y="202" width="9" height="11" rx="2"/>
+          <rect x="382" y="202" width="9" height="11" rx="2"/><rect x="394" y="202" width="9" height="11" rx="2"/>
+        </g>
+        <rect x="436" y="202" width="24"  height="11" rx="3" fill="var(--staa)"/>
+        <rect x="464" y="202" width="20"  height="11" rx="3" fill="var(--seg-pause)"/>
+        <rect x="488" y="202" width="86"  height="11" rx="3" fill="var(--seg-drag)"/>
+        <rect x="578" y="202" width="72"  height="11" rx="3" fill="var(--seg-ned)"/>
+
+        <!-- gruppeklammer UNDER båndet: én etikett for en repetert blokk -->
+        <g stroke="var(--dim)" stroke-width="1" fill="none">
+          <path d="M130 219 v5 h85 v-5"/>
+          <path d="M262 219 v5 h141 v-5"/>
+        </g>
+        <text x="172" y="236" class="gtxt b" text-anchor="middle" style="font-weight:700">8 × 40/20</text>
+        <text x="332" y="236" class="gtxt b" text-anchor="middle" style="font-weight:700">12 × 30/15</text>
+        <text x="30"  y="236" class="gtxt">Oppv.</text>
+        <text x="488" y="236" class="gtxt">Drag 3</text>
+        <text x="650" y="236" class="gtxt" text-anchor="end">Nedjogg</text>
+      </g>
+
+      <!-- x-akse -->
+      <line x1="30" y1="196" x2="650" y2="196" stroke="var(--line2)"/>
+      <text x="30" y="238" class="gtxt b">0:00</text>
+      <text x="330" y="238" class="gtxt b" text-anchor="middle">8:00</text>
+      <text x="650" y="238" class="gtxt b" text-anchor="end">15:56</text>
+    </svg>
+    <div class="krysshår" id="kh"></div>
+  </div>
+
+  <!-- Lesepanel: alle verdier på ett tidspunkt — dette erstatter andre y-akse -->
+  <div class="les">
+    <div class="celle tid"><div class="k">TID</div><div class="v" id="lTid">5:19</div></div>
+    <div class="celle"><div class="k"><i style="background:var(--red)"></i>PULS</div><div class="v" id="lPuls">133<small> bpm</small></div></div>
+    <div class="celle"><div class="k"><i style="background:var(--gold)"></i>WATT</div><div class="v" id="lWatt">312<small> W</small></div></div>
+    <div class="celle"><div class="k"><i style="background:var(--green)"></i>TEMPO</div><div class="v" id="lTempo">3:41<small> /km</small></div></div>
+    <div class="celle"><div class="k"><i style="background:var(--seg-bev)"></i>HØYDE</div><div class="v" id="lHoyde">148<small> m</small></div></div>
+    <div class="celle"><div class="k"><i style="background:var(--prone)"></i>SEGMENT</div><div class="v" style="font-size:15px;line-height:1.5" id="lSeg">Ligg · 5/5</div></div>
+  </div>
+
+  <!-- Nøkkeltall for HELE økta — speiler øktkartets rad, men med faktiske tall -->
+  <div class="les" style="margin-top:10px">
+    <div class="celle"><div class="k">VARIGHET</div><div class="v">1t 31<small> · plan 1t 35</small></div></div>
+    <div class="celle"><div class="k">HOVEDSONE</div><div class="v" style="color:var(--gold)">I3</div></div>
+    <div class="celle"><div class="k">SNITTPULS</div><div class="v">142<small> · maks 171</small></div></div>
+    <div class="celle"><div class="k">SNITTWATT</div><div class="v">308<small> · NP 331</small></div></div>
+    <div class="celle"><div class="k">BELASTNING</div><div class="v">108<small> TSS</small></div></div>
+    <div class="celle tid"><div class="k">OPPLEVD <span style="color:var(--orange)">· FØRT</span></div><div class="v">8<small> /10 · forventet 6</small></div></div>
+  </div>
+
+  <!-- Zoom-brush -->
+  <div class="brush" id="brush">
+    <svg viewBox="0 0 660 34" height="34" style="width:100%">
+      <path d="M0 30 C30 18,60 8,90 7 S150 12,190 9 250 5,300 8 360 12,410 6 470 4,520 7 590 3,660 6"
+            fill="none" stroke="var(--red)" stroke-width="1.2" opacity=".55"/>
+      <g opacity=".7">
+        <rect x="0"   y="26" width="126" height="5" rx="2" fill="var(--seg-oppv)"/>
+        <rect x="130" y="26" width="94"  height="5" rx="2" fill="var(--seg-drag)"/>
+        <rect x="228" y="26" width="26"  height="5" rx="2" fill="var(--prone)"/>
+        <rect x="258" y="26" width="174" height="5" rx="2" fill="var(--seg-drag)"/>
+        <rect x="436" y="26" width="24"  height="5" rx="2" fill="var(--staa)"/>
+        <rect x="464" y="26" width="196" height="5" rx="2" fill="var(--seg-drag)"/>
+      </g>
+    </svg>
+    <div class="brushvin" id="bv" style="left:2%;width:96%">
+      <div class="h l" data-h="l"></div><div class="h r" data-h="r"></div>
+    </div>
+  </div>
+  <div class="zoomrad">
+    <button class="zbtn" id="zut">− Zoom ut</button>
+    <button class="zbtn" id="zinn">+ Zoom inn</button>
+    <button class="zbtn" id="znull">Hele økta</button>
+    <span id="zvis">Viser 0:00 – 15:56 (hele økta)</span>
+  </div>
+
+  <div class="tip">Hold over grafen: alle verdiene leses i panelet · dra i det oransje feltet for å panorere · pinch/scroll for å zoome</div>
+  <div class="legendrad">
+    <span><i style="background:var(--seg-oppv)"></i>Oppvarming</span>
+    <span><i style="background:var(--seg-drag)"></i>Drag</span>
+    <span><i style="background:var(--prone)"></i>Ligg</span>
+    <span><i style="background:var(--staa)"></i>Stå</span>
+    <span><i style="background:var(--seg-pause)"></i>Pause / veksling</span>
+    <span><i style="background:var(--seg-ned)"></i>Nedjogg</span>
+    <span><i style="background:var(--seg-bev)"></i>Bev.form-bytte</span>
+  </div>
+</div>
+
+<!-- ═══ 2 · STABLET ═══ -->
+<div class="demo"><b>2 · Stablet</b> — samme x-akse, hver serie sitt eget spor. Ingen kurver oppå hverandre, ingen dobbel akse.</div>
+
+<div class="card">
+  <div class="ch"><h3>ØKT-GRAF · STABLET</h3><span class="m">for økter med mange serier</span></div>
+  <svg viewBox="0 0 660 300">
+    <!-- puls -->
+    <text x="2" y="14" class="gtxt b">PULS</text><text x="620" y="14" class="gtxt">133 bpm</text>
+    <rect x="30" y="18" width="620" height="56" fill="rgba(226,58,90,.045)" rx="5"/>
+    <path d="M30 70 C42 44,52 26,66 24 S96 30,120 32 150 34,176 28 200 22,224 20 250 18,276 19 300 24,326 28 350 31,376 26 400 22,426 24 450 28,476 25 500 20,526 18 550 17,576 19 600 22,650 18"
+          fill="none" stroke="var(--red)" stroke-width="1.8"/>
+    <!-- watt -->
+    <text x="2" y="94" class="gtxt b">WATT</text><text x="620" y="94" class="gtxt">312 W</text>
+    <rect x="30" y="98" width="620" height="56" fill="rgba(232,185,60,.045)" rx="5"/>
+    <path d="M30 140 C60 116,80 148,110 132 S150 104,180 124 210 144,235 108 260 134,290 118 320 104,350 128 380 112,410 140 440 106,470 122 500 104,530 126 560 110,590 104 620 112,650 140"
+          fill="none" stroke="var(--gold)" stroke-width="1.8"/>
+    <!-- tempo -->
+    <text x="2" y="174" class="gtxt b">TEMPO</text><text x="614" y="174" class="gtxt">3:41 /km</text>
+    <rect x="30" y="178" width="620" height="48" fill="rgba(40,168,110,.045)" rx="5"/>
+    <path d="M30 214 C70 206,110 218,150 210 S230 214,270 204 350 216,390 208 470 204,510 214 590 208,650 212"
+          fill="none" stroke="var(--green)" stroke-width="1.8"/>
+    <!-- høyde -->
+    <text x="2" y="246" class="gtxt b">HØYDE</text><text x="620" y="246" class="gtxt">148 m</text>
+    <path d="M30 268 L90 262 L150 266 L210 254 L270 258 L330 248 L390 252 L450 244 L510 256 L570 250 L650 260 L650 274 L30 274 Z"
+          fill="rgba(166,166,175,.16)"/>
+    <!-- annoteringer går GJENNOM alle spor -->
+    <g>
+      <rect x="228" y="18" width="26" height="256" fill="rgba(56,189,248,.10)" stroke="var(--prone)" stroke-width="1" stroke-dasharray="3 3"/>
+      <rect x="436" y="18" width="24" height="256" fill="rgba(255,69,0,.09)" stroke="var(--staa)" stroke-width="1" stroke-dasharray="3 3"/>
+    </g>
+    <!-- segmentbånd -->
+    <g>
+      <rect x="30"  y="280" width="96"  height="10" rx="3" fill="var(--seg-oppv)"/>
+      <rect x="130" y="280" width="94"  height="10" rx="3" fill="var(--seg-drag)"/>
+      <rect x="228" y="280" width="26"  height="10" rx="3" fill="var(--prone)"/>
+      <rect x="258" y="280" width="174" height="10" rx="3" fill="var(--seg-drag)"/>
+      <rect x="436" y="280" width="24"  height="10" rx="3" fill="var(--staa)"/>
+      <rect x="464" y="280" width="20"  height="10" rx="3" fill="var(--seg-pause)"/>
+      <rect x="488" y="280" width="86"  height="10" rx="3" fill="var(--seg-drag)"/>
+      <rect x="578" y="280" width="72"  height="10" rx="3" fill="var(--seg-ned)"/>
+    </g>
+  </svg>
+  <div class="tip">Skytevinduene går gjennom alle sporene — man ser puls, watt og tempo i samme øyeblikk uten å legge kurvene oppå hverandre.</div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <p style="margin-bottom:10px">Dette er redesign av <b>den grafen vi allerede har</b>
+  (klokkesynk/økt-grafen). Ingen ny graf ved siden av — regel 11. Datamodellen
+  endres ikke; dette er lesbarhet og kontroll.</p>
+  <ul>
+    <li class="ny"><b class="feil">DAGENS GRAF BRYTER «ALDRI DOBBEL Y-AKSE»</b>
+    (konvensjonen + dataviz-fasiten): venstre akse 0–160, høyre 0–600. To skalaer
+    på samme flate gjør at leseren tror serier krysser hverandre når de ikke gjør
+    det. Rettes med ÉN av to visningsmoduser — begge fjerner den andre aksen:
+    <br>· <b>SAMLET (standard):</b> én FOKUS-serie eier y-aksen og tegnes i full
+    styrke (2px); alle andre valgte serier tegnes dempet (1,5px, ~40 % opacity)
+    som formkontekst, UTEN egen akse. Klikk en data-chip = sett fokus; klikk den
+    aktive igjen = skru serien av. Fokus-chipen har lys ramme.
+    <br>· <b>STABLET:</b> hver serie får sitt eget spor med felles x-akse
+    (small multiples). Ingen kurver oppå hverandre. Aktuell verdi står til høyre
+    i hvert spor.
+    <br><b>SAMLET ER VALGT OG STANDARD (Sverre 29. aug)</b> — bygg den
+    først og fullt ut. STABLET er en senere utvidelse for økter med mange
+    serier, ikke en del av denne leveransen. Modusvalget huskes per bruker
+    når stablet kommer (regel 19).</li>
+    <li class="ny"><b>NØKKELTALLSRAD FOR HELE ØKTA (Sverre 29. aug):</b>
+    under krysshår-panelet ligger en rad med FAKTISKE tall for økta —
+    speilbildet av øktkartets rad på plansiden, samme rekkefølge og samme
+    komponent der det går (regel 11):
+    <br><b>varighet</b> (med planlagt til sammenligning når økta er
+    koblet til en plan) · <b>hovedsone</b> (mest tid; uavgjort → høyeste)
+    · <b>snittpuls</b> (+ maks) · <b>snittwatt</b> (+ NP der watt finnes)
+    · <b>belastning</b> (TSS fra det eksisterende sporet) ·
+    <b>opplevd belastning 1–10 (FØRT)</b>, med forventet ved siden av når
+    planen har den.
+    <br>· Alt BEREGNES ved visning fra samples/aggregater — ingen lagrede
+    kopier (regel 11). Kun opplevd belastning er ført av brukeren, og
+    bruker SAMME skala-komponent som forventet belastning i planen (én
+    følelses-skala). Mangler et tall (ingen watt, ingen plan), vises
+    cellen ikke — aldri «—» der det aldri kan komme et tall.
+    <br>· TO RADER, ULIK JOBB: krysshår-panelet svarer «hva skjedde HER»,
+    nøkkeltallsraden svarer «hva ble ØKTA». De skal ikke slås sammen.</li>
+    <li class="ny"><b>OPPLEVD BELASTNING — SAMME FELT, NY INNGANG (Sverre
+    29. aug):</b> RPE på øktnivå finnes ALLEREDE lenger nede i økta. Det
+    som mangler er å kunne sette det <b>rett i nøkkeltallsraden</b> (klikk
+    → skala, svarer i samme tick, regel 20).
+    <br>· <b>Ingen nytt felt, ingen migrering:</b> cellen skriver og leser
+    NØYAKTIG det eksisterende RPE-feltet på økta (regel 11). Endres det
+    ett sted, endres det begge — live, uten omlasting. Mål hvor feltet bor
+    før du kobler på, og bruk samme skala-komponent som flaten under.
+    <br>· Dette er «én flyt»-prinsippet igjen: grafen er en annen inngang
+    til det samme, aldri en parallell føring.</li>
+    <li class="ny"><b>LESEPANELET ERSTATTER DEN ANDRE AKSEN:</b> under grafen
+    ligger en rad med tid + én celle per påslått serie + gjeldende segment.
+    Krysshår/hover oppdaterer alle cellene samtidig. Det er HER man leser
+    verdier — aksene er kontekst, panelet er fasit. På berøring: dra langs
+    grafen flytter krysshåret (ingen hover-avhengighet).</li>
+    <li class="ny"><b>ANNOTERINGER ER EGNE TOGGLES (Sverre 29. aug):</b>
+    kontrollraden har TO grupper: <b>DATA</b> (puls · watt · tempo · kadens ·
+    høyde) og <b>PÅ GRAFEN</b> (skyting · segmenter · laktat/ernæring · runder).
+    Skytevinduer, segmentbånd og punktmarkører er annoteringer på TIDSLINJA —
+    de skal IKKE forsvinne når puls skrus av, og skal kunne skrus av hver for
+    seg. Puls brukes bare til å REGNE snittpuls i vinduet, aldri til å tegne
+    markøren. (Dagens oppførsel — skyting henger på puls-serien — er en feil.)</li>
+    <li class="ny"><b>X-ZOOM OG PANORERING:</b> et 40-sekunders skytevindu er
+    under 1 % av en to-timers økt — uten zoom er presis plassering umulig.
+    Krav: pinch og scroll zoomer, dra panorerer, brush-feltet under grafen viser
+    hvor man er i økta (med minikurve + segmentbånd), «Hele økta» nullstiller,
+    og «zoom til segment» når en rad/segment velges. Zoom-nivået deles med
+    «Legg til detaljer»-pop-upen når man åpner den derfra.
+    <b>Y-aksen dras ALDRI</b> — den skalerer automatisk etter fokus-serien.</li>
+    <li><b>HØYDE ER KONTEKST, IKKE KONKURRENT:</b> tegnes som stille fylt areal
+    bak kurvene (~13 % opacity), aldri som likestilt linje. Den lave metningen er
+    med vilje — høyde skal kunne stå på uten å stjele oppmerksomhet.</li>
+    <li><b>FARGENE BEHOLDES</b> (puls #E23A5A · watt #E8B93C · tempo #28A86E ·
+    kadens #1A6FD4 · høyde nøytralgrå). CVD-validert: verste nabopar ΔE 12,5
+    (protan), kontrast mot flate ≥ 3:1 for alle — godkjent. Segmentfargene er
+    SEGMENT_FARGER-fasiten. <b>Merk til Sverre:</b> tre av kurvefargene er også
+    sonefarger (I5/I3/I1). Det er en dobbeltbetydning som allerede finnes i dag
+    og som vi lar stå — men den skal ikke spres til nye flater der soner og
+    serier vises sammen.</li>
+    <li class="ny"><b>PUNKTMARKØRER MED PEKELINJE (Sverre 29. aug —
+    referansen han sendte):</b> laktat og ernæring vises IKKE som en liten
+    prikk med tall ved siden av, men som <b>etikett over grafen med en tynn
+    pekelinje ned til nøyaktig tidspunkt på kurven</b> (mønsteret fra
+    øktmal-diagrammer: «20min DP · Z3 (2,5–3 mmol/L)» med strek ned til
+    blokken). Etiketten bærer navn + verdi i fet, og kontekst i mindre
+    tekst under («etter drag 2 · 8:00»).
+    <br>· <b>To (eller flere) høydenivåer</b> så etiketter nær hverandre i
+    tid ikke kolliderer — algoritmen skyver hver ny etikett ned et hakk
+    når den overlapper forrige, aldri overlapp, aldri skjult tekst.
+    <br>· Pekelinjen ender i en liten prikk PÅ kurven i seriens farge
+    (laktat gull, ernæring grønn) — så øyet ser både hva, når og hvor
+    høyt pulsen lå i samme blikk.
+    <br>· Tett klynge av punkter: slå sammen til «3 målinger» med
+    utvidelse ved klikk/hover heller enn å stable femten etiketter.
+    <br>· Toppmarginen over grafen reserveres til dette båndet — grafen
+    krymper ikke når etiketter dukker opp (regel 20: layout hopper ikke).</li>
+    <li class="ny"><b>GRUPPEKLAMMER PÅ SEGMENTBÅNDET (Sverre 29. aug —
+    andre referanse):</b> en intervalløkt får ellers femti bittesmå
+    segmenter med hver sin etikett. I stedet: <b>repeterte segmenter
+    tegnes som striper, og en klamme under båndet samler dem under ÉN
+    etikett</b> — «8 × 40/20», «12 × 30/15», «4 × 8 × 40/20 @ 5 min
+    power». Mønsteret er lånt fra øktmal-diagrammene, så en gjennomført
+    økt leses med samme språk som planen den kom fra.
+    <br>· Gjenkjenningen er automatisk: like segmenter (samme type +
+    tilnærmet lik varighet) i en sammenhengende rekke slås til én gruppe.
+    CC foreslår terskelen (hvor lik er «lik») til godkjenning.
+    <br>· Kommer økta fra en intervall-plan, brukes PLANENS gruppering og
+    navn i stedet for gjetning — planen er fasit når den finnes (regel 11).
+    <br>· Hover på klammen fremhever hele gruppen i kurven og viser
+    gruppens sum (total tid, snittpuls, snittwatt); hover på én stripe gir
+    den enkelte repetisjonen.
+    <br>· Zoomer man inn nok, løses gruppen opp i enkeltsegmenter med egne
+    etiketter — klammen er en oversiktsform, ikke en låst sammenslåing.</li>
+    <li><b>LEGENDE + DIREKTE ETIKETTER:</b> segmentene får etikett direkte på
+    båndet der det er plass (Oppv. · Drag 1 · Nedjogg), legenden under dekker
+    resten. Identitet skal aldri bæres av farge alene.</li>
+    <li><b>TREFFFLATER:</b> chips og zoom-knapper ≥36 px; krysshåret følger
+    fingeren uten at sida scroller (touch-action styres på grafboksen).</li>
+    <li><b>Regel 17</b> (kontrollrad over graf → height="auto") ·
+    <b>regel 20</b> (kontrollene rendres med sida, svarer i samme tick) ·
+    <b>regel 22</b> · <b>regel 23</b> (lys + mørk) · <b>regel 11</b>: samme
+    graf-komponent brukes overalt økt-grafen vises — ingen variant nummer to.</li>
+    <li><b>Tomtilstander:</b> serie uten data vises ikke i chip-raden (aldri en
+    død knapp). Ingen segmenter ført → båndet skjules helt, ikke tomt spor.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+/* Fokus/av-på for dataserier */
+const kart={puls:'sPuls',watt:'sWatt',tempo:'sTempo',kadens:'sKadens',hoyde:'sHoyde'};
+document.querySelectorAll('#dataChips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    const el=document.getElementById(kart[c.dataset.s]);
+    if(c.classList.contains('fokus')){ // aktiv fokus → skru av
+      c.classList.remove('on','fokus');el.style.display='none';
+    }else if(c.classList.contains('on')){ // på → gjør til fokus
+      document.querySelectorAll('#dataChips .chip').forEach(x=>x.classList.remove('fokus'));
+      document.querySelectorAll('#dataChips .chip').forEach(x=>{
+        const e=document.getElementById(kart[x.dataset.s]);
+        if(x.classList.contains('on')&&x.dataset.s!=='hoyde'){e.setAttribute('stroke-width','1.5');e.setAttribute('opacity','.42')}
+      });
+      c.classList.add('fokus');
+      if(c.dataset.s!=='hoyde'){el.setAttribute('stroke-width','2');el.setAttribute('opacity','1')}
+    }else{ // av → på
+      c.classList.add('on');el.style.display='';
+    }
+  });
+});
+/* Annoteringer */
+const akart={skyting:'aSkyting',segment:'aSegment',punkt:'aPunkt',runder:'aRunder'};
+document.querySelectorAll('#annChips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    c.classList.toggle('on');
+    document.getElementById(akart[c.dataset.a]).style.display=c.classList.contains('on')?'':'none';
+  });
+});
+/* Krysshår + lesepanel */
+const gb=document.getElementById('gb'),kh=document.getElementById('kh');
+const TOT=15*60+56;
+function fmt(s){s=Math.round(s);const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0')}
+function les(e){
+  const r=gb.getBoundingClientRect();
+  const x=Math.max(0,Math.min(r.width,(e.touches?e.touches[0].clientX:e.clientX)-r.left));
+  kh.style.left=x+'px';kh.classList.add('vis');
+  const t=TOT*(x/r.width);
+  document.getElementById('lTid').textContent=fmt(t);
+  document.getElementById('lPuls').innerHTML=Math.round(126+12*Math.sin(t/95))+'<small> bpm</small>';
+  document.getElementById('lWatt').innerHTML=Math.round(300+70*Math.sin(t/40))+'<small> W</small>';
+  document.getElementById('lTempo').innerHTML=fmt(215+18*Math.cos(t/70))+'<small> /km</small>';
+  document.getElementById('lHoyde').innerHTML=Math.round(140+14*Math.sin(t/120))+'<small> m</small>';
+  const p=x/r.width;
+  document.getElementById('lSeg').textContent =
+    p<.16?'Oppvarming':p<.33?'Drag 1':p<.39?'Ligg · 5/5':p<.65?'Drag 2':p<.71?'Stå · 4/5':p<.75?'Pause':p<.87?'Drag 3':'Nedjogg';
+}
+gb.addEventListener('pointermove',les);
+gb.addEventListener('pointerleave',()=>kh.classList.remove('vis'));
+/* Brush */
+const brush=document.getElementById('brush'),bv=document.getElementById('bv');
+let bm=null,bx=0,bl=0,bw=0;
+function bvis(){
+  const l=parseFloat(bv.style.left),w=parseFloat(bv.style.width);
+  const a=TOT*l/100,b=TOT*(l+w)/100;
+  document.getElementById('zvis').textContent =
+    (w>95?'Viser 0:00 – '+fmt(TOT)+' (hele økta)':'Viser '+fmt(a)+' – '+fmt(b));
+}
+bv.addEventListener('pointerdown',e=>{
+  bm=e.target.dataset.h||'m';bx=e.clientX;
+  bl=parseFloat(bv.style.left);bw=parseFloat(bv.style.width);
+  bv.setPointerCapture(e.pointerId);e.preventDefault();
+});
+bv.addEventListener('pointermove',e=>{
+  if(!bm)return;
+  const dx=(e.clientX-bx)/brush.offsetWidth*100;
+  const c=v=>Math.max(0,Math.min(100,v));
+  if(bm==='m'){bv.style.left=c(Math.min(bl+dx,100-bw))+'%'}
+  else if(bm==='l'){const nl=c(Math.min(bl+dx,bl+bw-5));bv.style.left=nl+'%';bv.style.width=(bl+bw-nl)+'%'}
+  else{bv.style.width=Math.max(5,Math.min(bw+dx,100-bl))+'%'}
+  bvis();
+});
+bv.addEventListener('pointerup',()=>{bm=null});
+document.getElementById('znull').onclick=()=>{bv.style.left='2%';bv.style.width='96%';bvis()};
+document.getElementById('zinn').onclick=()=>{
+  const l=parseFloat(bv.style.left),w=parseFloat(bv.style.width);
+  const nw=Math.max(5,w*.6);bv.style.left=(l+(w-nw)/2)+'%';bv.style.width=nw+'%';bvis()};
+document.getElementById('zut').onclick=()=>{
+  const l=parseFloat(bv.style.left),w=parseFloat(bv.style.width);
+  const nw=Math.min(100,w/.6);bv.style.left=Math.max(0,Math.min(l-(nw-w)/2,100-nw))+'%';bv.style.width=nw+'%';bvis()};
+/* Modus */
+document.getElementById('mSamlet').onclick=function(){this.classList.add('on');document.getElementById('mStablet').classList.remove('on')};
+document.getElementById('mStablet').onclick=function(){this.classList.add('on');document.getElementById('mSamlet').classList.remove('on')};
+bvis();
+</script>
+</body>
+</html>

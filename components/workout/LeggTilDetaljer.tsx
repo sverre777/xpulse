@@ -7,6 +7,8 @@ import {
   type LeggTilDetaljerData, type DetaljerRad,
 } from '@/app/actions/tidsplassering'
 import { SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu } from '@/lib/segmenter'
+import { OktKurve, type KurveSerie } from './OktKurve'
+import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { findActivityType, type ActivityType, type ShootingSeriesRow } from '@/lib/types'
 import { PlottTreffPopup } from './PlottTreff'
 
@@ -248,6 +250,7 @@ export function LeggTilDetaljerPopup({
                 )
               })()}
               <KurveMedVinduer
+                workoutId={workoutId}
                 hr={data.hr}
                 fart={data.fart}
                 watt={data.watt}
@@ -490,10 +493,11 @@ export const KURVE_FARGER = {
 type KurveValg = keyof typeof KURVE_FARGER
 
 function KurveMedVinduer({
-  hr, fart, watt, hoyde, kurve, sport, totalSek, rader, vinduer, fjernet,
+  workoutId, hr, fart, watt, hoyde, kurve, sport, totalSek, rader, vinduer, fjernet,
   laktat, ernaering, laktatSek, ernaeringMin,
   aktivtVindu, harRunder, onVindu, onLaktat, onErnaering,
 }: {
+  workoutId: string
   hr: Array<{ t: number; hr: number }>
   fart: Array<{ t: number; mps: number }>
   watt: Array<{ t: number; w: number }>
@@ -522,31 +526,47 @@ function KurveMedVinduer({
     | null
   >(null)
 
-  // Aktiv serie som generisk {t, v}-liste.
-  const serie = useMemo((): Array<{ t: number; v: number }> => {
-    if (kurve === 'puls') return hr.map(p => ({ t: p.t, v: p.hr }))
-    if (kurve === 'fart') return fart.map(p => ({ t: p.t, v: p.mps }))
-    return watt.map(p => ({ t: p.t, v: p.w }))
-  }, [kurve, hr, fart, watt])
+  // LTD tegner IKKE lenger sin egen kurve — den bruker OktKurve, samme
+  // motor som økt-grafen (regel 11/21: den håndtegnede SVG-en her var
+  // hele begrunnelsen for å forlate recharts, og er nå slettet). Zoom-
+  // nivået deles med grafen gjennom lib/kurve-zoom.
+  const kurveSerier: KurveSerie[] = useMemo(() => {
+    const ut: KurveSerie[] = []
+    if (hr.length > 0) ut.push({
+      id: 'puls', navn: 'Puls', farge: KURVE_FARGER.puls,
+      punkter: hr.map(p => ({ t: p.t, v: p.hr })), format: (v: number) => `${Math.round(v)}`,
+    })
+    if (fart.length > 0) ut.push({
+      id: 'fart', navn: 'Fart', farge: KURVE_FARGER.fart,
+      punkter: fart.map(p => ({ t: p.t, v: p.mps })),
+      format: (v: number) => fmtFartVerdi(v, sport),
+    })
+    if (watt.length > 0) ut.push({
+      id: 'watt', navn: 'Watt', farge: KURVE_FARGER.watt,
+      punkter: watt.map(p => ({ t: p.t, v: p.w })), format: (v: number) => `${Math.round(v)}`,
+    })
+    if (hoyde.length > 2) ut.push({
+      id: 'hoyde', navn: 'Høyde', farge: 'var(--tekst-5-app)',
+      punkter: hoyde.map(p => ({ t: p.t, v: p.alt })), format: (v: number) => `${Math.round(v)}`,
+      somAreal: true,
+    })
+    return ut
+  }, [hr, fart, watt, hoyde, sport])
 
-  const sti = useMemo(() => tilSti(serie, totalSek, false), [serie, totalSek])
-  const hoydeSti = useMemo(
-    () => (hoyde.length > 2 ? tilSti(hoyde.map(p => ({ t: p.t, v: p.alt })), totalSek, true) : null),
-    [hoyde, totalSek],
+  const [vindu, setVindu] = useState<[number, number] | null>(
+    () => hentVindu(workoutId),
   )
 
-  const sekFraX = (clientX: number): number => {
-    const el = boks.current
-    if (!el) return 0
-    const r = el.getBoundingClientRect()
-    const andel = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
-    return Math.round(andel * totalSek)
-  }
+  const sekFraAndelRef = useRef<(a: number) => number>(a => a * totalSek)
 
   const paaFlytt = (e: React.PointerEvent) => {
     const d = drag.current
     if (!d) return
-    const sek = sekFraX(e.clientX)
+    const el = boks.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
+    const sek = Math.round(sekFraAndelRef.current(andel))
     if (d.slag === 'laktat') { onLaktat(d.id, sek); return }
     if (d.slag === 'ernaering') { onErnaering(d.id, Math.round(sek / 60)); return }
     const v = vinduer.get(d.id)
@@ -563,40 +583,36 @@ function KurveMedVinduer({
     }
   }
 
-  const pct = (t: number) => `${Math.max(0, Math.min(100, (t / Math.max(1, totalSek)) * 100))}%`
-  // Punktene ligger PÅ den valgte kurven — y følger lerretet.
-  const verdiYPct = (t: number): string => {
-    if (serie.length === 0) return '50%'
-    const naermest = serie.reduce((best, p) => Math.abs(p.t - t) < Math.abs(best.t - t) ? p : best, serie[0])
-    let lo = Infinity, hi = -Infinity
-    for (const p of serie) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v }
-    const span = Math.max(1e-6, hi - lo)
-    const y = 12 + (1 - (naermest.v - lo) / span) * (KURVE_HOYDE - 24)
-    return `${(y / KURVE_HOYDE) * 100}%`
-  }
-
   const aktivt = aktivtVindu != null && !fjernet.has(aktivtVindu) ? vinduer.get(aktivtVindu) : null
   const aktivPuls = aktivt ? pulsIVindu(hr, aktivt.startSek, aktivt.startSek + aktivt.varighetSek) : null
-  const aktivFart = aktivt ? snittIVindu(fart.map(p => ({ t: p.t, v: p.mps })), aktivt.startSek, aktivt.startSek + aktivt.varighetSek) : null
+  const aktivFart = aktivt
+    ? snittIVindu(fart.map(p => ({ t: p.t, v: p.mps })), aktivt.startSek, aktivt.startSek + aktivt.varighetSek)
+    : null
 
   return (
     <div>
+      <OktKurve
+        serier={kurveSerier}
+        paaIds={kurveSerier.filter(x => x.id === kurve || x.somAreal).map(x => x.id)}
+        fokusId={kurve}
+        totalSek={totalSek}
+        hoyde={KURVE_HOYDE}
+        vindu={vindu ?? undefined}
+        onVindu={v => {
+          const heleOkta = v[0] <= 0.5 && v[1] >= totalSek - 0.5
+          setVindu(heleOkta ? null : v)
+          lagreVindu(workoutId, heleOkta ? [0, totalSek] : v)
+        }}
+        overlay={h => {
+          sekFraAndelRef.current = h.sekFraAndel
+          const pct = h.pct
+          const verdiYPct = (t: number) => h.yPctForSerie(kurve, t)
+          return (
       <div ref={boks}
         onPointerMove={paaFlytt}
         onPointerUp={() => { drag.current = null }}
         onPointerLeave={() => { drag.current = null }}
-        style={{
-          position: 'relative', height: KURVE_HOYDE, touchAction: 'none',
-          background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderRadius: 10,
-        }}>
-        <svg viewBox={`0 0 1000 ${KURVE_HOYDE}`} preserveAspectRatio="none"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', borderRadius: 10, overflow: 'hidden' }}>
-          {hoydeSti && (
-            <path d={hoydeSti} fill="var(--tekst-8-alt)" opacity={0.13} stroke="none" />
-          )}
-          <path d={sti} fill="none" stroke={KURVE_FARGER[kurve]} strokeWidth={1.6} vectorEffect="non-scaling-stroke" />
-        </svg>
-
+        style={{ position: 'absolute', inset: 0 }}>
         {/* Vinduer (kun økter uten runder — ellers tegnes de i lesevisningen). */}
         {!harRunder && rader.map(r => {
           const v = fjernet.has(r.id) ? null : vinduer.get(r.id)
@@ -614,7 +630,13 @@ function KurveMedVinduer({
               }}
               onPointerDown={e => {
                 e.currentTarget.setPointerCapture?.(e.pointerId)
-                drag.current = { slag: 'flytt', id: r.id, grepSek: sekFraX(e.clientX) - v.startSek }
+                drag.current = { slag: 'flytt', id: r.id, grepSek: (() => {
+                  const el = boks.current
+                  if (!el) return 0
+                  const r = el.getBoundingClientRect()
+                  const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
+                  return Math.round(sekFraAndelRef.current(andel)) - v.startSek
+                })() }
               }}>
               <span style={{
                 position: 'absolute', top: 3, left: 6, fontSize: 10, letterSpacing: '0.08em',
@@ -686,13 +708,10 @@ function KurveMedVinduer({
           )
         })}
       </div>
+          )
+        }}
+      />
 
-      <div className="flex justify-between mt-1"
-        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, color: 'var(--tekst-8-alt)' }}>
-        <span>0:00</span>
-        <span>{fmtKlokkeSek(Math.round(totalSek / 2))}</span>
-        <span>{fmtKlokkeSek(totalSek)}</span>
-      </div>
 
       {/* Live-leser for aktivt vindu: puls OG fart samtidig (V9.4). */}
       {aktivt && (
@@ -707,28 +726,6 @@ function KurveMedVinduer({
       )}
     </div>
   )
-}
-
-/** Generisk serie → SVG-sti. `somFlate` lukker mot bunnen (høydeprofil). */
-function tilSti(serie: Array<{ t: number; v: number }>, totalSek: number, somFlate: boolean): string {
-  if (serie.length === 0) return ''
-  const steg = Math.max(1, Math.floor(serie.length / 300))
-  const punkter = serie.filter((_, i) => i % steg === 0)
-  let lo = Infinity, hi = -Infinity
-  for (const p of punkter) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v }
-  if (!Number.isFinite(lo)) return ''
-  const span = Math.max(1e-6, hi - lo)
-  const deler = punkter.map((p, i) => {
-    const x = (p.t / Math.max(1, totalSek)) * 1000
-    const y = 12 + (1 - (p.v - lo) / span) * (KURVE_HOYDE - 24)
-    return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`
-  })
-  if (somFlate) {
-    const sisteX = ((punkter[punkter.length - 1].t / Math.max(1, totalSek)) * 1000).toFixed(1)
-    const forsteX = ((punkter[0].t / Math.max(1, totalSek)) * 1000).toFixed(1)
-    deler.push(`L${sisteX} ${KURVE_HOYDE}`, `L${forsteX} ${KURVE_HOYDE}`, 'Z')
-  }
-  return deler.join(' ')
 }
 
 /** Snitt av en generisk {t, v}-serie i [start, slutt] — null under 2 punkter. */

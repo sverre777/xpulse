@@ -12,6 +12,7 @@ import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
 import { beregnSegmenter, type Segment } from '@/lib/segmenter'
+import { nedsampleSerie, OVERSIKT_KOLONNER } from '@/lib/kurve-nedsample'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -97,7 +98,13 @@ export async function getWorkoutKlokkesyncData(
   if (!workout) return null
 
   const samplesRow = samplesRowsRes.data?.[0]
-  const samples: WorkoutSamples | null = samplesRow ? {
+  // NEDSAMPLING PÅ SERVERSIDEN (egen oppgave, ikke en bieffekt av zoom):
+  // en 6-timers økt er 116 625 punkter over fem serier, og HELE settet ble
+  // sendt over nett til alle som åpnet økta — også de som aldri zoomer.
+  // Her sendes en OVERSIKT på ~900 kolonner; klienten henter finere data
+  // for det synlige vinduet når man zoomer (hentKurveVindu). Samme
+  // min/max-implementasjon begge steder (lib/kurve-nedsample).
+  const raaSamples = samplesRow ? {
     hr_samples:       samplesRow.hr_samples ?? null,
     watt_samples:     samplesRow.watt_samples ?? null,
     pace_samples:     samplesRow.pace_samples ?? null,
@@ -105,6 +112,12 @@ export async function getWorkoutKlokkesyncData(
     altitude_samples: samplesRow.altitude_samples ?? null,
     cadence_samples:  samplesRow.cadence_samples ?? null,
   } : null
+  // Sluttiden MÅ være øktas faktiske lengde: bruker man et vilkårlig
+  // stort tall, havner alle punktene i bøtte 0 og kurven blir to punkter.
+  const raaSlutt = raaSamples ? sisteT(raaSamples) : 0
+  const samples: WorkoutSamples | null = raaSamples && raaSlutt > 0
+    ? nedsampleSamples(raaSamples, 0, raaSlutt, OVERSIKT_KOLONNER)
+    : raaSamples
 
   const activities = activitiesRes.data
 
@@ -322,4 +335,57 @@ function kurveLengdeSek(samples: WorkoutSamples | null): number {
     if (siste && siste.t > maks) maks = siste.t
   }
   return maks
+}
+
+
+// ── Nedsampling av et helt sample-sett ──────────────────────
+type RaaSamples = {
+  hr_samples: Array<{ t: number; hr: number }> | null
+  watt_samples: Array<{ t: number; w: number }> | null
+  pace_samples: Array<{ t: number; mps: number }> | null
+  speed_samples: Array<{ t: number; mps: number }> | null
+  altitude_samples: Array<{ t: number; alt: number }> | null
+  cadence_samples: Array<{ t: number; cad: number }> | null
+}
+
+/** Siste tidspunkt på tvers av seriene — tidslinjens faktiske slutt. */
+function sisteT(s: RaaSamples): number {
+  let maks = 0
+  for (const serie of [s.hr_samples, s.watt_samples, s.pace_samples, s.speed_samples, s.altitude_samples, s.cadence_samples]) {
+    const sist = serie?.[serie.length - 1]
+    if (sist && sist.t > maks) maks = sist.t
+  }
+  return maks
+}
+
+function nedsampleSamples(s: RaaSamples, fra: number, til: number, kolonner: number): WorkoutSamples {
+  return {
+    hr_samples: s.hr_samples ? nedsampleSerie(s.hr_samples, fra, til, kolonner, p => p.hr) : null,
+    watt_samples: s.watt_samples ? nedsampleSerie(s.watt_samples, fra, til, kolonner, p => p.w) : null,
+    pace_samples: s.pace_samples ? nedsampleSerie(s.pace_samples, fra, til, kolonner, p => p.mps) : null,
+    speed_samples: s.speed_samples ? nedsampleSerie(s.speed_samples, fra, til, kolonner, p => p.mps) : null,
+    altitude_samples: s.altitude_samples ? nedsampleSerie(s.altitude_samples, fra, til, kolonner, p => p.alt) : null,
+    cadence_samples: s.cadence_samples ? nedsampleSerie(s.cadence_samples, fra, til, kolonner, p => p.cad) : null,
+  }
+}
+
+/**
+ * Finere data for ET SYNLIG VINDU (zoom). Henter bare sample-raden og
+ * sender tilbake vinduet nedsamplet til skjermoppløsning — aldri hele
+ * økta i full oppløsning.
+ */
+export async function hentKurveVindu(
+  workoutId: string, fraSek: number, tilSek: number, kolonner = OVERSIKT_KOLONNER,
+): Promise<WorkoutSamples | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data } = await supabase.from('workout_samples')
+    .select('hr_samples, watt_samples, pace_samples, speed_samples, altitude_samples, cadence_samples, created_at')
+    .eq('workout_id', workoutId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+  const rad = data?.[0]
+  if (!rad) return null
+  return nedsampleSamples(rad as RaaSamples, fraSek, tilSek, kolonner)
 }

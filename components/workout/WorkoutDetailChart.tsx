@@ -1,11 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
   SEGMENT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu, type Segment,
 } from '@/lib/segmenter'
 import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
+import { KurveBrush } from './KurveBrush'
+import { hentKurveVindu } from '@/app/actions/workout-klokkesync'
+import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -51,6 +54,8 @@ export interface ShootingMarker {
 
 interface Props {
   sport: Sport
+  /** Trengs for å hente finere data ved zoom (serveren sender oversikt). */
+  workoutId?: string
   samples: WorkoutSamples
   laps?: LapMarker[]
   lactate?: LactateMarker[]
@@ -75,7 +80,7 @@ interface Props {
 // Tegnemotoren er OktKurve (delt SVG) — se den fila for hvorfor, og for
 // nedsamplingen som er innebygd fra første versjon.
 export function WorkoutDetailChart({
-  sport, samples, laps = [], lactate = [], nutrition = [], shooting = [],
+  sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
   height = 300,
 }: Props) {
@@ -96,6 +101,21 @@ export function WorkoutDetailChart({
   // aksene er bare kontekst (fasiten). Uten krysshår viser cellene øktas
   // snitt, så tallene finnes selv om man aldri berører kurven.
   const [krysshaarSek, setKrysshaarSek] = useState<number | null>(null)
+  // Zoom-vinduet. null = hele økta. Deles med «Legg til detaljer» via
+  // lib/kurve-zoom, så pop-upen åpner på samme utsnitt.
+  const [vindu, setVindu] = useState<[number, number] | null>(
+    () => (workoutId ? hentVindu(workoutId) : null),
+  )
+  // Finere data for det synlige vinduet: serveren sender bare en oversikt
+  // (~900 kolonner) for hele økta, så innzooming ville ellers vist den
+  // samme grovheten forstørret.
+  const [vindusSamples, setVindusSamples] = useState<WorkoutSamples | null>(null)
+
+  // Seriene for det synlige vinduet (finere data fra serveren ved zoom).
+  const vindusSerier = useMemo(
+    () => (vindusSamples ? byggSerier(sport, vindusSamples) : null),
+    [sport, vindusSamples],
+  )
 
   const totalSek = useMemo(() => {
     let maks = 0
@@ -105,6 +125,21 @@ export function WorkoutDetailChart({
     }
     return maks
   }, [serier])
+
+  // Ett sted som setter zoom: fanger «hele økta» (da ryddes vindusdataene
+  // og delt tilstand nullstilles) og lagrer nivået for «Legg til detaljer».
+  const settVindu = (v: [number, number] | null) => {
+    const heleOkta = !v || (v[0] <= 0.5 && v[1] >= totalSek - 0.5)
+    if (heleOkta) {
+      setVindu(null)
+      setVindusSamples(null)
+      if (workoutId) lagreVindu(workoutId, [0, totalSek])
+      return
+    }
+    setVindu(v)
+    if (workoutId) lagreVindu(workoutId, v)
+  }
+
 
   const velgSerie = (id: string) => {
     const paa = paaIds.includes(id)
@@ -123,6 +158,17 @@ export function WorkoutDetailChart({
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
+
+  useEffect(() => {
+    // Nullstilling skjer i handlerne som fjerner zoomen (ikke her — en
+    // synkron setState i en effekt gir kaskade-renders).
+    if (!workoutId || !vindu) return
+    let avbrutt = false
+    hentKurveVindu(workoutId, vindu[0], vindu[1])
+      .then(d => { if (!avbrutt) setVindusSamples(d) })
+      .catch(() => { if (!avbrutt) setVindusSamples(null) })
+    return () => { avbrutt = true }
+  }, [workoutId, vindu])
 
   if (serier.length === 0) {
     return (
@@ -177,11 +223,13 @@ export function WorkoutDetailChart({
       </div>
 
       <OktKurve
-        serier={serier}
+        serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
         totalSek={totalSek}
         hoyde={height}
+        vindu={vindu ?? undefined}
+        onVindu={v => settVindu(v)}
         krysshaarSek={krysshaarSek}
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
@@ -236,6 +284,68 @@ export function WorkoutDetailChart({
           </>
         )}
       />
+
+      {/* Brush: hvor i økta er vi? Vises kun når det er noe å navigere i. */}
+      {totalSek > 0 && (
+        <>
+          <KurveBrush
+            serie={serier.find(x => x.id === fokusId && !x.somAreal) ?? serier.find(x => !x.somAreal) ?? null}
+            segmenter={visSegmenter ? segmenter : []}
+            totalSek={totalSek}
+            vindu={vindu ?? [0, totalSek]}
+            onVindu={v => settVindu(v)}
+          />
+          <div className="flex gap-2 flex-wrap mt-1.5">
+            <button type="button"
+              onClick={() => settVindu(null)}
+              disabled={!vindu}
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5,
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+                color: vindu ? 'var(--accent)' : 'var(--tekst-8-app)',
+                background: 'none', border: `1px solid ${vindu ? 'var(--accent)' : 'var(--kant-3)'}`,
+                borderRadius: 999, padding: '5px 12px', minHeight: 32,
+                cursor: vindu ? 'pointer' : 'default', opacity: vindu ? 1 : 0.5,
+              }}>
+              Hele økta
+            </button>
+            {/* «Zoom til segment» — når et segment er valgt i båndet. */}
+            {valgtSegment && (() => {
+              const sg = segmenter.find(x => x.aktivitetId === valgtSegment)
+              if (!sg) return null
+              return (
+                <button type="button"
+                  onClick={() => {
+                    const luft = Math.max(10, (sg.sluttSek - sg.startSek) * 0.25)
+                    const v: [number, number] = [
+                      Math.max(0, sg.startSek - luft),
+                      Math.min(totalSek, sg.sluttSek + luft),
+                    ]
+                    setVindu(v)
+                    if (workoutId) lagreVindu(workoutId, v)
+                  }}
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5,
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                    color: SEGMENT_FARGER[sg.type], background: 'none',
+                    border: `1px solid ${SEGMENT_FARGER[sg.type]}`,
+                    borderRadius: 999, padding: '5px 12px', minHeight: 32, cursor: 'pointer',
+                  }}>
+                  Zoom til {sg.etikett}
+                </button>
+              )
+            })()}
+            {vindu && (
+              <span style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5,
+                color: 'var(--tekst-8-alt)', alignSelf: 'center',
+              }}>
+                Viser {fmtKlokkeSek(vindu[0])}–{fmtKlokkeSek(vindu[1])} av {fmtKlokkeSek(totalSek)}
+              </span>
+            )}
+          </div>
+        </>
+      )}
 
       {/* LESEPANELET erstatter den andre y-aksen (fasiten): tid + én celle
           per påslått serie + gjeldende segment. Krysshåret oppdaterer alle

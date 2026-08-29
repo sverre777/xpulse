@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
+import { nedsampleSerie } from '@/lib/kurve-nedsample'
 
 // Delt kurve-motor for økt-grafen (og «Legg til detaljer» fra bolk 3).
 // Fasit: design/xpulse-oktgraf-design.html.
@@ -58,6 +59,11 @@ interface Props {
   /** Krysshårets tidspunkt (sek) — null når peker/finger er utenfor. */
   krysshaarSek?: number | null
   onKrysshaar?: (sek: number | null) => void
+  /** Settes for å slå på zoom/panorering. Vinduet er STYRT av forelderen
+      så økt-grafen og «Legg til detaljer» kan dele nivå. */
+  onVindu?: (v: [number, number]) => void
+  /** Minste synlige spenn i sekunder — hindrer uendelig innzooming. */
+  minSpennSek?: number
 }
 
 export interface KurveHjelpere {
@@ -69,6 +75,8 @@ export interface KurveHjelpere {
   yPctForSerie: (serieId: string, sek: number) => string
   fraSek: number
   tilSek: number
+  /** Andel av bredden (0–1) → sekund i øktas tidslinje. */
+  sekFraAndel: (andel: number) => number
 }
 
 /**
@@ -80,27 +88,7 @@ export interface KurveHjelpere {
 export function nedsample(
   punkter: KurvePunkt[], fraSek: number, tilSek: number, kolonner = VISNING_BREDDE,
 ): KurvePunkt[] {
-  if (punkter.length === 0) return []
-  const spenn = Math.max(1, tilSek - fraSek)
-  const bøtter = new Map<number, { min: KurvePunkt; maks: KurvePunkt }>()
-  for (const p of punkter) {
-    if (p.t < fraSek || p.t > tilSek) continue
-    const k = Math.floor(((p.t - fraSek) / spenn) * kolonner)
-    const b = bøtter.get(k)
-    if (!b) bøtter.set(k, { min: p, maks: p })
-    else {
-      if (p.v < b.min.v) b.min = p
-      if (p.v > b.maks.v) b.maks = p
-    }
-  }
-  const ut: KurvePunkt[] = []
-  for (const k of [...bøtter.keys()].sort((a, b) => a - b)) {
-    const b = bøtter.get(k)!
-    // Tidsrekkefølge innad i kolonnen, ellers zig-zagger linja bakover.
-    if (b.min.t <= b.maks.t) { ut.push(b.min); if (b.maks !== b.min) ut.push(b.maks) }
-    else { ut.push(b.maks); ut.push(b.min) }
-  }
-  return ut
+  return nedsampleSerie(punkter, fraSek, tilSek, kolonner, p => p.v)
 }
 
 /** Nærmeste målte verdi i en serie ved et tidspunkt (null uten data). */
@@ -136,9 +124,10 @@ function fmtTid(sek: number): string {
 
 export function OktKurve({
   serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag,
-  krysshaarSek = null, onKrysshaar,
+  krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20,
 }: Props) {
   const flate = useRef<HTMLDivElement | null>(null)
+  const pan = useRef<{ x: number; fra: number; til: number } | null>(null)
   const [fraSek, tilSek] = vindu ?? [0, Math.max(1, totalSek)]
   const H = hoyde
   const TOPP = 10, BUNN = 22   // plass til x-etiketter under
@@ -149,19 +138,37 @@ export function OktKurve({
   // Y-skalaen eies av FOKUS-serien alene (fasiten). Kontekst-seriene
   // normaliseres inn i samme flate, men har ingen egen akse og skal
   // leses som FORM, ikke som verdier — derfor er de dempet.
-  const skala = useMemo(() => {
-    const iVindu = (s: KurveSerie) => s.punkter.filter(p => p.t >= fraSek && p.t <= tilSek)
-    const spennFor = (s: KurveSerie) => {
-      const v = iVindu(s).map(p => p.v)
-      if (v.length === 0) return null
-      return { lo: Math.min(...v), hi: Math.max(...v) }
+  // Spennet regnes rett fram (ingen useMemo): serien er allerede
+  // nedsamplet til ~900–2000 punkter, og en memo som returnerer en
+  // funksjon kan React-compileren ikke bevare.
+  const spennFor = (s: KurveSerie): { lo: number; hi: number } | null => {
+    let lo = Infinity, hi = -Infinity
+    for (const p of s.punkter) {
+      if (p.t < fraSek || p.t > tilSek) continue
+      if (p.v < lo) lo = p.v
+      if (p.v > hi) hi = p.v
     }
-    const fokusSpenn = fokus ? spennFor(fokus) : null
-    return { fokusSpenn, spennFor }
-  }, [fokus, fraSek, tilSek])
+    return Number.isFinite(lo) ? { lo, hi } : null
+  }
+  const fokusSpenn = fokus ? spennFor(fokus) : null
+
+  // Zoom om et punkt: spennet skaleres, punktet under pekeren står stille.
+  // Y-AKSEN DRAS ALDRI — den skalerer automatisk etter fokus-serien i det
+  // synlige vinduet (fasiten).
+  const zoomOm = (senter: number, faktor: number) => {
+    if (!onVindu) return
+    const spenn = tilSek - fraSek
+    const nyttSpenn = Math.max(minSpennSek, Math.min(totalSek, spenn * faktor))
+    const andel = (senter - fraSek) / Math.max(1, spenn)
+    let f = senter - andel * nyttSpenn
+    let t = f + nyttSpenn
+    if (f < 0) { t -= f; f = 0 }
+    if (t > totalSek) { f -= (t - totalSek); t = totalSek }
+    onVindu([Math.max(0, f), Math.min(totalSek, t)])
+  }
 
   const yFor = (s: KurveSerie, v: number): number => {
-    const sp = s.id === fokus?.id ? skala.fokusSpenn : skala.spennFor(s)
+    const sp = s.id === fokus?.id ? fokusSpenn : spennFor(s)
     if (!sp) return H / 2
     const pad = Math.max(1e-6, (sp.hi - sp.lo) * 0.08)
     const lo = sp.lo - pad, hi = sp.hi + pad
@@ -190,18 +197,51 @@ export function OktKurve({
       return `${(yFor(s, nær.v) / H) * 100}%`
     },
     fraSek, tilSek,
+    // REN matematikk: kalleren måler sin egen flate og sender andelen.
+    // (Leser vi ref-en her, blir hele hjelpe-objektet «ref-access during
+    // render» for React-compileren.)
+    sekFraAndel: (andel: number) => fraSek + Math.max(0, Math.min(1, andel)) * (tilSek - fraSek),
   }
 
-  const ticks = akseVerdier(
-    skala.fokusSpenn ? skala.fokusSpenn.lo : 0,
-    skala.fokusSpenn ? skala.fokusSpenn.hi : 1,
-  )
+  const ticks = akseVerdier(fokusSpenn ? fokusSpenn.lo : 0, fokusSpenn ? fokusSpenn.hi : 1)
   const xTicks = [0, 0.25, 0.5, 0.75, 1].map(f => fraSek + f * (tilSek - fraSek))
 
   return (
     <div>
       <div ref={flate}
+        onWheel={e => {
+          if (!onVindu) return
+          e.preventDefault()
+          const el = flate.current
+          if (!el) return
+          const r = el.getBoundingClientRect()
+          const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
+          const senter = fraSek + andel * (tilSek - fraSek)
+          const faktor = e.deltaY > 0 ? 1.25 : 0.8      // ned = ut, opp = inn
+          zoomOm(senter, faktor)
+        }}
+        onPointerDown={e => {
+          if (!onVindu) return
+          // Panorering: dra med primærknapp. Krysshåret følger fortsatt.
+          pan.current = { x: e.clientX, fra: fraSek, til: tilSek }
+          e.currentTarget.setPointerCapture?.(e.pointerId)
+        }}
+        onPointerUp={() => { pan.current = null }}
+        onPointerCancel={() => { pan.current = null }}
         onPointerMove={e => {
+          if (pan.current && onVindu) {
+            const el = flate.current
+            if (el) {
+              const r = el.getBoundingClientRect()
+              const spenn = pan.current.til - pan.current.fra
+              const flyttSek = ((pan.current.x - e.clientX) / Math.max(1, r.width)) * spenn
+              let f = pan.current.fra + flyttSek
+              let t = pan.current.til + flyttSek
+              if (f < 0) { t -= f; f = 0 }
+              if (t > totalSek) { f -= (t - totalSek); t = totalSek }
+              onVindu([Math.max(0, f), Math.min(totalSek, t)])
+            }
+          }
           if (!onKrysshaar || !flate.current) return
           const r = flate.current.getBoundingClientRect()
           const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))

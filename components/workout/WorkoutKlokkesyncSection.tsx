@@ -202,6 +202,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
 
       {hasSamples && data.samples && data.sport && (
         <WorkoutDetailChart
+          workoutId={workoutId}
           sport={data.sport}
           samples={data.samples}
           laps={data.lapMarkers}

@@ -15,7 +15,7 @@ import {
   WeatherData,
 } from '@/lib/types'
 import { parseDurationToSeconds, formatDurationFromSeconds } from '@/lib/shooting-duration'
-import { seriesToLegacyAggregates } from '@/lib/shooting'
+import { seriesToLegacyAggregates, serieRadTilDb, type SerieDbRad } from '@/lib/shooting'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { serializeSplits, deserializeSplits } from '@/lib/pace-utils'
 import { parseDecimal } from '@/lib/parse-decimal'
@@ -279,7 +279,22 @@ async function insertActivitiesWithChildren(
     return {
       // Behold identiteten når raden fantes fra før — split_parent_id og
       // alt annet som peker på rad-id forblir gyldig etter gjenskaping.
-      ...(skjult && a.db_id ? { id: a.db_id, ...skjult } : {}),
+      //
+      // NØKKELSETTET MÅ VÆRE LIKT I HELE BATCHEN: PostgREST bygger ÉN
+      // INSERT av unionen av nøklene, så en rad som mangler `id` får NULL
+      // i stedet for databasens default → «null value in column id»,
+      // hele lagringen feiler ETTER at radene er slettet (målt 29. aug:
+      // skjedde straks brukeren la til en NY rad på en eksisterende økt).
+      // Derfor: alltid samme nøkler, med null/ny uuid som utfylling.
+      ...(skjulteFelter ? {
+        id: a.db_id ?? crypto.randomUUID(),
+        external_id: skjult?.external_id ?? null,
+        strava_lap_index: skjult?.strava_lap_index ?? null,
+        window_start_seconds: skjult?.window_start_seconds ?? null,
+        window_duration_seconds: skjult?.window_duration_seconds ?? null,
+        split_parent_id: skjult?.split_parent_id ?? null,
+        split_backup: skjult?.split_backup ?? null,
+      } : {}),
       workout_id: workoutId,
       activity_type: a.activity_type,
       movement_name: a.movement_name || null,
@@ -436,17 +451,9 @@ async function insertActivitiesWithChildren(
 
   // Kø #47: skyteserier — barn av aktivitetene (samme reinsert-mønster som
   // øvelser/laktat; cascade ryddet de gamle ved delete over). Tørrtrening
-  // fører KUN skytetid — ingen serier lagres for den typen.
-  const shootingSeriesRows: {
-    activity_id: string; series_no: number; position: 'L' | 'S'
-    shots: number; hits: number | null; time_seconds: number | null
-    avg_heart_rate: number | null; max_heart_rate: number | null
-    note: string | null; shot_plot: ({ x: number; y: number } | null)[] | null
-    points?: number | null
-    vind_retning: 'V' | 'H' | null; vind_styrke: number | null; sikt: string | null
-  }[] = []
-  // points-kolonnen (fase 86) sendes KUN når minst én serie har ført poeng —
-  // uniform batch m/ null ellers; lagring uten poeng virker før migreringen.
+  // fører KUN skytetid — ingen serier lagres for den typen. Mappingen bor
+  // i lib/shooting (serieRadTilDb) — delt med «Plott treff»-lagringen.
+  const shootingSeriesRows: SerieDbRad[] = []
   const anySeriesPoints = activities.some(x =>
     (x.shooting_series ?? []).some(s => s.points != null && s.points !== ''))
   for (const [ai, a] of activities.entries()) {
@@ -454,34 +461,8 @@ async function insertActivitiesWithChildren(
     if (!activityId) continue
     if (a.shooting_type === 'torrtrening') continue
     for (const [si, s] of (a.shooting_series ?? []).entries()) {
-      const shots = parseInt(s.shots) || 0
-      if (shots <= 0) continue
-      shootingSeriesRows.push({
-        activity_id: activityId,
-        series_no: si + 1,
-        position: s.position === 'S' ? 'S' : 'L',
-        shots,
-        hits: s.hits === '' || s.hits == null ? null : Math.max(0, parseInt(s.hits) || 0),
-        time_seconds: (() => {
-          if (s.time_seconds === '' || s.time_seconds == null) return null
-          const v = parseDecimal(s.time_seconds)
-          return Number.isFinite(v) && v >= 0 ? v : null
-        })(),
-        avg_heart_rate: parseInt(s.avg_heart_rate) || null,
-        max_heart_rate: parseInt(s.max_heart_rate) || null,
-        note: s.note || null,
-        shot_plot: s.shot_plot && s.shot_plot.some(p => p != null) ? s.shot_plot : null,
-        // Kø #49 (fase 87): vind & sikt. 0 = vindstille → retning null.
-        vind_retning: s.vind_styrke != null && s.vind_styrke > 0 ? (s.vind_retning ?? null) : null,
-        vind_styrke: s.vind_styrke == null ? null : Math.max(0, Math.min(5, s.vind_styrke)),
-        sikt: s.sikt ?? null,
-        ...(anySeriesPoints ? {
-          points: s.points == null || s.points === '' ? null : (() => {
-            const v = parseDecimal(s.points)
-            return Number.isFinite(v) && v >= 0 ? v : null
-          })(),
-        } : {}),
-      })
+      const rad = serieRadTilDb(s, activityId, si + 1, anySeriesPoints)
+      if (rad) shootingSeriesRows.push(rad)
     }
   }
   if (shootingSeriesRows.length > 0) {

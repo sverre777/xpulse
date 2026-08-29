@@ -198,3 +198,78 @@ export function seriesToLegacyAggregates(series: ShootingSeriesLike[]): {
     standing_hits: sHits,
   }
 }
+
+// ── Serie-rad (skjema-form, strenger) → DB-rad ───────────────
+// ÉN kilde for skrivemappingen: brukes av saveWorkout (pass 2) OG
+// «Plott treff»-lagringen (bolk B). Samme parsing, samme regler:
+// serier uten skudd lagres ikke; vindretning nulles ved vindstille;
+// points sendes kun når batchen fører poeng (uniform batch — lagring
+// uten poeng skal virke før points-migreringen).
+import { parseDecimal } from '@/lib/parse-decimal'
+
+export interface SerieFormRad {
+  position: string
+  shots: string
+  hits: string
+  time_seconds: string
+  avg_heart_rate: string
+  max_heart_rate: string
+  note?: string | null
+  shot_plot?: ShotPoint[] | null
+  points?: string | number | null
+  vind_retning?: 'V' | 'H' | null
+  vind_styrke?: number | null
+  sikt?: string | null
+}
+
+export interface SerieDbRad {
+  activity_id: string
+  series_no: number
+  position: 'L' | 'S'
+  shots: number
+  hits: number | null
+  time_seconds: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  note: string | null
+  shot_plot: ({ x: number; y: number } | null)[] | null
+  points?: number | null
+  vind_retning: 'V' | 'H' | null
+  vind_styrke: number | null
+  sikt: string | null
+}
+
+export function serieRadTilDb(
+  s: SerieFormRad,
+  activityId: string,
+  serieNr: number,
+  medPoints: boolean,
+): SerieDbRad | null {
+  const shots = parseInt(s.shots) || 0
+  if (shots <= 0) return null
+  return {
+    activity_id: activityId,
+    series_no: serieNr,
+    position: s.position === 'S' ? 'S' : 'L',
+    shots,
+    hits: s.hits === '' || s.hits == null ? null : Math.max(0, parseInt(s.hits) || 0),
+    time_seconds: (() => {
+      if (s.time_seconds === '' || s.time_seconds == null) return null
+      const v = parseDecimal(s.time_seconds)
+      return Number.isFinite(v) && v >= 0 ? v : null
+    })(),
+    avg_heart_rate: parseInt(s.avg_heart_rate) || null,
+    max_heart_rate: parseInt(s.max_heart_rate) || null,
+    note: s.note || null,
+    shot_plot: s.shot_plot && s.shot_plot.some(p => p != null) ? s.shot_plot : null,
+    vind_retning: s.vind_styrke != null && s.vind_styrke > 0 ? (s.vind_retning ?? null) : null,
+    vind_styrke: s.vind_styrke == null ? null : Math.max(0, Math.min(5, s.vind_styrke)),
+    sikt: s.sikt ?? null,
+    ...(medPoints ? {
+      points: s.points == null || s.points === '' ? null : (() => {
+        const v = parseDecimal(String(s.points))
+        return Number.isFinite(v) && v >= 0 ? v : null
+      })(),
+    } : {}),
+  }
+}

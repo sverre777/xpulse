@@ -35,6 +35,45 @@ interface FetchState {
   error: boolean
 }
 
+function KlokkedataLaster() {
+  const [lenge, setLenge] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setLenge(true), 4000)
+    return () => clearTimeout(id)
+  }, [])
+  return (
+    <div className="my-4 space-y-3">
+      <p className="text-xs tracking-widest uppercase"
+        style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
+        Klokkesync — sekund-for-sekund og per-lap
+      </p>
+      <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
+        <div className="flex items-center gap-2.5 mb-3">
+          <span className="xp-puls-prikk" style={{
+            width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)',
+            display: 'inline-block',
+          }} />
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-5-app)' }}>
+            Henter klokkedata …
+            {lenge && (
+              <span style={{ color: 'var(--tekst-8-alt)' }}>
+                {' '}lange økter har mange tusen målepunkter og kan ta noen sekunder
+              </span>
+            )}
+          </span>
+        </div>
+        {/* Skjelett i grafens egen høyde, så seksjonen ikke hopper når
+            kurven kommer. */}
+        <div style={{
+          height: 300, borderRadius: 8,
+          background: 'linear-gradient(90deg, var(--flate-14) 0%, var(--kant-3) 50%, var(--flate-14) 100%)',
+          opacity: 0.5,
+        }} />
+      </div>
+    </div>
+  )
+}
+
 export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0 }: Props) {
   const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true, error: false })
   const [showDeep, setShowDeep] = useState(false)
@@ -60,7 +99,13 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
     return () => { cancelled = true }
   }, [workoutId, retryTick, refreshTick])
 
-  if (state.loading) return null
+  // Store økter kan bruke titalls sekunder på å hente sekund-dataene
+  // (målt 29. aug: 1,2 / 5,7 / 31,6 s på samme 116 625-punkters økt).
+  // Tidligere sto seksjonen HELT TOM imens — en flate som ser tom og
+  // feilfri ut mens den jobber, får brukeren til å tro at noe er ødelagt.
+  // Den ekte fiksen er nedsampling på serversiden (egen oppgave); dette
+  // er den ærlige ventetilstanden i mellomtiden.
+  if (state.loading) return <KlokkedataLaster />
   if (state.error) {
     return (
       <div className="my-4 p-3 flex items-center gap-3"

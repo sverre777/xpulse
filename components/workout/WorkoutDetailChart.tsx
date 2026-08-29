@@ -5,7 +5,7 @@ import type { Sport } from '@/lib/types'
 import {
   SEGMENT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu, type Segment,
 } from '@/lib/segmenter'
-import { OktKurve, type KurveSerie } from './OktKurve'
+import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -92,6 +92,10 @@ export function WorkoutDetailChart({
   const [visPunkter, setVisPunkter] = useState(true)
   const [visRunder, setVisRunder] = useState(true)
   const [valgtSegment, setValgtSegment] = useState<string | null>(null)
+  // Krysshårets tidspunkt. Panelet under grafen er FASIT for verdier —
+  // aksene er bare kontekst (fasiten). Uten krysshår viser cellene øktas
+  // snitt, så tallene finnes selv om man aldri berører kurven.
+  const [krysshaarSek, setKrysshaarSek] = useState<number | null>(null)
 
   const totalSek = useMemo(() => {
     let maks = 0
@@ -178,6 +182,8 @@ export function WorkoutDetailChart({
         fokusId={fokusId}
         totalSek={totalSek}
         hoyde={height}
+        krysshaarSek={krysshaarSek}
+        onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
             {/* Rundegrenser */}
@@ -231,21 +237,17 @@ export function WorkoutDetailChart({
         )}
       />
 
-      {/* Tallene skal finnes UTEN å treffe kurven (krysshåret kommer i
-          bolk 2): fokus-seriens spenn for økta står alltid i tekst her. */}
-      {fokus && (() => {
-        const v = fokus.punkter.map(p => p.v)
-        if (v.length === 0) return null
-        const snitt = v.reduce((a, b) => a + b, 0) / v.length
-        return (
-          <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
-            <b style={{ color: fokus.farge }}>{fokus.navn}</b>
-            {' · snitt '}<b>{fokus.format(snitt)}</b>
-            {' · maks '}<b>{fokus.format(Math.max(...v))}</b>
-            {' · lavest '}<b>{fokus.format(Math.min(...v))}</b>
-          </p>
-        )
-      })()}
+      {/* LESEPANELET erstatter den andre y-aksen (fasiten): tid + én celle
+          per påslått serie + gjeldende segment. Krysshåret oppdaterer alle
+          cellene samtidig. Uten krysshår står øktas snitt i hver celle, så
+          ingen informasjon finnes KUN i en hover. */}
+      <Lesepanel
+        serier={serier}
+        paaIds={paaIds}
+        segmenter={segmenter}
+        totalSek={totalSek}
+        krysshaarSek={krysshaarSek}
+      />
 
       {visSegmenter && segmenter.length > 0 && totalSek > 0 && (
         <SegmentBaand
@@ -324,6 +326,61 @@ function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
     })
   }
   return ut
+}
+
+function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
+  serier: KurveSerie[]
+  paaIds: string[]
+  segmenter: Segment[]
+  totalSek: number
+  krysshaarSek: number | null
+}) {
+  const segmentHer = krysshaarSek != null
+    ? segmenter.find(x => krysshaarSek >= x.startSek && krysshaarSek <= x.sluttSek) ?? null
+    : null
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5"
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+        borderTop: '1px solid var(--kant-3)', paddingTop: 8,
+      }}>
+      <Celle etikett="Tid" farge="var(--tekst-1-app)"
+        verdi={krysshaarSek != null ? fmtKlokkeSek(krysshaarSek) : `0:00–${fmtKlokkeSek(totalSek)}`} />
+      {serier.filter(serie => paaIds.includes(serie.id)).map(serie => {
+        const verdier = serie.punkter.map(pt => pt.v)
+        const snitt = verdier.length > 0 ? verdier.reduce((a, b) => a + b, 0) / verdier.length : null
+        const vis = krysshaarSek != null ? verdiVed(serie, krysshaarSek) : snitt
+        return (
+          <Celle key={serie.id} etikett={serie.navn} farge={serie.farge}
+            verdi={vis != null ? serie.format(vis) : '—'}
+            hale={krysshaarSek == null ? 'snitt' : undefined} />
+        )
+      })}
+      {segmenter.length > 0 && (
+        <Celle etikett="Segment"
+          farge={segmentHer ? SEGMENT_FARGER[segmentHer.type] : 'var(--tekst-8-alt)'}
+          verdi={segmentHer ? segmentHer.etikett : `${segmenter.length} segmenter`}
+          hale={segmentHer ? `${fmtKlokkeSek(segmentHer.startSek)}–${fmtKlokkeSek(segmentHer.sluttSek)}` : undefined} />
+      )}
+    </div>
+  )
+}
+
+function Celle({ etikett, verdi, farge, hale }: {
+  etikett: string; verdi: string; farge: string; hale?: string
+}) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5">
+      <span style={{
+        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+        color: 'var(--tekst-8-alt)',
+      }}>
+        {etikett}
+      </span>
+      <b style={{ color: farge, fontWeight: 700 }}>{verdi}</b>
+      {hale && <span style={{ fontSize: 11.5, color: 'var(--tekst-8-alt)' }}>{hale}</span>}
+    </span>
+  )
 }
 
 function Gruppe({ navn, children }: { navn: string; children: React.ReactNode }) {

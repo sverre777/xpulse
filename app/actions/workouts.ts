@@ -818,7 +818,23 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
       supabase.from('workout_exercises').delete().eq('workout_id', workoutId),
       supabase.from('workout_lactate_measurements').delete().eq('workout_id', workoutId),
       supabase.from('workout_shooting_blocks').delete().eq('workout_id', workoutId),
-      supabase.from('workout_activities').delete().eq('workout_id', workoutId),
+      // Aktivitetsrader: MÅLRETTET sletting når skjemaet oppgir hva det
+      // kjenner — kun radene som gjenskapes (db_id) + de brukeren fjernet.
+      // Rader skjemaet aldri så (splitt-barn, fredede skyting-rader fra
+      // flett, rader skapt i en annen flate etter innlasting) overlever.
+      // Uten feltet (legacy-kall): gammel full slett+gjenskap.
+      (() => {
+        if (data.fjernedeAktivitetsIds === undefined) {
+          return supabase.from('workout_activities').delete().eq('workout_id', workoutId)
+        }
+        const kjenteIds = [
+          ...(data.activities ?? []).map(a => a.db_id).filter((id): id is string => !!id),
+          ...data.fjernedeAktivitetsIds,
+        ]
+        if (kjenteIds.length === 0) return Promise.resolve({ error: null })
+        return supabase.from('workout_activities').delete()
+          .eq('workout_id', workoutId).in('id', kjenteIds)
+      })(),
     ])
   } else {
     workoutPayload.created_by_coach_id = resolved.isCoachImpersonating ? resolved.coachId : null

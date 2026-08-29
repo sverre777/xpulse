@@ -274,6 +274,11 @@ export interface WorkoutFormData {
   // Plan-referanse i Dagbok-modus: frosset snapshot av planlagte aktiviteter.
   // Ikke persistert via saveWorkout; kun lest for sammenligning plan vs faktisk.
   planned_activities?: ActivityRow[]
+  // Fase 113/114-vern del 2: rad-id-er brukeren FJERNET i skjemaet.
+  // Satt (også som tom liste) betyr målrettet sletting i saveWorkout —
+  // rader skjemaet ikke kjenner (splitt-barn/fredede rader opprettet
+  // etter innlasting) overlever. Udefinert = legacy full slett+gjenskap.
+  fjernedeAktivitetsIds?: string[]
   // Fase 8: kontekst + resultat for konkurranse/testløp (egen tabell).
   // Kun relevant når workout_type='competition' eller 'testlop'.
   competition_data?: CompetitionData

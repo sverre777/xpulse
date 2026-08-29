@@ -411,7 +411,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const startLiveFlow = async () => {
     if (!workoutId || startingLive) return
     setStartingLive(true)
-    const res = await saveWorkout(form, workoutId, targetUserId)
+    const res = await saveWorkout({ ...form, fjernedeAktivitetsIds: beregnFjernedeRadIds() }, workoutId, targetUserId)
     if (res.error) { setStartingLive(false); void xpAlert(res.error); return }
     router.push(`/app/okt/${workoutId}`)
   }
@@ -701,12 +701,22 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     setNewTag('')
   }
 
+  // Fase 113/114-vern del 2: hvilke rader brukeren FJERNET (lastet minus
+  // nåværende). Sendes alltid (også tom) så saveWorkout sletter målrettet —
+  // rader skapt utenfor skjemaet etter innlasting overlever.
+  const beregnFjernedeRadIds = (): string[] => {
+    const lastet = (defaultValues?.activities ?? []).map(a => a.db_id).filter((id): id is string => !!id)
+    const naa = new Set((form.activities ?? []).map(a => a.db_id).filter(Boolean))
+    return lastet.filter(id => !naa.has(id))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) { setError('Tittel er påkrevd'); return }
     const payload: WorkoutFormData = {
       ...form,
       is_completed: markingCompleted ? true : (isPlanMode ? false : (form.is_planned ? form.is_completed : true)),
+      fjernedeAktivitetsIds: beregnFjernedeRadIds(),
     }
     if (captureOnlyMode) {
       if (onCapture) onCapture(payload)

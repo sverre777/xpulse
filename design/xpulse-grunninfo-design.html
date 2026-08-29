@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Grunninfo, komprimert (designutkast)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#0F0F13; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F; --orange:#FF4500;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.5 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(32px,6vw,48px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 26px;max-width:680px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:26px 0 12px}
+.demo b{color:var(--dim)}
+
+/* ── Seksjonskortet ── */
+.seksjon{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.shead{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.snr{border:1px solid var(--line2);border-radius:8px;padding:3px 9px;font-family:'Barlow Condensed';font-weight:600;font-size:12px;color:var(--mute);letter-spacing:.08em}
+.shead h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.16em;font-size:17px}
+.shead .prikk{width:7px;height:7px;border-radius:50%;background:var(--orange);margin-left:-4px;margin-top:-12px}
+
+/* ── Feltgrid ── */
+.felt{display:flex;flex-direction:column;gap:5px;min-width:0}
+.felt label{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.16em;font-size:10.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.felt label i{font-style:normal;color:var(--mute);opacity:.6}
+.felt input,.felt select{
+  width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:10px;
+  color:var(--paper);padding:10px 12px;font:inherit;font-size:14px;min-height:42px}
+.felt input::placeholder{color:var(--mute)}
+.felt input:focus,.felt select:focus{outline:none;border-color:var(--orange)}
+
+/* Tittel — alltid full bredde, alltid lesbar */
+.tittelfelt input{font-size:14px;font-weight:500;min-height:42px}
+
+/* Radene */
+.rad{display:grid;gap:11px;margin-bottom:11px}
+.rad.meta{grid-template-columns:minmax(116px,.8fr) minmax(84px,.5fr) minmax(140px,1.3fr) minmax(130px,1.05fr)}
+/* TRE TRINN:
+   1) bredt (>780 px): dato · kl · sted · økttype på ÉN linje
+   2) mellom (600–780 px): dato+kl på linje 1, sted+økttype faller ned på
+      linje 2 — før feltene rekker å bli klemte
+   3) smalt (<600 px): samme to-og-to, bare tettere */
+@media(max-width:780px){
+  .rad.meta{grid-template-columns:minmax(120px,.85fr) minmax(90px,.55fr)}
+  .rad.meta .sted{grid-column:1}
+  .rad.meta .okttype{grid-column:2}
+}
+@media(max-width:600px){
+  .rad.meta{grid-template-columns:1fr 1fr}
+}
+/* Demo-rammer: viser hvordan det ser ut i ulike bredder */
+.ramme{border:1px solid var(--line2);border-radius:16px;padding:10px;background:#08080A}
+.ramme.ipad{max-width:830px}
+.ramme.mellom{max-width:700px}
+.ramme .seksjon{border-radius:14px}
+
+/* ── Chips: to faste linjer til venstre, forhold stablet til høyre ── */
+/* nowrap: forhold-kolonnen skal ALDRI falle ned under chipsene */
+.chiprad{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px;flex-wrap:nowrap}
+.chipvenstre{display:flex;flex-direction:column;gap:7px;flex:1 1 auto;min-width:0}
+/* nowrap: linje 1 skal ALLTID ha alle tre, aldri dytte én ned */
+.chiplinje{display:flex;gap:6px;flex-wrap:nowrap;align-items:center}
+.chiphoyre{display:flex;flex-direction:column;gap:7px;margin-left:auto;flex:none}
+/* Mobil: HØYDE/VARME blir ikon-knapper — fortsatt stablet, fortsatt til høyre */
+@media(max-width:560px){
+  .chiphoyre .chip{padding:0;width:44px;justify-content:center}
+  .chiphoyre .chip .tx{display:none}
+  .chiphoyre .chip .em{font-size:17px}
+}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line2);background:transparent;color:var(--dim);
+  border-radius:999px;padding:0 11px;height:36px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.06em;white-space:nowrap}
+.chip:hover{color:var(--paper);border-color:var(--dim)}
+.chip.on{background:rgba(255,69,0,.12);border-color:var(--orange);color:var(--paper)}
+.chip .em{font-size:12px;line-height:1}
+.skille{width:1px;height:22px;background:var(--line2);margin:0 3px}
+
+/* ── Utstyr inline ── */
+.utstyr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--line)}
+.utstyr .lbl{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.14em;font-size:10.5px;color:var(--mute)}
+.utstyr .hint{font-size:11.5px;color:var(--mute)}
+.leggtil{border:1px dashed var(--line2);background:transparent;color:var(--dim);border-radius:999px;
+  padding:0 14px;height:36px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:.1em}
+.leggtil:hover{border-style:solid;color:var(--paper)}
+
+/* Mobil-ramme (demo på bred skjerm — samme regler som media query gir) */
+.mobil{max-width:390px;border:1px solid var(--line2);border-radius:22px;padding:10px;background:#08080A}
+.mobil .seksjon{border-radius:14px;padding:14px}
+.mobil .chiphoyre .chip{padding:0;width:44px;justify-content:center}
+.mobil .chiphoyre .chip .tx{display:none}
+.mobil .chiphoyre .chip .em{font-size:17px}
+.mobil .chiprad{gap:8px}
+
+.maal{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--dim)}
+.maal b{color:var(--paper);font-family:'Bebas Neue';font-size:19px;letter-spacing:.02em}
+.maal .ned{color:#28A86E}
+
+.notat{margin-top:52px;border:1px dashed var(--line2);border-radius:var(--r);padding:24px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:23px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>GRUNNINFO — <span class="acc">HALV HØYDE.</span></h1>
+<p class="sub">Samme felter, samme rekkefølge, ingenting fjernet. Dato, klokkeslett, sted og økttype står side om side i stedet for under hverandre; feltene er lavere og chipsene strammere. Tittelen beholder full bredde — den skal være lesbar selv når den er lang.</p>
+
+<!-- ═══ DESKTOP ═══ -->
+<div class="demo"><b>Desktop</b> — én rad med metadata, chips på én til to linjer</div>
+
+<div class="seksjon">
+  <div class="shead"><span class="snr">01</span><span class="prikk"></span><h3>GRUNNINFO</h3></div>
+
+  <div class="rad" style="margin-bottom:11px">
+    <div class="felt tittelfelt">
+      <label>TITTEL</label>
+      <input placeholder="F.eks. 5×5min terskelintervall">
+    </div>
+  </div>
+
+  <div class="rad meta">
+    <div class="felt"><label>DATO</label><input value="24.08.2026"></div>
+    <div class="felt"><label>KL. <i>(valgfritt)</i></label><input placeholder="—:—"></div>
+    <div class="felt sted"><label>STED <i>(valgfritt)</i></label><input placeholder="F.eks. Sognsvann, Trysil"></div>
+    <div class="felt okttype"><label>ØKTTYPE <i>(valgfritt)</i></label><select><option>Vanlig økt</option><option>Intervall</option><option>Langtur</option></select></div>
+  </div>
+
+  <div class="chiprad">
+    <div class="chipvenstre">
+      <div class="chiplinje">
+        <button class="chip"><span class="em">★</span>VIKTIG ØKT</button>
+        <button class="chip"><span class="em">👥</span>FELLESTRENING</button>
+        <button class="chip"><span class="em">↻</span>STANDARDØKT</button>
+      </div>
+      <div class="chiplinje">
+        <button class="chip"><span class="em">🏁</span>KONKURRANSE</button>
+        <button class="chip"><span class="em">⏱</span>TESTLØP</button>
+        <button class="chip"><span class="em">🧪</span>TEST</button>
+      </div>
+    </div>
+    <div class="chiphoyre">
+      <button class="chip"><span class="em">🏔</span><span class="tx">HØYDE</span></button>
+      <button class="chip"><span class="em">🌡</span><span class="tx">VARME</span></button>
+    </div>
+  </div>
+
+  <div class="utstyr">
+    <span class="lbl">UTSTYR</span>
+    <button class="leggtil">+ VELG UTSTYR</button>
+    <span class="hint">gjelder hele økta · overstyres per aktivitet</span>
+  </div>
+</div>
+
+<div class="maal">
+  <span>Før: <b>~640 px</b></span>
+  <span>Etter: <b>~330 px</b></span>
+  <span class="ned">Nesten halvert — uten å fjerne et eneste felt</span>
+</div>
+
+<!-- ═══ LANG TITTEL ═══ -->
+<div class="demo"><b>Lang tittel</b> — den får hele bredden og brytes aldri bort</div>
+
+<div class="seksjon">
+  <div class="shead"><span class="snr">01</span><span class="prikk"></span><h3>GRUNNINFO</h3></div>
+  <div class="rad" style="margin-bottom:11px">
+    <div class="felt tittelfelt">
+      <label>TITTEL</label>
+      <input value="Dobbel terskel · 6 × 8 min rulleski skøyting med laktatmåling etter drag 2 og 4">
+    </div>
+  </div>
+  <div class="rad meta">
+    <div class="felt"><label>DATO</label><input value="24.08.2026"></div>
+    <div class="felt"><label>KL. <i>(valgfritt)</i></label><input value="09:30"></div>
+    <div class="felt sted"><label>STED <i>(valgfritt)</i></label><input value="Holmenkollen"></div>
+    <div class="felt okttype"><label>ØKTTYPE <i>(valgfritt)</i></label><select><option>Intervall</option></select></div>
+  </div>
+  <div class="chiprad">
+    <div class="chipvenstre">
+      <div class="chiplinje">
+        <button class="chip on"><span class="em">★</span>VIKTIG ØKT</button>
+        <button class="chip"><span class="em">👥</span>FELLESTRENING</button>
+        <button class="chip"><span class="em">↻</span>STANDARDØKT</button>
+      </div>
+      <div class="chiplinje">
+        <button class="chip"><span class="em">🏁</span>KONKURRANSE</button>
+        <button class="chip"><span class="em">⏱</span>TESTLØP</button>
+        <button class="chip"><span class="em">🧪</span>TEST</button>
+      </div>
+    </div>
+    <div class="chiphoyre">
+      <button class="chip on"><span class="em">🏔</span><span class="tx">HØYDE</span></button>
+      <button class="chip"><span class="em">🌡</span><span class="tx">VARME</span></button>
+    </div>
+  </div>
+  <div class="utstyr">
+    <span class="lbl">UTSTYR</span>
+    <button class="leggtil">+ VELG UTSTYR</button>
+    <span class="hint">gjelder hele økta · overstyres per aktivitet</span>
+  </div>
+</div>
+
+<!-- ═══ IPAD ═══ -->
+<div class="demo"><b>iPad / smal desktop (~790 px)</b> — dato, klokkeslett, sted og økttype får fortsatt plass på én linje</div>
+
+<div class="ramme ipad">
+  <div class="seksjon">
+    <div class="shead"><span class="snr">01</span><span class="prikk"></span><h3>GRUNNINFO</h3></div>
+    <div class="rad" style="margin-bottom:11px">
+      <div class="felt tittelfelt"><label>TITTEL</label><input value="Dobbel terskel · 6 × 8 min rulleski"></div>
+    </div>
+    <div class="rad meta">
+      <div class="felt"><label>DATO</label><input value="24.08.2026"></div>
+      <div class="felt"><label>KL. <i>(valgfritt)</i></label><input value="09:30"></div>
+      <div class="felt sted"><label>STED <i>(valgfritt)</i></label><input value="Holmenkollen"></div>
+      <div class="felt okttype"><label>ØKTTYPE <i>(valgfritt)</i></label><select><option>Intervall</option></select></div>
+    </div>
+    <div class="chiprad">
+      <div class="chipvenstre">
+        <div class="chiplinje">
+          <button class="chip"><span class="em">★</span>VIKTIG ØKT</button>
+          <button class="chip"><span class="em">👥</span>FELLESTRENING</button>
+          <button class="chip"><span class="em">↻</span>STANDARDØKT</button>
+        </div>
+        <div class="chiplinje">
+          <button class="chip"><span class="em">🏁</span>KONKURRANSE</button>
+          <button class="chip"><span class="em">⏱</span>TESTLØP</button>
+          <button class="chip"><span class="em">🧪</span>TEST</button>
+        </div>
+      </div>
+      <div class="chiphoyre">
+        <button class="chip"><span class="em">🏔</span><span class="tx">HØYDE</span></button>
+        <button class="chip"><span class="em">🌡</span><span class="tx">VARME</span></button>
+      </div>
+    </div>
+    <div class="utstyr">
+      <span class="lbl">UTSTYR</span>
+      <button class="leggtil">+ VELG UTSTYR</button>
+      <span class="hint">gjelder hele økta · overstyres per aktivitet</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MELLOMBREDDE ═══ -->
+<div class="demo"><b>Mellombredde (~700 px)</b> — sted og økttype kollapser ned på egen rad før feltene blir klemte</div>
+
+<div class="ramme mellom">
+  <div class="seksjon">
+    <div class="shead"><span class="snr">01</span><span class="prikk"></span><h3>GRUNNINFO</h3></div>
+    <div class="rad" style="margin-bottom:11px">
+      <div class="felt tittelfelt"><label>TITTEL</label><input value="Dobbel terskel · 6 × 8 min rulleski"></div>
+    </div>
+    <div class="rad meta" style="grid-template-columns:minmax(120px,.85fr) minmax(90px,.55fr)">
+      <div class="felt"><label>DATO</label><input value="24.08.2026"></div>
+      <div class="felt"><label>KL. <i>(valgfritt)</i></label><input value="09:30"></div>
+      <div class="felt sted" style="grid-column:1"><label>STED <i>(valgfritt)</i></label><input value="Holmenkollen"></div>
+      <div class="felt okttype" style="grid-column:2"><label>ØKTTYPE <i>(valgfritt)</i></label><select><option>Intervall</option></select></div>
+    </div>
+    <div class="chiprad">
+      <div class="chipvenstre">
+        <div class="chiplinje">
+          <button class="chip"><span class="em">★</span>VIKTIG ØKT</button>
+          <button class="chip"><span class="em">👥</span>FELLESTRENING</button>
+          <button class="chip"><span class="em">↻</span>STANDARDØKT</button>
+        </div>
+        <div class="chiplinje">
+          <button class="chip"><span class="em">🏁</span>KONKURRANSE</button>
+          <button class="chip"><span class="em">⏱</span>TESTLØP</button>
+          <button class="chip"><span class="em">🧪</span>TEST</button>
+        </div>
+      </div>
+      <div class="chiphoyre">
+        <button class="chip"><span class="em">🏔</span><span class="tx">HØYDE</span></button>
+        <button class="chip"><span class="em">🌡</span><span class="tx">VARME</span></button>
+      </div>
+    </div>
+    <div class="utstyr">
+      <span class="lbl">UTSTYR</span>
+      <button class="leggtil">+ VELG UTSTYR</button>
+      <span class="hint">gjelder hele økta</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MOBIL ═══ -->
+<div class="demo"><b>Mobil</b> — dato og klokkeslett deler linje, sted og økttype tar full bredde</div>
+
+<div class="mobil">
+  <div class="seksjon">
+    <div class="shead"><span class="snr">01</span><span class="prikk"></span><h3>GRUNNINFO</h3></div>
+    <div class="rad" style="margin-bottom:11px">
+      <div class="felt tittelfelt"><label>TITTEL</label><input placeholder="F.eks. 5×5min terskelintervall"></div>
+    </div>
+    <div class="rad meta">
+      <div class="felt"><label>DATO</label><input value="24.08.2026"></div>
+      <div class="felt"><label>KL.</label><input placeholder="—:—"></div>
+      <div class="felt sted"><label>STED <i>(valgfritt)</i></label><input placeholder="F.eks. Sognsvann"></div>
+      <div class="felt okttype"><label>ØKTTYPE <i>(valgfritt)</i></label><select><option>Vanlig økt</option></select></div>
+    </div>
+    <div class="chiprad">
+      <div class="chipvenstre">
+        <div class="chiplinje">
+          <button class="chip"><span class="em">★</span>VIKTIG</button>
+          <button class="chip"><span class="em">👥</span>FELLES</button>
+          <button class="chip"><span class="em">↻</span>STANDARD</button>
+        </div>
+        <div class="chiplinje">
+          <button class="chip"><span class="em">🏁</span>KONK.</button>
+          <button class="chip"><span class="em">⏱</span>TESTLØP</button>
+          <button class="chip"><span class="em">🧪</span>TEST</button>
+        </div>
+      </div>
+      <div class="chiphoyre">
+        <button class="chip"><span class="em">🏔</span><span class="tx">HØYDE</span></button>
+        <button class="chip"><span class="em">🌡</span><span class="tx">VARME</span></button>
+      </div>
+    </div>
+    <div class="utstyr">
+      <span class="lbl">UTSTYR</span>
+      <button class="leggtil">+ VELG UTSTYR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <ul>
+    <li><b>INGENTING FJERNES.</b> Samme felter, samme rekkefølge, samme
+    valgfrihet — dette er ren komprimering av layout, ikke en funksjonell
+    endring. Ingen felt gjemmes bak «vis mer».</li>
+    <li><b>TITTELEN BEHOLDER FULL BREDDE</b>, men samme tekststørrelse som
+    de andre feltene (14 px, medium) — bredden gjør den tydelig nok. Den
+    skal være lesbar selv når den er lang, aldri avkortet med ellipse mens
+    man er inne i skjemaet. Står alene på sin rad, også på desktop.</li>
+    <li><b>METADATA-RADEN:</b> dato · klokkeslett · sted · økttype side om
+    side i ett grid. Kolonnebreddene er
+    <code>minmax(116px,.8fr) minmax(84px,.5fr) minmax(140px,1.3fr)
+    minmax(130px,1.05fr)</code> — klokkeslett er smalest, sted bredest.
+    <br><b>TRE TRINN, ikke to:</b>
+    <br>· <b>&gt; 780 px</b> — alle fire på ÉN linje (desktop, iPad i
+    landskap, brede vinduer)
+    <br>· <b>600–780 px</b> — sted og økttype KOLLAPSER ned på egen rad,
+    side om side, mens dato + klokkeslett blir stående øverst. Dette skjer
+    FØR feltene rekker å bli klemte — grensen går der «Holmenkollen» og
+    «Intervall» slutter å være behagelig lesbare, ikke der de så vidt får
+    plass.
+    <br>· <b>&lt; 600 px</b> — samme to-og-to, bare tettere kolonner.
+    <br>Sted og økttype står ALLTID side om side, aldri full bredde alene.
+    Ingen vannrett scroll i noen bredde.</li>
+    <li><b>FELTHØYDE 42 px</b> (tittel 46), etikett 10,5 px i
+    Barlow Condensed. Det er lavere enn i dag, men over treffflate-kravet.
+    Etikettene forkortes der det trengs («KL.» i stedet for «KLOKKESLETT»),
+    med «(valgfritt)» i dempet tekst på samme linje — ikke som egen rad.</li>
+    <li><b>CHIPSENE — FAST GRUPPERING, IKKE fritt flytende:</b> 36 px høye
+    (treffflate-minimum — høyden røres ikke), <b>11 px sidepolstring, 11,5 px
+    tekst, letter-spacing .06em, gap 6 px</b>. Teksten er bevisst litt mindre
+    enn ellers slik at tre chips ALLTID får plass på én linje — begge linjene
+    er <code>flex-wrap: nowrap</code>, så STANDARDØKT eller TEST kan aldri
+    dyttes ned på en tredje rad. Blir det trangt, er det tekststørrelsen som
+    gir, aldri grupperingen.
+    <br>· <b>Linje 1:</b> VIKTIG ØKT · FELLESTRENING · STANDARDØKT
+    <br>· <b>Linje 2:</b> KONKURRANSE · TESTLØP · TEST
+    <br>· <b>Til høyre, stablet over hverandre:</b> HØYDE og VARME
+    (<code>margin-left:auto</code>, egen kolonne). De beskriver FORHOLDENE,
+    ikke hva slags økt det er — derfor står de for seg.
+    <br>Grupperingen er semantisk og skal ikke flyte fritt: linje 1 er hva
+    økta BETYR, linje 2 er hva den ER.
+    <br><b>PÅ MOBIL (&lt;560 px):</b> høyde og varme blir IKON-KNAPPER
+    (44 × 36 px, emoji alene), men beholder plasseringen: <b>over/under
+    hverandre, i egen kolonne til HØYRE for de andre chipsene</b>. De skal
+    ALDRI falle ned på egen rad under chipsene — chip-raden er derfor
+    <code>flex-wrap: nowrap</code>, og venstre-kolonnen har
+    <code>min-width: 0</code> så det er den som gir plass, ikke
+    forhold-kolonnen. Det er det eneste stedet et ikon står uten tekst, og
+    det er forsvarlig fordi de to er faste, alltid samme plass, og har
+    aria-label. De andre chipsene beholder tekst, bare forkortet
+    («KONK.» / «FELLES»).</li>
+    <li><b>UTSTYR</b> flyttes inn på én linje: etikett + knapp +
+    forklaringen som dempet hjelpetekst ved siden av, ikke over. Valgt
+    utstyr vises som chips på samme linje og bryter til neste ved behov.</li>
+    <li><b>MÅLET:</b> seksjonen skal gå fra ~640 px til ~330 px høyde på
+    desktop. Mål faktisk høyde før og etter og oppgi begge i rapporten
+    (regel 8 — ikke «ser kortere ut»).</li>
+    <li><b>Lys + mørk</b> (regel 23) · treffflater ≥36 px · ingen vannrett
+    scroll på 375 px · fokus-ring beholdes på alle felt · tab-rekkefølgen
+    følger den visuelle rekkefølgen etter omleggingen.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+</script>
+</body>
+</html>

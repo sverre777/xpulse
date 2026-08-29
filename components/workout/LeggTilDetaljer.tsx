@@ -7,14 +7,15 @@ import {
   type LeggTilDetaljerData,
 } from '@/app/actions/tidsplassering'
 import { SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu } from '@/lib/segmenter'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie } from './OktKurve'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
 import {
   Verktoypalett, SegmentLag, SegmentHandlinger, etikettFor, segmentTypeFor,
-  STANDARD_LENGDE, type Utkast,
+  STANDARD_LENGDE, type Utkast, type PunktVerktoy,
 } from './TidslinjeRedigering'
-import { lagreTidslinje } from '@/app/actions/tidsplassering'
+import { lagreTidslinje, lagreNyePunkter } from '@/app/actions/tidsplassering'
 import { PlottTreffPopup } from './PlottTreff'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upen. Fasit: design/
@@ -80,9 +81,27 @@ export function LeggTilDetaljerPopup({
   const [slettede, setSlettede] = useState<string[]>([])
   const [valgtSegment, setValgtSegment] = useState<string | null>(null)
   const [palettType, setPalettType] = useState<ActivityType | null>(null)
+  const [palettPunkt, setPalettPunkt] = useState<PunktVerktoy | null>(null)
+  // Dra-fra-paletten: verktøyet henger i pekeren til man slipper over
+  // kurven. Klikk-og-plasser er snarveien ved siden av (fasiten).
+  const [drar, setDrar] = useState<
+    | { slag: 'segment'; type: ActivityType; x: number; y: number }
+    | { slag: 'punkt'; type: PunktVerktoy; x: number; y: number }
+    | null
+  >(null)
+  // Punkter lagt inn her, men uten verdi ennå: mmol og ernæringstype er
+  // NOT NULL i basen, så de kan ikke lagres tomme (målt). De lever lokalt
+  // til verdien er ført — og lagringen sier ærlig fra hvis den mangler.
+  // Kurvens synlige vindu (oppdateres av kurve-komponenten) — trengs for
+  // å regne om et drop-punkt til tid når man har zoomet.
+  const sisteVindu = useRef<[number, number]>([0, 0])
+  const [nyePunkter, setNyePunkter] = useState<
+    { id: string; slag: 'laktat' | 'ernaering'; tSek: number; verdi: string }[]
+  >([])
   // ANGRE (fasiten): hele redigeringsøkten kan angres steg for steg før
   // lagring. Hvert steg legger forrige tilstand på stabelen.
   const [angreStabel, setAngreStabel] = useState<{ utkast: Utkast[]; slettede: string[] }[]>([])
+  const [utgangspunktTidslinje, setUtgangspunktTidslinje] = useState('')
 
   const endreUtkast = (f: (liste: Utkast[]) => Utkast[]) => {
     setAngreStabel(st => [...st.slice(-49), { utkast, slettede }])
@@ -111,6 +130,9 @@ export function LeggTilDetaljerPopup({
         if (d) {
           setLaktatSek(new Map(d.laktat.map(l => [l.id, l.sekunder])))
           setErnaeringMin(new Map(d.ernaering.map(n => [n.id, n.minutter])))
+          setUtgangspunktTidslinje(JSON.stringify(d.rader
+            .filter(r => r.startSek != null)
+            .map(r => [r.id, r.startSek, r.sluttSek, r.activity_type, r.navn])))
           setUtkast(d.rader
             .filter(r => r.startSek != null && r.sluttSek != null)
             .map(r => ({
@@ -131,6 +153,28 @@ export function LeggTilDetaljerPopup({
 
   const totalSek = data?.totalSek ?? 0
 
+  /** Har brukeren endret noe som ikke er lagret? Dekker tidslinja
+      (flytting, deling, sammenslåing, navn, type, sletting) og punkter
+      som er lagt inn her — ikke bare de gamle vindusverdiene. */
+  const harUlagredeEndringer = () => {
+    const naa = JSON.stringify(utkast
+      .slice()
+      .sort((a, b) => a.startSek - b.startSek)
+      .map(u => [u.dbId, u.startSek, u.startSek + u.varighetSek, u.type, u.navn || null]))
+    const opprinnelig = JSON.stringify(JSON.parse(utgangspunktTidslinje || '[]')
+      .slice()
+      .sort((a: [string, number], b: [string, number]) => a[1] - b[1]))
+    return naa !== opprinnelig || slettede.length > 0 || nyePunkter.length > 0
+  }
+
+  const lukk = async () => {
+    if (harUlagredeEndringer()) {
+      const ok = await xpConfirm('Lukke uten å lagre? Endringene i tidslinja går tapt.')
+      if (!ok) return
+    }
+    onClose()
+  }
+
   const skytingRader = data?.rader.filter(r => (r.activity_type ?? '').startsWith('skyting')) ?? []
   const valgtUtkast = utkast.find(u => u.id === valgtSegment) ?? null
   const naboEtter = valgtUtkast
@@ -138,18 +182,116 @@ export function LeggTilDetaljerPopup({
         .find(u => u.startSek >= valgtUtkast.startSek + valgtUtkast.varighetSek - 1.5 && u.id !== valgtUtkast.id) ?? null
     : null
 
+  /** Slipper man et palett-verktøy over kurven, legges det inn der. */
+  const startDra = (
+    verktoy: { slag: 'segment'; type: ActivityType } | { slag: 'punkt'; type: PunktVerktoy },
+    e: React.PointerEvent,
+  ) => {
+    setDrar({ ...verktoy, x: e.clientX, y: e.clientY })
+    const flytt = (ev: PointerEvent) => setDrar(d => (d ? { ...d, x: ev.clientX, y: ev.clientY } : d))
+    const slipp = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', flytt)
+      window.removeEventListener('pointerup', slipp)
+      setDrar(null)
+      // Traff vi kurven? (data-oktkurve settes av OktKurve på plot-flata.)
+      const under = document.elementFromPoint(ev.clientX, ev.clientY)
+      const flate = under?.closest('[data-oktkurve]') as HTMLElement | null
+      if (!flate) return
+      const r = flate.getBoundingClientRect()
+      const andel = Math.max(0, Math.min(1, (ev.clientX - r.left) / Math.max(1, r.width)))
+      const sek = sisteVindu.current[0] + andel * (sisteVindu.current[1] - sisteVindu.current[0])
+      if (verktoy.slag === 'segment') leggInnSegmentType(verktoy.type, sek)
+      else leggInnPunkt(verktoy.type, sek)
+    }
+    window.addEventListener('pointermove', flytt)
+    window.addEventListener('pointerup', slipp)
+  }
+
+  /** Punkt: ett tidspunkt, ingen varighet. */
+  const leggInnPunkt = (verktoy: PunktVerktoy, sek: number) => {
+    if (verktoy === 'bevform') {
+      // Bevegelsesform-bytte er et SEGMENT (en ny bevegelsesform varer i
+      // tid) — bevegelsesformen settes i segment-editoren (bolk 2).
+      leggInnSegmentType('aktivitet', sek)
+      return
+    }
+    setNyePunkter(liste => [...liste, {
+      id: `punkt-${crypto.randomUUID()}`, slag: verktoy,
+      tSek: Math.max(0, Math.round(sek)), verdi: '',
+    }])
+    setPalettPunkt(null)
+  }
+
   /** Legger et nytt segment der brukeren klikket på kurven. */
   const leggInnSegment = (sek: number) => {
+    if (palettPunkt) { leggInnPunkt(palettPunkt, sek); return }
     if (!palettType) return
-    const lengde = STANDARD_LENGDE[palettType] ?? 120
+    leggInnSegmentType(palettType, sek)
+  }
+
+  const leggInnSegmentType = (type: ActivityType, sek: number) => {
+    const lengde = STANDARD_LENGDE[type] ?? 120
+    const start = Math.max(0, Math.round(sek))
+    const slutt = Math.min(totalSek || start + lengde, start + lengde)
     const nytt: Utkast = {
-      id: `ny-${crypto.randomUUID()}`, dbId: null, type: palettType,
-      navn: '', bevegelsesform: '', startSek: Math.max(0, Math.round(sek)),
-      varighetSek: lengde, skytetidSek: null,
+      id: `ny-${crypto.randomUUID()}`, dbId: null, type,
+      navn: '', bevegelsesform: '', startSek: start, varighetSek: Math.max(5, slutt - start),
+      skytetidSek: null,
     }
-    endreUtkast(liste => [...liste, nytt])
+    // SETTES INN i tidslinja, ikke oppå den: en tidslinje fra klokka er
+    // sammenhengende, så et nytt segment må gjøre plass til seg selv.
+    // Ligger dropp-punktet inne i et segment, deles det; treffer det bare
+    // kanten, kortes naboen. Ellers ville hvert eneste dropp gitt overlapp
+    // og en lagring som nekter.
+    endreUtkast(liste => {
+      const ut: Utkast[] = []
+      for (const u of liste) {
+        const uSlutt = u.startSek + u.varighetSek
+        const overlapper = u.startSek < nytt.startSek + nytt.varighetSek && nytt.startSek < uSlutt
+        if (!overlapper) { ut.push(u); continue }
+        const forDel = nytt.startSek - u.startSek
+        const etterDel = uSlutt - (nytt.startSek + nytt.varighetSek)
+        if (forDel >= 5) ut.push({ ...u, varighetSek: forDel })
+        if (etterDel >= 5) {
+          ut.push({
+            ...u,
+            id: forDel >= 5 ? `ny-${crypto.randomUUID()}` : u.id,
+            dbId: forDel >= 5 ? null : u.dbId,
+            startSek: nytt.startSek + nytt.varighetSek,
+            varighetSek: etterDel,
+          })
+        }
+        // Ble hele segmentet dekket, forsvinner det (og slettes ved lagring).
+        if (forDel < 5 && etterDel < 5 && u.dbId) setSlettede(s2 => [...s2, u.dbId!])
+      }
+      return [...ut, nytt]
+    })
     setValgtSegment(nytt.id)
     setPalettType(null)
+  }
+
+  /** Skriver man starttid i en rad, flyttes GRENSEN mot forrige segment —
+      samme handling som å dra grensehåndtaket. Ellers ville raden dyttet
+      segmentet inn i naboen og lagringen nektet med «overlapper». */
+  const settRadStart = (u: Utkast, sek: number) => {
+    const sortert = [...utkast].sort((a, b) => a.startSek - b.startSek)
+    const forrige = [...sortert].reverse().find(x =>
+      x.id !== u.id && Math.abs(x.startSek + x.varighetSek - u.startSek) < 1.5)
+    const ny = Math.max(0, Math.min(u.startSek + u.varighetSek - 5, sek))
+    if (forrige) { flyttGrense(forrige.id, u.id, ny); return }
+    endreUtkast(liste => liste.map(x =>
+      x.id === u.id ? { ...x, startSek: ny, varighetSek: (u.startSek + u.varighetSek) - ny } : x))
+  }
+
+  /** Varighet skriver grensen mot NESTE segment (samme prinsipp). */
+  const settRadVarighet = (u: Utkast, sek: number) => {
+    const varighet = Math.max(5, sek)
+    const sortert = [...utkast].sort((a, b) => a.startSek - b.startSek)
+    const neste = sortert.find(x =>
+      x.id !== u.id && Math.abs(x.startSek - (u.startSek + u.varighetSek)) < 1.5)
+    if (neste) { flyttGrense(u.id, neste.id, u.startSek + varighet); return }
+    endreUtkast(liste => liste.map(x =>
+      x.id === u.id ? { ...x, varighetSek: Math.min(totalSek - x.startSek, varighet) } : x))
   }
 
   /** Flytter grensen mellom to naboer — begge endres samtidig (ingen hull). */
@@ -209,14 +351,18 @@ export function LeggTilDetaljerPopup({
       })),
       slettede,
     )
+    if (!tid.ok) { setLagrer(false); setFeil(tid.error); return }
+    const nye = await lagreNyePunkter(workoutId, nyePunkter.map(np => ({
+      slag: np.slag, tSek: np.tSek, verdi: np.verdi,
+    })))
     setLagrer(false)
-    if (!tid.ok) { setFeil(tid.error); return }
+    if (!nye.ok) { setFeil(nye.error); return }
     onLagret()
     onClose()
   }
 
   const body = (
-    <div onClick={onClose}
+    <div onClick={lukk}
       style={{
         // z 200: økt-modalen ligger på 100 (samme stige som utstyrsvelgeren).
         position: 'fixed', inset: 0, zIndex: 200,
@@ -262,7 +408,7 @@ export function LeggTilDetaljerPopup({
               🎯 Plott treff
             </button>
           )}
-          <button type="button" onClick={onClose} aria-label="Lukk"
+          <button type="button" onClick={lukk} aria-label="Lukk"
             style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>
             ×
           </button>
@@ -312,12 +458,16 @@ export function LeggTilDetaljerPopup({
                 workoutId={workoutId}
                 utkast={utkast}
                 valgtSegment={valgtSegment}
-                palettAktiv={palettType != null}
+                palettAktiv={palettType != null || palettPunkt != null}
                 onVelgSegment={setValgtSegment}
                 onEndreSegment={(id, patch) => endreUtkast(liste =>
                   liste.map(u => u.id === id ? { ...u, ...patch } : u))}
                 onGrense={flyttGrense}
                 onLeggInn={leggInnSegment}
+                onVinduEndret={v => { sisteVindu.current = v }}
+                nyePunkter={nyePunkter}
+                onFlyttNyttPunkt={(id, sek) => setNyePunkter(liste =>
+                  liste.map(p2 => p2.id === id ? { ...p2, tSek: Math.max(0, Math.round(sek)) } : p2))}
                 hr={data.hr}
                 fart={data.fart}
                 watt={data.watt}
@@ -341,7 +491,10 @@ export function LeggTilDetaljerPopup({
                 sport={(data.sport ?? null) as Sport | null}
                 userHasBiathlon={data.rader.some(r => (r.activity_type ?? '').startsWith('skyting')) || data.sport === 'biathlon'}
                 valgtType={palettType}
-                onVelg={setPalettType}
+                onVelg={t => { setPalettType(t); if (t) setPalettPunkt(null) }}
+                valgtPunkt={palettPunkt}
+                onVelgPunkt={p2 => { setPalettPunkt(p2); if (p2) setPalettType(null) }}
+                onDraStart={startDra}
               />
 
               {valgtUtkast && (
@@ -403,9 +556,14 @@ export function LeggTilDetaljerPopup({
                           borderLeft: `3px solid ${farge}`,
                           borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer',
                         }}>
-                        <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{etikettFor(u, utkast)}</b>
+                        <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600, minWidth: 96 }}>{etikettFor(u, utkast)}</b>
+                        {/* Tiden står BÅDE som lesbar tekst og som felter:
+                            teksten er for å se, feltene for å skrive. */}
                         <span>{fmtKlokkeSek(u.startSek)}–{fmtKlokkeSek(u.startSek + u.varighetSek)} ⌚</span>
-                        <span style={{ color: 'var(--tekst-8-alt)' }}>{fmtKlokkeSek(u.varighetSek)}</span>
+                        <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>start</span>
+                        <TidInput sek={u.startSek} onSek={sek => settRadStart(u, sek)} />
+                        <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>varighet</span>
+                        <TidInput sek={u.varighetSek} onSek={sek => settRadVarighet(u, sek)} />
                         {puls.snitt != null && (
                           <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>snitt {puls.snitt}</span>
                         )}
@@ -416,7 +574,7 @@ export function LeggTilDetaljerPopup({
               )}
 
               {/* ── Punkter ── */}
-              {(data.laktat.length > 0 || data.ernaering.length > 0) && (
+              {(data.laktat.length > 0 || data.ernaering.length > 0 || nyePunkter.length > 0) && (
                 <div className="space-y-2">
                   <Overskrift>Punkter på kurven</Overskrift>
                   {data.laktat.map(l => {
@@ -443,6 +601,33 @@ export function LeggTilDetaljerPopup({
                       />
                     )
                   })}
+                  {nyePunkter.map(np => (
+                    <div key={np.id} className="flex items-center gap-3 flex-wrap"
+                      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-5-app)' }}>
+                      <span style={{
+                        width: 9, height: 9, borderRadius: np.slag === 'laktat' ? '50%' : 2,
+                        border: `2px dashed ${np.slag === 'laktat' ? '#E23A5A' : '#FFB300'}`,
+                      }} />
+                      <span style={{ minWidth: 150 }}>
+                        {np.slag === 'laktat' ? 'Laktat (ny)' : 'Ernæring (ny)'} · {fmtKlokkeSek(np.tSek)}
+                      </span>
+                      <input value={np.verdi}
+                        onChange={e => setNyePunkter(liste => liste.map(x =>
+                          x.id === np.id ? { ...x, verdi: e.target.value } : x))}
+                        placeholder={np.slag === 'laktat' ? 'mmol' : 'gel / drikke / bar'}
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, minHeight: 36,
+                          width: np.slag === 'laktat' ? 80 : 150, textAlign: 'center',
+                          background: 'var(--flate-14)', border: '1px solid var(--kant-3)',
+                          borderRadius: 6, color: 'var(--tekst-1-app)',
+                        }} />
+                      <button type="button" className="xp-pill xp-pill-ghost"
+                        style={{ padding: '4px 10px', fontSize: 12 }}
+                        onClick={() => setNyePunkter(liste => liste.filter(x => x.id !== np.id))}>
+                        Fjern
+                      </button>
+                    </div>
+                  ))}
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
                     Punktene er målingene du allerede har ført — her får de bare et tidspunkt.
                     Nye målinger føres i redigeringen som før.
@@ -467,7 +652,7 @@ export function LeggTilDetaljerPopup({
 
         <div className="flex items-center justify-end gap-3 px-5 py-4"
           style={{ borderTop: '1px solid var(--kant-3)' }}>
-          <button type="button" onClick={onClose} className="xp-pill xp-pill-ghost">
+          <button type="button" onClick={lukk} className="xp-pill xp-pill-ghost">
             Avbryt
           </button>
           <button type="button" onClick={lagre} disabled={lagrer || !data}
@@ -483,6 +668,19 @@ export function LeggTilDetaljerPopup({
   return (
     <>
       {createPortal(body, document.body)}
+      {drar && createPortal(
+        <span aria-hidden style={{
+          position: 'fixed', left: drar.x, top: drar.y, transform: 'translate(-50%, -140%)',
+          zIndex: 300, pointerEvents: 'none',
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5,
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+          color: 'var(--tekst-1-app)', background: 'var(--flate-3)',
+          border: '1px solid var(--accent)', borderRadius: 999, padding: '5px 11px',
+        }}>
+          {drar.slag === 'segment' ? 'Slipp for å legge inn' : 'Slipp for å sette punkt'}
+        </span>,
+        document.body,
+      )}
       {visPlottTreff && (
         <PlottTreffPopup
           workoutId={workoutId}
@@ -534,6 +732,7 @@ type KurveValg = keyof typeof KURVE_FARGER
 
 function KurveMedVinduer({
   workoutId, utkast, valgtSegment, palettAktiv, onVelgSegment, onEndreSegment, onGrense, onLeggInn,
+  onVinduEndret, nyePunkter, onFlyttNyttPunkt,
   hr, fart, watt, hoyde, kurve, sport, totalSek,
   laktat, ernaering, laktatSek, ernaeringMin,
   onLaktat, onErnaering,
@@ -546,6 +745,9 @@ function KurveMedVinduer({
   onEndreSegment: (id: string, patch: { startSek?: number; varighetSek?: number }) => void
   onGrense: (venstreId: string, hoyreId: string, sek: number) => void
   onLeggInn: (sek: number) => void
+  onVinduEndret: (v: [number, number]) => void
+  nyePunkter: { id: string; slag: 'laktat' | 'ernaering'; tSek: number; verdi: string }[]
+  onFlyttNyttPunkt: (id: string, sek: number) => void
   hr: Array<{ t: number; hr: number }>
   fart: Array<{ t: number; mps: number }>
   watt: Array<{ t: number; w: number }>
@@ -627,6 +829,7 @@ function KurveMedVinduer({
         }}
         overlay={h => {
           sekFraAndelRef.current = h.sekFraAndel
+          onVinduEndret([h.fraSek, h.tilSek])
           const pct = h.pct
           const verdiYPct = (t: number) => h.yPctForSerie(kurve, t)
           return (
@@ -645,6 +848,38 @@ function KurveMedVinduer({
           onEndre={onEndreSegment}
           onGrense={onGrense}
         />
+        {/* Nye punkter lagt inn her (uten verdi ennå) — stiplet ring til
+            de er ført, så de ikke ser ut som en måling. */}
+        {nyePunkter.map(np => (
+          <button key={np.id} type="button"
+            aria-label={`${np.slag === 'laktat' ? 'Laktat' : 'Ernæring'} (ny) — dra for å flytte`}
+            onPointerDown={e => {
+              e.stopPropagation()
+              const el = e.currentTarget
+              el.setPointerCapture?.(e.pointerId)
+              const flytt = (ev: PointerEvent) => {
+                const r = boks.current?.getBoundingClientRect()
+                if (!r) return
+                const andel = Math.max(0, Math.min(1, (ev.clientX - r.left) / Math.max(1, r.width)))
+                onFlyttNyttPunkt(np.id, sekFraAndelRef.current(andel))
+              }
+              const slipp = () => {
+                el.removeEventListener('pointermove', flytt)
+                el.removeEventListener('pointerup', slipp)
+              }
+              el.addEventListener('pointermove', flytt)
+              el.addEventListener('pointerup', slipp)
+            }}
+            style={{
+              position: 'absolute', left: pct(np.tSek), top: verdiYPct(np.tSek),
+              transform: 'translate(-50%, -50%)', width: 13, height: 13, padding: 0,
+              borderRadius: np.slag === 'laktat' ? '50%' : 3,
+              background: 'transparent',
+              border: `2px dashed ${np.slag === 'laktat' ? '#E23A5A' : '#FFB300'}`,
+              cursor: 'grab', touchAction: 'none', zIndex: 7,
+            }} />
+        ))}
+
         {/* Punkter: draggbare prikker PÅ kurven. */}
         {laktat.map(l => {
           const sek = laktatSek.get(l.id) ?? null
@@ -739,6 +974,38 @@ function fmtFartVerdi(mps: number, sport: string | null): string {
   const m = Math.floor(sekPerKm / 60)
   const sek = Math.round(sekPerKm % 60)
   return `${m}:${String(sek).padStart(2, '0')}/km`
+}
+
+// Redigerbart tidsfelt (mm:ss eller t:mm:ss). Dette er den ANDRE veien i
+// «én flyt»: drar man segmentet endres raden, og skriver man i raden
+// flytter segmentet seg på kurven.
+function TidInput({ sek, onSek }: { sek: number; onSek: (sek: number) => void }) {
+  const [tekst, setTekst] = useState<string | null>(null)
+  const bruk = () => {
+    if (tekst == null) return
+    const deler = tekst.trim().split(':').map(Number)
+    if (deler.length >= 2 && deler.every(d => Number.isFinite(d) && d >= 0)) {
+      onSek(deler.length === 3
+        ? deler[0] * 3600 + deler[1] * 60 + deler[2]
+        : deler[0] * 60 + deler[1])
+    }
+    setTekst(null)
+  }
+  return (
+    <input type="text" inputMode="numeric"
+      value={tekst ?? fmtKlokkeSek(sek)}
+      onClick={e => e.stopPropagation()}
+      onFocus={e => { e.stopPropagation(); setTekst(fmtKlokkeSek(sek)); e.currentTarget.select() }}
+      onChange={e => setTekst(e.target.value)}
+      onBlur={bruk}
+      onKeyDown={e => { if (e.key === 'Enter') { bruk(); e.currentTarget.blur() } }}
+      style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
+        width: 62, textAlign: 'center', minHeight: 36,
+        color: 'var(--tekst-1-app)', background: 'var(--flate-14)',
+        border: '1px solid var(--kant-3)', borderRadius: 6,
+      }} />
+  )
 }
 
 // ── Småting ──────────────────────────────────────────────────

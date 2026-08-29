@@ -45,6 +45,18 @@ const GRUPPER: { navn: string; typer: string[] }[] = [
   { navn: 'Annet', typer: ['annet'] },
 ]
 
+// PUNKT-verktøy: settes på ETT tidspunkt, har ingen varighet og ingen
+// håndtak. De er ikke aktivitetstyper, så de bor ikke i ACTIVITY_TYPES —
+// men de hører hjemme i samme palett (fasitens «Annet»-gruppe).
+// «Notat» kommer i bolk 5, når tidspunkt_notater-migreringen er kjørt:
+// en palett-knapp som ikke kan lagre ville vært en død knapp.
+export type PunktVerktoy = 'bevform' | 'laktat' | 'ernaering'
+export const PUNKT_VERKTOY: { id: PunktVerktoy; navn: string; ikon: string; farge: string }[] = [
+  { id: 'bevform', navn: 'Bev.form-bytte', ikon: '⇄', farge: SEGMENT_FARGER.bevform },
+  { id: 'laktat', navn: 'Laktat', ikon: '🩸', farge: '#E23A5A' },
+  { id: 'ernaering', navn: 'Ernæring', ikon: '🍌', farge: '#FFB300' },
+]
+
 export function segmentTypeFor(type: string, bevegelsesform: string): SegmentType {
   if (type.startsWith('skyting')) {
     if (type === 'skyting_liggende') return 'skyting_ligg'
@@ -74,12 +86,17 @@ export function etikettFor(u: Utkast, alle: Utkast[]): string {
 // ── Paletten ─────────────────────────────────────────────────
 
 export function Verktoypalett({
-  sport, userHasBiathlon, valgtType, onVelg,
+  sport, userHasBiathlon, valgtType, onVelg, valgtPunkt, onVelgPunkt, onDraStart,
 }: {
   sport: Sport | null
   userHasBiathlon: boolean
   valgtType: ActivityType | null
   onVelg: (t: ActivityType | null) => void
+  valgtPunkt: PunktVerktoy | null
+  onVelgPunkt: (p: PunktVerktoy | null) => void
+  /** Paletten er noe man DRAR fra (fasiten); klikk-og-plasser er snarveien
+      ved siden av — begge ender i samme «legg inn her»-handling. */
+  onDraStart: (verktoy: { slag: 'segment'; type: ActivityType } | { slag: 'punkt'; type: PunktVerktoy }, e: React.PointerEvent) => void
 }) {
   // GENERERT FRA ACTIVITY_TYPES (regel 11) — aldri en håndskrevet liste
   // som kan gå ut av takt med draglista. Typer som ikke gir mening for
@@ -120,6 +137,7 @@ export function Verktoypalett({
                 return (
                   <button key={t.value} type="button"
                     onClick={() => onVelg(valgt ? null : t.value)}
+                    onPointerDown={e => onDraStart({ slag: 'segment', type: t.value }, e)}
                     aria-pressed={valgt}
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
@@ -136,11 +154,39 @@ export function Verktoypalett({
             </div>
           )
         })}
+        {/* Punkt-verktøyene — ett tidspunkt, ingen varighet. */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9.5, letterSpacing: '0.16em',
+            textTransform: 'uppercase', color: 'var(--mut)',
+          }}>
+            Punkter
+          </span>
+          {PUNKT_VERKTOY.map(v => {
+            const valgt = valgtPunkt === v.id
+            return (
+              <button key={v.id} type="button"
+                onClick={() => onVelgPunkt(valgt ? null : v.id)}
+                onPointerDown={e => onDraStart({ slag: 'punkt', type: v.id }, e)}
+                aria-pressed={valgt}
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                  fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: valgt ? 'var(--tekst-1-app)' : v.farge,
+                  background: valgt ? v.farge : 'none',
+                  border: `1px solid ${v.farge}`, borderRadius: 999,
+                  padding: '6px 12px', minHeight: 36, cursor: 'grab',
+                }}>
+                {v.ikon} {v.navn}
+              </button>
+            )
+          })}
+        </div>
       </div>
       <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, color: 'var(--mut)', marginTop: 8 }}>
-        {valgtType
-          ? 'Klikk på kurven der segmentet skal begynne — det legges inn med en rimelig lengde og kan dras etterpå.'
-          : 'Segmenter fyller tid og kan dras i begge ender · punkter (laktat, ernæring) settes på ett tidspunkt · alt kan legges inn enten klokka har runder eller ikke.'}
+        {valgtType || valgtPunkt
+          ? 'Klikk på kurven der det skal inn — eller dra verktøyet ned på kurven.'
+          : 'Dra et verktøy ned på kurven (eller klikk det først, så kurven). Segmenter fyller tid og kan dras i begge ender · punkter settes på ett tidspunkt · alt kan legges inn enten klokka har runder eller ikke.'}
       </p>
     </div>
   )

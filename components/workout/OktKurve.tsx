@@ -213,6 +213,7 @@ export function OktKurve({
   return (
     <div>
       <div ref={flate}
+        data-oktkurve="1"
         onWheel={e => {
           if (!onVindu) return
           e.preventDefault()

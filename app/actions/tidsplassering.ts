@@ -405,3 +405,53 @@ export async function lagreTidslinje(
 
   return { ok: true }
 }
+
+// ── Nye punkter lagt inn i byggeren ──────────────────────────
+// mmol og nutrition_type er NOT NULL i basen (målt 29. aug), så et punkt
+// uten verdi KAN ikke lagres. Det sies ærlig i stedet for å finne på et
+// tall som ser målt ut (regel 22).
+
+export interface NyttPunkt {
+  slag: 'laktat' | 'ernaering'
+  tSek: number
+  /** mmol for laktat, ernæringstype for ernæring. */
+  verdi: string
+}
+
+export async function lagreNyePunkter(
+  workoutId: string, punkter: NyttPunkt[],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (punkter.length === 0) return { ok: true }
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Ikke innlogget' }
+
+  const { data: workout } = await supabase.from('workouts')
+    .select('id, user_id, time_of_day').eq('id', workoutId).maybeSingle()
+  if (!workout) return { ok: false, error: 'Fant ikke økta' }
+
+  const startSek = klokkeslettTilSek(workout.time_of_day)
+  for (const p of punkter) {
+    if (p.slag === 'laktat') {
+      const mmol = Number(String(p.verdi).replace(',', '.'))
+      if (!Number.isFinite(mmol) || mmol <= 0) {
+        return { ok: false, error: 'Laktatpunktet mangler verdi — skriv mmol, eller fjern punktet' }
+      }
+      const { error } = await supabase.from('workout_lactate_measurements').insert({
+        workout_id: workoutId, mmol,
+        measured_at_time: sekTilKlokkeslett(startSek + p.tSek),
+        sort_order: 0,
+      })
+      if (error) return { ok: false, error: `Kunne ikke lagre laktatpunktet: ${error.message}` }
+    } else {
+      const type = (p.verdi || '').trim() || 'gel'
+      const { error } = await supabase.from('workout_nutrition_entries').insert({
+        workout_id: workoutId, user_id: workout.user_id,
+        nutrition_type: type,
+        time_offset_minutes: Math.round(p.tSek / 60),
+      })
+      if (error) return { ok: false, error: `Kunne ikke lagre ernæringspunktet: ${error.message}` }
+    }
+  }
+  return { ok: true }
+}

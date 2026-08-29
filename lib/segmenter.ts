@@ -22,7 +22,7 @@
 // aldri en gjettet tidslinje.
 
 export type SegmentType =
-  | 'oppvarming' | 'drag' | 'nedjogg' | 'pause' | 'bevform' | 'annet'
+  | 'oppvarming' | 'drag' | 'nedjogg' | 'pause' | 'veksling' | 'bevform' | 'annet'
   | 'skyting_ligg' | 'skyting_staa' | 'skyting_annet'
 
 // Segmentfargene (godkjent 28. aug 2026, CVD-validert mot HELE fargefasiten
@@ -39,6 +39,11 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   drag:          '#1E2AA8',
   nedjogg:       '#64748B',
   pause:         '#43434B',
+  // Veksling deler pause-fargen med vilje (semantisk i pause-familien —
+  // ikke konkurransefart) og skilles med DIAGONALE STRIPER, ikke en ny
+  // hex: fargerommet er brukt opp mot fargefasiten, og tekstur overlever
+  // all fargeblindhet. Se SEGMENT_STRIPET.
+  veksling:      '#43434B',
   bevform:       '#A6A6AF',
   annet:         '#A6A6AF',
   skyting_ligg:  '#38BDF8',
@@ -46,6 +51,16 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   // Kombinert/innskyting/basis: ligg-blå med full etikett — fasiten gir
   // bare ligg/stå, og et tredje skytefarge-hex ville utvannet de to.
   skyting_annet: '#38BDF8',
+}
+
+// Segmenttyper som tegnes med diagonale striper i tillegg til fargen.
+export const SEGMENT_STRIPET: ReadonlySet<SegmentType> = new Set<SegmentType>(['veksling'])
+
+/** CSS-bakgrunn for et segment — farge, evt. med stripe-tekstur. */
+export function segmentBakgrunn(type: SegmentType): string {
+  const farge = SEGMENT_FARGER[type]
+  if (!SEGMENT_STRIPET.has(type)) return farge
+  return `repeating-linear-gradient(45deg, ${farge} 0 3px, rgba(255,255,255,.28) 3px 6px)`
 }
 
 export interface SegmentRad {
@@ -171,6 +186,8 @@ function klassifiser(
     case 'nedjogg':     return { type: 'nedjogg', etikett: 'Nedjogg', treff: null }
     case 'pause':       return { type: 'pause', etikett: 'Pause', treff: null }
     case 'aktiv_pause': return { type: 'pause', etikett: 'Aktiv pause', treff: null }
+    // Veksling/bytt-tid: radnavnet (T1/T2) er etiketten når det finnes.
+    case 'veksling':    return { type: 'veksling', etikett: r.movement_name || 'Veksling', treff: null }
     case 'annet':       return { type: 'annet', etikett: 'Annet', treff: null }
   }
 

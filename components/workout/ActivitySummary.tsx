@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { ActivityRow, Sport, findActivityType } from '@/lib/types'
+import { ActivityRow, Sport, findActivityType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
 import {
   ALL_ZONE_NAMES,
   ExtendedZoneName,
@@ -67,7 +67,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
 
     for (const a of activities) {
       const meta = findActivityType(a.activity_type)
-      const isPause = a.activity_type === 'pause' || a.activity_type === 'aktiv_pause'
+      const isPause = IKKE_TRENINGSTID_TYPER.has(a.activity_type)
       const durSec = parseActivityDuration(a.duration) ?? 0
 
       // Skytestatistikk — summer skudd alltid; summer treff (og "scored"-nevner)

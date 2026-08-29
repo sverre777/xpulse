@@ -36,7 +36,7 @@ import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 import { computeActivityTotals, ZONE_COLORS_V2, type ActivityLike } from '@/lib/activity-summary'
 
 const SHOOTING_TYPES = new Set(['skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting', 'skyting_basis'])
-const PAUSE_TYPES_LOCAL = new Set(['pause', 'aktiv_pause'])
+const PAUSE_TYPES_LOCAL = new Set(['pause', 'aktiv_pause', 'veksling'])
 
 function fmtClock(sec: number): string {
   // «1T 24M»-format fra utkastet (Bebas-vennlig).

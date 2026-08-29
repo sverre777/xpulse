@@ -47,7 +47,7 @@ export interface PrestasjonAnalyse {
 }
 
 const IKKE_TRENING = new Set([
-  'pause', 'aktiv_pause',
+  'pause', 'aktiv_pause', 'veksling',
   'skyting_liggende', 'skyting_staaende', 'skyting_kombinert',
   'skyting_innskyting', 'skyting_basis',
 ])

@@ -445,7 +445,7 @@ export function findTestPRSport(value: string): TestPRSportDef | null {
 // ── Activities (Fase 7) ────────────────────────────────────
 
 export type ActivityType =
-  | 'oppvarming' | 'aktivitet' | 'pause' | 'aktiv_pause'
+  | 'oppvarming' | 'aktivitet' | 'pause' | 'aktiv_pause' | 'veksling'
   | 'skyting_liggende' | 'skyting_staaende' | 'skyting_kombinert'
   | 'skyting_innskyting' | 'skyting_basis'
   | 'nedjogg' | 'annet'
@@ -492,6 +492,11 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'aktivitet',         label: 'Aktivitet',          icon: '⚡', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'pause',             label: 'Pause',              icon: '⏸',  usesMovement: false, isShooting: false, biathlonOnly: false },
   { value: 'aktiv_pause',       label: 'Aktiv pause',        icon: '🚶', usesMovement: true,  isShooting: false, biathlonOnly: false },
+  // Veksling/bytt-tid (triatlon, multisport). Var en SKJULT KONVENSJON —
+  // aktiv_pause med navnet «T1»/«T2» i triatlon-malen — nå en egen type.
+  // EGEN TIDSKATEGORI: verken treningstid eller pause (se
+  // IKKE_TRENINGSTID_TYPER). Radnavnet (T1/T2) føres i movement_name som før.
+  { value: 'veksling',          label: 'Veksling',           icon: '🔄', usesMovement: false, isShooting: false, biathlonOnly: false },
   { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
   { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
@@ -500,6 +505,15 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },
   { value: 'annet',             label: 'Annet',              icon: '•',  usesMovement: false, isShooting: false, biathlonOnly: false },
 ]
+
+// Typer som IKKE er treningstid. Pause-familien og veksling deler denne
+// eksklusjonen, men de er ULIKE kategorier: veksling summeres aldri inn i
+// pausetiden (Sverre 29. aug). ÉN kilde for alle aggregatene (regel 11).
+export const IKKE_TRENINGSTID_TYPER: ReadonlySet<string> = new Set([
+  'pause', 'aktiv_pause', 'veksling',
+])
+export const PAUSE_TYPER: ReadonlySet<string> = new Set(['pause', 'aktiv_pause'])
+export const VEKSLING_TYPER: ReadonlySet<string> = new Set(['veksling'])
 
 export function findActivityType(v: ActivityType): ActivityTypeOption | null {
   return ACTIVITY_TYPES.find(t => t.value === v) ?? null
@@ -1152,6 +1166,8 @@ export interface CalendarWorkoutSummary {
   // Sum av duration_seconds over workout_activities — ekskluderer pause/aktiv_pause OG skyting.
   activity_seconds: number
   activity_pause_seconds: number
+  // Veksling/bytt-tid — EGEN kategori, aldri en del av pause eller trening.
+  activity_veksling_seconds: number
   // Skyting (alle typer + tørrtrening) holdt utenfor activity_seconds.
   activity_shooting_seconds: number
   // Aggregert fra workout_activities (faktisk) — faller tilbake til duration_minutes*60
@@ -1405,9 +1421,9 @@ function generateTriathlonActivities(format: string): ActivityRow[] {
   if (d === null) return []
   return [
     makeActivity({ activity_type: 'aktivitet',   movement_name: 'Svømming basseng 25m', distance_km: d.swim_km }),
-    makeActivity({ activity_type: 'aktiv_pause', movement_name: 'T1',       notes: 'Transisjon 1' }),
+    makeActivity({ activity_type: 'veksling', movement_name: 'T1',       notes: 'Transisjon 1' }),
     makeActivity({ activity_type: 'aktivitet',   movement_name: 'Sykling',  distance_km: d.bike_km }),
-    makeActivity({ activity_type: 'aktiv_pause', movement_name: 'T2',       notes: 'Transisjon 2' }),
+    makeActivity({ activity_type: 'veksling', movement_name: 'T2',       notes: 'Transisjon 2' }),
     makeActivity({ activity_type: 'aktivitet',   movement_name: 'Løping',   distance_km: d.run_km }),
   ]
 }

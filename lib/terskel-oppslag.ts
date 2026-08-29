@@ -42,7 +42,7 @@ export function resolveTerskel(
 // for øktnivå-tall (NP/IF) — en økt kan ha flere bevegelsesformer,
 // og den største er det ærligste enkeltvalget.
 const IKKE_TRENING = new Set([
-  'pause', 'aktiv_pause',
+  'pause', 'aktiv_pause', 'veksling',
   'skyting_liggende', 'skyting_staaende', 'skyting_kombinert',
   'skyting_innskyting', 'skyting_basis',
 ])

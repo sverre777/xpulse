@@ -9,7 +9,7 @@ import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
-import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType } from '@/lib/types'
+import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
 import { findStandardTest } from '@/lib/shooting-test-templates'
 import { windShort, sightLabel, type SightKey } from '@/lib/shooting'
 
@@ -1005,7 +1005,9 @@ type RawCompetitionRow = {
 const SHOOTING_ACT_TYPES = new Set([
   'skyting_liggende', 'skyting_staaende', 'skyting_kombinert', 'skyting_innskyting', 'skyting_basis',
 ])
-const PAUSE_ACT_TYPES = new Set(['pause', 'aktiv_pause'])
+// Veksling er verken trening eller pause — ekskluderes på lik linje her
+// (dette settet brukes til å HOPPE OVER rader, ikke til å summere pause).
+const PAUSE_ACT_TYPES = new Set(['pause', 'aktiv_pause', 'veksling'])
 
 export async function getCompetitionStats(
   fromDate: string,
@@ -1880,7 +1882,7 @@ export async function getHealthCorrelations(
     for (const w of (workoutsRes.data ?? []) as WRow[]) {
       let daySecs = 0
       for (const a of (w.workout_activities ?? [])) {
-        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        if (IKKE_TRENINGSTID_TYPER.has(a.activity_type ?? '')) continue
         daySecs += a.duration_seconds ?? 0
       }
       if (daySecs === 0 && w.duration_minutes) daySecs = w.duration_minutes * 60
@@ -2483,7 +2485,7 @@ export async function getWorkoutsForComparison(
       const movMap = new Map<string, { seconds: number; meters: number }>()
       for (const a of (w.workout_activities ?? [])) {
         if (!a.movement_name) continue
-        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        if (IKKE_TRENINGSTID_TYPER.has(a.activity_type ?? '')) continue
         movementsPresent.add(a.movement_name)
         const prev = movMap.get(a.movement_name) ?? { seconds: 0, meters: 0 }
         prev.seconds += a.duration_seconds ?? 0
@@ -2764,7 +2766,7 @@ export async function getIntensityDistribution(
       // Per-movement breakdown — approximate using each activity individually.
       for (const a of (w.workout_activities ?? [])) {
         if (!a.movement_name) continue
-        if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') continue
+        if (IKKE_TRENINGSTID_TYPER.has(a.activity_type ?? '')) continue
         const subTotals = computeActivityTotals([{
           activity_type: a.activity_type,
           duration_seconds: a.duration_seconds,

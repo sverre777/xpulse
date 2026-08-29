@@ -119,7 +119,7 @@ export async function getKlokkedataTrender(
     // pause + skyting ekskluderes via activity_type-filter.
     const zonesByWeek = new Map<string, { I1: number; I2: number; I3: number; I4: number; I5: number; I6: number; I7: number; I8: number; Hurtighet: number }>()
     const SHOOTING_TYPES = new Set(['skyting_liggende','skyting_staaende','skyting_kombinert','skyting_innskyting','skyting_basis'])
-    const PAUSE_TYPES = new Set(['pause','aktiv_pause'])
+    const PAUSE_TYPES = new Set(['pause','aktiv_pause','veksling'])
 
     for (const w of rows) {
       // Aggreger snittet av aktiviteter, vektet på varighet.

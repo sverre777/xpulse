@@ -575,7 +575,17 @@ function ActivityRowItem({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label="Aktivitetstype">
               <select value={row.activity_type}
-                onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })}
+                onChange={e => {
+                  const nyType = e.target.value as ActivityType
+                  // Veksling har NAVN (T1/T2), ikke bevegelsesform. Bytter
+                  // man til eller fra veksling, følger ikke navnet med —
+                  // ellers ble «Løping» stående som vekslingens navn (og
+                  // «T1» som bevegelsesform den andre veien).
+                  const bytterVeksling = (nyType === 'veksling') !== (row.activity_type === 'veksling')
+                  onUpdate(bytterVeksling
+                    ? { activity_type: nyType, movement_name: '', movement_subcategory: '' }
+                    : { activity_type: nyType })
+                }}
                 style={iSt}>
                 {showFavoritesGroup && (
                   <optgroup label="Mest brukt">
@@ -628,6 +638,18 @@ function ActivityRowItem({
                   )}
                   <option value={CREATE_MOVEMENT_SENTINEL}>+ Lag ny bevegelsesform…</option>
                 </select>
+              </Field>
+            )}
+
+            {/* Veksling har ingen bevegelsesform, men trenger et NAVN —
+                T1/T2 i triatlon. Skrives til movement_name, samme felt
+                triatlon-malen alltid har brukt (ingen ny kolonne). */}
+            {row.activity_type === 'veksling' && (
+              <Field label="Navn">
+                <input value={row.movement_name}
+                  onChange={e => onUpdate({ movement_name: e.target.value })}
+                  placeholder="F.eks. T1"
+                  style={iSt} />
               </Field>
             )}
 

@@ -226,7 +226,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   if (steg === 'vis') {
     const bevBlokker = blokker.filter(b => !b.posisjon)
     const NAVN: Record<string, string> = {
-      oppvarming: 'Oppvarming', aktivitet: 'Aktivitet', aktiv_pause: 'Aktiv pause',
+      oppvarming: 'Oppvarming', aktivitet: 'Aktivitet', aktiv_pause: 'Aktiv pause', veksling: 'Veksling',
       nedjogg: 'Nedjogg', skyting_kombinert: 'Skyting',
     }
     return (

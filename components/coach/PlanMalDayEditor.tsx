@@ -349,7 +349,7 @@ function parseFloatOrNull(s: string | null | undefined): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-const PAUSE = new Set(['pause', 'aktiv_pause'])
+const PAUSE = new Set(['pause', 'aktiv_pause', 'veksling'])
 function deriveDurationMinutes(activities: ActivityRow[]): number | null {
   let secs = 0
   for (const a of activities) {

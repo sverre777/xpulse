@@ -281,6 +281,7 @@ function deriveLapType(a: {
   movement_subcategory: string | null
 }): string | null {
   const at = (a.activity_type ?? '').toLowerCase()
+  if (at === 'veksling') return 'veksling'
   if (at === 'pause' || at === 'aktiv_pause') return 'rest'
   const mv = (a.movement_name ?? '').toLowerCase()
   if (mv.includes('skyting') || mv.includes('skiskyting')) return 'skyting'

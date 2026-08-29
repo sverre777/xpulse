@@ -10,7 +10,7 @@ import {
   XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
 } from '@/components/analysis/chart-theme'
 import {
-  SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu, type Segment,
+  SEGMENT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu, type Segment,
 } from '@/lib/segmenter'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
@@ -604,7 +604,18 @@ function SegmentBaand({
       {/* Selve båndet. */}
       <div style={{ position: 'relative', height: 14 }}
         onMouseLeave={() => onVelg(null)}>
-        {segmenter.map(sg => (
+        {segmenter.map(sg => {
+          // Et 40-sekunders vindu er under 1 % av en to-timers økt: uten
+          // hjelp blir veksling og skyting både usynlige og uklikkbare.
+          // SMALE segmenter får minstebredde (synlighet) + en utvidet
+          // treffflate på 36 px (konvensjonen) — og HØYERE z-index, ellers
+          // stjeler de brede naboenes treffflater klikket (målt: klikk på
+          // et 10 px veksling-segment havnet på Sykkel-segmentet ved siden).
+          // Brede segmenter beholder eksakte grenser og trenger ingen av
+          // delene.
+          const andel = (sg.sluttSek - sg.startSek) / Math.max(1, totalSek)
+          const smalt = andel < 0.03
+          return (
           <button key={sg.aktivitetId} type="button"
             onMouseEnter={() => onVelg(sg.aktivitetId)}
             onClick={() => onVelg(valgt === sg.aktivitetId ? null : sg.aktivitetId)}
@@ -613,13 +624,24 @@ function SegmentBaand({
               position: 'absolute',
               left: pct(sg.startSek),
               width: `calc(${pct(sg.sluttSek - sg.startSek)} - 2px)`,
-              minWidth: 3,
+              minWidth: 10,
               height: 14, top: 0, padding: 0,
-              background: SEGMENT_FARGER[sg.type],
+              zIndex: smalt ? 3 : 1,
+              background: segmentBakgrunn(sg.type),
               opacity: valgt == null || valgt === sg.aktivitetId ? 0.9 : 0.45,
               border: 'none', borderRadius: 3, cursor: 'pointer',
-            }} />
-        ))}
+              outline: 'none',
+              boxShadow: valgt === sg.aktivitetId ? `0 0 0 2px ${SEGMENT_FARGER[sg.type]}` : 'none',
+            }}>
+            {smalt && (
+              <span aria-hidden style={{
+                position: 'absolute', top: -11, bottom: -11, left: -6, right: -6,
+                minWidth: 36, display: 'block',
+              }} />
+            )}
+          </button>
+          )
+        })}
       </div>
 
       {/* Leser-linje for valgt segment/punkt («hold over»-raden i fasiten). */}

@@ -1,4 +1,4 @@
-import { CalendarWorkoutSummary, CompetitionType, ShotStats } from './types'
+import { CalendarWorkoutSummary, CompetitionType, ShotStats, PAUSE_TYPER, VEKSLING_TYPER } from './types'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
 import {
   ActivityLike,
@@ -73,15 +73,18 @@ export type RawCalendarWorkout = {
 }
 
 function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
-  total: number       // ren treningstid (ekskl. pause + skyting)
+  total: number       // ren treningstid (ekskl. pause, veksling + skyting)
   pause: number
+  veksling: number    // bytt-tid (T1/T2) — EGEN kategori, aldri i pause
   shooting: number    // skyting (alle typer + tørrtrening)
 } {
-  if (!acts || acts.length === 0) return { total: 0, pause: 0, shooting: 0 }
-  let total = 0, pause = 0, shooting = 0
+  if (!acts || acts.length === 0) return { total: 0, pause: 0, veksling: 0, shooting: 0 }
+  let total = 0, pause = 0, veksling = 0, shooting = 0
   for (const a of acts) {
     const s = Number(a.duration_seconds) || 0
-    if (a.activity_type === 'pause' || a.activity_type === 'aktiv_pause') {
+    if (VEKSLING_TYPER.has(a.activity_type ?? '')) {
+      veksling += s
+    } else if (PAUSE_TYPER.has(a.activity_type ?? '')) {
       pause += s
     } else if (isShootingActivityType(a.activity_type)) {
       shooting += s
@@ -89,7 +92,7 @@ function sumActivityTime(acts: RawCalendarWorkout['workout_activities']): {
       total += s
     }
   }
-  return { total, pause, shooting }
+  return { total, pause, veksling, shooting }
 }
 
 function snapshotZones(snap: RawCalendarWorkout['planned_snapshot']): { zone_name: string; minutes: number }[] {
@@ -389,6 +392,7 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     planned_zones: plannedZonesResolved,
     activity_seconds: act.total,
     activity_pause_seconds: act.pause,
+    activity_veksling_seconds: act.veksling,
     activity_shooting_seconds: act.shooting,
     total_seconds,
     total_meters,

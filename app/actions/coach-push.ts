@@ -430,7 +430,7 @@ export async function pushWorkoutTemplateToAthlete(
   const activities = ((tpl.activities as ActivityRow[] | null) ?? []) as ActivityRow[]
 
   // Utled varighet og distanse fra aktiviteter (ekskluder pauser).
-  const PAUSE = new Set(['pause', 'aktiv_pause'])
+  const PAUSE = new Set(['pause', 'aktiv_pause', 'veksling'])
   let durSec = 0
   let km = 0
   for (const a of activities) {

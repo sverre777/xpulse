@@ -1,3 +1,4 @@
+import { PAUSE_TYPER, VEKSLING_TYPER } from './types'
 import {
   ALL_ZONE_NAMES,
   ExtendedZoneName,
@@ -50,6 +51,8 @@ export interface ActivityLike {
 export interface ActivityTotals {
   totalSeconds: number      // sum av varighet — pauser OG skyting ekskludert ("ren treningstid")
   pauseSeconds: number
+  /** Veksling/bytt-tid — egen kategori, aldri i pauseSeconds. */
+  vekslingSeconds: number
   shootingSeconds: number   // skyting (alle typer + tørrtrening) som egen kategori
   totalMeters: number
   zoneSeconds: Record<ExtendedZoneName, number>
@@ -65,6 +68,7 @@ export function emptyTotals(): ActivityTotals {
   return {
     totalSeconds: 0,
     pauseSeconds: 0,
+    vekslingSeconds: 0,
     shootingSeconds: 0,
     totalMeters: 0,
     zoneSeconds: emptyZoneSeconds(),
@@ -86,7 +90,8 @@ export function isShootingActivityType(t: string): boolean {
 
 const SHOOTING_TYPES = SHOOTING_ACTIVITY_TYPES
 
-const PAUSE_TYPES = new Set(['pause', 'aktiv_pause'])
+const PAUSE_TYPES = PAUSE_TYPER
+const VEKSLING_TYPES = VEKSLING_TYPER
 
 // Returnerer sone-tid i SEKUNDER (phase 64+). Eldre kode kalte denne
 // "zoneMinutes" mens jsonb lagret minutter; etter phase 64 er jsonb-verdien
@@ -106,6 +111,10 @@ export function computeActivityTotals(
 
   for (const a of activities) {
     const sec = Number(a.duration_seconds) || 0
+    if (VEKSLING_TYPES.has(a.activity_type)) {
+      totals.vekslingSeconds += sec
+      continue
+    }
     if (PAUSE_TYPES.has(a.activity_type)) {
       totals.pauseSeconds += sec
       continue
@@ -160,6 +169,7 @@ export function mergeTotals(parts: ActivityTotals[]): ActivityTotals {
   for (const p of parts) {
     out.totalSeconds += p.totalSeconds
     out.pauseSeconds += p.pauseSeconds
+    out.vekslingSeconds += p.vekslingSeconds
     out.shootingSeconds += p.shootingSeconds
     out.totalMeters += p.totalMeters
     for (const k of ALL_ZONE_NAMES) out.zoneSeconds[k] += p.zoneSeconds[k]

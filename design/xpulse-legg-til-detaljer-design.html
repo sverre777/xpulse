@@ -360,6 +360,22 @@ svg{display:block}
     <code>time_offset_minutes</code> for ernæring) — aldri nye kopier.
     Vises over segmentbåndet, ikke som segmenter. Punkt = tidspunkt +
     verdi; ingen varighet, ingen statistikk-port.</li>
+    <li class="ny"><b>LAKTAT/ERNÆRING SNAKKER BEGGE VEIER (Sverre
+    28. aug):</b> de eksisterende feltene nede i øktskjemaet og punktene
+    i grafen er SAMME data (regel 11 — dette er hele «én flyt»-
+    prinsippet i praksis). Fører man laktat eller ernæring nede med
+    klokkeslett/tidspunkt, dukker punktet automatisk opp i grafen —
+    og drar man punktet i grafen, oppdateres verdien nede. Ingen
+    dobbeltføring, ingen «synk»-knapp.
+    <br>· Tidsomregningen går via øktas starttid (klokkeslett ↔ offset)
+    — SAMME fallback som øktgrafen bruker i dag. Ett sted i koden, ikke
+    to (regel 11).
+    <br>· Føres en verdi UTEN tidspunkt, finnes den fortsatt nede, men
+    får ingen markør i grafen — og flaten sier det heller enn å gjette
+    en plassering (regel 22). Setter man tidspunktet senere, dukker
+    markøren opp.
+    <br>· Drag i grafen skriver tidspunktet på den eksisterende raden —
+    aldri en ny rad.</li>
     <li><b>SEGMENTBÅNDET:</b> alle rader med tidsvindu tegnes som
     segmenter under kurven — inkl. bevegelsesform-bytter (etiketten
     bærer navnet). Tooltip: tid, varighet, snittpuls, treff for skyting.

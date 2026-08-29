@@ -11,6 +11,7 @@ import { zoneForHeartRate } from '@/lib/heart-zones'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
+import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
 import {
@@ -553,6 +554,18 @@ export function LeggTilDetaljerPopup({
                 onLaktat={(id, sek) => setLaktatSek(m => new Map(m).set(id, sek))}
                 onErnaering={(id, min) => setErnaeringMin(m => new Map(m).set(id, min))}
               />
+
+              {/* «SE HVORDAN DEN BLIR» — live oppsummering under BLOKK-lerretene
+                  (A og B). Ikke på kurve-lerretet (C): der er tallene målt og
+                  står allerede i økta — å gjenta dem her ville vært dublering. */}
+              {!data.harKurve && (
+                <ByggSum
+                  utkast={utkast}
+                  heartZones={data.heartZones}
+                  rpe={data.rpe}
+                  erPlanlagt={data.erPlanlagt}
+                />
+              )}
 
               {/* ── TIDSLINJA (LTD-A) ──
                   Den gamle avgrensningen «kun økter uten runder» er

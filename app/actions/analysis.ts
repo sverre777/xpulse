@@ -6,6 +6,7 @@ import { shotStatsFromSnapshot, shotStatsFromActivities } from '@/lib/calendar-s
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, vektFraIF, wattDekningSek } from '@/lib/watt-metrikker'
+import { beregnSoneTss } from '@/lib/belastning'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
@@ -2873,11 +2874,6 @@ export interface BelastningAnalysis {
   altitudePeriods: { name: string; start_date: string; end_date: string; altitude_meters: number | null }[]
 }
 
-const ZONE_WEIGHTS: Record<'I1'|'I2'|'I3'|'I4'|'I5'|'I6'|'I7'|'I8'|'Hurtighet', number> = {
-  // I6–I8 (fase 111) vektes som maks-intensitet, likt Hurtighet — de er
-  // anaerobe merker uten pulsspenn.
-  I1: 1, I2: 2, I3: 3, I4: 4, I5: 5, I6: 5, I7: 5, I8: 5, Hurtighet: 5,
-}
 
 function classifyForm(tsb: number): FormStatus {
   if (tsb > 20) return 'detrained'
@@ -3006,15 +3002,7 @@ export async function getBelastningAnalysis(
         // computeActivityTotals) × IF-vekt.
         tss = (totals.totalSeconds / 60) * vekt
       } else {
-        tss += (totals.zoneSeconds.I1 / 60) * ZONE_WEIGHTS.I1
-        tss += (totals.zoneSeconds.I2 / 60) * ZONE_WEIGHTS.I2
-        tss += (totals.zoneSeconds.I3 / 60) * ZONE_WEIGHTS.I3
-        tss += (totals.zoneSeconds.I4 / 60) * ZONE_WEIGHTS.I4
-        tss += (totals.zoneSeconds.I5 / 60) * ZONE_WEIGHTS.I5
-        tss += (totals.zoneSeconds.I6 / 60) * ZONE_WEIGHTS.I6
-        tss += (totals.zoneSeconds.I7 / 60) * ZONE_WEIGHTS.I7
-        tss += (totals.zoneSeconds.I8 / 60) * ZONE_WEIGHTS.I8
-        tss += (totals.zoneSeconds.Hurtighet / 60) * ZONE_WEIGHTS.Hurtighet
+        tss += beregnSoneTss(totals.zoneSeconds)
       }
       if (tss > 0) tssByDate.set(w.date, (tssByDate.get(w.date) ?? 0) + tss)
     }

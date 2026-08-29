@@ -74,6 +74,8 @@ export interface LeggTilDetaljerData {
   harKurve: boolean
   /** Brukerens pulssoner — lerret B utleder blokkens sone av FØRT puls. */
   heartZones: HeartZone[]
+  /** Opplevd belastning (1–10). Vises i oppsummeringen; null = ikke ført. */
+  rpe: number | null
   sport: string | null
   hr: Array<{ t: number; hr: number }>
   /** Fart (pace_samples ?? speed_samples — samme prioritet som økt-grafen). */
@@ -92,7 +94,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   if (!user) return null
 
   const [workoutRes, samplesRes, raderRes, laktatRes, ernaeringRes, heartZones] = await Promise.all([
-    supabase.from('workouts').select('id, time_of_day, sport, is_planned, is_completed').eq('id', workoutId).maybeSingle(),
+    supabase.from('workouts').select('id, time_of_day, sport, is_planned, is_completed, rpe').eq('id', workoutId).maybeSingle(),
     supabase.from('workout_samples').select('hr_samples, pace_samples, speed_samples, watt_samples, altitude_samples, created_at')
       .eq('workout_id', workoutId).order('created_at', { ascending: false }).limit(1),
     supabase.from('workout_activities')
@@ -206,6 +208,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     erPlanlagt: workout.is_planned === true && workout.is_completed !== true,
     harKurve: hr.length > 0 || fart.length > 0 || watt.length > 0,
     heartZones,
+    rpe: workout.rpe != null ? Number(workout.rpe) : null,
     sport: (workout.sport as string | null) ?? null,
     hr, fart, watt, hoyde, rader, laktat, ernaering,
   }

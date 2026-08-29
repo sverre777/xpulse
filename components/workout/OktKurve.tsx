@@ -64,6 +64,10 @@ interface Props {
   onVindu?: (v: [number, number]) => void
   /** Minste synlige spenn i sekunder — hindrer uendelig innzooming. */
   minSpennSek?: number
+  /** Klikk i plot-flata → tidspunkt. Ligger HER fordi panoreringen tar
+      pointer-capture på flata; da blir den klikk-målet, og en onClick på
+      et overlay-barn ville aldri fyre. */
+  onKlikk?: (sek: number) => void
 }
 
 export interface KurveHjelpere {
@@ -124,7 +128,7 @@ function fmtTid(sek: number): string {
 
 export function OktKurve({
   serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag,
-  krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20,
+  krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20, onKlikk,
 }: Props) {
   const flate = useRef<HTMLDivElement | null>(null)
   const pan = useRef<{ x: number; fra: number; til: number } | null>(null)
@@ -228,6 +232,14 @@ export function OktKurve({
         }}
         onPointerUp={() => { pan.current = null }}
         onPointerCancel={() => { pan.current = null }}
+        onClick={e => {
+          if (!onKlikk) return
+          const el = flate.current
+          if (!el) return
+          const r = el.getBoundingClientRect()
+          const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
+          onKlikk(fraSek + andel * (tilSek - fraSek))
+        }}
         onPointerMove={e => {
           if (pan.current && onVindu) {
             const el = flate.current

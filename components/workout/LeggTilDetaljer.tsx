@@ -4,12 +4,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   hentLeggTilDetaljer, lagreLeggTilDetaljer,
-  type LeggTilDetaljerData, type DetaljerRad,
+  type LeggTilDetaljerData,
 } from '@/app/actions/tidsplassering'
 import { SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu } from '@/lib/segmenter'
 import { OktKurve, type KurveSerie } from './OktKurve'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
-import { findActivityType, type ActivityType, type ShootingSeriesRow } from '@/lib/types'
+import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
+import {
+  Verktoypalett, SegmentLag, SegmentHandlinger, etikettFor, segmentTypeFor,
+  STANDARD_LENGDE, type Utkast,
+} from './TidslinjeRedigering'
+import { lagreTidslinje } from '@/app/actions/tidsplassering'
 import { PlottTreffPopup } from './PlottTreff'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upen. Fasit: design/
@@ -32,8 +37,6 @@ import { PlottTreffPopup } from './PlottTreff'
 // Inngangene (to piller) rendres statisk med sida og åpner i samme tick
 // (regel 20) — datahentingen skjer først når pop-upen står åpen.
 
-const STANDARD_VINDU_SEK = 40
-const MIN_VINDU_SEK = 10
 
 export function LeggTilDetaljerInngang({ onClick }: { onClick: () => void }) {
   return (
@@ -50,7 +53,6 @@ export function LeggTilDetaljerInngang({ onClick }: { onClick: () => void }) {
   )
 }
 
-interface VinduLokal { startSek: number; varighetSek: number }
 
 export function LeggTilDetaljerPopup({
   workoutId, onClose, onLagret, onSerierLagret,
@@ -67,16 +69,34 @@ export function LeggTilDetaljerPopup({
   const [lagrer, setLagrer] = useState(false)
 
   // Lokal redigeringstilstand — skrives først ved Lagre.
-  const [vinduer, setVinduer] = useState<Map<string, VinduLokal>>(new Map())
-  const [fjernet, setFjernet] = useState<Set<string>>(new Set())
   const [laktatSek, setLaktatSek] = useState<Map<string, number | null>>(new Map())
   const [ernaeringMin, setErnaeringMin] = useState<Map<string, number | null>>(new Map())
-  const [rekkefolge, setRekkefolge] = useState<string[]>([])
-  const [rekkefolgeEndret, setRekkefolgeEndret] = useState(false)
-  const [aktivtVindu, setAktivtVindu] = useState<string | null>(null)
   // «Plott treff» åpnes herfra (fasit) — skytingene er nettopp plassert, så
   // AUTO-pulsen er riktig. Lukking returnerer hit med oppdaterte tall.
   const [visPlottTreff, setVisPlottTreff] = useState(false)
+  // TIDSLINJA: hele økta som redigerbare segmenter. Klokkas runder er
+  // utgangspunktet — de kan flyttes, deles, slås sammen og omdøpes.
+  const [utkast, setUtkast] = useState<Utkast[]>([])
+  const [slettede, setSlettede] = useState<string[]>([])
+  const [valgtSegment, setValgtSegment] = useState<string | null>(null)
+  const [palettType, setPalettType] = useState<ActivityType | null>(null)
+  // ANGRE (fasiten): hele redigeringsøkten kan angres steg for steg før
+  // lagring. Hvert steg legger forrige tilstand på stabelen.
+  const [angreStabel, setAngreStabel] = useState<{ utkast: Utkast[]; slettede: string[] }[]>([])
+
+  const endreUtkast = (f: (liste: Utkast[]) => Utkast[]) => {
+    setAngreStabel(st => [...st.slice(-49), { utkast, slettede }])
+    setUtkast(f(utkast))
+  }
+  const angre = () => {
+    setAngreStabel(st => {
+      const forrige = st[st.length - 1]
+      if (!forrige) return st
+      setUtkast(forrige.utkast)
+      setSlettede(forrige.slettede)
+      return st.slice(0, -1)
+    })
+  }
   // Kurvevelger (V9.4): hvilken kurve man plasserer PÅ. Vinduer og punkter
   // er de samme uansett — kun lerretet bytter.
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>('puls')
@@ -89,16 +109,19 @@ export function LeggTilDetaljerPopup({
         setData(d)
         setLaster(false)
         if (d) {
-          const v = new Map<string, VinduLokal>()
-          for (const r of d.rader) {
-            if (r.window_start_seconds != null && r.window_duration_seconds != null) {
-              v.set(r.id, { startSek: r.window_start_seconds, varighetSek: r.window_duration_seconds })
-            }
-          }
-          setVinduer(v)
           setLaktatSek(new Map(d.laktat.map(l => [l.id, l.sekunder])))
           setErnaeringMin(new Map(d.ernaering.map(n => [n.id, n.minutter])))
-          setRekkefolge(d.rader.map(r => r.id))
+          setUtkast(d.rader
+            .filter(r => r.startSek != null && r.sluttSek != null)
+            .map(r => ({
+              id: r.id, dbId: r.id,
+              type: (r.activity_type ?? 'aktivitet') as ActivityType,
+              navn: r.navn ?? '',
+              bevegelsesform: r.movement_name ?? '',
+              startSek: r.startSek!,
+              varighetSek: Math.max(1, r.sluttSek! - r.startSek!),
+              skytetidSek: r.skytetidSek,
+            })))
           if (d.hr.length === 0) setKurve(d.fart.length > 0 ? 'fart' : 'watt')
         }
       })
@@ -108,53 +131,60 @@ export function LeggTilDetaljerPopup({
 
   const totalSek = data?.totalSek ?? 0
 
-  const plasserVindu = (rad: DetaljerRad) => {
-    // Startforslag: første ledige tredjedel. Lengden er PORTEN: ført
-    // skytetid hvis den finnes, ellers standard-markeringen.
-    const lengde = rad.skytetidSek ?? STANDARD_VINDU_SEK
-    let start = Math.round(totalSek / 3)
-    const opptatt = [...vinduer.entries()].filter(([id]) => id !== rad.id && !fjernet.has(id))
-    for (let forsok = 0; forsok < 20; forsok++) {
-      const kolliderer = opptatt.some(([, v]) =>
-        start < v.startSek + v.varighetSek && v.startSek < start + lengde)
-      if (!kolliderer) break
-      start = Math.min(totalSek - lengde, start + Math.max(60, lengde))
+  const skytingRader = data?.rader.filter(r => (r.activity_type ?? '').startsWith('skyting')) ?? []
+  const valgtUtkast = utkast.find(u => u.id === valgtSegment) ?? null
+  const naboEtter = valgtUtkast
+    ? [...utkast].sort((a, b) => a.startSek - b.startSek)
+        .find(u => u.startSek >= valgtUtkast.startSek + valgtUtkast.varighetSek - 1.5 && u.id !== valgtUtkast.id) ?? null
+    : null
+
+  /** Legger et nytt segment der brukeren klikket på kurven. */
+  const leggInnSegment = (sek: number) => {
+    if (!palettType) return
+    const lengde = STANDARD_LENGDE[palettType] ?? 120
+    const nytt: Utkast = {
+      id: `ny-${crypto.randomUUID()}`, dbId: null, type: palettType,
+      navn: '', bevegelsesform: '', startSek: Math.max(0, Math.round(sek)),
+      varighetSek: lengde, skytetidSek: null,
     }
-    setVinduer(m => new Map(m).set(rad.id, { startSek: Math.max(0, start), varighetSek: lengde }))
-    setFjernet(s => { const n = new Set(s); n.delete(rad.id); return n })
-    setAktivtVindu(rad.id)
+    endreUtkast(liste => [...liste, nytt])
+    setValgtSegment(nytt.id)
+    setPalettType(null)
   }
 
-  const skytingRader = data?.rader.filter(r => (r.activity_type ?? '').startsWith('skyting')) ?? []
+  /** Flytter grensen mellom to naboer — begge endres samtidig (ingen hull). */
+  const flyttGrense = (venstreId: string, hoyreId: string, sek: number) => {
+    endreUtkast(liste => liste.map(u => {
+      if (u.id === venstreId) {
+        const ny = Math.max(u.startSek + 5, sek)
+        return { ...u, varighetSek: ny - u.startSek }
+      }
+      if (u.id === hoyreId) {
+        const slutt = u.startSek + u.varighetSek
+        const ny = Math.min(slutt - 5, Math.max(0, sek))
+        return { ...u, startSek: ny, varighetSek: slutt - ny }
+      }
+      return u
+    }))
+  }
 
   const lagre = async () => {
     if (!data) return
-    // Klient-validering av overlapp — samme regel som serveren (regel 22).
-    const aktive = [...vinduer.entries()].filter(([id]) => !fjernet.has(id))
-    for (let i = 0; i < aktive.length; i++) {
-      for (let j = i + 1; j < aktive.length; j++) {
-        const a = aktive[i][1], b = aktive[j][1]
-        if (a.startSek < b.startSek + b.varighetSek && b.startSek < a.startSek + a.varighetSek) {
-          setFeil('To vinduer overlapper — flytt eller kort inn det ene')
-          return
-        }
+    // Klient-validering av overlapp — samme regel som serveren (regel 22),
+    // nå over hele tidslinja, ikke bare skytevinduene.
+    const sortert = [...utkast].sort((a, b) => a.startSek - b.startSek)
+    for (let i = 1; i < sortert.length; i++) {
+      const f = sortert[i - 1]
+      if (sortert[i].startSek < f.startSek + f.varighetSek - 0.5) {
+        setFeil('To segmenter overlapper i tid — flytt eller kort inn det ene')
+        return
       }
     }
     setLagrer(true)
     setFeil(null)
     const input = {
-      vinduer: data.rader
-        .filter(r => vinduer.has(r.id) || fjernet.has(r.id))
-        .map(r => {
-          const v = fjernet.has(r.id) ? null : vinduer.get(r.id) ?? null
-          return { activityId: r.id, startSek: v?.startSek ?? null, varighetSek: v?.varighetSek ?? null }
-        })
-        .filter(v => {
-          const opprinnelig = data.rader.find(r => r.id === v.activityId)!
-          return v.startSek !== opprinnelig.window_start_seconds
-            || v.varighetSek !== opprinnelig.window_duration_seconds
-        }),
-      rekkefolge: rekkefolgeEndret ? rekkefolge : null,
+      vinduer: [],
+      rekkefolge: null,
       laktat: data.laktat
         .filter(l => (laktatSek.get(l.id) ?? null) !== l.sekunder)
         .map(l => ({ id: l.id, sekunder: laktatSek.get(l.id) ?? null })),
@@ -163,8 +193,24 @@ export function LeggTilDetaljerPopup({
         .map(n => ({ id: n.id, minutter: ernaeringMin.get(n.id) ?? null })),
     }
     const res = await lagreLeggTilDetaljer(workoutId, input)
+    if (!res.ok) { setLagrer(false); setFeil(res.error); return }
+    // Tidslinja lagres etter punktene: den kan opprette og slette rader,
+    // og skal ikke kunne etterlate punkter uten sin rad.
+    const tid = await lagreTidslinje(
+      workoutId,
+      [...utkast].sort((a, b) => a.startSek - b.startSek).map((u, i) => ({
+        dbId: u.dbId,
+        activityType: u.type,
+        bevegelsesform: u.bevegelsesform || null,
+        navn: u.navn || null,
+        startSek: u.startSek,
+        varighetSek: u.varighetSek,
+        sortOrder: i,
+      })),
+      slettede,
+    )
     setLagrer(false)
-    if (!res.ok) { setFeil(res.error); return }
+    if (!tid.ok) { setFeil(tid.error); return }
     onLagret()
     onClose()
   }
@@ -191,9 +237,22 @@ export function LeggTilDetaljerPopup({
           {/* Fasit: «Plott treff» ligger synlig HER når økta har skyting —
               man plasserer skytingene i tid og fører treffene uten å lukke.
               Samme komponent som fra knapperaden (regel 11). */}
+          {angreStabel.length > 0 && (
+            <button type="button" onClick={angre}
+              className="ml-auto"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+                letterSpacing: '0.1em', fontSize: 12, textTransform: 'uppercase',
+                color: 'var(--tekst-1-app)', background: 'none',
+                border: '1.5px solid var(--line2)', borderRadius: 999,
+                padding: '6px 14px', cursor: 'pointer', minHeight: 34, marginRight: 8,
+              }}>
+              ↶ Angre
+            </button>
+          )}
           {skytingRader.length > 0 && (
             <button type="button" onClick={() => setVisPlottTreff(true)}
-              className="ml-auto mr-2"
+              className={angreStabel.length > 0 ? 'mr-2' : 'ml-auto mr-2'}
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                 letterSpacing: '0.1em', fontSize: 12, textTransform: 'uppercase',
@@ -251,6 +310,14 @@ export function LeggTilDetaljerPopup({
               })()}
               <KurveMedVinduer
                 workoutId={workoutId}
+                utkast={utkast}
+                valgtSegment={valgtSegment}
+                palettAktiv={palettType != null}
+                onVelgSegment={setValgtSegment}
+                onEndreSegment={(id, patch) => endreUtkast(liste =>
+                  liste.map(u => u.id === id ? { ...u, ...patch } : u))}
+                onGrense={flyttGrense}
+                onLeggInn={leggInnSegment}
                 hr={data.hr}
                 fart={data.fart}
                 watt={data.watt}
@@ -258,89 +325,91 @@ export function LeggTilDetaljerPopup({
                 kurve={kurve}
                 sport={data.sport}
                 totalSek={totalSek}
-                rader={data.rader}
-                vinduer={vinduer}
-                fjernet={fjernet}
                 laktat={data.laktat}
                 ernaering={data.ernaering}
                 laktatSek={laktatSek}
                 ernaeringMin={ernaeringMin}
-                aktivtVindu={aktivtVindu}
-                harRunder={data.harRunder}
-                onVindu={(id, v) => { setVinduer(m => new Map(m).set(id, v)); setAktivtVindu(id) }}
                 onLaktat={(id, sek) => setLaktatSek(m => new Map(m).set(id, sek))}
                 onErnaering={(id, min) => setErnaeringMin(m => new Map(m).set(id, min))}
               />
 
-              {/* ── Skyting / vinduer ── */}
-              {data.harRunder ? (
-                <Hint>
-                  Økta har runder fra klokka — skytevinduene er låst til rundene.
-                  Vil du markere en skyting: omdøp runden i redigering, den har tid og puls.
-                </Hint>
-              ) : skytingRader.length === 0 ? (
-                <Hint>
-                  Ingen skyting-rader å plassere. Legg til skyting i redigeringen først —
-                  så kan den settes inn på kurven her.
-                </Hint>
-              ) : (
-                <div className="space-y-2">
-                  <Overskrift>Plasser i tid</Overskrift>
-                  {/* Radene og kurven er ÉN visning av samme data (V9.4):
-                      drag på kurven oppdaterer raden live, og tids-feltene i
-                      raden flytter vinduet på kurven. Ingen «lagre og se». */}
-                  {skytingRader.map(r => {
-                    const v = fjernet.has(r.id) ? null : vinduer.get(r.id) ?? null
-                    const typeLabel = finnEtikett(r)
-                    const puls = v ? pulsIVindu(data.hr, v.startSek, v.startSek + v.varighetSek) : null
+              {/* ── TIDSLINJA (LTD-A) ──
+                  Den gamle avgrensningen «kun økter uten runder» er
+                  OPPHEVET: alle typer kan plasseres og redigeres i tid,
+                  også når klokka har levert runder. */}
+              <Verktoypalett
+                sport={(data.sport ?? null) as Sport | null}
+                userHasBiathlon={data.rader.some(r => (r.activity_type ?? '').startsWith('skyting')) || data.sport === 'biathlon'}
+                valgtType={palettType}
+                onVelg={setPalettType}
+              />
+
+              {valgtUtkast && (
+                <SegmentHandlinger
+                  valgt={valgtUtkast}
+                  alle={utkast}
+                  userHasBiathlon={data.sport === 'biathlon'}
+                  sport={(data.sport ?? null) as Sport | null}
+                  onDel={() => endreUtkast(liste => {
+                    const u = liste.find(x => x.id === valgtUtkast.id)
+                    if (!u || u.varighetSek < 10) return liste
+                    const halv = Math.round(u.varighetSek / 2)
+                    const nytt: Utkast = {
+                      ...u, id: `ny-${crypto.randomUUID()}`, dbId: null,
+                      startSek: u.startSek + halv, varighetSek: u.varighetSek - halv,
+                      navn: '', skytetidSek: null,
+                    }
+                    return liste.map(x => x.id === u.id ? { ...x, varighetSek: halv } : x).concat(nytt)
+                  })}
+                  onSlaaSammen={naboEtter ? () => endreUtkast(liste => {
+                    const u = liste.find(x => x.id === valgtUtkast.id)!
+                    const n = liste.find(x => x.id === naboEtter.id)!
+                    if (n.dbId) setSlettede(s2 => [...s2, n.dbId!])
+                    return liste
+                      .filter(x => x.id !== n.id)
+                      .map(x => x.id === u.id
+                        ? { ...x, varighetSek: (n.startSek + n.varighetSek) - u.startSek }
+                        : x)
+                  }) : null}
+                  onNavn={navn => endreUtkast(liste => liste.map(x => x.id === valgtUtkast.id ? { ...x, navn } : x))}
+                  onType={t => endreUtkast(liste => liste.map(x => x.id === valgtUtkast.id ? { ...x, type: t } : x))}
+                  onSlett={() => endreUtkast(liste => {
+                    if (valgtUtkast.dbId) setSlettede(s2 => [...s2, valgtUtkast.dbId!])
+                    setValgtSegment(null)
+                    return liste.filter(x => x.id !== valgtUtkast.id)
+                  })}
+                />
+              )}
+
+              {/* ── AKTIVITETSRADENE — oppdateres mens du drar ──
+                  Radene og kurven er ÉN visning av samme data: drar man et
+                  segment, endres raden i samme øyeblikk, og klikker man en
+                  rad velges segmentet på kurven. */}
+              {utkast.length > 0 && (
+                <div className="space-y-1">
+                  <Overskrift>Aktivitetsradene — oppdateres mens du drar</Overskrift>
+                  {[...utkast].sort((a, b) => a.startSek - b.startSek).map(u => {
+                    const valgt = valgtSegment === u.id
+                    const farge = SEGMENT_FARGER[segmentTypeFor(u.type, u.bevegelsesform)]
+                    const puls = pulsIVindu(data.hr, u.startSek, u.startSek + u.varighetSek)
                     return (
-                      <div key={r.id} className="flex items-center gap-x-3 gap-y-1 flex-wrap"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-5-app)' }}>
-                        <span style={{ minWidth: 130 }}>{typeLabel}</span>
-                        {v ? (
-                          <>
-                            <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>
-                              plassert {fmtKlokkeSek(v.startSek)}–{fmtKlokkeSek(v.startSek + v.varighetSek)} ⌚
-                            </b>
-                            {puls?.snitt != null && (
-                              <span style={{ fontSize: 12.5 }}>snitt {puls.snitt}</span>
-                            )}
-                            <span style={{ fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>start</span>
-                            <TidInput sek={v.startSek}
-                              onSek={sek => {
-                                const start = Math.max(0, Math.min(totalSek - v.varighetSek, sek))
-                                setVinduer(m => new Map(m).set(r.id, { startSek: start, varighetSek: v.varighetSek }))
-                                setAktivtVindu(r.id)
-                              }} />
-                            <span style={{ fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>varighet</span>
-                            <TidInput sek={v.varighetSek}
-                              onSek={sek => {
-                                const varighet = Math.max(MIN_VINDU_SEK, Math.min(totalSek - v.startSek, sek))
-                                setVinduer(m => new Map(m).set(r.id, { startSek: v.startSek, varighetSek: varighet }))
-                                setAktivtVindu(r.id)
-                              }} />
-                            <span style={{ fontSize: 12.5, color: 'var(--tekst-8-alt)', flexBasis: '100%' }}>
-                              {r.skytetidSek != null
-                                ? `ført skytetid ${fmtKlokkeSek(r.skytetidSek)} — teller i statistikken`
-                                : 'kun puls-markering — utenfor skytetid-statistikk'}
-                            </span>
-                            <button type="button" className="xp-pill xp-pill-ghost"
-                              style={{ padding: '4px 10px', fontSize: 12 }}
-                              onClick={() => {
-                                setFjernet(s => new Set(s).add(r.id))
-                                if (aktivtVindu === r.id) setAktivtVindu(null)
-                              }}>
-                              Fjern
-                            </button>
-                          </>
-                        ) : (
-                          <button type="button" className="xp-pill xp-pill-ghost"
-                            style={{ padding: '4px 12px', fontSize: 12 }}
-                            onClick={() => plasserVindu(r)}>
-                            Plasser på kurven
-                          </button>
+                      <button key={u.id} type="button"
+                        onClick={() => setValgtSegment(valgt ? null : u.id)}
+                        className="w-full flex items-center gap-3 flex-wrap text-left"
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
+                          color: 'var(--tekst-5-app)', background: valgt ? 'var(--flate-12-alt)' : 'none',
+                          border: `1px solid ${valgt ? farge : 'var(--kant-3)'}`,
+                          borderLeft: `3px solid ${farge}`,
+                          borderRadius: 8, padding: '8px 10px', minHeight: 40, cursor: 'pointer',
+                        }}>
+                        <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600 }}>{etikettFor(u, utkast)}</b>
+                        <span>{fmtKlokkeSek(u.startSek)}–{fmtKlokkeSek(u.startSek + u.varighetSek)} ⌚</span>
+                        <span style={{ color: 'var(--tekst-8-alt)' }}>{fmtKlokkeSek(u.varighetSek)}</span>
+                        {puls.snitt != null && (
+                          <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>snitt {puls.snitt}</span>
                         )}
-                      </div>
+                      </button>
                     )
                   })}
                 </div>
@@ -381,44 +450,11 @@ export function LeggTilDetaljerPopup({
                 </div>
               )}
 
-              {/* ── Rekkefølge ── */}
-              {data.rader.length > 1 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Overskrift>Rekkefølge</Overskrift>
-                    {[...vinduer.entries()].some(([id]) => !fjernet.has(id)) && (
-                      <button type="button" className="xp-pill xp-pill-ghost"
-                        style={{ padding: '4px 12px', fontSize: 12 }}
-                        onClick={() => {
-                          // FORSLAG fra tidsplasseringen (V9.4): sorter på
-                          // vindus-start; rader uten vindu beholder rekkefølgen
-                          // seg imellom. Fortsatt ren visning — kan overstyres.
-                          const startFor = (id: string) =>
-                            !fjernet.has(id) && vinduer.has(id) ? vinduer.get(id)!.startSek : null
-                          const ny = [...rekkefolge].sort((a, b) => {
-                            const sa = startFor(a), sb = startFor(b)
-                            if (sa == null && sb == null) return rekkefolge.indexOf(a) - rekkefolge.indexOf(b)
-                            if (sa == null) return 1
-                            if (sb == null) return -1
-                            return sa - sb
-                          })
-                          setRekkefolge(ny)
-                          setRekkefolgeEndret(true)
-                        }}>
-                        Sortér etter tid
-                      </button>
-                    )}
-                  </div>
-                  <RekkefolgeListe
-                    rader={data.rader}
-                    rekkefolge={rekkefolge}
-                    onEndre={ny => { setRekkefolge(ny); setRekkefolgeEndret(true) }}
-                  />
-                  <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
-                    Rekkefølgen styrer bare visningen — aldri tidene.
-                  </p>
-                </div>
-              )}
+              {/* Rekkefølgen (sort_order) følger nå TIDEN: hvert segment har
+                  en eksplisitt plassering, så en manuell rekkefølge ville
+                  kunne motsi tidslinja — og to skrivere av samme kolonne kan
+                  ikke begge ha rett. Den gamle drag-lista er derfor fjernet;
+                  lagringen sorterer på starttid. */}
             </>
           )}
 
@@ -484,20 +520,32 @@ export function LeggTilDetaljerPopup({
 
 const KURVE_HOYDE = 190
 
+// Samme fargefasit som økt-grafen (design/xpulse-oktgraf-design.html):
+// puls #E23A5A · tempo/fart #28A86E · watt #E8B93C. Da motoren ble delt,
+// måtte fargene bli det også — to ulike puls-farger for samme kurve er
+// nettopp den slags avvik regel 11 finnes for.
 export const KURVE_FARGER = {
-  puls: '#FF4500',
-  fart: '#3DD68C',
-  watt: '#FFB300',
+  puls: '#E23A5A',
+  fart: '#28A86E',
+  watt: '#E8B93C',
 } as const
 
 type KurveValg = keyof typeof KURVE_FARGER
 
 function KurveMedVinduer({
-  workoutId, hr, fart, watt, hoyde, kurve, sport, totalSek, rader, vinduer, fjernet,
+  workoutId, utkast, valgtSegment, palettAktiv, onVelgSegment, onEndreSegment, onGrense, onLeggInn,
+  hr, fart, watt, hoyde, kurve, sport, totalSek,
   laktat, ernaering, laktatSek, ernaeringMin,
-  aktivtVindu, harRunder, onVindu, onLaktat, onErnaering,
+  onLaktat, onErnaering,
 }: {
   workoutId: string
+  utkast: Utkast[]
+  valgtSegment: string | null
+  palettAktiv: boolean
+  onVelgSegment: (id: string | null) => void
+  onEndreSegment: (id: string, patch: { startSek?: number; varighetSek?: number }) => void
+  onGrense: (venstreId: string, hoyreId: string, sek: number) => void
+  onLeggInn: (sek: number) => void
   hr: Array<{ t: number; hr: number }>
   fart: Array<{ t: number; mps: number }>
   watt: Array<{ t: number; w: number }>
@@ -505,26 +553,15 @@ function KurveMedVinduer({
   kurve: KurveValg
   sport: string | null
   totalSek: number
-  rader: DetaljerRad[]
-  vinduer: Map<string, VinduLokal>
-  fjernet: Set<string>
   laktat: Array<{ id: string; mmol: number }>
   ernaering: Array<{ id: string; type: string }>
   laktatSek: Map<string, number | null>
   ernaeringMin: Map<string, number | null>
-  aktivtVindu: string | null
-  harRunder: boolean
-  onVindu: (id: string, v: VinduLokal) => void
   onLaktat: (id: string, sek: number) => void
   onErnaering: (id: string, min: number) => void
 }) {
   const boks = useRef<HTMLDivElement | null>(null)
-  const drag = useRef<
-    | { slag: 'flytt'; id: string; grepSek: number }
-    | { slag: 'venstre' | 'hoyre'; id: string }
-    | { slag: 'laktat' | 'ernaering'; id: string }
-    | null
-  >(null)
+  const drag = useRef<{ slag: 'laktat' | 'ernaering'; id: string } | null>(null)
 
   // LTD tegner IKKE lenger sin egen kurve — den bruker OktKurve, samme
   // motor som økt-grafen (regel 11/21: den håndtegnede SVG-en her var
@@ -559,6 +596,8 @@ function KurveMedVinduer({
 
   const sekFraAndelRef = useRef<(a: number) => number>(a => a * totalSek)
 
+  // Drag av PUNKTER (laktat/ernæring). Segmentene håndteres av
+  // SegmentLag — de har sine egne håndtak og grensehåndtak.
   const paaFlytt = (e: React.PointerEvent) => {
     const d = drag.current
     if (!d) return
@@ -568,26 +607,8 @@ function KurveMedVinduer({
     const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
     const sek = Math.round(sekFraAndelRef.current(andel))
     if (d.slag === 'laktat') { onLaktat(d.id, sek); return }
-    if (d.slag === 'ernaering') { onErnaering(d.id, Math.round(sek / 60)); return }
-    const v = vinduer.get(d.id)
-    if (!v) return
-    if (d.slag === 'flytt') {
-      const start = Math.max(0, Math.min(totalSek - v.varighetSek, sek - d.grepSek))
-      onVindu(d.id, { startSek: start, varighetSek: v.varighetSek })
-    } else if (d.slag === 'venstre') {
-      const nyStart = Math.max(0, Math.min(v.startSek + v.varighetSek - MIN_VINDU_SEK, sek))
-      onVindu(d.id, { startSek: nyStart, varighetSek: v.startSek + v.varighetSek - nyStart })
-    } else {
-      const nySlutt = Math.min(totalSek, Math.max(v.startSek + MIN_VINDU_SEK, sek))
-      onVindu(d.id, { startSek: v.startSek, varighetSek: nySlutt - v.startSek })
-    }
+    if (d.slag === 'ernaering') { onErnaering(d.id, Math.round(sek / 60)) }
   }
-
-  const aktivt = aktivtVindu != null && !fjernet.has(aktivtVindu) ? vinduer.get(aktivtVindu) : null
-  const aktivPuls = aktivt ? pulsIVindu(hr, aktivt.startSek, aktivt.startSek + aktivt.varighetSek) : null
-  const aktivFart = aktivt
-    ? snittIVindu(fart.map(p => ({ t: p.t, v: p.mps })), aktivt.startSek, aktivt.startSek + aktivt.varighetSek)
-    : null
 
   return (
     <div>
@@ -598,6 +619,7 @@ function KurveMedVinduer({
         totalSek={totalSek}
         hoyde={KURVE_HOYDE}
         vindu={vindu ?? undefined}
+        onKlikk={sek => { if (palettAktiv) onLeggInn(sek) }}
         onVindu={v => {
           const heleOkta = v[0] <= 0.5 && v[1] >= totalSek - 0.5
           setVindu(heleOkta ? null : v)
@@ -612,62 +634,17 @@ function KurveMedVinduer({
         onPointerMove={paaFlytt}
         onPointerUp={() => { drag.current = null }}
         onPointerLeave={() => { drag.current = null }}
-        style={{ position: 'absolute', inset: 0 }}>
-        {/* Vinduer (kun økter uten runder — ellers tegnes de i lesevisningen). */}
-        {!harRunder && rader.map(r => {
-          const v = fjernet.has(r.id) ? null : vinduer.get(r.id)
-          if (!v) return null
-          const farge = vinduFarge(r)
-          const erAktivt = aktivtVindu === r.id
-          return (
-            <div key={r.id}
-              style={{
-                position: 'absolute', top: 4, bottom: 4,
-                left: pct(v.startSek), width: pct(v.varighetSek),
-                background: `${farge}24`, border: `1.5px solid ${farge}`,
-                borderRadius: 8, cursor: 'grab',
-                boxShadow: erAktivt ? `0 0 0 2px ${farge}55` : 'none',
-              }}
-              onPointerDown={e => {
-                e.currentTarget.setPointerCapture?.(e.pointerId)
-                drag.current = { slag: 'flytt', id: r.id, grepSek: (() => {
-                  const el = boks.current
-                  if (!el) return 0
-                  const r = el.getBoundingClientRect()
-                  const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
-                  return Math.round(sekFraAndelRef.current(andel)) - v.startSek
-                })() }
-              }}>
-              <span style={{
-                position: 'absolute', top: 3, left: 6, fontSize: 10, letterSpacing: '0.08em',
-                fontFamily: "'Barlow Condensed', sans-serif", color: farge, textTransform: 'uppercase',
-                whiteSpace: 'nowrap', pointerEvents: 'none',
-              }}>
-                {finnEtikett(r)}
-              </span>
-              {/* Håndtak — ≥36px treffflate, plassert HELT utenfor vinduet så
-                  smale vinduer (kort skytetid) fortsatt kan flyttes med grep
-                  i selve kroppen. Stripen ligger inntil kanten. */}
-              {(['venstre', 'hoyre'] as const).map(side => (
-                <div key={side}
-                  onPointerDown={e => {
-                    e.stopPropagation()
-                    e.currentTarget.setPointerCapture?.(e.pointerId)
-                    drag.current = { slag: side, id: r.id }
-                  }}
-                  style={{
-                    position: 'absolute', top: 0, bottom: 0, width: 36,
-                    [side === 'venstre' ? 'left' : 'right']: -36,
-                    cursor: 'ew-resize', display: 'flex', alignItems: 'center',
-                    justifyContent: side === 'venstre' ? 'flex-end' : 'flex-start',
-                  }}>
-                  <span style={{ width: 5, height: 26, borderRadius: 3, background: farge }} />
-                </div>
-              ))}
-            </div>
-          )
-        })}
-
+        style={{ position: 'absolute', inset: 0, cursor: palettAktiv ? 'copy' : undefined }}>
+        <SegmentLag
+          palettAktiv={palettAktiv}
+          utkast={utkast}
+          valgtId={valgtSegment}
+          h={h}
+          totalSek={totalSek}
+          onVelg={onVelgSegment}
+          onEndre={onEndreSegment}
+          onGrense={onGrense}
+        />
         {/* Punkter: draggbare prikker PÅ kurven. */}
         {laktat.map(l => {
           const sek = laktatSek.get(l.id) ?? null
@@ -713,17 +690,33 @@ function KurveMedVinduer({
       />
 
 
-      {/* Live-leser for aktivt vindu: puls OG fart samtidig (V9.4). */}
-      {aktivt && (
-        <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-5-app)' }}>
-          Vindu <b>{fmtKlokkeSek(aktivt.startSek)}–{fmtKlokkeSek(aktivt.startSek + aktivt.varighetSek)}</b>
-          {' · '}varighet <b>{fmtKlokkeSek(aktivt.varighetSek)}</b>
-          {aktivPuls?.snitt != null
-            ? <>{' · puls snitt '}<b>{aktivPuls.snitt}</b>{aktivPuls.inn != null ? <>{' · inn '}<b>{aktivPuls.inn}</b></> : null}</>
-            : <>{' · puls: for lite data'}</>}
-          {aktivFart != null && <>{' · fart '}<b>{fmtFartVerdi(aktivFart, sport)}</b></>}
-        </p>
-      )}
+      {/* Live-leser for VALGT SEGMENT: puls og fart samtidig. */}
+      {(() => {
+        const v = utkast.find(u => u.id === valgtSegment)
+        if (!v) return null
+        const puls = pulsIVindu(hr, v.startSek, v.startSek + v.varighetSek)
+        const snittFart = snittIVindu(
+          fart.map(p2 => ({ t: p2.t, v: p2.mps })), v.startSek, v.startSek + v.varighetSek,
+        )
+        return (
+          <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, color: 'var(--tekst-5-app)' }}>
+            <b>{etikettFor(v, utkast)}</b>
+            {' '}{fmtKlokkeSek(v.startSek)}–{fmtKlokkeSek(v.startSek + v.varighetSek)}
+            {' · varighet '}<b>{fmtKlokkeSek(v.varighetSek)}</b>
+            {puls.snitt != null
+              ? <>{' · puls snitt '}<b>{puls.snitt}</b>{puls.inn != null ? <>{' · inn '}<b>{puls.inn}</b></> : null}</>
+              : <>{' · puls: for lite data'}</>}
+            {snittFart != null && <>{' · fart '}<b>{fmtFartVerdi(snittFart, sport)}</b></>}
+            {v.type.startsWith('skyting') && (
+              <span style={{ color: 'var(--tekst-8-alt)' }}>
+                {' · '}{v.skytetidSek != null
+                  ? `ført skytetid ${fmtKlokkeSek(v.skytetidSek)} — teller i statistikken`
+                  : 'kun puls-markering — utenfor skytetid-statistikk'}
+              </span>
+            )}
+          </p>
+        )
+      })()}
     </div>
   )
 }
@@ -748,86 +741,12 @@ function fmtFartVerdi(mps: number, sport: string | null): string {
   return `${m}:${String(sek).padStart(2, '0')}/km`
 }
 
-// ── Rekkefølge (pointer-basert vertikal dra — virker på touch) ──
-
-function RekkefolgeListe({
-  rader, rekkefolge, onEndre,
-}: {
-  rader: DetaljerRad[]
-  rekkefolge: string[]
-  onEndre: (ny: string[]) => void
-}) {
-  const [drasId, setDrasId] = useState<string | null>(null)
-  const radHoyde = 44
-
-  const flyttTil = (fraId: string, clientY: number, liste: HTMLElement) => {
-    const r = liste.getBoundingClientRect()
-    const idx = Math.max(0, Math.min(rekkefolge.length - 1, Math.floor((clientY - r.top) / radHoyde)))
-    const fraIdx = rekkefolge.indexOf(fraId)
-    if (fraIdx === idx || fraIdx < 0) return
-    const ny = [...rekkefolge]
-    ny.splice(fraIdx, 1)
-    ny.splice(idx, 0, fraId)
-    onEndre(ny)
-  }
-
-  const raderIOrden = rekkefolge
-    .map(id => rader.find(r => r.id === id))
-    .filter((r): r is DetaljerRad => !!r)
-
-  return (
-    <div
-      onPointerMove={e => { if (drasId) flyttTil(drasId, e.clientY, e.currentTarget) }}
-      onPointerUp={() => setDrasId(null)}
-      onPointerLeave={() => setDrasId(null)}
-      style={{ touchAction: drasId ? 'none' : 'auto' }}>
-      {raderIOrden.map(r => (
-        <div key={r.id}
-          className="flex items-center gap-3"
-          style={{
-            height: radHoyde - 4, marginBottom: 4, padding: '0 10px',
-            background: drasId === r.id ? 'rgba(255,69,0,.08)' : 'var(--flate-12-alt)',
-            border: `1px solid ${drasId === r.id ? 'var(--accent)' : 'var(--kant-3)'}`,
-            borderRadius: 8,
-            fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-5-app)',
-          }}>
-          <span
-            onPointerDown={e => {
-              e.currentTarget.setPointerCapture?.(e.pointerId)
-              setDrasId(r.id)
-            }}
-            style={{ cursor: 'grab', color: 'var(--tekst-8-alt)', fontSize: 16, padding: '8px 6px', touchAction: 'none' }}>
-            ⣿
-          </span>
-          <span style={{ color: 'var(--tekst-1-app)' }}>{finnEtikett(r)}</span>
-          {r.duration_seconds != null && r.duration_seconds > 0 && (
-            <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)', fontSize: 13 }}>
-              {fmtKlokkeSek(r.duration_seconds)}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
 // ── Småting ──────────────────────────────────────────────────
 
 function Overskrift({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs tracking-widest uppercase"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
-      {children}
-    </p>
-  )
-}
-
-function Hint({ children }: { children: React.ReactNode }) {
-  return (
-    <p style={{
-      fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, lineHeight: 1.5,
-      color: 'var(--tekst-8-alt)', border: '1px dashed var(--kant-3)', borderRadius: 8, padding: '10px 12px',
-    }}>
       {children}
     </p>
   )
@@ -866,56 +785,3 @@ function PunktRad({
   )
 }
 
-// Redigerbart tidsfelt (mm:ss eller t:mm:ss) — den andre veien i
-// live-synkroniseringen: raden flytter markøren på kurven.
-function TidInput({ sek, onSek }: { sek: number; onSek: (sek: number) => void }) {
-  const [tekst, setTekst] = useState<string | null>(null)
-  const bruk = () => {
-    if (tekst == null) return
-    const deler = tekst.trim().split(':').map(Number)
-    if (deler.length >= 2 && deler.every(d => Number.isFinite(d) && d >= 0)) {
-      const nySek = deler.length === 3
-        ? deler[0] * 3600 + deler[1] * 60 + deler[2]
-        : deler[0] * 60 + deler[1]
-      onSek(nySek)
-    }
-    setTekst(null)
-  }
-  return (
-    <input type="text" inputMode="numeric"
-      value={tekst ?? fmtKlokkeSek(sek)}
-      onFocus={e => { setTekst(fmtKlokkeSek(sek)); e.currentTarget.select() }}
-      onChange={e => setTekst(e.target.value)}
-      onBlur={bruk}
-      onKeyDown={e => { if (e.key === 'Enter') { bruk(); e.currentTarget.blur() } }}
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5,
-        width: 62, textAlign: 'center', minHeight: 32,
-        color: 'var(--tekst-1-app)', background: 'var(--flate-12-alt)',
-        border: '1px solid var(--kant-3)', borderRadius: 6,
-      }} />
-  )
-}
-
-function vinduFarge(r: DetaljerRad): string {
-  const ps = r.prone_shots ?? 0, ss = r.standing_shots ?? 0
-  if (ps > 0 && ss === 0) return SEGMENT_FARGER.skyting_ligg
-  if (ss > 0 && ps === 0) return SEGMENT_FARGER.skyting_staa
-  if (r.activity_type === 'skyting_liggende') return SEGMENT_FARGER.skyting_ligg
-  if (r.activity_type === 'skyting_staaende') return SEGMENT_FARGER.skyting_staa
-  return SEGMENT_FARGER.skyting_annet
-}
-
-function finnEtikett(r: DetaljerRad): string {
-  const type = findActivityType((r.activity_type ?? '') as ActivityType)
-  const base = type?.label ?? (r.activity_type || 'Aktivitet')
-  if ((r.activity_type ?? '').startsWith('skyting')) {
-    const ps = r.prone_shots ?? 0, ss = r.standing_shots ?? 0
-    if (ps > 0 && ss === 0) return `Skyting · ligg ${r.prone_hits ?? 0}/${ps}`
-    if (ss > 0 && ps === 0) return `Skyting · stå ${r.standing_hits ?? 0}/${ss}`
-    if (ps > 0 && ss > 0) return `Skyting L ${r.prone_hits ?? 0}/${ps} · S ${r.standing_hits ?? 0}/${ss}`
-    return base
-  }
-  if (r.activity_type === 'aktivitet' && r.movement_name) return r.movement_name
-  return base
-}

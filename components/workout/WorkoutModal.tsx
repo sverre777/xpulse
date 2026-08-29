@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { glemVindu } from '@/lib/kurve-zoom'
 import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
 import { listEquipmentWithUsage, getWorkoutEquipmentSelection } from '@/app/actions/equipment'
 import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
@@ -60,11 +61,20 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // skjemaet med de GAMLE radene — og neste lagring skrevet dem tilbake
   // (skjemaets draft lastes bare når modalen åpnes). Bumpes ved skriving.
   const [reloadTick, setReloadTick] = useState(0)
+  const forrigeWorkoutId = useRef<string | null>(null)
 
   useEffect(() => {
     setShowEditForm(false)
     setAutoMark(false)
-    if (!state) { setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); setEquipLoading(false); return }
+    if (!state) {
+      // Zoom-nivået er ren visningstilstand per økt (lib/kurve-zoom).
+      // Blir det liggende etter at modalen er lukket, viser neste åpning
+      // av samme økt et vindu fra en annen tilstand — derfor ryddes det her.
+      if (forrigeWorkoutId.current) glemVindu(forrigeWorkoutId.current)
+      forrigeWorkoutId.current = null
+      setDefaults(null); setEquipment([]); setEquipmentIds([]); setActivityEquipment({}); setEquipLoading(false); return
+    }
+    if (state.kind === 'edit') forrigeWorkoutId.current = state.workoutId
     if (state.kind === 'create') {
       setDefaults({
         date: state.date,

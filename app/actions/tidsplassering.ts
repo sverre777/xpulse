@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { kanFlislegge, type SegmentRad } from '@/lib/segmenter'
+import { kanFlislegge, beregnSegmenter, type SegmentRad } from '@/lib/segmenter'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upens data + lagring.
 //
@@ -33,6 +33,12 @@ export interface DetaljerRad {
   standing_hits: number | null
   /** Sum ført skytetid (workout_shooting_series.time_seconds) — porten. */
   skytetidSek: number | null
+  /** Segmentets eget navn (workout_activities.lap_notes — der klokkas
+      rundenavn hører hjemme; målt tomt i alle 1 000 prod-rader). */
+  navn: string | null
+  /** Plassering i tid, beregnet med lib/segmenter (runde ELLER vindu). */
+  startSek: number | null
+  sluttSek: number | null
 }
 
 export interface DetaljerLaktat {
@@ -74,7 +80,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     supabase.from('workout_samples').select('hr_samples, pace_samples, speed_samples, watt_samples, altitude_samples, created_at')
       .eq('workout_id', workoutId).order('created_at', { ascending: false }).limit(1),
     supabase.from('workout_activities')
-      .select('id, activity_type, movement_name, duration_seconds, sort_order, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, workout_shooting_series(time_seconds)')
+      .select('id, activity_type, movement_name, duration_seconds, sort_order, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, lap_notes, workout_shooting_series(time_seconds)')
       .eq('workout_id', workoutId).order('sort_order', { ascending: true }),
     supabase.from('workout_lactate_measurements')
       .select('id, mmol, measured_at_time')
@@ -97,9 +103,16 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     watt.length > 0 ? watt[watt.length - 1].t : 0,
   )
 
+  // Plassering i tid via SAMME kjerne som segmentbåndet (regel 11).
+  const segmenter = totalSek > 0
+    ? beregnSegmenter((raderRes.data ?? []).map(a => tilSegmentRad(a)), totalSek)
+    : []
+  const plassering = new Map(segmenter.map(sg => [sg.aktivitetId, sg]))
+
   const rader: DetaljerRad[] = (raderRes.data ?? []).map(a => {
     const serier = (a.workout_shooting_series ?? []) as Array<{ time_seconds: number | null }>
     const skytetid = serier.reduce((sum, s) => sum + (s.time_seconds ?? 0), 0)
+    const sg = plassering.get(a.id)
     return {
       id: a.id,
       activity_type: a.activity_type,
@@ -113,6 +126,9 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
       standing_shots: a.standing_shots,
       standing_hits: a.standing_hits,
       skytetidSek: skytetid > 0 ? skytetid : null,
+      navn: (a.lap_notes as string | null) ?? null,
+      startSek: sg?.startSek ?? null,
+      sluttSek: sg?.sluttSek ?? null,
     }
   })
 
@@ -304,4 +320,88 @@ function sekTilKlokkeslett(sek: number): string {
   const s = ((Math.round(sek) % 86400) + 86400) % 86400
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
+}
+
+// ── Tidslinje-redigering (LTD-A) ─────────────────────────────
+// Hele tidslinja lagres i én operasjon: nye segmenter settes inn,
+// endrede oppdateres, slettede fjernes. Etter redigering har HVERT
+// segment en eksplisitt plassering (window_start/-duration) — tidslinja
+// er da data, ikke noe som utledes av rekkefølge og varighet.
+//
+// duration_seconds følger vindulengden for alt UNNTATT skyting, der
+// skytetiden er statistikk-porten og ikke skal endres av at man drar
+// vinduet (fasiten).
+
+export interface TidslinjeSegment {
+  /** db-id for eksisterende rad, null for nytt segment. */
+  dbId: string | null
+  activityType: string
+  /** movement_name — bevegelsesform der typen har en. */
+  bevegelsesform: string | null
+  /** lap_notes — segmentets eget navn (tomt = avledet etikett). */
+  navn: string | null
+  startSek: number
+  varighetSek: number
+  sortOrder: number
+}
+
+export async function lagreTidslinje(
+  workoutId: string,
+  segmenter: TidslinjeSegment[],
+  slettedeIds: string[],
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Ikke innlogget' }
+
+  const { data: workout } = await supabase.from('workouts')
+    .select('id').eq('id', workoutId).maybeSingle()
+  if (!workout) return { ok: false, error: 'Fant ikke økta' }
+
+  // Overlapp valideres på det ferdige settet — samme regel som klienten,
+  // men mot det som faktisk skal lagres (to faner / trener + utøver).
+  const sortert = [...segmenter].sort((a, b) => a.startSek - b.startSek)
+  for (let i = 1; i < sortert.length; i++) {
+    const forrige = sortert[i - 1]
+    if (sortert[i].startSek < forrige.startSek + forrige.varighetSek - 0.5) {
+      return { ok: false, error: 'To segmenter overlapper i tid — flytt eller kort inn det ene' }
+    }
+  }
+  for (const s of segmenter) {
+    if (s.varighetSek < 1) return { ok: false, error: 'Et segment må vare minst ett sekund' }
+    if (s.startSek < 0) return { ok: false, error: 'Et segment kan ikke starte før økta' }
+  }
+
+  if (slettedeIds.length > 0) {
+    const { error } = await supabase.from('workout_activities')
+      .delete().in('id', slettedeIds).eq('workout_id', workoutId)
+    if (error) return { ok: false, error: `Kunne ikke slette segment: ${error.message}` }
+  }
+
+  for (const s of segmenter) {
+    const erSkyting = s.activityType.startsWith('skyting')
+    const felter = {
+      activity_type: s.activityType,
+      movement_name: s.bevegelsesform || null,
+      lap_notes: s.navn || null,
+      window_start_seconds: Math.round(s.startSek),
+      window_duration_seconds: Math.round(s.varighetSek),
+      sort_order: s.sortOrder,
+      // Skyting: varigheten er skytetid-statistikk og røres ikke av drag.
+      ...(erSkyting ? {} : { duration_seconds: Math.round(s.varighetSek) }),
+    }
+    if (s.dbId) {
+      const { error, count } = await supabase.from('workout_activities')
+        .update(felter, { count: 'exact' })
+        .eq('id', s.dbId).eq('workout_id', workoutId)
+      if (error) return { ok: false, error: `Kunne ikke lagre segmentet: ${error.message}` }
+      if (!count) return { ok: false, error: 'Et segment ble ikke lagret — mangler du redigeringsrett?' }
+    } else {
+      const { error } = await supabase.from('workout_activities')
+        .insert({ workout_id: workoutId, ...felter, duration_seconds: Math.round(s.varighetSek) })
+      if (error) return { ok: false, error: `Kunne ikke legge til segmentet: ${error.message}` }
+    }
+  }
+
+  return { ok: true }
 }

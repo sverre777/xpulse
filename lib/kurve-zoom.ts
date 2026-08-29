@@ -15,3 +15,13 @@ export function lagreVindu(workoutId: string, vindu: [number, number]): void {
 export function hentVindu(workoutId: string): [number, number] | null {
   return vinduPerOkt.get(workoutId) ?? null
 }
+
+/**
+ * Rydder zoom-nivået for en økt. Kalles når øktmodalen lukkes: en
+ * modul-lagret verdi som blir liggende ville vist feil vindu neste gang
+ * samme økt åpnes i en annen tilstand (f.eks. etter at segmentene er
+ * endret, eller fra en annen flate).
+ */
+export function glemVindu(workoutId: string): void {
+  vinduPerOkt.delete(workoutId)
+}

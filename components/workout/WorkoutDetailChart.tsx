@@ -1,17 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ReferenceLine, ReferenceDot, ReferenceArea,
-} from 'recharts'
 import type { Sport } from '@/lib/types'
-import {
-  XpTooltip, CHART_GRID, CHART_GRID_ZERO, CHART_AXIS_TICK, CHART_LEGEND_STYLE,
-} from '@/components/analysis/chart-theme'
 import {
   SEGMENT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu, type Segment,
 } from '@/lib/segmenter'
+import { OktKurve, type KurveSerie } from './OktKurve'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -62,47 +56,71 @@ interface Props {
   lactate?: LactateMarker[]
   nutrition?: NutritionMarker[]
   shooting?: ShootingMarker[]
-  // «Legg til detaljer» bolk 2: segmentbånd (1c) + skytevinduer på kurven
-  // (1b). Ren visning — beregnet i workout-klokkesync fra radene.
   segmenter?: Segment[]
   height?: number
 }
 
-// Hovedgraf for klokkesync-detaljer. Kombinerer puls/watt/pace/cadence/altitude
-// på én tidsakse, med markører for laps, laktat, ernæring og skyting.
+// Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
 //
-// Skjuler automatisk linjer som ikke gir mening for sporten:
-// - Watt skjules for langrenn/skiskyting/løping (uvanlig med power-meter)
-// - Pace vises som tempo for løping/langrenn, som hastighet for sykling
-// - Skytemarkører kun for skiskyting
+// TO FEIL SOM ER RETTET HER:
+//  (a) DOBBEL Y-AKSE (0–160 venstre, 0–600 høyre) brøt konvensjonen og
+//      fikk kurver til å se ut som de krysset hverandre. Nå eier ÉN
+//      fokus-serie aksen; øvrige påslåtte serier tegnes dempet som
+//      formkontekst uten egen akse.
+//  (b) ANNOTERINGENE HANG PÅ PULS-SERIEN — skrudde man av puls forsvant
+//      skytingen. Skyting, segmenter, punkter og runder er merker på
+//      TIDSLINJA og har nå egne av/på-brytere som overlever at puls (og
+//      alle andre serier) er av. Puls brukes bare til å REGNE snittpuls.
 //
-// Brukeren kan toggle linjer av/på via legend.
+// Tegnemotoren er OktKurve (delt SVG) — se den fila for hvorfor, og for
+// nedsamplingen som er innebygd fra første versjon.
 export function WorkoutDetailChart({
   sport, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
-  height = 360,
+  height = 300,
 }: Props) {
-  // Beregn relevante linjer basert på sport + samples-tilgjengelighet.
-  const visibility = computeVisibility(sport, samples)
+  const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
+  const forsteId = serier[0]?.id ?? null
 
-  // Aktiv av/på-toggle per linje (init = visibility default).
-  const [active, setActive] = useState<Record<string, boolean>>({
-    hr: visibility.hr,
-    watt: visibility.watt,
-    pace: visibility.pace,
-    cadence: visibility.cadence,
-    altitude: visibility.altitude,
-  })
+  // Påslåtte serier + hvem som eier aksen. Klikk på en av-chip slår den
+  // PÅ og gir den fokus; klikk på fokus-chipen slår serien AV.
+  const [paaIds, setPaaIds] = useState<string[]>(() => serier.slice(0, 1).map(s => s.id))
+  const [fokusId, setFokusId] = useState<string | null>(forsteId)
+  // Annoteringene (fasitens «PÅ GRAFEN»-gruppe) — uavhengige av seriene.
+  const [visSkyting, setVisSkyting] = useState(true)
+  const [visSegmenter, setVisSegmenter] = useState(true)
+  const [visPunkter, setVisPunkter] = useState(true)
+  const [visRunder, setVisRunder] = useState(true)
+  const [valgtSegment, setValgtSegment] = useState<string | null>(null)
 
-  // Valgt segment/punktmarkør i båndet — hover ELLER klikk/tapp (touch).
-  const [valgt, setValgt] = useState<string | null>(null)
+  const totalSek = useMemo(() => {
+    let maks = 0
+    for (const s of serier) {
+      const sist = s.punkter[s.punkter.length - 1]
+      if (sist && sist.t > maks) maks = sist.t
+    }
+    return maks
+  }, [serier])
 
-  // Slå sammen alle samples til én tidsserie for chart-en.
-  const merged = useMemo(() => mergeSamples(samples), [samples])
+  const velgSerie = (id: string) => {
+    const paa = paaIds.includes(id)
+    if (paa && fokusId === id) {
+      setPaaIds(paaIds.filter(x => x !== id))
+      const neste = paaIds.filter(x => x !== id).find(x => !serier.find(s => s.id === x)?.somAreal) ?? null
+      setFokusId(neste)
+      return
+    }
+    if (!paa) setPaaIds([...paaIds, id])
+    const s = serier.find(x => x.id === id)
+    if (!s?.somAreal) setFokusId(id)     // høyde er kontekst, aldri fokus
+  }
 
-  // Hvis det ikke finnes noen samples, vis tom-tilstand.
-  const hasAnyData = merged.length > 0
-  if (!hasAnyData) {
+  const fokus = serier.find(s => s.id === fokusId) ?? null
+  const skytevinduer = segmenter.filter(sg => sg.paaKurven)
+  const harPunkter = lactate.length > 0 || nutrition.length > 0
+  const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
+
+  if (serier.length === 0) {
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
         <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)', fontSize: '14px' }}>
@@ -113,290 +131,243 @@ export function WorkoutDetailChart({
     )
   }
 
-  const totalSeconds = merged[merged.length - 1]?.t ?? 0
-  const xTicks = computeXTicks(totalSeconds)
-
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
-      <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
+      <div className="mb-3 flex items-start justify-between gap-3 flex-wrap">
         <p className="text-xs tracking-widest uppercase"
           style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
           Økt-graf
         </p>
-        <div className="flex gap-1.5 flex-wrap">
-          {visibility.hr && (
-            <ToggleChip color="#FF4500" label="Puls" on={active.hr}
-              onClick={() => setActive(s => ({ ...s, hr: !s.hr }))} />
-          )}
-          {visibility.watt && (
-            <ToggleChip color="#FFB300" label="Watt" on={active.watt}
-              onClick={() => setActive(s => ({ ...s, watt: !s.watt }))} />
-          )}
-          {visibility.pace && (
-            <ToggleChip color="#3DD68C" label={paceLabel(sport)} on={active.pace}
-              onClick={() => setActive(s => ({ ...s, pace: !s.pace }))} />
-          )}
-          {visibility.cadence && (
-            <ToggleChip color="#7AA2FF" label="Kadens" on={active.cadence}
-              onClick={() => setActive(s => ({ ...s, cadence: !s.cadence }))} />
-          )}
-          {visibility.altitude && (
-            <ToggleChip color="var(--tekst-5-app)" label="Høyde" on={active.altitude}
-              onClick={() => setActive(s => ({ ...s, altitude: !s.altitude }))} />
+        <div className="flex gap-4 flex-wrap">
+          {/* DATA — seriene. Serie uten data får ingen chip (aldri en død knapp). */}
+          <Gruppe navn="Data">
+            {serier.map(s => (
+              <Chip key={s.id} farge={s.farge} etikett={s.navn}
+                paa={paaIds.includes(s.id)}
+                fokus={fokusId === s.id && !s.somAreal}
+                onClick={() => velgSerie(s.id)} />
+            ))}
+          </Gruppe>
+          {/* PÅ GRAFEN — annoteringer på tidslinja, uavhengig av seriene. */}
+          {(harSkyting || segmenter.length > 0 || harPunkter || laps.length > 1) && (
+            <Gruppe navn="På grafen">
+              {harSkyting && (
+                <Chip farge="#38BDF8" etikett="Skyting" paa={visSkyting} fokus={false}
+                  onClick={() => setVisSkyting(v => !v)} />
+              )}
+              {segmenter.length > 0 && (
+                <Chip farge={SEGMENT_FARGER.drag} etikett="Segmenter" paa={visSegmenter} fokus={false}
+                  onClick={() => setVisSegmenter(v => !v)} />
+              )}
+              {harPunkter && (
+                <Chip farge="#E23A5A" etikett="Laktat/ernæring" paa={visPunkter} fokus={false}
+                  onClick={() => setVisPunkter(v => !v)} />
+              )}
+              {laps.length > 1 && (
+                <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
+                  onClick={() => setVisRunder(v => !v)} />
+              )}
+            </Gruppe>
           )}
         </div>
       </div>
 
-      <div style={{ width: '100%', height }}>
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <LineChart data={merged} margin={{ top: 10, right: 28, bottom: 4, left: -8 }}>
-            <CartesianGrid stroke={CHART_GRID} vertical={false} />
-            <XAxis
-              dataKey="t"
-              type="number"
-              domain={[0, totalSeconds]}
-              ticks={xTicks}
-              tickFormatter={fmtTime}
-              tick={CHART_AXIS_TICK}
-              stroke={CHART_GRID_ZERO}
-            />
-            {/* Venstre y-akse: puls + cadence (begge i samme bpm/spm-range). */}
-            <YAxis
-              yAxisId="left"
-              tick={CHART_AXIS_TICK}
-              stroke={CHART_GRID_ZERO}
-              width={36}
-            />
-            {/* Høyre y-akse: watt eller m/s afhengig av synlighet. */}
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={CHART_AXIS_TICK}
-              stroke={CHART_GRID_ZERO}
-              width={42}
-            />
-            <Tooltip
-              content={<XpTooltip />}
-              labelFormatter={(v) => `Tid: ${fmtTime(Number(v))}`}
-              formatter={(value, name) => formatTooltipValue(value, String(name), sport)}
-            />
-            <Legend
-              wrapperStyle={CHART_LEGEND_STYLE}
-            />
-
-            {/* Skytevinduer på kurven (fasit 1b) — låst til rundens
-                grenser, eller manuelt plassert (fase 113-kolonnene).
-                Etikett m/ treff i toppen av vinduet. */}
-            {segmenter.filter(sg => sg.paaKurven).map(sg => (
-              <ReferenceArea
-                key={`vindu-${sg.aktivitetId}`}
-                yAxisId="left"
-                x1={sg.startSek}
-                x2={sg.sluttSek}
-                fill={SEGMENT_FARGER[sg.type]}
-                fillOpacity={0.14}
-                stroke={SEGMENT_FARGER[sg.type]}
-                strokeOpacity={0.9}
-                ifOverflow="visible"
-                label={{
-                  value: `${sg.etikett.toUpperCase()}${sg.treff ? ` ${sg.treff}` : ''}`,
-                  position: 'insideTop',
-                  fill: SEGMENT_FARGER[sg.type],
-                  fontSize: 10,
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                }}
-              />
+      <OktKurve
+        serier={serier}
+        paaIds={paaIds}
+        fokusId={fokusId}
+        totalSek={totalSek}
+        hoyde={height}
+        overlay={h => (
+          <>
+            {/* Rundegrenser */}
+            {visRunder && laps.map((lap, i) => i === 0 ? null : (
+              <span key={`lap-${i}`} aria-hidden style={{
+                position: 'absolute', left: h.pct(lap.t_start), top: 0, bottom: 22,
+                width: 1, background: 'var(--tekst-10-alt)', opacity: 0.55,
+                borderLeft: '1px dashed var(--tekst-10-alt)',
+              }} />
             ))}
+            {/* Skytevinduer — egne merker på tidslinja, uavhengig av puls. */}
+            {visSkyting && skytevinduer.map(sg => (
+              <span key={`v-${sg.aktivitetId}`}
+                title={`${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''} · ${fmtKlokkeSek(sg.startSek)}–${fmtKlokkeSek(sg.sluttSek)}`}
+                style={{
+                  position: 'absolute', left: h.pct(sg.startSek),
+                  width: `calc(${h.pct(sg.sluttSek - sg.startSek + h.fraSek)} - 0px)`,
+                  minWidth: 6, top: 4, bottom: 26,
+                  background: `${SEGMENT_FARGER[sg.type]}24`,
+                  border: `1.5px solid ${SEGMENT_FARGER[sg.type]}`,
+                  borderRadius: 6, pointerEvents: 'none',
+                }}>
+                <span style={{
+                  position: 'absolute', top: 2, left: 4, whiteSpace: 'nowrap',
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10,
+                  letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: SEGMENT_FARGER[sg.type],
+                }}>
+                  {sg.etikett}{sg.treff ? ` ${sg.treff}` : ''}
+                </span>
+              </span>
+            ))}
+            {/* Punktmarkører (pekelinje og kollisjonshåndtering kommer i bolk 5). */}
+            {visPunkter && lactate.map((lac, i) => (
+              <span key={`lac-${i}`} title={`Laktat ${lac.mmol} mmol · ${fmtKlokkeSek(lac.t)}`}
+                style={{
+                  position: 'absolute', left: h.pct(lac.t), top: fokus ? h.yPctForSerie(fokus.id, lac.t) : '20%',
+                  transform: 'translate(-50%, -50%)', width: 9, height: 9, borderRadius: '50%',
+                  background: '#E23A5A', border: '1.5px solid var(--flate-3)',
+                }} />
+            ))}
+            {visPunkter && nutrition.map((n, i) => (
+              <span key={`nut-${i}`} title={`Ernæring — ${n.type} · ${fmtKlokkeSek(n.t)}`}
+                style={{
+                  position: 'absolute', left: h.pct(n.t), top: fokus ? h.yPctForSerie(fokus.id, n.t) : '20%',
+                  transform: 'translate(-50%, -50%) rotate(45deg)', width: 8, height: 8,
+                  background: '#FFB300', border: '1.5px solid var(--flate-3)',
+                }} />
+            ))}
+          </>
+        )}
+      />
 
-            {/* Lap-grenser: vertikale stiplete linjer på venstre y-akse. */}
-            {laps.map((lap, i) =>
-              i === 0 ? null : (
-                <ReferenceLine
-                  key={`lap-${i}`}
-                  yAxisId="left"
-                  x={lap.t_start}
-                  stroke="var(--tekst-10-alt)"
-                  strokeDasharray="2 4"
-                />
-              )
-            )}
+      {/* Tallene skal finnes UTEN å treffe kurven (krysshåret kommer i
+          bolk 2): fokus-seriens spenn for økta står alltid i tekst her. */}
+      {fokus && (() => {
+        const v = fokus.punkter.map(p => p.v)
+        if (v.length === 0) return null
+        const snitt = v.reduce((a, b) => a + b, 0) / v.length
+        return (
+          <p className="mt-1" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-5-app)' }}>
+            <b style={{ color: fokus.farge }}>{fokus.navn}</b>
+            {' · snitt '}<b>{fokus.format(snitt)}</b>
+            {' · maks '}<b>{fokus.format(Math.max(...v))}</b>
+            {' · lavest '}<b>{fokus.format(Math.min(...v))}</b>
+          </p>
+        )
+      })()}
 
-            {/* Laktat-markører: rød prikk på venstre y-akse, plassert på pulslinjen. */}
-            {active.hr && lactate.map((lac, i) => {
-              const hrAt = findValueAt(samples.hr_samples, lac.t)
-              if (hrAt == null) return null
-              return (
-                <ReferenceDot
-                  key={`lac-${i}`}
-                  x={lac.t}
-                  y={hrAt}
-                  yAxisId="left"
-                  r={5}
-                  fill="#E23A5A"
-                  stroke="var(--flate-3)"
-                  strokeWidth={1.5}
-                  ifOverflow="visible"
-                />
-              )
-            })}
-
-            {/* Ernærings-markører: gul/oransje på pulslinjen om HR finnes, ellers øverst. */}
-            {nutrition.map((n, i) => {
-              const hrAt = active.hr ? findValueAt(samples.hr_samples, n.t) : null
-              return (
-                <ReferenceDot
-                  key={`nut-${i}`}
-                  x={n.t}
-                  y={hrAt ?? 0}
-                  yAxisId="left"
-                  r={4}
-                  fill="#FFB300"
-                  stroke="var(--flate-3)"
-                  strokeWidth={1.5}
-                  ifOverflow="visible"
-                />
-              )
-            })}
-
-            {/* Skyte-markører — grønn for treff, rødere for bom. */}
-            {sport === 'biathlon' && shooting.map((s, i) => {
-              const hrAt = active.hr ? findValueAt(samples.hr_samples, s.t) : null
-              const allHits = s.hits === s.shots && s.shots > 0
-              return (
-                <ReferenceDot
-                  key={`sht-${i}`}
-                  x={s.t}
-                  y={hrAt ?? 0}
-                  yAxisId="left"
-                  r={5}
-                  fill={allHits ? '#3DD68C' : '#FF4500'}
-                  stroke="var(--flate-3)"
-                  strokeWidth={1.5}
-                  ifOverflow="visible"
-                />
-              )
-            })}
-
-            {visibility.altitude && active.altitude && (
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="alt"
-                name="Høyde (m)"
-                stroke="var(--tekst-5-app)"
-                strokeWidth={1}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-            {visibility.cadence && active.cadence && (
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="cad"
-                name="Kadens"
-                stroke="#7AA2FF"
-                strokeWidth={1}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-            {visibility.watt && active.watt && (
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="w"
-                name="Watt"
-                stroke="#FFB300"
-                strokeWidth={1.4}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-            {visibility.pace && active.pace && (
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="mps"
-                name={paceLabel(sport)}
-                stroke="#3DD68C"
-                strokeWidth={1.4}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-            {visibility.hr && active.hr && (
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="hr"
-                name="Puls"
-                stroke="#FF4500"
-                strokeWidth={1.6}
-                dot={false}
-                isAnimationActive={false}
-              />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {segmenter.length > 0 && totalSeconds > 0 && (
+      {visSegmenter && segmenter.length > 0 && totalSek > 0 && (
         <SegmentBaand
           segmenter={segmenter}
-          totalSek={totalSeconds}
-          lactate={lactate}
-          nutrition={nutrition}
+          totalSek={totalSek}
+          lactate={visPunkter ? lactate : []}
+          nutrition={visPunkter ? nutrition : []}
           hr={samples.hr_samples}
           speed={samples.pace_samples ?? samples.speed_samples}
           sport={sport}
-          valgt={valgt}
-          onVelg={setValgt}
+          valgt={valgtSegment}
+          onVelg={setValgtSegment}
         />
       )}
 
       <MarkerLegend
-        hasLactate={lactate.length > 0}
-        hasNutrition={nutrition.length > 0}
-        hasShooting={sport === 'biathlon' && shooting.length > 0}
-        hasLaps={laps.length > 1}
+        hasLactate={visPunkter && lactate.length > 0}
+        hasNutrition={visPunkter && nutrition.length > 0}
+        hasShooting={visSkyting && sport === 'biathlon' && shooting.length > 0}
+        hasLaps={visRunder && laps.length > 1}
       />
     </div>
   )
 }
 
-// ── Helpers ──────────────────────────────────────────────────
+// ── Serie-modellen ───────────────────────────────────────────
+// Sport-reglene er de samme som før: watt skjules der det sjelden er
+// meningsfylt, og tempo vises som hastighet for sykling/triatlon.
+function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
+  const ut: KurveSerie[] = []
+  const wattRelevant = sport === 'cycling' || sport === 'triathlon' ||
+    sport === 'long_distance_skiing' || sport === 'cross_country_skiing' ||
+    sport === 'biathlon' || sport === 'running'
 
-function ToggleChip({
-  color, label, on, onClick,
-}: {
-  color: string; label: string; on: boolean; onClick: () => void
+  if (s.hr_samples?.length) {
+    ut.push({
+      id: 'hr', navn: 'Puls', farge: '#E23A5A',
+      punkter: s.hr_samples.map(p => ({ t: p.t, v: p.hr })),
+      format: v => `${Math.round(v)}`,
+    })
+  }
+  if (s.watt_samples?.length && wattRelevant) {
+    ut.push({
+      id: 'watt', navn: 'Watt', farge: '#E8B93C',
+      punkter: s.watt_samples.map(p => ({ t: p.t, v: p.w })),
+      format: v => `${Math.round(v)}`,
+    })
+  }
+  const fart = s.pace_samples ?? s.speed_samples
+  if (fart?.length) {
+    const kmt = sport === 'cycling' || sport === 'triathlon'
+    ut.push({
+      id: 'fart', navn: kmt ? 'Hastighet' : 'Tempo', farge: '#28A86E',
+      punkter: fart.map(p => ({ t: p.t, v: p.mps })),
+      format: v => {
+        if (kmt) return `${(v * 3.6).toFixed(1)}`
+        if (v <= 0.1) return '—'
+        const sek = 1000 / v
+        return `${Math.floor(sek / 60)}:${String(Math.round(sek % 60)).padStart(2, '0')}`
+      },
+    })
+  }
+  if (s.cadence_samples?.length) {
+    ut.push({
+      id: 'kadens', navn: 'Kadens', farge: '#1A6FD4',
+      punkter: s.cadence_samples.map(p => ({ t: p.t, v: p.cad })),
+      format: v => `${Math.round(v)}`,
+    })
+  }
+  if (s.altitude_samples?.length) {
+    ut.push({
+      id: 'hoyde', navn: 'Høyde', farge: 'var(--tekst-5-app)',
+      punkter: s.altitude_samples.map(p => ({ t: p.t, v: p.alt })),
+      format: v => `${Math.round(v)}`,
+      somAreal: true,
+    })
+  }
+  return ut
+}
+
+function Gruppe({ navn, children }: { navn: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span style={{
+        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.16em',
+        textTransform: 'uppercase', color: 'var(--tekst-8-alt)', marginRight: 2,
+      }}>
+        {navn}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+function Chip({ farge, etikett, paa, fokus, onClick }: {
+  farge: string; etikett: string; paa: boolean; fokus: boolean; onClick: () => void
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <button type="button" onClick={onClick}
+      aria-pressed={paa}
+      title={fokus ? `${etikett} — eier y-aksen` : paa ? `${etikett} — klikk for fokus` : `${etikett} — av`}
       className="text-xs tracking-widest uppercase"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
-        background: 'none',
-        border: `1px solid ${on ? color : 'var(--kant-3)'}`,
-        color: on ? color : 'var(--tekst-8-app)',
-        padding: '4px 10px',
-        cursor: 'pointer',
-        opacity: on ? 1 : 0.6,
-      }}
-    >
+        border: `1px solid ${paa ? farge : 'var(--kant-3)'}`,
+        // Fokus-chipen har lys ramme (fasiten) — den eier aksen.
+        boxShadow: fokus ? '0 0 0 1.5px var(--tekst-1-app)' : 'none',
+        color: paa ? farge : 'var(--tekst-8-app)',
+        background: 'none', padding: '5px 10px', minHeight: 36, cursor: 'pointer',
+        opacity: paa ? 1 : 0.6, borderRadius: 999,
+      }}>
       <span style={{
         display: 'inline-block', width: 8, height: 8, marginRight: 6,
-        backgroundColor: on ? color : 'transparent',
-        border: `1px solid ${color}`,
+        backgroundColor: paa ? farge : 'transparent', border: `1px solid ${farge}`,
         verticalAlign: 'middle',
       }} />
-      {label}
+      {etikett}
     </button>
   )
 }
+
+// ── Helpers ──────────────────────────────────────────────────
 
 function MarkerLegend({
   hasLactate, hasNutrition, hasShooting, hasLaps,
@@ -415,115 +386,6 @@ function MarkerLegend({
   )
 }
 
-function computeVisibility(sport: Sport, s: WorkoutSamples) {
-  const has = {
-    hr: !!s.hr_samples?.length,
-    watt: !!s.watt_samples?.length,
-    pace: !!(s.pace_samples?.length || s.speed_samples?.length),
-    cadence: !!s.cadence_samples?.length,
-    altitude: !!s.altitude_samples?.length,
-  }
-  // Sport-spesifikt: skjul watt for sporter der det sjelden er meningsfylt
-  // selv om streamen finnes (f.eks. løping uten power-meter).
-  const wattRelevant = sport === 'cycling' || sport === 'triathlon' ||
-                       sport === 'long_distance_skiing' || sport === 'cross_country_skiing' ||
-                       sport === 'biathlon' || sport === 'running'
-  return {
-    hr: has.hr,
-    watt: has.watt && wattRelevant,
-    pace: has.pace,
-    cadence: has.cadence,
-    altitude: has.altitude,
-  }
-}
-
-function paceLabel(sport: Sport): string {
-  if (sport === 'cycling' || sport === 'triathlon') return 'Hastighet'
-  return 'Tempo'
-}
-
-function formatTooltipValue(value: unknown, name: string, sport: Sport): [string, string] {
-  if (typeof value !== 'number') return [String(value), name]
-  if (name === 'Puls') return [`${Math.round(value)} bpm`, name]
-  if (name === 'Watt') return [`${Math.round(value)} W`, name]
-  if (name === 'Kadens') return [`${Math.round(value)}`, name]
-  if (name === 'Høyde (m)') return [`${Math.round(value)} m`, name]
-  if (name === 'Tempo' || name === 'Hastighet') {
-    if (sport === 'cycling' || sport === 'triathlon') {
-      return [`${(value * 3.6).toFixed(1)} km/t`, name]
-    }
-    // m/s → min/km. value=0 → uendelig pace; vis "—".
-    if (value <= 0.1) return ['—', name]
-    const secPerKm = 1000 / value
-    const m = Math.floor(secPerKm / 60)
-    const s = Math.round(secPerKm % 60)
-    return [`${m}:${String(s).padStart(2,'0')}/km`, name]
-  }
-  return [String(value), name]
-}
-
-function fmtTime(sec: number): string {
-  if (!Number.isFinite(sec)) return ''
-  const h = Math.floor(sec / 3600)
-  const m = Math.floor((sec % 3600) / 60)
-  const s = Math.floor(sec % 60)
-  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-  return `${m}:${String(s).padStart(2,'0')}`
-}
-
-function computeXTicks(total: number): number[] {
-  if (total <= 0) return [0]
-  // Mål: 6-8 ticks. Velg interval som ~ total/7, rundet til pent tall.
-  const step = niceStep(total / 7)
-  const ticks: number[] = []
-  for (let t = 0; t <= total; t += step) ticks.push(t)
-  if (ticks[ticks.length - 1] !== total) ticks.push(total)
-  return ticks
-}
-
-function niceStep(x: number): number {
-  const candidates = [30, 60, 120, 300, 600, 900, 1800, 3600, 7200]
-  for (const c of candidates) {
-    if (x <= c) return c
-  }
-  return Math.ceil(x / 3600) * 3600
-}
-
-// Slår sammen alle samples til éne array m/{t, hr?, w?, mps?, cad?, alt?}.
-// t-er kommer ofte tett (per-sekund) — vi kvantiserer til samme akse for at
-// alle linjer skal ha lik X.
-function mergeSamples(s: WorkoutSamples): Array<{
-  t: number
-  hr?: number; w?: number; mps?: number; cad?: number; alt?: number
-}> {
-  const map = new Map<number, {
-    t: number; hr?: number; w?: number; mps?: number; cad?: number; alt?: number
-  }>()
-  const speedArr = s.pace_samples ?? s.speed_samples
-  const add = <K extends 'hr' | 'w' | 'mps' | 'cad' | 'alt'>(
-    arr: Array<{ t: number } & Record<K, number>> | null | undefined,
-    key: K,
-  ) => {
-    if (!arr) return
-    for (const r of arr) {
-      const existing = map.get(r.t)
-      if (existing) {
-        existing[key] = r[key]
-      } else {
-        map.set(r.t, { t: r.t, [key]: r[key] } as ReturnType<typeof map.get> & { t: number })
-      }
-    }
-  }
-  add(s.hr_samples ?? null, 'hr')
-  add(s.watt_samples ?? null, 'w')
-  add(speedArr ?? null, 'mps')
-  add(s.cadence_samples ?? null, 'cad')
-  add(s.altitude_samples ?? null, 'alt')
-  return Array.from(map.values()).sort((a, b) => a.t - b.t)
-}
-
-// Finn nærmeste hr-verdi for en gitt t. Brukes for å plassere markører på
-// pulslinjen heller enn å feste seg helt nederst i grafen.
 function findValueAt(arr: HrSample[] | null, t: number): number | null {
   if (!arr || arr.length === 0) return null
   // Binærsøk er ikke verdt det her (≤ tusenvis av punkter, og dette skjer
@@ -543,11 +405,10 @@ function findValueAt(arr: HrSample[] | null, t: number): number | null {
 // et segment eller punkt gir leser-linja under (tid · varighet · snittpuls ·
 // treff). Skytevinduer får i tillegg faste leser-rader (fasit 1b).
 //
-// Innrykkene speiler plot-området i recharts over: venstre = margin.left
-// (-8) + y-aksebredde 36 = 28px, høyre = margin.right 28 + 42 = 70px.
-// Endres marginene/aksebreddene i LineChart, må disse følge med.
-const BAAND_INNRYKK_VENSTRE = 28
-const BAAND_INNRYKK_HOYRE = 70
+// Den nye kurven tegner i full bredde (ingen akse-marg — y-etikettene
+// ligger oppå flata), så båndet står rett under kurven uten innrykk.
+const BAAND_INNRYKK_VENSTRE = 0
+const BAAND_INNRYKK_HOYRE = 0
 
 function SegmentBaand({
   segmenter, totalSek, lactate, nutrition, hr, speed, sport, valgt, onVelg,

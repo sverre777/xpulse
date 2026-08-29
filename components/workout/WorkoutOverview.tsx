@@ -93,7 +93,7 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
   )
 }
 
-export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId }: {
+export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId, onDataEndret }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
   canEdit: boolean
@@ -107,6 +107,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   status?: 'completed' | 'planned'
   onMarkCompleted?: () => void
   onStartLive?: () => void
+  // Pop-upene her skriver rett til basen — modalen må hente øktdataene på
+  // nytt, ellers åpner «✎ Rediger» skjemaet med foreldet draft og neste
+  // lagring skriver tilbake de gamle radene/seriene.
+  onDataEndret?: () => void
 }) {
   const isPlannedView = status === 'planned'
   // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
@@ -1078,7 +1082,8 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         <LeggTilDetaljerPopup
           workoutId={workoutId}
           onClose={() => setVisDetaljer(false)}
-          onLagret={() => setDetaljerTick(t => t + 1)}
+          onLagret={() => { setDetaljerTick(t => t + 1); onDataEndret?.() }}
+          onSerierLagret={() => { setDetaljerTick(t => t + 1); onDataEndret?.() }}
         />
       )}
     </div>

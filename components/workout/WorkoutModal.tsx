@@ -55,6 +55,11 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
   const [showEditForm, setShowEditForm] = useState(false)
   const [autoMark, setAutoMark] = useState(false)
+  // Pop-upene i øktvisningen («Legg til detaljer», «Plott treff») skriver
+  // rett til basen. Uten en re-henting ville «✎ Rediger» etterpå åpnet
+  // skjemaet med de GAMLE radene — og neste lagring skrevet dem tilbake
+  // (skjemaets draft lastes bare når modalen åpnes). Bumpes ved skriving.
+  const [reloadTick, setReloadTick] = useState(0)
 
   useEffect(() => {
     setShowEditForm(false)
@@ -95,7 +100,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
     } else {
       setEquipLoading(false)
     }
-  }, [state, targetUserId])
+  }, [state, targetUserId, reloadTick])
 
   useEffect(() => {
     if (!state) return
@@ -223,6 +228,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
                 utvalget som prop og oppdaterer seg selv når det lander. */}
             <WorkoutOverview
               data={defaults}
+              onDataEndret={() => setReloadTick(t => t + 1)}
               onEdit={() => setShowEditForm(true)}
               canEdit={!readOnly}
               equipment={equipment}

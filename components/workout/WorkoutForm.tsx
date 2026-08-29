@@ -1548,7 +1548,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
         <ActivitiesSection
           targetUserId={targetUserId}
-          erKlokkesynket={!!workoutId && !!(defaultValues?.imported_from ?? defaultValues?.merged_source)}
           onLeggTilDetaljer={workoutId ? () => setVisDetaljerPopup(true) : undefined}
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}

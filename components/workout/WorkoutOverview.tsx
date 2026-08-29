@@ -157,7 +157,10 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
   // «Legg til detaljer» KUN på klokkesynkede økter (fasit-avgrensningen) —
   // manuelle økter uten kurve får ikke inngangen.
-  const kanLeggeTilDetaljer = !isPlannedView && canEdit && !!workoutId && harKlokkeRader
+  // Øktbyggeren står ALLTID der man kan redigere — lerretet skifter etter
+  // hva økta har (plan → blokker, klokke → kurve). Fasiten: knappen er
+  // ikke betinget av klokkesynk lenger.
+  const kanLeggeTilDetaljer = canEdit && !!workoutId
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
   const trainingLikes: ActivityLike[] = []

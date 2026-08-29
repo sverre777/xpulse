@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { kanFlislegge, beregnSegmenter, type SegmentRad } from '@/lib/segmenter'
+import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import type { HeartZone } from '@/lib/heart-zones'
 
 // «Legg til detaljer» (fase 113, bolk 3): pop-upens data + lagring.
 //
@@ -66,6 +68,12 @@ export interface DetaljerErnaering {
 export interface LeggTilDetaljerData {
   totalSek: number
   harRunder: boolean
+  /** Lerret A: økta er planlagt og ikke gjennomført ennå. */
+  erPlanlagt: boolean
+  /** Lerret C: klokka har levert en kurve å plassere på. */
+  harKurve: boolean
+  /** Brukerens pulssoner — lerret B utleder blokkens sone av FØRT puls. */
+  heartZones: HeartZone[]
   sport: string | null
   hr: Array<{ t: number; hr: number }>
   /** Fart (pace_samples ?? speed_samples — samme prioritet som økt-grafen). */
@@ -83,8 +91,8 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const [workoutRes, samplesRes, raderRes, laktatRes, ernaeringRes] = await Promise.all([
-    supabase.from('workouts').select('id, time_of_day, sport').eq('id', workoutId).maybeSingle(),
+  const [workoutRes, samplesRes, raderRes, laktatRes, ernaeringRes, heartZones] = await Promise.all([
+    supabase.from('workouts').select('id, time_of_day, sport, is_planned, is_completed').eq('id', workoutId).maybeSingle(),
     supabase.from('workout_samples').select('hr_samples, pace_samples, speed_samples, watt_samples, altitude_samples, created_at')
       .eq('workout_id', workoutId).order('created_at', { ascending: false }).limit(1),
     supabase.from('workout_activities')
@@ -96,6 +104,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     supabase.from('workout_nutrition_entries')
       .select('id, nutrition_type, carbs_g, time_offset_minutes')
       .eq('workout_id', workoutId),
+    getHeartZonesForUserCached(user.id),
   ])
   const workout = workoutRes.data
   if (!workout) return null
@@ -105,17 +114,41 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   const fart = ((samplesRad?.pace_samples ?? samplesRad?.speed_samples) ?? []) as Array<{ t: number; mps: number }>
   const watt = (samplesRad?.watt_samples ?? []) as Array<{ t: number; w: number }>
   const hoyde = (samplesRad?.altitude_samples ?? []) as Array<{ t: number; alt: number }>
-  const totalSek = Math.max(
+  // Uten klokkekurve er øktas lengde summen av radenes varighet — det er
+  // lerret A (plan) og B (gjennomført uten klokke). Byggeren skal virke
+  // der også; kurven er bare ETT av tre lerret.
+  const fraKurve = Math.max(
     hr.length > 0 ? hr[hr.length - 1].t : 0,
     fart.length > 0 ? fart[fart.length - 1].t : 0,
     watt.length > 0 ? watt[watt.length - 1].t : 0,
   )
+  const fraRader = (raderRes.data ?? [])
+    .reduce((sum, a) => sum + (Number(a.duration_seconds) || 0), 0)
+  const totalSek = fraKurve > 0 ? fraKurve : fraRader
 
-  // Plassering i tid via SAMME kjerne som segmentbåndet (regel 11).
-  const segmenter = totalSek > 0
-    ? beregnSegmenter((raderRes.data ?? []).map(a => tilSegmentRad(a)), totalSek)
-    : []
-  const plassering = new Map(segmenter.map(sg => [sg.aktivitetId, sg]))
+  // Plassering i tid via SAMME kjerne som segmentbåndet (regel 11) — men
+  // KUN når klokka har levert en kurve. Proveniens-kravet i kanFlislegge
+  // finnes for å unngå å GJETTE en klokke-tidslinje; uten klokke er det
+  // ingenting å gjette: radene ER strukturen (lerret A og B), og de
+  // legges etter hverandre i sort_order.
+  const harKurveNaa = hr.length > 0 || fart.length > 0 || watt.length > 0
+  const plassering = new Map<string, { startSek: number; sluttSek: number }>()
+  if (harKurveNaa && totalSek > 0) {
+    for (const sg of beregnSegmenter((raderRes.data ?? []).map(a => tilSegmentRad(a)), totalSek)) {
+      plassering.set(sg.aktivitetId, { startSek: sg.startSek, sluttSek: sg.sluttSek })
+    }
+  } else {
+    let t = 0
+    for (const a of (raderRes.data ?? [])) {
+      const vindu = a.window_start_seconds != null && a.window_duration_seconds != null
+      const start = vindu ? Number(a.window_start_seconds) : t
+      const varighet = vindu
+        ? Number(a.window_duration_seconds)
+        : Math.max(1, Number(a.duration_seconds) || 0)
+      plassering.set(a.id, { startSek: start, sluttSek: start + varighet })
+      if (!vindu) t += varighet
+    }
+  }
 
   const rader: DetaljerRad[] = (raderRes.data ?? []).map(a => {
     const serier = (a.workout_shooting_series ?? []) as Array<{ time_seconds: number | null }>
@@ -168,7 +201,14 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     minutter: n.time_offset_minutes != null ? Number(n.time_offset_minutes) : null,
   }))
 
-  return { totalSek, harRunder, sport: (workout.sport as string | null) ?? null, hr, fart, watt, hoyde, rader, laktat, ernaering }
+  return {
+    totalSek, harRunder,
+    erPlanlagt: workout.is_planned === true && workout.is_completed !== true,
+    harKurve: hr.length > 0 || fart.length > 0 || watt.length > 0,
+    heartZones,
+    sport: (workout.sport as string | null) ?? null,
+    hr, fart, watt, hoyde, rader, laktat, ernaering,
+  }
 }
 
 export interface LagreDetaljerInput {
@@ -346,8 +386,8 @@ function sekTilKlokkeslett(sek: number): string {
 // skytetiden er statistikk-porten og ikke skal endres av at man drar
 // vinduet (fasiten).
 
-/** Settes til true når supabase/phase117_gruppe.sql er kjørt i prod. */
-const GRUPPE_KOLONNE_FINNES = false
+/** Fase 117 kjørt i prod 29. aug (2 585 rader · 0 med gruppe_id). */
+const GRUPPE_KOLONNE_FINNES = true
 
 export interface TidslinjeSegment {
   /** db-id for eksisterende rad, null for nytt segment. */

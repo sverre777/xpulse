@@ -69,7 +69,6 @@ function isIndoorActivityFor(name: string, subcategory: string): boolean {
 interface Props {
   // Felles knapperad (fasit): ⌚/🎯-inngangene gjelder kun dagbok — plan
   // og manuelle økter skjuler dem via betingelsene i AktivitetKnapperad.
-  erKlokkesynket?: boolean
   onLeggTilDetaljer?: () => void
   onPlottTreff?: () => void
   // Trener-redigering: sonespråket skal være UTØVERENS (fase 111).
@@ -191,7 +190,7 @@ import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, erKlokkesynket = false, onLeggTilDetaljer, onPlottTreff }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onLeggTilDetaljer, onPlottTreff }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -291,7 +290,6 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
       <AktivitetKnapperad
         isPlanMode={isPlanMode}
         harSkyting={harSkyting}
-        erKlokkesynket={erKlokkesynket}
         userHasBiathlon={userHasBiathlon}
         onPlottTreff={onPlottTreff}
         onLeggTilDetaljer={onLeggTilDetaljer}

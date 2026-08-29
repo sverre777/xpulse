@@ -7,8 +7,10 @@ import {
   type LeggTilDetaljerData,
 } from '@/app/actions/tidsplassering'
 import { SEGMENT_FARGER, fmtKlokkeSek, pulsIVindu } from '@/lib/segmenter'
+import { zoneForHeartRate } from '@/lib/heart-zones'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie } from './OktKurve'
+import { BlokkLerret } from './BlokkLerret'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
 import {
@@ -51,7 +53,7 @@ export function LeggTilDetaljerInngang({ onClick }: { onClick: () => void }) {
         border: '1px solid var(--accent)', borderRadius: 999,
         padding: '6px 14px', cursor: 'pointer', minHeight: 32,
       }}>
-      ✚ Legg til detaljer
+      ⚡ Øktbygger
     </button>
   )
 }
@@ -442,7 +444,7 @@ export function LeggTilDetaljerPopup({
         <div className="flex items-center justify-between px-5 py-4"
           style={{ borderBottom: '1px solid var(--kant-3)' }}>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: 22, letterSpacing: '0.08em' }}>
-            Legg til detaljer
+            Øktbygger
           </h2>
           {/* Fasit: «Plott treff» ligger synlig HER når økta har skyting —
               man plasserer skytingene i tid og fører treffene uten å lukke.
@@ -484,13 +486,17 @@ export function LeggTilDetaljerPopup({
               Laster kurven …
             </p>
           )}
-          {!laster && (!data || (data.hr.length === 0 && data.fart.length === 0 && data.watt.length === 0)) && (
+          {/* Den gamle sperren «trenger klokkesynkede sekund-data» er borte:
+              byggeren har tre lerret, og kurven er bare ett av dem. Eneste
+              ekte tomtilstand er en økt uten både rader og lengde — da er
+              det ingen tidslinje å bygge på ennå. */}
+          {!laster && (!data || (data.totalSek <= 0 && data.rader.length === 0)) && (
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
-              Økta mangler pulskurve — «Legg til detaljer» trenger klokkesynkede sekund-data.
+              Økta har ingen aktiviteter ennå — legg til én først, så kan den bygges i tid her.
             </p>
           )}
 
-          {data && (data.hr.length > 0 || data.fart.length > 0 || data.watt.length > 0) && (
+          {data && (data.totalSek > 0 || data.rader.length > 0) && (
             <>
               {(() => {
                 const valg = ([
@@ -530,6 +536,7 @@ export function LeggTilDetaljerPopup({
                 onLeggInn={leggInnSegment}
                 onVinduEndret={v => { sisteVindu.current = v }}
                 nyePunkter={nyePunkter}
+                erPlanlagt={data.erPlanlagt}
                 onFlyttNyttPunkt={(id, sek) => setNyePunkter(liste =>
                   liste.map(p2 => p2.id === id ? { ...p2, tSek: Math.max(0, Math.round(sek)) } : p2))}
                 hr={data.hr}
@@ -614,8 +621,22 @@ export function LeggTilDetaljerPopup({
                     kortintervall: null,
                   }}
                   maalt={maaltForSegment(valgtUtkast)}
-                  onFelt={patch => endreUtkast(liste => liste.map(x =>
-                    x.id === valgtUtkast.id ? { ...x, ...patch } : x))}
+                  onFelt={patch => endreUtkast(liste => liste.map(x => {
+                    if (x.id !== valgtUtkast.id) return x
+                    const neste = { ...x, ...patch }
+                    // LERRET B: den FØRTE pulsen bestemmer blokkens sone —
+                    // ikke planens. Sonen skrives som tid i sonen, så øktas
+                    // sonefordeling og belastningsgrafene regnes om av seg
+                    // selv (de leser samme zones-jsonb som før).
+                    if (patch.snittpuls != null && patch.sone == null) {
+                      const bpm = parseInt(patch.snittpuls)
+                      if (Number.isFinite(bpm) && bpm > 0 && data.heartZones.length > 0) {
+                        const sone = zoneForHeartRate(bpm, data.heartZones)
+                        if (sone) neste.sone = sone
+                      }
+                    }
+                    return neste
+                  }))}
                   onTid={patch => {
                     if (patch.startSek != null) settRadStart(valgtUtkast, patch.startSek)
                     if (patch.varighetSek != null) settRadVarighet(valgtUtkast, patch.varighetSek)
@@ -826,7 +847,7 @@ type KurveValg = keyof typeof KURVE_FARGER
 
 function KurveMedVinduer({
   workoutId, utkast, valgtSegment, palettAktiv, onVelgSegment, onEndreSegment, onGrense, onLeggInn,
-  onVinduEndret, nyePunkter, onFlyttNyttPunkt,
+  onVinduEndret, nyePunkter, onFlyttNyttPunkt, erPlanlagt,
   hr, fart, watt, hoyde, kurve, sport, totalSek,
   laktat, ernaering, laktatSek, ernaeringMin,
   onLaktat, onErnaering,
@@ -842,6 +863,8 @@ function KurveMedVinduer({
   onVinduEndret: (v: [number, number]) => void
   nyePunkter: { id: string; slag: 'laktat' | 'ernaering'; tSek: number; verdi: string }[]
   onFlyttNyttPunkt: (id: string, sek: number) => void
+  /** Lerret A: planlagt økt — punkter tegnes hule. */
+  erPlanlagt: boolean
   hr: Array<{ t: number; hr: number }>
   fart: Array<{ t: number; mps: number }>
   watt: Array<{ t: number; w: number }>
@@ -904,6 +927,77 @@ function KurveMedVinduer({
     const sek = Math.round(sekFraAndelRef.current(andel))
     if (d.slag === 'laktat') { onLaktat(d.id, sek); return }
     if (d.slag === 'ernaering') { onErnaering(d.id, Math.round(sek / 60)) }
+  }
+
+  // LERRETET velges av hva økta HAR, ikke av en egen modus: har klokka
+  // levert en kurve er den lerretet (C); ellers tegnes blokkene (A/B).
+  const harKurve = kurveSerier.some(k => !k.somAreal && k.punkter.length > 0)
+
+  if (!harKurve) {
+    return (
+      <div>
+        <BlokkLerret
+          totalSek={totalSek}
+          planlagt={erPlanlagt}
+          onKlikk={sek => { if (palettAktiv) onLeggInn(sek) }}
+          overlay={h => {
+            sekFraAndelRef.current = h.sekFraAndel
+            onVinduEndret([h.fraSek, h.tilSek])
+            return (
+              <div ref={boks}
+                onPointerMove={paaFlytt}
+                onPointerUp={() => { drag.current = null }}
+                onPointerLeave={() => { drag.current = null }}
+                style={{ position: 'absolute', inset: 0, cursor: palettAktiv ? 'copy' : undefined }}>
+                <SegmentLag
+                  palettAktiv={palettAktiv}
+                  utkast={utkast}
+                  valgtId={valgtSegment}
+                  h={h}
+                  totalSek={totalSek}
+                  onVelg={onVelgSegment}
+                  onEndre={onEndreSegment}
+                  onGrense={onGrense}
+                />
+                {/* Punkter — hule/stiplede i plan (fasiten), fylte ellers. */}
+                {nyePunkter.map(np => (
+                  <span key={np.id} aria-label={`${np.slag} (ny)`} style={{
+                    position: 'absolute', left: h.pct(np.tSek), top: '18%',
+                    transform: 'translate(-50%, -50%)', width: 13, height: 13,
+                    borderRadius: np.slag === 'laktat' ? '50%' : 3, background: 'transparent',
+                    border: `2px dashed ${np.slag === 'laktat' ? '#E23A5A' : '#FFB300'}`,
+                  }} />
+                ))}
+                {laktat.map(l => {
+                  const sek = laktatSek.get(l.id) ?? null
+                  if (sek == null) return null
+                  return (
+                    <span key={l.id} title={`Laktat ${l.mmol} mmol`} style={{
+                      position: 'absolute', left: h.pct(sek), top: '18%',
+                      transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%',
+                      background: erPlanlagt ? 'transparent' : '#E23A5A',
+                      border: `2px ${erPlanlagt ? 'dashed' : 'solid'} #E23A5A`,
+                    }} />
+                  )
+                })}
+                {ernaering.map(n2 => {
+                  const min = ernaeringMin.get(n2.id) ?? null
+                  if (min == null) return null
+                  return (
+                    <span key={n2.id} title={`Ernæring — ${n2.type}`} style={{
+                      position: 'absolute', left: h.pct(min * 60), top: '18%',
+                      transform: 'translate(-50%, -50%) rotate(45deg)', width: 11, height: 11,
+                      background: erPlanlagt ? 'transparent' : '#FFB300',
+                      border: `2px ${erPlanlagt ? 'dashed' : 'solid'} #FFB300`,
+                    }} />
+                  )
+                })}
+              </div>
+            )
+          }}
+        />
+      </div>
+    )
   }
 
   return (

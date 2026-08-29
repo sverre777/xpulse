@@ -4,8 +4,8 @@
 // og dagbok (regel 11). Fasit: design/xpulse-plott-treff-design.html +
 // design/xpulse-legg-til-detaljer-design.html (notatene).
 //
-// Rekkefølge (fasit): 🎯 Plott treff · ⌚ Legg til detaljer ·
-// + Legg til aktivitet · + Legg til skyting.
+// Rekkefølge (Øktbygger-fasiten): + Legg til aktivitet ·
+// 🎯 + Legg til skyting · ⚡ Øktbygger · 🎯 Plott treff.
 //
 // Betingelser — knapper SKJULES (aldri deaktiveres) når de ikke gjelder:
 //   + Legg til aktivitet  — alltid (plan og dagbok)
@@ -13,7 +13,11 @@
 //                           styrer skyting ellers: userHasBiathlon)
 //   🎯 Plott treff        — dagbok + økta har minst én skyting-rad,
 //                           uavhengig av klokkesynk. Aldri i plan.
-//   ⌚ Legg til detaljer  — dagbok + klokkesynket økt. Aldri i plan.
+//   ⚡ Øktbygger          — ALLTID. Det er LERRETET som skifter: plan
+//                           (blokker), gjennomført uten klokke (blokker
+//                           m/ ført puls), gjennomført med klokke (kurve).
+//                           Navnet er låst til «Øktbygger» — «Legg til
+//                           detaljer» og «Intervall-bygger» utgår i UI.
 // Raden rendres med sida — knappene etterlastes aldri (regel 20). At en
 // handler mangler (f.eks. før «Plott treff»-pop-upen finnes) skjuler
 // knappen ærlig i stedet for å vise en død knapp.
@@ -26,12 +30,11 @@ const PILL_BASE: React.CSSProperties = {
 }
 
 export function AktivitetKnapperad({
-  isPlanMode, harSkyting, erKlokkesynket, userHasBiathlon,
+  isPlanMode, harSkyting, userHasBiathlon,
   onPlottTreff, onLeggTilDetaljer, onLeggTilAktivitet, onLeggTilSkyting,
 }: {
   isPlanMode: boolean
   harSkyting: boolean
-  erKlokkesynket: boolean
   userHasBiathlon: boolean
   onPlottTreff?: () => void
   onLeggTilDetaljer?: () => void
@@ -39,21 +42,9 @@ export function AktivitetKnapperad({
   onLeggTilSkyting: () => void
 }) {
   const visPlottTreff = !isPlanMode && harSkyting && !!onPlottTreff
-  const visDetaljer = !isPlanMode && erKlokkesynket && !!onLeggTilDetaljer
+  const visDetaljer = !!onLeggTilDetaljer
   return (
     <div className="flex gap-2 items-center flex-wrap mb-3">
-      {visPlottTreff && (
-        <button type="button" onClick={onPlottTreff}
-          style={{ ...PILL_BASE, border: '1.5px solid #FF4500', color: '#FF4500' }}>
-          🎯 Plott treff
-        </button>
-      )}
-      {visDetaljer && (
-        <button type="button" onClick={onLeggTilDetaljer}
-          style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-          ⌚ Legg til detaljer
-        </button>
-      )}
       <button type="button" onClick={onLeggTilAktivitet}
         style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
         + Legg til aktivitet
@@ -61,7 +52,19 @@ export function AktivitetKnapperad({
       {userHasBiathlon && (
         <button type="button" onClick={onLeggTilSkyting}
           style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
-        🎯 + Legg til skyting
+          🎯 + Legg til skyting
+        </button>
+      )}
+      {visDetaljer && (
+        <button type="button" onClick={onLeggTilDetaljer}
+          style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
+          ⚡ Øktbygger
+        </button>
+      )}
+      {visPlottTreff && (
+        <button type="button" onClick={onPlottTreff}
+          style={{ ...PILL_BASE, border: '1.5px solid #FF4500', color: '#FF4500' }}>
+          🎯 Plott treff
         </button>
       )}
     </div>

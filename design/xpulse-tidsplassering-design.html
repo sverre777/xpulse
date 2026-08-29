@@ -234,6 +234,27 @@ svg{display:block}
     statistikktall fra et vindu uten ført tid. Uansett utgangspunkt:
     vinduet kan alltid dras og strekkes etterpå — forslaget låser aldri
     (drag endrer plassering/pulsvindu, ikke statistikk-status).</li>
+    <li><b>RADENE OPPDATERES LIVE (Sverre 28. aug):</b> aktivitetsradene
+    under grafen er ÉN visning av samme data — drar man et skytevindu
+    eller et punkt, oppdateres raden umiddelbart (tid, varighet, puls,
+    «plassert 11:52–14:56 ⌚») uten omlasting, og motsatt vei: endrer man
+    tid i raden, flytter markøren seg på kurven. Ingen «lagre og se»-
+    runde. Rekkefølgen (sort_order) kan følge tidsplasseringen som
+    FORSLAG når rader plasseres, men er fortsatt ren visning og kan
+    overstyres ved drag (regel 11: tid = data, rekkefølge = visning).</li>
+    <li><b>KURVEVELGER — PULS / FART / WATT (Sverre 28. aug):</b> over
+    grafen ligger en velger for hvilken kurve man plasserer PÅ. Vinduer
+    og punkter er de samme uansett valg (samme tidslinje) — kun lerretet
+    bytter. Skyting leses ofte bedre på fartskurven (farten flater ut på
+    standplass) enn på puls. Leser-raden viser tid · varighet · snittpuls
+    · snittfart samtidig, uavhengig av valgt kurve. Kurver uten data
+    vises ikke i velgeren (aldri en tom fane). Regel 17: kontrollrad over
+    graf → height="auto".</li>
+    <li><b>GPS — MÅLES (Sverre 28. aug, til senere):</b> CC måler om
+    prod har posisjonsdata (lat/lng) i samples/klokkeimport. Har vi det,
+    er dette forberedt for: kart med standplass markert, høydeprofil
+    langs segmentbåndet, og GAP på ekte stigning i stedet for estimat.
+    Rapporteres som funn i bolk 3 — bygges IKKE nå.</li>
     <li><b>PUNKTMARKØRER — LAKTAT OG ERNÆRING (Sverre 28. aug):</b> i
     tillegg til vinduer (skyting) kan PUNKTER settes inn i tid på kurven:
     <b>laktatmåling</b> (verdi i mmol, draggbar prikk — tooltip viser puls/

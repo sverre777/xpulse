@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X-Pulse — Øktbyggeren: én komponent, tre lerret (designfasit)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D11; --surface:#101014; --card:#15151B; --line:#1F1F26; --line2:#2A2A33;
+  --paper:#F2F2F0; --dim:#8B8B95; --mute:#55555F;
+  --orange:#FF4500; --blue:#1A6FD4; --gold:#E8B93C; --green:#28A86E; --red:#E23A5A;
+  --prone:#38BDF8; --staa:#FF4500;
+  --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
+  --seg-oppv:#BBAA55; --seg-drag:#1E2AA8; --seg-ned:#64748B; --seg-pause:#43434B; --seg-bev:#A6A6AF;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--paper);font:15px/1.55 'Inter',-apple-system,sans-serif;padding:40px 0 120px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.02em;font-size:clamp(34px,6vw,52px)}
+h1 .acc{color:var(--orange)}
+.sub{color:var(--dim);margin:8px 0 22px;max-width:730px}
+.demo{font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.2em;font-size:12.5px;color:var(--mute);text-transform:uppercase;border-top:1px solid var(--line);padding:28px 0 12px}
+.demo b{color:var(--dim)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.ch h3{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:.03em}
+.ch .m{color:var(--mute);font-size:12.5px}
+svg{display:block;width:100%}
+.gtxt{font:10px 'Inter';fill:var(--mute)}
+
+.pill{border-radius:999px;padding:8px 17px;cursor:pointer;border:0;font-family:'Barlow Condensed';font-weight:700;letter-spacing:.1em;font-size:12px;white-space:nowrap;min-height:36px}
+.pill.o{background:var(--orange);color:#fff}
+.pill.g{background:transparent;border:1.5px solid var(--line2);color:var(--paper)}
+.pill.sky{background:transparent;border:1.5px solid var(--staa);color:var(--staa)}
+.pill.sm{padding:6px 13px;font-size:11px;min-height:32px}
+
+/* Lerret-velger */
+.lerret{display:inline-flex;border:1px solid var(--line2);border-radius:999px;padding:4px;background:var(--card);margin-bottom:16px;flex-wrap:wrap}
+.lerret button{border:0;background:transparent;color:var(--dim);cursor:pointer;padding:9px 17px;border-radius:999px;
+  font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.1em;min-height:36px}
+.lerret button.on{background:var(--orange);color:#fff}
+.hidden{display:none}
+
+/* Palett */
+.palett{border:1px solid var(--line2);border-radius:11px;background:var(--card);padding:11px 12px;margin-bottom:13px}
+.palett .tit{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.15em;font-size:10.5px;color:var(--mute);margin-bottom:8px}
+.pgrp{display:flex;gap:14px;flex-wrap:wrap}
+.pcol{display:flex;flex-direction:column;gap:5px}
+.pcol .lbl{font-family:'Barlow Condensed';font-weight:600;letter-spacing:.13em;font-size:9.5px;color:var(--mute)}
+.pchips{display:flex;gap:5px;flex-wrap:wrap}
+.pc{display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--line2);background:transparent;color:var(--dim);
+  border-radius:9px;padding:6px 11px;cursor:grab;font-family:'Barlow Condensed';font-weight:700;font-size:11.5px;letter-spacing:.07em;min-height:34px}
+.pc:hover{border-style:solid;color:var(--paper)}
+.pc i{width:8px;height:8px;border-radius:2px;flex:none}
+.palett .hint{font-size:11.5px;color:var(--mute);margin-top:8px}
+.palett input,.palett select{background:var(--surface);border:1px solid var(--line2);border-radius:8px;color:var(--paper);padding:8px 10px;font:inherit;font-size:13px}
+
+/* Rader */
+.akt{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line2);border-left:3px solid var(--seg-drag);border-radius:10px;padding:10px 13px;margin-bottom:7px;font-size:13px}
+.akt .grip{color:var(--mute);cursor:grab;font-size:15px;letter-spacing:-2px}
+.akt .n{font-weight:600}
+.akt .n span{display:block;font-size:11.5px;color:var(--mute);font-weight:400}
+.akt .m{margin-left:auto;color:var(--dim);text-align:right;font-size:12px}
+.akt.oppv{border-left-color:var(--seg-oppv)}
+.akt.ligg{border-left-color:var(--prone)}
+.akt.pause{border-left-color:var(--seg-pause)}
+.akt.ned{border-left-color:var(--seg-ned)}
+.akt .live{color:var(--orange);font-family:'Barlow Condensed';font-weight:700;letter-spacing:.08em;font-size:11px}
+.akt input{background:var(--surface);border:1px solid var(--line2);border-radius:7px;color:var(--paper);padding:5px 8px;font:inherit;font-size:12px;width:74px}
+
+.merk{border:1px solid rgba(255,69,0,.4);background:rgba(255,69,0,.05);border-radius:11px;padding:13px 15px;margin-bottom:13px}
+.merk .t{font-family:'Barlow Condensed';font-weight:700;letter-spacing:.14em;font-size:11px;color:var(--orange);margin-bottom:5px}
+.merk p{font-size:13px;color:var(--dim)}
+
+.notat{margin-top:56px;border:1px dashed var(--line2);border-radius:var(--r);padding:26px;color:var(--dim);font-size:13.5px}
+.notat h2{font-family:'Bebas Neue';font-size:24px;color:var(--paper);margin-bottom:10px;letter-spacing:.02em}
+.notat li{margin:7px 0 7px 18px}
+.notat code{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--paper)}
+.notat .ny{color:var(--orange)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ØKTBYGGEREN — <span class="acc">ÉN KOMPONENT, TRE LERRET.</span></h1>
+<p class="sub">Intervall-byggeren og «Legg til detaljer» er samme verktøy. Verktøykassen er identisk: samme palett, samme drag, samme klikk-og-rediger, samme angre. Det eneste som skifter er <b>lerretet</b> — blokker når det ikke finnes en kurve, pulskurve når klokka har levert en — og hvor tallene kommer fra.</p>
+
+<div class="merk">
+  <div class="t">DEN VIKTIGSTE ENKELTFUNKSJONEN</div>
+  <p><b>Planens runder kan legges på klokkas pulskurve.</b> Klokkerunder er ofte feil eller mangler; planens runder mangler puls. Beholder man planens struktur (8 × 40/20, navngitt, med hensikt) og plasserer den på kurven, får hver runde riktig puls fra måledataene. Ingen konkurrent gjør dette.</p>
+</div>
+
+<div class="lerret">
+  <button class="on" onclick="vis('a',this)">A · PLAN</button>
+  <button onclick="vis('b',this)">B · GJENNOMFØRT UTEN KLOKKE</button>
+  <button onclick="vis('c',this)">C · GJENNOMFØRT MED KLOKKE</button>
+</div>
+
+<!-- FELLES PALETT -->
+<div class="palett">
+  <div class="tit">VERKTØYKASSEN — LIK I ALLE TRE LERRET</div>
+  <div class="pgrp">
+    <div class="pcol"><span class="lbl">ARBEID</span><div class="pchips">
+      <span class="pc"><i style="background:var(--seg-oppv)"></i>OPPVARMING</span>
+      <span class="pc"><i style="background:var(--seg-drag)"></i>DRAG</span>
+      <span class="pc"><i style="background:var(--seg-ned)"></i>NEDJOGG</span></div></div>
+    <div class="pcol"><span class="lbl">HVILE</span><div class="pchips">
+      <span class="pc"><i style="background:var(--seg-pause)"></i>PAUSE</span>
+      <span class="pc"><i style="background:var(--seg-pause)"></i>AKTIV PAUSE</span>
+      <span class="pc"><i style="background:var(--seg-pause)"></i>🔄 VEKSLING</span></div></div>
+    <div class="pcol"><span class="lbl">SKYTING</span><div class="pchips">
+      <span class="pc"><i style="background:var(--prone)"></i>LIGGENDE</span>
+      <span class="pc"><i style="background:var(--staa)"></i>STÅENDE</span>
+      <span class="pc"><i style="background:var(--staa)"></i>KOMBINERT</span></div></div>
+    <div class="pcol"><span class="lbl">ANNET</span><div class="pchips">
+      <span class="pc"><i style="background:var(--seg-bev)"></i>BEV.FORM-BYTTE</span>
+      <span class="pc"><i style="background:var(--gold)"></i>LAKTAT</span>
+      <span class="pc"><i style="background:var(--green)"></i>ERNÆRING</span>
+      <span class="pc"><i style="background:var(--mute)"></i>📝 NOTAT</span></div></div>
+  </div>
+  <div class="hint">Dra ned på lerretet · segmenter fyller tid, punkter settes på ett tidspunkt · <b>ANGRE</b> gjelder alt, steg for steg</div>
+</div>
+
+<!-- ═══ A · PLAN ═══ -->
+<div id="va">
+<div class="card">
+  <div class="ch"><h3>A · PLAN — BLOKKER SOM LERRET</h3><span class="m">ingen kurve å plassere på · tallene er planlagte</span></div>
+  <svg viewBox="0 -26 660 150">
+    <path d="M120 -14 v-4 h300 v4" fill="none" stroke="var(--line2)"/>
+    <text x="270" y="-19" class="gtxt" style="font-weight:700;fill:var(--dim)">HOVEDDEL · 4 × (8 MIN M/ 40/20) · I4</text>
+    <rect x="10" y="64" width="640" height="42" rx="3" fill="var(--i1)" opacity=".28"/>
+    <rect x="10" y="64" width="104" height="42" rx="3" fill="var(--i1)" opacity=".6"/>
+    <g fill="var(--i4)">
+      <rect x="120" y="18" width="8" height="88" rx="2"/><rect x="131" y="18" width="8" height="88" rx="2"/>
+      <rect x="142" y="18" width="8" height="88" rx="2"/><rect x="153" y="18" width="8" height="88" rx="2"/>
+      <rect x="164" y="18" width="8" height="88" rx="2"/><rect x="175" y="18" width="8" height="88" rx="2"/>
+      <rect x="186" y="18" width="8" height="88" rx="2"/><rect x="197" y="18" width="8" height="88" rx="2"/>
+    </g>
+    <rect x="212" y="64" width="26" height="42" rx="3" fill="var(--seg-pause)"/>
+    <g fill="var(--i4)">
+      <rect x="246" y="18" width="8" height="88" rx="2"/><rect x="257" y="18" width="8" height="88" rx="2"/>
+      <rect x="268" y="18" width="8" height="88" rx="2"/><rect x="279" y="18" width="8" height="88" rx="2"/>
+      <rect x="290" y="18" width="8" height="88" rx="2"/><rect x="301" y="18" width="8" height="88" rx="2"/>
+      <rect x="312" y="18" width="8" height="88" rx="2"/><rect x="323" y="18" width="8" height="88" rx="2"/>
+    </g>
+    <rect x="338" y="64" width="26" height="42" rx="3" fill="var(--seg-pause)"/>
+    <g fill="var(--i4)">
+      <rect x="372" y="18" width="8" height="88" rx="2"/><rect x="383" y="18" width="8" height="88" rx="2"/>
+      <rect x="394" y="18" width="8" height="88" rx="2"/><rect x="405" y="18" width="8" height="88" rx="2"/>
+      <rect x="416" y="18" width="8" height="88" rx="2"/><rect x="427" y="18" width="8" height="88" rx="2"/>
+    </g>
+    <rect x="540" y="64" width="110" height="42" rx="3" fill="var(--i1)" opacity=".6"/>
+    <circle cx="230" cy="8" r="4" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <text x="238" y="11" class="gtxt">planlagt laktat</text>
+    <line x1="10" y1="106" x2="650" y2="106" stroke="var(--line2)"/>
+    <text x="10" y="120" class="gtxt">0:00</text><text x="650" y="120" class="gtxt" text-anchor="end">1:35</text>
+  </svg>
+  <div style="margin-top:10px;font-size:12.5px;color:var(--mute)">Planlagte punkter er <b>hule/stiplede</b>. Ingen puls å lese — feltene i segment-editoren står tomme.</div>
+
+  <div class="nokkel" style="display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:11px;margin-top:14px;overflow:hidden;background:var(--card)">
+    <div style="flex:1 1 118px;padding:11px 13px;border-right:1px solid var(--line)"><div style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10px;color:var(--mute)">VARIGHET</div><div style="font-family:'Bebas Neue';font-size:23px">1t 35<small style="font-size:11px;color:var(--dim);font-family:Inter"> min</small></div></div>
+    <div style="flex:1 1 118px;padding:11px 13px;border-right:1px solid var(--line)"><div style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10px;color:var(--mute)">HOVEDSONE</div><div style="font-family:'Bebas Neue';font-size:23px;color:var(--i4)">I4</div></div>
+    <div style="flex:1 1 118px;padding:11px 13px;border-right:1px solid var(--line)"><div style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10px;color:var(--mute)">I4-TID</div><div style="font-family:'Bebas Neue';font-size:23px">32<small style="font-size:11px;color:var(--dim);font-family:Inter"> min</small></div></div>
+    <div style="flex:1 1 118px;padding:11px 13px;border-right:1px solid var(--line)"><div style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10px;color:var(--mute)">BELASTNING</div><div style="font-family:'Bebas Neue';font-size:23px">118<small style="font-size:11px;color:var(--dim);font-family:Inter"> TSS</small></div></div>
+    <div style="flex:1 1 150px;padding:11px 13px;background:#17171E"><div style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.14em;font-size:10px;color:var(--mute)">FORVENTET <span style="color:var(--orange)">· FØRES</span></div><div style="font-family:'Bebas Neue';font-size:23px">7<small style="font-size:11px;color:var(--dim);font-family:Inter"> /10</small></div></div>
+  </div>
+  <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:11px;font-size:11px;color:var(--dim)">
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--i1)"></i>I1</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--i2)"></i>I2</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--i3)"></i>I3</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--i4)"></i>I4</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--i5)"></i>I5</span>
+    <span style="color:var(--mute)">· </span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--prone)"></i>Ligg</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--staa)"></i>Stå</span>
+    <span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--seg-pause)"></i>Pause</span>
+  </div>
+</div>
+</div>
+
+<!-- ═══ B · GJENNOMFØRT UTEN KLOKKE ═══ -->
+<div id="vb" class="hidden">
+<div class="card">
+  <div class="ch"><h3>B · GJENNOMFØRT UTEN KLOKKE</h3><span class="m">samme blokker · nå føres snitt- og makspuls per drag</span></div>
+  <div style="margin-bottom:9px"><button class="pill o sm">👁 VIS PLAN BAK</button></div>
+  <svg viewBox="0 -26 660 150">
+    <path d="M120 -14 v-4 h300 v4" fill="none" stroke="var(--line2)"/>
+    <text x="270" y="-19" class="gtxt" style="font-weight:700;fill:var(--dim)">4 × (8 MIN M/ 40/20) · SNITT 168 · MAKS 182</text>
+    <rect x="10" y="64" width="640" height="42" rx="3" fill="var(--i1)" opacity=".28"/>
+    <rect x="10" y="64" width="104" height="42" rx="3" fill="var(--i1)" opacity=".6"/>
+    <!-- PLANENS blokker som spøkelser bak -->
+    <g opacity=".18">
+      <rect x="120" y="18" width="86" height="88" rx="3" fill="var(--i4)"/>
+      <rect x="246" y="18" width="86" height="88" rx="3" fill="var(--i4)"/>
+      <rect x="372" y="18" width="86" height="88" rx="3" fill="var(--i4)"/>
+    </g>
+    <text x="415" y="12" class="gtxt" text-anchor="middle" style="fill:var(--mute)">plan: 8 min</text>
+    <g fill="var(--i4)">
+      <rect x="120" y="18" width="8" height="88" rx="2"/><rect x="131" y="18" width="8" height="88" rx="2"/>
+      <rect x="142" y="18" width="8" height="88" rx="2"/><rect x="153" y="18" width="8" height="88" rx="2"/>
+      <rect x="164" y="18" width="8" height="88" rx="2"/><rect x="175" y="18" width="8" height="88" rx="2"/>
+      <rect x="186" y="18" width="8" height="88" rx="2"/><rect x="197" y="18" width="8" height="88" rx="2"/>
+    </g>
+    <text x="160" y="12" class="gtxt" fill="var(--i4)" text-anchor="middle" style="font-weight:700">snitt 166</text>
+    <rect x="212" y="64" width="26" height="42" rx="3" fill="var(--seg-pause)"/>
+    <g fill="var(--i5)">
+      <rect x="246" y="10" width="8" height="96" rx="2"/><rect x="257" y="10" width="8" height="96" rx="2"/>
+      <rect x="268" y="10" width="8" height="96" rx="2"/><rect x="279" y="10" width="8" height="96" rx="2"/>
+      <rect x="290" y="10" width="8" height="96" rx="2"/><rect x="301" y="10" width="8" height="96" rx="2"/>
+      <rect x="312" y="10" width="8" height="96" rx="2"/><rect x="323" y="10" width="8" height="96" rx="2"/>
+    </g>
+    <text x="286" y="4" class="gtxt" fill="var(--i5)" text-anchor="middle" style="font-weight:700">snitt 176 → I5</text>
+    <rect x="338" y="64" width="26" height="42" rx="3" fill="var(--seg-pause)"/>
+    <g fill="var(--i4)">
+      <rect x="372" y="18" width="8" height="88" rx="2"/><rect x="383" y="18" width="8" height="88" rx="2"/>
+      <rect x="394" y="18" width="8" height="88" rx="2"/><rect x="405" y="18" width="8" height="88" rx="2"/>
+      <rect x="416" y="18" width="8" height="88" rx="2"/><rect x="427" y="18" width="8" height="88" rx="2"/>
+    </g>
+    <rect x="540" y="64" width="110" height="42" rx="3" fill="var(--i1)" opacity=".6"/>
+    <line x1="10" y1="106" x2="650" y2="106" stroke="var(--line2)"/>
+    <text x="10" y="120" class="gtxt">0:00</text><text x="650" y="120" class="gtxt" text-anchor="end">1:31</text>
+  </svg>
+  <div style="margin-top:10px;font-size:12.5px;color:var(--mute)">Fører man snittpuls 176 på drag 2, <b>flytter blokken seg til I5</b> og sonefordelingen for økta regnes om. Den førte pulsen er kilden — ikke planens sone.</div>
+</div>
+</div>
+
+<!-- ═══ C · GJENNOMFØRT MED KLOKKE ═══ -->
+<div id="vc" class="hidden">
+<div class="card">
+  <div class="ch"><h3>C · GJENNOMFØRT MED KLOKKE</h3><span class="m">pulskurven er lerretet · verdiene leses fra samples</span></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="pill g sm">RUNDER FRA KLOKKA (7)</button>
+    <button class="pill o sm">BEHOLD PLANENS RUNDER</button>
+    <button class="pill g sm">TILBAKESTILL TIL KLOKKA</button>
+  </div>
+  <svg viewBox="0 -26 660 152">
+    <path d="M0 92 L60 86 L140 74 L200 80 L280 62 L340 70 L420 58 L500 72 L580 66 L660 76 L660 104 L0 104 Z" fill="rgba(166,166,175,.12)"/>
+    <line x1="0" y1="104" x2="660" y2="104" stroke="var(--line2)"/>
+    <path d="M0 84 C20 66,36 58,60 55 S110 48,140 46 170 43,190 48 210 76,228 78 246 60,270 49 300 42,330 40 352 38,368 45 388 80,404 82 420 64,450 51 480 42,540 38 600 34,660 36"
+          fill="none" stroke="var(--red)" stroke-width="2"/>
+    <!-- planens runder lagt PÅ kurven -->
+    <g opacity=".9">
+      <rect x="120" y="10" width="86" height="94" fill="rgba(30,42,168,.14)" stroke="var(--seg-drag)" stroke-width="1.2" stroke-dasharray="4 3" rx="4"/>
+      <rect x="246" y="10" width="86" height="94" fill="rgba(30,42,168,.14)" stroke="var(--seg-drag)" stroke-width="1.2" stroke-dasharray="4 3" rx="4"/>
+      <rect x="372" y="10" width="64" height="94" fill="rgba(30,42,168,.14)" stroke="var(--seg-drag)" stroke-width="1.2" stroke-dasharray="4 3" rx="4"/>
+    </g>
+    <text x="163" y="4" class="gtxt" fill="var(--seg-drag)" text-anchor="middle" style="font-weight:700">8 × 40/20 · snitt 166</text>
+    <text x="289" y="4" class="gtxt" fill="var(--seg-drag)" text-anchor="middle" style="font-weight:700">8 × 40/20 · snitt 176</text>
+    <g>
+      <rect x="0"   y="110" width="112" height="11" rx="3" fill="var(--seg-oppv)"/>
+      <rect x="120" y="110" width="86"  height="11" rx="3" fill="var(--seg-drag)"/>
+      <rect x="212" y="110" width="26"  height="11" rx="3" fill="var(--seg-pause)"/>
+      <rect x="246" y="110" width="86"  height="11" rx="3" fill="var(--seg-drag)"/>
+      <rect x="338" y="110" width="26"  height="11" rx="3" fill="var(--seg-pause)"/>
+      <rect x="372" y="110" width="64"  height="11" rx="3" fill="var(--seg-drag)"/>
+      <rect x="540" y="110" width="120" height="11" rx="3" fill="var(--seg-ned)"/>
+    </g>
+  </svg>
+  <div style="margin-top:10px;font-size:12.5px;color:var(--mute)">Planens runder (stiplet) ligger oppå kurven — <b>snittpulsen leses fra samples i hver runde</b>. Man kan fortsatt dra grensene så de treffer der draget faktisk begynte.</div>
+</div>
+</div>
+
+<!-- ═══ HURTIGOPPSETTET ═══ -->
+<div class="demo"><b>Hurtigoppsettet beholdes uendret</b> — dette er fortsatt raskeste vei til en intervalløkt. Diagrammet kommer ETTER «Opprett», som resultatet man så kan finjustere.</div>
+
+<div class="card">
+  <div class="ch"><h3>BYGG — SOM I DAG</h3><span class="m">skriv tall, ikke dra</span></div>
+  <div class="palett" style="margin-bottom:0">
+    <div class="tit">GJELDER HELE ØKTA</div>
+    <div style="display:flex;gap:11px;flex-wrap:wrap">
+      <div class="pcol" style="flex:1 1 220px"><span class="lbl">BEVEGELSESFORM</span><select style="width:100%"><option>Langrenn</option></select></div>
+      <div class="pcol" style="flex:1 1 220px"><span class="lbl">UNDERKATEGORI</span><select style="width:100%"><option>Velg…</option></select></div>
+    </div>
+    <div class="pcol" style="margin-top:11px"><span class="lbl">SKYTING I PAUSENE</span><select style="width:100%"><option>Ingen skyting</option></select></div>
+
+    <div class="tit" style="margin-top:15px">DRAG</div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+      <div class="pcol"><span class="lbl">ANTALL</span><input value="2" style="width:66px"></div>
+      <span style="color:var(--mute);padding-bottom:10px">×</span>
+      <div class="pcol"><span class="lbl">DRAGTID</span><input value="10:00" style="width:112px"></div>
+      <div class="pcol"><span class="lbl">SONE</span><select style="width:78px"><option>I3</option></select></div>
+      <span style="color:var(--mute);padding-bottom:10px">/</span>
+      <div class="pcol"><span class="lbl">PAUSE</span><input value="3:00" style="width:98px"></div>
+      <div class="pcol"><span class="lbl">PÅ/AV (SEK)</span><div style="display:flex;gap:4px;align-items:center"><input value="" placeholder="—" style="width:52px"><span style="color:var(--mute)">/</span><input value="" placeholder="—" style="width:52px"></div></div>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end">
+      <div class="pcol"><input value="3" style="width:66px"></div>
+      <span style="color:var(--mute);padding-bottom:10px">×</span>
+      <div class="pcol"><input value="5:00" style="width:112px"></div>
+      <div class="pcol"><select style="width:78px"><option>I4</option></select></div>
+      <span style="color:var(--mute);padding-bottom:10px">/</span>
+      <div class="pcol"><input value="2:00" style="width:98px"></div>
+      <div class="pcol"><div style="display:flex;gap:4px;align-items:center"><input value="40" style="width:52px"><span style="color:var(--mute)">/</span><input value="20" style="width:52px"></div></div>
+    </div>
+    <button class="leggtil" style="width:100%;background:transparent;border:1px dashed var(--line2);border-radius:9px;color:var(--dim);padding:10px;cursor:pointer;font-size:12.5px;margin-top:9px">+ Legg til rad</button>
+
+    <div style="display:flex;gap:11px;flex-wrap:wrap;margin-top:13px">
+      <div class="pcol" style="flex:1 1 200px"><span class="lbl">OPPVARMING</span><input value="30:00" style="width:100%"></div>
+      <div class="pcol" style="flex:1 1 200px"><span class="lbl">NEDJOGG</span><input value="10:00" style="width:100%"></div>
+    </div>
+    <div class="hint">Pausene blir vanlige aktive pauser. · Ny kolonne: kortintervaller per rad.</div>
+    <button class="pill o" style="width:100%;margin-top:11px;padding:13px">OPPRETT</button>
+  </div>
+</div>
+
+<!-- ═══ SEGMENT-EDITOREN ═══ -->
+<div class="demo"><b>Segment-editoren</b> — lik i alle tre lerret; feltene som ikke gir mening står tomme, aldri skjult</div>
+
+<div class="palett">
+  <div class="tit">DRAG 2 — KLIKKET PÅ LERRETET ELLER RADEN</div>
+  <div style="display:flex;gap:11px;flex-wrap:wrap;align-items:flex-end">
+    <div class="pcol"><span class="lbl">START</span><input value="14:20" style="width:78px"></div>
+    <div class="pcol"><span class="lbl">VARIGHET</span><input value="8:00" style="width:78px"></div>
+    <div class="pcol"><span class="lbl">DISTANSE</span><input value="2,6" style="width:70px"><span style="font-size:10px;color:var(--mute);margin-top:2px">km</span></div>
+    <div class="pcol"><span class="lbl">SNITTPULS</span><input value="176" style="width:66px"></div>
+    <div class="pcol"><span class="lbl">MAKSPULS</span><input value="182" style="width:66px"></div>
+    <div class="pcol"><span class="lbl">SONE</span><input value="I5" style="width:56px"></div>
+    <div class="pcol"><span class="lbl">BEV.FORM</span><select style="width:120px"><option>Rulleski · skøyting</option></select></div>
+  </div>
+  <div style="margin-top:12px">
+    <span class="lbl" style="font-family:'Barlow Condensed';font-weight:600;letter-spacing:.13em;font-size:9.5px;color:var(--mute)">KORTINTERVALLER INNI DRAGET — FRITT I SEKUNDER</span>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;margin-top:6px">
+      <div class="pcol"><span class="lbl">PÅ (SEK)</span><input value="40" style="width:74px"></div>
+      <span style="color:var(--mute);padding-bottom:10px">/</span>
+      <div class="pcol"><span class="lbl">AV (SEK)</span><input value="20" style="width:74px"></div>
+      <span style="color:var(--mute);padding-bottom:10px;font-size:12px">— eller velg en vanlig:</span>
+      <div class="pchips" style="padding-bottom:1px">
+        <span class="pc">AV</span><span class="pc">50/10</span><span class="pc">45/15</span>
+        <span class="pc" style="border-style:solid;color:var(--paper);border-color:var(--orange)">40/20</span>
+        <span class="pc">30/15</span><span class="pc">30/30</span><span class="pc">25/25</span>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:6px">Hurtigvalgene FYLLER feltene — de er snarveier, ikke grenser. 37/23 skrives rett inn.</div>
+  </div>
+  <div style="margin-top:11px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="pill g sm">DEL HER</button><button class="pill g sm">SLÅ SAMMEN MED NESTE</button>
+    <button class="pill g sm">GI NYTT NAVN</button><button class="pill g sm">ENDRE TYPE</button><button class="pill g sm">SLETT</button>
+  </div>
+  <div class="hint">Blir <b style="color:var(--paper)">8 × 40/20</b> · 8:00 går opp uten rest · med klokke leses puls fra samples og feltene viser det målte; uten klokke er de førte tallene kilden</div>
+</div>
+
+<!-- ═══ RADLISTA ═══ -->
+<div class="demo"><b>Radlista beholdes</b> — for presise tall, mobil og som sikkerhetsnett. Samme data, live koblet.</div>
+
+<div class="card">
+  <div class="akt oppv"><span class="grip">⣿</span><span class="n">Oppvarming<span><span class="live">0:00–14:20 ⌚</span> · Løping</span></span><span class="m">2,4 km · snitt 121</span></div>
+  <div class="akt"><span class="grip">⣿</span><span class="n">Drag 2 · 8 × 40/20<span><span class="live">14:20–22:20 ⌚</span> · Rulleski</span></span>
+    <span class="m" style="display:flex;gap:6px;align-items:center"><input value="2,6"><span style="font-size:11px;color:var(--mute)">km</span><input value="176"><span style="font-size:11px;color:var(--mute)">snitt</span></span></div>
+  <div class="akt pause"><span class="grip">⣿</span><span class="n">Pause<span><span class="live">22:20–23:00 ⌚</span></span></span><span class="m">—</span></div>
+  <div class="akt ned"><span class="grip">⣿</span><span class="n">Nedjogg<span><span class="live">1:22:00–1:31:00 ⌚</span> · Løping</span></span><span class="m">1,8 km · snitt 122</span></div>
+</div>
+
+<!-- ═══ NOTAT ═══ -->
+<section class="notat">
+  <h2>NOTAT — REGLER FOR CC</h2>
+  <p style="margin-bottom:10px"><b>Denne fila samler og erstatter</b> planleggings- og gjennomførings-byggerne som to ting. «Legg til detaljer»
+  (<code>design/xpulse-legg-til-detaljer-design.html</code>) og øktkartet
+  (<code>design/xpulse-oktkart-design.html</code>) gjelder fortsatt for sine
+  flater — men KOMPONENTEN er den samme, og den beskrives her.</p>
+  <ul>
+    <li class="ny"><b>NAVN OG PLASSERING (Sverre 29. aug, låst):</b>
+    funksjonen heter <b>«ØKTBYGGER»</b> — ETT navn overalt, uansett plan
+    eller dagbok, uansett klokkesynk eller ikke. Navnene «Legg til detaljer»
+    og «Intervall-bygger» UTGÅR som separate begreper i UI. Knappen ligger i
+    den felles knapperaden over aktivitetsradene, sammen med de andre:
+    <br><code>+ LEGG TIL AKTIVITET</code> · <code>🎯 + LEGG TIL SKYTING</code>
+    (ved skiskyting) · <code>⚡ ØKTBYGGER</code> · <code>🎯 PLOTT TREFF</code>
+    (i dagbok når økta har skyting)
+    <br>Alt som legger noe til økta bor dermed på samme sted. Knappen står
+    ALLTID (både plan og dagbok); det er lerretet som skifter.</li>
+    <li class="ny"><b>PLAN BAK SOM SPØKELSE — OVERALT (Sverre 29. aug):</b>
+    en <b>«VIS PLAN»</b>-bryter i kontrollraden legger den planlagte
+    strukturen bak det som vises — uansett lerret og uansett klokkesynk:
+    <br>· i BLOKK-lerretene (B) tegnes planens blokker som svake spøkelser
+    bak de gjennomførte
+    <br>· i KURVE-lerretet (C) tegnes planens blokker bak pulskurven og bak
+    segmentbåndet
+    <br>· i øktkartet og i økt-grafen gjelder det samme
+    <br>Slik ser man umiddelbart hvor virkeligheten forlot planen — et drag
+    som ble 6 min i stedet for 8 er synlig som at kurven faller før planens
+    blokk slutter. Bryteren er AV som standard og huskes per bruker
+    (regel 19). Finnes ingen plan, vises bryteren ikke (aldri en død
+    knapp).</li>
+    <li class="ny"><b>ÉN KOMPONENT, TRE LERRET (Sverre 29. aug):</b>
+    intervall-byggeren og «Legg til detaljer» er samme verktøy.
+    Verktøykassen er IDENTISK — palett, drag, klikk-og-rediger,
+    grensehåndtak, del/slå sammen/omdøp/endre type/slett, angre, live
+    kobling til radene. Det eneste som skifter:
+    <br>· <b>A · PLAN</b> — blokker som lerret, planlagte verdier, planlagte
+    punkter med hul markør. Ingen puls å lese.
+    <br>· <b>B · GJENNOMFØRT UTEN KLOKKE</b> — samme blokker, men snitt- og
+    makspuls kan FØRES per drag. Den førte pulsen bestemmer blokkens sone og
+    øktas sonefordeling — ikke planens sone.
+    <br>· <b>C · GJENNOMFØRT MED KLOKKE</b> — pulskurven er lerretet,
+    verdiene LESES fra samples.
+    <br>Knappene beholder sine navn i hver kontekst («Intervall-bygger» i
+    plan, «Legg til detaljer» i dagbok) — men det er ÉN komponent bak
+    (regel 11). Bygg aldri to varianter.</li>
+    <li class="ny"><b>PLANENS RUNDER PÅ KLOKKAS KURVE — kjernefunksjonen:</b>
+    når en økt med plan får klokkedata, velger brukeren:
+    <br>· <b>Runder fra klokka</b> (som i dag)
+    <br>· <b>Behold planens runder</b> — planens struktur legges PÅ kurven,
+    og snittpuls/maks/tid for hver runde leses fra samples i det vinduet
+    <br>· <b>Tilbakestill til klokka</b> — når som helst, via runde_backup
+    <br>Grensene kan uansett dras så de treffer der draget faktisk begynte.
+    Dette er hele poenget: planens struktur (navngitt, med hensikt) + klokkas
+    måledata. Klokkerunder er ofte feil eller mangler; planens runder mangler
+    puls — sammen er de bedre enn hver for seg.</li>
+    <li class="ny"><b>SEGMENT-EDITOREN — ALLE FELTENE:</b> start · varighet ·
+    <b>DISTANSE (km)</b> · snittpuls · makspuls · sone · navn · type ·
+    bevegelsesform · beskrivelse · kortintervaller. Distanse og tid skal
+    kunne SKRIVES på draget, ikke bare utledes.
+    <br>· Med klokke: feltene viser det MÅLTE og er skrivebeskyttet-med-
+    overstyring (manuelt ført vinner og merkes M — konvensjonen).
+    <br>· Uten klokke: de førte tallene ER kilden.
+    <br>· I plan: feltene er planlagte verdier.
+    Felter som ikke gir mening står TOMME med forklaring — aldri skjult, så
+    flaten ser lik ut i alle tre lerret.</li>
+    <li class="ny"><b>RADLISTA BEHOLDES (Sverre 29. aug):</b> ikke fjern den.
+    Den er raskere for presise tall, virker alltid på mobil der drag er
+    vanskelig, og er sikkerhetsnettet hvis den visuelle flaten svikter. «Én
+    flyt»: en bruker som aldri åpner den grafiske flaten skal kunne føre
+    nøyaktig det samme.
+    <br>· <b>ARBEIDSDELING:</b> lerretet eier STRUKTUR og TID (plassering,
+    rekkefølge, gruppering) · radene eier TALL og DETALJER (km, puls, notat,
+    serier). Rydd bort DUBLERING: det lerretet gjør bedre trenger ikke
+    gjentas som felt i raden.
+    <br>· Live koblet begge veier, som før.</li>
+    <li class="ny"><b>OPPRETTELSE MÅ FORBLI LIKE ENKEL:</b> å lage en
+    intervalløkt i planen skal ikke bli tyngre enn i dagens bygger. De tre
+    stegene (BYGG → SE HVORDAN DEN BLIR → OPPRETT) består; det nye er at
+    resultatet kan redigeres visuelt etterpå, ikke at opprettelsen krever
+    dragging. Hurtigfeltene (antall × dragtid × pause) står først —
+    dragging er for justering, ikke for førstegangs-oppsett.</li>
+    <li><b>ANGRE OVERALT:</b> steg for steg, i alle tre lerret, før lagring.
+    Lukking med ulagrede endringer spør. Gjelder også valget «behold planens
+    runder» / «tilbakestill til klokka».</li>
+    <li class="ny"><b>KORTINTERVALLER — HURTIGVALG ER SNARVEIER, IKKE
+    GRENSER (Sverre 29. aug):</b> arbeid og pause settes <b>helt fritt i
+    sekunder</b> — to talfelt, hvilke som helst verdier (37/23, 90/30,
+    15/45, hva som helst). Hurtigvalgene (50/10 · 45/15 · 40/20 · 30/15 ·
+    30/30 · 25/25) FYLLER de to feltene og er kun en snarvei for de vanlige
+    forholdene — de er ALDRI en lukket liste man må velge fra.
+    <br>· De to feltene står alltid synlige, ikke gjemt bak
+    «egendefinert»-valget. Skriver man rett i dem, avmerkes ingen hurtigknapp
+    (eller den som tilfeldigvis matcher) — men verdien består.
+    <br>· Samme frihet i hurtigoppsettet og i segment-editoren, samme delte
+    kilde i lib.
+    <br>· Lengden er primær, antall avledes
+    (<code>floor(lengde / (arbeid+pause))</code>), rest vises ærlig
+    («8 × 40/20 + 12 s rest»). Gruppen bæres av <code>gruppe_id</code>;
+    endres én repetisjon faller etiketten tilbake til ærlig tekst.</li>
+    <li><b>Alt går gjennom</b> <code>lib/intervall-generator.ts</code> og
+    <code>OktKurve</code> — ingen parallelle veier (regel 11/18).</li>
+    <li><b>Lys + mørk</b> (regel 23) · regel 17 · 20 · 22 · 24 · treffflater
+    ≥36 px · SEGMENT_FARGER og ZONE_COLORS_V2 er fasit · sonespråket (5
+    eller 8) fra <code>lib/sonesprak</code>.</li>
+  </ul>
+</section>
+
+</div>
+<script>
+function vis(k,btn){
+  ['a','b','c'].forEach(x=>document.getElementById('v'+x).classList.toggle('hidden',x!==k));
+  document.querySelectorAll('.lerret button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { dbFeilTekst } from '@/lib/db-feil'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
   WorkoutFormData, Sport, WorkoutType, LactateRow, ShootingBlock, ShootingBlockType,
@@ -355,7 +356,7 @@ async function insertActivitiesWithChildren(
     .from('workout_activities')
     .insert(activityRows)
     .select('id, sort_order')
-  if (actErr) return actErr.message
+  if (actErr) return dbFeilTekst(actErr, 'aktivitetene')
 
   const idBySortOrder = new Map<number, string>()
   for (const r of (insertedActivities ?? []) as { id: string; sort_order: number }[]) {
@@ -377,7 +378,7 @@ async function insertActivitiesWithChildren(
       .from('workout_activity_exercises')
       .insert(exerciseRows)
       .select('id, sort_order')
-    if (exErr) return exErr.message
+    if (exErr) return dbFeilTekst(exErr, 'øvelsene')
     const exIdBySortOrder = new Map<number, string>()
     for (const r of (insertedEx ?? []) as { id: string; sort_order: number }[]) {
       exIdBySortOrder.set(r.sort_order, r.id)
@@ -419,7 +420,7 @@ async function insertActivitiesWithChildren(
       const { error: setErr } = await supabase
         .from('workout_activity_exercise_sets')
         .insert(setRows)
-      if (setErr) return setErr.message
+      if (setErr) return dbFeilTekst(setErr, 'settene')
     }
   }
 
@@ -446,7 +447,7 @@ async function insertActivitiesWithChildren(
     const { error: lactErr } = await supabase
       .from('workout_activity_lactate_measurements')
       .insert(lactateRows)
-    if (lactErr) return lactErr.message
+    if (lactErr) return dbFeilTekst(lactErr, 'laktatmålingene')
   }
 
   // Kø #47: skyteserier — barn av aktivitetene (samme reinsert-mønster som
@@ -469,7 +470,7 @@ async function insertActivitiesWithChildren(
     const { error: serErr } = await supabase
       .from('workout_shooting_series')
       .insert(shootingSeriesRows)
-    if (serErr) return serErr.message
+    if (serErr) return dbFeilTekst(serErr, 'skyteseriene')
   }
 
   return null

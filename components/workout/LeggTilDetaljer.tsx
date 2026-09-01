@@ -82,6 +82,11 @@ export function LeggTilDetaljerPopup({
   // BOLK 6 — planen som spøkelse bak det som faktisk skjedde.
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
   const [visPlan, setVisPlan] = useState(false)
+  // Rundebyttet skriver DIREKTE til basen (det er ikke et utkast), men
+  // flatene bak skal ikke lastes på nytt midt i arbeidet: gjør de det,
+  // rives byggeren ned, og valget kan ikke angres der og da — som det
+  // skal kunne. Beskjeden til foreldreflata utsettes derfor til lukking.
+  const [rundeneErByttet, setRundeneErByttet] = useState(false)
   const [feil, setFeil] = useState<string | null>(null)
   const [lagrer, setLagrer] = useState(false)
 
@@ -210,6 +215,9 @@ export function LeggTilDetaljerPopup({
       const ok = await xpConfirm('Lukke uten å lagre? Endringene i tidslinja går tapt.')
       if (!ok) return
     }
+    // Et rundebytte er allerede skrevet — foreldreflata får beskjed nå,
+    // ikke i det byttet skjedde, slik at byggeren fikk stå åpen imens.
+    if (rundeneErByttet) onLagret()
     onClose()
   }
 
@@ -557,7 +565,7 @@ export function LeggTilDetaljerPopup({
                 setValgtSegment(null)
                 setAngreStabel([])
                 setLastTick(t => t + 1)
-                onLagret()
+                setRundeneErByttet(true)
               }} />
               {(() => {
                 const valg = ([

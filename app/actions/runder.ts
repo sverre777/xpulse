@@ -33,10 +33,9 @@ import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
 //
 // MERK (regel 24): ingen type-re-eksport fra denne fila.
 
-// Fase 116 er ikke kjørt i prod ennå. Så lenge kolonnen mangler tilbys
-// valget IKKE — å bytte ut klokkerundene uten et sted å legge dem ville
-// vært et tap uten vei tilbake. Snus til true når migreringen er kjørt.
-const RUNDE_BACKUP_FINNES = false
+// Fase 116 er kjørt (936 økter · 0 med runde_backup, 1. sep 2026):
+// klokkerundene har nå et sted å ligge, og valget kan tilbys.
+const RUNDE_BACKUP_FINNES = true
 
 const SKYTING = (t: string | null) => (t ?? '').startsWith('skyting')
 

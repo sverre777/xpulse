@@ -9,6 +9,9 @@ import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
 import { KurveBrush } from './KurveBrush'
 import { hentKurveVindu } from '@/app/actions/workout-klokkesync'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
+import { PlanSpokelse } from './PlanSpokelse'
+import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
+import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -96,6 +99,26 @@ export function WorkoutDetailChart({
   const [visSegmenter, setVisSegmenter] = useState(true)
   const [visPunkter, setVisPunkter] = useState(true)
   const [visRunder, setVisRunder] = useState(true)
+  // BOLK 6 — planen bak, samme bryter og samme lag som i Øktbyggeren.
+  // Valget deles med byggeren (lib/vis-plan), så flatene aldri står uenige.
+  const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
+  const [visPlan, setVisPlan] = useState(false)
+
+  useEffect(() => {
+    setVisPlan(visPlanBak())
+    const oppdater = () => setVisPlan(visPlanBak())
+    window.addEventListener(VIS_PLAN_HENDELSE, oppdater)
+    return () => window.removeEventListener(VIS_PLAN_HENDELSE, oppdater)
+  }, [])
+
+  useEffect(() => {
+    if (!workoutId) return
+    let avbrutt = false
+    hentPlanensRunder(workoutId)
+      .then(b => { if (!avbrutt) setPlanBlokker(b) })
+      .catch(() => {})
+    return () => { avbrutt = true }
+  }, [workoutId])
   const [valgtSegment, setValgtSegment] = useState<string | null>(null)
   // Krysshårets tidspunkt. Panelet under grafen er FASIT for verdier —
   // aksene er bare kontekst (fasiten). Uten krysshår viser cellene øktas
@@ -217,6 +240,11 @@ export function WorkoutDetailChart({
                 <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
                   onClick={() => setVisRunder(v => !v)} />
               )}
+              {/* Finnes ingen plan, står bryteren ikke der (aldri en død knapp). */}
+              {planBlokker.length > 0 && (
+                <Chip farge="var(--accent)" etikett="Plan bak" paa={visPlan} fokus={false}
+                  onClick={() => setVisPlan(settVisPlanBak(!visPlan))} />
+              )}
             </Gruppe>
           )}
         </div>
@@ -234,6 +262,8 @@ export function WorkoutDetailChart({
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
+            {/* Planen bak alt annet — dekor, tar aldri et klikk. */}
+            {visPlan && <PlanSpokelse blokker={planBlokker} pct={h.pct} />}
             {/* Rundegrenser */}
             {visRunder && laps.map((lap, i) => i === 0 ? null : (
               <span key={`lap-${i}`} aria-hidden style={{

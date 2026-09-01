@@ -12,9 +12,12 @@ import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
+import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
+import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
+import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
-import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
+import { PAUSE_TYPER, type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
 import {
   Verktoypalett, SegmentLag, SegmentHandlinger, etikettFor, segmentTypeFor,
   STANDARD_LENGDE, type Utkast, type PunktVerktoy,
@@ -76,6 +79,9 @@ export function LeggTilDetaljerPopup({
   // og pulsen per runde. Da lastes økta på nytt i stedet for å lappe på
   // et utkast som beskriver rader som ikke finnes lenger.
   const [lastTick, setLastTick] = useState(0)
+  // BOLK 6 — planen som spøkelse bak det som faktisk skjedde.
+  const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
+  const [visPlan, setVisPlan] = useState(false)
   const [feil, setFeil] = useState<string | null>(null)
   const [lagrer, setLagrer] = useState(false)
 
@@ -129,6 +135,21 @@ export function LeggTilDetaljerPopup({
   // Kurvevelger (V9.4): hvilken kurve man plasserer PÅ. Vinduer og punkter
   // er de samme uansett — kun lerretet bytter.
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>('puls')
+
+  useEffect(() => {
+    setVisPlan(visPlanBak())
+    const oppdater = () => setVisPlan(visPlanBak())
+    window.addEventListener(VIS_PLAN_HENDELSE, oppdater)
+    return () => window.removeEventListener(VIS_PLAN_HENDELSE, oppdater)
+  }, [])
+
+  useEffect(() => {
+    let avbrutt = false
+    hentPlanensRunder(workoutId)
+      .then(b => { if (!avbrutt) setPlanBlokker(b) })
+      .catch(() => {})
+    return () => { avbrutt = true }
+  }, [workoutId, lastTick])
 
   useEffect(() => {
     let avbrutt = false
@@ -519,6 +540,19 @@ export function LeggTilDetaljerPopup({
               {/* BOLK 4 ★ — rundene: fra klokka, planens runder, eller
                   tilbake til klokka. Står bare når det finnes et reelt
                   valg (komponenten skjuler seg selv ellers). */}
+              {planBlokker.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <VisPlanBryter paa={visPlan} antall={planBlokker.length}
+                    onEndre={p2 => setVisPlan(settVisPlanBak(p2))} />
+                  <span style={{
+                    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12,
+                    color: 'var(--tekst-8-alt)',
+                  }}>
+                    Planens {planBlokker.length} blokker legges bak — da ser du hvor
+                    økta forlot planen.
+                  </span>
+                </div>
+              )}
               <RundeValg workoutId={workoutId} onEndret={() => {
                 setValgtSegment(null)
                 setAngreStabel([])
@@ -575,6 +609,7 @@ export function LeggTilDetaljerPopup({
                 totalSek={totalSek}
                 laktat={data.laktat}
                 ernaering={data.ernaering}
+                planBlokker={visPlan ? planBlokker : []}
                 laktatSek={laktatSek}
                 ernaeringMin={ernaeringMin}
                 onLaktat={(id, sek) => setLaktatSek(m => new Map(m).set(id, sek))}
@@ -888,7 +923,7 @@ function KurveMedVinduer({
   workoutId, utkast, valgtSegment, palettAktiv, onVelgSegment, onEndreSegment, onGrense, onLeggInn,
   onVinduEndret, nyePunkter, onFlyttNyttPunkt, erPlanlagt,
   hr, fart, watt, hoyde, kurve, sport, totalSek,
-  laktat, ernaering, laktatSek, ernaeringMin,
+  laktat, ernaering, laktatSek, ernaeringMin, planBlokker,
   onLaktat, onErnaering,
 }: {
   workoutId: string
@@ -908,6 +943,8 @@ function KurveMedVinduer({
   fart: Array<{ t: number; mps: number }>
   watt: Array<{ t: number; w: number }>
   hoyde: Array<{ t: number; alt: number }>
+  /** Planens blokker, tomt når spøkelseslaget er av (bolk 6). */
+  planBlokker: PlanBlokk[]
   kurve: KurveValg
   sport: string | null
   totalSek: number
@@ -968,6 +1005,39 @@ function KurveMedVinduer({
     if (d.slag === 'ernaering') { onErnaering(d.id, Math.round(sek / 60)) }
   }
 
+  // Etiketten viser TALL som finnes: ført verdi først, ellers det klokka
+  // målte i segmentets eget vindu. Finnes ingen av delene, står det
+  // ingenting — etiketten finner aldri på et tall.
+  const tallFor = (u: Utkast) => {
+    const fort = (v: string) => { const n = parseInt(v); return Number.isFinite(n) ? n : null }
+    const f = { snitt: fort(u.snittpuls), maks: fort(u.makspuls) }
+    if (f.snitt != null || f.maks != null) return f
+    if (hr.length === 0) return f
+    if (PAUSE_TYPER.has(u.type) || u.type.startsWith('skyting')) return { snitt: null, maks: null }
+    const m = pulsIVindu(hr, u.startSek, u.startSek + u.varighetSek)
+    return { snitt: m.snitt, maks: m.maks }
+  }
+
+  // «plan: 8 min» — hva planen sa på dette stedet.
+  //
+  // Blokka må dekke segmentets MIDTPUNKT og være av SAMME TYPE. Kravet om
+  // lik type er ikke pynt: når økta blir kortere enn planen, forskyves alt
+  // etterpå, og uten typesjekken fikk pausen og nedjoggen «plan: 8:00» fra
+  // draget de tilfeldigvis lå under. Et tall som beskriver noe annet er
+  // verre enn ingen tekst.
+  const planTekstFor = (u: Utkast) => {
+    if (planBlokker.length === 0) return null
+    const midt = u.startSek + u.varighetSek / 2
+    const minType = segmentTypeFor(u.type, u.bevegelsesform)
+    const b = planBlokker.find(x =>
+      midt >= x.startSek && midt < x.sluttSek && segmentTypeFor(x.type, '') === minType)
+    if (!b) return null
+    const planSek = b.sluttSek - b.startSek
+    // Traff planen, er det ingenting å si.
+    if (Math.abs(planSek - u.varighetSek) < 5) return null
+    return `plan: ${fmtKlokkeSek(planSek)}`
+  }
+
   // LERRETET velges av hva økta HAR, ikke av en egen modus: har klokka
   // levert en kurve er den lerretet (C); ellers tegnes blokkene (A/B).
   const harKurve = kurveSerier.some(k => !k.somAreal && k.punkter.length > 0)
@@ -988,6 +1058,7 @@ function KurveMedVinduer({
                 onPointerUp={() => { drag.current = null }}
                 onPointerLeave={() => { drag.current = null }}
                 style={{ position: 'absolute', inset: 0, cursor: palettAktiv ? 'copy' : undefined }}>
+                <PlanSpokelse blokker={planBlokker} pct={h.pct} />
                 <SegmentLag
                   palettAktiv={palettAktiv}
                   utkast={utkast}
@@ -997,6 +1068,8 @@ function KurveMedVinduer({
                   onVelg={onVelgSegment}
                   onEndre={onEndreSegment}
                   onGrense={onGrense}
+                  tallFor={tallFor}
+                  planTekstFor={planTekstFor}
                 />
                 {/* Punkter — hule/stiplede i plan (fasiten), fylte ellers. */}
                 {nyePunkter.map(np => (
@@ -1065,6 +1138,7 @@ function KurveMedVinduer({
         onPointerUp={() => { drag.current = null }}
         onPointerLeave={() => { drag.current = null }}
         style={{ position: 'absolute', inset: 0, cursor: palettAktiv ? 'copy' : undefined }}>
+        <PlanSpokelse blokker={planBlokker} pct={h.pct} />
         <SegmentLag
           palettAktiv={palettAktiv}
           utkast={utkast}
@@ -1074,6 +1148,8 @@ function KurveMedVinduer({
           onVelg={onVelgSegment}
           onEndre={onEndreSegment}
           onGrense={onGrense}
+          tallFor={tallFor}
+          planTekstFor={planTekstFor}
         />
         {/* Nye punkter lagt inn her (uten verdi ennå) — stiplet ring til
             de er ført, så de ikke ser ut som en måling. */}

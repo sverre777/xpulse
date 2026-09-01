@@ -209,6 +209,7 @@ export function Verktoypalett({
 
 export function SegmentLag({
   utkast, valgtId, h, totalSek, onVelg, onEndre, onGrense, palettAktiv = false,
+  tallFor, planTekstFor,
 }: {
   utkast: Utkast[]
   valgtId: string | null
@@ -221,6 +222,13 @@ export function SegmentLag({
   onEndre: (id: string, patch: { startSek?: number; varighetSek?: number }) => void
   /** Flytter grensen mellom to naboer — begge endres samtidig, aldri hull. */
   onGrense: (venstreId: string, hoyreId: string, sek: number) => void
+  /** Snitt/maks som skal stå i etiketten — ført tall der det finnes,
+      ellers det klokka målte i segmentets vindu. Uten klokke og uten ført
+      tall står det ingenting: etiketten finner aldri på en verdi. */
+  tallFor?: (u: Utkast) => { snitt: number | null; maks: number | null }
+  /** «plan: 8 min» — hva planen sa på dette stedet. Vises bare når
+      spøkelseslaget er på, og bare der planen faktisk sier noe. */
+  planTekstFor?: (u: Utkast) => string | null
 }) {
   const sortert = [...utkast].sort((a, b) => a.startSek - b.startSek)
   return (
@@ -274,7 +282,28 @@ export function SegmentLag({
                 textTransform: 'uppercase', color: farge,
               }}>
                 {smalt ? '' : etikettFor(u, utkast)}
+                {!smalt && (() => {
+                  const t = tallFor?.(u)
+                  if (!t || (t.snitt == null && t.maks == null)) return null
+                  return (
+                    <span style={{ color: 'var(--tekst-5-app)' }}>
+                      {t.snitt != null ? ` · snitt ${t.snitt}` : ''}
+                      {t.maks != null ? ` · maks ${t.maks}` : ''}
+                    </span>
+                  )
+                })()}
               </span>
+              {/* Planens tall for samme sted — grått og lite, bak det som
+                  faktisk skjedde. Står bare når spøkelseslaget er på. */}
+              {!smalt && planTekstFor?.(u) && (
+                <span style={{
+                  position: 'absolute', bottom: 2, left: 5, whiteSpace: 'nowrap', pointerEvents: 'none',
+                  fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9.5,
+                  letterSpacing: '0.05em', color: 'var(--tekst-8-alt)', fontStyle: 'italic',
+                }}>
+                  {planTekstFor(u)}
+                </span>
+              )}
             </button>
 
             {/* Enderhåndtak (endrer bare dette segmentet) — kun når naboen

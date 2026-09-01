@@ -257,3 +257,56 @@ export async function tilbakestillTilKlokka(
   revalider(okt.user_id as string)
   return { ok: true, gjenopprettet: rader.length }
 }
+
+// ── PLANEN SOM SPØKELSE (bolk 6) ─────────────────────────────
+//
+// Samme kilde som rundevalget: planens struktur ligger parkert på den
+// skjulte tvillingen etter en flett. Her LESES den bare — den tegnes bak
+// det som faktisk skjedde, slik at man ser hvor virkeligheten forlot
+// planen. Ingen skriving, ingen migrering, ingen berøring av fletten.
+//
+// Blokkene legges etter hverandre fra start med sine egne varigheter.
+// Det er ikke en påstand om at planen traff der: et drag som ble 6 min i
+// stedet for 8 SKAL se ut som at kurven faller før planens blokk slutter.
+
+export interface PlanBlokk {
+  id: string
+  type: string
+  navn: string | null
+  startSek: number
+  sluttSek: number
+}
+
+export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: tvillinger } = await supabase.from('workouts')
+    .select('id').eq('merged_into_workout_id', workoutId)
+  const tvilling = (tvillinger ?? [])[0]
+  if (!tvilling) return []
+
+  const { data: rader } = await supabase.from('workout_activities')
+    .select('id, activity_type, movement_name, lap_notes, duration_seconds, window_start_seconds, window_duration_seconds')
+    .eq('workout_id', tvilling.id).order('sort_order', { ascending: true })
+
+  let t = 0
+  const ut: PlanBlokk[] = []
+  for (const r of rader ?? []) {
+    if (SKYTING(r.activity_type)) continue
+    const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds) || 0)
+    // Har planen egne vinduer, er de sannheten; ellers legges blokkene
+    // etter hverandre slik de sto i rekkefølgen.
+    const start = r.window_start_seconds != null ? Number(r.window_start_seconds) : t
+    ut.push({
+      id: r.id,
+      type: r.activity_type ?? 'aktivitet',
+      navn: r.lap_notes ?? r.movement_name ?? null,
+      startSek: start,
+      sluttSek: start + varighet,
+    })
+    t = start + varighet
+  }
+  return ut
+}

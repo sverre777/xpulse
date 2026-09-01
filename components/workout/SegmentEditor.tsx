@@ -81,12 +81,18 @@ export function SegmentEditor({
             maalt={maalt?.distanseKm != null} onEndre={v => onFelt({ distanseKm: v })} />
         </Felt>
         <Felt navn="Snittpuls">
-          <TallFelt verdi={felter.snittpuls} plassholder={maalt?.snittpuls != null ? String(maalt.snittpuls) : '—'}
-            maalt={maalt?.snittpuls != null} onEndre={v => onFelt({ snittpuls: v })} />
+          <TallFelt verdi={felter.snittpuls}
+            plassholder={maalt?.snittpuls != null ? String(maalt.snittpuls) : (segment.arvetPuls?.snitt || '—')}
+            maalt={maalt?.snittpuls != null}
+            arvet={maalt?.snittpuls == null && !!segment.arvetPuls?.snitt}
+            onEndre={v => onFelt({ snittpuls: v })} />
         </Felt>
         <Felt navn="Makspuls">
-          <TallFelt verdi={felter.makspuls} plassholder={maalt?.makspuls != null ? String(maalt.makspuls) : '—'}
-            maalt={maalt?.makspuls != null} onEndre={v => onFelt({ makspuls: v })} />
+          <TallFelt verdi={felter.makspuls}
+            plassholder={maalt?.makspuls != null ? String(maalt.makspuls) : (segment.arvetPuls?.maks || '—')}
+            maalt={maalt?.makspuls != null}
+            arvet={maalt?.makspuls == null && !!segment.arvetPuls?.maks}
+            onEndre={v => onFelt({ makspuls: v })} />
         </Felt>
         <Felt navn="Sone" tom={erHvile ? 'hvile har ingen sone' : undefined}>
           <select value={felter.sone} onChange={e => onFelt({ sone: e.target.value })}
@@ -231,14 +237,21 @@ function TidFelt({ sek, onSek }: { sek: number; onSek: (s: number) => void }) {
 }
 
 /** Måltverdi vises som plassholder; skriver brukeren, merkes det M. */
-function TallFelt({ verdi, plassholder, maalt, onEndre }: {
-  verdi: string; plassholder: string; maalt: boolean; onEndre: (v: string) => void
+function TallFelt({ verdi, plassholder, maalt, arvet = false, onEndre }: {
+  verdi: string; plassholder: string; maalt: boolean
+  /** Plassholderen kommer fra DRAGET, ikke fra klokka: den vises grå og
+      får aldri MÅLT-merket. Et hint om hva draget var — ikke et tall som
+      utgir seg for å være målt på denne repetisjonen. */
+  arvet?: boolean
+  onEndre: (v: string) => void
 }) {
   const overstyrt = verdi.trim() !== ''
   return (
     <span className="inline-flex items-center gap-1">
       <input value={verdi} onChange={e => onEndre(e.target.value)} inputMode="decimal"
-        placeholder={plassholder} style={{ ...inputStil, width: 78 }} />
+        placeholder={plassholder}
+        title={arvet ? 'Dragets snitt — vises som hint, lagres ikke' : undefined}
+        style={{ ...inputStil, width: 78 }} />
       {overstyrt
         ? <span title="Manuelt ført — vinner over det målte" style={merke('#E8B93C')}>M</span>
         : maalt

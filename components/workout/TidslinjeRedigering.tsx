@@ -37,6 +37,11 @@ export interface Utkast {
   beskrivelse: string
   /** Repetisjoner fra samme kortintervall deler gruppe (fase 117). */
   gruppeId: string | null
+  /** Dragets snitt/maks vist som GRÅ PLASSHOLDER på repetisjoner uten
+      klokkedata. Er ikke en verdi: den arves aldri, lagres aldri, og
+      forsvinner i det brukeren fører sitt eget tall. Med klokkedata
+      brukes det MÅLTE i repetisjonens eget vindu i stedet. */
+  arvetPuls: { snitt: string; maks: string } | null
 }
 
 const STANDARD_LENGDE: Partial<Record<string, number>> = {

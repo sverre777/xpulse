@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { kanFlislegge, beregnSegmenter, type SegmentRad } from '@/lib/segmenter'
+import { kanFlislegge, beregnSegmenter, pulsIVindu, type SegmentRad } from '@/lib/segmenter'
+import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import type { HeartZone } from '@/lib/heart-zones'
 
@@ -426,6 +427,16 @@ export async function lagreTidslinje(
     .select('id').eq('id', workoutId).maybeSingle()
   if (!workout) return { ok: false, error: 'Fant ikke økta' }
 
+  // PULSEN LESES FRA VINDUET, ARVES ALDRI. Finnes klokkedata, henter et
+  // segment uten ført puls sine tall fra samples i SITT EGET vindu — det
+  // gjelder like mye en repetisjon som er delt ut av et drag som et
+  // segment hvis grense er flyttet. Ført tall vinner alltid (og merkes M
+  // i editoren); uten klokkedata blir feltet stående tomt.
+  const { data: samplesRad } = await supabase.from('workout_samples')
+    .select('hr_samples').eq('workout_id', workoutId)
+    .order('created_at', { ascending: false }).limit(1)
+  const hrSamples = (samplesRad?.[0]?.hr_samples ?? []) as Array<{ t: number; hr: number }>
+
   // Overlapp valideres på det ferdige settet — samme regel som klienten,
   // men mot det som faktisk skal lagres (to faner / trener + utøver).
   const sortert = [...segmenter].sort((a, b) => a.startSek - b.startSek)
@@ -454,6 +465,11 @@ export async function lagreTidslinje(
       return Number.isFinite(n) ? n : null
     }
     const km = tall(s.distanseKm)
+    // Det klokka faktisk viser i segmentets vindu. Pauser og skyting
+    // holdes utenfor: der er «snittpuls i vinduet» ikke et treningstall.
+    const maalt = (hrSamples.length > 0 && !erSkyting && !PAUSE_TYPER.has(s.activityType) && !VEKSLING_TYPER.has(s.activityType))
+      ? pulsIVindu(hrSamples, s.startSek, s.startSek + s.varighetSek)
+      : { snitt: null as number | null, maks: null as number | null }
     // Sonen lagres som tid i den sonen (zones-jsonb), samme form som
     // intervall-generatoren bruker — ingen ny representasjon.
     const soner = s.sone ? { [s.sone]: Math.round(s.varighetSek) } : null
@@ -465,8 +481,8 @@ export async function lagreTidslinje(
       window_duration_seconds: Math.round(s.varighetSek),
       sort_order: s.sortOrder,
       distance_meters: km != null ? Math.round(km * 1000) : null,
-      avg_heart_rate: tall(s.snittpuls),
-      max_heart_rate: tall(s.makspuls),
+      avg_heart_rate: tall(s.snittpuls) ?? maalt.snitt,
+      max_heart_rate: tall(s.makspuls) ?? maalt.maks,
       notes: s.beskrivelse || null,
       ...(soner ? { zones: soner } : {}),
       // gruppe_id skrives FØRST når fase 117 er kjørt — kolonnen finnes

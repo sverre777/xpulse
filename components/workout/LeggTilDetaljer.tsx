@@ -11,6 +11,7 @@ import { zoneForHeartRate } from '@/lib/heart-zones'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
+import { RundeValg } from './RundeValg'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { type ActivityType, type ShootingSeriesRow, type Sport } from '@/lib/types'
@@ -71,6 +72,10 @@ export function LeggTilDetaljerPopup({
 }) {
   const [data, setData] = useState<LeggTilDetaljerData | null>(null)
   const [laster, setLaster] = useState(true)
+  // Bytter man runder (bolk 4) er HELE grunnlaget nytt — radene, vinduene
+  // og pulsen per runde. Da lastes økta på nytt i stedet for å lappe på
+  // et utkast som beskriver rader som ikke finnes lenger.
+  const [lastTick, setLastTick] = useState(0)
   const [feil, setFeil] = useState<string | null>(null)
   const [lagrer, setLagrer] = useState(false)
 
@@ -154,13 +159,14 @@ export function LeggTilDetaljerPopup({
               sone: r.sone ?? '',
               beskrivelse: r.beskrivelse ?? '',
               gruppeId: r.gruppeId ?? null,
+              arvetPuls: null,
             })))
           if (d.hr.length === 0) setKurve(d.fart.length > 0 ? 'fart' : 'watt')
         }
       })
       .catch(() => { if (!avbrutt) { setLaster(false); setFeil('Kunne ikke laste økta — prøv igjen') } })
     return () => { avbrutt = true }
-  }, [workoutId])
+  }, [workoutId, lastTick])
 
   const totalSek = data?.totalSek ?? 0
 
@@ -249,6 +255,7 @@ export function LeggTilDetaljerPopup({
       navn: '', bevegelsesform: '', startSek: start, varighetSek: Math.max(5, slutt - start),
       skytetidSek: null,
       distanseKm: '', snittpuls: '', makspuls: '', sone: '', beskrivelse: '', gruppeId: null,
+      arvetPuls: null,
     }
     // SETTES INN i tidslinja, ikke oppå den: en tidslinje fra klokka er
     // sammenhengende, så et nytt segment må gjøre plass til seg selv.
@@ -302,10 +309,18 @@ export function LeggTilDetaljerPopup({
       const uten = liste.filter(x => x.id !== u.id)
       const nye: Utkast[] = []
       let t = u.startSek
+      // PULSEN ARVES ALDRI NEDOVER. Med klokkedata leses den av seg selv
+      // fra repetisjonens EGET vindu (maaltForSegment + lagringen).
+      // Uten klokke står feltet tomt til brukeren fører, med dragets
+      // snitt som grå plassholder — et hint om hva draget var, ikke et
+      // tall som utgir seg for å være målt på repetisjonen.
+      const arvetPuls = data && data.hr.length === 0 && (u.snittpuls || u.makspuls)
+        ? { snitt: u.snittpuls, maks: u.makspuls } : null
       for (let i = 0; i < antall; i++) {
         nye.push({
           ...u, id: `ny-${crypto.randomUUID()}`, dbId: i === 0 ? u.dbId : null,
           type: u.type, startSek: t, varighetSek: m.paaSek, gruppeId, navn: '',
+          snittpuls: '', makspuls: '', sone: '', arvetPuls,
         })
         t += m.paaSek
         if (m.avSek > 0) {
@@ -313,6 +328,7 @@ export function LeggTilDetaljerPopup({
             ...u, id: `ny-${crypto.randomUUID()}`, dbId: null,
             type: 'pause' as ActivityType, startSek: t, varighetSek: m.avSek,
             gruppeId, navn: '', distanseKm: '', snittpuls: '', makspuls: '', sone: '',
+            arvetPuls: null,
           })
           t += m.avSek
         }
@@ -322,6 +338,7 @@ export function LeggTilDetaljerPopup({
         nye.push({
           ...u, id: `ny-${crypto.randomUUID()}`, dbId: null,
           startSek: t, varighetSek: rest, gruppeId: null, navn: '',
+          snittpuls: '', makspuls: '', sone: '', arvetPuls,
         })
       }
       return [...uten, ...nye]
@@ -499,6 +516,15 @@ export function LeggTilDetaljerPopup({
 
           {data && (data.totalSek > 0 || data.rader.length > 0) && (
             <>
+              {/* BOLK 4 ★ — rundene: fra klokka, planens runder, eller
+                  tilbake til klokka. Står bare når det finnes et reelt
+                  valg (komponenten skjuler seg selv ellers). */}
+              <RundeValg workoutId={workoutId} onEndret={() => {
+                setValgtSegment(null)
+                setAngreStabel([])
+                setLastTick(t => t + 1)
+                onLagret()
+              }} />
               {(() => {
                 const valg = ([
                   ['puls', 'Puls', data.hr.length] as const,

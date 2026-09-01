@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CoachNav } from '@/components/coach/CoachNav'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
-import { CustomCursor } from '@/components/cursor/CustomCursor'
+import { MusepekerVert } from '@/components/cursor/MusepekerVert'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { InstallHint } from '@/components/pwa/InstallHint'
 
@@ -26,7 +26,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen flex flex-col xp-coach">
-      <CustomCursor color="#1A6FD4" />
+      <MusepekerVert color="#1A6FD4" />
       <CoachNav
         userName={profile?.full_name ?? null}
         hasAthleteRole={profile?.has_athlete_role ?? false}

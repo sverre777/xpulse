@@ -8,6 +8,7 @@ import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
 import { TemaBryter } from './TemaBryter'
+import { MusepekerBryter } from './MusepekerBryter'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
 import { UserMenu } from './UserMenu'
@@ -155,6 +156,7 @@ export function MainNav({
             <KlokkesyncStatusButton initialBadge={klokkesyncBadge} navigerDirekte />
           )}
           <TemaBryter accent={accent} storrelse={44} />
+          <MusepekerBryter accent={accent} storrelse={44} />
 
           <button
             type="button"
@@ -294,6 +296,7 @@ export function MainNav({
         {activeRole !== 'coach' && <KlokkesyncStatusButton initialBadge={klokkesyncBadge} />}
 
         <TemaBryter accent={accent} />
+        <MusepekerBryter accent={accent} />
 
         <SettingsIconButton
           accent={accent}

@@ -3,7 +3,7 @@ import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
 import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
-import { CustomCursor } from '@/components/cursor/CustomCursor'
+import { MusepekerVert } from '@/components/cursor/MusepekerVert'
 import { AppFooter } from '@/components/layout/AppFooter'
 import { InstallHint } from '@/components/pwa/InstallHint'
 import { ProfilVarselBanner } from '@/components/layout/ProfilVarselBanner'
@@ -68,7 +68,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <RoleProvider value={{ activeRole: effectiveRole, hasAthleteRole, hasCoachRole }}>
-      <CustomCursor color="#FF4500" />
+      <MusepekerVert color="#FF4500" />
       <div className="min-h-screen flex flex-col">
         <MainNav
           userName={profile?.full_name ?? null}

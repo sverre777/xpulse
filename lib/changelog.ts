@@ -27,7 +27,8 @@
 // `date` er datoen funksjonen ble tilgjengelig for utøveren (levert i prod),
 // ikke datoen koden ble skrevet.
 
-import { APP_VERSJON } from './versjon'
+// .ts i stien: selvtesten (scripts/changelog-selftest.ts) kjøres rett i node.
+import { APP_VERSJON } from './versjon.ts'
 
 export type ChangelogEntry = {
   /** YYYY-MM-DD — dagen funksjonen ble tilgjengelig i appen. */
@@ -52,98 +53,104 @@ export const CHANGELOG_VISIBLE = 12
 
 export const CHANGELOG: ChangelogEntry[] = [
   // ── NYE TING etter v1.3 legges HER (øverst, uten version) ──────────────
-  // MERK (Sverre 28. aug): v1.3 er ÅPEN — leveringer resten av dagen
-  // legges med version '1.3', ikke som nye u-versjonerte punkter.
-  // Ingen v1.4 før Sverre sier det.
+  // MERK (Sverre 28. aug): v1.3 er ÅPEN — leveringer legges med version
+  // '1.3', ikke som nye u-versjonerte punkter. Ingen v1.4 før Sverre sier det.
+  //
+  // FORM I v1.3 (Sverre 2. sep): stikkord — én linje per punkt, færre
+  // småting, flere store. Ingen interne navn (bolk, fase, leverandører
+  // bak kulissene). Ett punkt per LEVERING: kutt og match i Øktbyggeren
+  // og plan-grafen legges inn i SAMME punkt når de lander.
 
-  // ── v1.3 — 28. august 2026 ─────────────────────────────────────────────
+  // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
+  {
+    date: '2026-09-02',
+    title: 'Øktbygger i dagboka',
+    body: 'Hurtigoppsettet (antall × dragtid × sone / pause) finnes nå også på gjennomførte økter, og radene styrer tida: start og varighet som tall, del og slå sammen med ett trykk.',
+    version: '1.3',
+  },
   {
     date: '2026-08-29',
-    title: 'Legg til detaljer — plasser skyting og målinger på kurven',
-    body: 'Klokkesynkede økter har fått «Legg til detaljer»: plasser skytingene dine i tid ved å dra vinduer direkte på kurven — med puls, fart eller watt som lerret, og høydeprofilen i bakgrunnen. Ført skytetid brukes automatisk som vinduslengde og teller i statistikken; uten ført tid er vinduet en ren pulsmarkering. Laktatmålinger og ernæring kan dras inn som punkter, og radene kan sorteres etter tid. På økter med runder fra klokka er vinduene låst til rundene, som før.',
+    title: 'Økt-grafen, lesbar',
+    body: 'Én y-akse, krysshår med lesepanel, zoom og panorering — og et segmentbånd under kurven der oppvarming, drag, pauser og skyting tegnes i tid.',
     version: '1.3',
   },
   {
-    date: '2026-08-28',
-    title: 'Økta som fortelling under pulskurven',
-    body: 'Klokkesynkede økter med runder viser nå et segmentbånd under økt-grafen: oppvarming, drag, pauser, skyting og nedjogg tegnes i tid, med egne farger for liggende og stående skyting. Skytingene markeres også som vinduer på selve pulskurven med treff og «puls inn». Hold over et segment for tid, varighet og snittpuls — og laktatmålinger og ernæring med tidspunkt vises som små markører over båndet.',
+    date: '2026-08-29',
+    title: 'Plott treff',
+    body: 'Alle skytingene i økta på ett sted: plott hvert skudd på skiva, serie for serie, med vind og sikt.',
     version: '1.3',
   },
   {
-    date: '2026-08-28',
-    title: 'Flettede økter beholder klokkemerket og plan-sammenligningen',
-    body: 'Når en planlagt økt flettes med en klokkeøkt, vises nå klokkemerket (f.eks. Garmin eller Strava) på økta, i kalenderen og i økt-headeren — det forsvant tidligere ved fletting. Økt-visningen viser også «Plan vs faktisk»-sammenligningen mellom planen og det gjennomførte, akkurat som når du markerer en økt som gjennomført.',
+    date: '2026-08-29',
+    title: 'Veksling som egen aktivitet',
+    body: 'T1/T2 i triatlon og bytt-tid i multisport er en egen aktivitetstype med egen tidskategori — verken trening eller pause.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
     title: 'Koble og flett klokkeøkter med planen',
-    body: 'Synkede økter og planlagte/førte økter kan nå flettes til én: velg «Bytt ut aktivitetene» for å hente klokkas runder inn i økta di, eller «Legg bak» for å beholde alt du har ført og bare hente puls, totaltid og soner fra klokka. Notater, skyting, tags og konkurranseskjema står alltid urørt, klokkeøkta gjemmes uten å slettes, og alt kan angres — uten frist. Flettede og synkede økter har også fått en Samlet/Splittet-bryter som slår like runder sammen i visningen.',
+    body: 'En synket økt kobles til den planlagte (også ±3 dager) og flettes: bytt ut med klokkas runder eller legg klokka bak det du har ført — alt kan angres, klokkemerket og plan mot gjennomført følger med.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
-    title: 'Terskler, soner og helse — samlet på profilen',
-    body: 'Ny flate under Profil: sett terskelpuls, terskelfart og FTP per bevegelsesform og underkategori. Terskelen versjoneres — ny verdi overskriver aldri den gamle, og hver økt bruker terskelen som gjaldt den dagen. Egne pulssoner kan slås på per bevegelsesform (av betyr Olympiatoppens standard, som før), og makspuls/hvilepuls bor på samme flate. Gamle lenker til «Helse og soner» sendes automatisk hit.',
+    title: 'Terskler, soner og helse på profilen',
+    body: 'Terskelpuls, terskelfart og FTP per bevegelsesform — versjonert, så hver økt bruker terskelen som gjaldt den dagen — med egne pulssoner, makspuls og hvilepuls på samme flate.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
     title: 'NP og IF på økter med watt',
-    body: 'Økter med wattmåler viser nå normalisert effekt (NP) og intensitetsfaktor (IF) i klokkedata-seksjonen — IF regnes mot FTP-en du har satt på profilen. Belastningsgrafen bruker også watt-intensiteten der den finnes, i stedet for bare puls.',
+    body: 'Normalisert effekt og intensitetsfaktor mot FTP-en din, og belastningen regnes av watt der den finnes.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
     title: 'Ny analysefane: Prestasjon',
-    body: 'Effektivitetsfaktor-trenden (fart per pulsslag på rolige økter — stiger den, blir du sprekere uten å teste) og aerob frakobling (holder pulsen følge med farten gjennom lange, jevne økter?) har fått egen fane i analysen. Frakoblingen vises også på selve økta, og løperunder med høydeprofil får stigningsjustert fart (GAP) ved siden av tempoet. Strava-økter holdes utenfor trendene, og fanen sier fra når det skjer.',
+    body: 'Effektivitetsfaktor over tid, aerob frakobling på lange økter og stigningsjustert fart (GAP) på løperunder.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
     title: 'Sesong mot sesong',
-    body: 'Sammenlign hvilke som helst to sesonger måned for måned — timer, kilometer, økter eller effektivitetsfaktor. Grafen ligger i analysens oversikt og nederst under Årsplan, og sesongene følger grensene du har satt i årsplanen.',
+    body: 'Sammenlign to sesonger måned for måned — timer, kilometer, økter eller effektivitetsfaktor — i analysen og under Årsplan.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
     title: 'Utvidet intensitetsskala I6–I8',
-    body: 'For deg som planlegger anaerob trening: slå på I6–I8 på profilen, så erstatter de Hurtighet i føring, planlegging og grafer — hos deg og treneren din. I6–I8 styres av innsats og laktat, aldri puls; pulssonene er fortsatt I1–I5. Eldre Hurtighet-føringer vises som I7, tydelig merket, og ingenting skrives om.',
+    body: 'Slå på I6–I8 på profilen for anaerob trening, så erstatter de Hurtighet i føring, planlegging og grafer — hos deg og treneren din.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
-    title: 'Fyldigere profil — og en liten påminnelse',
-    body: 'Profilen har fått brukernavn, fødselsdato, høyde, vekt og valgfri sekundærsport — vekta er samme tall som helse-loggen, ført ett sted. Nye og eksisterende brukere uten terskler får en liten påminnelse nederst på skjermen om å legge dem inn; den huskes på tvers av enheter og maser aldri etter at du har lukket den.',
+    title: 'Fyldigere profil',
+    body: 'Brukernavn, fødselsdato, høyde, vekt og sekundærsport — og en påminnelse om terskler til de er satt.',
     version: '1.3',
   },
   {
     date: '2026-08-28',
-    title: 'Klokkesynk-status rett i mobil-toppen',
-    body: 'Klokkesynk-merket med statusprikk ligger nå i topplinja på mobil — du ser tilkoblingsstatusen uten å åpne menyen, og ett trykk tar deg til innstillingene.',
+    title: 'Klokkesynk-status i mobil-toppen',
+    body: 'Tilkoblingsstatusen ligger i topplinja på mobil — ett trykk til innstillingene.',
     version: '1.3',
   },
   {
     date: '2026-08-27',
-    title: 'Ny helseoversikt fra klokka',
-    body: 'Helse har fått en helt ny flate: søvnstadier per natt, hypnogram av siste natt (når klokka leverer stadie-tidslinja), HRV-, hvilepuls-, søvnscore- og vekt-trender, og en dybdevisning med restitusjon, søvn, aktivitet og klokkas egne skårer. Et kompakt helsekort ligger på hjem-skjermen og på dager med helsedata i kalenderen — klikk åpner hele oversikten. Du kan også føre dagens følelse (1–5, samme skala som øktene) rett fra kortet, og som alltid vinner det du fører selv over det klokka sier.',
+    title: 'Ny helseoversikt',
+    body: 'Søvnstadier og hypnogram, HRV-, hvilepuls- og vekttrender, og et helsekort på hjem og i kalenderen — det du fører selv vinner alltid.',
     version: '1.3',
   },
   {
     date: '2026-08-27',
-    title: 'Garmin, COROS, Wahoo og Zepp synker direkte (beta)',
-    body: 'Koble klokka én gang under Innstillinger → Klokkesync, så kommer nye økter inn av seg selv — med full pulskurve, runder og sonefordeling fra originalfila. Tilkoblingen henter også rundt 90 dager historikk. Fra Garmin og COROS følger helsedata med: søvn med faser og score, natt-HRV, hvilepuls og skritt lander i helse-loggen hver natt — og det du fører selv vinner alltid over klokka. Hver importerte økt gir deg et varsel i innboksen.',
+    title: 'Garmin, COROS, Wahoo og Zepp synker direkte',
+    body: 'Koble klokka én gang, så kommer økter med pulskurve, runder og soner — og søvn, HRV og hvilepuls — inn av seg selv, med rundt 90 dager historikk.',
     version: '1.3',
-  },
-  {
-    date: '2026-08-27',
-    title: 'Koble synket økt til planen',
-    body: 'En synket økt kan knyttes til en planlagt økt — også når planen sa en annen dag (±3 dager). Da ser du plan mot gjennomført, og planen markeres som fullført uten å dupliseres i dagboka. Fra en planlagt økt velger du «Knytt til synket økt» i stedet for å markere manuelt.',
   },
   {
     date: '2026-08-26',
     title: 'Lys modus',
-    body: 'Hele appen kan nå stå lyst. Bryteren ligger i topplinja — sol når du er i mørk modus, måne når du er i lys — og valget huskes til neste gang du logger inn. Fargene som betyr noe er urørt: sonefargene, skytefargene og periodiseringen er de samme i begge tema, så en graf leses likt uansett hva du har valgt.',
+    body: 'Hele appen i lyst tema — bryter i topplinja, valget huskes, og sonefargene er de samme i begge.',
+    version: '1.3',
   },
 
 

@@ -309,3 +309,75 @@ export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]>
   }
   return ut
 }
+
+// ── ØKTBYGGER BOLK 3b — bygg og match mot kurven ─────────────
+//
+// Bygger man en struktur oppå en økt som HAR klokkerunder, erstatter
+// strukturen rundene i skjemaet, og skjemaets lagring skriver dem ut av
+// basen. Derfor tas klokkas runder vare på ORDRETT her FØR byggingen —
+// samme runde_backup som rundevalget, samme «tilbakestill til klokka».
+
+/** Sikrer at klokkas runder ligger i backupen før de erstattes. Finnes
+    en backup fra før, røres den ikke (den eldste er klokkas). */
+export async function sikreKlokkerundeBackup(
+  workoutId: string,
+): Promise<{ ok: true; iBackup: number } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Ikke innlogget' }
+  const { data: okt } = await supabase.from('workouts')
+    .select('id, runde_backup').eq('id', workoutId).maybeSingle()
+  if (!okt) return { ok: false, error: 'Fant ikke økta' }
+  const eksisterende = okt.runde_backup as { rader?: unknown[] } | null
+  if (eksisterende && Array.isArray(eksisterende.rader) && eksisterende.rader.length > 0) {
+    return { ok: true, iBackup: eksisterende.rader.length }
+  }
+  const { data: naa, error } = await supabase.from('workout_activities')
+    .select('*').eq('workout_id', workoutId)
+  if (error) return { ok: false, error: error.message }
+  const klokkeRunder = somRader(naa).filter(r =>
+    !SKYTING(r.activity_type as string) && (r.external_id || r.strava_lap_index != null))
+  if (klokkeRunder.length === 0) return { ok: true, iBackup: 0 }
+  const { error: skriveFeil } = await supabase.from('workouts')
+    .update({ runde_backup: { laget_at: new Date().toISOString(), kilde: 'klokke', rader: klokkeRunder } })
+    .eq('id', workoutId)
+  if (skriveFeil) return { ok: false, error: `Kunne ikke ta vare på klokkas runder: ${skriveFeil.message}` }
+  return { ok: true, iBackup: klokkeRunder.length }
+}
+
+export interface Klokkerunde {
+  type: string
+  startSek: number
+  varighetSek: number
+}
+
+/** Klokkas runder slik de lå på kurven — fra backupen når den finnes,
+    ellers fra radene med klokke-proveniens. Flislagt etter rekkefølge
+    og varighet, som båndet gjør. */
+export async function hentKlokkerunder(workoutId: string): Promise<Klokkerunde[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data: okt } = await supabase.from('workouts')
+    .select('runde_backup').eq('id', workoutId).maybeSingle()
+  const backup = okt?.runde_backup as { rader?: Record<string, unknown>[] } | null
+  let rader: Record<string, unknown>[]
+  if (backup && Array.isArray(backup.rader) && backup.rader.length > 0) {
+    rader = backup.rader
+  } else {
+    const { data } = await supabase.from('workout_activities')
+      .select('activity_type, duration_seconds, sort_order, external_id, strava_lap_index')
+      .eq('workout_id', workoutId).order('sort_order', { ascending: true })
+    rader = somRader(data).filter(r => !SKYTING(r.activity_type as string) && (r.external_id || r.strava_lap_index != null))
+  }
+  rader = [...rader].sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0))
+  let t = 0
+  const ut: Klokkerunde[] = []
+  for (const r of rader) {
+    if (SKYTING(r.activity_type as string)) continue
+    const varighet = Math.max(1, Number(r.duration_seconds) || 0)
+    ut.push({ type: String(r.activity_type ?? 'aktivitet'), startSek: t, varighetSek: varighet })
+    t += varighet
+  }
+  return ut
+}

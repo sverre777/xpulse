@@ -73,7 +73,11 @@ export function DialogHost() {
       onClick={() => answer(false)}
       className="xp-fade-in"
       style={{
-        position: 'fixed', inset: 0, zIndex: 100,
+        // Øverst i z-stigen: øktmodalen 100, Øktbyggeren 200, Plott treff
+        // 210 — en bekreftelse må ligge over alle som kan spørre (målt:
+        // byggerens «erstatte klokkas runder?» lå UNDER byggeren og kunne
+        // ikke klikkes).
+        position: 'fixed', inset: 0, zIndex: 400,
         backgroundColor: 'var(--scrim-72)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '16px',

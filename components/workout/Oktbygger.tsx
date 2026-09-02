@@ -7,13 +7,15 @@ import {
 } from '@/lib/segmenter'
 import {
   plasserRader, kuttRad, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
-  slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett, type Utkast,
+  slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett,
+  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast,
 } from '@/lib/oktbygger-rader'
+import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
 import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
-import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
+import { hentPlanensRunder, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
 import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
@@ -61,7 +63,7 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
 export function OktbyggerPopup({
   workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
   laktat, onLaktat, ernaering, onErnaering, onRaderFraBasen,
-  onClose, onSerierLagret, onOpprett,
+  onClose, onSerierLagret, onOpprett, onByggTittel,
 }: {
   /** null = økta er ikke lagret ennå: klokkeverktøyene finnes ikke, bare hurtigoppsettet. */
   workoutId: string | null
@@ -86,6 +88,8 @@ export function OktbyggerPopup({
   onSerierLagret?: (lagret: Array<{ activityId: string; serier: ShootingSeriesRow[] }>) => void
   /** Hurtigoppsettet leverer genererte rader + forslags-tittel. */
   onOpprett?: (rader: ActivityRow[], tittel: string) => void | Promise<void>
+  /** Bygg PÅ kurven (3b): tittelen foreslås, radene legges inn her. */
+  onByggTittel?: (tittel: string) => void
 }) {
   const harKurve = !!klokke?.samples && Object.values(klokke.samples).some(v => v && (v as unknown[]).length > 0)
   const grunnlag = useMemo(() => ({
@@ -100,6 +104,10 @@ export function OktbyggerPopup({
   const visPlan = useSyncExternalStore(abonnerVisPlan, visPlanBak, () => false)
   const [valgtRad, setValgtRad] = useState<string | null>(null)
   const [kuttModus, setKuttModus] = useState(false)
+  // MATCH (3b): «start her» venter på et klikk på kurven for valgt rad.
+  const [startHerModus, setStartHerModus] = useState(false)
+  const [klokkerunder, setKlokkerunder] = useState<Klokkerunde[] | null>(null)
+  const [melding, setMelding] = useState<string | null>(null)
   const [visPlottTreff, setVisPlottTreff] = useState(false)
   const [hurtigAapent, setHurtigAapent] = useState(!workoutId || rader.length === 0)
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>(() =>
@@ -121,6 +129,7 @@ export function OktbyggerPopup({
     if (!workoutId) return
     let avbrutt = false
     hentPlanensRunder(workoutId).then(b => { if (!avbrutt) setPlanBlokker(b) }).catch(() => {})
+    hentKlokkerunder(workoutId).then(r => { if (!avbrutt) setKlokkerunder(r) }).catch(() => {})
     return () => { avbrutt = true }
   }, [workoutId])
 
@@ -135,6 +144,46 @@ export function OktbyggerPopup({
     endre(kuttRad(rader, plassering, u.id, sek))
     setValgtRad(u.id)
   }
+  /** Klikk på kurven i start-her-modus: valgt rad (og kjeden etter) flyttes dit. */
+  const startHerVed = (sek: number) => {
+    if (!valgtRad) return
+    endre(flyttKjedeTil(rader, plassering, valgtRad, sek))
+    setStartHerModus(false)
+    setMelding(null)
+  }
+  const klikkPaaKurven = kuttModus ? kuttVed : startHerModus && valgtRad ? startHerVed : undefined
+
+  /** BYGG PÅ KURVEN (3b): strukturen legges under grafen med fortløpende
+      start/varighet. Finnes klokkerunder, erstatter bygget dem etter
+      spørsmål — klokkas runder tas vare på i runde_backup først, så
+      «tilbakestill til klokka» kan hente dem hjem. Uten runder: legg til. */
+  const byggPaaKurven = async (nye: ActivityRow[], tittel: string) => {
+    if (!workoutId) return
+    const harProv = rader.some(a => a.db_id && grunnlag.radInfo[a.db_id]?.harKlokkeProveniens && !a.activity_type.startsWith('skyting'))
+    let erstatt = false
+    if (harProv) {
+      const n = rader.filter(a => a.db_id && grunnlag.radInfo[a.db_id]?.harKlokkeProveniens && !a.activity_type.startsWith('skyting')).length
+      erstatt = await xpConfirm(`Erstatte klokkas ${n} runder med den bygde strukturen? Rundene tas vare på, og «tilbakestill til klokka» henter dem hjem.`)
+      if (!erstatt) return
+      const b = await sikreKlokkerundeBackup(workoutId)
+      if (!b.ok) { setMelding(b.error); return }
+    }
+    endre(leggInnBygg(rader, plassering, nye, { erstattKlokkerunder: erstatt, radInfo: grunnlag.radInfo }))
+    onByggTittel?.(tittel)
+    setHurtigAapent(false)
+    setMelding(erstatt
+      ? 'Strukturen ligger under kurven. Match den: velg en rad og «Start her», skriv tall, eller «Snapp til klokkerunder».'
+      : 'Strukturen er lagt til etter radene som sto. Match den mot kurven med «Start her», tall eller «Snapp».')
+  }
+
+  const snapp = () => {
+    if (!klokkerunder || klokkerunder.length === 0) return
+    const r = snappTilKlokkerunder(rader, plassering, klokkerunder, harKurve ? totalSek : 0)
+    if (!r.ok) { setMelding(r.melding); return }
+    endre(r.rader)
+    setMelding(`${r.antall} drag snappet til klokkas runder — pausene fyller mellom.`)
+  }
+  const utenfor = overKurven(plassering, harKurve ? totalSek : 0)
 
   const endreRad = (id: string, patch: Partial<ActivityRow>) =>
     endre(rader.map(r => (r.id === id ? { ...r, ...patch } : r)))
@@ -205,6 +254,7 @@ export function OktbyggerPopup({
                   sport={sport}
                   onAvbryt={workoutId ? () => setHurtigAapent(false) : undefined}
                   onOpprett={async (nye, tittel) => {
+                    if (workoutId && harKurve) { await byggPaaKurven(nye, tittel); return }
                     await onOpprett(nye, tittel)
                     onClose()
                   }}
@@ -245,11 +295,26 @@ export function OktbyggerPopup({
 
               {/* ── VERKTØYENE PÅ KURVEN ── */}
               <div className="flex items-center gap-2 flex-wrap">
-                <button type="button" onClick={() => setKuttModus(v => !v)}
+                <button type="button" onClick={() => { setKuttModus(v => !v); setStartHerModus(false) }}
                   aria-pressed={kuttModus} data-kutt-modus
                   style={pille(kuttModus ? 'var(--accent)' : undefined, kuttModus)}>
                   ✂ Kutt {kuttModus ? '· klikk på kurven' : ''}
                 </button>
+                {harKurve && (
+                  <button type="button" disabled={!valgtRad}
+                    onClick={() => { setStartHerModus(v => !v); setKuttModus(false) }}
+                    aria-pressed={startHerModus} data-start-her
+                    title={valgtRad ? 'Klikk på kurven der raden skal starte — kjeden følger' : 'Velg en rad først'}
+                    style={{ ...pille(startHerModus ? 'var(--accent)' : undefined, startHerModus), opacity: valgtRad ? 1 : 0.5 }}>
+                    ⇥ Start her {startHerModus ? '· klikk på kurven' : ''}
+                  </button>
+                )}
+                {harKurve && klokkerunder && klokkerunder.length > 0 && (
+                  <button type="button" onClick={snapp} data-snapp
+                    style={pille()}>
+                    ⌚ Snapp til klokkerunder ({klokkerunder.length})
+                  </button>
+                )}
                 {(() => {
                   const s = klokke?.samples
                   const valg = ([
@@ -275,16 +340,29 @@ export function OktbyggerPopup({
                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
                   {kuttModus
                     ? 'Klikk der økta skal deles — raden som dekker tidspunktet blir to.'
-                    : 'Klikk en rad for tall og knapper. Klokkerunder er ferdige kutt.'}
+                    : startHerModus
+                      ? 'Klikk på kurven der raden skal starte — radene etter følger med, raden foran strekkes eller kortes.'
+                      : 'Klikk en rad for tall og knapper. Klokkerunder er ferdige kutt.'}
                 </span>
               </div>
+              {melding && (
+                <p data-bygger-melding style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)', margin: 0 }}>
+                  {melding}
+                </p>
+              )}
+              {utenfor.length > 0 && (
+                <p data-over-kurven style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#E23A5A', margin: 0 }}>
+                  ⚠ Bygget er lengre enn kurven: {utenfor.length} {utenfor.length === 1 ? 'rad stikker' : 'rader stikker'} ut forbi {fmtKlokkeSek(totalSek)}.
+                  Ingenting klippes — kort inn, eller snapp til klokkerundene.
+                </p>
+              )}
 
               <KurveMedRader
                 workoutId={workoutId}
                 utkast={plassering}
                 valgtRad={valgtRad}
                 onVelgRad={setValgtRad}
-                onKlikk={kuttModus ? kuttVed : undefined}
+                onKlikk={klikkPaaKurven}
                 erPlanlagt={erPlanlagt}
                 samples={klokke?.samples ?? null}
                 hr={hr}
@@ -499,7 +577,8 @@ function KurveMedRader({
     <div style={{ position: 'absolute', inset: 0, pointerEvents: onKlikk ? 'none' : undefined }}>
       <PlanSpokelse blokker={planBlokker} pct={h.pct} />
       <RadLag utkast={utkast} valgtId={valgtRad} h={h} onVelg={onVelgRad}
-        tallFor={tallFor} planTekstFor={planTekstFor} klikkbar={!onKlikk} />
+        tallFor={tallFor} planTekstFor={planTekstFor} klikkbar={!onKlikk}
+        kurveSlutt={paaKurve ? totalSek : 0} />
       {punkter.map(p => {
         if (p.sek == null) return null
         const y = paaKurve ? h.yPctForSerie(kurve, p.sek) : '18%'
@@ -566,7 +645,7 @@ function KurveMedRader({
 
 // ── Radene som bånd på lerretet — lesevisning, klikk velger raden ──
 
-function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar }: {
+function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar, kurveSlutt = 0 }: {
   utkast: Utkast[]
   valgtId: string | null
   h: KurveHjelpere
@@ -574,6 +653,8 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar }:
   tallFor: (u: Utkast) => { snitt: number | null; maks: number | null }
   planTekstFor: (u: Utkast) => string | null
   klikkbar: boolean
+  /** Rader som ender etter kurven får rød kant — aldri stille klipp. */
+  kurveSlutt?: number
 }) {
   return (
     <>
@@ -585,8 +666,11 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar }:
         const smalt = andel < 0.03
         const t = tallFor(u)
         const plan = planTekstFor(u)
+        const utenfor = kurveSlutt > 0 && u.startSek + u.varighetSek > kurveSlutt + 0.5
         return (
           <button key={u.id} type="button" tabIndex={klikkbar ? 0 : -1}
+            data-utenfor-kurven={utenfor ? '1' : undefined}
+            title={utenfor ? 'Raden stikker ut forbi kurven' : undefined}
             onClick={e => { e.stopPropagation(); onVelg(valgt ? null : u.id) }}
             aria-label={`${etikettFor(u, utkast)} ${fmtKlokkeSek(u.startSek)}–${fmtKlokkeSek(u.startSek + u.varighetSek)}`}
             style={{
@@ -595,8 +679,8 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar }:
               top: 6, bottom: 26, padding: 0, borderRadius: 6,
               zIndex: smalt ? 4 : 2,
               background: segmentBakgrunn(type), opacity: valgt ? 0.34 : 0.18,
-              border: `1.5px solid ${farge}`,
-              boxShadow: valgt ? `0 0 0 2px ${farge}66` : 'none',
+              border: `1.5px solid ${utenfor ? '#E23A5A' : farge}`,
+              boxShadow: valgt ? `0 0 0 2px ${farge}66` : utenfor ? '0 0 0 2px #E23A5A88' : 'none',
               cursor: klikkbar ? 'pointer' : 'inherit',
               pointerEvents: klikkbar ? 'auto' : 'none',
             }}>

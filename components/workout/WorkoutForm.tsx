@@ -1732,6 +1732,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           ernaering={form.nutrition_entries ?? []}
           onErnaering={n => set('nutrition_entries', n)}
           onRaderFraBasen={hentRaderFraBasen}
+          onByggTittel={tittel => setForm(f => ({ ...f, title: f.title.trim() === '' ? tittel : f.title }))}
           onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisOktbygger(false)}
           onOpprett={async (rader, tittel) => {

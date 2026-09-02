@@ -332,3 +332,135 @@ export function sekTilKlokkeslett(sek: number): string {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
 }
+
+// ── BOLK 3b — bygg og match mot kurven ───────────────────────
+
+const erArbeid = (t: string) => t === 'aktivitet'
+
+/**
+ * Legger en bygd struktur (hurtigoppsettet) inn på kurven. Radene får
+ * start/varighet fortløpende — fra 0:00 når klokkas runder erstattes,
+ * ellers etter den siste raden som står. Skyting-rader er skjema-data,
+ * ikke runder: de fredes alltid.
+ */
+export function leggInnBygg(
+  rows: ActivityRow[],
+  plassering: Utkast[],
+  nye: ActivityRow[],
+  opts: { erstattKlokkerunder: boolean; radInfo: Record<string, RadPlassInfo> },
+): ActivityRow[] {
+  const harProveniens = (a: ActivityRow) => !!(a.db_id && opts.radInfo[a.db_id]?.harKlokkeProveniens)
+  const beholdte = opts.erstattKlokkerunder
+    ? rows.filter(a => erSkyting(a.activity_type) || !harProveniens(a))
+    : rows
+  const beholdtPlass = plassering.filter(u => beholdte.some(a => a.id === u.id))
+  let t = opts.erstattKlokkerunder
+    ? 0
+    : beholdtPlass.reduce((m, u) => Math.max(m, u.startSek + u.varighetSek), 0)
+  const nyePlassert: Utkast[] = []
+  const nyeRader: ActivityRow[] = nye.map(a => {
+    const varighet = Math.max(MIN_RAD_SEK, parseActivityDuration(a.duration) ?? MIN_RAD_SEK)
+    const id = crypto.randomUUID()
+    nyePlassert.push({
+      id, dbId: null, type: a.activity_type, navn: a.lap_notes ?? '', bevegelsesform: a.movement_name,
+      startSek: t, varighetSek: varighet, skytetidSek: skytetid(a), distanseKm: a.distance_km,
+      snittpuls: '', makspuls: '', sone: dominantSone(a.zones), beskrivelse: a.notes, gruppeId: a.gruppe_id ?? null,
+    })
+    t += varighet
+    return { ...a, id, db_id: undefined, avg_heart_rate: '', max_heart_rate: '' }
+  })
+  return skriv([...beholdte, ...nyeRader], sortertPlassering([...beholdtPlass, ...nyePlassert]), new Set(nyeRader.map(r => r.id)))
+}
+
+/**
+ * «START HER»: raden (og alt etter den) flyttes så raden starter der man
+ * klikket. Kjeden holdes; raden foran strekkes eller kortes så det ikke
+ * blir hull. Raden foran kan ikke bli kortere enn MIN_RAD_SEK.
+ */
+export function flyttKjedeTil(rows: ActivityRow[], plassering: Utkast[], radId: string, sek: number): ActivityRow[] {
+  const s = sortertPlassering(plassering)
+  const i = s.findIndex(u => u.id === radId)
+  if (i < 0) return rows
+  const forrige = s[i - 1] ?? null
+  const minStart = forrige ? forrige.startSek + MIN_RAD_SEK : 0
+  const nyStart = Math.max(minStart, Math.round(sek))
+  const delta = nyStart - s[i].startSek
+  if (delta === 0) return rows
+  const endret = new Set<string>()
+  const ny = s.map((u, j) => {
+    if (j < i - 1) return u
+    if (j === i - 1) { endret.add(u.id); return { ...u, varighetSek: nyStart - u.startSek } }
+    endret.add(u.id)
+    return { ...u, startSek: u.startSek + delta }
+  })
+  return skriv(rows, ny, endret)
+}
+
+export interface SnappResultat { ok: true; rader: ActivityRow[]; antall: number }
+export interface SnappFeil { ok: false; melding: string }
+
+/**
+ * «SNAPP TIL KLOKKERUNDER»: drag n → klokkas arbeidsrunde n. Pausene
+ * fyller mellom dragene, oppvarmingen foran slutter der drag 1 starter,
+ * nedjoggen starter der siste drag slutter. Ulikt antall → si det,
+ * gjør ingenting.
+ */
+export function snappTilKlokkerunder(
+  rows: ActivityRow[], plassering: Utkast[],
+  runder: Array<{ type: string; startSek: number; varighetSek: number }>,
+  /** Kurvens slutt: halen etter siste drag (nedjoggen) ender der klokka
+      sluttet — et bygg som stakk ut forbi kurven er matchet når det er
+      snappet. 0 = ikke kjent. */
+  kurveSlutt = 0,
+): SnappResultat | SnappFeil {
+  const s = sortertPlassering(plassering)
+  const drag = s.filter(u => erArbeid(u.type))
+  // Klokkas arbeidsrunder: typede drag der de finnes, ellers alle runder
+  // som ikke er pause/oppvarming/nedjogg/veksling.
+  const arbeidRunder = runder.filter(r => erArbeid(r.type))
+  const kandidater = arbeidRunder.length > 0
+    ? arbeidRunder
+    : runder.filter(r => !PAUSE_TYPER.has(r.type) && !VEKSLING_TYPER.has(r.type) && r.type !== 'oppvarming' && r.type !== 'nedjogg')
+  if (drag.length === 0) return { ok: false, melding: 'Bygget har ingen drag å snappe.' }
+  if (kandidater.length !== drag.length) {
+    return { ok: false, melding: `Bygget har ${drag.length} drag, klokka har ${kandidater.length} runder — ingenting endret.` }
+  }
+  const ny = s.map(u => ({ ...u }))
+  const endret = new Set<string>()
+  const idx = (id: string) => ny.findIndex(u => u.id === id)
+  drag.forEach((d, n) => {
+    const r = kandidater[n]
+    const u = ny[idx(d.id)]
+    u.startSek = r.startSek; u.varighetSek = Math.max(MIN_RAD_SEK, r.varighetSek); endret.add(u.id)
+  })
+  // Alt som ikke er drag: fyll mellom naboene i kjeden.
+  for (let j = 0; j < ny.length; j++) {
+    const u = ny[j]
+    if (erArbeid(u.type)) continue
+    const forrigeDrag = [...ny.slice(0, j)].reverse().find(x => erArbeid(x.type)) ?? null
+    const nesteDrag = ny.slice(j + 1).find(x => erArbeid(x.type)) ?? null
+    const start = forrigeDrag ? forrigeDrag.startSek + forrigeDrag.varighetSek : u.startSek
+    const slutt = nesteDrag ? nesteDrag.startSek : start + u.varighetSek
+    if (forrigeDrag) { u.startSek = start; endret.add(u.id) }
+    if (nesteDrag) { u.varighetSek = Math.max(MIN_RAD_SEK, slutt - u.startSek); endret.add(u.id) }
+  }
+  // Halen etter siste drag: ender der kurven slutter (aldri stille klipp
+  // ellers — men her ER kurvens slutt det man snapper til).
+  if (kurveSlutt > 0) {
+    const sisteDrag = [...ny].reverse().find(x => erArbeid(x.type))
+    const hale = ny.filter(u => sisteDrag && u.startSek >= sisteDrag.startSek + sisteDrag.varighetSek - 0.5 && !erArbeid(u.type))
+    if (hale.length > 0) {
+      const sistRad = hale[hale.length - 1]
+      const nyVarighet = kurveSlutt - sistRad.startSek
+      if (nyVarighet >= MIN_RAD_SEK) { sistRad.varighetSek = nyVarighet; endret.add(sistRad.id) }
+    }
+  }
+  return { ok: true, rader: skriv(rows, sortertPlassering(ny), endret), antall: drag.length }
+}
+
+/** Rader som stikker ut forbi kurven — vises med rød kant, klippes aldri. */
+export function overKurven(plassering: Utkast[], totalSek: number): Utkast[] {
+  if (totalSek <= 0) return []
+  return plassering.filter(u => u.startSek + u.varighetSek > totalSek + 0.5)
+}
+

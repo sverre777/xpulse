@@ -2,6 +2,8 @@
 // mailto for nå — kan senere bli en in-app-modal mot en feedback-tabell.
 // accent matcher modus-fargen: utøver oransje (#FF4500), trener blå (#1A6FD4).
 
+import { VERSJONS_MERKE } from '@/lib/versjon'
+
 const MAILTO = `mailto:support@x-pulse.no?subject=${encodeURIComponent('X-PULSE feedback/bug')}`
 
 export function FeedbackCard({ accent }: { accent: string }) {
@@ -27,7 +29,7 @@ export function FeedbackCard({ accent }: { accent: string }) {
           padding: '1px 7px', fontSize: '10px', letterSpacing: '0.18em',
         }}
       >
-        v1.2
+        {VERSJONS_MERKE}
       </span>
 
       <h3

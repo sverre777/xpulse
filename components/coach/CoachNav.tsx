@@ -8,6 +8,7 @@ import { RoleSwitcher } from '@/components/layout/RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
+import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from '@/components/layout/TemaBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
@@ -102,7 +103,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                 padding: '1px 7px',
               }}
             >
-              v1.2
+              {VERSJONS_MERKE}
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -157,7 +158,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
                     padding: '1px 6px',
                   }}
                 >
-                  v1.2
+                  {VERSJONS_MERKE}
                 </span>
               </div>
               <button
@@ -329,7 +330,7 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
               padding: '1px 7px',
             }}
           >
-            v1.2
+            {VERSJONS_MERKE}
           </span>
           <span
             className="text-xs tracking-widest uppercase"

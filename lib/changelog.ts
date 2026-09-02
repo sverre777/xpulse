@@ -27,6 +27,8 @@
 // `date` er datoen funksjonen ble tilgjengelig for utøveren (levert i prod),
 // ikke datoen koden ble skrevet.
 
+import { APP_VERSJON } from './versjon'
+
 export type ChangelogEntry = {
   /** YYYY-MM-DD — dagen funksjonen ble tilgjengelig i appen. */
   date: string
@@ -40,8 +42,9 @@ export type ChangelogEntry = {
   version?: string
 }
 
-/** Vises som diskret merkelapp øverst på /nytt. Løftes ved større leveranser. */
-export const CHANGELOG_VERSION = '1.3'
+/** Vises som diskret merkelapp øverst på /nytt — samme tall som nav-merket
+    (lib/versjon.ts er kilden; løftes ved større leveranser). */
+export const CHANGELOG_VERSION = APP_VERSJON
 
 /** Hvor mange av de nyeste «nye ting»-punktene (uten version) sida viser.
  * Versjonsslipp (f.eks. v1.2-seksjonen) vises alltid i sin helhet. */

@@ -1,5 +1,6 @@
 import type { FeatureSportSlug } from './landing-meta'
 import type { SportFeatureBullet } from '@/components/landing/SportFeatureSection'
+import { NYTT_I_VERSJON } from './versjon'
 
 // Innhold per sport-underside. Hold dette ett sted så hver page-fil kun
 // renderer; tekst-endringer trenger ikke en page-rebuild-runde.
@@ -86,7 +87,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           '58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala — terskel, I4/I5, motbakke, lagtur — pluss en intervall-bygger som genererer hele økta fra antall × dragtid × sone / pause. Søk «6x6» og økta ligger klar.',
@@ -173,7 +174,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'Komb-øktene bygges på sekunder: velg skyting i pausene, så legges L–S-mønsteret inn av seg selv. 58 øktmaler fra OLT-skalaen ligger klare, komb-øktene med serier ferdig satt opp.',
@@ -260,7 +261,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'De lange øktene planlegges på sekunder: 58 ferdige øktmaler fra OLT-skalaen, intervall-bygger for fartslek og terskeldrag, og standardøkter som kobler gjentakelser av samme langtur i én graf.',
@@ -335,7 +336,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause. Eller velg blant 58 ferdige øktmaler fra Olympiatoppens intensitetsskala — 6 × 6 min terskel ligger klar med oppvarming og nedjogg.',
@@ -410,7 +411,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'Intervalløktene bygges på sekunder med intervall-byggeren, og 58 ferdige øktmaler fra OLT-skalaen dekker terskel til VO2-drag. Helse og søvn kommer inn fra klokka hver natt.',
@@ -473,7 +474,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'Uansett idrett: 58 ferdige øktmaler fra Olympiatoppens intensitetsskala, intervall-bygger som genererer økta på fire tastetrykk, og helse og søvn som kommer inn fra klokka av seg selv.',
@@ -546,7 +547,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
       },
       {
         id: 'nytt-v12',
-        kicker: 'Nytt i V1.2',
+        kicker: NYTT_I_VERSJON,
         title: 'PLANLEGGING PÅ SEKUNDER.',
         intro:
           'Tre disipliner — samme verktøy: 58 ferdige øktmaler fra OLT-skalaen, intervall-bygger for drag i alle tre, og standardøkter som sporer nøkkeløktene gjennom sesongen.',

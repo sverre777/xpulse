@@ -22,15 +22,15 @@ const FONT_TITTEL = "'Bebas Neue', sans-serif"
 const FONT_TEKST = "'Barlow Condensed', sans-serif"
 
 export default function NyttPage() {
-  // «Nye ting» (uten version) er alt levert etter v1.2 — egen seksjon øverst.
-  // Versjonsslippet (v1.2) vises alltid i sin helhet under.
+  // «Nye ting» (uten version) er alt levert etter gjeldende slipp — egen
+  // seksjon øverst. Versjonsslippet vises alltid i sin helhet under.
   const nyeTing = CHANGELOG.filter(e => !e.version).slice(0, CHANGELOG_VISIBLE)
-  const v12 = CHANGELOG.filter(e => e.version === CHANGELOG_VERSION)
+  const slipp = CHANGELOG.filter(e => e.version === CHANGELOG_VERSION)
   const seksjoner = [
     ...(nyeTing.length > 0
       ? [{ nokkel: 'nytt', overskrift: `Nytt siden v${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(nyeTing) }]
       : []),
-    { nokkel: 'v12', overskrift: `X-PULSE V${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(v12) },
+    { nokkel: 'slipp', overskrift: `X-PULSE V${CHANGELOG_VERSION}`, grupper: groupChangelogByDate(slipp) },
   ]
 
   return (

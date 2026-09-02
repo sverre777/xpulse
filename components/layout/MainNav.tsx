@@ -7,6 +7,7 @@ import { logout } from '@/app/actions/auth'
 import { RoleSwitcher } from './RoleSwitcher'
 import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from './SettingsIconButton'
+import { VERSJONS_MERKE } from '@/lib/versjon'
 import { TemaBryter } from './TemaBryter'
 import { KlokkesyncStatusButton } from '@/components/klokkesync/KlokkesyncStatusButton'
 import type { KlokkesyncBadge } from '@/app/actions/klokkesync-status'
@@ -126,7 +127,7 @@ export function MainNav({
                 padding: '1px 7px',
               }}
             >
-              v1.3
+              {VERSJONS_MERKE}
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -229,7 +230,7 @@ export function MainNav({
               padding: '1px 7px',
             }}
           >
-            v1.3
+            {VERSJONS_MERKE}
           </span>
         </Link>
 
@@ -366,7 +367,7 @@ function MobileOverlay({ pathname, userName, logHref, logLabel, accent, activeRo
               padding: '1px 7px',
             }}
           >
-            v1.3
+            {VERSJONS_MERKE}
           </span>
         </div>
         <button

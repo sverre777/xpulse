@@ -4,6 +4,7 @@ import { SportPageHero } from '@/components/landing/SportPageHero'
 import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 import { InsideMockups } from '@/components/landing/InsideMockups'
+import { NYTT_I_VERSJON } from '@/lib/versjon'
 
 export const metadata: Metadata = buildFeatureMetadata({
   title: 'Treningsdagbok og treningsplanlegger – plan og logg i ett',
@@ -78,7 +79,7 @@ export default function DagbokOgPlanPage() {
       />
 
       <SportFeatureSection
-        kicker="Nytt i V1.2"
+        kicker={NYTT_I_VERSJON}
         title="PLANLEGGING PÅ SEKUNDER."
         intro="Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause — hele strukturen genereres som aktivitetsrader. Eller velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, med oppvarming og nedjogg klart."
         bullets={[

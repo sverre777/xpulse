@@ -3,6 +3,7 @@ import { LandingShell } from '@/components/landing/LandingShell'
 import { SportPageHero } from '@/components/landing/SportPageHero'
 import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
+import { NYTT_I_VERSJON } from '@/lib/versjon'
 
 export const metadata: Metadata = buildFeatureMetadata({
   title: 'Treningsanalyse – belastning, HRV, laktat og soner',
@@ -59,7 +60,7 @@ export default function AnalysePage() {
       />
 
       <SportFeatureSection
-        kicker="Helse og søvn · Nytt i V1.2"
+        kicker={`Helse og søvn · ${NYTT_I_VERSJON}`}
         title="SØVN OG HVILEPULS — AUTOMATISK."
         intro="Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt kommer inn fra klokka hver natt — i dag fra Polar, flere merker kommer. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier."
         bullets={[

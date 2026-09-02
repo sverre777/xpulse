@@ -1,10 +1,9 @@
 // Kortintervall-mønstre — ÉN delt kilde (regel 18).
 //
 // Målt 29. aug: intervall-byggeren hadde INGEN mønsterliste, bare frie
-// felt (antall/dragtid/pause). Kravet «samme liste begge steder» kunne
-// derfor ikke oppfylles ved gjenbruk — lista opprettes her og tas i bruk
-// BÅDE i hurtigoppsettet og i segment-editoren, aldri to lister som kan
-// gå ut av takt.
+// felt (antall/dragtid/pause). Lista bor her og brukes av hurtigoppsettet
+// (og av kutt/match-verktøyene senere) — aldri to lister som kan gå ut av
+// takt.
 //
 // HURTIGVALGENE ER SNARVEIER, IKKE GRENSER: på/av settes fritt i
 // sekunder (37/23, 90/30, 15/45 — hva som helst). Valgene FYLLER de frie
@@ -17,13 +16,12 @@ export interface Kortintervall {
   avSek: number
 }
 
+// Tre hurtigvalg (Sverre 2. sep: kun 50/10 · 45/15 · 20/10). Alt annet
+// skrives i de frie feltene.
 export const KORTINTERVALL_HURTIGVALG: { etikett: string; verdi: Kortintervall }[] = [
   { etikett: '50/10', verdi: { paaSek: 50, avSek: 10 } },
   { etikett: '45/15', verdi: { paaSek: 45, avSek: 15 } },
-  { etikett: '40/20', verdi: { paaSek: 40, avSek: 20 } },
-  { etikett: '30/15', verdi: { paaSek: 30, avSek: 15 } },
-  { etikett: '30/30', verdi: { paaSek: 30, avSek: 30 } },
-  { etikett: '25/25', verdi: { paaSek: 25, avSek: 25 } },
+  { etikett: '20/10', verdi: { paaSek: 20, avSek: 10 } },
 ]
 
 /**

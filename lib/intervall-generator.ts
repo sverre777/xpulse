@@ -13,7 +13,7 @@
 // `workout_type` settes IKKE. Det er mal-fiksens felt — se SF-10.
 // Ingenting låses: radene er helt vanlige og fritt redigerbare etterpå.
 
-import { emptyActivityZones } from './types'
+import { emptyActivityZones } from './types.ts'
 import {
   blokkerTilSoner,
   sekTilKlokke,

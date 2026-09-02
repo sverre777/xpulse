@@ -3,8 +3,9 @@
 import type { KurveHjelpere } from './OktKurve'
 
 // BLOKK-LERRETET: tidslinje uten pulskurve — plan, eller gjennomført uten
-// klokke. REN LESEVISNING: flaten tar ikke klikk, alt redigeres i radene.
-// Tegningen er grunnlaget for plan-grafen (bolk 5).
+// klokke. Lesevisning; eneste interaksjon er KUTT (klikk = kuttpunkt,
+// bolk 3), og bare når byggeren står i kutt-modus. Tegningen er
+// grunnlaget for plan-grafen (bolk 5).
 //
 // Komponenten gir NØYAKTIG samme hjelpere som OktKurve (KurveHjelpere), så
 // radbåndet, spøkelseslaget og punktene tegnes med samme kode uten å vite
@@ -13,12 +14,14 @@ import type { KurveHjelpere } from './OktKurve'
 const H = 150
 
 export function BlokkLerret({
-  totalSek, planlagt = false, overlay,
+  totalSek, planlagt = false, overlay, onKlikk,
 }: {
   totalSek: number
   /** Planlagt økt — punkter tegnes hule/stiplet, ramma stiplet. */
   planlagt?: boolean
   overlay?: (h: KurveHjelpere) => React.ReactNode
+  /** Klikk i flata → tidspunkt (kutt). */
+  onKlikk?: (sek: number) => void
 }) {
   const spenn = Math.max(1, totalSek)
 
@@ -39,8 +42,14 @@ export function BlokkLerret({
     <div>
       <div
         data-oktkurve="1"
+        onClick={e => {
+          if (!onKlikk) return
+          const r = e.currentTarget.getBoundingClientRect()
+          const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
+          onKlikk(andel * spenn)
+        }}
         style={{
-          position: 'relative', height: H,
+          position: 'relative', height: H, cursor: onKlikk ? 'crosshair' : undefined,
           background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)',
           borderRadius: 10, overflow: 'hidden',
           // Planlagt økt markeres med en svak stiplet ramme, så det er

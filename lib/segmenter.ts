@@ -1,6 +1,6 @@
 // Segmentbånd + tidsvinduer på pulskurven (fase 113, Øktbyggeren).
-// Ren logikk — ingen react, ingen supabase. Fasit: design/xpulse-
-// tidsplassering-design.html (V9.3) seksjon 1b/1c + NOTAT.
+// Ren logikk — ingen react, ingen supabase. Fasit: design/xpulse-oktgraf-
+// design.html (segmentbåndet) + Øktbygger-omleggingen v6.
 //
 // To kilder til et segments plass i tid, og de blandes aldri:
 //   'runde'    — radene er runder fra klokka og FLISLEGGER tidslinjen:

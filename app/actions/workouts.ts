@@ -2,6 +2,8 @@
 
 import { revalidatePath, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { pulsIVindu } from '@/lib/segmenter'
+import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
 import { dbFeilTekst } from '@/lib/db-feil'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
@@ -247,16 +249,43 @@ async function learnUserExercises(
 }
 
 // 2-pass insert av hele aktivitet-treet (aktiviteter → øvelser+sett → laktatmålinger).
+/** Snitt/maks fra samples i radens vindu for rader uten ført puls. */
+async function lesPulsFraVinduene(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  workoutId: string,
+  activities: ActivityRow[],
+): Promise<ActivityRow[]> {
+  const trenger = (a: ActivityRow) =>
+    a.window_start_seconds != null && a.window_duration_seconds != null
+    && !a.avg_heart_rate.trim() && !PAUSE_TYPER.has(a.activity_type)
+    && !VEKSLING_TYPER.has(a.activity_type) && !a.activity_type.startsWith('skyting')
+  if (!activities.some(trenger)) return activities
+  const { data } = await supabase.from('workout_samples')
+    .select('hr_samples').eq('workout_id', workoutId)
+    .order('created_at', { ascending: false }).limit(1)
+  const hr = (data?.[0]?.hr_samples ?? []) as Array<{ t: number; hr: number }>
+  if (hr.length === 0) return activities
+  return activities.map(a => {
+    if (!trenger(a)) return a
+    const p = pulsIVindu(hr, a.window_start_seconds!, a.window_start_seconds! + a.window_duration_seconds!)
+    if (p.snitt == null) return a
+    return { ...a, avg_heart_rate: String(p.snitt), max_heart_rate: p.maks != null ? String(p.maks) : a.max_heart_rate }
+  })
+}
+
 // Brukes av både saveWorkout og markCompleted (hydrering fra planned_snapshot).
 // Returnerer feilmelding hvis noe gikk galt, null ved suksess.
 //
 // skjulteFelter (fase 113/114-vern): kolonner skjemaet ikke eier —
-// klokke-proveniens (external_id/strava_lap_index), tidsvinduene
-// (window_*) og splitt-feltene — hentet fra radene FØR slettingen,
-// nøklet på rad-id. Rader med db_id gjenskapes med SAMME id og får
-// disse feltene kopiert inn, så Øktbyggerens plasseringer og
+// klokke-proveniens (external_id/strava_lap_index) og splitt-feltene —
+// hentet fra radene FØR slettingen, nøklet på rad-id. Rader med db_id
+// gjenskapes med SAMME id og får disse feltene kopiert inn, så
 // splitt-relasjoner (split_parent_id peker på rad-id!) overlever en
 // vanlig skjema-lagring. Uten dette slettet hver redigering dem stille.
+//
+// Tidsvinduene (window_*) EIES av skjemaet siden Øktbyggeren v6 (bolk 3):
+// raden bærer dem selv. Mangler de på raden (eldre utkast, mal-rader),
+// beholdes det som sto i basen.
 type SkjulteAktivitetsFelter = {
   external_id: string | null
   strava_lap_index: number | null
@@ -291,8 +320,8 @@ async function insertActivitiesWithChildren(
         id: a.db_id ?? crypto.randomUUID(),
         external_id: skjult?.external_id ?? null,
         strava_lap_index: skjult?.strava_lap_index ?? null,
-        window_start_seconds: skjult?.window_start_seconds ?? null,
-        window_duration_seconds: skjult?.window_duration_seconds ?? null,
+        window_start_seconds: a.window_start_seconds !== undefined ? a.window_start_seconds : (skjult?.window_start_seconds ?? null),
+        window_duration_seconds: a.window_duration_seconds !== undefined ? a.window_duration_seconds : (skjult?.window_duration_seconds ?? null),
         split_parent_id: skjult?.split_parent_id ?? null,
         split_backup: skjult?.split_backup ?? null,
       } : {}),
@@ -300,6 +329,8 @@ async function insertActivitiesWithChildren(
       activity_type: a.activity_type,
       movement_name: a.movement_name || null,
       movement_subcategory: a.movement_subcategory || null,
+      lap_notes: a.lap_notes?.trim() ? a.lap_notes.trim() : null,
+      gruppe_id: a.gruppe_id ?? null,
       sort_order: ai,
       start_time: a.start_time || null,
       duration_seconds: durSec,
@@ -911,7 +942,12 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
   }
 
   // Fase 7: kronologisk aktivitetsliste (intern parent→child-sekvensering).
-  childOps.push(insertActivitiesWithChildren(supabase, savedId!, data.activities ?? [], skjulteAktivitetsFelter))
+  // ØKTBYGGEREN (bolk 3): PULSEN LESES FRA VINDUET, ARVES ALDRI. En rad
+  // som er plassert i tid (kutt/match) og ikke har ført puls, får snitt og
+  // maks fra samples i SITT EGET vindu — i full oppløsning her, ikke fra
+  // den nedsamplede kurven klienten tegner. Ført tall vinner.
+  const aktiviteter = await lesPulsFraVinduene(supabase, savedId!, data.activities ?? [])
+  childOps.push(insertActivitiesWithChildren(supabase, savedId!, aktiviteter, skjulteAktivitetsFelter))
 
   // Fase 13: lær personlig øvelsesbibliotek (kun faktisk bruk, ikke plan-save).
   if (!isPlanSave) {
@@ -1453,6 +1489,10 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     weather: string | null; temperature_c: number | null
     notes: string | null
     zones: Record<string, number> | null
+    window_start_seconds?: number | null
+    window_duration_seconds?: number | null
+    lap_notes?: string | null
+    gruppe_id?: string | null
     workout_activity_exercises?: DbExercise[] | null
     workout_activity_lactate_measurements?: DbLactate[] | null
     workout_shooting_series?: {
@@ -1518,6 +1558,11 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
         avg_watts: a.avg_watts?.toString() ?? '',
         max_watts: a.max_watts?.toString() ?? '',
         resistance_level: a.resistance_level?.toString() ?? '',
+        // Øktbyggeren (bolk 3): plasseringen følger raden inn i skjemaet.
+        window_start_seconds: a.window_start_seconds ?? null,
+        window_duration_seconds: a.window_duration_seconds ?? null,
+        lap_notes: a.lap_notes ?? '',
+        gruppe_id: a.gruppe_id ?? null,
         avg_pace_seconds_per_km: a.avg_pace_seconds_per_km?.toString() ?? '',
         pace_unit_preference: a.pace_unit_preference ?? '',
         splits_per_km: deserializeSplits(a.splits_per_km),

@@ -797,6 +797,18 @@ export interface ActivityRow {
   exercises: StrengthExerciseRow[]
   // Laktatmålinger (én eller flere per aktivitet).
   lactate_measurements: ActivityLactateMeasurement[]
+  // ── Øktbyggeren (omlegging v6, bolk 3): RADENE ER EDITOREN. ──
+  // Plassering i tid på klokkas kurve (workout_activities.window_start_
+  // seconds / window_duration_seconds). null = ikke plassert eksplisitt
+  // (klokkerunder flislegger etter rekkefølge og varighet). Settes av
+  // byggeren ved kutt/match, lagres av saveWorkout — skjemaet EIER dem nå,
+  // de er ikke lenger «skjulte felter» som bare kopieres.
+  window_start_seconds?: number | null
+  window_duration_seconds?: number | null
+  // Radens eget navn på tidslinja (lap_notes) — «Drag 1», «Motbakke».
+  lap_notes?: string
+  // Repetisjoner fra samme oppsett deler gruppe (fase 117) → klamme på båndet.
+  gruppe_id?: string | null
 }
 
 // DB-entity
@@ -1343,6 +1355,10 @@ export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: 
     zones: emptyActivityZones(),
     exercises: [],
     lactate_measurements: [],
+    window_start_seconds: null,
+    window_duration_seconds: null,
+    lap_notes: '',
+    gruppe_id: null,
   }
 }
 

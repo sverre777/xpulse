@@ -27,7 +27,7 @@ import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
-import { OktbyggerInngang, OktbyggerPopup } from './Oktbygger'
+import { OktbyggerInngang } from './Oktbygger'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -93,9 +93,11 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
   )
 }
 
-export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId, onDataEndret }: {
+export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId, onDataEndret }: {
   data: Partial<WorkoutFormData>
   onEdit: () => void
+  /** Øktbyggeren arbeider på skjemaets rader (bolk 3): knappen åpner skjemaet med byggeren oppe. */
+  onOpenOktbygger?: () => void
   canEdit: boolean
   equipment: Equipment[]
   equipmentIds: string[]
@@ -118,7 +120,6 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   const [erKoblet, setErKoblet] = useState(false)
   // Øktbyggeren (fase 113): pop-up + oppfrisking av klokkeseksjonen
   // etter lagring. Inngangene rendres statisk og åpner i samme tick (regel 20).
-  const [visDetaljer, setVisDetaljer] = useState(false)
   const [detaljerTick, setDetaljerTick] = useState(0)
   const activities: ActivityRow[] = data.activities ?? []
 
@@ -442,7 +443,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         <div className="mb-3.5">
           {kanLeggeTilDetaljer && (
             <div className="mb-2 flex justify-end">
-              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
           <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} />
@@ -573,7 +574,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           </p>
           {kanLeggeTilDetaljer && (
             <div className="mt-3">
-              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
         </Card>
@@ -727,7 +728,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           )}
           {kanLeggeTilDetaljer && (
             <div className="mt-3">
-              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
         </Card>
@@ -1078,14 +1079,6 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         </button>
       )}
 
-      {visDetaljer && workoutId && (
-        <OktbyggerPopup
-          workoutId={workoutId}
-          onClose={() => setVisDetaljer(false)}
-          onLagret={() => { setDetaljerTick(t => t + 1); onDataEndret?.() }}
-          onSerierLagret={() => { setDetaljerTick(t => t + 1); onDataEndret?.() }}
-        />
-      )}
     </div>
   )
 }

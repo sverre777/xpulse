@@ -33,7 +33,9 @@ import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } 
 import { ActivitySummary } from './ActivitySummary'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { useKlokkedata } from './useKlokkedata'
+import { getWorkoutForEdit } from '@/app/actions/workouts'
 import { beregnSegmenter } from '@/lib/segmenter'
+import { justerEtterVarighetsendring } from '@/lib/oktbygger-rader'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
@@ -107,6 +109,8 @@ interface WorkoutFormProps {
   // Varsles når form-data er endret fra initial-tilstand. Brukes av modal-foreldre
   // for å vise bekreftelses-dialog på klikk-utenfor / Escape / refresh.
   onDirtyChange?: (dirty: boolean) => void
+  /** Åpne Øktbyggeren med én gang (fra hovedsidas knapp). */
+  apneOktbygger?: boolean
   // Når satt: trener redigerer utøvers plan. saveWorkout skriver da til utøverens rad,
   // og created_by_coach_id settes til innlogget trener → gir blå markering i Calendar.
   targetUserId?: string
@@ -187,7 +191,7 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   }
 }
 
-export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
+export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, apneOktbygger = false, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
   const effectiveUserSports: Sport[] = userSports ?? [initialSport]
   const router = useRouter()
   const isPlanMode = formMode === 'plan'
@@ -311,7 +315,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
   // ⚡ Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
   // lagret økt. Hurtigoppsettet skriver radene rett i skjemaet.
-  const [visOktbygger, setVisOktbygger] = useState(false)
+  const [visOktbygger, setVisOktbygger] = useState(!!apneOktbygger)
   // Klokkedata hentes ÉN gang for skjemaet og deles av oppsummeringskortet
   // (grafen, live) og klokkeseksjonen (rundetabell). Bumpes når byggeren
   // har skrevet til basen.
@@ -330,8 +334,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         activity_type: a.activity_type,
         movement_name: a.movement_name || null,
         duration_seconds: parseActivityDuration(a.duration) ?? 0,
-        window_start_seconds: info?.window_start_seconds ?? null,
-        window_duration_seconds: info?.window_duration_seconds ?? null,
+        // Raden eier vinduet sitt (bolk 3); serverens kopi er reserve for
+        // rader som ble lastet før feltet fantes på raden.
+        window_start_seconds: a.window_start_seconds !== undefined ? a.window_start_seconds : (info?.window_start_seconds ?? null),
+        window_duration_seconds: a.window_duration_seconds !== undefined ? a.window_duration_seconds : (info?.window_duration_seconds ?? null),
         prone_shots: tall(a.prone_shots), prone_hits: tall(a.prone_hits),
         standing_shots: tall(a.standing_shots), standing_hits: tall(a.standing_hits),
         harKlokkeProveniens: info?.harKlokkeProveniens ?? false,
@@ -339,6 +345,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       }
     }), d.totalSek)
   }, [form.activities, klokke.data])
+  // Grunnlaget byggeren plasserer radene på — samme som båndet.
+  const plassGrunnlag = useMemo(() => ({
+    totalSek: klokke.data?.totalSek ?? 0,
+    harKurve: !!klokke.data?.samples && Object.values(klokke.data.samples).some(v => v && (v as unknown[]).length > 0),
+    radInfo: klokke.data?.radInfo ?? {},
+  }), [klokke.data])
+  /** Skjemaets varighetsfelt og byggerens tall er SAMME grense. */
+  const settAktiviteter = (neste: ActivityRow[]) =>
+    set('activities', justerEtterVarighetsendring(form.activities, neste, plassGrunnlag))
+  /** Etter et rundebytte (skriver til basen) hentes radene inn på nytt —
+      resten av utkastet står. */
+  const hentRaderFraBasen = async () => {
+    if (!workoutId) return
+    const d = await getWorkoutForEdit(workoutId, isPlanMode ? 'plan' : 'dagbok', targetUserId)
+    if (d?.activities) set('activities', d.activities)
+    setKlokkeTick(t => t + 1)
+  }
   // «Plott treff» (bolk B) — vises i knapperaden når økta har skyting.
   const [visPlottTreff, setVisPlottTreff] = useState(false)
   // Seriene skrives til basen av pop-upen; skjemaets draft må oppdateres i
@@ -1541,7 +1564,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onOktbygger={() => setVisOktbygger(true)}
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}
-          onChange={a => set('activities', a)}
+          onChange={settAktiviteter}
           sport={form.sport}
           userSports={effectiveUserSports}
           activityTypeFavorites={activityTypeFavorites}
@@ -1697,14 +1720,20 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <OktbyggerPopup
           workoutId={workoutId ?? null}
           sport={form.sport}
+          rader={form.activities}
+          onRader={a => set('activities', a)}
+          klokke={klokke.data}
+          erPlanlagt={isPlanMode}
+          heartZones={heartZones}
+          rpe={form.rpe}
+          timeOfDay={form.time_of_day}
+          laktat={form.lactate}
+          onLaktat={l => set('lactate', l)}
+          ernaering={form.nutrition_entries ?? []}
+          onErnaering={n => set('nutrition_entries', n)}
+          onRaderFraBasen={hentRaderFraBasen}
           onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisOktbygger(false)}
-          onLagret={() => {
-            // Skjemaets rader hentes på nytt ved neste åpning; vindus-/tidsdata
-            // eies av basen og overlever lagring (fase 113-vern). Klokkedataene
-            // (radinfo, rundetabell) hentes på nytt nå.
-            setKlokkeTick(t => t + 1)
-          }}
           onOpprett={async (rader, tittel) => {
             if (aktivitetslistaHarInnhold(form.activities)
               && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return

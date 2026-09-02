@@ -55,6 +55,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // som oversikt; «✎ Rediger» bytter til skjemaet. For planlagt økt kan
   // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
   const [showEditForm, setShowEditForm] = useState(false)
+  const [apneBygger, setApneBygger] = useState(false)
   const [autoMark, setAutoMark] = useState(false)
   // Pop-upene i øktvisningen (Øktbyggeren, «Plott treff») skriver
   // rett til basen. Uten en re-henting ville «✎ Rediger» etterpå åpnet
@@ -65,6 +66,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
 
   useEffect(() => {
     setShowEditForm(false)
+    setApneBygger(false)
     setAutoMark(false)
     if (!state) {
       // Zoom-nivået er ren visningstilstand per økt (lib/kurve-zoom).
@@ -240,6 +242,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
               data={defaults}
               onDataEndret={() => setReloadTick(t => t + 1)}
               onEdit={() => setShowEditForm(true)}
+              onOpenOktbygger={() => { setApneBygger(true); setShowEditForm(true) }}
               canEdit={!readOnly}
               equipment={equipment}
               equipmentIds={equipmentIds}
@@ -276,6 +279,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
             <WorkoutForm
               workoutId={state.kind === 'edit' ? state.workoutId : undefined}
               autoMarkCompleted={autoMark}
+              apneOktbygger={apneBygger}
               defaultValues={defaults}
               formMode={state.formMode}
               templates={templates}

@@ -1,8 +1,8 @@
 /**
  * «Vis plan bak» — spøkelseslaget (Øktbyggeren bolk 6).
  *
- * AV som standard, og huskes. Lagringen følger samme mønster som tema og
- * musepeker (lib/tema.ts, lib/musepeker.ts): en nøkkel i localStorage.
+ * AV som standard, og huskes. Lagringen følger samme mønster som temaet
+ * (lib/tema.ts): en nøkkel i localStorage.
  * Det er der visningsvalg bor i denne appen — målt, ikke antatt — og
  * valget følger derfor nettleseren, ikke kontoen.
  *

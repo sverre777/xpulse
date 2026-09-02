@@ -9,7 +9,6 @@ import { SearchIconButton } from '@/components/search/SearchIconButton'
 import { SettingsIconButton } from '@/components/layout/SettingsIconButton'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { TemaBryter } from '@/components/layout/TemaBryter'
-import { MusepekerBryter } from '@/components/layout/MusepekerBryter'
 import { XPulseIcon } from '@/components/branding/XPulseIcon'
 import { COACH_NAV_GLYPHS } from '@/components/layout/NavLinkIcons'
 
@@ -108,7 +107,6 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <TemaBryter accent={COACH_BLUE} storrelse={44} />
-          <MusepekerBryter accent={COACH_BLUE} storrelse={44} />
 
           <button
             type="button"
@@ -389,7 +387,6 @@ export function CoachNav({ userName, hasAthleteRole, hasCoachRole, hasCoachTier 
         />
 
         <TemaBryter accent={COACH_BLUE} />
-        <MusepekerBryter accent={COACH_BLUE} />
 
         <SettingsIconButton
           accent={COACH_BLUE}

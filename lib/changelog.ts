@@ -64,6 +64,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
   {
     date: '2026-09-02',
+    title: 'Planen bak kurven',
+    body: 'På økter med klokke ligger planens blokker som svake spøkelser i sonefargen bak pulskurven — på økta, i skjemaet og i kalenderen. Der virkeligheten forlot planen ser du det med én gang. Bryteren «Vis plan» huskes per økt og står på når økta har en plan.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-02',
     title: 'Plan-grafen på alle planlagte økter',
     body: 'Hver planlagt økt tegnes som blokker — bredde er varighet, høyde og farge er sone — live i skjemaet mens du fører, på økta og i kalenderen. Samme graf på gjennomførte økter uten klokke.',
     version: '1.3',

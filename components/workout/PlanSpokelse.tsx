@@ -1,39 +1,56 @@
 'use client'
 
-// Planens blokker som SPØKELSE bak det som faktisk skjedde (bolk 6).
-// Fasit: design/xpulse-oktbyggeren-design.html — «plan bak som spøkelse
-// — overalt».
+// Planens blokker som SPØKELSE bak det som faktisk skjedde (bolk 7).
+// Fasit: design/xpulse-oktkart-design.html — «plan mot gjennomført på samme
+// tidsakse»: planens blokker gjentas som svake spøkelser bak den faktiske
+// kurven, så man ser hvor virkeligheten forlot planen.
 //
-// Samme lag brukes på alle tre lerret og i økt-grafen: det tar en
-// pct-funksjon inn og tegner blokkene der, så plasseringen alltid følger
-// flatens egen tidsakse i stedet for å regnes ut på nytt hvert sted.
-//
-// Laget er RENT DEKOR: pointer-events er av, så det stjeler aldri et
-// klikk fra kurven eller radene under.
+// Samme lag på alle flater: det tar flatens EGEN pct-funksjon inn og
+// tegner blokkene der, så plasseringen alltid følger flatens tidsakse.
+// Blokkene tegnes i SONEFARGEN (ZONE_COLORS_V2) med høyde som plan-
+// grafen (SONE_HOYDE) — dempet, og UNDER bånd og kurve (z 0, ingen
+// pointer-events). Avviket leses uten lesepanel: spøkelset stikker ut
+// forbi der økta stoppet, eller stopper før.
 
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { SEGMENT_FARGER, segmentTypeFor } from '@/lib/segmenter'
+import { SONE_HOYDE } from '@/lib/plan-graf'
+import type { ExtendedZoneName } from '@/lib/heart-zones'
 import type { PlanBlokk } from '@/app/actions/runder'
 
-export function PlanSpokelse({ blokker, pct, hoyde = '100%' }: {
+function farge(b: PlanBlokk): { farge: string; hoyde: number } {
+  const seg = segmentTypeFor(b.type, '')
+  if (seg === 'pause' || seg === 'veksling') return { farge: SEGMENT_FARGER[seg], hoyde: 0.18 }
+  if (seg.startsWith('skyting')) return { farge: SEGMENT_FARGER[seg], hoyde: 0.7 }
+  const sone = (b.sone && b.sone in ZONE_COLORS_V2 ? b.sone : null) as ExtendedZoneName | null
+  if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone] }
+  return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }
+}
+
+export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16 }: {
   blokker: PlanBlokk[]
   /** Flatens egen omregning fra sekund til posisjon (f.eks. '42%'). */
   pct: (sek: number) => string
   hoyde?: string
+  /** Opacity — svakt nok til å ligge bak, sterkt nok til å leses. */
+  dempet?: number
 }) {
   if (blokker.length === 0) return null
   return (
     <div data-plan-spokelse aria-hidden="true" style={{
-      position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
+      position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, height: hoyde,
     }}>
       {blokker.map(b => {
-        const farge = SEGMENT_FARGER[segmentTypeFor(b.type, '')]
+        const f = farge(b)
         const v = `calc(${pct(b.sluttSek)} - ${pct(b.startSek)})`
         return (
-          <div key={b.id} style={{
-            position: 'absolute', left: pct(b.startSek), width: v, top: 0, height: hoyde,
-            background: `${farge}1F`,
-            borderLeft: `1px dashed ${farge}66`,
-            borderRight: `1px dashed ${farge}66`,
+          <div key={b.id} title={b.navn ?? b.type} style={{
+            position: 'absolute', left: pct(b.startSek), width: v,
+            bottom: 0, height: `${Math.round(f.hoyde * 100)}%`,
+            background: f.farge, opacity: dempet,
+            borderLeft: `1px dashed ${f.farge}`, borderRight: `1px dashed ${f.farge}`,
+            borderTop: `1px dashed ${f.farge}`,
+            borderRadius: '3px 3px 0 0',
           }} />
         )
       })}

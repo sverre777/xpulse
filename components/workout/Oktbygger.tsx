@@ -16,7 +16,7 @@ import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
 import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
 import { hentPlanensRunder, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
-import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
+import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { PAUSE_TYPER, type ActivityRow, type ActivityType, type LactateRow, type NutritionEntryRow, type ShootingSeriesRow, type Sport } from '@/lib/types'
@@ -101,7 +101,7 @@ export function OktbyggerPopup({
     : plassering.reduce((m, u) => Math.max(m, u.startSek + u.varighetSek), 0)
 
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
-  const visPlan = useSyncExternalStore(abonnerVisPlan, visPlanBak, () => false)
+  const visPlan = useSyncExternalStore(abonnerVisPlan, () => visPlanBak(workoutId), () => true)
   const [valgtRad, setValgtRad] = useState<string | null>(null)
   const [kuttModus, setKuttModus] = useState(false)
   // MATCH (3b): «start her» venter på et klikk på kurven for valgt rad.
@@ -279,7 +279,7 @@ export function OktbyggerPopup({
             <>
               {planBlokker.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <VisPlanBryter paa={visPlan} antall={planBlokker.length} onEndre={p2 => settVisPlanBak(p2)} />
+                  <VisPlanBryter paa={visPlan} antall={planBlokker.length} onEndre={p2 => settVisPlanBak(workoutId, p2)} />
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
                     Planens {planBlokker.length} blokker legges bak — da ser du hvor økta forlot planen.
                   </span>
@@ -477,16 +477,6 @@ function pille(farge?: string, fylt = false): React.CSSProperties {
     background: fylt ? (farge ?? 'var(--accent)') : 'none',
     border: `1.5px solid ${farge ?? 'var(--line2)'}`, borderRadius: 999,
     padding: '6px 14px', cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
-  }
-}
-
-/** Abonnerer på «vis plan»-valget — samme hendelse som bryteren sender. */
-function abonnerVisPlan(oppdater: () => void): () => void {
-  window.addEventListener(VIS_PLAN_HENDELSE, oppdater)
-  window.addEventListener('storage', oppdater)
-  return () => {
-    window.removeEventListener(VIS_PLAN_HENDELSE, oppdater)
-    window.removeEventListener('storage', oppdater)
   }
 }
 

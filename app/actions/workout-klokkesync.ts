@@ -429,10 +429,15 @@ export async function hentKurveVindu(
 // (KOMPAKT_KOLONNER bor i lib/kurve-nedsample — en 'use server'-fil kan
 // bare eksportere async-funksjoner.)
 
+export interface KompaktPlanBlokk { startSek: number; sluttSek: number; sone: string | null; type: string }
+
 export interface KompaktKurve {
   hr: Array<{ t: number; hr: number }>
   totalSek: number
   segmenter: Segment[]
+  /** Planens blokker bak kurven (bolk 7) — fra den skjulte tvillingen
+      (flett) eller planned_snapshot (markert gjennomført). Tomt = ingen plan. */
+  plan: KompaktPlanBlokk[]
 }
 
 export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<string, KompaktKurve>> {
@@ -442,14 +447,47 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return ut
-  const [samplesRes, akterRes] = await Promise.all([
+  const [samplesRes, akterRes, tvillingRes, snapRes] = await Promise.all([
     supabase.from('workout_samples')
       .select('workout_id, hr_samples, watt_samples, pace_samples, speed_samples, created_at')
       .in('workout_id', ids).order('created_at', { ascending: false }),
     supabase.from('workout_activities')
       .select('id, workout_id, sort_order, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
       .in('workout_id', ids).order('sort_order', { ascending: true }),
+    supabase.from('workouts').select('id, merged_into_workout_id').in('merged_into_workout_id', ids),
+    supabase.from('workouts').select('id, planned_snapshot').in('id', ids),
   ])
+  // Planens blokker per økt (bolk 7): tvillingens rader der en flett finnes,
+  // ellers planned_snapshot.activities.
+  const tvillingFor = new Map<string, string>()
+  for (const t of tvillingRes.data ?? []) if (t.merged_into_workout_id) tvillingFor.set(t.merged_into_workout_id, t.id)
+  const tvillingIds = [...tvillingFor.values()]
+  const tvillingRader = tvillingIds.length > 0
+    ? (await supabase.from('workout_activities')
+        .select('workout_id, sort_order, activity_type, duration_seconds, window_start_seconds, window_duration_seconds, zones')
+        .in('workout_id', tvillingIds).order('sort_order', { ascending: true })).data ?? []
+    : []
+  const planFor = (id: string): KompaktPlanBlokk[] => {
+    type R = { activity_type?: string | null; duration_seconds?: unknown; duration?: unknown; window_start_seconds?: number | null; window_duration_seconds?: number | null; zones?: unknown }
+    let rader: R[] = []
+    const tv = tvillingFor.get(id)
+    if (tv) rader = tvillingRader.filter(r => r.workout_id === tv) as R[]
+    else {
+      const snap = (snapRes.data ?? []).find(w => w.id === id)?.planned_snapshot as { activities?: unknown[] } | null
+      rader = Array.isArray(snap?.activities) ? (snap!.activities as R[]) : []
+    }
+    let t = 0
+    const ut: KompaktPlanBlokk[] = []
+    for (const r of rader) {
+      const type = r.activity_type ?? 'aktivitet'
+      if (type.startsWith('skyting')) continue
+      const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds ?? 0) || varighetSekAv(r.duration))
+      const start = r.window_start_seconds != null ? Number(r.window_start_seconds) : t
+      ut.push({ startSek: start, sluttSek: start + varighet, type, sone: dominantSoneAv(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null) })
+      t = start + varighet
+    }
+    return ut
+  }
   const raderPerOkt = new Map<string, SegmentRad[]>()
   for (const a of akterRes.data ?? []) {
     const liste = raderPerOkt.get(a.workout_id) ?? []
@@ -477,6 +515,7 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       hr: hr.length > 0 ? nedsampleSerie(hr, 0, slutt, KOMPAKT_KOLONNER, p => p.hr) : [],
       totalSek: slutt,
       segmenter: beregnSegmenter(raderPerOkt.get(rad.workout_id) ?? [], slutt),
+      plan: planFor(rad.workout_id),
     }
   }
   return ut
@@ -499,4 +538,24 @@ export async function lagreOpplevdBelastning(
   if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
   revalidatePath('/app/dagbok')
   return { ok: true }
+}
+
+/** Sonen med mest tid i en zones-jsonb — sekunder (basen) eller «MM:SS» (snapshot). */
+function dominantSoneAv(zones: unknown): string | null {
+  if (!zones || typeof zones !== 'object') return null
+  let beste: string | null = null, mest = 0
+  for (const [k, v] of Object.entries(zones as Record<string, unknown>)) {
+    const sek = typeof v === 'number' ? v : varighetSekAv(v)
+    if (sek > mest) { mest = sek; beste = k }
+  }
+  return mest > 0 ? beste : null
+}
+function varighetSekAv(v: unknown): number {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string' && v.trim()) {
+    const d = v.split(':').map(Number)
+    if (d.some(Number.isNaN)) return 0
+    return d.length === 3 ? d[0] * 3600 + d[1] * 60 + d[2] : d.length === 2 ? d[0] * 60 + d[1] : d[0] * 60
+  }
+  return 0
 }

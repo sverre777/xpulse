@@ -50,7 +50,7 @@ export interface PlanBlokk extends PlanBlokkInn {
   etikett: string
 }
 
-const SONE_HOYDE: Record<ExtendedZoneName, number> = {
+export const SONE_HOYDE: Record<ExtendedZoneName, number> = {
   I1: 0.36, I2: 0.50, I3: 0.62, I4: 0.74, I5: 0.86, I6: 0.92, I7: 0.96, I8: 1, Hurtighet: 0.9,
 }
 const SONE_REKKE: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']

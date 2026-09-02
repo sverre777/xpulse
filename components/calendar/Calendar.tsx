@@ -729,7 +729,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
     bakgrunnen), ellers plan-grafen fra radene — med én gang. */
 function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
-  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} />
   if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
   return <div style={{ marginTop: 3 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde - 4} /></div>
 }

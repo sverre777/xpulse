@@ -274,39 +274,88 @@ export interface PlanBlokk {
   navn: string | null
   startSek: number
   sluttSek: number
+  /** Planens sone for blokka (mest tid) — spøkelset tegnes i sonefargen. */
+  sone: string | null
 }
 
+/** Sonen med mest tid i en zones-jsonb — verdiene kan være sekunder
+    (basen) eller «MM:SS»-strenger (planned_snapshot). */
+function dominantSone(zones: unknown): string | null {
+  if (!zones || typeof zones !== 'object') return null
+  let beste: string | null = null, mest = 0
+  for (const [k, v] of Object.entries(zones as Record<string, unknown>)) {
+    let sek = 0
+    if (typeof v === 'number') sek = v
+    else if (typeof v === 'string' && v.trim()) {
+      const d = v.split(':').map(Number)
+      sek = d.length === 3 ? d[0] * 3600 + d[1] * 60 + d[2] : d.length === 2 ? d[0] * 60 + d[1] : Number(v) || 0
+    }
+    if (sek > mest) { mest = sek; beste = k }
+  }
+  return mest > 0 ? beste : null
+}
+
+function varighetSek(v: unknown): number {
+  if (typeof v === 'number') return v
+  if (typeof v === 'string' && v.trim()) {
+    const d = v.split(':').map(Number)
+    if (d.some(Number.isNaN)) return 0
+    return d.length === 3 ? d[0] * 3600 + d[1] * 60 + d[2] : d.length === 2 ? d[0] * 60 + d[1] : d[0] * 60
+  }
+  return 0
+}
+
+/**
+ * HVOR PLANEN BOR (bolk 7): to steder, begge finnes fra før — intet nytt felt.
+ *  1) FLETTET økt: planens originalrader er parkert på den skjulte
+ *     tvillingen (merged_into_workout_id → denne økta). Fletten sletter
+ *     aldri, og verken kutt (bolk 3) eller rundebyttet (bolk 6) rører dem.
+ *  2) PLAN MARKERT GJENNOMFØRT på samme rad: planen ligger i
+ *     workouts.planned_snapshot.activities (skrives ved gjennomføring og
+ *     bevares). Kutt/bytte skriver workout_activities, aldri snapshotet.
+ */
 export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  const { data: tvillinger } = await supabase.from('workouts')
-    .select('id').eq('merged_into_workout_id', workoutId)
+  const [{ data: tvillinger }, { data: okt }] = await Promise.all([
+    supabase.from('workouts').select('id').eq('merged_into_workout_id', workoutId),
+    supabase.from('workouts').select('planned_snapshot').eq('id', workoutId).maybeSingle(),
+  ])
   const tvilling = (tvillinger ?? [])[0]
-  if (!tvilling) return []
 
-  const { data: rader } = await supabase.from('workout_activities')
-    .select('id, activity_type, movement_name, lap_notes, duration_seconds, window_start_seconds, window_duration_seconds')
-    .eq('workout_id', tvilling.id).order('sort_order', { ascending: true })
+  type Rad = { id?: string; activity_type?: string | null; movement_name?: string | null; lap_notes?: string | null; duration?: unknown; duration_seconds?: unknown; window_start_seconds?: number | null; window_duration_seconds?: number | null; zones?: unknown }
+  let rader: Rad[] = []
+  if (tvilling) {
+    const { data } = await supabase.from('workout_activities')
+      .select('id, activity_type, movement_name, lap_notes, duration_seconds, window_start_seconds, window_duration_seconds, zones')
+      .eq('workout_id', tvilling.id).order('sort_order', { ascending: true })
+    rader = (data ?? []) as Rad[]
+  } else {
+    const snap = okt?.planned_snapshot as { activities?: unknown[] } | null
+    rader = Array.isArray(snap?.activities) ? (snap!.activities as Rad[]) : []
+  }
 
   let t = 0
   const ut: PlanBlokk[] = []
-  for (const r of rader ?? []) {
-    if (SKYTING(r.activity_type)) continue
-    const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds) || 0)
+  rader.forEach((r, i) => {
+    const type = r.activity_type ?? 'aktivitet'
+    if (SKYTING(type)) return
+    const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds ?? 0) || varighetSek(r.duration))
     // Har planen egne vinduer, er de sannheten; ellers legges blokkene
     // etter hverandre slik de sto i rekkefølgen.
     const start = r.window_start_seconds != null ? Number(r.window_start_seconds) : t
     ut.push({
-      id: r.id,
-      type: r.activity_type ?? 'aktivitet',
+      id: r.id ?? `plan-${i}`,
+      type,
       navn: r.lap_notes ?? r.movement_name ?? null,
       startSek: start,
       sluttSek: start + varighet,
+      sone: dominantSone(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null),
     })
     t = start + varighet
-  }
+  })
   return ut
 }
 

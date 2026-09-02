@@ -471,7 +471,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
 /** Klokke-grafen i miniatyr på uke-kortet (bolk 2) — ellers plan-grafen (bolk 5). */
 function UkeKortKurve({ w, hoyde = 18 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
-  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} />
   if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
   return <div style={{ marginTop: 2 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde} /></div>
 }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
   SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
-  grupperSegmenter, type Segment, type SegmentGruppe,
+  grupperSegmenter, type Segment,
 } from '@/lib/segmenter'
 import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
 import { KurveBrush } from './KurveBrush'
@@ -12,7 +12,7 @@ import { hentKurveVindu } from '@/app/actions/workout-klokkesync'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { PlanSpokelse } from './PlanSpokelse'
 import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
-import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
+import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { beregnSoneTss } from '@/lib/belastning'
@@ -127,14 +127,14 @@ export function WorkoutDetailChart({
   // Planen bak (bolk 7) — samme bryter og samme lag som i Øktbyggeren.
   // Valget deles med byggeren (lib/vis-plan), så flatene aldri står uenige.
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
-  const [visPlan, setVisPlan] = useState(false)
+  // Huskes per økt, standard PÅ når økta har plan (bolk 7).
+  const [visPlan, setVisPlan] = useState(true)
 
   useEffect(() => {
-    const oppdater = () => setVisPlan(visPlanBak())
+    const oppdater = () => setVisPlan(visPlanBak(workoutId))
     oppdater()
-    window.addEventListener(VIS_PLAN_HENDELSE, oppdater)
-    return () => window.removeEventListener(VIS_PLAN_HENDELSE, oppdater)
-  }, [])
+    return abonnerVisPlan(oppdater)
+  }, [workoutId])
 
   useEffect(() => {
     if (!workoutId) return
@@ -206,7 +206,14 @@ export function WorkoutDetailChart({
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
-  const synlig: [number, number] = vindu ?? [0, Math.max(1, totalSek)]
+  // Aksen strekkes til planens slutt når planen vises og er lengre enn
+  // økta (bolk 7): da stikker spøkelset ut forbi der økta stoppet, og
+  // avviket leses uten lesepanel. Kortere plan stopper av seg selv.
+  const aksSek = useMemo(() => {
+    if (!visPlan || planBlokker.length === 0) return totalSek
+    return Math.max(totalSek, ...planBlokker.map(b => b.sluttSek))
+  }, [visPlan, planBlokker, totalSek])
+  const synlig: [number, number] = vindu ?? [0, Math.max(1, aksSek)]
 
   useEffect(() => {
     // Nullstilling skjer i handlerne som fjerner zoomen (ikke her — en
@@ -293,7 +300,7 @@ export function WorkoutDetailChart({
               {/* Finnes ingen plan, står bryteren ikke der (aldri en død knapp). */}
               {planBlokker.length > 0 && (
                 <Chip farge="var(--accent)" etikett="Vis plan" paa={visPlan} fokus={false}
-                  onClick={() => setVisPlan(settVisPlanBak(!visPlan))} />
+                  onClick={() => setVisPlan(settVisPlanBak(workoutId, !visPlan))} />
               )}
             </Gruppe>
           )}
@@ -314,7 +321,7 @@ export function WorkoutDetailChart({
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
-        totalSek={totalSek}
+        totalSek={aksSek}
         hoyde={skjema ? Math.min(height, 240) : height}
         vindu={vindu ?? undefined}
         onVindu={v => settVindu(v)}
@@ -1125,11 +1132,13 @@ function fmtFart(mps: number, sport: Sport): string {
 // Ingen kontroller, ingen etiketter — bare formen, så et blikk på
 // kalenderen viser om økta var jevn eller hadde drag.
 
-export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30 }: {
+export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [] }: {
   hr: Array<{ t: number; hr: number }>
   totalSek: number
   segmenter: Segment[]
   hoyde?: number
+  /** Planens blokker som spøkelse bak (bolk 7) — uten bryter i oversikten. */
+  plan?: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string }>
 }) {
   const B = 320
   const sti = useMemo(() => {
@@ -1144,8 +1153,14 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30 }: {
   }, [hr, totalSek, hoyde])
   if (totalSek <= 0 || (hr.length < 2 && segmenter.length === 0)) return null
   const pct = (t: number) => `${Math.max(0, Math.min(100, (t / totalSek) * 100))}%`
+  const spokelser: PlanBlokk[] = plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone }))
   return (
     <div data-kompakt-kurve aria-hidden style={{ position: 'relative', height: hoyde, marginTop: 3 }}>
+      {spokelser.length > 0 && (
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: hoyde - 6 }}>
+          <PlanSpokelse blokker={spokelser} pct={pct} dempet={0.22} />
+        </div>
+      )}
       {sti && (
         <svg viewBox={`0 0 ${B} ${hoyde - 6}`} preserveAspectRatio="none"
           style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: hoyde - 6 }}>

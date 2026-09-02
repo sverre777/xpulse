@@ -5,9 +5,9 @@
 // aldri reimplementerer regnestykket — blokkene til forhåndsvisningen kommer
 // fra byggBlokker(), radene fra genererIntervalløkt().
 //
-// Tre steg: bygg → se hvordan den blir (samlet/splittet velges DER, hvor
-// forskjellen faktisk vises) → ferdig (kollapset linje m/ stripe + «Endre»,
-// samme mønster som konkurranse fellesstart).
+// Tre steg: bygg → se hvordan den blir → ferdig (kollapset linje m/ stripe
+// + «Endre»). Samlet/splittet velges IKKE her lenger (bolk 4): radene
+// legges alltid splittet, og bryteren over radene samler i visningen.
 //
 // Reglene bor i generatoren: skyting erstatter pausen (totaltid uendret),
 // mønsteret løper på tvers av radene, siste pause utgår, 5 skudd standard,
@@ -125,7 +125,6 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
   const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '30:00')
   const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '10:00')
-  const [genForm, setGenForm] = useState<'splittet' | 'samlet'>('splittet')
 
   useEffect(() => {
     if (apneSignal != null && apneSignal > 0) setSteg('bygg')
@@ -152,8 +151,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     bevegelsesform: bev,
     underkategori: sub,
     skyting: skyting || null,
-    form: genForm,
-  }), [opp, ned, rader, bev, sub, skyting, genForm])
+  }), [opp, ned, rader, bev, sub, skyting])
 
   const blokker: GenerertBlokk[] = useMemo(() => byggBlokker(konfig), [konfig])
   const total = blokker.reduce((s, b) => s + b.sek, 0)
@@ -231,7 +229,6 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
   // ── STEG 2: se hvordan den blir ──
   if (steg === 'vis') {
-    const bevBlokker = blokker.filter(b => !b.posisjon)
     const NAVN: Record<string, string> = {
       oppvarming: 'Oppvarming', aktivitet: 'Aktivitet', aktiv_pause: 'Aktiv pause', veksling: 'Veksling',
       nedjogg: 'Nedjogg', skyting_kombinert: 'Skyting',
@@ -263,24 +260,10 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <div style={{ fontFamily: FONT, fontSize: 15, color: 'var(--tekst-1-app)' }}>{tittel}</div>
         </div>
 
-        <div className="flex items-center gap-2 mt-4 flex-wrap">
-          <span style={{ ...CAP, marginRight: 'auto' }}>Generert i aktivitetslista</span>
-          {(['splittet', 'samlet'] as const).map(v => (
-            <button key={v} type="button" onClick={() => setGenForm(v)}
-              style={{
-                fontFamily: FONT, fontSize: 13.5, borderRadius: 9, padding: '8px 15px', cursor: 'pointer',
-                color: genForm === v ? 'var(--tekst-1-app)' : 'var(--tekst-5-app)', fontWeight: genForm === v ? 700 : 400,
-                background: genForm === v ? 'rgba(255,69,0,.10)' : 'var(--card2)',
-                border: `1px solid ${genForm === v ? 'var(--accent)' : 'var(--line2)'}`,
-              }}>
-              {v === 'splittet' ? 'Splittet' : 'Samlet'}
-            </button>
-          ))}
-        </div>
-
+        <div className="mt-4" style={CAP}>Generert i aktivitetslista</div>
         {/* Rad-forhåndsvisning: nøyaktig det som legges i aktivitetslista. */}
         <div className="mt-2 flex flex-col gap-1">
-          {genForm === 'splittet' ? blokker.map((b, i) => (
+          {blokker.map((b, i) => (
             <div key={i} className="flex items-center gap-2"
               style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', background: b.posisjon ? 'rgba(226,58,90,.06)' : 'transparent', borderRadius: 6, padding: '3px 6px' }}>
               <span style={{ color: 'var(--tekst-10)', width: 20, flexShrink: 0 }}>{i + 1}</span>
@@ -292,22 +275,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
               <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(b.sek)}</span>
               <span style={{ color: ZONE_COLORS_V2[b.sone], fontWeight: 700, fontSize: 12, width: 60, textAlign: 'right', flexShrink: 0 }}>{b.sone}</span>
             </div>
-          )) : (
-            <>
-              <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', padding: '3px 6px' }}>
-                <span style={{ color: 'var(--tekst-10)', width: 20 }}>1</span>
-                <span style={{ flex: 1 }}>Aktivitet <span style={{ color: 'var(--tekst-8-alt)' }}>{bev}{sub ? ` · ${sub}` : ''} · sonetotaler</span></span>
-                <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(bevBlokker.reduce((s, b) => s + b.sek, 0))}</span>
-              </div>
-              {serier > 0 && (
-                <div className="flex items-center gap-2" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', background: 'rgba(226,58,90,.06)', borderRadius: 6, padding: '3px 6px' }}>
-                  <span style={{ color: 'var(--tekst-10)', width: 20 }}>2</span>
-                  <span style={{ flex: 1 }}>Skyting · {serier} serier · {serier * 5} skudd <span style={{ color: 'var(--tekst-8-alt)' }}>{antallL} liggende, {antallS} stående</span></span>
-                  <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(blokker.filter(b => b.posisjon).reduce((s, b) => s + b.sek, 0))}</span>
-                </div>
-              )}
-            </>
-          )}
+          ))}
         </div>
 
         <div className="flex items-center justify-between gap-3 mt-4 pt-3 flex-wrap" style={{ borderTop: '1px solid var(--line)' }}>

@@ -55,7 +55,7 @@ for (const mal of OKT_MAL_BIBLIOTEK) {
   const igjen = byggBlokker({
     oppvarmingSek: opps.oppvarmingSek, nedjoggSek: opps.nedjoggSek,
     rader: opps.rader, bevegelsesform: '', underkategori: '',
-    skyting: null, form: 'splittet',
+    skyting: null,
   })
   const a = mal.blokker.map(b => `${b.sek}|${b.sone}|${b.rolle}`).join(';')
   const b = igjen.map(x => `${x.sek}|${x.sone}|${x.rolle}`).join(';')
@@ -68,7 +68,7 @@ for (const mal of OKT_MAL_BIBLIOTEK.filter(m => m.skyting)) {
   const opps = oktMalTilIntervallOppsett(mal)
   sjekk(`${mal.ref}: skyting forhåndsvalgt`, opps.skyting, 'LS')
   const medSkyting = byggBlokker({ oppvarmingSek: opps.oppvarmingSek, nedjoggSek: opps.nedjoggSek,
-    rader: opps.rader, bevegelsesform: '', underkategori: '', skyting: 'LS', form: 'splittet' })
+    rader: opps.rader, bevegelsesform: '', underkategori: '', skyting: 'LS' })
   const tot = (bs: { sek: number }[]) => bs.reduce((s2, x) => s2 + x.sek, 0)
   sjekk(`${mal.ref}: totaltid uendret m/ skyting`, tot(medSkyting), tot(mal.blokker))
 }

@@ -28,6 +28,8 @@ import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
+import { SamletBryter } from './SamletBryter'
+import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -143,9 +145,10 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   }, [workoutId, data.merged_source, targetUserId])
   const flett = workoutId && flettSvar?.id === workoutId ? flettSvar.status : null
 
-  // Samlet/Splittet (fasit seksjon 4) — KUN visning, dataene er alltid
-  // splittet. Bryteren finnes på flettede OG rene klokkesynk-økter.
-  const [visning, setVisning] = useState<'splittet' | 'samlet'>('splittet')
+  // Samlet/Splittet — ÉN bryter i appen (SamletBryter, bolk 4): ren
+  // visning, huskes per økt, standard samlet på klokkeøkter.
+  const [visning, setVisning] = useState<Visning>('splittet')
+  const [visningLest, setVisningLest] = useState<string | null>(null)
 
   // Sonespråket (fase 111): med utvidet skala vises eldre Hurtighet-
   // føringer som I7 i sonebarene — med tooltip-merking, aldri stille.
@@ -156,6 +159,11 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
     return () => { cancelled = true }
   }, [targetUserId])
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
+  if (visningLest !== (workoutId ?? '')) {
+    setVisningLest(workoutId ?? '')
+    setVisning(lesVisning(workoutId) ?? standardVisning(harKlokkeRader))
+  }
+  const velgVisning = (v: Visning) => { setVisning(v); huskVisning(workoutId, v) }
   // Øktbyggeren står ALLTID der man kan redigere — lerretet skifter etter
   // hva økta har (plan → blokker, klokke → kurve).
   const kanLeggeTilDetaljer = canEdit && !!workoutId
@@ -582,87 +590,58 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
 
       {/* ── AKTIVITETER (read-only tidslinje) ── */}
       {activities.length > 0 && (
-        <Card title="AKTIVITETER" aux={visning === 'samlet' && harKlokkeRader ? 'Samlet' : 'Kronologisk'}>
-          {/* Fasit seksjon 4: Samlet/Splittet — KUN visning. Bryteren står
-              på flettede OG rene klokkesynk-økter med mer enn én rad. */}
-          {harKlokkeRader && activities.length > 1 && (
-            <div className="flex gap-1.5 mb-3">
-              {(['splittet', 'samlet'] as const).map(v => (
-                <button key={v} type="button" onClick={() => setVisning(v)}
-                  className="text-xs tracking-widest uppercase"
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                    color: visning === v ? 'var(--accent)' : 'var(--mut)',
-                    background: visning === v ? 'rgba(255,69,0,.08)' : 'none',
-                    border: `1px solid ${visning === v ? 'var(--accent)' : 'var(--line2)'}`,
-                    borderRadius: 999, padding: '5px 14px', cursor: 'pointer',
-                  }}>
-                  {v === 'splittet' ? 'Splittet' : 'Samlet'}
-                </button>
-              ))}
-            </div>
+        <Card title="AKTIVITETER" aux={visning === 'samlet' ? 'Samlet' : 'Kronologisk'}>
+          {/* ÉN samlet/splittet-bryter (bolk 4) — samme komponent som over
+              radene i skjemaet. Ren visning: dataene lagres alltid splittet. */}
+          {activities.length > 1 && (
+            <SamletBryter visning={visning} onVisning={velgVisning} />
           )}
-          {visning === 'samlet' && harKlokkeRader ? (() => {
-            // Gruppering: KUN lik aktivitetstype + bevegelsesform +
-            // underkategori. Én totalrad per gruppe, rekkefølge = første
-            // forekomst. Snittpuls tidsvektes over gruppa.
-            type Grp = {
-              first: ActivityRow; n: number; sec: number; km: number
-              hrW: number; hrSec: number
-              zones: Partial<Record<ExtendedZoneName, number>>
-              shots: number; hits: number
-            }
-            const grupper: Grp[] = []
-            const byKey = new Map<string, Grp>()
-            for (const a of activities) {
-              const like = allLikes.get(a.id)
-              const key = `${a.activity_type}|${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
-              let g = byKey.get(key)
-              if (!g) {
-                g = { first: a, n: 0, sec: 0, km: 0, hrW: 0, hrSec: 0, zones: {}, shots: 0, hits: 0 }
-                byKey.set(key, g)
-                grupper.push(g)
-              }
-              g.n++
-              const sec = like?.duration_seconds ?? 0
-              g.sec += sec
-              g.km += (like?.distance_meters ?? 0) / 1000
-              const hr = num(a.avg_heart_rate)
-              if (hr > 0 && sec > 0) { g.hrW += hr * sec; g.hrSec += sec }
-              if (like) {
-                const t = computeActivityTotals([like], [])
-                for (const k of ALL_ZONE_NAMES) {
-                  const zs = t.zoneSeconds[k] ?? 0
-                  if (zs > 0) g.zones[k] = (g.zones[k] ?? 0) + zs
-                }
-              }
-              g.shots += num(a.prone_shots) + num(a.standing_shots)
-              g.hits += num(a.prone_hits) + num(a.standing_hits)
-            }
+          {visning === 'samlet' && activities.length > 1 ? (() => {
+            // Rader ETTER HVERANDRE med samme type + bev.form + underkategori
+            // → én gruppe (lib/samlet-visning, samme regel som skjemaet).
+            const grupper = grupperRaderSamlet(activities)
             return (
               <div>
                 {grupper.map((g, i) => {
-                  const hr = g.hrSec > 0 ? g.hrW / g.hrSec : 0
-                  const zTotal = ALL_ZONE_NAMES.reduce((sum, k) => sum + (g.zones[k] ?? 0), 0)
+                  const a = g.rader[0]
+                  const zones: Partial<Record<ExtendedZoneName, number>> = {}
+                  let shots = 0, hits = 0
+                  for (const r of g.rader) {
+                    const like = allLikes.get(r.id)
+                    if (like) {
+                      const t = computeActivityTotals([like], [])
+                      for (const k of ALL_ZONE_NAMES) {
+                        const zs = t.zoneSeconds[k] ?? 0
+                        if (zs > 0) zones[k] = (zones[k] ?? 0) + zs
+                      }
+                    }
+                    shots += num(r.prone_shots) + num(r.standing_shots)
+                    hits += num(r.prone_hits) + num(r.standing_hits)
+                  }
+                  const zTotal = ALL_ZONE_NAMES.reduce((sum, k) => sum + (zones[k] ?? 0), 0)
                   return (
-                    <div key={i} className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
+                    <div key={g.id} data-gruppe-rad={g.rader.length} className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
                       style={{ borderBottom: i < grupper.length - 1 ? '1px solid var(--line)' : 'none' }}>
                       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
-                        {activityLabel(g.first)}
+                        {g.rader.length > 1 && (
+                          <span style={{ color: 'var(--accent)', fontSize: 12, letterSpacing: '0.1em', border: '1px solid var(--accent)', borderRadius: 999, padding: '1px 7px', marginRight: 8 }}>
+                            {g.rader.length} ×
+                          </span>
+                        )}
+                        {activityLabel(a)}
                         <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
-                          {g.first.movement_name ? ` · ${g.first.movement_name}${g.first.movement_subcategory ? ` ${g.first.movement_subcategory}` : ''}` : ''}
-                          {` · ${g.n} ${g.n === 1 ? 'runde' : 'runder'}`}
+                          {a.movement_name ? ` · ${a.movement_name}${a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}` : ''}
                         </small>
                       </span>
                       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 14.5 }}>
-                        {g.sec > 0 && <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtZoneTime(g.sec)}</b>}
-                        {g.km > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtNo(g.km)}</b> km</>}
-                        {hr > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{Math.round(hr)}</b> bpm</>}
-                        {g.shots > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{g.hits}/{g.shots}</b> treff</>}
+                        {g.sumSek > 0 && <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtZoneTime(g.sumSek)}</b>}
+                        {g.sumKm > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{fmtNo(g.sumKm)}</b> km</>}
+                        {g.snittpuls != null && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{g.snittpuls}</b> bpm</>}
+                        {shots > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{hits}/{shots}</b> treff</>}
                       </span>
                       {zTotal > 0 && (
                         <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
-                          {visningsFordeling(g.zones, utvidetSkala).map(v => {
+                          {visningsFordeling(zones, utvidetSkala).map(v => {
                             if (v.sek <= 0) return null
                             return <div key={v.navn}
                               title={v.inklHurtighet ? 'I7 — inkl. Hurtighet-føringer' : v.navn}
@@ -673,12 +652,6 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                     </div>
                   )
                 })}
-                <p className="mt-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--mut)' }}>
-                  Samlet slår kun sammen rader med lik aktivitetstype +
-                  bevegelsesform + underkategori. Rekkefølgen følger første
-                  forekomst. Snittpuls er tidsvektet. Dataene lagres alltid
-                  splittet.
-                </p>
               </div>
             )
           })() : (

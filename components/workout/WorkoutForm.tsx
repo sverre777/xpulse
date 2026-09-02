@@ -1565,6 +1565,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}
           onChange={settAktiviteter}
+          workoutId={workoutId ?? null}
+          radInfo={plassGrunnlag.radInfo}
+          erKlokkeokt={!!(defaultValues?.imported_from || defaultValues?.merged_source)}
           sport={form.sport}
           userSports={effectiveUserSports}
           activityTypeFavorites={activityTypeFavorites}

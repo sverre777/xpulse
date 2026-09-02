@@ -57,7 +57,6 @@ const grunn = (over: Partial<IntervallKonfig> = {}): IntervallKonfig => ({
   bevegelsesform: 'Langrenn',
   underkategori: 'Skøyting',
   skyting: null,
-  form: 'splittet',
   ...over,
 })
 
@@ -167,40 +166,36 @@ console.log('\nSkyting ERSTATTER pausen')
       s.vind_retning === null && s.vind_styrke === null && s.sikt === null))
 }
 
-// ── Samlet vs. splittet ─────────────────────────────────────
-console.log('\nSamlet vs. splittet')
+// ── Én rad per blokk ────────────────────────────────────────
+// Samlet form utgikk i Øktbygger bolk 4 — bryteren over radene samler i
+// visningen. Generatoren gir alltid én rad per blokk.
+console.log('\nÉn rad per blokk')
 for (const skyting of [null, 'LS'] as (SkyteMonster | null)[]) {
   const merke = skyting ? 'med skyting' : 'uten skyting'
-  const splittet = genererIntervalløkt(grunn({ skyting, form: 'splittet' }))
-  const samlet = genererIntervalløkt(grunn({ skyting, form: 'samlet' }))
-
-  sjekk(`${merke}: identisk total varighet`, sumVarighet(samlet), sumVarighet(splittet))
-  sjekk(`${merke}: identiske sonetotaler`, sumSoner(samlet), sumSoner(splittet))
-  sjekk(`${merke}: antall rader samlet`, samlet.length, skyting ? 2 : 1)
-  sjekk(`${merke}: første rad er aktivitet`, samlet[0].activity_type, 'aktivitet')
-
+  const rader = genererIntervalløkt(grunn({ skyting }))
+  const blokker = byggBlokker(grunn({ skyting }))
+  sjekk(`${merke}: én rad per blokk`, rader.length, blokker.length)
+  sjekk(`${merke}: total varighet = blokkene`, sumVarighet(rader), blokker.reduce((a, b) => a + b.sek, 0))
   if (skyting) {
     // Skyting slås ALDRI sammen med bevegelsen.
-    sjekk('samlet: skyterad er egen rad', samlet[1].activity_type, 'skyting_kombinert')
-    sjekk('samlet: alle seriene på én rad', samlet[1].shooting_series.length, 5)
-    sjekk('samlet: bevegelsesraden har ingen serier', samlet[0].shooting_series.length, 0)
+    ok('skyterader er egne rader', rader.filter(r => r.shooting_series.length > 0).every(r => r.activity_type === 'skyting_kombinert'))
   }
 }
 
 // ── Bevegelsesform ──────────────────────────────────────────
 console.log('\nBevegelsesform')
-for (const form of ['splittet', 'samlet'] as const) {
-  const rader = genererIntervalløkt(grunn({ skyting: 'LS', form }))
+{
+  const rader = genererIntervalløkt(grunn({ skyting: 'LS' }))
   for (const r of rader) {
     const bruker = findActivityType(r.activity_type)?.usesMovement ?? false
     if (bruker) {
-      sjekk(`${form}/${r.activity_type}: har bevegelsesform`, r.movement_name, 'Langrenn')
-      sjekk(`${form}/${r.activity_type}: har underkategori`, r.movement_subcategory, 'Skøyting')
+      sjekk(`${r.activity_type}: har bevegelsesform`, r.movement_name, 'Langrenn')
+      sjekk(`${r.activity_type}: har underkategori`, r.movement_subcategory, 'Skøyting')
     } else {
-      sjekk(`${form}/${r.activity_type}: TOM bevegelsesform`, r.movement_name, '')
+      sjekk(`${r.activity_type}: TOM bevegelsesform`, r.movement_name, '')
     }
   }
-  ok(`${form}: skyterader har tom bevegelsesform`,
+  ok('skyterader har tom bevegelsesform',
     rader.filter(r => r.shooting_series.length > 0).every(r => r.movement_name === ''))
 }
 

@@ -48,7 +48,6 @@ export interface IntervallKonfig {
   bevegelsesform: string
   underkategori: string
   skyting: SkyteMonster | null
-  form: 'splittet' | 'samlet'
 }
 
 /** Blokk + det ActivityRow trenger utover sone og varighet. */
@@ -188,37 +187,16 @@ function skyterad(blokker: GenerertBlokk[]): ActivityRow {
 }
 
 /**
- * Konfigurasjon → ActivityRow[], klare til `activities`.
+ * Konfigurasjon → ActivityRow[], klare til `activities`: én rad per blokk.
  *
- * `splittet` gir én rad per blokk. `samlet` gir ÉN aktivitet-rad med
- * sonetotalene for alt som ikke er skyting, pluss én skyterad med alle
- * seriene. Skyting kan aldri slås sammen med bevegelsen — det er to ulike
- * aktivitetstyper, og bare den ene har bevegelsesform.
- *
- * Begge former gir samme totale varighet og samme sonetotaler. Skytetiden
- * teller som I1, slik designet viser den: skytingen er en markering OVER
- * sonestripa, ikke en egen farge i den.
+ * Samlet form utgikk i Øktbygger bolk 4: radene legges alltid splittet,
+ * og bryteren over radene samler like naborader i VISNINGEN. Skyting kan
+ * uansett aldri slås sammen med bevegelsen — to ulike aktivitetstyper,
+ * og bare den ene har bevegelsesform.
  */
 export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
   const blokker = byggBlokker(konfig)
   if (blokker.length === 0) return []
-
-  if (konfig.form === 'samlet') {
-    const bevegelse = blokker.filter(b => !erSkyting(b))
-    const skyting = blokker.filter(erSkyting)
-    const rader: ActivityRow[] = []
-
-    if (bevegelse.length > 0) {
-      rader.push({
-        ...makeActivity({ activity_type: 'aktivitet', ...bevegelseFor('aktivitet', konfig) }),
-        duration: sekTilKlokke(totalSekunder(bevegelse)),
-        zones: { ...emptyActivityZones(), ...blokkerTilSoner(bevegelse) },
-      })
-    }
-    if (skyting.length > 0) rader.push(skyterad(skyting))
-    return rader
-  }
-
   return blokker.map(b => (
     erSkyting(b)
       ? skyterad([b])

@@ -1,4 +1,4 @@
-import { emptyActivityZones } from './types'
+import { emptyActivityZones } from './types.ts'
 // Bibliotekmal → helt vanlig øktmal.
 //
 // Resultatet skal være umulig å skille fra en mal brukeren lagde selv. Det er

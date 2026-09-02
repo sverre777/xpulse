@@ -2,6 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
+import { SamletBryter } from './SamletBryter'
+import {
+  grupperRaderSamlet, skrivTilGruppe, samlbareGrupper, samleRader, lesVisning, huskVisning, standardVisning,
+  type Visning, type RadGruppe, type GruppeFelt,
+} from '@/lib/samlet-visning'
 import { SerieListe } from './SerieListe'
 import {
   ActivityRow, ActivityType, ACTIVITY_TYPES, findActivityType,
@@ -73,6 +78,11 @@ interface Props {
   onPlottTreff?: () => void
   // Trener-redigering: sonespråket skal være UTØVERENS (fase 111).
   targetUserId?: string
+  // Samlet/splittet (bolk 4): huskes per økt; klokkerader samles aldri
+  // for alvor. radInfo = proveniens per rad-id fra serveren.
+  workoutId?: string | null
+  radInfo?: Record<string, { harKlokkeProveniens: boolean }>
+  erKlokkeokt?: boolean
   rows: ActivityRow[]
   onChange: (rows: ActivityRow[]) => void
   sport: Sport
@@ -190,7 +200,7 @@ import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -201,6 +211,20 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   )
   const [userMovementTypes, setUserMovementTypes] = useState<UserMovementType[]>([])
   const [createModalRowId, setCreateModalRowId] = useState<string | null>(null)
+  // SAMLET / SPLITTET — ren visning, huskes per økt. Leses etter montering
+  // (serveren vet ikke hva som er husket), som tema og vis-plan.
+  const [visning, setVisning] = useState<Visning>(() => standardVisning(erKlokkeokt))
+  const [visningLest, setVisningLest] = useState<string | null>(null)
+  if (visningLest !== (workoutId ?? '')) {
+    setVisningLest(workoutId ?? '')
+    setVisning(lesVisning(workoutId) ?? standardVisning(erKlokkeokt))
+  }
+  const velgVisning = (v: Visning) => { setVisning(v); huskVisning(workoutId, v) }
+  // «Samle» (B) — ett steg angre til økta lagres.
+  const [forSamling, setForSamling] = useState<ActivityRow[] | null>(null)
+  const erKlokkerad = (a: ActivityRow) => !!(a.db_id && radInfo[a.db_id]?.harKlokkeProveniens)
+  const grupper = grupperRaderSamlet(rows)
+  const samlbare = samlbareGrupper(rows, erKlokkerad)
 
   useEffect(() => {
     let cancelled = false
@@ -302,8 +326,54 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
         </p>
       )}
 
+      {rows.length > 1 && (
+        <SamletBryter
+          visning={visning}
+          onVisning={velgVisning}
+          antallSamlbare={samlbare.length}
+          onSamle={() => { setForSamling(rows); onChange(samleRader(rows, erKlokkerad)) }}
+          onAngreSamling={forSamling ? () => { onChange(forSamling); setForSamling(null) } : undefined}
+        />
+      )}
+
       <div className="xp-tl">
-      {rows.map((row, idx) => (
+      {visning === 'samlet' && grupper.some(g => g.rader.length > 1) ? grupper.map(g => (
+        g.rader.length === 1 ? (
+          <ActivityRowItem
+            targetUserId={targetUserId}
+            key={g.rader[0].id}
+            row={g.rader[0]}
+            expanded={expandedId === g.rader[0].id}
+            onToggle={() => setExpandedId(expandedId === g.rader[0].id ? null : g.rader[0].id)}
+            onUpdate={patch => updateRow(g.rader[0].id, patch)}
+            onDelete={() => deleteRow(g.rader[0].id)}
+            onMoveUp={g.fra > 0 ? () => moveRow(g.rader[0].id, -1) : undefined}
+            onMoveDown={g.til < rows.length - 1 ? () => moveRow(g.rader[0].id, 1) : undefined}
+            typeOptions={typeOptions}
+            favoriteTypes={activityTypeFavorites ?? []}
+            sport={sport}
+            isPlanMode={isPlanMode}
+            userMovementTypes={userMovementTypes}
+            onRequestCreateMovement={() => setCreateModalRowId(g.rader[0].id)}
+            defaultPaceUnit={defaultPaceUnit}
+            workoutType={workoutType}
+            equipment={availableEquipment}
+            equipmentIds={activityEquipment?.[g.rader[0].id] ?? []}
+            onEquipmentChange={onActivityEquipmentChange ? ids => onActivityEquipmentChange(g.rader[0].id, ids) : undefined}
+          />
+        ) : (
+          <GruppeRadItem
+            key={g.id}
+            gruppe={g}
+            expanded={expandedId === g.id}
+            onToggle={() => setExpandedId(expandedId === g.id ? null : g.id)}
+            onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
+            typeOptions={typeOptions}
+            userMovementTypes={userMovementTypes}
+            onSplitt={() => velgVisning('splittet')}
+          />
+        )
+      )) : rows.map((row, idx) => (
         <ActivityRowItem
           targetUserId={targetUserId}
           key={row.id}
@@ -340,6 +410,111 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
 }
 
 const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
+
+// ── Gruppe-rad (SAMLET) — flere like rader vist som én. Endring på
+// gruppa skrives til HVER rad (type, bevegelsesform, underkategori,
+// notat). Tid, km og puls er summer/tidsvektet og redigeres per rad —
+// i splittet visning, som lenka sier. Ingen datamutasjon ved visning.
+function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, userMovementTypes, onSplitt }: {
+  gruppe: RadGruppe
+  expanded: boolean
+  onToggle: () => void
+  onUpdate: (patch: Partial<Pick<ActivityRow, GruppeFelt>>) => void
+  typeOptions: typeof ACTIVITY_TYPES
+  userMovementTypes: UserMovementType[]
+  onSplitt: () => void
+}) {
+  const forste = gruppe.rader[0]
+  const meta = findActivityType(forste.activity_type)
+  const isStrength = isStrengthFor(forste.movement_name, userMovementTypes)
+  const subcatOptions = isStrength && !userMovementTypes.some(u => u.name === forste.movement_name)
+    ? STRENGTH_SUBCATEGORIES
+    : subcategoriesFor(forste.movement_name, userMovementTypes)
+  const n = gruppe.rader.length
+  return (
+    <div className="xp-act" data-gruppe-rad data-antall={n}>
+      <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
+        onClick={onToggle} style={{ userSelect: 'none' }}>
+        <span style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
+          letterSpacing: '0.1em', color: 'var(--accent)', border: '1px solid var(--accent)',
+          borderRadius: 999, padding: '1px 7px', marginLeft: 24,
+        }}>
+          {n} ×
+        </span>
+        <span style={{ fontSize: '14px' }}>{isStrength ? '🏋' : (meta?.icon ?? '•')}</span>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
+          {meta?.label ?? forste.activity_type}
+        </span>
+        {meta?.usesMovement && forste.movement_name && (
+          <span className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', minWidth: 0 }}>
+            · {forste.movement_name}{forste.movement_subcategory ? ` — ${forste.movement_subcategory}` : ''}
+          </span>
+        )}
+        <div className="flex-1" style={{ minWidth: '4px' }} />
+        <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em' }}>
+          {formatActivityDuration(gruppe.sumSek)}
+        </span>
+        {gruppe.sumKm > 0 && (
+          <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '12px' }}>
+            · {Math.round(gruppe.sumKm * 10) / 10} km
+          </span>
+        )}
+        {gruppe.snittpuls != null && (
+          <span className="hidden sm:inline" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-3-app)', fontSize: '12px' }}>
+            · {gruppe.snittpuls} bpm
+          </span>
+        )}
+        <span style={{ color: 'var(--tekst-8-app)', fontSize: '12px', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', marginLeft: '4px' }}>▶</span>
+      </div>
+      {expanded && (
+        <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+            <Field label="Aktivitetstype">
+              <select value={forste.activity_type}
+                onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })} style={iSt}>
+                {typeOptions.map(t => <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>)}
+                {meta?.legacy && !typeOptions.some(t => t.value === meta.value) && (
+                  <option value={meta.value}>{meta.icon}  {meta.label}</option>
+                )}
+              </select>
+            </Field>
+            {meta?.usesMovement && (
+              <Field label="Bevegelsesform">
+                <select value={forste.movement_name}
+                  onChange={e => onUpdate({ movement_name: e.target.value, movement_subcategory: '' })} style={iSt}>
+                  <option value="">—</option>
+                  {MOVEMENT_CATEGORIES.map(m => <option key={m.name} value={m.name}>{m.name}</option>)}
+                  {userMovementTypes.length > 0 && (
+                    <optgroup label="Mine egne">
+                      {userMovementTypes.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+              </Field>
+            )}
+            {meta?.usesMovement && subcatOptions.length > 0 && (
+              <Field label="Underkategori">
+                <select value={forste.movement_subcategory}
+                  onChange={e => onUpdate({ movement_subcategory: e.target.value })} style={iSt}>
+                  <option value="">—</option>
+                  {subcatOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </Field>
+            )}
+          </div>
+          <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
+            {n} rader · endringer her skrives til hver av dem. Tid, km og puls per rad:{' '}
+            <button type="button" onClick={e => { e.stopPropagation(); onSplitt() }}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', font: 'inherit' }}>
+              vis splittet
+            </button>
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function ActivityRowItem({
   row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,

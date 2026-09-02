@@ -141,7 +141,7 @@ export function OktbyggerPopup({
   const kuttVed = (sek: number) => {
     const u = radVed(plassering, sek)
     if (!u) return
-    endre(kuttRad(rader, plassering, u.id, sek))
+    endre(kuttRad(rader, plassering, u.id, sek, { pulsHint: !harKurve }))
     setValgtRad(u.id)
   }
   /** Klikk på kurven i start-her-modus: valgt rad (og kjeden etter) flyttes dit. */
@@ -399,7 +399,7 @@ export function OktbyggerPopup({
                       onVarighet={sek => endre(settRadVarighet(rader, plassering, u.id, sek, totalSek))}
                       onType={t => endreRad(u.id, { activity_type: t })}
                       onNavn={navn => endreRad(u.id, { lap_notes: navn })}
-                      onDel={() => endre(kuttRad(rader, plassering, u.id))}
+                      onDel={() => endre(kuttRad(rader, plassering, u.id, undefined, { pulsHint: !harKurve }))}
                       onSlaaSammen={() => endre(slaaSammenMedNeste(rader, plassering, u.id))}
                       onSlett={() => { setValgtRad(null); endre(slettRad(rader, plassering, u.id)) }}
                     />
@@ -766,11 +766,16 @@ function Rad({
         <TidInput sek={u.startSek} onSek={onStart} />
         <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>varighet</span>
         <TidInput sek={u.varighetSek} onSek={onVarighet} />
-        {(u.snittpuls || puls.snitt != null) && (
+        {(u.snittpuls || puls.snitt != null) ? (
           <span className="ml-auto" style={{ color: 'var(--tekst-8-alt)' }}>
-            snitt {u.snittpuls || puls.snitt}{u.snittpuls ? '' : ' · målt'}
+            snitt {u.snittpuls || puls.snitt}{u.snittpuls ? ' · M' : ' · målt'}
           </span>
-        )}
+        ) : u.arvetPuls ? (
+          <span className="ml-auto" title="Dragets snitt — vises som hint, lagres ikke"
+            style={{ color: 'var(--tekst-8-alt)', fontStyle: 'italic' }}>
+            snitt {u.arvetPuls} · hint
+          </span>
+        ) : null}
       </div>
       {valgt && (
         <div className="flex gap-2 flex-wrap items-center mt-2">

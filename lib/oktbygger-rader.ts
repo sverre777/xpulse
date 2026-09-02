@@ -31,6 +31,8 @@ export interface Utkast {
   sone: string
   beskrivelse: string
   gruppeId: string | null
+  /** Grå plassholder uten klokke — dragets snitt, aldri en verdi. */
+  arvetPuls: string
 }
 
 export interface RadPlassInfo {
@@ -111,6 +113,7 @@ export function plasserRader(
       distanseKm: a.distance_km, snittpuls: a.avg_heart_rate, makspuls: a.max_heart_rate,
       sone: dominantSone(a.zones), beskrivelse: a.notes,
       gruppeId: a.gruppe_id ?? null,
+      arvetPuls: a.arvet_puls ?? '',
     })
   }
   return ut.sort((x, y) => x.startSek - y.startSek)
@@ -156,10 +159,14 @@ function skriv(rows: ActivityRow[], plassering: Utkast[], endret: Set<string>): 
 
 /** KUTT: raden som dekker tidspunktet deles i to. Begge får start og
     varighet, samme type og bevegelsesform. Uten tidspunkt: på midten. */
-export function kuttRad(rows: ActivityRow[], plassering: Utkast[], radId: string, vedSek?: number): ActivityRow[] {
+export function kuttRad(
+  rows: ActivityRow[], plassering: Utkast[], radId: string, vedSek?: number,
+  opts: { /** Uten klokke: dragets snitt blir grå plassholder på delene. */ pulsHint?: boolean } = {},
+): ActivityRow[] {
   const u = plassering.find(x => x.id === radId)
   const rad = rows.find(r => r.id === radId)
   if (!u || !rad || u.varighetSek < MIN_RAD_SEK * 2) return rows
+  const hint = opts.pulsHint ? (rad.avg_heart_rate.trim() || rad.arvet_puls || '') : ''
   const kutt = vedSek != null
     ? Math.max(MIN_RAD_SEK, Math.min(u.varighetSek - MIN_RAD_SEK, Math.round(vedSek - u.startSek)))
     : Math.round(u.varighetSek / 2)
@@ -172,11 +179,14 @@ export function kuttRad(rows: ActivityRow[], plassering: Utkast[], radId: string
     exercises: [],
   }
   const nyeRader: ActivityRow[] = []
-  for (const r of rows) { nyeRader.push(r); if (r.id === radId) nyeRader.push(ny) }
+  for (const r of rows) {
+    nyeRader.push(r.id === radId && hint ? { ...r, arvet_puls: hint } : r)
+    if (r.id === radId) nyeRader.push(hint ? { ...ny, arvet_puls: hint } : ny)
+  }
   const nyPlassering = sortertPlassering([
     ...plassering.filter(x => x.id !== radId),
     { ...u, varighetSek: kutt },
-    { ...u, id: nyId, dbId: null, navn: '', startSek: u.startSek + kutt, varighetSek: u.varighetSek - kutt, snittpuls: '', makspuls: '', skytetidSek: null },
+    { ...u, id: nyId, dbId: null, navn: '', startSek: u.startSek + kutt, varighetSek: u.varighetSek - kutt, snittpuls: '', makspuls: '', skytetidSek: null, arvetPuls: hint },
   ])
   return skriv(nyeRader, nyPlassering, new Set([radId, nyId]))
 }
@@ -365,6 +375,7 @@ export function leggInnBygg(
       id, dbId: null, type: a.activity_type, navn: a.lap_notes ?? '', bevegelsesform: a.movement_name,
       startSek: t, varighetSek: varighet, skytetidSek: skytetid(a), distanseKm: a.distance_km,
       snittpuls: '', makspuls: '', sone: dominantSone(a.zones), beskrivelse: a.notes, gruppeId: a.gruppe_id ?? null,
+      arvetPuls: '',
     })
     t += varighet
     return { ...a, id, db_id: undefined, avg_heart_rate: '', max_heart_rate: '' }

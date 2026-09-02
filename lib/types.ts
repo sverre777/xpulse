@@ -809,6 +809,11 @@ export interface ActivityRow {
   lap_notes?: string
   // Repetisjoner fra samme oppsett deler gruppe (fase 117) → klamme på båndet.
   gruppe_id?: string | null
+  // UTEN KLOKKE (bolk 6): når en rad kuttes, arver delene IKKE pulsen —
+  // feltet står tomt med dragets snitt som grå plassholder. Dette er
+  // hintet. Det lagres aldri (saveWorkout kjenner det ikke), og forsvinner
+  // i det brukeren fører sitt eget tall (som da merkes M).
+  arvet_puls?: string
 }
 
 // DB-entity

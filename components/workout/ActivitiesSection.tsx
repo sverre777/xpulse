@@ -899,10 +899,25 @@ function ActivityRowItem({
             {!isPlanMode && (
               <>
                 <Field label="Snittpuls (bpm)">
-                  <input value={row.avg_heart_rate}
-                    onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
-                    inputMode="numeric" placeholder="—"
-                    style={iSt} />
+                  {/* Uten klokke (bolk 6): en kuttet rad arver ikke pulsen —
+                      dragets snitt står som grå plassholder til brukeren
+                      fører sitt eget tall, som da merkes M (manuelt vinner). */}
+                  <span className="inline-flex items-center gap-1 w-full">
+                    <input value={row.avg_heart_rate}
+                      onChange={e => onUpdate({ avg_heart_rate: e.target.value })}
+                      inputMode="numeric" placeholder={row.arvet_puls || '—'}
+                      title={row.arvet_puls ? 'Dragets snitt — vises som hint, lagres ikke' : undefined}
+                      data-puls-hint={row.arvet_puls || undefined}
+                      style={iSt} />
+                    {row.avg_heart_rate.trim() !== '' && (row.arvet_puls || row.window_start_seconds != null) && (
+                      <span data-puls-merke title="Manuelt ført — vinner over det målte"
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.08em',
+                          fontSize: 10, color: '#E8B93C', border: '1px solid #E8B93C88', borderRadius: 5,
+                          padding: '2px 5px', flexShrink: 0,
+                        }}>M</span>
+                    )}
+                  </span>
                 </Field>
 
                 {!isAnnet && (

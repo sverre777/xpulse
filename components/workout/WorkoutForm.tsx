@@ -1418,6 +1418,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             klokke={workoutId && klokke.data?.samples ? { data: klokke.data, segmenter: liveSegmenter, workoutId } : null}
             rpe={form.rpe}
             onRpe={v => set('rpe', v)}
+            erPlanlagt={isPlanMode}
           />
         </div>
       )}

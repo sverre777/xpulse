@@ -13,6 +13,8 @@ import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { KompaktKurverProvider, useKompaktKurve } from './kompakt-kurver'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
+import { PlanGraf } from '@/components/workout/PlanGraf'
+import { harKlokkekurve } from './kompakt-kurver'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
@@ -716,18 +718,20 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
           </span>
         )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
-        {/* Klokke-grafen i miniatyr (bolk 2, monteringspunkt 3). */}
-        <ChipKurve workoutId={w.id} />
+        {/* Klokke-grafen i miniatyr (bolk 2) — ellers plan-grafen (bolk 5). */}
+        <ChipKurve w={w} />
       </div>
     </button>
   )
 }
 
-/** Kompakt kurve på chip/pille — bare når kurven er hentet. */
-function ChipKurve({ workoutId, hoyde = 26 }: { workoutId: string; hoyde?: number }) {
-  const kurve = useKompaktKurve(workoutId)
-  if (!kurve) return null
-  return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+/** Kompakt graf på chip/pille: klokkekurven når økta har en (hentes i
+    bakgrunnen), ellers plan-grafen fra radene — med én gang. */
+function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
+  const kurve = useKompaktKurve(w.id)
+  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+  if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
+  return <div style={{ marginTop: 3 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde - 4} /></div>
 }
 
 // ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──
@@ -799,18 +803,8 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
         </span>
       )}
       </span>
-      <MobilPilleKurve workoutId={w.id} />
+      <span style={{ display: 'block', width: '100%' }}><ChipKurve w={w} hoyde={22} /></span>
     </button>
-  )
-}
-
-function MobilPilleKurve({ workoutId }: { workoutId: string }) {
-  const kurve = useKompaktKurve(workoutId)
-  if (!kurve) return null
-  return (
-    <span style={{ display: 'block', width: '100%' }}>
-      <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={22} />
-    </span>
   )
 }
 

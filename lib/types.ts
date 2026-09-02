@@ -1120,6 +1120,8 @@ export interface ShotStats {
   drySeconds: number
 }
 
+import type { PlanBlokkInn } from './plan-graf'
+
 export interface CalendarWorkoutSummary {
   id: string
   title: string
@@ -1212,6 +1214,9 @@ export interface CalendarWorkoutSummary {
   created_by_coach_id: string | null
   coach_name: string | null
   updated_at: string | null
+  // Plan-grafen kompakt (bolk 5): radene som blokker — type, varighet,
+  // soner. Tegnes der økta ikke har klokkekurve.
+  blokker?: PlanBlokkInn[]
 }
 
 export const TYPE_COLORS: Record<string, string> = {

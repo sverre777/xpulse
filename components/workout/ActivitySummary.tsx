@@ -19,8 +19,10 @@ import { parseDecimal } from '@/lib/parse-decimal'
 import type { WorkoutKlokkesyncData } from '@/app/actions/workout-klokkesync'
 import type { Segment } from '@/lib/segmenter'
 import {
-  WorkoutDetailChart, Nokkeltall, nokkeltallFraKlokke, fmtVarighetLang, type NokkeltallCelle,
+  WorkoutDetailChart, Nokkeltall, nokkeltallFraKlokke, type NokkeltallCelle,
 } from './WorkoutDetailChart'
+import { PlanGraf, planNokkeltallCeller } from './PlanGraf'
+import { fraActivityRows } from '@/lib/plan-graf'
 
 interface Props {
   activities: ActivityRow[]
@@ -34,6 +36,9 @@ interface Props {
   /** Opplevd belastning — SAMME felt som «Dagsform og belastning» fører. */
   rpe?: number | null
   onRpe?: (v: number | null) => void
+  /** Plan: grafen er øktkartet, og belastningscellen er «forventet» (kommer
+      med eget felt — til da vises ingen belastningscelle i plan). */
+  erPlanlagt?: boolean
 }
 
 // Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
@@ -41,7 +46,7 @@ interface Props {
 import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 
-export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe }: Props) {
+export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -218,10 +223,14 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
   // snittpuls, snittwatt og belastning fra samples, og opplevd belastning
   // føres rett i raden. Uten klokke står radenes tall (plan-grafen i bolk 5
   // fyller resten).
+  // Uten kurve er PLAN-GRAFEN kortets graf (bolk 5) — for planlagte økter
+  // og gjennomførte økter uten klokke — og raden beregnes av radene:
+  // varighet · hovedsone · tid i hovedsonen · belastning · distanse.
+  const planBlokker = klokke?.data.samples ? null : fraActivityRows(activities)
   const celler: NokkeltallCelle[] = klokke?.data.samples
     ? nokkeltallFraKlokke({ samples: klokke.data.samples, heartZones, np: klokke.data.wattMetrikker?.np ?? null })
-    : [{ id: 'trening', etikett: 'Treningstid', verdi: summary.totalSeconds > 0 ? fmtVarighetLang(summary.totalSeconds) : '—' }]
-  if (totalKm > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: totalKm.toFixed(1), hale: 'km' })
+    : planNokkeltallCeller(planBlokker ?? [], heartZones)
+  if (klokke?.data.samples && totalKm > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: totalKm.toFixed(1), hale: 'km' })
   if (summary.shootingSeconds > 0) celler.push({ id: 'skyting', etikett: 'Skyting', verdi: `${Math.round(summary.shootingSeconds / 60)}`, hale: 'min · utenfor treningstid' })
   if (summary.bestPaceSeconds != null) celler.push({ id: 'pace', etikett: 'Beste pace', verdi: formatPace(summary.bestPaceSeconds, paceUnit), hale: summary.bestPaceMovement ?? undefined })
   if (summary.lactateCount > 0) celler.push({ id: 'laktat', etikett: 'Laktat', verdi: `${summary.lactateCount}×`, hale: summary.lactateMax != null ? `maks ${summary.lactateMax.toFixed(1)}` : undefined })
@@ -256,10 +265,18 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
         </div>
       )}
 
+      {/* Plan-grafen LIVE — hver rad man fører er en blokk (bolk 5). */}
+      {planBlokker && (
+        <div className="mb-3" data-plan-graf-kort>
+          <PlanGraf blokker={planBlokker} heartZones={heartZones} tetthet="full" />
+        </div>
+      )}
+
       {/* Nøkkeltallsraden — varighet · hovedsone · snittpuls · snittwatt ·
-          belastning · opplevd (føres), pluss distanse og det som finnes. */}
+          belastning · opplevd (føres), pluss distanse og det som finnes.
+          I plan vises ingen belastningscelle før «forventet» har et felt. */}
       <div className="mb-3">
-        <Nokkeltall celler={celler} rpe={rpe} onRpe={onRpe} />
+        <Nokkeltall celler={celler} rpe={erPlanlagt ? null : rpe} onRpe={erPlanlagt ? undefined : onRpe} />
       </div>
 
       {/* Bevegelsesform-fordeling */}

@@ -29,6 +29,9 @@ import { ImportSourceBadge } from './ImportSourceBadge'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
+import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
+import { fraActivityRows } from '@/lib/plan-graf'
+import { lagreOpplevdBelastning } from '@/app/actions/workout-klokkesync'
 import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
@@ -159,6 +162,17 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
     return () => { cancelled = true }
   }, [targetUserId])
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
+  // Opplevd belastning føres rett i plan-grafens nøkkeltallsrad (bolk 5) —
+  // samme felt (workouts.rpe) og samme lagring som klokke-grafen bruker.
+  const [rpeLokal, setRpeLokal] = useState<number | null | undefined>(undefined)
+  const rpeVist = rpeLokal === undefined ? (data.rpe ?? null) : rpeLokal
+  const settRpe = async (v: number | null) => {
+    if (!workoutId) return
+    setRpeLokal(v)
+    const r = await lagreOpplevdBelastning(workoutId, v)
+    if (!r.ok) setRpeLokal(undefined)
+    else onDataEndret?.()
+  }
   if (visningLest !== (workoutId ?? '')) {
     setVisningLest(workoutId ?? '')
     setVisning(lesVisning(workoutId) ?? standardVisning(harKlokkeRader))
@@ -398,6 +412,20 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── PLAN-GRAFEN (bolk 5) — øktkartet er det første man ser på en
+          planlagt økt, og på en gjennomført økt uten klokke. Klokkeøkter
+          har klokke-grafen i seksjonen under. ── */}
+      {!harKlokkeRader && activities.length > 0 && (
+        <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
+          <div data-plan-graf-hovedside>
+            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" />
+            <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
+              rpe={isPlannedView ? null : rpeVist}
+              onRpe={!isPlannedView && canEdit && workoutId ? settRpe : undefined} />
+          </div>
+        </Card>
       )}
 
       {/* ── SONEFORDELING ── */}

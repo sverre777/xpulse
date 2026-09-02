@@ -15,8 +15,9 @@ import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
 import type { SeasonPeriod, SeasonKeyDate, SeasonMarking } from '@/app/actions/seasons'
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
 import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
-import { useKompaktKurve } from './kompakt-kurver'
+import { useKompaktKurve, harKlokkekurve } from './kompakt-kurver'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
+import { PlanGraf } from '@/components/workout/PlanGraf'
 import type { DayState } from '@/lib/day-state-types'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
 import {
@@ -462,16 +463,17 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
         <div style={{ color, fontWeight: 600, fontSize: '13px' }}>#{w.position_overall}</div>
       )}
       {/* Kurven trenger plass: under 52 px er kortet tittel + varighet. */}
-      {height >= 52 && <UkeKortKurve workoutId={w.id} hoyde={16} />}
+      {height >= 52 && <UkeKortKurve w={w} hoyde={16} />}
     </button>
   )
 }
 
-/** Klokke-grafen i miniatyr på uke-kortet (bolk 2, monteringspunkt 3). */
-function UkeKortKurve({ workoutId, hoyde = 18 }: { workoutId: string; hoyde?: number }) {
-  const kurve = useKompaktKurve(workoutId)
-  if (!kurve) return null
-  return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+/** Klokke-grafen i miniatyr på uke-kortet (bolk 2) — ellers plan-grafen (bolk 5). */
+function UkeKortKurve({ w, hoyde = 18 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
+  const kurve = useKompaktKurve(w.id)
+  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
+  if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
+  return <div style={{ marginTop: 2 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde} /></div>
 }
 
 function AllDayCard({ w, dateStr, mode, onEdit }: {
@@ -525,7 +527,7 @@ function AllDayCard({ w, dateStr, mode, onEdit }: {
       {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
       {w.title}
       {durLabel && <span style={{ color: '#FF4500', marginLeft: '4px' }}>{durLabel}</span>}
-      <UkeKortKurve workoutId={w.id} />
+      <UkeKortKurve w={w} />
     </button>
   )
 }

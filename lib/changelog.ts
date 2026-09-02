@@ -64,8 +64,14 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
   {
     date: '2026-09-02',
+    title: 'Plan-grafen på alle planlagte økter',
+    body: 'Hver planlagt økt tegnes som blokker — bredde er varighet, høyde og farge er sone — live i skjemaet mens du fører, på økta og i kalenderen. Samme graf på gjennomførte økter uten klokke.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-02',
     title: 'Øktbygger i dagboka',
-    body: 'Hurtigoppsettet (antall × dragtid × sone / pause) finnes nå også på gjennomførte økter, og radene styrer tida: start og varighet som tall, del og slå sammen med ett trykk.',
+    body: 'Bygg strukturen (antall × dragtid × sone / pause) også på gjennomførte økter, kutt økta der du vil med et klikk på kurven, og match strukturen mot pulskurven med «start her», tall eller snapp til klokkerundene. Én samlet/splittet-bryter over radene.',
     version: '1.3',
   },
   {

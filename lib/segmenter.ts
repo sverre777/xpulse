@@ -1,4 +1,4 @@
-// «Legg til detaljer» (fase 113): segmentbånd + tidsvinduer på pulskurven.
+// Segmentbånd + tidsvinduer på pulskurven (fase 113, Øktbyggeren).
 // Ren logikk — ingen react, ingen supabase. Fasit: design/xpulse-
 // tidsplassering-design.html (V9.3) seksjon 1b/1c + NOTAT.
 //
@@ -51,6 +51,23 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   // Kombinert/innskyting/basis: ligg-blå med full etikett — fasiten gir
   // bare ligg/stå, og et tredje skytefarge-hex ville utvannet de to.
   skyting_annet: '#38BDF8',
+}
+
+/** Aktivitetstype (+ bev.form) → segmenttype. Brukes av båndet, spøkelseslaget
+    og Øktbyggeren — én oversettelse, aldri tre. */
+export function segmentTypeFor(type: string, bevegelsesform: string): SegmentType {
+  if (type.startsWith('skyting')) {
+    if (type === 'skyting_liggende') return 'skyting_ligg'
+    if (type === 'skyting_staaende') return 'skyting_staa'
+    return 'skyting_annet'
+  }
+  if (type === 'oppvarming') return 'oppvarming'
+  if (type === 'nedjogg') return 'nedjogg'
+  if (type === 'pause' || type === 'aktiv_pause') return 'pause'
+  if (type === 'veksling') return 'veksling'
+  if (type === 'annet') return 'annet'
+  void bevegelsesform
+  return 'drag'
 }
 
 // Segmenttyper som tegnes med diagonale striper i tillegg til fargen.

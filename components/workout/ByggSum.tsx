@@ -11,8 +11,7 @@
 // tilbake til pulssonene der inne — det er nettopp regelen for lerret B:
 // den FØRTE pulsen bestemmer sonen.
 //
-// Stripa er ren AVLEDNING og skriver ingenting. Den bryter derfor ikke
-// arbeidsdelingen (lerretet eier struktur og tid, radene eier tall).
+// Stripa er ren AVLEDNING og skriver ingenting.
 
 import { useMemo } from 'react'
 import {
@@ -22,7 +21,7 @@ import {
 import { beregnSoneTss } from '@/lib/belastning'
 import { SEGMENT_FARGER } from '@/lib/segmenter'
 import type { HeartZone, ExtendedZoneName } from '@/lib/heart-zones'
-import type { Utkast } from './TidslinjeRedigering'
+import type { Utkast } from '@/lib/oktbygger-rader'
 
 const SONE_REKKE: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
 

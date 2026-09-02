@@ -124,7 +124,7 @@ export function WorkoutDetailChart({
   // aksene er bare kontekst (fasiten). Uten krysshår viser cellene øktas
   // snitt, så tallene finnes selv om man aldri berører kurven.
   const [krysshaarSek, setKrysshaarSek] = useState<number | null>(null)
-  // Zoom-vinduet. null = hele økta. Deles med «Legg til detaljer» via
+  // Zoom-vinduet. null = hele økta. Deles med Øktbyggeren via
   // lib/kurve-zoom, så pop-upen åpner på samme utsnitt.
   const [vindu, setVindu] = useState<[number, number] | null>(
     () => (workoutId ? hentVindu(workoutId) : null),
@@ -150,7 +150,7 @@ export function WorkoutDetailChart({
   }, [serier])
 
   // Ett sted som setter zoom: fanger «hele økta» (da ryddes vindusdataene
-  // og delt tilstand nullstilles) og lagrer nivået for «Legg til detaljer».
+  // og delt tilstand nullstilles) og lagrer nivået for Øktbyggeren.
   const settVindu = (v: [number, number] | null) => {
     const heleOkta = !v || (v[0] <= 0.5 && v[1] >= totalSek - 0.5)
     if (heleOkta) {

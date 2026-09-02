@@ -47,7 +47,7 @@ export interface WorkoutKlokkesyncData {
   lactate: LactateMarker[]
   nutrition: NutritionMarker[]
   shooting: ShootingMarker[]
-  // «Legg til detaljer» bolk 2: segmentbånd + skytevinduer på kurven.
+  // Segmentbånd + skytevinduer på kurven (fase 113).
   // Beregnes fra aktivitetsradene (runder flislegger; window_*-kolonnene
   // for manuelt plasserte) — ren visning, se lib/segmenter.
   segmenter: Segment[]

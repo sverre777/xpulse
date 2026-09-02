@@ -27,7 +27,7 @@ import type { Equipment } from '@/lib/equipment-types'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { ImportSourceBadge } from './ImportSourceBadge'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
-import { LeggTilDetaljerInngang, LeggTilDetaljerPopup } from './LeggTilDetaljer'
+import { OktbyggerInngang, OktbyggerPopup } from './Oktbygger'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -116,7 +116,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
   // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
   // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
   const [erKoblet, setErKoblet] = useState(false)
-  // «Legg til detaljer» (fase 113): pop-up + oppfrisking av klokkeseksjonen
+  // Øktbyggeren (fase 113): pop-up + oppfrisking av klokkeseksjonen
   // etter lagring. Inngangene rendres statisk og åpner i samme tick (regel 20).
   const [visDetaljer, setVisDetaljer] = useState(false)
   const [detaljerTick, setDetaljerTick] = useState(0)
@@ -155,11 +155,8 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
     return () => { cancelled = true }
   }, [targetUserId])
   const harKlokkeRader = !!(data.imported_from || data.merged_source)
-  // «Legg til detaljer» KUN på klokkesynkede økter (fasit-avgrensningen) —
-  // manuelle økter uten kurve får ikke inngangen.
   // Øktbyggeren står ALLTID der man kan redigere — lerretet skifter etter
-  // hva økta har (plan → blokker, klokke → kurve). Fasiten: knappen er
-  // ikke betinget av klokkesynk lenger.
+  // hva økta har (plan → blokker, klokke → kurve).
   const kanLeggeTilDetaljer = canEdit && !!workoutId
 
   // Aggregér via delt kilde. Trening = alt unntatt pause + skyting.
@@ -445,7 +442,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
         <div className="mb-3.5">
           {kanLeggeTilDetaljer && (
             <div className="mb-2 flex justify-end">
-              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
             </div>
           )}
           <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} />
@@ -576,7 +573,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           </p>
           {kanLeggeTilDetaljer && (
             <div className="mt-3">
-              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
             </div>
           )}
         </Card>
@@ -730,7 +727,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
           )}
           {kanLeggeTilDetaljer && (
             <div className="mt-3">
-              <LeggTilDetaljerInngang onClick={() => setVisDetaljer(true)} />
+              <OktbyggerInngang onClick={() => setVisDetaljer(true)} />
             </div>
           )}
         </Card>
@@ -1082,7 +1079,7 @@ export function WorkoutOverview({ data, onEdit, canEdit, equipment, equipmentIds
       )}
 
       {visDetaljer && workoutId && (
-        <LeggTilDetaljerPopup
+        <OktbyggerPopup
           workoutId={workoutId}
           onClose={() => setVisDetaljer(false)}
           onLagret={() => { setDetaljerTick(t => t + 1); onDataEndret?.() }}

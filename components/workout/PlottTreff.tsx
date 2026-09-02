@@ -100,7 +100,7 @@ export function PlottTreffPopup({
   const body = (
     <div onClick={lukkMedSporsmaal}
       style={{
-        // z 210: over «Legg til detaljer» (200) — den kan være åpen under.
+        // z 210: over Øktbyggeren (200) — den kan være åpen under.
         position: 'fixed', inset: 0, zIndex: 210,
         backgroundColor: 'var(--scrim-70)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',

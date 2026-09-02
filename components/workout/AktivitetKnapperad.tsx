@@ -2,7 +2,7 @@
 
 // Felles knapperad over aktivitetsradene — ÉN komponent brukt i både plan
 // og dagbok (regel 11). Fasit: design/xpulse-plott-treff-design.html +
-// design/xpulse-legg-til-detaljer-design.html (notatene).
+// Øktbygger-omleggingen v6.
 //
 // Rekkefølge (Øktbygger-fasiten): + Legg til aktivitet ·
 // 🎯 + Legg til skyting · ⚡ Øktbygger · 🎯 Plott treff.
@@ -13,11 +13,10 @@
 //                           styrer skyting ellers: userHasBiathlon)
 //   🎯 Plott treff        — dagbok + økta har minst én skyting-rad,
 //                           uavhengig av klokkesynk. Aldri i plan.
-//   ⚡ Øktbygger          — ALLTID. Det er LERRETET som skifter: plan
-//                           (blokker), gjennomført uten klokke (blokker
-//                           m/ ført puls), gjennomført med klokke (kurve).
-//                           Navnet er låst til «Øktbygger» — «Legg til
-//                           detaljer» og «Intervall-bygger» utgår i UI.
+//   ⚡ Øktbygger          — ALLTID: plan og dagbok, med og uten klokke, med
+//                           og uten lagret økt. Inni ligger hurtigoppsettet
+//                           og, når økta har kurve, verktøyene på kurven.
+//                           Navnet er låst til «Øktbygger».
 // Raden rendres med sida — knappene etterlastes aldri (regel 20). At en
 // handler mangler (f.eks. før «Plott treff»-pop-upen finnes) skjuler
 // knappen ærlig i stedet for å vise en død knapp.
@@ -31,18 +30,18 @@ const PILL_BASE: React.CSSProperties = {
 
 export function AktivitetKnapperad({
   isPlanMode, harSkyting, userHasBiathlon,
-  onPlottTreff, onLeggTilDetaljer, onLeggTilAktivitet, onLeggTilSkyting,
+  onPlottTreff, onOktbygger, onLeggTilAktivitet, onLeggTilSkyting,
 }: {
   isPlanMode: boolean
   harSkyting: boolean
   userHasBiathlon: boolean
   onPlottTreff?: () => void
-  onLeggTilDetaljer?: () => void
+  onOktbygger?: () => void
   onLeggTilAktivitet: () => void
   onLeggTilSkyting: () => void
 }) {
   const visPlottTreff = !isPlanMode && harSkyting && !!onPlottTreff
-  const visDetaljer = !!onLeggTilDetaljer
+  const visBygger = !!onOktbygger
   return (
     <div className="flex gap-2 items-center flex-wrap mb-3">
       <button type="button" onClick={onLeggTilAktivitet}
@@ -55,8 +54,8 @@ export function AktivitetKnapperad({
           🎯 + Legg til skyting
         </button>
       )}
-      {visDetaljer && (
-        <button type="button" onClick={onLeggTilDetaljer}
+      {visBygger && (
+        <button type="button" onClick={onOktbygger}
           style={{ ...PILL_BASE, border: '1.5px solid var(--accent)', color: 'var(--accent)' }}>
           ⚡ Øktbygger
         </button>

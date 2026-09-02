@@ -17,7 +17,7 @@ import Link from 'next/link'
 
 interface Props {
   workoutId: string
-  // Bumpes av «Legg til detaljer» etter lagring — tvinger refetch så
+  // Bumpes av Øktbyggeren etter lagring — tvinger refetch så
   // segmentbånd/vinduer viser det som nettopp ble plassert.
   refreshTick?: number
   // Strava-importerte økter eldre enn 7 dager har fått samples slettet av

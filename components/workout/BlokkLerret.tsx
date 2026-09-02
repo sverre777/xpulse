@@ -1,33 +1,25 @@
 'use client'
 
-import { useRef } from 'react'
 import type { KurveHjelpere } from './OktKurve'
 
-// LERRET A og B (Øktbyggeren bolk 3): blokker i stedet for pulskurve.
+// BLOKK-LERRETET: tidslinje uten pulskurve — plan, eller gjennomført uten
+// klokke. REN LESEVISNING: flaten tar ikke klikk, alt redigeres i radene.
+// Tegningen er grunnlaget for plan-grafen (bolk 5).
 //
-// SAMME KOMPONENT, ANNET LERRET (fasiten): verktøykassen over — palett,
-// drag, grensehåndtak, del/slå sammen/omdøp/type/slett, angre — er den
-// samme. Det eneste som skifter er hva man plasserer PÅ, og hvor tallene
-// kommer fra:
-//   A · PLAN                  — planlagte verdier, ingen puls å lese
-//   B · GJENNOMFØRT UTEN KLOKKE — snitt/makspuls FØRES per drag
-//
-// Derfor gir denne komponenten NØYAKTIG samme hjelpere som OktKurve
-// (KurveHjelpere): segmentlaget og punktene tegnes med samme kode, uten
-// å vite hvilket lerret de står på.
+// Komponenten gir NØYAKTIG samme hjelpere som OktKurve (KurveHjelpere), så
+// radbåndet, spøkelseslaget og punktene tegnes med samme kode uten å vite
+// hvilket lerret de står på.
 
 const H = 150
 
 export function BlokkLerret({
-  totalSek, planlagt = false, overlay, onKlikk,
+  totalSek, planlagt = false, overlay,
 }: {
   totalSek: number
-  /** Lerret A: planlagt økt — punkter tegnes hule/stiplet. */
+  /** Planlagt økt — punkter tegnes hule/stiplet, ramma stiplet. */
   planlagt?: boolean
   overlay?: (h: KurveHjelpere) => React.ReactNode
-  onKlikk?: (sek: number) => void
 }) {
-  const flate = useRef<HTMLDivElement | null>(null)
   const spenn = Math.max(1, totalSek)
 
   const hjelpere: KurveHjelpere = {
@@ -45,16 +37,10 @@ export function BlokkLerret({
 
   return (
     <div>
-      <div ref={flate}
+      <div
         data-oktkurve="1"
-        onClick={e => {
-          if (!onKlikk || !flate.current) return
-          const r = flate.current.getBoundingClientRect()
-          const andel = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)))
-          onKlikk(andel * spenn)
-        }}
         style={{
-          position: 'relative', height: H, touchAction: 'none',
+          position: 'relative', height: H,
           background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)',
           borderRadius: 10, overflow: 'hidden',
           // Planlagt økt markeres med en svak stiplet ramme, så det er

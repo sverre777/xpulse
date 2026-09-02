@@ -23,7 +23,7 @@ import {
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
 import { ActivitiesSection } from './ActivitiesSection'
-import { LeggTilDetaljerPopup } from './LeggTilDetaljer'
+import { OktbyggerPopup } from './Oktbygger'
 import { PlottTreffPopup } from './PlottTreff'
 import { IntervallBygger } from './IntervallBygger'
 import { KonkurransePanel, TESTSPORT_TIL_SPORT, type PanelType } from './KonkurransePanel'
@@ -306,8 +306,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
   // Sammenlign-toggle: åpen som standard når økten allerede er gjennomført.
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
-  // «Legg til detaljer» fra knapperaden (fasit) — kun dagbok + klokkesynket.
-  const [visDetaljerPopup, setVisDetaljerPopup] = useState(false)
+  // ⚡ Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
+  // lagret økt. Hurtigoppsettet skriver radene rett i skjemaet.
+  const [visOktbygger, setVisOktbygger] = useState(false)
   // «Plott treff» (bolk B) — vises i knapperaden når økta har skyting.
   const [visPlottTreff, setVisPlottTreff] = useState(false)
   // Seriene skrives til basen av pop-upen; skjemaets draft må oppdateres i
@@ -328,9 +329,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Kø #48 bolk 2: standardøkt-SERIE-velger (erstatter mal-tagge-modusen).
   // Serier lastes lazily første gang seksjonen trengs (forslag/velger).
   const [standardPickerOpen, setStandardPickerOpen] = useState(false)
-  const [byggerOpen, setByggerOpen] = useState(false)
-  const [byggerFerdig, setByggerFerdig] = useState(false)
-  const [byggerApneSignal, setByggerApneSignal] = useState(0)
   // #50: årsplan-kobling — key-daten som peker på økta (SF-2 del 1).
   const [keyDate, setKeyDate] = useState<WorkoutKeyDateLink | null>(null)
   // #50 bolk 2: «+ Ny mal» fra panelet — struktur-byggeren i egen popup.
@@ -948,18 +946,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 </button>
               ))}
             </div>
-            <button type="button" className="shrink-0"
-              onClick={() => { setByggerOpen(true); setByggerApneSignal(t => t + 1) }}
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13.5, fontWeight: 700,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: byggerFerdig ? 'var(--flate-3)' : 'var(--accent)',
-                background: byggerFerdig ? 'var(--accent)' : 'rgba(255,69,0,.08)',
-                border: '1px solid var(--accent)', borderRadius: 9,
-                padding: '7px 12px', cursor: 'pointer', minHeight: 36, whiteSpace: 'nowrap',
-              }}>
-              🔧 Bygg<span className="hidden md:inline"> intervall</span>
-            </button>
           </div>
           {showMalFilters && (
             <div className="flex items-center gap-1.5 md:gap-2 flex-nowrap md:flex-wrap mb-1.5">
@@ -1517,38 +1503,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <p className="text-xs mb-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
           Legg til hver del av økta i kronologisk rekkefølge. Trykk på en rad for å utvide.
         </p>
-        {(byggerOpen || byggerFerdig) && (
-          <div
-            className={byggerOpen ? 'fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto' : undefined}
-            style={byggerOpen ? { backgroundColor: 'var(--scrim-70)' } : undefined}
-            onClick={byggerOpen ? () => setByggerOpen(false) : undefined}>
-            <div className={byggerOpen ? 'w-full max-w-xl' : undefined}
-              onClick={e => { if (byggerOpen) e.stopPropagation() }}>
-              <IntervallBygger sport={form.sport}
-                apneSignal={byggerApneSignal}
-                onStegChange={st => {
-                  // ferdig → lukk pop-upen, vis kollaps-linja inline.
-                  // «Endre» på linja → steg 'bygg' → pop-upen åpner igjen.
-                  if (st === 'ferdig') { setByggerFerdig(true); setByggerOpen(false) }
-                  else { setByggerFerdig(false); setByggerOpen(true) }
-                }}
-                onOpprett={async (rader, tittel) => {
-                  const harInnhold = form.activities.some(a =>
-                    a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
-                    || a.shooting_series.length > 0 || a.exercises.length > 0)
-                  if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
-                  setForm(f => ({
-                    ...f,
-                    activities: rader,
-                    title: f.title.trim() === '' ? tittel : f.title,
-                  }))
-                }} />
-            </div>
-          </div>
-        )}
         <ActivitiesSection
           targetUserId={targetUserId}
-          onLeggTilDetaljer={workoutId ? () => setVisDetaljerPopup(true) : undefined}
+          onOktbygger={() => setVisOktbygger(true)}
           onPlottTreff={workoutId && !isPlanMode ? () => setVisPlottTreff(true) : undefined}
           rows={form.activities}
           onChange={a => set('activities', a)}
@@ -1702,13 +1659,23 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         />
       )}
 
-      {visDetaljerPopup && workoutId && (
-        <LeggTilDetaljerPopup
-          workoutId={workoutId}
+      {visOktbygger && (
+        <OktbyggerPopup
+          workoutId={workoutId ?? null}
+          sport={form.sport}
           onSerierLagret={flettInnLagredeSerier}
-          onClose={() => setVisDetaljerPopup(false)}
+          onClose={() => setVisOktbygger(false)}
           onLagret={() => { /* skjemaets rader hentes på nytt ved neste åpning;
               vindus-/tidsdata eies av basen og overlever lagring (fase 113-vern) */ }}
+          onOpprett={async (rader, tittel) => {
+            if (aktivitetslistaHarInnhold(form.activities)
+              && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
+            setForm(f => ({
+              ...f,
+              activities: rader,
+              title: f.title.trim() === '' ? tittel : f.title,
+            }))
+          }}
         />
       )}
 
@@ -1796,10 +1763,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               onAvbryt={() => setMalBygger(null)}
               onOpprett={async (rader, tittel) => {
                 const mal = malBygger
-                const harInnhold = form.activities.some(a =>
-                  a.duration.trim() !== '' || a.movement_name !== '' || a.notes.trim() !== ''
-                  || a.shooting_series.length > 0 || a.exercises.length > 0)
-                if (harInnhold && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
+                if (aktivitetslistaHarInnhold(form.activities)
+                  && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
                 if (erTestMal(mal)) setValgtTestMalId(`bib_${mal.ref}`)
                 setForm(f => {
                   const base = {
@@ -2074,6 +2039,15 @@ function SaveAsTemplateModal({
 }
 
 // ── Shared helpers ──
+
+/** Har lista noe brukeren har FØRT? En ny økt starter med én tom rad som
+    bare bærer sportens standard-bevegelsesform — det er ikke innhold, og
+    skal ikke utløse «erstatte lista?» når hurtigoppsettet brukes. */
+function aktivitetslistaHarInnhold(activities: ActivityRow[]): boolean {
+  return activities.some(a =>
+    a.duration.trim() !== '' || a.notes.trim() !== '' || a.distance_km.trim() !== ''
+    || a.shooting_series.length > 0 || a.exercises.length > 0)
+}
 
 function PlanReferenceCard({ plan }: { plan: WorkoutFormData }) {
   const totalMinutes = plan.movements.reduce((s, m) => s + (parseInt(m.minutes) || 0), 0)

@@ -3,13 +3,13 @@
 import { useRef } from 'react'
 import { nedsampleSerie } from '@/lib/kurve-nedsample'
 
-// Delt kurve-motor for økt-grafen (og «Legg til detaljer» fra bolk 3).
+// Delt kurve-motor for økt-grafen og Øktbyggeren.
 // Fasit: design/xpulse-oktgraf-design.html.
 //
 // HVORFOR EGEN SVG OG IKKE RECHARTS: fasiten krever pinch/scroll-zoom,
-// touch-krysshår, annoteringer frikoblet fra seriene og et lag med
-// draggbare vinduer. «Legg til detaljer» hadde allerede en håndtegnet
-// kurve nettopp derfor — dette samler de to i ÉN komponent (regel 11)
+// touch-krysshår og annoteringer frikoblet fra seriene. Byggeren hadde
+// allerede en håndtegnet kurve nettopp derfor — dette samler de to i ÉN
+// komponent (regel 11)
 // i stedet for å legge til en tredje. Recharts blir stående på alle
 // ANDRE grafer i appen (analyse, trender, helse) — dette er ikke en
 // app-omfattende motorbytte.
@@ -60,7 +60,7 @@ interface Props {
   krysshaarSek?: number | null
   onKrysshaar?: (sek: number | null) => void
   /** Settes for å slå på zoom/panorering. Vinduet er STYRT av forelderen
-      så økt-grafen og «Legg til detaljer» kan dele nivå. */
+      så økt-grafen og Øktbyggeren kan dele nivå. */
   onVindu?: (v: [number, number]) => void
   /** Minste synlige spenn i sekunder — hindrer uendelig innzooming. */
   minSpennSek?: number

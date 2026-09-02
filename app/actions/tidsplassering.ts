@@ -1,16 +1,16 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { kanFlislegge, beregnSegmenter, pulsIVindu, type SegmentRad } from '@/lib/segmenter'
+import { beregnSegmenter, pulsIVindu, type SegmentRad } from '@/lib/segmenter'
 import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import type { HeartZone } from '@/lib/heart-zones'
 
-// «Legg til detaljer» (fase 113, bolk 3): pop-upens data + lagring.
+// ØKTBYGGEREN — data og lagring (fase 113 → omlegging v6).
 //
 // Skriver KUN eksisterende felter (regel 11):
-//   - vinduer   → workout_activities.window_start_seconds/-duration_seconds
-//   - rekkefølge→ workout_activities.sort_order (ren visning, aldri data)
+//   - tidslinja → workout_activities.window_start_seconds/-duration_seconds
+//                 + radens egne felter (lagreTidslinje)
 //   - laktat    → workout_lactate_measurements.measured_at_time (TIME —
 //                 klokkeslett = øktas time_of_day + sekunder fra start;
 //                 mangler time_of_day brukes 00:00 som base, samme
@@ -19,10 +19,14 @@ import type { HeartZone } from '@/lib/heart-zones'
 //
 // All autorisasjon går via RLS (eier + trener med redigeringsrett — samme
 // rader som øvrige økt-skriveflater). 0 oppdaterte rader = ærlig feil.
+//
+// Den gamle V9.3-veien (vinduer per rad + manuell rekkefølge + punkter
+// lagt inn fra en palett) er slettet: tidslinja er ÉN lagring, og punkter
+// får bare et tidspunkt her — nye målinger føres der målinger føres.
 
 // MERK: ALDRI type-re-eksport fra en 'use server'-fil (regel 24).
 
-export interface DetaljerRad {
+export interface OktbyggerRad {
   id: string
   activity_type: string | null
   movement_name: string | null
@@ -52,28 +56,27 @@ export interface DetaljerRad {
   gruppeId: string | null
 }
 
-export interface DetaljerLaktat {
+export interface OktbyggerLaktat {
   id: string
   mmol: number
   /** Sekunder fra økt-start, null = ikke tidfestet. */
   sekunder: number | null
 }
 
-export interface DetaljerErnaering {
+export interface OktbyggerErnaering {
   id: string
   type: string
   carbs_g: number | null
   minutter: number | null
 }
 
-export interface LeggTilDetaljerData {
+export interface OktbyggerData {
   totalSek: number
-  harRunder: boolean
-  /** Lerret A: økta er planlagt og ikke gjennomført ennå. */
+  /** Økta er planlagt og ikke gjennomført ennå. */
   erPlanlagt: boolean
-  /** Lerret C: klokka har levert en kurve å plassere på. */
+  /** Klokka har levert en kurve å plassere på. */
   harKurve: boolean
-  /** Brukerens pulssoner — lerret B utleder blokkens sone av FØRT puls. */
+  /** Brukerens pulssoner — uten klokke utledes blokkens sone av FØRT puls. */
   heartZones: HeartZone[]
   /** Opplevd belastning (1–10). Vises i oppsummeringen; null = ikke ført. */
   rpe: number | null
@@ -84,12 +87,12 @@ export interface LeggTilDetaljerData {
   watt: Array<{ t: number; w: number }>
   /** Høyde — tegnes som bakgrunnsprofil under valgt kurve. */
   hoyde: Array<{ t: number; alt: number }>
-  rader: DetaljerRad[]
-  laktat: DetaljerLaktat[]
-  ernaering: DetaljerErnaering[]
+  rader: OktbyggerRad[]
+  laktat: OktbyggerLaktat[]
+  ernaering: OktbyggerErnaering[]
 }
 
-export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDetaljerData | null> {
+export async function hentOktbygger(workoutId: string): Promise<OktbyggerData | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -117,9 +120,8 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   const fart = ((samplesRad?.pace_samples ?? samplesRad?.speed_samples) ?? []) as Array<{ t: number; mps: number }>
   const watt = (samplesRad?.watt_samples ?? []) as Array<{ t: number; w: number }>
   const hoyde = (samplesRad?.altitude_samples ?? []) as Array<{ t: number; alt: number }>
-  // Uten klokkekurve er øktas lengde summen av radenes varighet — det er
-  // lerret A (plan) og B (gjennomført uten klokke). Byggeren skal virke
-  // der også; kurven er bare ETT av tre lerret.
+  // Uten klokkekurve er øktas lengde summen av radenes varighet (plan, og
+  // gjennomført uten klokke). Byggeren skal virke der også.
   const fraKurve = Math.max(
     hr.length > 0 ? hr[hr.length - 1].t : 0,
     fart.length > 0 ? fart[fart.length - 1].t : 0,
@@ -132,8 +134,8 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   // Plassering i tid via SAMME kjerne som segmentbåndet (regel 11) — men
   // KUN når klokka har levert en kurve. Proveniens-kravet i kanFlislegge
   // finnes for å unngå å GJETTE en klokke-tidslinje; uten klokke er det
-  // ingenting å gjette: radene ER strukturen (lerret A og B), og de
-  // legges etter hverandre i sort_order.
+  // ingenting å gjette: radene ER strukturen, og de legges etter
+  // hverandre i sort_order.
   const harKurveNaa = hr.length > 0 || fart.length > 0 || watt.length > 0
   const plassering = new Map<string, { startSek: number; sluttSek: number }>()
   if (harKurveNaa && totalSek > 0) {
@@ -153,7 +155,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     }
   }
 
-  const rader: DetaljerRad[] = (raderRes.data ?? []).map(a => {
+  const rader: OktbyggerRad[] = (raderRes.data ?? []).map(a => {
     const serier = (a.workout_shooting_series ?? []) as Array<{ time_seconds: number | null }>
     const skytetid = serier.reduce((sum, s) => sum + (s.time_seconds ?? 0), 0)
     const sg = plassering.get(a.id)
@@ -182,22 +184,15 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
     }
   })
 
-  const harRunder = kanFlislegge(
-    (raderRes.data ?? [])
-      .filter(a => a.window_start_seconds == null || a.window_duration_seconds == null)
-      .map(a => tilSegmentRad(a)),
-    totalSek,
-  )
-
   const startSek = klokkeslettTilSek(workout.time_of_day)
-  const laktat: DetaljerLaktat[] = (laktatRes.data ?? []).map(l => ({
+  const laktat: OktbyggerLaktat[] = (laktatRes.data ?? []).map(l => ({
     id: l.id,
     mmol: Number(l.mmol),
     sekunder: l.measured_at_time != null
       ? Math.max(0, klokkeslettTilSek(l.measured_at_time) - startSek)
       : null,
   }))
-  const ernaering: DetaljerErnaering[] = (ernaeringRes.data ?? []).map(n => ({
+  const ernaering: OktbyggerErnaering[] = (ernaeringRes.data ?? []).map(n => ({
     id: n.id,
     type: n.nutrition_type ?? 'gel',
     carbs_g: n.carbs_g != null ? Number(n.carbs_g) : null,
@@ -205,7 +200,7 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   }))
 
   return {
-    totalSek, harRunder,
+    totalSek,
     erPlanlagt: workout.is_planned === true && workout.is_completed !== true,
     harKurve: hr.length > 0 || fart.length > 0 || watt.length > 0,
     heartZones,
@@ -215,18 +210,15 @@ export async function hentLeggTilDetaljer(workoutId: string): Promise<LeggTilDet
   }
 }
 
-export interface LagreDetaljerInput {
-  /** Full fasit for plasserte vinduer: rad-id → vindu eller null (fjern). */
-  vinduer: Array<{ activityId: string; startSek: number | null; varighetSek: number | null }>
-  /** Rad-id-er i ønsket visningsrekkefølge, eller null = urørt. */
-  rekkefolge: string[] | null
+export interface OktbyggerPunktInput {
   laktat: Array<{ id: string; sekunder: number | null }>
   ernaering: Array<{ id: string; minutter: number | null }>
 }
 
-export async function lagreLeggTilDetaljer(
+/** Tidfester målinger som allerede er ført — skriver aldri nye målinger. */
+export async function lagreOktbyggerPunkter(
   workoutId: string,
-  input: LagreDetaljerInput,
+  input: OktbyggerPunktInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -235,82 +227,6 @@ export async function lagreLeggTilDetaljer(
   const { data: workout } = await supabase.from('workouts')
     .select('id, time_of_day').eq('id', workoutId).maybeSingle()
   if (!workout) return { ok: false, error: 'Fant ikke økta' }
-
-  // Vindus-skriving valideres mot gjeldende tilstand i basen — ikke bare
-  // mot det pop-upen tror (to faner, trener + utøver samtidig).
-  if (input.vinduer.length > 0) {
-    const [raderRes, samplesRes] = await Promise.all([
-      supabase.from('workout_activities')
-        .select('id, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index')
-        .eq('workout_id', workoutId),
-      supabase.from('workout_samples').select('hr_samples, created_at')
-        .eq('workout_id', workoutId).order('created_at', { ascending: false }).limit(1),
-    ])
-    const rader = raderRes.data ?? []
-    const hr = (samplesRes.data?.[0]?.hr_samples ?? []) as Array<{ t: number }>
-    const totalSek = hr.length > 0 ? hr[hr.length - 1].t : 0
-
-    // Økter MED runder får aldri manuelt plasserte vinduer — runden har
-    // alt (fasit-avgrensningen). Sjekkes her så ikke en gammel fane kan
-    // skrive vinduer etter at en klokkesynk ga økta runder.
-    const harRunder = kanFlislegge(
-      rader.filter(a => a.window_start_seconds == null || a.window_duration_seconds == null)
-        .map(a => tilSegmentRad(a)),
-      totalSek,
-    )
-    const nyeVinduer = input.vinduer.filter(v => v.startSek != null && v.varighetSek != null)
-    if (harRunder && nyeVinduer.length > 0) {
-      return { ok: false, error: 'Økta har runder fra klokka — omdøp runden i stedet, den har tid og puls' }
-    }
-
-    // Gjeldende vinduer etter endringen: basens vinduer, overstyrt av input.
-    const vindusKart = new Map<string, { start: number; slutt: number } | null>()
-    for (const r of rader) {
-      if (r.window_start_seconds != null && r.window_duration_seconds != null) {
-        vindusKart.set(r.id, { start: r.window_start_seconds, slutt: r.window_start_seconds + r.window_duration_seconds })
-      }
-    }
-    for (const v of input.vinduer) {
-      if (!rader.some(r => r.id === v.activityId)) {
-        return { ok: false, error: 'En av radene finnes ikke lenger — last økta på nytt' }
-      }
-      vindusKart.set(v.activityId, v.startSek != null && v.varighetSek != null
-        ? { start: v.startSek, slutt: v.startSek + v.varighetSek } : null)
-    }
-    const alle = [...vindusKart.entries()].filter((e): e is [string, { start: number; slutt: number }] => e[1] != null)
-    for (const [, v] of alle) {
-      if (v.start < 0 || v.slutt <= v.start) return { ok: false, error: 'Ugyldig vindu' }
-      if (totalSek > 0 && v.start >= totalSek) return { ok: false, error: 'Vinduet starter etter at kurven slutter' }
-    }
-    for (let i = 0; i < alle.length; i++) {
-      for (let j = i + 1; j < alle.length; j++) {
-        if (alle[i][1].start < alle[j][1].slutt && alle[j][1].start < alle[i][1].slutt) {
-          return { ok: false, error: 'To vinduer overlapper — flytt eller kort inn det ene' }
-        }
-      }
-    }
-
-    for (const v of input.vinduer) {
-      const { error, count } = await supabase.from('workout_activities')
-        .update({
-          window_start_seconds: v.startSek != null ? Math.round(v.startSek) : null,
-          window_duration_seconds: v.varighetSek != null ? Math.round(v.varighetSek) : null,
-        }, { count: 'exact' })
-        .eq('id', v.activityId).eq('workout_id', workoutId)
-      if (error) return { ok: false, error: `Kunne ikke lagre vinduet: ${error.message}` }
-      if (!count) return { ok: false, error: 'Vinduet ble ikke lagret — mangler du redigeringsrett?' }
-    }
-  }
-
-  if (input.rekkefolge && input.rekkefolge.length > 0) {
-    for (let i = 0; i < input.rekkefolge.length; i++) {
-      const { error, count } = await supabase.from('workout_activities')
-        .update({ sort_order: i }, { count: 'exact' })
-        .eq('id', input.rekkefolge[i]).eq('workout_id', workoutId)
-      if (error) return { ok: false, error: `Kunne ikke lagre rekkefølgen: ${error.message}` }
-      if (!count) return { ok: false, error: 'Rekkefølgen ble ikke lagret — mangler du redigeringsrett?' }
-    }
-  }
 
   const startSek = klokkeslettTilSek(workout.time_of_day)
   for (const l of input.laktat) {
@@ -380,15 +296,15 @@ function sekTilKlokkeslett(sek: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
 }
 
-// ── Tidslinje-redigering (LTD-A) ─────────────────────────────
-// Hele tidslinja lagres i én operasjon: nye segmenter settes inn,
-// endrede oppdateres, slettede fjernes. Etter redigering har HVERT
-// segment en eksplisitt plassering (window_start/-duration) — tidslinja
-// er da data, ikke noe som utledes av rekkefølge og varighet.
+// ── Tidslinja ────────────────────────────────────────────────
+// Hele tidslinja lagres i én operasjon: nye rader settes inn, endrede
+// oppdateres, slettede fjernes. Etter redigering har HVER rad en
+// eksplisitt plassering (window_start/-duration) — tidslinja er da data,
+// ikke noe som utledes av rekkefølge og varighet.
 //
 // duration_seconds følger vindulengden for alt UNNTATT skyting, der
-// skytetiden er statistikk-porten og ikke skal endres av at man drar
-// vinduet (fasiten).
+// skytetiden er statistikk-porten og ikke skal endres av at vinduet
+// flyttes (fasiten).
 
 /** Fase 117 kjørt i prod 29. aug (2 585 rader · 0 med gruppe_id). */
 const GRUPPE_KOLONNE_FINNES = true
@@ -404,7 +320,7 @@ export interface TidslinjeSegment {
   startSek: number
   varighetSek: number
   sortOrder: number
-  /** Segment-editorens felter (bolk 2). Tom streng = ikke ført. */
+  /** Radens egne felter. Tom streng = ikke ført. */
   distanseKm?: string
   snittpuls?: string
   makspuls?: string
@@ -427,11 +343,11 @@ export async function lagreTidslinje(
     .select('id').eq('id', workoutId).maybeSingle()
   if (!workout) return { ok: false, error: 'Fant ikke økta' }
 
-  // PULSEN LESES FRA VINDUET, ARVES ALDRI. Finnes klokkedata, henter et
-  // segment uten ført puls sine tall fra samples i SITT EGET vindu — det
-  // gjelder like mye en repetisjon som er delt ut av et drag som et
-  // segment hvis grense er flyttet. Ført tall vinner alltid (og merkes M
-  // i editoren); uten klokkedata blir feltet stående tomt.
+  // PULSEN LESES FRA VINDUET, ARVES ALDRI. Finnes klokkedata, henter en
+  // rad uten ført puls sine tall fra samples i SITT EGET vindu — det
+  // gjelder like mye en rad som er kuttet ut av en annen som en rad hvis
+  // grense er flyttet. Ført tall vinner alltid; uten klokkedata blir
+  // feltet stående tomt.
   const { data: samplesRad } = await supabase.from('workout_samples')
     .select('hr_samples').eq('workout_id', workoutId)
     .order('created_at', { ascending: false }).limit(1)
@@ -508,57 +424,6 @@ export async function lagreTidslinje(
 
   return { ok: true }
 }
-
-// ── Nye punkter lagt inn i byggeren ──────────────────────────
-// mmol og nutrition_type er NOT NULL i basen (målt 29. aug), så et punkt
-// uten verdi KAN ikke lagres. Det sies ærlig i stedet for å finne på et
-// tall som ser målt ut (regel 22).
-
-export interface NyttPunkt {
-  slag: 'laktat' | 'ernaering'
-  tSek: number
-  /** mmol for laktat, ernæringstype for ernæring. */
-  verdi: string
-}
-
-export async function lagreNyePunkter(
-  workoutId: string, punkter: NyttPunkt[],
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (punkter.length === 0) return { ok: true }
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, error: 'Ikke innlogget' }
-
-  const { data: workout } = await supabase.from('workouts')
-    .select('id, user_id, time_of_day').eq('id', workoutId).maybeSingle()
-  if (!workout) return { ok: false, error: 'Fant ikke økta' }
-
-  const startSek = klokkeslettTilSek(workout.time_of_day)
-  for (const p of punkter) {
-    if (p.slag === 'laktat') {
-      const mmol = Number(String(p.verdi).replace(',', '.'))
-      if (!Number.isFinite(mmol) || mmol <= 0) {
-        return { ok: false, error: 'Laktatpunktet mangler verdi — skriv mmol, eller fjern punktet' }
-      }
-      const { error } = await supabase.from('workout_lactate_measurements').insert({
-        workout_id: workoutId, mmol,
-        measured_at_time: sekTilKlokkeslett(startSek + p.tSek),
-        sort_order: 0,
-      })
-      if (error) return { ok: false, error: `Kunne ikke lagre laktatpunktet: ${error.message}` }
-    } else {
-      const type = (p.verdi || '').trim() || 'gel'
-      const { error } = await supabase.from('workout_nutrition_entries').insert({
-        workout_id: workoutId, user_id: workout.user_id,
-        nutrition_type: type,
-        time_offset_minutes: Math.round(p.tSek / 60),
-      })
-      if (error) return { ok: false, error: `Kunne ikke lagre ernæringspunktet: ${error.message}` }
-    }
-  }
-  return { ok: true }
-}
-
 
 /** Sonen med mest tid på raden — «segmentets sone» (zones er {I3: sek}). */
 function dominantSone(zones: Record<string, number> | null): string | null {

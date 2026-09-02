@@ -254,7 +254,7 @@ async function learnUserExercises(
 // klokke-proveniens (external_id/strava_lap_index), tidsvinduene
 // (window_*) og splitt-feltene — hentet fra radene FØR slettingen,
 // nøklet på rad-id. Rader med db_id gjenskapes med SAMME id og får
-// disse feltene kopiert inn, så «Legg til detaljer»-plasseringer og
+// disse feltene kopiert inn, så Øktbyggerens plasseringer og
 // splitt-relasjoner (split_parent_id peker på rad-id!) overlever en
 // vanlig skjema-lagring. Uten dette slettet hver redigering dem stille.
 type SkjulteAktivitetsFelter = {

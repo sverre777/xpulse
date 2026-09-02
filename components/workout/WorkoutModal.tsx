@@ -56,7 +56,7 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
   // «Marker som gjennomført» auto-starte markeringsflyten i skjemaet.
   const [showEditForm, setShowEditForm] = useState(false)
   const [autoMark, setAutoMark] = useState(false)
-  // Pop-upene i øktvisningen («Legg til detaljer», «Plott treff») skriver
+  // Pop-upene i øktvisningen (Øktbyggeren, «Plott treff») skriver
   // rett til basen. Uten en re-henting ville «✎ Rediger» etterpå åpnet
   // skjemaet med de GAMLE radene — og neste lagring skrevet dem tilbake
   // (skjemaets draft lastes bare når modalen åpnes). Bumpes ved skriving.

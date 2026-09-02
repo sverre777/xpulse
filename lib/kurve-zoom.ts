@@ -1,4 +1,4 @@
-// Delt zoom-nivå mellom økt-grafen og «Legg til detaljer» (fasiten:
+// Delt zoom-nivå mellom økt-grafen og Øktbyggeren (fasiten:
 // «zoom-nivået deles med pop-upen når man åpner den derfra»).
 //
 // Bevisst en enkel modul-lagret verdi per økt, ikke en React-context:

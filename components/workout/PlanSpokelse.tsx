@@ -9,10 +9,9 @@
 // flatens egen tidsakse i stedet for å regnes ut på nytt hvert sted.
 //
 // Laget er RENT DEKOR: pointer-events er av, så det stjeler aldri et
-// klikk fra segmentene eller fra paletten under.
+// klikk fra kurven eller radene under.
 
-import { SEGMENT_FARGER } from '@/lib/segmenter'
-import { segmentTypeFor } from './TidslinjeRedigering'
+import { SEGMENT_FARGER, segmentTypeFor } from '@/lib/segmenter'
 import type { PlanBlokk } from '@/app/actions/runder'
 
 export function PlanSpokelse({ blokker, pct, hoyde = '100%' }: {

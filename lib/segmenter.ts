@@ -70,6 +70,15 @@ export function segmentTypeFor(type: string, bevegelsesform: string): SegmentTyp
   return 'drag'
 }
 
+// Punktfargene på tidslinja (fasit xpulse-oktgraf-design.html, pekelinje-
+// notatet): laktat GULL, ernæring GRØNN. Ikke puls-rødt: et laktatpunkt
+// tegnes PÅ pulskurven, og en rød prikk på en rød kurve forsvinner.
+export const PUNKT_FARGER = {
+  laktat: '#E8B93C',
+  ernaering: '#28A86E',
+  notat: '#A6A6AF',
+} as const
+
 // Segmenttyper som tegnes med diagonale striper i tillegg til fargen.
 export const SEGMENT_STRIPET: ReadonlySet<SegmentType> = new Set<SegmentType>(['veksling'])
 
@@ -93,6 +102,8 @@ export interface SegmentRad {
   standing_hits: number | null
   /** Raden kom fra klokka (external_id eller strava_lap_index satt). */
   harKlokkeProveniens: boolean
+  /** Repetisjoner fra samme oppsett deler gruppe (fase 117). */
+  gruppeId?: string | null
 }
 
 export interface Segment {
@@ -106,6 +117,7 @@ export interface Segment {
   /** Tegnes også som vindu PÅ kurven (skytevinduer, fasit 1b). */
   paaKurven: boolean
   kilde: 'runde' | 'plassert'
+  gruppeId: string | null
 }
 
 const SKYTING_PREFIX = 'skyting'
@@ -170,6 +182,7 @@ export function beregnSegmenter(rader: SegmentRad[], totalSek: number): Segment[
       treff: kl.treff,
       paaKurven: kl.type.startsWith(SKYTING_PREFIX),
       kilde: plassert ? 'plassert' : 'runde',
+      gruppeId: r.gruppeId ?? null,
     })
   }
   return ut
@@ -215,6 +228,131 @@ function klassifiser(
     return { type: 'drag', etikett: r.movement_name || 'Aktivitet', treff: null }
   }
   return { type: 'drag', etikett: `Drag ${ctx.dragNr}`, treff: null }
+}
+
+// ── Gruppeklammer på båndet ──────────────────────────────────
+// En intervalløkt gir ellers femti bittesmå segmenter med hver sin
+// etikett. Repeterte segmenter samles under ÉN klamme: «8 × 40/20»,
+// «6 × 8 min / 2 min», «12 × 30 s».
+//
+// gruppe_id (fase 117) VINNER over gjetting: rader som deler gruppe er én
+// klamme uansett hvor like de er. Uten gruppe_id gjenkjennes mønsteret
+// automatisk — «lik» betyr samme segmenttype og varighet innenfor
+// LIKHETSTOLERANSE (15 %, minst 5 s) av gruppas første. To former:
+//   · PAR: arbeid + pause som veksler (drag/pause/drag/pause …)
+//   · REKKE: samme type etter hverandre (drag/drag/drag)
+// Minst tre repetisjoner før det blir en klamme — to like drag er ikke
+// et mønster.
+
+export const LIKHETSTOLERANSE = 0.15
+export const MINSTE_REPETISJONER = 3
+
+export interface SegmentGruppe {
+  /** Indekser i segmentlista (inklusive). */
+  fra: number
+  til: number
+  startSek: number
+  sluttSek: number
+  antall: number
+  etikett: string
+  /** Sekunder arbeid og pause per repetisjon (pause 0 for rekker). */
+  arbeidSek: number
+  pauseSek: number
+  type: SegmentType
+}
+
+const lik = (a: number, b: number) => Math.abs(a - b) <= Math.max(5, b * LIKHETSTOLERANSE)
+const varighet = (s: Segment) => s.sluttSek - s.startSek
+
+/** «40» under 90 s, «8 min» på hele minutter, ellers «7:30». */
+export function fmtVarighetKort(sek: number): string {
+  const r = Math.round(sek)
+  if (r < 90) return `${r}`
+  if (r % 60 === 0) return `${r / 60} min`
+  return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`
+}
+
+export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number): string {
+  if (pauseSek <= 0) {
+    return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}`
+  }
+  if (Math.round(arbeidSek) < 90 && Math.round(pauseSek) < 90) {
+    return `${antall} × ${Math.round(arbeidSek)}/${Math.round(pauseSek)}`
+  }
+  return `${antall} × ${fmtVarighetKort(arbeidSek)} / ${fmtVarighetKort(pauseSek)}`
+}
+
+export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
+  const ut: SegmentGruppe[] = []
+  const n = segmenter.length
+  let i = 0
+  while (i < n) {
+    const s0 = segmenter[i]
+    // 1) gruppe_id vinner.
+    if (s0.gruppeId) {
+      let j = i
+      while (j + 1 < n && segmenter[j + 1].gruppeId === s0.gruppeId) j++
+      if (j > i) {
+        const arbeid = segmenter.slice(i, j + 1).filter(s => s.type !== 'pause')
+        const pauser = segmenter.slice(i, j + 1).filter(s => s.type === 'pause')
+        const antall = Math.max(1, arbeid.length)
+        const arbeidSek = arbeid.length ? arbeid.reduce((a, s) => a + varighet(s), 0) / arbeid.length : 0
+        const pauseSek = pauser.length ? pauser.reduce((a, s) => a + varighet(s), 0) / pauser.length : 0
+        ut.push({
+          fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
+          etikett: gruppeEtikett(antall, arbeidSek, pauseSek), arbeidSek, pauseSek,
+          type: arbeid[0]?.type ?? s0.type,
+        })
+        i = j + 1
+        continue
+      }
+    }
+    // 2) PAR: arbeid + pause som veksler.
+    if (s0.type !== 'pause' && i + 1 < n && segmenter[i + 1].type === 'pause') {
+      const a0 = varighet(s0), p0 = varighet(segmenter[i + 1])
+      let antall = 1
+      let j = i + 1
+      while (j + 2 < n
+        && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)
+        && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0)) {
+        antall++; j += 2
+      }
+      // Siste repetisjon kan mangle pausen (den faller bort i byggeren).
+      let sisteUtenPause = false
+      if (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)
+        && !(j + 2 < n && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0))) {
+        antall++; j += 1; sisteUtenPause = true
+      }
+      if (antall >= MINSTE_REPETISJONER) {
+        // Klammen dekker t.o.m. siste drag — ikke den avsluttende pausen,
+        // som er overgangen til det neste.
+        const til = sisteUtenPause ? j : j - 1
+        ut.push({
+          fra: i, til, startSek: s0.startSek, sluttSek: segmenter[til].sluttSek, antall,
+          etikett: gruppeEtikett(antall, a0, p0), arbeidSek: a0, pauseSek: p0, type: s0.type,
+        })
+        i = til + 1
+        continue
+      }
+    }
+    // 3) REKKE: samme type, lik varighet, etter hverandre.
+    if (s0.type !== 'pause') {
+      const a0 = varighet(s0)
+      let j = i
+      while (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)) j++
+      const antall = j - i + 1
+      if (antall >= MINSTE_REPETISJONER) {
+        ut.push({
+          fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
+          etikett: gruppeEtikett(antall, a0, 0), arbeidSek: a0, pauseSek: 0, type: s0.type,
+        })
+        i = j + 1
+        continue
+      }
+    }
+    i++
+  }
+  return ut
 }
 
 // ── Puls i vindu ─────────────────────────────────────────────

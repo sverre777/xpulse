@@ -32,6 +32,8 @@ import { OktmalBuilder } from '@/components/coach/OktmalBuilder'
 import { getKeyDateForWorkout, updateKeyDatePriority, type WorkoutKeyDateLink } from '@/app/actions/seasons'
 import { ActivitySummary } from './ActivitySummary'
 import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
+import { useKlokkedata } from './useKlokkedata'
+import { beregnSegmenter } from '@/lib/segmenter'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
@@ -41,6 +43,7 @@ import { EquipmentSelectorInWorkout } from '@/components/equipment/EquipmentSele
 import { HeartZone } from '@/lib/heart-zones'
 import { parseDecimal } from '@/lib/parse-decimal'
 import { xpConfirm, xpAlert } from '@/components/ui/ConfirmDialog'
+import { RpeSkala } from '@/components/ui/RpeSkala'
 import { OKT_MAL_BIBLIOTEK, OKT_MAL_TYPER, finnOktMal, erTestMal, type OktMalDef } from '@/lib/okt-template-library'
 import { oktMalTilWorkoutTemplate, normaliserMalSok, oktMalTilIntervallOppsett, oktTypeToWorkoutType } from '@/lib/okt-mal-kopi'
 import { showCompletionCheck } from '@/lib/interactions'
@@ -309,6 +312,33 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // ⚡ Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
   // lagret økt. Hurtigoppsettet skriver radene rett i skjemaet.
   const [visOktbygger, setVisOktbygger] = useState(false)
+  // Klokkedata hentes ÉN gang for skjemaet og deles av oppsummeringskortet
+  // (grafen, live) og klokkeseksjonen (rundetabell). Bumpes når byggeren
+  // har skrevet til basen.
+  const [klokkeTick, setKlokkeTick] = useState(0)
+  const klokke = useKlokkedata(workoutId && !templateBuildingMode ? workoutId : null, klokkeTick)
+  // Segmentbåndet LIVE fra skjemaets egne rader: type og varighet herfra,
+  // proveniens og lagret vindu fra serveren (radInfo, nøklet på rad-id).
+  const liveSegmenter = useMemo(() => {
+    const d = klokke.data
+    if (!d || d.totalSek <= 0) return []
+    return beregnSegmenter(form.activities.map(a => {
+      const info = a.db_id ? d.radInfo[a.db_id] : undefined
+      const tall = (v: string) => { const n = parseInt(v); return Number.isFinite(n) ? n : null }
+      return {
+        id: a.db_id ?? a.id,
+        activity_type: a.activity_type,
+        movement_name: a.movement_name || null,
+        duration_seconds: parseActivityDuration(a.duration) ?? 0,
+        window_start_seconds: info?.window_start_seconds ?? null,
+        window_duration_seconds: info?.window_duration_seconds ?? null,
+        prone_shots: tall(a.prone_shots), prone_hits: tall(a.prone_hits),
+        standing_shots: tall(a.standing_shots), standing_hits: tall(a.standing_hits),
+        harKlokkeProveniens: info?.harKlokkeProveniens ?? false,
+        gruppeId: info?.gruppeId ?? null,
+      }
+    }), d.totalSek)
+  }, [form.activities, klokke.data])
   // «Plott treff» (bolk B) — vises i knapperaden når økta har skyting.
   const [visPlottTreff, setVisPlottTreff] = useState(false)
   // Seriene skrives til basen av pop-upen; skjemaets draft må oppdateres i
@@ -1362,6 +1392,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             heartZones={heartZones}
             sport={form.sport}
             defaultPaceUnit={defaultPaceUnit}
+            klokke={workoutId && klokke.data?.samples ? { data: klokke.data, segmenter: liveSegmenter, workoutId } : null}
+            rpe={form.rpe}
+            onRpe={v => set('rpe', v)}
           />
         </div>
       )}
@@ -1595,7 +1628,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             </div>
             <div>
               <Label>RPE (1–10)</Label>
-              <RPESelector value={form.rpe} onChange={v => set('rpe', v)} />
+              <RpeSkala value={form.rpe} onChange={v => set('rpe', v)} etikett="RPE 1–10" />
             </div>
           </div>
         </Section>
@@ -1648,7 +1681,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           og rendrer kun hvis det finnes sample-data eller laps fra import.
           Skjules helt for manuelle Dagbok-økter. Krever workoutId. ── */}
       {workoutId && !templateBuildingMode && (
-        <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
+        <WorkoutKlokkesyncSection workoutId={workoutId} klokke={klokke} visGraf={false}
+          importedFrom={defaultValues?.imported_from ?? defaultValues?.merged_source ?? null} />
       )}
 
       {visPlottTreff && workoutId && (
@@ -1665,8 +1699,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           sport={form.sport}
           onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisOktbygger(false)}
-          onLagret={() => { /* skjemaets rader hentes på nytt ved neste åpning;
-              vindus-/tidsdata eies av basen og overlever lagring (fase 113-vern) */ }}
+          onLagret={() => {
+            // Skjemaets rader hentes på nytt ved neste åpning; vindus-/tidsdata
+            // eies av basen og overlever lagring (fase 113-vern). Klokkedataene
+            // (radinfo, rundetabell) hentes på nytt nå.
+            setKlokkeTick(t => t + 1)
+          }}
           onOpprett={async (rader, tittel) => {
             if (aktivitetslistaHarInnhold(form.activities)
               && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
@@ -2176,30 +2214,6 @@ function Label({ children }: { children: React.ReactNode }) {
 
 // StarRating er flyttet til components/ui/StarRating.tsx — ÉN følelses-
 // skala i hele appen (regel 11), delt med den daglige energiføringen.
-
-const RPE_COLORS = ['#28A86E', '#3BA45C', '#63A94A', '#8FAC3C', '#BCA735', '#E8B93C', '#F09A2E', '#FF8C00', '#F0592B', '#E23A5A']
-
-function RPESelector({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
-  return (
-    <div className="flex gap-1.5 flex-wrap mt-1">
-      {[1,2,3,4,5,6,7,8,9,10].map(n => (
-        <button key={n} type="button" onClick={() => onChange(value === n ? null : n)}
-          className="w-8 h-8 text-sm font-bold"
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: value === n ? RPE_COLORS[n - 1] : 'var(--card2)',
-            color: value === n ? 'var(--tekst-1-ren)' : 'var(--mut)',
-            border: `1px solid ${value === n ? 'transparent' : 'var(--line2)'}`,
-            borderRadius: 8,
-            boxShadow: value === n ? '0 0 14px var(--accent-soft)' : 'none',
-            cursor: 'pointer',
-          }}>
-          {n}
-        </button>
-      ))}
-    </div>
-  )
-}
 
 function Chip({ active, onClick, children, color = 'var(--tekst-8-app)' }: {
   active: boolean; onClick: () => void; children: React.ReactNode; color?: string

@@ -11,6 +11,8 @@ import { visningsFordeling } from '@/lib/sonesprak'
 import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
+import { KompaktKurverProvider, useKompaktKurve } from './kompakt-kurver'
+import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
 import { ZONE_COLORS_V2, formatDurationShort } from '@/lib/activity-summary'
@@ -714,9 +716,18 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
           </span>
         )}
         {mode === 'analyse' && <ZoneBar zones={zonesFor(w, mode) ?? []} />}
+        {/* Klokke-grafen i miniatyr (bolk 2, monteringspunkt 3). */}
+        <ChipKurve workoutId={w.id} />
       </div>
     </button>
   )
+}
+
+/** Kompakt kurve på chip/pille — bare når kurven er hentet. */
+function ChipKurve({ workoutId, hoyde = 26 }: { workoutId: string; hoyde?: number }) {
+  const kurve = useKompaktKurve(workoutId)
+  if (!kurve) return null
+  return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} />
 }
 
 // ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──
@@ -745,7 +756,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
       {...dragAttributes}
       {...dragListeners}
       onClick={e => { e.stopPropagation(); onClick() }}
-      className="flex items-center gap-2 text-left w-full"
+      className="flex flex-col text-left w-full"
       style={{
         border: isPlanned ? '1px dashed rgb(var(--tekst-land-rgb) / 0.38)' : '1px solid var(--line)',
         borderLeft: `4px solid ${w.is_important ? '#FF4500' : color}`,
@@ -756,6 +767,7 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
         // Long-press (TouchSensor delay) starter drag — vanlig scroll bevares.
         touchAction: 'manipulation',
       }}>
+      <span className="flex items-center gap-2 w-full" style={{ minWidth: 0 }}>
       {w.is_completed && <span style={{ color: '#28A86E', fontSize: 12, flexShrink: 0 }}>✓</span>}
       {/* Strava-synk = offisiell Strava-logo (attribution), fit = klokke-badge
           — aldri rød trekant. */}
@@ -786,7 +798,19 @@ function MobileWorkoutPill({ w, mode, onClick, dragRef, dragListeners, dragAttri
           {durationLabel}
         </span>
       )}
+      </span>
+      <MobilPilleKurve workoutId={w.id} />
     </button>
+  )
+}
+
+function MobilPilleKurve({ workoutId }: { workoutId: string }) {
+  const kurve = useKompaktKurve(workoutId)
+  if (!kurve) return null
+  return (
+    <span style={{ display: 'block', width: '100%' }}>
+      <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={22} />
+    </span>
   )
 }
 
@@ -2990,6 +3014,7 @@ export function Calendar({
     : `${MONTHS_NO[month - 1]} ${year}`
 
   return (
+    <KompaktKurverProvider byDate={byDate}>
     <CalendarActionsContext.Provider value={{
       onEditWorkout: handleEditWorkout,
       onCreateWorkout: handleCreateWorkout,
@@ -3229,5 +3254,6 @@ export function Calendar({
       />
     )}
     </CalendarActionsContext.Provider>
+    </KompaktKurverProvider>
   )
 }

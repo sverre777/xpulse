@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
-  SEGMENT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu, type Segment,
+  SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
+  grupperSegmenter, type Segment, type SegmentGruppe,
 } from '@/lib/segmenter'
 import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
 import { KurveBrush } from './KurveBrush'
@@ -12,6 +13,10 @@ import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { PlanSpokelse } from './PlanSpokelse'
 import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
 import { visPlanBak, settVisPlanBak, VIS_PLAN_HENDELSE } from '@/lib/vis-plan'
+import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
+import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
+import { beregnSoneTss } from '@/lib/belastning'
+import { RpeSkala, rpeFarge } from '@/components/ui/RpeSkala'
 
 // Sample-arrays slik de er lagret i workout_samples-tabellen.
 type HrSample = { t: number; hr: number }
@@ -66,6 +71,19 @@ interface Props {
   shooting?: ShootingMarker[]
   segmenter?: Segment[]
   height?: number
+  /** 'full' = øktas hovedside (med nøkkeltallsrad). 'skjema' = i
+      oppsummeringskortet i skjemaet — der eier kortet nøkkeltallsraden. */
+  tetthet?: 'full' | 'skjema'
+  heartZones?: HeartZone[]
+  /** Opplevd belastning (workouts.rpe) og skriveren — samme felt som
+      skjemaet fører lenger nede. Uten onRpe er cellen ren lesing. */
+  rpe?: number | null
+  onRpe?: (v: number | null) => void
+  /** NP fra serveren (watt-metrikker) — vises ved siden av snittwatt. */
+  np?: number | null
+  /** Planens tall når økta er koblet til en plan (bolk 5/7). */
+  planVarighetSek?: number | null
+  forventetRpe?: number | null
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -80,12 +98,19 @@ interface Props {
 //      TIDSLINJA og har nå egne av/på-brytere som overlever at puls (og
 //      alle andre serier) er av. Puls brukes bare til å REGNE snittpuls.
 //
+// BOLK 2 (omlegging v6): nøkkeltallsraden for hele økta, punktetiketter
+// med pekelinje over grafen, gruppeklammer og direkte etiketter på
+// segmentbåndet, og båndet følger zoomen. Samme komponent på hovedsida,
+// i skjemaets oppsummeringskort (live) og — som KompaktKurve — i
+// oversikten.
+//
 // Tegnemotoren er OktKurve (delt SVG) — se den fila for hvorfor, og for
 // nedsamplingen som er innebygd fra første versjon.
 export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
-  height = 300,
+  height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
+  planVarighetSek = null, forventetRpe = null,
 }: Props) {
   const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
   const forsteId = serier[0]?.id ?? null
@@ -99,14 +124,14 @@ export function WorkoutDetailChart({
   const [visSegmenter, setVisSegmenter] = useState(true)
   const [visPunkter, setVisPunkter] = useState(true)
   const [visRunder, setVisRunder] = useState(true)
-  // BOLK 6 — planen bak, samme bryter og samme lag som i Øktbyggeren.
+  // Planen bak (bolk 7) — samme bryter og samme lag som i Øktbyggeren.
   // Valget deles med byggeren (lib/vis-plan), så flatene aldri står uenige.
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
   const [visPlan, setVisPlan] = useState(false)
 
   useEffect(() => {
-    setVisPlan(visPlanBak())
     const oppdater = () => setVisPlan(visPlanBak())
+    oppdater()
     window.addEventListener(VIS_PLAN_HENDELSE, oppdater)
     return () => window.removeEventListener(VIS_PLAN_HENDELSE, oppdater)
   }, [])
@@ -181,6 +206,7 @@ export function WorkoutDetailChart({
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
+  const synlig: [number, number] = vindu ?? [0, Math.max(1, totalSek)]
 
   useEffect(() => {
     // Nullstilling skjer i handlerne som fjerner zoomen (ikke her — en
@@ -193,6 +219,25 @@ export function WorkoutDetailChart({
     return () => { avbrutt = true }
   }, [workoutId, vindu])
 
+  // Punktene som etiketter over grafen (pekelinje ned til kurven).
+  const punkter: Punkt[] = useMemo(() => {
+    const ut: Punkt[] = [
+      ...lactate.map((l, i) => ({
+        id: `lac-${i}`, slag: 'laktat' as const, t: l.t,
+        tittel: `Laktat ${String(l.mmol).replace('.', ',')}`,
+        farge: PUNKT_FARGER.laktat,
+      })),
+      ...nutrition.map((n, i) => ({
+        id: `nut-${i}`, slag: 'ernaering' as const, t: n.t,
+        tittel: `${n.type}${n.carbs_g != null ? ` · ${n.carbs_g} g` : ''}`,
+        farge: PUNKT_FARGER.ernaering,
+      })),
+    ]
+    return ut.sort((a, b) => a.t - b.t)
+  }, [lactate, nutrition])
+
+  const segmentVed = (t: number) => segmenter.find(x => t >= x.startSek && t <= x.sluttSek) ?? null
+
   if (serier.length === 0) {
     return (
       <div className="py-12 text-center" style={{ border: '1px dashed var(--kant-3)' }}>
@@ -204,13 +249,18 @@ export function WorkoutDetailChart({
     )
   }
 
+  const skjema = tetthet === 'skjema'
+
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
+    <div className={skjema ? '' : 'p-4'} data-oktgraf
+      style={skjema ? undefined : { backgroundColor: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)' }}>
       <div className="mb-3 flex items-start justify-between gap-3 flex-wrap">
-        <p className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
-          Økt-graf
-        </p>
+        {!skjema && (
+          <p className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)' }}>
+            Økt-graf
+          </p>
+        )}
         <div className="flex gap-4 flex-wrap">
           {/* DATA — seriene. Serie uten data får ingen chip (aldri en død knapp). */}
           <Gruppe navn="Data">
@@ -222,10 +272,10 @@ export function WorkoutDetailChart({
             ))}
           </Gruppe>
           {/* PÅ GRAFEN — annoteringer på tidslinja, uavhengig av seriene. */}
-          {(harSkyting || segmenter.length > 0 || harPunkter || laps.length > 1) && (
+          {(harSkyting || segmenter.length > 0 || harPunkter || laps.length > 1 || planBlokker.length > 0) && (
             <Gruppe navn="På grafen">
               {harSkyting && (
-                <Chip farge="#38BDF8" etikett="Skyting" paa={visSkyting} fokus={false}
+                <Chip farge={SEGMENT_FARGER.skyting_ligg} etikett="Skyting" paa={visSkyting} fokus={false}
                   onClick={() => setVisSkyting(v => !v)} />
               )}
               {segmenter.length > 0 && (
@@ -233,7 +283,7 @@ export function WorkoutDetailChart({
                   onClick={() => setVisSegmenter(v => !v)} />
               )}
               {harPunkter && (
-                <Chip farge="#E23A5A" etikett="Laktat/ernæring" paa={visPunkter} fokus={false}
+                <Chip farge={PUNKT_FARGER.laktat} etikett="Laktat/ernæring" paa={visPunkter} fokus={false}
                   onClick={() => setVisPunkter(v => !v)} />
               )}
               {laps.length > 1 && (
@@ -242,7 +292,7 @@ export function WorkoutDetailChart({
               )}
               {/* Finnes ingen plan, står bryteren ikke der (aldri en død knapp). */}
               {planBlokker.length > 0 && (
-                <Chip farge="var(--accent)" etikett="Plan bak" paa={visPlan} fokus={false}
+                <Chip farge="var(--accent)" etikett="Vis plan" paa={visPlan} fokus={false}
                   onClick={() => setVisPlan(settVisPlanBak(!visPlan))} />
               )}
             </Gruppe>
@@ -250,12 +300,22 @@ export function WorkoutDetailChart({
         </div>
       </div>
 
+      {/* Etikettbåndet over grafen — reservert så snart økta HAR punkter,
+          slik at grafen aldri hopper når etikettene tegnes (regel 20). */}
+      {harPunkter && (
+        <PunktEtiketter
+          punkter={visPunkter ? punkter : []}
+          synlig={synlig}
+          segmentVed={segmentVed}
+        />
+      )}
+
       <OktKurve
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
         totalSek={totalSek}
-        hoyde={height}
+        hoyde={skjema ? Math.min(height, 240) : height}
         vindu={vindu ?? undefined}
         onVindu={v => settVindu(v)}
         krysshaarSek={krysshaarSek}
@@ -294,23 +354,24 @@ export function WorkoutDetailChart({
                 </span>
               </span>
             ))}
-            {/* Punktmarkører (pekelinje og kollisjonshåndtering kommer i bolk 5). */}
-            {visPunkter && lactate.map((lac, i) => (
-              <span key={`lac-${i}`} title={`Laktat ${lac.mmol} mmol · ${fmtKlokkeSek(lac.t)}`}
-                style={{
-                  position: 'absolute', left: h.pct(lac.t), top: fokus ? h.yPctForSerie(fokus.id, lac.t) : '20%',
-                  transform: 'translate(-50%, -50%)', width: 9, height: 9, borderRadius: '50%',
-                  background: '#E23A5A', border: '1.5px solid var(--flate-3)',
-                }} />
-            ))}
-            {visPunkter && nutrition.map((n, i) => (
-              <span key={`nut-${i}`} title={`Ernæring — ${n.type} · ${fmtKlokkeSek(n.t)}`}
-                style={{
-                  position: 'absolute', left: h.pct(n.t), top: fokus ? h.yPctForSerie(fokus.id, n.t) : '20%',
-                  transform: 'translate(-50%, -50%) rotate(45deg)', width: 8, height: 8,
-                  background: '#FFB300', border: '1.5px solid var(--flate-3)',
-                }} />
-            ))}
+            {/* Pekelinjene ender i en prikk PÅ kurven i punktets farge. */}
+            {visPunkter && punkter.map(p => {
+              if (p.t < h.fraSek || p.t > h.tilSek) return null
+              const y = fokus ? h.yPctForSerie(fokus.id, p.t) : '20%'
+              return (
+                <span key={p.id} aria-hidden>
+                  <span style={{
+                    position: 'absolute', left: h.pct(p.t), top: 0, height: y,
+                    width: 1, background: p.farge, opacity: 0.5, pointerEvents: 'none',
+                  }} />
+                  <span style={{
+                    position: 'absolute', left: h.pct(p.t), top: y,
+                    transform: 'translate(-50%, -50%)', width: 9, height: 9, borderRadius: '50%',
+                    background: p.farge, border: '1.5px solid var(--flate-3)', pointerEvents: 'none',
+                  }} />
+                </span>
+              )
+            })}
           </>
         )}
       />
@@ -389,13 +450,24 @@ export function WorkoutDetailChart({
         krysshaarSek={krysshaarSek}
       />
 
+      {/* NØKKELTALLSRADEN — «hva ble ØKTA» (lesepanelet svarer «hva skjedde
+          HER»). To rader, ulik jobb; de slås aldri sammen. I skjemaet eier
+          oppsummeringskortet denne raden (samme komponent). */}
+      {!skjema && (
+        <Nokkeltall
+          celler={nokkeltallFraKlokke({ samples, heartZones, np, planVarighetSek })}
+          rpe={rpe}
+          onRpe={onRpe}
+          forventetRpe={forventetRpe}
+        />
+      )}
+
       {visSegmenter && segmenter.length > 0 && totalSek > 0 && (
         <SegmentBaand
           segmenter={segmenter}
-          totalSek={totalSek}
-          lactate={visPunkter ? lactate : []}
-          nutrition={visPunkter ? nutrition : []}
+          synlig={synlig}
           hr={samples.hr_samples}
+          watt={samples.watt_samples}
           speed={samples.pace_samples ?? samples.speed_samples}
           sport={sport}
           valgt={valgtSegment}
@@ -468,6 +540,254 @@ function byggSerier(sport: Sport, s: WorkoutSamples): KurveSerie[] {
   return ut
 }
 
+// ── Nøkkeltallsraden ─────────────────────────────────────────
+// Speilbildet av plan-grafens rad: samme komponent, samme rekkefølge.
+// Alt BEREGNES ved visning fra samples — ingen lagrede kopier. Mangler et
+// tall (ingen watt, ingen plan), finnes ikke cellen — aldri «—» der det
+// aldri kan komme et tall. Kun opplevd belastning er ført av brukeren, og
+// den kan settes rett i raden (klikk → skala, samme skala som i skjemaet).
+
+export interface NokkeltallCelle {
+  id: string
+  etikett: string
+  verdi: string
+  hale?: string
+  farge?: string
+}
+
+export function fmtVarighetLang(sek: number): string {
+  const m = Math.round(sek / 60)
+  if (m < 60) return `${m} min`
+  return `${Math.floor(m / 60)}t ${String(m % 60).padStart(2, '0')}`
+}
+
+/** Sonen med mest tid — ved uavgjort vinner den høyeste. */
+export function hovedsoneFra(soneSek: Partial<Record<ExtendedZoneName, number>>): ExtendedZoneName | null {
+  const rekke: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
+  let beste: ExtendedZoneName | null = null
+  for (const s of rekke) {
+    const v = soneSek[s] ?? 0
+    if (v > 0 && (beste == null || v >= (soneSek[beste] ?? 0))) beste = s
+  }
+  return beste
+}
+
+export function nokkeltallFraKlokke({ samples, heartZones, np, planVarighetSek }: {
+  samples: WorkoutSamples
+  heartZones: HeartZone[]
+  np?: number | null
+  planVarighetSek?: number | null
+}): NokkeltallCelle[] {
+  const celler: NokkeltallCelle[] = []
+  const hr = samples.hr_samples ?? []
+  let slutt = 0
+  for (const serie of [samples.hr_samples, samples.watt_samples, samples.pace_samples, samples.speed_samples, samples.altitude_samples]) {
+    const sist = serie?.[serie.length - 1]
+    if (sist && sist.t > slutt) slutt = sist.t
+  }
+  if (slutt > 0) {
+    celler.push({
+      id: 'varighet', etikett: 'Varighet', verdi: fmtVarighetLang(slutt),
+      hale: planVarighetSek != null && planVarighetSek > 0 ? `· plan ${fmtVarighetLang(planVarighetSek)}` : undefined,
+    })
+  }
+  if (hr.length > 1 && heartZones.length > 0) {
+    const soner = computeZoneSecondsFromSamples(hr, heartZones)
+    const hoved = hovedsoneFra(soner)
+    if (hoved) celler.push({ id: 'hovedsone', etikett: 'Hovedsone', verdi: hoved, farge: ZONE_COLORS_V2[hoved] })
+    const tss = beregnSoneTss(soner)
+    if (tss > 0) celler.push({ id: 'tss', etikett: 'Belastning', verdi: String(Math.round(tss)), hale: 'TSS' })
+  }
+  if (hr.length > 1) {
+    const snitt = snittAv(hr.map(p => ({ t: p.t, v: p.hr })))
+    const maks = hr.reduce((m, p) => Math.max(m, p.hr), 0)
+    if (snitt != null) celler.push({ id: 'puls', etikett: 'Snittpuls', verdi: String(Math.round(snitt)), hale: `· maks ${maks}` })
+  }
+  const watt = samples.watt_samples ?? []
+  if (watt.length > 1) {
+    const snitt = snittAv(watt.map(p => ({ t: p.t, v: p.w })))
+    if (snitt != null) celler.push({ id: 'watt', etikett: 'Snittwatt', verdi: String(Math.round(snitt)), hale: np != null ? `· NP ${Math.round(np)}` : undefined })
+  }
+  // Belastning står etter puls/watt i fasitens rekkefølge.
+  const i = celler.findIndex(c => c.id === 'tss')
+  if (i >= 0) { const [c] = celler.splice(i, 1); celler.push(c) }
+  return celler
+}
+
+/** Tidsvektet snitt av en {t, v}-serie — nedsamplede punkter er ujevnt fordelt. */
+function snittAv(serie: Array<{ t: number; v: number }>): number | null {
+  if (serie.length < 2) return null
+  let sum = 0, vekt = 0
+  for (let i = 1; i < serie.length; i++) {
+    const dt = serie[i].t - serie[i - 1].t
+    if (dt <= 0 || dt > 60) continue
+    sum += serie[i].v * dt; vekt += dt
+  }
+  return vekt > 0 ? sum / vekt : null
+}
+
+export function Nokkeltall({ celler, rpe = null, onRpe, forventetRpe = null, rpeEtikett = 'Opplevd' }: {
+  celler: NokkeltallCelle[]
+  rpe?: number | null
+  onRpe?: (v: number | null) => void
+  forventetRpe?: number | null
+  /** «Opplevd» på gjennomført, «Forventet» i plan. */
+  rpeEtikett?: string
+}) {
+  const [skalaAapen, setSkalaAapen] = useState(false)
+  if (celler.length === 0 && rpe == null && !onRpe) return null
+  const celle: React.CSSProperties = {
+    flex: '1 1 110px', padding: '9px 12px', borderRight: '1px solid var(--line2)', minWidth: 0,
+  }
+  const k: React.CSSProperties = {
+    fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
+    letterSpacing: '0.13em', fontSize: 10, color: 'var(--tekst-5-app)', textTransform: 'uppercase',
+  }
+  const v: React.CSSProperties = { fontFamily: "'Bebas Neue', sans-serif", fontSize: 21, letterSpacing: '0.02em', lineHeight: 1.25, color: 'var(--tekst-1-app)' }
+  const hale: React.CSSProperties = { fontSize: 11, color: 'var(--tekst-5-app)', fontFamily: 'inherit', letterSpacing: 0 }
+  return (
+    <div data-nokkeltall className="mt-2">
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', border: '1px solid var(--line2)',
+        borderRadius: 11, overflow: 'hidden', background: 'var(--flate-14)',
+      }}>
+        {celler.map(c => (
+          <div key={c.id} style={celle}>
+            <div style={k}>{c.etikett}</div>
+            <div style={{ ...v, color: c.farge ?? v.color }}>
+              {c.verdi}{c.hale && <small style={hale}> {c.hale}</small>}
+            </div>
+          </div>
+        ))}
+        {(rpe != null || onRpe) && (
+          <button type="button" disabled={!onRpe}
+            onClick={() => onRpe && setSkalaAapen(a => !a)}
+            aria-expanded={onRpe ? skalaAapen : undefined}
+            title={onRpe ? 'Klikk for å sette belastningen' : undefined}
+            style={{
+              ...celle, borderRight: 0, background: 'var(--flate-12-alt)', textAlign: 'left',
+              border: 'none', cursor: onRpe ? 'pointer' : 'default', minHeight: 44,
+            }}>
+            <div style={k}>
+              {rpeEtikett}{onRpe && <span style={{ color: 'var(--accent)' }}> · føres</span>}
+            </div>
+            <div style={{ ...v, color: rpe != null ? rpeFarge(rpe) : 'var(--tekst-5-app)' }}>
+              {rpe != null ? rpe : '—'}
+              <small style={hale}> /10{forventetRpe != null ? ` · forventet ${forventetRpe}` : ''}</small>
+            </div>
+          </button>
+        )}
+      </div>
+      {onRpe && skalaAapen && (
+        <div className="mt-1.5">
+          <RpeSkala value={rpe ?? null} onChange={val => { onRpe(val); setSkalaAapen(false) }} kompakt etikett={`${rpeEtikett} belastning 1–10`} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Punktetiketter med pekelinje ─────────────────────────────
+// Referansen (Enduranced): etikett ØVER grafen med tynn pekelinje ned til
+// nøyaktig tidspunkt. Navn + verdi i fet, kontekst («etter drag 2 · 8:00»)
+// under. Etiketter nær hverandre i tid skyves ned et nivå — aldri overlapp,
+// aldri skjult tekst. Tett klynge slås sammen til «3 målinger» og folder
+// seg ut ved klikk.
+
+interface Punkt { id: string; slag: 'laktat' | 'ernaering'; t: number; tittel: string; farge: string }
+
+const ETIKETT_BREDDE_PCT = 13   // anslått bredde på en etikett, i % av flata
+const NIVAA_HOYDE = 30
+const MAKS_NIVAAER = 3
+
+function PunktEtiketter({ punkter, synlig, segmentVed }: {
+  punkter: Punkt[]
+  synlig: [number, number]
+  segmentVed: (t: number) => Segment | null
+}) {
+  const [utfoldet, setUtfoldet] = useState<string | null>(null)
+  const [fra, til] = synlig
+  const spenn = Math.max(1, til - fra)
+  const pct = (t: number) => ((t - fra) / spenn) * 100
+
+  // 1) Klynger: punkter innenfor 3 % av bredden slås sammen.
+  type Klynge = { id: string; punkter: Punkt[]; x: number }
+  const klynger: Klynge[] = []
+  for (const p of punkter.filter(p => p.t >= fra && p.t <= til)) {
+    const x = pct(p.t)
+    const siste = klynger[klynger.length - 1]
+    if (siste && x - siste.x < 3 && utfoldet !== siste.id) {
+      siste.punkter.push(p)
+      siste.x = (siste.x * (siste.punkter.length - 1) + x) / siste.punkter.length
+    } else {
+      klynger.push({ id: p.id, punkter: [p], x })
+    }
+  }
+  // 2) Nivåer: hver etikett får det laveste nivået der den ikke overlapper.
+  const sluttPerNivaa: number[] = []
+  const plassert = klynger.map(kl => {
+    const venstre = kl.x - ETIKETT_BREDDE_PCT / 2
+    let nivaa = sluttPerNivaa.findIndex(s => s <= venstre)
+    if (nivaa < 0) nivaa = Math.min(sluttPerNivaa.length, MAKS_NIVAAER - 1)
+    sluttPerNivaa[nivaa] = Math.max(sluttPerNivaa[nivaa] ?? -Infinity, kl.x + ETIKETT_BREDDE_PCT / 2)
+    return { ...kl, nivaa }
+  })
+  const antallNivaaer = plassert.length ? Math.max(...plassert.map(p => p.nivaa + 1)) : 1
+  const hoyde = antallNivaaer * NIVAA_HOYDE + 4
+
+  return (
+    <div data-punktetiketter style={{ position: 'relative', height: hoyde, marginBottom: 2 }}>
+      {plassert.map(kl => {
+        const top = kl.nivaa * NIVAA_HOYDE
+        const en = kl.punkter.length === 1 ? kl.punkter[0] : null
+        const farge = en?.farge ?? 'var(--tekst-5-app)'
+        const seg = en ? segmentVed(en.t) : null
+        const kontekst = en
+          ? `${seg ? `${seg.etikett.toLowerCase()} · ` : ''}${fmtKlokkeSek(en.t)}`
+          : `${fmtKlokkeSek(kl.punkter[0].t)}–${fmtKlokkeSek(kl.punkter[kl.punkter.length - 1].t)}`
+        const innhold = (
+          <>
+            <span style={{
+              display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+              fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: farge, whiteSpace: 'nowrap',
+            }}>
+              {en ? en.tittel : `${kl.punkter.length} målinger`}
+            </span>
+            <span style={{
+              display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5,
+              color: 'var(--tekst-8-alt)', whiteSpace: 'nowrap',
+            }}>
+              {kontekst}
+            </span>
+          </>
+        )
+        return (
+          <div key={kl.id} style={{ position: 'absolute', left: `${Math.max(0, Math.min(100, kl.x))}%`, top }}>
+            {/* Pekelinja fortsetter fra etiketten ned til plot-flata (der
+                overlayet tegner resten, i samme x). */}
+            <span aria-hidden style={{
+              position: 'absolute', left: 0, top: NIVAA_HOYDE - 4, height: hoyde - top - NIVAA_HOYDE + 4,
+              width: 1, background: farge, opacity: 0.5,
+            }} />
+            {en ? (
+              <div style={{ transform: 'translateX(-50%)', textAlign: 'center', lineHeight: 1.15 }}>{innhold}</div>
+            ) : (
+              <button type="button" onClick={() => setUtfoldet(kl.id)}
+                title="Vis hver måling"
+                style={{
+                  transform: 'translateX(-50%)', textAlign: 'center', lineHeight: 1.15,
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer', minHeight: 28,
+                }}>
+                {innhold}
+              </button>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
   serier: KurveSerie[]
   paaIds: string[]
@@ -487,8 +807,7 @@ function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
       <Celle etikett="Tid" farge="var(--tekst-1-app)"
         verdi={krysshaarSek != null ? fmtKlokkeSek(krysshaarSek) : `0:00–${fmtKlokkeSek(totalSek)}`} />
       {serier.filter(serie => paaIds.includes(serie.id)).map(serie => {
-        const verdier = serie.punkter.map(pt => pt.v)
-        const snitt = verdier.length > 0 ? verdier.reduce((a, b) => a + b, 0) / verdier.length : null
+        const snitt = snittAv(serie.punkter)
         const vis = krysshaarSek != null ? verdiVed(serie, krysshaarSek) : snitt
         return (
           <Celle key={serie.id} etikett={serie.navn} farge={serie.farge}
@@ -576,103 +895,75 @@ function MarkerLegend({
     <div className="flex gap-4 mt-2 flex-wrap text-xs"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {hasLaps && <span>┊ Lap-grense</span>}
-      {hasLactate && <span style={{ color: '#E23A5A' }}>● Laktat</span>}
-      {hasNutrition && <span style={{ color: '#FFB300' }}>● Ernæring</span>}
+      {hasLactate && <span style={{ color: PUNKT_FARGER.laktat }}>● Laktat</span>}
+      {hasNutrition && <span style={{ color: PUNKT_FARGER.ernaering }}>● Ernæring</span>}
       {hasShooting && <span><span style={{ color: '#3DD68C' }}>●</span>/<span style={{ color: '#FF4500' }}>●</span> Skyting (treff/bom)</span>}
     </div>
   )
 }
 
-function findValueAt(arr: HrSample[] | null, t: number): number | null {
-  if (!arr || arr.length === 0) return null
-  // Binærsøk er ikke verdt det her (≤ tusenvis av punkter, og dette skjer
-  // for noen få markører totalt).
-  let best = arr[0]
-  let bestDiff = Math.abs(best.t - t)
-  for (const r of arr) {
-    const d = Math.abs(r.t - t)
-    if (d < bestDiff) { best = r; bestDiff = d }
-  }
-  return best.hr
-}
-
-// ── Segmentbånd (fasit 1c) ───────────────────────────────────
+// ── Segmentbånd (fasit 1c + gruppeklammer) ───────────────────
 // Kollapset lesevisning: båndet under kurven viser radene som segmenter i
-// tid, punktmarkører (laktat/ernæring) ligger OVER båndet, og hold/tapp på
-// et segment eller punkt gir leser-linja under (tid · varighet · snittpuls ·
-// treff). Skytevinduer får i tillegg faste leser-rader (fasit 1b).
-//
-// Den nye kurven tegner i full bredde (ingen akse-marg — y-etikettene
-// ligger oppå flata), så båndet står rett under kurven uten innrykk.
-const BAAND_INNRYKK_VENSTRE = 0
-const BAAND_INNRYKK_HOYRE = 0
+// tid, følger zoomen, og hold/tapp på et segment gir leser-linja under
+// (tid · varighet · snittpuls · treff). Repeterte segmenter samles under
+// én klamme («8 × 40/20»); zoomer man inn nok, løses klammen opp i
+// enkeltsegmenter med egne etiketter. Etikett direkte på båndet der det
+// er plass — identitet bæres aldri av farge alene.
+
+const BAAND_HOYDE = 16
+/** Segment ≥ denne andelen av synlig bredde får etikett rett på båndet. */
+const ETIKETT_ANDEL = 0.08
+/** Er alle segmentene i en gruppe ≥ denne andelen, løses klammen opp. */
+const OPPLOSNING_ANDEL = 0.06
 
 function SegmentBaand({
-  segmenter, totalSek, lactate, nutrition, hr, speed, sport, valgt, onVelg,
+  segmenter, synlig, hr, watt, speed, sport, valgt, onVelg,
 }: {
   segmenter: Segment[]
-  totalSek: number
-  lactate: LactateMarker[]
-  nutrition: NutritionMarker[]
+  synlig: [number, number]
   hr: HrSample[] | null
+  watt: WattSample[] | null
   speed: SpeedSample[] | null
   sport: Sport
   valgt: string | null
   onVelg: (id: string | null) => void
 }) {
-  const pct = (t: number) => `${Math.max(0, Math.min(100, (t / totalSek) * 100))}%`
+  const [fra, til] = synlig
+  const spenn = Math.max(1, til - fra)
+  const pct = (t: number) => `${Math.max(0, Math.min(100, ((t - fra) / spenn) * 100))}%`
+  const andel = (a: number, b: number) => (Math.min(b, til) - Math.max(a, fra)) / spenn
+  const [hovedGruppe, setHovedGruppe] = useState<number | null>(null)
 
+  const grupper = useMemo(() => grupperSegmenter(segmenter), [segmenter])
+  // Klammer som skal stå: de som ikke er «oppløst» av zoomen.
+  const klammer = grupper.filter(g => {
+    if (g.sluttSek < fra || g.startSek > til) return false
+    const minste = Math.min(...segmenter.slice(g.fra, g.til + 1).map(s => andel(s.startSek, s.sluttSek)))
+    return minste < OPPLOSNING_ANDEL
+  })
+  const iKlamme = (i: number) => klammer.find(g => i >= g.fra && i <= g.til) ?? null
   const valgtSegment = segmenter.find(sg => sg.aktivitetId === valgt) ?? null
-  const valgtLaktat = valgt?.startsWith('lac-') ? lactate[Number(valgt.slice(4))] : null
-  const valgtNutrition = valgt?.startsWith('nut-') ? nutrition[Number(valgt.slice(4))] : null
+  const hovedet = hovedGruppe != null ? klammer[hovedGruppe] ?? null : null
 
   return (
-    <div style={{ marginLeft: BAAND_INNRYKK_VENSTRE, marginRight: BAAND_INNRYKK_HOYRE }}>
-      {/* Punktmarkører OVER båndet — punkt = tidspunkt + verdi, aldri
-          varighet (fasit-notatet). */}
-      {(lactate.length > 0 || nutrition.length > 0) && (
-        <div style={{ position: 'relative', height: 14 }}>
-          {lactate.map((lac, i) => (
-            <button key={`lac-${i}`} type="button"
-              onMouseEnter={() => onVelg(`lac-${i}`)}
-              onClick={() => onVelg(valgt === `lac-${i}` ? null : `lac-${i}`)}
-              aria-label={`Laktat ${lac.mmol} mmol ved ${fmtKlokkeSek(lac.t)}`}
-              style={{
-                position: 'absolute', left: pct(lac.t), transform: 'translateX(-50%)',
-                width: 9, height: 9, borderRadius: '50%', padding: 0,
-                background: '#E23A5A', border: '1px solid var(--flate-3)',
-                cursor: 'pointer', top: 2,
-              }} />
-          ))}
-          {nutrition.map((n, i) => (
-            <button key={`nut-${i}`} type="button"
-              onMouseEnter={() => onVelg(`nut-${i}`)}
-              onClick={() => onVelg(valgt === `nut-${i}` ? null : `nut-${i}`)}
-              aria-label={`Ernæring ved ${fmtKlokkeSek(n.t)}`}
-              style={{
-                position: 'absolute', left: pct(n.t), transform: 'translateX(-50%) rotate(45deg)',
-                width: 8, height: 8, padding: 0,
-                background: '#FFB300', border: '1px solid var(--flate-3)',
-                cursor: 'pointer', top: 2,
-              }} />
-          ))}
-        </div>
-      )}
-
+    <div data-segmentbaand>
       {/* Selve båndet. */}
-      <div style={{ position: 'relative', height: 14 }}
+      <div style={{ position: 'relative', height: BAAND_HOYDE, marginTop: 6 }}
         onMouseLeave={() => onVelg(null)}>
-        {segmenter.map(sg => {
+        {segmenter.map((sg, i) => {
+          if (sg.sluttSek < fra || sg.startSek > til) return null
           // Et 40-sekunders vindu er under 1 % av en to-timers økt: uten
           // hjelp blir veksling og skyting både usynlige og uklikkbare.
           // SMALE segmenter får minstebredde (synlighet) + en utvidet
           // treffflate på 36 px (konvensjonen) — og HØYERE z-index, ellers
           // stjeler de brede naboenes treffflater klikket (målt: klikk på
           // et 10 px veksling-segment havnet på Sykkel-segmentet ved siden).
-          // Brede segmenter beholder eksakte grenser og trenger ingen av
-          // delene.
-          const andel = (sg.sluttSek - sg.startSek) / Math.max(1, totalSek)
-          const smalt = andel < 0.03
+          const a = andel(sg.startSek, sg.sluttSek)
+          const smalt = a < 0.03
+          const gruppe = iKlamme(i)
+          const dempet = (valgt != null && valgt !== sg.aktivitetId)
+            || (hovedet != null && !(i >= hovedet.fra && i <= hovedet.til))
+          const start = Math.max(sg.startSek, fra), slutt = Math.min(sg.sluttSek, til)
           return (
           <button key={sg.aktivitetId} type="button"
             onMouseEnter={() => onVelg(sg.aktivitetId)}
@@ -680,17 +971,22 @@ function SegmentBaand({
             aria-label={`${sg.etikett} ${fmtKlokkeSek(sg.startSek)}–${fmtKlokkeSek(sg.sluttSek)}`}
             style={{
               position: 'absolute',
-              left: pct(sg.startSek),
-              width: `calc(${pct(sg.sluttSek - sg.startSek)} - 2px)`,
+              left: pct(start),
+              width: `calc(${pct(slutt - start + fra)} - 2px)`,
               minWidth: 10,
-              height: 14, top: 0, padding: 0,
+              height: BAAND_HOYDE, top: 0, padding: '0 4px',
               zIndex: smalt ? 3 : 1,
               background: segmentBakgrunn(sg.type),
-              opacity: valgt == null || valgt === sg.aktivitetId ? 0.9 : 0.45,
+              opacity: dempet ? 0.45 : 0.9,
               border: 'none', borderRadius: 3, cursor: 'pointer',
-              outline: 'none',
+              outline: 'none', overflow: 'hidden', textAlign: 'left',
               boxShadow: valgt === sg.aktivitetId ? `0 0 0 2px ${SEGMENT_FARGER[sg.type]}` : 'none',
+              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9.5, letterSpacing: '0.06em',
+              textTransform: 'uppercase', color: 'var(--tekst-1-ren)', lineHeight: `${BAAND_HOYDE}px`,
+              whiteSpace: 'nowrap',
             }}>
+            {/* Direkte etikett der det er plass — i en klamme bærer klammen navnet. */}
+            {!gruppe && a >= ETIKETT_ANDEL ? sg.etikett : ''}
             {smalt && (
               <span aria-hidden style={{
                 position: 'absolute', top: -11, bottom: -11, left: -6, right: -6,
@@ -702,11 +998,66 @@ function SegmentBaand({
         })}
       </div>
 
-      {/* Leser-linje for valgt segment/punkt («hold over»-raden i fasiten). */}
+      {/* Gruppeklammer under båndet — én etikett for en repetert blokk. */}
+      {klammer.length > 0 && (
+        <div style={{ position: 'relative', height: 26 }}>
+          {klammer.map((g, gi) => {
+            const start = Math.max(g.startSek, fra), slutt = Math.min(g.sluttSek, til)
+            const farge = SEGMENT_FARGER[g.type]
+            return (
+              <button key={`${g.fra}-${g.til}`} type="button"
+                onMouseEnter={() => setHovedGruppe(gi)}
+                onMouseLeave={() => setHovedGruppe(null)}
+                onFocus={() => setHovedGruppe(gi)}
+                onBlur={() => setHovedGruppe(null)}
+                aria-label={`${g.etikett} · ${fmtKlokkeSek(g.startSek)}–${fmtKlokkeSek(g.sluttSek)}`}
+                style={{
+                  position: 'absolute', left: pct(start), width: `calc(${pct(slutt - start + fra)} - 2px)`,
+                  top: 2, height: 24, padding: 0, background: 'none', border: 'none', cursor: 'default',
+                  borderLeft: `1px solid ${hovedet === g ? farge : 'var(--tekst-8-alt)'}`,
+                  borderRight: `1px solid ${hovedet === g ? farge : 'var(--tekst-8-alt)'}`,
+                  borderBottom: `1px solid ${hovedet === g ? farge : 'var(--tekst-8-alt)'}`,
+                  borderRadius: '0 0 4px 4px', minWidth: 14,
+                }}>
+                <span style={{
+                  position: 'absolute', left: '50%', bottom: -2, transform: 'translate(-50%, 100%)',
+                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
+                  letterSpacing: '0.06em', color: hovedet === g ? farge : 'var(--tekst-5-app)',
+                  whiteSpace: 'nowrap', background: 'var(--flate-12-alt)', padding: '0 4px',
+                }}>
+                  {g.etikett}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {klammer.length > 0 && <div style={{ height: 14 }} />}
+
+      {/* Leser-linje for valgt segment / gruppe («hold over»-raden i fasiten). */}
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
         color: 'var(--tekst-5-app)', minHeight: 20, paddingTop: 4,
       }}>
+        {hovedet && !valgtSegment && (() => {
+          const deler = segmenter.slice(hovedet.fra, hovedet.til + 1)
+          const arbeid = deler.filter(s => s.type !== 'pause')
+          const total = deler.reduce((s, x) => s + (x.sluttSek - x.startSek), 0)
+          const pulser = arbeid.map(s => pulsIVindu(hr, s.startSek, s.sluttSek).snitt).filter((v): v is number => v != null)
+          const snittPuls = pulser.length ? Math.round(pulser.reduce((a, b) => a + b, 0) / pulser.length) : null
+          const wattSnitt = watt && watt.length > 1
+            ? snittAv(watt.filter(w => arbeid.some(s => w.t >= s.startSek && w.t <= s.sluttSek)).map(w => ({ t: w.t, v: w.w })))
+            : null
+          return (
+            <span>
+              <b style={{ color: SEGMENT_FARGER[hovedet.type] }}>{hovedet.etikett}</b>
+              {' · '}{fmtKlokkeSek(hovedet.startSek)}–{fmtKlokkeSek(hovedet.sluttSek)}
+              {' · totalt '}{fmtKlokkeSek(total)}
+              {snittPuls != null ? <>{' · snittpuls i dragene '}{snittPuls}</> : null}
+              {wattSnitt != null ? <>{' · snittwatt '}{Math.round(wattSnitt)}</> : null}
+            </span>
+          )
+        })()}
         {valgtSegment && (() => {
           const puls = pulsIVindu(hr, valgtSegment.startSek, valgtSegment.sluttSek)
           return (
@@ -715,34 +1066,18 @@ function SegmentBaand({
               {' · '}{fmtKlokkeSek(valgtSegment.startSek)}–{fmtKlokkeSek(valgtSegment.sluttSek)}
               {' · '}{fmtKlokkeSek(valgtSegment.sluttSek - valgtSegment.startSek)}
               {puls.snitt != null ? <>{' · snitt '}{puls.snitt}</> : <>{' · puls: for lite data'}</>}
+              {(() => {
+                const f = snittFartIVindu(speed, valgtSegment.startSek, valgtSegment.sluttSek)
+                return f != null ? <>{' · '}{fmtFart(f, sport)}</> : null
+              })()}
               {valgtSegment.treff ? <>{' · '}{valgtSegment.treff}</> : null}
             </span>
           )
         })()}
-        {valgtLaktat && (
-          <span>
-            <b style={{ color: '#E23A5A' }}>Laktat {String(valgtLaktat.mmol).replace('.', ',')} mmol</b>
-            {' · '}{fmtKlokkeSek(valgtLaktat.t)}
-            {(() => {
-              const p = findValueAt(hr, valgtLaktat.t)
-              return p != null ? <>{' · puls '}{p}</> : null
-            })()}
-            {(() => {
-              const f = naermesteFart(speed, valgtLaktat.t)
-              return f != null ? <>{' · '}{fmtFart(f, sport)}</> : null
-            })()}
-          </span>
-        )}
-        {valgtNutrition && (
-          <span>
-            <b style={{ color: '#FFB300' }}>Ernæring — {valgtNutrition.type}</b>
-            {' · '}{fmtKlokkeSek(valgtNutrition.t)}
-            {valgtNutrition.carbs_g != null ? <>{' · '}{valgtNutrition.carbs_g} g karbo</> : null}
-          </span>
-        )}
-        {!valgtSegment && !valgtLaktat && !valgtNutrition && (
+        {!valgtSegment && !hovedet && (
           <span style={{ color: 'var(--tekst-8-alt)' }}>
             Hold over et segment: tid · varighet · snittpuls{segmenter.some(sg => sg.treff) ? ' · treff' : ''}
+            {klammer.length > 0 ? ' — eller en klamme for hele gruppa' : ''}
           </span>
         )}
       </div>
@@ -771,15 +1106,9 @@ function SegmentBaand({
   )
 }
 
-function naermesteFart(arr: SpeedSample[] | null, t: number): number | null {
+function snittFartIVindu(arr: SpeedSample[] | null, fra: number, til: number): number | null {
   if (!arr || arr.length === 0) return null
-  let best = arr[0]
-  let bestDiff = Math.abs(best.t - t)
-  for (const r of arr) {
-    const d = Math.abs(r.t - t)
-    if (d < bestDiff) { best = r; bestDiff = d }
-  }
-  return best.mps
+  return snittAv(arr.filter(p => p.t >= fra && p.t <= til).map(p => ({ t: p.t, v: p.mps })))
 }
 
 function fmtFart(mps: number, sport: Sport): string {
@@ -789,4 +1118,51 @@ function fmtFart(mps: number, sport: Sport): string {
   const m = Math.floor(secPerKm / 60)
   const sek = Math.round(secPerKm % 60)
   return `${m}:${String(sek).padStart(2, '0')}/km`
+}
+
+// ── Kompakt kurve — oversikten (kalender, øktliste) ──────────
+// Samme kurve i miniatyr: pulsen som tynn linje og segmentbåndet under.
+// Ingen kontroller, ingen etiketter — bare formen, så et blikk på
+// kalenderen viser om økta var jevn eller hadde drag.
+
+export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30 }: {
+  hr: Array<{ t: number; hr: number }>
+  totalSek: number
+  segmenter: Segment[]
+  hoyde?: number
+}) {
+  const B = 320
+  const sti = useMemo(() => {
+    if (hr.length < 2 || totalSek <= 0) return ''
+    let lo = Infinity, hi = -Infinity
+    for (const p of hr) { if (p.hr < lo) lo = p.hr; if (p.hr > hi) hi = p.hr }
+    const spenn = Math.max(1, hi - lo)
+    const H = hoyde - 6
+    return hr.map((p, i) =>
+      `${i === 0 ? 'M' : 'L'}${((p.t / totalSek) * B).toFixed(1)} ${(1 + (1 - (p.hr - lo) / spenn) * (H - 2)).toFixed(1)}`,
+    ).join(' ')
+  }, [hr, totalSek, hoyde])
+  if (totalSek <= 0 || (hr.length < 2 && segmenter.length === 0)) return null
+  const pct = (t: number) => `${Math.max(0, Math.min(100, (t / totalSek) * 100))}%`
+  return (
+    <div data-kompakt-kurve aria-hidden style={{ position: 'relative', height: hoyde, marginTop: 3 }}>
+      {sti && (
+        <svg viewBox={`0 0 ${B} ${hoyde - 6}`} preserveAspectRatio="none"
+          style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: hoyde - 6 }}>
+          <path d={sti} fill="none" stroke="#E23A5A" strokeWidth={1.2} opacity={0.85} vectorEffect="non-scaling-stroke" />
+        </svg>
+      )}
+      {segmenter.length > 0 && (
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 4 }}>
+          {segmenter.map(sg => (
+            <span key={sg.aktivitetId} style={{
+              position: 'absolute', left: pct(sg.startSek),
+              width: `calc(${pct(sg.sluttSek - sg.startSek)} - 1px)`, minWidth: 2,
+              top: 0, bottom: 0, borderRadius: 1, background: segmentBakgrunn(sg.type), opacity: 0.9,
+            }} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }

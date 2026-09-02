@@ -47,3 +47,6 @@ export function nedsampleSerie<T extends TidsPunkt>(
 
 /** Kolonner serveren sender for HELE økta. Klienten henter finere ved zoom. */
 export const OVERSIKT_KOLONNER = 900
+
+/** Kolonner i den kompakte kurven i oversikten (kalender, øktliste). */
+export const KOMPAKT_KOLONNER = 120

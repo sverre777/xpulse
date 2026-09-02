@@ -11,8 +11,9 @@ import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
 import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
 import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
-import { beregnSegmenter, type Segment } from '@/lib/segmenter'
-import { nedsampleSerie, OVERSIKT_KOLONNER } from '@/lib/kurve-nedsample'
+import { beregnSegmenter, type Segment, type SegmentRad } from '@/lib/segmenter'
+import { nedsampleSerie, OVERSIKT_KOLONNER, KOMPAKT_KOLONNER } from '@/lib/kurve-nedsample'
+import { revalidatePath } from 'next/cache'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
 // per-lap-aktiviteter, og markører (laktat/ernæring/skyting) for å vise
@@ -34,8 +35,24 @@ export interface OktWattMetrikker {
   ftpMangler: boolean
 }
 
+/** Det skjemaet trenger for å tegne segmentbåndet LIVE fra sine egne
+    rader: proveniens og lagret vindu per rad-id. Radene selv (type,
+    varighet) kommer fra skjemaet, så båndet følger hvert tastetrykk. */
+export interface RadInfo {
+  harKlokkeProveniens: boolean
+  window_start_seconds: number | null
+  window_duration_seconds: number | null
+  gruppeId: string | null
+}
+
 export interface WorkoutKlokkesyncData {
   sport: Sport | null
+  /** Opplevd belastning 1–10 på økta (workouts.rpe) — samme felt som
+      skjemaet fører lenger nede. */
+  rpe: number | null
+  /** Kurvens lengde i sekunder — tidslinjens fasit. */
+  totalSek: number
+  radInfo: Record<string, RadInfo>
   wattMetrikker: OktWattMetrikker | null
   // Aerob frakobling for økta (bolk 3) — kun jevne økter > 40 min med
   // puls + watt/fart-kurve. null = ikke kvalifisert (vises ikke; en
@@ -66,7 +83,7 @@ export async function getWorkoutKlokkesyncData(
   // workout er resolvert.
   const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
     supabase.from('workouts')
-      .select('id, sport, time_of_day, date, user_id')
+      .select('id, sport, time_of_day, date, user_id, rpe')
       .eq('id', workoutId)
       .maybeSingle(),
     supabase.from('workout_samples')
@@ -82,7 +99,7 @@ export async function getWorkoutKlokkesyncData(
         avg_cadence, max_cadence,
         elevation_gain_m, rpe, lap_notes,
         window_start_seconds, window_duration_seconds,
-        external_id, strava_lap_index,
+        external_id, strava_lap_index, gruppe_id,
         prone_hits, prone_shots, standing_hits, standing_shots,
         activity_type, movement_name, movement_subcategory
       `)
@@ -267,11 +284,25 @@ export async function getWorkoutKlokkesyncData(
         standing_shots: a.standing_shots,
         standing_hits: a.standing_hits,
         harKlokkeProveniens: !!a.external_id || a.strava_lap_index != null,
+        gruppeId: (a.gruppe_id as string | null) ?? null,
       })), totalSek)
     : []
 
+  const radInfo: Record<string, RadInfo> = {}
+  for (const a of activities ?? []) {
+    radInfo[a.id] = {
+      harKlokkeProveniens: !!a.external_id || a.strava_lap_index != null,
+      window_start_seconds: a.window_start_seconds,
+      window_duration_seconds: a.window_duration_seconds,
+      gruppeId: (a.gruppe_id as string | null) ?? null,
+    }
+  }
+
   return {
     sport: (workout.sport ?? null) as Sport | null,
+    rpe: workout.rpe != null ? Number(workout.rpe) : null,
+    totalSek,
+    radInfo,
     wattMetrikker,
     frakobling,
     samples,
@@ -388,4 +419,84 @@ export async function hentKurveVindu(
   const rad = data?.[0]
   if (!rad) return null
   return nedsampleSamples(rad as RaaSamples, fraSek, tilSek, kolonner)
+}
+
+// ── Kompakte kurver til oversikten (kalender, øktliste) ──────
+// Samme kurve i miniatyr: ~120 kolonner puls + segmentbåndet. Hentes i
+// BATCH for de øktene som står synlige, etter at kalenderen er tegnet —
+// aldri i veien for første maling. Kostnaden er at serveren leser hele
+// sample-raden per økt; klienten får ~2 KB per økt.
+// (KOMPAKT_KOLONNER bor i lib/kurve-nedsample — en 'use server'-fil kan
+// bare eksportere async-funksjoner.)
+
+export interface KompaktKurve {
+  hr: Array<{ t: number; hr: number }>
+  totalSek: number
+  segmenter: Segment[]
+}
+
+export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<string, KompaktKurve>> {
+  const ut: Record<string, KompaktKurve> = {}
+  const ids = [...new Set(workoutIds)].slice(0, 80)
+  if (ids.length === 0) return ut
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return ut
+  const [samplesRes, akterRes] = await Promise.all([
+    supabase.from('workout_samples')
+      .select('workout_id, hr_samples, watt_samples, pace_samples, speed_samples, created_at')
+      .in('workout_id', ids).order('created_at', { ascending: false }),
+    supabase.from('workout_activities')
+      .select('id, workout_id, sort_order, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
+      .in('workout_id', ids).order('sort_order', { ascending: true }),
+  ])
+  const raderPerOkt = new Map<string, SegmentRad[]>()
+  for (const a of akterRes.data ?? []) {
+    const liste = raderPerOkt.get(a.workout_id) ?? []
+    liste.push({
+      id: a.id, activity_type: a.activity_type, movement_name: a.movement_name,
+      duration_seconds: a.duration_seconds,
+      window_start_seconds: a.window_start_seconds, window_duration_seconds: a.window_duration_seconds,
+      prone_shots: a.prone_shots, prone_hits: a.prone_hits,
+      standing_shots: a.standing_shots, standing_hits: a.standing_hits,
+      harKlokkeProveniens: !!a.external_id || a.strava_lap_index != null,
+      gruppeId: (a.gruppe_id as string | null) ?? null,
+    })
+    raderPerOkt.set(a.workout_id, liste)
+  }
+  for (const rad of samplesRes.data ?? []) {
+    if (ut[rad.workout_id]) continue   // nyeste rad vinner (sortert desc)
+    const hr = (rad.hr_samples ?? []) as Array<{ t: number; hr: number }>
+    const slutt = sisteT({
+      hr_samples: hr, watt_samples: rad.watt_samples ?? null,
+      pace_samples: rad.pace_samples ?? null, speed_samples: rad.speed_samples ?? null,
+      altitude_samples: null, cadence_samples: null,
+    })
+    if (slutt <= 0) continue
+    ut[rad.workout_id] = {
+      hr: hr.length > 0 ? nedsampleSerie(hr, 0, slutt, KOMPAKT_KOLONNER, p => p.hr) : [],
+      totalSek: slutt,
+      segmenter: beregnSegmenter(raderPerOkt.get(rad.workout_id) ?? [], slutt),
+    }
+  }
+  return ut
+}
+
+/** Opplevd belastning fra nøkkeltallsraden — skriver NØYAKTIG det
+    eksisterende RPE-feltet på økta (regel 11), aldri en kopi. */
+export async function lagreOpplevdBelastning(
+  workoutId: string, rpe: number | null,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Ikke innlogget' }
+  if (rpe != null && (!Number.isInteger(rpe) || rpe < 1 || rpe > 10)) {
+    return { ok: false, error: 'Belastning må være et helt tall 1–10' }
+  }
+  const { error, count } = await supabase.from('workouts')
+    .update({ rpe }, { count: 'exact' }).eq('id', workoutId)
+  if (error) return { ok: false, error: error.message }
+  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
+  revalidatePath('/app/dagbok')
+  return { ok: true }
 }

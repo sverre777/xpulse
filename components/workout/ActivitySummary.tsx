@@ -16,6 +16,11 @@ import {
 } from '@/lib/pace-utils'
 import { resolvePaceUnit } from '@/components/pace/PaceDisplay'
 import { parseDecimal } from '@/lib/parse-decimal'
+import type { WorkoutKlokkesyncData } from '@/app/actions/workout-klokkesync'
+import type { Segment } from '@/lib/segmenter'
+import {
+  WorkoutDetailChart, Nokkeltall, nokkeltallFraKlokke, fmtVarighetLang, type NokkeltallCelle,
+} from './WorkoutDetailChart'
 
 interface Props {
   activities: ActivityRow[]
@@ -23,22 +28,20 @@ interface Props {
   sport: Sport
   // Brukerens default pace-enhet — null faller tilbake til 'min_per_km'.
   defaultPaceUnit?: PaceUnit | null
+  /** Klokke-grafen LIVE i kortet (bolk 2): samples fra serveren, segmentene
+      fra skjemaets egne rader — oppdateres for hver rad man fører. */
+  klokke?: { data: WorkoutKlokkesyncData; segmenter: Segment[]; workoutId: string } | null
+  /** Opplevd belastning — SAMME felt som «Dagsform og belastning» fører. */
+  rpe?: number | null
+  onRpe?: (v: number | null) => void
 }
 
 // Sonefarger: ÉN fasit i lib/activity-summary.ts (ZONE_COLORS_V2).
 // Ikke gjenta hexene her — I1 grønn, I2 blå, alltid.
 import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
-function formatTotalTime(totalSeconds: number): string {
-  if (totalSeconds <= 0) return '—'
-  const h = Math.floor(totalSeconds / 3600)
-  const m = Math.round((totalSeconds % 3600) / 60)
-  if (h > 0 && m > 0) return `${h}t ${m}min`
-  if (h > 0) return `${h}t`
-  return `${m}min`
-}
 
-export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null }: Props) {
+export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -210,6 +213,19 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
     shots > 0 ? Math.round((hits / shots) * 100) : null
   const paceUnit: PaceUnit = resolvePaceUnit('', defaultPaceUnit)
 
+  // NØKKELTALLSRADEN — grafens rad (fasit) er kortets rad: Treningstid og
+  // Distanse var her fra før; med klokke kommer varighet, hovedsone,
+  // snittpuls, snittwatt og belastning fra samples, og opplevd belastning
+  // føres rett i raden. Uten klokke står radenes tall (plan-grafen i bolk 5
+  // fyller resten).
+  const celler: NokkeltallCelle[] = klokke?.data.samples
+    ? nokkeltallFraKlokke({ samples: klokke.data.samples, heartZones, np: klokke.data.wattMetrikker?.np ?? null })
+    : [{ id: 'trening', etikett: 'Treningstid', verdi: summary.totalSeconds > 0 ? fmtVarighetLang(summary.totalSeconds) : '—' }]
+  if (totalKm > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: totalKm.toFixed(1), hale: 'km' })
+  if (summary.shootingSeconds > 0) celler.push({ id: 'skyting', etikett: 'Skyting', verdi: `${Math.round(summary.shootingSeconds / 60)}`, hale: 'min · utenfor treningstid' })
+  if (summary.bestPaceSeconds != null) celler.push({ id: 'pace', etikett: 'Beste pace', verdi: formatPace(summary.bestPaceSeconds, paceUnit), hale: summary.bestPaceMovement ?? undefined })
+  if (summary.lactateCount > 0) celler.push({ id: 'laktat', etikett: 'Laktat', verdi: `${summary.lactateCount}×`, hale: summary.lactateMax != null ? `maks ${summary.lactateMax.toFixed(1)}` : undefined })
+
   return (
     <div className="p-4" style={{ background: 'linear-gradient(135deg, var(--flate-12) 0%, var(--flate-7-alt) 100%)', border: '1px solid var(--line)', borderRadius: 'var(--r-card)' }}>
       <div className="flex items-center gap-2 mb-3">
@@ -220,26 +236,30 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
         </span>
       </div>
 
-      {/* Totaltid + Distanse + (eventuelt) Skyting */}
-      <div className="grid grid-cols-2 md:grid-cols-3 mb-3 divide-x" style={{ borderColor: "var(--line)", columnGap: 0 }}>
-        <Metric label="Treningstid" value={formatTotalTime(summary.totalSeconds)} />
-        <Metric label="Distanse" value={totalKm > 0 ? `${totalKm.toFixed(1)} km` : '—'} />
-        {summary.shootingSeconds > 0 && (
-          <Metric label="Skyting" value={`${Math.round(summary.shootingSeconds / 60)} min`} sub="Holdes utenfor treningstid" />
-        )}
-        {summary.bestPaceSeconds != null && (
-          <Metric
-            label="Beste pace"
-            value={formatPace(summary.bestPaceSeconds, paceUnit)}
-            sub={summary.bestPaceMovement ?? undefined}
+      {/* Klokke-grafen — samme komponent som på hovedsida, LIVE her:
+          segmentbåndet leser skjemaets rader (bolk 2, monteringspunkt 1). */}
+      {klokke?.data.samples && klokke.data.sport && (
+        <div className="mb-3">
+          <WorkoutDetailChart
+            tetthet="skjema"
+            workoutId={klokke.workoutId}
+            sport={klokke.data.sport}
+            samples={klokke.data.samples}
+            laps={klokke.data.lapMarkers}
+            lactate={klokke.data.lactate}
+            nutrition={klokke.data.nutrition}
+            shooting={klokke.data.shooting}
+            segmenter={klokke.segmenter}
+            heartZones={heartZones}
+            np={klokke.data.wattMetrikker?.np ?? null}
           />
-        )}
-        {summary.lactateCount > 0 && (
-          <Metric
-            label="Laktat"
-            value={`${summary.lactateCount}× ${summary.lactateMax != null ? `· maks ${summary.lactateMax.toFixed(1)}` : ''}`}
-          />
-        )}
+        </div>
+      )}
+
+      {/* Nøkkeltallsraden — varighet · hovedsone · snittpuls · snittwatt ·
+          belastning · opplevd (føres), pluss distanse og det som finnes. */}
+      <div className="mb-3">
+        <Nokkeltall celler={celler} rpe={rpe} onRpe={onRpe} />
       </div>
 
       {/* Bevegelsesform-fordeling */}
@@ -356,21 +376,6 @@ function ZoneBar({
   )
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div style={{ padding: '2px 18px 2px 0', paddingLeft: 12 }} className="first:pl-0">
-      <span className="xp-k">{label}</span>
-      <p className="xp-v" style={{ fontSize: '30px', lineHeight: 1.1 }}>
-        {value}
-      </p>
-      {sub && (
-        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px' }}>
-          {sub}
-        </p>
-      )}
-    </div>
-  )
-}
 
 function ShootingMetric({
   label, shots, hits, shotsScored, pct,

@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getWorkoutKlokkesyncData, type WorkoutKlokkesyncData } from '@/app/actions/workout-klokkesync'
+import { lagreOpplevdBelastning } from '@/app/actions/workout-klokkesync'
+import { useKlokkedata } from './useKlokkedata'
 import { WorkoutDetailChart } from './WorkoutDetailChart'
 import { LapTable } from './LapTable'
 import { WorkoutDeepAnalysis } from './WorkoutDeepAnalysis'
@@ -24,15 +25,12 @@ interface Props {
   // /api/cron/cleanup-strava-samples (Strava API Agreement § 7). Vi viser
   // info-tekst i stedet for grafen så brukeren forstår at grunndata er der.
   importedFrom?: string | null
-}
-
-interface FetchState {
-  workoutId: string
-  data: WorkoutKlokkesyncData | null
-  loading: boolean
-  // Nettverks-/action-feil (mobil, deploy-race): uten denne ble en avvist
-  // promise stående i loading for alltid → seksjonen «åpnet aldri».
-  error: boolean
+  /** Skjemaet henter klokkedataene selv (useKlokkedata) og deler dem hit,
+      så grafen i oppsummeringskortet og tabellen her aldri henter to ganger. */
+  klokke?: ReturnType<typeof useKlokkedata>
+  /** I skjemaet står grafen i oppsummeringskortet — her bare rundetabellen
+      og den dypere analysen. */
+  visGraf?: boolean
 }
 
 function KlokkedataLaster() {
@@ -74,30 +72,21 @@ function KlokkedataLaster() {
   )
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0 }: Props) {
-  const [state, setState] = useState<FetchState>({ workoutId, data: null, loading: true, error: false })
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true }: Props) {
+  // Henter selv bare når ingen deler dataene med oss (øktas hovedside).
+  const egen = useKlokkedata(klokke ? null : workoutId, refreshTick)
+  const state = klokke ?? egen
   const [showDeep, setShowDeep] = useState(false)
-  const [retryTick, setRetryTick] = useState(0)
-
-  // Når workoutId endrer seg (bruker åpner annen økt i samme session),
-  // resync ved å sammenligne i state. Det unngår dobbel-setState i samme tick.
-  if (state.workoutId !== workoutId) {
-    setState({ workoutId, data: null, loading: true, error: false })
+  // Opplevd belastning fra nøkkeltallsraden: skriver workouts.rpe direkte
+  // (hovedsida har ikke et skjema å skrive i). Optimistisk, med ærlig feil.
+  const [rpeFeil, setRpeFeil] = useState<string | null>(null)
+  const settRpe = async (v: number | null) => {
+    const forrige = state.data?.rpe ?? null
+    state.patch(d => ({ ...d, rpe: v }))
+    const r = await lagreOpplevdBelastning(workoutId, v)
+    if (!r.ok) { state.patch(d => ({ ...d, rpe: forrige })); setRpeFeil(r.error) }
+    else setRpeFeil(null)
   }
-
-  useEffect(() => {
-    let cancelled = false
-    getWorkoutKlokkesyncData(workoutId)
-      .then(d => {
-        if (cancelled) return
-        setState({ workoutId, data: d, loading: false, error: false })
-      })
-      .catch(() => {
-        if (cancelled) return
-        setState({ workoutId, data: null, loading: false, error: true })
-      })
-    return () => { cancelled = true }
-  }, [workoutId, retryTick, refreshTick])
 
   // Store økter kan bruke titalls sekunder på å hente sekund-dataene
   // (målt 29. aug: 1,2 / 5,7 / 31,6 s på samme 116 625-punkters økt).
@@ -114,7 +103,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           Kunne ikke laste klokkedata.
         </span>
         <button type="button"
-          onClick={() => { setState(s => ({ ...s, loading: true, error: false })); setRetryTick(t => t + 1) }}
+          onClick={state.retry}
           style={{
             fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, letterSpacing: '0.08em',
             textTransform: 'uppercase', color: 'var(--accent)', background: 'none',
@@ -200,7 +189,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
         </p>
       )}
 
-      {hasSamples && data.samples && data.sport && (
+      {visGraf && hasSamples && data.samples && data.sport && (
         <WorkoutDetailChart
           workoutId={workoutId}
           sport={data.sport}
@@ -210,7 +199,14 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           nutrition={data.nutrition}
           shooting={data.shooting}
           segmenter={data.segmenter}
+          heartZones={data.heartZones}
+          np={data.wattMetrikker?.np ?? null}
+          rpe={data.rpe}
+          onRpe={settRpe}
         />
+      )}
+      {rpeFeil && (
+        <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: '#E23A5A' }}>{rpeFeil}</p>
       )}
 
       {hasLaps && data.sport && (

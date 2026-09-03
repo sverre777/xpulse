@@ -136,6 +136,9 @@ export interface Segment {
   paaKurven: boolean
   kilde: 'runde' | 'plassert'
   gruppeId: string | null
+  /** Likhetsnøkkel utover type (plan-grafen: sonen) — to blokker med ulik
+      nøkkel er aldri «like», selv med samme varighet. */
+  nokkel?: string
 }
 
 const SKYTING_PREFIX = 'skyting'
@@ -263,7 +266,9 @@ function klassifiser(
 // et mønster.
 
 export const LIKHETSTOLERANSE = 0.15
-export const MINSTE_REPETISJONER = 3
+// Rettelse 4 (3. sep): LIKE blokker etter hverandre får ÉN felles etikett
+// med klamme — også når det bare er to («2 × 10 min I3 · 3 min pause»).
+export const MINSTE_REPETISJONER = 2
 
 export interface SegmentGruppe {
   /** Indekser i segmentlista (inklusive). */
@@ -331,13 +336,13 @@ export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
       let antall = 1
       let j = i + 1
       while (j + 2 < n
-        && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)
+        && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel
         && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0)) {
         antall++; j += 2
       }
       // Siste repetisjon kan mangle pausen (den faller bort i byggeren).
       let sisteUtenPause = false
-      if (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)
+      if (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel
         && !(j + 2 < n && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0))) {
         antall++; j += 1; sisteUtenPause = true
       }
@@ -357,7 +362,7 @@ export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
     if (s0.type !== 'pause') {
       const a0 = varighet(s0)
       let j = i
-      while (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0)) j++
+      while (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel) j++
       const antall = j - i + 1
       if (antall >= MINSTE_REPETISJONER) {
         ut.push({

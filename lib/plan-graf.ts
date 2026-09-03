@@ -197,6 +197,8 @@ export function grupperPlanBlokker(blokker: PlanBlokk[]): SegmentGruppe[] {
       : b.slag === 'skyting_ligg' ? 'skyting_ligg' : b.slag === 'skyting_staa' ? 'skyting_staa'
       : b.type === 'oppvarming' ? 'oppvarming' : b.type === 'nedjogg' ? 'nedjogg' : 'drag',
     etikett: b.etikett, treff: null, paaKurven: false, kilde: 'plassert', gruppeId: b.gruppeId,
+    // Like blokker = samme varighet + sone + type (rettelse 4).
+    nokkel: b.sone ?? b.slag,
   }))
   return grupperSegmenter(segmenter)
 }

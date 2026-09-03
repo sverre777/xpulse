@@ -7,7 +7,7 @@
 // 'full' (skjema live + hovedside) og 'kompakt' (kalender, øktliste).
 // Redigeringen skjer i radene — grafen er resultatet.
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import {
   byggPlanBlokker, grupperPlanBlokker, planNokkeltall, fmtMin,
@@ -22,6 +22,9 @@ const PLOT = 120       // plotflatas høyde
 const TOPP_FULL = 62   // plass til etiketter + klammer
 const BUNN_FULL = 20
 
+// Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
+const TEGN_BREDDE = 6.2
+
 export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
@@ -30,6 +33,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   hoyde?: number
 }) {
   const blokker = useMemo(() => byggPlanBlokker(inn, heartZones), [inn, heartZones])
+  // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
+  const [aktivBlokk, setAktivBlokk] = useState<string | null>(null)
   const total = blokker.reduce((m, b) => Math.max(m, b.startSek + b.sek), 0)
   const grupper = useMemo(() => (tetthet === 'full' ? grupperPlanBlokker(blokker) : []), [blokker, tetthet])
   if (blokker.length === 0 || total <= 0) return null
@@ -56,7 +61,10 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         return (
           <g key={b.id}>
             <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
-              fill={b.farge} opacity={grunnflate ? 0.62 : b.slag === 'pause' || b.slag === 'veksling' ? 0.7 : 0.95} />
+              fill={b.farge} opacity={grunnflate ? 0.62 : b.slag === 'pause' || b.slag === 'veksling' ? 0.7 : 0.95}
+              data-blokk={b.id}>
+              <title>{`${b.etikett} · ${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}`}</title>
+            </rect>
             {b.slag === 'veksling' && (
               <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
                 fill="url(#plan-striper)" opacity={0.5} />
@@ -78,11 +86,14 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
           <line x1={0} y1={gulv} x2={B} y2={gulv} stroke="var(--line2)" />
           {/* Etiketter med pekelinje — bare på blokker som ikke ligger i en klamme
               og er brede nok til at teksten får plass. */}
+          <style>{`.plan-trang .plan-tekst{opacity:0;transition:opacity .12s}.plan-trang:hover .plan-tekst,.plan-trang[data-aktiv="true"] .plan-tekst{opacity:1}`}</style>
           {blokker.map(b => {
             const skyting = b.slag === 'skyting_ligg' || b.slag === 'skyting_staa'
             // Skyting får alltid markøren sin (rettelse 1) — også inni en klamme
             // og også når blokka er smal; klammen bærer bare dragene.
-            if (!skyting && (iKlamme.has(b.id) || x(b.sek) < B * 0.09)) return null
+            // Alle andre blokker utenfor en klamme får etikett (rettelse 4):
+            // direkte når den får plass, ellers ved trykk/hover — aldri utelatt.
+            if (!skyting && iKlamme.has(b.id)) return null
             const cx = x(b.startSek + b.sek / 2)
             if (skyting) return (
               <g key={`e-${b.id}`} data-skytemarkor>
@@ -94,17 +105,29 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
               </g>
             )
             const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
+            const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
+            const trang = x(b.sek) < bredde
+            const h = plot * b.hoyde
             return (
-              <g key={`e-${b.id}`}>
-                <text x={cx} y={topp - 44} textAnchor="middle" className="plan-etikett"
-                  style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                  {b.etikett}
-                </text>
-                <text x={cx} y={topp - 30} textAnchor="middle"
-                  style={{ font: "11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-5-app)' }}>
-                  {under}
-                </text>
-                <line x1={cx} y1={topp - 24} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
+              <g key={`e-${b.id}`} data-etikett-for={b.id} data-trang={trang || undefined}
+                className={trang ? 'plan-trang' : undefined} data-aktiv={trang && aktivBlokk === b.id ? 'true' : undefined}
+                onClick={trang ? () => setAktivBlokk(v => (v === b.id ? null : b.id)) : undefined}
+                style={trang ? { cursor: 'pointer' } : undefined}>
+                {trang && (
+                  /* Treffflate over blokka (≥ 36 px i høyden): hover/trykk viser etiketten. */
+                  <rect x={x(b.startSek)} y={Math.min(gulv - h, gulv - 36)} width={Math.max(x(b.sek), 8)} height={Math.max(h, 36)} fill="transparent" />
+                )}
+                <g className="plan-tekst">
+                  <text x={cx} y={topp - 44} textAnchor="middle" className="plan-etikett"
+                    style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase', paintOrder: 'stroke', stroke: 'var(--flate-12-alt)', strokeWidth: trang ? 4 : 0 }}>
+                    {b.etikett}
+                  </text>
+                  <text x={cx} y={topp - 30} textAnchor="middle"
+                    style={{ font: "11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-5-app)', paintOrder: 'stroke', stroke: 'var(--flate-12-alt)', strokeWidth: trang ? 4 : 0 }}>
+                    {under}
+                  </text>
+                </g>
+                <line x1={cx} y1={topp - 24} x2={cx} y2={gulv - h - 2} stroke="var(--line2)" />
               </g>
             )
           })}
@@ -115,7 +138,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const cx = (x1 + x2) / 2
             const sone = forste.sone
             return (
-              <g key={`k-${g.fra}`}>
+              <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`}>
                 <text x={cx} y={topp - 44} textAnchor="middle"
                   style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
                   {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}

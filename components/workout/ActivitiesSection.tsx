@@ -274,14 +274,16 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   }
 
   const addRow = () => {
-    const last = rows[rows.length - 1]
-    // Default: hovedaktivitet med sport-ens hovedbevegelsesform. Subsequent rader
-    // kopierer type + bevegelsesform + underkategori fra forrige (så serier av
-    // like økter blir raske). Bruker kan endre underkategori manuelt etterpå.
-    const type: ActivityType = last ? last.activity_type : 'aktivitet'
-    const movement = last ? last.movement_name : defaultMovementForSport(sport)
+    // SF-18: knappen sier «aktivitet» og skal ALDRI gi en skytetype. Arven
+    // tas fra siste rad som IKKE er skyting — type, bevegelsesform OG
+    // underkategori fra samme rad (så serier av like rader blir raske).
+    // Finnes ingen slik rad: hovedaktivitet med sportens hovedbevegelsesform.
+    // Samme sti i plan og dagbok — komponenten er den samme.
+    const kilde = [...rows].reverse().find(r => !(r.activity_type ?? '').startsWith('skyting'))
+    const type: ActivityType = kilde ? kilde.activity_type : 'aktivitet'
+    const movement = kilde ? kilde.movement_name : defaultMovementForSport(sport)
     const newRow = emptyRow(type, movement)
-    if (last) newRow.movement_subcategory = last.movement_subcategory
+    if (kilde) newRow.movement_subcategory = kilde.movement_subcategory
     onChange([...rows, newRow])
     // Nye rader åpnes ekspandert så brukeren kan fylle inn umiddelbart.
     setExpandedId(newRow.id)

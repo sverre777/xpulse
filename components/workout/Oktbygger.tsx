@@ -109,7 +109,10 @@ export function OktbyggerPopup({
   const [klokkerunder, setKlokkerunder] = useState<Klokkerunde[] | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
   const [visPlottTreff, setVisPlottTreff] = useState(false)
-  const [hurtigAapent, setHurtigAapent] = useState(!workoutId || rader.length === 0)
+  // Rettelse 3 (3. sep): hurtigoppsettet er FØRSTE seksjon og står ÅPENT —
+  // i plan og dagbok, med og uten kurve. Det lå her før også, men
+  // sammenslått bak en pil så snart økta hadde rader, og ble ikke funnet.
+  const [hurtigAapent, setHurtigAapent] = useState(true)
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>(() =>
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
   // ANGRE: forrige radsett, steg for steg. Lever i byggeren til den lukkes.
@@ -234,9 +237,10 @@ export function OktbyggerPopup({
         </div>
 
         <div className="px-5 py-4 space-y-5">
-          {/* ── HURTIGOPPSETTET ── radene går rett i skjemaet. */}
+          {/* ── HURTIGOPPSETTET ── første seksjon, åpent. Radene går rett i
+              skjemaet; på en kurve legges de under grafen (byggPaaKurven). */}
           {onOpprett && sport && (
-            <div data-hurtigoppsett>
+            <div data-hurtigoppsett data-aapent={hurtigAapent}>
               <button type="button" onClick={() => setHurtigAapent(v => !v)}
                 aria-expanded={hurtigAapent}
                 className="w-full flex items-center gap-2 text-left"

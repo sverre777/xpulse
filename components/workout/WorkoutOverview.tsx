@@ -32,7 +32,7 @@ import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning } from '@/app/actions/workout-klokkesync'
-import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, type Visning } from '@/lib/samlet-visning'
+import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -647,16 +647,18 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                     hits += num(r.prone_hits) + num(r.standing_hits)
                   }
                   const zTotal = ALL_ZONE_NAMES.reduce((sum, k) => sum + (zones[k] ?? 0), 0)
+                  const monster = monsterTekst(g)
+                  const fordeling = g.rader.length > 1 ? fmtSoneFordeling(g) : ''
                   return (
-                    <div key={g.id} data-gruppe-rad={g.rader.length} className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
+                    <div key={g.id} data-gruppe-rad={g.rader.length} data-monster={monster ?? undefined} className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 py-3"
                       style={{ borderBottom: i < grupper.length - 1 ? '1px solid var(--line)' : 'none' }}>
                       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>
                         {g.rader.length > 1 && (
                           <span style={{ color: 'var(--accent)', fontSize: 12, letterSpacing: '0.1em', border: '1px solid var(--accent)', borderRadius: 999, padding: '1px 7px', marginRight: 8 }}>
-                            {g.rader.length} ×
+                            {monster ?? `${g.rader.length} ×`}
                           </span>
                         )}
-                        {activityLabel(a)}
+                        {monster ? 'Intervaller' : activityLabel(a)}
                         <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
                           {a.movement_name ? ` · ${a.movement_name}${a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}` : ''}
                         </small>
@@ -667,6 +669,11 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                         {g.snittpuls != null && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{g.snittpuls}</b> bpm</>}
                         {shots > 0 && <> · <b style={{ color: 'var(--ink)', fontWeight: 600 }}>{hits}/{shots}</b> treff</>}
                       </span>
+                      {fordeling && (
+                        <span data-sonefordeling style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 13, letterSpacing: '0.04em' }}>
+                          {fordeling}
+                        </span>
+                      )}
                       {zTotal > 0 && (
                         <div className="flex overflow-hidden md:ml-auto" style={{ height: 5, width: 90, borderRadius: 3, background: 'var(--line)' }}>
                           {visningsFordeling(zones, utvidetSkala).map(v => {

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
 import { SamletBryter } from './SamletBryter'
 import {
-  grupperRaderSamlet, skrivTilGruppe, samlbareGrupper, samleRader, lesVisning, huskVisning, standardVisning,
+  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling,
   type Visning, type RadGruppe, type GruppeFelt,
 } from '@/lib/samlet-visning'
 import { SerieListe } from './SerieListe'
@@ -200,7 +200,7 @@ import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, erKlokkeokt = false }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -220,11 +220,8 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
     setVisning(lesVisning(workoutId) ?? standardVisning(erKlokkeokt))
   }
   const velgVisning = (v: Visning) => { setVisning(v); huskVisning(workoutId, v) }
-  // «Samle» (B) — ett steg angre til økta lagres.
-  const [forSamling, setForSamling] = useState<ActivityRow[] | null>(null)
-  const erKlokkerad = (a: ActivityRow) => !!(a.db_id && radInfo[a.db_id]?.harKlokkeProveniens)
+  // Ren visning: grupperingen leser radene, endrer aldri en av dem.
   const grupper = grupperRaderSamlet(rows)
-  const samlbare = samlbareGrupper(rows, erKlokkerad)
 
   useEffect(() => {
     let cancelled = false
@@ -329,13 +326,7 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
       )}
 
       {rows.length > 1 && (
-        <SamletBryter
-          visning={visning}
-          onVisning={velgVisning}
-          antallSamlbare={samlbare.length}
-          onSamle={() => { setForSamling(rows); onChange(samleRader(rows, erKlokkerad)) }}
-          onAngreSamling={forSamling ? () => { onChange(forSamling); setForSamling(null) } : undefined}
-        />
+        <SamletBryter visning={visning} onVisning={velgVisning} />
       )}
 
       <div className="xp-tl">
@@ -370,7 +361,6 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             expanded={expandedId === g.id}
             onToggle={() => setExpandedId(expandedId === g.id ? null : g.id)}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
-            typeOptions={typeOptions}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
           />
@@ -413,16 +403,16 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
 
 const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 
-// ── Gruppe-rad (SAMLET) — flere like rader vist som én. Endring på
-// gruppa skrives til HVER rad (type, bevegelsesform, underkategori,
-// notat). Tid, km og puls er summer/tidsvektet og redigeres per rad —
-// i splittet visning, som lenka sier. Ingen datamutasjon ved visning.
-function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, userMovementTypes, onSplitt }: {
+// ── Gruppe-rad (SAMLET) — flere like rader vist som én. Bev.form og
+// underkategori settes på gruppa og skrives til HVER rad; type og sone
+// endres per rad i splittet. Sonene vises som FORDELING, aldri én sone.
+// Et intervallsett (gruppe_id) leses som mønster: «8 × 4 min I3 · 2 min
+// pause». Ingen datamutasjon ved visning.
+function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, userMovementTypes, onSplitt }: {
   gruppe: RadGruppe
   expanded: boolean
   onToggle: () => void
   onUpdate: (patch: Partial<Pick<ActivityRow, GruppeFelt>>) => void
-  typeOptions: typeof ACTIVITY_TYPES
   userMovementTypes: UserMovementType[]
   onSplitt: () => void
 }) {
@@ -433,8 +423,10 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, user
     ? STRENGTH_SUBCATEGORIES
     : subcategoriesFor(forste.movement_name, userMovementTypes)
   const n = gruppe.rader.length
+  const monster = monsterTekst(gruppe)
+  const fordeling = fmtSoneFordeling(gruppe)
   return (
-    <div className="xp-act" data-gruppe-rad data-antall={n}>
+    <div className="xp-act" data-gruppe-rad data-antall={n} data-monster={monster ?? undefined}>
       <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
         onClick={onToggle} style={{ userSelect: 'none' }}>
         <span style={{
@@ -442,12 +434,17 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, user
           letterSpacing: '0.1em', color: 'var(--accent)', border: '1px solid var(--accent)',
           borderRadius: 999, padding: '1px 7px', marginLeft: 24,
         }}>
-          {n} ×
+          {monster ? monster : `${n} ×`}
         </span>
         <span style={{ fontSize: '14px' }}>{isStrength ? '🏋' : (meta?.icon ?? '•')}</span>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
-          {meta?.label ?? forste.activity_type}
+          {monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
         </span>
+        {fordeling && (
+          <span data-sonefordeling style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
+            · {fordeling}
+          </span>
+        )}
         {meta?.usesMovement && forste.movement_name && (
           <span className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', minWidth: 0 }}>
             · {forste.movement_name}{forste.movement_subcategory ? ` — ${forste.movement_subcategory}` : ''}
@@ -473,13 +470,9 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, user
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
             <Field label="Aktivitetstype">
-              <select value={forste.activity_type}
-                onChange={e => onUpdate({ activity_type: e.target.value as ActivityType })} style={iSt}>
-                {typeOptions.map(t => <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>)}
-                {meta?.legacy && !typeOptions.some(t => t.value === meta.value) && (
-                  <option value={meta.value}>{meta.icon}  {meta.label}</option>
-                )}
-              </select>
+              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title="Type endres per rad i splittet visning">
+                {meta?.icon} {meta?.label ?? forste.activity_type}
+              </div>
             </Field>
             {meta?.usesMovement && (
               <Field label="Bevegelsesform">
@@ -506,7 +499,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, typeOptions, user
             )}
           </div>
           <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
-            {n} rader · endringer her skrives til hver av dem. Tid, km og puls per rad:{' '}
+            {n} rader · bev.form og underkategori her skrives til hver av dem. Type, sone, tid, km og puls per rad:{' '}
             <button type="button" onClick={e => { e.stopPropagation(); onSplitt() }}
               style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', font: 'inherit' }}>
               vis splittet

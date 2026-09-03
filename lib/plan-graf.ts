@@ -150,10 +150,13 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
     if (b.sek <= 0) continue
     const start = t; t += b.sek
     if (erSkyting(b.type)) {
+      // Rettelse 1: ingen sonefarge, ingen høyde i sonespråket — samme
+      // farge og høyde som pause. Markøren over (🎯 L/S) bærer innholdet.
       const staa = b.standingShots > 0 && b.proneShots === 0
+      const begge = b.proneShots > 0 && b.standingShots > 0
       ut.push({ ...b, startSek: start, slag: staa ? 'skyting_staa' : 'skyting_ligg', sone: null,
-        farge: staa ? SEGMENT_FARGER.skyting_staa : SEGMENT_FARGER.skyting_ligg, hoyde: 0.7,
-        etikett: b.navn || (staa ? 'Stå' : b.proneShots > 0 && b.standingShots > 0 ? 'Skyting L+S' : 'Ligg') })
+        farge: SEGMENT_FARGER.pause, hoyde: 0.18,
+        etikett: `🎯 ${staa ? 'S' : begge ? 'L+S' : b.proneShots > 0 || b.type === 'skyting_liggende' ? 'L' : b.type === 'skyting_staaende' ? 'S' : 'Skyting'}${b.navn ? ` · ${b.navn}` : ''}` })
       continue
     }
     if (PAUSE_TYPER.has(b.type)) {

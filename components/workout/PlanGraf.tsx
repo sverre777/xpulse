@@ -69,14 +69,30 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
           <rect width="3" height="6" fill="rgba(255,255,255,.35)" />
         </pattern>
       </defs>
+      {kompakt && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
+        <text key={`k-${b.id}`} x={x(b.startSek + b.sek / 2)} y={topp + 8} textAnchor="middle" data-skytemarkor
+          style={{ font: "9px sans-serif", fill: 'var(--tekst-1-app)' }}>🎯</text>
+      ))}
       {!kompakt && (
         <>
           <line x1={0} y1={gulv} x2={B} y2={gulv} stroke="var(--line2)" />
           {/* Etiketter med pekelinje — bare på blokker som ikke ligger i en klamme
               og er brede nok til at teksten får plass. */}
           {blokker.map(b => {
-            if (iKlamme.has(b.id) || x(b.sek) < B * 0.09) return null
+            const skyting = b.slag === 'skyting_ligg' || b.slag === 'skyting_staa'
+            // Skyting får alltid markøren sin (rettelse 1) — også inni en klamme
+            // og også når blokka er smal; klammen bærer bare dragene.
+            if (!skyting && (iKlamme.has(b.id) || x(b.sek) < B * 0.09)) return null
             const cx = x(b.startSek + b.sek / 2)
+            if (skyting) return (
+              <g key={`e-${b.id}`} data-skytemarkor>
+                <text x={cx} y={topp - 30} textAnchor="middle"
+                  style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.04em' }}>
+                  {b.etikett}
+                </text>
+                <line x1={cx} y1={topp - 24} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
+              </g>
+            )
             const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
             return (
               <g key={`e-${b.id}`}>

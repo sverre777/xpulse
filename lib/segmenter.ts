@@ -46,11 +46,29 @@ export const SEGMENT_FARGER: Record<SegmentType, string> = {
   veksling:      '#43434B',
   bevform:       '#A6A6AF',
   annet:         '#A6A6AF',
-  skyting_ligg:  '#38BDF8',
-  skyting_staa:  '#FF4500',
-  // Kombinert/innskyting/basis: ligg-blå med full etikett — fasiten gir
-  // bare ligg/stå, og et tredje skytefarge-hex ville utvannet de to.
-  skyting_annet: '#38BDF8',
+  // SKYTING HAR IKKE FARGE PÅ TIDSLINJA (rettelse 1, 3. sep): en farget
+  // blokk leses som en sone. Skyting er et nøytralt, lavt mellomrom i
+  // pausefargen — plan-graf, segmentbånd, spøkelse og bygger — med en
+  // 🎯-MARKØR over (L/S + treff) som de andre punktene. Skytefargene bor
+  // fortsatt i skytefanen og treff-plottet: SKYTE_FARGER.
+  skyting_ligg:  '#43434B',
+  skyting_staa:  '#43434B',
+  skyting_annet: '#43434B',
+}
+
+/** Skytefargene der de bor: skytefanen, treff-plottet, chip-en. Aldri på
+    tidslinja. */
+export const SKYTE_FARGER = { ligg: '#38BDF8', staa: '#FF4500' } as const
+
+export function erSkytesegment(type: SegmentType): boolean {
+  return type.startsWith('skyting')
+}
+
+/** Markørteksten over et skytesegment: «🎯 L 4/5», «🎯 S», «🎯 L+S». */
+export function skyteMarkor(type: SegmentType, etikett: string, treff: string | null): string {
+  const pos = type === 'skyting_ligg' ? 'L' : type === 'skyting_staa' ? 'S' : /l\+s/i.test(etikett) ? 'L+S' : ''
+  const navn = pos ? pos : etikett
+  return `🎯 ${navn}${treff ? ` ${treff}` : ''}`
 }
 
 /** Aktivitetstype (+ bev.form) → segmenttype. Brukes av båndet, spøkelseslaget

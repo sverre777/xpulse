@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
-  SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
+  SEGMENT_FARGER, PUNKT_FARGER, SKYTE_FARGER, erSkytesegment, skyteMarkor, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
   grupperSegmenter, type Segment,
 } from '@/lib/segmenter'
 import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
@@ -204,7 +204,7 @@ export function WorkoutDetailChart({
 
   const fokus = serier.find(s => s.id === fokusId) ?? null
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
-  const harPunkter = lactate.length > 0 || nutrition.length > 0
+  const harPunkter = lactate.length > 0 || nutrition.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
   // Aksen strekkes til planens slutt når planen vises og er lengre enn
   // økta (bolk 7): da stikker spøkelset ut forbi der økta stoppet, og
@@ -239,9 +239,16 @@ export function WorkoutDetailChart({
         tittel: `${n.type}${n.carbs_g != null ? ` · ${n.carbs_g} g` : ''}`,
         farge: PUNKT_FARGER.ernaering,
       })),
+      // Rettelse 1: skyting er nøytral på tidslinja — markøren over bærer
+      // posisjon og treff, med pekelinje som de andre punktene.
+      ...(visSkyting ? segmenter.filter(sg => erSkytesegment(sg.type)).map(sg => ({
+        id: `sky-${sg.aktivitetId}`, slag: 'skyting' as const, t: sg.startSek,
+        tittel: skyteMarkor(sg.type, sg.etikett, sg.treff),
+        farge: 'var(--tekst-1-app)',
+      })) : []),
     ]
     return ut.sort((a, b) => a.t - b.t)
-  }, [lactate, nutrition])
+  }, [lactate, nutrition, segmenter, visSkyting])
 
   const segmentVed = (t: number) => segmenter.find(x => t >= x.startSek && t <= x.sluttSek) ?? null
 
@@ -282,7 +289,7 @@ export function WorkoutDetailChart({
           {(harSkyting || segmenter.length > 0 || harPunkter || laps.length > 1 || planBlokker.length > 0) && (
             <Gruppe navn="På grafen">
               {harSkyting && (
-                <Chip farge={SEGMENT_FARGER.skyting_ligg} etikett="Skyting" paa={visSkyting} fokus={false}
+                <Chip farge={SKYTE_FARGER.ligg} etikett="Skyting" paa={visSkyting} fokus={false}
                   onClick={() => setVisSkyting(v => !v)} />
               )}
               {segmenter.length > 0 && (
@@ -701,7 +708,7 @@ export function Nokkeltall({ celler, rpe = null, onRpe, forventetRpe = null, rpe
 // aldri skjult tekst. Tett klynge slås sammen til «3 målinger» og folder
 // seg ut ved klikk.
 
-interface Punkt { id: string; slag: 'laktat' | 'ernaering'; t: number; tittel: string; farge: string }
+interface Punkt { id: string; slag: 'laktat' | 'ernaering' | 'skyting'; t: number; tittel: string; farge: string }
 
 const ETIKETT_BREDDE_PCT = 13   // anslått bredde på en etikett, i % av flata
 const NIVAA_HOYDE = 30

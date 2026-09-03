@@ -20,8 +20,9 @@ import type { PlanBlokk } from '@/app/actions/runder'
 
 function farge(b: PlanBlokk): { farge: string; hoyde: number } {
   const seg = segmentTypeFor(b.type, '')
-  if (seg === 'pause' || seg === 'veksling') return { farge: SEGMENT_FARGER[seg], hoyde: 0.18 }
-  if (seg.startsWith('skyting')) return { farge: SEGMENT_FARGER[seg], hoyde: 0.7 }
+  // Pause, veksling og skyting: nøytralt, lavt (rettelse 1 — skyting har
+  // ikke farge på tidslinja).
+  if (seg === 'pause' || seg === 'veksling' || seg.startsWith('skyting')) return { farge: SEGMENT_FARGER.pause, hoyde: 0.18 }
   const sone = (b.sone && b.sone in ZONE_COLORS_V2 ? b.sone : null) as ExtendedZoneName | null
   if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone] }
   return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }

@@ -12,7 +12,7 @@
   --orange:#FF4500; --red:#E23A5A;
   --i1:#28A86E; --i2:#1A6FD4; --i3:#E8B93C; --i4:#FF8C00; --i5:#E23A5A;
   --i6:#7C3AED; --i7:#E879F9; --i8:#881337; --hurt:#8B5CF6; --styrke:#6E6E78;
-  --prone:#38BDF8; --staa:#FF4500;
+  --prone:#38BDF8; --staa:#FF4500; --pause:#43434B;
   --r:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -170,7 +170,7 @@ svg{display:block;width:100%}
 </div>
 
 <!-- ═══ 3 · SKISKYTING ═══ -->
-<div class="demo"><b>3 · Med skyting</b> — skytefargene inn i samme diagram (skiskyting og kombi)</div>
+<div class="demo"><b>3 · Med skyting</b> — skyting som nøytralt, lavt mellomrom (pausefargen) med 🎯-markør over (rettet 3. sep)</div>
 
 <div class="card">
   <div class="ch"><h3>KOMB 5 × 4 MIN + SKYTING</h3><span class="m">planlagt · 5 skytinger</span></div>
@@ -181,15 +181,21 @@ svg{display:block;width:100%}
     <rect x="10" y="96" width="104" height="60" rx="3" fill="var(--i1)" opacity=".62"/>
     <g>
       <rect x="120" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
-      <rect x="186" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+      <rect x="186" y="134" width="16" height="22" rx="3" fill="var(--pause)"/>
       <rect x="206" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
-      <rect x="272" y="70" width="16" height="86" rx="3" fill="var(--staa)"/>
+      <rect x="272" y="134" width="16" height="22" rx="3" fill="var(--pause)"/>
       <rect x="292" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
-      <rect x="358" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+      <rect x="358" y="134" width="16" height="22" rx="3" fill="var(--pause)"/>
       <rect x="378" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
-      <rect x="444" y="70" width="16" height="86" rx="3" fill="var(--staa)"/>
+      <rect x="444" y="134" width="16" height="22" rx="3" fill="var(--pause)"/>
       <rect x="464" y="34" width="62" height="122" rx="3" fill="var(--i4)"/>
-      <rect x="530" y="70" width="16" height="86" rx="3" fill="var(--prone)"/>
+      <rect x="530" y="134" width="16" height="22" rx="3" fill="var(--pause)"/>
+      <!-- 🎯-markører over skytingene, pekelinje ned som de andre punktene -->
+      <text x="194" y="4" class="gtxt b" text-anchor="middle">🎯 L</text><line x1="194" y1="8" x2="194" y2="132" stroke="var(--line2)"/>
+      <text x="280" y="4" class="gtxt b" text-anchor="middle">🎯 S</text><line x1="280" y1="8" x2="280" y2="132" stroke="var(--line2)"/>
+      <text x="366" y="4" class="gtxt b" text-anchor="middle">🎯 L</text><line x1="366" y1="8" x2="366" y2="132" stroke="var(--line2)"/>
+      <text x="452" y="4" class="gtxt b" text-anchor="middle">🎯 S</text><line x1="452" y1="8" x2="452" y2="132" stroke="var(--line2)"/>
+      <text x="538" y="4" class="gtxt b" text-anchor="middle">🎯 L</text><line x1="538" y1="8" x2="538" y2="132" stroke="var(--line2)"/>
     </g>
     <rect x="560" y="96" width="90" height="60" rx="3" fill="var(--i1)" opacity=".62"/>
     <line x1="10" y1="156" x2="650" y2="156" stroke="var(--line2)"/>
@@ -284,9 +290,14 @@ svg{display:block;width:100%}
     <code>lib/sonesprak</code> (regel 11). Har brukeren utvidet skala, kan
     blokker ligge i I6–I8 med de fargene; ellers brukes Hurtighet som i dag.
     Høyde-trinnene må tåle begge uten omlegging.</li>
-    <li><b>SKYTING I SAMME DIAGRAM:</b> skyting tegnes som smale blokker i
-    skytefargene (ligg #38BDF8 / stå #FF4500) — de er aktiviteter, ikke soner.
-    Styrke bruker sin egen farge (#6E6E78). Gjelder skiskyting og kombi.</li>
+    <li><b>SKYTING I SAMME DIAGRAM (RETTET 3. sep, testet i prod):</b> skyting
+    har IKKE farge på tidslinja — en farget blokk leses som en sone. Skyting
+    tegnes som et nøytralt, lavt mellomrom med samme farge og høyde som pause
+    (SEGMENT_FARGER), med MARKØR over: 🎯 + L/S (ligg/stå) + evt. treff/notat,
+    med pekelinje som de andre punktene. Gjelder plan-grafen OG segmentbåndet
+    under pulskurven. Skytefargene #38BDF8/#FF4500 beholdes der de bor i dag
+    (skytefanen, treff-plottet) — ikke på tidslinja. Styrke bruker fortsatt
+    sin egen farge (#6E6E78). Gjelder skiskyting og kombi.</li>
     <li><b>ETIKETTER OG KLAMMER</b> — samme språk som økt-grafen: etikett over
     med tynn pekelinje ned, klamme over en repetert gruppe med én etikett
     («6 × 8 min · I3 · 2,5–3 mmol»), notat under klammen for pausene
@@ -352,8 +363,8 @@ svg{display:block;width:100%}
     <li class="ny"><b>«LEGG TIL PÅ TIDSLINJA» I PLANEN (Sverre 29. aug):</b>
     kartet er planleggingens motstykke til «Legg til detaljer». Man skal
     kunne legge inn direkte på tidslinja:
-    <br>· <b>skyting</b> — dras inn og plasseres der den skal komme
-    (skytefargene, som i den gjennomførte visningen)
+    <br>· <b>skyting</b> — plasseres der den skal komme (nøytralt mellomrom
+    med 🎯-markør — ikke skytefargene, se punktet om skyting over)
     <br>· <b>planlagt laktatmåling</b> — «her skal du måle», hul/stiplet
     markør
     <br>· <b>planlagt ernæring</b> — gel/drikke/mat på tidspunkt, hul markør

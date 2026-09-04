@@ -15,6 +15,8 @@ import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/ters
 import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
 import { beregnSegmenter, type Segment, type SegmentRad } from '@/lib/segmenter'
 import { nedsampleSerie, OVERSIKT_KOLONNER, KOMPAKT_KOLONNER } from '@/lib/kurve-nedsample'
+import { faktiskeBlokker } from '@/lib/gjennomfort-kart'
+import { byggPlanBlokker, type PlanBlokkInn } from '@/lib/plan-graf'
 import { revalidatePath } from 'next/cache'
 
 // Henter alt klokkesync-relatert for én økt: samples (sek-data),
@@ -62,6 +64,10 @@ export interface WorkoutKlokkesyncData {
   totalSek: number
   radInfo: Record<string, RadInfo>
   wattMetrikker: OktWattMetrikker | null
+  /** FTP for øktas dominante bevegelsesform på øktas dato (terskeltabellen)
+      — gjennomført-kartets watt-reserve når et vindu mangler puls
+      (rettelse 12). null uten watt eller uten terskel. */
+  ftp: number | null
   // Aerob frakobling for økta (bolk 3) — kun jevne økter > 40 min med
   // puls + watt/fart-kurve. null = ikke kvalifisert (vises ikke; en
   // intervalløkt skal ikke ha et meningsløst driftstall).
@@ -251,6 +257,7 @@ export async function getWorkoutKlokkesyncData(
   // NP/IF fra watt-kurven + terskeltabellen (øktas dato, eierens
   // terskler — RLS gir trener med plan-rett de samme radene).
   let wattMetrikker: WorkoutKlokkesyncData['wattMetrikker'] = null
+  let ftpForKart: number | null = null
   const np = beregnNP(samples?.watt_samples ?? null)
   if (np != null) {
     const { data: terskelRader } = await supabase
@@ -263,6 +270,7 @@ export async function getWorkoutKlokkesyncData(
       workout.date, dominant.name, dominant.sub,
     )
     const ftp = rad?.ftp_watts ?? null
+    ftpForKart = ftp != null && ftp > 0 ? ftp : null
     const iff = ftp != null && ftp > 0 ? Math.round((np / ftp) * 100) / 100 : null
     wattMetrikker = {
       np,
@@ -334,6 +342,7 @@ export async function getWorkoutKlokkesyncData(
     totalSek,
     radInfo,
     wattMetrikker,
+    ftp: ftpForKart,
     frakobling,
     samples,
     laps,
@@ -471,6 +480,11 @@ export interface KompaktKurve {
   /** Planens blokker bak kurven (bolk 7) — fra den skjulte tvillingen
       (flett) eller planned_snapshot (markert gjennomført). Tomt = ingen plan. */
   plan: KompaktPlanBlokk[]
+  /** GJENNOMFØRT-KARTET kompakt (rettelse 12): blokkene med FAKTISK sone
+      per segment, regnet her med eierens soner (regelen i
+      lib/gjennomfort-kart) — sonen ligger i soneSek så oversikten ikke
+      trenger sonene selv. Standardvisningen i oversikten. */
+  blokker: PlanBlokkInn[]
 }
 
 export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<string, KompaktKurve>> {
@@ -488,8 +502,13 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       .select('id, workout_id, sort_order, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
       .in('workout_id', ids).order('sort_order', { ascending: true }),
     supabase.from('workouts').select('id, merged_into_workout_id').in('merged_into_workout_id', ids),
-    supabase.from('workouts').select('id, planned_snapshot, tidspunkt_notater, date, time_of_day').in('id', ids),
+    supabase.from('workouts').select('id, user_id, planned_snapshot, tidspunkt_notater, date, time_of_day').in('id', ids),
   ])
+  // Eierens soner (én kalender = én eier, men slå opp per økt for sikkerhets skyld).
+  const eiere = [...new Set((snapRes.data ?? []).map(w => w.user_id as string).filter(Boolean))]
+  const sonerFor = new Map<string, HeartZone[]>()
+  await Promise.all(eiere.map(async id => { sonerFor.set(id, await getHeartZonesForUserCached(id)) }))
+  const eierAv = (id: string) => (snapRes.data ?? []).find(w => w.id === id)?.user_id as string | undefined
   // Punktene kompakt (bolk 8): ført laktat (measured_at_time → sek fra
   // øktstart), ført ernæring (time_offset_minutes) og tidspunkt_notater.
   const [laktatRes, ernaeringRes] = await Promise.all([
@@ -568,12 +587,26 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       altitude_samples: null, cadence_samples: null,
     })
     if (slutt <= 0) continue
+    const segmenter = beregnSegmenter(raderPerOkt.get(rad.workout_id) ?? [], slutt)
+    // Faktisk sone per segment regnes på FULL puls (før nedsamplingen).
+    const eier = eierAv(rad.workout_id)
+    const soner = (eier ? sonerFor.get(eier) : undefined) ?? []
+    const akter = (akterRes.data ?? []).filter(a => a.workout_id === rad.workout_id)
+    const blokker = byggPlanBlokker(
+      faktiskeBlokker(segmenter, hr, (rad.watt_samples ?? null) as Array<{ t: number; w: number }> | null, { rader: akter }),
+      soner,
+    ).map(b => ({
+      id: b.id, type: b.type, navn: b.navn, bevegelsesform: b.bevegelsesform, underkategori: b.underkategori,
+      sek: b.sek, startSek: b.startSek, soneSek: b.sone ? { [b.sone]: b.sek } : {}, snittpuls: null,
+      gruppeId: b.gruppeId, proneShots: b.proneShots, standingShots: b.standingShots, distanseKm: b.distanseKm,
+    }))
     ut[rad.workout_id] = {
       hr: hr.length > 0 ? nedsampleSerie(hr, 0, slutt, KOMPAKT_KOLONNER, p => p.hr) : [],
       totalSek: slutt,
-      segmenter: beregnSegmenter(raderPerOkt.get(rad.workout_id) ?? [], slutt),
+      segmenter,
       plan: planFor(rad.workout_id),
       punkter: punkterFor(rad.workout_id),
+      blokker,
     }
   }
   return ut

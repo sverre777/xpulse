@@ -10,11 +10,12 @@
 import { useMemo, useState } from 'react'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import {
-  byggPlanBlokker, grupperPlanBlokker, planNokkeltall, fmtMin,
+  byggPlanBlokker, grupperPlanBlokker, planNokkeltall, fmtMin, SONE_HOYDE,
   type PlanBlokkInn, type PlanBlokk,
 } from '@/lib/plan-graf'
-import { fmtVarighetKort } from '@/lib/segmenter'
-import type { HeartZone } from '@/lib/heart-zones'
+import { fmtVarighetKort, segmentTypeFor, SEGMENT_FARGER } from '@/lib/segmenter'
+import type { HeartZone, ExtendedZoneName } from '@/lib/heart-zones'
+import type { PlanBlokk as SpokelseBlokk } from '@/app/actions/runder'
 import { Nokkeltall, fmtVarighetLang, type NokkeltallCelle } from './WorkoutDetailChart'
 import { PUNKT_SLAG, type GrafPunkt } from './Punkt'
 
@@ -26,7 +27,7 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
-export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [] }: {
+export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan' }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
@@ -35,11 +36,23 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   /** Punktene (bolk 8): planlagte hule, førte fylte — markør på blokka,
       etikett med pekelinje i nivåsystemet. */
   punkter?: GrafPunkt[]
+  /** Tidsaksens lengde når den skal være lengre enn blokkene (gjennomført-
+      kartet: kurvens lengde, eller planens slutt når planen stikker ut). */
+  totalSek?: number
+  /** Planens blokker som spøkelse BAK (rettelse 12): stiplet, dempet, i
+      sonefargen — avviket leses direkte (I4-blokk oppå I3-spøkelse). */
+  spokelser?: SpokelseBlokk[]
+  /** Hva kartet viser — bare et data-attributt for flater og tester. */
+  kilde?: 'plan' | 'faktisk'
 }) {
   const blokker = useMemo(() => byggPlanBlokker(inn, heartZones), [inn, heartZones])
   // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
   const [aktivBlokk, setAktivBlokk] = useState<string | null>(null)
-  const total = blokker.reduce((m, b) => Math.max(m, b.startSek + b.sek), 0)
+  const total = Math.max(
+    totalSek ?? 0,
+    blokker.reduce((m, b) => Math.max(m, b.startSek + b.sek), 0),
+    ...spokelser.map(p => p.sluttSek),
+  )
   // VERN (rettelse 9): antallet i etiketten = antall drag under klammen.
   // Stemmer det ikke, tegnes ingen klamme — hvert drag får egen etikett.
   const grupper = useMemo(() => (tetthet === 'full'
@@ -75,7 +88,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       for (const g of grupper) {
         const forste = blokker[g.fra], siste = blokker[g.til]
         const cx = (x(forste.startSek) + x(siste.startSek + siste.sek)) / 2
-        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${forste.sone ? ` · ${forste.sone}` : ''}`
+        const sone = klammeSone(blokker, g)
+        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
       for (const pk of punkter) {
@@ -112,11 +126,23 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   const gulv = topp + plot
 
   return (
-    <svg data-plan-graf data-tetthet={tetthet} viewBox={`0 0 ${B} ${H}`} preserveAspectRatio="none"
+    <svg data-plan-graf data-tetthet={tetthet} data-kilde={kilde} viewBox={`0 0 ${B} ${H}`} preserveAspectRatio="none"
       style={{ display: 'block', width: '100%', height: kompakt ? (hoyde ?? 30) : undefined, overflow: 'visible' }}
-      aria-label="Plan-grafen">
+      aria-label={kilde === 'faktisk' ? 'Gjennomført-kartet' : 'Plan-grafen'}>
       {/* I1 grunnflate gjennom hele økta */}
       <rect x={0} y={gulv - plot * 0.36} width={B} height={plot * 0.36} rx={2} fill={ZONE_COLORS_V2.I1} opacity={0.18} />
+      {/* Planen bak (rettelse 12): samme farge- og høyderegel som spøkelset
+          på kurven (PlanSpokelse), tegnet i SVG-en så den følger aksen. */}
+      {spokelser.map(p => {
+        const f = spokelseFarge(p)
+        const h = plot * f.hoyde
+        return (
+          <rect key={`s-${p.id}`} data-plan-spokelse-blokk x={x(p.startSek) + 0.75} y={gulv - h} width={Math.max(1, x(p.sluttSek - p.startSek) - 1.5)} height={h}
+            rx={kompakt ? 1 : 3} fill={f.farge} fillOpacity={0.14} stroke={f.farge} strokeOpacity={0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
+            <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${p.sone ? ` · ${p.sone}` : ''}`}</title>
+          </rect>
+        )
+      })}
       {blokker.map(b => {
         const w = Math.max(1.5, x(b.sek) - 1.5)
         const h = plot * b.hoyde
@@ -229,7 +255,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const forste = blokker[g.fra], siste = blokker[g.til]
             const x1 = x(forste.startSek), x2 = x(siste.startSek + siste.sek)
             const cx = (x1 + x2) / 2
-            const sone = forste.sone
+            const sone = klammeSone(blokker, g)
             const nv = etiketter.nivaaFor(`k-${g.fra}`) * NIVAA_H
             return (
               <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`} data-nivaa={etiketter.nivaaFor(`k-${g.fra}`) + 1}>
@@ -254,6 +280,26 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       )}
     </svg>
   )
+}
+
+/** Klammens sone: dragenes felles sone — eller spennet «I3–I4» når dragene
+    faktisk endte i ulike soner (gjennomført-kartet sier det som det er). */
+function klammeSone(blokker: PlanBlokk[], g: { fra: number; til: number }): string | null {
+  const soner = [...new Set(blokker.slice(g.fra, g.til + 1).filter(b => b.slag === 'sone' && b.sone).map(b => b.sone as string))]
+  if (soner.length === 0) return null
+  if (soner.length === 1) return soner[0]
+  const rekke = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
+  const sortert = soner.sort((a, b) => rekke.indexOf(a) - rekke.indexOf(b))
+  return `${sortert[0]}–${sortert[sortert.length - 1]}`
+}
+
+/** Spøkelsets farge/høyde — samme regel som PlanSpokelse på kurven. */
+function spokelseFarge(p: SpokelseBlokk): { farge: string; hoyde: number } {
+  const seg = segmentTypeFor(p.type, '')
+  if (seg === 'pause' || seg === 'veksling' || seg.startsWith('skyting')) return { farge: SEGMENT_FARGER.pause, hoyde: 0.18 }
+  const sone = (p.sone && p.sone in ZONE_COLORS_V2 ? p.sone : null) as ExtendedZoneName | null
+  if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone] }
+  return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }
 }
 
 function fmtKlokke(sek: number): string {

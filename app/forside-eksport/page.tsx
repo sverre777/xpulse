@@ -118,13 +118,13 @@ function ForsideEksportInnhold() {
       </Kort>
 
       <Kort navn="oktgraf" bredde={540}>
-        <WorkoutDetailChart sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
+        <WorkoutDetailChart kurveStandard sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
           segmenter={segmenter} heartZones={[]} np={238} rpe={7} onRpe={ingen} forventetRpe={6} planBlokkerInn={planBak}
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
       </Kort>
 
       <Kort navn="oktgraf-skjema" bredde={500}>
-        <WorkoutDetailChart tetthet="skjema" sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
+        <WorkoutDetailChart kurveStandard tetthet="skjema" sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
           segmenter={segmenter} heartZones={[]} np={238} planBlokkerInn={planBak} />
       </Kort>
 

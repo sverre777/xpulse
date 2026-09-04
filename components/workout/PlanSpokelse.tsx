@@ -28,17 +28,22 @@ function farge(b: PlanBlokk): { farge: string; hoyde: number } {
   return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }
 }
 
-export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16 }: {
+export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag = 'plan' }: {
   blokker: PlanBlokk[]
   /** Flatens egen omregning fra sekund til posisjon (f.eks. '42%'). */
   pct: (sek: number) => string
   hoyde?: string
   /** Opacity — svakt nok til å ligge bak, sterkt nok til å leses. */
   dempet?: number
+  /** 'plan' = stiplet spøkelse. 'faktisk' = gjennomført-kartets blokker
+      med hel kant, som kurven tegnes OPPÅ når kurven er på (rettelse 12). */
+  slag?: 'plan' | 'faktisk'
 }) {
   if (blokker.length === 0) return null
+  const kant = slag === 'faktisk' ? 'solid' : 'dashed'
+  const attr = slag === 'faktisk' ? { 'data-faktisk-blokker': true } : { 'data-plan-spokelse': true }
   return (
-    <div data-plan-spokelse aria-hidden="true" style={{
+    <div {...attr} aria-hidden="true" style={{
       position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, height: hoyde,
     }}>
       {blokker.map(b => {
@@ -49,8 +54,8 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16 }: {
             position: 'absolute', left: pct(b.startSek), width: v,
             bottom: 0, height: `${Math.round(f.hoyde * 100)}%`,
             background: f.farge, opacity: dempet,
-            borderLeft: `1px dashed ${f.farge}`, borderRight: `1px dashed ${f.farge}`,
-            borderTop: `1px dashed ${f.farge}`,
+            borderLeft: `1px ${kant} ${f.farge}`, borderRight: `1px ${kant} ${f.farge}`,
+            borderTop: `1px ${kant} ${f.farge}`,
             borderRadius: '3px 3px 0 0',
           }} />
         )

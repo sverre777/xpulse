@@ -17,6 +17,11 @@ import { fmtVarighetKort } from '@/lib/segmenter'
 import { PUNKT_SLAG, PunktIkon, type PunktSlag } from './Punkt'
 import type { KompaktPunkt } from '@/lib/types'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
+import { lesKurvePaa, settKurvePaa, abonnerKurve, lesPlanOppsett, settPlanOppsett, type PlanOppsett } from '@/lib/kurve-valg'
+import { faktiskeBlokker, tilSpokelser, fraSpokelser } from '@/lib/gjennomfort-kart'
+import { byggPlanBlokker } from '@/lib/plan-graf'
+import { PlanGraf } from './PlanGraf'
+import type { GrafPunkt } from './Punkt'
 import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { beregnSoneTss } from '@/lib/belastning'
@@ -98,6 +103,11 @@ interface Props {
   /** Planens blokker gitt direkte (forsidens eksport med fiktive data) —
       ellers hentes de fra basen via workoutId. */
   planBlokkerInn?: PlanBlokk[]
+  /** FTP på øktas dato — gjennomført-kartets watt-reserve (rettelse 12). */
+  ftp?: number | null
+  /** Rettelse 12: kartet er standard, kurven et valg som huskes per bruker.
+      true tvinger kurven på første maling (forsidens eksport). */
+  kurveStandard?: boolean
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -125,6 +135,7 @@ export function WorkoutDetailChart({
   segmenter = [],
   height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
   planVarighetSek = null, forventetRpe = null, tidspunktNotater = [], handlinger, planBlokkerInn,
+  ftp = null, kurveStandard = false,
 }: Props) {
   const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
   const forsteId = serier[0]?.id ?? null
@@ -149,12 +160,24 @@ export function WorkoutDetailChart({
   const [planPunkter, setPlanPunkter] = useState<TidspunktNotat[]>([])
   // Huskes per økt, standard PÅ når økta har plan (bolk 7).
   const [visPlan, setVisPlan] = useState(true)
+  // RETTELSE 12: GJENNOMFØRT-KARTET er standardvisningen — blokkene med de
+  // faktiske sonene (samme komponent som øktkartet). Kurven tegnes OPPÅ
+  // bare når «kurve på» er valgt; valget huskes per bruker (regel 19).
+  // «Plan bak» (standard) eller «plan over / faktisk under» er kartets valg.
+  const [kurvePaa, setKurvePaa] = useState(kurveStandard)
+  const [oppsett, setOppsett] = useState<PlanOppsett>('bak')
 
   useEffect(() => {
     const oppdater = () => setVisPlan(visPlanBak(workoutId))
     oppdater()
     return abonnerVisPlan(oppdater)
   }, [workoutId])
+  useEffect(() => {
+    if (kurveStandard) return
+    const oppdater = () => { setKurvePaa(lesKurvePaa()); setOppsett(lesPlanOppsett()) }
+    oppdater()
+    return abonnerKurve(oppdater)
+  }, [kurveStandard])
 
   useEffect(() => {
     if (!workoutId) return
@@ -213,19 +236,39 @@ export function WorkoutDetailChart({
 
 
   const velgSerie = (id: string) => {
+    const s = serier.find(x => x.id === id)
+    // Kurven var av: chip-en slår kurven PÅ med denne serien (huskes).
+    if (!visKurve) {
+      setKurvePaa(settKurvePaa(true))
+      setPaaIds([id])
+      setFokusId(s?.somAreal ? null : id)
+      return
+    }
     const paa = paaIds.includes(id)
     if (paa && fokusId === id) {
-      setPaaIds(paaIds.filter(x => x !== id))
-      const neste = paaIds.filter(x => x !== id).find(x => !serier.find(s => s.id === x)?.somAreal) ?? null
+      const rest = paaIds.filter(x => x !== id)
+      setPaaIds(rest)
+      const neste = rest.find(x => !serier.find(s => s.id === x)?.somAreal) ?? null
       setFokusId(neste)
+      // Siste serie av → kurven er av (kartet står igjen), og det huskes.
+      if (rest.length === 0) setKurvePaa(settKurvePaa(false))
       return
     }
     if (!paa) setPaaIds([...paaIds, id])
-    const s = serier.find(x => x.id === id)
     if (!s?.somAreal) setFokusId(id)     // høyde er kontekst, aldri fokus
   }
 
   const fokus = serier.find(s => s.id === fokusId) ?? null
+  // Gjennomført-kartets blokker: segmentene (båndets flislegging) med
+  // faktisk sone per vindu — regelen står i lib/gjennomfort-kart.
+  const faktiskInn = useMemo(
+    () => faktiskeBlokker(segmenter, samples.hr_samples, samples.watt_samples, { ftp }),
+    [segmenter, samples.hr_samples, samples.watt_samples, ftp],
+  )
+  const faktiskSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(faktiskInn, heartZones)), [faktiskInn, heartZones])
+  const blokkerMulig = faktiskInn.length > 0
+  // Uten rader finnes ikke noe kart — da er kurven det eneste ærlige.
+  const visKurve = (kurvePaa && paaIds.length > 0) || !blokkerMulig
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0 || tidspunktNotater.length > 0 || planPunkter.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
@@ -287,6 +330,12 @@ export function WorkoutDetailChart({
   }, [lactate, nutrition, segmenter, visSkyting, tidspunktNotater, planPunkter, visPlan, visLaktat, visErnaering, visNotat])
 
   const segmentVed = (t: number) => segmenter.find(x => t >= x.startSek && t <= x.sluttSek) ?? null
+  // Kartets punkter: samme punkter, i øktkartets form. Skyting bæres av
+  // skyteblokkene selv (🎯 L/S + treff), så de skytepunktene utelates her.
+  const grafPunkter: GrafPunkt[] = useMemo(() => punkter
+    .filter(p => p.slag !== 'skyting' && p.slag !== 'veksling')
+    .map(p => ({ id: p.id, sek: p.t, slag: p.slag, planlagt: p.planlagt, tittel: p.planlagt ? p.tittel.replace(/ · plan$/, '') : p.tittel })),
+  [punkter])
 
   if (serier.length === 0) {
     return (
@@ -312,25 +361,28 @@ export function WorkoutDetailChart({
           </p>
         )}
         <div className="flex gap-4 flex-wrap">
-          {/* DATA — seriene. Serie uten data får ingen chip (aldri en død knapp). */}
-          <Gruppe navn="Data">
+          {/* PÅ GRAFEN (rettelse 12): kurvene Puls · Watt · Tempo er valg som
+              tegnes OPPÅ gjennomført-kartet — standard av i dagboka, huskes.
+              Serie uten data får ingen chip (aldri en død knapp). Så
+              annoteringene på tidslinja, uavhengig av seriene. */}
+          <Gruppe navn="På grafen">
             {serier.map(s => (
               <Chip key={s.id} farge={s.farge} etikett={s.navn}
-                paa={paaIds.includes(s.id)}
-                fokus={fokusId === s.id && !s.somAreal}
+                paa={visKurve && paaIds.includes(s.id)}
+                fokus={visKurve && fokusId === s.id && !s.somAreal}
                 onClick={() => velgSerie(s.id)} />
             ))}
-          </Gruppe>
-          {/* PÅ GRAFEN — annoteringer på tidslinja, uavhengig av seriene. */}
-          {(harSkyting || segmenter.length > 0 || harPunkter || laps.length > 1 || planBlokker.length > 0) && (
-            <Gruppe navn="På grafen">
-                {segmenter.length > 0 && (
+                {segmenter.length > 0 && visKurve && (
                   <Chip farge={SEGMENT_FARGER.drag} etikett="Segmenter" paa={visSegmenter} fokus={false}
                     onClick={() => setVisSegmenter(v => !v)} />
                 )}
                 {planBlokker.length > 0 && (
                   <Chip farge="var(--accent)" etikett="Vis plan" paa={visPlan} fokus={false}
                     onClick={() => setVisPlan(settVisPlanBak(workoutId, !visPlan))} />
+                )}
+                {planBlokker.length > 0 && visPlan && !visKurve && (
+                  <Chip farge="var(--accent)" etikett="Plan over" paa={oppsett === 'delt'} fokus={false}
+                    onClick={() => setOppsett(settPlanOppsett(oppsett === 'delt' ? 'bak' : 'delt'))} />
                 )}
                 {(lactate.length > 0 || tidspunktNotater.some(p => p.type === 'laktat') || planPunkter.some(p => p.type === 'laktat')) && (
                   <Chip farge={PUNKT_FARGER.laktat} etikett="🩸 Laktat" paa={visLaktat} fokus={false} onClick={() => setVisLaktat(v => !v)} />
@@ -345,18 +397,36 @@ export function WorkoutDetailChart({
                 {(tidspunktNotater.some(p => p.type === 'notat') || planPunkter.some(p => p.type === 'notat')) && (
                   <Chip farge={PUNKT_SLAG.notat.farge} etikett="📝 Notat" paa={visNotat} fokus={false} onClick={() => setVisNotat(v => !v)} />
                 )}
-                {laps.length > 1 && (
+                {laps.length > 1 && visKurve && (
                   <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
                     onClick={() => setVisRunder(v => !v)} />
                 )}
-              </Gruppe>
-          )}
+          </Gruppe>
         </div>
       </div>
 
+      {/* GJENNOMFØRT-KARTET (rettelse 12) — standardvisningen: samme
+          komponent som øktkartet, matet med de gjennomførte radene; planen
+          bak som spøkelse, eller «plan over / faktisk under» på samme akse.
+          Punktene og skytemarkørene tegnes av kartet selv. */}
+      {!visKurve && (
+        <div data-gjennomfort-kart data-oppsett={visPlan && planBlokker.length > 0 ? oppsett : 'ingen'}>
+          {visPlan && oppsett === 'delt' && planBlokker.length > 0 && (
+            <div data-plan-lane style={{ marginBottom: 6 }}>
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 2px' }}>Plan</p>
+              <PlanGraf blokker={fraSpokelser(planBlokker)} tetthet="kompakt" hoyde={44} totalSek={aksSek} kilde="plan" />
+              <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '6px 0 0' }}>Faktisk</p>
+            </div>
+          )}
+          <PlanGraf blokker={faktiskInn} heartZones={heartZones} tetthet="full" totalSek={aksSek}
+            spokelser={visPlan && oppsett === 'bak' ? planBlokker : []}
+            punkter={grafPunkter} kilde="faktisk" />
+        </div>
+      )}
+
       {/* Etikettbåndet over grafen — reservert så snart økta HAR punkter,
           slik at grafen aldri hopper når etikettene tegnes (regel 20). */}
-      {harPunkter && (
+      {visKurve && harPunkter && (
         <PunktEtiketter
           punkter={visPunkter ? punkter : []}
           synlig={synlig}
@@ -364,7 +434,7 @@ export function WorkoutDetailChart({
         />
       )}
 
-      <OktKurve
+      {visKurve && <OktKurve
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
@@ -379,6 +449,8 @@ export function WorkoutDetailChart({
             {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
             <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} />
             {visPlan && <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} />}
+            {/* Kurven tegnes OPPÅ gjennomført-kartets blokker (rettelse 12). */}
+            {visSegmenter && <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.28} slag="faktisk" />}
             {/* Rundegrenser */}
             {visRunder && laps.map((lap, i) => i === 0 ? null : (
               <span key={`lap-${i}`} aria-hidden style={{
@@ -433,10 +505,10 @@ export function WorkoutDetailChart({
             })}
           </>
         )}
-      />
+      />}
 
       {/* Brush: hvor i økta er vi? Vises kun når det er noe å navigere i. */}
-      {totalSek > 0 && (
+      {visKurve && totalSek > 0 && (
         <>
           <KurveBrush
             serie={serier.find(x => x.id === fokusId && !x.somAreal) ?? serier.find(x => !x.somAreal) ?? null}
@@ -501,13 +573,15 @@ export function WorkoutDetailChart({
           per påslått serie + gjeldende segment. Krysshåret oppdaterer alle
           cellene samtidig. Uten krysshår står øktas snitt i hver celle, så
           ingen informasjon finnes KUN i en hover. */}
-      <Lesepanel
-        serier={serier}
-        paaIds={paaIds}
-        segmenter={segmenter}
-        totalSek={totalSek}
-        krysshaarSek={krysshaarSek}
-      />
+      {visKurve && (
+        <Lesepanel
+          serier={serier}
+          paaIds={paaIds}
+          segmenter={segmenter}
+          totalSek={totalSek}
+          krysshaarSek={krysshaarSek}
+        />
+      )}
 
       {/* DETALJRADEN + KNAPPERADEN (fasit v6): opplevd 1–10 som kvadrater,
           laktat/ernæring/skyting som små kort, så ⚡ Øktbygger · 🎯 Plott
@@ -528,7 +602,9 @@ export function WorkoutDetailChart({
         />
       )}
 
-      {visSegmenter && segmenter.length > 0 && totalSek > 0 && (
+      {/* Båndet i bunn: med kurven på er det båndet (rettelse 10); uten
+          kurve er blokkene i kartet selve båndet. */}
+      {visKurve && visSegmenter && segmenter.length > 0 && totalSek > 0 && (
         <SegmentBaand
           segmenter={segmenter}
           synlig={synlig}
@@ -541,12 +617,14 @@ export function WorkoutDetailChart({
         />
       )}
 
-      <MarkerLegend
-        hasLactate={visPunkter && lactate.length > 0}
-        hasNutrition={visPunkter && nutrition.length > 0}
-        hasShooting={visSkyting && sport === 'biathlon' && shooting.length > 0}
-        hasLaps={visRunder && laps.length > 1}
-      />
+      {visKurve && (
+        <MarkerLegend
+          hasLactate={visPunkter && lactate.length > 0}
+          hasNutrition={visPunkter && nutrition.length > 0}
+          hasShooting={visSkyting && sport === 'biathlon' && shooting.length > 0}
+          hasLaps={visRunder && laps.length > 1}
+        />
+      )}
     </div>
   )
 }

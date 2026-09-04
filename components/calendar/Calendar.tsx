@@ -12,6 +12,8 @@ import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { KompaktKurverProvider, useKompaktKurve } from './kompakt-kurver'
+import { useKurvePaa } from '@/lib/kurve-valg'
+import { tilSpokelseBlokker } from '@/lib/gjennomfort-kart'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
 import { PlanGraf } from '@/components/workout/PlanGraf'
 import { fraKompaktPunkter } from '@/components/workout/Punkt'
@@ -741,6 +743,12 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
     bakgrunnen), ellers plan-grafen fra radene — med én gang. */
 function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
+  const kurvePaa = useKurvePaa()
+  // Rettelse 12: gjennomført-kartet (blokker med faktisk sone) er standard —
+  // kurven bare når «kurve på» er valgt (huskes per bruker).
+  if (kurve && !kurvePaa && kurve.blokker.length > 0) {
+    return <div style={{ marginTop: 3 }} data-gjennomfort-kart-kompakt><PlanGraf blokker={kurve.blokker} tetthet="kompakt" hoyde={hoyde - 4} totalSek={kurve.totalSek} spokelser={tilSpokelseBlokker(kurve.plan)} punkter={fraKompaktPunkter(kurve.punkter)} kilde="faktisk" /></div>
+  }
   if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} punkter={kurve.punkter} />
   if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
   return <div style={{ marginTop: 3 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde - 4} punkter={fraKompaktPunkter(w.punkter)} /></div>

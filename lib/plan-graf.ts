@@ -15,7 +15,7 @@ import { parseActivityDuration } from './activity-duration'
 import { ZONE_COLORS_V2 } from './activity-summary'
 import { SEGMENT_FARGER, grupperSegmenter, type Segment, type SegmentGruppe } from './segmenter'
 import { beregnSoneTss } from './belastning'
-import { zoneForHeartRate, type ExtendedZoneName, type HeartZone } from './heart-zones'
+import { zoneForHeartRate, type ExtendedZoneName, type HeartZone, type ZoneName } from './heart-zones'
 import { parseDecimal } from './parse-decimal'
 
 export const STYRKE_FARGE = '#6E6E78'
@@ -33,6 +33,13 @@ export interface PlanBlokkInn {
   soneSek: Partial<Record<ExtendedZoneName, number>>
   /** Snittpuls — brukes til sone når soner ikke er ført. */
   snittpuls: number | null
+  /** Snittwatt i vinduet + FTP på øktas dato — sone når puls mangler
+      (gjennomført-kartet, rettelse 12). */
+  snittwatt?: number | null
+  ftp?: number | null
+  /** Gjennomført-kartet: blokka står der raden FAKTISK lå på tidslinja.
+      Uten: blokkene legges etter hverandre (planen). */
+  startSek?: number
   gruppeId: string | null
   proneShots: number
   standingShots: number
@@ -122,13 +129,35 @@ export function hovedsoneAv(soneSek: Partial<Record<ExtendedZoneName, number>>):
   return beste
 }
 
-/** Blokkens sone: ført sone, ellers puls mot brukerens soner, ellers I1 for
-    oppvarming/nedjogg. Aktivitet uten alt dette: null (tegnes lavt, grå). */
+/** SONE FRA WATT (rettelse 12, til godkjenning): snittwatt i vinduet delt
+    på FTP for bevegelsesformen på øktas dato (lib/terskel-oppslag) gir en
+    intensitetsfaktor; båndene følger I-skalaens terskellogikk der I3/I4
+    ligger rundt terskel (IF ≈ 1,0):
+      < 0,75 → I1 · 0,75–0,85 → I2 · 0,85–0,95 → I3 · 0,95–1,05 → I4 · > 1,05 → I5.
+    Brukes BARE når vinduet ikke har puls. */
+export function soneFraWatt(snittwatt: number, ftp: number): ZoneName | null {
+  if (!(snittwatt > 0) || !(ftp > 0)) return null
+  const iff = snittwatt / ftp
+  if (iff < 0.75) return 'I1'
+  if (iff < 0.85) return 'I2'
+  if (iff < 0.95) return 'I3'
+  if (iff <= 1.05) return 'I4'
+  return 'I5'
+}
+
+/** Blokkens sone: ført sone, ellers puls mot brukerens soner, ellers watt
+    mot FTP, ellers I1 for oppvarming/nedjogg. Aktivitet uten alt dette:
+    null (tegnes lavt, grå). Gjennomført-kartet sender soneSek TOM, så
+    pulsen i vinduet vinner der (regelen står i lib/gjennomfort-kart). */
 function soneFor(b: PlanBlokkInn, heartZones: HeartZone[]): ExtendedZoneName | null {
   const fort = hovedsoneAv(b.soneSek)
   if (fort) return fort
   if (b.snittpuls != null && heartZones.length > 0) {
     const z = zoneForHeartRate(b.snittpuls, heartZones)
+    if (z) return z
+  }
+  if (b.snittwatt != null && b.ftp != null) {
+    const z = soneFraWatt(b.snittwatt, b.ftp)
     if (z) return z
   }
   if (b.type === 'oppvarming' || b.type === 'nedjogg') return 'I1'
@@ -148,7 +177,8 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
   const ut: PlanBlokk[] = []
   for (const b of inn) {
     if (b.sek <= 0) continue
-    const start = t; t += b.sek
+    // Faktisk plassering vinner (gjennomført-kartet); ellers etter hverandre.
+    const start = b.startSek ?? t; t = start + b.sek
     if (erSkyting(b.type)) {
       // Rettelse 1: ingen sonefarge, ingen høyde i sonespråket — samme
       // farge og høyde som pause. Markøren over (🎯 L/S) bærer innholdet.

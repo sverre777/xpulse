@@ -18,6 +18,15 @@ const LAGER_MAKS_ALDER = 10 * 60 * 1000
 const lager = new Map<string, { data: WorkoutKlokkesyncData | null; tid: number; tick: number }>()
 const underveis = new Map<string, Promise<WorkoutKlokkesyncData | null>>()
 
+/** Forhåndshent klokkedata inn i lageret (peker over chipen, modal-åpning) —
+    så øktsiden/byggeren har kurven med en gang. Ufarlig å kalle flere ganger. */
+export function varmKlokkedata(workoutId: string): void {
+  if (!workoutId || lager.has(workoutId) || underveis.has(workoutId)) return
+  hent(workoutId)
+    .then(d => { lager.set(workoutId, { data: d, tid: Date.now(), tick: 0 }) })
+    .catch(() => { /* neste henting prøver igjen */ })
+}
+
 /** Glem lagret klokkedata for økta (kalles når radene/kurven er endret). */
 export function glemKlokkedata(workoutId: string): void {
   lager.delete(workoutId)

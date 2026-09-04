@@ -12,6 +12,8 @@ import { useUtvidetSkala } from '@/lib/sonesprak-klient'
 import { CALENDAR_TOKENS } from '@/lib/calendar-tokens'
 import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDisplay'
 import { KompaktKurverProvider, useKompaktKurve } from './kompakt-kurver'
+import { varmKlokkedata } from '@/components/workout/useKlokkedata'
+import { varmOkt } from '@/components/workout/okt-lager'
 import { tilSpokelseBlokker } from '@/lib/gjennomfort-kart'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
 import { PlanGraf } from '@/components/workout/PlanGraf'
@@ -639,6 +641,7 @@ export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttr
 
   return (
     <button
+      onMouseEnter={() => { if (harKlokkekurve(w)) varmKlokkedata(w.id); varmOkt(w.id, mode === 'plan' ? 'plan' : 'dagbok') }}
       ref={dragRef}
       {...dragAttributes}
       {...dragListeners}

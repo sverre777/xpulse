@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { glemVindu } from '@/lib/kurve-zoom'
-import { getWorkoutForEdit, deleteWorkout } from '@/app/actions/workouts'
+import { deleteWorkout } from '@/app/actions/workouts'
+import { hentOkt, glemOkt } from './okt-lager'
+import { varmKlokkedata } from './useKlokkedata'
 import { listEquipmentWithUsage, getWorkoutEquipmentSelection } from '@/app/actions/equipment'
 import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
@@ -87,7 +89,11 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       setActivityEquipment({})
     } else {
       setLoading(true)
-      getWorkoutForEdit(state.workoutId, state.formMode, targetUserId).then(d => {
+      // Klokkedata hentes PARALLELT med øktdataene (ikke etter), så
+      // grafen står når øktsiden tegnes; øktdataene huskes i 60 s.
+      if (reloadTick > 0) glemOkt(state.workoutId)
+      varmKlokkedata(state.workoutId)
+      hentOkt(state.workoutId, state.formMode, targetUserId).then(d => {
         setDefaults(d)
         setLoading(false)
       })

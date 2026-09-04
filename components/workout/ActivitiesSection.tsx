@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
 import { SamletBryter } from './SamletBryter'
+import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
   grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling,
@@ -113,47 +114,7 @@ function defaultMovementForSport(sport: Sport): string {
   return DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping'
 }
 
-function emptyRow(type: ActivityType, movement: string): ActivityRow {
-  return {
-    id: crypto.randomUUID(),
-    activity_type: type,
-    movement_name: movement,
-    movement_subcategory: '',
-    start_time: '',
-    duration: '',
-    distance_km: '',
-    avg_heart_rate: '',
-    max_heart_rate: '',
-    avg_watts: '',
-    max_watts: '',
-    resistance_level: '',
-    avg_pace_seconds_per_km: '',
-    pace_unit_preference: '',
-    splits_per_km: [],
-    prone_shots: '',
-    prone_hits: '',
-    standing_shots: '',
-    standing_hits: '',
-    is_dry_training: false,
-    shooting_type: '',
-    shooting_is_innskyting: false,
-    shooting_is_test: false,
-    shooting_surface: '',
-    shooting_test_ref: '',
-    shooting_series: [],
-    elevation_gain_m: '',
-    elevation_loss_m: '',
-    incline_percent: '',
-    pack_weight_kg: '',
-    sled_weight_kg: '',
-    weather: '',
-    temperature_c: '',
-    notes: '',
-    zones: emptyActivityZones(),
-    exercises: [],
-    lactate_measurements: [],
-  }
-}
+const emptyRow = nyAktivitetsrad
 
 function emptyLactateMeasurement(): ActivityLactateMeasurement {
   return {

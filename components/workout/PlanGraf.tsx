@@ -60,7 +60,9 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         if (skyting) { items.push({ id: b.id, cx, bredde: b.etikett.length * TEGN_BREDDE + 12, slag: 'skyting', trang: false, nivaa: 0 }); continue }
         const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
         const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
-        items.push({ id: b.id, cx, bredde, slag: 'blokk', trang: x(b.sek) < bredde, nivaa: 0 })
+        // Trang = blokka er smalere enn 60 % av etiketten. Etiketter får henge
+        // litt utenfor blokka si — nivåene løser kollisjonene.
+        items.push({ id: b.id, cx, bredde, slag: 'blokk', trang: x(b.sek) < bredde * 0.6, nivaa: 0 })
       }
       for (const g of grupper) {
         const forste = blokker[g.fra], siste = blokker[g.til]
@@ -156,7 +158,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             )
             const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
             const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
-            const trang = x(b.sek) < bredde
+            const trang = x(b.sek) < bredde * 0.6
             const h = plot * b.hoyde
             return (
               <g key={`e-${b.id}`} data-etikett-for={b.id} data-trang={trang || undefined} data-nivaa={etiketter.nivaaFor(b.id) + 1}

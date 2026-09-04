@@ -1048,3 +1048,45 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
      var(--accent) og disabled står, men snurringen stanses. */
   @keyframes xp-spinn { to { transform: none; } }
 }
+
+/* ── SF-17: Grunninfo komprimert (fasit design/xpulse-grunninfo-design.html V9) ── */
+.sf17 { display: flex; flex-direction: column; gap: 8px; }
+.sf17-label { font-size: 10.5px; letter-spacing: .14em; margin: 0 0 3px; }
+.sf17-label .xp-opt { font-size: 10.5px; }
+.sf17-in { display: block; width: 100%; height: 42px; padding: 0 12px !important; font-size: 14px !important; font-weight: 500; box-sizing: border-box; }
+.sf17-in-tittel { height: 46px; }
+.sf17-in:focus { outline: none; border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-soft); }
+.sf17-meta { display: grid; grid-template-columns: minmax(116px,.8fr) minmax(84px,.5fr) minmax(140px,1.3fr) minmax(130px,1.05fr); gap: 10px; min-width: 0; }
+.sf17-meta > div { min-width: 0; }
+@media (max-width: 780px) {
+  /* Sted + økttype kollapser ned på egen rad, side om side; dato + kl. står øverst. */
+  .sf17-meta { grid-template-columns: minmax(0,.8fr) minmax(0,.5fr); }
+  .sf17-sted, .sf17-type { grid-column: auto; }
+  .sf17-meta { grid-template-areas: "dato kl" "sted type"; }
+  .sf17-meta > div:nth-child(1) { grid-area: dato; }
+  .sf17-meta > div:nth-child(2) { grid-area: kl; }
+  .sf17-sted { grid-area: sted; }
+  .sf17-type { grid-area: type; }
+}
+@media (max-width: 600px) { .sf17-meta { gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1fr); } }
+.sf17-chips { display: flex; flex-wrap: nowrap; align-items: flex-start; gap: 10px; margin-top: 0; }
+.sf17-chips-venstre { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.sf17-chiplinje { display: flex; flex-wrap: nowrap; gap: 6px; min-width: 0; }
+.sf17-forhold { margin-left: auto; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.sf17-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 11px; border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase;
+  white-space: nowrap; cursor: pointer; transition: color .15s, background-color .15s; min-width: 0; }
+.sf17-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sf17-chip-kort { display: none; }
+@media (max-width: 560px) {
+  .sf17-chip { padding: 0 9px; font-size: 11px; letter-spacing: .04em; }
+  .sf17-chip-lang { display: none; }
+  .sf17-chip-kort { display: inline; }
+  .sf17-chip-forhold { width: 44px; padding: 0; justify-content: center; }
+  .sf17-chip-forhold .sf17-chip-kort { display: none; }
+}
+.sf17-utstyr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 0; }
+.sf17-utstyr-etikett { font-family: 'Barlow Condensed', sans-serif; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--tekst-8-app); }
+.sf17-utstyr-knapp { height: 36px; padding: 0 12px; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; }
+.sf17-utstyr-hjelp { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: .06em; color: var(--tekst-10-alt); }
+.sf17-utstyr-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; }

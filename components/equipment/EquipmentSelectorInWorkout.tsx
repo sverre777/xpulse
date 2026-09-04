@@ -33,48 +33,41 @@ export function EquipmentSelectorInWorkout({ available, selectedIds, onChange, p
     .filter((e): e is Equipment => !!e)
 
   return (
-    <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--kant-2)' }}>
-      <div className="flex items-baseline gap-2 flex-wrap" style={{ padding: '12px 0 8px' }}>
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
-          {planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}
-        </span>
-        <span className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-10-alt)' }}>
-          {planlagt
-            ? 'Km og tid telles først når økta er markert gjennomført'
-            : 'Gjelder hele økta · overstyr per aktivitet ved behov'}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2 flex-wrap">
-        {valgte.map(e => (
-          <span key={e.id} className="flex items-center gap-2 px-3 py-2"
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              color: 'var(--tekst-1-app)', fontSize: '13px',
-              border: '1px solid var(--line2)', borderRadius: 999,
-              backgroundColor: 'rgba(255,69,0,0.06)',
-            }}>
-            <span aria-hidden>{EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]}</span>
-            {e.name}
-            <button type="button" aria-label={`Fjern ${e.name}`}
-              onClick={() => onChange(selectedIds.filter(id => id !== e.id))}
-              style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '13px', padding: 0 }}>
-              ✕
-            </button>
-          </span>
-        ))}
-        <button type="button" onClick={() => setOpen(true)}
-          className="px-3 py-2 text-xs tracking-widest uppercase"
+    <div className="sf17-utstyr" data-utstyr-linje>
+      {/* SF-17: alt på ÉN linje — etikett + knapp + hjelpetekst; valgt utstyr
+          som chips på samme linje, bryter ved behov. */}
+      <span className="sf17-utstyr-etikett">{planlagt ? 'Utstyr — planlagt' : 'Utstyr brukt'}</span>
+      <button type="button" onClick={() => setOpen(true)}
+        className="sf17-utstyr-knapp"
+        style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          color: 'var(--tekst-5-app)', background: 'none',
+          border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer',
+        }}>
+        + Velg utstyr
+      </button>
+      <span className="sf17-utstyr-hjelp">
+        {planlagt
+          ? 'Km og tid telles først når økta er markert gjennomført'
+          : 'Gjelder hele økta · overstyr per aktivitet ved behov'}
+      </span>
+      {valgte.map(e => (
+        <span key={e.id} className="sf17-utstyr-chip"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            color: 'var(--tekst-5-app)', background: 'none',
-            border: '1px dashed var(--line2)', borderRadius: 999, cursor: 'pointer',
+            color: 'var(--tekst-1-app)', fontSize: '13px',
+            border: '1px solid var(--line2)', borderRadius: 999,
+            backgroundColor: 'rgba(255,69,0,0.06)',
           }}>
-          + Velg utstyr
-        </button>
-      </div>
+          <span aria-hidden>{EQUIPMENT_CATEGORY_ICONS[normalizeCategory(e.category)]}</span>
+          {e.name}
+          <button type="button" aria-label={`Fjern ${e.name}`}
+            onClick={() => onChange(selectedIds.filter(id => id !== e.id))}
+            style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', cursor: 'pointer', fontSize: '13px', padding: 0, minWidth: 24, minHeight: 24 }}>
+            ✕
+          </button>
+        </span>
+      ))}
 
       {open && (
         <UtstyrVelgerPopup

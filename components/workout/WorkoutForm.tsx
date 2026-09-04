@@ -1077,129 +1077,106 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         </div>
       )}
 
-      {/* ── GRUNNINFO ── */}
+      {/* ── GRUNNINFO ── SF-17 (4. sep): komprimert layout etter fasiten
+          design/xpulse-grunninfo-design.html (V9). INGENTING fjernes: samme
+          felter, samme rekkefølge, samme valgfrihet — tittel alene på full
+          bredde, metadata-raden i ett grid (tre trinn), felthøyde 42 px,
+          chipsene fast gruppert (linje 1 = hva økta betyr, linje 2 = hva
+          den er, forholdene HØYDE/VARME stablet til høyre), utstyr på én
+          linje. Tab-rekkefølgen følger den visuelle. */}
       <Section label="Grunninfo">
         {defaultValues?.created_by_coach_id && (
-          <div className="mb-3"><TrenerChip navn={defaultValues.created_by_coach_name} /></div>
+          <div className="mb-1.5"><TrenerChip navn={defaultValues.created_by_coach_name} /></div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <Label>Tittel</Label>
-            <input value={form.title} onChange={e => set('title', e.target.value)}
+        <div className="sf17">
+          <div className="sf17-tittel">
+            <label className="xp-label sf17-label" htmlFor="sf17-tittel">Tittel</label>
+            <input id="sf17-tittel" value={form.title} onChange={e => set('title', e.target.value)}
               placeholder="F.eks. 5×5min terskelintervall" required
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='var(--line)')} />
+              className="sf17-in sf17-in-tittel" style={iSt} />
           </div>
-          <div>
-            <Label>Dato</Label>
-            <input type="date" value={form.date} onChange={e => set('date', e.target.value)}
-              required style={iSt} className="w-full px-4 py-3" />
-          </div>
-          <div>
-            <Label>Klokkeslett (valgfritt)</Label>
-            <input type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
-              style={iSt} className="w-full px-4 py-3" />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Sted (valgfritt)</Label>
-            <input value={form.location ?? ''} onChange={e => set('location', e.target.value)}
-              placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
-              className="w-full px-4 py-3"
-              style={iSt} onFocus={e => (e.currentTarget.style.borderColor='#FF4500')}
-              onBlur={e => (e.currentTarget.style.borderColor='var(--line)')} />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Økttype (valgfritt)</Label>
-            {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
-                brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
-            <select
-              value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
-              onChange={e => set('workout_type', e.target.value as WorkoutType)}
-              style={iSt} className="w-full px-4 py-3">
-              <option value="other">Vanlig økt</option>
-              {workoutTypeOptions
-                .filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value))
-                .map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Chip-raden. DOM-rekkefølgen ER mobil-rekkefølgen: markeringer,
-            høyde/varme, så økttypene. Under sm er alle tre gruppene
-            `contents` — wrapperne forsvinner ut av layouten og chipene flyter
-            i én rad som brytes naturlig, akkurat som før grupperingen fantes.
-
-            Fra sm og opp legger et grid dem på plass:
-
-              [markeringer          ] [høyde]
-              [økttyper             ] [varme]
-
-            Grid og ikke `order` på flex, fordi visuell rekkefølge og
-            DOM-rekkefølge her IKKE er like — grid plasserer gruppene
-            eksplisitt uten å endre rekkefølgen for skjermlesere og
-            tastaturnavigasjon.
-
-            RAD 1 HOLDES KORT MED VILJE: «Bygg intervall» og mal-knappene
-            skal inn der senere, og da må det være plass igjen. */}
-        <div className="flex flex-wrap gap-3 mt-4
-                        sm:grid sm:grid-cols-[1fr_auto] sm:gap-x-3 sm:gap-y-2 sm:items-start">
-          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-1">
-            <Chip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500">
-              ★ Viktig økt
-            </Chip>
-            <Chip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4">
-              👥 Fellestrening
-            </Chip>
-            {showCoachAttendChip && (
-              <Chip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4">
-                👥 Skal delta
-              </Chip>
-            )}
-            {/* Fase 97: standardøkt som markering — én chip blant markeringene,
-                fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
-                klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
-                serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
-            <Chip active={!!form.standard_session_series_id || standardPickerOpen}
-              onClick={() => { void (async () => {
-                if (form.standard_session_series_id) {
-                  if (form.is_completed && !await xpConfirm(
-                    `Fjerne koblingen til «${form.standard_session_series_name ?? 'serien'}»?`)) return
-                  clearSerie()
-                } else {
-                  setStandardPickerOpen(o => !o)
-                }
-              })() }}
-              color="#FF8A5C">
-              ⟳ {form.standard_session_series_id
-                ? (form.standard_session_series_name ?? 'Standardøkt')
-                : 'Standardøkt'}
-            </Chip>
+          <div className="sf17-meta">
+            <div>
+              <label className="xp-label sf17-label" htmlFor="sf17-dato">Dato</label>
+              <input id="sf17-dato" type="date" value={form.date} onChange={e => set('date', e.target.value)}
+                required style={iSt} className="sf17-in" />
+            </div>
+            <div>
+              <label className="xp-label sf17-label" htmlFor="sf17-kl">Kl. <span className="xp-opt">(valgfritt)</span></label>
+              <input id="sf17-kl" type="time" value={form.time_of_day} onChange={e => set('time_of_day', e.target.value)}
+                style={iSt} className="sf17-in" />
+            </div>
+            <div className="sf17-sted">
+              <label className="xp-label sf17-label" htmlFor="sf17-sted">Sted <span className="xp-opt">(valgfritt)</span></label>
+              <input id="sf17-sted" value={form.location ?? ''} onChange={e => set('location', e.target.value)}
+                placeholder="F.eks. Sognsvann, Trysil, Sierra Nevada"
+                className="sf17-in" style={iSt} />
+            </div>
+            <div className="sf17-type">
+              <label className="xp-label sf17-label" htmlFor="sf17-type">Økttype <span className="xp-opt">(valgfritt)</span></label>
+              {/* Kompakt nedtrekksliste — «Vanlig økt» (other) er default. Taggene
+                  brukes til analyse-gruppering + «Siste hardøkt» på hjem. */}
+              <select id="sf17-type"
+                value={MEANINGFUL_WORKOUT_TYPES.includes(form.workout_type) ? form.workout_type : 'other'}
+                onChange={e => set('workout_type', e.target.value as WorkoutType)}
+                style={iSt} className="sf17-in">
+                <option value="other">Vanlig økt</option>
+                {workoutTypeOptions
+                  .filter(t => MEANINGFUL_WORKOUT_TYPES.includes(t.value))
+                  .map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
           </div>
 
-          {/* Kort tekst med vilje — ikonet bærer betydningen, og plassen
-              trengs i rad 1. Lesevisningene (WorkoutOverview, WorkoutCard,
-              Calendar, AltitudeHeatTab) beholder «Høydetrening»/«Varmetrening»:
-              der står ikonet ikke nødvendigvis ved siden av, og «Høyde» alene
-              kan like gjerne bety høydemeter. */}
-          <div className="contents sm:flex sm:flex-col sm:gap-2 sm:items-end
-                          sm:col-start-2 sm:row-start-1 sm:row-span-2">
-            <Chip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF">
-              🏔️ Høyde
-            </Chip>
-            <Chip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B">
-              🌡️ Varme
-            </Chip>
-          </div>
-
-          <div className="contents sm:flex sm:flex-wrap sm:gap-3 sm:col-start-1 sm:row-start-2">
-            {SPECIAL_WORKOUT_TYPES.map(s => (
-              <Chip key={s.value} active={form.workout_type === s.value}
-                onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
-                color={s.color}>
-                {s.label}
-              </Chip>
-            ))}
+          {/* Chipsene — fast gruppering, aldri fritt flytende (fasiten):
+                linje 1: VIKTIG ØKT · FELLESTRENING · (SKAL DELTA) · STANDARDØKT — hva økta BETYR
+                linje 2: KONKURRANSE · TESTLØP · TEST — hva den ER
+                til høyre, stablet: HØYDE · VARME — FORHOLDENE.
+              Begge linjene nowrap; blir det trangt er det teksten som gir
+              (11,5 px), aldri grupperingen. Mobil (<560): høyde/varme som
+              ikon-knapper 44 × 36 med aria-label, fortsatt til høyre. */}
+          <div className="sf17-chips">
+            <div className="sf17-chips-venstre">
+              <div className="sf17-chiplinje">
+                <SfChip active={form.is_important} onClick={() => set('is_important', !form.is_important)} color="#FF4500" ikon="★" tekst="Viktig økt" kort="Viktig" />
+                <SfChip active={form.is_group_session} onClick={() => set('is_group_session', !form.is_group_session)} color="#1A6FD4" ikon="👥" tekst="Fellestrening" kort="Felles" />
+                {showCoachAttendChip && (
+                  <SfChip active={coachWillAttend} onClick={() => setCoachWillAttend(v => !v)} color="#1A6FD4" ikon="👥" tekst="Skal delta" kort="Delta" />
+                )}
+                {/* Fase 97: standardøkt som markering — én chip blant markeringene,
+                    fristilt fra mal-flaten. Virker for alle opphav (manuell, mal,
+                    klokkesynk-importert). Trykk = serie-velger; aktiv chip viser
+                    serien; trykk på aktiv = fjern kobling (bekreft hvis ført). */}
+                <SfChip active={!!form.standard_session_series_id || standardPickerOpen}
+                  onClick={() => { void (async () => {
+                    if (form.standard_session_series_id) {
+                      if (form.is_completed && !await xpConfirm(
+                        `Fjerne koblingen til «${form.standard_session_series_name ?? 'serien'}»?`)) return
+                      clearSerie()
+                    } else {
+                      setStandardPickerOpen(o => !o)
+                    }
+                  })() }}
+                  color="#FF8A5C" ikon="⟳"
+                  tekst={form.standard_session_series_id ? (form.standard_session_series_name ?? 'Standardøkt') : 'Standardøkt'}
+                  kort={form.standard_session_series_id ? (form.standard_session_series_name ?? 'Std.') : 'Std.økt'} />
+              </div>
+              <div className="sf17-chiplinje">
+                {SPECIAL_WORKOUT_TYPES.map(s => (
+                  <SfChip key={s.value} active={form.workout_type === s.value}
+                    onClick={() => set('workout_type', form.workout_type === s.value ? 'other' : s.value)}
+                    color={s.color} tekst={s.label.replace(/^[^A-Za-zÆØÅæøå]+/, '').trim()} ikon={s.label.match(/^[^A-Za-zÆØÅæøå]+/)?.[0]?.trim()}
+                    kort={s.value === 'competition' ? 'Konk.' : s.value === 'testlop' ? 'Testløp' : 'Test'} />
+                ))}
+              </div>
+            </div>
+            {/* Kort tekst med vilje — ikonet bærer betydningen. Lesevisningene
+                (WorkoutOverview, WorkoutCard, Calendar, AltitudeHeatTab) beholder
+                «Høydetrening»/«Varmetrening». */}
+            <div className="sf17-forhold">
+              <SfChip active={!!form.is_altitude_training} onClick={() => set('is_altitude_training', !form.is_altitude_training)} color="#5B8DEF" ikon="🏔️" tekst="Høyde" kort="" forhold />
+              <SfChip active={!!form.is_heat_training} onClick={() => set('is_heat_training', !form.is_heat_training)} color="#E0772B" ikon="🌡️" tekst="Varme" kort="" forhold />
+            </div>
           </div>
         </div>
 
@@ -1402,7 +1379,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         )}
 
         {!targetUserId && !templateBuildingMode && !captureOnlyMode && (
-          <div className="mt-4">
+          <div className="mt-2">
             <EquipmentSelectorInWorkout
               available={availableEquipment}
               selectedIds={equipmentIds}
@@ -2259,6 +2236,27 @@ function Label({ children }: { children: React.ReactNode }) {
 
 // StarRating er flyttet til components/ui/StarRating.tsx — ÉN følelses-
 // skala i hele appen (regel 11), delt med den daglige energiføringen.
+
+/** SF-17: chip med fast høyde 36 px, kort tekst under 560 px, og ikon-knapp
+    (44 × 36) for forholdene HØYDE/VARME på mobil. aria-label bærer hele
+    teksten uansett. */
+function SfChip({ active, onClick, color = 'var(--tekst-8-app)', ikon, tekst, kort, forhold = false }: {
+  active: boolean; onClick: () => void; color?: string; ikon?: string; tekst: string; kort?: string; forhold?: boolean
+}) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active} aria-label={tekst}
+      className={`sf17-chip${forhold ? ' sf17-chip-forhold' : ''}`}
+      style={{
+        backgroundColor: active ? `${color}22` : 'transparent',
+        color: active ? color : 'var(--mut)',
+        border: `1px solid ${active ? color : 'var(--line2)'}`,
+      }}>
+      {ikon && <span aria-hidden className="sf17-chip-ikon">{ikon}</span>}
+      <span className="sf17-chip-lang">{tekst}</span>
+      {kort !== undefined && kort !== '' && <span className="sf17-chip-kort" aria-hidden>{kort}</span>}
+    </button>
+  )
+}
 
 function Chip({ active, onClick, children, color = 'var(--tekst-8-app)' }: {
   active: boolean; onClick: () => void; children: React.ReactNode; color?: string

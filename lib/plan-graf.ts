@@ -153,8 +153,9 @@ function soneFor(b: PlanBlokkInn, heartZones: HeartZone[]): ExtendedZoneName | n
   const fort = hovedsoneAv(b.soneSek)
   if (fort) return fort
   if (b.snittpuls != null && heartZones.length > 0) {
-    const z = zoneForHeartRate(b.snittpuls, heartZones)
-    if (z) return z
+    // Under I1-grensa er fortsatt I1 i kartet (rolig tur = grønn, ikke grå
+    // «uten sone») — sonespråket har ingen sone under I1.
+    return zoneForHeartRate(b.snittpuls, heartZones) ?? 'I1'
   }
   if (b.snittwatt != null && b.ftp != null) {
     const z = soneFraWatt(b.snittwatt, b.ftp)

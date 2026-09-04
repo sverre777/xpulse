@@ -623,7 +623,12 @@ export function WorkoutDetailChart({
           laktat/ernæring/skyting som små kort, så ⚡ Øktbygger · 🎯 Plott
           treff · 🩸 Sett laktat · 📝 Notat. */}
       {!skjema && (
-        <Detaljrad rpe={rpe} onRpe={onRpe} lactate={lactate} nutrition={nutrition} segmenter={segmenter} handlinger={handlinger} />
+        <Detaljrad rpe={rpe} onRpe={onRpe} lactate={lactate} nutrition={nutrition} segmenter={segmenter}
+          handlinger={handlinger && {
+            ...handlinger,
+            // Plott treff bare for skiskyting og bare når økta har skyting (Sverre 4. sep).
+            onPlottTreff: sport === 'biathlon' && (harSkyting || segmenter.some(sg => erSkytesegment(sg.type))) ? handlinger.onPlottTreff : undefined,
+          }} />
       )}
 
       {/* NØKKELTALLSRADEN — «hva ble ØKTA» (lesepanelet svarer «hva skjedde

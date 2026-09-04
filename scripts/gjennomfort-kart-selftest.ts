@@ -24,12 +24,12 @@ const puls = (fra: number, til: number, hr: number) => Array.from({ length: til 
   ok('blokkene står der de faktisk lå (300 → 540)', b[1].startSek === 300 && b[1].sek === 240)
   ok('snittpulsen er aritmetisk snitt av prøvene i vinduet', b[1].snittpuls === 178)
 }
-// 2) Pulsen over I5 klemmes til I5, under I1 gir ingen sone (grå)
+// 2) Pulsen over I5 klemmes til I5, under I1 er I1 (rolig tur er grønn, ikke grå)
 {
   const hr = [...puls(0, 100, 199), ...puls(101, 200, 90)]
   const b = byggPlanBlokker(faktiskeBlokker([seg('a', 'drag', 0, 100), seg('b', 'drag', 101, 200)], hr, null), soner)
   ok('199 → I5', b[0].sone === 'I5')
-  ok('90 → ingen sone', b[1].sone === null)
+  ok('90 (under I1) → I1 i kartet', b[1].sone === 'I1')
 }
 // 3) Uten puls: watt mot FTP
 {

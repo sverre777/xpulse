@@ -39,6 +39,10 @@ export interface RadPlassInfo {
   harKlokkeProveniens: boolean
 }
 
+/** Klokkas runder er hele sekunder, kurven er ikke: en rad som ender inntil
+    3 s forbi kurven stikker ikke ut (Sverre 4. sep: «254:44 forbi 4:14:43»). */
+export const KURVE_TOLERANSE_SEK = 3
+
 /** Minste varighet på en rad etter kutt/grenseflytting. */
 export const MIN_RAD_SEK = 5
 
@@ -472,6 +476,6 @@ export function snappTilKlokkerunder(
 /** Rader som stikker ut forbi kurven — vises med rød kant, klippes aldri. */
 export function overKurven(plassering: Utkast[], totalSek: number): Utkast[] {
   if (totalSek <= 0) return []
-  return plassering.filter(u => u.startSek + u.varighetSek > totalSek + 0.5)
+  return plassering.filter(u => u.startSek + u.varighetSek > totalSek + KURVE_TOLERANSE_SEK)
 }
 

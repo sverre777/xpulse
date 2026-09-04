@@ -8,9 +8,9 @@ import {
 import {
   plasserRader, kuttRad, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
   slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett,
-  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast,
-} from '@/lib/oktbygger-rader'
+  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK } from '@/lib/oktbygger-rader'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
+import { parseActivityDuration } from '@/lib/activity-duration'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
@@ -130,7 +130,7 @@ export function OktbyggerPopup({
   // skyting ekte rader (måling, inntak, skyterad) — samme rader som
   // skjemaet fører — så det går begge veier. I plan blir laktat/ernæring/
   // notat planlagte punkter og skyting en planlagt skyterad.
-  const [punktType, setPunktType] = useState<PunktType | 'skyting'>(erPlanlagt ? 'laktat' : 'notat')
+  const [punktType, setPunktType] = useState<PunktType | 'skyting_ligg' | 'skyting_staa'>(erPlanlagt ? 'laktat' : 'notat')
   const [planPunkter, setPlanPunkter] = useState<TidspunktNotat[]>([])
   // MATCH (3b): «start her» venter på et klikk på kurven for valgt rad.
   const [startHerModus, setStartHerModus] = useState(false)
@@ -202,20 +202,55 @@ export function OktbyggerPopup({
   /** Klikk på kurven i start-her-modus: valgt rad (og kjeden etter) flyttes dit. */
   const startHerVed = (sek: number) => {
     if (!valgtRad) return
-    endre(flyttKjedeTil(rader, plassering, valgtRad, sek))
+    const rad = rader.find(r => r.id === valgtRad)
+    if (rad && rad.activity_type.startsWith('skyting')) {
+      // Skyting er et vindu på pulsen, ikke et ledd i kjeden: bare vinduet
+      // flyttes, og pulsen i vinduet følger med (Sverre 4. sep).
+      const s = Math.max(0, Math.round(sek))
+      const sek2 = Math.max(MIN_RAD_SEK, rad.window_duration_seconds ?? (parseActivityDuration(rad.duration) || 60))
+      const ny = { ...rad, window_start_seconds: s, window_duration_seconds: sek2 }
+      const puls = pulsIVindu(hr, s, s + sek2)
+      if (puls.snitt != null) ny.avg_heart_rate = String(puls.snitt)
+      if (puls.maks != null) ny.max_heart_rate = String(puls.maks)
+      endre(rader.map(r => (r.id === rad.id ? ny : r)))
+    } else {
+      endre(flyttKjedeTil(rader, plassering, valgtRad, sek))
+    }
     setStartHerModus(false)
     setMelding(null)
   }
   /** Klikk i båndet i punkt-modus: nytt punkt der, av valgt type. */
   const punktVed = (sek: number) => {
     const s = Math.max(0, Math.round(sek))
-    if (punktType === 'skyting') {
-      // Skyterad på tidslinja — samme rad som «+ Legg til skyting» lager.
-      const rad = nyAktivitetsrad('skyting_kombinert', '')
-      rad.duration = '1:00'
-      rad.window_start_seconds = s
-      rad.window_duration_seconds = 60
-      endre([...rader, rad])
+    if (punktType === 'skyting_ligg' || punktType === 'skyting_staa') {
+      // Skyterad på tidslinja (ligg eller stå) — samme rad som «+ Legg til
+      // skyting» lager. Finnes det alt en UPLASSERT skyterad av samme
+      // stilling i lista (lagt til i aktivitetsradene), er det den som
+      // plasseres her (Sverre 4. sep) — ellers lages en ny.
+      const type = punktType === 'skyting_ligg' ? 'skyting_liggende' : 'skyting_staaende'
+      const varighet = (r: ActivityRow) => r.window_duration_seconds ?? (parseActivityDuration(r.duration) || 60)
+      const eksisterende = rader.find(r => r.activity_type === type && r.window_start_seconds == null)
+      const settPuls = (r: ActivityRow, start: number, sek: number) => {
+        // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på
+        // skytingen automatisk (pulsen i vinduet — samme tall som båndet viser).
+        const puls = pulsIVindu(hr, start, start + sek)
+        if (puls.snitt != null) r.avg_heart_rate = String(puls.snitt)
+        if (puls.maks != null) r.max_heart_rate = String(puls.maks)
+      }
+      if (eksisterende) {
+        const sek = Math.max(MIN_RAD_SEK, varighet(eksisterende))
+        const ny = { ...eksisterende, window_start_seconds: s, window_duration_seconds: sek }
+        settPuls(ny, s, sek)
+        endre(rader.map(r => (r.id === eksisterende.id ? ny : r)))
+        setValgtRad(eksisterende.id)
+      } else {
+        const rad = nyAktivitetsrad(type, '')
+        rad.duration = '1:00'
+        rad.window_start_seconds = s
+        rad.window_duration_seconds = 60
+        settPuls(rad, s, 60)
+        endre([...rader, rad])
+      }
     } else if (!erPlanlagt && punktType === 'laktat') {
       onLaktat([...laktat, { id: crypto.randomUUID(), measured_at_time: sekTilKlokkeslett(startSek + s), mmol: '', heart_rate: '', feeling: null }])
     } else if (!erPlanlagt && punktType === 'ernaering') {
@@ -400,12 +435,19 @@ export function OktbyggerPopup({
                 {/* Typeraden står åpen hele tiden (Sverre 4. sep) — å velge en
                     type slår punkt-modus på, så man slipper å trykke «Punkt». */}
                 <span className="flex items-center gap-1 flex-wrap" data-punkt-type>
-                  {(['laktat', 'ernaering', 'skyting', 'notat'] as const).map(t => (
-                    <button key={t} type="button"
+                  {([
+                    { t: 'laktat', ikon: PUNKT_SLAG.laktat.ikon, navn: PUNKT_SLAG.laktat.navn, farge: PUNKT_SLAG.laktat.farge },
+                    { t: 'ernaering', ikon: PUNKT_SLAG.ernaering.ikon, navn: PUNKT_SLAG.ernaering.navn, farge: PUNKT_SLAG.ernaering.farge },
+                    // Skyting velges som ligg eller stå (Sverre 4. sep).
+                    { t: 'skyting_ligg', ikon: '🎯', navn: 'Ligg', farge: PUNKT_SLAG.skyting.farge },
+                    { t: 'skyting_staa', ikon: '🎯', navn: 'Stå', farge: PUNKT_SLAG.skyting.farge },
+                    { t: 'notat', ikon: PUNKT_SLAG.notat.ikon, navn: PUNKT_SLAG.notat.navn, farge: PUNKT_SLAG.notat.farge },
+                  ] as const).map(({ t, ikon, navn, farge }) => (
+                    <button key={t} type="button" data-punkt-valg={t}
                       onClick={() => { setPunktType(t); setPunktModus(true); setKuttModus(false); setStartHerModus(false) }}
                       aria-pressed={punktModus && punktType === t}
-                      style={{ ...pille(punktModus && punktType === t ? PUNKT_SLAG[t].farge : undefined, punktModus && punktType === t), padding: '5px 10px', minHeight: 32, opacity: punktModus || punktType !== t ? 1 : 0.85 }}>
-                      {PUNKT_SLAG[t].ikon} {PUNKT_SLAG[t].navn}
+                      style={{ ...pille(punktModus && punktType === t ? farge : undefined, punktModus && punktType === t), padding: '5px 10px', minHeight: 32, opacity: punktModus || punktType !== t ? 1 : 0.85 }}>
+                      {ikon} {navn}
                     </button>
                   ))}
                 </span>
@@ -727,7 +769,7 @@ function KurveMedRader({
       {(() => {
         const u = utkast.find(x => x.id === valgtRad)
         if (!u) return null
-        const utenfor = paaKurve && u.startSek + u.varighetSek > totalSek + 0.5
+        const utenfor = paaKurve && u.startSek + u.varighetSek > totalSek + KURVE_TOLERANSE_SEK
         return (
           <span data-valgt-rad aria-hidden style={{
             position: 'absolute', left: h.pct(u.startSek), width: `calc(${h.pct(h.fraSek + u.varighetSek)} - 1px)`, minWidth: 6,
@@ -775,11 +817,28 @@ function KurveMedRader({
   // Kartet (GRAF, og alltid uten kurve): samme PlanGraf som øktsiden, med
   // planen bak, klokkas runder som merker og punktene. Klikk på en blokk =
   // kutt/punkt/start her etter modus, ellers velges raden.
+  // Forhåndsvisningen over kartet: samme linje som over kurven (kutt /
+  // punkt / start her), på kartets egen tidsakse (0 → totalSek).
+  const kartPct = (sek: number) => `${Math.max(0, Math.min(100, (sek / Math.max(1, totalSek)) * 100))}%`
   const kart = (
-    <div data-bygger-kart style={{ background: 'var(--flate-12-alt)', border: `1px ${erPlanlagt ? 'dashed' : 'solid'} var(--kant-3)`, borderRadius: 10, padding: '4px 6px 0' }}>
+    <div data-bygger-kart style={{ position: 'relative', background: 'var(--flate-12-alt)', border: `1px ${erPlanlagt ? 'dashed' : 'solid'} var(--kant-3)`, borderRadius: 10, padding: '4px 6px 0' }}>
       <PlanGraf blokker={kartInn} heartZones={heartZones} tetthet="full" totalSek={totalSek} kilde={erPlanlagt ? 'plan' : 'faktisk'}
         spokelser={planBlokker} punkter={grafPunkter} runder={runder}
         valgtId={valgtRad} onVelgBlokk={onVelgRad} onKlikkSek={modus ? onKlikkSek : undefined} />
+      {forhandsSek != null && forhandsSek >= 0 && forhandsSek <= totalSek && (() => {
+        const farge = modus === 'kutt' ? '#E23A5A' : modus === 'punkt' ? 'var(--accent)' : 'var(--tekst-1-app)'
+        return (
+          <span data-kuttlinje aria-hidden style={{ position: 'absolute', left: kartPct(forhandsSek), top: 4, bottom: 4, width: 0, borderLeft: `1.5px ${modus ? 'solid' : 'dashed'} ${farge}`, pointerEvents: 'none', zIndex: 3 }}>
+            <span style={{
+              position: 'absolute', top: 4, left: 6, whiteSpace: 'nowrap',
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11, letterSpacing: '0.06em',
+              color: 'var(--tekst-1-app)', background: 'var(--flate-12-alt)', border: `1px solid ${farge}`, borderRadius: 6, padding: '2px 6px',
+            }}>
+              {fmtKlokkeSek(forhandsSek)}
+            </span>
+          </span>
+        )
+      })()}
     </div>
   )
   if (!harKurve || visning === 'graf') {
@@ -889,7 +948,7 @@ function ByggerBaand({ utkast, valgtId, onVelg, fraSek, tilSek, modus, onKlikkSe
           const type = segmentTypeFor(u.type, u.bevegelsesform)
           const farge = SEGMENT_FARGER[type]
           const er = valgtId === u.id
-          const utenfor = kurveSlutt > 0 && u.startSek + u.varighetSek > kurveSlutt + 0.5
+          const utenfor = kurveSlutt > 0 && u.startSek + u.varighetSek > kurveSlutt + KURVE_TOLERANSE_SEK
           const andel = u.varighetSek / spenn
           return (
             <button key={u.id} type="button" data-baand-segment={u.id} data-valgt={er || undefined}
@@ -939,7 +998,7 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar, k
         const smalt = andel < 0.03
         const t = tallFor(u)
         const plan = planTekstFor(u)
-        const utenfor = kurveSlutt > 0 && u.startSek + u.varighetSek > kurveSlutt + 0.5
+        const utenfor = kurveSlutt > 0 && u.startSek + u.varighetSek > kurveSlutt + KURVE_TOLERANSE_SEK
         return (
           <button key={u.id} type="button" tabIndex={klikkbar ? 0 : -1}
             data-utenfor-kurven={utenfor ? '1' : undefined}

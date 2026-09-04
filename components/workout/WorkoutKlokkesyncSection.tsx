@@ -203,6 +203,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           np={data.wattMetrikker?.np ?? null}
           rpe={data.rpe}
           onRpe={settRpe}
+          forventetRpe={data.forventet}
         />
       )}
       {rpeFeil && (

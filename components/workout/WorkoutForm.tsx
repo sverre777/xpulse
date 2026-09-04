@@ -280,6 +280,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     day_form_physical: defaultValues?.day_form_physical ?? null,
     day_form_mental:   defaultValues?.day_form_mental ?? null,
     rpe:         defaultValues?.rpe ?? null,
+    forventet_belastning: defaultValues?.forventet_belastning ?? null,
     notes:       defaultValues?.notes ?? '',
     tags:        defaultValues?.tags ?? [],
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
@@ -1418,6 +1419,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             klokke={workoutId && klokke.data?.samples ? { data: klokke.data, segmenter: liveSegmenter, workoutId } : null}
             rpe={form.rpe}
             onRpe={v => set('rpe', v)}
+            forventet={form.forventet_belastning ?? null}
+            onForventet={v => set('forventet_belastning', v)}
             erPlanlagt={isPlanMode}
           />
         </div>

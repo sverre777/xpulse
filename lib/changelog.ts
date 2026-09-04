@@ -63,6 +63,12 @@ export const CHANGELOG: ChangelogEntry[] = [
 
   // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
   {
+    date: '2026-09-04',
+    title: 'Forventet belastning i plan',
+    body: 'Planlagte økter har cellen «Forventet · føres» (1–10) i nøkkeltallsraden under øktkartet — samme skala som opplevd belastning. Etter gjennomføring står forventet ved siden av opplevd, så «forventet 6 → opplevd 8» leses rett av.',
+    version: '1.3',
+  },
+  {
     date: '2026-09-02',
     title: 'Planen bak kurven',
     body: 'På økter med klokke ligger planens blokker som svake spøkelser i sonefargen bak pulskurven — på økta, i skjemaet og i kalenderen. Der virkeligheten forlot planen ser du det med én gang. Bryteren «Vis plan» huskes per økt og står på når økta har en plan.',

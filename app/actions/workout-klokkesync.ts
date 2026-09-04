@@ -50,6 +50,8 @@ export interface WorkoutKlokkesyncData {
   /** Opplevd belastning 1–10 på økta (workouts.rpe) — samme felt som
       skjemaet fører lenger nede. */
   rpe: number | null
+  /** Forventet belastning 1–10 satt i plan (fase 120) — vises ved siden av opplevd. */
+  forventet: number | null
   /** Kurvens lengde i sekunder — tidslinjens fasit. */
   totalSek: number
   radInfo: Record<string, RadInfo>
@@ -89,7 +91,7 @@ export async function getWorkoutKlokkesyncData(
   // workout er resolvert.
   const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
     supabase.from('workouts')
-      .select('id, sport, time_of_day, date, user_id, rpe, runde_backup')
+      .select('id, sport, time_of_day, date, user_id, rpe, forventet_belastning, runde_backup')
       .eq('id', workoutId)
       .maybeSingle(),
     supabase.from('workout_samples')
@@ -321,6 +323,7 @@ export async function getWorkoutKlokkesyncData(
   return {
     sport: (workout.sport ?? null) as Sport | null,
     rpe: workout.rpe != null ? Number(workout.rpe) : null,
+    forventet: (workout as { forventet_belastning?: number | null }).forventet_belastning ?? null,
     totalSek,
     radInfo,
     wattMetrikker,
@@ -558,6 +561,26 @@ export async function lagreOpplevdBelastning(
   if (error) return { ok: false, error: error.message }
   if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
   revalidatePath('/app/dagbok')
+  return { ok: true }
+}
+
+/** Forventet belastning 1–10 på en planlagt økt (fase 120) — samme
+    regler som opplevd; RLS avgjør hvem som kan sette den. */
+export async function lagreForventetBelastning(
+  workoutId: string, forventet: number | null,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Ikke innlogget' }
+  if (forventet != null && (!Number.isInteger(forventet) || forventet < 1 || forventet > 10)) {
+    return { ok: false, error: 'Forventet belastning må være et helt tall 1–10' }
+  }
+  const { error, count } = await supabase.from('workouts')
+    .update({ forventet_belastning: forventet }, { count: 'exact' }).eq('id', workoutId)
+  if (error) return { ok: false, error: error.message }
+  if (!count) return { ok: false, error: 'Økta ble ikke oppdatert — mangler du redigeringsrett?' }
+  revalidatePath('/app/dagbok')
+  revalidatePath('/app/plan')
   return { ok: true }
 }
 

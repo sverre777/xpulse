@@ -265,6 +265,11 @@ export interface WorkoutFormData {
   day_form_physical: number | null
   day_form_mental: number | null
   rpe: number | null
+  // Fase 120: planleggerens FORVENTEDE belastning 1–10 (workouts.forventet_
+  // belastning) — samme skala som rpe, satt på planlagt økt, sammenlignes
+  // med opplevd etter gjennomføring. Valgfritt: eldre kallere som ikke
+  // kjenner feltet overskriver det aldri.
+  forventet_belastning?: number | null
   notes: string
   tags: string[]
   // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')
@@ -1012,6 +1017,7 @@ export interface Workout {
   day_form_physical: number | null
   day_form_mental: number | null
   rpe: number | null
+  forventet_belastning?: number | null
   coach_comment: string | null
   shooting_data: Record<string, unknown> | null
   created_at: string

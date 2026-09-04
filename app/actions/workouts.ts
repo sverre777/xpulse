@@ -754,6 +754,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     day_form_physical: data.day_form_physical,
     day_form_mental: data.day_form_mental,
     rpe: data.rpe,
+    // Fase 120: forventet belastning skrives bare når skjemaet kjenner feltet.
+    ...(data.forventet_belastning !== undefined ? { forventet_belastning: data.forventet_belastning } : {}),
     shooting_data: shootingData,
     // Fase 14: mal-referanse + denormalisert tag-array.
     // workout_tags-child-tabellen beholdes for bakoverkomp (skrives nedenfor);
@@ -1651,6 +1653,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       day_form_physical: null,
       day_form_mental:   null,
       rpe:          null,
+      forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
       tags:         snap.tags ?? [],
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
@@ -1690,6 +1693,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     day_form_physical: workout.day_form_physical,
     day_form_mental:   workout.day_form_mental,
     rpe:          workout.rpe,
+    forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)

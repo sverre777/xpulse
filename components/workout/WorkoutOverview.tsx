@@ -31,7 +31,7 @@ import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
 import { fraActivityRows } from '@/lib/plan-graf'
-import { lagreOpplevdBelastning } from '@/app/actions/workout-klokkesync'
+import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
 import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
@@ -166,6 +166,15 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   // samme felt (workouts.rpe) og samme lagring som klokke-grafen bruker.
   const [rpeLokal, setRpeLokal] = useState<number | null | undefined>(undefined)
   const rpeVist = rpeLokal === undefined ? (data.rpe ?? null) : rpeLokal
+  // Forventet belastning (fase 120) — føres i plan, vises ved siden av opplevd.
+  const [forventetLokal, setForventetLokal] = useState<number | null | undefined>(undefined)
+  const forventetVist = forventetLokal === undefined ? (data.forventet_belastning ?? null) : forventetLokal
+  const settForventet = async (v: number | null) => {
+    if (!workoutId) return
+    setForventetLokal(v)
+    const r = await lagreForventetBelastning(workoutId, v)
+    if (!r.ok) setForventetLokal(undefined)
+  }
   const settRpe = async (v: number | null) => {
     if (!workoutId) return
     setRpeLokal(v)
@@ -422,8 +431,10 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           <div data-plan-graf-hovedside>
             <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
-              rpe={isPlannedView ? null : rpeVist}
-              onRpe={!isPlannedView && canEdit && workoutId ? settRpe : undefined} />
+              rpe={isPlannedView ? forventetVist : rpeVist}
+              onRpe={canEdit && workoutId ? (isPlannedView ? settForventet : settRpe) : undefined}
+              forventetRpe={isPlannedView ? null : forventetVist}
+              rpeEtikett={isPlannedView ? 'Forventet' : 'Opplevd'} />
           </div>
         </Card>
       )}

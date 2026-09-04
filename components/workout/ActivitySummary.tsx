@@ -36,8 +36,11 @@ interface Props {
   /** Opplevd belastning — SAMME felt som «Dagsform og belastning» fører. */
   rpe?: number | null
   onRpe?: (v: number | null) => void
-  /** Plan: grafen er øktkartet, og belastningscellen er «forventet» (kommer
-      med eget felt — til da vises ingen belastningscelle i plan). */
+  /** Forventet belastning 1–10 (fase 120): føres i plan, vises ved siden
+      av opplevd på gjennomført. */
+  forventet?: number | null
+  onForventet?: (v: number | null) => void
+  /** Plan: grafen er øktkartet, og belastningscellen er «forventet». */
   erPlanlagt?: boolean
 }
 
@@ -46,7 +49,7 @@ interface Props {
 import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 
-export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, erPlanlagt = false }: Props) {
+export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -261,6 +264,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
             segmenter={klokke.segmenter}
             heartZones={heartZones}
             np={klokke.data.wattMetrikker?.np ?? null}
+            forventetRpe={forventet}
           />
         </div>
       )}
@@ -276,7 +280,9 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
           belastning · opplevd (føres), pluss distanse og det som finnes.
           I plan vises ingen belastningscelle før «forventet» har et felt. */}
       <div className="mb-3">
-        <Nokkeltall celler={celler} rpe={erPlanlagt ? null : rpe} onRpe={erPlanlagt ? undefined : onRpe} />
+        <Nokkeltall celler={celler}
+          rpe={erPlanlagt ? forventet : rpe} onRpe={erPlanlagt ? onForventet : onRpe}
+          forventetRpe={erPlanlagt ? null : forventet} rpeEtikett={erPlanlagt ? 'Forventet' : 'Opplevd'} />
       </div>
 
       {/* Bevegelsesform-fordeling */}

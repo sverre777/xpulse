@@ -31,7 +31,9 @@ const SONE_REKKEFOLGE = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtig
 /** Nøkkelen som avgjør om to naborader hører sammen. Skyting får en
     nøkkel ingen annen rad kan dele. */
 export function samleNokkel(a: ActivityRow): string {
-  if (erSkyting(a.activity_type)) return 'skyting'
+  // Skyting samles PER SKYTETYPE (Sverre 4. sep): hard komb-seriene i én
+  // bolk, rolig komb i én, basis i én — ikke all skyting i én gruppe.
+  if (erSkyting(a.activity_type)) return `skyting|${a.shooting_type ?? ''}`
   // Et intervallsett fra hurtigoppsettet (drag + pauser med samme gruppe_id)
   // er ÉN gruppe og leses som mønster — det går foran type-nøkkelen.
   if (a.gruppe_id) return `gruppe|${a.gruppe_id}`
@@ -160,6 +162,28 @@ export function monsterTekst(g: RadGruppe): string | null {
   const kort = m.dragSek < 90 && m.pauseSek != null && m.pauseSek < 90
   if (kort) return `${m.antall} × ${Math.round(m.dragSek)}/${Math.round(m.pauseSek!)}${m.sone ? ` ${m.sone}` : ''}`
   return `${m.antall} × ${fmtVarighetKort(m.dragSek)}${m.sone ? ` ${m.sone}` : ''}${m.pauseSek ? ` · ${fmtVarighetKort(m.pauseSek)} pause` : ''}`
+}
+
+/** Skytegruppe: alle radene er skyting (samme skytetype). */
+export function erSkytingGruppe(g: RadGruppe): boolean {
+  return g.nokkel.startsWith('skyting|')
+}
+
+/** Skytetypen gruppa samler (tom = uten type). */
+export function skytingGruppeType(g: RadGruppe): string {
+  return g.nokkel.startsWith('skyting|') ? g.nokkel.slice('skyting|'.length) : ''
+}
+
+/** Skudd og treff summert over radene — bare rader der tallene er ført. */
+export function skuddSum(g: RadGruppe): { skudd: number; treff: number } {
+  let skudd = 0, treff = 0
+  for (const a of g.rader) {
+    for (const [s, t] of [[a.prone_shots, a.prone_hits], [a.standing_shots, a.standing_hits]] as const) {
+      const sk = parseInt(String(s ?? '')), tr = parseInt(String(t ?? ''))
+      if (Number.isFinite(sk) && sk > 0) { skudd += sk; if (Number.isFinite(tr)) treff += tr }
+    }
+  }
+  return { skudd, treff }
 }
 
 /** Feltene en gruppe-rad kan endre — skrives til HVER rad i gruppa.

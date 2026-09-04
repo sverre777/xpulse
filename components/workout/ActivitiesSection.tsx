@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
+import { fmtKlokkeSek } from '@/lib/segmenter'
 import { SamletBryter } from './SamletBryter'
 import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
-  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling,
+  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, fmtSoneFordeling,
   type Visning, type RadGruppe, type GruppeFelt,
 } from '@/lib/samlet-visning'
 import { SerieListe } from './SerieListe'
@@ -335,8 +336,11 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             expanded={expandedId === g.id}
             onToggle={() => setExpandedId(expandedId === g.id ? null : g.id)}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
+            onUpdateRad={(id, patch) => updateRow(id, patch)}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
+            isPlanMode={isPlanMode}
+            workoutType={workoutType}
           />
         )
       )) : rows.map((row, idx) => (
@@ -382,16 +386,83 @@ const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
 // endres per rad i splittet. Sonene vises som FORDELING, aldri én sone.
 // Et intervallsett (gruppe_id) leses som mønster: «8 × 4 min I3 · 2 min
 // pause». Ingen datamutasjon ved visning.
-function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, userMovementTypes, onSplitt }: {
+function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, userMovementTypes, onSplitt, isPlanMode, workoutType }: {
   gruppe: RadGruppe
   expanded: boolean
   onToggle: () => void
   onUpdate: (patch: Partial<Pick<ActivityRow, GruppeFelt>>) => void
+  /** Per-rad-skriving — skytegruppa redigerer skudd m.m. per serie. */
+  onUpdateRad: (id: string, patch: Partial<ActivityRow>) => void
   userMovementTypes: UserMovementType[]
   onSplitt: () => void
+  isPlanMode: boolean
+  workoutType?: string
 }) {
   const forste = gruppe.rader[0]
   const meta = findActivityType(forste.activity_type)
+  // SKYTEGRUPPE (Sverre 4. sep): samlet per skytetype, og skudd og alt
+  // annet redigeres per serie rett her — som i splittet.
+  if (erSkytingGruppe(gruppe)) {
+    const typeNokkel = skytingGruppeType(gruppe)
+    const typeInfo = SHOOTING_TYPES_V2.find(t => t.key === typeNokkel)
+    const { skudd, treff } = skuddSum(gruppe)
+    const n = gruppe.rader.length
+    return (
+      <div className="xp-act" data-gruppe-rad data-skyting={typeNokkel || 'uten-type'} data-antall={n}>
+        <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
+          onClick={onToggle} style={{ userSelect: 'none' }}>
+          <span style={{
+            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
+            letterSpacing: '0.1em', color: typeInfo?.color ?? 'var(--accent)', border: `1px solid ${typeInfo?.color ?? 'var(--accent)'}`,
+            borderRadius: 999, padding: '1px 7px', marginLeft: 24,
+          }}>
+            {n} ×
+          </span>
+          <span style={{ fontSize: '14px' }}>🎯</span>
+          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
+            {typeInfo?.label ?? 'Skyting'}
+          </span>
+          {skudd > 0 && (
+            <span data-skudd-sum style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
+              · {treff}/{skudd} treff
+            </span>
+          )}
+          <div className="flex-1" style={{ minWidth: '4px' }} />
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: '#FF4500', fontSize: '15px', letterSpacing: '0.05em' }}>
+            {formatActivityDuration(gruppe.sumSek)}
+          </span>
+          <span style={{ color: 'var(--tekst-8-app)', fontSize: '12px', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', marginLeft: '4px' }}>
+            ›
+          </span>
+        </div>
+        {expanded && (
+          <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
+            {gruppe.rader.map((rad, i) => {
+              const radMeta = findActivityType(rad.activity_type)
+              return (
+                <div key={rad.id} data-skyting-serie={rad.id} className="mt-3" style={{ border: '1px solid var(--kant-5)', borderRadius: 10, padding: '8px 10px' }}>
+                  <div className="flex items-center gap-2 mb-2" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    <span style={{ color: 'var(--tekst-1-app)', fontWeight: 700 }}>Serie {i + 1}</span>
+                    <span>· {radMeta?.label ?? rad.activity_type}</span>
+                    {rad.window_start_seconds != null && <span>· ved {fmtKlokkeSek(rad.window_start_seconds)}</span>}
+                    {rad.duration && <span>· {rad.duration}</span>}
+                  </div>
+                  <ShootingFields row={rad} onUpdate={patch => onUpdateRad(rad.id, patch)} planMode={isPlanMode} workoutType={workoutType} />
+                </div>
+              )
+            })}
+            <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
+              {n} serier av samme skytetype. Type, tid og puls per rad:{' '}
+              <button type="button" onClick={e => { e.stopPropagation(); onSplitt() }}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', font: 'inherit' }}>
+                vis splittet
+              </button>
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
   const isStrength = isStrengthFor(forste.movement_name, userMovementTypes)
   const subcatOptions = isStrength && !userMovementTypes.some(u => u.name === forste.movement_name)
     ? STRENGTH_SUBCATEGORIES

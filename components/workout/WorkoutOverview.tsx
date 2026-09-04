@@ -678,7 +678,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                             {monster ?? `${g.rader.length} ×`}
                           </span>
                         )}
-                        {monster ? 'Intervaller' : activityLabel(a)}
+                        {monster ? 'Intervaller' : g.nokkel.startsWith('skyting|') ? `🎯 ${SHOOTING_TYPES_V2.find(t => t.key === g.nokkel.slice(8))?.label ?? 'Skyting'}` : activityLabel(a)}
                         <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
                           {a.movement_name ? ` · ${a.movement_name}${a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}` : ''}
                         </small>

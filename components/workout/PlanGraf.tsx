@@ -41,12 +41,61 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
 
   const x = (sek: number) => (sek / total) * B
   const kompakt = tetthet === 'kompakt'
-  const topp = kompakt ? 4 : TOPP_FULL
+  const iKlamme = new Set(grupper.flatMap(g => blokker.slice(g.fra, g.til + 1).map(b => b.id)))
+
+  // ETIKETT-NIVÅER (rettelse 7): står to etiketter nærmere hverandre enn
+  // bredden sin, får den ene lengre pekelinje og står ett nivå høyere —
+  // to nivåer, tre om nødvendig. Regel i tegningen: blokk- og klamme-
+  // etiketter legges først, så skytemarkørene (de havner dermed på nivå 2
+  // når de ligger inntil en blokk-etikett), og til sist de trange (vises
+  // ved trykk/hover). Aldri overlapp, aldri utelatt.
+  const etiketter = (() => {
+    type Item = { id: string; cx: number; bredde: number; slag: 'blokk' | 'klamme' | 'skyting'; trang: boolean; nivaa: number }
+    const items: Item[] = []
+    if (tetthet === 'full') {
+      for (const b of blokker) {
+        const skyting = b.slag === 'skyting_ligg' || b.slag === 'skyting_staa'
+        if (!skyting && iKlamme.has(b.id)) continue
+        const cx = x(b.startSek + b.sek / 2)
+        if (skyting) { items.push({ id: b.id, cx, bredde: b.etikett.length * TEGN_BREDDE + 12, slag: 'skyting', trang: false, nivaa: 0 }); continue }
+        const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
+        const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
+        items.push({ id: b.id, cx, bredde, slag: 'blokk', trang: x(b.sek) < bredde, nivaa: 0 })
+      }
+      for (const g of grupper) {
+        const forste = blokker[g.fra], siste = blokker[g.til]
+        const cx = (x(forste.startSek) + x(siste.startSek + siste.sek)) / 2
+        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${forste.sone ? ` · ${forste.sone}` : ''}${g.skyting ? ' + skyting' : ''}`
+        items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
+      }
+    }
+    const GAP = 4, MAKS = 2
+    const plassert: Item[][] = [[], [], []]
+    const krasjer = (a: Item, b: Item) => Math.abs(a.cx - b.cx) < (a.bredde + b.bredde) / 2 + GAP
+    const legg = (it: Item) => {
+      // Skytemarkører tar alltid nivå 2 når de ligger inntil en blokk-/klamme-etikett.
+      let n = it.slag === 'skyting' && items.some(o => o.slag !== 'skyting' && !o.trang && krasjer(o, it)) ? 1 : 0
+      while (n < MAKS && plassert[n].some(o => krasjer(o, it))) n++
+      if (n === MAKS && plassert[n].some(o => krasjer(o, it))) {
+        // Tre nivåer er brukt opp — velg det minst trange (aldri utelatt).
+        n = plassert.map((p, i) => [p.filter(o => krasjer(o, it)).length, i] as const).sort((a, b) => a[0] - b[0])[0][1]
+      }
+      it.nivaa = n; plassert[n].push(it)
+    }
+    const rekkefolge = (slag: Item['slag'][], trang: boolean) => items.filter(i => slag.includes(i.slag) && i.trang === trang).sort((a, b) => a.cx - b.cx)
+    rekkefolge(['blokk', 'klamme'], false).forEach(legg)
+    rekkefolge(['skyting'], false).forEach(legg)
+    rekkefolge(['blokk'], true).forEach(legg)
+    const nivaaer = items.length ? Math.max(...items.map(i => i.nivaa)) + 1 : 1
+    return { nivaaFor: (id: string) => items.find(i => i.id === id)?.nivaa ?? 0, nivaaer }
+  })()
+
+  const NIVAA_H = 32   // ≥ høyden på en to-linjers etikett (tittel + underlinje), så nivåene aldri berører hverandre
+  const topp = kompakt ? 4 : TOPP_FULL + (etiketter.nivaaer - 1) * NIVAA_H
   const bunn = kompakt ? 2 : BUNN_FULL
   const plot = kompakt ? Math.max(12, (hoyde ?? 30) - 6) : PLOT
   const H = topp + plot + bunn
   const gulv = topp + plot
-  const iKlamme = new Set(grupper.flatMap(g => blokker.slice(g.fra, g.til + 1).map(b => b.id)))
 
   return (
     <svg data-plan-graf data-tetthet={tetthet} viewBox={`0 0 ${B} ${H}`} preserveAspectRatio="none"
@@ -95,13 +144,14 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             // direkte når den får plass, ellers ved trykk/hover — aldri utelatt.
             if (!skyting && iKlamme.has(b.id)) return null
             const cx = x(b.startSek + b.sek / 2)
+            const nv = etiketter.nivaaFor(b.id) * NIVAA_H
             if (skyting) return (
-              <g key={`e-${b.id}`} data-skytemarkor>
-                <text x={cx} y={topp - 30} textAnchor="middle"
+              <g key={`e-${b.id}`} data-skytemarkor data-nivaa={etiketter.nivaaFor(b.id) + 1}>
+                <text x={cx} y={topp - 30 - nv} textAnchor="middle"
                   style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.04em' }}>
                   {b.etikett}
                 </text>
-                <line x1={cx} y1={topp - 24} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
+                <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
               </g>
             )
             const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
@@ -109,7 +159,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const trang = x(b.sek) < bredde
             const h = plot * b.hoyde
             return (
-              <g key={`e-${b.id}`} data-etikett-for={b.id} data-trang={trang || undefined}
+              <g key={`e-${b.id}`} data-etikett-for={b.id} data-trang={trang || undefined} data-nivaa={etiketter.nivaaFor(b.id) + 1}
                 className={trang ? 'plan-trang' : undefined} data-aktiv={trang && aktivBlokk === b.id ? 'true' : undefined}
                 onClick={trang ? () => setAktivBlokk(v => (v === b.id ? null : b.id)) : undefined}
                 style={trang ? { cursor: 'pointer' } : undefined}>
@@ -118,16 +168,16 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                   <rect x={x(b.startSek)} y={Math.min(gulv - h, gulv - 36)} width={Math.max(x(b.sek), 8)} height={Math.max(h, 36)} fill="transparent" />
                 )}
                 <g className="plan-tekst">
-                  <text x={cx} y={topp - 44} textAnchor="middle" className="plan-etikett"
+                  <text x={cx} y={topp - 44 - nv} textAnchor="middle" className="plan-etikett"
                     style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase', paintOrder: 'stroke', stroke: 'var(--flate-12-alt)', strokeWidth: trang ? 4 : 0 }}>
                     {b.etikett}
                   </text>
-                  <text x={cx} y={topp - 30} textAnchor="middle"
+                  <text x={cx} y={topp - 30 - nv} textAnchor="middle"
                     style={{ font: "11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-5-app)', paintOrder: 'stroke', stroke: 'var(--flate-12-alt)', strokeWidth: trang ? 4 : 0 }}>
                     {under}
                   </text>
                 </g>
-                <line x1={cx} y1={topp - 24} x2={cx} y2={gulv - h - 2} stroke="var(--line2)" />
+                <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - h - 2} stroke="var(--line2)" />
               </g>
             )
           })}
@@ -137,14 +187,16 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const x1 = x(forste.startSek), x2 = x(siste.startSek + siste.sek)
             const cx = (x1 + x2) / 2
             const sone = forste.sone
+            const nv = etiketter.nivaaFor(`k-${g.fra}`) * NIVAA_H
             return (
-              <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`}>
-                <text x={cx} y={topp - 44} textAnchor="middle"
+              <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.skyting ? ' + skyting' : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`} data-nivaa={etiketter.nivaaFor(`k-${g.fra}`) + 1}>
+                {nv > 0 && <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={topp - 22} stroke="var(--line2)" />}
+                <text x={cx} y={topp - 44 - nv} textAnchor="middle"
                   style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}
+                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}{g.skyting ? ' + skyting' : ''}
                 </text>
                 {g.pauseSek > 0 && (
-                  <text x={cx} y={topp - 30} textAnchor="middle"
+                  <text x={cx} y={topp - 30 - nv} textAnchor="middle"
                     style={{ font: "11px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-5-app)' }}>
                     {fmtMin(g.pauseSek)} pause
                   </text>

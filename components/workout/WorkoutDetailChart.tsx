@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
   SEGMENT_FARGER, PUNKT_FARGER, SKYTE_FARGER, erSkytesegment, skyteMarkor, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
@@ -927,6 +927,7 @@ function MarkerLegend({
 const BAAND_HOYDE = 16
 /** Segment ≥ denne andelen av synlig bredde får etikett rett på båndet. */
 const ETIKETT_ANDEL = 0.08
+const KLAMME_NIVAA_PX = 14
 /** Er alle segmentene i en gruppe ≥ denne andelen, løses klammen opp. */
 const OPPLOSNING_ANDEL = 0.06
 
@@ -956,6 +957,32 @@ function SegmentBaand({
     return minste < OPPLOSNING_ANDEL
   })
   const iKlamme = (i: number) => klammer.find(g => i >= g.fra && i <= g.til) ?? null
+  // Klamme-etikettenes nivåer måles i piksler (bredden på båndet leses av).
+  const klammeRef = useRef<HTMLDivElement | null>(null)
+  const [baandPx, setBaandPx] = useState(0)
+  useEffect(() => {
+    const el = klammeRef.current
+    if (!el) return
+    const les = () => setBaandPx(el.getBoundingClientRect().width)
+    les()
+    const ro = new ResizeObserver(les); ro.observe(el)
+    return () => ro.disconnect()
+  }, [klammer.length])
+  const klammeNivaaer = (() => {
+    const nivaa: number[] = []
+    if (baandPx <= 0) return { nivaa, maks: 0 }
+    const px = (sek: number) => ((sek - fra) / spenn) * baandPx
+    const items = klammer.map((g, i) => ({ i, cx: px((Math.max(g.startSek, fra) + Math.min(g.sluttSek, til)) / 2), bredde: g.etikett.length * 6.3 + 10 }))
+      .sort((a, b) => a.cx - b.cx)
+    const plassert: typeof items[] = [[], [], []]
+    for (const it of items) {
+      let n = 0
+      const krasj = (o: typeof it) => Math.abs(o.cx - it.cx) < (o.bredde + it.bredde) / 2 + 4
+      while (n < 2 && plassert[n].some(krasj)) n++
+      plassert[n].push(it); nivaa[it.i] = n
+    }
+    return { nivaa, maks: nivaa.length ? Math.max(...nivaa) : 0 }
+  })()
   const valgtSegment = segmenter.find(sg => sg.aktivitetId === valgt) ?? null
   const hovedet = hovedGruppe != null ? klammer[hovedGruppe] ?? null : null
 
@@ -1012,12 +1039,16 @@ function SegmentBaand({
         })}
       </div>
 
-      {/* Gruppeklammer under båndet — én etikett for en repetert blokk. */}
+      {/* Gruppeklammer under båndet — én etikett for en repetert blokk.
+          Kolliderende etiketter legges i NIVÅER (rettelse 7): står to
+          nærmere hverandre enn bredden sin, får den ene lengre pekelinje
+          og står ett nivå lavere — to nivåer, tre om nødvendig. */}
       {klammer.length > 0 && (
-        <div style={{ position: 'relative', height: 26 }}>
+        <div ref={klammeRef} style={{ position: 'relative', height: 26 + klammeNivaaer.maks * KLAMME_NIVAA_PX }}>
           {klammer.map((g, gi) => {
             const start = Math.max(g.startSek, fra), slutt = Math.min(g.sluttSek, til)
             const farge = SEGMENT_FARGER[g.type]
+            const nv = (klammeNivaaer.nivaa[gi] ?? 0) * KLAMME_NIVAA_PX
             return (
               <button key={`${g.fra}-${g.til}`} type="button"
                 onMouseEnter={() => setHovedGruppe(gi)}
@@ -1033,8 +1064,11 @@ function SegmentBaand({
                   borderBottom: `1px solid ${hovedet === g ? farge : 'var(--tekst-8-alt)'}`,
                   borderRadius: '0 0 4px 4px', minWidth: 14,
                 }}>
-                <span style={{
-                  position: 'absolute', left: '50%', bottom: -2, transform: 'translate(-50%, 100%)',
+                {nv > 0 && (
+                  <span aria-hidden style={{ position: 'absolute', left: '50%', bottom: -nv, width: 1, height: nv, background: 'var(--tekst-8-alt)' }} />
+                )}
+                <span data-klamme-etikett data-nivaa={(klammeNivaaer.nivaa[gi] ?? 0) + 1} style={{
+                  position: 'absolute', left: '50%', bottom: -2 - nv, transform: 'translate(-50%, 100%)',
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11,
                   letterSpacing: '0.06em', color: hovedet === g ? farge : 'var(--tekst-5-app)',
                   whiteSpace: 'nowrap', background: 'var(--flate-12-alt)', padding: '0 4px',
@@ -1046,7 +1080,7 @@ function SegmentBaand({
           })}
         </div>
       )}
-      {klammer.length > 0 && <div style={{ height: 14 }} />}
+      {klammer.length > 0 && <div style={{ height: 14 + klammeNivaaer.maks * KLAMME_NIVAA_PX }} />}
 
       {/* Leser-linje for valgt segment / gruppe («hold over»-raden i fasiten). */}
       <div style={{

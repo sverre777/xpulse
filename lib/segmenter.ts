@@ -282,6 +282,8 @@ export interface SegmentGruppe {
   arbeidSek: number
   pauseSek: number
   type: SegmentType
+  /** Enheten har skyting mellom draget og pausen (skiskyting/kombi). */
+  skyting: boolean
 }
 
 const lik = (a: number, b: number) => Math.abs(a - b) <= Math.max(5, b * LIKHETSTOLERANSE)
@@ -295,14 +297,15 @@ export function fmtVarighetKort(sek: number): string {
   return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`
 }
 
-export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number): string {
+export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number, medSkyting = false): string {
+  const skyting = medSkyting ? ' + skyting' : ''
   if (pauseSek <= 0) {
-    return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}`
+    return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}${skyting}`
   }
   if (Math.round(arbeidSek) < 90 && Math.round(pauseSek) < 90) {
-    return `${antall} × ${Math.round(arbeidSek)}/${Math.round(pauseSek)}`
+    return `${antall} × ${Math.round(arbeidSek)}/${Math.round(pauseSek)}${skyting}`
   }
-  return `${antall} × ${fmtVarighetKort(arbeidSek)} / ${fmtVarighetKort(pauseSek)}`
+  return `${antall} × ${fmtVarighetKort(arbeidSek)}${skyting} / ${fmtVarighetKort(pauseSek)}`
 }
 
 export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
@@ -316,46 +319,64 @@ export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
       let j = i
       while (j + 1 < n && segmenter[j + 1].gruppeId === s0.gruppeId) j++
       if (j > i) {
-        const arbeid = segmenter.slice(i, j + 1).filter(s => s.type !== 'pause')
+        const arbeid = segmenter.slice(i, j + 1).filter(s => s.type !== 'pause' && !s.type.startsWith('skyting'))
         const pauser = segmenter.slice(i, j + 1).filter(s => s.type === 'pause')
         const antall = Math.max(1, arbeid.length)
         const arbeidSek = arbeid.length ? arbeid.reduce((a, s) => a + varighet(s), 0) / arbeid.length : 0
         const pauseSek = pauser.length ? pauser.reduce((a, s) => a + varighet(s), 0) / pauser.length : 0
+        const medSkyting = segmenter.slice(i, j + 1).some(s => s.type.startsWith('skyting'))
         ut.push({
           fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
-          etikett: gruppeEtikett(antall, arbeidSek, pauseSek), arbeidSek, pauseSek,
-          type: arbeid[0]?.type ?? s0.type,
+          etikett: gruppeEtikett(antall, arbeidSek, pauseSek, medSkyting), arbeidSek, pauseSek,
+          type: arbeid[0]?.type ?? s0.type, skyting: medSkyting,
         })
         i = j + 1
         continue
       }
     }
-    // 2) PAR: arbeid + pause som veksler.
-    if (s0.type !== 'pause' && i + 1 < n && segmenter[i + 1].type === 'pause') {
-      const a0 = varighet(s0), p0 = varighet(segmenter[i + 1])
-      let antall = 1
-      let j = i + 1
-      while (j + 2 < n
-        && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel
-        && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0)) {
-        antall++; j += 2
-      }
-      // Siste repetisjon kan mangle pausen (den faller bort i byggeren).
-      let sisteUtenPause = false
-      if (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel
-        && !(j + 2 < n && segmenter[j + 2].type === 'pause' && lik(varighet(segmenter[j + 2]), p0))) {
-        antall++; j += 1; sisteUtenPause = true
-      }
-      if (antall >= MINSTE_REPETISJONER) {
-        // Klammen dekker t.o.m. siste drag — ikke den avsluttende pausen,
-        // som er overgangen til det neste.
-        const til = sisteUtenPause ? j : j - 1
-        ut.push({
-          fra: i, til, startSek: s0.startSek, sluttSek: segmenter[til].sluttSek, antall,
-          etikett: gruppeEtikett(antall, a0, p0), arbeidSek: a0, pauseSek: p0, type: s0.type,
-        })
-        i = til + 1
-        continue
+    // 2) ENHET: arbeid [+ skyting …] [+ pause], gjentatt (rettelse 7:
+    //    skyting mellom draget og pausen bryter ikke gruppa — «3 × 5 min
+    //    I4 + skyting · 2 min pause»). Siste enhet kan mangle pausen.
+    const erArbeid = (s: Segment) => s.type !== 'pause' && !s.type.startsWith('skyting')
+    const lesEnhet = (k: number) => {
+      const s = segmenter[k]
+      if (!s || !erArbeid(s)) return null
+      let m = k + 1
+      const skyting: Segment[] = []
+      while (m < n && segmenter[m].type.startsWith('skyting')) { skyting.push(segmenter[m]); m++ }
+      const pause = m < n && segmenter[m].type === 'pause' ? segmenter[m] : null
+      return { arbeid: s, skyting, pause, slutt: pause ? m : m - 1 }
+    }
+    if (erArbeid(s0)) {
+      const e0 = lesEnhet(i)
+      if (e0 && (e0.pause || e0.skyting.length > 0)) {
+        const a0 = varighet(e0.arbeid), p0 = e0.pause ? varighet(e0.pause) : 0
+        let antall = 1
+        let siste = e0
+        let j = e0.slutt + 1
+        while (j < n) {
+          const e = lesEnhet(j)
+          if (!e || e.arbeid.type !== e0.arbeid.type || !lik(varighet(e.arbeid), a0) || e.arbeid.nokkel !== e0.arbeid.nokkel) break
+          if (e.skyting.length !== e0.skyting.length) break
+          if (e0.pause && e.pause && !lik(varighet(e.pause), p0)) break
+          if (!e0.pause && e.pause) break
+          antall++; siste = e
+          if (e0.pause && !e.pause) break
+          j = e.slutt + 1
+        }
+        if (antall >= MINSTE_REPETISJONER) {
+          // Klammen dekker t.o.m. siste enhet — ikke dens avsluttende pause,
+          // som er overgangen til det neste.
+          const til = siste.pause ? siste.slutt - 1 : siste.slutt
+          const medSkyting = e0.skyting.length > 0
+          ut.push({
+            fra: i, til, startSek: s0.startSek, sluttSek: segmenter[til].sluttSek, antall,
+            etikett: gruppeEtikett(antall, a0, p0, medSkyting), arbeidSek: a0, pauseSek: p0, type: s0.type,
+            skyting: medSkyting,
+          })
+          i = til + 1
+          continue
+        }
       }
     }
     // 3) REKKE: samme type, lik varighet, etter hverandre.
@@ -367,7 +388,7 @@ export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
       if (antall >= MINSTE_REPETISJONER) {
         ut.push({
           fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
-          etikett: gruppeEtikett(antall, a0, 0), arbeidSek: a0, pauseSek: 0, type: s0.type,
+          etikett: gruppeEtikett(antall, a0, 0), arbeidSek: a0, pauseSek: 0, type: s0.type, skyting: false,
         })
         i = j + 1
         continue

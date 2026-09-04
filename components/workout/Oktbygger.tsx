@@ -117,7 +117,19 @@ export function OktbyggerPopup({
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
   // ANGRE: forrige radsett, steg for steg. Lever i byggeren til den lukkes.
   const [angreStabel, setAngreStabel] = useState<ActivityRow[][]>([])
+  // Rettelse 6: før FØRSTE endring av radene på en klokkeøkt tas klokkas
+  // runder vare på (runde_backup) — rundetabellen leser derfra og viser
+  // alltid originalen, uansett kutt, slå sammen eller flytting. Idempotent.
+  // Ikke betinget av at kurven er lastet: byggeren kan åpne før klokkedataene
+  // kommer, og serveren tar uansett bare kopi når økta HAR klokkerunder.
+  const kopiSikret = useRef(false)
+  const sikreKopi = () => {
+    if (!workoutId || kopiSikret.current) return
+    kopiSikret.current = true
+    void sikreKlokkerundeBackup(workoutId)
+  }
   const endre = (neste: ActivityRow[]) => {
+    sikreKopi()
     setAngreStabel(st => [...st.slice(-49), rader])
     onRader(neste)
   }

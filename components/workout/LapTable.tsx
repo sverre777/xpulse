@@ -39,8 +39,13 @@ interface Props {
   sport: Sport
 }
 
-export function LapTable({ laps, sport }: Props) {
+export function LapTable({ laps, sport, kilde = null }: Props & { kilde?: 'backup' | 'klokkerader' | null }) {
   if (laps.length === 0) return null
+  // Rettelse 6: tabellen er lesevisning av KILDEN — klokkas originale
+  // runder — og endres ikke av noe brukeren gjør i radene.
+  const kildeTekst = kilde === 'backup'
+    ? 'Klokkas originale runder · fra sikkerhetskopien tatt før radene ble endret · overlever re-synk'
+    : 'Klokkas originale runder · fra radene med klokke-proveniens'
 
   // Sport-spesifikk kolonne-synlighet.
   const showWatt = laps.some(l => l.avg_watts != null) &&
@@ -57,6 +62,10 @@ export function LapTable({ laps, sport }: Props) {
   const showNotes = laps.some(l => l.lap_notes && l.lap_notes.trim().length > 0)
 
   return (
+    <div data-rundetabell data-rundekilde={kilde ?? 'klokkerader'}>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 4px' }}>
+        ⌚ {kildeTekst}
+      </p>
     <div className="overflow-x-auto" style={{ border: '1px solid var(--kant-3)' }}>
       <table className="w-full text-xs"
         style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
@@ -137,6 +146,7 @@ export function LapTable({ laps, sport }: Props) {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   )
 }

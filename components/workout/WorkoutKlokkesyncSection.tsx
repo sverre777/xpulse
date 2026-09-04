@@ -210,7 +210,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
       )}
 
       {hasLaps && data.sport && (
-        <LapTable laps={data.laps} sport={data.sport} />
+        <LapTable laps={data.laps} sport={data.sport} kilde={data.lapKilde} />
       )}
 
       {hasSamples && data.samples && data.sport && (

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
 import { SamletBryter } from './SamletBryter'
+import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
   grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling,
   type Visning, type RadGruppe, type GruppeFelt,
@@ -200,7 +201,7 @@ import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
 
-export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, erKlokkeokt = false }: Props) {
+export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
@@ -252,16 +253,28 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
     setCreateModalRowId(null)
   }
 
+  // Rettelse 6: første endring av en KLOKKERAD tar vare på klokkas runder
+  // (runde_backup) — rundetabellen viser alltid originalen. Idempotent.
+  const kopiSikret = useRef(false)
+  const sikreKopiFor = (id: string) => {
+    const r = rows.find(x => x.id === id)
+    if (!workoutId || !r?.db_id || !radInfo[r.db_id]?.harKlokkeProveniens || kopiSikret.current) return
+    kopiSikret.current = true
+    void sikreKlokkerundeBackup(workoutId)
+  }
   const updateRow = (id: string, patch: Partial<ActivityRow>) => {
+    sikreKopiFor(id)
     onChange(rows.map(r => r.id === id ? { ...r, ...patch } : r))
   }
 
   const deleteRow = (id: string) => {
+    sikreKopiFor(id)
     onChange(rows.filter(r => r.id !== id))
     if (expandedId === id) setExpandedId(null)
   }
 
   const moveRow = (id: string, dir: -1 | 1) => {
+    sikreKopiFor(id)
     const i = rows.findIndex(r => r.id === id)
     const j = i + dir
     if (i < 0 || j < 0 || j >= rows.length) return

@@ -59,7 +59,13 @@ export interface WorkoutKlokkesyncData {
   // intervalløkt skal ikke ha et meningsløst driftstall).
   frakobling: FrakoblingsResultat | null
   samples: WorkoutSamples | null
+  /** KLOKKAS ORIGINALE RUNDER (rettelse 6, 3. sep) — rå laps slik de kom
+      inn, uavhengig av kutt, bytte, samlet/splittet og byggeren. Tom på
+      manuelle økter og plan (ingen rad har klokke-proveniens). */
   laps: LapRow[]
+  /** Hvor rundene leses fra: sikkerhetskopien (runde_backup, tatt før
+      første endring av radene) eller radene med klokke-proveniens. */
+  lapKilde: 'backup' | 'klokkerader' | null
   lapMarkers: LapMarker[]
   lactate: LactateMarker[]
   nutrition: NutritionMarker[]
@@ -83,7 +89,7 @@ export async function getWorkoutKlokkesyncData(
   // workout er resolvert.
   const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
     supabase.from('workouts')
-      .select('id, sport, time_of_day, date, user_id, rpe')
+      .select('id, sport, time_of_day, date, user_id, rpe, runde_backup')
       .eq('id', workoutId)
       .maybeSingle(),
     supabase.from('workout_samples')
@@ -138,7 +144,21 @@ export async function getWorkoutKlokkesyncData(
 
   const activities = activitiesRes.data
 
-  const laps: LapRow[] = (activities ?? []).map((a, i) => ({
+  // Rundetabellen leser KILDEN, ikke radene slik de er nå: finnes en
+  // sikkerhetskopi (tatt før første kutt/bytte/bygg), er den originalen;
+  // ellers radene med klokke-proveniens (external_id / strava_lap_index).
+  // Manuelle rader er aldri runder. Skyting er skjema-data, ikke runder.
+  // Synk rydder aldri runde_backup, så kopien overlever en re-synk.
+  type LapKildeRad = NonNullable<typeof activities>[number]
+  const backup = (workout as { runde_backup?: { rader?: unknown[] } | null }).runde_backup
+  const backupRader = Array.isArray(backup?.rader) ? (backup!.rader as LapKildeRad[]) : []
+  const erKlokkerad = (a: LapKildeRad) => !!(a.external_id || a.strava_lap_index != null) && !(a.activity_type ?? '').startsWith('skyting')
+  const lapRader: LapKildeRad[] = backupRader.length > 0
+    ? [...backupRader].filter(erKlokkerad).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    : (activities ?? []).filter(erKlokkerad)
+  const lapKilde: 'backup' | 'klokkerader' | null = lapRader.length === 0 ? null : backupRader.length > 0 ? 'backup' : 'klokkerader'
+
+  const laps: LapRow[] = lapRader.map((a, i) => ({
     id: a.id,
     index: i,
     duration_seconds: a.duration_seconds ?? 0,
@@ -307,6 +327,7 @@ export async function getWorkoutKlokkesyncData(
     frakobling,
     samples,
     laps,
+    lapKilde,
     lapMarkers,
     lactate,
     nutrition,

@@ -71,7 +71,7 @@ export async function hentRundeValg(workoutId: string): Promise<RundeValg | null
 
   const [naaRes, tvillingRes, backupRes] = await Promise.all([
     supabase.from('workout_activities')
-      .select('id, activity_type, external_id, strava_lap_index')
+      .select('id, activity_type, external_id, strava_lap_index, sort_order')
       .eq('workout_id', workoutId),
     supabase.from('workouts')
       .select('id, merge_mode')
@@ -100,6 +100,13 @@ export async function hentRundeValg(workoutId: string): Promise<RundeValg | null
   const backup = (backupRes.data as { runde_backup?: unknown } | null)?.runde_backup as
     { rader?: unknown[] } | null | undefined
   const antallIBackup = Array.isArray(backup?.rader) ? backup!.rader!.length : 0
+  // Re-synk = klokka har skrevet runder som IKKE ligger i kopien. En kopi
+  // tatt før et kutt (rettelse 6) lever side om side med klokkeradene —
+  // det er ikke en re-synk.
+  const iKopi = new Set((Array.isArray(backup?.rader) ? backup!.rader! as Array<{ external_id?: unknown; strava_lap_index?: unknown }> : [])
+    .map(r => `${r.external_id ?? ''}|${r.strava_lap_index ?? ''}`))
+  const nyeKlokkerunder = runder.filter(r => (r.external_id || r.strava_lap_index != null)
+    && !iKopi.has(`${r.external_id ?? ''}|${r.strava_lap_index ?? ''}`)).length
 
   return {
     kilde,
@@ -108,7 +115,7 @@ export async function hentRundeValg(workoutId: string): Promise<RundeValg | null
     antallPlanRunder: antallPlan,
     kanTilbakestille: RUNDE_BACKUP_FINNES && antallIBackup > 0,
     antallIBackup,
-    resynkVarsel: antallIBackup > 0 && medKlokke > 0,
+    resynkVarsel: antallIBackup > 0 && nyeKlokkerunder > 0,
     venterPaaMigrering: !RUNDE_BACKUP_FINNES && antallPlan > 0,
   }
 }

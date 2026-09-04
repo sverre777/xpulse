@@ -17,9 +17,11 @@ import { fmtVarighetKort } from '@/lib/segmenter'
 import { PUNKT_SLAG, PunktIkon, type PunktSlag } from './Punkt'
 import type { KompaktPunkt } from '@/lib/types'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
-import { lesKurvePaa, settKurvePaa, abonnerKurve, lesPlanOppsett, settPlanOppsett, type PlanOppsett } from '@/lib/kurve-valg'
+import { lesVisning, settVisning, abonnerVisning, standardVisning, VISNING_ETIKETT, lesPlanOppsett, settPlanOppsett, type PlanOppsett, type GrafVisning, type GrafFlate } from '@/lib/kurve-valg'
+import { planNokkeltall } from '@/lib/plan-graf'
+import { formatPace, type PaceUnit } from '@/lib/pace-utils'
 import { faktiskeBlokker, tilSpokelser, fraSpokelser } from '@/lib/gjennomfort-kart'
-import { byggPlanBlokker } from '@/lib/plan-graf'
+import { byggPlanBlokker, type PlanBlokk as PlanBlokk_ } from '@/lib/plan-graf'
 import { PlanGraf } from './PlanGraf'
 import type { GrafPunkt } from './Punkt'
 import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
@@ -105,9 +107,14 @@ interface Props {
   planBlokkerInn?: PlanBlokk[]
   /** FTP på øktas dato — gjennomført-kartets watt-reserve (rettelse 12). */
   ftp?: number | null
-  /** Rettelse 12: kartet er standard, kurven et valg som huskes per bruker.
-      true tvinger kurven på første maling (forsidens eksport). */
+  /** Forsidens eksport: BEGGE fra første maling, uten husket valg. */
   kurveStandard?: boolean
+  /** Hvilken flate grafen står på — bestemmer standardvisningen når
+      brukeren ikke har valgt (GRAF i skjemaet, BEGGE på øktsiden). */
+  flate?: GrafFlate
+  /** Øktas distanse (radene) — nøkkeltallsraden under kartet. */
+  distanseKm?: number | null
+  paceUnit?: PaceUnit
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -134,9 +141,10 @@ export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
   height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
-  planVarighetSek = null, forventetRpe = null, tidspunktNotater = [], handlinger, planBlokkerInn,
-  ftp = null, kurveStandard = false,
+  planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
+  ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km',
 }: Props) {
+  const flate: GrafFlate = flateInn ?? (tetthet === 'skjema' ? 'skjema' : 'hovedside')
   const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
   const forsteId = serier[0]?.id ?? null
 
@@ -160,11 +168,12 @@ export function WorkoutDetailChart({
   const [planPunkter, setPlanPunkter] = useState<TidspunktNotat[]>([])
   // Huskes per økt, standard PÅ når økta har plan (bolk 7).
   const [visPlan, setVisPlan] = useState(true)
-  // RETTELSE 12: GJENNOMFØRT-KARTET er standardvisningen — blokkene med de
-  // faktiske sonene (samme komponent som øktkartet). Kurven tegnes OPPÅ
-  // bare når «kurve på» er valgt; valget huskes per bruker (regel 19).
-  // «Plan bak» (standard) eller «plan over / faktisk under» er kartets valg.
-  const [kurvePaa, setKurvePaa] = useState(kurveStandard)
+  // SAMLET RETTELSE (4. sep): ÉN graf, TRE visninger — GRAF (gjennomført-
+  // kartet), KURVER (seriene) og BEGGE (kurvene oppå blokkene). Valget
+  // huskes per bruker (regel 19); uten valg: GRAF i skjemaet, BEGGE på
+  // øktsiden. «Plan bak» (standard) eller «plan over / faktisk under» er
+  // kartets eget valg.
+  const [visning, setVisning] = useState<GrafVisning>(kurveStandard ? 'begge' : standardVisning(flate))
   const [oppsett, setOppsett] = useState<PlanOppsett>('bak')
 
   useEffect(() => {
@@ -174,10 +183,10 @@ export function WorkoutDetailChart({
   }, [workoutId])
   useEffect(() => {
     if (kurveStandard) return
-    const oppdater = () => { setKurvePaa(lesKurvePaa()); setOppsett(lesPlanOppsett()) }
+    const oppdater = () => { setVisning(lesVisning(flate)); setOppsett(lesPlanOppsett()) }
     oppdater()
-    return abonnerKurve(oppdater)
-  }, [kurveStandard])
+    return abonnerVisning(oppdater)
+  }, [kurveStandard, flate])
 
   useEffect(() => {
     if (!workoutId) return
@@ -237,9 +246,9 @@ export function WorkoutDetailChart({
 
   const velgSerie = (id: string) => {
     const s = serier.find(x => x.id === id)
-    // Kurven var av: chip-en slår kurven PÅ med denne serien (huskes).
-    if (!visKurve) {
-      setKurvePaa(settKurvePaa(true))
+    // I GRAF finnes ingen kurve: en serie-chip åpner BEGGE med den serien.
+    if (visning === 'graf' && blokkerMulig) {
+      setVisning(settVisning('begge'))
       setPaaIds([id])
       setFokusId(s?.somAreal ? null : id)
       return
@@ -250,8 +259,6 @@ export function WorkoutDetailChart({
       setPaaIds(rest)
       const neste = rest.find(x => !serier.find(s => s.id === x)?.somAreal) ?? null
       setFokusId(neste)
-      // Siste serie av → kurven er av (kartet står igjen), og det huskes.
-      if (rest.length === 0) setKurvePaa(settKurvePaa(false))
       return
     }
     if (!paa) setPaaIds([...paaIds, id])
@@ -265,10 +272,16 @@ export function WorkoutDetailChart({
     () => faktiskeBlokker(segmenter, samples.hr_samples, samples.watt_samples, { ftp }),
     [segmenter, samples.hr_samples, samples.watt_samples, ftp],
   )
-  const faktiskSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(faktiskInn, heartZones)), [faktiskInn, heartZones])
+  const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
+  const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])
   const blokkerMulig = faktiskInn.length > 0
   // Uten rader finnes ikke noe kart — da er kurven det eneste ærlige.
-  const visKurve = (kurvePaa && paaIds.length > 0) || !blokkerMulig
+  const visKurve = visning !== 'graf' || !blokkerMulig
+  const visBlokker = visning !== 'kurver' && blokkerMulig
+  const kartNokkeltall = useMemo(
+    () => nokkeltallFraKart({ blokker: faktiskBlokker, samples, segmenter, distanseKm, paceUnit }),
+    [faktiskBlokker, samples, segmenter, distanseKm, paceUnit],
+  )
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0 || tidspunktNotater.length > 0 || planPunkter.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
@@ -365,11 +378,33 @@ export function WorkoutDetailChart({
               tegnes OPPÅ gjennomført-kartet — standard av i dagboka, huskes.
               Serie uten data får ingen chip (aldri en død knapp). Så
               annoteringene på tidslinja, uavhengig av seriene. */}
+          {blokkerMulig && !kurveStandard && (
+            <Gruppe navn="Visning">
+              <span data-graf-visning={visning} role="group" style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden' }}>
+                {(['graf', 'kurver', 'begge'] as const).map(v => (
+                  <button key={v} type="button" data-visning-valg={v} aria-pressed={visning === v}
+                    onClick={() => setVisning(settVisning(v))}
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5, letterSpacing: '0.1em',
+                      textTransform: 'uppercase', padding: '6px 12px', minHeight: 32, cursor: 'pointer', border: 'none',
+                      background: visning === v ? 'var(--accent)' : 'transparent',
+                      color: visning === v ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
+                    }}>
+                    {VISNING_ETIKETT[v]}
+                  </button>
+                ))}
+              </span>
+            </Gruppe>
+          )}
           <Gruppe navn="På grafen">
-            {serier.map(s => (
+            {visKurve && serier.map(s => (
               <Chip key={s.id} farge={s.farge} etikett={s.navn}
-                paa={visKurve && paaIds.includes(s.id)}
-                fokus={visKurve && fokusId === s.id && !s.somAreal}
+                paa={paaIds.includes(s.id)}
+                fokus={fokusId === s.id && !s.somAreal}
+                onClick={() => velgSerie(s.id)} />
+            ))}
+            {!visKurve && serier.filter(s => !s.somAreal).map(s => (
+              <Chip key={s.id} farge={s.farge} etikett={s.navn} paa={false} fokus={false}
                 onClick={() => velgSerie(s.id)} />
             ))}
                 {segmenter.length > 0 && visKurve && (
@@ -436,6 +471,8 @@ export function WorkoutDetailChart({
       )}
 
       {visKurve && <OktKurve
+        bakgrunn={h => (visPlan ? <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} /> : null)}
+        mellomlag={h => (visBlokker ? <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
         serier={vindusSerier ?? serier}
         paaIds={paaIds}
         fokusId={fokusId}
@@ -449,9 +486,7 @@ export function WorkoutDetailChart({
           <>
             {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
             <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} />
-            {visPlan && <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} />}
-            {/* Kurven tegnes OPPÅ gjennomført-kartets blokker (rettelse 12). */}
-            {visSegmenter && <PlanSpokelse blokker={faktiskSpokelser} pct={h.pct} dempet={0.28} slag="faktisk" />}
+
             {/* Rundegrenser */}
             {visRunder && laps.map((lap, i) => i === 0 ? null : (
               <span key={`lap-${i}`} aria-hidden style={{
@@ -596,10 +631,9 @@ export function WorkoutDetailChart({
           oppsummeringskortet denne raden (samme komponent). */}
       {!skjema && (
         <Nokkeltall
-          celler={nokkeltallFraKlokke({ samples, heartZones, np, planVarighetSek })}
+          celler={!visKurve ? kartNokkeltall : nokkeltallFraKlokke({ samples, heartZones, np, planVarighetSek })}
           rpe={rpe}
           onRpe={onRpe}
-          forventetRpe={forventetRpe}
         />
       )}
 
@@ -756,6 +790,42 @@ export function nokkeltallFraKlokke({ samples, heartZones, np, planVarighetSek }
   // Belastning står etter puls/watt i fasitens rekkefølge.
   const i = celler.findIndex(c => c.id === 'tss')
   if (i >= 0) { const [c] = celler.splice(i, 1); celler.push(c) }
+  return celler
+}
+
+/** NØKKELTALLSRADEN UNDER KARTET (samlet rettelse 1): varighet · hovedsone ·
+    <hovedsone>-tid · belastning · distanse · beste pace (m/ bev.form) —
+    opplevd føres i samme rad. Beregnet av de faktiske blokkene og kurven. */
+export function nokkeltallFraKart({ blokker, samples, segmenter, distanseKm, paceUnit }: {
+  blokker: PlanBlokk_[]
+  samples: WorkoutSamples
+  segmenter: Segment[]
+  distanseKm: number | null
+  paceUnit: PaceUnit
+}): NokkeltallCelle[] {
+  const n = planNokkeltall(blokker)
+  const celler: NokkeltallCelle[] = []
+  if (n.totalSek > 0) celler.push({ id: 'varighet', etikett: 'Varighet', verdi: fmtVarighetLang(n.totalSek) })
+  if (n.hovedsone) {
+    celler.push({ id: 'hovedsone', etikett: 'Hovedsone', verdi: n.hovedsone, farge: ZONE_COLORS_V2[n.hovedsone] })
+    celler.push({ id: 'hovedsone-tid', etikett: `${n.hovedsone}-tid`, verdi: fmtVarighetLang(n.hovedsoneSek) })
+  }
+  if (n.tss > 0) celler.push({ id: 'tss', etikett: 'Belastning', verdi: String(Math.round(n.tss)), hale: 'TSS' })
+  const km = distanseKm ?? (n.distanseKm > 0 ? n.distanseKm : null)
+  if (km != null && km > 0) celler.push({ id: 'km', etikett: 'Distanse', verdi: (Math.round(km * 10) / 10).toFixed(1), hale: 'km' })
+  // Beste pace: raskeste snittfart over et drag (≥ 60 s) fra fartskurven,
+  // merket med dragets bevegelsesform.
+  const fart = samples.pace_samples ?? samples.speed_samples
+  if (fart && fart.length > 1) {
+    let beste: { mps: number; navn: string } | null = null
+    for (const sg of segmenter) {
+      if (sg.type !== 'drag' && sg.type !== 'bevform' && sg.type !== 'oppvarming' && sg.type !== 'nedjogg') continue
+      if (sg.sluttSek - sg.startSek < 60) continue
+      const m = snittAv(fart.filter(p => p.t >= sg.startSek && p.t <= sg.sluttSek).map(p => ({ t: p.t, v: p.mps })))
+      if (m != null && m > 0.5 && (!beste || m > beste.mps)) beste = { mps: m, navn: sg.etikett }
+    }
+    if (beste) celler.push({ id: 'pace', etikett: 'Beste pace', verdi: formatPace(1000 / beste.mps, paceUnit), hale: beste.navn })
+  }
   return celler
 }
 

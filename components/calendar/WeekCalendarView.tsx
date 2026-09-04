@@ -17,7 +17,6 @@ import type { SeasonPeriod, SeasonKeyDate, SeasonMarking } from '@/app/actions/s
 import { emptyShotStats, addShotStats } from '@/lib/calendar-summary'
 import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
 import { useKompaktKurve, harKlokkekurve } from './kompakt-kurver'
-import { useKurvePaa } from '@/lib/kurve-valg'
 import { tilSpokelseBlokker } from '@/lib/gjennomfort-kart'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
 import { PlanGraf } from '@/components/workout/PlanGraf'
@@ -475,9 +474,8 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
 /** Klokke-grafen i miniatyr på uke-kortet (bolk 2) — ellers plan-grafen (bolk 5). */
 function UkeKortKurve({ w, hoyde = 18 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
-  const kurvePaa = useKurvePaa()
-  // Rettelse 12: gjennomført-kartet er standard, kurven når «kurve på» er valgt.
-  if (kurve && !kurvePaa && kurve.blokker.length > 0) {
+  // Oversikten (kompakt) er alltid GRAF — gjennomført-kartet (samlet rettelse).
+  if (kurve && kurve.blokker.length > 0) {
     return <div style={{ marginTop: 2 }} data-gjennomfort-kart-kompakt><PlanGraf blokker={kurve.blokker} tetthet="kompakt" hoyde={hoyde} totalSek={kurve.totalSek} spokelser={tilSpokelseBlokker(kurve.plan)} punkter={fraKompaktPunkter(kurve.punkter)} kilde="faktisk" /></div>
   }
   if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} punkter={kurve.punkter} />

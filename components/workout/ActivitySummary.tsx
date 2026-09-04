@@ -258,6 +258,8 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
         <div className="mb-3">
           <WorkoutDetailChart
             tetthet="skjema"
+            flate="skjema"
+            distanseKm={totalKm > 0 ? totalKm : null}
             workoutId={klokke.workoutId}
             sport={klokke.data.sport}
             samples={klokke.data.samples}

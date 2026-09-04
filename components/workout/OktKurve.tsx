@@ -56,6 +56,11 @@ interface Props {
   overlay?: (h: KurveHjelpere) => React.ReactNode
   /** Innhold rett under plot-flaten (segmentbånd), samme x-skala. */
   underlag?: (h: KurveHjelpere) => React.ReactNode
+  /** Lag BAK alt i plotflata (planens spøkelser): tegnes før høyde-arealet. */
+  bakgrunn?: (h: KurveHjelpere) => React.ReactNode
+  /** Lag MELLOM høyde-arealet og kurvene (gjennomført-kartets blokker i
+      BEGGE): kurvene tegnes oppå, arealet ligger bak. */
+  mellomlag?: (h: KurveHjelpere) => React.ReactNode
   /** Krysshårets tidspunkt (sek) — null når peker/finger er utenfor. */
   krysshaarSek?: number | null
   onKrysshaar?: (sek: number | null) => void
@@ -127,7 +132,7 @@ function fmtTid(sek: number): string {
 }
 
 export function OktKurve({
-  serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag,
+  serier, paaIds, fokusId, totalSek, vindu, hoyde = 300, overlay, underlag, bakgrunn, mellomlag,
   krysshaarSek = null, onKrysshaar, onVindu, minSpennSek = 20, onKlikk,
 }: Props) {
   const flate = useRef<HTMLDivElement | null>(null)
@@ -267,6 +272,9 @@ export function OktKurve({
           touchAction: onKrysshaar ? 'none' : undefined,
           cursor: onKrysshaar ? 'crosshair' : undefined,
         }}>
+        {/* Lagrekkefølgen (samlet rettelse 4. sep): plan bak alt → høyde-areal
+            → blokkene (BEGGE) → kurvene i full styrke → krysshår/overlay. */}
+        {bakgrunn?.(hjelpere)}
         <svg viewBox={`0 0 ${VISNING_BREDDE} ${H}`} preserveAspectRatio="none"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
           {/* Y-streker fra fokus-serien — eneste akse på flata. */}
@@ -279,6 +287,10 @@ export function OktKurve({
           {paa.filter(s => s.somAreal).map(s => (
             <path key={s.id} d={sti(s, true)} fill={s.farge} opacity={0.13} stroke="none" />
           ))}
+        </svg>
+        {mellomlag?.(hjelpere)}
+        <svg viewBox={`0 0 ${VISNING_BREDDE} ${H}`} preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
           {/* Kontekst-serier: dempet form, ingen egen akse. */}
           {paa.filter(s => !s.somAreal && s.id !== fokus?.id).map(s => (
             <path key={s.id} d={sti(s, false)} fill="none" stroke={s.farge}

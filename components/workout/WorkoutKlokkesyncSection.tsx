@@ -204,6 +204,8 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           heartZones={data.heartZones}
           np={data.wattMetrikker?.np ?? null}
           ftp={data.ftp}
+          distanseKm={data.distanseKm}
+          flate="hovedside"
           rpe={data.rpe}
           onRpe={settRpe}
           forventetRpe={data.forventet}

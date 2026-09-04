@@ -1,52 +1,62 @@
 /**
- * «Kurve på» — om økt-grafen tegner puls/watt/tempo OPPÅ gjennomført-
- * kartet (rettelse 12, Sverre 4. sep 2026).
- *
- * STANDARD AV i dagboka: gjennomført-kartet (blokkene med de faktiske
- * sonene) er det man ser først; kurven er et valg. Valget huskes per
- * bruker (regel 19) — som de andre visningsvalgene (tema, samlet/splittet,
- * vis plan) i localStorage: det følger nettleseren, ikke kontoen.
+ * GRAF · KURVER · BEGGE — økt-grafens tre visninger (samlet rettelse,
+ * Sverre 4. sep 2026). ÉN komponent, tre visninger, overalt:
+ *   GRAF   = gjennomført-kartet (blokker, faktisk sone per segment)
+ *   KURVER = seriene (puls · watt · tempo · kadens · høyde), brush, lesing
+ *   BEGGE  = kurvene tegnet oppå blokkene
+ * Valget huskes per bruker (regel 19) — som de andre visningsvalgene
+ * (tema, samlet/splittet, vis plan) i localStorage: det følger
+ * nettleseren, ikke kontoen. Uten et husket valg gjelder flatens
+ * standard: GRAF i skjemaet/dagboka og oversikten, BEGGE på øktsiden.
  */
 
-import { useSyncExternalStore } from 'react'
 
-export const KURVE_NOKKEL = 'xpulse-kurve-paa'
-export const KURVE_HENDELSE = 'xpulse-kurve-endret'
+export type GrafVisning = 'graf' | 'kurver' | 'begge'
+export type GrafFlate = 'hovedside' | 'skjema' | 'bygger' | 'oversikt'
+export const VISNING_NOKKEL = 'xpulse-graf-visning'
+export const VISNING_HENDELSE = 'xpulse-graf-visning-endret'
 
-export function lesKurvePaa(): boolean {
-  if (typeof window === 'undefined') return false
+export function standardVisning(flate: GrafFlate): GrafVisning {
+  // Øktsiden og byggeren: BEGGE (kurven er poenget der). Skjemaet og
+  // oversikten: GRAF.
+  return flate === 'hovedside' || flate === 'bygger' ? 'begge' : 'graf'
+}
+
+const gyldig = (v: unknown): v is GrafVisning => v === 'graf' || v === 'kurver' || v === 'begge'
+
+/** Husket valg, ellers flatens standard. Oversikten er alltid GRAF. */
+export function lesVisning(flate: GrafFlate): GrafVisning {
+  if (flate === 'oversikt') return 'graf'
+  if (typeof window === 'undefined') return standardVisning(flate)
   try {
-    return window.localStorage.getItem(KURVE_NOKKEL) === 'paa'
+    const v = window.localStorage.getItem(VISNING_NOKKEL)
+    return gyldig(v) ? v : standardVisning(flate)
   } catch {
-    return false
+    return standardVisning(flate)
   }
 }
 
-export function settKurvePaa(paa: boolean): boolean {
-  if (typeof window === 'undefined') return paa
+export function settVisning(v: GrafVisning): GrafVisning {
+  if (typeof window === 'undefined') return v
   try {
-    window.localStorage.setItem(KURVE_NOKKEL, paa ? 'paa' : 'av')
+    window.localStorage.setItem(VISNING_NOKKEL, v)
   } catch {
     // Kan ikke huske valget — det gjelder likevel for denne visningen.
   }
-  window.dispatchEvent(new CustomEvent(KURVE_HENDELSE, { detail: { paa } }))
-  return paa
+  window.dispatchEvent(new CustomEvent(VISNING_HENDELSE, { detail: { visning: v } }))
+  return v
 }
 
-export function abonnerKurve(oppdater: () => void): () => void {
-  window.addEventListener(KURVE_HENDELSE, oppdater)
+export function abonnerVisning(oppdater: () => void): () => void {
+  window.addEventListener(VISNING_HENDELSE, oppdater)
   window.addEventListener('storage', oppdater)
   return () => {
-    window.removeEventListener(KURVE_HENDELSE, oppdater)
+    window.removeEventListener(VISNING_HENDELSE, oppdater)
     window.removeEventListener('storage', oppdater)
   }
 }
 
-/** Hook for flater som bare leser valget (oversikten). Serveren svarer
-    alltid «av», så første maling er lik på begge sider. */
-export function useKurvePaa(): boolean {
-  return useSyncExternalStore(abonnerKurve, lesKurvePaa, () => false)
-}
+export const VISNING_ETIKETT: Record<GrafVisning, string> = { graf: 'Graf', kurver: 'Kurver', begge: 'Begge' }
 
 // «Plan bak» (standard) eller «plan over / faktisk under» på samme
 // tidsakse — bare et valg i kartet uten kurve. Huskes som de andre.

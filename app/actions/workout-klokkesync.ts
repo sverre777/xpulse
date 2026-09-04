@@ -68,6 +68,8 @@ export interface WorkoutKlokkesyncData {
       — gjennomført-kartets watt-reserve når et vindu mangler puls
       (rettelse 12). null uten watt eller uten terskel. */
   ftp: number | null
+  /** Øktas distanse fra radene (km) — nøkkeltallsraden under kartet. */
+  distanseKm: number | null
   // Aerob frakobling for økta (bolk 3) — kun jevne økter > 40 min med
   // puls + watt/fart-kurve. null = ikke kvalifisert (vises ikke; en
   // intervalløkt skal ikke ha et meningsløst driftstall).
@@ -343,6 +345,7 @@ export async function getWorkoutKlokkesyncData(
     radInfo,
     wattMetrikker,
     ftp: ftpForKart,
+    distanseKm: (() => { const m = (activities ?? []).reduce((sum, a) => sum + (Number(a.distance_meters) || 0), 0); return m > 0 ? m / 1000 : null })(),
     frakobling,
     samples,
     laps,

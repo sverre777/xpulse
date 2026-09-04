@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, updateTag } from 'next/cache'
+import { lesTidspunktNotater, type TidspunktNotat } from '@/lib/tidspunkt-notater'
 import { createClient } from '@/lib/supabase/server'
 import { pulsIVindu } from '@/lib/segmenter'
 import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
@@ -436,4 +437,22 @@ export async function hentKlokkerunder(workoutId: string): Promise<Klokkerunde[]
     t += varighet
   }
   return ut
+}
+
+/**
+ * PLANENS PUNKTER (bolk 8): de planlagte laktat/ernæring/notat-punktene
+ * som spøkelser bak kurven. Bor der planen bor: på den skjulte
+ * tvillingen (flett) — leses derfra. Er planen markert gjennomført på
+ * samme rad, ligger de i øktas egne tidspunkt_notater med planlagt: true,
+ * og grafen har dem alt (dupliseres ikke her).
+ */
+export async function hentPlanensPunkter(workoutId: string): Promise<TidspunktNotat[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+  const { data: tvillinger } = await supabase.from('workouts')
+    .select('id, tidspunkt_notater').eq('merged_into_workout_id', workoutId)
+  const tvilling = (tvillinger ?? [])[0]
+  if (!tvilling) return []
+  return lesTidspunktNotater(tvilling.tidspunkt_notater).map(p => ({ ...p, planlagt: true }))
 }

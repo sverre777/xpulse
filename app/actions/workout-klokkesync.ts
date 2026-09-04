@@ -6,6 +6,8 @@ import type {
   WorkoutSamples, LapMarker, LactateMarker, NutritionMarker, ShootingMarker,
 } from '@/components/workout/WorkoutDetailChart'
 import type { LapRow } from '@/components/workout/LapTable'
+import { lesTidspunktNotater, type TidspunktNotat } from '@/lib/tidspunkt-notater'
+import type { KompaktPunkt } from '@/lib/types'
 import { type HeartZone } from '@/lib/heart-zones'
 import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
 import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
@@ -52,6 +54,10 @@ export interface WorkoutKlokkesyncData {
   rpe: number | null
   /** Forventet belastning 1–10 satt i plan (fase 120) — vises ved siden av opplevd. */
   forventet: number | null
+  /** Punktene på grafen (bolk 8): planlagte laktat/ernæring/notat +
+      dagbokas notat-punkter fra workouts.tidspunkt_notater. Ført laktat og
+      ernæring kommer som lactate/nutrition fra sine tabeller. */
+  tidspunktNotater: TidspunktNotat[]
   /** Kurvens lengde i sekunder — tidslinjens fasit. */
   totalSek: number
   radInfo: Record<string, RadInfo>
@@ -91,7 +97,7 @@ export async function getWorkoutKlokkesyncData(
   // workout er resolvert.
   const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
     supabase.from('workouts')
-      .select('id, sport, time_of_day, date, user_id, rpe, forventet_belastning, runde_backup')
+      .select('id, sport, time_of_day, date, user_id, rpe, forventet_belastning, runde_backup, tidspunkt_notater')
       .eq('id', workoutId)
       .maybeSingle(),
     supabase.from('workout_samples')
@@ -324,6 +330,7 @@ export async function getWorkoutKlokkesyncData(
     sport: (workout.sport ?? null) as Sport | null,
     rpe: workout.rpe != null ? Number(workout.rpe) : null,
     forventet: (workout as { forventet_belastning?: number | null }).forventet_belastning ?? null,
+    tidspunktNotater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
     totalSek,
     radInfo,
     wattMetrikker,
@@ -459,6 +466,8 @@ export interface KompaktKurve {
   hr: Array<{ t: number; hr: number }>
   totalSek: number
   segmenter: Segment[]
+  /** Punktene kompakt (bolk 8): ført laktat/ernæring + notater + planlagte. */
+  punkter: KompaktPunkt[]
   /** Planens blokker bak kurven (bolk 7) — fra den skjulte tvillingen
       (flett) eller planned_snapshot (markert gjennomført). Tomt = ingen plan. */
   plan: KompaktPlanBlokk[]
@@ -479,8 +488,32 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       .select('id, workout_id, sort_order, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
       .in('workout_id', ids).order('sort_order', { ascending: true }),
     supabase.from('workouts').select('id, merged_into_workout_id').in('merged_into_workout_id', ids),
-    supabase.from('workouts').select('id, planned_snapshot').in('id', ids),
+    supabase.from('workouts').select('id, planned_snapshot, tidspunkt_notater, date, time_of_day').in('id', ids),
   ])
+  // Punktene kompakt (bolk 8): ført laktat (measured_at_time → sek fra
+  // øktstart), ført ernæring (time_offset_minutes) og tidspunkt_notater.
+  const [laktatRes, ernaeringRes] = await Promise.all([
+    supabase.from('workout_lactate_measurements').select('workout_id, measured_at_time').in('workout_id', ids),
+    supabase.from('workout_nutrition_entries').select('workout_id, time_offset_minutes').in('workout_id', ids),
+  ])
+  const punkterFor = (id: string): KompaktPunkt[] => {
+    const w = (snapRes.data ?? []).find(x => x.id === id)
+    const ut: KompaktPunkt[] = []
+    if (w) {
+      const start = workoutStartEpoch(w.date, w.time_of_day)
+      for (const l of (laktatRes.data ?? []).filter(x => x.workout_id === id)) {
+        if (!l.measured_at_time) continue
+        const t = secondsFromStart(w.date, l.measured_at_time, start)
+        if (t != null && t >= 0) ut.push({ sek: Math.round(t), slag: 'laktat', planlagt: false })
+      }
+      for (const n of (ernaeringRes.data ?? []).filter(x => x.workout_id === id)) {
+        if (n.time_offset_minutes == null) continue
+        ut.push({ sek: Number(n.time_offset_minutes) * 60, slag: 'ernaering', planlagt: false })
+      }
+      for (const p of lesTidspunktNotater(w.tidspunkt_notater)) ut.push({ sek: p.sek, slag: p.type, planlagt: p.planlagt })
+    }
+    return ut.sort((a, b) => a.sek - b.sek)
+  }
   // Planens blokker per økt (bolk 7): tvillingens rader der en flett finnes,
   // ellers planned_snapshot.activities.
   const tvillingFor = new Map<string, string>()
@@ -540,6 +573,7 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       totalSek: slutt,
       segmenter: beregnSegmenter(raderPerOkt.get(rad.workout_id) ?? [], slutt),
       plan: planFor(rad.workout_id),
+      punkter: punkterFor(rad.workout_id),
     }
   }
   return ut

@@ -14,6 +14,7 @@ import { TreffPercentageDisplay } from '@/components/analysis/TreffPercentageDis
 import { KompaktKurverProvider, useKompaktKurve } from './kompakt-kurver'
 import { KompaktKurve } from '@/components/workout/WorkoutDetailChart'
 import { PlanGraf } from '@/components/workout/PlanGraf'
+import { fraKompaktPunkter } from '@/components/workout/Punkt'
 import { harKlokkekurve } from './kompakt-kurver'
 import { ImportSourceBadge } from '@/components/workout/ImportSourceBadge'
 import { ShotWeekChip } from '@/components/calendar/ShotWeekChip'
@@ -729,9 +730,9 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
     bakgrunnen), ellers plan-grafen fra radene — med én gang. */
 function ChipKurve({ w, hoyde = 26 }: { w: CalendarWorkoutSummary; hoyde?: number }) {
   const kurve = useKompaktKurve(w.id)
-  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} />
+  if (kurve) return <KompaktKurve hr={kurve.hr} totalSek={kurve.totalSek} segmenter={kurve.segmenter} hoyde={hoyde} plan={kurve.plan} punkter={kurve.punkter} />
   if (harKlokkekurve(w) || !w.blokker?.some(b => b.sek > 0)) return null
-  return <div style={{ marginTop: 3 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde - 4} /></div>
+  return <div style={{ marginTop: 3 }}><PlanGraf blokker={w.blokker} tetthet="kompakt" hoyde={hoyde - 4} punkter={fraKompaktPunkter(w.punkter)} /></div>
 }
 
 // ── Mobil månedsliste: økt-pille (design/xpulse-mobil-mnd-design.html) ──

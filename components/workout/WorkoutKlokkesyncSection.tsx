@@ -204,6 +204,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           rpe={data.rpe}
           onRpe={settRpe}
           forventetRpe={data.forventet}
+          tidspunktNotater={data.tidspunktNotater}
         />
       )}
       {rpeFeil && (

@@ -1,4 +1,5 @@
 import { CalendarWorkoutSummary, CompetitionType, ShotStats, PAUSE_TYPER, VEKSLING_TYPER } from './types'
+import { lesTidspunktNotater } from './tidspunkt-notater'
 import { fraRaaRader } from './plan-graf'
 import { ALL_ZONE_NAMES, ExtendedZoneName, HeartZone } from './heart-zones'
 import {
@@ -65,6 +66,8 @@ export type RawCalendarWorkout = {
     distance_format?: string | null
     name?: string | null
   }[] | { competition_type: string | null; position_overall: number | null; distance_format?: string | null; name?: string | null } | null
+  // Bolk 8: punktene (planlagte + notater) — ikoner i den kompakte grafen.
+  tidspunkt_notater?: unknown
   planned_snapshot?: {
     duration_minutes?: number | null
     zones?: { zone_name: string; minutes: number | string }[] | null
@@ -408,6 +411,9 @@ export function toCalendarSummary(w: RawCalendarWorkout, heartZones: HeartZone[]
     sort_order: w.sort_order ?? 0,
     // Plan-grafen kompakt (bolk 5): radene som blokker, i rekkefølge.
     blokker: fraRaaRader([...(w.workout_activities ?? [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))),
+    // Punktene kompakt (bolk 8) — fra tidspunkt_notater; ført laktat/
+    // ernæring hentes ikke her (kalenderen har ikke tabellene i spørringen).
+    punkter: lesTidspunktNotater(w.tidspunkt_notater).map(p => ({ sek: p.sek, slag: p.type, planlagt: p.planlagt })),
     created_by_coach_id: w.created_by_coach_id ?? null,
     coach_name: w.coach_name ?? null,
     updated_at: w.updated_at ?? null,

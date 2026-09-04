@@ -11,7 +11,10 @@ import { KurveBrush } from './KurveBrush'
 import { hentKurveVindu } from '@/app/actions/workout-klokkesync'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { PlanSpokelse } from './PlanSpokelse'
-import { hentPlanensRunder, type PlanBlokk } from '@/app/actions/runder'
+import { hentPlanensRunder, hentPlanensPunkter, type PlanBlokk } from '@/app/actions/runder'
+import { punktTittel, type TidspunktNotat } from '@/lib/tidspunkt-notater'
+import { PUNKT_SLAG, PunktIkon, type PunktSlag } from './Punkt'
+import type { KompaktPunkt } from '@/lib/types'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { computeZoneSecondsFromSamples, type HeartZone, type ExtendedZoneName } from '@/lib/heart-zones'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
@@ -84,6 +87,10 @@ interface Props {
   /** Planens tall når økta er koblet til en plan (bolk 5/7). */
   planVarighetSek?: number | null
   forventetRpe?: number | null
+  /** Punktene fra workouts.tidspunkt_notater (bolk 8): notat-punkter (fylt)
+      og planlagte punkter (hule, vises med «Vis plan»). Ført laktat og
+      ernæring kommer som lactate/nutrition. */
+  tidspunktNotater?: TidspunktNotat[]
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -110,7 +117,7 @@ export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
   height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
-  planVarighetSek = null, forventetRpe = null,
+  planVarighetSek = null, forventetRpe = null, tidspunktNotater = [],
 }: Props) {
   const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
   const forsteId = serier[0]?.id ?? null
@@ -127,6 +134,8 @@ export function WorkoutDetailChart({
   // Planen bak (bolk 7) — samme bryter og samme lag som i Øktbyggeren.
   // Valget deles med byggeren (lib/vis-plan), så flatene aldri står uenige.
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
+  // Planens punkter fra tvillingen (bolk 8) — hule spøkelser med «Vis plan».
+  const [planPunkter, setPlanPunkter] = useState<TidspunktNotat[]>([])
   // Huskes per økt, standard PÅ når økta har plan (bolk 7).
   const [visPlan, setVisPlan] = useState(true)
 
@@ -141,6 +150,9 @@ export function WorkoutDetailChart({
     let avbrutt = false
     hentPlanensRunder(workoutId)
       .then(b => { if (!avbrutt) setPlanBlokker(b) })
+      .catch(() => {})
+    hentPlanensPunkter(workoutId)
+      .then(p => { if (!avbrutt) setPlanPunkter(p) })
       .catch(() => {})
     return () => { avbrutt = true }
   }, [workoutId])
@@ -204,7 +216,7 @@ export function WorkoutDetailChart({
 
   const fokus = serier.find(s => s.id === fokusId) ?? null
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
-  const harPunkter = lactate.length > 0 || nutrition.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
+  const harPunkter = lactate.length > 0 || nutrition.length > 0 || tidspunktNotater.length > 0 || planPunkter.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
   const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
   // Aksen strekkes til planens slutt når planen vises og er lengre enn
   // økta (bolk 7): da stikker spøkelset ut forbi der økta stoppet, og
@@ -230,25 +242,35 @@ export function WorkoutDetailChart({
   const punkter: Punkt[] = useMemo(() => {
     const ut: Punkt[] = [
       ...lactate.map((l, i) => ({
-        id: `lac-${i}`, slag: 'laktat' as const, t: l.t,
+        id: `lac-${i}`, slag: 'laktat' as const, t: l.t, planlagt: false,
         tittel: `Laktat ${String(l.mmol).replace('.', ',')}`,
         farge: PUNKT_FARGER.laktat,
       })),
       ...nutrition.map((n, i) => ({
-        id: `nut-${i}`, slag: 'ernaering' as const, t: n.t,
+        id: `nut-${i}`, slag: 'ernaering' as const, t: n.t, planlagt: false,
         tittel: `${n.type}${n.carbs_g != null ? ` · ${n.carbs_g} g` : ''}`,
         farge: PUNKT_FARGER.ernaering,
       })),
+      // Bolk 8: notat-punktene (ført) og de planlagte punktene (hule) — egne
+      // rad + tvillingens plan. Planlagt laktat er aldri en måling.
+      ...tidspunktNotater.filter(p => !p.planlagt).map(p => ({
+        id: `tn-${p.id}`, slag: p.type, t: p.sek, planlagt: false,
+        tittel: punktTittel(p), farge: PUNKT_SLAG[p.type].farge,
+      })),
+      ...(visPlan ? [...tidspunktNotater.filter(p => p.planlagt), ...planPunkter].map(p => ({
+        id: `pl-${p.id}`, slag: p.type, t: p.sek, planlagt: true,
+        tittel: `${punktTittel(p)} · plan`, farge: PUNKT_SLAG[p.type].farge,
+      })) : []),
       // Rettelse 1: skyting er nøytral på tidslinja — markøren over bærer
       // posisjon og treff, med pekelinje som de andre punktene.
       ...(visSkyting ? segmenter.filter(sg => erSkytesegment(sg.type)).map(sg => ({
         id: `sky-${sg.aktivitetId}`, slag: 'skyting' as const, t: sg.startSek,
         tittel: skyteMarkor(sg.type, sg.etikett, sg.treff),
-        farge: 'var(--tekst-1-app)',
+        farge: 'var(--tekst-1-app)', planlagt: false,
       })) : []),
     ]
     return ut.sort((a, b) => a.t - b.t)
-  }, [lactate, nutrition, segmenter, visSkyting])
+  }, [lactate, nutrition, segmenter, visSkyting, tidspunktNotater, planPunkter, visPlan])
 
   const segmentVed = (t: number) => segmenter.find(x => t >= x.startSek && t <= x.sluttSek) ?? null
 
@@ -297,7 +319,7 @@ export function WorkoutDetailChart({
                   onClick={() => setVisSegmenter(v => !v)} />
               )}
               {harPunkter && (
-                <Chip farge={PUNKT_FARGER.laktat} etikett="Laktat/ernæring" paa={visPunkter} fokus={false}
+                <Chip farge={PUNKT_FARGER.laktat} etikett="Punkter" paa={visPunkter} fokus={false}
                   onClick={() => setVisPunkter(v => !v)} />
               )}
               {laps.length > 1 && (
@@ -336,7 +358,8 @@ export function WorkoutDetailChart({
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
-            {/* Planen bak alt annet — dekor, tar aldri et klikk. */}
+            {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
+            <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} />
             {visPlan && <PlanSpokelse blokker={planBlokker} pct={h.pct} />}
             {/* Rundegrenser */}
             {visRunder && laps.map((lap, i) => i === 0 ? null : (
@@ -378,11 +401,15 @@ export function WorkoutDetailChart({
                     position: 'absolute', left: h.pct(p.t), top: 0, height: y,
                     width: 1, background: p.farge, opacity: 0.5, pointerEvents: 'none',
                   }} />
-                  <span style={{
-                    position: 'absolute', left: h.pct(p.t), top: y,
-                    transform: 'translate(-50%, -50%)', width: 9, height: 9, borderRadius: '50%',
-                    background: p.farge, border: '1.5px solid var(--flate-3)', pointerEvents: 'none',
-                  }} />
+                  {p.slag === 'skyting' || p.slag === 'veksling' ? null : (
+                    <span data-kurve-punkt={p.slag} data-planlagt={p.planlagt || undefined} style={{
+                      position: 'absolute', left: h.pct(p.t), top: y,
+                      transform: `translate(-50%, -50%)${p.slag === 'ernaering' ? ' rotate(45deg)' : ''}`,
+                      width: 9, height: 9, borderRadius: p.slag === 'laktat' ? '50%' : 2, boxSizing: 'border-box',
+                      background: p.planlagt ? 'transparent' : p.farge,
+                      border: `${p.planlagt ? '1.5px dashed ' + p.farge : '1.5px solid var(--flate-3)'}`, pointerEvents: 'none',
+                    }} />
+                  )}
                 </span>
               )
             })}
@@ -708,7 +735,7 @@ export function Nokkeltall({ celler, rpe = null, onRpe, forventetRpe = null, rpe
 // aldri skjult tekst. Tett klynge slås sammen til «3 målinger» og folder
 // seg ut ved klikk.
 
-interface Punkt { id: string; slag: 'laktat' | 'ernaering' | 'skyting'; t: number; tittel: string; farge: string }
+interface Punkt { id: string; slag: PunktSlag; t: number; tittel: string; farge: string; planlagt: boolean }
 
 const ETIKETT_BREDDE_PCT = 13   // anslått bredde på en etikett, i % av flata
 const NIVAA_HOYDE = 30
@@ -765,7 +792,7 @@ function PunktEtiketter({ punkter, synlig, segmentVed }: {
               display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: farge, whiteSpace: 'nowrap',
             }}>
-              {en ? en.tittel : `${kl.punkter.length} målinger`}
+              {en ? `${en.slag === 'skyting' ? '' : PUNKT_SLAG[en.slag].ikon + ' '}${en.tittel}` : `${kl.punkter.length} punkter`}
             </span>
             <span style={{
               display: 'block', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5,
@@ -1174,13 +1201,15 @@ function fmtFart(mps: number, sport: Sport): string {
 // Ingen kontroller, ingen etiketter — bare formen, så et blikk på
 // kalenderen viser om økta var jevn eller hadde drag.
 
-export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [] }: {
+export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], punkter = [] }: {
   hr: Array<{ t: number; hr: number }>
   totalSek: number
   segmenter: Segment[]
   hoyde?: number
   /** Planens blokker som spøkelse bak (bolk 7) — uten bryter i oversikten. */
   plan?: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string }>
+  /** Punktene som ikoner øverst (bolk 8). */
+  punkter?: KompaktPunkt[]
 }) {
   const B = 320
   const sti = useMemo(() => {
@@ -1203,6 +1232,11 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [] }:
           <PlanSpokelse blokker={spokelser} pct={pct} dempet={0.22} />
         </div>
       )}
+      {punkter.filter(p => p.sek >= 0 && p.sek <= totalSek).map((p, i) => (
+        <span key={`kp-${i}`} data-kompakt-punkt={p.slag} style={{ position: 'absolute', left: pct(p.sek), top: -2, transform: 'translateX(-50%)', lineHeight: 1 }}>
+          <PunktIkon slag={p.slag} planlagt={p.planlagt} storrelse={8} />
+        </span>
+      ))}
       {sti && (
         <svg viewBox={`0 0 ${B} ${hoyde - 6}`} preserveAspectRatio="none"
           style={{ position: 'absolute', left: 0, right: 0, top: 0, width: '100%', height: hoyde - 6 }}>

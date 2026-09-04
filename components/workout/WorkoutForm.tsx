@@ -281,6 +281,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
     day_form_mental:   defaultValues?.day_form_mental ?? null,
     rpe:         defaultValues?.rpe ?? null,
     forventet_belastning: defaultValues?.forventet_belastning ?? null,
+    tidspunkt_notater: defaultValues?.tidspunkt_notater ?? [],
     notes:       defaultValues?.notes ?? '',
     tags:        defaultValues?.tags ?? [],
     shooting_blocks: defaultValues?.shooting_blocks ?? [],
@@ -1421,6 +1422,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             onRpe={v => set('rpe', v)}
             forventet={form.forventet_belastning ?? null}
             onForventet={v => set('forventet_belastning', v)}
+            tidspunktNotater={form.tidspunkt_notater ?? []}
             erPlanlagt={isPlanMode}
           />
         </div>
@@ -1738,6 +1740,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onLaktat={l => set('lactate', l)}
           ernaering={form.nutrition_entries ?? []}
           onErnaering={n => set('nutrition_entries', n)}
+          punkter={form.tidspunkt_notater ?? []}
+          onPunkter={p => set('tidspunkt_notater', p)}
           onRaderFraBasen={hentRaderFraBasen}
           onByggTittel={tittel => setForm(f => ({ ...f, title: f.title.trim() === '' ? tittel : f.title }))}
           onSerierLagret={flettInnLagredeSerier}

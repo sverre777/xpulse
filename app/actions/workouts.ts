@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, updateTag } from 'next/cache'
+import { lesTidspunktNotater, tilJson } from '@/lib/tidspunkt-notater'
 import { createClient } from '@/lib/supabase/server'
 import { pulsIVindu } from '@/lib/segmenter'
 import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
@@ -756,6 +757,8 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     rpe: data.rpe,
     // Fase 120: forventet belastning skrives bare når skjemaet kjenner feltet.
     ...(data.forventet_belastning !== undefined ? { forventet_belastning: data.forventet_belastning } : {}),
+    // Fase 119 / bolk 8: punktene på grafen — samme regel.
+    ...(data.tidspunkt_notater !== undefined ? { tidspunkt_notater: tilJson(data.tidspunkt_notater) } : {}),
     shooting_data: shootingData,
     // Fase 14: mal-referanse + denormalisert tag-array.
     // workout_tags-child-tabellen beholdes for bakoverkomp (skrives nedenfor);
@@ -1314,7 +1317,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   if ('error' in resolved) return []
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,live_started_at,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,tidspunkt_notater,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .is('merged_into_workout_id', null)
     .gte('date', startDate).lte('date', endDate)
@@ -1330,7 +1333,7 @@ export async function getWorkoutsForMonth(userId: string, year: number, month: n
   const endDate   = new Date(year, month, 0).toISOString().split('T')[0]
   const { data } = await supabase
     .from('workouts')
-    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
+    .select('id,title,date,sport,workout_type,is_planned,is_completed,is_important,is_altitude_training,is_heat_training,is_group_session,group_session_label,imported_from,merged_source,duration_minutes,distance_km,time_of_day,sort_order,avg_heart_rate,max_heart_rate,rpe,notes,created_by_coach_id,updated_at,planned_snapshot,tidspunkt_notater,standard_session_series_id,standard_session_series(name),workout_zones(*),workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,zones,start_time,sort_order,movement_name,movement_subcategory,prone_shots,prone_hits,standing_shots,standing_hits,shooting_type,is_dry_training),workout_competition_data(competition_type,position_overall,distance_format,name)')
     .eq('user_id', resolved.userId)
     .is('merged_into_workout_id', null)
     .gte('date', startDate).lte('date', endDate)
@@ -1654,6 +1657,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       day_form_mental:   null,
       rpe:          null,
       forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
+      tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
       tags:         snap.tags ?? [],
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
@@ -1694,6 +1698,7 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     day_form_mental:   workout.day_form_mental,
     rpe:          workout.rpe,
     forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
+    tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)

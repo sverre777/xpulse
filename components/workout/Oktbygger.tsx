@@ -15,7 +15,9 @@ import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
 import { BlokkLerret } from './BlokkLerret'
 import { RundeValg } from './RundeValg'
 import { PlanSpokelse, VisPlanBryter } from './PlanSpokelse'
-import { hentPlanensRunder, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
+import { hentPlanensRunder, hentPlanensPunkter, sikreKlokkerundeBackup, hentKlokkerunder, type PlanBlokk, type Klokkerunde } from '@/app/actions/runder'
+import { nyttTidspunktNotat, type TidspunktNotat, type PunktType } from '@/lib/tidspunkt-notater'
+import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
@@ -62,7 +64,7 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
 
 export function OktbyggerPopup({
   workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
-  laktat, onLaktat, ernaering, onErnaering, onRaderFraBasen,
+  laktat, onLaktat, ernaering, onErnaering, punkter, onPunkter, onRaderFraBasen,
   onClose, onSerierLagret, onOpprett, onByggTittel,
 }: {
   /** null = økta er ikke lagret ennå: klokkeverktøyene finnes ikke, bare hurtigoppsettet. */
@@ -81,6 +83,10 @@ export function OktbyggerPopup({
   onLaktat: (l: LactateRow[]) => void
   ernaering: NutritionEntryRow[]
   onErnaering: (n: NutritionEntryRow[]) => void
+  /** Punktene (bolk 8): planlagte laktat/ernæring/notat og dagbokas notater
+      — workouts.tidspunkt_notater, eid av skjemaet. */
+  punkter: TidspunktNotat[]
+  onPunkter: (p: TidspunktNotat[]) => void
   /** Rundebyttet skriver til basen — skjemaet henter radene inn på nytt. */
   onRaderFraBasen: () => Promise<void>
   onClose: () => void
@@ -104,6 +110,12 @@ export function OktbyggerPopup({
   const visPlan = useSyncExternalStore(abonnerVisPlan, () => visPlanBak(workoutId), () => true)
   const [valgtRad, setValgtRad] = useState<string | null>(null)
   const [kuttModus, setKuttModus] = useState(false)
+  // PUNKT-MODUS (bolk 8): klikk på kurven setter et punkt. I plan velges
+  // typen (laktat/ernæring/notat) — alle planlagte. I dagboka er det notat
+  // (ført laktat og ernæring har egne rader og får bare et tidspunkt).
+  const [punktModus, setPunktModus] = useState(false)
+  const [punktType, setPunktType] = useState<PunktType>(erPlanlagt ? 'laktat' : 'notat')
+  const [planPunkter, setPlanPunkter] = useState<TidspunktNotat[]>([])
   // MATCH (3b): «start her» venter på et klikk på kurven for valgt rad.
   const [startHerModus, setStartHerModus] = useState(false)
   const [klokkerunder, setKlokkerunder] = useState<Klokkerunde[] | null>(null)
@@ -144,6 +156,7 @@ export function OktbyggerPopup({
     if (!workoutId) return
     let avbrutt = false
     hentPlanensRunder(workoutId).then(b => { if (!avbrutt) setPlanBlokker(b) }).catch(() => {})
+    hentPlanensPunkter(workoutId).then(p => { if (!avbrutt) setPlanPunkter(p) }).catch(() => {})
     hentKlokkerunder(workoutId).then(r => { if (!avbrutt) setKlokkerunder(r) }).catch(() => {})
     return () => { avbrutt = true }
   }, [workoutId])
@@ -166,7 +179,14 @@ export function OktbyggerPopup({
     setStartHerModus(false)
     setMelding(null)
   }
-  const klikkPaaKurven = kuttModus ? kuttVed : startHerModus && valgtRad ? startHerVed : undefined
+  /** Klikk på kurven i punkt-modus: nytt punkt der, av valgt type. */
+  const punktVed = (sek: number) => {
+    onPunkter([...punkter, nyttTidspunktNotat(erPlanlagt ? punktType : 'notat', sek, erPlanlagt)])
+    setPunktModus(false)
+  }
+  const endrePunkt = (id: string, patch: Partial<TidspunktNotat>) => onPunkter(punkter.map(p => (p.id === id ? { ...p, ...patch } : p)))
+  const fjernPunkt = (id: string) => onPunkter(punkter.filter(p => p.id !== id))
+  const klikkPaaKurven = punktModus ? punktVed : kuttModus ? kuttVed : startHerModus && valgtRad ? startHerVed : undefined
 
   /** BYGG PÅ KURVEN (3b): strukturen legges under grafen med fortløpende
       start/varighet. Finnes klokkerunder, erstatter bygget dem etter
@@ -325,6 +345,18 @@ export function OktbyggerPopup({
                     ⇥ Start her {startHerModus ? '· klikk på kurven' : ''}
                   </button>
                 )}
+                <PunktKnapp aktiv={punktModus} onClick={() => { setPunktModus(v => !v); setKuttModus(false); setStartHerModus(false) }}
+                  tekst={erPlanlagt ? 'Punkt' : 'Notat'} />
+                {punktModus && erPlanlagt && (
+                  <span className="flex items-center gap-1" data-punkt-type>
+                    {(['laktat', 'ernaering', 'notat'] as const).map(t => (
+                      <button key={t} type="button" onClick={() => setPunktType(t)} aria-pressed={punktType === t}
+                        style={{ ...pille(punktType === t ? PUNKT_SLAG[t].farge : undefined, punktType === t), padding: '5px 10px', minHeight: 32 }}>
+                        <PunktMerke slag={t} planlagt storrelse={9} style={{ marginRight: 5, verticalAlign: 'middle' }} />{PUNKT_SLAG[t].navn}
+                      </button>
+                    ))}
+                  </span>
+                )}
                 {harKurve && klokkerunder && klokkerunder.length > 0 && (
                   <button type="button" onClick={snapp} data-snapp
                     style={pille()}>
@@ -354,7 +386,9 @@ export function OktbyggerPopup({
                   ))
                 })()}
                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
-                  {kuttModus
+                  {punktModus
+                    ? (erPlanlagt ? 'Klikk på kurven der punktet skal ligge — planlagt laktat har ingen verdi, det er ingen måling.' : 'Klikk på kurven der notatet hører hjemme.')
+                    : kuttModus
                     ? 'Klikk der økta skal deles — raden som dekker tidspunktet blir to.'
                     : startHerModus
                       ? 'Klikk på kurven der raden skal starte — radene etter følger med, raden foran strekkes eller kortes.'
@@ -386,8 +420,10 @@ export function OktbyggerPopup({
                 sport={sport ?? null}
                 totalSek={totalSek}
                 punkter={[
-                  ...laktat.map(l => ({ id: l.id, farge: PUNKT_FARGER.laktat, sek: laktatSek(l), rund: true })),
-                  ...ernaering.map(n => ({ id: n.id, farge: PUNKT_FARGER.ernaering, sek: n.time_offset_minutes.trim() ? (parseInt(n.time_offset_minutes) || 0) * 60 : null, rund: false })),
+                  ...laktat.map(l => ({ id: l.id, slag: 'laktat' as const, sek: laktatSek(l), planlagt: false })),
+                  ...ernaering.map(n => ({ id: n.id, slag: 'ernaering' as const, sek: n.time_offset_minutes.trim() ? (parseInt(n.time_offset_minutes) || 0) * 60 : null, planlagt: false })),
+                  ...punkter.map(p => ({ id: p.id, slag: p.type, sek: p.sek, planlagt: p.planlagt })),
+                  ...(visPlan ? planPunkter.map(p => ({ id: `pl-${p.id}`, slag: p.type, sek: p.sek, planlagt: true })) : []),
                 ]}
                 planBlokker={visPlan ? planBlokker : []}
               />
@@ -427,9 +463,13 @@ export function OktbyggerPopup({
               </div>
 
               {/* ── Punkter — målingene som er ført, får et tidspunkt ── */}
-              {(laktat.length > 0 || ernaering.length > 0) && (
+              {(laktat.length > 0 || ernaering.length > 0 || punkter.length > 0) && (
                 <div className="space-y-2">
                   <Overskrift>Punkter på kurven</Overskrift>
+                  {punkter.map(p => (
+                    <NotatPunktRad key={p.id} p={p} totalSek={totalSek}
+                      onEndre={patch => endrePunkt(p.id, patch)} onFjern={() => fjernPunkt(p.id)} />
+                  ))}
                   {laktat.map(l => (
                     <PunktRad key={l.id}
                       farge={PUNKT_FARGER.laktat}
@@ -451,7 +491,9 @@ export function OktbyggerPopup({
                     />
                   ))}
                   <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
-                    Punktene er målingene du allerede har ført — her får de bare et tidspunkt.
+                    {erPlanlagt
+                      ? 'Planlagte punkter er hule på grafen. En planlagt laktat er ingen måling — verdien føres i dagboka.'
+                      : 'Ført laktat og ernæring er radene du alt har ført — her får de bare et tidspunkt. Notater er egne punkter.'}
                   </p>
                 </div>
               )}
@@ -509,7 +551,7 @@ export const KURVE_FARGER = {
 
 type KurveValg = keyof typeof KURVE_FARGER
 
-interface Punkt { id: string; farge: string; sek: number | null; rund: boolean }
+interface Punkt { id: string; slag: PunktSlag; sek: number | null; planlagt: boolean }
 
 function KurveMedRader({
   workoutId, utkast, valgtRad, onVelgRad, onKlikk, erPlanlagt,
@@ -589,14 +631,12 @@ function KurveMedRader({
         if (p.sek == null) return null
         const y = paaKurve ? h.yPctForSerie(kurve, p.sek) : '18%'
         return (
-          <span key={p.id} style={{
-            position: 'absolute', left: h.pct(p.sek), top: y,
-            transform: `translate(-50%, -50%)${p.rund ? '' : ' rotate(45deg)'}`,
-            width: p.rund ? 12 : 11, height: p.rund ? 12 : 11, borderRadius: p.rund ? '50%' : 2,
-            background: erPlanlagt ? 'transparent' : p.farge,
-            border: `2px ${erPlanlagt ? 'dashed' : 'solid'} ${erPlanlagt ? p.farge : 'var(--flate-3)'}`,
-            pointerEvents: 'none', zIndex: 5,
-          }} />
+          <span key={p.id} data-bygger-punkt={p.slag} data-planlagt={p.planlagt || undefined} style={{
+            position: 'absolute', left: h.pct(p.sek), top: y, transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none', zIndex: 5, lineHeight: 0,
+          }}>
+            <PunktMerke slag={p.slag} planlagt={p.planlagt} storrelse={12} />
+          </span>
         )
       })}
     </div>
@@ -881,6 +921,48 @@ function Overskrift({ children }: { children: React.ReactNode }) {
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)' }}>
       {children}
     </p>
+  )
+}
+
+/** Et tidspunkt-notat i lista: type, tidspunkt, tekst (og gram for
+    planlagt ernæring). Planlagt laktat har med vilje ikke noe verdifelt. */
+function NotatPunktRad({ p, totalSek, onEndre, onFjern }: {
+  p: TidspunktNotat
+  totalSek: number
+  onEndre: (patch: Partial<TidspunktNotat>) => void
+  onFjern: () => void
+}) {
+  const felt: React.CSSProperties = {
+    fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)',
+    background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderRadius: 6, padding: '5px 8px', minHeight: 32,
+  }
+  const gram = (k: keyof NonNullable<TidspunktNotat['ernaering']>, navn: string) => (
+    <label key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)' }}>
+      <input type="text" inputMode="decimal" value={p.ernaering?.[k] ?? ''} placeholder="g" aria-label={`${navn} (gram)`}
+        onChange={e => onEndre({ ernaering: { ...(p.ernaering ?? {}), [k]: e.target.value === '' ? null : Number(e.target.value.replace(',', '.')) || null } })}
+        style={{ ...felt, width: 54, padding: '4px 6px', minHeight: 30 }} />
+      {navn}
+    </label>
+  )
+  return (
+    <div className="flex items-center gap-3 flex-wrap" data-notat-punkt={p.type} data-planlagt={p.planlagt || undefined}
+      style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 14, color: 'var(--tekst-5-app)' }}>
+      <PunktMerke slag={p.type} planlagt={p.planlagt} storrelse={11} />
+      <span style={{ minWidth: 120 }}>{PUNKT_SLAG[p.type].navn}{p.planlagt ? ' · planlagt' : ''}</span>
+      <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>tidspunkt</span>
+      <TidInput sek={p.sek} onSek={s => onEndre({ sek: Math.max(0, Math.min(totalSek > 0 ? totalSek : s, Math.round(s))) })} />
+      <input type="text" value={p.tekst} aria-label="Tekst"
+        placeholder={p.type === 'laktat' ? (p.planlagt ? 'notat — ingen verdi, det er en planlagt måling' : 'notat') : p.type === 'ernaering' ? 'hva (gel, drikke, bar …)' : 'notat'}
+        onChange={e => onEndre({ tekst: e.target.value })} style={{ ...felt, flex: '1 1 160px' }} />
+      {p.type === 'ernaering' && (
+        <span className="flex items-center gap-2 flex-wrap">
+          {gram('karbo_g', 'karbo')}{gram('protein_g', 'protein')}{gram('fett_g', 'fett')}{gram('ketoner_g', 'ketoner')}
+        </span>
+      )}
+      <button type="button" className="xp-pill xp-pill-ghost" style={{ padding: '4px 10px', fontSize: 12, minHeight: 32 }} onClick={onFjern}>
+        Fjern
+      </button>
+    </div>
   )
 }
 

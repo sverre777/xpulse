@@ -30,6 +30,7 @@ import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
+import { fraTidspunktNotater } from './Punkt'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
 import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
@@ -429,7 +430,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {!harKlokkeRader && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
-            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" />
+            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" punkter={fraTidspunktNotater(data.tidspunkt_notater)} />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
               rpe={isPlannedView ? forventetVist : rpeVist}
               onRpe={canEdit && workoutId ? (isPlannedView ? settForventet : settRpe) : undefined}

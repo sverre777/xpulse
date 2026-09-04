@@ -22,6 +22,8 @@ import {
   WorkoutDetailChart, Nokkeltall, nokkeltallFraKlokke, type NokkeltallCelle,
 } from './WorkoutDetailChart'
 import { PlanGraf, planNokkeltallCeller } from './PlanGraf'
+import { fraTidspunktNotater } from './Punkt'
+import type { TidspunktNotat } from '@/lib/tidspunkt-notater'
 import { fraActivityRows } from '@/lib/plan-graf'
 
 interface Props {
@@ -40,6 +42,8 @@ interface Props {
       av opplevd på gjennomført. */
   forventet?: number | null
   onForventet?: (v: number | null) => void
+  /** Punktene fra skjemaet (bolk 8) — live i begge grafene. */
+  tidspunktNotater?: TidspunktNotat[]
   /** Plan: grafen er øktkartet, og belastningscellen er «forventet». */
   erPlanlagt?: boolean
 }
@@ -49,7 +53,7 @@ interface Props {
 import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 
-export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, erPlanlagt = false }: Props) {
+export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -265,6 +269,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
             heartZones={heartZones}
             np={klokke.data.wattMetrikker?.np ?? null}
             forventetRpe={forventet}
+            tidspunktNotater={tidspunktNotater}
           />
         </div>
       )}
@@ -272,7 +277,7 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
       {/* Plan-grafen LIVE — hver rad man fører er en blokk (bolk 5). */}
       {planBlokker && (
         <div className="mb-3" data-plan-graf-kort>
-          <PlanGraf blokker={planBlokker} heartZones={heartZones} tetthet="full" />
+          <PlanGraf blokker={planBlokker} heartZones={heartZones} tetthet="full" punkter={fraTidspunktNotater(tidspunktNotater)} />
         </div>
       )}
 

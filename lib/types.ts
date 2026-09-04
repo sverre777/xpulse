@@ -1,3 +1,4 @@
+import type { TidspunktNotat } from './tidspunkt-notater'
 export type Role = 'athlete' | 'coach'
 export type Sport =
   | 'running' | 'cross_country_skiing' | 'biathlon'
@@ -270,6 +271,11 @@ export interface WorkoutFormData {
   // med opplevd etter gjennomføring. Valgfritt: eldre kallere som ikke
   // kjenner feltet overskriver det aldri.
   forventet_belastning?: number | null
+  // Fase 119 / Øktbygger bolk 8: punktene på grafen — planlagte laktat/
+  // ernæring/notat-punkter og dagbokas notat-punkter (workouts.tidspunkt_
+  // notater jsonb). Ført laktat og ernæring bor i sine egne tabeller og
+  // leses derfra. Valgfritt: eldre kallere overskriver aldri feltet.
+  tidspunkt_notater?: TidspunktNotat[]
   notes: string
   tags: string[]
   // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')
@@ -1018,6 +1024,7 @@ export interface Workout {
   day_form_mental: number | null
   rpe: number | null
   forventet_belastning?: number | null
+  tidspunkt_notater?: unknown
   coach_comment: string | null
   shooting_data: Record<string, unknown> | null
   created_at: string
@@ -1133,6 +1140,9 @@ export interface ShotStats {
 
 import type { PlanBlokkInn } from './plan-graf'
 
+/** Et punkt i kompakt visning (bolk 8): sekund, slag og om det er planlagt. */
+export interface KompaktPunkt { sek: number; slag: 'laktat' | 'ernaering' | 'notat' | 'skyting'; planlagt: boolean }
+
 export interface CalendarWorkoutSummary {
   id: string
   title: string
@@ -1228,6 +1238,8 @@ export interface CalendarWorkoutSummary {
   // Plan-grafen kompakt (bolk 5): radene som blokker — type, varighet,
   // soner. Tegnes der økta ikke har klokkekurve.
   blokker?: PlanBlokkInn[]
+  // Punktene kompakt (bolk 8): ikoner over blokkene/kurven.
+  punkter?: KompaktPunkt[]
 }
 
 export const TYPE_COLORS: Record<string, string> = {

@@ -16,6 +16,7 @@ import {
 import { fmtVarighetKort } from '@/lib/segmenter'
 import type { HeartZone } from '@/lib/heart-zones'
 import { Nokkeltall, fmtVarighetLang, type NokkeltallCelle } from './WorkoutDetailChart'
+import { PUNKT_SLAG, type GrafPunkt } from './Punkt'
 
 const B = 660          // viewBox-bredde
 const PLOT = 120       // plotflatas høyde
@@ -25,12 +26,15 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
-export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde }: {
+export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [] }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
   /** Kompakt: pikselhøyde på kortet. */
   hoyde?: number
+  /** Punktene (bolk 8): planlagte hule, førte fylte — markør på blokka,
+      etikett med pekelinje i nivåsystemet. */
+  punkter?: GrafPunkt[]
 }) {
   const blokker = useMemo(() => byggPlanBlokker(inn, heartZones), [inn, heartZones])
   // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
@@ -54,7 +58,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   // når de ligger inntil en blokk-etikett), og til sist de trange (vises
   // ved trykk/hover). Aldri overlapp, aldri utelatt.
   const etiketter = (() => {
-    type Item = { id: string; cx: number; bredde: number; slag: 'blokk' | 'klamme' | 'skyting'; trang: boolean; nivaa: number }
+    type Item = { id: string; cx: number; bredde: number; slag: 'blokk' | 'klamme' | 'skyting' | 'punkt'; trang: boolean; nivaa: number }
     const items: Item[] = []
     if (tetthet === 'full') {
       for (const b of blokker) {
@@ -74,6 +78,10 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${forste.sone ? ` · ${forste.sone}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
+      for (const pk of punkter) {
+        if (pk.sek < 0 || pk.sek > total) continue
+        items.push({ id: `p-${pk.id}`, cx: x(pk.sek), bredde: (pk.tittel.length + 2) * TEGN_BREDDE + 8, slag: 'punkt', trang: false, nivaa: 0 })
+      }
     }
     const GAP = 4, MAKS = 2
     const plassert: Item[][] = [[], [], []]
@@ -90,7 +98,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
     }
     const rekkefolge = (slag: Item['slag'][], trang: boolean) => items.filter(i => slag.includes(i.slag) && i.trang === trang).sort((a, b) => a.cx - b.cx)
     rekkefolge(['blokk', 'klamme'], false).forEach(legg)
-    rekkefolge(['skyting'], false).forEach(legg)
+    rekkefolge(['skyting', 'punkt'], false).forEach(legg)
     rekkefolge(['blokk'], true).forEach(legg)
     const nivaaer = items.length ? Math.max(...items.map(i => i.nivaa)) + 1 : 1
     return { nivaaFor: (id: string) => items.find(i => i.id === id)?.nivaa ?? 0, nivaaer }
@@ -132,6 +140,10 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
           <rect width="3" height="6" fill="rgba(255,255,255,.35)" />
         </pattern>
       </defs>
+      {kompakt && punkter.filter(pk => pk.sek >= 0 && pk.sek <= total).map(pk => (
+        <text key={`kp-${pk.id}`} x={x(pk.sek)} y={topp + 8} textAnchor="middle" data-graf-punkt={pk.slag} data-planlagt={pk.planlagt || undefined}
+          style={{ font: "9px sans-serif", fill: PUNKT_SLAG[pk.slag].farge, opacity: pk.planlagt ? 0.6 : 1 }}>{PUNKT_SLAG[pk.slag].ikon}</text>
+      ))}
       {kompakt && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
         <text key={`k-${b.id}`} x={x(b.startSek + b.sek / 2)} y={topp + 8} textAnchor="middle" data-skytemarkor
           style={{ font: "9px sans-serif", fill: 'var(--tekst-1-app)' }}>🎯</text>
@@ -184,6 +196,31 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                   </text>
                 </g>
                 <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - h - 2} stroke="var(--line2)" />
+              </g>
+            )
+          })}
+          {/* Punktene (bolk 8): markør på blokka, etikett med pekelinje. Planlagte
+              er hule/stiplete, førte fylte — samme former som på klokke-grafen. */}
+          {punkter.map(pk => {
+            if (pk.sek < 0 || pk.sek > total) return null
+            const cx = x(pk.sek)
+            const b = blokker.find(bl => pk.sek >= bl.startSek && pk.sek < bl.startSek + bl.sek) ?? blokker[blokker.length - 1]
+            const cy = gulv - plot * (b?.hoyde ?? 0.36)
+            const nv = etiketter.nivaaFor(`p-${pk.id}`) * NIVAA_H
+            const farge = PUNKT_SLAG[pk.slag].farge
+            const fyll = pk.planlagt ? 'none' : farge
+            const strek = pk.planlagt ? farge : 'var(--flate-3)'
+            return (
+              <g key={`p-${pk.id}`} data-graf-punkt={pk.slag} data-planlagt={pk.planlagt || undefined} data-nivaa={etiketter.nivaaFor(`p-${pk.id}`) + 1}>
+                <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={cy - 7} stroke={farge} opacity={0.6} />
+                {pk.slag === 'laktat' && <circle cx={cx} cy={cy} r={5} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
+                {pk.slag === 'ernaering' && <rect x={cx - 4.5} y={cy - 4.5} width={9} height={9} transform={`rotate(45 ${cx} ${cy})`} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
+                {pk.slag === 'notat' && <rect x={cx - 4.5} y={cy - 4.5} width={9} height={9} rx={1.5} fill={fyll} stroke={strek} strokeWidth={2} strokeDasharray={pk.planlagt ? '2 2' : undefined} />}
+                {(pk.slag === 'skyting' || pk.slag === 'veksling') && <text x={cx} y={cy + 4} textAnchor="middle" style={{ font: '11px sans-serif' }}>{PUNKT_SLAG[pk.slag].ikon}</text>}
+                <text x={cx} y={topp - 30 - nv} textAnchor="middle" data-punkt-etikett
+                  style={{ font: "700 11px 'Barlow Condensed', sans-serif", fill: farge, letterSpacing: '.05em', textTransform: 'uppercase', opacity: pk.planlagt ? 0.8 : 1 }}>
+                  {PUNKT_SLAG[pk.slag].ikon} {pk.tittel}{pk.planlagt ? ' · plan' : ''}
+                </text>
               </g>
             )
           })}

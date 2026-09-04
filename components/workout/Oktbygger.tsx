@@ -347,14 +347,6 @@ export function OktbyggerPopup({
 
           {workoutId && rader.length > 0 && (
             <>
-              {planBlokker.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <VisPlanBryter paa={visPlan} antall={planBlokker.length} onEndre={p2 => settVisPlanBak(workoutId, p2)} />
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
-                    Planens {planBlokker.length} blokker legges bak — da ser du hvor økta forlot planen.
-                  </span>
-                </div>
-              )}
               {/* Rundene: fra klokka, planens runder, eller tilbake (bolk 6).
                   Skriver til basen — radene hentes inn i skjemaet etterpå. */}
               <RundeValg workoutId={workoutId} onEndret={() => {
@@ -381,15 +373,20 @@ export function OktbyggerPopup({
                 )}
                 <PunktKnapp aktiv={punktModus} onClick={() => { setPunktModus(v => !v); setKuttModus(false); setStartHerModus(false) }}
                   tekst="Punkt" />
-                {punktModus && (
-                  <span className="flex items-center gap-1 flex-wrap" data-punkt-type>
-                    {(['laktat', 'ernaering', 'skyting', 'notat'] as const).map(t => (
-                      <button key={t} type="button" onClick={() => setPunktType(t)} aria-pressed={punktType === t}
-                        style={{ ...pille(punktType === t ? PUNKT_SLAG[t].farge : undefined, punktType === t), padding: '5px 10px', minHeight: 32 }}>
-                        {PUNKT_SLAG[t].ikon} {PUNKT_SLAG[t].navn}
-                      </button>
-                    ))}
-                  </span>
+                {/* Typeraden står åpen hele tiden (Sverre 4. sep) — å velge en
+                    type slår punkt-modus på, så man slipper å trykke «Punkt». */}
+                <span className="flex items-center gap-1 flex-wrap" data-punkt-type>
+                  {(['laktat', 'ernaering', 'skyting', 'notat'] as const).map(t => (
+                    <button key={t} type="button"
+                      onClick={() => { setPunktType(t); setPunktModus(true); setKuttModus(false); setStartHerModus(false) }}
+                      aria-pressed={punktModus && punktType === t}
+                      style={{ ...pille(punktModus && punktType === t ? PUNKT_SLAG[t].farge : undefined, punktModus && punktType === t), padding: '5px 10px', minHeight: 32, opacity: punktModus || punktType !== t ? 1 : 0.85 }}>
+                      {PUNKT_SLAG[t].ikon} {PUNKT_SLAG[t].navn}
+                    </button>
+                  ))}
+                </span>
+                {planBlokker.length > 0 && (
+                  <VisPlanBryter paa={visPlan} antall={planBlokker.length} onEndre={p2 => settVisPlanBak(workoutId, p2)} />
                 )}
                 {harKurve && klokkerunder && klokkerunder.length > 0 && (
                   <button type="button" onClick={snapp} data-snapp

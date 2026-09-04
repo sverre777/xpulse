@@ -820,8 +820,16 @@ function KurveMedRader({
   // Forhåndsvisningen over kartet: samme linje som over kurven (kutt /
   // punkt / start her), på kartets egen tidsakse (0 → totalSek).
   const kartPct = (sek: number) => `${Math.max(0, Math.min(100, (sek / Math.max(1, totalSek)) * 100))}%`
+  const sekFraHendelse = (e: React.PointerEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width))) * Math.max(1, totalSek)
+  }
   const kart = (
-    <div data-bygger-kart style={{ position: 'relative', background: 'var(--flate-12-alt)', border: `1px ${erPlanlagt ? 'dashed' : 'solid'} var(--kant-3)`, borderRadius: 10, padding: '4px 6px 0' }}>
+    <div data-bygger-kart
+      onPointerMove={modus ? e => setForhandsSek(sekFraHendelse(e)) : undefined}
+      onPointerLeave={modus ? () => setForhandsSek(null) : undefined}
+      onClick={modus && onKlikkSek ? e => onKlikkSek(sekFraHendelse(e)) : undefined}
+      style={{ position: 'relative', background: 'var(--flate-12-alt)', border: `1px ${erPlanlagt ? 'dashed' : 'solid'} var(--kant-3)`, borderRadius: 10, padding: '4px 6px 0', cursor: modus ? 'crosshair' : undefined }}>
       <PlanGraf blokker={kartInn} heartZones={heartZones} tetthet="full" totalSek={totalSek} kilde={erPlanlagt ? 'plan' : 'faktisk'}
         spokelser={planBlokker} punkter={grafPunkter} runder={runder}
         valgtId={valgtRad} onVelgBlokk={onVelgRad} onKlikkSek={modus ? onKlikkSek : undefined} />
@@ -865,6 +873,8 @@ function KurveMedRader({
           setVindu(heleOkta ? null : v)
           lagreVindu(workoutId, heleOkta ? [0, totalSek] : v)
         }}
+        onKrysshaar={modus ? sek => setForhandsSek(sek) : undefined}
+        onKlikk={modus ? onKlikkSek : undefined}
         bakgrunn={h => (planBlokker.length > 0 ? <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} /> : null)}
         mellomlag={h => (visning === 'begge' ? <PlanSpokelse blokker={kartSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
         overlay={h => overlay(h, true)}

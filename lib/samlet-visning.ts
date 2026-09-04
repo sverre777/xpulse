@@ -32,6 +32,9 @@ const SONE_REKKEFOLGE = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtig
     nøkkel ingen annen rad kan dele. */
 export function samleNokkel(a: ActivityRow): string {
   if (erSkyting(a.activity_type)) return 'skyting'
+  // Et intervallsett fra hurtigoppsettet (drag + pauser med samme gruppe_id)
+  // er ÉN gruppe og leses som mønster — det går foran type-nøkkelen.
+  if (a.gruppe_id) return `gruppe|${a.gruppe_id}`
   return `${a.activity_type}|${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
 }
 

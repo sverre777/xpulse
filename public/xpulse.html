@@ -1244,9 +1244,62 @@ html.js .solution.vis{opacity:1;transform:none}
    overstyres. ═══ */
 .eks{position:relative;min-width:0;min-height:var(--eks-h,120px);max-width:100%;overflow-x:auto;font-family:'Inter',sans-serif;font-size:14px;line-height:1.4;color:var(--tekst-1-app)}
 .eks-inline{display:inline-block;min-width:150px}
+
+/* ═══ KOMPAKT (Sverre 4. sep): forsiden skal VISE grafen, ikke være den.
+   Overstyringene bruker !important fordi eksporten fryser utregnede
+   stiler inline. Fargede verdier røres ikke (regel 23). ═══ */
+.eks [data-chip-rader]{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none;gap:10px!important;margin-bottom:6px!important}
+.eks [data-chip-rader]::-webkit-scrollbar{display:none}
+.eks [data-chip-rader]>div{flex-wrap:nowrap!important;flex:0 0 auto!important}
+.eks [data-chip-rader] button{font-size:10px!important;padding:4px 9px!important;min-height:26px!important;white-space:nowrap!important}
+.eks [data-oktgraf]>div:first-child{margin-bottom:4px!important}
+.eks [data-nokkeltall]>div>*{padding:8px 10px!important}
+.eks [data-nokkeltall]>div>*>div:first-child{font-size:9.5px!important}
+.eks [data-nokkeltall]>div>*>div:nth-child(2){font-size:18px!important;line-height:1.1!important}
+.eks [data-detaljrad]>div:first-child{gap:8px!important}
+.eks [data-detaljrad]>div:first-child>div{padding:8px 10px!important}
+.eks [data-detaljrad]>div:first-child>div>span:nth-child(2){font-size:16px!important}
+.eks [data-knapperad]{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}
+.eks [data-knapperad]::-webkit-scrollbar{display:none}
+.eks [data-knapperad] button{font-size:10px!important;padding:5px 10px!important;min-height:28px!important;white-space:nowrap!important}
+.eks [data-plan-graf] [data-nivaa="3"]{display:none!important}
+.eks [data-punkt-pille][data-nivaa="3"]{display:none!important}
+/* Forsiden viser det viktigste av økt-grafen: kurve/kart, kort, knapperad og
+   nøkkeltall. Brush, zoom-rad, lesepanel, segmentbånd og tegnforklaring er
+   app-verktøy og tas ut her. */
+.eks [data-kurve-brush],.eks [data-zoom-rad],.eks [data-lesepanel],.eks [data-segmentbaand],.eks [data-legend]{display:none!important}
+.eks [data-detaljrad]>div:first-child>div:first-child{grid-column:1/-1!important}
+.eks [data-kompakt-kurve]{display:none!important}
+.ag{max-height:200px}
+.cal-note{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:560px){
+  .ncard{padding:16px}
+  .ncard h3,.flyt h3,#inside h3{font-size:22px}
+  .ncard p,.flyt p,.fstep p{font-size:13.5px}
+  .eks [data-nokkeltall]>div>*{flex:1 1 30%!important;min-width:0!important}
+  .eks [data-nokkeltall]>div>*>div:nth-child(2){font-size:18px!important}
+  .eks [data-detaljrad]>div:first-child{grid-template-columns:1fr 1fr!important}
+  .eks [data-detaljrad]>div:first-child>div{grid-column:auto!important}
+  .eks [data-detaljrad]>div:first-child>div>span:nth-child(2){font-size:16px!important}
+  .eks [data-helse-trender]{gap:6px!important}
+  /* Mobil: det viktigste. Opplevd-kvadratene finnes som celle i nøkkeltallsraden,
+     søvnstadiene i appen, plan-notatene i flett-radene tar en linje hver. */
+  .eks [data-detaljrad]>div:first-child>div:first-child{display:none!important}
+  .eks [data-detaljrad]>div:first-child{grid-template-rows:auto!important;grid-auto-rows:auto!important}
+  .eks [data-helse-sovn]{display:none!important}
+  .frad em{display:none}
+  .flett-h .aux{display:none}
+}
+.eks [data-aktivitet-knapperad]{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}
+.eks [data-aktivitet-knapperad] button{white-space:nowrap!important;flex:0 0 auto!important}
+
 .ncard,.flyt,.app{min-width:0}
 .eks:empty::before{content:'';position:absolute;inset:0;border:1px dashed var(--line2);border-radius:10px;opacity:.5}
 .eks button,.eks input,.eks select{pointer-events:none}
+/* Eksporten fryser ikke gjennomsiktige bakgrunner; uten denne nullstillingen
+   får knappene nettleserens hvite standardflate i mørk modus (Sverre 4. sep:
+   «Legg til serie»). Frosne inline-verdier vinner fortsatt over dette. */
+.eks button,.eks input,.eks select,.eks textarea{background:transparent;border:0;color:inherit;font:inherit;appearance:none;-webkit-appearance:none;margin:0}
 .eks a{pointer-events:none;text-decoration:none}
 .eks *{box-sizing:border-box}
 .eks {
@@ -1489,7 +1542,8 @@ html.js .solution.vis{opacity:1;transform:none}
   --data-nopris: #CFCFD5;
   --logo-strek: #000000;
   --nav-scrim: rgba(234, 242, 244, 0.75);
-  --orange/--green/--blue/--gold og sonefargene er FREDET og gjelder
+  /* --orange/--green/--blue/--gold og sonefargene er FREDET (regel 23) og
+     arves fra den mørke .eks-blokka i begge temaer. */
   --card: #EBEBEF;
   --card2: #E4E4EA;
   --line: #D9D9E0;
@@ -1940,9 +1994,8 @@ html.js .solution.vis{opacity:1;transform:none}
               <div class="frad sk"><span class="fz"></span><b>🎯 Skyting L · S</b><span>18/20 treff · 27,9 s</span><em>i pausene</em></div>
               <div class="frad grp"><span class="fz" style="background:var(--i4)"></span><b>3 × 5 min I4</b><span>5:02 · 4:58 · 5:20 · 176</span><em style="color:var(--gold)">Siste 20 s lengre</em></div>
               <div class="frad"><span class="fz" style="background:var(--i1)"></span><b>Nedjogg</b><span>15:40 · 3,6 km · 131</span><em>Plan 15 min ✓</em></div>
-              <div class="frad foot"><span>Klokkesynk-runder · originalen</span><span class="aux">11 runder · alltid uendret</span></div>
             </div>
-            <div class="ok-btns"><span class="kbtn okt">⚡ Øktbygger</span><span class="kbtn">Runder fra klokka</span><span class="kbtn">Behold planens runder</span></div>
+            <div class="ok-btns"><span class="kbtn okt">⚡ Øktbygger</span><span class="kbtn">Runder fra klokka</span></div>
           </div>
         </div>
       </div>

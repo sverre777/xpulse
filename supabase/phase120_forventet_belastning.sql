@@ -1,7 +1,7 @@
 -- ══════════════════════════════════════════════════════════════════════
 -- FASE 120 — FORVENTET BELASTNING PÅ PLANLAGT ØKT (Øktbygger bolk 5)
 -- ══════════════════════════════════════════════════════════════════════
--- TIL GODKJENNING — IKKE KJØRT. Kjøres setning for setning i Supabase
+-- KJØRT 2. sep 2026 (se nederst). Ble kjørt setning for setning i Supabase
 -- SQL-editoren (korte linjer, aldri do-blokker — regel fra fase 103).
 --
 -- HVORFOR: plan-grafens nøkkeltallsrad har cellen «forventet 1–10» —
@@ -46,4 +46,8 @@ select count(*) as med_verdi from workouts where forventet_belastning is not nul
 -- Forventet: 0 (ingen backfill).
 
 -- ══ KJØRT ══════════════════════════════════════════════════════════════
--- (fylles inn med faktiske FØR/ETTER-tall når Sverre har kjørt den)
+-- Kjørt av Sverre 2. sep 2026 i Supabase SQL-editoren (prosjekt xpulse,
+-- main/production). ETTER, avlest fra skjermbildet: har_kolonne = 1
+-- (spørringen på kolonnen kjørte uten feil), med_verdi = 0 (ingen
+-- backfill). Øktantallet FØR/ETTER ble ikke lest av i skjermbildet.
+-- Kolonnen er i bruk fra og med «forventet 1–10»-cellen i plan-grafen.

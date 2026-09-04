@@ -1573,14 +1573,6 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
           ? aggregateShotRange(byDate, week.map(toISO), 'plan').shots
           : 0
 
-        // Hvis noen dag i uka har > 3 økter (mode-filtrert) får raden en
-        // subtil fade-out i bunn som indikerer at det er mer å scrolle til.
-        const maxWorkoutsInWeek = week.reduce((max, d) => {
-          const filtered = filterByMode(byDate[toISO(d)] ?? [], mode)
-          return Math.max(max, filtered.length)
-        }, 0)
-        const hasOverflow = maxWorkoutsInWeek > 3
-
         const todayISOm = toISO(new Date())
         const weekHasToday = week.some(d => toISO(d) === todayISOm)
 
@@ -1595,23 +1587,10 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
             {rowGradient && (
               <div aria-hidden style={{ height: 2.5, margin: '2px 8px 1px 11px', borderRadius: 2, background: rowGradient }} />
             )}
-            {/* Hele uke-raden scroller som én enhet. Alle 7 celler har samme
-                høyde via grid-stretch (default) — den lengste cellens
-                naturlige høyde bestemmer rad-høyden. Wrapperen kapper på
-                190px og lar brukeren swipe vertikalt for å se mer. */}
-            <div style={{
-              maxHeight: '190px',
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              borderLeft: '3px solid transparent',
-              maskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
-                : undefined,
-              WebkitMaskImage: hasOverflow
-                ? 'linear-gradient(to bottom, black 0, black calc(100% - 12px), transparent 100%)'
-                : undefined,
-              scrollbarWidth: 'thin',
-            }}>
+            {/* Uke-raden VOKSER med innholdet (Sverre 4. sep): ingen intern
+                scroll — alle øktene vises, kalenderen blir heller litt
+                lengre. Alle 7 celler har samme høyde via grid-stretch. */}
+            <div data-ukerad style={{ borderLeft: '3px solid transparent' }}>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: '5px', padding: '3px 8px' }}>
                 {/* Days */}
                 {week.map(date => {
@@ -2827,14 +2806,17 @@ export function Calendar({
 
   const fetchData = useCallback(async (start: Date, end: Date, prevStart?: Date, prevEnd?: Date) => {
     setLoading(true)
-    const [raw, statesRes, prevRaw] = await Promise.all([
-      getCalendarWorkouts(userId, toISO(start), toISO(end)),
-      getDayStatesForRange(toISO(start), toISO(end), targetUserId),
-      prevStart && prevEnd
-        ? getCalendarWorkouts(userId, toISO(prevStart), toISO(prevEnd))
-        : Promise.resolve(null),
-    ])
+    // Øktene først (Sverre 4. sep: «øktene tar litt lang tid»): kalenderen
+    // tegner inneværende periode så snart den er hentet — forrige periode
+    // (sammenligningen) og dagstilstandene venter den ikke på.
+    const statesP = getDayStatesForRange(toISO(start), toISO(end), targetUserId)
+    const prevP = prevStart && prevEnd
+      ? getCalendarWorkouts(userId, toISO(prevStart), toISO(prevEnd))
+      : Promise.resolve(null)
+    const raw = await getCalendarWorkouts(userId, toISO(start), toISO(end))
     setByDate(parseWorkoutsByDate(raw as unknown as RawCalendarWorkout[], heartZones))
+    setLoading(false)
+    const [statesRes, prevRaw] = await Promise.all([statesP, prevP])
     if (prevRaw) setPrevByDate(parseWorkoutsByDate(prevRaw as unknown as RawCalendarWorkout[], heartZones))
     if (!('error' in statesRes)) {
       const map: Record<string, DayState[]> = {}

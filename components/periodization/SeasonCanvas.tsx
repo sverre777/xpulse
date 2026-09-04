@@ -144,8 +144,13 @@ export interface CanvasPeriodMutators {
 
 const REL_DAYS = ['man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn']
 
-export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking, relative = false, mutators, keyDates = [], onStampDay, onPickKeyDate }: {
+export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit, onPickPeriod, onPickMarking, onDrawMarking, relative = false, mutators, keyDates = [], onStampDay, onPickKeyDate, miniatyr }: {
   season: Season
+  /** MINIATYREN (forsiden, regel 11 — samme komponent, samme data):
+      periodebånd én rad · 8 uker i én rad (ukenummer + stempel) ·
+      timer/uke-søyler · nøkkeldatoene som én rullende chip-rad · fot med
+      bare 🖌 Pensel. `timer` = planlagte timer for de 8 ukene. */
+  miniatyr?: { timer?: number[]; fraUke?: number }
   periods: SeasonPeriod[]
   markings: SeasonMarking[]
   targetUserId?: string
@@ -512,6 +517,93 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
   )
 
   const inSel = (iso: string) => selRange != null && iso >= selRange.lo && iso <= selRange.hi
+
+  if (miniatyr) {
+    const alle = rows.flatMap(r => r.cells)
+    const fra = Math.max(0, Math.min(miniatyr.fraUke ?? 0, alle.length - 8))
+    const uker = alle.slice(fra, fra + 8)
+    const timer = miniatyr.timer ?? []
+    const maksTimer = Math.max(1, ...timer)
+    const FONT = "'Barlow Condensed', sans-serif"
+    // Periodebåndet: sammenhengende segmenter over de 8 ukene.
+    const segmenter: { navn: string; farge: string | null; fra: number; til: number }[] = []
+    uker.forEach((w, i) => {
+      const p = periodForWeek(w, effectivePeriods)
+      const navn = p?.name ?? ''
+      const sist = segmenter[segmenter.length - 1]
+      if (sist && sist.navn === navn) sist.til = i
+      else segmenter.push({ navn, farge: p ? INTENSITY_COLOR[p.intensity] : null, fra: i, til: i })
+    })
+    return (
+      <div data-aarsplan-miniatyr style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: 12, minWidth: 0 }}>
+        {/* Periodebånd — én rad, full etikett i båndet (ikke chips oppå cellene). */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 3, height: 16 }}>
+          {segmenter.map(sg => (
+            <div key={`${sg.fra}-${sg.navn}`} title={sg.navn} style={{
+              gridColumn: `${sg.fra + 1} / ${sg.til + 2}`, borderRadius: 4, minWidth: 0,
+              background: sg.farge ? `${sg.farge}33` : 'var(--card2)', border: `1px solid ${sg.farge ? `${sg.farge}8C` : 'var(--line)'}`,
+              fontFamily: FONT, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: sg.farge ?? 'var(--tekst-8-alt)', lineHeight: '14px', padding: '0 5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>{sg.navn}</div>
+          ))}
+        </div>
+        {/* 8 uker i én rad: ukenummer + stempel, cellefargen = belastningen. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 3, marginTop: 6 }}>
+          {uker.map(w => {
+            const p = periodForWeek(w, effectivePeriods)
+            const color = p ? INTENSITY_COLOR[p.intensity] : null
+            const isToday = todayISO >= w.mondayISO && todayISO <= w.sundayISO
+            const kd = keyDates.filter(k => k.event_date >= w.mondayISO && k.event_date <= w.sundayISO)
+            const samling = markings.some(m => m.start_date <= w.sundayISO && m.end_date >= w.mondayISO)
+            return (
+              <div key={w.idx} data-wk={w.idx} style={{
+                height: 28, borderRadius: 6, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2,
+                background: weekIntensityGradient(effectivePeriods, w.mondayISO, '90deg', '42') ?? 'var(--card2)',
+                border: `1px solid ${color ? `${color}8C` : 'var(--line)'}`,
+                outline: isToday ? '2px solid var(--accent)' : 'none', outlineOffset: 1,
+                boxShadow: kd.some(k => k.is_peak_target) ? PEAK_CELL_GLOW : undefined,
+                fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', color: isToday ? 'var(--accent)' : 'var(--tekst-5-app)', fontWeight: isToday ? 700 : 500,
+              }}>
+                <span>U{weekLabel(w)}</span>
+                {kd[0] && <span style={{ fontSize: 10, lineHeight: 1 }}>{kd[0].is_peak_target ? '⭐' : (KEY_ICON[kd[0].event_type] ?? '⚑')}</span>}
+                {!kd[0] && samling && <span style={{ fontSize: 9, lineHeight: 1 }}>📍</span>}
+              </div>
+            )
+          })}
+        </div>
+        {/* Timer/uke — søyler 22 px. */}
+        {timer.length > 0 && (
+          <div data-timer-uke style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 3, marginTop: 6, height: 22, alignItems: 'end' }}>
+            {uker.map((w, i) => {
+              const t = timer[i] ?? 0
+              const p = periodForWeek(w, effectivePeriods)
+              return (
+                <div key={w.idx} title={`${t} t`} style={{ height: `${Math.max(3, Math.round((t / maksTimer) * 22))}px`, borderRadius: 3, background: p ? INTENSITY_COLOR[p.intensity] : 'var(--line2)', opacity: 0.85 }} />
+              )
+            })}
+          </div>
+        )}
+        {/* Hendelsene — ÉN vannrett rullende rad. */}
+        {keyDates.length > 0 && (
+          <div data-hendelser style={{ display: 'flex', gap: 5, marginTop: 8, overflowX: 'auto', whiteSpace: 'nowrap', scrollbarWidth: 'none' }}>
+            {[...keyDates].sort((a, b) => a.event_date.localeCompare(b.event_date)).map(k => (
+              <span key={k.id} style={{
+                flex: '0 0 auto', fontFamily: FONT, fontSize: 11, fontWeight: 600, letterSpacing: '0.04em',
+                border: '1px solid var(--line2)', borderRadius: 999, padding: '3px 9px', background: 'var(--card2)', color: 'var(--tekst-3-app)',
+              }}>{k.is_peak_target ? '⭐' : (KEY_ICON[k.event_type] ?? '⚑')} {k.name} · {k.event_date.slice(8, 10)}.{k.event_date.slice(5, 7)}</span>
+            ))}
+          </div>
+        )}
+        {/* Fot: bare pensel-chipen. */}
+        <div style={{ marginTop: 8 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontWeight: 700, fontSize: 12, letterSpacing: '0.06em',
+            borderRadius: 9, padding: '5px 10px', border: '1px solid var(--line2)', color: 'var(--tekst-1-app)', background: 'var(--card2)',
+          }}>🖌 Pensel <span style={{ width: 9, height: 9, borderRadius: 2, background: INTENSITY_COLOR.hard }} /></span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mb-6 p-5" style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16 }}>

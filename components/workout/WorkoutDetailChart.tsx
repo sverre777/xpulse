@@ -360,7 +360,7 @@ export function WorkoutDetailChart({
             Økt-graf
           </p>
         )}
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-wrap" data-chip-rader>
           {/* PÅ GRAFEN (rettelse 12): kurvene Puls · Watt · Tempo er valg som
               tegnes OPPÅ gjennomført-kartet — standard av i dagboka, huskes.
               Serie uten data får ingen chip (aldri en død knapp). Så
@@ -397,7 +397,7 @@ export function WorkoutDetailChart({
                 {(tidspunktNotater.some(p => p.type === 'notat') || planPunkter.some(p => p.type === 'notat')) && (
                   <Chip farge={PUNKT_SLAG.notat.farge} etikett="📝 Notat" paa={visNotat} fokus={false} onClick={() => setVisNotat(v => !v)} />
                 )}
-                {laps.length > 1 && visKurve && (
+                {laps.length > 1 && (
                   <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
                     onClick={() => setVisRunder(v => !v)} />
                 )}
@@ -420,7 +420,8 @@ export function WorkoutDetailChart({
           )}
           <PlanGraf blokker={faktiskInn} heartZones={heartZones} tetthet="full" totalSek={aksSek}
             spokelser={visPlan && oppsett === 'bak' ? planBlokker : []}
-            punkter={grafPunkter} kilde="faktisk" />
+            punkter={grafPunkter} kilde="faktisk"
+            runder={visRunder ? laps.slice(1).map(l => l.t_start) : []} />
         </div>
       )}
 
@@ -517,7 +518,7 @@ export function WorkoutDetailChart({
             vindu={vindu ?? [0, totalSek]}
             onVindu={v => settVindu(v)}
           />
-          <div className="flex gap-2 flex-wrap mt-1.5">
+          <div className="flex gap-2 flex-wrap mt-1.5" data-zoom-rad>
             <button type="button"
               onClick={() => settVindu(null)}
               disabled={!vindu}
@@ -892,7 +893,7 @@ function PunktEtiketter({ punkter, synlig, segmentVed }: {
         const innhold = (
           <>
             {/* PILLE (fasit v6): ikon + verdi, kant i punktets farge, stiplet pekelinje ned. */}
-            <span data-punkt-pille={en?.slag ?? 'klynge'} style={{
+            <span data-punkt-pille={en?.slag ?? 'klynge'} data-nivaa={kl.nivaa + 1} style={{
               display: 'inline-block', fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: 11, letterSpacing: '0.04em', color: 'var(--tekst-1-app)', whiteSpace: 'nowrap',
               border: `1px solid ${farge}`, borderRadius: 999, padding: '2px 8px', lineHeight: '14px',
@@ -1025,7 +1026,7 @@ function Lesepanel({ serier, paaIds, segmenter, totalSek, krysshaarSek }: {
     ? segmenter.find(x => krysshaarSek >= x.startSek && krysshaarSek <= x.sluttSek) ?? null
     : null
   return (
-    <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5"
+    <div data-lesepanel className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5"
       style={{
         fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13,
         borderTop: '1px solid var(--kant-3)', paddingTop: 8,
@@ -1118,7 +1119,7 @@ function MarkerLegend({
 }) {
   if (!hasLactate && !hasNutrition && !hasShooting && !hasLaps) return null
   return (
-    <div className="flex gap-4 mt-2 flex-wrap text-xs"
+    <div data-legend className="flex gap-4 mt-2 flex-wrap text-xs"
       style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
       {hasLaps && <span>┊ Lap-grense</span>}
       {hasLactate && <span style={{ color: PUNKT_FARGER.laktat }}>● Laktat</span>}

@@ -42,6 +42,8 @@ function Kort({ navn, bredde = 620, children }: { navn: string; bredde?: number;
 function ForsideEksportInnhold() {
   const sp = useSearchParams()
   const tema = sp.get('tema') === 'lys' ? 'lys' : 'mork'
+  // Smal eksport (mobil): grafene får mobilhøyden (Sverre 4. sep: 170 px).
+  const smal = sp.get('smal') === '1'
   const [klar, setKlar] = useState(false)
   useEffect(() => {
     document.documentElement.dataset.tema = tema
@@ -118,13 +120,13 @@ function ForsideEksportInnhold() {
       </Kort>
 
       <Kort navn="oktgraf" bredde={540}>
-        <WorkoutDetailChart kurveStandard sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
+        <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
           segmenter={segmenter} heartZones={[]} np={238} rpe={7} onRpe={ingen} forventetRpe={6} planBlokkerInn={planBak}
           handlinger={{ onOktbygger: ingen, onPlottTreff: ingen, onSettLaktat: ingen, onNotat: ingen }} />
       </Kort>
 
       <Kort navn="oktgraf-skjema" bredde={500}>
-        <WorkoutDetailChart kurveStandard tetthet="skjema" sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
+        <WorkoutDetailChart kurveStandard height={smal ? 170 : 200} tetthet="skjema" sport="biathlon" samples={samples} laps={laps} lactate={OKTA_LAKTAT} nutrition={OKTA_ERNAERING} shooting={[]}
           segmenter={segmenter} heartZones={[]} np={238} planBlokkerInn={planBak} />
       </Kort>
 
@@ -133,12 +135,12 @@ function ForsideEksportInnhold() {
       </Kort>
 
       <Kort navn="hurtigoppsett" bredde={500}>
-        <IntervallBygger sport="biathlon" onOpprett={ingen}
+        <IntervallBygger kompakt sport="biathlon" onOpprett={ingen}
           forhandsutfylt={{ rader: [{ antall: 2, dragSek: 600, sone: 'I3', pauseSek: 180 }, { antall: 3, dragSek: 300, sone: 'I4', pauseSek: 120 }], oppvarmingSek: 1200, nedjoggSek: 900, skyting: 'L-S', tittel: '2 × 10 min I3 / 3 min + 3 × 5 min I4' } as unknown as Parameters<typeof IntervallBygger>[0]['forhandsutfylt']} />
       </Kort>
 
       <Kort navn="helse" bredde={500}>
-        <HelseOversikt forhandsdata={helse} sluttDato="2026-09-04" />
+        <HelseOversikt forside forhandsdata={helse} sluttDato="2026-09-04" />
       </Kort>
 
       <Kort navn="samlet-bryter" bredde={300}>
@@ -147,6 +149,7 @@ function ForsideEksportInnhold() {
 
       <Kort navn="aarsplan" bredde={500}>
         <SeasonCanvas season={aars.season} periods={aars.periods} markings={aars.markings} keyDates={aars.keyDates} canEdit={false}
+          miniatyr={{ timer: [12, 14, 15, 9, 16, 17, 11, 8], fraUke: 0 }}
           onPickPeriod={ingen} onPickMarking={ingen} onDrawMarking={ingen} />
       </Kort>
 

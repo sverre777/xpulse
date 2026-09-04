@@ -69,7 +69,7 @@ export function KurveBrush({
   }
 
   return (
-    <div className="mt-2">
+    <div className="mt-2" data-kurve-brush>
       <div ref={flate}
         onPointerMove={paaFlytt}
         onPointerUp={() => { drag.current = null }}

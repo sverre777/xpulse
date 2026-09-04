@@ -46,10 +46,13 @@ const FLIS_V: React.CSSProperties = {
   marginTop: 4, color: 'var(--tekst-1-app)',
 }
 
-export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata, sluttDato, foringsDato }: {
+export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata, sluttDato, foringsDato, forside = false }: {
   targetUserId?: string
   /** Pop-up-konteksten (bolk 2) bruker en litt strammere header. */
   kompaktHeader?: boolean
+  /** Forsidens eksport (regel 11: samme komponent): bare 7 d · 30 d · 1 år,
+      trendene som tre små paneler på én rad, ingen føringsrad. */
+  forside?: boolean
   /** Ferdig hentet data for standardperioden (30 d) — popupen og server-
    * prefetch slipper dobbelthenting; periodebytte henter som vanlig. */
   forhandsdata?: HelseOversiktData
@@ -154,7 +157,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
           {chip('7d', '7 DAGER')}
           {chip('30d', '30 DAGER')}
           {chip('1y', '1 ÅR')}
-          {chip('egen', 'EGENDEFINERT')}
+          {!forside && chip('egen', 'EGENDEFINERT')}
         </div>
       </div>
       {periode === 'egen' && (
@@ -165,7 +168,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
       )}
 
       {/* ── Toppfliser: i dag + snitt for perioden ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: 1, background: 'var(--line)', borderBottom: '1px solid var(--line)' }}>
+      <div className="grid grid-cols-2 md:grid-cols-4" data-helse-fliser style={{ gap: 1, background: 'var(--line)', borderBottom: '1px solid var(--line)' }}>
         <Flis navn="HVILEPULS" enhet=" slag" felt="resting_hr" sisteMed={sisteMed} snittAv={snitt} lavereErBedre />
         <Flis navn="HRV (NATT)" enhet=" ms" felt="hrv_ms" sisteMed={sisteMed} snittAv={snitt} />
         <Flis navn="SØVNSCORE" enhet="" felt="sleep_score" sisteMed={sisteMed} snittAv={snitt} />
@@ -177,18 +180,18 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
       ) : (
         <>
           {/* ── Søvnstadier per natt ── */}
-          <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
+          <div data-helse-sovn style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
             <SeksjonsTittel tittel="SØVNSTADIER — PER NATT" merknad={`timer · siste ${Math.min(14, dager.filter(d => d.total_sleep_minutes != null).length)} netter i perioden`} />
             <StadieStabler netter={dager.filter(d => d.total_sleep_minutes != null).slice(-14)} />
           </div>
 
           {/* ── Trender: TRE småpaneler, hver sin skala — aldri dobbel y-akse ── */}
-          <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-            <SeksjonsTittel tittel={`TRENDER — ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad="hold over for verdi per dag" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              <TrendPanel navn="HRV" enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} />
-              <TrendPanel navn="HVILEPULS" enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} />
-              <TrendPanel navn="SØVNSCORE" enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} />
+          <div style={{ padding: forside ? '14px 16px' : '20px 22px', borderBottom: '1px solid var(--line)' }}>
+            <SeksjonsTittel tittel={`TRENDER — ${periode === '1y' ? '1 ÅR (UKESNITT)' : periode === '7d' ? 'SISTE 7 DAGER' : periode === 'egen' ? 'VALGT PERIODE' : 'SISTE 30 DAGER'}`} merknad={forside ? undefined : 'hold over for verdi per dag'} />
+            <div className={forside ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-1 md:grid-cols-3 gap-3.5'} data-helse-trender>
+              <TrendPanel navn="HRV" enhet="ms" farge={HELSE_TREND_FARGER.hrv} dager={dager} felt="hrv_ms" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel navn="HVILEPULS" enhet="bpm" farge={HELSE_TREND_FARGER.hvilepuls} dager={dager} felt="resting_hr" ukesnitt={periode === '1y'} liten={forside} />
+              <TrendPanel navn="SØVNSCORE" enhet="" farge={HELSE_TREND_FARGER.sovnscore} dager={dager} felt="sleep_score" ukesnitt={periode === '1y'} liten={forside} />
             </div>
           </div>
 
@@ -196,7 +199,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
                  øktenes, fase 108). Føringsdagens prikk er hurtigføring
                  rett på kortet; de andre lenker til dagens føringsskjema. ── */}
           <FolelseRad dager={dager} foringsDato={foring} snitt={snitt('day_form')}
-            kanFore={!targetUserId} sisteDato={anker}
+            kanFore={!targetUserId && !forside} sisteDato={anker} forside={forside}
             onFort={v => setSvar(s => {
               // Optimistisk: patch dagen lokalt — ALDRI nullstill svaret
               // (det ville re-hentet og fått hele kortet til å blinke).
@@ -215,11 +218,11 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
               return { ...s, data: { ...s.data, dager } }
             })} />
 
-          {/* ── Handlingsrad ── */}
-          <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
+          {/* ── Handlingsrad (ikke på forsiden — knappene er døde der) ── */}
+          {!forside && <div className="flex gap-2.5 flex-wrap" style={{ padding: '18px 22px' }}>
             <button type="button" onClick={() => setVisDybde(true)} style={btnPrimar}>VIS MER</button>
             <Link href={`/app/health/${foring}`} style={btnGhost}>✎ FØR MANUELT</Link>
-          </div>
+          </div>}
         </>
       )}
     </div>
@@ -232,7 +235,7 @@ function sisteDatoer(n: number, tilDato: string): string[] {
   return ut
 }
 
-function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
+function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort, forside = false }: {
   dager: HelseDag[]
   foringsDato: string
   snitt: number | null
@@ -240,6 +243,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
   kanFore: boolean
   sisteDato: string
   onFort: (verdi: number | null) => void
+  forside?: boolean
 }) {
   const [lagrer, setLagrer] = useState(false)
   const foringsVerdi = dager.find(x => x.date === foringsDato)?.day_form ?? null
@@ -254,7 +258,7 @@ function FolelseRad({ dager, foringsDato, snitt, kanFore, sisteDato, onFort }: {
 
   return (
     <div style={{ padding: '20px 22px', borderBottom: '1px solid var(--line)' }}>
-      <SeksjonsTittel tittel="FØLELSE" merknad="manuell · 1–5 · samme skala som øktene · siste 14 dager" />
+      <SeksjonsTittel tittel="FØLELSE" merknad={forside ? 'manuell · 1–5 · siste 14 dager' : 'manuell · 1–5 · samme skala som øktene · siste 14 dager'} />
       <div className="flex items-center gap-2 flex-wrap">
         {sisteDatoer(14, sisteDato).map(dato => {
           const v = dager.find(x => x.date === dato)?.day_form ?? null
@@ -350,7 +354,8 @@ function Flis({ navn, enhet, felt, sisteMed, snittAv, lavereErBedre = false, som
   )
 }
 
-export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt }: {
+export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt, liten = false }: {
+  liten?: boolean
   navn: string
   enhet: string
   farge: string
@@ -379,23 +384,23 @@ export function TrendPanel({ navn, enhet, farge, dager, felt, ukesnitt }: {
   const siste = punkter.length > 0 ? punkter[punkter.length - 1].v : null
 
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 10, padding: '12px 14px' }}>
-      <div className="flex justify-between items-baseline" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, letterSpacing: '0.12em', fontSize: 12, color: 'var(--tekst-5-app)' }}>
+    <div style={{ background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 10, padding: liten ? '8px 10px' : '12px 14px', minWidth: 0 }}>
+      <div className="flex justify-between items-baseline" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, letterSpacing: '0.12em', fontSize: liten ? 10.5 : 12, color: 'var(--tekst-5-app)', gap: 6, flexWrap: 'wrap' }}>
         <span>{navn}</span>
-        <b style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, color: 'var(--tekst-1-app)', letterSpacing: 0 }}>
+        <b style={{ fontFamily: "'Inter', sans-serif", fontSize: liten ? 13 : 15, color: 'var(--tekst-1-app)', letterSpacing: 0 }}>
           {siste != null ? `${siste}${enhet ? ` ${enhet}` : ''}` : '–'}
         </b>
       </div>
       {punkter.length < 2 ? (
         <p style={{ fontSize: 12, color: 'var(--tekst-8-app)', margin: '18px 0' }}>for lite data</p>
       ) : (
-        <div style={{ width: '100%', height: 72 }}>
+        <div style={{ width: '100%', height: liten ? 56 : 72 }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <LineChart data={punkter} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="dato" hide />
               <YAxis tick={{ ...CHART_AXIS_TICK, fontSize: 10 }} axisLine={CHART_AXIS_LINE}
-                tickLine={false} width={30} domain={['auto', 'auto']} />
+                tickLine={false} width={30} domain={['auto', 'auto']} hide={liten} />
               <Tooltip content={<XpTooltip />} cursor={{ stroke: 'var(--line2)', strokeDasharray: '3 3' }}
                 labelFormatter={(d) => String(d)}
                 formatter={(value) => [`${value}${enhet ? ` ${enhet}` : ''}`, navn]} />

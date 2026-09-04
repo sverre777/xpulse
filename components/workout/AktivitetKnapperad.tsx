@@ -43,7 +43,7 @@ export function AktivitetKnapperad({
   const visPlottTreff = !isPlanMode && harSkyting && !!onPlottTreff
   const visBygger = !!onOktbygger
   return (
-    <div className="flex gap-2 items-center flex-wrap mb-3">
+    <div className="flex gap-2 items-center flex-wrap mb-3" data-aktivitet-knapperad>
       <button type="button" onClick={onLeggTilAktivitet}
         style={{ ...PILL_BASE, border: '1.5px solid var(--line2)', color: 'var(--tekst-1-app)' }}>
         + Legg til aktivitet

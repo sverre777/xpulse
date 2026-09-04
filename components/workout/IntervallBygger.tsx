@@ -89,8 +89,11 @@ export interface IntervallForhandsutfylling {
   tittel?: string
 }
 
-export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal }: {
+export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false }: {
   sport: Sport
+  /** Forsidens eksport (regel 11): bare dragradene, oppvarming/nedjogg og
+      Opprett — ikke bev.form/underkategori/skyting-feltene. */
+  kompakt?: boolean
   // Leverer genererte rader + forslags-tittel. WorkoutForm eier innsettingen
   // (og bekreftelsen hvis lista alt har innhold) — samme som fellesstart.
   onOpprett: (rader: ActivityRow[], tittel: string) => void | Promise<void>
@@ -293,8 +296,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
   // ── STEG 1: bygg ──
   return (
-    <div style={kort}>
-      <div style={CAP}>Gjelder hele økta</div>
+    <div style={kort} data-hurtigoppsett={kompakt ? 'kompakt' : 'full'}>
+      {!kompakt && <><div style={CAP}>Gjelder hele økta</div>
       <div className="grid grid-cols-2 gap-3 mt-1.5">
         <div>
           <div style={{ ...CAP, marginBottom: 5 }}>Bevegelsesform</div>
@@ -315,14 +318,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             {SKYTEVALG.map(v => <option key={v.verdi} value={v.verdi}>{v.etikett}</option>)}
           </select>
         </div>
-      </div>
+      </div></>}
 
-      <div style={{ ...CAP, marginTop: 16 }}>Drag</div>
-      <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
-        <span>Antall</span><span /><span>Dragtid</span><span>Sone</span><span /><span>Pause</span><span />
+      <div style={{ ...CAP, marginTop: kompakt ? 0 : 16 }}>Drag</div>
+      <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
+        <span>Antall</span><span /><span>Dragtid</span><span>Sone</span><span /><span>Pause</span>{!kompakt && <span />}
       </div>
       {rader.map((r, i) => (
-        <div key={i} className="grid gap-2 items-center mt-1.5" style={{ gridTemplateColumns: '52px 12px 1fr 74px 12px 1fr 32px' }}>
+        <div key={i} className="grid gap-2 items-center mt-1.5" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px' }}>
           <input value={r.antall} onChange={e => oppdater(i, 'antall', e.target.value)} inputMode="numeric" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>×</span>
           <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
@@ -337,15 +340,15 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           </select>
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>/</span>
           <input value={r.pause} onChange={e => oppdater(i, 'pause', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
-          <button type="button" onClick={() => rader.length > 1 && setRader(rs => rs.filter((_, ri) => ri !== i))}
+          {!kompakt && <button type="button" onClick={() => rader.length > 1 && setRader(rs => rs.filter((_, ri) => ri !== i))}
             aria-label="Fjern rad"
             style={{ height: 38, borderRadius: 8, border: '1px solid var(--line2)', background: 'transparent', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>
             ×
-          </button>
+          </button>}
           {/* KORTINTERVALLER inni draget — frie sekundfelter, alltid
-              synlige. Hurtigvalgene deles med segment-editoren
-              (lib/intervall-monstre, regel 18: aldri to lister). */}
-          <div className="col-span-full flex items-center gap-1.5 flex-wrap"
+              synlige (ikke i forsidens kompakte variant). Hurtigvalgene
+              deles med segment-editoren (lib/intervall-monstre, regel 18). */}
+          {!kompakt && <div className="col-span-full flex items-center gap-1.5 flex-wrap"
             style={{ marginTop: -2, marginBottom: 4 }}>
             <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
               Kort
@@ -382,14 +385,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
                 </span>
               )
             })()}
-          </div>
+          </div>}
         </div>
       ))}
-      <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' }])}
+      {!kompakt && <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' }])}
         className="w-full mt-2"
         style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-5-app)', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
         + Legg til rad
-      </button>
+      </button>}
 
       <div className="grid grid-cols-2 gap-3 mt-3">
         <div><div style={{ ...CAP, marginBottom: 5 }}>Oppvarming</div>
@@ -398,11 +401,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           <input value={ned} onChange={e => setNed(e.target.value)} inputMode="text" style={FELT} /></div>
       </div>
 
-      <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
+      {!kompakt && <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
         {serier > 0
           ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd — skytingen erstatter pausen, totaltiden er uendret.`
           : 'Pausene blir vanlige aktive pauser.'}
-      </p>
+      </p>}
 
       <div className="flex gap-2 mt-2">
         {onAvbryt && (

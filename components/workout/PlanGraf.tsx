@@ -27,7 +27,7 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
-export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan' }: {
+export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [] }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
@@ -44,6 +44,10 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   spokelser?: SpokelseBlokk[]
   /** Hva kartet viser — bare et data-attributt for flater og tester. */
   kilde?: 'plan' | 'faktisk'
+  /** Klokkas rundegrenser (sekunder) — markeres som tynne stiplete streker
+      gjennom blokkene (Sverre 4. sep): blokkene viser det som er BYGD,
+      rundene fra klokka ses likevel. */
+  runder?: number[]
 }) {
   const blokker = useMemo(() => byggPlanBlokker(inn, heartZones), [inn, heartZones])
   // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
@@ -161,6 +165,12 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
           </g>
         )
       })}
+      {/* Klokkas runder: stiplet strek gjennom plotflata, samme uttrykk som
+          rundegrensene på kurven. Aldri en blokk — bare et merke. */}
+      {runder.filter(t => t > 0 && t < total).map((t, i) => (
+        <line key={`r-${i}`} data-runde-merke x1={x(t)} y1={gulv - plot} x2={x(t)} y2={gulv + (kompakt ? 0 : 4)}
+          stroke="var(--tekst-10-alt)" strokeDasharray="3 3" strokeOpacity={0.7} vectorEffect="non-scaling-stroke" />
+      ))}
       <defs>
         <pattern id="plan-striper" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="3" height="6" fill="rgba(255,255,255,.35)" />

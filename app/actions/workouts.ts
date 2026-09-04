@@ -863,6 +863,25 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
 
   if (!savedId) return { error: 'Ingen ID returnert' }
 
+  // Bolk 10: varsel til utøveren når TRENEREN la til eller endret økta —
+  // skrives server-side i samme handling, aldri fra klienten. Gjenbruker
+  // varslingssystemet som finnes (notifications + innboks-badgen). Svikt
+  // her skal aldri blokkere lagringen.
+  if (resolved.isCoachImpersonating && resolved.coachId && resolved.userId !== resolved.coachId) {
+    try {
+      const nyOkt = !workoutId
+      await supabase.from('notifications').insert({
+        user_id: resolved.userId,
+        type: nyOkt ? 'coach_workout_add' : 'coach_workout_edit',
+        title: nyOkt ? 'Ny økt fra trener' : 'Trener endret økta',
+        content: `${data.title || 'Økt'} · ${data.date}`,
+        link_url: `/app/${data.is_planned && !data.is_completed ? 'plan' : 'dagbok'}?edit=${savedId}`,
+      })
+    } catch {
+      // Varsel-svikt skal ikke blokkere selve lagringen.
+    }
+  }
+
   // ── Child-tabeller: alle uavhengige (ulike tabeller, alle på workout_id) ──
   // Kjøres PARALLELT i stedet for sekvensielt — kutter lagringstiden fra ~7-9
   // serielle DB-rundturer ned mot ~1 (den tregeste). Hver thunk returnerer en

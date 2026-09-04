@@ -64,6 +64,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
   {
     date: '2026-09-04',
+    title: 'Varsel når treneren endrer en økt',
+    body: 'Legger treneren til eller endrer en økt i dagboka eller planen din, får du et varsel i innboksen — ett per økt, og ett for en hel plan. Uleste vises på innboks-ikonet.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-04',
     title: 'Trener-markering på økter',
     body: 'Økter treneren har lagt inn, pushet eller lagret i dagboka di får en blå chip «👤 Trener · fornavn» — på økta, i skjemaet og i øktlista, og som blå prikk i kalenderen. Markeringen blir stående selv om du redigerer økta.',
     version: '1.3',

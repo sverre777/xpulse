@@ -124,7 +124,9 @@ export function ByggSum({
         </div>
         <div style={{ ...celle, flex: '1 1 150px', borderRight: 0, background: 'var(--flate-12-alt)' }}>
           <div style={merkelapp}>
-            {erPlanlagt ? 'FORVENTET' : <>FORVENTET <span style={{ color: 'var(--accent)' }}>· FØRES</span></>}
+            {/* «Forventet» hører kun til plan (samlet rettelse 1) — gjennomført
+                fører OPPLEVD i samme celle. */}
+            {erPlanlagt ? 'FORVENTET' : <>OPPLEVD <span style={{ color: 'var(--accent)' }}>· FØRES</span></>}
           </div>
           <div style={verdi}>
             {rpe != null ? <>{rpe}<small style={enhet}> /10</small></> : <span style={{ color: 'var(--tekst-5-app)' }}>—</span>}

@@ -186,7 +186,9 @@ export function PlottTreffPopup({
 
 // ── Én gruppe = én skyting-rad ───────────────────────────────
 
-function Gruppe({
+/** Én skytegruppe med blinkene — eksportert så forsiden kan montere den EKTE
+    komponenten med fiktive data (regel 11). */
+export function Gruppe({
   gruppe, antallLike, rekkefolge, hr, ownTests, onSerier,
 }: {
   gruppe: PlottTreffGruppe

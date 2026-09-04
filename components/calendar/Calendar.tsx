@@ -143,6 +143,15 @@ interface CalendarActions {
   onEditMarking: (m: import('@/app/actions/seasons').SeasonMarking) => void
 }
 const CalendarActionsContext = createContext<CalendarActions | null>(null)
+/** Forsidens eksport-side monterer den EKTE øktchipen (WorkoutChip) med
+    fiktive data — den trenger konteksten, men ingen handlinger. */
+export function CalendarActionsStubProvider({ children }: { children: React.ReactNode }) {
+  const ingen: CalendarActions = {
+    onEditWorkout: () => {}, onCreateWorkout: () => {}, readOnly: true,
+    refreshCalendar: () => {}, moveWorkoutTo: () => {}, onPlanSamling: () => {}, onEditMarking: () => {},
+  } as unknown as CalendarActions
+  return <CalendarActionsContext.Provider value={ingen}>{children}</CalendarActionsContext.Provider>
+}
 function useCalendarActions(): CalendarActions {
   const ctx = useContext(CalendarActionsContext)
   if (!ctx) throw new Error('Calendar actions context missing')
@@ -579,7 +588,7 @@ function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string 
   return (zs.I2 ?? 0) > (zs.I1 ?? 0) ? ZONE_COLORS_V2.I2 : ZONE_COLORS_V2.I1
 }
 
-function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging, kompakt = true }: {
+export function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging, kompakt = true }: {
   kompakt?: boolean
   w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode
   // Valgfrie dra-bindings fra DraggableChip-wrapperen. Når satt blir chip-en

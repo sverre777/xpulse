@@ -51,7 +51,7 @@ import { SamlingModal } from '@/components/calendar/SamlingModal'
 import {
   DayStateIndicator, restStillPlanned, stateBgFor, stateBorderFor,
 } from '@/components/day-state/DayStateIndicator'
-import { CoachChangeIndicator } from '@/components/coach/CoachChangeIndicator'
+import { TrenerChip, TrenerPrikk } from '@/components/coach/TrenerChip'
 import { CommentSection } from '@/components/coach/CommentSection'
 import { NutritionSummary } from '@/components/workout/NutritionSummary'
 import { xpAlert } from '@/components/ui/ConfirmDialog'
@@ -579,7 +579,8 @@ function intensityAccent(w: CalendarWorkoutSummary, mode: CalendarMode): string 
   return (zs.I2 ?? 0) > (zs.I1 ?? 0) ? ZONE_COLORS_V2.I2 : ZONE_COLORS_V2.I1
 }
 
-function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging }: {
+function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes, dragging, kompakt = true }: {
+  kompakt?: boolean
   w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode
   // Valgfrie dra-bindings fra DraggableChip-wrapperen. Når satt blir chip-en
   // dragbar; ellers rendres den som vanlig (f.eks. i dag-detalj-modalen).
@@ -682,6 +683,7 @@ function WorkoutChip({ w, dateStr, mode, dragRef, dragListeners, dragAttributes,
             </span>
           )}
           {comp && <span style={{ marginRight: '2px' }}>{comp.icon}</span>}
+          {isCoachEdited && (kompakt ? <TrenerPrikk navn={w.coach_name} /> : <TrenerChip navn={w.coach_name} style={{ marginRight: 6, fontSize: 10 }} />)}
           {w.is_completed && <span title="Gjennomført" style={{ color: '#28A86E', marginRight: '2px' }}>✓</span>}
           {w.start_time && (
             <span style={{ color: 'var(--tekst-4-kal)', marginRight: '4px' }}>{w.start_time.slice(0, 5)}</span>
@@ -992,7 +994,7 @@ function CalendarAnalysisPanel({
 
 // Dra-bar wrapper rundt WorkoutChip — registrerer økten som draggable i
 // måneds-grid-ets DndContext. Deaktivert i read-only (trener-visning).
-function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode }) {
+function DraggableChip({ w, dateStr, mode, kompakt = true }: { w: CalendarWorkoutSummary; dateStr: string; mode: CalendarMode; /** Øktlista (list-layout) har plass til hele trener-chip-en. */ kompakt?: boolean }) {
   const { readOnly } = useCalendarActions()
   const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
     id: w.id,
@@ -1010,6 +1012,7 @@ function DraggableChip({ w, dateStr, mode }: { w: CalendarWorkoutSummary; dateSt
   const combinedRef = (node: HTMLElement | null) => { setNodeRef(node); setDropRef(node) }
   return (
     <WorkoutChip
+      kompakt={kompakt}
       w={w} dateStr={dateStr} mode={mode}
       dragRef={combinedRef}
       dragListeners={listeners as unknown as Record<string, unknown>}
@@ -1106,7 +1109,8 @@ function MonthPicker({ year, month, onSelect, onClose }: {
 
 // ── Day cell ────────────────────────────────────────────────
 
-function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, markingsOnDay = [], periodEdges, periodStart }: {
+function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded, onToggle, keyDatesOnDay, markingsOnDay = [], periodEdges, periodStart, listeLayout = false }: {
+  listeLayout?: boolean
   date: Date
   workouts: CalendarWorkoutSummary[]
   healthDate: boolean
@@ -1246,7 +1250,7 @@ function DayCell({ date, workouts, healthDate, mode, isCurrentMonth, isExpanded,
         if (filtered.length === 0) return null
         return (
           <div style={{ flex: 1, minHeight: 0 }}>
-            {filtered.map(w => <DraggableChip key={w.id} w={w} dateStr={dateStr} mode={mode} />)}
+            {filtered.map(w => <DraggableChip key={w.id} w={w} dateStr={dateStr} mode={mode} kompakt={!listeLayout} />)}
           </div>
         )
       })()}
@@ -1599,7 +1603,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                 {week.map(date => {
                   const ds = toISO(date)
                   return (
-                    <DayCell
+                    <DayCell listeLayout={layout === 'list'}
                       key={ds}
                       date={date}
                       workouts={byDate[ds] ?? []}
@@ -2069,9 +2073,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
                                     )}
                                   </div>
                                   <div className="flex items-center gap-2 shrink-0">
-                                    {showCoachStyle && w.updated_at && (
-                                      <CoachChangeIndicator coachName={w.coach_name} updatedAt={w.updated_at} />
-                                    )}
+                                    {isCoachEdited && <TrenerChip navn={w.coach_name} />}
                                     {w.is_completed && mode !== 'plan' && <span style={{ color: '#28A86E', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>✓</span>}
                                     {isPlanned && <span style={{ color: 'var(--tekst-8-app)', fontSize: '13px', fontFamily: "'Barlow Condensed', sans-serif" }}>PLAN</span>}
                                     {(() => {

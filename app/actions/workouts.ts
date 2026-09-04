@@ -1634,6 +1634,12 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
   const snapshotActivities = normalizeSnapshotActivities(snap?.activities)
   const usePlanSnapshot = formMode === 'plan' && !!snap
 
+  // Bolk 9: trener-markering — navnet slås opp én gang (read-only i skjemaet).
+  const trenerId = ((workout as { created_by_coach_id?: string | null }).created_by_coach_id) ?? null
+  const trenerNavn = trenerId
+    ? ((await supabase.from('profiles').select('full_name').eq('id', trenerId).maybeSingle()).data?.full_name ?? null)
+    : null
+
   if (usePlanSnapshot) {
     // Hydrér aktiviteter fra snapshot når tilgjengelig; ellers fall tilbake
     // til DB-hydrerte aktiviteter (for eldre økter uten snapshot-aktiviteter).
@@ -1658,6 +1664,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
       rpe:          null,
       forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
       tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
+      created_by_coach_id: trenerId,
+      created_by_coach_name: trenerNavn,
       tags:         snap.tags ?? [],
       movements:    (snap.movements ?? []) as WorkoutFormData['movements'],
       zones:        (snap.zones ?? []) as WorkoutFormData['zones'],
@@ -1699,6 +1707,8 @@ export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' 
     rpe:          workout.rpe,
     forventet_belastning: ((workout as { forventet_belastning?: number | null }).forventet_belastning ?? null),
     tidspunkt_notater: lesTidspunktNotater((workout as { tidspunkt_notater?: unknown }).tidspunkt_notater),
+    created_by_coach_id: trenerId,
+    created_by_coach_name: trenerNavn,
     tags: (workout.workout_tags ?? []).map((t: { tag: string }) => t.tag),
     movements: (workout.workout_movements ?? [])
       .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)

@@ -276,6 +276,10 @@ export interface WorkoutFormData {
   // notater jsonb). Ført laktat og ernæring bor i sine egne tabeller og
   // leses derfra. Valgfritt: eldre kallere overskriver aldri feltet.
   tidspunkt_notater?: TidspunktNotat[]
+  // Bolk 9: trener-markering — read-only fra workouts.created_by_coach_id
+  // (+ navnet slått opp i profiles). saveWorkout skriver aldri disse.
+  created_by_coach_id?: string | null
+  created_by_coach_name?: string | null
   notes: string
   tags: string[]
   // Skiskyting: serie-basert skyting på top-nivå (kun synlig når sport='biathlon')

@@ -9,6 +9,7 @@ import { getAltitudePeriodForDate } from '@/app/actions/seasons'
 import { saveAsTemplate } from '@/app/actions/templates'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
 import { replaceWorkoutNutrition } from '@/app/actions/nutrition'
+import { TrenerChip } from '@/components/coach/TrenerChip'
 import { toggleAttendanceForWorkout } from '@/app/actions/trainer-calendar'
 import {
   WorkoutFormData, MovementRow, LactateRow,
@@ -1078,6 +1079,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
 
       {/* ── GRUNNINFO ── */}
       <Section label="Grunninfo">
+        {defaultValues?.created_by_coach_id && (
+          <div className="mb-3"><TrenerChip navn={defaultValues.created_by_coach_name} /></div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <Label>Tittel</Label>

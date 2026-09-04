@@ -64,6 +64,12 @@ export const CHANGELOG: ChangelogEntry[] = [
   // ── v1.3 — åpen fra 26. august 2026 ────────────────────────────────────
   {
     date: '2026-09-04',
+    title: 'Trener-markering på økter',
+    body: 'Økter treneren har lagt inn, pushet eller lagret i dagboka di får en blå chip «👤 Trener · fornavn» — på økta, i skjemaet og i øktlista, og som blå prikk i kalenderen. Markeringen blir stående selv om du redigerer økta.',
+    version: '1.3',
+  },
+  {
+    date: '2026-09-04',
     title: 'Punkter på grafen',
     body: 'Laktat, ernæring, notater og skyting står som punkter på økt-grafen og øktkartet — med pekelinje og etikett. Planlagte punkter er hule («mål laktat her», «40 g karbo her»), førte er fylte. Sett dem i Øktbyggeren med ✎ Punkt og et klikk på kurven. Ført laktat og ernæring leses fra det du alt har ført.',
     version: '1.3',

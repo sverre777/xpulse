@@ -31,6 +31,7 @@ import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
 import { fraTidspunktNotater } from './Punkt'
+import { TrenerChip } from '@/components/coach/TrenerChip'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
 import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
@@ -345,6 +346,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
           {(data.imported_from === 'strava' || data.merged_source === 'strava') && (
             <ImportSourceBadge source="strava" />
           )}
+          {data.created_by_coach_id && <TrenerChip navn={data.created_by_coach_name} />}
           {data.imported_from && data.imported_from !== 'strava' && (
             <span style={pillStyle('var(--mut)', 'transparent', 'var(--line2)')}>⌚ Klokkesynk</span>
           )}

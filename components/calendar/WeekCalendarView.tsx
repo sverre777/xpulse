@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useMemo, useState } from 'react'
+import { TrenerPrikk } from '@/components/coach/TrenerChip'
 import { useRouter } from 'next/navigation'
 import { CalendarWorkoutSummary, TYPE_COLORS } from '@/lib/types'
 import { reorderWorkouts } from '@/app/actions/workouts'
@@ -442,7 +443,7 @@ function TimedWorkoutCard({ pw, dateStr, mode, onEdit, draggable }: {
         fontSize: '13px',
         lineHeight: 1.2,
       }}
-      title={`${w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}${coachTitle}`}
+      title={`${isCoachEdited && <TrenerPrikk navn={w.coach_name} />}{w.title}${durLabel ? ` · ${durLabel}` : ''}${w.start_time ? ` · ${w.start_time}` : ''}${coachTitle}`}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--tekst-1-app)' }}>
         {w.is_important && <span style={{ color: '#FF4500' }}>★</span>}

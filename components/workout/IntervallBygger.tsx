@@ -116,15 +116,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
           kortPaa: '', kortAv: '',
         }))
-      : [
-          { antall: '2', drag: '10:00', sone: 'I3', pause: '3:00', kortPaa: '', kortAv: '' },
-          { antall: '3', drag: '5:00', sone: 'I4', pause: '2:00', kortPaa: '', kortAv: '' },
-        ])
+      // Rettelse 8 (4. sep): ÉN standardrad — 3 × 10 min I3 · 2 min pause.
+      : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '' }])
   const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState('')
   const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
-  const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '30:00')
-  const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '10:00')
+  const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '20:00')
+  const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '15:00')
 
   useEffect(() => {
     if (apneSignal != null && apneSignal > 0) setSteg('bygg')

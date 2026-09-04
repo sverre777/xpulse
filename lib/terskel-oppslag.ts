@@ -1,4 +1,5 @@
-// Ren oppslagslogikk for terskeltabellen (user_thresholds, fase 110).
+// Ren oppslagslogikk for terskeltabellen (user_thresholds, fase 110) og
+// sonene per bevegelsesform (user_heart_zones, samme nøkkel).
 // ÉN implementasjon av arv-kjeden — brukes av server actions og
 // analyse-batchene (regel 11). Ingen DB her.
 
@@ -70,4 +71,39 @@ export function dominantBevegelse(
   if (!beste) return { name: '', sub: '' }
   const [name, sub] = beste.split('|')
   return { name, sub }
+}
+
+// ── Soner per bevegelsesform (godkjent sone-regel, Sverre 4. sep) ──
+// Samme arv som terskelen: underkategori → bevegelsesform ('') →
+// globalt nivå ('' × ''). Et nivå gjelder bare når alle fem sonene
+// finnes der. Ingen DB her.
+
+export interface SoneDbRad {
+  movement_name: string
+  movement_subcategory: string
+  zone_name: string
+  min_bpm: number
+  max_bpm: number
+}
+
+const SONE_NAVN = ['I1', 'I2', 'I3', 'I4', 'I5'] as const
+
+export function resolveSoner(
+  rader: SoneDbRad[],
+  movementName: string,
+  movementSubcategory: string,
+): { zone_name: 'I1' | 'I2' | 'I3' | 'I4' | 'I5'; min_bpm: number; max_bpm: number }[] | null {
+  const nivaer: [string, string][] = [
+    [movementName, movementSubcategory],
+    [movementName, ''],
+    ['', ''],
+  ]
+  for (const [navn, sub] of nivaer) {
+    const paaNivaa = rader.filter(r => r.movement_name === navn && r.movement_subcategory === sub)
+    const byName = new Map(paaNivaa.map(r => [r.zone_name, r]))
+    if (SONE_NAVN.every(n => byName.has(n))) {
+      return SONE_NAVN.map(n => { const r = byName.get(n)!; return { zone_name: n, min_bpm: r.min_bpm, max_bpm: r.max_bpm } })
+    }
+  }
+  return null
 }

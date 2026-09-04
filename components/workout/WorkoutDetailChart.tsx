@@ -20,7 +20,8 @@ import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, standardVisning, VISNING_ETIKETT, lesPlanOppsett, settPlanOppsett, type PlanOppsett, type GrafVisning, type GrafFlate } from '@/lib/kurve-valg'
 import { planNokkeltall } from '@/lib/plan-graf'
 import { formatPace, type PaceUnit } from '@/lib/pace-utils'
-import { faktiskeBlokker, tilSpokelser, fraSpokelser } from '@/lib/gjennomfort-kart'
+import { faktiskeBlokker, tilSpokelser, fraSpokelser, type FaktiskRad } from '@/lib/gjennomfort-kart'
+import { resolveSoner, type SoneDbRad } from '@/lib/terskel-oppslag'
 import { byggPlanBlokker, type PlanBlokk as PlanBlokk_ } from '@/lib/plan-graf'
 import { PlanGraf } from './PlanGraf'
 import type { GrafPunkt } from './Punkt'
@@ -115,6 +116,10 @@ interface Props {
   /** Øktas distanse (radene) — nøkkeltallsraden under kartet. */
   distanseKm?: number | null
   paceUnit?: PaceUnit
+  /** Godkjent sone-regel: sonene per bevegelsesform med arv (resolveSoner)
+      og radene (bev.form/underkategori per segment). */
+  sonerRader?: SoneDbRad[]
+  rader?: FaktiskRad[]
 }
 
 // Økt-grafen (redesign, fasit design/xpulse-oktgraf-design.html).
@@ -142,7 +147,7 @@ export function WorkoutDetailChart({
   segmenter = [],
   height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
   planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
-  ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km',
+  ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km', sonerRader = [], rader = [],
 }: Props) {
   const flate: GrafFlate = flateInn ?? (tetthet === 'skjema' ? 'skjema' : 'hovedside')
   const serier = useMemo(() => byggSerier(sport, samples), [sport, samples])
@@ -269,8 +274,11 @@ export function WorkoutDetailChart({
   // Gjennomført-kartets blokker: segmentene (båndets flislegging) med
   // faktisk sone per vindu — regelen står i lib/gjennomfort-kart.
   const faktiskInn = useMemo(
-    () => faktiskeBlokker(segmenter, samples.hr_samples, samples.watt_samples, { ftp }),
-    [segmenter, samples.hr_samples, samples.watt_samples, ftp],
+    () => faktiskeBlokker(segmenter, samples.hr_samples, samples.watt_samples, {
+      ftp, rader,
+      sonerFor: sonerRader.length > 0 ? (navn, sub) => resolveSoner(sonerRader, navn, sub) : undefined,
+    }),
+    [segmenter, samples.hr_samples, samples.watt_samples, ftp, rader, sonerRader],
   )
   const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
   const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])

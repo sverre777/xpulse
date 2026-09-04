@@ -24,7 +24,8 @@ import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
 import { byggPlanBlokker, type PlanBlokkInn } from '@/lib/plan-graf'
-import { tilSpokelser } from '@/lib/gjennomfort-kart'
+import { tilSpokelser, snittVindu } from '@/lib/gjennomfort-kart'
+import { resolveSoner, type SoneDbRad } from '@/lib/terskel-oppslag'
 import { PlanGraf } from './PlanGraf'
 import { fraTidspunktNotater } from './Punkt'
 import { ByggSum } from './ByggSum'
@@ -531,6 +532,8 @@ export function OktbyggerPopup({
                 visning={visning}
                 heartZones={heartZones}
                 runder={(klokke?.lapMarkers ?? []).slice(1).map(l => l.t_start)}
+                rader={rader}
+                sonerRader={klokke?.sonerRader ?? []}
               />
 
               <ByggSum utkast={plassering} heartZones={heartZones} rpe={rpe} erPlanlagt={erPlanlagt} />
@@ -664,7 +667,7 @@ export type BaandModus = 'kutt' | 'startHer' | 'punkt' | null
 
 function KurveMedRader({
   workoutId, utkast, valgtRad, onVelgRad, onKlikkSek, modus, onDelHer, onSlaaSammen, erPlanlagt,
-  samples, hr, kurve, sport, totalSek, punkter, planBlokker, visning, heartZones, runder,
+  samples, hr, kurve, sport, totalSek, punkter, planBlokker, visning, heartZones, runder, rader, sonerRader,
 }: {
   workoutId: string
   utkast: Utkast[]
@@ -689,6 +692,8 @@ function KurveMedRader({
   heartZones: HeartZone[]
   /** Klokkas originale runder (start-sekunder) — merker i kartet. */
   runder: number[]
+  rader: ActivityRow[]
+  sonerRader: SoneDbRad[]
 }) {
   const kurveSerier: KurveSerie[] = useMemo(() => {
     const ut: KurveSerie[] = []
@@ -720,10 +725,16 @@ function KurveMedRader({
   // sone (snittpuls i vinduet mot egne soner — samme regel som øktsiden).
   const kartInn: PlanBlokkInn[] = useMemo(() => [...utkast].sort((a, b) => a.startSek - b.startSek).map(u => {
     const puls = parseInt(u.snittpuls)
-    const vindu = hr.length > 0 && !PAUSE_TYPER.has(u.type) && !u.type.startsWith('skyting') ? pulsIVindu(hr, u.startSek, u.startSek + u.varighetSek).snitt : null
+    const erDrag = !PAUSE_TYPER.has(u.type) && !u.type.startsWith('skyting')
+    // Godkjent regel: drag ≥ 3 min → de første 30 s utenfor snittet.
+    const [fra, til] = erDrag ? snittVindu(u.startSek, u.startSek + u.varighetSek) : [u.startSek, u.startSek + u.varighetSek]
+    const vindu = hr.length > 0 && erDrag ? pulsIVindu(hr, fra, til).snitt : null
+    const rad = rader.find(r => r.id === u.id)
+    const soner = sonerRader.length > 0 ? resolveSoner(sonerRader, u.bevegelsesform, rad?.movement_subcategory ?? '') : null
     const km = parseFloat(String(u.distanseKm).replace(',', '.'))
     return {
-      id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: '',
+      id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: rad?.movement_subcategory ?? '',
+      soner: soner ?? undefined,
       sek: u.varighetSek, startSek: u.startSek, soneSek: {},
       snittpuls: vindu ?? (Number.isFinite(puls) && puls > 0 ? puls : null),
       gruppeId: u.gruppeId,
@@ -731,7 +742,7 @@ function KurveMedRader({
       standingShots: u.type === 'skyting_staaende' || u.type === 'skyting_kombinert' ? 1 : 0,
       distanseKm: Number.isFinite(km) && km > 0 ? km : 0,
     }
-  }), [utkast, hr])
+  }), [utkast, hr, rader, sonerRader])
   const kartSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(kartInn, heartZones)), [kartInn, heartZones])
   const grafPunkter = useMemo(() => punkter.filter(p => p.sek != null && p.slag !== 'skyting' && p.slag !== 'veksling')
     .map(p => ({ id: p.id, sek: p.sek as number, slag: p.slag, planlagt: p.planlagt, tittel: PUNKT_SLAG[p.slag].navn })), [punkter])

@@ -5,17 +5,17 @@
 // bygde rader) slik segmentbåndet allerede flislegger dem. Bredde =
 // faktisk varighet på tidslinja, høyde/farge = FAKTISK sone per segment.
 //
-// SONE PER SEGMENT — regelen (til Sverres godkjenning):
-//   1. SNITTPULS i vinduet = aritmetisk snitt av alle pulsprøvene med
-//      t ∈ [start, slutt] (lib/segmenter pulsIVindu — samme tall som
-//      båndet viser ved hover). Ingen trimming av pulsforsinkelsen i
-//      starten; under to prøver er ikke et snitt.
-//   2. Snittpulsen slås opp i BRUKERENS EGNE SONER: user_heart_zones
-//      (globalnivået '' × '') når de er lagret, ellers Olympiatoppens
-//      I-skala av HFmax (profil eller 220 − alder) — nøyaktig samme
-//      oppslag som sonefordelingen ellers (lib/heart-zones). Over I5 → I5;
-//      under I1 → ingen sone. I6–I8 er intensitetsmerker og kommer aldri
-//      fra puls (sonespråket).
+// SONE PER SEGMENT — regelen (GODKJENT av Sverre 4. sep, med to endringer):
+//   1. SNITTPULS i vinduet = aritmetisk snitt av pulsprøvene i vinduet
+//      (lib/segmenter pulsIVindu). Drag ≥ 3 min: de første 30 s holdes
+//      utenfor snittet (pulsforsinkelsen); drag < 3 min: hele vinduet.
+//      Under to prøver er ikke et snitt.
+//   2. Snittpulsen slås opp i brukerens soner FOR SEGMENTETS BEVEGELSES-
+//      FORM via lib/terskel-oppslag (resolveSoner): underkategori →
+//      bevegelsesform → globalt nivå — aldri de globale sonene direkte når
+//      et mer spesifikt nivå finnes. Finnes ingen egne soner på noe nivå:
+//      Olympiatoppens I-skala av HFmax. Over I5 → I5; under I1 → I1
+//      (kartet). I6–I8 er intensitetsmerker og kommer aldri fra puls.
 //   3. Mangler puls i vinduet: SNITTWATT i vinduet mot FTP for øktas
 //      dominante bevegelsesform på øktas dato (lib/terskel-oppslag) —
 //      båndene står i lib/plan-graf soneFraWatt.
@@ -28,7 +28,7 @@
 
 import { pulsIVindu, type Segment } from './segmenter'
 import type { PlanBlokkInn, PlanBlokk } from './plan-graf'
-import type { ExtendedZoneName } from './heart-zones'
+import type { ExtendedZoneName, HeartZone } from './heart-zones'
 import type { PlanBlokk as SpokelseBlokk } from '@/app/actions/runder'
 
 export interface FaktiskRad {
@@ -46,6 +46,13 @@ export interface FaktiskRad {
 }
 
 const SONE_NAVN: ExtendedZoneName[] = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtighet']
+
+/** Drag ≥ 3 min: de første 30 s holdes utenfor snittet. */
+export const TRIM_GRENSE_SEK = 180
+export const TRIM_SEK = 30
+export function snittVindu(startSek: number, sluttSek: number): [number, number] {
+  return sluttSek - startSek >= TRIM_GRENSE_SEK ? [startSek + TRIM_SEK, sluttSek] : [startSek, sluttSek]
+}
 
 /** Snittwatt i vinduet — samme regel som pulsen (≥ 2 prøver). */
 export function wattIVindu(
@@ -86,7 +93,13 @@ export function faktiskeBlokker(
   segmenter: Segment[],
   hr: Array<{ t: number; hr: number }> | null | undefined,
   watt: Array<{ t: number; w: number }> | null | undefined,
-  opts: { ftp?: number | null; rader?: FaktiskRad[] } = {},
+  opts: {
+    ftp?: number | null
+    rader?: FaktiskRad[]
+    /** Sonene for en bevegelsesform/underkategori med arv (resolveSoner);
+        null = ingen egne på noe nivå → kartet faller til heartZones. */
+    sonerFor?: (movementName: string, movementSubcategory: string) => HeartZone[] | null
+  } = {},
 ): PlanBlokkInn[] {
   const radFor = new Map((opts.rader ?? []).map(r => [r.id, r]))
   const ut: PlanBlokkInn[] = []
@@ -95,8 +108,11 @@ export function faktiskeBlokker(
     if (sek <= 0) continue
     const rad = radFor.get(sg.aktivitetId)
     const skyting = sg.type.startsWith('skyting')
-    const puls = pulsIVindu(hr, sg.startSek, sg.sluttSek).snitt
-    const snittwatt = puls == null ? wattIVindu(watt, sg.startSek, sg.sluttSek) : null
+    const drag = sg.type === 'drag' || sg.type === 'bevform'
+    // Drag ≥ 3 min: de første 30 s holdes utenfor snittet (godkjent regel).
+    const [fra, til] = drag ? snittVindu(sg.startSek, sg.sluttSek) : [sg.startSek, sg.sluttSek]
+    const puls = pulsIVindu(hr, fra, til).snitt
+    const snittwatt = puls == null ? wattIVindu(watt, fra, til) : null
     // Reserve 4: radens førte soner — bare når verken puls eller watt finnes.
     const soneSek: Partial<Record<ExtendedZoneName, number>> = {}
     if (puls == null && snittwatt == null && rad?.avg_heart_rate == null) {
@@ -106,12 +122,15 @@ export function faktiskeBlokker(
       }
     }
     const bevegelsesform = rad?.movement_name ?? (sg.type === 'drag' || sg.type === 'bevform' ? sg.etikett : '')
+    const underkategori = rad?.movement_subcategory ?? ''
+    const soner = opts.sonerFor ? opts.sonerFor(bevegelsesform, underkategori) : null
     ut.push({
+      soner: soner ?? undefined,
       id: sg.aktivitetId,
       type: rad?.activity_type ?? typeFraSegment(sg),
       navn: rad?.lap_notes ?? (sg.type === 'drag' || sg.type === 'bevform' ? '' : skyting ? (sg.treff ?? '') : sg.etikett),
       bevegelsesform,
-      underkategori: rad?.movement_subcategory ?? '',
+      underkategori,
       sek, startSek: sg.startSek,
       soneSek,
       snittpuls: puls ?? rad?.avg_heart_rate ?? null,

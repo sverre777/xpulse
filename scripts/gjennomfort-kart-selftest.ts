@@ -1,6 +1,7 @@
 // Selvtest: sone per segment i gjennomført-kartet (rettelse 12).
 // Kjør: npx tsx scripts/gjennomfort-kart-selftest.ts
-import { faktiskeBlokker, wattIVindu, tilSpokelser } from '../lib/gjennomfort-kart.ts'
+import { faktiskeBlokker, wattIVindu, tilSpokelser, snittVindu } from '../lib/gjennomfort-kart.ts'
+import { resolveSoner } from '../lib/terskel-oppslag.ts'
 import { byggPlanBlokker, soneFraWatt } from '../lib/plan-graf.ts'
 import { computeZonesFromMaxHr } from '../lib/heart-zones.ts'
 import type { Segment } from '../lib/segmenter.ts'
@@ -63,6 +64,31 @@ const puls = (fra: number, til: number, hr: number) => Array.from({ length: til 
   ok('skyting uten sone, med 🎯 L-markør og treff', b[0].sone === null && b[0].etikett.startsWith('🎯 L') && b[0].etikett.includes('4/5'))
   const sp = tilSpokelser(b)
   ok('spøkelsesform: skyting uten sone, riktig vindu', sp[0].sone === null && sp[0].startSek === 0 && sp[0].sluttSek === 60)
+}
+// 7) Godkjent regel: drag ≥ 3 min → de første 30 s utenfor snittet; < 3 min hele vinduet
+{
+  ok('snittVindu: 4 min-drag trimmer 30 s', JSON.stringify(snittVindu(0, 240)) === '[30,240]')
+  ok('snittVindu: 2 min-drag hele vinduet', JSON.stringify(snittVindu(0, 120)) === '[0,120]')
+  // 240 s drag: første 30 s på 120 (forsinkelse), resten 178 → uten trimming 171 (I3), med trimming 178 (I4)
+  const hr = [...puls(0, 29, 120), ...puls(30, 240, 178)]
+  const b = byggPlanBlokker(faktiskeBlokker([seg('a', 'drag', 0, 240)], hr, null), soner)
+  ok('drag 4 min: snittet holder de første 30 s utenfor → 178 → I4', b[0].snittpuls === 178 && b[0].sone === 'I4')
+  const b2 = byggPlanBlokker(faktiskeBlokker([seg('p', 'pause', 0, 240, 'Pause')], hr, null), soner)
+  ok('pause trimmes ikke (ingen sone uansett)', b2[0].sone === null)
+}
+// 8) Godkjent regel: sonene for bevegelsesformen med arv subkat → bev.form → global
+{
+  const rad = (navn: string, sub: string, hi: number) => (['I1', 'I2', 'I3', 'I4', 'I5'] as const).map((z, i) => ({ movement_name: navn, movement_subcategory: sub, zone_name: z, min_bpm: hi - 50 + i * 10, max_bpm: hi - 40 + i * 10 }))
+  const rader = [...rad('', '', 190), ...rad('Løping', '', 200), ...rad('Løping', 'Motbakke', 210)]
+  ok('arv: underkategorien vinner', resolveSoner(rader, 'Løping', 'Motbakke')![0].min_bpm === 160)
+  ok('arv: bevegelsesformen når underkategorien mangler', resolveSoner(rader, 'Løping', 'Flatt')![0].min_bpm === 150)
+  ok('arv: globalt når bevegelsesformen mangler', resolveSoner(rader, 'Sykling', '')![0].min_bpm === 140)
+  ok('arv: null når ingenting finnes', resolveSoner(rad('Løping', '', 200), 'Sykling', '') === null)
+  // Samme puls, ulik bevegelsesform → ulik sone (sykling faller til globalt)
+  const hr = puls(0, 100, 175)
+  const segs = [seg('l', 'drag', 0, 100, 'Løping'), seg('s', 'drag', 100, 200, 'Sykling')]
+  const b = byggPlanBlokker(faktiskeBlokker(segs, [...hr, ...puls(101, 200, 175)], null, { sonerFor: (n, s) => resolveSoner(rader, n, s) }), soner)
+  ok('samme puls 175: Løping (soner 150–200) → I3, Sykling (globalt 140–190) → I4', b[0].sone === 'I3' && b[1].sone === 'I4')
 }
 console.log(feil === 0 ? 'ALLE OK' : `${feil} FEIL`)
 process.exit(feil === 0 ? 0 : 1)

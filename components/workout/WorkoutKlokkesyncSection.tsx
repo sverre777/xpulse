@@ -205,6 +205,8 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           np={data.wattMetrikker?.np ?? null}
           ftp={data.ftp}
           distanseKm={data.distanseKm}
+          sonerRader={data.sonerRader}
+          rader={data.rader}
           flate="hovedside"
           rpe={data.rpe}
           onRpe={settRpe}

@@ -9,13 +9,13 @@ import type { LapRow } from '@/components/workout/LapTable'
 import { lesTidspunktNotater, type TidspunktNotat } from '@/lib/tidspunkt-notater'
 import type { KompaktPunkt } from '@/lib/types'
 import { type HeartZone } from '@/lib/heart-zones'
-import { getHeartZonesForUserCached } from '@/lib/heart-zones-server'
+import { getHeartZonesForUserCached, hentSoneRaderCached } from '@/lib/heart-zones-server'
 import { beregnNP, ifMerkelapp } from '@/lib/watt-metrikker'
-import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/terskel-oppslag'
+import { resolveTerskel, resolveSoner, dominantBevegelse, type TerskelDbRad, type SoneDbRad } from '@/lib/terskel-oppslag'
 import { beregnFrakobling, gapFart, stigningPctForVindu, type FrakoblingsResultat } from '@/lib/prestasjon'
 import { beregnSegmenter, type Segment, type SegmentRad } from '@/lib/segmenter'
 import { nedsampleSerie, OVERSIKT_KOLONNER, KOMPAKT_KOLONNER } from '@/lib/kurve-nedsample'
-import { faktiskeBlokker } from '@/lib/gjennomfort-kart'
+import { faktiskeBlokker, type FaktiskRad } from '@/lib/gjennomfort-kart'
 import { byggPlanBlokker, type PlanBlokkInn } from '@/lib/plan-graf'
 import { revalidatePath } from 'next/cache'
 
@@ -70,6 +70,11 @@ export interface WorkoutKlokkesyncData {
   ftp: number | null
   /** Øktas distanse fra radene (km) — nøkkeltallsraden under kartet. */
   distanseKm: number | null
+  /** Sonerader for alle bevegelsesform-nøkler (godkjent sone-regel):
+      kartet slår opp per segment med arv subkat → bev.form → global. */
+  sonerRader: SoneDbRad[]
+  /** Radene slik kartet trenger dem (bev.form, underkategori, navn, skudd). */
+  rader: FaktiskRad[]
   // Aerob frakobling for økta (bolk 3) — kun jevne økter > 40 min med
   // puls + watt/fart-kurve. null = ikke kvalifisert (vises ikke; en
   // intervalløkt skal ikke ha et meningsløst driftstall).
@@ -103,7 +108,7 @@ export async function getWorkoutKlokkesyncData(
   // Parallellisér alle fetches som ikke avhenger av workout-feltet. Lactate
   // trenger workout.date for å regne sek-fra-start, så den hentes etter at
   // workout er resolvert.
-  const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones] = await Promise.all([
+  const [workoutRes, samplesRowsRes, activitiesRes, nutritionRowsRes, heartZones, sonerRaderAlle] = await Promise.all([
     supabase.from('workouts')
       .select('id, sport, time_of_day, date, user_id, rpe, forventet_belastning, runde_backup, tidspunkt_notater')
       .eq('id', workoutId)
@@ -131,6 +136,7 @@ export async function getWorkoutKlokkesyncData(
       .select('time_offset_minutes, nutrition_type, carbs_g')
       .eq('workout_id', workoutId),
     getHeartZonesForUserCached(user.id),
+    hentSoneRaderCached(user.id),
   ])
 
   const workout = workoutRes.data
@@ -345,6 +351,12 @@ export async function getWorkoutKlokkesyncData(
     radInfo,
     wattMetrikker,
     ftp: ftpForKart,
+    sonerRader: sonerRaderAlle,
+    rader: (activities ?? []).map(a => ({
+      id: a.id, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory,
+      lap_notes: a.lap_notes, avg_heart_rate: a.avg_heart_rate, prone_shots: a.prone_shots, standing_shots: a.standing_shots,
+      gruppe_id: (a.gruppe_id as string | null) ?? null, distance_meters: a.distance_meters,
+    })),
     distanseKm: (() => { const m = (activities ?? []).reduce((sum, a) => sum + (Number(a.distance_meters) || 0), 0); return m > 0 ? m / 1000 : null })(),
     frakobling,
     samples,
@@ -502,7 +514,7 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       .select('workout_id, hr_samples, watt_samples, pace_samples, speed_samples, created_at')
       .in('workout_id', ids).order('created_at', { ascending: false }),
     supabase.from('workout_activities')
-      .select('id, workout_id, sort_order, activity_type, movement_name, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
+      .select('id, workout_id, sort_order, activity_type, movement_name, movement_subcategory, duration_seconds, window_start_seconds, window_duration_seconds, prone_shots, prone_hits, standing_shots, standing_hits, external_id, strava_lap_index, gruppe_id')
       .in('workout_id', ids).order('sort_order', { ascending: true }),
     supabase.from('workouts').select('id, merged_into_workout_id').in('merged_into_workout_id', ids),
     supabase.from('workouts').select('id, user_id, planned_snapshot, tidspunkt_notater, date, time_of_day').in('id', ids),
@@ -510,7 +522,11 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
   // Eierens soner (én kalender = én eier, men slå opp per økt for sikkerhets skyld).
   const eiere = [...new Set((snapRes.data ?? []).map(w => w.user_id as string).filter(Boolean))]
   const sonerFor = new Map<string, HeartZone[]>()
-  await Promise.all(eiere.map(async id => { sonerFor.set(id, await getHeartZonesForUserCached(id)) }))
+  const soneRaderFor = new Map<string, SoneDbRad[]>()
+  await Promise.all(eiere.map(async id => {
+    const [glob, rader] = await Promise.all([getHeartZonesForUserCached(id), hentSoneRaderCached(id)])
+    sonerFor.set(id, glob); soneRaderFor.set(id, rader)
+  }))
   const eierAv = (id: string) => (snapRes.data ?? []).find(w => w.id === id)?.user_id as string | undefined
   // Punktene kompakt (bolk 8): ført laktat (measured_at_time → sek fra
   // øktstart), ført ernæring (time_offset_minutes) og tidspunkt_notater.
@@ -594,9 +610,13 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
     // Faktisk sone per segment regnes på FULL puls (før nedsamplingen).
     const eier = eierAv(rad.workout_id)
     const soner = (eier ? sonerFor.get(eier) : undefined) ?? []
+    const soneRader = (eier ? soneRaderFor.get(eier) : undefined) ?? []
     const akter = (akterRes.data ?? []).filter(a => a.workout_id === rad.workout_id)
     const blokker = byggPlanBlokker(
-      faktiskeBlokker(segmenter, hr, (rad.watt_samples ?? null) as Array<{ t: number; w: number }> | null, { rader: akter }),
+      faktiskeBlokker(segmenter, hr, (rad.watt_samples ?? null) as Array<{ t: number; w: number }> | null, {
+        rader: akter,
+        sonerFor: (navn, sub) => resolveSoner(soneRader, navn, sub),
+      }),
       soner,
     ).map(b => ({
       id: b.id, type: b.type, navn: b.navn, bevegelsesform: b.bevegelsesform, underkategori: b.underkategori,

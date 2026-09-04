@@ -40,6 +40,9 @@ export interface PlanBlokkInn {
   /** Gjennomført-kartet: blokka står der raden FAKTISK lå på tidslinja.
       Uten: blokkene legges etter hverandre (planen). */
   startSek?: number
+  /** Sonene for BLOKKAS bevegelsesform (arv subkat → bev.form → global,
+      lib/terskel-oppslag). Uten: heartZones-argumentet. */
+  soner?: HeartZone[]
   gruppeId: string | null
   proneShots: number
   standingShots: number
@@ -152,10 +155,11 @@ export function soneFraWatt(snittwatt: number, ftp: number): ZoneName | null {
 function soneFor(b: PlanBlokkInn, heartZones: HeartZone[]): ExtendedZoneName | null {
   const fort = hovedsoneAv(b.soneSek)
   if (fort) return fort
-  if (b.snittpuls != null && heartZones.length > 0) {
+  const soner = b.soner && b.soner.length > 0 ? b.soner : heartZones
+  if (b.snittpuls != null && soner.length > 0) {
     // Under I1-grensa er fortsatt I1 i kartet (rolig tur = grønn, ikke grå
     // «uten sone») — sonespråket har ingen sone under I1.
-    return zoneForHeartRate(b.snittpuls, heartZones) ?? 'I1'
+    return zoneForHeartRate(b.snittpuls, soner) ?? 'I1'
   }
   if (b.snittwatt != null && b.ftp != null) {
     const z = soneFraWatt(b.snittwatt, b.ftp)

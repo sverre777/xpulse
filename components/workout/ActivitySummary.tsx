@@ -260,6 +260,8 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
             tetthet="skjema"
             flate="skjema"
             distanseKm={totalKm > 0 ? totalKm : null}
+            sonerRader={klokke.data.sonerRader}
+            rader={klokke.data.rader}
             workoutId={klokke.workoutId}
             sport={klokke.data.sport}
             samples={klokke.data.samples}

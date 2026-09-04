@@ -4,14 +4,15 @@
 // idempotent. Det eneste i appen som slår sammen rader er «slå sammen med
 // neste» i Øktbyggeren (bolk 3): én rad om gangen, angrbar.
 //
-// GRUPPE = rader ETTER HVERANDRE med samme aktivitetstype + bev.form +
-// underkategori. Skyting bryter alltid gruppa og samles aldri. Ulik
-// bev.form bryter alltid. INTERVALLSETT fra hurtigoppsettet (drag + pause
-// med samme gruppe_id, fase 117) leses som MØNSTER — «8 × 4 min I3 ·
-// 2 min pause» — ikke som sum. Gruppe-raden viser sonene som FORDELING
-// («I1 40 · I3 20»), aldri én sone; sone endres per rad i splittet.
-// Bev.form/underkategori settes på gruppa og skrives til alle radene —
-// type endres ikke på gruppa.
+// GRUPPE (Sverre 4. sep, erstatter «etter hverandre»-regelen): ALLE rader
+// med samme aktivitetstype + bev.form + underkategori samles i én gruppe
+// UANSETT om de ligger etter hverandre, og ALL skyting samles i én gruppe.
+// Ulik bev.form er egen gruppe. INTERVALLSETT fra hurtigoppsettet (drag +
+// pause med samme gruppe_id, fase 117) leses som MØNSTER — «8 × 4 min I3 ·
+// 2 min pause» — når alle dragene i gruppa hører til samme sett. Gruppe-
+// raden viser sonene som FORDELING («I1 40 · I3 20»), aldri én sone; sone
+// endres per rad i splittet. Bev.form/underkategori settes på gruppa og
+// skrives til alle radene — type endres ikke på gruppa.
 //
 // Valget huskes PER ØKT — i localStorage som de andre visningsvalgene i
 // appen (tema, vis plan). Standard for klokkeøkter: SAMLET.
@@ -30,20 +31,8 @@ const SONE_REKKEFOLGE = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'Hurtig
 /** Nøkkelen som avgjør om to naborader hører sammen. Skyting får en
     nøkkel ingen annen rad kan dele. */
 export function samleNokkel(a: ActivityRow): string {
-  if (erSkyting(a.activity_type)) return `skyting|${a.id}`
-  const bev = `${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
-  // Et intervallsett (gruppe_id) er én enhet med én bev.form — den står
-  // på dragene. Pausene i settet følger settet (de kan mangle bev.form).
-  if (a.gruppe_id) return erPause(a) ? `gruppe|${a.gruppe_id}|*` : `gruppe|${a.gruppe_id}|${bev}`
-  return `${a.activity_type}|${bev}`
-}
-
-/** Nøkkelen slik den gjelder i rekkefølgen: en pause i et sett arver
-    nøkkelen til draget foran (samme gruppe_id). */
-function nokkelIRekke(a: ActivityRow, forrige: string | null): string {
-  const egen = samleNokkel(a)
-  if (egen.endsWith('|*') && forrige && forrige.startsWith(`gruppe|${a.gruppe_id}|`)) return forrige
-  return egen
+  if (erSkyting(a.activity_type)) return 'skyting'
+  return `${a.activity_type}|${a.movement_name ?? ''}|${a.movement_subcategory ?? ''}`
 }
 
 /** Intervallmønsteret i et sett med gruppe_id. */
@@ -96,7 +85,9 @@ function dominantSone(rader: ActivityRow[]): string | null {
 /** Mønsteret leses bare når dragene er like (±15 %) — ellers er settet
     ikke et mønster, og gruppa viser sum som en vanlig gruppe. */
 function lesMonster(rader: ActivityRow[]): Monster | null {
-  if (!rader[0]?.gruppe_id) return null
+  // Mønster bare når alle radene hører til SAMME sett (gruppe_id).
+  const gid = rader[0]?.gruppe_id
+  if (!gid || rader.some(a => a.gruppe_id !== gid)) return null
   const drag = rader.filter(a => !erPause(a))
   const pauser = rader.filter(erPause)
   if (drag.length < 2) return null
@@ -107,18 +98,21 @@ function lesMonster(rader: ActivityRow[]): Monster | null {
   return { antall: drag.length, dragSek: Math.round(sek.reduce((a, b) => a + b, 0) / sek.length), sone: dominantSone(drag), pauseSek }
 }
 
-/** Rader etter hverandre med samme nøkkel → én gruppe. Enkeltrader er
-    grupper på én. Rein lesing — radene røres ikke. */
+/** Alle rader med samme nøkkel → én gruppe (uansett rekkefølge); all
+    skyting → én gruppe. Gruppene står i rekkefølgen den første raden
+    dukker opp. Rein lesing — radene røres ikke. */
 export function grupperRaderSamlet(rows: ActivityRow[]): RadGruppe[] {
   const ut: RadGruppe[] = []
+  const perNokkel = new Map<string, RadGruppe>()
   for (let i = 0; i < rows.length; i++) {
     const a = rows[i]
-    const siste = ut[ut.length - 1]
-    const nokkel = nokkelIRekke(a, siste && siste.til === i - 1 ? siste.nokkel : null)
-    if (siste && siste.nokkel === nokkel && siste.til === i - 1) {
-      siste.rader.push(a); siste.til = i
+    const nokkel = samleNokkel(a)
+    const g = perNokkel.get(nokkel)
+    if (g) {
+      g.rader.push(a); g.til = i
     } else {
-      ut.push({ id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null })
+      const ny: RadGruppe = { id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null }
+      perNokkel.set(nokkel, ny); ut.push(ny)
     }
   }
   for (const g of ut) {

@@ -254,13 +254,23 @@ section{padding:88px 0}
   background:linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%) fixed, var(--bg);
   -webkit-mask-image:linear-gradient(to bottom,transparent,#000 85%);
   mask-image:linear-gradient(to bottom,transparent,#000 85%)}
-.hero-in{position:relative;margin:auto;padding:110px 0 46px;text-align:center;display:flex;flex-direction:column;align-items:center;width:100%}
-.hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.hero-in{position:relative;margin:auto;padding:124px 0 46px;text-align:center;display:flex;flex-direction:column;align-items:center;width:100%}
+.hero h1{margin-bottom:40px}
+.hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
+/* Hero v5: ÉN chip — «Norsk treningsverktøy · V1.3 · Hva er nytt →», gull på versjonsdelen. */
+.hchip{display:inline-flex;align-items:center;gap:0;font:600 12px/1 'Barlow Condensed';letter-spacing:.18em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5);text-decoration:none}
+.hchip-v{color:var(--gold);font-weight:700}
+/* Kald blå radial øverst til venstre — eget lag over bildet, under faden. */
+.hero-blaa{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at 8% 12%, rgba(26,111,212,.14), transparent 70%)}
+/* Flyt-stripa i heroen: fem på én rad ≥880 (maks 1000 bred), 3 + 2 mellom 560 og 880, ikoner + titler under 560. */
+.hero-flow{width:100%;max-width:1000px;margin:0 auto}
+.hero-flow .iflow{overflow:visible;padding-bottom:0}
+.hquote{margin:40px auto 0;max-width:62ch;font:italic 400 14px/1.55 'Inter';color:rgb(var(--paper-rgb) / .72)}
+.hero .hacts{margin-top:38px}
 .htag{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
 .hver{font:700 12px/1 'Barlow Condensed';letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
 h1{font:400 clamp(40px,11vw,104px)/0.98 'Bebas Neue';letter-spacing:.012em}
 h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
-.hdesc{margin:22px auto 30px;color:rgb(var(--paper-rgb) / .72);font-size:17.5px;max-width:54ch}
 .hacts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:11px;padding:16px 30px;font:800 15px/1 'Inter';cursor:pointer}
 .btn.pri{background:var(--orange);color:var(--hvit);box-shadow:0 18px 50px rgba(255,69,0,.35)}
@@ -268,15 +278,17 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    samme som de andre knappene. Scopet til .hero saa priskortene, som bruker
    samme .btn.pri-klasse, staar uendret. */
 .hero .btn.pri{text-transform:uppercase}
-.btn.sec{border:1px solid var(--line2);color:var(--paper);background:rgba(13,13,17,.5)}
+.btn.sec{border:1px solid var(--line2);color:var(--paper);background:transparent}
 .btn.blue{background:var(--blue);color:var(--hvit);box-shadow:0 18px 50px rgba(26,111,212,.35)}
-.hfree{margin-top:16px;font-size:13.5px;color:var(--mute)}
+.hfree{margin-top:18px;font-size:13.5px;color:var(--mute)}
 .hfree b{color:var(--dim)}
-.proof{display:flex;gap:48px;margin-top:30px;flex-wrap:nowrap;max-width:none;justify-content:center}
-.proof>div{flex:0 0 auto;max-width:200px}
+.proof{display:flex;gap:0;margin-top:46px;flex-wrap:nowrap;max-width:860px;width:100%;justify-content:center;border-top:1px solid var(--line2);padding-top:18px}
+.proof>div{flex:1 1 0;max-width:none;padding:0 18px;border-left:1px solid var(--line2)}
+.proof>div:first-child{border-left:0}
 
-.proof .n{font:400 38px/1 'Bebas Neue';letter-spacing:.02em;color:var(--orange);text-shadow:0 1px 14px rgba(255,69,0,.25)}
+.proof .n{font:400 34px/1 'Bebas Neue';letter-spacing:.02em;color:var(--hvit);text-shadow:none}
 .proof .t{font:600 10.5px/1.3 'Barlow Condensed';letter-spacing:.13em;text-transform:uppercase;color:var(--dim,var(--dim));margin-top:6px}
+.pris-betaling{margin:14px 0 0;text-align:center;font-size:13px;color:var(--mute)}
 
 /* ── KLOKKESYNK-RADEN ──────────────────────────────────────────────
    NB: alle selektorene er scopet under .syncrow med vilje. Sida har egne,
@@ -293,6 +305,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
    undersøkt. Derfor tekst, ikke logo, til det er avklart per merke.
    Strava-merkingen og Polar-kortet står som før (egne avtaler). */
 .syncrow{
+  margin-top:28px;
   position:relative;
   z-index:1;
   width:100%;
@@ -643,9 +656,14 @@ footer a:hover{color:var(--paper)}
 .note{margin:14px 28px;border:1px solid var(--line);border-left:3px solid var(--gold);background:var(--card);border-radius:9px;padding:13px 16px;font-size:13.5px;color:var(--dim);max-width:1120px}
 .note b{color:var(--paper)}
 @media(max-width:700px){
-  .hero-in{padding:80px 0 90px}
+  .hero-in{padding:96px 0 90px}
+  .hero-tags{margin-bottom:30px}
+  .hero h1{margin-bottom:22px}
+  .hquote{margin-top:34px;font-size:13.5px}
+  .hero .hacts{margin-top:32px}
+  .hfree{margin-top:20px}
+  .proof{margin-top:36px}
   .htag{font-size:10.5px;letter-spacing:.12em;white-space:normal;line-height:1.5}
-  .hdesc{font-size:15.5px}
   .btn{padding:14px 20px;font-size:14px}
   /* Proof-stripa MYE mindre på mobil (Sverre 20. aug): kompakt padding,
      mindre tall og tekst — fire små celler, ikke fire kort. */
@@ -976,7 +994,6 @@ nav {
 .proof .n{font-variant-numeric:tabular-nums}
 
 /* Flyt-stripa */
-.iflow-sec{padding:36px 0 6px;container-type:inline-size}
 .iflow{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:8px}
 .istep{flex:1;min-width:130px;text-align:center;position:relative;transition:opacity .35s}
 html.js .istep{opacity:.28}
@@ -992,12 +1009,23 @@ html.js .istep.vis{opacity:1}
 .istep p{color:var(--mute);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0}
 /* Smal skjerm: to rader (3+2, sentrert) i stedet for horisontal scroll.
    Forbindelseslinjene skjules — de gir ikke mening på tvers av radbrudd. */
-@container (max-width: 700px){
+@media (max-width: 880px){
   .iflow{flex-wrap:wrap;justify-content:center;overflow-x:visible;row-gap:20px;padding-bottom:0}
   .istep{flex:0 0 33.33%;min-width:0}
   /* Streken beholdes INNAD i hver rad (1–2, 2–3 og 4–5) — den skjules kun
      på siste steg i hver rad, der den ellers ville stukket ut i lufta. */
   .istep:nth-child(3)::before{display:none}
+}
+@media (max-width: 560px){
+  .iflow{flex-wrap:nowrap;row-gap:0}
+  .istep{flex:1 1 0;min-width:0}
+  .istep:nth-child(3)::before{display:block}
+  .istep::before{left:calc(50% + 18px);right:calc(-50% + 18px);top:17px}
+  .idot{width:34px;height:34px;margin-bottom:8px}
+  .idot svg{width:16px;height:16px}
+  .istep h4{font-size:11px;letter-spacing:.08em;padding:0 2px}
+  .istep p{display:none}
+  .hchip-txt{display:none}
 }
 
 /* PC/mobil-bryteren */
@@ -1153,24 +1181,50 @@ html.js .solution.vis{opacity:1;transform:none}
 
 <header class="hero">
   <div class="hero-bg"></div>
+  <div class="hero-blaa"></div>
   <div class="hero-fade"></div>
   <div class="wrap hero-in">
     <div class="hero-tags">
-      <span class="htag">For seriøse utøvere — utholdenhet på én plattform</span>
-      <a class="hver" href="/nytt">V1.3 · Hva er nytt →</a>
+      <a class="hchip" href="/nytt"><span class="hchip-txt">Norsk treningsverktøy · </span><span class="hchip-v">V1.3 · Hva er nytt →</span></a>
     </div>
     <h1>BYGGET FOR <span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
-    <p class="hdesc">Plan, dagbok og dyp analyse i ett — med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
+    <!-- Flyt-stripa (hero v5): hele sløyfa, fem steg, rett under overskriften.
+         Én plass i sida (regel 11) — den gamle seksjonen under folden er slettet. -->
+    <div class="hero-flow" aria-label="Slik henger det sammen">
+<div class="iflow" id="flowSec">
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+        <h4>PLANLEGG</h4><p>Årsplan, uker og økter — maler eller egne.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/></svg></div>
+        <h4>TREN</h4><p>Gjennomfør. Live styrke om du vil.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2M12 2v3M12 19v3"/></svg></div>
+        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv — puls, runder, søvn.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat — det klokka ikke vet.</p>
+      </div>
+      <div class="istep">
+        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 16V5"/></svg></div>
+        <h4>ANALYSER</h4><p>Én dagbok. Analysen ser hele bildet.</p>
+      </div>
+    </div>
+    </div>
+    <p class="hquote">“Plan, dagbok og dyp analyse i ett — med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.”</p>
     <div class="hacts">
       <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>
     </div>
-    <div class="hfree"><b>30 dager gratis</b> — Kort, Klarna eller Apple Pay. Ingen bindingstid.</div>
+    <div class="hfree"><b>30 dager gratis</b> · Ingen bindingstid</div>
     <div class="proof">
-      <div><div class="n" data-mal="58">58</div><div class="t">Ferdige øktmaler fra OLT-skalaen</div></div>
-      <div><div class="n" data-mal="287">287</div><div class="t">Øvelser i styrke­biblioteket</div></div>
-      <div><div class="n" data-mal="7">7</div><div class="t">Idretter med egne verktøy</div></div>
-      <div><div class="n" data-mal="6">6</div><div class="t">Merker med direktesynk</div></div>
+      <div><div class="n" data-mal="58">58</div><div class="t">Øktmaler</div></div>
+      <div><div class="n" data-mal="287">287</div><div class="t">Styrkeøvelser</div></div>
+      <div><div class="n" data-mal="7">7</div><div class="t">Idretter</div></div>
+      <div><div class="n" data-mal="6">6</div><div class="t">Direktesynk</div></div>
     </div>
   </div>
 <div class="syncrow">
@@ -1211,34 +1265,7 @@ html.js .solution.vis{opacity:1;transform:none}
 </div>
 </header>
 
-<!-- ═══ FLYT-STRIPA — hele sløyfa, fem steg. Fra designutkastet
-     (design/xpulse-hero-interaktiv-design.html); lyser opp i rekkefølge. -->
-<section class="iflow-sec" aria-label="Slik henger det sammen">
-  <div class="wrap">
-    <div class="iflow" id="flowSec">
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
-        <h4>PLANLEGG</h4><p>Årsplan, uker og økter — maler eller egne.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/></svg></div>
-        <h4>TREN</h4><p>Gjennomfør. Live styrke om du vil.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2M12 2v3M12 19v3"/></svg></div>
-        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv — puls, runder, søvn.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat — det klokka ikke vet.</p>
-      </div>
-      <div class="istep">
-        <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 16V5"/></svg></div>
-        <h4>ANALYSER</h4><p>Én dagbok. Analysen ser hele bildet.</p>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 
 
@@ -1634,6 +1661,7 @@ html.js .solution.vis{opacity:1;transform:none}
         <a class="btn blue" href="/api/checkout?tier=trener_pro">Kom i gang med Trener Pro</a>
       </div>
     </div>
+    <p class="pris-betaling">Kort, Klarna eller Apple Pay</p>
 
     <!-- AI-tierne — uendret fra forrige side: kommer snart m/ varslingsliste -->
     <div class="price-coming-strip">

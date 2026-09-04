@@ -297,106 +297,75 @@ export function fmtVarighetKort(sek: number): string {
   return `${Math.floor(r / 60)}:${String(r % 60).padStart(2, '0')}`
 }
 
-export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number, medSkyting = false): string {
-  const skyting = medSkyting ? ' + skyting' : ''
+export function gruppeEtikett(antall: number, arbeidSek: number, pauseSek: number): string {
+  // Rettelse 9: aldri «+ skyting» i teksten — skytingene står med 🎯 L/S.
   if (pauseSek <= 0) {
-    return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}${skyting}`
+    return `${antall} × ${fmtVarighetKort(arbeidSek)}${Math.round(arbeidSek) < 90 ? ' s' : ''}`
   }
   if (Math.round(arbeidSek) < 90 && Math.round(pauseSek) < 90) {
-    return `${antall} × ${Math.round(arbeidSek)}/${Math.round(pauseSek)}${skyting}`
+    return `${antall} × ${Math.round(arbeidSek)}/${Math.round(pauseSek)}`
   }
-  return `${antall} × ${fmtVarighetKort(arbeidSek)}${skyting} / ${fmtVarighetKort(pauseSek)}`
+  return `${antall} × ${fmtVarighetKort(arbeidSek)} / ${fmtVarighetKort(pauseSek)}`
 }
 
 export function grupperSegmenter(segmenter: Segment[]): SegmentGruppe[] {
-  const ut: SegmentGruppe[] = []
+  // RETTELSE 9 (4. sep): grupperingen går på DRAGENE. Skyting og pause INNI
+  // et intervall bryter ikke gruppa — like drag etter hverandre er samme
+  // gruppe uansett hva som ligger mellom dem. gruppe_id vinner: drag med
+  // samme gruppe_id er én gruppe uansett varighet. Antallet i etiketten
+  // er antall drag under klammen — aldri rader.
+  //
+  // Årsaken til «2 × 5 min · I4» over tre blokker (Sverres skjermbilde):
+  // den gamle regelen stoppet ved første rad som verken var drag eller
+  // pause (skytinga), og gruppe_id-regelen telte skyting som drag når
+  // skytinga lå uten/med annen gruppe_id enn pausene. Begge er borte.
   const n = segmenter.length
+  const erDrag = (s: Segment) => s.type !== 'pause' && !s.type.startsWith('skyting')
+  const erMellom = (s: Segment) => s.type === 'pause' || s.type.startsWith('skyting')
+  const ut: SegmentGruppe[] = []
   let i = 0
   while (i < n) {
+    if (!erDrag(segmenter[i])) { i++; continue }
     const s0 = segmenter[i]
-    // 1) gruppe_id vinner.
-    if (s0.gruppeId) {
-      let j = i
-      while (j + 1 < n && segmenter[j + 1].gruppeId === s0.gruppeId) j++
-      if (j > i) {
-        const arbeid = segmenter.slice(i, j + 1).filter(s => s.type !== 'pause' && !s.type.startsWith('skyting'))
-        const pauser = segmenter.slice(i, j + 1).filter(s => s.type === 'pause')
-        const antall = Math.max(1, arbeid.length)
-        const arbeidSek = arbeid.length ? arbeid.reduce((a, s) => a + varighet(s), 0) / arbeid.length : 0
-        const pauseSek = pauser.length ? pauser.reduce((a, s) => a + varighet(s), 0) / pauser.length : 0
-        const medSkyting = segmenter.slice(i, j + 1).some(s => s.type.startsWith('skyting'))
-        ut.push({
-          fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
-          etikett: gruppeEtikett(antall, arbeidSek, pauseSek, medSkyting), arbeidSek, pauseSek,
-          type: arbeid[0]?.type ?? s0.type, skyting: medSkyting,
-        })
-        i = j + 1
-        continue
-      }
-    }
-    // 2) ENHET: arbeid [+ skyting …] [+ pause], gjentatt (rettelse 7:
-    //    skyting mellom draget og pausen bryter ikke gruppa — «3 × 5 min
-    //    I4 + skyting · 2 min pause»). Siste enhet kan mangle pausen.
-    const erArbeid = (s: Segment) => s.type !== 'pause' && !s.type.startsWith('skyting')
-    const lesEnhet = (k: number) => {
+    // Følg dragene: neste drag nås bare over pause/skyting.
+    const drag: number[] = [i]
+    let k = i + 1
+    while (k < n) {
+      while (k < n && erMellom(segmenter[k])) k++
+      if (k >= n || !erDrag(segmenter[k])) break
       const s = segmenter[k]
-      if (!s || !erArbeid(s)) return null
-      let m = k + 1
-      const skyting: Segment[] = []
-      while (m < n && segmenter[m].type.startsWith('skyting')) { skyting.push(segmenter[m]); m++ }
-      const pause = m < n && segmenter[m].type === 'pause' ? segmenter[m] : null
-      return { arbeid: s, skyting, pause, slutt: pause ? m : m - 1 }
+      const like = s0.gruppeId
+        ? s.gruppeId === s0.gruppeId
+        : s.type === s0.type && s.nokkel === s0.nokkel && lik(varighet(s), varighet(s0))
+      if (!like) break
+      drag.push(k); k++
     }
-    if (erArbeid(s0)) {
-      const e0 = lesEnhet(i)
-      if (e0 && (e0.pause || e0.skyting.length > 0)) {
-        const a0 = varighet(e0.arbeid), p0 = e0.pause ? varighet(e0.pause) : 0
-        let antall = 1
-        let siste = e0
-        let j = e0.slutt + 1
-        while (j < n) {
-          const e = lesEnhet(j)
-          if (!e || e.arbeid.type !== e0.arbeid.type || !lik(varighet(e.arbeid), a0) || e.arbeid.nokkel !== e0.arbeid.nokkel) break
-          if (e.skyting.length !== e0.skyting.length) break
-          if (e0.pause && e.pause && !lik(varighet(e.pause), p0)) break
-          if (!e0.pause && e.pause) break
-          antall++; siste = e
-          if (e0.pause && !e.pause) break
-          j = e.slutt + 1
-        }
-        if (antall >= MINSTE_REPETISJONER) {
-          // Klammen dekker t.o.m. siste enhet — ikke dens avsluttende pause,
-          // som er overgangen til det neste.
-          const til = siste.pause ? siste.slutt - 1 : siste.slutt
-          const medSkyting = e0.skyting.length > 0
-          ut.push({
-            fra: i, til, startSek: s0.startSek, sluttSek: segmenter[til].sluttSek, antall,
-            etikett: gruppeEtikett(antall, a0, p0, medSkyting), arbeidSek: a0, pauseSek: p0, type: s0.type,
-            skyting: medSkyting,
-          })
-          i = til + 1
-          continue
-        }
-      }
-    }
-    // 3) REKKE: samme type, lik varighet, etter hverandre.
-    if (s0.type !== 'pause') {
-      const a0 = varighet(s0)
-      let j = i
-      while (j + 1 < n && segmenter[j + 1].type === s0.type && lik(varighet(segmenter[j + 1]), a0) && segmenter[j + 1].nokkel === s0.nokkel) j++
-      const antall = j - i + 1
-      if (antall >= MINSTE_REPETISJONER) {
-        ut.push({
-          fra: i, til: j, startSek: s0.startSek, sluttSek: segmenter[j].sluttSek, antall,
-          etikett: gruppeEtikett(antall, a0, 0), arbeidSek: a0, pauseSek: 0, type: s0.type, skyting: false,
-        })
-        i = j + 1
-        continue
-      }
-    }
-    i++
+    if (drag.length < MINSTE_REPETISJONER) { i++; continue }
+    const sisteDrag = drag[drag.length - 1]
+    // Klammen dekker t.o.m. siste drag (og skytinga rett etter det) —
+    // ikke den avsluttende pausen, som er overgangen til det neste.
+    let til = sisteDrag
+    while (til + 1 < n && segmenter[til + 1].type.startsWith('skyting')) til++
+    const arbeidSek = drag.reduce((a, d) => a + varighet(segmenter[d]), 0) / drag.length
+    const pauser = segmenter.slice(i, sisteDrag + 1).filter(s => s.type === 'pause')
+    const pauseSek = pauser.length ? pauser.reduce((a, s) => a + varighet(s), 0) / pauser.length : 0
+    const medSkyting = segmenter.slice(i, til + 1).some(s => s.type.startsWith('skyting'))
+    ut.push({
+      fra: i, til, startSek: s0.startSek, sluttSek: segmenter[til].sluttSek, antall: drag.length,
+      etikett: gruppeEtikett(drag.length, arbeidSek, pauseSek), arbeidSek, pauseSek, type: s0.type,
+      skyting: medSkyting,
+    })
+    i = til + 1
   }
   return ut
+}
+
+/** VERN (rettelse 9): antallet i etiketten skal være lik antall drag under
+    klammen. Tegningen bruker denne — stemmer det ikke, tegnes ingen klamme
+    og hvert drag får sin egen etikett. */
+export function klammeStemmer(segmenter: Segment[], g: SegmentGruppe): boolean {
+  const drag = segmenter.slice(g.fra, g.til + 1).filter(s => s.type !== 'pause' && !s.type.startsWith('skyting')).length
+  return drag === g.antall && g.antall >= MINSTE_REPETISJONER
 }
 
 // ── Puls i vindu ─────────────────────────────────────────────

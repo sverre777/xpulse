@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Sport } from '@/lib/types'
 import {
-  SEGMENT_FARGER, PUNKT_FARGER, SKYTE_FARGER, erSkytesegment, skyteMarkor, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
+  SEGMENT_FARGER, PUNKT_FARGER, SKYTE_FARGER, erSkytesegment, skyteMarkor, klammeStemmer, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
   grupperSegmenter, type Segment,
 } from '@/lib/segmenter'
 import { OktKurve, verdiVed, type KurveSerie } from './OktKurve'
@@ -952,6 +952,7 @@ function SegmentBaand({
   const grupper = useMemo(() => grupperSegmenter(segmenter), [segmenter])
   // Klammer som skal stå: de som ikke er «oppløst» av zoomen.
   const klammer = grupper.filter(g => {
+    if (!klammeStemmer(segmenter, g)) return false   // vern (rettelse 9): tallet må stemme med blokkene
     if (g.sluttSek < fra || g.startSek > til) return false
     const minste = Math.min(...segmenter.slice(g.fra, g.til + 1).map(s => andel(s.startSek, s.sluttSek)))
     return minste < OPPLOSNING_ANDEL

@@ -36,7 +36,11 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
   const [aktivBlokk, setAktivBlokk] = useState<string | null>(null)
   const total = blokker.reduce((m, b) => Math.max(m, b.startSek + b.sek), 0)
-  const grupper = useMemo(() => (tetthet === 'full' ? grupperPlanBlokker(blokker) : []), [blokker, tetthet])
+  // VERN (rettelse 9): antallet i etiketten = antall drag under klammen.
+  // Stemmer det ikke, tegnes ingen klamme — hvert drag får egen etikett.
+  const grupper = useMemo(() => (tetthet === 'full'
+    ? grupperPlanBlokker(blokker).filter(g => blokker.slice(g.fra, g.til + 1).filter(b => b.slag !== 'pause' && b.slag !== 'skyting_ligg' && b.slag !== 'skyting_staa').length === g.antall)
+    : []), [blokker, tetthet])
   if (blokker.length === 0 || total <= 0) return null
 
   const x = (sek: number) => (sek / total) * B
@@ -67,7 +71,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       for (const g of grupper) {
         const forste = blokker[g.fra], siste = blokker[g.til]
         const cx = (x(forste.startSek) + x(siste.startSek + siste.sek)) / 2
-        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${forste.sone ? ` · ${forste.sone}` : ''}${g.skyting ? ' + skyting' : ''}`
+        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${forste.sone ? ` · ${forste.sone}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
     }
@@ -191,11 +195,11 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const sone = forste.sone
             const nv = etiketter.nivaaFor(`k-${g.fra}`) * NIVAA_H
             return (
-              <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.skyting ? ' + skyting' : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`} data-nivaa={etiketter.nivaaFor(`k-${g.fra}`) + 1}>
+              <g key={`k-${g.fra}`} data-klamme={`${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` ${sone}` : ''}${g.pauseSek > 0 ? ` · ${fmtMin(g.pauseSek)} pause` : ''}`} data-nivaa={etiketter.nivaaFor(`k-${g.fra}`) + 1}>
                 {nv > 0 && <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={topp - 22} stroke="var(--line2)" />}
                 <text x={cx} y={topp - 44 - nv} textAnchor="middle"
                   style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}{g.skyting ? ' + skyting' : ''}
+                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}
                 </text>
                 {g.pauseSek > 0 && (
                   <text x={cx} y={topp - 30 - nv} textAnchor="middle"

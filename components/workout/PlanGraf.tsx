@@ -27,7 +27,7 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
-export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [] }: {
+export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [], onKlikkSek, onVelgBlokk, valgtId = null }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
@@ -48,6 +48,11 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       gjennom blokkene (Sverre 4. sep): blokkene viser det som er BYGD,
       rundene fra klokka ses likevel. */
   runder?: number[]
+  /** Byggeren (samlet rettelse 5): klikk på en blokk = kutt der (kutt-modus)
+      eller velg raden; valgt rad får ramme. Uten disse er kartet lesing. */
+  onKlikkSek?: (sek: number) => void
+  onVelgBlokk?: (id: string | null) => void
+  valgtId?: string | null
 }) {
   const blokker = useMemo(() => byggPlanBlokker(inn, heartZones), [inn, heartZones])
   // Trange blokker viser etiketten ved trykk (og hover via CSS) — aldri utelatt.
@@ -151,11 +156,25 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const w = Math.max(1.5, x(b.sek) - 1.5)
         const h = plot * b.hoyde
         const grunnflate = b.slag === 'sone' && b.sone === 'I1'
+        const valgt = valgtId != null && valgtId === b.id
+        const klikkbar = !!(onKlikkSek || onVelgBlokk)
         return (
           <g key={b.id}>
             <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
               fill={b.farge} opacity={grunnflate ? 0.62 : b.slag === 'pause' || b.slag === 'veksling' ? 0.7 : 0.95}
-              data-blokk={b.id}>
+              data-blokk={b.id} data-valgt={valgt || undefined}
+              stroke={valgt ? 'var(--tekst-1-app)' : undefined} strokeWidth={valgt ? 2 : undefined} vectorEffect="non-scaling-stroke"
+              style={klikkbar ? { cursor: onKlikkSek ? 'crosshair' : 'pointer' } : undefined}
+              onClick={klikkbar ? (e) => {
+                e.stopPropagation()
+                if (onKlikkSek) {
+                  // Sekundet der man klikket i blokka (viewBox-x → sek).
+                  const svg = (e.currentTarget as SVGRectElement).ownerSVGElement
+                  const r = svg?.getBoundingClientRect()
+                  const sek = r && r.width > 0 ? ((e.clientX - r.left) / r.width) * total : b.startSek + b.sek / 2
+                  onKlikkSek(Math.max(b.startSek, Math.min(b.startSek + b.sek, sek)))
+                } else onVelgBlokk?.(valgt ? null : b.id)
+              } : undefined}>
               <title>{`${b.etikett} · ${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}`}</title>
             </rect>
             {b.slag === 'veksling' && (

@@ -22,6 +22,11 @@ import { emptyNutritionEntryRow } from '@/lib/types'
 import { verdiVed } from './OktKurve'
 import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
+import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
+import { byggPlanBlokker, type PlanBlokkInn } from '@/lib/plan-graf'
+import { tilSpokelser } from '@/lib/gjennomfort-kart'
+import { PlanGraf } from './PlanGraf'
+import { fraTidspunktNotater } from './Punkt'
 import { ByggSum } from './ByggSum'
 import { lagreVindu, hentVindu } from '@/lib/kurve-zoom'
 import { PAUSE_TYPER, type ActivityRow, type ActivityType, type LactateRow, type NutritionEntryRow, type ShootingSeriesRow, type Sport } from '@/lib/types'
@@ -111,6 +116,9 @@ export function OktbyggerPopup({
 
   const [planBlokker, setPlanBlokker] = useState<PlanBlokk[]>([])
   const visPlan = useSyncExternalStore(abonnerVisPlan, () => visPlanBak(workoutId), () => true)
+  // Samme visning som øktsiden (GRAF · KURVER · BEGGE), husket per bruker.
+  const visningHusket = useSyncExternalStore(abonnerVisning, () => lesVisning('bygger'), () => 'begge' as GrafVisning)
+  const visning: GrafVisning = harKurve ? visningHusket : 'graf'
   const [valgtRad, setValgtRad] = useState<string | null>(null)
   const [kuttModus, setKuttModus] = useState(false)
   // PUNKT-MODUS (bolk 8): klikk på kurven setter et punkt. I plan velges
@@ -357,6 +365,22 @@ export function OktbyggerPopup({
 
               {/* ── VERKTØYENE PÅ KURVEN ── */}
               <div className="flex items-center gap-2 flex-wrap">
+                {harKurve && (
+                  <span data-graf-visning={visning} role="group" style={{ display: 'inline-flex', border: '1px solid var(--kant-3)', borderRadius: 999, overflow: 'hidden' }}>
+                    {(['graf', 'kurver', 'begge'] as const).map(v => (
+                      <button key={v} type="button" data-visning-valg={v} aria-pressed={visning === v}
+                        onClick={() => settVisning(v)}
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5, letterSpacing: '0.1em',
+                          textTransform: 'uppercase', padding: '6px 12px', minHeight: 32, cursor: 'pointer', border: 'none',
+                          background: visning === v ? 'var(--accent)' : 'transparent',
+                          color: visning === v ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)',
+                        }}>
+                        {VISNING_ETIKETT[v]}
+                      </button>
+                    ))}
+                  </span>
+                )}
                 <button type="button" onClick={() => { setKuttModus(v => !v); setStartHerModus(false) }}
                   aria-pressed={kuttModus} data-kutt-modus
                   style={pille(kuttModus ? 'var(--accent)' : undefined, kuttModus)}>
@@ -462,11 +486,12 @@ export function OktbyggerPopup({
                   ...(visPlan ? planPunkter.map(p => ({ id: `pl-${p.id}`, slag: p.type, sek: p.sek, planlagt: true })) : []),
                 ]}
                 planBlokker={visPlan ? planBlokker : []}
+                visning={visning}
+                heartZones={heartZones}
+                runder={(klokke?.lapMarkers ?? []).slice(1).map(l => l.t_start)}
               />
 
-              {!harKurve && (
-                <ByggSum utkast={plassering} heartZones={heartZones} rpe={rpe} erPlanlagt={erPlanlagt} />
-              )}
+              <ByggSum utkast={plassering} heartZones={heartZones} rpe={rpe} erPlanlagt={erPlanlagt} />
 
               {/* ── RADENE ── tid som tall, del/slå sammen/slett/type/navn. */}
               <div className="space-y-1">
@@ -597,7 +622,7 @@ export type BaandModus = 'kutt' | 'startHer' | 'punkt' | null
 
 function KurveMedRader({
   workoutId, utkast, valgtRad, onVelgRad, onKlikkSek, modus, onDelHer, onSlaaSammen, erPlanlagt,
-  samples, hr, kurve, sport, totalSek, punkter, planBlokker,
+  samples, hr, kurve, sport, totalSek, punkter, planBlokker, visning, heartZones, runder,
 }: {
   workoutId: string
   utkast: Utkast[]
@@ -617,6 +642,11 @@ function KurveMedRader({
   totalSek: number
   punkter: Punkt[]
   planBlokker: PlanBlokk[]
+  /** Samlet rettelse 4: samme graf som øktsiden — GRAF · KURVER · BEGGE. */
+  visning: GrafVisning
+  heartZones: HeartZone[]
+  /** Klokkas originale runder (start-sekunder) — merker i kartet. */
+  runder: number[]
 }) {
   const kurveSerier: KurveSerie[] = useMemo(() => {
     const ut: KurveSerie[] = []
@@ -644,6 +674,25 @@ function KurveMedRader({
   }, [samples, hr, sport])
 
   const [vindu, setVindu] = useState<[number, number] | null>(() => hentVindu(workoutId))
+  // GJENNOMFØRT-KARTET i byggeren: utkastets rader som blokker med faktisk
+  // sone (snittpuls i vinduet mot egne soner — samme regel som øktsiden).
+  const kartInn: PlanBlokkInn[] = useMemo(() => [...utkast].sort((a, b) => a.startSek - b.startSek).map(u => {
+    const puls = parseInt(u.snittpuls)
+    const vindu = hr.length > 0 && !PAUSE_TYPER.has(u.type) && !u.type.startsWith('skyting') ? pulsIVindu(hr, u.startSek, u.startSek + u.varighetSek).snitt : null
+    const km = parseFloat(String(u.distanseKm).replace(',', '.'))
+    return {
+      id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: '',
+      sek: u.varighetSek, startSek: u.startSek, soneSek: {},
+      snittpuls: vindu ?? (Number.isFinite(puls) && puls > 0 ? puls : null),
+      gruppeId: u.gruppeId,
+      proneShots: u.type === 'skyting_liggende' || u.type === 'skyting_kombinert' ? 1 : 0,
+      standingShots: u.type === 'skyting_staaende' || u.type === 'skyting_kombinert' ? 1 : 0,
+      distanseKm: Number.isFinite(km) && km > 0 ? km : 0,
+    }
+  }), [utkast, hr])
+  const kartSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(kartInn, heartZones)), [kartInn, heartZones])
+  const grafPunkter = useMemo(() => punkter.filter(p => p.sek != null && p.slag !== 'skyting' && p.slag !== 'veksling')
+    .map(p => ({ id: p.id, sek: p.sek as number, slag: p.slag, planlagt: p.planlagt, tittel: PUNKT_SLAG[p.slag].navn })), [punkter])
   // Forhåndsvisningen: linja opp gjennom kurven mens pekeren står over
   // båndet (eller etter et kutt) — visning, ikke et håndtak.
   const [forhandsSek, setForhandsSek] = useState<number | null>(null)
@@ -673,10 +722,19 @@ function KurveMedRader({
 
   const overlay = (h: KurveHjelpere, paaKurve: boolean) => (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-      <PlanSpokelse blokker={planBlokker} pct={h.pct} />
-      <RadLag utkast={utkast} valgtId={valgtRad} h={h} onVelg={onVelgRad}
-        tallFor={tallFor} planTekstFor={planTekstFor} klikkbar={false}
-        kurveSlutt={paaKurve ? totalSek : 0} />
+      {/* Samlet rettelse 4/5: ingen mørke radfliser oppå kurven lenger —
+          blokkene ligger i mellomlaget (BEGGE), valgt rad får bare en ramme. */}
+      {(() => {
+        const u = utkast.find(x => x.id === valgtRad)
+        if (!u) return null
+        const utenfor = paaKurve && u.startSek + u.varighetSek > totalSek + 0.5
+        return (
+          <span data-valgt-rad aria-hidden style={{
+            position: 'absolute', left: h.pct(u.startSek), width: `calc(${h.pct(h.fraSek + u.varighetSek)} - 1px)`, minWidth: 6,
+            top: 4, bottom: 26, borderRadius: 6, border: `2px solid ${utenfor ? '#E23A5A' : 'var(--tekst-1-app)'}`, opacity: 0.8,
+          }} />
+        )
+      })()}
       {forhandsSek != null && forhandsSek >= h.fraSek && forhandsSek <= h.tilSek && (() => {
         const verdi = paaKurve && fokusSerie ? verdiVed(fokusSerie, forhandsSek) : null
         const farge = modus === 'kutt' ? '#E23A5A' : modus === 'punkt' ? 'var(--accent)' : 'var(--tekst-1-app)'
@@ -714,10 +772,20 @@ function KurveMedRader({
       modus={modus} onKlikkSek={onKlikkSek} onHover={setForhandsSek}
       onDelHer={onDelHer} onSlaaSammen={onSlaaSammen} kurveSlutt={harKurve ? totalSek : 0} />
   )
-  if (!harKurve) {
+  // Kartet (GRAF, og alltid uten kurve): samme PlanGraf som øktsiden, med
+  // planen bak, klokkas runder som merker og punktene. Klikk på en blokk =
+  // kutt/punkt/start her etter modus, ellers velges raden.
+  const kart = (
+    <div data-bygger-kart style={{ background: 'var(--flate-12-alt)', border: `1px ${erPlanlagt ? 'dashed' : 'solid'} var(--kant-3)`, borderRadius: 10, padding: '4px 6px 0' }}>
+      <PlanGraf blokker={kartInn} heartZones={heartZones} tetthet="full" totalSek={totalSek} kilde={erPlanlagt ? 'plan' : 'faktisk'}
+        spokelser={planBlokker} punkter={grafPunkter} runder={runder}
+        valgtId={valgtRad} onVelgBlokk={onVelgRad} onKlikkSek={modus ? onKlikkSek : undefined} />
+    </div>
+  )
+  if (!harKurve || visning === 'graf') {
     return (
       <div>
-        <BlokkLerret totalSek={totalSek} planlagt={erPlanlagt} overlay={h => overlay(h, false)} />
+        {kart}
         {baand}
       </div>
     )
@@ -738,6 +806,8 @@ function KurveMedRader({
           setVindu(heleOkta ? null : v)
           lagreVindu(workoutId, heleOkta ? [0, totalSek] : v)
         }}
+        bakgrunn={h => (planBlokker.length > 0 ? <PlanSpokelse blokker={planBlokker} pct={h.pct} dempet={0.10} /> : null)}
+        mellomlag={h => (visning === 'begge' ? <PlanSpokelse blokker={kartSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
         overlay={h => overlay(h, true)}
       />
       {baand}

@@ -28,6 +28,8 @@ interface Props {
   /** Skjemaet henter klokkedataene selv (useKlokkedata) og deler dem hit,
       så grafen i oppsummeringskortet og tabellen her aldri henter to ganger. */
   klokke?: ReturnType<typeof useKlokkedata>
+  /** Knapperaden under grafen (fasit v6). */
+  handlinger?: { onOktbygger?: () => void; onPlottTreff?: () => void; onSettLaktat?: () => void; onNotat?: () => void }
   /** I skjemaet står grafen i oppsummeringskortet — her bare rundetabellen
       og den dypere analysen. */
   visGraf?: boolean
@@ -72,7 +74,7 @@ function KlokkedataLaster() {
   )
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger }: Props) {
   // Henter selv bare når ingen deler dataene med oss (øktas hovedside).
   const egen = useKlokkedata(klokke ? null : workoutId, refreshTick)
   const state = klokke ?? egen
@@ -205,6 +207,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           onRpe={settRpe}
           forventetRpe={data.forventet}
           tidspunktNotater={data.tidspunktNotater}
+          handlinger={handlinger}
         />
       )}
       {rpeFeil && (

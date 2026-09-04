@@ -8,9 +8,14 @@
 
 export const RPE_FARGER = ['#28A86E', '#3BA45C', '#63A94A', '#8FAC3C', '#BCA735', '#E8B93C', '#F09A2E', '#FF8C00', '#F0592B', '#E23A5A']
 
+/** Valgt verdi vises i LIME (#B5C93A) — samme farge i skalaen og i
+    nøkkeltallsraden (økt-graf-fasiten v6, 4. sep). RPE_FARGER beholdes
+    for analysene som graderer 1–10. */
+export const RPE_VALGT = '#B5C93A'
+
 export function rpeFarge(v: number | null | undefined): string {
   if (v == null || v < 1 || v > 10) return 'var(--tekst-5-app)'
-  return RPE_FARGER[Math.round(v) - 1]
+  return RPE_VALGT
 }
 
 export function RpeSkala({ value, onChange, kompakt = false, etikett }: {
@@ -32,11 +37,11 @@ export function RpeSkala({ value, onChange, kompakt = false, etikett }: {
             // Treffflate ≥ 36 px selv om knappen tegnes mindre.
             boxSizing: 'content-box', padding: kompakt ? 3 : 2,
             fontFamily: "'Barlow Condensed', sans-serif",
-            backgroundColor: value === n ? RPE_FARGER[n - 1] : 'var(--card2)',
-            color: value === n ? 'var(--tekst-1-ren)' : 'var(--mut)',
+            backgroundColor: value === n ? RPE_VALGT : 'var(--card2)',
+            color: value === n ? '#0A0A0B' : 'var(--mut)',
             border: `1px solid ${value === n ? 'transparent' : 'var(--line2)'}`,
-            borderRadius: 8,
-            boxShadow: value === n ? '0 0 14px var(--accent-soft)' : 'none',
+            borderRadius: 3,
+            boxShadow: 'none',
             cursor: 'pointer',
           }}>
           {n}

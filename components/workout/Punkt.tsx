@@ -14,9 +14,10 @@ import type { KompaktPunkt } from '@/lib/types'
 export type PunktSlag = PunktType | 'skyting' | 'veksling'
 
 export const PUNKT_SLAG: Record<PunktSlag, { navn: string; farge: string; ikon: string }> = {
-  laktat:    { navn: 'Laktat',   farge: PUNKT_FARGER.laktat,   ikon: '●' },
-  ernaering: { navn: 'Ernæring', farge: PUNKT_FARGER.ernaering, ikon: '◆' },
-  notat:     { navn: 'Notat',    farge: '#A6A6AF',              ikon: '■' },
+  // Ikonene er avgjort (Sverre 4. sep): 🩸 laktat · 🍌 ernæring · 📝 notat · 🎯 skyting.
+  laktat:    { navn: 'Laktat',   farge: PUNKT_FARGER.laktat,   ikon: '🩸' },
+  ernaering: { navn: 'Ernæring', farge: PUNKT_FARGER.ernaering, ikon: '🍌' },
+  notat:     { navn: 'Notat',    farge: '#A6A6AF',              ikon: '📝' },
   skyting:   { navn: 'Skyting',  farge: 'var(--tekst-1-app)',   ikon: '🎯' },
   veksling:  { navn: 'Veksling', farge: '#A6A6AF',              ikon: '⇄' },
 }

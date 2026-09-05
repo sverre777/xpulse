@@ -1,6 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { SerieListe } from './SerieListe'
+import { PunktEtiketter } from './WorkoutDetailChart'
+import type { Segment } from '@/lib/segmenter'
+import { shootingSummary } from '@/lib/shooting'
 import { createPortal } from 'react-dom'
 import {
   SEGMENT_FARGER, PUNKT_FARGER, segmentBakgrunn, segmentTypeFor, fmtKlokkeSek, pulsIVindu, fmtVarighetKort,
@@ -195,9 +199,12 @@ export function OktbyggerPopup({
   // skyterad velges fra lista og plasseres med klikk på kurven eller tid
   // (mm:ss). Bare synlig når økta har skytinger som ikke ligger på kurven.
   const [leggSkyting, setLeggSkyting] = useState<{ aapen: boolean; radId: string | null; tid: string }>({ aapen: false, radId: null, tid: '' })
+  // Sverre 5. sep («finner ikke knapp for å legge eksisterende skyting inn i
+  // pulskurven»): kjeden gir ALLE rader vindu etter første endring, så
+  // «uplassert» fantes nesten aldri. Lista viser nå alle skyterader — med
+  // tida de står på — og plassering flytter raden dit man klikker/skriver.
   const uplasserteSkytinger = skytingRader
-    .map((rad, i) => ({ rad, navn: `Skyting ${i + 1} ${skytePosisjonKort(rad)}` }))
-    .filter(x => x.rad.window_start_seconds == null)
+    .map((rad, i) => ({ rad, navn: `Skyting ${i + 1} ${skytePosisjonKort(rad)}${rad.window_start_seconds != null ? ` · ${fmtKlokkeSek(rad.window_start_seconds)}` : ''}` }))
   const settPulsIVindu = (r: ActivityRow, start: number, sek: number) => {
     // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på skytingen
     // automatisk (pulsen i vinduet — samme tall som båndet viser).
@@ -210,7 +217,7 @@ export function OktbyggerPopup({
   const plasserSkyterad = (rad: ActivityRow, s: number) => {
     // Skyting regnes i sekunder (aldri «45» = 45 min) og begrenses til 10 min.
     const sek = Math.max(MIN_RAD_SEK, radVarighetSek(rad) || 60)
-    const ny = { ...rad, window_start_seconds: s, window_duration_seconds: sek }
+    const ny = medSerie({ ...rad, window_start_seconds: s, window_duration_seconds: sek })
     settPulsIVindu(ny, s, sek)
     endre(rader.map(r => (r.id === rad.id ? ny : r)))
     setValgtRad(rad.id)
@@ -284,7 +291,7 @@ export function OktbyggerPopup({
       if (eksisterende) {
         plasserSkyterad(eksisterende, s)
       } else {
-        const rad = nyAktivitetsrad(type, '')
+        const rad = medSerie(nyAktivitetsrad(type, ''))
         rad.duration = '1:00'
         rad.window_start_seconds = s
         rad.window_duration_seconds = 60
@@ -385,6 +392,8 @@ export function OktbyggerPopup({
                 🎯 Plott treff
               </button>
             )}
+            {/* Sverre 5. sep: «Ferdig» høyt oppe — også når hurtigoppsettet er skjult. */}
+            <button type="button" onClick={onClose} data-ferdig-topp className="xp-pill xp-pill-primary" style={{ minHeight: 34, padding: '4px 14px' }}>Ferdig</button>
             <button type="button" onClick={onClose} aria-label="Lukk"
               style={{ background: 'none', border: 'none', color: 'var(--tekst-5-app)', fontSize: 20, cursor: 'pointer', minWidth: 36, minHeight: 36 }}>
               ×
@@ -606,10 +615,10 @@ export function OktbyggerPopup({
                 sport={sport ?? null}
                 totalSek={totalSek}
                 punkter={[
-                  ...laktat.map(l => ({ id: l.id, slag: 'laktat' as const, sek: laktatSek(l), planlagt: false })),
-                  ...ernaering.map(n => ({ id: n.id, slag: 'ernaering' as const, sek: n.time_offset_minutes.trim() ? (parseInt(n.time_offset_minutes) || 0) * 60 : null, planlagt: false })),
-                  ...punkter.map(p => ({ id: p.id, slag: p.type, sek: p.sek, planlagt: p.planlagt })),
-                  ...(visPlan ? planPunkter.map(p => ({ id: `pl-${p.id}`, slag: p.type, sek: p.sek, planlagt: true })) : []),
+                  ...laktat.map(l => ({ id: l.id, slag: 'laktat' as const, sek: laktatSek(l), planlagt: false, tittel: String(l.mmol ?? '').trim() ? `${String(l.mmol).replace('.', ',')} mmol` : 'fyll inn' })),
+                  ...ernaering.map(n => ({ id: n.id, slag: 'ernaering' as const, sek: n.time_offset_minutes.trim() ? (parseInt(n.time_offset_minutes) || 0) * 60 : null, planlagt: false, tittel: String(n.carbs_g ?? '').trim() ? `${n.carbs_g} g` : (n.nutrition_type || 'fyll inn') })),
+                  ...punkter.map(p => ({ id: p.id, slag: p.type, sek: p.sek, planlagt: p.planlagt, tittel: p.tekst.trim() || (p.type === 'ernaering' && p.ernaering?.karbo_g ? `${p.ernaering.karbo_g} g` : PUNKT_SLAG[p.type].navn) })),
+                  ...(visPlan ? planPunkter.map(p => ({ id: `pl-${p.id}`, slag: p.type, sek: p.sek, planlagt: true, tittel: `${p.tekst?.trim() || PUNKT_SLAG[p.type].navn} · plan` })) : []),
                 ]}
                 planBlokker={visPlan ? planBlokker : []}
                 visning={visning}
@@ -621,7 +630,7 @@ export function OktbyggerPopup({
 
               {/* BOLK 23: utfyllingsfeltene for det valgte punktet — rett under grafen. */}
               {valgtPunkt && (
-                <PunktPanel valgt={valgtPunkt} punkter={punkter} laktat={laktat} ernaering={ernaering} rader={rader} totalSek={totalSek}
+                <PunktPanel valgt={valgtPunkt} punkter={punkter} laktat={laktat} ernaering={ernaering} rader={rader} totalSek={totalSek} erPlanlagt={erPlanlagt}
                   onLukk={() => setValgtPunkt(null)}
                   onEndrePunkt={endrePunkt} onFjernPunkt={fjernPunkt}
                   onLaktat={onLaktat} settLaktatSek={settLaktatSek} laktatSek={laktatSek}
@@ -638,6 +647,7 @@ export function OktbyggerPopup({
                   if (!rad) return null
                   return (
                     <Rad key={u.id}
+                      onPaaPuls={u.type.startsWith('skyting') ? () => { const r = rader.find(x => x.id === u.id); if (r) velgSkytingForPlassering(r) } : undefined}
                       u={u}
                       alle={plassering}
                       valgt={valgtRad === u.id}
@@ -768,7 +778,7 @@ export const KURVE_FARGER = {
 
 type KurveValg = keyof typeof KURVE_FARGER
 
-interface Punkt { id: string; slag: PunktSlag; sek: number | null; planlagt: boolean }
+interface Punkt { id: string; slag: PunktSlag; sek: number | null; planlagt: boolean; /** pilla over kurven: verdi eller «fyll inn» */ tittel?: string }
 
 export type BaandModus = 'kutt' | 'startHer' | 'punkt' | null
 
@@ -919,14 +929,24 @@ function KurveMedRader({
         if (p.sek == null) return null
         const y = paaKurve ? h.yPctForSerie(kurve, p.sek) : '18%'
         return (
-          <span key={p.id} data-bygger-punkt={p.slag} data-planlagt={p.planlagt || undefined} style={{
-            position: 'absolute', left: h.pct(p.sek), top: y, transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none', zIndex: 5, lineHeight: 0,
-          }}>
-            <PunktMerke slag={p.slag} planlagt={p.planlagt} storrelse={12} />
+          <span key={p.id} aria-hidden>
+            {/* Sverre 5. sep: stiplet pekelinje fra pilla ned til punktet — som på øktgrafen. */}
+            <span style={{ position: 'absolute', left: h.pct(p.sek), top: 0, height: y, width: 0, borderLeft: `1px dashed ${PUNKT_SLAG[p.slag].farge}`, opacity: 0.7, pointerEvents: 'none', zIndex: 4 }} />
+            <span data-bygger-punkt={p.slag} data-planlagt={p.planlagt || undefined} style={{
+              position: 'absolute', left: h.pct(p.sek), top: y, transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none', zIndex: 5, lineHeight: 0,
+            }}>
+              <PunktMerke slag={p.slag} planlagt={p.planlagt} storrelse={12} />
+            </span>
           </span>
         )
       })}
+      {/* Skytingene: stiplet linje + 🎯 på kurven (pilla over bærer L/S og treff). */}
+      {utkast.filter(u => u.type.startsWith('skyting')).map(u => (
+        <span key={`sky-${u.id}`} aria-hidden>
+          <span style={{ position: 'absolute', left: h.pct(u.startSek), top: 0, bottom: 22, width: 0, borderLeft: '1px dashed var(--tekst-1-app)', opacity: 0.5, pointerEvents: 'none', zIndex: 4 }} />
+        </span>
+      ))}
     </div>
   )
 
@@ -982,8 +1002,25 @@ function KurveMedRader({
   }
 
   const valgt = utkast.find(u => u.id === valgtRad) ?? null
+  // Sverre 5. sep: pillene over kurven (🩸 2,8 · 🍌 40 g · 🎯 L 5/5) med
+  // stiplet strek ned — samme komponent som øktgrafen. Verdien når den er
+  // ført, «fyll inn» ellers.
+  const pillePunkter = [
+    ...punkter.filter(p => p.sek != null).map(p => ({ id: p.id, slag: p.slag, t: p.sek as number, tittel: p.tittel ?? PUNKT_SLAG[p.slag].navn, farge: PUNKT_SLAG[p.slag].farge, planlagt: p.planlagt })),
+    ...utkast.filter(u => u.type.startsWith('skyting')).map(u => {
+      const r = rader.find(x => x.id === u.id)
+      return { id: `sky-${u.id}`, slag: 'skyting' as const, t: u.startSek, tittel: skyteTittel(r, u.type), farge: PUNKT_SLAG.skyting.farge, planlagt: false }
+    }),
+  ]
+  const segmentVed = (sek: number): Segment | null => {
+    const u = utkast.find(x => sek >= x.startSek && sek < x.startSek + x.varighetSek)
+    return u ? ({ etikett: etikettFor(u, utkast) } as unknown as Segment) : null
+  }
   return (
     <div>
+      {pillePunkter.length > 0 && (
+        <PunktEtiketter punkter={pillePunkter} synlig={[vindu?.[0] ?? 0, vindu?.[1] ?? totalSek]} segmentVed={segmentVed} />
+      )}
       <OktKurve
         serier={kurveSerier}
         paaIds={kurveSerier.filter(x => x.id === kurve || x.somAreal).map(x => x.id)}
@@ -1038,7 +1075,8 @@ function skytePosisjonKort(r: ActivityRow): string {
   return L && S ? 'L+S' : L ? 'L' : S ? 'S' : '· velg L/S'
 }
 
-function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk, onEndrePunkt, onFjernPunkt, onLaktat, settLaktatSek, laktatSek, onErnaering, settErnaeringMin, onEndreRad }: {
+function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk, onEndrePunkt, onFjernPunkt, onLaktat, settLaktatSek, laktatSek, onErnaering, settErnaeringMin, onEndreRad, erPlanlagt = false }: {
+  erPlanlagt?: boolean
   valgt: { slag: 'notat' | 'laktat' | 'ernaering' | 'skyting'; id: string }
   punkter: TidspunktNotat[]
   laktat: LactateRow[]
@@ -1107,18 +1145,58 @@ function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk
       </div></div>
   }
   const rad = rader.find(x => x.id === valgt.id); if (!rad) return null
-  return <SkytingPunktPanel rad={rad} onEndre={patch => onEndreRad(rad.id, patch)} onLukk={onLukk} />
+  return <SkytingPunktPanel rad={rad} onEndre={patch => onEndreRad(rad.id, patch)} onLukk={onLukk} planMode={erPlanlagt} />
 }
 
 // ── BOLK 23: skytepunktets felt rett under grafen ───────────────────
-function SkytingPunktPanel({ rad, onEndre, onLukk }: {
+const SKYTETYPER: Array<{ value: ActivityRow['shooting_type']; label: string }> = [
+  { value: '', label: 'Type …' },
+  { value: 'basisskyting', label: 'Basisskyting' },
+  { value: 'rolig_komb', label: 'Rolig komb' },
+  { value: 'hard_komb', label: 'Hard komb' },
+  { value: 'hurtighet_komb', label: 'Hurtighet komb' },
+  { value: 'torrtrening', label: 'Tørrtrening' },
+]
+
+/** Sverre 5. sep: en skyterad som plasseres på kurven får én serie (L/S fra
+    typen, 5 skudd) så seriefeltet står klart i panelet. */
+function medSerie(rad: ActivityRow): ActivityRow {
+  if ((rad.shooting_series ?? []).length > 0) return rad
+  const serie: ShootingSeriesRow = {
+    id: crypto.randomUUID(), position: rad.activity_type === 'skyting_staaende' ? 'S' : 'L',
+    shots: '5', hits: '', time_seconds: '', avg_heart_rate: '', max_heart_rate: '',
+    note: '', shot_plot: null, points: '', vind_retning: null, vind_styrke: null, sikt: null,
+  }
+  return { ...rad, shooting_series: [serie] }
+}
+
+/** Pilla over kurven: «L 5/5» fra seriene, ellers radens felt. */
+function skyteTittel(r: ActivityRow | undefined, type: string): string {
+  const pos = type === 'skyting_staaende' ? 'S' : type === 'skyting_liggende' ? 'L' : 'L+S'
+  if (!r) return pos
+  const serier = r.shooting_series ?? []
+  if (serier.length > 0) {
+    const sum = shootingSummary(serier)
+    return sum.recordedShots > 0 ? `${pos} ${sum.recordedHits}/${sum.recordedShots}` : `${pos} fyll inn`
+  }
+  const treff = type === 'skyting_staaende' ? r.standing_hits : r.prone_hits
+  const skudd = type === 'skyting_staaende' ? r.standing_shots : r.prone_shots
+  return String(treff ?? '').trim() ? `${pos} ${treff}/${skudd || '5'}` : `${pos} fyll inn`
+}
+
+function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false }: {
   rad: ActivityRow
   onEndre: (patch: Partial<ActivityRow>) => void
   onLukk: () => void
+  planMode?: boolean
 }) {
   const ligg = rad.activity_type === 'skyting_liggende' || rad.activity_type === 'skyting_kombinert'
   const staa = rad.activity_type === 'skyting_staaende' || rad.activity_type === 'skyting_kombinert'
-  const tom = (ligg && !String(rad.prone_hits ?? '').trim()) || (staa && !String(rad.standing_hits ?? '').trim())
+  // «fyll inn» til treff er ført — i seriene når de finnes, ellers i radens felt.
+  const serier = rad.shooting_series ?? []
+  const tom = serier.length > 0
+    ? shootingSummary(serier).recordedShots === 0
+    : (ligg && !String(rad.prone_hits ?? '').trim()) || (staa && !String(rad.standing_hits ?? '').trim())
   const felt = (k: 'prone_shots' | 'prone_hits' | 'standing_shots' | 'standing_hits', navn: string) => (
     <label key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)' }}>
       {navn}
@@ -1135,9 +1213,19 @@ function SkytingPunktPanel({ rad, onEndre, onLukk }: {
         <button type="button" onClick={onLukk} aria-label="Lukk punktet" style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--tekst-8-alt)', cursor: 'pointer', fontSize: 16 }}>×</button>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
-        {ligg && <>{felt('prone_hits', 'L treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('prone_shots', 'skudd')}</>}
-        {staa && <>{felt('standing_hits', 'S treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('standing_shots', 'skudd')}</>}
+        {/* Sverre 5. sep: skytetypen som liste (sparer plass) … */}
+        <select value={rad.shooting_type ?? ''} onChange={e => onEndre({ shooting_type: e.target.value as ActivityRow['shooting_type'] })} data-skyting-type
+          aria-label="Skytetype"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13, color: 'var(--tekst-1-app)', background: 'var(--flate-12-alt)', border: '1px solid var(--kant-3)', borderRadius: 8, padding: '4px 8px', minHeight: 32 }}>
+          {SKYTETYPER.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+        {ligg && (rad.shooting_series ?? []).length === 0 && <>{felt('prone_hits', 'L treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('prone_shots', 'skudd')}</>}
+        {staa && (rad.shooting_series ?? []).length === 0 && <>{felt('standing_hits', 'S treff')}<span style={{ color: 'var(--tekst-8-alt)' }}>/</span>{felt('standing_shots', 'skudd')}</>}
         {(rad.avg_heart_rate || rad.max_heart_rate) && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-5-app)' }}>puls {rad.avg_heart_rate || '—'} · maks {rad.max_heart_rate || '—'}</span>}
+      </div>
+      {/* Sverre 5. sep: hele seriefeltet (L/S · skudd · treff · tid · puls · maks · + legg til serie) — samme som i aktivitetsraden. */}
+      <div className="mt-2" data-skyting-serier>
+        <SerieListe series={rad.shooting_series ?? []} onChange={next => onEndre({ shooting_series: next })} planMode={planMode} showPoints={false} />
       </div>
     </div>
   )
@@ -1298,8 +1386,10 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar, k
 
 function Rad({
   u, alle, valgt, hr, userHasBiathlon, harNabo,
-  onVelg, onStart, onVarighet, onType, onNavn, onDel, onSlaaSammen, onSlett,
+  onVelg, onStart, onVarighet, onType, onNavn, onDel, onSlaaSammen, onSlett, onPaaPuls,
 }: {
+  /** Skyterad: start plassering på pulskurven (Sverre 5. sep). */
+  onPaaPuls?: () => void
   u: Utkast
   alle: Utkast[]
   valgt: boolean
@@ -1373,6 +1463,11 @@ function Rad({
           </button>
           {harNabo && (
             <button type="button" style={knapp} onClick={onSlaaSammen}>Slå sammen med neste</button>
+          )}
+          {onPaaPuls && (
+            <button type="button" style={knapp} onClick={onPaaPuls} data-rad-paa-puls title="Klikk på kurven der skytingen skal ligge, eller skriv tid">
+              🎯 → puls
+            </button>
           )}
           <button type="button" style={{ ...knapp, color: '#E23A5A', borderColor: '#E23A5A55' }} onClick={onSlett}>
             Slett

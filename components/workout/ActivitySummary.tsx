@@ -1,6 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
+import { klokkeslettTilSek } from '@/lib/oktbygger-rader'
+import type { LactateRow, NutritionEntryRow } from '@/lib/types'
+import type { LactateMarker, NutritionMarker } from './WorkoutDetailChart'
 import { ActivityRow, Sport, findActivityType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
 import {
   ALL_ZONE_NAMES,
@@ -44,6 +47,11 @@ interface Props {
   onForventet?: (v: number | null) => void
   /** Punktene fra skjemaet (bolk 8) — live i begge grafene. */
   tidspunktNotater?: TidspunktNotat[]
+  /** Sverre 5. sep: skjemaets laktat-/ernæringsrader (også ulagrede) styrer
+      markørene på oppsummeringsgrafen — basen alene henger etter. */
+  laktatRader?: LactateRow[]
+  ernaeringRader?: NutritionEntryRow[]
+  timeOfDay?: string | null
   /** Plan: grafen er øktkartet, og belastningscellen er «forventet». */
   erPlanlagt?: boolean
 }
@@ -53,7 +61,32 @@ interface Props {
 import { ZONE_COLORS_V2 as ZONE_COLORS } from '@/lib/activity-summary'
 
 
-export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
+
+/** Skjemaets laktatrader → markører (sekunder fra øktstart; bare førte verdier). */
+function laktatFraSkjema(rader: LactateRow[], timeOfDay: string | null | undefined): LactateMarker[] {
+  const start = klokkeslettTilSek(timeOfDay)
+  const ut: LactateMarker[] = []
+  for (const l of rader) {
+    if (!l.measured_at_time) continue
+    const mmol = Number(String(l.mmol ?? '').replace(',', '.'))
+    if (!Number.isFinite(mmol)) continue
+    const t = klokkeslettTilSek(l.measured_at_time) - start
+    if (t >= 0) ut.push({ t, mmol })
+  }
+  return ut
+}
+function ernaeringFraSkjema(rader: NutritionEntryRow[]): NutritionMarker[] {
+  const ut: NutritionMarker[] = []
+  for (const n of rader) {
+    const min = Number(n.time_offset_minutes)
+    if (n.time_offset_minutes === '' || !Number.isFinite(min)) continue
+    const karbo = Number(String(n.carbs_g ?? '').replace(',', '.'))
+    ut.push({ t: min * 60, type: n.nutrition_type || 'gel', carbs_g: Number.isFinite(karbo) && String(n.carbs_g ?? '') !== '' ? karbo : null })
+  }
+  return ut
+}
+
+export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activities, heartZones, sport, defaultPaceUnit = null, klokke = null, rpe = null, onRpe, forventet = null, onForventet, tidspunktNotater = [], erPlanlagt = false }: Props) {
   const summary = useMemo(() => {
     let totalSeconds = 0     // ren treningstid — ekskl. pauser OG skyting
     let shootingSeconds = 0  // skyting (alle typer + tørrtrening) som egen kategori
@@ -266,8 +299,8 @@ export function ActivitySummary({ activities, heartZones, sport, defaultPaceUnit
             sport={klokke.data.sport}
             samples={klokke.data.samples}
             laps={klokke.data.lapMarkers}
-            lactate={klokke.data.lactate}
-            nutrition={klokke.data.nutrition}
+            lactate={laktatRader ? laktatFraSkjema(laktatRader, timeOfDay) : klokke.data.lactate}
+            nutrition={ernaeringRader ? ernaeringFraSkjema(ernaeringRader) : klokke.data.nutrition}
             shooting={klokke.data.shooting}
             segmenter={klokke.segmenter}
             heartZones={heartZones}

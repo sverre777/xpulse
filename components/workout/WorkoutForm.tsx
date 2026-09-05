@@ -1453,6 +1453,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
             onForventet={v => set('forventet_belastning', v)}
             tidspunktNotater={form.tidspunkt_notater ?? []}
             erPlanlagt={isPlanMode}
+            laktatRader={form.lactate}
+            ernaeringRader={form.nutrition_entries}
+            timeOfDay={form.time_of_day}
           />
         </div>
       )}

@@ -86,6 +86,9 @@ interface Props {
   /** 'full' = øktas hovedside (med nøkkeltallsrad). 'skjema' = i
       oppsummeringskortet i skjemaet — der eier kortet nøkkeltallsraden. */
   tetthet?: 'full' | 'skjema'
+  /** Bolk 21: på Oversikt tegnes punktene som IKON uten etikett-tekst
+      (tooltip ved hover/trykk) — samme markører som på øktsiden, mindre. */
+  punktStil?: 'etikett' | 'ikon'
   heartZones?: HeartZone[]
   /** Opplevd belastning (workouts.rpe) og skriveren — samme felt som
       skjemaet fører lenger nede. Uten onRpe er cellen ren lesing. */
@@ -145,7 +148,7 @@ interface Props {
 export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
-  height = 300, tetthet = 'full', heartZones = [], rpe = null, onRpe, np = null,
+  height = 300, tetthet = 'full', punktStil = 'etikett', heartZones = [], rpe = null, onRpe, np = null,
   planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
   ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km', sonerRader = [], rader = [],
 }: Props) {
@@ -463,7 +466,7 @@ export function WorkoutDetailChart({
           )}
           <PlanGraf blokker={faktiskInn} heartZones={heartZones} tetthet="full" totalSek={aksSek}
             spokelser={visPlan && oppsett === 'bak' ? planBlokker : []}
-            punkter={grafPunkter} kilde="faktisk"
+            punkter={grafPunkter} kilde="faktisk" punktStil={punktStil}
             runder={visRunder ? laps.slice(1).map(l => l.t_start) : []} />
         </div>
       )}
@@ -475,7 +478,7 @@ export function WorkoutDetailChart({
           punkter={visPunkter ? punkter : []}
           synlig={synlig}
           segmentVed={segmentVed}
-        />
+          stil={punktStil} />
       )}
 
       {visKurve && <OktKurve
@@ -523,7 +526,7 @@ export function WorkoutDetailChart({
                   letterSpacing: '0.08em', textTransform: 'uppercase',
                   color: SEGMENT_FARGER[sg.type],
                 }}>
-                  {sg.etikett}{sg.treff ? ` ${sg.treff}` : ''}
+                  {punktStil === 'ikon' ? '🎯' : `${sg.etikett}${sg.treff ? ` ${sg.treff}` : ''}`}
                 </span>
               </span>
             ))}
@@ -930,10 +933,12 @@ const ETIKETT_BREDDE_PCT = 13   // anslått bredde på en etikett, i % av flata
 const NIVAA_HOYDE = 30
 const MAKS_NIVAAER = 3
 
-function PunktEtiketter({ punkter, synlig, segmentVed }: {
+function PunktEtiketter({ punkter, synlig, segmentVed, stil = 'etikett' }: {
   punkter: Punkt[]
   synlig: [number, number]
   segmentVed: (t: number) => Segment | null
+  /** Bolk 21: 'ikon' = bare ikonet, verdi + kontekst i tooltip (oversikten). */
+  stil?: 'etikett' | 'ikon'
 }) {
   const [utfoldet, setUtfoldet] = useState<string | null>(null)
   const [fra, til] = synlig
@@ -963,7 +968,8 @@ function PunktEtiketter({ punkter, synlig, segmentVed }: {
     return { ...kl, nivaa }
   })
   const antallNivaaer = plassert.length ? Math.max(...plassert.map(p => p.nivaa + 1)) : 1
-  const hoyde = antallNivaaer * NIVAA_HOYDE + 4
+  const ikon = stil === 'ikon'
+  const hoyde = ikon ? 18 : antallNivaaer * NIVAA_HOYDE + 4
 
   return (
     <div data-punktetiketter style={{ position: 'relative', height: hoyde, marginBottom: 2 }}>
@@ -975,6 +981,21 @@ function PunktEtiketter({ punkter, synlig, segmentVed }: {
         const kontekst = en
           ? `${seg ? `${seg.etikett.toLowerCase()} · ` : ''}${fmtKlokkeSek(en.t)}`
           : `${fmtKlokkeSek(kl.punkter[0].t)}–${fmtKlokkeSek(kl.punkter[kl.punkter.length - 1].t)}`
+        if (ikon) {
+          // Bolk 21: samme markør, mindre, uten etikett-tekst — tooltip bærer
+          // navn · verdi · kontekst (hover/trykk).
+          const tips = en
+            ? `${PUNKT_SLAG[en.slag].navn} · ${en.tittel}${en.planlagt ? ' · plan' : ''} · ${kontekst}`
+            : `${kl.punkter.length} punkter · ${kontekst}`
+          return (
+            <div key={kl.id} style={{ position: 'absolute', left: `${Math.max(0, Math.min(100, kl.x))}%`, top: 0 }}>
+              <span data-punkt-pille={en?.slag ?? 'klynge'} data-punkt-stil="ikon" data-planlagt={en?.planlagt || undefined} title={tips}
+                style={{ display: 'inline-block', transform: 'translateX(-50%)', fontSize: 12, lineHeight: '16px', color: farge, opacity: en?.planlagt ? 0.7 : 1, cursor: 'help' }}>
+                {en ? PUNKT_SLAG[en.slag].ikon : `${kl.punkter.length}×`}
+              </span>
+            </div>
+          )
+        }
         const innhold = (
           <>
             {/* PILLE (fasit v6): ikon + verdi, kant i punktets farge, stiplet pekelinje ned. */}

@@ -33,6 +33,8 @@ interface Props {
   /** I skjemaet står grafen i oppsummeringskortet — her bare rundetabellen
       og den dypere analysen. */
   visGraf?: boolean
+  /** Bolk 21: Oversikt → 'ikon' (markører uten etikett-tekst). */
+  punktStil?: 'etikett' | 'ikon'
 }
 
 function KlokkedataLaster() {
@@ -74,7 +76,7 @@ function KlokkedataLaster() {
   )
 }
 
-export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger }: Props) {
+export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick = 0, klokke, visGraf = true, handlinger, punktStil }: Props) {
   // Henter selv bare når ingen deler dataene med oss (øktas hovedside).
   const egen = useKlokkedata(klokke ? null : workoutId, refreshTick)
   const state = klokke ?? egen
@@ -208,6 +210,7 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           sonerRader={data.sonerRader}
           rader={data.rader}
           flate="hovedside"
+          punktStil={punktStil}
           rpe={data.rpe}
           onRpe={settRpe}
           forventetRpe={data.forventet}

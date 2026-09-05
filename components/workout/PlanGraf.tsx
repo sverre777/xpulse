@@ -27,10 +27,13 @@ const BUNN_FULL = 20
 // Etikettbredde i viewBox-enheter: ~6,2 per tegn i 12 px Barlow Condensed.
 const TEGN_BREDDE = 6.2
 
-export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [], onKlikkSek, onVelgBlokk, valgtId = null }: {
+export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyde, punkter = [], totalSek, spokelser = [], kilde = 'plan', runder = [], onKlikkSek, onVelgBlokk, valgtId = null, punktStil = 'etikett' }: {
   blokker: PlanBlokkInn[]
   heartZones?: HeartZone[]
   tetthet?: 'full' | 'kompakt'
+  /** Bolk 21: 'ikon' = punktene (og skytingene 🎯) som ikon uten
+      etikett-tekst, med tooltip — oversiktens kompakte kart. */
+  punktStil?: 'etikett' | 'ikon'
   /** Kompakt: pikselhøyde på kortet. */
   hoyde?: number
   /** Punktene (bolk 8): planlagte hule, førte fylte — markør på blokka,
@@ -103,7 +106,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const tekst = `${g.antall} × ${kmM ?? fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}${kortM ? ` · ${kortM}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
-      for (const pk of punkter) {
+      for (const pk of (punktStil === 'ikon' ? [] : punkter)) {
         if (pk.sek < 0 || pk.sek > total) continue
         items.push({ id: `p-${pk.id}`, cx: x(pk.sek), bredde: (pk.tittel.length + 2) * TEGN_BREDDE + 8, slag: 'punkt', trang: false, nivaa: 0 })
       }
@@ -289,6 +292,14 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
               </g>
             )
           })}
+          {/* Bolk 21: på oversikten (ikon-stil) får skyteblokkene 🎯 L/S over
+              seg — kun ikon, stillingen og treffene i tooltip. */}
+          {punktStil === 'ikon' && blokker.filter(b => b.slag === 'skyting_ligg' || b.slag === 'skyting_staa').map(b => (
+            <g key={`ki-${b.id}`} data-skytemarkor data-punkt-stil="ikon">
+              <title>{b.etikett}</title>
+              <text x={x(b.startSek + b.sek / 2)} y={gulv - plot * (b.hoyde ?? 0.36) - 8} textAnchor="middle" style={{ font: '11px sans-serif' }}>🎯</text>
+            </g>
+          ))}
           {/* Punktene (bolk 8): markør på blokka, etikett med pekelinje. Planlagte
               er hule/stiplete, førte fylte — samme former som på klokke-grafen. */}
           {punkter.map(pk => {
@@ -296,6 +307,15 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
             const cx = x(pk.sek)
             const b = blokker.find(bl => pk.sek >= bl.startSek && pk.sek < bl.startSek + bl.sek) ?? blokker[blokker.length - 1]
             const cy = gulv - plot * (b?.hoyde ?? 0.36)
+            if (punktStil === 'ikon') {
+              // Bolk 21: bare ikonet, verdien i tooltip (hover/trykk).
+              return (
+                <g key={`p-${pk.id}`} data-graf-punkt={pk.slag} data-punkt-stil="ikon" data-planlagt={pk.planlagt || undefined}>
+                  <title>{PUNKT_SLAG[pk.slag].navn} · {pk.tittel}{pk.planlagt ? ' · plan' : ''}</title>
+                  <text x={cx} y={cy - 8} textAnchor="middle" style={{ font: '11px sans-serif', opacity: pk.planlagt ? 0.6 : 1 }}>{PUNKT_SLAG[pk.slag].ikon}</text>
+                </g>
+              )
+            }
             const nv = etiketter.nivaaFor(`p-${pk.id}`) * NIVAA_H
             const farge = PUNKT_SLAG[pk.slag].farge
             const fyll = pk.planlagt ? 'none' : farge

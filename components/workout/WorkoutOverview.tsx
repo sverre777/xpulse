@@ -30,7 +30,8 @@ import { PlanVsActualComparison } from './PlanVsActualComparison'
 import { OktbyggerInngang } from './Oktbygger'
 import { SamletBryter } from './SamletBryter'
 import { PlanGraf, planNokkeltallCeller, Nokkeltall } from './PlanGraf'
-import { fraTidspunktNotater } from './Punkt'
+import { fraTidspunktNotater, type GrafPunkt } from './Punkt'
+import { klokkeslettTilSek } from '@/lib/oktbygger-rader'
 import { TrenerChip } from '@/components/coach/TrenerChip'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
@@ -98,6 +99,34 @@ function Card({ title, aux, beamColor = 'var(--accent)', children }: {
       {children}
     </section>
   )
+}
+
+
+/** Bolk 21 (Sverre 5. sep): laktat 🩸, ernæring 🍌 og notatene som
+    ikon-punkter på oversiktens kart (skyting 🎯 tegner kartet selv fra
+    skyteradene). Laktat bor som klokkeslett — sekunder fra øktstart. */
+function oversiktPunkter(
+  notater: Parameters<typeof fraTidspunktNotater>[0],
+  laktat: Array<{ id: string; measured_at_time: string | null; mmol: number | string }> | null | undefined,
+  ernaering: Array<{ id: string; time_offset_minutes?: number | string | null; carbs_g?: number | string | null; custom_label?: string | null; nutrition_type?: string | null }> | null | undefined,
+  timeOfDay: string | null | undefined,
+): GrafPunkt[] {
+  const start = klokkeslettTilSek(timeOfDay)
+  const ut: GrafPunkt[] = fraTidspunktNotater(notater)
+  for (const l of laktat ?? []) {
+    if (!l.measured_at_time || String(l.mmol) === '') continue
+    const sek = klokkeslettTilSek(l.measured_at_time) - start
+    if (sek < 0) continue
+    ut.push({ id: `lac-${l.id}`, sek, slag: 'laktat', planlagt: false, tittel: `${String(l.mmol).replace('.', ',')} mmol` })
+  }
+  for (const n of ernaering ?? []) {
+    if (n.time_offset_minutes == null || n.time_offset_minutes === '') continue
+    const min = Number(n.time_offset_minutes)
+    if (!Number.isFinite(min)) continue
+    const karbo = n.carbs_g != null && String(n.carbs_g) !== '' ? `${n.carbs_g} g karbo` : null
+    ut.push({ id: `nut-${n.id}`, sek: min * 60, slag: 'ernaering', planlagt: false, tittel: karbo ?? (n.custom_label || n.nutrition_type || 'Ernæring') })
+  }
+  return ut.sort((a, b) => a.sek - b.sek)
 }
 
 export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipment, equipmentIds, workoutId, status = 'completed', onMarkCompleted, onStartLive, targetUserId, onDataEndret }: {
@@ -432,7 +461,8 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {!harKlokkeRader && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
-            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" punkter={fraTidspunktNotater(data.tidspunkt_notater)} />
+            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" punktStil="ikon"
+              punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
               rpe={isPlannedView ? forventetVist : rpeVist}
               onRpe={canEdit && workoutId ? (isPlannedView ? settForventet : settRpe) : undefined}
@@ -496,7 +526,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
               <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
-          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick}
+          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} punktStil="ikon"
             handlinger={canEdit ? {
               onOktbygger: () => (onOpenOktbygger ?? onEdit)(),
               onPlottTreff: () => (onOpenOktbygger ?? onEdit)(),

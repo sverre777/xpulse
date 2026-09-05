@@ -1462,21 +1462,25 @@ function SegmentBaand({
         )}
       </div>
 
-      {/* Faste leser-rader for skytevinduene (fasit 1b). */}
+      {/* Faste leser-rader for skytevinduene (fasit 1b) — Sverre 5. sep: som
+          grafisk rad (fargeprikk · stilling · tid · varighet · puls inn · snitt · treff),
+          ikke løpende tekst. */}
       {segmenter.filter(sg => sg.paaKurven).length > 0 && (
-        <div className="mt-1 space-y-0.5"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+        <div className="mt-2" data-skytevinduer style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto auto auto auto', columnGap: 12, rowGap: 4, alignItems: 'center', fontFamily: "'Barlow Condensed', sans-serif", fontSize: 13 }}>
+          {(['', 'Skyting', 'Tid', 'Varighet', 'Puls inn · snitt', 'Treff'] as const).map((h, i) => (
+            <span key={`h-${i}`} style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', textAlign: i >= 2 ? 'right' : 'left' }}>{h}</span>
+          ))}
           {segmenter.filter(sg => sg.paaKurven).map(sg => {
             const puls = pulsIVindu(hr, sg.startSek, sg.sluttSek)
+            const tall: React.CSSProperties = { color: 'var(--tekst-1-app)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', textAlign: 'right', whiteSpace: 'nowrap' }
             return (
-              <div key={`leser-${sg.aktivitetId}`} style={{ color: 'var(--tekst-8-alt)' }}>
-                <span style={{ color: SEGMENT_FARGER[sg.type] }}>{sg.etikett}:</span>{' '}
-                <b style={{ color: 'var(--tekst-5-app)', fontWeight: 600 }}>
-                  {fmtKlokkeSek(sg.startSek)}–{fmtKlokkeSek(sg.sluttSek)}
-                  {puls.inn != null ? ` · puls inn ${puls.inn}` : ''}
-                  {puls.snitt != null ? ` · snitt ${puls.snitt}` : ' · puls: for lite data'}
-                  {sg.treff ? ` · ${sg.treff}` : ''}
-                </b>
+              <div key={`leser-${sg.aktivitetId}`} style={{ display: 'contents' }} data-skytevindu={sg.aktivitetId}>
+                <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: SEGMENT_FARGER[sg.type], display: 'inline-block' }} />
+                <span style={{ color: SEGMENT_FARGER[sg.type], fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 12 }}>{sg.etikett}</span>
+                <span style={tall}>{fmtKlokkeSek(sg.startSek)}–{fmtKlokkeSek(sg.sluttSek)}</span>
+                <span style={{ ...tall, color: 'var(--tekst-5-app)', fontWeight: 500 }}>{fmtKlokkeSek(sg.sluttSek - sg.startSek)}</span>
+                <span style={tall}>{puls.inn != null ? `${puls.inn} · ${puls.snitt ?? '—'}` : puls.snitt != null ? `— · ${puls.snitt}` : <span style={{ color: 'var(--tekst-8-alt)', fontWeight: 400 }}>for lite data</span>}</span>
+                <span style={{ ...tall, color: sg.treff ? 'var(--tekst-1-app)' : 'var(--tekst-8-alt)' }}>{sg.treff ?? '—'}</span>
               </div>
             )
           })}

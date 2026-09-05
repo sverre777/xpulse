@@ -17,8 +17,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   byggBlokker, genererIntervalløkt,
-  type GenerertBlokk, type IntervallKonfig, type SkyteMonster,
-} from '@/lib/intervall-generator'
+  type GenerertBlokk, type IntervallKonfig, type SkyteMonster, SKYTETID_STANDARD_SEK, SKYTETID_MAKS_SEK } from '@/lib/intervall-generator'
 import type { BlokkSone } from '@/lib/okt-template-library'
 import { KORTINTERVALL_HURTIGVALG, antallRepetisjoner, kortintervallEtikett } from '@/lib/intervall-monstre'
 import { foringsSoner } from '@/lib/sonesprak'
@@ -85,6 +84,7 @@ export interface IntervallForhandsutfylling {
   oppvarmingSek: number
   nedjoggSek: number
   skyting: SkyteMonster | null
+  skytetidSek?: number
   /** Malens navn — brukt som tittel i stedet for den genererte. */
   tittel?: string
 }
@@ -124,6 +124,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState('')
   const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
+  // Pkt 16: skytetid inni pausen — standard 45 s, fritt (maks 60 s).
+  const [skytetid, setSkytetid] = useState(() => String(forhandsutfylt?.skytetidSek ?? SKYTETID_STANDARD_SEK))
   const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '20:00')
   const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '15:00')
 
@@ -152,7 +154,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     bevegelsesform: bev,
     underkategori: sub,
     skyting: skyting || null,
-  }), [opp, ned, rader, bev, sub, skyting])
+    skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(skytetid) || SKYTETID_STANDARD_SEK)),
+  }), [opp, ned, rader, bev, sub, skyting, skytetid])
 
   const blokker: GenerertBlokk[] = useMemo(() => byggBlokker(konfig), [konfig])
   const total = blokker.reduce((s, b) => s + b.sek, 0)
@@ -312,12 +315,19 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             {subValg.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
-        <div className="col-span-2">
+        <div className={skyting ? '' : 'col-span-2'}>
           <div style={{ ...CAP, marginBottom: 5 }}>Skyting i pausene</div>
           <select value={skyting} onChange={e => setSkyting(e.target.value as '' | SkyteMonster)} style={FELT}>
             {SKYTEVALG.map(v => <option key={v.verdi} value={v.verdi}>{v.etikett}</option>)}
           </select>
         </div>
+        {skyting && (
+          <div>
+            <div style={{ ...CAP, marginBottom: 5 }}>Skytetid (s, maks 60)</div>
+            <input value={skytetid} onChange={e => setSkytetid(e.target.value)} inputMode="numeric" aria-label="Skytetid i sekunder"
+              data-skytetid style={FELT} />
+          </div>
+        )}
       </div></>}
 
       <div style={{ ...CAP, marginTop: kompakt ? 0 : 16 }}>Drag</div>
@@ -403,7 +413,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
       {!kompakt && <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
         {serier > 0
-          ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd — skytingen erstatter pausen, totaltiden er uendret.`
+          ? `${serier} serier · ${antallL} liggende, ${antallS} stående · ${serier * 5} skudd — skytinga tar ${konfig.skytetidSek} s av pausen, resten er pause; totaltiden er uendret.`
           : 'Pausene blir vanlige aktive pauser.'}
       </p>}
 

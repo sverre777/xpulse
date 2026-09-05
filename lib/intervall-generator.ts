@@ -48,7 +48,14 @@ export interface IntervallKonfig {
   bevegelsesform: string
   underkategori: string
   skyting: SkyteMonster | null
+  /** Pkt 16 (Sverre 4. sep): skytinga er ETT segment på maks 60 s INNI
+      pausen (standard 45 s); resten av pausen ligger som pause etter.
+      Totaltida er fortsatt uendret. */
+  skytetidSek?: number
 }
+
+export const SKYTETID_STANDARD_SEK = 45
+export const SKYTETID_MAKS_SEK = 60
 
 /** Blokk + det ActivityRow trenger utover sone og varighet. */
 export interface GenerertBlokk extends Blokk {
@@ -122,15 +129,18 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
 
       const posisjon = posisjonForPause(konfig.skyting, pauseNr, antallPauser)
       pauseNr++
-      // Skytingen ERSTATTER pausen — samme varighet, kommer ikke i tillegg.
-      // Derfor er total varighet identisk med og uten skyting.
-      blokker.push({
-        sek: rad.pauseSek,
-        sone: 'I1',
-        rolle: 'pause',
-        type: posisjon ? 'skyting_kombinert' : 'aktiv_pause',
-        posisjon,
-      })
+      if (!posisjon) {
+        blokker.push({ sek: rad.pauseSek, sone: 'I1', rolle: 'pause', type: 'aktiv_pause', posisjon: null })
+        continue
+      }
+      // Pkt 16: skytinga tar maks skytetidSek (≤ 60 s) av pausen; RESTEN av
+      // pausen ligger som pause etter skytinga. Totaltida er uendret —
+      // 3 min pause → 45 s skyting + 2:15 pause.
+      const skytetid = Math.min(rad.pauseSek, Math.max(1, Math.min(SKYTETID_MAKS_SEK, konfig.skytetidSek ?? SKYTETID_STANDARD_SEK)))
+      blokker.push({ sek: skytetid, sone: 'I1', rolle: 'pause', type: 'skyting_kombinert', posisjon })
+      if (rad.pauseSek - skytetid > 0) {
+        blokker.push({ sek: rad.pauseSek - skytetid, sone: 'I1', rolle: 'pause', type: 'aktiv_pause', posisjon: null })
+      }
     }
   })
 

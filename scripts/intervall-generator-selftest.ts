@@ -105,6 +105,23 @@ console.log('\nTo rader etter hverandre')
     3 * min(4) + 2 * min(1) + min(1) + 2 * min(2) + min(3))
 }
 
+// ── Pkt 16: skytinga tar maks 60 s (standard 45) av pausen, resten er pause ──
+console.log('\nSkyting i pausen = maks 1 min av pausen')
+{
+  const k = grunn({ oppvarmingSek: 0, nedjoggSek: 0, skyting: 'LS', rader: [{ antall: 3, dragSek: min(4), sone: 'I4', pauseSek: min(3) }] })
+  const b = byggBlokker(k)
+  // drag · skyting 45 s · pause 2:15 · drag · skyting · pause · drag = 7 blokker
+  sjekk('3 drag / 2 pauser → 7 blokker (skyting + restpause per pause)', b.length, 7)
+  sjekk('skytinga er 45 s', b[1].sek, 45)
+  sjekk('resten av pausen er pause (2:15)', b[2].sek, min(3) - 45)
+  sjekk('restpausen er aktiv pause, ikke skyting', b[2].type, 'aktiv_pause')
+  sjekk('totaltid uendret', b.reduce((s2, x) => s2 + x.sek, 0), 3 * min(4) + 2 * min(3))
+  const b2 = byggBlokker({ ...k, skytetidSek: 90 })
+  sjekk('skytetid klemmes til 60 s', b2[1].sek, 60)
+  const b3 = byggBlokker({ ...k, rader: [{ antall: 3, dragSek: min(4), sone: 'I4', pauseSek: 30 }] })
+  sjekk('pause kortere enn skytetida → hele pausen er skyting, ingen restpause', b3.length === 5 && b3[1].sek === 30, true)
+}
+
 // ── Skytemønstrene på 8 pauser ──────────────────────────────
 console.log('\nSkytemønstre — 9 drag gir 8 pauser')
 {
@@ -139,19 +156,20 @@ console.log('\nSkytemønstre — 9 drag gir 8 pauser')
 }
 
 // ── Skyting erstatter pausen ────────────────────────────────
-console.log('\nSkyting ERSTATTER pausen')
+console.log('\nSkyting TAR 45 s AV pausen (pkt 16) — resten er pause')
 {
   const uten = genererIntervalløkt(grunn())
   const med = genererIntervalløkt(grunn({ skyting: 'LS' }))
 
-  sjekk('like mange rader', med.length, uten.length)
+  // Hver av de 5 pausene (2 min) blir 45 s skyting + 1:15 pause → 5 rader mer.
+  sjekk('fem rader mer (skyting + restpause per pause)', med.length, uten.length + 5)
   sjekk('TOTAL VARIGHET UENDRET', sumVarighet(med), sumVarighet(uten))
   sjekk('sonetotaler uendret', sumSoner(med), sumSoner(uten))
 
   const aktivePauser = (r: ActivityRow[]) => r.filter(x => x.activity_type === 'aktiv_pause').length
   const skyterader = (r: ActivityRow[]) => r.filter(x => x.shooting_series.length > 0).length
   sjekk('aktive pauser uten skyting', aktivePauser(uten), 5)
-  sjekk('aktive pauser med skyting', aktivePauser(med), 0)
+  sjekk('aktive pauser med skyting = restpausene', aktivePauser(med), 5)
   sjekk('skyterader uten skyting', skyterader(uten), 0)
   sjekk('skyterader med skyting', skyterader(med), 5)
 

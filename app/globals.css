@@ -1090,3 +1090,14 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 .sf17-utstyr-knapp { height: 36px; padding: 0 12px; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; }
 .sf17-utstyr-hjelp { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: .06em; color: var(--tekst-10-alt); }
 .sf17-utstyr-chip { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; }
+
+/* HJEM v2 bolk 1 (fasit design/xpulse-hjem-kort-v2-design.html): to rader med
+   like høye kort. Rad 1 = I dag · Ukens totaler · Neste A-konkurranse.
+   Rad 2 = Helse · Siste hardøkt (1.5fr) · Hovedmål · Periode.
+   ≤1500: rad 2 → 2 kolonner · ≤1100: rad 1 → 2 · ≤620: én. */
+.xp-hjem-r1 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr 1fr; align-items: stretch; }
+.xp-hjem-r2 { display: grid; gap: 16px; grid-template-columns: 1fr 1.5fr 1fr 1fr; align-items: stretch; margin-top: 16px; }
+.xp-hjem-r1 > *, .xp-hjem-r2 > * { min-width: 0; height: 100%; }
+@media (max-width: 1500px) { .xp-hjem-r2 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 1100px) { .xp-hjem-r1 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 620px) { .xp-hjem-r1, .xp-hjem-r2 { grid-template-columns: 1fr; } }

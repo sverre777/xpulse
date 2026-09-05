@@ -6,8 +6,9 @@ import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
 import { NesteOektKort } from '@/components/oversikt/NesteOektKort'
 import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
-import { KonkurranseNedtelling } from '@/components/oversikt/KonkurranseNedtelling'
-import { NoekkelkortGrid } from '@/components/oversikt/NoekkelkortGrid'
+import { KonkurranseNedtelling, IngenAKonkurranse } from '@/components/oversikt/KonkurranseNedtelling'
+import { HardWorkoutCard, MainGoalCard, PhaseCard } from '@/components/oversikt/NoekkelkortGrid'
+import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { KlokkesyncMiniKort } from '@/components/oversikt/KlokkesyncMiniKort'
@@ -98,21 +99,27 @@ export default async function OversiktPage() {
 
         <OversiktHero hero={res.hero} todayState={res.todayState} />
 
-        {/* Tre-kort-rad øverst: Neste økt · Ukens totaler · Neste konkurranse.
-            Stables på <lg. Konkurranse-kortet faller ut hvis ingen er planlagt. */}
-        <div className="grid gap-4 lg:grid-cols-3 mb-6">
+        {/* HJEM v2 bolk 1 (fasit design/xpulse-hjem-kort-v2-design.html):
+            rad 1 = I dag · Ukens totaler · Neste A-konkurranse (plassen er
+            reservert også uten A); rad 2 = Helse · Siste hardøkt (1.5fr) ·
+            Hovedmål · Periode. Like høye kort i raden (.xp-hjem-r1/-r2 i
+            globals.css: ≤1500 rad 2 → 2 kolonner, ≤1100 rad 1 → 2, ≤620 → 1).
+            Innholdet i kortene kommer i bolk 2–8. */}
+        <div className="xp-hjem-r1" data-hjem-rad="1">
           <NesteOektKort next={res.nextWorkout} />
           <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} />
-          {res.competition && <KonkurranseNedtelling comp={res.competition} />}
+          {res.competitions.nesteA
+            ? <KonkurranseNedtelling comp={res.competitions.nesteA} />
+            : res.competitions.neste[0]
+              ? <KonkurranseNedtelling comp={res.competitions.neste[0]} />
+              : <IngenAKonkurranse />}
         </div>
-
-        <NoekkelkortGrid
-          helse={res.helse}
-          lastHardWorkout={res.lastHardWorkout}
-          mainGoal={res.mainGoal}
-          phase={res.phase}
-          phaseStatus={res.phaseStatus}
-        />
+        <div className="xp-hjem-r2 mb-6" data-hjem-rad="2">
+          <KompaktHelseKort forhandsdata={res.helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
+          <HardWorkoutCard w={res.lastHardWorkout} />
+          <MainGoalCard goal={res.mainGoal} />
+          <PhaseCard phase={res.phase} phaseStatus={res.phaseStatus} />
+        </div>
 
         {/* Trener-kort + klokkesync side om side. Om utøver ikke har trener
             vises trener-kortet som koble-knapp (ingen full bredde-fallback —

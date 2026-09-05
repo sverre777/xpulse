@@ -68,7 +68,7 @@ function CardMeta({ children }: { children: React.ReactNode }) {
   )
 }
 
-function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
+export function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
   const [apen, setApen] = useState(false)
   // Tomtilstand (notat pkt 12): kortet skjules ALDRI — et hull ville flyttet
   // paa alt annet i rutenettet. Overskriften staar, og én linje forklarer.
@@ -126,7 +126,7 @@ function HardWorkoutCard({ w }: { w: OversiktWorkoutCard | null }) {
   )
 }
 
-function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
+export function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
   if (!goal) {
     return (
       <Card kicker="Hovedmål" accent="#FF4500" href="/app/periodisering">
@@ -170,7 +170,7 @@ function MainGoalCard({ goal }: { goal: OversiktMainGoal | null }) {
   )
 }
 
-function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseStatus: OversiktPhaseStatus }) {
+export function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseStatus: OversiktPhaseStatus }) {
   if (!phase) {
     const meta =
       phaseStatus === 'no_season'   ? 'Opprett en sesong i Årsplan.'

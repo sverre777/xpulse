@@ -13,6 +13,33 @@ function fmtLongDate(iso: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
+/** HJEM v2 bolk 1: plassen for Neste A-konkurranse er RESERVERT også uten
+    A — dempet kort med «Sett A-konkurranse». Bolk 6 fyller det med B/C-toppen. */
+export function IngenAKonkurranse() {
+  const gold = '#D4A017'
+  return (
+    <section className="p-5 h-full flex flex-col" data-ingen-a
+      style={{ backgroundColor: 'var(--card)', border: '1px dashed var(--line2)', borderLeft: `3px solid ${gold}66`, borderRadius: 16 }}>
+      <div className="flex items-center gap-3 mb-3">
+        <span style={{ width: '16px', height: '2px', backgroundColor: gold, display: 'inline-block', opacity: 0.6 }} />
+        <span className="text-xs tracking-widest uppercase" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: gold, opacity: 0.8 }}>
+          Neste A-konkurranse
+        </span>
+      </div>
+      <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 15, color: 'var(--tekst-5-app)', margin: 0 }}>
+        Ingen A-konkurranse i årsplanen ennå.
+      </p>
+      <div className="mt-auto pt-4">
+        <Link href="/app/periodisering"
+          className="inline-block px-3 py-1 text-xs tracking-widest uppercase hover:opacity-90"
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", color: gold, border: `1px solid ${gold}88`, textDecoration: 'none', opacity: 0.85 }}>
+          Sett A-konkurranse →
+        </Link>
+      </div>
+    </section>
+  )
+}
+
 export function KonkurranseNedtelling({ comp }: { comp: OversiktCompetition }) {
   const gold = '#D4A017'
   const sport = sportLabel(comp.sport)

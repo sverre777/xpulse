@@ -11,7 +11,7 @@ import { FallbackStripe, formatTimer } from './SovnGrafikk'
 // samme data-action som resten av helseflaten (regel 11, aldri kopier).
 // Brukes på hjem-skjermen og ved dag-klikk i kalenderen.
 
-export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsdata }: {
+export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsdata, tillegg, fot }: {
   targetUserId?: string
   /** Dag-klikk: fliser og popup ankres til denne dagen. Uten = i dag. */
   sluttDato?: string
@@ -20,6 +20,11 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
   tomTekst?: string
   /** Ferdig hentet 30-dagers data (server-prefetch) — hopper over egen henting. */
   forhandsdata?: HelseOversiktData
+  /** HJEM v2 bolk 8: innhold under flisene (HRV/hvilepuls-grafen) og en fot
+      (Logg helse · Vis mer) — begge får dataene. Utenfor kort-knappen, så
+      klikk i dem ikke åpner helseoversikten. */
+  tillegg?: (data: HelseOversiktData) => React.ReactNode
+  fot?: (data: HelseOversiktData) => React.ReactNode
 }) {
   const [data, setData] = useState<HelseOversiktData | null>(forhandsdata ?? null)
   const [lastet, setLastet] = useState(!!forhandsdata)
@@ -64,10 +69,10 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
   const folelse = data.dager.find(d => d.date === anker)?.day_form ?? null
 
   return (
-    <>
+    <div data-helse-kort style={tillegg || fot ? { ...ramme, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' } : undefined}>
       <button type="button" onClick={() => setApen(true)}
         className="block w-full text-left transition-opacity hover:opacity-95"
-        style={{ ...ramme, cursor: 'pointer', padding: 0, overflow: 'hidden' }}
+        style={tillegg || fot ? { cursor: 'pointer', padding: 0, background: 'none', border: 'none' } : { ...ramme, cursor: 'pointer', padding: 0, overflow: 'hidden' }}
         title="Åpne hele helseoversikten">
         <div className="flex items-center justify-between" style={{ padding: '14px 18px', borderBottom: '1px solid var(--line)' }}>
           <Tittel kilde={data.kilde.navn} />
@@ -89,6 +94,8 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
           </div>
         )}
       </button>
+      {tillegg && <div style={{ padding: '0 18px' }}>{tillegg(data)}</div>}
+      {fot && <div style={{ padding: '10px 18px 14px', marginTop: 'auto' }}>{fot(data)}</div>}
 
       {apen && (
         <div onClick={() => setApen(false)}
@@ -113,7 +120,7 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

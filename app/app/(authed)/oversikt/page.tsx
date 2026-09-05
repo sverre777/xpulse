@@ -9,7 +9,7 @@ import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
 import { NesteKonkurranseKort } from '@/components/oversikt/NesteKonkurranseKort'
 import { HovedmaalKort } from '@/components/oversikt/HovedmaalKort'
 import { PeriodeKort } from '@/components/oversikt/PeriodeKort'
-import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
+import { HelseKortHjem } from '@/components/oversikt/HelseKortHjem'
 import { SisteHardoktKort } from '@/components/oversikt/SisteHardoktKort'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
@@ -113,7 +113,7 @@ export default async function OversiktPage() {
           <NesteKonkurranseKort nesteA={res.competitions.nesteA} neste={res.competitions.neste} phase={res.phase} />
         </div>
         <div className="xp-hjem-r2 mb-6" data-hjem-rad="2">
-          <KompaktHelseKort forhandsdata={res.helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
+          <HelseKortHjem helse={res.helse} hardDager={res.hardDager} todayISO={res.hero.todayISO} />
           <SisteHardoktKort w={res.lastHardWorkout} klokke={res.klokke.lastHard} />
           <HovedmaalKort goal={res.mainGoal} shotGoal={res.shotGoal} resultGoals={res.resultGoals} todayISO={res.hero.todayISO} />
           <PeriodeKort phase={res.phase} phaseStatus={res.phaseStatus} periods={res.periods} camps={res.camps} todayISO={res.hero.todayISO}

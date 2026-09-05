@@ -775,6 +775,7 @@ function KurveMedRader({
 
   const overlay = (h: KurveHjelpere, paaKurve: boolean) => (
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      {visning === 'begge' && planBlokker.length > 0 && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
       {/* Samlet rettelse 4/5: ingen mørke radfliser oppå kurven lenger —
           blokkene ligger i mellomlaget (BEGGE), valgt rad får bare en ramme. */}
       {(() => {

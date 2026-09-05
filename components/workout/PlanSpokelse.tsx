@@ -35,13 +35,15 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag
   hoyde?: string
   /** Opacity — svakt nok til å ligge bak, sterkt nok til å leses. */
   dempet?: number
-  /** 'plan' = stiplet spøkelse. 'faktisk' = gjennomført-kartets blokker
-      med hel kant, som kurven tegnes OPPÅ når kurven er på (rettelse 12). */
-  slag?: 'plan' | 'faktisk'
+  /** 'plan' = stiplet spøkelse bak. 'faktisk' = gjennomført-kartets blokker
+      med hel kant, som kurven tegnes OPPÅ (rettelse 12). 'omriss' = planens
+      kant OPPÅ blokkene, uten fyll — så planen kan sammenliknes med det
+      faktiske selv der en høyere blokk dekker den (Sverre 5. sep). */
+  slag?: 'plan' | 'faktisk' | 'omriss'
 }) {
   if (blokker.length === 0) return null
   const kant = slag === 'faktisk' ? 'solid' : 'dashed'
-  const attr = slag === 'faktisk' ? { 'data-faktisk-blokker': true } : { 'data-plan-spokelse': true }
+  const attr = slag === 'faktisk' ? { 'data-faktisk-blokker': true } : slag === 'omriss' ? { 'data-plan-omriss': true } : { 'data-plan-spokelse': true }
   return (
     <div {...attr} aria-hidden="true" style={{
       position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, height: hoyde,
@@ -53,7 +55,7 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag
           <div key={b.id} title={b.navn ?? b.type} style={{
             position: 'absolute', left: pct(b.startSek), width: v,
             bottom: 0, height: `${Math.round(f.hoyde * 100)}%`,
-            background: f.farge, opacity: dempet,
+            background: slag === 'omriss' ? 'transparent' : f.farge, opacity: slag === 'omriss' ? 0.9 : dempet,
             borderLeft: `1px ${kant} ${f.farge}`, borderRight: `1px ${kant} ${f.farge}`,
             borderTop: `1px ${kant} ${f.farge}`,
             borderRadius: '3px 3px 0 0',

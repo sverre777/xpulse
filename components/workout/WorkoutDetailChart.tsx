@@ -492,6 +492,8 @@ export function WorkoutDetailChart({
         onKrysshaar={setKrysshaarSek}
         overlay={h => (
           <>
+            {/* Planens omriss oppå blokkene i BEGGE (Sverre 5. sep) — til å sammenlikne. */}
+            {visPlan && visBlokker && <PlanSpokelse blokker={planBlokker} pct={h.pct} slag="omriss" />}
             {/* Testkrok (E2E): synlig vindu og antall punkter — ingen visning. */}
             <span hidden data-kurve-vindu={`${Math.round(h.fraSek)}-${Math.round(h.tilSek)}`} data-antall-punkter={punkter.length} data-vis-punkter={String(visPunkter)} />
 

@@ -184,6 +184,16 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
           </g>
         )
       })}
+      {/* Planens OMRISS oppå blokkene (Sverre 5. sep): planen er der for å
+          sammenliknes — kanten står også der en høyere faktisk blokk dekker. */}
+      {spokelser.map(p => {
+        const f = spokelseFarge(p)
+        const h = plot * f.hoyde
+        return (
+          <rect key={`so-${p.id}`} data-plan-omriss x={x(p.startSek) + 0.75} y={gulv - h} width={Math.max(1, x(p.sluttSek - p.startSek) - 1.5)} height={h}
+            rx={kompakt ? 1 : 3} fill="none" stroke={f.farge} strokeOpacity={0.9} strokeDasharray="3 2" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+        )
+      })}
       {/* Klokkas runder: stiplet strek gjennom plotflata, samme uttrykk som
           rundegrensene på kurven. Aldri en blokk — bare et merke. */}
       {runder.filter(t => t > 0 && t < total).map((t, i) => (

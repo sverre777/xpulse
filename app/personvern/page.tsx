@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { LegalLayout, LegalH2, LegalP, LegalUL, LegalLI } from '@/components/legal/LegalLayout'
 
 export const metadata = {
-  title: 'Personvernerklæring — X-PULSE',
+  title: 'Personvernerklæring - X-PULSE',
   description: 'Hvordan X-PULSE håndterer personopplysninger.',
 }
 
@@ -152,8 +152,8 @@ export default function PersonvernPage() {
       </LegalUL>
       <LegalP><strong>Hva vi IKKE henter:</strong></LegalP>
       <LegalUL>
-        <LegalLI>Vi lagrer ingen personopplysninger fra Polar-profilen din — ikke navn, fødselsdato, kjønn eller vekt</LegalLI>
-        <LegalLI>Søvn og nattlig restitusjon (Nightly Recharge) hentes til helse-loggen hvis du har koblet Polar — se avsnittet om helse- og søvndata for reglene som gjelder disse</LegalLI>
+        <LegalLI>Vi lagrer ingen personopplysninger fra Polar-profilen din - ikke navn, fødselsdato, kjønn eller vekt</LegalLI>
+        <LegalLI>Søvn og nattlig restitusjon (Nightly Recharge) hentes til helse-loggen hvis du har koblet Polar - se avsnittet om helse- og søvndata for reglene som gjelder disse</LegalLI>
       </LegalUL>
       <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
       <LegalUL>
@@ -162,7 +162,7 @@ export default function PersonvernPage() {
         <LegalLI>Polar-data brukes ALDRI til AI/ML-modelltrening</LegalLI>
         <LegalLI>Polar-data deles ALDRI med tredjeparter, advertisers eller data brokers</LegalLI>
         <LegalLI>Polar-data kombineres ALDRI med annen kundedata for aggregat-analyse</LegalLI>
-        <LegalLI>Sonefordeling regnes ut hos oss fra din egen pulsskala — vi bruker ikke Polars soner</LegalLI>
+        <LegalLI>Sonefordeling regnes ut hos oss fra din egen pulsskala - vi bruker ikke Polars soner</LegalLI>
       </LegalUL>
       <LegalP><strong>Lagring og sletting:</strong></LegalP>
       <LegalUL>
@@ -200,16 +200,16 @@ export default function PersonvernPage() {
       <LegalP><strong>Hvilke data som går gjennom Stridee:</strong></LegalP>
       <LegalUL>
         <LegalLI>Aktivitetsfiler: original treningsfil (.fit) fra klokka, med sport, varighet, distanse, puls, fart, kadens og høyde</LegalLI>
-        <LegalLI>Helse-sammendrag fra tilkoblede klokker: søvn (faser, varighet, skår), natt-HRV, hvilepuls, skritt og daglig aktivitet — der klokka leverer det (Garmin og COROS; Wahoo og Zepp leverer kun økter)</LegalLI>
+        <LegalLI>Helse-sammendrag fra tilkoblede klokker: søvn (faser, varighet, skår), natt-HRV, hvilepuls, skritt og daglig aktivitet - der klokka leverer det (Garmin og COROS; Wahoo og Zepp leverer kun økter)</LegalLI>
         <LegalLI>Tilkoblingsstatus: hvilke klokker som er koblet, og om tilgangen må fornyes</LegalLI>
-        <LegalLI>Stridee får ALDRI navnet, e-postadressen eller andre personopplysninger dine fra oss — koblingen skjer med en tilfeldig generert id som ikke kan spores tilbake til deg</LegalLI>
+        <LegalLI>Stridee får ALDRI navnet, e-postadressen eller andre personopplysninger dine fra oss - koblingen skjer med en tilfeldig generert id som ikke kan spores tilbake til deg</LegalLI>
       </LegalUL>
       <LegalP><strong>Hva vi lagrer hos oss:</strong></LegalP>
       <LegalUL>
-        <LegalLI>Mottatte hendelser fra leverandøren, som råmateriale for importen — behandlede hendelser slettes automatisk etter 30 dager</LegalLI>
+        <LegalLI>Mottatte hendelser fra leverandøren, som råmateriale for importen - behandlede hendelser slettes automatisk etter 30 dager</LegalLI>
         <LegalLI>Tilkoblingsstatus per klokke</LegalLI>
         <LegalLI>Importerte økter med full pulskurve, lap-data og sonefordeling (innholdet i originalfila)</LegalLI>
-        <LegalLI>Søvn, HRV, hvilepuls og skritt i helse-loggen — med kilde per verdi, etter reglene i avsnittet om helse- og søvndata</LegalLI>
+        <LegalLI>Søvn, HRV, hvilepuls og skritt i helse-loggen - med kilde per verdi, etter reglene i avsnittet om helse- og søvndata</LegalLI>
       </LegalUL>
       <LegalP><strong>Hvordan vi behandler data:</strong></LegalP>
       <LegalUL>
@@ -220,9 +220,9 @@ export default function PersonvernPage() {
       <LegalP><strong>Lagring, frakobling og sletting:</strong></LegalP>
       <LegalUL>
         <LegalLI>Ved tilkobling hentes rundt 90 dager historikk fra klokkekontoen din</LegalLI>
-        <LegalLI>Frakobling stopper all ny synk. Allerede importerte økter er dine originalfiler og beholdes i dagboka — ingen produsent krever sletting av dem</LegalLI>
+        <LegalLI>Frakobling stopper all ny synk. Allerede importerte økter er dine originalfiler og beholdes i dagboka - ingen produsent krever sletting av dem</LegalLI>
         <LegalLI>Helse- og søvnverdier importert fra et merke slettes når merket kobles fra, i tråd med helse-avsnittet. Verdier du har ført manuelt slettes aldri</LegalLI>
-        <LegalLI>Sletter du X-PULSE-kontoen, slettes alle importerte data sammen med resten av kontoen, og kontoen din hos Stridee avsluttes samtidig. Du kan i tillegg alltid trekke tilgangen tilbake direkte hos klokkeprodusenten (f.eks. i Garmin Connect) — det stopper delingen ved kilden</LegalLI>
+        <LegalLI>Sletter du X-PULSE-kontoen, slettes alle importerte data sammen med resten av kontoen, og kontoen din hos Stridee avsluttes samtidig. Du kan i tillegg alltid trekke tilgangen tilbake direkte hos klokkeprodusenten (f.eks. i Garmin Connect) - det stopper delingen ved kilden</LegalLI>
       </LegalUL>
       <LegalP><strong>Sikkerhet:</strong></LegalP>
       <LegalUL>
@@ -250,7 +250,7 @@ export default function PersonvernPage() {
       </LegalUL>
       <LegalP><strong>Vi henter IKKE:</strong></LegalP>
       <LegalUL>
-        <LegalLI>Kalorier — verken forbrenning, aktivitetskalorier eller BMR. Estimatene spriker for mye mellom merker til å være meningsfulle, og de utelates bevisst</LegalLI>
+        <LegalLI>Kalorier - verken forbrenning, aktivitetskalorier eller BMR. Estimatene spriker for mye mellom merker til å være meningsfulle, og de utelates bevisst</LegalLI>
         <LegalLI>Biosensing som blodoksygen (SpO2), EKG og hudtemperatur</LegalLI>
         <LegalLI>Kart- og posisjonsdata for helse- og søvnmålinger</LegalLI>
         <LegalLI>Personopplysninger fra klokke-profilen din (navn, fødselsdato, kjønn)</LegalLI>

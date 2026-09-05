@@ -38,7 +38,7 @@ export async function generateMetadata(
   const { sport } = await params
   const meta = findFeatureSport(sport)
   const content = getSportPageContent(sport)
-  if (!meta || !content) return { title: 'Funksjon — X-PULSE' }
+  if (!meta || !content) return { title: 'Funksjon - X-PULSE' }
   return buildFeatureMetadata({
     title: meta.seoTitle ?? meta.label,
     description: content.metaDescription,

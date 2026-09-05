@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { LegalLayout, LegalH2, LegalP } from '@/components/legal/LegalLayout'
 
 export const metadata = {
-  title: 'Kontakt — X-PULSE',
+  title: 'Kontakt - X-PULSE',
   description: 'Kontaktinformasjon for X-PULSE og Strava-relaterte spørsmål.',
 }
 
@@ -17,9 +17,9 @@ export default function KontaktPage() {
       <LegalH2>Strava-tilkobling-problemer</LegalH2>
       <LegalP>Hvis du opplever problemer med Strava-tilkoblingen:</LegalP>
       <LegalP>
-        — Sjekk at du har gitt X-PULSE tilgang via OAuth<br />
-        — Sjekk om Strava har endret tilgangsinnstillinger<br />
-        — Kontakt:{' '}
+        - Sjekk at du har gitt X-PULSE tilgang via OAuth<br />
+        - Sjekk om Strava har endret tilgangsinnstillinger<br />
+        - Kontakt:{' '}
         <a href="mailto:support@x-pulse.no?subject=Strava-problem" style={{ color: '#FF4500' }}>
           support@x-pulse.no
         </a>{' '}

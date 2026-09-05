@@ -7,14 +7,14 @@ import {
   groupChangelogByDate,
 } from '@/lib/changelog'
 
-// Offentlig side — må virke utlogget, den lenkes fra hero og fra alle fire
+// Offentlig side - må virke utlogget, den lenkes fra hero og fra alle fire
 // footere. Typografien og bredden er den samme som /vilkar og /personvern,
 // men lagt her framfor i LegalLayout: den layouten skriver «Sist oppdatert»
 // over undertittelen, og her skal det stå et versjonsnummer.
-// Innholdet kommer fra lib/changelog.ts — redaksjonelle regler ligger der.
+// Innholdet kommer fra lib/changelog.ts - redaksjonelle regler ligger der.
 
 export const metadata = {
-  title: 'Hva er nytt — X-PULSE',
+  title: 'Hva er nytt - X-PULSE',
   description: 'De siste funksjonene og forbedringene i X-PULSE.',
 }
 
@@ -22,7 +22,7 @@ const FONT_TITTEL = "'Bebas Neue', sans-serif"
 const FONT_TEKST = "'Barlow Condensed', sans-serif"
 
 export default function NyttPage() {
-  // «Nye ting» (uten version) er alt levert etter gjeldende slipp — egen
+  // «Nye ting» (uten version) er alt levert etter gjeldende slipp - egen
   // seksjon øverst. Versjonsslippet vises alltid i sin helhet under.
   const nyeTing = CHANGELOG.filter(e => !e.version).slice(0, CHANGELOG_VISIBLE)
   const slipp = CHANGELOG.filter(e => e.version === CHANGELOG_VERSION)

@@ -10,7 +10,7 @@ import { ArrowRightIcon } from '@/components/branding/nav-icons'
 
 const REASON_TEXT: Record<Exclude<WaitlistResult, { ok: true }>['reason'], string> = {
   invalid_email: 'Sjekk at e-postadressen er riktig.',
-  already_signed_up: 'Du er allerede på listen — vi sender beskjed når det er klart.',
+  already_signed_up: 'Du er allerede på listen - vi sender beskjed når det er klart.',
   unknown: 'Noe gikk galt. Prøv igjen om en stund.',
 }
 

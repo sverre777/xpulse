@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<script>/* Tema for landingssida. KOPI av reglene i lib/tema.ts — statisk HTML kan
+<script>/* Tema for landingssida. KOPI av reglene i lib/tema.ts - statisk HTML kan
    ikke importere TypeScript. Endres reglene der, MÅ de endres her i samme
    commit. Samme situasjon som sonefargene i globals.css.
    Lysmodus er opt-in til steg 2 er ferdig: FOLG_OS er false. */
@@ -9,27 +9,27 @@
 if(v!=='mork'&&v!=='lys'){v=FOLG_OS&&matchMedia('(prefers-color-scheme: light)').matches?'lys':'mork';}
 document.documentElement.dataset.tema=v;}catch(e){}})()</script>
 <script>/* Interaktiv hero: animasjon er forsterkning, aldri gate. All
-   skjult-fra-start-CSS er gated på html.js — uten JS er alt synlig. */
+   skjult-fra-start-CSS er gated på html.js - uten JS er alt synlig. */
 document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>X-PULSE – Treningsdagbok og planlegger for utholdenhetsutøvere</title>
-<meta name="description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere — langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
+<meta name="description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
 <link rel="canonical" href="https://x-pulse.no/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="X-PULSE">
 <meta property="og:title" content="X-PULSE – Treningsdagbok og planlegger for utholdenhetsutøvere">
-<meta property="og:description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere — langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
+<meta property="og:description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
 <meta property="og:url" content="https://x-pulse.no/">
 <meta property="og:image" content="https://x-pulse.no/x-pulse-icon-1024.png">
 <meta property="og:locale" content="nb_NO">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="X-PULSE – Treningsdagbok og planlegger for utholdenhetsutøvere">
-<meta name="twitter:description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere — langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
+<meta name="twitter:description" content="X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.">
 <meta name="twitter:image" content="https://x-pulse.no/x-pulse-icon-1024.png">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "X-PULSE", "operatingSystem": "Web", "applicationCategory": "HealthApplication", "description": "X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere — langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.", "url": "https://x-pulse.no/", "inLanguage": "nb", "offers": {"@type": "AggregateOffer", "priceCurrency": "NOK", "lowPrice": "59", "highPrice": "999", "offerCount": "7", "description": "Fra 59 kr/mnd. 30 dagers gratis prøve, ingen bindingstid."}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "X-PULSE", "operatingSystem": "Web", "applicationCategory": "HealthApplication", "description": "X-PULSE er treningsdagbok og planlegger for utholdenhetsutøvere - langrenn, skiskyting, langløp, løping, sykling og triatlon. Dyp analyse, klokkesync, styrke og trenerverktøy på ett sted. 30 dagers gratis prøve.", "url": "https://x-pulse.no/", "inLanguage": "nb", "offers": {"@type": "AggregateOffer", "priceCurrency": "NOK", "lowPrice": "59", "highPrice": "999", "offerCount": "7", "description": "Fra 59 kr/mnd. 30 dagers gratis prøve, ingen bindingstid."}}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "X-PULSE", "url": "https://x-pulse.no/", "logo": "https://x-pulse.no/x-pulse-icon-512.png", "email": "support@x-pulse.no", "sameAs": ["https://www.instagram.com/xpulse.no"]}</script>
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Hvordan kobler jeg klokken min?", "acceptedAnswer": {"@type": "Answer", "text": "Koble Garmin, COROS, Wahoo eller Zepp (beta) til med ett klikk — direktesynk er live, i tillegg til Strava og Polar. Du kan også importere .fit-filer direkte (alle klokker, inkl. Suunto). Apple Health kommer — se klokkesync-siden for full liste."}}, {"@type": "Question", "name": "Hva skjer etter prøveperioden?", "acceptedAnswer": {"@type": "Answer", "text": "Du får en e-post 5 dager før prøven utløper. Hvis du ikke sier opp før prøveperioden er ute fortsetter abonnementet automatisk og første belastning skjer dag 31. Sier du opp i prøveperioden mister du ingenting — abonnementet stopper og du beholder tilgang til read-only-historikk i 6 måneder."}}, {"@type": "Question", "name": "Hvor lagres dataene mine?", "acceptedAnswer": {"@type": "Answer", "text": "All trening- og helsedata lagres på Supabase i Frankfurt (EU). Bilde- og loggfiler er kryptert i hvile. Du kan eksportere alt til CSV når som helst og slette kontoen din permanent fra Innstillinger → Personvern."}}, {"@type": "Question", "name": "Kan jeg si opp når som helst?", "acceptedAnswer": {"@type": "Answer", "text": "Ja. Ingen bindingstid — du sier opp i Innstillinger eller via support@x-pulse.no. Tilgangen varer ut betalt periode, ingen pro-rata-avregning."}}, {"@type": "Question", "name": "Får jeg refusjon?", "acceptedAnswer": {"@type": "Answer", "text": "Vi gir full refusjon de første 14 dagene etter første betaling hvis du ombestemmer deg. Send en e-post til support@x-pulse.no så fikser vi det."}}, {"@type": "Question", "name": "Hva er forskjellen på Pro og AI?", "acceptedAnswer": {"@type": "Answer", "text": "Pro gir deg alle verktøyene — plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer snart."}}, {"@type": "Question", "name": "Hvor mange utøvere kan en trener ha?", "acceptedAnswer": {"@type": "Answer", "text": "Trener Basic har en grense på 10 tilkoblede utøvere og ingen inkluderte lisenser; Trener Pro har fritt antall tilkoblede og 5 Athlete Pro-lisenser inkludert. Begge kan kjøpe ekstra utøverplasser for 29 kr/mnd per plass. Treneren deler én invitasjonslenke — utøveren registrerer seg og er i gang uten kort, og ingenting trekkes utøveren. Alle trener-abonnement inkluderer full Athlete Pro-profil for treneren selv, og alle inkluderte lisenser er Athlete Pro (uten AI). AI-tierne (Pro AI 5, Ultimate AI 10) er uendret."}}, {"@type": "Question", "name": "Må jeg betale for egen treningsprofil som trener?", "acceptedAnswer": {"@type": "Answer", "text": "Nei. Både Trener Basic og Trener Pro inkluderer full Athlete Pro — du får din egen komplette treningsdagbok, plan og analyse på kjøpet, uten eget utøver-abonnement."}}, {"@type": "Question", "name": "Når kommer AI-funksjonene?", "acceptedAnswer": {"@type": "Answer", "text": "Snart. Du kan melde deg på varslingslisten for å bli prioritert i beta-tilgangen."}}, {"@type": "Question", "name": "Kan jeg endre plan senere?", "acceptedAnswer": {"@type": "Answer", "text": "Ja — du oppgraderer eller nedgraderer fra Innstillinger → Abonnement. Endringen gjelder fra neste fakturaperiode. Trener-til-utøver-bytting beholder all eksisterende dagbok og plan."}}, {"@type": "Question", "name": "Hvilke klokker støttes?", "acceptedAnswer": {"@type": "Answer", "text": "Direktesynk er live for Garmin, COROS, Wahoo og Zepp (beta), i tillegg til Strava og Polar. .fit-import virker for alle store leverandører — også Suunto. Apple Health kommer. Se klokkesync-siden for full liste."}}, {"@type": "Question", "name": "Hvilke helsedata hentes fra klokka?", "acceptedAnswer": {"@type": "Answer", "text": "Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt — automatisk hver natt fra Garmin, COROS og Polar. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier. Kalorier henter vi bevisst ikke — estimatene spriker for mye mellom merker."}}, {"@type": "Question", "name": "Hvor raskt kan jeg planlegge en økt?", "acceptedAnswer": {"@type": "Answer", "text": "Velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, eller bygg intervalløkta med antall × dragtid × sone / pause — hele strukturen genereres på sekunder, med oppvarming og nedjogg. Alt kan justeres fritt etterpå, og du lagrer dine egne økt-, uke- og planmaler."}}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Hvordan kobler jeg klokken min?", "acceptedAnswer": {"@type": "Answer", "text": "Koble Garmin, COROS, Wahoo eller Zepp (beta) til med ett klikk - direktesynk er live, i tillegg til Strava og Polar. Du kan også importere .fit-filer direkte (alle klokker, inkl. Suunto). Apple Health kommer - se klokkesync-siden for full liste."}}, {"@type": "Question", "name": "Hva skjer etter prøveperioden?", "acceptedAnswer": {"@type": "Answer", "text": "Du får en e-post 5 dager før prøven utløper. Hvis du ikke sier opp før prøveperioden er ute fortsetter abonnementet automatisk og første belastning skjer dag 31. Sier du opp i prøveperioden mister du ingenting - abonnementet stopper og du beholder tilgang til read-only-historikk i 6 måneder."}}, {"@type": "Question", "name": "Hvor lagres dataene mine?", "acceptedAnswer": {"@type": "Answer", "text": "All trening- og helsedata lagres på Supabase i Frankfurt (EU). Bilde- og loggfiler er kryptert i hvile. Du kan eksportere alt til CSV når som helst og slette kontoen din permanent fra Innstillinger → Personvern."}}, {"@type": "Question", "name": "Kan jeg si opp når som helst?", "acceptedAnswer": {"@type": "Answer", "text": "Ja. Ingen bindingstid - du sier opp i Innstillinger eller via support@x-pulse.no. Tilgangen varer ut betalt periode, ingen pro-rata-avregning."}}, {"@type": "Question", "name": "Får jeg refusjon?", "acceptedAnswer": {"@type": "Answer", "text": "Vi gir full refusjon de første 14 dagene etter første betaling hvis du ombestemmer deg. Send en e-post til support@x-pulse.no så fikser vi det."}}, {"@type": "Question", "name": "Hva er forskjellen på Pro og AI?", "acceptedAnswer": {"@type": "Answer", "text": "Pro gir deg alle verktøyene - plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer snart."}}, {"@type": "Question", "name": "Hvor mange utøvere kan en trener ha?", "acceptedAnswer": {"@type": "Answer", "text": "Trener Basic har en grense på 10 tilkoblede utøvere og ingen inkluderte lisenser; Trener Pro har fritt antall tilkoblede og 5 Athlete Pro-lisenser inkludert. Begge kan kjøpe ekstra utøverplasser for 29 kr/mnd per plass. Treneren deler én invitasjonslenke - utøveren registrerer seg og er i gang uten kort, og ingenting trekkes utøveren. Alle trener-abonnement inkluderer full Athlete Pro-profil for treneren selv, og alle inkluderte lisenser er Athlete Pro (uten AI). AI-tierne (Pro AI 5, Ultimate AI 10) er uendret."}}, {"@type": "Question", "name": "Må jeg betale for egen treningsprofil som trener?", "acceptedAnswer": {"@type": "Answer", "text": "Nei. Både Trener Basic og Trener Pro inkluderer full Athlete Pro - du får din egen komplette treningsdagbok, plan og analyse på kjøpet, uten eget utøver-abonnement."}}, {"@type": "Question", "name": "Når kommer AI-funksjonene?", "acceptedAnswer": {"@type": "Answer", "text": "Snart. Du kan melde deg på varslingslisten for å bli prioritert i beta-tilgangen."}}, {"@type": "Question", "name": "Kan jeg endre plan senere?", "acceptedAnswer": {"@type": "Answer", "text": "Ja - du oppgraderer eller nedgraderer fra Innstillinger → Abonnement. Endringen gjelder fra neste fakturaperiode. Trener-til-utøver-bytting beholder all eksisterende dagbok og plan."}}, {"@type": "Question", "name": "Hvilke klokker støttes?", "acceptedAnswer": {"@type": "Answer", "text": "Direktesynk er live for Garmin, COROS, Wahoo og Zepp (beta), i tillegg til Strava og Polar. .fit-import virker for alle store leverandører - også Suunto. Apple Health kommer. Se klokkesync-siden for full liste."}}, {"@type": "Question", "name": "Hvilke helsedata hentes fra klokka?", "acceptedAnswer": {"@type": "Answer", "text": "Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt - automatisk hver natt fra Garmin, COROS og Polar. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier. Kalorier henter vi bevisst ikke - estimatene spriker for mye mellom merker."}}, {"@type": "Question", "name": "Hvor raskt kan jeg planlegge en økt?", "acceptedAnswer": {"@type": "Answer", "text": "Velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, eller bygg intervalløkta med antall × dragtid × sone / pause - hele strukturen genereres på sekunder, med oppvarming og nedjogg. Alt kan justeres fritt etterpå, og du lagrer dine egne økt-, uke- og planmaler."}}]}</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="var(--darker)">
 <link rel="icon" type="image/svg+xml" href="/x-pulse-icon.svg">
@@ -103,7 +103,7 @@ document.documentElement.classList.add('js');</script>
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   LYSMODUS — steg 1. Kartlegging: design/lysmodus-kartlegging.md
+   LYSMODUS - steg 1. Kartlegging: design/lysmodus-kartlegging.md
    Åpne spørsmål: design/lysmodus-tvil.md
 
    Denne fila er statisk og bruker sine EGNE tokens, ikke globals.css.
@@ -112,7 +112,7 @@ document.documentElement.classList.add('js');</script>
    vekt her.
 
    Kun nøytraler. --orange, --blue, --gold, --green, --red, sonefargene
-   og merkefargene står med vilje ikke her — de gjelder i begge tema.
+   og merkefargene står med vilje ikke her - de gjelder i begge tema.
 
    Verdiene er speilet lyshet (L → 1−L i HSL), samme regel som i appen.
    ═══════════════════════════════════════════════════════════════════ */
@@ -152,11 +152,11 @@ document.documentElement.classList.add('js');</script>
   --hvit-rgb:0 0 0;
   --tonet-oransje:#F3EDE8;
 }
-/* PÅ FAST MØRK BUNN — fredet i lysmodus.
+/* PÅ FAST MØRK BUNN - fredet i lysmodus.
    Heroen ligger på et fotografi, sport-flisene (.dtile) har hver sitt foto
    som bakgrunn, og nav-en ligger på sin egen mørke gradient
    (rgba(11,19,21,.75)). Ingen av dem blir lysere i lysmodus, så forgrunnen
-   på dem er bundet til BUNNEN og ikke til temaet — samme prinsipp som
+   på dem er bundet til BUNNEN og ikke til temaet - samme prinsipp som
    Strava-blekket: nøytral i form, men bundet til noe som ikke følger temaet.
    Kun nøytraler som FAKTISK endrer seg står her; fargene er like i begge
    tema fra før. Verdiene er hentet fra mørksettet, ikke skrevet av på nytt.
@@ -166,12 +166,12 @@ document.documentElement.classList.add('js');</script>
 :root[data-tema="lys"] .dtile,
 :root[data-tema="lys"] nav{
   /* color settes EKSPLISITT. Elementer som ikke har egen color arver den
-     ferdig utregnede fargen fra body — ikke variabelen — sa det holder ikke
+     ferdig utregnede fargen fra body - ikke variabelen - sa det holder ikke
      a frede tokenene alene. Uten denne linja blir h1 svart pa fotoet. */
   color:#F2F2F0;
---white:#F2F2F0;  /* var(--paper) — loses pa :root, ma fredes selv */
-  --border:#2A2A33;  /* var(--line2) — loses pa :root, ma fredes selv */
-  --muted:#8B8B95;  /* var(--dim) — loses pa :root, ma fredes selv */
+--white:#F2F2F0;  /* var(--paper) - loses pa :root, ma fredes selv */
+  --border:#2A2A33;  /* var(--line2) - loses pa :root, ma fredes selv */
+  --muted:#8B8B95;  /* var(--dim) - loses pa :root, ma fredes selv */
   --surface:#101014;
   --card:#15151B;
   --line:#1F1F26;
@@ -209,7 +209,7 @@ document.documentElement.classList.add('js');</script>
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-/* ÉN samlet gradient-flate for hele sida (Sverre 27. aug) — fixed så
+/* ÉN samlet gradient-flate for hele sida (Sverre 27. aug) - fixed så
    115°-sløret ligger rolig over viewportet. Hero-bildet og CTA-ens egen
    gradient maler oppå som før. */
 body{background:linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%) fixed, var(--bg);color:var(--paper);font:16px/1.6 'Inter',-apple-system,sans-serif}
@@ -247,7 +247,7 @@ section{padding:88px 0}
 .hero{position:relative;min-height:88vh;display:flex;flex-direction:column;overflow:hidden}
 .hero-bg{position:absolute;inset:0;background:url('/photos/hero-bg.jpg') center/cover no-repeat;filter:saturate(.92)}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(13,13,17,.88) 0%,rgba(13,13,17,.62) 55%,rgba(13,13,17,.45) 100%);}
-/* Faden toner ut i NØYAKTIG samme fixed gradient som body — samme
+/* Faden toner ut i NØYAKTIG samme fixed gradient som body - samme
    viewport-koordinater gjør overgangen sømløs. En flat --bg her ga en
    synlig linje mot den tonede bakgrunnen. */
 .hero-fade{position:absolute;left:0;right:0;bottom:0;height:240px;
@@ -257,10 +257,10 @@ section{padding:88px 0}
 .hero-in{position:relative;margin:auto;padding:124px 0 46px;text-align:center;display:flex;flex-direction:column;align-items:center;width:100%}
 .hero h1{margin-bottom:40px}
 .hero-tags{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:34px}
-/* Hero v5: ÉN chip — «Treningsdagbok for utholdenhet · V1.3 · Hva er nytt →», gull på versjonsdelen. */
+/* Hero v5: ÉN chip - «Treningsdagbok for utholdenhet · V1.3 · Hva er nytt →», gull på versjonsdelen. */
 .hchip{display:inline-flex;align-items:center;gap:0;font:600 12px/1 'Barlow Condensed';letter-spacing:.18em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5);text-decoration:none}
 .hchip-v{color:var(--gold);font-weight:700}
-/* Kald blå radial øverst til venstre — eget lag over bildet, under faden. */
+/* Kald blå radial øverst til venstre - eget lag over bildet, under faden. */
 .hero-blaa{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at 8% 12%, rgba(26,111,212,.14), transparent 70%)}
 /* Flyt-stripa i heroen: fem på én rad ≥880 (maks 1000 bred), 3 + 2 mellom 560 og 880, ikoner + titler under 560. */
 .hero-flow{width:100%;max-width:1000px;margin:0 auto}
@@ -274,7 +274,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .hacts{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .btn{display:inline-flex;align-items:center;gap:10px;border-radius:11px;padding:16px 30px;font:800 15px/1 'Inter';cursor:pointer}
 .btn.pri{background:var(--orange);color:var(--hvit);box-shadow:0 18px 50px rgba(255,69,0,.35)}
-/* Heroens hovedknapp i VERSALER. Kun store bokstaver — stoerrelsen er den
+/* Heroens hovedknapp i VERSALER. Kun store bokstaver - stoerrelsen er den
    samme som de andre knappene. Scopet til .hero saa priskortene, som bruker
    samme .btn.pri-klasse, staar uendret. */
 .hero .btn.pri{text-transform:uppercase}
@@ -292,15 +292,15 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 
 /* ── KLOKKESYNK-RADEN ──────────────────────────────────────────────
    NB: alle selektorene er scopet under .syncrow med vilje. Sida har egne,
-   USCOPEDE regler paa generiske navn — saerlig
+   USCOPEDE regler paa generiske navn - saerlig
    `.logo span{font:400 21px/1 'Bebas Neue';letter-spacing:.34em}`, som er
    X-PULSE-ordmerket. Uten scoping vant den over .slot (0,1,1 mot 0,1,0),
    plassholderne ble 21px Bebas med kraftig sperring, og den altfor brede
    teksten dyttet kortene ut i full bredde. Markupen er uendret 1:1 med
-   utkastet — det er kun selektorene som er prefikset.
+   utkastet - det er kun selektorene som er prefikset.
    To nivåer: kort med logo, tekst uten. Skillet er nå JUS, ikke ærlighet:
    Garmin/COROS/Wahoo/Zepp synker faktisk direkte (beta, via klokkesynk-
-   leverandøren vår), men logoene deres krever egne klareringer — Garmins
+   leverandøren vår), men logoene deres krever egne klareringer - Garmins
    varemerkebruk forutsetter partneravtale, og COROS/Wahoo/Zepp er ikke
    undersøkt. Derfor tekst, ikke logo, til det er avklart per merke.
    Strava-merkingen og Polar-kortet står som før (egne avtaler). */
@@ -320,12 +320,12 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
   color:var(--mute); margin-bottom:13px;
 }
 
-/* ═══ Synk-raden — glasspiller. FASIT: design/xpulse-synkrad-design.html.
+/* ═══ Synk-raden - glasspiller. FASIT: design/xpulse-synkrad-design.html.
    Container query, ikke media query: raden bryter etter sin EGEN bredde
-   (3×2-rutenett under 620px — fri flyt ga fire linjer på 390px, verifisert
+   (3×2-rutenett under 620px - fri flyt ga fire linjer på 390px, verifisert
    i utkastet). Ingen fargede venstrekanter: seks konkurrerende aksenter i
    en rad som skal være rolig. Statusen bor i punktet + BETA-merket.
-   Når betaen er over: fjern de fire <span class="beta"> — ingenting annet. */
+   Når betaen er over: fjern de fire <span class="beta"> - ingenting annet. */
 .synkrad{container-type:inline-size;width:100%}
 .synkrad .row{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
 .synkrad .brk{flex-basis:100%;height:0;display:none}
@@ -344,7 +344,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 }
 .synkrad .schip:hover{border-color:rgba(255,255,255,.24);transform:translateY(-2px);
   background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.045))}
-/* Uten backdrop-filter er pillen bare gjennomsiktig — solid fallback. */
+/* Uten backdrop-filter er pillen bare gjennomsiktig - solid fallback. */
 @supports not (backdrop-filter: blur(1px)){
   .synkrad .schip{background:rgba(16,16,20,.72)}
 }
@@ -358,11 +358,11 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
   padding:3px 6px 2px;margin-left:1px}
 .synkrad .beta.gull{color:rgba(232,185,60,.8);border-color:rgba(232,185,60,.4)}
 .synkrad .sdot.gull{background:var(--gold);color:var(--gold)}
-/* Strava: offisiell lockup, hvit variant — aldri omfarget/strukket/animert. */
+/* Strava: offisiell lockup, hvit variant - aldri omfarget/strukket/animert. */
 .synkrad .slogo{display:flex;align-items:center}
 .synkrad .slogo img{height:13px;width:auto;display:block}
 
-/* 3×2-rutenett når raden blir smal — rutenett, ikke fri flyt. BETA-merket
+/* 3×2-rutenett når raden blir smal - rutenett, ikke fri flyt. BETA-merket
    legger seg under navnet så cellene holder seg smale (derav .top). */
 @container (max-width: 620px){
   .synkrad .row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;justify-items:stretch}
@@ -379,7 +379,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
   .synkrad .slogo img{height:9px}
 }
 
-/* Nivå 2 — filimport. Tekst, ingen logoer: vi kobler oss ikke til dem. */
+/* Nivå 2 - filimport. Tekst, ingen logoer: vi kobler oss ikke til dem. */
 .syncrow .tier2{
   display:flex; align-items:center; gap:9px; flex-wrap:wrap; justify-content:center;
   margin-top:13px; padding-top:12px; border-top:1px solid var(--line);
@@ -426,7 +426,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 @media(max-width:900px){.inside-grid{grid-template-columns:1fr}
   /* PC-visningen skjules IKKE lenger på smale skjermer (notat-regelen):
      uka får horisontal scroll i stedet, så begge visninger kan ses. */
-  /* Grid-items har min-width:auto — uten min-width:0 blåser kalenderens
+  /* Grid-items har min-width:auto - uten min-width:0 blåser kalenderens
      min-bredde opp slotten og gir hele SIDA horisontal scroll. */
   .islot{min-height:600px;min-width:0;max-width:100%}
   .islot .calcard{max-width:100%}
@@ -471,7 +471,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .chip.on{color:var(--orange);border-color:rgba(255,69,0,.5);background:rgba(255,69,0,.08)}
 .chip.gold{color:var(--gold);border-color:rgba(232,185,60,.45);background:rgba(232,185,60,.07)}
 
-/* live styrke — speiler appens faktiske design */
+/* live styrke - speiler appens faktiske design */
 .lstimer{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
 .lstimer .lbl{font:600 11px/1 'Barlow Condensed';letter-spacing:.26em;color:var(--dim);text-transform:uppercase}
 .lstimer .t{font:400 28px/1 'Bebas Neue';letter-spacing:.04em}
@@ -575,11 +575,11 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 /* testimonials */
 .testi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:36px}
 @media(max-width:900px){.testi{grid-template-columns:1fr}}
-/* Ett sitat foreløpig: kortet sentreres i full bredde — med flere sitater
+/* Ett sitat foreløpig: kortet sentreres i full bredde - med flere sitater
    faller gridet tilbake til tre kolonner av seg selv. */
 .testi .tcard:only-child{grid-column:1/-1;max-width:760px;justify-self:center}
 .tcard{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:26px;display:flex;flex-direction:column;gap:16px}
-/* Fem stjerner — subtilt: små, dempet gull, over sitatet. */
+/* Fem stjerner - subtilt: små, dempet gull, over sitatet. */
 .tcard .stars{font-size:13px;letter-spacing:4px;color:var(--gold);opacity:.7;line-height:1}
 .tcard .q{font-size:15px;line-height:1.7;color:var(--dim);flex:1}
 .tcard .q p{margin:0 0 10px}
@@ -611,7 +611,7 @@ h1 .o{color:var(--orange)} h1 .b{color:var(--blue)}
 .faq summary::after{content:'+';color:var(--orange);font-weight:800}
 .faq p{color:var(--dim);font-size:14px;margin-top:10px;max-width:66ch}
 .cta{background:linear-gradient(115deg,#F04A10 0%,#9A4A55 35%,#2268BE 78%,#1E5FAF 100%);border-top:1px solid var(--line);text-align:center}
-/* Hvit knapp mot den kraftige gradienten — oransje ville druknet. */
+/* Hvit knapp mot den kraftige gradienten - oransje ville druknet. */
 .cta .btn.pri{background:#fff;border-color:#fff;color:#0A0A0B}
 .cta .btn.pri:hover{background:rgba(255,255,255,.92)}
 .cta h2{font-size:clamp(38px,9vw,64px)}
@@ -621,7 +621,7 @@ footer .logo span{font-size:17px}
 footer nav2{margin-left:auto;display:flex;gap:20px}
 footer a:hover{color:var(--paper)}
 
-/* velg din disiplin — slått sammen med bildestripa: én rad store bilder */
+/* velg din disiplin - slått sammen med bildestripa: én rad store bilder */
 .drow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:36px}
 .dtile{position:relative;display:block;aspect-ratio:3/4;background-size:cover;background-position:center;overflow:hidden;filter:saturate(.92);transition:filter .3s}
 .dtile:hover{filter:saturate(1.05) brightness(1.1)}
@@ -645,7 +645,7 @@ footer a:hover{color:var(--paper)}
 @media(max-width:1100px){.drow{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:700px){.drow{grid-template-columns:repeat(2,minmax(0,1fr))}.dtile{aspect-ratio:16/10}.dtile:last-child{grid-column:1/-1;aspect-ratio:21/9}.dcap{font-size:11px;left:9px;bottom:8px}.dcap img{width:14px;height:14px}}
 
-/* periodemarkering — som i appen: stripe over uka (pc) og periodelinjer i dagboka (mobil) */
+/* periodemarkering - som i appen: stripe over uka (pc) og periodelinjer i dagboka (mobil) */
 .pbar{height:4px;border-radius:2px;margin-bottom:2px}
 .pchip{display:inline-block;font:700 9px/1.3 'Barlow Condensed';letter-spacing:.07em;text-transform:uppercase;border:1px solid;border-radius:5px;padding:0 4px;margin-bottom:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pedge{position:absolute;top:5px;bottom:5px;width:2.5px;border-radius:2px;z-index:1}
@@ -665,7 +665,7 @@ footer a:hover{color:var(--paper)}
   .htag{font-size:10.5px;letter-spacing:.12em;white-space:normal;line-height:1.5}
   .btn{padding:14px 20px;font-size:14px}
   /* Proof-stripa MYE mindre på mobil (Sverre 20. aug): kompakt padding,
-     mindre tall og tekst — fire små celler, ikke fire kort. */
+     mindre tall og tekst - fire små celler, ikke fire kort. */
   .proof{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;max-width:100%;margin-top:18px}
   .proof>div{max-width:none;padding:0}
 
@@ -686,7 +686,7 @@ footer a:hover{color:var(--paper)}
     display:none; background:none; border:none; padding:6px; cursor:pointer;
     color:var(--white);
   }
-/* Hamburger-meny — mobil-only. flex-column med konsistent gap. CTA
+/* Hamburger-meny - mobil-only. flex-column med konsistent gap. CTA
      pushed til bunn med margin-top:auto, men kun når innholdet får plass;
      ved overflow scroller hele panelet og CTA flyter naturlig.
      Safe-area-insets respekteres på iPhone-notch/Dynamic-Island. */
@@ -704,7 +704,7 @@ footer a:hover{color:var(--paper)}
     box-sizing:border-box;
   }
 .nav-panel.open { display:flex; }
-/* Alle direkte barn av panelet skal stretche full bredde —
+/* Alle direkte barn av panelet skal stretche full bredde -
      defensiv mot weird flex-default-overrides. */
   .nav-panel > * { width:100%; box-sizing:border-box; }
 body.nav-locked { overflow:hidden; }
@@ -739,7 +739,7 @@ body.nav-locked { overflow:hidden; }
     .nav-panel.open .nav-panel-group { animation:none; opacity:1; }
 }
 /* position:static-regelen under er defensiv i tilfelle elementet renderes
-     som nav (skjedde tidligere — dekket logo + ikon-raden). */
+     som nav (skjedde tidligere - dekket logo + ikon-raden). */
   .nav-panel-links {
     display:flex; flex-direction:column; gap:4px; flex-shrink:0;
     position:static; padding:0; background:none; z-index:auto;
@@ -885,7 +885,7 @@ nav {
 
 /* Tema-bryteren. Staar SYNLIG i topplinja, ikke gjemt bak et ikon: lys/mørk
    er en funksjon vi viser fram her. Ikonet og teksten sier hva du BYTTER
-   TIL — sol/«Lys modus» når det er mørkt, måne/«Mørk modus» når det er lyst.
+   TIL - sol/«Lys modus» når det er mørkt, måne/«Mørk modus» når det er lyst.
    Nav-en er fredet mørk (den ligger på heroen), så knappen holder lys tekst
    i begge tema. */
 .nav-tema{display:inline-flex;align-items:center;gap:8px;min-height:40px;
@@ -914,7 +914,7 @@ nav {
    START GRATIS PRØVE ble klemt.
 
    Derfor gaar etiketten bort allerede paa 1100px. Mellom 900 og 1100 er den
-   VANLIGE knappen i lenkelista ikon-only — mobil-varianten dukker fortsatt
+   VANLIGE knappen i lenkelista ikon-only - mobil-varianten dukker fortsatt
    forst opp under 900px, der lista skjules helt.
 
    Skjul KUN etiketten, ikke ikon-wrapperen: `.nav-tema span` traff begge, og
@@ -968,7 +968,7 @@ nav {
 }
 
 /* Funksjoner-dropdownen: reglene som røk i porteringen (kommentar foran
-   selektoren + .has-dropdown-prefikset) — uten hover-regelen vises aldri lista. */
+   selektoren + .has-dropdown-prefikset) - uten hover-regelen vises aldri lista. */
 .nav-links .has-dropdown { position:relative; }
 .has-dropdown:hover .dropdown-chev,
   .has-dropdown:focus-within .dropdown-chev { transform:rotate(180deg); }
@@ -978,13 +978,13 @@ nav {
   }
 
 /* ═══ Vekslende seksjonsbakgrunner + gradient-sløret (del A, Sverre
-   27. aug — fasit variant 3). Sløret ligger fixed over seksjonene UNDER
+   27. aug - fasit variant 3). Sløret ligger fixed over seksjonene UNDER
    heroen; hero-bildet røres ikke. Skiskyting-seksjonen beholder sin egen
    gradient; CTA-en har fått full-styrke-gradienten (variant 5). ═══ */
-/* Seksjonene er gjennomsiktige — body-gradienten er den ene flaten.
+/* Seksjonene er gjennomsiktige - body-gradienten er den ene flaten.
    (De vekslende surface/bg9-bakgrunnene utgikk med samlet bakgrunn.) */
 
-/* ═══ Interaktiv hero — design/xpulse-hero-interaktiv-design.html er fasit
+/* ═══ Interaktiv hero - design/xpulse-hero-interaktiv-design.html er fasit
    for oppførsel og timing. Kun opacity/transform animeres; alle
    skjult-fra-start-tilstander er gated på html.js. ═══ */
 
@@ -1007,11 +1007,11 @@ html.js .istep.vis{opacity:1}
 .istep h4{font:700 15px 'Barlow Condensed';letter-spacing:.12em;margin:0 0 3px}
 .istep p{color:var(--mute);font-size:12.5px;line-height:1.45;padding:0 8px;margin:0}
 /* Smal skjerm: to rader (3+2, sentrert) i stedet for horisontal scroll.
-   Forbindelseslinjene skjules — de gir ikke mening på tvers av radbrudd. */
+   Forbindelseslinjene skjules - de gir ikke mening på tvers av radbrudd. */
 @media (max-width: 880px){
   .iflow{flex-wrap:wrap;justify-content:center;overflow-x:visible;row-gap:20px;padding-bottom:0}
   .istep{flex:0 0 33.33%;min-width:0}
-  /* Streken beholdes INNAD i hver rad (1–2, 2–3 og 4–5) — den skjules kun
+  /* Streken beholdes INNAD i hver rad (1–2, 2–3 og 4–5) - den skjules kun
      på siste steg i hver rad, der den ellers ville stukket ut i lufta. */
   .istep:nth-child(3)::before{display:none}
 }
@@ -1037,14 +1037,14 @@ html.js .istep.vis{opacity:1}
 .vtoggle button[aria-pressed="true"]{background:var(--orange);color:#fff}
 .vtoggle button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 
-/* Slotten: fast min-høyde — ingenting under skal hoppe når det byttes.
+/* Slotten: fast min-høyde - ingenting under skal hoppe når det byttes.
    Panene bytter med opacity/transform; av-panelet ligger absolutt. */
 .islot{position:relative;min-height:560px}
 .ipane{position:absolute;inset:0 0 auto 0;opacity:0;transform:translateX(14px) scale(.99);pointer-events:none;transition:opacity .28s,transform .28s}
 .ipane.on{position:relative;opacity:1;transform:none;pointer-events:auto}
 .islot .phone{max-width:340px;margin:0 auto}
 
-/* Skuddene — pop-easing fra utkastet; transform-box trengs for SVG */
+/* Skuddene - pop-easing fra utkastet; transform-box trengs for SVG */
 html.js .ishot{opacity:0;transform:scale(.2);transform-box:fill-box;transform-origin:center;
   transition:opacity .22s,transform .3s cubic-bezier(.2,1.6,.4,1)}
 html.js .ishot.vis{opacity:1;transform:scale(1)}
@@ -1061,8 +1061,8 @@ html.js .solution.vis{opacity:1;transform:none}
   html.js .istep{opacity:1}
 }
 
-/* ═══ FORSIDE v6 (4. sep) — nye flater. Kilde: design/xpulse-forside-v6-design.html ═══ */
-/* ═══ FORSIDE v6 (4. sep) — nye flater ═══ */
+/* ═══ FORSIDE v6 (4. sep) - nye flater. Kilde: design/xpulse-forside-v6-design.html ═══ */
+/* ═══ FORSIDE v6 (4. sep) - nye flater ═══ */
 .okt .t em,.pokt em{font-style:normal;color:var(--orange);font-weight:700;margin-left:4px}
 .zplan{display:flex;align-items:flex-end;gap:1px;height:16px;margin-top:5px;width:100%}
 .zplan i{display:block;border-radius:2px 2px 1px 1px;min-width:2px;position:relative}
@@ -1091,7 +1091,7 @@ html.js .solution.vis{opacity:1;transform:none}
 .ibrsub{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:12.5px;color:var(--mute)}
 .ibrsub b{color:var(--paper);font-weight:600}
 .newgrid4 .ncard{display:flex;flex-direction:column}
-/* helse — samme kort som appen (xpulse-helse-oversikt-design.html) */
+/* helse - samme kort som appen (xpulse-helse-oversikt-design.html) */
 .hcard{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
 .hhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line)}
 .htit{font:700 12px 'Barlow Condensed';letter-spacing:.16em;display:flex;align-items:center;gap:8px}
@@ -1232,7 +1232,7 @@ html.js .solution.vis{opacity:1;transform:none}
   .kgctl{gap:4px}.kchip{padding:4px 7px;font-size:9.5px}
 }
 
-/* Kalenderkortet: periodechips over den eksporterte uka. Ingen min-bredde —
+/* Kalenderkortet: periodechips over den eksporterte uka. Ingen min-bredde -
    under 560 px lastes den smale eksporten (mobilens egen rendering). */
 .cal-eks .pchiprad{display:flex;justify-content:flex-start;margin:-2px 0 2px;min-width:0;overflow:hidden}
 .cal-eks .pchip{position:static;display:inline-block}
@@ -1291,7 +1291,7 @@ html.js .solution.vis{opacity:1;transform:none}
   .flett-h .aux{display:none}
 }
 /* Den øverste økt-grafen på sida (B2, rett under heroen): lavere og mindre
-   (Sverre 4. sep) — gjelder bare der. */
+   (Sverre 4. sep) - gjelder bare der. */
 #inside .eks[data-eks="oktgraf"] [data-oktkurve]{height:130px!important}
 #inside .eks[data-eks="oktgraf"] [data-chip-rader] button{font-size:9px!important;padding:3px 7px!important;min-height:22px!important}
 #inside .eks[data-eks="oktgraf"] [data-punkt-pille]{font-size:9.5px!important;padding:1px 6px!important}
@@ -1339,7 +1339,7 @@ html.js .solution.vis{opacity:1;transform:none}
 }
 .eks {
   --tekst-1: #F2F2F0;  /* xpulse --paper / globals --ink */
-  --tekst-1-app: #F0F0F2;  /* globals --text-primary — appens dominerende */
+  --tekst-1-app: #F0F0F2;  /* globals --text-primary - appens dominerende */
   --tekst-1-land: #F2F0EC;  /* landingsflatene */
   --tekst-1-ren: #FFFFFF;  /* ren hvit */
   --tekst-2: #DEDEE6;
@@ -1351,10 +1351,10 @@ html.js .solution.vis{opacity:1;transform:none}
   --tekst-4-kal: #A9A9B5;  /* kun kalenderen */
   --tekst-4-alt: #A0A0AC;
   --tekst-5: #8B8B95;  /* xpulse --dim / globals --mut */
-  --tekst-5-app: #8A8A96;  /* globals --text-secondary — appens dominerende */
+  --tekst-5-app: #8A8A96;  /* globals --text-secondary - appens dominerende */
   --tekst-6: #7A7A84;
   --tekst-6-graa: #6A6A6A;  /* ekte gra, ingen blatone */
-  --tekst-7: #6E6E78;  /* OBS: identisk med Styrke-sonefargen — se tvilsfil */
+  --tekst-7: #6E6E78;  /* OBS: identisk med Styrke-sonefargen - se tvilsfil */
   --tekst-8: #5A5A64;  /* globals --dim */
   --tekst-8-alt: #55555F;  /* xpulse --mute / globals --text-muted */
   --tekst-8-app: #555560;  /* appens dominerende dempede */
@@ -1380,7 +1380,7 @@ html.js .solution.vis{opacity:1;transform:none}
   --flate-1: #060607;
   --flate-2: #09090B;
   --flate-2-alt: #09090C;
-  --flate-3: #0A0A0B;  /* globals --bg-primary — appens dominerende bunn */
+  --flate-3: #0A0A0B;  /* globals --bg-primary - appens dominerende bunn */
   --app-bakgrunn: linear-gradient(115deg, rgba(255,69,0,.09), rgba(26,111,212,.09) 70%), #0A0A0B;
   --flate-3-alt: #0A0A0C;
   --flate-3-b: #0A0A0D;
@@ -1458,7 +1458,7 @@ html.js .solution.vis{opacity:1;transform:none}
 }
 :root[data-tema="lys"] .eks {
   --tekst-1: #0F0F0D;  /* xpulse --paper / globals --ink */
-  --tekst-1-app: #0D0D0F;  /* globals --text-primary — appens dominerende */
+  --tekst-1-app: #0D0D0F;  /* globals --text-primary - appens dominerende */
   --tekst-1-land: #13110D;  /* landingsflatene */
   --tekst-1-ren: #000000;  /* ren hvit */
   --tekst-2: #191921;
@@ -1470,10 +1470,10 @@ html.js .solution.vis{opacity:1;transform:none}
   --tekst-4-kal: #4A4A56;  /* kun kalenderen */
   --tekst-4-alt: #53535F;
   --tekst-5: #6A6A74;  /* xpulse --dim / globals --mut */
-  --tekst-5-app: #696975;  /* globals --text-secondary — appens dominerende */
+  --tekst-5-app: #696975;  /* globals --text-secondary - appens dominerende */
   --tekst-6: #7B7B85;
   --tekst-6-graa: #959595;  /* ekte gra, ingen blatone */
-  --tekst-7: #878791;  /* OBS: identisk med Styrke-sonefargen — se tvilsfil */
+  --tekst-7: #878791;  /* OBS: identisk med Styrke-sonefargen - se tvilsfil */
   --tekst-8: #9B9BA5;  /* globals --dim */
   --tekst-8-alt: #A0A0AA;  /* xpulse --mute / globals --text-muted */
   --tekst-8-app: #9F9FAA;  /* appens dominerende dempede */
@@ -1499,7 +1499,7 @@ html.js .solution.vis{opacity:1;transform:none}
   --flate-1: #F8F8F9;
   --flate-2: #F4F4F6;
   --flate-2-alt: #F3F3F6;
-  --flate-3: #F4F4F5;  /* globals --bg-primary — appens dominerende bunn */
+  --flate-3: #F4F4F5;  /* globals --bg-primary - appens dominerende bunn */
   --app-bakgrunn: #F4F4F5;  /* del B: lys gradient-verdi hit */
   --flate-3-alt: #F3F3F5;
   --flate-3-b: #F2F2F5;
@@ -1693,7 +1693,7 @@ html.js .solution.vis{opacity:1;transform:none}
     </details>
     <a href="#priser">Priser</a>
     <a href="#faq">FAQ</a>
-    <!-- Vilkår + Personvern er fjernet fra mobil-menyen — de finnes i footer.
+    <!-- Vilkår + Personvern er fjernet fra mobil-menyen - de finnes i footer.
          Mobil-menyen ble for høy med dem og overflowet viewport, slik at
          FUNKSJONER + topprad scrollet ut av syne. -->
   </div>
@@ -1711,12 +1711,12 @@ html.js .solution.vis{opacity:1;transform:none}
     </div>
     <h1>BYGGET FOR <span class="o">ELITEN.</span><br>ENKEL FOR <span class="b">ALLE.</span></h1>
     <!-- Flyt-stripa (hero v5): hele sløyfa, fem steg, rett under overskriften.
-         Én plass i sida (regel 11) — den gamle seksjonen under folden er slettet. -->
+         Én plass i sida (regel 11) - den gamle seksjonen under folden er slettet. -->
     <div class="hero-flow" aria-label="Slik henger det sammen">
 <div class="iflow" id="flowSec">
       <div class="istep">
         <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
-        <h4>PLANLEGG</h4><p>Årsplan, uker og økter — maler eller egne.</p>
+        <h4>PLANLEGG</h4><p>Årsplan, uker og økter - maler eller egne.</p>
       </div>
       <div class="istep">
         <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3 4 14h6l-1 7 9-11h-6l1-7z"/></svg></div>
@@ -1724,11 +1724,11 @@ html.js .solution.vis{opacity:1;transform:none}
       </div>
       <div class="istep">
         <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2M12 2v3M12 19v3"/></svg></div>
-        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv — puls, runder, søvn.</p>
+        <h4>SYNK KLOKKA</h4><p>Økta kommer inn av seg selv - puls, runder, søvn.</p>
       </div>
       <div class="istep">
         <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat — det klokka ikke vet.</p>
+        <h4>FØR DETALJER</h4><p>Følelse, skyting, laktat - det klokka ikke vet.</p>
       </div>
       <div class="istep">
         <div class="idot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M6 16v-4M11 16V8M16 16v-6M21 16V5"/></svg></div>
@@ -1736,7 +1736,7 @@ html.js .solution.vis{opacity:1;transform:none}
       </div>
     </div>
     </div>
-    <p class="hquote">“Plan, dagbok og dyp analyse i ett — med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.”</p>
+    <p class="hquote">“Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.”</p>
     <div class="hacts">
       <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>
@@ -1754,7 +1754,7 @@ html.js .solution.vis{opacity:1;transform:none}
   <div class="head">Synker med</div>
 
   <!-- Seks glasspiller, én linje på desktop, 3×2 under 620px (container
-       query). MERKEVARE: kun Strava har lov til grafisk merking — offisiell
+       query). MERKEVARE: kun Strava har lov til grafisk merking - offisiell
        «Compatible with Strava»-lockup, hvit variant, aldri omfarget eller
        strukket. Polar/Garmin/COROS/Wahoo/Zepp: ren tekst til skriftlig
        klarering foreligger per merke. Grønt punkt = synker direkte i dag;
@@ -1771,15 +1771,15 @@ html.js .solution.vis{opacity:1;transform:none}
     </div>
   </div>
 
-  <!-- Nivå 2: filimport. Tekst, ingen logoer — vi kobler oss ikke til dem. -->
+  <!-- Nivå 2: filimport. Tekst, ingen logoer - vi kobler oss ikke til dem. -->
   <div class="tier2">
     <span class="k">.fit-import:</span>
     <span>Alle merker, inkl. Suunto</span>
     <span class="pipe">|</span>
-    <span class="soon">Apple Health — kommer</span>
+    <span class="soon">Apple Health - kommer</span>
   </div>
   <!-- Én dempet linje, ingen leverandørnavn: heroen navngir aldri
-       tredjeparten (vilkårene gjør det — der hører navnet hjemme). -->
+       tredjeparten (vilkårene gjør det - der hører navnet hjemme). -->
   <div class="tier2" style="opacity:.55;font-size:.92em">
     <span>Synken for Garmin, COROS, Wahoo og Zepp går gjennom vår klokkesynk-leverandør.</span>
   </div>
@@ -1794,9 +1794,9 @@ html.js .solution.vis{opacity:1;transform:none}
 <!-- ═══════════ NY SEKSJON: INNI APPEN ═══════════ -->
 <section id="inside">
   <div class="wrap">
-    <div class="label">Inni appen — ekte flater, fiktive data</div>
+    <div class="label">Inni appen - ekte flater, fiktive data</div>
     <h2>SLIK SER DET <span class="o">FAKTISK UT.</span></h2>
-    <p class="lead">Ikke skisser. Dette er kalenderen og øktføringen slik de er i appen — planlagt trening ligger stiplet, gjennomført ligger fylt, og planen står urørt uansett hva dagen ble.</p>
+    <p class="lead">Ikke skisser. Dette er kalenderen og øktføringen slik de er i appen - planlagt trening ligger stiplet, gjennomført ligger fylt, og planen står urørt uansett hva dagen ble.</p>
 
     <div class="vtoggle" role="group" aria-label="Velg visning">
       <button type="button" id="btnPc" aria-pressed="true">
@@ -1813,7 +1813,7 @@ html.js .solution.vis{opacity:1;transform:none}
       <!-- VENSTRE SLOT: bryteren bytter uke-kalender ↔ telefon-dagbok.
            LIVE STYRKEØKT står ALLTID uendret ved siden av.
            Øktkortene er den EKTE kalenderchipen (WorkoutChip) med sone-stripa
-           (PlanGraf kompakt) — eksportert fra /forside-eksport (regel 11). -->
+           (PlanGraf kompakt) - eksportert fra /forside-eksport (regel 11). -->
       <div class="islot">
       <div class="ipane on" id="panePc">
       <div class="app calcard">
@@ -1827,7 +1827,7 @@ html.js .solution.vis{opacity:1;transform:none}
             <div class="pchiprad" style="grid-column:6/8"><span class="pchip" style="color:#E8B93C;border-color:rgba(212,160,23,.35)">KONK.HELG</span></div>
             <div class="eks" data-eks="kalender-uke" style="grid-column:1/8;--eks-h:150px"></div>
           </div>
-          <p class="cal-note"><i>Stiplet = planlagt · fylt = gjennomført · gull = konkurranse fra årsplanen.</i> Stripa over uka er PERIODEN fra årsplanen — grønn grunnperiode, gull konkurransehelg. Sone-stripa under hver økt er øktkartet i miniatyr: høyde = sone, grått med 🎯 = skyting. Du huker av, noterer avvik — og planen forblir planen.</p>
+          <p class="cal-note"><i>Stiplet = planlagt · fylt = gjennomført · gull = konkurranse fra årsplanen.</i> Stripa over uka er PERIODEN fra årsplanen - grønn grunnperiode, gull konkurransehelg. Sone-stripa under hver økt er øktkartet i miniatyr: høyde = sone, grått med 🎯 = skyting. Du huker av, noterer avvik - og planen forblir planen.</p>
         </div>
       </div>
       </div>
@@ -1854,7 +1854,7 @@ html.js .solution.vis{opacity:1;transform:none}
           </div>
           <div class="lsfoot"><span>Volum: <b>4 350 kg</b></span><span>3 øvelser</span></div>
           <div class="lsdone">Fullfør økt ✓</div>
-          <p class="cal-note" style="margin-top:9px"><i>Plan, «sist» og START per sett</i> — rett i dagboka når du fullfører.</p>
+          <p class="cal-note" style="margin-top:9px"><i>Plan, «sist» og START per sett</i> - rett i dagboka når du fullfører.</p>
         </div>
       </div>
 
@@ -1862,7 +1862,7 @@ html.js .solution.vis{opacity:1;transform:none}
     </div>
 
     <!-- Sverre 5. sep: de to grafene (øktkartet · økt-grafen) er tatt ut av
-         hero-en — de kommer i seksjonen rett nedenfor uansett. -->
+         hero-en - de kommer i seksjonen rett nedenfor uansett. -->
   </div>
 </section>
 
@@ -1870,7 +1870,7 @@ html.js .solution.vis{opacity:1;transform:none}
   <div class="wrap">
     <div class="label gold">Nytt i V1.3</div>
     <h2>PLANLEGGING PÅ <span class="g">SEKUNDER.</span></h2>
-    <p class="lead">Verktøyene som gjør planlegging til et par tastetrykk — og som viser deg økta før du har gjort den.</p>
+    <p class="lead">Verktøyene som gjør planlegging til et par tastetrykk - og som viser deg økta før du har gjort den.</p>
 
     <div class="newgrid newgrid4">
 
@@ -1878,7 +1878,7 @@ html.js .solution.vis{opacity:1;transform:none}
       <div class="ncard">
         <div class="label">Øktbygger <span class="badge-new">NY</span></div>
         <h3>Bygg økta. Se den før du gjør den.</h3>
-        <p>Antall, dragtid, sone, pause — økta tegner seg som graf mens du bygger. Flere rader stables, så pyramider og progressive økter bygges like lett. Etter klokkesynk kutter du den samme økta opp med klikk og tall.</p>
+        <p>Antall, dragtid, sone, pause - økta tegner seg som graf mens du bygger. Flere rader stables, så pyramider og progressive økter bygges like lett. Etter klokkesynk kutter du den samme økta opp med klikk og tall.</p>
         <div class="eks" data-eks="knapperad" style="--eks-h:44px;margin-top:14px"></div>
         <div class="eks" data-eks="hurtigoppsett" style="--eks-h:420px;margin-top:12px"></div>
         <div class="pgwrap"><div class="eks" data-eks="oktkart" style="--eks-h:300px"></div></div>
@@ -1888,7 +1888,7 @@ html.js .solution.vis{opacity:1;transform:none}
       <div class="ncard">
         <div class="label">Helse &amp; søvn <span class="badge-live">LIVE</span></div>
         <h3>Søvn og hvilepuls, uten å taste</h3>
-        <p>Kommer inn fra klokka hver natt. Alt kan også føres manuelt — og det du fører selv vinner alltid over det klokka sier.</p>
+        <p>Kommer inn fra klokka hver natt. Alt kan også føres manuelt - og det du fører selv vinner alltid over det klokka sier.</p>
         <div class="eks" data-eks="helse" style="--eks-h:900px;margin-top:14px"></div>
         <p style="margin-top:10px;font-size:12.5px;color:var(--mute)">Samme kort på hjem, i dagboka og under Helse. Manuelt førte verdier merkes <b style="color:var(--paper)">M</b> og vinner alltid. Aldri kalorier, aldri to skalaer i én graf.</p>
       </div>
@@ -1896,8 +1896,8 @@ html.js .solution.vis{opacity:1;transform:none}
       <!-- 3 · MALER & STANDARDØKTER -->
       <div class="ncard">
         <div class="label">Maler &amp; standardøkter <span class="badge-live">LIVE</span></div>
-        <h3>58 økter ferdig rigget — og dine egne, fulgt over tid</h3>
-        <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg — samme økt, åtte ganger, én graf.</p>
+        <h3>58 økter ferdig rigget - og dine egne, fulgt over tid</h3>
+        <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg - samme økt, åtte ganger, én graf.</p>
         <div class="chiprow" style="margin-top:14px"><span class="chip on">Terskel</span><span class="chip">I4-intervall</span><span class="chip">Motbakke</span><span class="chip">Komb hard</span><span class="chip">Test</span><span class="chip gold">Mine maler</span></div>
         <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(232,185,60,.45)">★ Standardøkt</span></div>
         <div class="pgwrap"><div class="eks" data-eks="standardokt-stripe" style="--eks-h:44px"></div></div>
@@ -1928,14 +1928,14 @@ html.js .solution.vis{opacity:1;transform:none}
 <text x="508.0" y="94.4" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">161</text>
 <text x="508.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">18. sep</text>
 </svg>
-        <p style="margin-top:6px;font-size:12.5px;color:var(--mute)">Lavere puls, lavere laktat, samme fart — det er terskelen som flytter seg. Uten å lete i historikken.</p>
+        <p style="margin-top:6px;font-size:12.5px;color:var(--mute)">Lavere puls, lavere laktat, samme fart - det er terskelen som flytter seg. Uten å lete i historikken.</p>
       </div>
 
       <!-- 4 · ÅRSPLANLEGGING -->
       <div class="ncard">
         <div class="label">Årsplanlegging <span class="badge-live">LIVE</span></div>
         <h3>Mal sesongen. Sett konkurransene. Flytt øktene.</h3>
-        <p>Periodisering males med pensel rett i årskalenderen. Mål-konkurranser, samlinger i høyde og varme, og planmaler dras inn uke for uke — og planen står urørt når dagboka fylles.</p>
+        <p>Periodisering males med pensel rett i årskalenderen. Mål-konkurranser, samlinger i høyde og varme, og planmaler dras inn uke for uke - og planen står urørt når dagboka fylles.</p>
         <div class="aars">
           <div class="aars-h"><span>2026/27</span><span class="aux">Uke 40 → 14</span></div>
           <div class="eks" data-eks="aarsplan" style="--eks-h:420px;margin-top:8px"></div>
@@ -1952,13 +1952,13 @@ html.js .solution.vis{opacity:1;transform:none}
   <div class="wrap">
     <div class="label">Tren · Synk klokka · Før detaljer · Analyser</div>
     <h2>PLANEN MØTER <span class="o">VIRKELIGHETEN.</span></h2>
-    <p class="lead">Fire steg etter at økta er planlagt — og alle ender i én dagbok som vet både hva du planla, hva klokka så og hva du kjente.</p>
+    <p class="lead">Fire steg etter at økta er planlagt - og alle ender i én dagbok som vet både hva du planla, hva klokka så og hva du kjente.</p>
 
     <div class="flytgrid">
 
       <!-- a · MARKER SOM FULLFØRT -->
       <div class="flyt">
-        <div class="fstep"><span class="fnum">1</span><h4>TREN — OG MARKER SOM FULLFØRT</h4><p>Ett trykk. Planen står urørt, dagboka får sannheten.</p></div>
+        <div class="fstep"><span class="fnum">1</span><h4>TREN - OG MARKER SOM FULLFØRT</h4><p>Ett trykk. Planen står urørt, dagboka får sannheten.</p></div>
         <div class="app">
           <div class="app-h"><span class="beam"></span><h4>TORSDAG 3. SEP</h4><span class="aux">Planlagt → gjennomført</span></div>
           <div class="app-b">
@@ -1977,7 +1977,7 @@ html.js .solution.vis{opacity:1;transform:none}
 
       <!-- b · SYNK KLOKKA + FLETT -->
       <div class="flyt">
-        <div class="fstep"><span class="fnum">2</span><h4>SYNK KLOKKA — OG FLETT MED PLANEN</h4><p>Økta kommer inn av seg selv. Rundene fra klokka legges oppå planen din — samlet eller splittet, du velger.</p></div>
+        <div class="fstep"><span class="fnum">2</span><h4>SYNK KLOKKA - OG FLETT MED PLANEN</h4><p>Økta kommer inn av seg selv. Rundene fra klokka legges oppå planen din - samlet eller splittet, du velger.</p></div>
         <div class="app">
           <div class="app-h"><span class="beam gold"></span><h4>KLOKKESYNK</h4><span class="aux">⌚ Garmin · nettopp</span></div>
           <div class="app-b">
@@ -1997,7 +1997,7 @@ html.js .solution.vis{opacity:1;transform:none}
 
       <!-- c · FØR DETALJER -->
       <div class="flyt">
-        <div class="fstep"><span class="fnum">3</span><h4>FØR DET KLOKKA IKKE VET</h4><p>Følelse, laktat, ernæring og skyting — rett på kurven, der det skjedde.</p></div>
+        <div class="fstep"><span class="fnum">3</span><h4>FØR DET KLOKKA IKKE VET</h4><p>Følelse, laktat, ernæring og skyting - rett på kurven, der det skjedde.</p></div>
         <div class="app">
           <div class="app-h"><span class="beam red"></span><h4>ØKT-GRAFEN</h4><span class="aux">Puls · segmenter · plan bak</span></div>
           <div class="app-b">
@@ -2008,7 +2008,7 @@ html.js .solution.vis{opacity:1;transform:none}
 
       <!-- d · ANALYSER -->
       <div class="flyt">
-        <div class="fstep"><span class="fnum">4</span><h4>ANALYSER — GRAFER DU SETTER SAMMEN SELV</h4><p>Belastning, form, laktat, søvn — velg seriene, se hele bildet. Én dagbok, alle data.</p></div>
+        <div class="fstep"><span class="fnum">4</span><h4>ANALYSER - GRAFER DU SETTER SAMMEN SELV</h4><p>Belastning, form, laktat, søvn - velg seriene, se hele bildet. Én dagbok, alle data.</p></div>
         <div class="app">
           <div class="app-h"><span class="beam"></span><h4>ANALYSE · EGEN GRAF</h4><span class="aux">Mai → sep</span></div>
           <div class="app-b">
@@ -2052,7 +2052,7 @@ html.js .solution.vis{opacity:1;transform:none}
               <div><span class="k">Frakobling</span><b>3,1 %</b></div>
               <div><span class="k">EF</span><b>1,62 <small>↑</small></b></div>
             </div>
-            <p class="cal-note"><i>Prestasjon-fanen</i> gir frakobling, effektivitet, GAP og NP/IF — og sesong mot sesong. Alt bygger på det du og klokka førte.</p>
+            <p class="cal-note"><i>Prestasjon-fanen</i> gir frakobling, effektivitet, GAP og NP/IF - og sesong mot sesong. Alt bygger på det du og klokka førte.</p>
           </div>
         </div>
       </div>
@@ -2060,7 +2060,7 @@ html.js .solution.vis{opacity:1;transform:none}
   </div>
 </section>
 
-<!-- velg din disiplin — slått sammen med bildestripa: tittel fra live-siden, visning som stripa, alle sju med bilde -->
+<!-- velg din disiplin - slått sammen med bildestripa: tittel fra live-siden, visning som stripa, alle sju med bilde -->
 <section id="sports" style="padding-top:20px;padding-bottom:0">
   <div class="wrap">
     <div class="label">Bygget for din idrett</div>
@@ -2078,19 +2078,19 @@ html.js .solution.vis{opacity:1;transform:none}
 </div>
 <div class="wrap dwrap" style="padding-top:34px;padding-bottom:54px">
   <div class="snote">
-    <p><b>Hver idrett har sine egne verktøy</b> — skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
-    <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> — vi bygger X-PULSE sammen med utøverne.</p>
+    <p><b>Hver idrett har sine egne verktøy</b> - skiskyting har egen skyting-analyse med treff-% per posisjon og konkurranse-føring med automatisk struktur, langrenn og langløp har skipark med ski-tester og smøring, sykling har watt og effekt-soner, triatlon har brick-økter og bytt-tider.</p>
+    <p>Savner du noe i din idrett? <a href="mailto:support@x-pulse.no?subject=Innspill%20til%20X-PULSE">Send oss innspill</a> - vi bygger X-PULSE sammen med utøverne.</p>
   </div>
 </div>
 
 <!-- ═══════════ NY SEKSJON: SKISKYTING-SPOTLIGHT ═══════════ -->
 <section class="ski" id="skiskyting">
   <div class="wrap">
-    <div class="label" style="color:var(--red)">Skiskyting — verktøy ingen andre har</div>
+    <div class="label" style="color:var(--red)">Skiskyting - verktøy ingen andre har</div>
     <h2>FØR SKYTINGEN SOM<br><span style="color:var(--red)">PÅ STANDPLASS.</span></h2>
     <div class="skigrid">
       <div>
-        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare — og alt sammenlignes over tid.</p>
+        <p class="lead">Treff per serie og posisjon. Skudd plottet på blink. Vind og sikt ført med vimpel, slik du faktisk ser den. NSSF-testene ligger klare - og alt sammenlignes over tid.</p>
         <div class="vimprow">
           <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><path d="M30,14 C33,22 29,34 32,48 L37,47 C39,33 36,22 37,14 Z" fill="#E23A5A"/></svg><span class="lb">Stille</span></span>
           <span class="vimp"><svg width="36" height="36" viewBox="0 0 92 92"><line x1="32" y1="12" x2="32" y2="84" stroke="var(--mute)" stroke-width="3.5" stroke-linecap="round"/><circle cx="32" cy="10" r="3.5" fill="var(--dim)"/><g transform="rotate(-35 32 14)"><rect x="26" y="14" width="13" height="40" rx="1.5" fill="#E23A5A"/></g></svg><span class="lb">2</span></span>
@@ -2101,7 +2101,7 @@ html.js .solution.vis{opacity:1;transform:none}
           <span class="chip" style="color:var(--blue);border-color:rgba(26,111,212,.55);background:rgba(26,111,212,.1)">Sikt: God</span>
           <span class="chip">Lett tåke</span><span class="chip">Tåke</span><span class="chip">Tett tåke</span>
         </div>
-        <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie — analysen viser treff mot forholdene, over hele sesongen.</p>
+        <p style="color:var(--mute);font-size:13px;margin-top:12px">Vimpel og sikt føres per serie - analysen viser treff mot forholdene, over hele sesongen.</p>
       </div>
       <div class="blinkwrap" id="shootSec">
         <svg width="230" height="230" viewBox="0 0 200 200">
@@ -2115,7 +2115,7 @@ html.js .solution.vis{opacity:1;transform:none}
           Serie 2 · Stående<br>
           <b>4/5 treff</b> · skytetid <b>28,4 s</b><br>
           puls inn <b>168</b> · vind <b>3 H</b><br>
-          <span style="color:var(--mute);font-size:12px">Bommen plottes — mønsteret avslører seg selv.</span>
+          <span style="color:var(--mute);font-size:12px">Bommen plottes - mønsteret avslører seg selv.</span>
         </div>
       </div>
     </div>
@@ -2125,70 +2125,70 @@ html.js .solution.vis{opacity:1;transform:none}
       <div class="app-b">
         <div class="eks" data-eks="plott-treff" style="--eks-h:220px"></div>
         <div class="plottrad"><span class="chip" style="color:var(--green);border-color:rgba(40,168,110,.45)">4/5 treff</span><span class="chip">Skytetid 28,4 s</span><span class="chip">Bom: blink 2 · høyre oppe</span><span class="kbtn sk" style="margin-left:auto">🎯 Plott treff</span></div>
-        <p class="cal-note"><i>Trykk der skuddet satt</i> — per blink, per serie, ligg og stå. Mønsteret over sesongen viser om det er vind, puls eller teknikk som koster.</p>
+        <p class="cal-note"><i>Trykk der skuddet satt</i> - per blink, per serie, ligg og stå. Mønsteret over sesongen viser om det er vind, puls eller teknikk som koster.</p>
       </div>
   </div>
 </section>
 
 
 <!-- ═══════════ NYTT I V1.3 ═══════════ -->
-<!-- problem — beholdt fra dagens side, strammet -->
+<!-- problem - beholdt fra dagens side, strammet -->
 <section id="problem" style="padding-top:20px">
   <div class="wrap">
     <h2>DU FORTJENER <span class="o">ÉN APP.</span> IKKE TRE.</h2>
     <div class="problems" id="probSec">
       <div class="prob"><div class="n">PROBLEM 01</div><b>Planen lever i Excel eller på papir</b><p>Den vet ikke om du gjennomførte økten, traff sonene eller måtte flytte den.</p></div>
-      <div class="prob"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted — dataene dine et annet. De møtes aldri.</p></div>
-      <div class="prob"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der — uten å vite hva du planla, følte eller endret.</p></div>
+      <div class="prob"><div class="n">PROBLEM 02</div><b>Dagboken er isolert</b><p>Notater og følelse logges ett sted - dataene dine et annet. De møtes aldri.</p></div>
+      <div class="prob"><div class="n">PROBLEM 03</div><b>Analysen sover i klokkeappen</b><p>Puls, HRV og belastning ligger der - uten å vite hva du planla, følte eller endret.</p></div>
     </div>
     <div class="solution" id="solution">
       <div>
-        <div class="big">X-PULSE kobler plan, dagbok og analyse i ett — så hver økt faktisk lærer deg noe.</div>
+        <div class="big">X-PULSE kobler plan, dagbok og analyse i ett - så hver økt faktisk lærer deg noe.</div>
         <div class="sub">Bygget av aktive utøvere som savnet nettopp dette.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- funksjoner — beholdt liste, oppdatert med de nye -->
+<!-- funksjoner - beholdt liste, oppdatert med de nye -->
 <section id="features" style="padding-top:20px">
   <div class="wrap">
     <div class="label">Funksjoner</div>
     <h2>FRA ØKTPLAN<br>TIL TOPPFORM.</h2>
     <ul class="flist">
-      <li><span class="num">01</span><div><span class="tt">Sesongplanlegger</span><span class="dd">Mål-konkurranser og periodisering — «mal sesongen» med pensel, samlinger i høyde og varme, flytt økter med dra-og-slipp.</span></div></li>
-      <li><span class="num">02</span><div><span class="tt">Treningsdagbok</span><span class="dd">Marker gjennomført, logg notater og følelse — planen står urørt, dagboken viser sannheten.</span></div></li>
-      <li><span class="num">03</span><div><span class="tt">Øktbygger <span class="badge-new">NY</span></span><span class="dd">Bygg økta med antall × dragtid × sone / pause, se den som graf mens du bygger — og kutt opp klokkeøkta etterpå. 58 ferdige økter fra OLT-skalaen + dine egne maler. Skiskyttere velger skyting i pausene.</span></div></li>
-      <li><span class="num">04</span><div><span class="tt">Live styrkeøkt</span><span class="dd">Sett for sett mens du trener — timer, supersett, «sist gang»-hint og 287 øvelser.</span></div></li>
-      <li><span class="num">05</span><div><span class="tt">Klokkesynk</span><span class="dd">Garmin, COROS, Wahoo og Zepp direkte (beta) — i tillegg til Strava og Polar. .fit fra alle merker. Flett klokka med det du førte selv. Apple Health kommer.</span></div></li>
-      <li><span class="num">06</span><div><span class="tt">Helse &amp; søvn <span class="badge-new">NY</span></span><span class="dd">Søvn, hvilepuls, HRV og skritt fra klokka — eller ført manuelt. Manuelt vinner alltid.</span></div></li>
-      <li><span class="num">07</span><div><span class="tt">Terskler &amp; soner <span class="badge-new">NY</span></span><span class="dd">Egne terskler per bevegelsesform, 5 eller 8 soner — sonene følger deg, ikke en tabell.</span></div></li>
-      <li><span class="num">08</span><div><span class="tt">Dyp analyse</span><span class="dd">ATL/CTL/TSB, HRV, laktat, vær/føre, høyde og varme — grafer du selv setter sammen. Prestasjon: frakobling, EF, GAP, NP/IF og sesong mot sesong. Følg standardøkta som graf gjennom sesongen.</span></div></li>
+      <li><span class="num">01</span><div><span class="tt">Sesongplanlegger</span><span class="dd">Mål-konkurranser og periodisering - «mal sesongen» med pensel, samlinger i høyde og varme, flytt økter med dra-og-slipp.</span></div></li>
+      <li><span class="num">02</span><div><span class="tt">Treningsdagbok</span><span class="dd">Marker gjennomført, logg notater og følelse - planen står urørt, dagboken viser sannheten.</span></div></li>
+      <li><span class="num">03</span><div><span class="tt">Øktbygger <span class="badge-new">NY</span></span><span class="dd">Bygg økta med antall × dragtid × sone / pause, se den som graf mens du bygger - og kutt opp klokkeøkta etterpå. 58 ferdige økter fra OLT-skalaen + dine egne maler. Skiskyttere velger skyting i pausene.</span></div></li>
+      <li><span class="num">04</span><div><span class="tt">Live styrkeøkt</span><span class="dd">Sett for sett mens du trener - timer, supersett, «sist gang»-hint og 287 øvelser.</span></div></li>
+      <li><span class="num">05</span><div><span class="tt">Klokkesynk</span><span class="dd">Garmin, COROS, Wahoo og Zepp direkte (beta) - i tillegg til Strava og Polar. .fit fra alle merker. Flett klokka med det du førte selv. Apple Health kommer.</span></div></li>
+      <li><span class="num">06</span><div><span class="tt">Helse &amp; søvn <span class="badge-new">NY</span></span><span class="dd">Søvn, hvilepuls, HRV og skritt fra klokka - eller ført manuelt. Manuelt vinner alltid.</span></div></li>
+      <li><span class="num">07</span><div><span class="tt">Terskler &amp; soner <span class="badge-new">NY</span></span><span class="dd">Egne terskler per bevegelsesform, 5 eller 8 soner - sonene følger deg, ikke en tabell.</span></div></li>
+      <li><span class="num">08</span><div><span class="tt">Dyp analyse</span><span class="dd">ATL/CTL/TSB, HRV, laktat, vær/føre, høyde og varme - grafer du selv setter sammen. Prestasjon: frakobling, EF, GAP, NP/IF og sesong mot sesong. Følg standardøkta som graf gjennom sesongen.</span></div></li>
       <li><span class="num">09</span><div><span class="tt">Økt-grafen <span class="badge-new">NY</span></span><span class="dd">Én akse, zoom, segmenter. Laktat og ernæring rett på kurven. Plan bak gjennomført.</span></div></li>
-      <li><span class="num">10</span><div><span class="tt">Skiskyting</span><span class="dd">Skyting, vind, treff-plott og L/S på tidslinja — verktøy du ikke finner andre steder.</span></div></li>
-      <li><span class="num">11</span><div><span class="tt">Utøver &amp; Trener</span><span class="dd">Utøveren eier dataene. Treneren følger hele troppen og pusher planer — med samtykke i databasen, ikke bare i menyen.</span></div></li>
-      <li><span class="num">12</span><div><span class="tt">Utstyr &amp; Skipark</span><span class="dd">Kilometer på ski, staver og sko — tester, smøring og rangering per føre.</span></div></li>
-      <li><span class="num">13</span><div><span class="tt"><span style="color:var(--blue)">AI</span> Coach <span class="badge-soon">KOMMER</span></span><span class="dd">Auto-tolkning og anbefalinger fra dine egne mønstre — du velger nivået selv.</span></div></li>
+      <li><span class="num">10</span><div><span class="tt">Skiskyting</span><span class="dd">Skyting, vind, treff-plott og L/S på tidslinja - verktøy du ikke finner andre steder.</span></div></li>
+      <li><span class="num">11</span><div><span class="tt">Utøver &amp; Trener</span><span class="dd">Utøveren eier dataene. Treneren følger hele troppen og pusher planer - med samtykke i databasen, ikke bare i menyen.</span></div></li>
+      <li><span class="num">12</span><div><span class="tt">Utstyr &amp; Skipark</span><span class="dd">Kilometer på ski, staver og sko - tester, smøring og rangering per føre.</span></div></li>
+      <li><span class="num">13</span><div><span class="tt"><span style="color:var(--blue)">AI</span> Coach <span class="badge-soon">KOMMER</span></span><span class="dd">Auto-tolkning og anbefalinger fra dine egne mønstre - du velger nivået selv.</span></div></li>
     </ul>
   </div>
 </section>
 
 
 
-<!-- ═══════════ TRENERPANEL — NY PÅ FORSIDEN ═══════════ -->
+<!-- ═══════════ TRENERPANEL - NY PÅ FORSIDEN ═══════════ -->
 <section id="trener">
   <div class="wrap">
     <div class="label blue">For trenere</div>
     <h2>HELE TROPPEN.<br><span class="b">ETT PANEL.</span></h2>
     <div class="tgrid">
       <div>
-        <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør — og alle trener-abonnement inkluderer full Athlete Pro til deg selv.</p>
+        <p class="lead">Ikke en utøver-app du må omgå. Trener-modulen er bygget rundt jobben treneren faktisk gjør - og alle trener-abonnement inkluderer full Athlete Pro til deg selv.</p>
         <ul class="tlist">
-          <li>Push én plan-mal til hele gruppa — hver utøver får sin versjon</li>
+          <li>Push én plan-mal til hele gruppa - hver utøver får sin versjon</li>
           <li>Kommenter direkte på øktnivå, ikke i et innboks-rot</li>
-          <li>Sammenlign utøvere side om side — belastning, soner, tester</li>
+          <li>Sammenlign utøvere side om side - belastning, soner, tester</li>
           <li>Varsler ved høy belastning eller dårlig recovery</li>
-          <li>Helsedata deles kun når utøveren sier ja — håndhevet i databasen</li>
+          <li>Helsedata deles kun når utøveren sier ja - håndhevet i databasen</li>
         </ul>
       </div>
       <div class="app">
@@ -2204,12 +2204,12 @@ html.js .solution.vis{opacity:1;transform:none}
   </div>
 </section>
 
-<!-- ═══════════ HVORFOR X-PULSE — beholdt, ny stil, oppdaterte rader ═══════════ -->
+<!-- ═══════════ HVORFOR X-PULSE - beholdt, ny stil, oppdaterte rader ═══════════ -->
 <section id="hvorfor" style="padding-top:20px">
   <div class="wrap">
     <div class="label">Sammenligning</div>
     <h2>HVORFOR <span class="o">X-PULSE?</span></h2>
-    <p class="lead">Vi samlet det beste fra treningsdagbøker, analyseplattformer og sosiale treningsplattformer — bygget for norske utholdenhetsutøvere.</p>
+    <p class="lead">Vi samlet det beste fra treningsdagbøker, analyseplattformer og sosiale treningsplattformer - bygget for norske utholdenhetsutøvere.</p>
     <div class="why">
       <table>
         <thead><tr><th>Funksjon</th><th class="xp">X-PULSE</th><th>Norsk dagbok</th><th>Analyse-plattform</th><th>Sosial plattform</th></tr></thead>
@@ -2240,20 +2240,20 @@ html.js .solution.vis{opacity:1;transform:none}
       </table>
     </div>
     <button type="button" class="whytoggle" onclick="const w=this.previousElementSibling;w.classList.toggle('open');this.textContent=w.classList.contains('open')?'Skjul den fulle sammenligningen':'Vis hele sammenligningen (13 rader til)'">Vis hele sammenligningen (13 rader til)</button>
-    <p class="whynote">X-PULSE erstatter ikke den sosiale plattformen du allerede bruker — vi henter dataene dine derfra og gir deg planleggingen og den dype analysen den ikke har. Behold det sosiale der, gjør det seriøse her.</p>
-    <p class="whynote" style="color:var(--mute3)">Sammenligningen er forenklet. Andre plattformer har sine styrker — vårt mål er å samle det som betyr mest for norske utholdenhetsutøvere på ett sted.</p>
+    <p class="whynote">X-PULSE erstatter ikke den sosiale plattformen du allerede bruker - vi henter dataene dine derfra og gir deg planleggingen og den dype analysen den ikke har. Behold det sosiale der, gjør det seriøse her.</p>
+    <p class="whynote" style="color:var(--mute3)">Sammenligningen er forenklet. Andre plattformer har sine styrker - vårt mål er å samle det som betyr mest for norske utholdenhetsutøvere på ett sted.</p>
   </div>
 </section>
 
-<!-- ═══════════ TESTIMONIALS — klargjort, plassholdere ═══════════ -->
+<!-- ═══════════ TESTIMONIALS - klargjort, plassholdere ═══════════ -->
 <!-- Testimonials: SKJULT (hidden) til tre ekte, godkjente sitater finnes.
-     Kortene under er plassholdere — ALDRI fiktive sitater synlig på live. -->
+     Kortene under er plassholdere - ALDRI fiktive sitater synlig på live. -->
 <section id="testimonials" style="padding-top:20px">
   <div class="wrap">
     <div class="label">Fra brukerne</div>
     <h2>HVA UTØVERNE <span class="o">SIER.</span></h2>
     <div class="testi">
-      <!-- EKTE sitater, gjengitt ORDRETT — «-tegnet kommer fra designet
+      <!-- EKTE sitater, gjengitt ORDRETT - «-tegnet kommer fra designet
            (.q::before), derfor står ikke anførselstegn i selve teksten.
            Ingen tittel/klubb/bilde uten at Sverre leverer det. -->
       <div class="tcard"><div class="stars" aria-label="5 av 5 stjerner">★★★★★</div><div class="q"><p>X-pulse har rett og slett gjort treningshverdagen enklere! Veien fra planlegging til gjennomføring, og videre til analyse og dagbok har aldri gått raskere! Egne maler med standardøkter, perioder og konkurranseplan gjør at uker med trening kan planlegges med kun ett tastetrykk.</p><p>Å ha alt samlet et sted er også veldig motiverende for treningsarbeidet, og gir en unik oversikt. Til og med skiene og annet utstyr har fått sin egen 'bod' hos X-pulse.</p></div><div class="who"><b>Langløper Gustav Heldal</b></div></div>
@@ -2261,21 +2261,21 @@ html.js .solution.vis{opacity:1;transform:none}
   </div>
 </section>
 
-<!-- priser — beholdt modell og tall fra dagens side -->
+<!-- priser - beholdt modell og tall fra dagens side -->
 <section id="priser">
   <div class="wrap">
     <div class="label">Pris</div>
     <h2>VELG PLANEN<br>SOM PASSER.</h2>
-    <p class="lead">30 dagers gratis prøve på Athlete Pro og Trener Basic — Trener Pro faktureres fra start. Kort, Klarna eller Apple Pay, ingen bindingstid. Si opp når som helst.</p>
+    <p class="lead">30 dagers gratis prøve på Athlete Pro og Trener Basic - Trener Pro faktureres fra start. Kort, Klarna eller Apple Pay, ingen bindingstid. Si opp når som helst.</p>
     <div class="pgrid">
       <div class="pcard hot badged">
         <div class="price-badge price-badge-recommended">Mest populær</div>
         <div class="tier" style="color:var(--orange)">Athlete Pro</div>
         <div class="amt"><b>59</b><span>kr/mnd</span></div>
         <ul>
-          <li>Full klokkesync — 6 merker direkte (Garmin, COROS, Wahoo, Zepp i beta), .fit fra alle</li>
+          <li>Full klokkesync - 6 merker direkte (Garmin, COROS, Wahoo, Zepp i beta), .fit fra alle</li>
           <li>Plan med periodisering, årsplan og samlinger</li>
-          <li>Sport-spesifikk føring — inkl. hele skiskyting-verktøyet med vind, sikt og skuddplott</li>
+          <li>Sport-spesifikk føring - inkl. hele skiskyting-verktøyet med vind, sikt og skuddplott</li>
           <li>Live styrkeøkt med 287 øvelser og «sist gang»-hint</li>
           <li>Dyp analyse: ATL/CTL/TSB, HRV, laktat, tester og PR</li>
           <li>Helse &amp; søvn fra klokka</li>
@@ -2288,10 +2288,10 @@ html.js .solution.vis{opacity:1;transform:none}
         <div class="tier" style="color:var(--blue)">Trener Basic</div>
         <div class="amt"><b>199</b><span>kr/mnd</span></div>
         <ul>
-          <li>Alt i Athlete Pro — din egen treningsprofil</li>
+          <li>Alt i Athlete Pro - din egen treningsprofil</li>
           <li>Eget trenerpanel med hele troppen</li>
-          <li>Inntil 10 tilkoblede utøvere — 0 lisenser inkludert</li>
-          <li>Kjøp utøverplasser ved behov — 29 kr/mnd per plass</li>
+          <li>Inntil 10 tilkoblede utøvere - 0 lisenser inkludert</li>
+          <li>Kjøp utøverplasser ved behov - 29 kr/mnd per plass</li>
           <li>Push av plan- og årsplan-maler til hele gruppa</li>
           <li>Sammenlign utøvere side om side</li>
           <li>Kommentarer på øktnivå og full oppfølging</li>
@@ -2304,25 +2304,25 @@ html.js .solution.vis{opacity:1;transform:none}
         <div class="amt"><b>279</b><span>kr/mnd</span></div>
         <ul>
           <li>Alt i Trener Basic</li>
-          <li>Alt i Athlete Pro — din egen treningsprofil</li>
-          <li>Fritt antall tilkoblede utøvere — Basic har 10</li>
+          <li>Alt i Athlete Pro - din egen treningsprofil</li>
+          <li>Fritt antall tilkoblede utøvere - Basic har 10</li>
           <li>5 Athlete Pro-lisenser til utøverne dine inkludert</li>
-          <li>Kjøp flere utøverplasser — 29 kr/mnd per plass</li>
-          <li>Fakturering fra start — ingen prøveperiode</li>
+          <li>Kjøp flere utøverplasser - 29 kr/mnd per plass</li>
+          <li>Fakturering fra start - ingen prøveperiode</li>
         </ul>
         <a class="btn blue" href="/api/checkout?tier=trener_pro">Kom i gang med Trener Pro</a>
       </div>
     </div>
     <p class="pris-betaling">Kort, Klarna eller Apple Pay</p>
 
-    <!-- AI-tierne — uendret fra forrige side: kommer snart m/ varslingsliste -->
+    <!-- AI-tierne - uendret fra forrige side: kommer snart m/ varslingsliste -->
     <div class="price-coming-strip">
       <div class="price-coming-row"><span class="price-coming-name">Athlete Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">129 kr/mnd</span><span class="price-coming-desc">Alt i Pro pluss auto-tagging av lap, ukentlig AI-sammendrag og korrelasjonsanalyse.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Pro%20AI%20er%20klar">Bli varslet</a></div>
       <div class="price-coming-row"><span class="price-coming-name">Athlete Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">399 kr/mnd</span><span class="price-coming-desc">AI-chat 24/7, komplett plangenerering og adaptiv plan som justerer seg etter dagsform.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Athlete%20Ultimate%20AI%20er%20klar">Bli varslet</a></div>
     </div>
     <div class="price-coming-strip">
       <div class="price-coming-row"><span class="price-coming-name">Trener Pro AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">499 kr/mnd</span><span class="price-coming-desc">Alt i Trener Pro pluss AI-analyse, auto-tagging og ukentlige AI-sammendrag for hele laget.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Pro%20AI%20er%20klar">Bli varslet</a></div>
-      <div class="price-coming-row"><span class="price-coming-name">Trener Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">999 kr/mnd</span><span class="price-coming-desc">Premium AI for trener-arbeid — plan via chat, lag-prediksjon og custom rapporter.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Ultimate%20AI%20er%20klar">Bli varslet</a></div>
+      <div class="price-coming-row"><span class="price-coming-name">Trener Ultimate AI <span class="price-badge price-badge-coming">🟡 Kommer snart</span></span><span class="price-coming-price">999 kr/mnd</span><span class="price-coming-desc">Premium AI for trener-arbeid - plan via chat, lag-prediksjon og custom rapporter.</span><a class="price-coming-link" href="mailto:support@x-pulse.no?subject=Varsle%20meg%20n%C3%A5r%20Trener%20Ultimate%20AI%20er%20klar">Bli varslet</a></div>
     </div>
 
     <details class="price-compare">
@@ -2361,9 +2361,9 @@ html.js .solution.vis{opacity:1;transform:none}
             <tr><td>Plan-bygging via chat eller bilde (trener)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
             <tr><td>Lag-prediksjon + adaptive lag-planer</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
             <tr><td>Custom rapporter (PDF for sponsor/forbund)</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>–</td><td>✓</td></tr>
-            <tr><td>Maks utøvere</td><td>—</td><td>—</td><td>—</td><td>10</td><td>Ubegrenset</td><td>Ubegrenset</td><td>Ubegrenset</td></tr>
-            <tr><td>Egen Athlete Pro-profil for trener</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-            <tr><td>Athlete Pro-lisenser inkludert (flere à 29 kr/mnd)</td><td>—</td><td>—</td><td>—</td><td>0</td><td>5</td><td>5</td><td>10</td></tr>
+            <tr><td>Maks utøvere</td><td>-</td><td>-</td><td>-</td><td>10</td><td>Ubegrenset</td><td>Ubegrenset</td><td>Ubegrenset</td></tr>
+            <tr><td>Egen Athlete Pro-profil for trener</td><td>-</td><td>-</td><td>-</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Athlete Pro-lisenser inkludert (flere à 29 kr/mnd)</td><td>-</td><td>-</td><td>-</td><td>0</td><td>5</td><td>5</td><td>10</td></tr>
           </tbody>
         </table>
       </div>
@@ -2379,24 +2379,24 @@ html.js .solution.vis{opacity:1;transform:none}
   </div>
 </section>
 
-<!-- faq — kortversjon i utkastet -->
+<!-- faq - kortversjon i utkastet -->
 <section id="faq" style="padding-top:20px">
   <div class="wrap">
     <h2>FAQ.</h2>
     <div class="faq">
-      <details open><summary>Hvordan kobler jeg klokken min?</summary><p>Koble Garmin, COROS, Wahoo eller Zepp (beta) til med ett klikk — direktesynk er live, i tillegg til Strava og Polar. Du kan også importere .fit-filer direkte (alle klokker, inkl. Suunto). Apple Health kommer — se klokkesync-siden for full liste.</p></details>
-      <details><summary>Hva skjer etter prøveperioden?</summary><p>Du får en e-post 5 dager før prøven utløper. Hvis du ikke sier opp før prøveperioden er ute fortsetter abonnementet automatisk og første belastning skjer dag 31. Sier du opp i prøveperioden mister du ingenting — abonnementet stopper og du beholder tilgang til read-only-historikk i 6 måneder.</p></details>
+      <details open><summary>Hvordan kobler jeg klokken min?</summary><p>Koble Garmin, COROS, Wahoo eller Zepp (beta) til med ett klikk - direktesynk er live, i tillegg til Strava og Polar. Du kan også importere .fit-filer direkte (alle klokker, inkl. Suunto). Apple Health kommer - se klokkesync-siden for full liste.</p></details>
+      <details><summary>Hva skjer etter prøveperioden?</summary><p>Du får en e-post 5 dager før prøven utløper. Hvis du ikke sier opp før prøveperioden er ute fortsetter abonnementet automatisk og første belastning skjer dag 31. Sier du opp i prøveperioden mister du ingenting - abonnementet stopper og du beholder tilgang til read-only-historikk i 6 måneder.</p></details>
       <details><summary>Hvor lagres dataene mine?</summary><p>All trening- og helsedata lagres på Supabase i Frankfurt (EU). Bilde- og loggfiler er kryptert i hvile. Du kan eksportere alt til CSV når som helst og slette kontoen din permanent fra Innstillinger → Personvern.</p></details>
-      <details><summary>Kan jeg si opp når som helst?</summary><p>Ja. Ingen bindingstid — du sier opp i Innstillinger eller via support@x-pulse.no. Tilgangen varer ut betalt periode, ingen pro-rata-avregning.</p></details>
+      <details><summary>Kan jeg si opp når som helst?</summary><p>Ja. Ingen bindingstid - du sier opp i Innstillinger eller via support@x-pulse.no. Tilgangen varer ut betalt periode, ingen pro-rata-avregning.</p></details>
       <details><summary>Får jeg refusjon?</summary><p>Vi gir full refusjon de første 14 dagene etter første betaling hvis du ombestemmer deg. Send en e-post til support@x-pulse.no så fikser vi det.</p></details>
-      <details><summary>Hva er forskjellen på Pro og AI?</summary><p>Pro gir deg alle verktøyene — plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer snart.</p></details>
-      <details><summary>Hvor mange utøvere kan en trener ha?</summary><p>Trener Basic har en grense på 10 tilkoblede utøvere og ingen inkluderte lisenser; Trener Pro har fritt antall tilkoblede og 5 Athlete Pro-lisenser inkludert. Begge kan kjøpe ekstra utøverplasser for 29 kr/mnd per plass. Treneren deler én invitasjonslenke — utøveren registrerer seg og er i gang uten kort, og ingenting trekkes utøveren. Alle trener-abonnement inkluderer full Athlete Pro-profil for treneren selv, og alle inkluderte lisenser er Athlete Pro (uten AI). AI-tierne (Pro AI 5, Ultimate AI 10) er uendret.</p></details>
-      <details><summary>Må jeg betale for egen treningsprofil som trener?</summary><p>Nei. Både Trener Basic og Trener Pro inkluderer full Athlete Pro — du får din egen komplette treningsdagbok, plan og analyse på kjøpet, uten eget utøver-abonnement.</p></details>
+      <details><summary>Hva er forskjellen på Pro og AI?</summary><p>Pro gir deg alle verktøyene - plan, dagbok, analyse, klokkesync, skipark. AI-tieren legger til automatisk tolkning av økter, anbefalte økter og personlige innsikter basert på dine egne mønstre. AI-funksjonene kommer snart.</p></details>
+      <details><summary>Hvor mange utøvere kan en trener ha?</summary><p>Trener Basic har en grense på 10 tilkoblede utøvere og ingen inkluderte lisenser; Trener Pro har fritt antall tilkoblede og 5 Athlete Pro-lisenser inkludert. Begge kan kjøpe ekstra utøverplasser for 29 kr/mnd per plass. Treneren deler én invitasjonslenke - utøveren registrerer seg og er i gang uten kort, og ingenting trekkes utøveren. Alle trener-abonnement inkluderer full Athlete Pro-profil for treneren selv, og alle inkluderte lisenser er Athlete Pro (uten AI). AI-tierne (Pro AI 5, Ultimate AI 10) er uendret.</p></details>
+      <details><summary>Må jeg betale for egen treningsprofil som trener?</summary><p>Nei. Både Trener Basic og Trener Pro inkluderer full Athlete Pro - du får din egen komplette treningsdagbok, plan og analyse på kjøpet, uten eget utøver-abonnement.</p></details>
       <details><summary>Når kommer AI-funksjonene?</summary><p>Snart. Du kan melde deg på varslingslisten for å bli prioritert i beta-tilgangen.</p></details>
-      <details><summary>Kan jeg endre plan senere?</summary><p>Ja — du oppgraderer eller nedgraderer fra Innstillinger → Abonnement. Endringen gjelder fra neste fakturaperiode. Trener-til-utøver-bytting beholder all eksisterende dagbok og plan.</p></details>
-      <details><summary>Hvilke klokker støttes?</summary><p>Direktesynk er live for Garmin, COROS, Wahoo og Zepp (beta), i tillegg til Strava og Polar. .fit-import virker for alle store leverandører — også Suunto. Apple Health kommer. Se klokkesync-siden for full liste.</p></details>
-      <details><summary>Hvilke helsedata hentes fra klokka?</summary><p>Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt — automatisk hver natt fra Garmin, COROS og Polar. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier. Kalorier henter vi bevisst ikke — estimatene spriker for mye mellom merker.</p></details>
-      <details><summary>Hvor raskt kan jeg planlegge en økt?</summary><p>Velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, eller bygg intervalløkta med antall × dragtid × sone / pause — hele strukturen genereres på sekunder, med oppvarming og nedjogg. Alt kan justeres fritt etterpå, og du lagrer dine egne økt-, uke- og planmaler.</p></details>
+      <details><summary>Kan jeg endre plan senere?</summary><p>Ja - du oppgraderer eller nedgraderer fra Innstillinger → Abonnement. Endringen gjelder fra neste fakturaperiode. Trener-til-utøver-bytting beholder all eksisterende dagbok og plan.</p></details>
+      <details><summary>Hvilke klokker støttes?</summary><p>Direktesynk er live for Garmin, COROS, Wahoo og Zepp (beta), i tillegg til Strava og Polar. .fit-import virker for alle store leverandører - også Suunto. Apple Health kommer. Se klokkesync-siden for full liste.</p></details>
+      <details><summary>Hvilke helsedata hentes fra klokka?</summary><p>Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt - automatisk hver natt fra Garmin, COROS og Polar. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier. Kalorier henter vi bevisst ikke - estimatene spriker for mye mellom merker.</p></details>
+      <details><summary>Hvor raskt kan jeg planlegge en økt?</summary><p>Velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, eller bygg intervalløkta med antall × dragtid × sone / pause - hele strukturen genereres på sekunder, med oppvarming og nedjogg. Alt kan justeres fritt etterpå, og du lagrer dine egne økt-, uke- og planmaler.</p></details>
     </div>
   </div>
 </section>
@@ -2404,7 +2404,7 @@ html.js .solution.vis{opacity:1;transform:none}
 <section class="cta" id="signup">
   <div class="wrap">
     <h2>KLAR TIL Å <span class="o">TRENE SMARTERE?</span></h2>
-    <p class="lead">Koble klokka, hent inn øktene dine og se hele sesongen på én skjerm — gratis i 30 dager.</p>
+    <p class="lead">Koble klokka, hent inn øktene dine og se hele sesongen på én skjerm - gratis i 30 dager.</p>
     <a class="btn pri" href="#priser">Start 30 dagers gratis prøve</a>
   </div>
 </section>
@@ -2448,7 +2448,7 @@ html.js .solution.vis{opacity:1;transform:none}
 
 
 <script>
-  // Scroll-reveal — samme mønster som før, selektorer for v2-seksjonene.
+  // Scroll-reveal - samme mønster som før, selektorer for v2-seksjonene.
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.08});
   document.querySelectorAll('.prob,.flist li,.ncard,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
 
@@ -2479,7 +2479,7 @@ html.js .solution.vis{opacity:1;transform:none}
   })();
 </script>
 <script>/* Tema-bryteren paa landingssida. KOPI av reglene i lib/tema.ts og
-   TemaBryter.tsx — statisk HTML kan ikke importere dem. Endres reglene der,
+   TemaBryter.tsx - statisk HTML kan ikke importere dem. Endres reglene der,
    MAA de endres her i samme commit.
    Ikonet og teksten viser hva du BYTTER TIL, ikke hvilken modus du staar i. */
 (function(){
@@ -2510,11 +2510,11 @@ html.js .solution.vis{opacity:1;transform:none}
   tegn();
 })()</script>
 <script>
-/* ═══ Interaktiv hero — oppførsel og timing fra
+/* ═══ Interaktiv hero - oppførsel og timing fra
    design/xpulse-hero-interaktiv-design.html. IntersectionObserver, aldri
    scroll-lyttere; alt fyrer ÉN gang og reverserer ikke ved scroll opp. ═══ */
 (function(){
-  /* PC/mobil-bryteren — ren klient-bytting i samme slot */
+  /* PC/mobil-bryteren - ren klient-bytting i samme slot */
   var panePc=document.getElementById('panePc'), paneMob=document.getElementById('paneMob');
   var btnPc=document.getElementById('btnPc'), btnMob=document.getElementById('btnMob');
   function settVisning(pc){
@@ -2528,7 +2528,7 @@ html.js .solution.vis{opacity:1;transform:none}
     btnMob.addEventListener('click',function(){settVisning(false)});
   }
 
-  /* Scroll-avsløringer — én gang per seksjon */
+  /* Scroll-avsløringer - én gang per seksjon */
   function stagger(el,sel,gap){
     var items=el.querySelectorAll(sel);
     items.forEach(function(it,i){setTimeout(function(){it.classList.add('vis')},i*gap)});
@@ -2551,7 +2551,7 @@ html.js .solution.vis{opacity:1;transform:none}
     if(el) io.observe(el);
   });
 
-  /* Tall-opptellingen — ~900 ms, kubisk ease-out, én gang, threshold 0.5.
+  /* Tall-opptellingen - ~900 ms, kubisk ease-out, én gang, threshold 0.5.
      Sluttallet står i markupen fra før (synlig uten JS); reduced motion
      lar det stå urørt. Dagens tall har ingen suffikser. */
   var reduser=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2564,7 +2564,7 @@ html.js .solution.vis{opacity:1;transform:none}
         e.target.querySelectorAll('.n[data-mal]').forEach(function(n){
           var mal=+n.dataset.mal, t0=performance.now(), dur=900;
           (function tikk(tid){
-            /* rAF-tidsstempelet kan ligge FØR t0 (frame-start) — klem til 0,
+            /* rAF-tidsstempelet kan ligge FØR t0 (frame-start) - klem til 0,
                ellers blinker negative tall i første frame. */
             var p=Math.max(0,Math.min((tid-t0)/dur,1)), e2=1-Math.pow(1-p,3);
             n.textContent=Math.round(mal*e2);
@@ -2582,7 +2582,7 @@ html.js .solution.vis{opacity:1;transform:none}
    komponenten (regel 11), serialisert fra /forside-eksport. */
 (function(){
   var tema=function(){return document.documentElement.dataset.tema==='lys'?'lys':'mork'};
-  /* Under 560 px lastes den SMALE eksporten — komponentens egen mobil-rendering. */
+  /* Under 560 px lastes den SMALE eksporten - komponentens egen mobil-rendering. */
   var smal=function(){return matchMedia('(max-width:560px)').matches?'.m':''};
   var last=function(el){var n=el.dataset.eks,t=tema()+smal();if(el.dataset.eksLastet===t)return;
     fetch('/forside/'+n+'.'+t+'.html').then(function(r){return r.ok?r.text():''}).then(function(h){if(!h){el.dataset.eksFeil='1';return}el.innerHTML=h;el.dataset.eksLastet=t;el.style.minHeight='0'}).catch(function(){el.dataset.eksFeil='1'})};

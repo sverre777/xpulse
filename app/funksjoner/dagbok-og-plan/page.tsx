@@ -22,7 +22,7 @@ function DagbokIcon() {
       <path d="M8 18 H40" />
       <path d="M14 6 V14" />
       <path d="M34 6 V14" />
-      {/* Fylte ruter — øktene */}
+      {/* Fylte ruter - øktene */}
       <rect x="14" y="22" width="6" height="4" fill="currentColor" stroke="none" />
       <rect x="22" y="22" width="6" height="4" fill="currentColor" stroke="none" />
       <rect x="22" y="30" width="6" height="4" fill="currentColor" stroke="none" />
@@ -37,12 +37,12 @@ export default function DagbokOgPlanPage() {
       <SportPageHero
         kicker="Dagbok og plan"
         title={<>SLIK LOGGER DU<br/><span style={{ color: '#FF4500' }}>OG PLANLEGGER.</span></>}
-        description="To moduser av samme rammeverk. Bygg planen fremover, logg gjennomføringen tilbake — og se sammenligningen automatisk. Trener-kommentarene følger med på øktnivå."
+        description="To moduser av samme rammeverk. Bygg planen fremover, logg gjennomføringen tilbake - og se sammenligningen automatisk. Trener-kommentarene følger med på øktnivå."
         icon={<DagbokIcon />}
         backgroundImage="/photos/rulleski-skogsvei.jpg"
       />
 
-      {/* Ekte flater fra appen — samme mockups som forsiden. */}
+      {/* Ekte flater fra appen - samme mockups som forsiden. */}
       <InsideMockups />
 
       <SportFeatureSection
@@ -59,11 +59,11 @@ export default function DagbokOgPlanPage() {
       <SportFeatureSection
         kicker="Spesialformater"
         title="KONKURRANSE. TEST. REISEDAG."
-        intro="Ikke alle økter er trening. Velg riktig type ved logging og rammeverket tilpasses — egne felter for konkurranse-resultater, test-protokoller og hviledag-årsak."
+        intro="Ikke alle økter er trening. Velg riktig type ved logging og rammeverket tilpasses - egne felter for konkurranse-resultater, test-protokoller og hviledag-årsak."
         bullets={[
-          { title: 'Konkurranse-modul', body: 'Distanse, posisjon, klasse, deltakerantall — alt strukturert for senere PR-historikk.' },
+          { title: 'Konkurranse-modul', body: 'Distanse, posisjon, klasse, deltakerantall - alt strukturert for senere PR-historikk.' },
           { title: 'Testløp og test-økter', body: 'Cooper, FTP, terskel-test og 20+ andre standard-formater forhåndskonfigurert.' },
-          { title: 'Hviledag, sykdom, skade og reisedag', body: 'Dagmarkeringer med egne felt — reisedag med timer og notat. Forurenser aldri treningsstatistikken.' },
+          { title: 'Hviledag, sykdom, skade og reisedag', body: 'Dagmarkeringer med egne felt - reisedag med timer og notat. Forurenser aldri treningsstatistikken.' },
         ]}
       />
 
@@ -74,17 +74,17 @@ export default function DagbokOgPlanPage() {
         bullets={[
           { title: 'Planlagt vs gjennomført', body: 'Hver planlagt økt får et snapshot. Når du logger gjennomføring sammenstilles plan vs faktisk automatisk.' },
           { title: 'Øktmal-bibliotek + egne maler', body: '58 ferdige økter fra OLT-skalaen, pluss dine egne økt-, uke- og planmaler. Søk «6x6» og økta ligger klar.' },
-          { title: 'Sone-mål per drag', body: 'Plan-økter spesifiserer mål-tid per sone (I1-I5, Hurtighet) — avvik flagges ved logging.' },
+          { title: 'Sone-mål per drag', body: 'Plan-økter spesifiserer mål-tid per sone (I1-I5, Hurtighet) - avvik flagges ved logging.' },
         ]}
       />
 
       <SportFeatureSection
         kicker={NYTT_I_VERSJON}
         title="PLANLEGGING PÅ SEKUNDER."
-        intro="Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause — hele strukturen genereres som aktivitetsrader. Eller velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, med oppvarming og nedjogg klart."
+        intro="Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause - hele strukturen genereres som aktivitetsrader. Eller velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, med oppvarming og nedjogg klart."
         bullets={[
-          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause. Stable rader for pyramider og progressive økter — skiskyttere velger skyting i pausene.' },
-          { title: '58 øktmaler fra OLT-skalaen', body: 'Terskel, I4/I5, motbakke, fartslek, komb og tester — velg, juster, lagre som din egen.' },
+          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause. Stable rader for pyramider og progressive økter - skiskyttere velger skyting i pausene.' },
+          { title: '58 øktmaler fra OLT-skalaen', body: 'Terskel, I4/I5, motbakke, fartslek, komb og tester - velg, juster, lagre som din egen.' },
           { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie og se utviklingen som én graf gjennom sesongen.' },
         ]}
       />
@@ -95,7 +95,7 @@ export default function DagbokOgPlanPage() {
         intro="Dagbok viser det du faktisk har gjort, sortert på dato med kalender-oversikt. Klikk på en dag for full detalj, søk på tagger, filtrer på sport eller intensitet."
         bullets={[
           { title: 'Kalender og dag-modal', body: 'Måneds-, uke- og dags-visning. Klikk en dag → full liste med tider, soner og notater.' },
-          { title: 'Søk og tagger', body: 'F.eks. "alle harde I4-økter på asfalt med dårlig HRV siste 3 måneder" — søkbart.' },
+          { title: 'Søk og tagger', body: 'F.eks. "alle harde I4-økter på asfalt med dårlig HRV siste 3 måneder" - søkbart.' },
           { title: 'Aggregater per uke', body: 'Volum, høydemeter, sone-tid og økt-antall vises som banner over hver uke.' },
         ]}
       />
@@ -106,7 +106,7 @@ export default function DagbokOgPlanPage() {
         intro="Per-økt-notater fanger hva som skjedde i én økt; per-periode-notater fanger refleksjon over flere økter. To notat-felt per uke (Plan og Dagbok) lar deg skille mellom hva du tenkte du skulle gjøre og hva du faktisk lærte."
         bullets={[
           { title: 'Uke-, måned- og periode-notat', body: 'Én tekst per uke/måned/sesong-periode i både Plan og Dagbok-modus.' },
-          { title: 'Plan-notat synlig i Dagbok', body: 'Når du logger uka ser du planen din ved siden av — som read-only-blokk.' },
+          { title: 'Plan-notat synlig i Dagbok', body: 'Når du logger uka ser du planen din ved siden av - som read-only-blokk.' },
           { title: 'Trener kan kommentere', body: 'Trener får en egen kommentar-tråd per periode hvis de har tilgang.' },
         ]}
       />
@@ -114,7 +114,7 @@ export default function DagbokOgPlanPage() {
       <SportFeatureSection
         kicker="Trener-dialog"
         title="KOMMENTARER PÅ ØKTNIVÅ."
-        intro="Trener-kommentarene ligger der øktene ligger — ikke i en separat innboks. Når treneren skriver noe på dagens økt får du varsel; når du svarer får treneren det."
+        intro="Trener-kommentarene ligger der øktene ligger - ikke i en separat innboks. Når treneren skriver noe på dagens økt får du varsel; når du svarer får treneren det."
         bullets={[
           { title: 'Per-økt-tråd', body: 'Kommentar-bobler vises ved siden av økten i kalenderen.' },
           { title: 'Lese-kvittering', body: 'Begge sider ser når den andre har lest meldingen.' },

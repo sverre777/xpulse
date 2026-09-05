@@ -1,5 +1,5 @@
 // «Inni appen»-mockupene fra forsiden (Hero V2), portert til React for
-// /funksjoner/dagbok-og-plan. Samme markup og CSS som public/xpulse.html —
+// /funksjoner/dagbok-og-plan. Samme markup og CSS som public/xpulse.html -
 // endres mockupen der, oppdater her (klassene har xm-prefiks så de ikke
 // kolliderer med noe annet). Ekte flater, fiktive data.
 
@@ -82,7 +82,7 @@ export function InsideMockups() {
                 <div className="xm-okt xm-komp"><span className="xm-t">🏁 NC Simostranda</span><span className="xm-m">Jaktstart · A-løp</span></div>
               </div>
             </div>
-            <p className="xm-note"><i>Stiplet = planlagt · fylt = gjennomført · gull = konkurranse fra årsplanen.</i> Stripa over uka er perioden fra årsplanen. Du huker av, noterer avvik — og planen forblir planen.</p>
+            <p className="xm-note"><i>Stiplet = planlagt · fylt = gjennomført · gull = konkurranse fra årsplanen.</i> Stripa over uka er perioden fra årsplanen. Du huker av, noterer avvik - og planen forblir planen.</p>
           </div>
         </div>
 

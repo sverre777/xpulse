@@ -11,7 +11,7 @@ import { XPulseIcon } from '@/components/branding/XPulseIcon'
 // Topbar for funksjoner-undersider. Speilet xpulse.html-stil men i React,
 // med Funksjoner-dropdown på desktop og slide-in-panel på mobil.
 //
-// Navnet er importert som forenklet versjon av landing-html — alle lenker
+// Navnet er importert som forenklet versjon av landing-html - alle lenker
 // peker mot offentlige sider eller /app for innlogging.
 
 const SPORT_LINKS = [
@@ -141,7 +141,7 @@ export function LandingNav() {
 
         {/* TO monteringsplasser, EN kilde til sannhet. Lista over er
             `hidden lg:flex`, saa bryteren der forsvinner paa mobil. Denne
-            ligger i selve nav-baren ved siden av menyknappen — synlig UTEN aa
+            ligger i selve nav-baren ved siden av menyknappen - synlig UTEN aa
             aapne noen meny. Tilstanden bor i data-tema og localStorage, ikke
             i knappene, saa de to kan ikke komme ut av takt. */}
         <div className="flex items-center gap-1 lg:hidden">

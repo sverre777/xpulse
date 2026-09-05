@@ -32,7 +32,7 @@ export default function AnalysePage() {
       <SportPageHero
         kicker="Dyp analyse"
         title={<>FORSTÅ <span style={{ color: '#FF4500' }}>DIN<br/>EGEN UTVIKLING.</span></>}
-        description="Data uten innsikt er bare tall. Analyse-modulen kobler puls, HRV, laktat og subjektiv følelse i én helhetlig oversikt — slik at du faktisk lærer av hver økt og av sesongen som helhet."
+        description="Data uten innsikt er bare tall. Analyse-modulen kobler puls, HRV, laktat og subjektiv følelse i én helhetlig oversikt - slik at du faktisk lærer av hver økt og av sesongen som helhet."
         icon={<AnalyseIcon />}
         backgroundImage="/photos/rulleski-oslo-utsikt.jpg"
       />
@@ -40,44 +40,44 @@ export default function AnalysePage() {
       <SportFeatureSection
         kicker="Belastnings-modell"
         title="ATL · CTL · TSB."
-        intro="Tre tall som forteller hvor du er i form-syklusen. ATL er trøtthet (siste 7 dager), CTL er fitness (siste 42 dager), TSB er forskjellen — formkurven din. X-PULSE plotter alle tre i samme graf og forklarer dem på norsk."
+        intro="Tre tall som forteller hvor du er i form-syklusen. ATL er trøtthet (siste 7 dager), CTL er fitness (siste 42 dager), TSB er forskjellen - formkurven din. X-PULSE plotter alle tre i samme graf og forklarer dem på norsk."
         bullets={[
           { title: 'Daglig oppdatering', body: 'Hver økt påvirker tallene umiddelbart. Sammenlign hvor du var samme uke i fjor.' },
           { title: 'Forms-prognose', body: 'Ekstrapoler 4 uker frem så du ser når TSB topper hvis treningen fortsetter som nå.' },
-          { title: 'Forklart i klartekst', body: 'Tooltip og hjelp-side med konkrete eksempler — ingen forutsetninger om sportsvitenskap.' },
+          { title: 'Forklart i klartekst', body: 'Tooltip og hjelp-side med konkrete eksempler - ingen forutsetninger om sportsvitenskap.' },
         ]}
       />
 
       <SportFeatureSection
         kicker="Sonefordeling"
         title="HVOR LIGGER VOLUMET?"
-        intro="Sone-statistikk per uke, måned og sesong — og per sport. Polariserende trening krever mye sone 1 og noe sone 5; X-PULSE viser om du faktisk gjør det eller om du driver i no man's land."
+        intro="Sone-statistikk per uke, måned og sesong - og per sport. Polariserende trening krever mye sone 1 og noe sone 5; X-PULSE viser om du faktisk gjør det eller om du driver i no man's land."
         bullets={[
           { title: 'Per-sport-soner', body: 'Soner registreres uavhengig per disiplin så svømme-stats ikke forurenser løpe-stats.' },
-          { title: 'Plan vs faktisk', body: 'Sammenlign planlagt sone-fordeling mot det du faktisk gjorde — viktig for trener-kommunikasjon.' },
+          { title: 'Plan vs faktisk', body: 'Sammenlign planlagt sone-fordeling mot det du faktisk gjorde - viktig for trener-kommunikasjon.' },
           { title: 'Polarisert vs pyramidisk', body: 'Mønster-tag som viser om sesongen din følger en kjent trenings-modell.' },
         ]}
       />
 
       <SportFeatureSection
         kicker={`Helse og søvn · ${NYTT_I_VERSJON}`}
-        title="SØVN OG HVILEPULS — AUTOMATISK."
-        intro="Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt kommer inn fra klokka hver natt — i dag fra Polar, flere merker kommer. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier."
+        title="SØVN OG HVILEPULS - AUTOMATISK."
+        intro="Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt kommer inn fra klokka hver natt - i dag fra Polar, flere merker kommer. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier."
         bullets={[
-          { title: 'Kilde per verdi', body: 'Hver verdi vet hvor den kom fra — klokke eller manuelt — og manuelt vinner alltid.' },
-          { title: 'Søvn utvidet', body: 'Leggetid, våknetid, faser og avbrudd — ikke bare ett tall per natt.' },
-          { title: 'Restitusjon mot belastning', body: 'Hvilepuls- og HRV-trenden vises ved siden av treningsbelastningen — sammenhengen blir synlig.' },
+          { title: 'Kilde per verdi', body: 'Hver verdi vet hvor den kom fra - klokke eller manuelt - og manuelt vinner alltid.' },
+          { title: 'Søvn utvidet', body: 'Leggetid, våknetid, faser og avbrudd - ikke bare ett tall per natt.' },
+          { title: 'Restitusjon mot belastning', body: 'Hvilepuls- og HRV-trenden vises ved siden av treningsbelastningen - sammenhengen blir synlig.' },
         ]}
       />
 
       <SportFeatureSection
         kicker="Korrelasjoner"
         title="HVA HENGER SAMMEN?"
-        intro="HRV mot belastning. Dagsform mot 3-dagers-load. Snittpuls i intervaller mot HRV. Helse-fanen i analyse-modulen plotter alle disse som scatter-grafer med Pearson-korrelasjon — og finner mønstre i dine egne data, ikke generiske råd."
+        intro="HRV mot belastning. Dagsform mot 3-dagers-load. Snittpuls i intervaller mot HRV. Helse-fanen i analyse-modulen plotter alle disse som scatter-grafer med Pearson-korrelasjon - og finner mønstre i dine egne data, ikke generiske råd."
         bullets={[
           { title: 'HRV vs treningsvolum', body: 'Hvordan henger din HRV sammen med summen av timer siste 7 dager? Scatter-plot + korrelasjons-koeffisient.' },
-          { title: 'Dagsform vs 3-dagers-belastning', body: 'Subjektiv dagsform-rating mot akkumulert belastning siste 3 dager — ser du fall etter harde uker?' },
-          { title: 'Sykdom vs belastning', body: 'Markering av sykedager mot foregående belastning — finn dine egne overtrenings-grenser.' },
+          { title: 'Dagsform vs 3-dagers-belastning', body: 'Subjektiv dagsform-rating mot akkumulert belastning siste 3 dager - ser du fall etter harde uker?' },
+          { title: 'Sykdom vs belastning', body: 'Markering av sykedager mot foregående belastning - finn dine egne overtrenings-grenser.' },
           { title: 'Skadehistorikk', body: 'Skadeperioder spores mot belastnings-trend så du ser om volum-spikes utløste skadene.' },
         ]}
       />
@@ -96,19 +96,19 @@ export default function AnalysePage() {
       <SportFeatureSection
         kicker="Tester og PR"
         title="REGISTRER FRA HVOR SOM HELST."
-        intro="Tester loggføres med standard maler eller egne formater. Cooper, 5K, FTP-test, Vingate — eller en favoritt-runde du tester deg på hvert kvartal. PR-historikk plottes for hver test-type."
+        intro="Tester loggføres med standard maler eller egne formater. Cooper, 5K, FTP-test, Vingate - eller en favoritt-runde du tester deg på hvert kvartal. PR-historikk plottes for hver test-type."
         bullets={[
           { title: 'Standard-maler', body: '20+ kjente test-formater forhåndskonfigurert med riktig protokoll og felter.' },
-          { title: 'Egne tester', body: 'Lag dine egne hvis du har et signatur-format — trener kan dele med hele laget.' },
-          { title: 'Trend per test', body: 'Hver test får egen graf med årstall-akse — se sesong-til-sesong-fremgang.' },
-          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie — terskeltesten som én kurve gjennom sesongen.' },
+          { title: 'Egne tester', body: 'Lag dine egne hvis du har et signatur-format - trener kan dele med hele laget.' },
+          { title: 'Trend per test', body: 'Hver test får egen graf med årstall-akse - se sesong-til-sesong-fremgang.' },
+          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie - terskeltesten som én kurve gjennom sesongen.' },
         ]}
       />
 
       <SportFeatureSection
         kicker="Custom grafer"
         title="DINE EGNE SPØRSMÅL."
-        intro="Custom-graf-bygger lar deg filtrere på sport, workout-type, periode, sone og bevegelsesform — og bygge en graf som svarer på akkurat ditt spørsmål. Marker som favoritt så vises den i Oversikt."
+        intro="Custom-graf-bygger lar deg filtrere på sport, workout-type, periode, sone og bevegelsesform - og bygge en graf som svarer på akkurat ditt spørsmål. Marker som favoritt så vises den i Oversikt."
         bullets={[
           { title: 'Filter-kombinasjon', body: '6+ filter-akser kan kombineres fritt; resultatet blir en delbar graf.' },
           { title: 'Favoritt-marker', body: 'Inntil 6 grafer vises automatisk på Oversikt-siden din.' },

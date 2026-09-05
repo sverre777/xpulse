@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { LegalLayout, LegalH2, LegalP, LegalUL, LegalLI } from '@/components/legal/LegalLayout'
 
 export const metadata = {
-  title: 'Brukervilkår — X-PULSE',
+  title: 'Brukervilkår - X-PULSE',
   description: 'Vilkår for bruk av X-PULSE.',
 }
 
@@ -25,7 +25,7 @@ export default function VilkarPage() {
         <strong>Aktiv utvikling:</strong> tjenesten er i aktiv utvikling. Vi jobber
         kontinuerlig med nye funksjoner og forbedringer, og det kan forekomme feil,
         nedetid eller endringer i funksjonalitet. Ikke bruk tjenesten som eneste lagring
-        av kritiske data — ta egne sikkerhetskopier. Opplever du feil, eller ønsker du
+        av kritiske data - ta egne sikkerhetskopier. Opplever du feil, eller ønsker du
         funksjoner tilpasset din idrett, setter vi stor pris på at du sender oss en
         beskjed på support@x-pulse.no.
       </LegalP>
@@ -179,7 +179,7 @@ export default function VilkarPage() {
       <LegalP>Du forstår at:</LegalP>
       <LegalUL>
         <LegalLI>Polar gir kun tilgang til økter fra de siste 30 dagene</LegalLI>
-        <LegalLI>Kun økter lastet opp til Polar Flow ETTER at du koblet til er tilgjengelige — eldre historikk må lastes opp som .fit-filer</LegalLI>
+        <LegalLI>Kun økter lastet opp til Polar Flow ETTER at du koblet til er tilgjengelige - eldre historikk må lastes opp som .fit-filer</LegalLI>
         <LegalLI>Alle obligatoriske samtykker må være godtatt hos Polar, ellers nekter Polar oss datatilgang</LegalLI>
         <LegalLI>Ved frakobling slettes ALL importert Polar-data, og X-PULSE avregistreres hos Polar slik at tilgangen trekkes tilbake</LegalLI>
         <LegalLI>Du kan beholde data permanent ved manuell .fit-fil-opplasting</LegalLI>
@@ -195,12 +195,12 @@ export default function VilkarPage() {
         Stridee (stridee.fit), som behandler klokkedata på våre vegne under databehandleravtale.
         Integrasjonen er i beta. Ved å koble en av disse klokkene samtykker du til at
         aktivitetsfiler og helse-sammendrag fra klokkekontoen din formidles til X-PULSE via
-        Stridee — se personvernerklæringens avsnitt om klokkesynk for detaljene.
+        Stridee - se personvernerklæringens avsnitt om klokkesynk for detaljene.
       </LegalP>
       <LegalP>Du forstår at:</LegalP>
       <LegalUL>
         <LegalLI>Tilkoblingen skjer med samtykke hos klokkeprodusenten, og rundt 90 dager historikk hentes inn ved tilkobling</LegalLI>
-        <LegalLI>Frakobling stopper all ny synk — allerede importerte økter er dine originalfiler og beholdes i dagboka</LegalLI>
+        <LegalLI>Frakobling stopper all ny synk - allerede importerte økter er dine originalfiler og beholdes i dagboka</LegalLI>
         <LegalLI>Helse- og søvnverdier importert fra merket slettes ved frakobling av merket; manuelt førte verdier røres aldri</LegalLI>
         <LegalLI>Tjenesten er i beta: forsinkelser og hull i synken kan forekomme, og .fit-opplasting er alltid tilgjengelig som reserve</LegalLI>
         <LegalLI>Endringer hos klokkeprodusentene eller leverandøren kan begrense eller stanse integrasjonen; vi varsler dersom det skjer</LegalLI>

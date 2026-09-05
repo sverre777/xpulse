@@ -32,7 +32,7 @@ export default function TrenerPage() {
       <SportPageHero
         kicker="For trenere"
         title={<>SPAR TID MED <span style={{ color: '#1A6FD4' }}>X-PULSE TRENER.</span></>}
-        description="Trener-modulen er ikke en utøver-app du må omgå. Den er bygget rundt jobben treneren faktisk gjør — overvåke et helt lag, push planer raskt og holde direkte dialog med hver utøver."
+        description="Trener-modulen er ikke en utøver-app du må omgå. Den er bygget rundt jobben treneren faktisk gjør - overvåke et helt lag, push planer raskt og holde direkte dialog med hver utøver."
         icon={<TrenerIcon />}
         backgroundImage="/photos/holmenkollen-sommer.jpg"
       />
@@ -40,23 +40,23 @@ export default function TrenerPage() {
       <SportFeatureSection
         accent="blue"
         kicker="Utøveroversikt"
-        title="HELE TROPPEN — ÉN SIDE."
-        intro="Trener-panelet viser alle utøvere du følger: navn, gren, siste økt, ukentlig volum, eventuelle varsler. Klikk på en utøver så åpnes deres dagbok i samme vinkel som deres egen visning — ingen kontekst-bytte."
+        title="HELE TROPPEN - ÉN SIDE."
+        intro="Trener-panelet viser alle utøvere du følger: navn, gren, siste økt, ukentlig volum, eventuelle varsler. Klikk på en utøver så åpnes deres dagbok i samme vinkel som deres egen visning - ingen kontekst-bytte."
         bullets={[
           { title: 'Status-kolonner', body: 'Siste økt, uke-volum, status (på plan / bak plan / over plan), dagsform.' },
           { title: 'Varsler', body: 'Røde flagg ved høy belastning, dårlig recovery eller manglende logging.' },
-          { title: 'Utøver-detalj-modal', body: 'Klikk åpner full dagbok-uke for utøveren — du ser hva de ser.' },
+          { title: 'Utøver-detalj-modal', body: 'Klikk åpner full dagbok-uke for utøveren - du ser hva de ser.' },
         ]}
       />
 
       <SportFeatureSection
         accent="blue"
         kicker="Maler og push"
-        title="ÉN PLAN — MANGE UTØVERE."
-        intro="Bygg én plan-mal eller årsplan-mal og push den til utvalgte utøvere eller hele grupper. Hver mottaker får sin egen kopi med personlige konkurransedatoer; endringer på malen ramler ikke automatisk inn — du velger om de skal pushes."
+        title="ÉN PLAN - MANGE UTØVERE."
+        intro="Bygg én plan-mal eller årsplan-mal og push den til utvalgte utøvere eller hele grupper. Hver mottaker får sin egen kopi med personlige konkurransedatoer; endringer på malen ramler ikke automatisk inn - du velger om de skal pushes."
         bullets={[
           { title: 'Plan-mal', body: 'Uke- eller måned-mal med øktstruktur som kan pushes til mange utøvere samtidig.' },
-          { title: 'Årsplan-mal', body: 'Sesongstruktur med faser, peak-target og konkurransekalender — kopieres med justering på datoer.' },
+          { title: 'Årsplan-mal', body: 'Sesongstruktur med faser, peak-target og konkurransekalender - kopieres med justering på datoer.' },
           { title: 'Selektiv push', body: 'Velg hvilke utøvere som skal motta og se forhåndsvisning før push.' },
         ]}
       />
@@ -65,7 +65,7 @@ export default function TrenerPage() {
         accent="blue"
         kicker="Kommunikasjon"
         title="KOMMENTARER OG DM."
-        intro="Kommentarene ligger på øktnivå — utøveren ser dem ved siden av sin egen logging, ikke i en separat innboks. Ren dialog, ingen e-post-tråder eller WhatsApp-kaos."
+        intro="Kommentarene ligger på øktnivå - utøveren ser dem ved siden av sin egen logging, ikke i en separat innboks. Ren dialog, ingen e-post-tråder eller WhatsApp-kaos."
         bullets={[
           { title: 'Kommentar per økt', body: 'Trener kan kommentere før, under og etter økten; utøver svarer i samme tråd.' },
           { title: 'Direktemelding', body: 'Privat trådsamtale per utøver for det som ikke hører hjemme på en økt.' },
@@ -76,10 +76,10 @@ export default function TrenerPage() {
       <SportFeatureSection
         accent="blue"
         kicker="Sammenligning"
-        title="2 TIL N UTØVERE — SIDE OM SIDE."
+        title="2 TIL N UTØVERE - SIDE OM SIDE."
         intro="Sammenlignings-modulen plotter belastning, sonefordeling, test-utvikling og andre KPI-er for opp til N utøvere i samme graf. Pro-tier; ikke i Basic."
         bullets={[
-          { title: 'Multi-akse-sammenligning', body: 'CTL/ATL/TSB, sone-tid, distanse, høydemeter — flere akser kan plottes samtidig.' },
+          { title: 'Multi-akse-sammenligning', body: 'CTL/ATL/TSB, sone-tid, distanse, høydemeter - flere akser kan plottes samtidig.' },
           { title: 'Test-PR-rangering', body: 'Liste-form for hvem som har best/dårligst på en gitt test.' },
           { title: 'Lagrede oppsett', body: 'Sammenlignings-konfigurasjoner kan lagres og gjenåpnes raskt.' },
         ]}
@@ -118,9 +118,9 @@ export default function TrenerPage() {
           </h2>
           <div className="grid gap-px md:grid-cols-3" style={{ background: 'var(--kant-5)' }}>
             <TierCard tier="Basic" price="199 kr/mnd"
-              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser — kjøp utøverplasser à 29 kr/mnd', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
+              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser - kjøp utøverplasser à 29 kr/mnd', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
             <TierCard tier="Pro" price="279 kr/mnd" featured
-              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '5 Athlete Pro-lisenser til utøvere inkludert — kjøp flere à 29 kr/mnd', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
+              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '5 Athlete Pro-lisenser til utøvere inkludert - kjøp flere à 29 kr/mnd', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
             <TierCard tier="Pro AI" price="499 kr/mnd" coming
               points={['Inkluderer egen utøver-profil', '+ 5 Athlete Pro-lisenser til utøvere', 'AI-analyse på utøveres data', 'Auto-ukesoppsummeringer', 'Alt i Pro']} />
           </div>
@@ -149,7 +149,7 @@ export default function TrenerPage() {
 
       <SportPageCTA
         title="Kom i gang som trener"
-        subtitle="Trener Pro inkluderer egen utøver-profil og 5 Athlete Pro-lisenser til utøverne dine — og du kan kjøpe flere plasser for 29 kr/mnd."
+        subtitle="Trener Pro inkluderer egen utøver-profil og 5 Athlete Pro-lisenser til utøverne dine - og du kan kjøpe flere plasser for 29 kr/mnd."
         href="/app/registrer?role=coach&tier=pro"
         label="Kom i gang med Trener Pro"
         accent="blue"

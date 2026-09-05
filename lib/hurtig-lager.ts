@@ -18,9 +18,6 @@ export interface HurtigBolk<Rad = unknown> {
 export interface HurtigLager<Rad = unknown> extends HurtigBolk<Rad> {
   opp: string
   ned: string
-  /** Sverre 5. sep («endre og opprett på nytt = overskriv»): flere bolker i
-      samme oppsett. Feltene over er BOLK 1 (bakoverkompatibelt), resten her. */
-  bolker?: HurtigBolk<Rad>[]
 }
 
 export function lesHurtigLager<Rad = unknown>(nokkel: string): HurtigLager<Rad> | null {
@@ -32,7 +29,6 @@ export function lesHurtigLager<Rad = unknown>(nokkel: string): HurtigLager<Rad> 
     return {
       rader: v.rader, fartEnhet: v.fartEnhet ?? 'min_per_km', bev: v.bev ?? '', sub: v.sub ?? '',
       skyting: v.skyting ?? '', skytetid: v.skytetid ?? '45', opp: v.opp ?? '20:00', ned: v.ned ?? '15:00',
-      bolker: Array.isArray(v.bolker) ? v.bolker.filter(b => b && Array.isArray(b.rader) && b.rader.length > 0) : [],
     }
   } catch { return null }
 }

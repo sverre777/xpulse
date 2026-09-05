@@ -441,10 +441,30 @@ export function OktbyggerPopup({
                   onAvbryt={workoutId ? () => setHurtigAapent(false) : undefined}
                   onFerdig={onClose}
                   lagerNokkel={workoutId ?? 'ny'}
-                  // Sverre 5. sep («endre og opprett på nytt = overskriv»): flere bolker
-                  // lever i hurtigoppsettet; Opprett genererer alt på nytt. En NY
-                  // bolk gir tittelen « + <bolk>» som før.
-                  onBolkLagtTil={tittel => onBolkTittel?.(tittel)}
+                  // Sverre 5. sep: bolk-linjene regnes fra RADENE (ny bolk der bev.form/
+                  // underkat skifter, oppvarming/nedjogg utenfor). Opprett på en bolk
+                  // ERSTATTER bolkens rader; bolk 1 tar ramma med. Ny bolk legges under
+                  // radene (før nedjogg) og gir tittelen « + <bolk>» som før.
+                  rader={rader}
+                  onErstattBolk={(fra, til, nye, tittel, ramme) => {
+                    // Som Opprett før: tittelen settes når den er tom (WorkoutForm beholder en ført tittel).
+                    onByggTittel?.(tittel)
+                    const erNedjogg = (r: ActivityRow) => segmentTypeFor(r.activity_type, r.movement_name ?? '') === 'nedjogg'
+                    const erOppv = (r: ActivityRow) => segmentTypeFor(r.activity_type, r.movement_name ?? '') === 'oppvarming'
+                    if (!ramme) { endre([...rader.slice(0, fra), ...nye, ...rader.slice(til + 1)]); return }
+                    // Bolk 1: ledende oppvarming byttes, nedjogg bakerst byttes.
+                    const foran = rader.slice(0, fra).filter(r => !erOppv(r))
+                    const bak = rader.slice(til + 1)
+                    let slutt = bak.length; while (slutt > 0 && erNedjogg(bak[slutt - 1])) slutt--
+                    endre([...ramme.oppvarming, ...foran, ...nye, ...bak.slice(0, slutt), ...ramme.nedjogg])
+                  }}
+                  onLeggTilBolk={(nye, tittel) => {
+                    const erNedjogg = (r: ActivityRow) => segmentTypeFor(r.activity_type, r.movement_name ?? '') === 'nedjogg'
+                    let slutt = rader.length; while (slutt > 0 && erNedjogg(rader[slutt - 1])) slutt--
+                    endre([...rader.slice(0, slutt), ...nye, ...rader.slice(slutt)])
+                    onBolkTittel?.(tittel)
+                  }}
+                  onSlettBolk={(fra, til) => endre([...rader.slice(0, fra), ...rader.slice(til + 1)])}
                   onOpprett={async (nye, tittel, opts) => {
                     if (workoutId && harKurve) { await byggPaaKurven(nye, tittel); return }
                     // Sverre 5. sep: Opprett holder deg i byggeren med økta

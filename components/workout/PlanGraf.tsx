@@ -72,13 +72,15 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
     : []), [blokker, tetthet])
   // Sverre 5. sep: flere bolker med ULIKE bev.former (svømming → løping,
   // skøyting → klassisk) markeres øverst: «Bolk 1 · Langrenn skøyting».
-  // Pauser/skyting hører til bolken før. Én bev.form = ingen linje.
+  // Pauser/skyting hører til bolken før. Oppvarming/nedjogg er økt-ramme
+  // og står UTENFOR bolkene (Sverre 5. sep) — de starter aldri en ny bolk.
+  // Én bev.form = ingen linje.
   const bolker = useMemo(() => {
     if (tetthet !== 'full') return []
     const ut: { fra: number; til: number; navn: string }[] = []
     let gjeldende: string | null = null
     blokker.forEach((b, i) => {
-      const erPause = b.slag === 'pause' || b.slag === 'skyting_ligg' || b.slag === 'skyting_staa'
+      const erPause = b.slag === 'pause' || b.slag === 'skyting_ligg' || b.slag === 'skyting_staa' || b.type === 'oppvarming' || b.type === 'nedjogg'
       const navn = erPause ? '' : `${b.bevegelsesform}${b.underkategori ? ` ${b.underkategori}` : ''}`.trim()
       if (!navn) { if (ut.length) ut[ut.length - 1].til = i; return }
       if (navn !== gjeldende) { ut.push({ fra: i, til: i, navn }); gjeldende = navn }

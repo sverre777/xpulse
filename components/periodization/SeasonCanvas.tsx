@@ -250,6 +250,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
 
   // ── ÉN kodebane: all maling på dag-presise ISO-spenn. ──
   const applyPaint = async (rangeStart: string, rangeEnd: string, paint: Intensity | 'erase') => {
+    let nyPeriode: SeasonPeriod | null = null
     if (busy || rangeStart > rangeEnd) return
 
     const overlaps = periods
@@ -323,20 +324,31 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
         } else {
           const wLo = weeks.find(w => rangeStart >= w.mondayISO && rangeStart <= w.sundayISO)
           const wHi = weeks.find(w => rangeEnd >= w.mondayISO && rangeEnd <= w.sundayISO)
+          const navn = wLo && wHi
+              ? (weekLabel(wLo) === weekLabel(wHi) ? `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}` : `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}–${weekLabel(wHi)}`)
+              : INTENSITY_LABEL[paint]
           const res = await createP({
             season_id: season.id,
-            name: wLo && wHi
-              ? (weekLabel(wLo) === weekLabel(wHi) ? `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}` : `${INTENSITY_LABEL[paint]} uke ${weekLabel(wLo)}–${weekLabel(wHi)}`)
-              : INTENSITY_LABEL[paint],
+            name: navn,
             start_date: rangeStart,
             end_date: rangeEnd,
             intensity: paint,
             targetUserId,
           })
           if (res.error) throw new Error(res.error)
+          // Sverre 5. sep: en NY periode åpner detaljpanelet med en gang — som
+          // konkurranse/nøkkeldato — så navn osv. kan legges inn straks.
+          if (res.id && !relative) {
+            nyPeriode = {
+              id: res.id, season_id: season.id, name: navn, focus: null,
+              start_date: rangeStart, end_date: rangeEnd, intensity: paint,
+              notes: null, sort_order: periods.length, created_at: new Date().toISOString(),
+            }
+          }
         }
       }
       commit()
+      if (nyPeriode) onPickPeriod(nyPeriode)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -709,7 +721,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                 return (
                   <div key={w.idx} data-wk={w.idx}
                     style={{
-                      position: 'relative', minHeight: granularity === 'dag' ? 52 : 46, borderRadius: 9,
+                      position: 'relative', minHeight: granularity === 'dag' ? 68 : 62, borderRadius: 9,
                       border: `1px solid ${granularity === 'uke' && color ? `${color}8C` : 'var(--line)'}`,
                       background: cellGradient ?? 'var(--card2)',
                       cursor: canEdit ? 'pointer' : 'default',
@@ -726,27 +738,36 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                     }}>
                       U{weekLabel(w)}
                     </span>
-                    {/* G2: stempler (🏆/🏅/📊/🧪, ⭐ = peak) — ✋ åpner
-                        KeyDateModal for redigering. */}
+                    {/* Sverre 5. sep: nøkkeldatoene står på RIKTIG DAG med navn
+                        (🏆 A gull · 🏅 B blå · 📊 C dempet · ⭐ = form-topp) — ✋ åpner
+                        KeyDateModal. Flere samme dag: første + «+n». */}
                     {weekKeyDates.length > 0 && (
-                      <span style={{ position: 'absolute', top: 2, right: 4, display: 'flex', gap: 1, zIndex: 2, fontSize: 10, lineHeight: 1 }}>
-                        {weekKeyDates.slice(0, 3).map(k => (
-                          <span key={k.id} data-keydate={k.id}
-                            title={`${k.is_peak_target ? '⭐ ' : ''}${KEY_ICON[k.event_type] ?? '⚑'} ${k.name} · ${k.event_date}`}
-                            style={{
-                              cursor: canEdit && brush === 'pick' ? 'pointer' : undefined,
-                              pointerEvents: canEdit && brush === 'pick' ? 'auto' : 'none',
-                              filter: k.is_peak_target ? 'drop-shadow(0 0 3px rgba(212,160,23,0.9))' : undefined,
-                            }}>
-                            {k.is_peak_target ? '⭐' : (KEY_ICON[k.event_type] ?? '⚑')}
-                          </span>
-                        ))}
-                        {weekKeyDates.length > 3 && (
-                          <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--mut)', fontSize: 9 }}>
-                            +{weekKeyDates.length - 3}
-                          </span>
-                        )}
-                      </span>
+                      <div data-hendelser style={{ position: 'relative', height: 15, marginTop: 2, zIndex: 2 }}>
+                        {Array.from({ length: 7 }, (_, di) => {
+                          const iso = addDaysISO(w.mondayISO, di)
+                          const paaDagen = weekKeyDates.filter(k => k.event_date === iso)
+                          if (paaDagen.length === 0) return null
+                          const k = paaDagen[0]
+                          const farge = k.event_type === 'competition_a' ? '#D4A017' : k.event_type === 'competition_b' ? '#1A6FD4' : k.event_type === 'competition_c' ? 'var(--tekst-8-alt)' : 'var(--tekst-5-app)'
+                          const pickable = canEdit && brush === 'pick'
+                          return (
+                            <span key={k.id} data-keydate={k.id} data-dag={iso}
+                              title={`${k.is_peak_target ? '⭐ ' : ''}${KEY_ICON[k.event_type] ?? '⚑'} ${k.name} · ${k.event_date}${paaDagen.length > 1 ? ` (+${paaDagen.length - 1})` : ''}`}
+                              style={{
+                                position: 'absolute', top: 0, left: `${(di / 7) * 100}%`, maxWidth: `${((7 - di) / 7) * 100}%`,
+                                display: 'inline-flex', alignItems: 'center', gap: 2, height: 15, padding: '0 4px', borderRadius: 4,
+                                fontFamily: "'Barlow Condensed', sans-serif", fontSize: 9.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                                color: farge, background: 'var(--card)', border: `1px solid ${farge}`, lineHeight: '13px',
+                                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                                cursor: pickable ? 'pointer' : undefined, pointerEvents: pickable ? 'auto' : 'none',
+                                filter: k.is_peak_target ? 'drop-shadow(0 0 3px rgba(212,160,23,0.9))' : undefined,
+                              }}>
+                              <span style={{ fontSize: 10, lineHeight: 1 }}>{k.is_peak_target ? '⭐' : (KEY_ICON[k.event_type] ?? '⚑')}</span>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.name}{paaDagen.length > 1 ? ` +${paaDagen.length - 1}` : ''}</span>
+                            </span>
+                          )
+                        })}
+                      </div>
                     )}
                     {/* DAG-modus: 7 dag-ticks — dag-presis farge + kant-håndtak. */}
                     {granularity === 'dag' && (
@@ -755,7 +776,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                           const iso = addDaysISO(w.mondayISO, di)
                           const outside = iso < season.start_date || iso > season.end_date
                           if (outside) {
-                            return <span key={di} style={{ flex: 1, height: 16, borderRadius: 3, background: 'var(--line)', opacity: 0.25 }} />
+                            return <span key={di} style={{ flex: 1, height: 20, borderRadius: 3, background: 'var(--line)', opacity: 0.25 }} />
                           }
                           const dp = periodForDay(iso, effectivePeriods)
                           const dc = dp ? INTENSITY_COLOR[dp.intensity] : null
@@ -765,7 +786,7 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                             <span key={di} data-day={iso}
                               title={`${relative ? `U${weekLabel(w)} ${REL_DAYS[di]}` : iso}${dp ? ` · ${dp.name}` : ''}`}
                               style={{
-                                flex: 1, height: 16, borderRadius: 3,
+                                flex: 1, height: 20, borderRadius: 3,
                                 background: dc ? `${dc}B3` : 'var(--line)',
                                 outline: daySel ? '2px solid var(--accent)' : (iso === todayISO ? '1.5px solid var(--accent)' : 'none'),
                                 outlineOffset: 0,
@@ -794,14 +815,17 @@ export function SeasonCanvas({ season, periods, markings, targetUserId, canEdit,
                           <span key={m.id} data-marking={m.id}
                             title={`${m.is_training_camp ? '📍 ' : ''}${m.is_altitude ? '🏔 ' : ''}${m.name}${m.location ? ` · ${m.location}` : ''}${m.altitude_meters ? ` · ${m.altitude_meters} moh` : ''} (${spanLabel(m.start_date, m.end_date)})`}
                             style={{
-                              position: 'absolute', bottom: 2 + mi * 9, height: 7, zIndex: 2,
+                              position: 'absolute', bottom: 2 + mi * 14, height: 12, zIndex: 2,
                               left: `${(startIdx / 7) * 100}%`, width: `${(len / 7) * 100}%`,
                               background: MARKING_BAND_BG,
                               border: `1px solid ${MARKING_BAND_BORDER}`,
                               borderRadius: startsHere && endsHere ? 4 : startsHere ? '4px 0 0 4px' : endsHere ? '0 4px 4px 0' : 0,
                               pointerEvents: pickable ? 'auto' : 'none',
                               cursor: pickable ? 'pointer' : undefined,
-                            }} />
+                              // Sverre 5. sep: navnet på båndet — i uka det starter.
+                              fontFamily: "'Barlow Condensed', sans-serif", fontSize: 8.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                              color: '#D4A017', lineHeight: '10px', padding: '0 3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                            }}>{startsHere ? `${m.is_training_camp ? '📍' : ''}${m.is_altitude ? '🏔' : ''} ${m.name}` : ''}</span>
                         )
                       })}
                     {isStartWeek && p && (

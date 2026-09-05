@@ -4,18 +4,20 @@
 // idempotent. Det eneste i appen som slår sammen rader er «slå sammen med
 // neste» i Øktbyggeren (bolk 3): én rad om gangen, angrbar.
 //
-// GRUPPE (Sverre 4. sep, erstatter «etter hverandre»-regelen): ALLE rader
-// med samme aktivitetstype + bev.form + underkategori samles i én gruppe
-// UANSETT om de ligger etter hverandre, og ALL skyting samles i én gruppe.
-// Ulik bev.form er egen gruppe. INTERVALLSETT fra hurtigoppsettet (drag +
-// pause med samme gruppe_id, fase 117) leses som MØNSTER — «8 × 4 min I3 ·
-// 2 min pause» — når alle dragene i gruppa hører til samme sett. Gruppe-
-// raden viser sonene som FORDELING («I1 40 · I3 20»), aldri én sone; sone
-// endres per rad i splittet. Bev.form/underkategori settes på gruppa og
-// skrives til alle radene — type endres ikke på gruppa.
+// GRUPPE (rettelse 2, tilbakestilt 5. sep — 6902104 «uansett rekkefølge»
+// var ikke bestilt): rader ETTER HVERANDRE med samme aktivitetstype +
+// bev.form + underkategori. Skyting bryter alltid (samles bare med skyting
+// av samme skytetype rett ved siden av, aldri med aktivitet); ulik bev.form
+// bryter alltid. INTERVALLSETT fra hurtigoppsettet (drag + pause med samme
+// gruppe_id, fase 117) er én gruppe og leses som MØNSTER — «8 × 4 min I3 ·
+// 2 min pause» — ikke som sum. Gruppe-raden viser sonene som FORDELING
+// («I1 40 · I3 20»), aldri én sone; sone endres per rad i splittet.
+// Bev.form/underkategori settes på gruppa og skrives til alle radene —
+// type endres ikke på gruppa.
 //
 // Valget huskes PER ØKT — i localStorage som de andre visningsvalgene i
-// appen (tema, vis plan). Standard for klokkeøkter: SAMLET.
+// appen (tema, vis plan). Standard: SPLITTET overalt (Sverre 5. sep) —
+// Samlet / Samle alt er brukervalg.
 
 import type { ActivityRow } from './types'
 import { parseActivityDuration } from './activity-duration'
@@ -104,21 +106,18 @@ function lesMonster(rader: ActivityRow[]): Monster | null {
   return { antall: drag.length, dragSek: Math.round(sek.reduce((a, b) => a + b, 0) / sek.length), sone: dominantSone(drag), pauseSek }
 }
 
-/** Alle rader med samme nøkkel → én gruppe (uansett rekkefølge); all
-    skyting → én gruppe. Gruppene står i rekkefølgen den første raden
-    dukker opp. Rein lesing — radene røres ikke. */
+/** Rader ETTER HVERANDRE med samme nøkkel → én gruppe. Enkeltrader er
+    grupper på én. Rein lesing — radene røres ikke. */
 export function grupperRaderSamlet(rows: ActivityRow[]): RadGruppe[] {
   const ut: RadGruppe[] = []
-  const perNokkel = new Map<string, RadGruppe>()
   for (let i = 0; i < rows.length; i++) {
     const a = rows[i]
     const nokkel = samleNokkel(a)
-    const g = perNokkel.get(nokkel)
-    if (g) {
-      g.rader.push(a); g.til = i
+    const siste = ut[ut.length - 1]
+    if (siste && siste.nokkel === nokkel && siste.til === i - 1) {
+      siste.rader.push(a); siste.til = i
     } else {
-      const ny: RadGruppe = { id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null }
-      perNokkel.set(nokkel, ny); ut.push(ny)
+      ut.push({ id: a.id, nokkel, rader: [a], fra: i, til: i, sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null })
     }
   }
   for (const g of ut) {
@@ -238,7 +237,8 @@ export function huskVisning(workoutId: string | null | undefined, v: Visning): v
   try { window.localStorage.setItem(`${SAMLET_NOKKEL}-${workoutId}`, v) } catch { /* privat modus o.l. */ }
 }
 
-/** Standard når ingenting er husket: klokkeøkter samlet, ellers splittet. */
-export function standardVisning(erKlokkeokt: boolean): Visning {
-  return erKlokkeokt ? 'samlet' : 'splittet'
+/** Standard når ingenting er husket: SPLITTET overalt (Sverre 5. sep) —
+    argumentet står for kallstedene, men avgjør ikke lenger noe. */
+export function standardVisning(_erKlokkeokt: boolean): Visning {
+  return 'splittet'
 }

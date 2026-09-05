@@ -284,8 +284,6 @@ export interface OversiktData {
   periods: OversiktPeriodeRad[]
   camps: OversiktSamling[]
   helse: HelseOversiktData | null
-  /** HJEM v2 bolk 8: datoer m/ hardøkt siste 30 dager — gule merker i HRV-grafen. */
-  hardDager: string[]
   klokke: { today: WorkoutKlokkesyncData | null; lastHard: WorkoutKlokkesyncData | null }
   hero: OversiktHero
   todayState: OversiktTodayState | null
@@ -1085,7 +1083,6 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       periods: periodsUt,
       camps: campsUt,
       helse: 'error' in helseRes ? null : helseRes,
-      hardDager: [...new Set(recentCompleted.filter(w => w.date >= grense30 && ((w.workout_type != null && HARD_TYPER.has(w.workout_type)) || hardSecondsForWorkout(w.workout_activities ?? []) >= 15 * 60)).map(w => w.date))],
       klokke: { today: klokkeIdag, lastHard: klokkeHard },
       hero,
       todayState,

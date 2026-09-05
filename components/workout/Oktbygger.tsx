@@ -111,7 +111,7 @@ export function OktbyggerPopup({
   /** Videresendes fra «Plott treff» når serier lagres derfra. */
   onSerierLagret?: (lagret: Array<{ activityId: string; serier: ShootingSeriesRow[] }>) => void
   /** Hurtigoppsettet leverer genererte rader + forslags-tittel. */
-  onOpprett?: (rader: ActivityRow[], tittel: string) => void | Promise<void>
+  onOpprett?: (rader: ActivityRow[], tittel: string, opts?: { regenerert?: boolean }) => void | Promise<void>
   /** Bygg PÅ kurven (3b): tittelen foreslås, radene legges inn her. */
   onByggTittel?: (tittel: string) => void
   /** «+ Legg til bolk» (Sverre 5. sep): ny bolk lagt UNDER radene — tittelen
@@ -436,17 +436,15 @@ export function OktbyggerPopup({
                   onAvbryt={workoutId ? () => setHurtigAapent(false) : undefined}
                   onFerdig={onClose}
                   lagerNokkel={workoutId ?? 'ny'}
-                  onLeggTil={async (nye, tittel) => {
-                    // Sverre 5. sep: bolken legges UNDER radene som finnes (én
-                    // økt i oversikten); tittelen får « + <bolk>».
-                    endre([...rader, ...nye])
-                    onBolkTittel?.(tittel)
-                  }}
-                  onOpprett={async (nye, tittel) => {
+                  // Sverre 5. sep («endre og opprett på nytt = overskriv»): flere bolker
+                  // lever i hurtigoppsettet; Opprett genererer alt på nytt. En NY
+                  // bolk gir tittelen « + <bolk>» som før.
+                  onBolkLagtTil={tittel => onBolkTittel?.(tittel)}
+                  onOpprett={async (nye, tittel, opts) => {
                     if (workoutId && harKurve) { await byggPaaKurven(nye, tittel); return }
                     // Sverre 5. sep: Opprett holder deg i byggeren med økta
                     // opprettet — laktat/punkter kan legges inn, og «Ferdig» lukker.
-                    await onOpprett(nye, tittel)
+                    await onOpprett(nye, tittel, opts)
                   }}
                 />
               )}

@@ -1785,8 +1785,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onBolkTittel={tittel => setForm(f => ({ ...f, title: f.title.trim() === '' ? tittel : `${f.title.trim()} + ${tittel}` }))}
           onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisOktbygger(false)}
-          onOpprett={async (rader, tittel) => {
-            if (aktivitetslistaHarInnhold(form.activities)
+          onOpprett={async (rader, tittel, opts) => {
+            // Regenerering fra hurtigoppsettet (flere bolker / endret bolk) er
+            // ment å overskrive — bare manuelt innhold får spørsmålet.
+            if (!opts?.regenerert && aktivitetslistaHarInnhold(form.activities)
               && !await xpConfirm('Erstatte aktivitetslista med den genererte økta?')) return
             setForm(f => ({
               ...f,

@@ -15,7 +15,7 @@
 // aktivitetsrader etterpå, og økta husker ikke at den kom fra en bygger.
 
 import { bevFelterFor, bevValgForBygger, wattMidt, wattTekst, parseDesimal, splitTilSekPerKm } from '@/lib/bevform-felter'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import {
   byggBlokker, genererIntervalløkt,
@@ -24,7 +24,7 @@ import type { BlokkSone } from '@/lib/okt-template-library'
 import { KORTINTERVALL_HURTIGVALG, antallRepetisjoner, kortintervallEtikett } from '@/lib/intervall-monstre'
 import { foringsSoner } from '@/lib/sonesprak'
 import { useUtvidetSkala } from '@/lib/sonesprak-klient'
-import { lesHurtigLager, skrivHurtigLager } from '@/lib/hurtig-lager'
+import { lesHurtigLager, skrivHurtigLager, type HurtigBolk } from '@/lib/hurtig-lager'
 import {
   getSubcategories, DEFAULT_MOVEMENTS_BY_SPORT,
   type ActivityRow, type Sport,
@@ -130,6 +130,62 @@ function tMin(s: string): string {
   return s.replace(/:00$/, ' min')
 }
 
+const TOM_RAD: Rad = { antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '' }
+const KNAPP_GRAA: React.CSSProperties = { fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }
+const KNAPP_ACCENT: React.CSSProperties = { fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }
+
+/** Én bolk → generator-konfig. Bolk 1 får oppvarming/nedjogg, resten 0. */
+function konfigFor(b: HurtigBolk<Rad>, oppvarmingSek: number, nedjoggSek: number): IntervallKonfig {
+  const felter = bevFelterFor(b.bev, b.sub)
+  const enhet: FartEnhet = felter.fart === 'kmt' ? 'km_per_h' : (b.fartEnhet as FartEnhet)
+  return {
+    oppvarmingSek, nedjoggSek,
+    rader: b.rader.map(r => {
+      const km = parseFloat(r.km.replace(',', '.'))
+      // Roing: farten er split /500 m (lagres som s/km).
+      const fartSek = felter.split500 ? (splitTilSekPerKm(r.fartFra) ?? 0) : fartSnittSekPerKm(r.fartFra, r.fartTil, enhet)
+      const iKm = r.modus === 'km'
+      const dragSek = iKm ? dragSekFraKm(km, fartSek) : pSek(r.drag)
+      // Fart i tid-visning gir distansen (Sverre 5. sep); km-visning gir tida.
+      const dragKm = iKm ? (km > 0 ? km : null) : (fartSek > 0 && dragSek > 0 ? Math.round((dragSek / fartSek) * 100) / 100 : null)
+      return {
+        antall: Math.max(1, parseInt(r.antall) || 1),
+        dragSek, sone: r.sone, pauseSek: pSek(r.pause), dragKm,
+        fartSekPerKm: fartSek > 0 ? fartSek : null,
+        fartTekst: felter.split500 ? (r.fartFra.trim() ? `${r.fartFra.trim()} /500 m` : null) : fartTekstFor(r.fartFra, r.fartTil, enhet) || null,
+        kort: Number(r.kortPaa) > 0 ? { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 } : null,
+        // BOLK 27: målene fra bev.form-feltene.
+        wattMaal: felter.wattMaal ? wattMidt(r.wattFra, r.wattTil) : null,
+        wattTekst: felter.wattMaal ? wattTekst(r.wattFra, r.wattTil) || null : null,
+        stigning: felter.stigning ? parseDesimal(r.stigning) : null,
+        motstand: felter.motstand && r.motstand ? r.motstand : null,
+      }
+    }),
+    bevegelsesform: b.bev,
+    underkategori: b.sub,
+    skyting: (b.skyting || null) as SkyteMonster | null,
+    skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(b.skytetid) || SKYTETID_STANDARD_SEK)),
+  }
+}
+
+/** Bolkens tittel: «3 × 10 min · 220–240 W · I3 / 2 min  +  …  ·  komb». */
+function tittelFor(b: HurtigBolk<Rad>): string {
+  const felter = bevFelterFor(b.bev, b.sub)
+  const enhet: FartEnhet = felter.fart === 'kmt' ? 'km_per_h' : (b.fartEnhet as FartEnhet)
+  const serier = byggBlokker(konfigFor(b, 0, 0)).filter(x => x.posisjon).length
+  return b.rader
+    .map(r => {
+      const n = Math.max(1, parseInt(r.antall) || 1)
+      const fart = felter.split500 ? (r.fartFra.trim() ? `${r.fartFra.trim()} /500 m` : '') : fartTekstFor(r.fartFra, r.fartTil, enhet)
+      const spes = [felter.wattMaal ? wattTekst(r.wattFra, r.wattTil) : '', felter.stigning && (parseDesimal(r.stigning) ?? 0) > 0 ? `${r.stigning.trim().replace('.', ',')} %` : ''].filter(Boolean).join(' · ')
+      const drag = `${r.modus === 'km' ? `${r.km.replace('.', ',')} km` : tMin(r.drag)}${fart ? ` (${fart})` : ''}`
+      // Kortintervallet står i tittelen (Sverre 5. sep): «3 × 10 min I3 · 50/10 / 2 min».
+      const kort = Number(r.kortPaa) > 0 ? ` · ${Number(r.kortPaa)}/${Number(r.kortAv) || 0}` : ''
+      return `${n} × ${drag}${spes ? ` · ${spes}` : ''} ${r.sone}${kort} / ${tMin(r.pause)}`
+    })
+    .join('  +  ') + (serier > 0 ? '  ·  komb' : '')
+}
+
 export interface IntervallForhandsutfylling {
   rader: { antall: number; dragSek: number; sone: BlokkSone; pauseSek: number }[]
   oppvarmingSek: number
@@ -140,14 +196,14 @@ export interface IntervallForhandsutfylling {
   tittel?: string
 }
 
-export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false, onFerdig, lagerNokkel, onLeggTil }: {
+export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false, onFerdig, lagerNokkel, onBolkLagtTil }: {
   sport: Sport
   /** Forsidens eksport (regel 11): bare dragradene, oppvarming/nedjogg og
       Opprett — ikke bev.form/underkategori/skyting-feltene. */
   kompakt?: boolean
   // Leverer genererte rader + forslags-tittel. WorkoutForm eier innsettingen
   // (og bekreftelsen hvis lista alt har innhold) — samme som fellesstart.
-  onOpprett: (rader: ActivityRow[], tittel: string) => void | Promise<void>
+  onOpprett: (rader: ActivityRow[], tittel: string, opts?: { regenerert?: boolean }) => void | Promise<void>
   // Bibliotekmal-flyten: byggeren forhåndsutfylles fra malens blokker
   // (oktMalTilIntervallOppsett) og kjører som DIALOG — Avbryt setter
   // ingenting inn, og Ferdig lukker i stedet for å kollapse.
@@ -165,10 +221,9 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   /** Sverre 5. sep: oppsettet huskes PER ØKT (localStorage), så man kan
       endre og opprette på nytt — også etter at byggeren har vært lukket. */
   lagerNokkel?: string
-  /** «+ Legg til bolk» (Sverre 5. sep): en bolk til (f.eks. svømming først,
-      så løping) — bare aktivitetene, uten ny oppvarming/nedjogg, lagt UNDER
-      radene som finnes. Oversikten viser det som én økt. */
-  onLeggTil?: (rader: ActivityRow[], tittel: string) => void | Promise<void>
+  /** Flere bolker (Sverre 5. sep): når Opprett har lagt til en NY bolk siden
+      sist, får tittelen « + <bolk>» — samme som «Legg til bolk» ga før. */
+  onBolkLagtTil?: (tittel: string) => void
 }) {
   const husket = useMemo(() => (lagerNokkel && !forhandsutfylt ? lesHurtigLager<Rad>(lagerNokkel) : null), [lagerNokkel, forhandsutfylt])
   // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
@@ -178,8 +233,18 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   // «Opprett» gjør det. Et husket oppsett fyller feltene, men steget er
   // alltid «bygg» ved åpning (tom økt i dagbok skal vise oppsettet).
   const [steg, settStegIntern] = useState<'bygg' | 'ferdig'>('bygg')
-  // «Legg til bolk»-modus: oppsettet bygges som en bolk til (uten oppv/nedjogg).
-  const [leggTil, setLeggTil] = useState(false)
+  // Sverre 5. sep («endre og opprett på nytt = overskriv»): FLERE BOLKER i
+  // samme oppsett. Skjemafeltene under er den AKTIVE bolken (`aktiv`);
+  // `lager` holder alle bolkene i rekkefølge med null i den aktive plassen.
+  // Opprett genererer ALLE radene på nytt fra alle bolkene og erstatter
+  // aktivitetslista (bekreftelsen i skjemaet står som før). Bolk 1 har
+  // oppvarming/nedjogg, bolk 2+ bare aktivitetene.
+  const [aktiv, setAktiv] = useState(0)
+  const [lager, setLager] = useState<(HurtigBolk<Rad> | null)[]>(() => [null, ...((husket?.bolker ?? []) as HurtigBolk<Rad>[])])
+  const antallSist = useRef(1 + (husket?.bolker?.length ?? 0))
+  // Har dette oppsettet laget radene før (nå eller husket)? Da er Opprett en
+  // REGENERERING — skjemaet skal ikke spørre «erstatte?» (overskriv, Sverre 5. sep).
+  const harOpprettet = useRef(husket != null)
   const setSteg = (st: 'bygg' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
   const [rader, setRader] = useState<Rad[]>(() =>
     husket ? (husket.rader as Partial<Rad>[]).map(r => ({ wattFra: '', wattTil: '', stigning: '', motstand: '', ...r }) as Rad) :
@@ -212,79 +277,63 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const felter = useMemo(() => bevFelterFor(bev, sub), [bev, sub])
   const fartEnhetEff: FartEnhet = felter.fart === 'kmt' ? 'km_per_h' : fartEnhet
 
-  const konfig: IntervallKonfig = useMemo(() => ({
-    oppvarmingSek: leggTil ? 0 : pSek(opp),
-    nedjoggSek: leggTil ? 0 : pSek(ned),
-    rader: rader.map(r => {
-      const km = parseFloat(r.km.replace(',', '.'))
-      // Roing: farten er split /500 m (lagres som s/km).
-      const fartSek = felter.split500 ? (splitTilSekPerKm(r.fartFra) ?? 0) : fartSnittSekPerKm(r.fartFra, r.fartTil, fartEnhetEff)
-      const iKm = r.modus === 'km'
-      const dragSek = iKm ? dragSekFraKm(km, fartSek) : pSek(r.drag)
-      // Fart i tid-visning gir distansen (Sverre 5. sep); km-visning gir tida.
-      const dragKm = iKm ? (km > 0 ? km : null) : (fartSek > 0 && dragSek > 0 ? Math.round((dragSek / fartSek) * 100) / 100 : null)
-      return {
-        antall: Math.max(1, parseInt(r.antall) || 1),
-        dragSek,
-        sone: r.sone,
-        pauseSek: pSek(r.pause),
-        dragKm,
-        fartSekPerKm: fartSek > 0 ? fartSek : null,
-        fartTekst: felter.split500 ? (r.fartFra.trim() ? `${r.fartFra.trim()} /500 m` : null) : fartTekstFor(r.fartFra, r.fartTil, fartEnhetEff) || null,
-        // BOLK 27: målene fra bev.form-feltene.
-        wattMaal: felter.wattMaal ? wattMidt(r.wattFra, r.wattTil) : null,
-        wattTekst: felter.wattMaal ? wattTekst(r.wattFra, r.wattTil) || null : null,
-        stigning: felter.stigning ? parseDesimal(r.stigning) : null,
-        motstand: felter.motstand && r.motstand ? r.motstand : null,
-        kort: Number(r.kortPaa) > 0 ? { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 } : null,
-      }
-    }),
-    bevegelsesform: bev,
-    underkategori: sub,
-    skyting: skyting || null,
-    skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(skytetid) || SKYTETID_STANDARD_SEK)),
-  }), [opp, ned, rader, bev, sub, skyting, skytetid, fartEnhetEff, felter, leggTil])
+  const aktivBolk: HurtigBolk<Rad> = useMemo(() => ({ rader, fartEnhet, bev, sub, skyting, skytetid }), [rader, fartEnhet, bev, sub, skyting, skytetid])
+  const konfig: IntervallKonfig = useMemo(
+    () => konfigFor(aktivBolk, aktiv > 0 ? 0 : pSek(opp), aktiv > 0 ? 0 : pSek(ned)),
+    [aktivBolk, aktiv, opp, ned])
 
   const blokker: GenerertBlokk[] = useMemo(() => byggBlokker(konfig), [konfig])
-  const total = blokker.reduce((s, b) => s + b.sek, 0)
   const serier = blokker.filter(b => b.posisjon).length
   const antallL = blokker.filter(b => b.posisjon === 'L').length
   const antallS = blokker.filter(b => b.posisjon === 'S').length
 
-  const generertTittel = rader
-    .map(r => {
-      const n = Math.max(1, parseInt(r.antall) || 1)
-      const fart = felter.split500 ? (r.fartFra.trim() ? `${r.fartFra.trim()} /500 m` : '') : fartTekstFor(r.fartFra, r.fartTil, fartEnhetEff)
-      // BOLK 27: «3 × 10 min · 220–240 W · I3 / 2 min».
-      const spes = [felter.wattMaal ? wattTekst(r.wattFra, r.wattTil) : '', felter.stigning && (parseDesimal(r.stigning) ?? 0) > 0 ? `${r.stigning.trim().replace('.', ',')} %` : ''].filter(Boolean).join(' · ')
-      const drag = `${r.modus === 'km' ? `${r.km.replace('.', ',')} km` : tMin(r.drag)}${fart ? ` (${fart})` : ''}`
-      // Kortintervallet står i tittelen (Sverre 5. sep): «3 × 10 min I3 · 50/10 / 2 min».
-      const kort = Number(r.kortPaa) > 0 ? ` · ${Number(r.kortPaa)}/${Number(r.kortAv) || 0}` : ''
-      return `${n} × ${drag}${spes ? ` · ${spes}` : ''} ${r.sone}${kort} / ${tMin(r.pause)}`
-    })
-    .join('  +  ') + (serier > 0 ? '  ·  komb' : '')
-  const tittel = forhandsutfylt?.tittel ?? generertTittel
+
+  // Bolkene: den aktive er skjemafeltene, resten ligger i lageret.
+  const alle = (): HurtigBolk<Rad>[] => lager.map(b => b ?? aktivBolk)
+  const last = (b: HurtigBolk<Rad>) => {
+    setRader(b.rader); setFartEnhet(b.fartEnhet as FartEnhet); setBev(b.bev); setSub(b.sub)
+    setSkyting(b.skyting as '' | SkyteMonster); setSkytetid(b.skytetid)
+  }
+  const velgBolk = (i: number) => {
+    const a = alle(); setLager(a.map((x, j) => (j === i ? null : x))); last(a[i]); setAktiv(i); setSteg('bygg')
+  }
+  const leggTilBolk = () => {
+    const a = alle()
+    const ny: HurtigBolk<Rad> = { rader: [{ ...TOM_RAD }], fartEnhet, bev, sub, skyting: '', skytetid }
+    setLager([...a, null]); last(ny); setAktiv(a.length); setSteg('bygg')
+  }
+  const slettBolk = (i: number) => {
+    const a = alle().filter((_, j) => j !== i)
+    const nyAktiv = i === aktiv ? 0 : aktiv > i ? aktiv - 1 : aktiv
+    setLager(a.map((x, j) => (j === nyAktiv ? null : x)))
+    if (i === aktiv) last(a[0])
+    setAktiv(nyAktiv)
+  }
 
   const oppdater = (i: number, felt: keyof Rad, verdi: string) =>
     setRader(rs => rs.map((r, ri) => ri === i ? { ...r, [felt]: verdi } as Rad : r))
 
   const opprett = async () => {
-    if (leggTil && onLeggTil) {
-      await onLeggTil(genererIntervalløkt(konfig), tittel)
-      setLeggTil(false)
-      setSteg('ferdig')
-      return
-    }
-    await onOpprett(genererIntervalløkt(konfig), tittel)
-    if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned })
+    const bolker = alle()
+    const nyeRader = bolker.flatMap((b, i) => genererIntervalløkt(konfigFor(b, i === 0 ? pSek(opp) : 0, i === 0 ? pSek(ned) : 0)))
+    const nye = bolker.slice(antallSist.current)
+    // Ny bolk siden sist: tittelen får « + <bolk>» via onBolkLagtTil (som før),
+    // så Opprett sender bare bolk 1-tittelen — ellers hele.
+    await onOpprett(nyeRader, forhandsutfylt?.tittel ?? (nye.length > 0 ? tittelFor(bolker[0]) : bolker.map(tittelFor).join(' + ')), { regenerert: harOpprettet.current })
+    harOpprettet.current = true
+    if (nye.length > 0) onBolkLagtTil?.(nye.map(tittelFor).join(' + '))
+    antallSist.current = bolker.length
+    if (lagerNokkel) skrivHurtigLager(lagerNokkel, { ...bolker[0], opp, ned, bolker: bolker.slice(1) })
     if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk — ingen kollaps-linje
     else setSteg('ferdig')                        // i byggeren: bli, med økta opprettet
   }
 
   // ── Fordelingsstripa m/ L/S-markering OVER (aldri egen farge i stripa) ──
-  const Stripe = ({ hoyde = 26, medMarks = false }: { hoyde?: number; medMarks?: boolean }) => {
+  const Stripe = ({ blokker: bl = blokker, hoyde = 26, medMarks = false }: { blokker?: GenerertBlokk[]; hoyde?: number; medMarks?: boolean }) => {
+    const total = bl.reduce((s, b) => s + b.sek, 0)
+    const serier = bl.filter(b => b.posisjon).length
     let lopt = 0
-    const marks = blokker.map(b => {
+    const marks = bl.map(b => {
       const midt = total > 0 ? ((lopt + b.sek / 2) / total) * 100 : 0
       lopt += b.sek
       return b.posisjon ? { midt, pos: b.posisjon } : null
@@ -302,7 +351,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           </div>
         )}
         <div style={{ display: 'flex', height: hoyde, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--line2)' }}>
-          {blokker.map((b, i) => (
+          {bl.map((b, i) => (
             <div key={i} style={{ width: `${total > 0 ? (b.sek / total) * 100 : 0}%`, background: ZONE_COLORS_V2[b.sone] }} />
           ))}
         </div>
@@ -315,36 +364,51 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     padding: 14, marginBottom: 12,
   }
 
-  // ── FERDIG: kollapset linje — stripe + sammendrag + Endre ──
+  // ── FERDIG: én kollapset linje PER BOLK — stripe + sammendrag + Endre ──
   if (steg === 'ferdig') {
+    const bolker = alle()
     return (
-      <div style={kort} className="flex items-center gap-3 flex-wrap">
-        <div style={{ flex: '0 0 150px', minWidth: 110 }}><Stripe hoyde={16} /></div>
-        <div style={{ flex: 1, minWidth: 160, fontFamily: FONT, fontSize: 14 }}>
-          <b style={{ display: 'block', color: 'var(--tekst-1-app)', fontWeight: 700 }}>{tittel}</b>
-          <span style={{ color: 'var(--tekst-8-alt)', fontSize: 13 }}>
-            {fTid(total)} · {blokker.length} rader{serier > 0 ? ` · ${serier} skyteserier` : ''}
-          </span>
-        </div>
-        <button type="button" onClick={() => setSteg('bygg')}
-          className="text-xs tracking-widest uppercase"
-          style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
-          Endre
-        </button>
-        {onLeggTil && (
-          <button type="button" onClick={() => { setLeggTil(true); setSteg('bygg') }} data-legg-til-bolk
-            className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
+      <div style={kort} data-hurtig-ferdig>
+        {bolker.map((b, i) => {
+          const bl = byggBlokker(konfigFor(b, i === 0 ? pSek(opp) : 0, i === 0 ? pSek(ned) : 0))
+          const tot = bl.reduce((s2, x) => s2 + x.sek, 0)
+          const ser = bl.filter(x => x.posisjon).length
+          return (
+            <div key={i} className="flex items-center gap-3 flex-wrap" data-hurtig-bolk={i + 1}
+              style={{ padding: '6px 0', borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
+              <div style={{ flex: '0 0 150px', minWidth: 110 }}><Stripe blokker={bl} hoyde={16} /></div>
+              <div style={{ flex: 1, minWidth: 160, fontFamily: FONT, fontSize: 14 }}>
+                <b style={{ display: 'block', color: 'var(--tekst-1-app)', fontWeight: 700 }}>
+                  {bolker.length > 1 ? `Bolk ${i + 1} · ` : ''}{forhandsutfylt?.tittel && i === 0 ? forhandsutfylt.tittel : tittelFor(b)}
+                </b>
+                <span style={{ color: 'var(--tekst-8-alt)', fontSize: 13 }}>
+                  {fTid(tot)} · {bl.length} rader{ser > 0 ? ` · ${ser} skyteserier` : ''}{b.bev ? ` · ${b.bev}${b.sub ? ` · ${b.sub}` : ''}` : ''}
+                </span>
+              </div>
+              <button type="button" onClick={() => velgBolk(i)} data-endre-bolk className="text-xs tracking-widest uppercase" style={KNAPP_GRAA}>
+                Endre
+              </button>
+              {bolker.length > 1 && (
+                <button type="button" onClick={() => slettBolk(i)} aria-label={`Slett bolk ${i + 1}`} title="Slett bolken — trykk Opprett etterpå"
+                  style={{ ...KNAPP_GRAA, color: '#E23A5A', borderColor: '#E23A5A55', padding: '9px 12px' }}>×</button>
+              )}
+            </div>
+          )
+        })}
+        <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: 8 }}>
+          <button type="button" onClick={leggTilBolk} data-legg-til-bolk className="text-xs tracking-widest uppercase"
+            style={{ ...KNAPP_GRAA, border: '1px dashed var(--line2)' }}>
             + Legg til bolk
           </button>
-        )}
-        {onFerdig && (
-          <button type="button" onClick={onFerdig} data-ferdig
-            className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
-            Ferdig
-          </button>
-        )}
+          <span style={{ fontFamily: FONT, fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
+            Endre en bolk og trykk Opprett — økta bygges på nytt fra alle bolkene.
+          </span>
+          {onFerdig && (
+            <button type="button" onClick={onFerdig} data-ferdig className="text-xs tracking-widest uppercase ml-auto" style={KNAPP_ACCENT}>
+              Ferdig
+            </button>
+          )}
+        </div>
       </div>
     )
   }
@@ -352,7 +416,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   // ── STEG 1: bygg ──
   return (
     <div style={kort} data-hurtigoppsett={kompakt ? 'kompakt' : 'full'}>
-      {!kompakt && <><div style={CAP}>Gjelder hele økta</div>
+      {lager.length > 1 && (
+        <div className="flex items-center gap-2" style={{ marginBottom: 6 }} data-aktiv-bolk={aktiv + 1}>
+          <span style={{ ...CAP, color: 'var(--accent)' }}>Bolk {aktiv + 1} av {lager.length}</span>
+          <button type="button" onClick={() => setSteg('ferdig')} className="text-xs tracking-widest uppercase ml-auto"
+            style={{ ...KNAPP_GRAA, padding: '5px 10px' }}>Alle bolkene</button>
+        </div>
+      )}
+      {!kompakt && <><div style={CAP}>{aktiv > 0 ? 'Gjelder denne bolken' : 'Gjelder hele økta'}</div>
       <div className="grid grid-cols-2 gap-3 mt-1.5">
         <div>
           <div style={{ ...CAP, marginBottom: 5 }}>Bevegelsesform</div>
@@ -535,7 +606,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         + Legg til rad
       </button>}
 
-      {leggTil ? (
+      {aktiv > 0 ? (
         <p data-legg-til-modus style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-alt)', marginTop: 10 }}>
           Bolken legges under radene som finnes — bare aktivitetene, uten ny oppvarming/nedjogg. Velg bevegelsesform for bolken over.
         </p>
@@ -555,8 +626,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       </p>}
 
       <div className="flex gap-2 mt-2">
-        {(onAvbryt || leggTil) && (
-          <button type="button" onClick={leggTil ? () => { setLeggTil(false); setSteg('ferdig') } : onAvbryt}
+        {(onAvbryt || aktiv > 0) && (
+          <button type="button" onClick={aktiv > 0 ? () => setSteg('ferdig') : onAvbryt}
             className="text-xs tracking-widest uppercase"
             style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
             Avbryt
@@ -565,9 +636,9 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         <button type="button" onClick={() => { void opprett() }} data-hurtig-opprett
           className="flex-1"
           style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
-          {leggTil ? 'Legg til bolk' : 'Opprett'}
+          Opprett
         </button>
-        {onFerdig && !leggTil && (
+        {onFerdig && (
           <button type="button" onClick={onFerdig} data-ferdig
             className="text-xs tracking-widest uppercase"
             style={{ fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>

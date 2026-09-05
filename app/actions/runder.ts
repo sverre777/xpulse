@@ -347,9 +347,21 @@ export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]>
 
   const [{ data: tvillinger }, { data: okt }] = await Promise.all([
     supabase.from('workouts').select('id').eq('merged_into_workout_id', workoutId),
-    supabase.from('workouts').select('planned_snapshot').eq('id', workoutId).maybeSingle(),
+    supabase.from('workouts').select('planned_snapshot, user_id, date, is_planned').eq('id', workoutId).maybeSingle(),
   ])
-  const tvilling = (tvillinger ?? [])[0]
+  let tvilling = (tvillinger ?? [])[0]
+  // Sverre 5. sep («plan i bakgrunn også for dagbok-økter, med eller uten
+  // klokkesynk»): uten tvilling og uten snapshot brukes en PLANLAGT økt samme
+  // dag (ikke flettet) som planen bak — den første i rekkefølgen.
+  const snapFinnes = Array.isArray((okt?.planned_snapshot as { activities?: unknown[] } | null)?.activities)
+    && ((okt?.planned_snapshot as { activities?: unknown[] }).activities?.length ?? 0) > 0
+  if (!tvilling && !snapFinnes && okt && !okt.is_planned && okt.user_id && okt.date) {
+    const { data: planlagt } = await supabase.from('workouts').select('id')
+      .eq('user_id', okt.user_id).eq('date', okt.date).eq('is_planned', true)
+      .is('merged_into_workout_id', null).neq('id', workoutId)
+      .order('sort_order', { ascending: true }).limit(1)
+    if (planlagt && planlagt[0]) tvilling = planlagt[0]
+  }
 
   type Rad = { id?: string; activity_type?: string | null; movement_name?: string | null; lap_notes?: string | null; duration?: unknown; duration_seconds?: unknown; window_start_seconds?: number | null; window_duration_seconds?: number | null; zones?: unknown }
   let rader: Rad[] = []

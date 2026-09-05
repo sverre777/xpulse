@@ -12,7 +12,10 @@
 // SAMME delte kilde som kalender/analyse (minutt-semantikk på varighet,
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode, useSyncExternalStore } from 'react'
+import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
+import { hentPlanensRunder, type PlanBlokk as PlanBlokkBak } from '@/app/actions/runder'
+import { VisPlanBryter } from './PlanSpokelse'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { hentFlettStatus, angreFlett, type FlettStatus } from '@/app/actions/flett'
@@ -152,6 +155,16 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   onDataEndret?: () => void
 }) {
   const harSki = useHarSkiskyting()
+  // Plan bak for en dagbok-økt uten klokke (Sverre 5. sep) — samme action som
+  // øktgrafen og byggeren; bryteren husker valget per økt (lib/vis-plan).
+  const [planBakBlokker, setPlanBakBlokker] = useState<PlanBlokkBak[]>([])
+  const visPlanBak_ = useSyncExternalStore(abonnerVisPlan, () => visPlanBak(workoutId ?? ''), () => true)
+  useEffect(() => {
+    if (!workoutId) return
+    let avbrutt = false
+    hentPlanensRunder(workoutId).then(b => { if (!avbrutt) setPlanBakBlokker(b) }).catch(() => {})
+    return () => { avbrutt = true }
+  }, [workoutId])
   const isPlannedView = status === 'planned'
   // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
   // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
@@ -463,8 +476,16 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {!harKlokkeRader && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
+            {/* Sverre 5. sep: «plan i bakgrunn» også på oversikten for en dagbok-økt uten
+                klokke — planen bak (tvilling, snapshot eller planlagt økt samme dag) som spøkelse. */}
+            {!isPlannedView && planBakBlokker.length > 0 && (
+              <div className="mb-2 flex justify-end">
+                <VisPlanBryter paa={visPlanBak_} antall={planBakBlokker.length} onEndre={p2 => settVisPlanBak(workoutId ?? '', p2)} />
+              </div>
+            )}
             {/* Sverre 5. sep: punktene som på øktkartet — pille/etikett med strek, emoji og verdi (ikke bare ikon). */}
             <PlanGraf blokker={fraActivityRows(activities)} tetthet="full"
+              spokelser={!isPlannedView && visPlanBak_ ? planBakBlokker : []}
               punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
               rpe={isPlannedView ? forventetVist : rpeVist}

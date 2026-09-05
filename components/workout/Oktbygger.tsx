@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { KurveBrush } from './KurveBrush'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { SerieListe } from './SerieListe'
 import { PunktEtiketter } from './WorkoutDetailChart'
@@ -159,8 +160,12 @@ export function OktbyggerPopup({
   // På en tom økt og alltid i plan står det åpent som første seksjon.
   // Avgjøres ved åpning — etter «Opprett» skal ferdig-linja bli stående.
   const [hurtigAapent, setHurtigAapent] = useState(() => erPlanlagt || rader.length === 0)
-  const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>(() =>
+  const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt' | 'kadens'>(() =>
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
+  // Sverre 5. sep (skjermbilde): seriene kan ligge OPPÅ hverandre i byggeren
+  // som på øktgrafen («PÅ GRAFEN»: Puls · Watt · Tempo · Kadens · Høyde).
+  // Første valgte er fokus (skala + y for punktene); høyde er alltid areal.
+  const [paaIds, setPaaIds] = useState<string[]>([])
   // ANGRE: forrige radsett, steg for steg. Lever i byggeren til den lukkes.
   const [angreStabel, setAngreStabel] = useState<ActivityRow[][]>([])
   // Rettelse 6: før FØRSTE endring av radene på en klokkeøkt tas klokkas
@@ -245,10 +250,11 @@ export function OktbyggerPopup({
   // kommer, og da må valget falle tilbake på den første serien som finnes.
   const tilgjengeligeKurver = useMemo(() => {
     const s = klokke?.samples
-    const ut: Array<'puls' | 'fart' | 'watt'> = []
+    const ut: Array<'puls' | 'fart' | 'watt' | 'kadens'> = []
     if (s?.hr_samples?.length) ut.push('puls')
     if ((s?.pace_samples ?? s?.speed_samples)?.length) ut.push('fart')
     if (s?.watt_samples?.length) ut.push('watt')
+    if (s?.cadence_samples?.length) ut.push('kadens')
     return ut
   }, [klokke])
   const kurveAktiv = tilgjengeligeKurver.includes(kurve) ? kurve : (tilgjengeligeKurver[0] ?? 'puls')
@@ -562,23 +568,37 @@ export function OktbyggerPopup({
                   const s = klokke?.samples
                   const valg = ([
                     ['puls', 'Puls', s?.hr_samples?.length ?? 0] as const,
-                    ['fart', 'Fart', (s?.pace_samples ?? s?.speed_samples)?.length ?? 0] as const,
+                    ['fart', 'Tempo', (s?.pace_samples ?? s?.speed_samples)?.length ?? 0] as const,
                     ['watt', 'Watt', s?.watt_samples?.length ?? 0] as const,
+                    ['kadens', 'Kadens', s?.cadence_samples?.length ?? 0] as const,
+                    ['hoyde', 'Høyde', (s?.altitude_samples?.length ?? 0) > 2 ? s!.altitude_samples!.length : 0] as const,
                   ]).filter(([, , n]) => n > 0)
                   if (valg.length < 2) return null
-                  return valg.map(([id, navn]) => (
-                    <button key={id} type="button" onClick={() => setKurve(id)}
+                  const paa = (id: string) => id === kurveAktiv || paaIds.includes(id)
+                  const farge = (id: string) => id === 'hoyde' ? 'var(--tekst-5-app)' : KURVE_FARGER[id as keyof typeof KURVE_FARGER]
+                  // Klikk: fokus-serien byttes; klikk på en annen serie legger den OPPÅ (av/på).
+                  const velg = (id: string) => {
+                    if (id === 'hoyde') { setPaaIds(p => (p.includes('hoyde') ? p.filter(x => x !== 'hoyde') : [...p, 'hoyde'])); return }
+                    if (id === kurveAktiv) { if (paaIds.filter(x => x !== 'hoyde').length > 0) { const neste = paaIds.find(x => x !== 'hoyde') as typeof kurve; setKurve(neste); setPaaIds(p => p.filter(x => x !== neste)) } return }
+                    if (paaIds.includes(id)) { setPaaIds(p => p.filter(x => x !== id)); return }
+                    setPaaIds(p => [...p, id])
+                  }
+                  return (<span className="flex items-center gap-1 flex-wrap" data-paa-grafen>
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>På grafen</span>
+                    {valg.map(([id, navn]) => (
+                    <button key={id} type="button" onClick={() => velg(id)} data-serie-valg={id} aria-pressed={paa(id)}
+                      title={id === kurveAktiv ? 'Fokus-serien (skala)' : paa(id) ? 'Ligger oppå — klikk for å ta bort' : 'Legg oppå grafen'}
                       className="text-xs tracking-widest uppercase"
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                        color: kurveAktiv === id ? KURVE_FARGER[id] : 'var(--tekst-8-alt)',
-                        background: 'none',
-                        border: `1px solid ${kurveAktiv === id ? KURVE_FARGER[id] : 'var(--kant-3)'}`,
+                        color: paa(id) ? farge(id) : 'var(--tekst-8-alt)',
+                        background: id === kurveAktiv ? 'var(--flate-12-alt)' : 'none',
+                        border: `1px solid ${paa(id) ? farge(id) : 'var(--kant-3)'}`,
                         borderRadius: 999, padding: '4px 12px', cursor: 'pointer', minHeight: 30,
                       }}>
                       {navn}
                     </button>
-                  ))
+                  ))}</span>)
                 })()}
                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
                   {punktModus
@@ -626,6 +646,7 @@ export function OktbyggerPopup({
                   ...(visPlan ? planPunkter.map(p => ({ id: `pl-${p.id}`, slag: p.type, sek: p.sek, planlagt: true, tittel: `${p.tekst?.trim() || PUNKT_SLAG[p.type].navn} · plan` })) : []),
                 ]}
                 planBlokker={visPlan ? planBlokker : []}
+                paaIds={paaIds}
                 visning={visning}
                 heartZones={heartZones}
                 runder={(klokke?.lapMarkers ?? []).slice(1).map(l => l.t_start)}
@@ -779,6 +800,7 @@ export const KURVE_FARGER = {
   puls: '#E23A5A',
   fart: '#28A86E',
   watt: '#E8B93C',
+  kadens: '#1A6FD4',
 } as const
 
 type KurveValg = keyof typeof KURVE_FARGER
@@ -789,7 +811,7 @@ export type BaandModus = 'kutt' | 'startHer' | 'punkt' | null
 
 function KurveMedRader({
   workoutId, utkast, valgtRad, onVelgRad, onKlikkSek, modus, onDelHer, onSlaaSammen, erPlanlagt,
-  samples, hr, kurve, sport, totalSek, punkter, planBlokker, visning, heartZones, runder, rader, sonerRader,
+  samples, hr, kurve, paaIds = [], sport, totalSek, punkter, planBlokker, visning, heartZones, runder, rader, sonerRader,
 }: {
   workoutId: string
   utkast: Utkast[]
@@ -809,6 +831,8 @@ function KurveMedRader({
   totalSek: number
   punkter: Punkt[]
   planBlokker: PlanBlokk[]
+  /** Serier som ligger OPPÅ fokus-serien (Sverre 5. sep). */
+  paaIds?: string[]
   /** Samlet rettelse 4: samme graf som øktsiden — GRAF · KURVER · BEGGE. */
   visning: GrafVisning
   heartZones: HeartZone[]
@@ -833,6 +857,11 @@ function KurveMedRader({
     if (watt.length > 0) ut.push({
       id: 'watt', navn: 'Watt', farge: KURVE_FARGER.watt,
       punkter: watt.map(p => ({ t: p.t, v: p.w })), format: (v: number) => `${Math.round(v)}`,
+    })
+    const kadens = samples?.cadence_samples ?? []
+    if (kadens.length > 0) ut.push({
+      id: 'kadens', navn: 'Kadens', farge: KURVE_FARGER.kadens,
+      punkter: kadens.map(p => ({ t: p.t, v: p.cad })), format: (v: number) => `${Math.round(v)}`,
     })
     if (hoyde.length > 2) ut.push({
       id: 'hoyde', navn: 'Høyde', farge: 'var(--tekst-5-app)',
@@ -957,6 +986,26 @@ function KurveMedRader({
   )
 
   const harKurve = kurveSerier.some(k => !k.somAreal && k.punkter.length > 0)
+  // Sverre 5. sep: zoom-linja (brush) som EGEN linje under kurven — samme
+  // komponent som øktgrafen; vinduet huskes per økt (lib/kurve-zoom).
+  const zoomLinje = harKurve && totalSek > 0 ? (
+    <div data-bygger-zoom className="mt-1.5">
+      <KurveBrush
+        serie={kurveSerier.find(x => x.id === kurve && !x.somAreal) ?? kurveSerier.find(x => !x.somAreal) ?? null}
+        segmenter={[]}
+        totalSek={totalSek}
+        vindu={vindu ?? [0, totalSek]}
+        onVindu={v => { const hele = v[0] <= 0.5 && v[1] >= totalSek - 0.5; setVindu(hele ? null : v); lagreVindu(workoutId, hele ? [0, totalSek] : v) }}
+      />
+      <div className="flex gap-2 flex-wrap mt-1" data-zoom-rad>
+        <button type="button" onClick={() => { setVindu(null); lagreVindu(workoutId, [0, totalSek]) }} disabled={!vindu}
+          style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: vindu ? 'var(--accent)' : 'var(--tekst-8-app)', background: 'none', border: `1px solid ${vindu ? 'var(--accent)' : 'var(--kant-3)'}`, borderRadius: 999, padding: '5px 12px', minHeight: 32, cursor: vindu ? 'pointer' : 'default', opacity: vindu ? 1 : 0.5 }}>
+          Hele økta
+        </button>
+        {vindu && <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)', alignSelf: 'center' }}>{fmtKlokkeSek(vindu[0])}–{fmtKlokkeSek(vindu[1])}</span>}
+      </div>
+    </div>
+  ) : null
   const baand = (
     <ByggerBaand utkast={utkast} valgtId={valgtRad} onVelg={onVelgRad}
       fraSek={harKurve ? (vindu?.[0] ?? 0) : 0} tilSek={harKurve ? (vindu?.[1] ?? Math.max(1, totalSek)) : Math.max(1, totalSek)}
@@ -1029,7 +1078,7 @@ function KurveMedRader({
       )}
       <OktKurve
         serier={kurveSerier}
-        paaIds={kurveSerier.filter(x => x.id === kurve || x.somAreal).map(x => x.id)}
+        paaIds={kurveSerier.filter(x => x.id === kurve || paaIds.includes(x.id) || (x.somAreal && (paaIds.length === 0 || paaIds.includes('hoyde')))).map(x => x.id)}
         fokusId={kurve}
         totalSek={totalSek}
         hoyde={KURVE_HOYDE}
@@ -1045,6 +1094,7 @@ function KurveMedRader({
         mellomlag={h => (visning === 'begge' ? <PlanSpokelse blokker={kartSpokelser} pct={h.pct} dempet={0.55} slag="faktisk" /> : null)}
         overlay={h => overlay(h, true)}
       />
+      {zoomLinje}
       {baand}
       {valgt && (() => {
         const puls = pulsIVindu(hr, valgt.startSek, valgt.startSek + valgt.varighetSek)

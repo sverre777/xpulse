@@ -6,11 +6,10 @@ import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
 import { IDagKort } from '@/components/oversikt/IDagKort'
 import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
-import { NesteKonkurranseKort } from '@/components/oversikt/NesteKonkurranseKort'
-import { HovedmaalKort } from '@/components/oversikt/HovedmaalKort'
-import { PeriodeKort } from '@/components/oversikt/PeriodeKort'
-import { HelseKortHjem } from '@/components/oversikt/HelseKortHjem'
+import { KonkurranseNedtelling, IngenAKonkurranse } from '@/components/oversikt/KonkurranseNedtelling'
+import { MainGoalCard, PhaseCard } from '@/components/oversikt/NoekkelkortGrid'
 import { SisteHardoktKort } from '@/components/oversikt/SisteHardoktKort'
+import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { KlokkesyncMiniKort } from '@/components/oversikt/KlokkesyncMiniKort'
@@ -110,14 +109,17 @@ export default async function OversiktPage() {
         <div className="xp-hjem-r1" data-hjem-rad="1">
           <IDagKort today={res.today} nextPlanned={res.nextPlanned} klokke={res.klokke.today} siste={res.feed[0] ?? null} todayISO={res.hero.todayISO} />
           <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} plan={res.weekPlan} todayISO={res.hero.todayISO} />
-          <NesteKonkurranseKort nesteA={res.competitions.nesteA} neste={res.competitions.neste} phase={res.phase} />
+          {res.competitions.nesteA
+            ? <KonkurranseNedtelling comp={res.competitions.nesteA} />
+            : res.competitions.neste[0]
+              ? <KonkurranseNedtelling comp={res.competitions.neste[0]} />
+              : <IngenAKonkurranse />}
         </div>
         <div className="xp-hjem-r2 mb-6" data-hjem-rad="2">
-          <HelseKortHjem helse={res.helse} hardDager={res.hardDager} todayISO={res.hero.todayISO} />
+          <KompaktHelseKort forhandsdata={res.helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
           <SisteHardoktKort w={res.lastHardWorkout} klokke={res.klokke.lastHard} />
-          <HovedmaalKort goal={res.mainGoal} shotGoal={res.shotGoal} resultGoals={res.resultGoals} todayISO={res.hero.todayISO} />
-          <PeriodeKort phase={res.phase} phaseStatus={res.phaseStatus} periods={res.periods} camps={res.camps} todayISO={res.hero.todayISO}
-            snittTimerPerUke={res.mainGoal?.actual_hours_to_date != null && res.mainGoal.season_start ? res.mainGoal.actual_hours_to_date / Math.max(1, (Math.round((new Date(res.hero.todayISO + 'T00:00:00').getTime() - new Date(res.mainGoal.season_start + 'T00:00:00').getTime()) / 86400000) + 1) / 7) : null} />
+          <MainGoalCard goal={res.mainGoal} />
+          <PhaseCard phase={res.phase} phaseStatus={res.phaseStatus} />
         </div>
 
         {/* Trener-kort + klokkesync side om side. Om utøver ikke har trener

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import type { OversiktWeekTotals } from '@/app/actions/oversikt'
+import type { OversiktWeekTotals, OversiktUkePlan } from '@/app/actions/oversikt'
+import { UkePlanVsGjennomfort } from './UkePlanVsGjennomfort'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { ZoneBar, ShotChip, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
 import { UkePopup } from './kort-popups'
 
@@ -46,11 +48,15 @@ function StatCell({ label, value, delta }: { label: string; value: string; delta
 }
 
 export function UkensTotaler({
-  totals, weekNumber,
+  totals, weekNumber, plan, todayISO,
 }: {
   totals: OversiktWeekTotals
   weekNumber: number
+  /** HJEM v2 bolk 5: plan vs gjennomført (bolk 0-data). */
+  plan?: OversiktUkePlan
+  todayISO?: string
 }) {
+  const harSki = useHarSkiskyting()
   // Kortet eier sin egen popup — siden er en server-komponent og skal ikke
   // holde UI-tilstand for kortene.
   const [apen, setApen] = useState(false)
@@ -72,6 +78,9 @@ export function UkensTotaler({
 
       {/* Selvskjulende: uten skudd i uka rendres ingenting her. */}
       <ShotChip shots={totals.current.shots} />
+
+      {/* HJEM v2 bolk 5: PLAN VS GJENNOMFØRT — fire barer m/ planstrek + dagsrad man–søn. */}
+      {plan && todayISO && <UkePlanVsGjennomfort plan={plan} todayISO={todayISO} harSki={harSki} />}
 
       {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}
       <Spacer />

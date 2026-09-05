@@ -147,11 +147,11 @@ export function OktbyggerPopup({
   // Rettelse 3 (3. sep): hurtigoppsettet er FØRSTE seksjon og står ÅPENT —
   // i plan og dagbok, med og uten kurve. Det lå her før også, men
   // sammenslått bak en pil så snart økta hadde rader, og ble ikke funnet.
-  // Sverre 5. sep: på en KLOKKESYNKET økt står hurtigoppsettet kollapset fra
-  // før (man kan åpne det); uten kurve står det åpent som første seksjon.
-  const [hurtigValg, setHurtigValg] = useState<boolean | null>(null)
-  const hurtigAapent = hurtigValg ?? !harKurve
-  const setHurtigAapent = (v: boolean | ((p: boolean) => boolean)) => setHurtigValg(typeof v === 'function' ? v(hurtigAapent) : v)
+  // Sverre 5. sep: hurtigoppsettet står SKJULT (pila ▾ henter det ned igjen)
+  // når man åpner en dagbok-økt som alt er ført eller kommer fra klokkesynk.
+  // På en tom økt og alltid i plan står det åpent som første seksjon.
+  // Avgjøres ved åpning — etter «Opprett» skal ferdig-linja bli stående.
+  const [hurtigAapent, setHurtigAapent] = useState(() => erPlanlagt || rader.length === 0)
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>(() =>
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
   // ANGRE: forrige radsett, steg for steg. Lever i byggeren til den lukkes.

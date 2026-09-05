@@ -6,6 +6,7 @@ import { useKlokkedata } from './useKlokkedata'
 import { WorkoutDetailChart } from './WorkoutDetailChart'
 import { LapTable } from './LapTable'
 import { WorkoutDeepAnalysis } from './WorkoutDeepAnalysis'
+import { OriginaleRunder } from './OriginaleRunder'
 import { ImportSourceBadge } from './ImportSourceBadge'
 import Link from 'next/link'
 
@@ -244,6 +245,8 @@ export function WorkoutKlokkesyncSection({ workoutId, importedFrom, refreshTick 
           </button>
           {showDeep && (
             <>
+            {/* Bolk 25: ALLTID klokkas originale runder + GAP — lesevisning. */}
+            {hasLaps && <OriginaleRunder laps={data.laps} sport={data.sport} samples={data.samples} kilde={data.lapKilde} />}
             <WorkoutDeepAnalysis
               samples={data.samples}
               sport={data.sport}

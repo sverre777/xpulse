@@ -10,8 +10,7 @@ import {
   genererIntervalløkt,
   posisjonForPause,
   type IntervallKonfig,
-  type SkyteMonster,
-} from '../lib/intervall-generator.ts'
+  type SkyteMonster, dragSekFraKm, kortNavn } from '../lib/intervall-generator.ts'
 import { findActivityType, type ActivityRow } from '../lib/types.ts'
 
 let feil = 0
@@ -120,6 +119,20 @@ console.log('\nSkyting i pausen = maks 1 min av pausen')
   sjekk('skytetid klemmes til 60 s', b2[1].sek, 60)
   const b3 = byggBlokker({ ...k, rader: [{ antall: 3, dragSek: min(4), sone: 'I4', pauseSek: 30 }] })
   sjekk('pause kortere enn skytetida → hele pausen er skyting, ingen restpause', b3.length === 5 && b3[1].sek === 30, true)
+}
+
+// ── Drag i km + fart, kortintervall på raden (Sverre 5. sep) ──
+console.log('\nDrag i km med planlagt fart · kortintervall')
+{
+  sjekk('2,5 km i 4:30/km = 675 s', dragSekFraKm(2.5, 270), 675)
+  sjekk('km uten fart → 0 s', dragSekFraKm(2.5, 0), 0)
+  const k = grunn({ oppvarmingSek: 0, nedjoggSek: 0, rader: [{ antall: 2, dragSek: dragSekFraKm(2, 300), sone: 'I3', pauseSek: 60, dragKm: 2, fartSekPerKm: 300, kort: { paaSek: 50, avSek: 10 } }] })
+  const r = genererIntervalløkt(k)
+  sjekk('draget får distanse 2 km', r[0].distance_km, '2')
+  sjekk('draget varer 10 min (2 km × 5:00)', r[0].duration, '10:00')
+  sjekk('kortintervallet står som radnavn «50/10»', r[0].lap_notes, '50/10')
+  sjekk('pausen har verken km eller mønster', (r[1].distance_km ?? '') === '' && (r[1].lap_notes ?? '') === '', true)
+  sjekk('kortNavn uten mønster er tom', kortNavn(null), '')
 }
 
 // ── Skytemønstrene på 8 pauser ──────────────────────────────

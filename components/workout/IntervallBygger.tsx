@@ -17,7 +17,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   byggBlokker, genererIntervalløkt,
-  type GenerertBlokk, type IntervallKonfig, type SkyteMonster, SKYTETID_STANDARD_SEK, SKYTETID_MAKS_SEK } from '@/lib/intervall-generator'
+  type GenerertBlokk, type IntervallKonfig, type SkyteMonster, SKYTETID_STANDARD_SEK, SKYTETID_MAKS_SEK, dragSekFraKm } from '@/lib/intervall-generator'
 import type { BlokkSone } from '@/lib/okt-template-library'
 import { KORTINTERVALL_HURTIGVALG, antallRepetisjoner, kortintervallEtikett } from '@/lib/intervall-monstre'
 import { foringsSoner } from '@/lib/sonesprak'
@@ -49,6 +49,26 @@ interface Rad {
   // Kortintervaller INNI draget (Øktbyggeren bolk 2). Frie sekundverdier
   // — hurtigvalgene under fyller dem bare inn.
   kortPaa: string; kortAv: string
+  // Sverre 5. sep: draget kan planlegges i KILOMETER i stedet for tid —
+  // km + planlagt fart gir dragtida.
+  modus: 'tid' | 'km'
+  km: string
+  fart: string
+}
+type FartEnhet = 'min_per_km' | 'km_per_h'
+/** «4:30» (min/km) → 270 s/km; «13,3» (km/t) → 270 s/km. */
+function fartTilSekPerKm(fart: string, enhet: FartEnhet): number {
+  const t = fart.trim().replace(',', '.')
+  if (!t) return 0
+  if (enhet === 'km_per_h') { const kmh = parseFloat(t); return kmh > 0 ? 3600 / kmh : 0 }
+  const d = t.split(':').map(Number)
+  if (d.length >= 2 && !d.some(Number.isNaN)) return d[0] * 60 + d[1]
+  const m = parseFloat(t); return m > 0 ? m * 60 : 0
+}
+function fmtFart(sekPerKm: number, enhet: FartEnhet): string {
+  if (!(sekPerKm > 0)) return ''
+  if (enhet === 'km_per_h') return `${(3600 / sekPerKm).toFixed(1).replace('.', ',')} km/t`
+  return `${Math.floor(sekPerKm / 60)}:${String(Math.round(sekPerKm % 60)).padStart(2, '0')}/km`
 }
 
 const SKYTEVALG: { verdi: '' | SkyteMonster; etikett: string }[] = [
@@ -117,10 +137,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     forhandsutfylt
       ? forhandsutfylt.rader.map(r => ({
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
-          kortPaa: '', kortAv: '',
+          kortPaa: '', kortAv: '', modus: 'tid' as const, km: '', fart: '',
         }))
       // Rettelse 8 (4. sep): ÉN standardrad — 3 × 10 min I3 · 2 min pause.
-      : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '' }])
+      : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fart: '' }])
+  const [fartEnhet, setFartEnhet] = useState<FartEnhet>('min_per_km')
   const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState('')
   const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
@@ -145,17 +166,25 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const konfig: IntervallKonfig = useMemo(() => ({
     oppvarmingSek: pSek(opp),
     nedjoggSek: pSek(ned),
-    rader: rader.map(r => ({
-      antall: Math.max(1, parseInt(r.antall) || 1),
-      dragSek: pSek(r.drag),
-      sone: r.sone,
-      pauseSek: pSek(r.pause),
-    })),
+    rader: rader.map(r => {
+      const km = parseFloat(r.km.replace(',', '.'))
+      const fartSek = fartTilSekPerKm(r.fart, fartEnhet)
+      const iKm = r.modus === 'km'
+      return {
+        antall: Math.max(1, parseInt(r.antall) || 1),
+        dragSek: iKm ? dragSekFraKm(km, fartSek) : pSek(r.drag),
+        sone: r.sone,
+        pauseSek: pSek(r.pause),
+        dragKm: iKm && km > 0 ? km : null,
+        fartSekPerKm: iKm && fartSek > 0 ? fartSek : null,
+        kort: Number(r.kortPaa) > 0 ? { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 } : null,
+      }
+    }),
     bevegelsesform: bev,
     underkategori: sub,
     skyting: skyting || null,
     skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(skytetid) || SKYTETID_STANDARD_SEK)),
-  }), [opp, ned, rader, bev, sub, skyting, skytetid])
+  }), [opp, ned, rader, bev, sub, skyting, skytetid, fartEnhet])
 
   const blokker: GenerertBlokk[] = useMemo(() => byggBlokker(konfig), [konfig])
   const total = blokker.reduce((s, b) => s + b.sek, 0)
@@ -164,12 +193,20 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const antallS = blokker.filter(b => b.posisjon === 'S').length
 
   const generertTittel = rader
-    .map(r => `${Math.max(1, parseInt(r.antall) || 1)} × ${tMin(r.drag)} ${r.sone} / ${tMin(r.pause)}`)
+    .map(r => {
+      const n = Math.max(1, parseInt(r.antall) || 1)
+      const drag = r.modus === 'km'
+        ? `${r.km.replace('.', ',')} km${fartTilSekPerKm(r.fart, fartEnhet) > 0 ? ` (${fmtFart(fartTilSekPerKm(r.fart, fartEnhet), fartEnhet)})` : ''}`
+        : tMin(r.drag)
+      // Kortintervallet står i tittelen (Sverre 5. sep): «3 × 10 min I3 · 50/10 / 2 min».
+      const kort = Number(r.kortPaa) > 0 ? ` · ${Number(r.kortPaa)}/${Number(r.kortAv) || 0}` : ''
+      return `${n} × ${drag} ${r.sone}${kort} / ${tMin(r.pause)}`
+    })
     .join('  +  ') + (serier > 0 ? '  ·  komb' : '')
   const tittel = forhandsutfylt?.tittel ?? generertTittel
 
   const oppdater = (i: number, felt: keyof Rad, verdi: string) =>
-    setRader(rs => rs.map((r, ri) => ri === i ? { ...r, [felt]: verdi } : r))
+    setRader(rs => rs.map((r, ri) => ri === i ? { ...r, [felt]: verdi } as Rad : r))
 
   const opprett = async () => {
     await onOpprett(genererIntervalløkt(konfig), tittel)
@@ -332,13 +369,33 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
       <div style={{ ...CAP, marginTop: kompakt ? 0 : 16 }}>Drag</div>
       <div className="grid gap-2 mt-1" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px', fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
-        <span>Antall</span><span /><span>Dragtid</span><span>Sone</span><span /><span>Pause</span>{!kompakt && <span />}
+        <span>Antall</span><span /><span>Dragtid / km · fart{rader.some(r => r.modus === 'km') && (
+          <button type="button" data-fart-enhet={fartEnhet} onClick={() => setFartEnhet(v => (v === 'min_per_km' ? 'km_per_h' : 'min_per_km'))}
+            style={{ marginLeft: 6, fontFamily: FONT, fontSize: 10, letterSpacing: '0.08em', color: 'var(--accent)', background: 'none', border: '1px solid var(--accent)', borderRadius: 999, padding: '1px 6px', cursor: 'pointer', textTransform: 'none' }}>
+            {fartEnhet === 'min_per_km' ? 'min/km' : 'km/t'}
+          </button>
+        )}</span><span>Sone</span><span /><span>Pause</span>{!kompakt && <span />}
       </div>
       {rader.map((r, i) => (
         <div key={i} className="grid gap-2 items-center mt-1.5" style={{ gridTemplateColumns: kompakt ? '44px 10px 1fr 64px 10px 1fr' : '52px 12px 1fr 74px 12px 1fr 32px' }}>
           <input value={r.antall} onChange={e => oppdater(i, 'antall', e.target.value)} inputMode="numeric" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
           <span style={{ color: 'var(--tekst-8-alt)', textAlign: 'center' }}>×</span>
-          <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14 }} />
+          {r.modus === 'km' ? (
+            <div className="flex items-center gap-1" style={{ minWidth: 0 }}>
+              <input value={r.km} onChange={e => oppdater(i, 'km', e.target.value)} inputMode="decimal" placeholder="km" aria-label="Drag i km" data-drag-km
+                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
+              <input value={r.fart} onChange={e => oppdater(i, 'fart', e.target.value)} inputMode="text" placeholder={fartEnhet === 'km_per_h' ? 'km/t' : 'min/km'} aria-label="Planlagt fart" data-drag-fart
+                style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
+              <button type="button" data-drag-modus="km" onClick={() => oppdater(i, 'modus', 'tid')} title="Bytt til dragtid"
+                style={{ fontFamily: FONT, fontSize: 10, letterSpacing: '0.08em', color: 'var(--accent)', background: 'none', border: '1px solid var(--accent)', borderRadius: 999, padding: '3px 6px', cursor: 'pointer', whiteSpace: 'nowrap' }}>KM</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1" style={{ minWidth: 0 }}>
+              <input value={r.drag} onChange={e => oppdater(i, 'drag', e.target.value)} inputMode="text" placeholder="MM:SS" style={{ ...FELT, textAlign: 'center', padding: '8px 2px', fontSize: 14, minWidth: 0 }} />
+              <button type="button" data-drag-modus="tid" onClick={() => oppdater(i, 'modus', 'km')} title="Planlegg draget i kilometer i stedet"
+                style={{ fontFamily: FONT, fontSize: 10, letterSpacing: '0.08em', color: 'var(--tekst-8-alt)', background: 'none', border: '1px solid var(--line2)', borderRadius: 999, padding: '3px 6px', cursor: 'pointer', whiteSpace: 'nowrap' }}>TID</button>
+            </div>
+          )}
           <select value={r.sone} onChange={e => oppdater(i, 'sone', e.target.value)}
             style={{ ...FELT, fontWeight: 700, color: ZONE_COLORS_V2[r.sone], padding: '8px 2px', fontSize: 14 }}>
             {foringsSoner(utvidetSkala === true).map(z => <option key={z} value={z}>{z}</option>)}
@@ -398,7 +455,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           </div>}
         </div>
       ))}
-      {!kompakt && <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' }])}
+      {!kompakt && <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' , modus: 'tid', km: '', fart: '' }])}
         className="w-full mt-2"
         style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-5-app)', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
         + Legg til rad

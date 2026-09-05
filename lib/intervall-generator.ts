@@ -37,6 +37,24 @@ export interface IntervallRad {
   dragSek: number
   sone: BlokkSone
   pauseSek: number
+  /** Drag planlagt i kilometer (Sverre 5. sep): dragSek er da regnet ut av
+      km × fart, og raden får distanse. */
+  dragKm?: number | null
+  /** Planlagt fart som sekunder per km (min/km og km/t regnes om i UI). */
+  fartSekPerKm?: number | null
+  /** Kortintervall inni draget (50/10, 20/10 …) — merkes i grafen og tittelen. */
+  kort?: { paaSek: number; avSek: number } | null
+}
+
+/** Varighet for et drag i km ved planlagt fart. */
+export function dragSekFraKm(km: number, fartSekPerKm: number): number {
+  if (!(km > 0) || !(fartSekPerKm > 0)) return 0
+  return Math.round(km * fartSekPerKm)
+}
+
+/** Radnavnet som bærer kortintervallet — kartet og tittelen leser det. */
+export function kortNavn(kort: { paaSek: number; avSek: number } | null | undefined): string {
+  return kort && kort.paaSek > 0 ? `${kort.paaSek}/${kort.avSek}` : ''
 }
 
 export interface IntervallKonfig {
@@ -62,6 +80,10 @@ export interface GenerertBlokk extends Blokk {
   type: ActivityType
   /** Kun satt på skyteblokker. */
   posisjon: 'L' | 'S' | null
+  /** Drag i km: distansen som følger raden. */
+  km?: number | null
+  /** Kortintervall inni draget. */
+  kort?: { paaSek: number; avSek: number } | null
 }
 
 /** 5 skudd per serie. Standard i skiskyting, ikke et valg i byggeren. */
@@ -123,7 +145,8 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
   konfig.rader.forEach((rad, ri) => {
     for (let i = 0; i < rad.antall; i++) {
       if (rad.dragSek > 0) {
-        blokker.push({ sek: rad.dragSek, sone: rad.sone, rolle: 'arbeid', type: 'aktivitet', posisjon: null })
+        blokker.push({ sek: rad.dragSek, sone: rad.sone, rolle: 'arbeid', type: 'aktivitet', posisjon: null,
+          km: rad.dragKm && rad.dragKm > 0 ? rad.dragKm : null, kort: rad.kort && rad.kort.paaSek > 0 ? rad.kort : null })
       }
       if (erSistePause(ri, i, rad) || rad.pauseSek <= 0) continue
 
@@ -214,6 +237,11 @@ export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
           ...makeActivity({ activity_type: b.type, ...bevegelseFor(b.type, konfig) }),
           duration: sekTilKlokke(b.sek),
           zones: { ...emptyActivityZones(), ...blokkerTilSoner([b]) },
+          // Drag i km: distansen følger raden (farten leses av km/tid).
+          ...(b.km ? { distance_km: String(b.km).replace('.', ',') } : {}),
+          // Kortintervallet bæres av radnavnet («50/10») — kartet striper
+          // blokka og viser det, tittelen sier det.
+          ...(b.kort ? { lap_notes: kortNavn(b.kort) } : {}),
         }
   ))
 }

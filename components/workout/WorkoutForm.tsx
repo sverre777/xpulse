@@ -7,6 +7,7 @@ import { saveWorkout, markCompleted } from '@/app/actions/workouts'
 import { listMySessionSeries, createSessionSeries, type StandardSessionSeries } from '@/app/actions/standard-sessions'
 import { getAltitudePeriodForDate } from '@/app/actions/seasons'
 import { saveAsTemplate } from '@/app/actions/templates'
+import { flyttHurtigLager } from '@/lib/hurtig-lager'
 import { setWorkoutEquipment } from '@/app/actions/equipment'
 import { replaceWorkoutNutrition } from '@/app/actions/nutrition'
 import { TrenerChip } from '@/components/coach/TrenerChip'
@@ -805,6 +806,9 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       // Plan-modus lagrer også: utstyr kan PLANLEGGES — km/tid telles først når
       // økta markeres gjennomført (lib/equipment-usage).
       const savedId = result.id
+      // Husket hurtigoppsett (Sverre 5. sep): en ny økt bygde under «ny» —
+      // oppsettet følger økta til id-en så «Endre / opprett på nytt» virker.
+      if (savedId && !workoutId) flyttHurtigLager('ny', savedId)
       if (savedId && !targetUserId && !templateBuildingMode && availableEquipment.length > 0) {
         // Bolk 4: arv («hele økta») + ⇄-overstyringer per aktivitet. Radene
         // identifiseres med sort_order = radindeks — samme rekkefølge som

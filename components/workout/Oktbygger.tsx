@@ -378,10 +378,13 @@ export function OktbyggerPopup({
                 <IntervallBygger
                   sport={sport}
                   onAvbryt={workoutId ? () => setHurtigAapent(false) : undefined}
+                  onFerdig={onClose}
+                  lagerNokkel={workoutId ?? 'ny'}
                   onOpprett={async (nye, tittel) => {
                     if (workoutId && harKurve) { await byggPaaKurven(nye, tittel); return }
+                    // Sverre 5. sep: Opprett holder deg i byggeren med økta
+                    // opprettet — laktat/punkter kan legges inn, og «Ferdig» lukker.
                     await onOpprett(nye, tittel)
-                    onClose()
                   }}
                 />
               )}
@@ -648,7 +651,7 @@ export function OktbyggerPopup({
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-alt)' }}>
             Endringene ligger i skjemaet — lagre økta som vanlig.
           </span>
-          <button type="button" onClick={onClose} className="xp-pill xp-pill-primary">Lukk</button>
+          <button type="button" onClick={onClose} className="xp-pill xp-pill-primary" data-ferdig-bunn>Ferdig</button>
         </div>
       </div>
     </div>

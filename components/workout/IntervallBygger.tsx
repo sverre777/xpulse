@@ -22,6 +22,7 @@ import type { BlokkSone } from '@/lib/okt-template-library'
 import { KORTINTERVALL_HURTIGVALG, antallRepetisjoner, kortintervallEtikett } from '@/lib/intervall-monstre'
 import { foringsSoner } from '@/lib/sonesprak'
 import { useUtvidetSkala } from '@/lib/sonesprak-klient'
+import { lesHurtigLager, skrivHurtigLager } from '@/lib/hurtig-lager'
 import {
   MOVEMENT_CATEGORIES, getSubcategories, DEFAULT_MOVEMENTS_BY_SPORT,
   type ActivityRow, type Sport,
@@ -128,7 +129,7 @@ export interface IntervallForhandsutfylling {
   tittel?: string
 }
 
-export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false }: {
+export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false, onFerdig, lagerNokkel }: {
   sport: Sport
   /** Forsidens eksport (regel 11): bare dragradene, oppvarming/nedjogg og
       Opprett — ikke bev.form/underkategori/skyting-feltene. */
@@ -147,12 +148,21 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   onStegChange?: (steg: 'bygg' | 'vis' | 'ferdig') => void
   /** Bump for å gjenåpne byggeren fra kollapset tilstand. */
   apneSignal?: number
+  /** Sverre 5. sep: «Ferdig» ved siden av «Opprett» — lukker byggeren.
+      Opprett holder deg i byggeren med økta opprettet. */
+  onFerdig?: () => void
+  /** Sverre 5. sep: oppsettet huskes PER ØKT (localStorage), så man kan
+      endre og opprette på nytt — også etter at byggeren har vært lukket. */
+  lagerNokkel?: string
 }) {
+  const husket = useMemo(() => (lagerNokkel && !forhandsutfylt ? lesHurtigLager<Rad>(lagerNokkel) : null), [lagerNokkel, forhandsutfylt])
   // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
   const utvidetSkala = useUtvidetSkala()
-  const [steg, settStegIntern] = useState<'bygg' | 'vis' | 'ferdig'>('bygg')
-  const setSteg = (st: 'bygg' | 'vis' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
+  // Husket oppsett på økta → kollapset linje (steg «ferdig») med «Endre».
+  const [steg, settStegIntern] = useState<'bygg' | 'ferdig'>(husket ? 'ferdig' : 'bygg')
+  const setSteg = (st: 'bygg' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
   const [rader, setRader] = useState<Rad[]>(() =>
+    husket ? husket.rader :
     forhandsutfylt
       ? forhandsutfylt.rader.map(r => ({
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
@@ -160,14 +170,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         }))
       // Rettelse 8 (4. sep): ÉN standardrad — 3 × 10 min I3 · 2 min pause.
       : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '' }])
-  const [fartEnhet, setFartEnhet] = useState<FartEnhet>('min_per_km')
-  const [bev, setBev] = useState<string>(() => DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
-  const [sub, setSub] = useState('')
-  const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => forhandsutfylt?.skyting ?? '')
+  const [fartEnhet, setFartEnhet] = useState<FartEnhet>(() => (husket?.fartEnhet as FartEnhet | undefined) ?? 'min_per_km')
+  const [bev, setBev] = useState<string>(() => husket?.bev ?? DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
+  const [sub, setSub] = useState(() => husket?.sub ?? '')
+  const [skyting, setSkyting] = useState<'' | SkyteMonster>(() => (husket?.skyting as '' | SkyteMonster | undefined) ?? forhandsutfylt?.skyting ?? '')
   // Pkt 16: skytetid inni pausen — standard 45 s, fritt (maks 60 s).
-  const [skytetid, setSkytetid] = useState(() => String(forhandsutfylt?.skytetidSek ?? SKYTETID_STANDARD_SEK))
-  const [opp, setOpp] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '20:00')
-  const [ned, setNed] = useState(() => forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '15:00')
+  const [skytetid, setSkytetid] = useState(() => husket?.skytetid ?? String(forhandsutfylt?.skytetidSek ?? SKYTETID_STANDARD_SEK))
+  const [opp, setOpp] = useState(() => husket?.opp ?? (forhandsutfylt ? fTid(forhandsutfylt.oppvarmingSek) : '20:00'))
+  const [ned, setNed] = useState(() => husket?.ned ?? (forhandsutfylt ? fTid(forhandsutfylt.nedjoggSek) : '15:00'))
 
   useEffect(() => {
     if (apneSignal != null && apneSignal > 0) setSteg('bygg')
@@ -232,8 +242,9 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
 
   const opprett = async () => {
     await onOpprett(genererIntervalløkt(konfig), tittel)
+    if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned })
     if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk — ingen kollaps-linje
-    else setSteg('ferdig')
+    else setSteg('ferdig')                        // i byggeren: bli, med økta opprettet
   }
 
   // ── Fordelingsstripa m/ L/S-markering OVER (aldri egen farge i stripa) ──
@@ -286,72 +297,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
           Endre
         </button>
-      </div>
-    )
-  }
-
-  // ── STEG 2: se hvordan den blir ──
-  if (steg === 'vis') {
-    const NAVN: Record<string, string> = {
-      oppvarming: 'Oppvarming', aktivitet: 'Aktivitet', aktiv_pause: 'Aktiv pause', veksling: 'Veksling',
-      nedjogg: 'Nedjogg', skyting_kombinert: 'Skyting', skyting_liggende: 'Skyting L', skyting_staaende: 'Skyting S',
-    }
-    return (
-      <div style={kort}>
-        <div style={CAP}>Fordeling</div>
-        <div className="mt-1"><Stripe medMarks /></div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-          {ALL_ZONE_NAMES.map(z => {
-            const sek = blokker.filter(b => b.sone === z).reduce((s, b) => s + b.sek, 0)
-            if (sek <= 0) return null
-            return (
-              <span key={z} style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-3)' }}>
-                <span style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 3, background: ZONE_COLORS_V2[z], marginRight: 5 }} />
-                {z} <b style={{ color: 'var(--tekst-1-app)' }}>{fTid(sek)}</b>
-              </span>
-            )
-          })}
-        </div>
-
-        <div className="flex items-baseline gap-3 mt-3">
-          <span style={CAP}>Total varighet</span>
-          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, letterSpacing: '0.04em', color: 'var(--tekst-1-app)' }}>{fTid(total)}</span>
-        </div>
-
-        <div className="mt-3">
-          <div style={{ ...CAP, marginBottom: 5 }}>Tittel — fylles inn, fritt redigerbar</div>
-          <div style={{ fontFamily: FONT, fontSize: 15, color: 'var(--tekst-1-app)' }}>{tittel}</div>
-        </div>
-
-        <div className="mt-4" style={CAP}>Generert i aktivitetslista</div>
-        {/* Rad-forhåndsvisning: nøyaktig det som legges i aktivitetslista. */}
-        <div className="mt-2 flex flex-col gap-1">
-          {blokker.map((b, i) => (
-            <div key={i} className="flex items-center gap-2"
-              style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-3-app)', background: b.posisjon ? 'rgba(226,58,90,.06)' : 'transparent', borderRadius: 6, padding: '3px 6px' }}>
-              <span style={{ color: 'var(--tekst-10)', width: 20, flexShrink: 0 }}>{i + 1}</span>
-              <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {b.posisjon && <span style={{ display: 'inline-block', width: 17, height: 17, lineHeight: '17px', textAlign: 'center', borderRadius: 4, fontSize: 10.5, fontWeight: 800, color: 'var(--tekst-1-ren)', marginRight: 7, background: b.posisjon === 'L' ? LIGG : STAA }}>{b.posisjon}</span>}
-                {NAVN[b.type] ?? b.type}{b.posisjon ? ' · 5 skudd' : ''}
-                {!b.posisjon && <span style={{ color: 'var(--tekst-8-alt)' }}> {bev}{sub ? ` · ${sub}` : ''}</span>}
-              </span>
-              <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--tekst-1-app)', fontSize: 13 }}>{fTid(b.sek)}</span>
-              <span style={{ color: ZONE_COLORS_V2[b.sone], fontWeight: 700, fontSize: 12, width: 60, textAlign: 'right', flexShrink: 0 }}>{b.sone}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between gap-3 mt-4 pt-3 flex-wrap" style={{ borderTop: '1px solid var(--line)' }}>
-          <button type="button" onClick={() => setSteg('bygg')}
+        {onFerdig && (
+          <button type="button" onClick={onFerdig} data-ferdig
             className="text-xs tracking-widest uppercase"
-            style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '10px 18px', cursor: 'pointer' }}>
-            ← Tilbake
-          </button>
-          <button type="button" onClick={() => { void opprett() }}
-            style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: '12px 32px', cursor: 'pointer' }}>
+            style={{ fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
             Ferdig
           </button>
-        </div>
+        )}
       </div>
     )
   }
@@ -532,11 +484,18 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             Avbryt
           </button>
         )}
-        <button type="button" onClick={() => setSteg('vis')}
+        <button type="button" onClick={() => { void opprett() }} data-hurtig-opprett
           className="flex-1"
           style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
           Opprett
         </button>
+        {onFerdig && (
+          <button type="button" onClick={onFerdig} data-ferdig
+            className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
+            Ferdig
+          </button>
+        )}
       </div>
     </div>
   )

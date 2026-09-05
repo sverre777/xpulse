@@ -18,7 +18,7 @@ export default async function TersklerPage() {
 
   const [{ data: profile }, oversikt, { data: userTypes }] = await Promise.all([
     supabase.from('profiles')
-      .select('birth_year, max_heart_rate, resting_heart_rate, utvidet_skala')
+      .select('birth_year, max_heart_rate, resting_heart_rate, utvidet_skala, gender')
       .eq('id', user.id).single(),
     hentTerskelOversikt(),
     supabase.from('user_movement_types')
@@ -56,11 +56,13 @@ export default async function TersklerPage() {
           soneNokler={soneNokler}
           bevegelsesvalg={bevegelsesvalg}
           birthYear={profile?.birth_year ?? null}
+          gender={profile?.gender ?? null}
           initialMaxHr={profile?.max_heart_rate ?? null}
         />
         <UtvidetSkalaBlokk initialPaa={profile?.utvidet_skala === true} />
         <HelseGruppe
           birthYear={profile?.birth_year ?? null}
+          gender={profile?.gender ?? null}
           initialMaxHr={profile?.max_heart_rate ?? null}
           initialResting={profile?.resting_heart_rate ?? null}
         />

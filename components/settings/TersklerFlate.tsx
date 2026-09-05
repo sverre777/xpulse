@@ -26,6 +26,8 @@ interface Props {
   soneNokler: { movement_name: string; movement_subcategory: string }[]
   bevegelsesvalg: BevegelsesValg[]
   birthYear: number | null
+  /** profiles.gender — bare HFmax-formelen (Gulati for kvinner). */
+  gender?: string | null
   initialMaxHr: number | null
 }
 
@@ -61,7 +63,7 @@ function idag(): string {
 }
 
 export function TersklerFlate({
-  rader, soneNokler, bevegelsesvalg, birthYear, initialMaxHr,
+  rader, soneNokler, bevegelsesvalg, birthYear, gender = null, initialMaxHr,
 }: Props) {
   const router = useRouter()
 
@@ -92,8 +94,8 @@ export function TersklerFlate({
   )
 
   const autoZones = useMemo(
-    () => computeZonesFromMaxHr(resolveMaxHr(initialMaxHr, birthYear)),
-    [initialMaxHr, birthYear],
+    () => computeZonesFromMaxHr(resolveMaxHr(initialMaxHr, birthYear, gender)),
+    [initialMaxHr, birthYear, gender],
   )
 
   const leggTil = () => {
@@ -500,9 +502,11 @@ export function UtvidetSkalaBlokk({ initialPaa }: { initialPaa: boolean }) {
 
 // ── B · Helse — dagens felter, bare flyttet hit ──
 export function HelseGruppe({
-  birthYear, initialMaxHr, initialResting,
+  birthYear, gender = null, initialMaxHr, initialResting,
 }: {
   birthYear: number | null
+  /** profiles.gender — bare HFmax-formelen (Gulati for kvinner). */
+  gender?: string | null
   initialMaxHr: number | null
   initialResting: number | null
 }) {
@@ -533,7 +537,7 @@ export function HelseGruppe({
         <div className="grid grid-cols-2 gap-3">
           <Felt label="Makspuls" hint="brukes av sone-prosentene">
             <input value={maxHr} onChange={e => setMaxHr(e.target.value)} inputMode="numeric"
-              placeholder={`Auto: ${resolveMaxHr(null, birthYear)}`} style={iSt2} />
+              placeholder={`Auto: ${resolveMaxHr(null, birthYear, gender)}`} style={iSt2} />
           </Felt>
           <Felt label="Hvilepuls (manuell)" hint="vinner over klokka (M)">
             <input value={resting} onChange={e => setResting(e.target.value)} inputMode="numeric"

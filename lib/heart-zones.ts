@@ -43,13 +43,21 @@ export const ZONE_PERCENTS: Record<ZoneName, [number, number]> = {
 export const FALLBACK_AGE = 30
 export const FALLBACK_MAX_HR = 220 - FALLBACK_AGE
 
-// HFmax fra (manuelt) felt, ellers fra fødselsår (220 - alder), ellers fallback.
+// HFmax fra (manuelt) felt, ellers fra fødselsår, ellers fallback.
+// Kjønn (Sverre 5. sep, profiles.gender): kvinner får Gulati-formelen
+// 206 − 0,88 × alder; menn/annet/ikke oppgitt beholder 220 − alder som før.
+// Brukes KUN her (HFmax → OLT-soner) — ingen annen logikk leser kjønn.
+export type Kjonn = 'male' | 'female' | 'other' | 'prefer_not_to_say' | null | undefined
 export function resolveMaxHr(
   maxHeartRate: number | null | undefined,
   birthYear: number | null | undefined,
+  gender?: Kjonn | string | null,
 ): number {
   if (maxHeartRate && maxHeartRate > 0) return maxHeartRate
-  if (birthYear && birthYear > 1900) return 220 - (new Date().getFullYear() - birthYear)
+  if (birthYear && birthYear > 1900) {
+    const alder = new Date().getFullYear() - birthYear
+    return gender === 'female' ? Math.round(206 - 0.88 * alder) : 220 - alder
+  }
   return FALLBACK_MAX_HR
 }
 
@@ -97,11 +105,11 @@ export async function getHeartZonesForUser(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('birth_year, max_heart_rate')
+    .select('birth_year, max_heart_rate, gender')
     .eq('id', userId)
     .maybeSingle()
 
-  const maxHr = resolveMaxHr(profile?.max_heart_rate ?? null, profile?.birth_year ?? null)
+  const maxHr = resolveMaxHr(profile?.max_heart_rate ?? null, profile?.birth_year ?? null, profile?.gender ?? null)
   return computeZonesFromMaxHr(maxHr)
 }
 

@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
+import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { CSS as DndCSS } from '@dnd-kit/utilities'
 import { fmtKlokkeSek } from '@/lib/segmenter'
 import { SamletBryter } from './SamletBryter'
 import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
@@ -235,14 +238,39 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
     if (expandedId === id) setExpandedId(null)
   }
 
+  // Pkt 18 (Sverre 4. sep): flytting endrer rekkefølgen; på klokkeøkter
+  // regnes starten på nytt så KJEDEN holdes (rad n starter der rad n−1
+  // slutter). Skyting er et vindu på pulsen og beholder sitt eget vindu.
+  const omregnKjede = (liste: ActivityRow[]): ActivityRow[] => {
+    if (!liste.some(r => r.window_start_seconds != null && !r.activity_type.startsWith('skyting'))) return liste
+    let t = 0
+    return liste.map(r => {
+      if (r.activity_type.startsWith('skyting')) return r
+      const varighet = r.window_duration_seconds ?? parseActivityDuration(r.duration) ?? 0
+      const ny = { ...r, window_start_seconds: t, window_duration_seconds: r.window_duration_seconds ?? (varighet > 0 ? varighet : null) }
+      t += varighet
+      return ny
+    })
+  }
   const moveRow = (id: string, dir: -1 | 1) => {
     sikreKopiFor(id)
     const i = rows.findIndex(r => r.id === id)
     const j = i + dir
     if (i < 0 || j < 0 || j >= rows.length) return
-    const next = [...rows]
-    ;[next[i], next[j]] = [next[j], next[i]]
-    onChange(next)
+    onChange(omregnKjede(arrayMove(rows, i, j)))
+  }
+  // Dra-og-slipp (dnd-kit som i kalenderen, regel 18): mus etter 8 px,
+  // langt trykk (250 ms) på mobil. Tastatur: gripepanelet + piltast.
+  const dndSensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  )
+  const onDragEnd = (e: DragEndEvent) => {
+    const fra = rows.findIndex(r => r.id === e.active.id)
+    const til = e.over ? rows.findIndex(r => r.id === e.over!.id) : -1
+    if (fra < 0 || til < 0 || fra === til) return
+    sikreKopiFor(String(e.active.id))
+    onChange(omregnKjede(arrayMove(rows, fra, til)))
   }
 
   const addRow = () => {
@@ -343,30 +371,40 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             workoutType={workoutType}
           />
         )
-      )) : rows.map((row, idx) => (
-        <ActivityRowItem
-          targetUserId={targetUserId}
-          key={row.id}
-          row={row}
-          expanded={expandedId === row.id}
-          onToggle={() => setExpandedId(expandedId === row.id ? null : row.id)}
-          onUpdate={patch => updateRow(row.id, patch)}
-          onDelete={() => deleteRow(row.id)}
-          onMoveUp={idx > 0 ? () => moveRow(row.id, -1) : undefined}
-          onMoveDown={idx < rows.length - 1 ? () => moveRow(row.id, 1) : undefined}
-          typeOptions={typeOptions}
-          favoriteTypes={activityTypeFavorites ?? []}
-          sport={sport}
-          isPlanMode={isPlanMode}
-          userMovementTypes={userMovementTypes}
-          onRequestCreateMovement={() => setCreateModalRowId(row.id)}
-          defaultPaceUnit={defaultPaceUnit}
-          workoutType={workoutType}
-          equipment={availableEquipment}
-          equipmentIds={activityEquipment?.[row.id] ?? []}
-          onEquipmentChange={onActivityEquipmentChange ? ids => onActivityEquipmentChange(row.id, ids) : undefined}
-        />
-      ))}
+      )) : (
+        <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
+            {rows.map((row, idx) => (
+              <SorterbarRad key={row.id} id={row.id}>
+                {grip => (
+                  <ActivityRowItem
+                    targetUserId={targetUserId}
+                    row={row}
+                    dragRef={grip.dragRef} dragListeners={grip.dragListeners} dragAttributes={grip.dragAttributes} dragging={grip.dragging}
+                    expanded={expandedId === row.id}
+                    onToggle={() => setExpandedId(expandedId === row.id ? null : row.id)}
+                    onUpdate={patch => updateRow(row.id, patch)}
+                    onDelete={() => deleteRow(row.id)}
+                    onMoveUp={idx > 0 ? () => moveRow(row.id, -1) : undefined}
+                    onMoveDown={idx < rows.length - 1 ? () => moveRow(row.id, 1) : undefined}
+                    typeOptions={typeOptions}
+                    favoriteTypes={activityTypeFavorites ?? []}
+                    sport={sport}
+                    isPlanMode={isPlanMode}
+                    userMovementTypes={userMovementTypes}
+                    onRequestCreateMovement={() => setCreateModalRowId(row.id)}
+                    defaultPaceUnit={defaultPaceUnit}
+                    workoutType={workoutType}
+                    equipment={availableEquipment}
+                    equipmentIds={activityEquipment?.[row.id] ?? []}
+                    onEquipmentChange={onActivityEquipmentChange ? ids => onActivityEquipmentChange(row.id, ids) : undefined}
+                  />
+                )}
+              </SorterbarRad>
+            ))}
+          </SortableContext>
+        </DndContext>
+      )}
       </div>
 
       {createModalRowId !== null && (
@@ -380,6 +418,27 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
 }
 
 const CREATE_MOVEMENT_SENTINEL = '__create_new_movement__'
+
+/** Gripepanelets bindinger (dnd-kit) — som separate felt, slik kalenderens
+    chip gjør det (react-compiler-linten leser et samlet objekt som en ref). */
+export interface RadGrip {
+  dragRef: (el: HTMLElement | null) => void
+  dragListeners?: Record<string, unknown>
+  dragAttributes?: Record<string, unknown>
+  dragging: boolean
+}
+
+// ── Sorterbar rad (pkt 18): dnd-kit sortable rundt hver rad i splittet.
+// Wrapperen bærer transform/transition, raden får gripepanelet.
+function SorterbarRad({ id, children }: { id: string; children: (grip: RadGrip) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div ref={setNodeRef} data-sorterbar-rad={id} data-drar={isDragging || undefined}
+      style={{ transform: DndCSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1, position: 'relative', zIndex: isDragging ? 5 : undefined }}>
+      {children({ dragRef: setActivatorNodeRef, dragListeners: listeners as Record<string, unknown> | undefined, dragAttributes: attributes as unknown as Record<string, unknown>, dragging: isDragging })}
+    </div>
+  )
+}
 
 // ── Gruppe-rad (SAMLET) — flere like rader vist som én. Bev.form og
 // underkategori settes på gruppa og skrives til HVER rad; type og sone
@@ -557,7 +616,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
 }
 
 function ActivityRowItem({
-  row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown,
+  row, expanded, onToggle, onUpdate, onDelete, onMoveUp, onMoveDown, dragRef, dragListeners, dragAttributes, dragging,
   typeOptions, favoriteTypes, sport, isPlanMode, userMovementTypes, onRequestCreateMovement,
   defaultPaceUnit, workoutType, equipment, equipmentIds = [], onEquipmentChange, targetUserId,
 }: {
@@ -569,6 +628,11 @@ function ActivityRowItem({
   onDelete: () => void
   onMoveUp?: () => void
   onMoveDown?: () => void
+  /** Gripepanel (⋮⋮) for dra-og-slipp — bare i splittet visning (dragRef satt). */
+  dragRef?: (el: HTMLElement | null) => void
+  dragListeners?: Record<string, unknown>
+  dragAttributes?: Record<string, unknown>
+  dragging?: boolean
   typeOptions: typeof ACTIVITY_TYPES
   // Topp 5 mest brukte aktivitetstyper siste 60 dager. Filtreres mot
   // typeOptions før render (skjuler favoritter som ikke er tilgjengelige
@@ -677,18 +741,22 @@ function ActivityRowItem({
         onClick={onToggle}
         style={{ userSelect: 'none' }}
       >
-        {/* Up/down — touch-vennlig bredde */}
-        <div className="flex flex-col items-center justify-center" style={{ width: '24px' }} onClick={e => e.stopPropagation()}>
-          <button type="button" onClick={onMoveUp} disabled={!onMoveUp} aria-label="Flytt opp"
-            style={{
-              background: 'none', border: 'none', padding: '2px 0', cursor: onMoveUp ? 'pointer' : 'default',
-              color: onMoveUp ? 'var(--tekst-5-app)' : 'var(--kant-6)', fontSize: '13px', lineHeight: 1,
-            }}>▲</button>
-          <button type="button" onClick={onMoveDown} disabled={!onMoveDown} aria-label="Flytt ned"
-            style={{
-              background: 'none', border: 'none', padding: '2px 0', cursor: onMoveDown ? 'pointer' : 'default',
-              color: onMoveDown ? 'var(--tekst-5-app)' : 'var(--kant-6)', fontSize: '13px', lineHeight: 1,
-            }}>▼</button>
+        {/* Gripepanel ⋮⋮ (pkt 18): dra raden opp/ned — mus, langt trykk på
+            mobil, eller fokus + piltast (tilgjengelighet). Erstatter pilene. */}
+        <div className="flex items-center justify-center" style={{ width: '24px', minHeight: 36 }} onClick={e => e.stopPropagation()}>
+          {dragRef ? (
+            <button type="button" ref={dragRef as React.Ref<HTMLButtonElement>} {...dragAttributes} {...dragListeners}
+              data-grip aria-label="Flytt raden — dra, eller bruk piltastene"
+              onKeyDown={e => {
+                if (e.key === 'ArrowUp' && onMoveUp) { e.preventDefault(); e.stopPropagation(); onMoveUp() }
+                if (e.key === 'ArrowDown' && onMoveDown) { e.preventDefault(); e.stopPropagation(); onMoveDown() }
+              }}
+              style={{
+                background: 'none', border: 'none', padding: '4px 2px', cursor: dragging ? 'grabbing' : 'grab',
+                color: 'var(--tekst-5-app)', fontSize: '15px', lineHeight: 1, letterSpacing: '-2px', touchAction: 'none',
+                minHeight: 36, minWidth: 22,
+              }}>⋮⋮</button>
+          ) : null}
         </div>
 
         {/* Type icon + label */}

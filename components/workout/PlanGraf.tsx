@@ -10,10 +10,10 @@
 import { useMemo, useState } from 'react'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import {
-  byggPlanBlokker, grupperPlanBlokker, planNokkeltall, fmtMin, SONE_HOYDE,
+  byggPlanBlokker, grupperPlanBlokker, planNokkeltall, fmtMin, SONE_HOYDE, erKortintervall, soneSpennTekst, soneAndelerAv,
   type PlanBlokkInn, type PlanBlokk,
 } from '@/lib/plan-graf'
-import { fmtVarighetKort, segmentTypeFor, SEGMENT_FARGER } from '@/lib/segmenter'
+import { fmtVarighetKort, segmentTypeFor, SEGMENT_FARGER, fmtKlokkeSek } from '@/lib/segmenter'
 import type { HeartZone, ExtendedZoneName } from '@/lib/heart-zones'
 import type { PlanBlokk as SpokelseBlokk } from '@/app/actions/runder'
 import { Nokkeltall, fmtVarighetLang, type NokkeltallCelle } from './WorkoutDetailChart'
@@ -88,7 +88,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         if (!skyting && iKlamme.has(b.id)) continue
         const cx = x(b.startSek + b.sek / 2)
         if (skyting) { items.push({ id: b.id, cx, bredde: b.etikett.length * TEGN_BREDDE + 12, slag: 'skyting', trang: false, nivaa: 0 }); continue }
-        const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
+        const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
         const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
         // Trang = blokka er smalere enn 60 % av etiketten. Etiketter får henge
         // litt utenfor blokka si — nivåene løser kollisjonene.
@@ -145,11 +145,17 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
       {spokelser.map(p => {
         const f = spokelseFarge(p)
         const h = plot * f.hoyde
+        const andeler = soneAndelerAv((p.soner ?? {}) as Partial<Record<ExtendedZoneName, number>>)
+        const bw = Math.max(1, x(p.sluttSek - p.startSek) - 1.5)
+        let y = gulv
         return (
-          <rect key={`s-${p.id}`} data-plan-spokelse-blokk x={x(p.startSek) + 0.75} y={gulv - h} width={Math.max(1, x(p.sluttSek - p.startSek) - 1.5)} height={h}
-            rx={kompakt ? 1 : 3} fill={f.farge} fillOpacity={0.14} stroke={f.farge} strokeOpacity={0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
-            <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${p.sone ? ` · ${p.sone}` : ''}`}</title>
-          </rect>
+          <g key={`s-${p.id}`}>
+            {andeler.map(a => { const ah = h * a.andel; y -= ah; return <rect key={a.sone} x={x(p.startSek) + 0.75} y={y} width={bw} height={ah} fill={ZONE_COLORS_V2[a.sone]} fillOpacity={0.14} pointerEvents="none" /> })}
+            <rect data-plan-spokelse-blokk x={x(p.startSek) + 0.75} y={gulv - h} width={bw} height={h}
+              rx={kompakt ? 1 : 3} fill={f.farge} fillOpacity={andeler.length >= 2 ? 0 : 0.14} stroke={f.farge} strokeOpacity={0.55} strokeDasharray="3 2" vectorEffect="non-scaling-stroke">
+              <title>{`Plan: ${p.navn ?? p.type} · ${fmtMin(p.sluttSek - p.startSek)}${andeler.length >= 2 ? ` · ${andeler[0].sone}–${andeler[andeler.length - 1].sone}` : p.sone ? ` · ${p.sone}` : ''}`}</title>
+            </rect>
+          </g>
         )
       })}
       {blokker.map(b => {
@@ -160,9 +166,19 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const klikkbar = !!(onKlikkSek || onVelgBlokk)
         return (
           <g key={b.id}>
+            {/* Bolk 19: flere soner på raden → sonefargene stablet oppover etter
+                andel (laveste nederst). Rammen under er selve blokka. */}
+            {b.soneAndeler.length >= 2 && (() => {
+              let y = gulv
+              return b.soneAndeler.map(a => {
+                const ah = h * a.andel
+                y -= ah
+                return <rect key={a.sone} x={x(b.startSek) + 0.75} y={y} width={w} height={ah} fill={ZONE_COLORS_V2[a.sone]} opacity={0.95} data-sone-lag={a.sone} pointerEvents="none" />
+              })
+            })()}
             <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
-              fill={b.farge} opacity={grunnflate ? 0.62 : b.slag === 'pause' || b.slag === 'veksling' ? 0.7 : 0.95}
-              data-blokk={b.id} data-valgt={valgt || undefined}
+              fill={b.soneAndeler.length >= 2 ? 'transparent' : b.farge} opacity={grunnflate ? 0.62 : b.slag === 'pause' || b.slag === 'veksling' ? 0.7 : 0.95}
+              data-blokk={b.id} data-valgt={valgt || undefined} data-stablet={b.soneAndeler.length >= 2 ? b.soneAndeler.map(a => a.sone).join(',') : undefined}
               stroke={valgt ? 'var(--tekst-1-app)' : undefined} strokeWidth={valgt ? 2 : undefined} vectorEffect="non-scaling-stroke"
               style={klikkbar ? { cursor: onKlikkSek ? 'crosshair' : 'pointer' } : undefined}
               onClick={klikkbar ? (e) => {
@@ -175,11 +191,18 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                   onKlikkSek(Math.max(b.startSek, Math.min(b.startSek + b.sek, sek)))
                 } else onVelgBlokk?.(valgt ? null : b.id)
               } : undefined}>
-              <title>{`${b.etikett} · ${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}`}</title>
+              <title>{b.soneAndeler.length >= 2
+                ? `${b.etikett} · ${fmtMin(b.sek)} · ${soneSpennTekst(b)}\n${b.soneAndeler.map(a => `${a.sone} ${fmtKlokkeSek(a.sek)} (${Math.round(a.andel * 100)} %)`).join(' · ')}`
+                : `${b.etikett} · ${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}`}</title>
             </rect>
             {b.slag === 'veksling' && (
               <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
                 fill="url(#plan-striper)" opacity={0.5} />
+            )}
+            {/* Kortintervall inni draget (50/10 …): striper på blokka (Sverre 5. sep). */}
+            {b.slag === 'sone' && erKortintervall(b.navn) && (
+              <rect x={x(b.startSek) + 0.75} y={gulv - h} width={w} height={h} rx={kompakt ? 1 : 3}
+                fill="url(#plan-striper)" opacity={0.45} data-kortintervall={b.navn.trim()} pointerEvents="none" />
             )}
           </g>
         )
@@ -237,7 +260,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
               </g>
             )
-            const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${b.sone ? ` · ${b.sone}` : ''}` : fmtMin(b.sek)
+            const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
             const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
             const trang = x(b.sek) < bredde * 0.6
             const h = plot * b.hoyde
@@ -337,6 +360,9 @@ function spokelseFarge(p: SpokelseBlokk): { farge: string; hoyde: number } {
   const seg = segmentTypeFor(p.type, '')
   if (seg === 'pause' || seg === 'veksling' || seg.startsWith('skyting')) return { farge: SEGMENT_FARGER.pause, hoyde: 0.18 }
   const sone = (p.sone && p.sone in ZONE_COLORS_V2 ? p.sone : null) as ExtendedZoneName | null
+  // Bolk 19: flere soner → høyden er den høyeste sonens, fargen hovedsonens.
+  const andeler = soneAndelerAv((p.soner ?? {}) as Partial<Record<ExtendedZoneName, number>>)
+  if (andeler.length >= 2) return { farge: sone ? ZONE_COLORS_V2[sone] : ZONE_COLORS_V2[andeler[andeler.length - 1].sone], hoyde: SONE_HOYDE[andeler[andeler.length - 1].sone] }
   if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone] }
   return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }
 }

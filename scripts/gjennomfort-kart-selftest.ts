@@ -2,7 +2,7 @@
 // Kjør: npx tsx scripts/gjennomfort-kart-selftest.ts
 import { faktiskeBlokker, wattIVindu, tilSpokelser, snittVindu } from '../lib/gjennomfort-kart.ts'
 import { resolveSoner } from '../lib/terskel-oppslag.ts'
-import { byggPlanBlokker, soneFraWatt } from '../lib/plan-graf.ts'
+import { byggPlanBlokker, soneFraWatt, soneAndelerAv, soneSpennTekst } from '../lib/plan-graf.ts'
 import { computeZonesFromMaxHr } from '../lib/heart-zones.ts'
 import type { Segment } from '../lib/segmenter.ts'
 
@@ -89,6 +89,19 @@ const puls = (fra: number, til: number, hr: number) => Array.from({ length: til 
   const segs = [seg('l', 'drag', 0, 100, 'Løping'), seg('s', 'drag', 100, 200, 'Sykling')]
   const b = byggPlanBlokker(faktiskeBlokker(segs, [...hr, ...puls(101, 200, 175)], null, { sonerFor: (n, s) => resolveSoner(rader, n, s) }), soner)
   ok('samme puls 175: Løping (soner 150–200) → I3, Sykling (globalt 140–190) → I4', b[0].sone === 'I3' && b[1].sone === 'I4')
+}
+// 9) Bolk 19: én rad med flere soner → stablet blokk (laveste nederst), hovedsone = størst andel
+{
+  const inn = [{ id: 'r', type: 'aktivitet', navn: '', bevegelsesform: 'Løping', underkategori: '', sek: 3600, soneSek: { I3: 360, I1: 2520, I2: 720 }, snittpuls: null, gruppeId: null, proneShots: 0, standingShots: 0, distanseKm: 0 }]
+  const b = byggPlanBlokker(inn, soner)[0]
+  ok('stablet: tre lag sortert lavest → høyest', b.soneAndeler.map(a => a.sone).join(',') === 'I1,I2,I3')
+  ok('stablet: andelene er 70/20/10', b.soneAndeler.map(a => Math.round(a.andel * 100)).join('/') === '70/20/10')
+  ok('stablet: hovedsonen er I1 (størst andel)', b.sone === 'I1')
+  ok('stablet: høyden er den høyeste sonens (I3)', b.hoyde === 0.62)
+  ok('stablet: etiketten sier I1–I3', soneSpennTekst(b) === 'I1–I3')
+  const en = byggPlanBlokker([{ ...inn[0], soneSek: { I3: 3600 } }], soner)[0]
+  ok('én sone: ingen stabling, som før', en.soneAndeler.length === 0 && en.sone === 'I3')
+  ok('soneAndelerAv: én sone gir tom liste', soneAndelerAv({ I2: 100 }).length === 0)
 }
 console.log(feil === 0 ? 'ALLE OK' : `${feil} FEIL`)
 process.exit(feil === 0 ? 0 : 1)

@@ -20,6 +20,11 @@ import { parseDecimal } from './parse-decimal'
 
 export const STYRKE_FARGE = '#6E6E78'
 
+/** Radnavn som er et kortintervall-mønster («50/10», «20/10 + rest»). */
+export function erKortintervall(navn: string | null | undefined): boolean {
+  return /^\s*\d+\s*\/\s*\d+/.test(navn ?? '')
+}
+
 export type BlokkSlag = 'sone' | 'pause' | 'veksling' | 'skyting_ligg' | 'skyting_staa' | 'styrke' | 'annet'
 
 export interface PlanBlokkInn {
@@ -49,15 +54,36 @@ export interface PlanBlokkInn {
   distanseKm: number
 }
 
+export interface SoneAndel { sone: ExtendedZoneName; sek: number; andel: number }
+
 export interface PlanBlokk extends PlanBlokkInn {
   startSek: number
   slag: BlokkSlag
-  /** Sonen blokka tegnes i (høyde + farge) — null for pause/skyting/styrke. */
+  /** Sonen blokka tegnes i (høyde + farge) — null for pause/skyting/styrke.
+      Med flere soner på raden: hovedsonen (størst andel). */
   sone: ExtendedZoneName | null
   farge: string
   /** Relativ høyde 0–1 av plotflata. */
   hoyde: number
   etikett: string
+  /** BOLK 19: én rad med FLERE soner (sonefordeling, gammel «samlet»-stil)
+      tegnes som ÉN blokk med sonefargene STABLET oppover etter andel —
+      laveste sone nederst, høyeste øverst. Tom når raden har én sone. */
+  soneAndeler: SoneAndel[]
+}
+
+/** «I1–I3» for en stablet blokk, ellers sonen. */
+export function soneSpennTekst(b: Pick<PlanBlokk, 'sone' | 'soneAndeler'>): string | null {
+  if (b.soneAndeler.length >= 2) return `${b.soneAndeler[0].sone}–${b.soneAndeler[b.soneAndeler.length - 1].sone}`
+  return b.sone
+}
+
+/** Sonene på raden sortert lavest → høyest med andel av radens tid. */
+export function soneAndelerAv(soneSek: Partial<Record<ExtendedZoneName, number>>): SoneAndel[] {
+  const med = SONE_REKKE.map(s => ({ sone: s, sek: soneSek[s] ?? 0 })).filter(x => x.sek > 0)
+  if (med.length < 2) return []
+  const sum = med.reduce((a, x) => a + x.sek, 0)
+  return med.map(x => ({ ...x, andel: x.sek / sum }))
 }
 
 export const SONE_HOYDE: Record<ExtendedZoneName, number> = {
@@ -189,36 +215,45 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
       // farge og høyde som pause. Markøren over (🎯 L/S) bærer innholdet.
       const staa = b.standingShots > 0 && b.proneShots === 0
       const begge = b.proneShots > 0 && b.standingShots > 0
-      ut.push({ ...b, startSek: start, slag: staa ? 'skyting_staa' : 'skyting_ligg', sone: null,
+      ut.push({ ...b, startSek: start, slag: staa ? 'skyting_staa' : 'skyting_ligg', sone: null, soneAndeler: [],
         farge: SEGMENT_FARGER.pause, hoyde: 0.18,
         etikett: `🎯 ${staa ? 'S' : begge ? 'L+S' : b.proneShots > 0 || b.type === 'skyting_liggende' ? 'L' : b.type === 'skyting_staaende' ? 'S' : 'Skyting'}${b.navn ? ` · ${b.navn}` : ''}` })
       continue
     }
     if (PAUSE_TYPER.has(b.type)) {
-      ut.push({ ...b, startSek: start, slag: 'pause', sone: null, farge: SEGMENT_FARGER.pause, hoyde: 0.18,
+      ut.push({ ...b, startSek: start, slag: 'pause', sone: null, soneAndeler: [], farge: SEGMENT_FARGER.pause, hoyde: 0.18,
         etikett: b.navn || (b.type === 'aktiv_pause' ? 'Aktiv pause' : 'Pause') })
       continue
     }
     if (VEKSLING_TYPER.has(b.type)) {
-      ut.push({ ...b, startSek: start, slag: 'veksling', sone: null, farge: SEGMENT_FARGER.veksling, hoyde: 0.18,
+      ut.push({ ...b, startSek: start, slag: 'veksling', sone: null, soneAndeler: [], farge: SEGMENT_FARGER.veksling, hoyde: 0.18,
         etikett: b.navn || b.bevegelsesform || 'Veksling' })
       continue
     }
     if (erStyrke(b)) {
-      ut.push({ ...b, startSek: start, slag: 'styrke', sone: null, farge: STYRKE_FARGE, hoyde: 0.55,
+      ut.push({ ...b, startSek: start, slag: 'styrke', sone: null, soneAndeler: [], farge: STYRKE_FARGE, hoyde: 0.55,
         etikett: b.navn || 'Styrke' })
       continue
     }
     if (b.type === 'annet') {
-      ut.push({ ...b, startSek: start, slag: 'annet', sone: null, farge: SEGMENT_FARGER.annet, hoyde: 0.3,
+      ut.push({ ...b, startSek: start, slag: 'annet', sone: null, soneAndeler: [], farge: SEGMENT_FARGER.annet, hoyde: 0.3,
         etikett: b.navn || 'Annet' })
       continue
     }
     const sone = soneFor(b, heartZones)
-    const navn = b.navn || (b.type === 'oppvarming' ? 'Oppvarming' : b.type === 'nedjogg' ? 'Nedjogg' : b.bevegelsesform || 'Aktivitet')
+    // Kortintervall (Sverre 5. sep): radnavnet «50/10» → etiketten sier
+    // «Løping · 50/10» og blokka stripes (erKortintervall).
+    const kort = erKortintervall(b.navn)
+    const navn = kort
+      ? `${b.bevegelsesform || 'Aktivitet'} · ${b.navn.trim()}`
+      : b.navn || (b.type === 'oppvarming' ? 'Oppvarming' : b.type === 'nedjogg' ? 'Nedjogg' : b.bevegelsesform || 'Aktivitet')
+    // Bolk 19: flere soner på raden → stablet blokk; høyden er den
+    // høyeste sonens, fargen (og nøkkeltallene) følger hovedsonen.
+    const andeler = soneAndelerAv(b.soneSek)
+    const topp = andeler.length >= 2 ? andeler[andeler.length - 1].sone : sone
     ut.push({ ...b, startSek: start, slag: 'sone', sone,
       farge: sone ? ZONE_COLORS_V2[sone] : SEGMENT_FARGER.annet,
-      hoyde: sone ? SONE_HOYDE[sone] : 0.3, etikett: navn })
+      hoyde: topp ? SONE_HOYDE[topp] : 0.3, etikett: navn, soneAndeler: andeler })
   }
   return ut
 }

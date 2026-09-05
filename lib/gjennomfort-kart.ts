@@ -160,12 +160,14 @@ export function fraSpokelser(plan: SpokelseBlokk[]): PlanBlokkInn[] {
   return plan.map(p => ({
     id: p.id, type: p.type, navn: p.navn ?? '', bevegelsesform: '', underkategori: '',
     sek: p.sluttSek - p.startSek, startSek: p.startSek,
-    soneSek: p.sone && (SONE_NAVN as string[]).includes(p.sone) ? { [p.sone as ExtendedZoneName]: p.sluttSek - p.startSek } : {},
+    soneSek: p.soner && Object.keys(p.soner).length > 0
+      ? Object.fromEntries(Object.entries(p.soner).filter(([k]) => (SONE_NAVN as string[]).includes(k))) as Partial<Record<ExtendedZoneName, number>>
+      : p.sone && (SONE_NAVN as string[]).includes(p.sone) ? { [p.sone as ExtendedZoneName]: p.sluttSek - p.startSek } : {},
     snittpuls: null, gruppeId: null, proneShots: 0, standingShots: 0, distanseKm: 0,
   }))
 }
 
 /** Kompakte plan-blokker (oversikten) → spøkelsesformen PlanGraf tegner. */
-export function tilSpokelseBlokker(plan: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string }>): SpokelseBlokk[] {
-  return plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone }))
+export function tilSpokelseBlokker(plan: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string; soner?: Record<string, number> }>): SpokelseBlokk[] {
+  return plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone, soner: p.soner }))
 }

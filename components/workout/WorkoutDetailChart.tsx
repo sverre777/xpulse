@@ -1486,7 +1486,7 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], p
   segmenter: Segment[]
   hoyde?: number
   /** Planens blokker som spøkelse bak (bolk 7) — uten bryter i oversikten. */
-  plan?: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string }>
+  plan?: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string; soner?: Record<string, number> }>
   /** Punktene som ikoner øverst (bolk 8). */
   punkter?: KompaktPunkt[]
 }) {
@@ -1503,7 +1503,7 @@ export function KompaktKurve({ hr, totalSek, segmenter, hoyde = 30, plan = [], p
   }, [hr, totalSek, hoyde])
   if (totalSek <= 0 || (hr.length < 2 && segmenter.length === 0)) return null
   const pct = (t: number) => `${Math.max(0, Math.min(100, (t / totalSek) * 100))}%`
-  const spokelser: PlanBlokk[] = plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone }))
+  const spokelser: PlanBlokk[] = plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone, soner: p.soner }))
   return (
     <div data-kompakt-kurve aria-hidden style={{ position: 'relative', height: hoyde, marginTop: 3 }}>
       {spokelser.length > 0 && (

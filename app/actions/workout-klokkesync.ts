@@ -484,7 +484,7 @@ export async function hentKurveVindu(
 // (KOMPAKT_KOLONNER bor i lib/kurve-nedsample — en 'use server'-fil kan
 // bare eksportere async-funksjoner.)
 
-export interface KompaktPlanBlokk { startSek: number; sluttSek: number; sone: string | null; type: string }
+export interface KompaktPlanBlokk { startSek: number; sluttSek: number; sone: string | null; type: string; soner?: Record<string, number> }
 
 export interface KompaktKurve {
   hr: Array<{ t: number; hr: number }>
@@ -578,7 +578,9 @@ export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<s
       if (type.startsWith('skyting')) continue
       const varighet = Math.max(1, Number(r.window_duration_seconds ?? r.duration_seconds ?? 0) || varighetSekAv(r.duration))
       const start = r.window_start_seconds != null ? Number(r.window_start_seconds) : t
-      ut.push({ startSek: start, sluttSek: start + varighet, type, sone: dominantSoneAv(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null) })
+      const soner: Record<string, number> = {}
+      if (r.zones && typeof r.zones === 'object') for (const [k, v] of Object.entries(r.zones as Record<string, unknown>)) { const sek = typeof v === 'number' ? v : varighetSekAv(v); if (sek > 0) soner[k] = sek }
+      ut.push({ startSek: start, sluttSek: start + varighet, type, sone: dominantSoneAv(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null), soner })
       t = start + varighet
     }
     return ut

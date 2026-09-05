@@ -284,6 +284,24 @@ export interface PlanBlokk {
   sluttSek: number
   /** Planens sone for blokka (mest tid) — spøkelset tegnes i sonefargen. */
   sone: string | null
+  /** Bolk 19: sekunder per sone når raden har flere — spøkelset stables. */
+  soner?: Record<string, number>
+}
+
+/** Sekunder per sone fra zones-jsonb (sekunder eller «MM:SS»). */
+function sonerAv(zones: unknown): Record<string, number> {
+  const ut: Record<string, number> = {}
+  if (!zones || typeof zones !== 'object') return ut
+  for (const [k, v] of Object.entries(zones as Record<string, unknown>)) {
+    let sek = 0
+    if (typeof v === 'number') sek = v
+    else if (typeof v === 'string' && v.trim()) {
+      const d = v.split(':').map(Number)
+      sek = d.length === 3 ? d[0] * 3600 + d[1] * 60 + d[2] : d.length === 2 ? d[0] * 60 + d[1] : Number(v) || 0
+    }
+    if (sek > 0) ut[k] = sek
+  }
+  return ut
 }
 
 /** Sonen med mest tid i en zones-jsonb — verdiene kan være sekunder
@@ -361,6 +379,7 @@ export async function hentPlanensRunder(workoutId: string): Promise<PlanBlokk[]>
       startSek: start,
       sluttSek: start + varighet,
       sone: dominantSone(r.zones) ?? (type === 'oppvarming' || type === 'nedjogg' ? 'I1' : null),
+      soner: sonerAv(r.zones),
     })
     t = start + varighet
   })

@@ -14,18 +14,21 @@
 
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { SEGMENT_FARGER, segmentTypeFor } from '@/lib/segmenter'
-import { SONE_HOYDE } from '@/lib/plan-graf'
+import { SONE_HOYDE, soneAndelerAv, type SoneAndel } from '@/lib/plan-graf'
 import type { ExtendedZoneName } from '@/lib/heart-zones'
 import type { PlanBlokk } from '@/app/actions/runder'
 
-function farge(b: PlanBlokk): { farge: string; hoyde: number } {
+function farge(b: PlanBlokk): { farge: string; hoyde: number; andeler: SoneAndel[] } {
   const seg = segmentTypeFor(b.type, '')
   // Pause, veksling og skyting: nøytralt, lavt (rettelse 1 — skyting har
   // ikke farge på tidslinja).
-  if (seg === 'pause' || seg === 'veksling' || seg.startsWith('skyting')) return { farge: SEGMENT_FARGER.pause, hoyde: 0.18 }
+  if (seg === 'pause' || seg === 'veksling' || seg.startsWith('skyting')) return { farge: SEGMENT_FARGER.pause, hoyde: 0.18, andeler: [] }
   const sone = (b.sone && b.sone in ZONE_COLORS_V2 ? b.sone : null) as ExtendedZoneName | null
-  if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone] }
-  return { farge: SEGMENT_FARGER[seg], hoyde: 0.36 }
+  // Bolk 19: flere soner på raden → stablet; høyden er den høyeste sonens.
+  const andeler = soneAndelerAv((b.soner ?? {}) as Partial<Record<ExtendedZoneName, number>>)
+  if (andeler.length >= 2) return { farge: sone ? ZONE_COLORS_V2[sone] : ZONE_COLORS_V2[andeler[andeler.length - 1].sone], hoyde: SONE_HOYDE[andeler[andeler.length - 1].sone], andeler }
+  if (sone) return { farge: ZONE_COLORS_V2[sone], hoyde: SONE_HOYDE[sone], andeler: [] }
+  return { farge: SEGMENT_FARGER[seg], hoyde: 0.36, andeler: [] }
 }
 
 export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag = 'plan' }: {
@@ -51,15 +54,25 @@ export function PlanSpokelse({ blokker, pct, hoyde = '100%', dempet = 0.16, slag
       {blokker.map(b => {
         const f = farge(b)
         const v = `calc(${pct(b.sluttSek)} - ${pct(b.startSek)})`
+        const stablet = slag !== 'omriss' && f.andeler.length >= 2
+        const tittel = f.andeler.length >= 2
+          ? `${b.navn ?? b.type} · ${f.andeler[0].sone}–${f.andeler[f.andeler.length - 1].sone}: ${f.andeler.map(a => `${a.sone} ${Math.round(a.andel * 100)} %`).join(' · ')}`
+          : (b.navn ?? b.type)
         return (
-          <div key={b.id} title={b.navn ?? b.type} style={{
+          <div key={b.id} title={tittel} data-stablet={stablet ? f.andeler.map(a => a.sone).join(',') : undefined} style={{
             position: 'absolute', left: pct(b.startSek), width: v,
             bottom: 0, height: `${Math.round(f.hoyde * 100)}%`,
-            background: slag === 'omriss' ? 'transparent' : f.farge, opacity: slag === 'omriss' ? 0.9 : dempet,
+            background: slag === 'omriss' || stablet ? 'transparent' : f.farge, opacity: slag === 'omriss' ? 0.9 : dempet,
             borderLeft: `1px ${kant} ${f.farge}`, borderRight: `1px ${kant} ${f.farge}`,
             borderTop: `1px ${kant} ${f.farge}`,
             borderRadius: '3px 3px 0 0',
-          }} />
+            display: 'flex', flexDirection: 'column-reverse',
+          }}>
+            {/* Bolk 19: sonefargene stablet oppover etter andel (laveste nederst). */}
+            {stablet && f.andeler.map(a => (
+              <span key={a.sone} style={{ height: `${a.andel * 100}%`, background: ZONE_COLORS_V2[a.sone], display: 'block' }} />
+            ))}
+          </div>
         )
       })}
     </div>

@@ -4,9 +4,8 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { glemVindu } from '@/lib/kurve-zoom'
 import { deleteWorkout } from '@/app/actions/workouts'
-import { hentOkt, glemOkt } from './okt-lager'
+import { hentPakke, hentUtstyrListe, glemOkt, glemUtstyr } from './okt-lager'
 import { varmKlokkedata } from './useKlokkedata'
-import { listEquipmentWithUsage, getWorkoutEquipmentSelection } from '@/app/actions/equipment'
 import { ActivityType, Sport, WorkoutFormData, WorkoutTemplate } from '@/lib/types'
 import type { Equipment } from '@/lib/equipment-types'
 import { HeartZone } from '@/lib/heart-zones'
@@ -91,31 +90,28 @@ export function WorkoutModal({ state, onClose, primarySport, userSports, activit
       setLoading(true)
       // Klokkedata hentes PARALLELT med øktdataene (ikke etter), så
       // grafen står når øktsiden tegnes; øktdataene huskes i 60 s.
-      if (reloadTick > 0) glemOkt(state.workoutId)
+      if (reloadTick > 0) { glemOkt(state.workoutId); glemUtstyr() }
       varmKlokkedata(state.workoutId)
-      hentOkt(state.workoutId, state.formMode, targetUserId).then(d => {
-        setDefaults(d)
+      // YTELSE bolk 4: ÉN pakke — økt + utstyrsliste + utstyrsvalg i ett svar
+      // (Promise.all på serveren), husket 60 s i okt-lager.
+      if (!targetUserId) setEquipLoading(true)
+      hentPakke(state.workoutId, state.formMode, targetUserId).then(p => {
+        setDefaults(p.okt)
         setLoading(false)
-      })
-    }
-    // Last brukerens utstyr-bibliotek én gang per modal-åpning. Hopper over for
-    // trener-redigering siden trener ikke registrerer utstyr på utøvers vegne.
-    if (!targetUserId) {
-      // Med usage så pop-up-velgeren kan vise km-tall per utstyr (bolk 4).
-      listEquipmentWithUsage({ status: 'active' }).then(setEquipment)
-      if (state.kind === 'edit') {
-        setEquipLoading(true)
-        getWorkoutEquipmentSelection(state.workoutId).then(sel => {
-          setEquipmentIds(sel.heleOkta)
+        if (p.utstyr) setEquipment(p.utstyr)
+        if (p.utstyrsvalg) {
+          setEquipmentIds(p.utstyrsvalg.heleOkta)
           const rec: Record<number, string[]> = {}
-          for (const p of sel.perAktivitet) rec[p.sortOrder] = p.equipmentIds
+          for (const a of p.utstyrsvalg.perAktivitet) rec[a.sortOrder] = a.equipmentIds
           setActivityEquipment(rec)
-          setEquipLoading(false)
-        }).catch(() => setEquipLoading(false))
-      } else {
+        }
         setEquipLoading(false)
-      }
-    } else {
+      }).catch(() => { setLoading(false); setEquipLoading(false) })
+    }
+    // Ny økt: bare utstyrslista (bruker-global, husket i minnet). Trener-
+    // redigering har ingen egen utstyrsliste.
+    if (state.kind === 'create') {
+      if (!targetUserId) hentUtstyrListe().then(setEquipment).catch(() => {})
       setEquipLoading(false)
     }
   }, [state, targetUserId, reloadTick])

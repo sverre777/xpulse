@@ -1773,6 +1773,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
           onPunkter={p => set('tidspunkt_notater', p)}
           onRaderFraBasen={hentRaderFraBasen}
           onByggTittel={tittel => setForm(f => ({ ...f, title: f.title.trim() === '' ? tittel : f.title }))}
+          onBolkTittel={tittel => setForm(f => ({ ...f, title: f.title.trim() === '' ? tittel : `${f.title.trim()} + ${tittel}` }))}
           onSerierLagret={flettInnLagredeSerier}
           onClose={() => setVisOktbygger(false)}
           onOpprett={async (rader, tittel) => {

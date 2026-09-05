@@ -23,7 +23,7 @@ import { verdiVed } from './OktKurve'
 import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
-import { byggPlanBlokker, type PlanBlokkInn } from '@/lib/plan-graf'
+import { byggPlanBlokker, fraActivityRows, type PlanBlokkInn } from '@/lib/plan-graf'
 import { tilSpokelser, snittVindu } from '@/lib/gjennomfort-kart'
 import { resolveSoner, type SoneDbRad } from '@/lib/terskel-oppslag'
 import { PlanGraf } from './PlanGraf'
@@ -74,7 +74,7 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
 export function OktbyggerPopup({
   workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
   laktat, onLaktat, ernaering, onErnaering, punkter, onPunkter, onRaderFraBasen,
-  onClose, onSerierLagret, onOpprett, onByggTittel,
+  onClose, onSerierLagret, onOpprett, onByggTittel, onBolkTittel,
 }: {
   /** null = økta er ikke lagret ennå: klokkeverktøyene finnes ikke, bare hurtigoppsettet. */
   workoutId: string | null
@@ -105,6 +105,9 @@ export function OktbyggerPopup({
   onOpprett?: (rader: ActivityRow[], tittel: string) => void | Promise<void>
   /** Bygg PÅ kurven (3b): tittelen foreslås, radene legges inn her. */
   onByggTittel?: (tittel: string) => void
+  /** «+ Legg til bolk» (Sverre 5. sep): ny bolk lagt UNDER radene — tittelen
+      blir «intervall 1 + intervall 2». */
+  onBolkTittel?: (tittel: string) => void
 }) {
   const harKurve = !!klokke?.samples && Object.values(klokke.samples).some(v => v && (v as unknown[]).length > 0)
   const grunnlag = useMemo(() => ({
@@ -407,6 +410,12 @@ export function OktbyggerPopup({
                   onAvbryt={workoutId ? () => setHurtigAapent(false) : undefined}
                   onFerdig={onClose}
                   lagerNokkel={workoutId ?? 'ny'}
+                  onLeggTil={async (nye, tittel) => {
+                    // Sverre 5. sep: bolken legges UNDER radene som finnes (én
+                    // økt i oversikten); tittelen får « + <bolk>».
+                    endre([...rader, ...nye])
+                    onBolkTittel?.(tittel)
+                  }}
                   onOpprett={async (nye, tittel) => {
                     if (workoutId && harKurve) { await byggPaaKurven(nye, tittel); return }
                     // Sverre 5. sep: Opprett holder deg i byggeren med økta
@@ -816,6 +825,10 @@ function KurveMedRader({
   const [vindu, setVindu] = useState<[number, number] | null>(() => hentVindu(workoutId))
   // GJENNOMFØRT-KARTET i byggeren: utkastets rader som blokker med faktisk
   // sone (snittpuls i vinduet mot egne soner — samme regel som øktsiden).
+  // Sverre 5. sep: uten klokkekurve (plan, ny økt, manuell) tegnes dragene i
+  // RADENES soner — samme som øktgrafen (fraActivityRows). Med kurve vinner
+  // pulsen i vinduet (rettelse 12: klokkedata tegnes som blokker).
+  const soneSekAv = useMemo(() => new Map(fraActivityRows(rader).map(b => [b.id, b.soneSek])), [rader])
   const kartInn: PlanBlokkInn[] = useMemo(() => [...utkast].sort((a, b) => a.startSek - b.startSek).map(u => {
     const puls = parseInt(u.snittpuls)
     const erDrag = !PAUSE_TYPER.has(u.type) && !u.type.startsWith('skyting')
@@ -828,14 +841,14 @@ function KurveMedRader({
     return {
       id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: rad?.movement_subcategory ?? '',
       soner: soner ?? undefined,
-      sek: u.varighetSek, startSek: u.startSek, soneSek: {},
+      sek: u.varighetSek, startSek: u.startSek, soneSek: hr.length === 0 ? (soneSekAv.get(u.id) ?? {}) : {},
       snittpuls: vindu ?? (Number.isFinite(puls) && puls > 0 ? puls : null),
       gruppeId: u.gruppeId,
       proneShots: u.type === 'skyting_liggende' || u.type === 'skyting_kombinert' ? 1 : 0,
       standingShots: u.type === 'skyting_staaende' || u.type === 'skyting_kombinert' ? 1 : 0,
       distanseKm: Number.isFinite(km) && km > 0 ? km : 0,
     }
-  }), [utkast, hr, rader, sonerRader])
+  }), [utkast, hr, rader, sonerRader, soneSekAv])
   const kartSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(kartInn, heartZones)), [kartInn, heartZones])
   const grafPunkter = useMemo(() => punkter.filter(p => p.sek != null && p.slag !== 'skyting' && p.slag !== 'veksling')
     .map(p => ({ id: p.id, sek: p.sek as number, slag: p.slag, planlagt: p.planlagt, tittel: PUNKT_SLAG[p.slag].navn })), [punkter])

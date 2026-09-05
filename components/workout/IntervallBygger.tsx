@@ -129,7 +129,7 @@ export interface IntervallForhandsutfylling {
   tittel?: string
 }
 
-export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false, onFerdig, lagerNokkel }: {
+export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, onStegChange, apneSignal, kompakt = false, onFerdig, lagerNokkel, onLeggTil }: {
   sport: Sport
   /** Forsidens eksport (regel 11): bare dragradene, oppvarming/nedjogg og
       Opprett — ikke bev.form/underkategori/skyting-feltene. */
@@ -154,12 +154,18 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   /** Sverre 5. sep: oppsettet huskes PER ØKT (localStorage), så man kan
       endre og opprette på nytt — også etter at byggeren har vært lukket. */
   lagerNokkel?: string
+  /** «+ Legg til bolk» (Sverre 5. sep): en bolk til (f.eks. svømming først,
+      så løping) — bare aktivitetene, uten ny oppvarming/nedjogg, lagt UNDER
+      radene som finnes. Oversikten viser det som én økt. */
+  onLeggTil?: (rader: ActivityRow[], tittel: string) => void | Promise<void>
 }) {
   const husket = useMemo(() => (lagerNokkel && !forhandsutfylt ? lesHurtigLager<Rad>(lagerNokkel) : null), [lagerNokkel, forhandsutfylt])
   // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
   const utvidetSkala = useUtvidetSkala()
   // Husket oppsett på økta → kollapset linje (steg «ferdig») med «Endre».
   const [steg, settStegIntern] = useState<'bygg' | 'ferdig'>(husket ? 'ferdig' : 'bygg')
+  // «Legg til bolk»-modus: oppsettet bygges som en bolk til (uten oppv/nedjogg).
+  const [leggTil, setLeggTil] = useState(false)
   const setSteg = (st: 'bygg' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
   const [rader, setRader] = useState<Rad[]>(() =>
     husket ? husket.rader :
@@ -193,8 +199,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const subValg = useMemo(() => getSubcategories(bev), [bev])
 
   const konfig: IntervallKonfig = useMemo(() => ({
-    oppvarmingSek: pSek(opp),
-    nedjoggSek: pSek(ned),
+    oppvarmingSek: leggTil ? 0 : pSek(opp),
+    nedjoggSek: leggTil ? 0 : pSek(ned),
     rader: rader.map(r => {
       const km = parseFloat(r.km.replace(',', '.'))
       const fartSek = fartSnittSekPerKm(r.fartFra, r.fartTil, fartEnhet)
@@ -217,7 +223,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     underkategori: sub,
     skyting: skyting || null,
     skytetidSek: Math.max(1, Math.min(SKYTETID_MAKS_SEK, parseInt(skytetid) || SKYTETID_STANDARD_SEK)),
-  }), [opp, ned, rader, bev, sub, skyting, skytetid, fartEnhet])
+  }), [opp, ned, rader, bev, sub, skyting, skytetid, fartEnhet, leggTil])
 
   const blokker: GenerertBlokk[] = useMemo(() => byggBlokker(konfig), [konfig])
   const total = blokker.reduce((s, b) => s + b.sek, 0)
@@ -241,6 +247,12 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     setRader(rs => rs.map((r, ri) => ri === i ? { ...r, [felt]: verdi } as Rad : r))
 
   const opprett = async () => {
+    if (leggTil && onLeggTil) {
+      await onLeggTil(genererIntervalløkt(konfig), tittel)
+      setLeggTil(false)
+      setSteg('ferdig')
+      return
+    }
     await onOpprett(genererIntervalløkt(konfig), tittel)
     if (lagerNokkel) skrivHurtigLager(lagerNokkel, { rader, fartEnhet, bev, sub, skyting, skytetid, opp, ned })
     if (forhandsutfylt && onAvbryt) onAvbryt()   // dialog: lukk — ingen kollaps-linje
@@ -297,6 +309,13 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
           Endre
         </button>
+        {onLeggTil && (
+          <button type="button" onClick={() => { setLeggTil(true); setSteg('bygg') }} data-legg-til-bolk
+            className="text-xs tracking-widest uppercase"
+            style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px dashed var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }}>
+            + Legg til bolk
+          </button>
+        )}
         {onFerdig && (
           <button type="button" onClick={onFerdig} data-ferdig
             className="text-xs tracking-widest uppercase"
@@ -463,12 +482,18 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         + Legg til rad
       </button>}
 
+      {leggTil ? (
+        <p data-legg-til-modus style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-8-alt)', marginTop: 10 }}>
+          Bolken legges under radene som finnes — bare aktivitetene, uten ny oppvarming/nedjogg. Velg bevegelsesform for bolken over.
+        </p>
+      ) : (
       <div className="grid grid-cols-2 gap-3 mt-3">
         <div><div style={{ ...CAP, marginBottom: 5 }}>Oppvarming</div>
           <input value={opp} onChange={e => setOpp(e.target.value)} inputMode="text" style={FELT} /></div>
         <div><div style={{ ...CAP, marginBottom: 5 }}>Nedjogg</div>
           <input value={ned} onChange={e => setNed(e.target.value)} inputMode="text" style={FELT} /></div>
       </div>
+      )}
 
       {!kompakt && <p className="mt-3" style={{ fontFamily: FONT, fontSize: 13.5, color: 'var(--tekst-5-app)', borderTop: '1px solid var(--line)', paddingTop: 10 }}>
         {serier > 0
@@ -477,8 +502,8 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
       </p>}
 
       <div className="flex gap-2 mt-2">
-        {onAvbryt && (
-          <button type="button" onClick={onAvbryt}
+        {(onAvbryt || leggTil) && (
+          <button type="button" onClick={leggTil ? () => { setLeggTil(false); setSteg('ferdig') } : onAvbryt}
             className="text-xs tracking-widest uppercase"
             style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>
             Avbryt
@@ -487,9 +512,9 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
         <button type="button" onClick={() => { void opprett() }} data-hurtig-opprett
           className="flex-1"
           style={{ fontFamily: "'Inter', 'Barlow', sans-serif", fontWeight: 800, fontSize: 14.5, color: 'var(--tekst-1-ren)', background: 'var(--accent)', border: 'none', borderRadius: 10, padding: 13, cursor: 'pointer' }}>
-          Opprett
+          {leggTil ? 'Legg til bolk' : 'Opprett'}
         </button>
-        {onFerdig && (
+        {onFerdig && !leggTil && (
           <button type="button" onClick={onFerdig} data-ferdig
             className="text-xs tracking-widest uppercase"
             style={{ fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 10, padding: '10px 18px', cursor: 'pointer' }}>

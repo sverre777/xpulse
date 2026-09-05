@@ -70,6 +70,22 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   const grupper = useMemo(() => (tetthet === 'full'
     ? grupperPlanBlokker(blokker).filter(g => blokker.slice(g.fra, g.til + 1).filter(b => b.slag !== 'pause' && b.slag !== 'skyting_ligg' && b.slag !== 'skyting_staa').length === g.antall)
     : []), [blokker, tetthet])
+  // Sverre 5. sep: flere bolker med ULIKE bev.former (svømming → løping,
+  // skøyting → klassisk) markeres øverst: «Bolk 1 · Langrenn skøyting».
+  // Pauser/skyting hører til bolken før. Én bev.form = ingen linje.
+  const bolker = useMemo(() => {
+    if (tetthet !== 'full') return []
+    const ut: { fra: number; til: number; navn: string }[] = []
+    let gjeldende: string | null = null
+    blokker.forEach((b, i) => {
+      const erPause = b.slag === 'pause' || b.slag === 'skyting_ligg' || b.slag === 'skyting_staa'
+      const navn = erPause ? '' : `${b.bevegelsesform}${b.underkategori ? ` ${b.underkategori}` : ''}`.trim()
+      if (!navn) { if (ut.length) ut[ut.length - 1].til = i; return }
+      if (navn !== gjeldende) { ut.push({ fra: i, til: i, navn }); gjeldende = navn }
+      else ut[ut.length - 1].til = i
+    })
+    return ut.length >= 2 ? ut : []
+  }, [blokker, tetthet])
   if (blokker.length === 0 || total <= 0) return null
 
   const x = (sek: number) => (sek / total) * B
@@ -133,7 +149,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
   })()
 
   const NIVAA_H = 32   // ≥ høyden på en to-linjers etikett (tittel + underlinje), så nivåene aldri berører hverandre
-  const topp = kompakt ? 4 : TOPP_FULL + (etiketter.nivaaer - 1) * NIVAA_H
+  const BOLK_H = bolker.length > 0 ? 20 : 0
+  const topp = kompakt ? 4 : TOPP_FULL + (etiketter.nivaaer - 1) * NIVAA_H + BOLK_H
   const bunn = kompakt ? 2 : BUNN_FULL
   const plot = kompakt ? Math.max(12, (hoyde ?? 30) - 6) : PLOT
   const H = topp + plot + bunn
@@ -289,6 +306,21 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                   </text>
                 </g>
                 <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - h - 2} stroke="var(--line2)" />
+              </g>
+            )
+          })}
+          {/* Bolkene (Sverre 5. sep): linje + «Bolk n · bev.form» helt øverst. */}
+          {bolker.map((bk, i) => {
+            const x1 = x(blokker[bk.fra].startSek) + 1, x2 = x(blokker[bk.til].startSek + blokker[bk.til].sek) - 1
+            return (
+              <g key={`bolk-${i}`} data-bolk={i + 1} data-bolk-navn={bk.navn}>
+                <text x={(x1 + x2) / 2} y={11} textAnchor="middle"
+                  style={{ font: "700 10px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-5-app)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+                  Bolk {i + 1} · {bk.navn}
+                </text>
+                <line x1={x1} y1={16} x2={x2} y2={16} stroke="var(--tekst-8-alt)" strokeWidth={1} />
+                <line x1={x1} y1={13} x2={x1} y2={19} stroke="var(--tekst-8-alt)" />
+                <line x1={x2} y1={13} x2={x2} y2={19} stroke="var(--tekst-8-alt)" />
               </g>
             )
           })}

@@ -162,8 +162,10 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const husket = useMemo(() => (lagerNokkel && !forhandsutfylt ? lesHurtigLager<Rad>(lagerNokkel) : null), [lagerNokkel, forhandsutfylt])
   // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
   const utvidetSkala = useUtvidetSkala()
-  // Husket oppsett på økta → kollapset linje (steg «ferdig») med «Endre».
-  const [steg, settStegIntern] = useState<'bygg' | 'ferdig'>(husket ? 'ferdig' : 'bygg')
+  // Sverre 5. sep: hurtigoppsettet kollapser ALDRI av seg selv — bare
+  // «Opprett» gjør det. Et husket oppsett fyller feltene, men steget er
+  // alltid «bygg» ved åpning (tom økt i dagbok skal vise oppsettet).
+  const [steg, settStegIntern] = useState<'bygg' | 'ferdig'>('bygg')
   // «Legg til bolk»-modus: oppsettet bygges som en bolk til (uten oppv/nedjogg).
   const [leggTil, setLeggTil] = useState(false)
   const setSteg = (st: 'bygg' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }

@@ -763,6 +763,11 @@ export interface ActivityRow {
   max_heart_rate: string
   avg_watts: string
   max_watts: string
+  /** Kadens (Sverre 5. sep, ingen SQL — kolonnene finnes i prod og fylles av
+      klokkesynk/Strava): rpm på sykkel/rulle/spinning, spm på løping. Plan =
+      mål (avg_cadence), dagbok = faktisk (snitt + maks). */
+  avg_cadence: string
+  max_cadence: string
   // Motstand 1-10 — innendørs-maskiner (SkiErg, Romaskin, Stairmaster,
   // Ellipsemaskin, Spinning, Indoors/Ergo, Air bike). Tom streng = ikke satt.
   resistance_level: string
@@ -1373,6 +1378,8 @@ export function makeActivity(overrides: Partial<ActivityRow> & { activity_type: 
     elevation_gain_m: '',
     elevation_loss_m: '',
     incline_percent: '',
+    avg_cadence: '',
+    max_cadence: '',
     pack_weight_kg: '',
     sled_weight_kg: '',
     weather: '',

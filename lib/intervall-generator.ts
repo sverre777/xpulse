@@ -55,6 +55,8 @@ export interface IntervallRad {
   wattTekst?: string | null
   stigning?: number | null
   motstand?: string | null
+  /** Kadens som mål (rpm/spm) — avg_cadence i planen (Sverre 5. sep). */
+  kadensMaal?: number | null
 }
 
 /** Varighet for et drag i km ved planlagt fart. */
@@ -106,6 +108,7 @@ export interface GenerertBlokk extends Blokk {
   stigning?: number | null
   motstand?: string | null
   fartSekPerKm?: number | null
+  kadensMaal?: number | null
 }
 
 /** 5 skudd per serie. Standard i skiskyting, ikke et valg i byggeren. */
@@ -169,7 +172,7 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
       if (rad.dragSek > 0) {
         blokker.push({ sek: rad.dragSek, sone: rad.sone, rolle: 'arbeid', type: 'aktivitet', posisjon: null,
           km: rad.dragKm && rad.dragKm > 0 ? rad.dragKm : null, kort: rad.kort && rad.kort.paaSek > 0 ? rad.kort : null, fartTekst: rad.fartTekst ?? null,
-          wattMaal: rad.wattMaal ?? null, stigning: rad.stigning ?? null, motstand: rad.motstand ?? null, fartSekPerKm: rad.fartSekPerKm ?? null })
+          wattMaal: rad.wattMaal ?? null, stigning: rad.stigning ?? null, motstand: rad.motstand ?? null, fartSekPerKm: rad.fartSekPerKm ?? null, kadensMaal: rad.kadensMaal ?? null })
       }
       if (erSistePause(ri, i, rad) || rad.pauseSek <= 0) continue
 
@@ -274,6 +277,7 @@ export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
           ...(b.wattMaal && b.wattMaal > 0 ? { avg_watts: String(b.wattMaal) } : {}),
           ...(b.stigning != null && b.stigning > 0 ? { incline_percent: String(b.stigning).replace('.', ',') } : {}),
           ...(b.motstand ? { resistance_level: b.motstand } : {}),
+          ...(b.kadensMaal && b.kadensMaal > 0 ? { avg_cadence: String(b.kadensMaal) } : {}),
           ...(b.fartSekPerKm && b.fartSekPerKm > 0 && (felter.fart === 'kmt' || felter.split500)
             ? { avg_pace_seconds_per_km: String(b.fartSekPerKm), ...(felter.fart === 'kmt' ? { pace_unit_preference: 'km_per_h' as const } : {}) }
             : {}),

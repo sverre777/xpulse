@@ -68,6 +68,8 @@ interface Rad {
   wattTil: string
   stigning: string
   motstand: string
+  /** Kadens som mål (rpm/spm) — Sverre 5. sep. */
+  kadens: string
 }
 type FartEnhet = 'min_per_km' | 'km_per_h'
 /** «4:30» (min/km) → 270 s/km; «13,3» (km/t) → 270 s/km. */
@@ -130,7 +132,7 @@ function tMin(s: string): string {
   return s.replace(/:00$/, ' min')
 }
 
-const TOM_RAD: Rad = { antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '' }
+const TOM_RAD: Rad = { antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '' }
 const KNAPP_GRAA: React.CSSProperties = { fontFamily: FONT, color: 'var(--tekst-5-app)', background: 'none', border: '1px solid var(--line2)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }
 const KNAPP_ACCENT: React.CSSProperties = { fontFamily: FONT, color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', borderRadius: 9, padding: '9px 16px', cursor: 'pointer' }
 
@@ -159,6 +161,7 @@ function konfigFor(b: HurtigBolk<Rad>, oppvarmingSek: number, nedjoggSek: number
         wattTekst: felter.wattMaal ? wattTekst(r.wattFra, r.wattTil) || null : null,
         stigning: felter.stigning ? parseDesimal(r.stigning) : null,
         motstand: felter.motstand && r.motstand ? r.motstand : null,
+        kadensMaal: felter.kadens ? (parseInt(r.kadens) || null) : null,
       }
     }),
     bevegelsesform: b.bev,
@@ -247,14 +250,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const harOpprettet = useRef(husket != null)
   const setSteg = (st: 'bygg' | 'ferdig') => { settStegIntern(st); onStegChange?.(st) }
   const [rader, setRader] = useState<Rad[]>(() =>
-    husket ? (husket.rader as Partial<Rad>[]).map(r => ({ wattFra: '', wattTil: '', stigning: '', motstand: '', ...r }) as Rad) :
+    husket ? (husket.rader as Partial<Rad>[]).map(r => ({ wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '', ...r }) as Rad) :
     forhandsutfylt
       ? forhandsutfylt.rader.map(r => ({
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
-          kortPaa: '', kortAv: '', modus: 'tid' as const, km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '',
+          kortPaa: '', kortAv: '', modus: 'tid' as const, km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '',
         }))
       // Rettelse 8 (4. sep): ÉN standardrad — 3 × 10 min I3 · 2 min pause.
-      : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '' }])
+      : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '' }])
   const [fartEnhet, setFartEnhet] = useState<FartEnhet>(() => (husket?.fartEnhet as FartEnhet | undefined) ?? 'min_per_km')
   const [bev, setBev] = useState<string>(() => husket?.bev ?? DEFAULT_MOVEMENTS_BY_SPORT[sport]?.[0] ?? 'Løping')
   const [sub, setSub] = useState(() => husket?.sub ?? '')
@@ -499,7 +502,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           </button>}
           {/* BOLK 27: bev.form-spesifikke mål på draget (lib/bevform-felter):
               watt fra–til · split /500 m · stigning % · motstand 1–10. */}
-          {!kompakt && (felter.wattMaal || felter.stigning || felter.motstand || felter.split500) && (
+          {!kompakt && (felter.wattMaal || felter.stigning || felter.motstand || felter.split500 || felter.kadens) && (
             <div className="col-span-full flex items-center gap-1.5 flex-wrap" data-bevform-linje={bev} style={{ marginTop: -2 }}>
               {felter.wattMaal && <>
                 <span style={LITEN}>Watt</span>
@@ -517,6 +520,11 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
                 <span style={LITEN}>Stigning</span>
                 <input value={r.stigning} onChange={e => oppdater(i, 'stigning', e.target.value)} inputMode="decimal" placeholder="6" aria-label="Stigning i prosent" data-stigning style={{ ...SMAL, width: 56 }} />
                 <span style={{ color: 'var(--tekst-8-alt)' }}>%</span>
+              </>}
+              {felter.kadens && <>
+                <span style={LITEN}>Kadens</span>
+                <input value={r.kadens} onChange={e => oppdater(i, 'kadens', e.target.value)} inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : '180'} aria-label={`Kadens mål (${felter.kadens})`} data-kadens style={{ ...SMAL, width: 60 }} />
+                <span style={{ color: 'var(--tekst-8-alt)' }}>{felter.kadens}</span>
               </>}
               {felter.motstand && <>
                 <span style={LITEN}>Motstand</span>
@@ -600,7 +608,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
           </div>}
         </div>
       ))}
-      {!kompakt && <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' , modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '' }])}
+      {!kompakt && <button type="button" onClick={() => setRader(rs => [...rs, { antall: '4', drag: '4:00', sone: 'I5', pause: '3:00', kortPaa: '', kortAv: '' , modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '' }])}
         className="w-full mt-2"
         style={{ fontFamily: FONT, fontSize: 14, color: 'var(--tekst-5-app)', background: 'transparent', border: '1.3px dashed var(--line2)', borderRadius: 10, padding: 10, cursor: 'pointer' }}>
         + Legg til rad

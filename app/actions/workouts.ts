@@ -289,6 +289,9 @@ async function lesPulsFraVinduene(
 // raden bærer dem selv. Mangler de på raden (eldre utkast, mal-rader),
 // beholdes det som sto i basen.
 type SkjulteAktivitetsFelter = {
+  /** Kadens fra klokka: et TOMT felt i skjemaet overskriver aldri klokkeverdien (Sverre 5. sep). */
+  avg_cadence: number | null
+  max_cadence: number | null
   external_id: string | null
   strava_lap_index: number | null
   window_start_seconds: number | null
@@ -341,6 +344,8 @@ async function insertActivitiesWithChildren(
       max_heart_rate: parseInt(a.max_heart_rate) || null,
       avg_watts: parseInt(a.avg_watts) || null,
       max_watts: parseInt(a.max_watts) || null,
+      avg_cadence: parseInt(a.avg_cadence) || (skjult?.avg_cadence ?? null),
+      max_cadence: parseInt(a.max_cadence) || (skjult?.max_cadence ?? null),
       resistance_level: parseInt(a.resistance_level) || null,
       avg_pace_seconds_per_km: parseInt(a.avg_pace_seconds_per_km) || null,
       pace_unit_preference: a.pace_unit_preference || null,
@@ -600,6 +605,8 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
       elevation_gain_m: a.elevation_gain_m ?? '',
       elevation_loss_m: a.elevation_loss_m ?? '',
       incline_percent: a.incline_percent ?? '',
+      avg_cadence: a.avg_cadence != null ? String(a.avg_cadence) : '',
+      max_cadence: a.max_cadence != null ? String(a.max_cadence) : '',
       pack_weight_kg: a.pack_weight_kg ?? '',
       sled_weight_kg: a.sled_weight_kg ?? '',
       weather: a.weather ?? '',
@@ -817,10 +824,12 @@ export async function saveWorkout(data: WorkoutFormData, workoutId?: string, tar
     // Fase 113/114-vern: les de skjulte kolonnene FØR radene slettes.
     {
       const { data: skjulte } = await supabase.from('workout_activities')
-        .select('id, external_id, strava_lap_index, window_start_seconds, window_duration_seconds, split_parent_id, split_backup')
+        .select('id, external_id, strava_lap_index, window_start_seconds, window_duration_seconds, split_parent_id, split_backup, avg_cadence, max_cadence')
         .eq('workout_id', workoutId)
       for (const r of (skjulte ?? [])) {
         skjulteAktivitetsFelter.set(r.id as string, {
+          avg_cadence: r.avg_cadence != null ? Number(r.avg_cadence) : null,
+          max_cadence: r.max_cadence != null ? Number(r.max_cadence) : null,
           external_id: (r.external_id as string | null) ?? null,
           strava_lap_index: (r.strava_lap_index as number | null) ?? null,
           window_start_seconds: (r.window_start_seconds as number | null) ?? null,
@@ -1510,6 +1519,7 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
     shooting_test_ref: string | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
     incline_percent: number | null
+    avg_cadence?: number | null; max_cadence?: number | null
     pack_weight_kg: number | null; sled_weight_kg: number | null
     weather: string | null; temperature_c: number | null
     notes: string | null
@@ -1630,6 +1640,8 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
         elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
         elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
         incline_percent: a.incline_percent?.toString() ?? '',
+        avg_cadence: a.avg_cadence?.toString() ?? '',
+        max_cadence: a.max_cadence?.toString() ?? '',
         pack_weight_kg: a.pack_weight_kg?.toString() ?? '',
         sled_weight_kg: a.sled_weight_kg?.toString() ?? '',
         weather: a.weather ?? '',

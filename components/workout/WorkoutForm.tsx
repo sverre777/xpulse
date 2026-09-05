@@ -177,6 +177,8 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
     elevation_gain_m: a.elevation_gain_m ?? '',
     elevation_loss_m: a.elevation_loss_m ?? '',
     incline_percent: a.incline_percent ?? '',
+    avg_cadence: a.avg_cadence ?? '',
+    max_cadence: a.max_cadence ?? '',
     pack_weight_kg: a.pack_weight_kg ?? '',
     sled_weight_kg: a.sled_weight_kg ?? '',
     weather: a.weather ?? '',

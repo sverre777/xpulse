@@ -1079,6 +1079,12 @@ function ActivityRowItem({
                   inputMode="numeric" placeholder="230" data-watt-maal style={iSt} />
               </Field>
             )}
+            {isPlanMode && felter.kadens && (
+              <Field label={`Kadens (mål, ${felter.kadens})`}>
+                <input value={row.avg_cadence} onChange={e => onUpdate({ avg_cadence: e.target.value })}
+                  inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : '180'} data-kadens-maal style={iSt} />
+              </Field>
+            )}
             {isPlanMode && felter.motstand && (
               <Field label="Motstand (1-10)">
                 <select value={row.resistance_level} onChange={e => onUpdate({ resistance_level: e.target.value })} style={iSt}>
@@ -1136,6 +1142,21 @@ function ActivityRowItem({
                         onChange={e => onUpdate({ max_watts: e.target.value })}
                         inputMode="numeric" placeholder="—"
                         style={iSt} />
+                    </Field>
+                  </>
+                )}
+
+                {/* Kadens (Sverre 5. sep): rpm på sykkel/rulle/spinning, spm på løping.
+                    Klokkesynk fyller feltene; tomt felt overskriver aldri klokkeverdien. */}
+                {felter.kadens && !meta?.isShooting && !isStrength && !isAnnet && (
+                  <>
+                    <Field label={`Snittkadens (${felter.kadens})`}>
+                      <input value={row.avg_cadence} onChange={e => onUpdate({ avg_cadence: e.target.value })}
+                        inputMode="numeric" placeholder="—" data-kadens-snitt style={iSt} />
+                    </Field>
+                    <Field label={`Makskadens (${felter.kadens})`}>
+                      <input value={row.max_cadence} onChange={e => onUpdate({ max_cadence: e.target.value })}
+                        inputMode="numeric" placeholder="—" data-kadens-maks style={iSt} />
                     </Field>
                   </>
                 )}

@@ -491,6 +491,7 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
     is_dry_training: boolean | null
     elevation_gain_m: number | null; elevation_loss_m: number | null
     incline_percent: number | null
+    avg_cadence?: number | null; max_cadence?: number | null
     pack_weight_kg: number | null; sled_weight_kg: number | null
     weather: string | null; temperature_c: number | null
     notes: string | null
@@ -562,6 +563,8 @@ function normalizeActivitiesFromDb(raw: unknown[]): ActivityRow[] {
       elevation_gain_m: a.elevation_gain_m?.toString() ?? '',
       elevation_loss_m: a.elevation_loss_m?.toString() ?? '',
       incline_percent: a.incline_percent?.toString() ?? '',
+      avg_cadence: a.avg_cadence?.toString() ?? '',
+      max_cadence: a.max_cadence?.toString() ?? '',
       pack_weight_kg: a.pack_weight_kg?.toString() ?? '',
       sled_weight_kg: a.sled_weight_kg?.toString() ?? '',
       weather: a.weather ?? '',

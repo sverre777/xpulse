@@ -1538,7 +1538,7 @@ function Rad({
   const felter = bevFelterFor(rad.movement_name, rad.movement_subcategory)
   const brukerBev = !u.type.startsWith('skyting') && !PAUSE_TYPER.has(u.type) && u.type !== 'veksling'
   const spes = brukerBev ? spesifikkTekst({ bev: rad.movement_name, sub: rad.movement_subcategory, watt: rad.avg_watts, stigning: rad.incline_percent, fartSekPerKm: parseInt(rad.avg_pace_seconds_per_km) || null }) : ''
-  const harBevFelt = brukerBev && (felter.wattMaal || felter.wattFaktisk || felter.stigning || felter.motstand || felter.fart === 'kmt' || felter.fart === 'valgfri' || felter.split500)
+  const harBevFelt = brukerBev && (felter.wattMaal || felter.wattFaktisk || felter.stigning || felter.motstand || felter.fart === 'kmt' || felter.fart === 'valgfri' || felter.split500 || !!felter.kadens)
   const knapp: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5,
     letterSpacing: '0.08em', textTransform: 'uppercase', background: 'none',
@@ -1615,6 +1615,11 @@ function Rad({
             <FeltTekst navn="Maks" verdi={rad.max_watts} onVerdi={v => onFelt({ max_watts: v })} enhet="W" data="makswatt" />
           </>}
           {felter.stigning && <FeltTekst navn="Stigning" verdi={rad.incline_percent} onVerdi={v => onFelt({ incline_percent: v })} enhet="%" data="stigning" />}
+          {felter.kadens && erPlanlagt && <FeltTekst navn="Kadens mål" verdi={rad.avg_cadence} onVerdi={v => onFelt({ avg_cadence: v })} enhet={felter.kadens} data="kadens-maal" />}
+          {felter.kadens && !erPlanlagt && <>
+            <FeltTekst navn="Snittkadens" verdi={rad.avg_cadence} onVerdi={v => onFelt({ avg_cadence: v })} enhet={felter.kadens} data="kadens-snitt" />
+            <FeltTekst navn="Maks" verdi={rad.max_cadence} onVerdi={v => onFelt({ max_cadence: v })} enhet={felter.kadens} data="kadens-maks" />
+          </>}
           {(felter.fart === 'kmt' || felter.fart === 'valgfri') && (
             <FeltTekst navn="Fart" verdi={sekPerKmTilKmtTekst(parseInt(rad.avg_pace_seconds_per_km) || null)} enhet="km/t" data="fart-kmt"
               onVerdi={v => { const sek = kmtTilSekPerKm(v); onFelt({ avg_pace_seconds_per_km: sek != null ? String(sek) : '', pace_unit_preference: 'km_per_h' }) }} />

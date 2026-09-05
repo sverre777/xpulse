@@ -40,14 +40,17 @@ export interface BevFelter {
   split500: boolean
   /** Høydemeter opp/ned — bare utendørs. */
   hoydemeter: boolean
+  /** Kadens (Sverre 5. sep): 'rpm' på sykkel/rulle/spinning, 'spm' på løping (valgfritt), false ellers.
+      Plan = mål (avg_cadence), dagbok = snitt + maks. */
+  kadens: 'rpm' | 'spm' | false
 }
 
 const INGEN: BevFelter = {
-  wattMaal: false, wattFaktisk: false, motstand: false, stigning: false, fart: false, split500: false, hoydemeter: false,
+  wattMaal: false, wattFaktisk: false, motstand: false, stigning: false, fart: false, split500: false, hoydemeter: false, kadens: false,
 }
 /** Utendørs utholdenhet — som i dag. */
 const UTENDORS: BevFelter = {
-  wattMaal: false, wattFaktisk: true, motstand: false, stigning: false, fart: 'pace', split500: false, hoydemeter: true,
+  wattMaal: false, wattFaktisk: true, motstand: false, stigning: false, fart: 'pace', split500: false, hoydemeter: true, kadens: false,
 }
 
 const SYKLING_INNE = new Set(['Spinning', 'Indoors/Ergo', 'Air bike'])
@@ -57,20 +60,21 @@ export function bevFelterFor(bev: string | null | undefined, sub: string | null 
   const b = (bev ?? '').trim(), s = (sub ?? '').trim()
   if (!b) return UTENDORS
   if (isStrengthMovement(b)) return INGEN
-  if (b === 'SkiErg') return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: 'valgfri', split500: false, hoydemeter: false }
+  if (b === 'SkiErg') return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: 'valgfri', split500: false, hoydemeter: false, kadens: false }
   if (b === 'Sykling') {
     const inne = SYKLING_INNE.has(s)
-    return { wattMaal: true, wattFaktisk: true, motstand: inne, stigning: false, fart: 'pace', split500: false, hoydemeter: !inne }
+    return { wattMaal: true, wattFaktisk: true, motstand: inne, stigning: false, fart: 'pace', split500: false, hoydemeter: !inne, kadens: 'rpm' }
   }
   if (b === 'Roing') {
     const maskin = s === 'Romaskin'
-    return { wattMaal: true, wattFaktisk: true, motstand: maskin, stigning: false, fart: false, split500: true, hoydemeter: !maskin }
+    return { wattMaal: true, wattFaktisk: true, motstand: maskin, stigning: false, fart: false, split500: true, hoydemeter: !maskin, kadens: false }
   }
   if ((b === 'Løping' && s === 'Tredemølle') || b === 'Rulleski på mølle') {
-    return { wattMaal: false, wattFaktisk: false, motstand: false, stigning: true, fart: 'kmt', split500: false, hoydemeter: false }
+    return { wattMaal: false, wattFaktisk: false, motstand: false, stigning: true, fart: 'kmt', split500: false, hoydemeter: false, kadens: b === 'Løping' ? 'spm' : false }
   }
+  if (b === 'Løping') return { ...UTENDORS, kadens: 'spm' }
   if (b === 'Stairmaster' || b === 'Ellipsemaskin') {
-    return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: false, split500: false, hoydemeter: false }
+    return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: false, split500: false, hoydemeter: false, kadens: false }
   }
   return UTENDORS
 }

@@ -98,7 +98,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const forste = blokker[g.fra], siste = blokker[g.til]
         const cx = (x(forste.startSek) + x(siste.startSek + siste.sek)) / 2
         const sone = klammeSone(blokker, g)
-        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}`
+        const kortM = klammeKort(blokker, g)
+        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}${kortM ? ` · ${kortM}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
       for (const pk of punkter) {
@@ -324,7 +325,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 {nv > 0 && <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={topp - 22} stroke="var(--line2)" />}
                 <text x={cx} y={topp - 44 - nv} textAnchor="middle"
                   style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}
+                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}{klammeKort(blokker, g) ? ` · ${klammeKort(blokker, g)}` : ''}
                 </text>
                 {g.pauseSek > 0 && (
                   <text x={cx} y={topp - 30 - nv} textAnchor="middle"
@@ -346,6 +347,14 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
 
 /** Klammens sone: dragenes felles sone — eller spennet «I3–I4» når dragene
     faktisk endte i ulike soner (gjennomført-kartet sier det som det er). */
+/** Kortintervall-mønsteret når ALLE dragene under klammen har det samme («50/10»). */
+function klammeKort(blokker: PlanBlokk[], g: { fra: number; til: number }): string | null {
+  const drag = blokker.slice(g.fra, g.til + 1).filter(b => b.slag === 'sone')
+  if (drag.length === 0) return null
+  const navn = drag.map(b => (erKortintervall(b.navn) ? b.navn.trim() : null))
+  return navn.every(n => n && n === navn[0]) ? navn[0] : null
+}
+
 function klammeSone(blokker: PlanBlokk[], g: { fra: number; til: number }): string | null {
   const soner = [...new Set(blokker.slice(g.fra, g.til + 1).filter(b => b.slag === 'sone' && b.sone).map(b => b.sone as string))]
   if (soner.length === 0) return null

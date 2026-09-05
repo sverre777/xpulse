@@ -12,7 +12,8 @@ import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
   grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, heleOkta, fmtSoneFordeling,
-  type Visning, type RadGruppe, type GruppeFelt,
+  samleFelterFor, samleVerdi, skrivSamleFelt, erAktivRad,
+  type Visning, type RadGruppe, type GruppeFelt, type SamleFelt,
 } from '@/lib/samlet-visning'
 import { SerieListe } from './SerieListe'
 import {
@@ -359,10 +360,14 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onToggle={() => setExpandedId(expandedId === 'alt' ? null : 'alt')}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
             onUpdateRad={(id, patch) => updateRow(id, patch)}
+            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode))}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}
             workoutType={workoutType}
+            equipment={availableEquipment}
+            activityEquipment={activityEquipment}
+            onActivityEquipmentChange={onActivityEquipmentChange}
           />
         )
       })() : visning === 'samlet' && grupper.some(g => g.rader.length > 1) ? grupper.map(g => (
@@ -397,10 +402,14 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
             onToggle={() => setExpandedId(expandedId === g.id ? null : g.id)}
             onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
             onUpdateRad={(id, patch) => updateRow(id, patch)}
+            onSamleFelt={(felt, verdi) => onChange(skrivSamleFelt(rows, g, felt, verdi, isPlanMode))}
             userMovementTypes={userMovementTypes}
             onSplitt={() => velgVisning('splittet')}
             isPlanMode={isPlanMode}
             workoutType={workoutType}
+            equipment={availableEquipment}
+            activityEquipment={activityEquipment}
+            onActivityEquipmentChange={onActivityEquipmentChange}
           />
         )
       )) : (
@@ -477,18 +486,24 @@ function SorterbarRad({ id, children }: { id: string; children: (grip: RadGrip) 
 // endres per rad i splittet. Sonene vises som FORDELING, aldri én sone.
 // Et intervallsett (gruppe_id) leses som mønster: «8 × 4 min I3 · 2 min
 // pause». Ingen datamutasjon ved visning.
-function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, userMovementTypes, onSplitt, isPlanMode, workoutType }: {
+function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, onSamleFelt, userMovementTypes, onSplitt, isPlanMode, workoutType, equipment, activityEquipment, onActivityEquipmentChange }: {
   gruppe: RadGruppe
   expanded: boolean
   onToggle: () => void
   onUpdate: (patch: Partial<Pick<ActivityRow, GruppeFelt>>) => void
   /** Per-rad-skriving — skytegruppa redigerer skudd m.m. per serie. */
   onUpdateRad: (id: string, patch: Partial<ActivityRow>) => void
+  /** PKT 28: ett felt skrevet på gruppe-raden → ut på radene (skrivSamleFelt). */
+  onSamleFelt: (felt: SamleFelt, verdi: string) => void
   userMovementTypes: UserMovementType[]
   onSplitt: () => void
   isPlanMode: boolean
   workoutType?: string
+  equipment?: Equipment[]
+  activityEquipment?: Record<string, string[]>
+  onActivityEquipmentChange?: (rowId: string, ids: string[]) => void
 }) {
+  const [utstyrOpen, setUtstyrOpen] = useState(false)
   const forste = gruppe.rader[0]
   const meta = findActivityType(forste.activity_type)
   // SKYTEGRUPPE (Sverre 4. sep): samlet per skytetype, og skudd og alt
@@ -573,6 +588,18 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
   const fordeling = fmtSoneFordeling(gruppe)
   const alt = gruppe.nokkel === 'alt'
   const skudd = alt ? skuddSum(gruppe) : { skudd: 0, treff: 0 }
+  // PKT 28: feltene gruppe-raden viser (unionen over radene) og verdien de viser.
+  const samleFelter = samleFelterFor(gruppe, isPlanMode)
+  const aktive = gruppe.rader.filter(erAktivRad)
+  const forsteUtstyr = activityEquipment?.[aktive[0]?.id ?? ''] ?? []
+  const fellesUtstyr = aktive.length > 0 && aktive.every(r => JSON.stringify(activityEquipment?.[r.id] ?? []) === JSON.stringify(forsteUtstyr)) ? forsteUtstyr : []
+  const samle = (felt: SamleFelt, label: string, opts: { inputMode?: 'numeric' | 'decimal'; placeholder?: string } = {}) => (
+    <Field label={label} key={felt}>
+      <SamleInput felt={felt} verdi={samleVerdi(gruppe, felt, isPlanMode)} onCommit={v => onSamleFelt(felt, v)}
+        inputMode={opts.inputMode ?? 'numeric'} placeholder={opts.placeholder ?? '—'} />
+    </Field>
+  )
+  const kadensEnhet = bevFelterFor(forste.movement_name, forste.movement_subcategory).kadens || 'rpm'
   return (
     <div className="xp-act" data-gruppe-rad data-antall={n} data-monster={monster ?? undefined} data-alt={alt || undefined}>
       <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
@@ -617,8 +644,32 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
             · {gruppe.snittpuls} bpm
           </span>
         )}
+        {/* PKT 28: utstyr for alle de aktive radene i gruppa (⇄ som på raden). */}
+        {onActivityEquipmentChange && (equipment?.length ?? 0) > 0 && aktive.length > 0 && (
+          <button type="button" data-samle-utstyr
+            onClick={e => { e.stopPropagation(); setUtstyrOpen(true) }}
+            aria-label={alt ? 'Utstyr for alle radene i økta' : 'Utstyr for alle radene i gruppa'}
+            title={fellesUtstyr.length > 0 ? `Utstyr satt på radene (${fellesUtstyr.length})` : 'Utstyr for alle radene'}
+            style={{
+              background: 'none', border: fellesUtstyr.length > 0 ? '1px solid #FF4500' : '1px solid var(--line2)',
+              borderRadius: 6, cursor: 'pointer', color: fellesUtstyr.length > 0 ? '#FF4500' : 'var(--tekst-8-app)',
+              fontSize: '12px', lineHeight: 1, padding: '4px 6px',
+            }}>
+            ⇄{fellesUtstyr.length > 0 ? fellesUtstyr.length : ''}
+          </button>
+        )}
         <span style={{ color: 'var(--tekst-8-app)', fontSize: '12px', transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms', marginLeft: '4px' }}>▶</span>
       </div>
+      {utstyrOpen && onActivityEquipmentChange && (
+        <UtstyrVelgerPopup
+          available={equipment ?? []}
+          selectedIds={fellesUtstyr}
+          title={alt ? 'Utstyr — alle radene i økta' : 'Utstyr — alle radene i gruppa'}
+          hint="Skrives på hver aktive rad (ikke pauser og skyting). Tomt valg = arv fra økta."
+          onDone={ids => { for (const r of aktive) onActivityEquipmentChange(r.id, ids) }}
+          onClose={() => setUtstyrOpen(false)}
+        />
+      )}
       {expanded && (
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
@@ -660,8 +711,41 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
               </Field>
             )}
           </div>
+          {/* PKT 28 (Sverre 5. sep): feltene for hele gruppa/økta — det som
+              skrives her går ut på radene: km fordelt etter varighet, snitt
+              likt på rader uten egen verdi, motstand/stigning på alle. */}
+          {samleFelter.size > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3" data-samle-felter>
+              {samleFelter.has('distance_km') && samle('distance_km', alt ? 'Distanse (km, hele økta)' : 'Distanse (km, hele gruppa)', { inputMode: 'decimal', placeholder: '10.5' })}
+              {isPlanMode ? (
+                <>
+                  {samleFelter.has('avg_watts') && samle('avg_watts', 'Watt (mål, alle rader)', { placeholder: '230' })}
+                  {samleFelter.has('avg_cadence') && samle('avg_cadence', `Kadens (mål, ${kadensEnhet})`, { placeholder: kadensEnhet === 'rpm' ? '90' : '180' })}
+                </>
+              ) : (
+                <>
+                  {samleFelter.has('avg_heart_rate') && samle('avg_heart_rate', 'Snittpuls (bpm)')}
+                  {samleFelter.has('max_heart_rate') && samle('max_heart_rate', 'Maks puls (bpm)')}
+                  {samleFelter.has('avg_watts') && samle('avg_watts', 'Snittwatt')}
+                  {samleFelter.has('max_watts') && samle('max_watts', 'Makswatt')}
+                  {samleFelter.has('avg_cadence') && samle('avg_cadence', `Snittkadens (${kadensEnhet})`)}
+                  {samleFelter.has('max_cadence') && samle('max_cadence', `Makskadens (${kadensEnhet})`)}
+                </>
+              )}
+              {samleFelter.has('resistance_level') && (
+                <Field label="Motstand (1-10, alle rader)">
+                  <select value={samleVerdi(gruppe, 'resistance_level', isPlanMode)} data-samle-felt="resistance_level"
+                    onChange={e => onSamleFelt('resistance_level', e.target.value)} style={iSt}>
+                    <option value="">—</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => <option key={v} value={String(v)}>{v}</option>)}
+                  </select>
+                </Field>
+              )}
+              {samleFelter.has('incline_percent') && samle('incline_percent', 'Stigning (%, alle rader)', { inputMode: 'decimal', placeholder: '0.0' })}
+            </div>
+          )}
           <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
-            {n} rader · bev.form og underkategori her skrives til {alt ? 'alle radene i økta' : 'hver av dem'}. Type, sone, tid, km og puls per rad:{' '}
+            {n} rader · bev.form, underkategori og feltene over skrives til {alt ? 'alle radene i økta' : 'hver av dem'}: km fordelt etter varighet, snitt likt på rader uten egen verdi (klokkerader beholder det målte), motstand og stigning på alle. Type, sone, tid, km og puls per rad:{' '}
             <button type="button" onClick={e => { e.stopPropagation(); onSplitt() }}
               style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', font: 'inherit' }}>
               vis splittet
@@ -670,6 +754,24 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
         </div>
       )}
     </div>
+  )
+}
+
+/** PKT 28: felt på gruppe-raden. Viser samleverdien fra radene og skriver
+    først når feltet forlates (blur/Enter) — ikke per tastetrykk, så «10.»
+    ikke fordeles halvveis. Nøkkelen på verdien nullstiller feltet når
+    radene endres utenfra (splittet, klokkesync). */
+function SamleInput({ felt, verdi, onCommit, inputMode, placeholder }: {
+  felt: SamleFelt
+  verdi: string
+  onCommit: (v: string) => void
+  inputMode: 'numeric' | 'decimal'
+  placeholder: string
+}) {
+  return (
+    <input key={verdi} defaultValue={verdi} data-samle-felt={felt} inputMode={inputMode} placeholder={placeholder} style={iSt}
+      onBlur={e => { if (e.target.value.trim() !== verdi) onCommit(e.target.value) }}
+      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }} />
   )
 }
 

@@ -19,8 +19,9 @@
 // appen (tema, vis plan). Standard: SPLITTET overalt (Sverre 5. sep) —
 // Samlet / Samle alt er brukervalg.
 
-import type { ActivityRow } from './types'
+import { isStrengthMovement, type ActivityRow } from './types'
 import { parseActivityDuration } from './activity-duration'
+import { bevFelterFor } from './bevform-felter'
 import { parseDecimal } from './parse-decimal'
 import { segmentTypeFor, fmtVarighetKort } from './segmenter'
 
@@ -218,6 +219,153 @@ export function skrivTilGruppe(rows: ActivityRow[], gruppe: RadGruppe, patch: Pa
     if (shooting_type !== undefined && erSkyting(r.activity_type)) ny.shooting_type = shooting_type
     return ny
   })
+}
+
+// ── PKT 28 (Sverre 5. sep kveld): FELTENE PÅ SAMLET / SAMLE ALT ──────
+// Gruppe-raden får bev.form-feltene fra bolk 27 for hele gruppa/økta, og
+// alt man skriver der går ut på radene under: FORDELT der det er en sum
+// (km etter varighet), LIKT der det er en innstilling eller et snitt
+// (motstand, stigning, watt, puls, kadens; utstyr skrives i skjemaet).
+// Snitt skrives på aktive rader uten egen verdi — en klokkerad (plassert på
+// pulskurven / arvet puls) beholder det målte. Innstillinger skrives OGSÅ
+// på klokkerader: klokka måler ikke motstand. Pauser og skyting får ingen
+// av feltene, og et felt skrives bare der radens bev.form har det
+// (bolk 27-tabellen) — verdier som ikke gjelder skjules, slettes aldri.
+
+export type SamleFelt =
+  | 'distance_km' | 'avg_heart_rate' | 'max_heart_rate' | 'avg_watts' | 'max_watts'
+  | 'avg_cadence' | 'max_cadence' | 'resistance_level' | 'incline_percent'
+
+const SNITT_FELTER: ReadonlySet<SamleFelt> = new Set<SamleFelt>(['avg_heart_rate', 'max_heart_rate', 'avg_watts', 'max_watts', 'avg_cadence', 'max_cadence'])
+
+/** Klokkerad: plassert på pulskurven eller med arvet puls fra draget. */
+export function erKlokkeRad(a: ActivityRow): boolean {
+  return a.window_start_seconds != null || !!a.arvet_puls
+}
+
+/** Aktiv rad: verken pause eller skyting. */
+export function erAktivRad(a: ActivityRow): boolean {
+  return !erSkyting(a.activity_type) && !erPause(a)
+}
+
+/** Om feltet gjelder raden — radens bev.form avgjør (bolk 27). Puls
+    gjelder alle aktive rader. plan = mål-feltene (watt fra tabellens wattMaal). */
+export function feltGjelderRad(a: ActivityRow, felt: SamleFelt, plan = false): boolean {
+  if (!erAktivRad(a)) return false
+  const f = bevFelterFor(a.movement_name, a.movement_subcategory)
+  switch (felt) {
+    case 'distance_km': return !isStrengthMovement(a.movement_name)
+    case 'avg_heart_rate': case 'max_heart_rate': return !plan
+    case 'avg_watts': return plan ? f.wattMaal : f.wattFaktisk
+    case 'max_watts': return !plan && f.wattFaktisk
+    case 'avg_cadence': return f.kadens !== false
+    case 'max_cadence': return !plan && f.kadens !== false
+    case 'resistance_level': return f.motstand
+    case 'incline_percent': return f.stigning
+  }
+}
+
+const ALLE_SAMLE_FELTER: SamleFelt[] = ['distance_km', 'avg_heart_rate', 'max_heart_rate', 'avg_watts', 'max_watts', 'avg_cadence', 'max_cadence', 'resistance_level', 'incline_percent']
+
+/** Feltene gruppe-raden viser: unionen over radene feltet gjelder. */
+export function samleFelterFor(g: RadGruppe, plan = false): Set<SamleFelt> {
+  const ut = new Set<SamleFelt>()
+  for (const felt of ALLE_SAMLE_FELTER) if (g.rader.some(a => feltGjelderRad(a, felt, plan))) ut.add(felt)
+  return ut
+}
+
+function fmtKm(km: number): string {
+  return String(Math.round(km * 100) / 100)
+}
+
+function tallVerdi(a: ActivityRow, felt: SamleFelt): number | null {
+  const v = parseDecimal(String(a[felt] ?? ''))
+  return Number.isFinite(v) && v > 0 ? v : null
+}
+
+/** Verdien radene har felles for feltet — '' når de spriker eller alle er tomme. */
+export function fellesVerdi(g: RadGruppe, felt: SamleFelt, plan = false): string {
+  let felles: string | null = null
+  for (const a of g.rader) {
+    if (!feltGjelderRad(a, felt, plan)) continue
+    const v = String(a[felt] ?? '').trim()
+    if (felles == null) felles = v
+    else if (felles !== v) return ''
+  }
+  return felles ?? ''
+}
+
+/** Det gruppe-raden viser: sum for km, tidsvektet snitt / maks for målte
+    felt (over radene som har verdi), felles verdi for innstillinger. */
+export function samleVerdi(g: RadGruppe, felt: SamleFelt, plan = false): string {
+  const gjelder = g.rader.filter(a => feltGjelderRad(a, felt, plan))
+  if (felt === 'distance_km') {
+    const km = gjelder.reduce((s, a) => s + (tallVerdi(a, felt) ?? 0), 0)
+    return km > 0 ? fmtKm(km) : ''
+  }
+  if (felt === 'max_heart_rate' || felt === 'max_watts' || felt === 'max_cadence') {
+    let maks: number | null = null
+    for (const a of gjelder) { const v = tallVerdi(a, felt); if (v != null) maks = maks == null ? v : Math.max(maks, v) }
+    return maks != null ? String(Math.round(maks)) : ''
+  }
+  if (SNITT_FELTER.has(felt) || (plan && felt === 'avg_watts')) {
+    let vekt = 0, sek = 0
+    for (const a of gjelder) { const v = tallVerdi(a, felt), s = radSek(a); if (v != null && s > 0) { vekt += v * s; sek += s } }
+    return sek > 0 ? String(Math.round(vekt / sek)) : ''
+  }
+  return fellesVerdi(g, felt, plan)
+}
+
+/** Verdien flest av radene deler — '' ved uavgjort eller ingen. */
+function flestDeler(verdier: string[]): string {
+  const antall = new Map<string, number>()
+  for (const v of verdier) antall.set(v, (antall.get(v) ?? 0) + 1)
+  let beste = '', mest = 0, uavgjort = false
+  for (const [v, n] of antall) { if (n > mest) { beste = v; mest = n; uavgjort = false } else if (n === mest) uavgjort = true }
+  return uavgjort ? '' : beste
+}
+
+/** Skriver ett felt fra gruppe-raden ut på radene i gruppa. Ren funksjon —
+    radene utenfor gruppa røres ikke. */
+export function skrivSamleFelt(rows: ActivityRow[], g: RadGruppe, felt: SamleFelt, verdi: string, plan = false): ActivityRow[] {
+  const ider = new Set(g.rader.map(r => r.id))
+  const v = verdi.trim()
+  if (felt === 'distance_km') {
+    // Sum → fordelt etter varighet på radene km gjelder (også klokkerader —
+    // Sverre: GPS er ikke i veien). Siste rad tar avrundingsresten så
+    // summen blir det som ble skrevet. Tomt → tømmes.
+    const maal = g.rader.filter(r => feltGjelderRad(r, felt, plan) && radSek(r) > 0)
+    const total = parseDecimal(v)
+    const sumSek = maal.reduce((s, r) => s + radSek(r), 0)
+    const del = new Map<string, string>()
+    if (v === '') for (const r of maal) del.set(r.id, '')
+    else if (Number.isFinite(total) && total > 0 && sumSek > 0) {
+      let rest = Math.round(total * 100) / 100
+      maal.forEach((r, i) => {
+        const d = i === maal.length - 1 ? rest : Math.round((total * radSek(r) / sumSek) * 100) / 100
+        rest = Math.round((rest - d) * 100) / 100
+        del.set(r.id, fmtKm(d))
+      })
+    } else return rows   // uleselig tall: ingenting skrives
+    return rows.map(r => del.has(r.id) ? { ...r, distance_km: del.get(r.id)! } : r)
+  }
+  if (SNITT_FELTER.has(felt)) {
+    // Likt på aktive rader uten egen verdi. «Egen verdi» = et tall som
+    // avviker fra det gruppa skrev sist — lest som verdien flest av de
+    // skrivbare radene deler (så en ny verdi på gruppa erstatter den
+    // forrige gruppe-verdien, mens en rad ført for hånd beholdes).
+    // Klokkerader beholder det målte.
+    const skrivbare = g.rader.filter(r => feltGjelderRad(r, felt, plan) && !erKlokkeRad(r))
+    const forrige = flestDeler(skrivbare.map(r => String(r[felt] ?? '').trim()))
+    return rows.map(r => {
+      if (!ider.has(r.id) || !feltGjelderRad(r, felt, plan) || erKlokkeRad(r)) return r
+      const egen = String(r[felt] ?? '').trim()
+      if (egen !== '' && egen !== forrige) return r
+      return { ...r, [felt]: v }
+    })
+  }
+  // Innstilling (motstand, stigning): likt på ALLE radene feltet gjelder — også klokkerader.
+  return rows.map(r => ider.has(r.id) && feltGjelderRad(r, felt, plan) ? { ...r, [felt]: v } : r)
 }
 
 // ── Huskes per økt ───────────────────────────────────────────

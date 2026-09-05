@@ -60,7 +60,7 @@ export function UkePopupV2({ totals, plan, detaljer, weekNumber, todayISO, onClo
             </PopupSeksjon>
             <PopupSeksjon tittel="Plan vs gjennomført">
               <div style={{ marginTop: -12 }}>
-                <UkePlanVsGjennomfort plan={plan} todayISO={todayISO} harSki={harSki} />
+                <UkePlanVsGjennomfort plan={plan} todayISO={todayISO} harSki={harSki} visTittel={false} />
               </div>
             </PopupSeksjon>
             {detaljer.bevFordeling.length > 0 && (

@@ -42,14 +42,14 @@ function Bar({ navn, verdi, plan, verdiTekst, planTekst, data }: {
   )
 }
 
-export function UkePlanVsGjennomfort({ plan, todayISO, harSki }: { plan: OversiktUkePlan; todayISO: string; harSki: boolean }) {
+export function UkePlanVsGjennomfort({ plan, todayISO, harSki, visTittel = true }: { plan: OversiktUkePlan; todayISO: string; harSki: boolean; visTittel?: boolean }) {
   const t = (sek: number) => fmtHM(sek).replace(' ', '')
   const maksDag = Math.max(1, ...plan.dager.map(d => Math.max(d.planlagtSek, d.gjennomfortSek)))
   const treffMaal = plan.treffMaalPct ?? plan.treffSnitt30dPct
   const treffMaalTekst = plan.treffMaalPct != null ? `· mål ${plan.treffMaalPct}` : plan.treffSnitt30dPct != null ? `· snitt 30 d ${plan.treffSnitt30dPct}` : ''
   return (
     <div data-uke-plan style={{ marginTop: 12 }}>
-      <p style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 6px' }}>Plan vs gjennomført</p>
+      {visTittel && <p style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 6px' }}>Plan vs gjennomført</p>}
       <div className="flex flex-col gap-2">
         <Bar navn="Timer" data="timer" verdi={plan.gjennomfortSek} plan={plan.planlagtSek > 0 ? plan.planlagtSek : null}
           verdiTekst={t(plan.gjennomfortSek)} planTekst={plan.planlagtSek > 0 ? `/ ${t(plan.planlagtSek)} plan` : '· ingen plan'} />

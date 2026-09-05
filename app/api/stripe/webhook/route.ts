@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
-import { stripe, tierAndSeatsFromItems, periodEndFromStripeSub } from '@/lib/stripe'
+import { getStripe, tierAndSeatsFromItems, periodEndFromStripeSub } from '@/lib/stripe'
 
 // Stripe webhook-endpoint. Konfigurer i Stripe Dashboard:
 //   URL: https://x-pulse.no/api/stripe/webhook
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, secret)
+    event = (await getStripe()).webhooks.constructEvent(rawBody, signature, secret)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('[stripe-webhook] signaturvalidering feilet:', msg)
@@ -122,7 +122,7 @@ async function handleCheckoutCompleted(
 
   const subscriptionId = typeof session.subscription === 'string'
     ? session.subscription : session.subscription.id
-  const sub = await stripe.subscriptions.retrieve(subscriptionId)
+  const sub = await (await getStripe()).subscriptions.retrieve(subscriptionId)
   await upsertSubscription(supabase, sub, supabaseUserId)
 }
 

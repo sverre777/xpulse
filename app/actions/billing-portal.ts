@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 // Oppretter en Stripe Billing Portal-session for innlogget bruker og returnerer
 // URL-en. Portal håndterer endring av tier, oppdatering av betalingsmetode,
@@ -29,7 +29,7 @@ export async function createBillingPortalSession(): Promise<{ url?: string; erro
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
   try {
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await (await getStripe()).billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
       return_url: `${baseUrl}/app/abonnement`,
     })

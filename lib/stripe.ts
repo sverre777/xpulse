@@ -1,4 +1,4 @@
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 
 // Server-side Stripe-instans. Brukes av server actions og webhook-route.
 // Klient-side bruker NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY direkte (ingen instans
@@ -10,11 +10,21 @@ if (!process.env.STRIPE_SECRET_KEY) {
   console.warn('[lib/stripe] STRIPE_SECRET_KEY mangler i env')
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_placeholder', {
-  // Lås til siste typed versjon i den installerte stripe-pakken.
-  apiVersion: '2026-04-22.dahlia',
-  typescript: true,
-})
+// YTELSE bolk 5 (Sverre 5. sep 2026): Stripe-SDK-en (196 KB serverchunk)
+// lastes først når en funksjon faktisk trenger den — ikke ved kald start av
+// dagbok/plan. Én instans per prosess. Samme klient som før (samme nøkkel
+// og apiVersion); bare TIDSPUNKTET for lastingen er flyttet.
+let stripeInstans: Stripe | null = null
+export async function getStripe(): Promise<Stripe> {
+  if (!stripeInstans) {
+    const { default: StripeSdk } = await import('stripe')
+    stripeInstans = new StripeSdk(process.env.STRIPE_SECRET_KEY ?? 'sk_test_placeholder', {
+      apiVersion: '2026-04-22.dahlia',
+      typescript: true,
+    })
+  }
+  return stripeInstans
+}
 
 // Mapping fra interne tier-IDs til Stripe Price IDs (fra env).
 // Returnerer null for ukjente eller ennå-ikke-lanserte AI-tiers.

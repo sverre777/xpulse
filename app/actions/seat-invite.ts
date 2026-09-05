@@ -8,7 +8,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
 import {
   getOrCreateInviteCore,
@@ -123,7 +123,7 @@ export async function claimSeatAsExistingUser(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
-  const res = await claimSeatCore(getServiceSupabase(), stripe, token, user.id)
+  const res = await claimSeatCore(getServiceSupabase(), await getStripe(), token, user.id)
   if ('error' in res) return res
   revalidatePath('/app')
   return { ok: true, kollisjon: res.kollisjon }
@@ -138,7 +138,7 @@ export async function claimSeatAsNewUser(input: {
   email: string
   password: string
 }): Promise<{ ok?: true; error?: string; full?: boolean }> {
-  const res = await claimAsNewUserCore(getServiceSupabase(), stripe, input)
+  const res = await claimAsNewUserCore(getServiceSupabase(), await getStripe(), input)
   if ('error' in res) return res
 
   const supabase = await createClient()

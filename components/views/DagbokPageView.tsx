@@ -18,8 +18,7 @@ import type { DayState } from '@/lib/day-state-types'
 import type { ViewContext } from '@/lib/view-context'
 import { localISODate } from '@/lib/local-date'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
-import { SkytingChartSection } from '@/components/analysis/SkytingChartSection'
+import { LazyCustomBreakdownChart as CustomBreakdownChart, LazySkytingChartSection as SkytingChartSection } from '@/components/analysis/LazyAnalyse'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 
 interface Props {

@@ -1,5 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import FitParser from 'fit-file-parser'
 import { mapFitSportToXpulse } from '@/lib/fit-mapping'
 import {
   FIT_PARSE_OPTIONS,
@@ -89,6 +88,9 @@ export async function parseFit(buffer: Buffer): Promise<FitParsedData> {
   // smal. Lokale interfaces (FitSession osv) gir typesikkerhet videre.
   // Opsjonene (og dermed enhetene) bor i lib/fit-extract.ts — omregningene
   // etterpå er utledet av nøyaktig de samme verdiene.
+  // YTELSE bolk 5: parseren lastes først når en .fit faktisk parses — ikke
+  // ved kald start av funksjonen som serverer dagbok/plan.
+  const { default: FitParser } = await import('fit-file-parser')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const parser = new (FitParser as any)({ ...FIT_PARSE_OPTIONS })
   return new Promise<FitParsedData>((resolve, reject) => {

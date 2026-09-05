@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 // GET /api/stripe/portal
 // Innlogget bruker med stripe_customer_id → 302 til Stripe Billing Portal.
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? process.env.URL ?? 'https://x-pulse.no'
   try {
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await (await getStripe()).billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
       return_url: `${baseUrl}/app/abonnement`,
     })

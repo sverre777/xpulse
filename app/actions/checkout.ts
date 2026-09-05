@@ -1,7 +1,8 @@
 'use server'
 
+import type Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
-import { stripe, priceIdForTier, isValidTier, type StripeTier } from '@/lib/stripe'
+import { priceIdForTier, isValidTier, type StripeTier, getStripe } from '@/lib/stripe'
 
 // Oppretter en Stripe Checkout-session for valgt tier og returnerer URL-en.
 // Webhook (Fase D) oppdaterer subscriptions-tabellen når brukeren fullfører.
@@ -40,7 +41,7 @@ export async function createCheckoutSession(
 
   if (!customerId) {
     try {
-      const customer = await stripe.customers.create({
+      const customer = await (await getStripe()).customers.create({
         email: user.email ?? undefined,
         metadata: { supabase_user_id: user.id },
       })
@@ -57,7 +58,7 @@ export async function createCheckoutSession(
   let promotionCodeId: string | null = null
   if (promoCode && promoCode.trim()) {
     try {
-      const found = await stripe.promotionCodes.list({
+      const found = await (await getStripe()).promotionCodes.list({
         code: promoCode.trim(),
         active: true,
         limit: 1,
@@ -77,7 +78,7 @@ export async function createCheckoutSession(
   try {
     // Bygg session-params dynamisk. Vi setter discounts XOR
     // allow_promotion_codes — Stripe tillater ikke begge samtidig.
-    const params: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -104,7 +105,7 @@ export async function createCheckoutSession(
       params.allow_promotion_codes = true
     }
 
-    const session = await stripe.checkout.sessions.create(params)
+    const session = await (await getStripe()).checkout.sessions.create(params)
     if (!session.url) return { error: 'Stripe returnerte ingen checkout-URL' }
     return { url: session.url }
   } catch (e) {

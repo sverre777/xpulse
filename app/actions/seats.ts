@@ -14,7 +14,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { stripe, seatPriceId, includedSeatsForTier } from '@/lib/stripe'
+import { seatPriceId, includedSeatsForTier, getStripe } from '@/lib/stripe'
 import { getActiveSubscription, hasActiveAccess } from '@/lib/subscriptions'
 import { seatContextForCoach, sjekkAntallMotBruk } from '@/lib/seat-claim'
 
@@ -141,7 +141,7 @@ export async function previewSeatQuantity(
   if (!sperre.ok) return { error: sperre.melding, mustFree: sperre.mustFree }
 
   try {
-    const stripeSub = await stripe.subscriptions.retrieve(sub!.stripe_subscription_id)
+    const stripeSub = await (await getStripe()).subscriptions.retrieve(sub!.stripe_subscription_id)
     const seatItem = stripeSub.items.data.find(i => i.price?.id === priceId)
 
     // Hypotetisk item-liste — INGENTING endres av en preview.
@@ -156,7 +156,7 @@ export async function previewSeatQuantity(
       return { fra: 0, til: 0, prorationOre: 0, harRabatt: false, nyMndOre: 0, status: stripeSub.status }
     }
 
-    const preview = await stripe.invoices.createPreview({
+    const preview = await (await getStripe()).invoices.createPreview({
       subscription: stripeSub.id,
       subscription_details: { items, proration_behavior: 'create_prorations' },
     })
@@ -228,23 +228,23 @@ export async function setSeatQuantity(
 
   // ── Stripe: legg til / oppdater / fjern Utøverplass-linjen ─
   try {
-    const stripeSub = await stripe.subscriptions.retrieve(sub!.stripe_subscription_id)
+    const stripeSub = await (await getStripe()).subscriptions.retrieve(sub!.stripe_subscription_id)
     const seatItem = stripeSub.items.data.find(i => i.price?.id === priceId)
 
     if (quantity === 0) {
       if (seatItem) {
-        await stripe.subscriptions.update(stripeSub.id, {
+        await (await getStripe()).subscriptions.update(stripeSub.id, {
           items: [{ id: seatItem.id, deleted: true }],
           proration_behavior: 'create_prorations',
         })
       }
     } else if (seatItem) {
-      await stripe.subscriptions.update(stripeSub.id, {
+      await (await getStripe()).subscriptions.update(stripeSub.id, {
         items: [{ id: seatItem.id, quantity }],
         proration_behavior: 'create_prorations',
       })
     } else {
-      await stripe.subscriptions.update(stripeSub.id, {
+      await (await getStripe()).subscriptions.update(stripeSub.id, {
         items: [{ price: priceId, quantity }],
         proration_behavior: 'create_prorations',
       })

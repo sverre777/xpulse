@@ -22,7 +22,8 @@ import { parseActivityDuration } from './activity-duration'
 import { parseDecimal } from './parse-decimal'
 import { segmentTypeFor, fmtVarighetKort } from './segmenter'
 
-export type Visning = 'samlet' | 'splittet'
+/** Tre valg (pkt 17, Sverre 4. sep): splittet · samlet (grupper) · alt (ÉN rad for hele økta). */
+export type Visning = 'samlet' | 'splittet' | 'alt'
 
 const erSkyting = (t: string) => t.startsWith('skyting')
 const erPause = (a: ActivityRow) => segmentTypeFor(a.activity_type, a.movement_name ?? '') === 'pause'
@@ -164,6 +165,22 @@ export function monsterTekst(g: RadGruppe): string | null {
   return `${m.antall} × ${fmtVarighetKort(m.dragSek)}${m.sone ? ` ${m.sone}` : ''}${m.pauseSek ? ` · ${fmtVarighetKort(m.pauseSek)} pause` : ''}`
 }
 
+/** «SAMLE ALT» (pkt 17): hele økta som ÉN gruppe — alt med soner blir én
+    sonefordeling, all skyting (serier, treff) samles helt. Ren visning;
+    redigering på raden skrives til alle radene (skrivTilGruppe). */
+export function heleOkta(rows: ActivityRow[]): RadGruppe {
+  const alle = grupperRaderSamlet(rows)
+  const g: RadGruppe = { id: 'alt', nokkel: 'alt', rader: rows, fra: 0, til: Math.max(0, rows.length - 1), sumSek: 0, sumKm: 0, snittpuls: null, makspuls: null, monster: null }
+  let hrVekt = 0, hrSek = 0
+  for (const x of alle) {
+    g.sumSek += x.sumSek; g.sumKm += x.sumKm
+    if (x.snittpuls != null && x.sumSek > 0) { hrVekt += x.snittpuls * x.sumSek; hrSek += x.sumSek }
+    if (x.makspuls != null) g.makspuls = g.makspuls == null ? x.makspuls : Math.max(g.makspuls, x.makspuls)
+  }
+  g.snittpuls = hrSek > 0 ? Math.round(hrVekt / hrSek) : null
+  return g
+}
+
 /** Skytegruppe: alle radene er skyting (samme skytetype). */
 export function erSkytingGruppe(g: RadGruppe): boolean {
   return g.nokkel.startsWith('skyting|')
@@ -188,12 +205,20 @@ export function skuddSum(g: RadGruppe): { skudd: number; treff: number } {
 
 /** Feltene en gruppe-rad kan endre — skrives til HVER rad i gruppa.
     Type og sone endres per rad (splittet). */
-export const GRUPPE_FELTER = ['movement_name', 'movement_subcategory'] as const
+export const GRUPPE_FELTER = ['movement_name', 'movement_subcategory', 'shooting_type'] as const
 export type GruppeFelt = (typeof GRUPPE_FELTER)[number]
 
 export function skrivTilGruppe(rows: ActivityRow[], gruppe: RadGruppe, patch: Partial<Pick<ActivityRow, GruppeFelt>>): ActivityRow[] {
   const ider = new Set(gruppe.rader.map(r => r.id))
-  return rows.map(r => (ider.has(r.id) ? { ...r, ...patch } : r))
+  // Skytetype gjelder bare skyterader (Sverre 5. sep) — i «Samle alt» står
+  // det både skyting og aktivitet i gruppa; aktivitetene får ikke feltet.
+  const { shooting_type, ...resten } = patch
+  return rows.map(r => {
+    if (!ider.has(r.id)) return r
+    const ny = { ...r, ...resten }
+    if (shooting_type !== undefined && erSkyting(r.activity_type)) ny.shooting_type = shooting_type
+    return ny
+  })
 }
 
 // ── Huskes per økt ───────────────────────────────────────────
@@ -204,7 +229,7 @@ export function lesVisning(workoutId: string | null | undefined): Visning | null
   if (!workoutId || typeof window === 'undefined') return null
   try {
     const v = window.localStorage.getItem(`${SAMLET_NOKKEL}-${workoutId}`)
-    return v === 'samlet' || v === 'splittet' ? v : null
+    return v === 'samlet' || v === 'splittet' || v === 'alt' ? v : null
   } catch { return null }
 }
 

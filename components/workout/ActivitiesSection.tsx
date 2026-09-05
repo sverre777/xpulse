@@ -10,7 +10,7 @@ import { SamletBryter } from './SamletBryter'
 import { nyAktivitetsrad } from '@/lib/aktivitetsrad'
 import { sikreKlokkerundeBackup } from '@/app/actions/runder'
 import {
-  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, fmtSoneFordeling,
+  grupperRaderSamlet, skrivTilGruppe, lesVisning, huskVisning, standardVisning, monsterTekst, erSkytingGruppe, skytingGruppeType, skuddSum, heleOkta, fmtSoneFordeling,
   type Visning, type RadGruppe, type GruppeFelt,
 } from '@/lib/samlet-visning'
 import { SerieListe } from './SerieListe'
@@ -333,7 +333,24 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
       )}
 
       <div className="xp-tl">
-      {visning === 'samlet' && grupper.some(g => g.rader.length > 1) ? grupper.map(g => (
+      {visning === 'alt' && rows.length > 1 ? (() => {
+        // Pkt 17: hele økta som ÉN rad — samme gruppe-komponent, gruppa = alle radene.
+        const g = heleOkta(rows)
+        return (
+          <GruppeRadItem
+            key="alt"
+            gruppe={g}
+            expanded={expandedId === 'alt'}
+            onToggle={() => setExpandedId(expandedId === 'alt' ? null : 'alt')}
+            onUpdate={patch => onChange(skrivTilGruppe(rows, g, patch))}
+            onUpdateRad={(id, patch) => updateRow(id, patch)}
+            userMovementTypes={userMovementTypes}
+            onSplitt={() => velgVisning('splittet')}
+            isPlanMode={isPlanMode}
+            workoutType={workoutType}
+          />
+        )
+      })() : visning === 'samlet' && grupper.some(g => g.rader.length > 1) ? grupper.map(g => (
         g.rader.length === 1 ? (
           <ActivityRowItem
             targetUserId={targetUserId}
@@ -496,6 +513,16 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
         </div>
         {expanded && (
           <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
+            {/* Skytetype for ALLE seriene i gruppa (Sverre 5. sep) — som bev.form for aktivitet. */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+              <Field label="Skytetype (alle seriene)">
+                <select value={typeNokkel} data-skytetype-gruppe
+                  onChange={e => onUpdate({ shooting_type: e.target.value as ActivityRow['shooting_type'] })} style={iSt}>
+                  <option value="">— uten type</option>
+                  {SHOOTING_TYPES_V2.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                </select>
+              </Field>
+            </div>
             {gruppe.rader.map((rad, i) => {
               const radMeta = findActivityType(rad.activity_type)
               return (
@@ -529,8 +556,10 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
   const n = gruppe.rader.length
   const monster = monsterTekst(gruppe)
   const fordeling = fmtSoneFordeling(gruppe)
+  const alt = gruppe.nokkel === 'alt'
+  const skudd = alt ? skuddSum(gruppe) : { skudd: 0, treff: 0 }
   return (
-    <div className="xp-act" data-gruppe-rad data-antall={n} data-monster={monster ?? undefined}>
+    <div className="xp-act" data-gruppe-rad data-antall={n} data-monster={monster ?? undefined} data-alt={alt || undefined}>
       <div className="flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-2 cursor-pointer"
         onClick={onToggle} style={{ userSelect: 'none' }}>
         <span style={{
@@ -540,16 +569,21 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
         }}>
           {monster ? monster : `${n} ×`}
         </span>
-        <span style={{ fontSize: '14px' }}>{isStrength ? '🏋' : (meta?.icon ?? '•')}</span>
+        <span style={{ fontSize: '14px' }}>{alt ? '∑' : isStrength ? '🏋' : (meta?.icon ?? '•')}</span>
         <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-1-app)', fontSize: '14px', fontWeight: 600 }}>
-          {monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
+          {alt ? 'Hele økta' : monster ? 'Intervaller' : (meta?.label ?? forste.activity_type)}
         </span>
+        {alt && skudd.skudd > 0 && (
+          <span data-skudd-sum style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
+            · 🎯 {skudd.treff}/{skudd.skudd} treff
+          </span>
+        )}
         {fordeling && (
           <span data-sonefordeling style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '12.5px', letterSpacing: '0.04em' }}>
             · {fordeling}
           </span>
         )}
-        {meta?.usesMovement && forste.movement_name && (
+        {(alt || meta?.usesMovement) && forste.movement_name && (
           <span className="truncate" style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: '13px', minWidth: 0 }}>
             · {forste.movement_name}{forste.movement_subcategory ? ` — ${forste.movement_subcategory}` : ''}
           </span>
@@ -573,12 +607,12 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
       {expanded && (
         <div className="px-3 pb-3 pt-1" style={{ borderTop: '1px solid var(--kant-5)' }}>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
-            <Field label="Aktivitetstype">
-              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title="Type endres per rad i splittet visning">
-                {meta?.icon} {meta?.label ?? forste.activity_type}
+            <Field label={alt ? 'Hele økta' : 'Aktivitetstype'}>
+              <div style={{ ...iSt, display: 'flex', alignItems: 'center', opacity: 0.8 }} title={alt ? 'Sonene er en fordeling — ikke redigerbare her' : 'Type endres per rad i splittet visning'}>
+                {alt ? `∑ ${n} rader · soner som fordeling` : `${meta?.icon} ${meta?.label ?? forste.activity_type}`}
               </div>
             </Field>
-            {meta?.usesMovement && (
+            {(alt || meta?.usesMovement) && (
               <Field label="Bevegelsesform">
                 <select value={forste.movement_name}
                   onChange={e => onUpdate({ movement_name: e.target.value, movement_subcategory: '' })} style={iSt}>
@@ -592,7 +626,16 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
                 </select>
               </Field>
             )}
-            {meta?.usesMovement && subcatOptions.length > 0 && (
+            {alt && gruppe.rader.some(r => r.activity_type.startsWith('skyting')) && (
+              <Field label="Skytetype (all skyting)">
+                <select value={gruppe.rader.find(r => r.activity_type.startsWith('skyting'))?.shooting_type ?? ''} data-skytetype-gruppe
+                  onChange={e => onUpdate({ shooting_type: e.target.value as ActivityRow['shooting_type'] })} style={iSt}>
+                  <option value="">— uten type</option>
+                  {SHOOTING_TYPES_V2.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+                </select>
+              </Field>
+            )}
+            {(alt || meta?.usesMovement) && subcatOptions.length > 0 && (
               <Field label="Underkategori">
                 <select value={forste.movement_subcategory}
                   onChange={e => onUpdate({ movement_subcategory: e.target.value })} style={iSt}>
@@ -603,7 +646,7 @@ function GruppeRadItem({ gruppe, expanded, onToggle, onUpdate, onUpdateRad, user
             )}
           </div>
           <p className="mt-3" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, color: 'var(--tekst-8-app)' }}>
-            {n} rader · bev.form og underkategori her skrives til hver av dem. Type, sone, tid, km og puls per rad:{' '}
+            {n} rader · bev.form og underkategori her skrives til {alt ? 'alle radene i økta' : 'hver av dem'}. Type, sone, tid, km og puls per rad:{' '}
             <button type="button" onClick={e => { e.stopPropagation(); onSplitt() }}
               style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent)', cursor: 'pointer', font: 'inherit' }}>
               vis splittet

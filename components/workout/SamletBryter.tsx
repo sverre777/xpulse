@@ -21,14 +21,16 @@ export function SamletBryter({ visning, onVisning }: {
   })
   return (
     <div data-samlet-bryter className="flex items-center gap-1.5 flex-wrap mb-2">
-      {(['splittet', 'samlet'] as const).map(v => (
-        <button key={v} type="button" onClick={() => onVisning(v)} aria-pressed={visning === v}
+      {(['splittet', 'samlet', 'alt'] as const).map(v => (
+        <button key={v} type="button" onClick={() => onVisning(v)} aria-pressed={visning === v} data-visning={v}
           style={pille(visning === v)}>
-          {v === 'splittet' ? 'Splittet' : 'Samlet'}
+          {v === 'splittet' ? 'Splittet' : v === 'samlet' ? 'Samlet' : 'Samle alt'}
         </button>
       ))}
       <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-8-alt)' }}>
-        {visning === 'samlet' ? 'Like rader etter hverandre vises som én — dataene er fortsatt splittet.' : 'Hver rad for seg.'}
+        {visning === 'samlet' ? 'Like rader vises som én — dataene er fortsatt splittet.'
+          : visning === 'alt' ? 'Hele økta som én rad — soner som fordeling, all skyting samlet. Endringer skrives til alle radene.'
+          : 'Hver rad for seg.'}
       </span>
     </div>
   )

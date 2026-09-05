@@ -34,7 +34,7 @@ import { fraTidspunktNotater } from './Punkt'
 import { TrenerChip } from '@/components/coach/TrenerChip'
 import { fraActivityRows } from '@/lib/plan-graf'
 import { lagreOpplevdBelastning, lagreForventetBelastning } from '@/app/actions/workout-klokkesync'
-import { grupperRaderSamlet, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
+import { grupperRaderSamlet, heleOkta, lesVisning, huskVisning, standardVisning, monsterTekst, fmtSoneFordeling, type Visning } from '@/lib/samlet-visning'
 import { fitSourceLabel } from '@/lib/fit-mapping'
 import { HeartZone, ALL_ZONE_NAMES, type ExtendedZoneName } from '@/lib/heart-zones'
 import { snapshotActivityToLike, } from '@/lib/calendar-summary'
@@ -638,16 +638,16 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
 
       {/* ── AKTIVITETER (read-only tidslinje) ── */}
       {activities.length > 0 && (
-        <Card title="AKTIVITETER" aux={visning === 'samlet' ? 'Samlet' : 'Kronologisk'}>
+        <Card title="AKTIVITETER" aux={visning === 'samlet' ? 'Samlet' : visning === 'alt' ? 'Hele økta' : 'Kronologisk'}>
           {/* ÉN samlet/splittet-bryter (bolk 4) — samme komponent som over
               radene i skjemaet. Ren visning: dataene lagres alltid splittet. */}
           {activities.length > 1 && (
             <SamletBryter visning={visning} onVisning={velgVisning} />
           )}
-          {visning === 'samlet' && activities.length > 1 ? (() => {
-            // Rader ETTER HVERANDRE med samme type + bev.form + underkategori
-            // → én gruppe (lib/samlet-visning, samme regel som skjemaet).
-            const grupper = grupperRaderSamlet(activities)
+          {(visning === 'samlet' || visning === 'alt') && activities.length > 1 ? (() => {
+            // Samlet: rader med samme type + bev.form + underkategori → én
+            // gruppe. Samle alt (pkt 17): hele økta som ÉN gruppe.
+            const grupper = visning === 'alt' ? [heleOkta(activities)] : grupperRaderSamlet(activities)
             return (
               <div>
                 {grupper.map((g, i) => {
@@ -678,7 +678,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
                             {monster ?? `${g.rader.length} ×`}
                           </span>
                         )}
-                        {monster ? 'Intervaller' : g.nokkel.startsWith('skyting|') ? `🎯 ${SHOOTING_TYPES_V2.find(t => t.key === g.nokkel.slice(8))?.label ?? 'Skyting'}` : activityLabel(a)}
+                        {g.nokkel === 'alt' ? '∑ Hele økta' : monster ? 'Intervaller' : g.nokkel.startsWith('skyting|') ? `🎯 ${SHOOTING_TYPES_V2.find(t => t.key === g.nokkel.slice(8))?.label ?? 'Skyting'}` : activityLabel(a)}
                         <small style={{ color: 'var(--mut)', fontWeight: 500 }}>
                           {a.movement_name ? ` · ${a.movement_name}${a.movement_subcategory ? ` ${a.movement_subcategory}` : ''}` : ''}
                         </small>

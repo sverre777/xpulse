@@ -2,14 +2,13 @@
 
 // HJEM v2 bolk 8 — helse-kortet på Hjem: KompaktHelseKort (4 tall + søvn-
 // stripe, som i dag) + «HRV og hvilepuls · 30 dager» + fot med «Logg helse»
-// (dagens HelseLoggKnapp) og «Vis mer ↗» (HelsePopup30). Dataene er Hjems
+// (dagens HelseLoggKnapp) og «Vis mer ↗». «Vis mer» åpner SAMME helseoversikt
+// som klikk på kortet (Sverre 5. sep) — ikke en egen popup. Dataene er Hjems
 // ene henting (bolk 0) — ingen egen henting her.
 
-import { useState } from 'react'
 import type { HelseOversiktData } from '@/app/actions/helse-oversikt'
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { HrvHvilepulsGraf } from './HrvHvilepulsGraf'
-import { HelsePopup30 } from './HelsePopup30'
 import { HelseLoggKnapp } from './HelseLoggKnapp'
 import { VisMer } from './kort-deler'
 
@@ -20,7 +19,6 @@ export function HelseKortHjem({ helse, hardDager, todayISO }: {
   hardDager: string[]
   todayISO: string
 }) {
-  const [apen, setApen] = useState(false)
   const knapp: React.CSSProperties = {
     fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
     color: 'var(--accent)', background: 'none', border: '1px solid var(--accent-50, var(--accent))', borderRadius: 8, padding: '5px 10px',
@@ -31,14 +29,13 @@ export function HelseKortHjem({ helse, hardDager, todayISO }: {
         forhandsdata={helse ?? undefined}
         tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her."
         tillegg={data => <HrvHvilepulsGraf dager={data.dager} hardDager={hardDager} todayISO={todayISO} />}
-        fot={() => (
+        fot={(_data, aapne) => (
           <div className="flex items-center gap-2 flex-wrap" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }} data-helse-fot>
             <HelseLoggKnapp date={todayISO} style={knapp} />
-            <VisMer onClick={() => setApen(true)} />
+            <VisMer onClick={aapne} />
           </div>
         )}
       />
-      {apen && helse && <HelsePopup30 dager={helse.dager} onClose={() => setApen(false)} />}
     </>
   )
 }

@@ -24,7 +24,8 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
       (Logg helse · Vis mer) — begge får dataene. Utenfor kort-knappen, så
       klikk i dem ikke åpner helseoversikten. */
   tillegg?: (data: HelseOversiktData) => React.ReactNode
-  fot?: (data: HelseOversiktData) => React.ReactNode
+  /** Foten får `aapne` — «Vis mer» skal åpne SAMME helseoversikt som klikk på kortet (Sverre 5. sep). */
+  fot?: (data: HelseOversiktData, aapne: () => void) => React.ReactNode
 }) {
   const [data, setData] = useState<HelseOversiktData | null>(forhandsdata ?? null)
   const [lastet, setLastet] = useState(!!forhandsdata)
@@ -95,7 +96,7 @@ export function KompaktHelseKort({ targetUserId, sluttDato, tomTekst, forhandsda
         )}
       </button>
       {tillegg && <div style={{ padding: '0 18px' }}>{tillegg(data)}</div>}
-      {fot && <div style={{ padding: '10px 18px 14px', marginTop: 'auto' }}>{fot(data)}</div>}
+      {fot && <div style={{ padding: '10px 18px 14px', marginTop: 'auto' }}>{fot(data, () => setApen(true))}</div>}
 
       {apen && (
         <div onClick={() => setApen(false)}

@@ -109,7 +109,7 @@ export default async function OversiktPage() {
             Innholdet i kortene kommer i bolk 2–8. */}
         <div className="xp-hjem-r1" data-hjem-rad="1">
           <IDagKort today={res.today} nextPlanned={res.nextPlanned} klokke={res.klokke.today} siste={res.feed[0] ?? null} todayISO={res.hero.todayISO} />
-          <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} plan={res.weekPlan} todayISO={res.hero.todayISO} />
+          <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} plan={res.weekPlan} todayISO={res.hero.todayISO} detaljer={res.ukeDetaljer} />
           <NesteKonkurranseKort nesteA={res.competitions.nesteA} neste={res.competitions.neste} phase={res.phase} />
         </div>
         <div className="xp-hjem-r2 mb-6" data-hjem-rad="2">

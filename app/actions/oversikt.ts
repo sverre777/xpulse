@@ -7,6 +7,7 @@ import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
 import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
 import { getHelseOversikt, type HelseOversiktData } from './helse-oversikt'
 import { getWorkoutKlokkesyncData, type WorkoutKlokkesyncData } from './workout-klokkesync'
+import { beregnSoneTss } from '@/lib/belastning'
 
 // ── Typer ────────────────────────────────────────────
 
@@ -273,7 +274,28 @@ export interface OversiktSkuddHittil {
   treffPct: number | null
 }
 
+/** Ukens totaler «Vis mer» v2 + månedsraden på kortet (Sverre 5. sep). */
+export interface OversiktUkeDetaljer {
+  /** Ukas gjennomførte økter (t.o.m. i dag), nyeste først. */
+  okter: OversiktFeedEntry[]
+  /** Tid og km per bevegelsesform i uka (skyting/pauser utenom), mest først. */
+  bevFordeling: Array<{ navn: string; sek: number; km: number }>
+  maaned: {
+    navn: string
+    total_seconds: number
+    total_meters: number
+    workout_count: number
+    hard_seconds: number
+    tss: number
+    zones: OversiktZoneSeconds
+    forrige_total_seconds: number
+    forrige_workout_count: number
+  }
+}
+
 export interface OversiktData {
+  /** Ukens totaler: detaljene i «Vis mer» + månedsraden. */
+  ukeDetaljer: OversiktUkeDetaljer
   /** HJEM v2 bolk 0 — én henting: */
   today: OversiktWorkoutCard[]
   nextPlanned: OversiktWorkoutCard[]
@@ -362,6 +384,7 @@ function treffPctAv(x: { forte: number; treff: number }): number | null {
   return x.forte > 0 ? Math.round((x.treff / x.forte) * 100) : null
 }
 const HARD_TYPER = new Set(['interval', 'threshold', 'hard_combo', 'competition', 'testlop'])
+const PAUSE_TYPER_UKE = new Set(['pause', 'aktiv_pause', 'veksling'])
 /** Resultatmål fra goal_details: én linje per mål, tomme linjer hopper vi over (maks 2). */
 function resultatMaalFra(tekst: string | null | undefined): OversiktResultatMaal[] {
   return (tekst ?? '').split(/\r?\n/).map(l => l.replace(/^[\s\-•·\d.)]+/, '').trim()).filter(Boolean).slice(0, 2)
@@ -587,7 +610,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    computeActivityTotals.
     const weekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,date,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .select('id,title,sport,date,workout_type,duration_minutes,distance_km,avg_heart_rate,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -596,7 +619,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 6. Forrige ukes økter — samme filter-utvidelse.
     const prevWeekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,date,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .select('id,title,sport,date,workout_type,duration_minutes,distance_km,avg_heart_rate,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -611,6 +634,19 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .is('merged_into_workout_id', null)
       .eq('is_planned', true)
       .gte('date', weekStart).lte('date', weekEnd)
+
+    // Ukens totaler v2 (Sverre 5. sep): månedens totaler — denne og forrige
+    // måned i én spørring, deles på dato.
+    const mndStart = `${todayISO.slice(0, 7)}-01`
+    const forrigeMnd = new Date(todayISO + 'T00:00:00'); forrigeMnd.setDate(0)
+    const forrigeMndStart = `${toISO(forrigeMnd).slice(0, 7)}-01`
+    const maanedPromise = supabase
+      .from('workouts')
+      .select('id,date,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
+      .eq('user_id', user.id)
+      .is('merged_into_workout_id', null)
+      .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+      .gte('date', forrigeMndStart).lte('date', todayISO)
 
     // HJEM v2 bolk 0: helse 30 dager (ikke 7) — helse-kortet henter ikke selv.
     const helsePromise = getHelseOversikt(addDays(todayISO, -30), todayISO)
@@ -694,13 +730,13 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       weekWorkoutsRes, prevWeekWorkoutsRes, keyDateRes, compWorkoutRes,
       recentCompletedRes, seasonRes,
       dayFocusRes, weekFocusRes, reflectionRes,
-      weekPlannedRes, helseRes,
+      weekPlannedRes, helseRes, maanedRes,
     ] = await Promise.all([
       dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
       weekWorkoutsPromise, prevWeekWorkoutsPromise, upcomingKeyDatePromise,
       upcomingCompetitionWorkoutPromise, recentCompletedPromise, seasonPromise,
       dayFocusPromise, weekFocusPromise, reflectionPromise,
-      weekPlannedPromise, helsePromise,
+      weekPlannedPromise, helsePromise, maanedPromise,
     ])
 
     // Hero — bruk navn fra cache-dedupert profil.
@@ -709,6 +745,9 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
 
     type WeekWorkout = {
       id: string
+      title?: string | null
+      sport?: Sport
+      avg_heart_rate?: number | null
       date?: string
       workout_type?: string | null
       duration_minutes: number | null
@@ -922,6 +961,46 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       treffSnitt30dPct: treffPctAv(skudd30),
     }
 
+    // Ukens totaler v2: økter i uka, bev.form-fordeling, måneden.
+    const ukeOkter: OversiktFeedEntry[] = [...weekWorkouts].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')).map(w => {
+      const acts = (w.workout_activities ?? []) as ActivityRaw[]
+      const z = zeroZones(); accumulateZonesFromActivities(acts, z)
+      return {
+        id: w.id, title: w.title ?? 'Uten tittel', date: w.date ?? todayISO, sport: (w.sport ?? 'running') as Sport,
+        workout_type: (w.workout_type ?? 'other') as WorkoutType, duration_minutes: w.duration_minutes, distance_km: w.distance_km,
+        avg_heart_rate: w.avg_heart_rate ?? null, shots: sumShots(acts), primary_intensity_zone: dominantZone(z),
+        exercise_count: acts.reduce((s, a) => s + (a.workout_activity_exercises?.length ?? 0), 0),
+      }
+    })
+    const bevMap = new Map<string, { sek: number; km: number }>()
+    for (const a of weekActs) {
+      const navn = (a.movement_name ?? '').trim()
+      if (!navn || (a.activity_type ?? '').startsWith('skyting') || PAUSE_TYPER_UKE.has(a.activity_type ?? '')) continue
+      const e = bevMap.get(navn) ?? { sek: 0, km: 0 }
+      e.sek += a.duration_seconds ?? 0; e.km += (a.distance_meters ?? 0) / 1000
+      bevMap.set(navn, e)
+    }
+    const bevFordeling = [...bevMap.entries()].map(([navn, v]) => ({ navn, sek: v.sek, km: Math.round(v.km * 10) / 10 })).filter(b => b.sek > 0).sort((a, b) => b.sek - a.sek)
+    type MndWorkout = WeekWorkout & { date: string }
+    const mndRader = (maanedRes.data ?? []) as MndWorkout[]
+    const denne = mndRader.filter(w => w.date >= mndStart), forrige = mndRader.filter(w => w.date < mndStart)
+    const mndZones = zeroZones()
+    let mndSek = 0, mndM = 0, forrigeSek = 0
+    for (const w of denne) { const t = totalsForWorkout(w); mndSek += t.sec; mndM += t.m; accumulateZonesFromActivities(w.workout_activities ?? [], mndZones) }
+    for (const w of forrige) forrigeSek += totalsForWorkout(w).sec
+    const MND_NAVN = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember']
+    const ukeDetaljer: OversiktUkeDetaljer = {
+      okter: ukeOkter,
+      bevFordeling,
+      maaned: {
+        navn: MND_NAVN[new Date(todayISO + 'T00:00:00').getMonth()],
+        total_seconds: mndSek, total_meters: mndM, workout_count: denne.length,
+        hard_seconds: mndZones.I3 + mndZones.I4 + mndZones.I5 + mndZones.I6 + mndZones.I7 + mndZones.I8 + mndZones.Hurtighet,
+        tss: beregnSoneTss(mndZones), zones: mndZones,
+        forrige_total_seconds: forrigeSek, forrige_workout_count: forrige.length,
+      },
+    }
+
     let mainGoal: OversiktMainGoal | null = null
     let resultGoals: OversiktResultatMaal[] = []
     let shotGoal: OversiktSkuddHittil | null = null
@@ -1076,6 +1155,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     ])
 
     return {
+      ukeDetaljer,
       today: todayRows.map(toWorkoutCard),
       nextPlanned: ((futurePlannedRes.data ?? []) as WorkoutRow[]).map(toWorkoutCard),
       weekPlan,

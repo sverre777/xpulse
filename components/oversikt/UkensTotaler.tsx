@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { OversiktWeekTotals, OversiktUkePlan } from '@/app/actions/oversikt'
+import type { OversiktWeekTotals, OversiktUkePlan, OversiktUkeDetaljer } from '@/app/actions/oversikt'
+import { UkePopupV2 } from './UkePopupV2'
 import { UkePlanVsGjennomfort } from './UkePlanVsGjennomfort'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { ZoneBar, ShotChip, Spacer, VisMer, KortFot, fmtHM } from './kort-deler'
@@ -48,8 +49,10 @@ function StatCell({ label, value, delta }: { label: string; value: string; delta
 }
 
 export function UkensTotaler({
-  totals, weekNumber, plan, todayISO,
+  totals, weekNumber, plan, todayISO, detaljer,
 }: {
+  /** Ukens totaler v2 (Sverre 5. sep): månedsraden nederst + «Vis mer» med detaljer. */
+  detaljer?: OversiktUkeDetaljer
   totals: OversiktWeekTotals
   weekNumber: number
   /** HJEM v2 bolk 5: plan vs gjennomført (bolk 0-data). */
@@ -85,10 +88,25 @@ export function UkensTotaler({
 
       {/* Fast bunnjustering saa knappene staar paa linje i rutenettet. */}
       <Spacer />
+      {/* Sverre 5. sep: nederste rekke = MÅNEDENS totaler (fyller kortet). */}
+      {detaljer && (
+        <div data-uke-maaned-rad style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--line)' }}>
+          <p style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)', margin: '0 0 6px' }}>
+            {detaljer.maaned.navn} hittil
+          </p>
+          <div className="xp-statgrid">
+            <StatCell label="Tid" value={fmtHM(detaljer.maaned.total_seconds)} delta={detaljer.maaned.forrige_total_seconds > 0 ? Math.round(((detaljer.maaned.total_seconds - detaljer.maaned.forrige_total_seconds) / detaljer.maaned.forrige_total_seconds) * 100) : null} />
+            <StatCell label="Distanse" value={fmtKm(detaljer.maaned.total_meters)} />
+            <StatCell label="Økter" value={String(detaljer.maaned.workout_count)} />
+          </div>
+        </div>
+      )}
       <KortFot>
         <VisMer onClick={() => setApen(true)} />
       </KortFot>
-      {apen && <UkePopup totals={totals} weekNumber={weekNumber} onClose={() => setApen(false)} />}
+      {apen && (detaljer && plan && todayISO
+        ? <UkePopupV2 totals={totals} plan={plan} detaljer={detaljer} weekNumber={weekNumber} todayISO={todayISO} onClose={() => setApen(false)} />
+        : <UkePopup totals={totals} weekNumber={weekNumber} onClose={() => setApen(false)} />)}
     </section>
   )
 }

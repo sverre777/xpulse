@@ -88,7 +88,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         if (!skyting && iKlamme.has(b.id)) continue
         const cx = x(b.startSek + b.sek / 2)
         if (skyting) { items.push({ id: b.id, cx, bredde: b.etikett.length * TEGN_BREDDE + 12, slag: 'skyting', trang: false, nivaa: 0 }); continue }
-        const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
+        const under = b.slag === 'sone' ? `${blokkMengde(b, kilde)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
         const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
         // Trang = blokka er smalere enn 60 % av etiketten. Etiketter får henge
         // litt utenfor blokka si — nivåene løser kollisjonene.
@@ -99,7 +99,8 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
         const cx = (x(forste.startSek) + x(siste.startSek + siste.sek)) / 2
         const sone = klammeSone(blokker, g)
         const kortM = klammeKort(blokker, g)
-        const tekst = `${g.antall} × ${fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}${kortM ? ` · ${kortM}` : ''}`
+        const kmM = klammeKm(blokker, g, kilde)
+        const tekst = `${g.antall} × ${kmM ?? fmtVarighetKort(g.arbeidSek)}${sone ? ` · ${sone}` : ''}${kortM ? ` · ${kortM}` : ''}`
         items.push({ id: `k-${g.fra}`, cx, bredde: Math.max(tekst.length, 12) * TEGN_BREDDE + 6, slag: 'klamme', trang: false, nivaa: 0 })
       }
       for (const pk of punkter) {
@@ -261,7 +262,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={gulv - plot * b.hoyde - 2} stroke="var(--line2)" />
               </g>
             )
-            const under = b.slag === 'sone' ? `${fmtMin(b.sek)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
+            const under = b.slag === 'sone' ? `${blokkMengde(b, kilde)}${soneSpennTekst(b) ? ` · ${soneSpennTekst(b)}` : ''}` : fmtMin(b.sek)
             const bredde = Math.max(b.etikett.length, under.length) * TEGN_BREDDE + 6
             const trang = x(b.sek) < bredde * 0.6
             const h = plot * b.hoyde
@@ -325,7 +326,7 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
                 {nv > 0 && <line x1={cx} y1={topp - 24 - nv} x2={cx} y2={topp - 22} stroke="var(--line2)" />}
                 <text x={cx} y={topp - 44 - nv} textAnchor="middle"
                   style={{ font: "700 12px 'Barlow Condensed', sans-serif", fill: 'var(--tekst-1-app)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                  {g.antall} × {fmtVarighetKort(g.arbeidSek)}{Math.round(g.arbeidSek) < 90 ? ' s' : ''}{sone ? ` · ${sone}` : ''}{klammeKort(blokker, g) ? ` · ${klammeKort(blokker, g)}` : ''}
+                  {g.antall} × {klammeKm(blokker, g, kilde) ?? `${fmtVarighetKort(g.arbeidSek)}${Math.round(g.arbeidSek) < 90 ? ' s' : ''}`}{sone ? ` · ${sone}` : ''}{klammeKort(blokker, g) ? ` · ${klammeKort(blokker, g)}` : ''}
                 </text>
                 {g.pauseSek > 0 && (
                   <text x={cx} y={topp - 30 - nv} textAnchor="middle"
@@ -347,6 +348,23 @@ export function PlanGraf({ blokker: inn, heartZones = [], tetthet = 'full', hoyd
 
 /** Klammens sone: dragenes felles sone — eller spennet «I3–I4» når dragene
     faktisk endte i ulike soner (gjennomført-kartet sier det som det er). */
+/** Planlagte km-drag (Sverre 5. sep): mengden på blokka er «1 km», ikke tida —
+    bare i planen (kilde 'plan'); gjennomført-kartet viser tid. */
+function fmtKm(km: number): string {
+  return `${(Math.round(km * 100) / 100).toString().replace('.', ',')} km`
+}
+function blokkMengde(b: PlanBlokk, kilde: 'plan' | 'faktisk'): string {
+  return kilde === 'plan' && b.distanseKm > 0 ? fmtKm(b.distanseKm) : fmtMin(b.sek)
+}
+/** «6 × 1 km» når alle dragene under klammen er planlagt med samme distanse. */
+function klammeKm(blokker: PlanBlokk[], g: { fra: number; til: number }, kilde: 'plan' | 'faktisk'): string | null {
+  if (kilde !== 'plan') return null
+  const drag = blokker.slice(g.fra, g.til + 1).filter(b => b.slag === 'sone')
+  if (drag.length === 0 || drag.some(b => !(b.distanseKm > 0))) return null
+  const km = drag[0].distanseKm
+  return drag.every(b => Math.abs(b.distanseKm - km) < 0.005) ? fmtKm(km) : null
+}
+
 /** Kortintervall-mønsteret når ALLE dragene under klammen har det samme («50/10»). */
 function klammeKort(blokker: PlanBlokk[], g: { fra: number; til: number }): string | null {
   const drag = blokker.slice(g.fra, g.til + 1).filter(b => b.slag === 'sone')

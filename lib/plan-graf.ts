@@ -25,6 +25,11 @@ export function erKortintervall(navn: string | null | undefined): boolean {
   return /^\s*\d+\s*\/\s*\d+/.test(navn ?? '')
 }
 
+/** Radnavn som bærer planlagt fart («4:00–3:30/km», «14–16 km/t»). */
+export function erFartNavn(navn: string | null | undefined): boolean {
+  return /\/km|km\/t/.test(navn ?? '')
+}
+
 export type BlokkSlag = 'sone' | 'pause' | 'veksling' | 'skyting_ligg' | 'skyting_staa' | 'styrke' | 'annet'
 
 export interface PlanBlokkInn {
@@ -243,7 +248,7 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
     const sone = soneFor(b, heartZones)
     // Kortintervall (Sverre 5. sep): radnavnet «50/10» → etiketten sier
     // «Løping · 50/10» og blokka stripes (erKortintervall).
-    const kort = erKortintervall(b.navn)
+    const kort = erKortintervall(b.navn) || erFartNavn(b.navn)
     const navn = kort
       ? `${b.bevegelsesform || 'Aktivitet'} · ${b.navn.trim()}`
       : b.navn || (b.type === 'oppvarming' ? 'Oppvarming' : b.type === 'nedjogg' ? 'Nedjogg' : b.bevegelsesform || 'Aktivitet')

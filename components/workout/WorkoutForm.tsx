@@ -37,7 +37,8 @@ import { WorkoutKlokkesyncSection } from './WorkoutKlokkesyncSection'
 import { useKlokkedata } from './useKlokkedata'
 import { getWorkoutForEdit } from '@/app/actions/workouts'
 import { beregnSegmenter } from '@/lib/segmenter'
-import { justerEtterVarighetsendring } from '@/lib/oktbygger-rader'
+import { justerEtterVarighetsendring, klokkeslettTilSek } from '@/lib/oktbygger-rader'
+import { nyttTidspunktNotat, type TidspunktNotat } from '@/lib/tidspunkt-notater'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { PoweredByStravaAttribution } from '@/components/strava/StravaBrand'
 import { PlanVsActualComparison } from './PlanVsActualComparison'
@@ -191,6 +192,30 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
       id: crypto.randomUUID(),
     })),
   }
+}
+
+
+/** Bolk 26: punktene i økta som PLASSERINGER for en mal — sekund + slag,
+    aldri verdiene: laktat uten mmol, ernæring uten gram, notat med teksten
+    (teksten er planen). Laktat- og ernæringsrader (klokkeslett / minutt)
+    blir planlagte punkter på samme sekund. */
+function malPunkter(form: WorkoutFormData): TidspunktNotat[] {
+  const start = klokkeslettTilSek(form.time_of_day)
+  const ut: TidspunktNotat[] = (form.tidspunkt_notater ?? []).map(p =>
+    p.type === 'ernaering'
+      ? { ...p, id: crypto.randomUUID(), planlagt: true, ernaering: {} }
+      : { ...p, id: crypto.randomUUID(), planlagt: true })
+  for (const l of form.lactate ?? []) {
+    if (!l.measured_at_time) continue
+    const sek = klokkeslettTilSek(l.measured_at_time) - start
+    if (sek >= 0) ut.push(nyttTidspunktNotat('laktat', sek, true))
+  }
+  for (const n of form.nutrition_entries ?? []) {
+    const min = Number(n.time_offset_minutes)
+    if (n.time_offset_minutes === '' || !Number.isFinite(min)) continue
+    ut.push(nyttTidspunktNotat('ernaering', min * 60, true))
+  }
+  return ut.sort((a, b) => a.sek - b.sek)
 }
 
 export function WorkoutForm({ initialSport = 'running', userSports, activityTypeFavorites, initialDate, workoutId, defaultValues, templates = [], formMode = 'dagbok', heartZones = [], onSaved, onCancel, readOnly = false, autoMarkCompleted = false, templateBuildingMode = false, onTemplateSaved, captureOnlyMode = false, onCapture, captureSubmitLabel, onDirtyChange, apneOktbygger = false, targetUserId, defaultPaceUnit = null, availableEquipment = [], initialEquipmentIds = [], initialActivityEquipment = {} }: WorkoutFormProps) {
@@ -627,6 +652,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       tags: d.tags ?? [],
       activities: freshActivities.length > 0 ? freshActivities : f.activities,
       location: d.location ?? f.location,
+      // Bolk 26: malens punkt-plasseringer kommer inn som planlagte punkter
+      // (hule markører) — verdiene fylles i økta.
+      tidspunkt_notater: (d.tidspunkt_notater ?? []).length > 0
+        ? (d.tidspunkt_notater ?? []).map(p => ({ ...p, id: crypto.randomUUID(), planlagt: true }))
+        : f.tidspunkt_notater,
       // workouts.template_id er uuid-FK — bibliotekets pseudo-id (bib_<ref>)
       // skal aldri dit. Bibliotekmal gir navn, ikke kobling.
       template_id: erBibliotekMal(template) ? null : template.id,
@@ -727,6 +757,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         tags: form.tags,
         strength_type: form.strength_type,
         location: form.location,
+        // Bolk 26: punktene som PLASSERINGER (laktat/ernæring/notat), ikke verdier.
+        tidspunkt_notater: malPunkter(form),
       },
       isTest: templateIsTest,
       oktType: malKind === 'test' ? 'test' : (malKind ? null : (templateOktType || null)),
@@ -1009,6 +1041,15 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 </button>
               ))}
             </div>
+            {/* Bolk 26 (Sverre 5. sep): «Lagre som mal» på mal-linja — økta slik
+                den er bygd (rader, soner, punkt-plasseringer, skytinger) blir
+                en ny mal via samme mal-modell som ellers. */}
+            {!templateBuildingMode && !captureOnlyMode && (
+              <button type="button" onClick={openTemplateModal} data-lagre-som-mal
+                style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12.5, fontWeight: 700, letterSpacing: '0.06em', borderRadius: 999, padding: '5px 11px', cursor: 'pointer', color: 'var(--accent)', background: 'none', border: '1.5px solid var(--accent)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Lagre som mal
+              </button>
+            )}
           </div>
           {showMalFilters && (
             <div className="flex items-center gap-1.5 md:gap-2 flex-nowrap md:flex-wrap mb-1.5">

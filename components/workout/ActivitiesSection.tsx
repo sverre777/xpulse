@@ -37,7 +37,7 @@ import { shootingSummary, SHOOTING_TYPES_V2 } from '@/lib/shooting'
 import { STANDARD_SHOOTING_TESTS, findStandardTest, expandTestSeries } from '@/lib/shooting-test-templates'
 import { listMyShootingTests, saveMyShootingTest, type OwnShootingTest } from '@/app/actions/shooting-tests'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
-import type { ShootingSeriesRow } from '@/lib/types'
+import type { ShootingSeriesRow, ActivityTypeOption } from '@/lib/types'
 import { getUserExercises } from '@/app/actions/user-exercises'
 import { getLastSessionForExercises, type LastSessionForExercise } from '@/app/actions/strength-session'
 import type { UserExercise } from '@/lib/user-exercise-types'
@@ -165,6 +165,28 @@ function sumZoneSeconds(z: ActivityZoneMinutes): number {
 import { ZONE_COLORS_V2 as ZONE_COLORS_BAR } from '@/lib/activity-summary'
 import { foringsSoner } from '@/lib/sonesprak'
 import { hentUtvidetSkalaCached } from '@/lib/sonesprak-klient'
+
+/** Bolk 24: posisjonene en gammel «Skyting»-rad (kombinert) faktisk bærer. */
+function skytingPosisjoner(row: ActivityRow): { L: boolean; S: boolean } {
+  const serier = row.shooting_series ?? []
+  const L = serier.some(x => x.position === 'L') || !!String(row.prone_shots ?? '').trim()
+  const S = serier.some(x => x.position === 'S') || !!String(row.standing_shots ?? '').trim()
+  return { L, S }
+}
+/** Kombinert uten L/S noe sted = «velg L/S» (oransje) til valgt. */
+function manglerLS(row: ActivityRow): boolean {
+  if (row.activity_type !== 'skyting_kombinert') return false
+  const p = skytingPosisjoner(row)
+  return !p.L && !p.S
+}
+function legacySkytingLabel(row: ActivityRow, meta: ActivityTypeOption): string {
+  if (row.activity_type !== 'skyting_kombinert') return meta.label
+  const p = skytingPosisjoner(row)
+  if (p.L && p.S) return 'Skyting L+S'
+  if (p.L) return 'Skyting L'
+  if (p.S) return 'Skyting S'
+  return 'Skyting · velg L/S'
+}
 
 export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
   const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
@@ -302,8 +324,9 @@ export function ActivitiesSection({ rows, onChange, sport, userSports, activityT
   // (primær eller sekundær), uansett hvilken sport selve økta føres som.
   // Dette gjør at f.eks. en langrenns-langtur eller styrkeøkt kan inneholde
   // basisskyting/tørrtrening som egen rad.
-  // Kø #47: kun ÉN «Skyting» i velgeren — legacy-variantene (posisjon/art)
-  // skjules, men gamle rader beholder verdi + label (egen option under).
+  // Bolk 24: «Skyting L» og «Skyting S» i velgeren — skyting uten L/S
+  // (kombinert), innskyting og basis er legacy og skjules; en gammel rad
+  // som bærer verdien beholder den synlig (egen option under).
   const typeOptions = ACTIVITY_TYPES.filter(t => (!t.biathlonOnly || userHasBiathlon) && !t.legacy)
 
   const harSkyting = rows.some(r => (r.activity_type ?? '').startsWith('skyting'))
@@ -910,7 +933,8 @@ function ActivityRowItem({
                     ? { activity_type: nyType, movement_name: '', movement_subcategory: '' }
                     : { activity_type: nyType })
                 }}
-                style={iSt}>
+                data-velg-ls={manglerLS(row) ? '' : undefined}
+                style={manglerLS(row) ? { ...iSt, color: 'var(--accent)', fontWeight: 700 } : iSt}>
                 {showFavoritesGroup && (
                   <optgroup label="Mest brukt">
                     {visibleFavorites.map(v => {
@@ -933,14 +957,11 @@ function ActivityRowItem({
                     <option key={t.value} value={t.value}>{t.icon}  {t.label}</option>
                   ))
                 )}
-                {/* Gamle rader m/ legacy skyting-variant: behold verdien synlig. */}
-                {(() => {
-                  const cur = meta
-                  if (cur?.legacy && !typeOptions.some(t => t.value === cur.value)) {
-                    return <option value={cur.value}>{cur.icon}  {cur.label}</option>
-                  }
-                  return null
-                })()}
+                {/* Gamle rader m/ legacy skyting-variant: behold verdien synlig.
+                    Kombinert uten L/S i seriene → «Skyting · velg L/S» (bolk 24). */}
+                {meta?.legacy && !typeOptions.some(t => t.value === meta.value) && (
+                  <option value={meta.value}>{meta.icon}  {legacySkytingLabel(row, meta)}</option>
+                )}
               </select>
             </Field>
 

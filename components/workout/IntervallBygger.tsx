@@ -294,7 +294,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   if (steg === 'vis') {
     const NAVN: Record<string, string> = {
       oppvarming: 'Oppvarming', aktivitet: 'Aktivitet', aktiv_pause: 'Aktiv pause', veksling: 'Veksling',
-      nedjogg: 'Nedjogg', skyting_kombinert: 'Skyting',
+      nedjogg: 'Nedjogg', skyting_kombinert: 'Skyting', skyting_liggende: 'Skyting L', skyting_staaende: 'Skyting S',
     }
     return (
       <div style={kort}>

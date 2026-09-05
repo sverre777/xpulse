@@ -220,7 +220,10 @@ function serie(posisjon: 'L' | 'S'): ShootingSeriesRow {
 function skyterad(blokker: GenerertBlokk[]): ActivityRow {
   return {
     ...makeActivity({
-      activity_type: 'skyting_kombinert',
+      // Bolk 24: L eller S er typen. Én blokk = én posisjon; skulle
+      // blokkene blande L og S, er raden «Skyting L+S» (kombinert).
+      activity_type: blokker.every(b => b.posisjon === 'L') ? 'skyting_liggende'
+        : blokker.every(b => b.posisjon === 'S') ? 'skyting_staaende' : 'skyting_kombinert',
       shooting_series: blokker.map(b => serie(b.posisjon as 'L' | 'S')),
     }),
     duration: sekTilKlokke(totalSekunder(blokker)),

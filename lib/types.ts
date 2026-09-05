@@ -472,35 +472,29 @@ export interface ActivityTypeOption {
   usesMovement: boolean      // om bevegelsesform-dropdown skal vises
   isShooting: boolean
   biathlonOnly: boolean
-  // Kø #47: seriemodellen gjorde posisjons-/art-variantene overflødige i
-  // VELGEREN (posisjon utledes av seriene; innskyting/basis er markering/
-  // type). Verdiene består for gamle rader — men vises ikke som valg.
+  // Vises ikke som valg for nye rader; verdien består på gamle rader og
+  // holdes synlig i velgeren der (bolk 24: kombinert, innskyting, basis).
   legacy?: boolean
 }
 
-// ── SKYTETYPENE: hvorfor det ser rart ut, og hvorfor det står slik ───────
+// ── SKYTETYPENE: L og S er typer igjen (bolk 24, Sverre 5. sep 2026) ────
 //
-// `skyting_kombinert` er DAGENS ENESTE skytetype, og etiketten er «Skyting»
-// — ikke «kombinert». Navnet er historisk, fra da posisjon var en del av
-// selve typen. Etter kø #47 ligger posisjon på serien
-// (`ShootingSeriesRow.position`), og én skyterad kan derfor inneholde både
-// liggende og stående serier. ALT NYTT SOM OPPRETTER SKYTING SKAL BRUKE
-// `skyting_kombinert`.
+// Typelista på radene viser «Skyting L» (`skyting_liggende`) og «Skyting S»
+// (`skyting_staaende`). Skyting UTEN L/S kan ikke velges for nye rader:
+// `skyting_kombinert` (etikett «Skyting») er `legacy` og vises bare på rader
+// som allerede bærer verdien — der som «Skyting · velg L/S» (oransje) til
+// utøveren velger L eller S. Ingen migrering: gamle rader beholder verdien.
 //
-// De fire med `legacy: true` brukes IKKE for nye rader. De står her fordi
-// gamle rader i prod fortsatt bærer verdiene, og tre steder slår dem opp:
-//   · WorkoutOverview.tsx:180 og :452 — henter etiketten så gamle økter
-//     beholder navnet sitt i visningen
-//   · ActivitiesSection.tsx:547 — beholder verdien synlig i velgeren på en
-//     gammel rad som allerede har den
-// Fjernes de, mister gamle økter navnet sitt og faller tilbake på råverdien.
+// Posisjonen på SERIENE (`ShootingSeriesRow.position`, kø #47) består. En
+// gammel kombinert-rad med serier viser derfor L/S/L+S utledet av seriene i
+// velgeren, ikke «velg L/S». Generatoren (lib/intervall-generator) setter
+// L eller S ut fra posisjonsmønsteret; skytetest-raden («+ Legg til
+// skyting», både L- og S-serier i én rad) er det ene stedet som fortsatt
+// oppretter `skyting_kombinert` med vilje.
 //
-// At velgeren viser ÉN «Skyting» kommer av filteret i
-// ActivitiesSection.tsx:263, som dropper alt med `legacy`.
-//
-// Å døpe om `skyting_kombinert` til noe mer treffende ville krevd en
-// migrering av `activities.activity_type` i prod, og gevinsten er kun
-// lesbarhet. Bevisst ikke gjort.
+// Innskyting og basis er `legacy` som før (markering/type, ikke rad-type).
+// Å døpe om `skyting_kombinert` ville krevd migrering av
+// `activities.activity_type` i prod. Bevisst ikke gjort.
 
 export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   { value: 'oppvarming',        label: 'Oppvarming',         icon: '🔥', usesMovement: true,  isShooting: false, biathlonOnly: false },
@@ -512,9 +506,9 @@ export const ACTIVITY_TYPES: ActivityTypeOption[] = [
   // EGEN TIDSKATEGORI: verken treningstid eller pause (se
   // IKKE_TRENINGSTID_TYPER). Radnavnet (T1/T2) føres i movement_name som før.
   { value: 'veksling',          label: 'Veksling',           icon: '🔄', usesMovement: false, isShooting: false, biathlonOnly: false },
-  { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
-  { value: 'skyting_liggende',  label: 'Skyting — Liggende', icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
-  { value: 'skyting_staaende',  label: 'Skyting — Stående',  icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
+  { value: 'skyting_liggende',  label: 'Skyting L',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_staaende',  label: 'Skyting S',          icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true  },
+  { value: 'skyting_kombinert', label: 'Skyting',            icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'skyting_innskyting',label: 'Skyting — Innskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'skyting_basis',     label: 'Skyting — Basisskyting',icon: '🎯', usesMovement: false, isShooting: true,  biathlonOnly: true,  legacy: true },
   { value: 'nedjogg',           label: 'Nedjogg',            icon: '🏁', usesMovement: true,  isShooting: false, biathlonOnly: false },

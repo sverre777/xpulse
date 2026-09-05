@@ -209,7 +209,8 @@ for (const skyting of [null, 'LS'] as (SkyteMonster | null)[]) {
   sjekk(`${merke}: total varighet = blokkene`, sumVarighet(rader), blokker.reduce((a, b) => a + b.sek, 0))
   if (skyting) {
     // Skyting slås ALDRI sammen med bevegelsen.
-    ok('skyterader er egne rader', rader.filter(r => r.shooting_series.length > 0).every(r => r.activity_type === 'skyting_kombinert'))
+    ok('skyterader er egne rader', rader.filter(r => r.shooting_series.length > 0).every(r => ['skyting_liggende', 'skyting_staaende', 'skyting_kombinert'].includes(r.activity_type)))
+    ok('bolk 24: skyterad med kun L-serier er Skyting L / kun S er Skyting S', rader.filter(r => r.shooting_series.length > 0).every(r => r.shooting_series.every(x => x.position === 'L') ? r.activity_type === 'skyting_liggende' : r.shooting_series.every(x => x.position === 'S') ? r.activity_type === 'skyting_staaende' : true))
   }
 }
 

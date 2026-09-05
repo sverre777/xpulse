@@ -377,27 +377,24 @@ export function OktbyggerPopup({
             </div>
           )}
 
-          {!workoutId && !onOpprett && (
+          {/* BOLK 20 (Sverre 5. sep): byggeren fra start — også på en NY økt
+              uten id jobber byggeren på skjemaets utkast-rader i minnet, og
+              alt lagres i ÉN lagring sammen med økta. Ingen «lagre først». */}
+          {rader.length === 0 && (
             <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
-              Lagre økta først, så kan den bygges i tid her.
+              Økta har ingen aktiviteter ennå — bruk hurtigoppsettet over eller legg til en rad, så bygges den i tid her.
             </p>
           )}
 
-          {workoutId && rader.length === 0 && (
-            <p style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 14 }}>
-              Økta har ingen aktiviteter ennå — legg til én først, så kan den bygges i tid her.
-            </p>
-          )}
-
-          {workoutId && rader.length > 0 && (
+          {rader.length > 0 && (
             <>
               {/* Rundene: fra klokka, planens runder, eller tilbake (bolk 6).
-                  Skriver til basen — radene hentes inn i skjemaet etterpå. */}
-              <RundeValg workoutId={workoutId} onEndret={() => {
+                  Skriver til basen — bare på en lagret økt. */}
+              {workoutId && <RundeValg workoutId={workoutId} onEndret={() => {
                 setValgtRad(null)
                 setAngreStabel([])
                 void onRaderFraBasen()
-              }} />
+              }} />}
 
               {/* ── VERKTØYENE PÅ KURVEN ── */}
               <div className="flex items-center gap-2 flex-wrap">
@@ -508,7 +505,7 @@ export function OktbyggerPopup({
               )}
 
               <KurveMedRader
-                workoutId={workoutId}
+                workoutId={workoutId ?? 'ny'}
                 utkast={plassering}
                 valgtRad={valgtRad}
                 onVelgRad={setValgtRad}

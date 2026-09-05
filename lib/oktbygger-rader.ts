@@ -43,8 +43,12 @@ export interface RadPlassInfo {
     3 s forbi kurven stikker ikke ut (Sverre 4. sep: «254:44 forbi 4:14:43»). */
 export const KURVE_TOLERANSE_SEK = 3
 
-/** Minste varighet på en rad etter kutt/grenseflytting. */
-export const MIN_RAD_SEK = 5
+/** Minste varighet på en rad etter kutt/grenseflytting. BIFUNN 5. sep:
+    rader under 15 s oppstår aldri automatisk — et kutt som ville gitt en
+    rest under 15 s flyttes/avvises, og resten blir i naboraden. (Var 5 s:
+    «Skyting 43:00 · 0:05» og «Drag 3 1:08:00 · 0:05» kom av at kuttet
+    ble klemt til 5 s fra kanten i stedet for å slås inn i naboen.) */
+export const MIN_RAD_SEK = 15
 
 const erSkyting = (t: string) => t.startsWith('skyting')
 
@@ -171,6 +175,8 @@ export function kuttRad(
   const rad = rows.find(r => r.id === radId)
   if (!u || !rad || u.varighetSek < MIN_RAD_SEK * 2) return rows
   const hint = opts.pulsHint ? (rad.avg_heart_rate.trim() || rad.arvet_puls || '') : ''
+  // Kuttet klemmes så BEGGE delene er ≥ MIN_RAD_SEK — en rest under det
+  // blir i naboraden i stedet for å bli en egen 5-sekunders rad.
   const kutt = vedSek != null
     ? Math.max(MIN_RAD_SEK, Math.min(u.varighetSek - MIN_RAD_SEK, Math.round(vedSek - u.startSek)))
     : Math.round(u.varighetSek / 2)

@@ -55,6 +55,9 @@ export interface OversiktWorkoutCard {
    * faktisk har en plan.
    */
   effective_duration_minutes: number | null
+  /** HJEM v2 bolk 2: opplevd (dagbok) og forventet (plan) belastning 1–10. */
+  rpe: number | null
+  forventet_belastning: number | null
 }
 
 export type OversiktNextWorkout =
@@ -88,6 +91,14 @@ export interface OversiktActivityRow {
   movement_name: string | null
   duration_seconds: number | null
   distance_meters: number | null
+  /** HJEM v2 bolk 2: nok til blokkgrafen fra radene (fraRaaRader) — uten klokke. */
+  movement_subcategory?: string | null
+  lap_notes?: string | null
+  gruppe_id?: string | null
+  zones?: Record<string, number> | null
+  avg_heart_rate?: number | null
+  prone_shots?: number | null
+  standing_shots?: number | null
 }
 
 export interface OversiktZoneSeconds {
@@ -346,6 +357,9 @@ function dominantZone(zones: OversiktZoneSeconds): string | null {
 type ActivityRaw = {
   activity_type?: string | null
   movement_name?: string | null
+  movement_subcategory?: string | null
+  lap_notes?: string | null
+  gruppe_id?: string | null
   duration_seconds?: number | null
   distance_meters?: number | null
   avg_heart_rate?: number | null
@@ -372,6 +386,8 @@ type WorkoutRow = {
   avg_heart_rate?: number | null
   max_heart_rate?: number | null
   notes?: string | null
+  rpe?: number | null
+  forventet_belastning?: number | null
   workout_activities?: ActivityRaw[] | null
 }
 
@@ -448,7 +464,16 @@ function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
       movement_name: a.movement_name ?? null,
       duration_seconds: a.duration_seconds ?? null,
       distance_meters: a.distance_meters ?? null,
+      movement_subcategory: a.movement_subcategory ?? null,
+      lap_notes: a.lap_notes ?? null,
+      gruppe_id: a.gruppe_id ?? null,
+      zones: a.zones ?? null,
+      avg_heart_rate: a.avg_heart_rate ?? null,
+      prone_shots: a.prone_shots ?? null,
+      standing_shots: a.standing_shots ?? null,
     })),
+    rpe: w.rpe ?? null,
+    forventet_belastning: w.forventet_belastning ?? null,
     effective_duration_minutes: effektiv,
   }
 }
@@ -492,7 +517,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 3. Dagens økter (planlagt + gjennomført).
     const todayWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('date', todayISO)
@@ -501,7 +526,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 4. Neste planlagt fremover i tid (opp til 30 dager).
     const futurePlannedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('is_planned', true)
@@ -573,7 +598,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    Også utvidet filter for å fange dagbok-input som ikke har is_completed=true.
     const recentCompletedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes, workout_activities(activity_type,movement_name,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')

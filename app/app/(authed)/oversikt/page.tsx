@@ -4,7 +4,7 @@ import { LoadError } from '@/components/ui/LoadError'
 import { getOversiktDashboard } from '@/app/actions/oversikt'
 import { getAthleteCoachOverview } from '@/app/actions/coach-overview'
 import { OversiktHero } from '@/components/oversikt/OversiktHero'
-import { NesteOektKort } from '@/components/oversikt/NesteOektKort'
+import { IDagKort } from '@/components/oversikt/IDagKort'
 import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
 import { KonkurranseNedtelling, IngenAKonkurranse } from '@/components/oversikt/KonkurranseNedtelling'
 import { HardWorkoutCard, MainGoalCard, PhaseCard } from '@/components/oversikt/NoekkelkortGrid'
@@ -106,7 +106,7 @@ export default async function OversiktPage() {
             globals.css: ≤1500 rad 2 → 2 kolonner, ≤1100 rad 1 → 2, ≤620 → 1).
             Innholdet i kortene kommer i bolk 2–8. */}
         <div className="xp-hjem-r1" data-hjem-rad="1">
-          <NesteOektKort next={res.nextWorkout} />
+          <IDagKort today={res.today} nextPlanned={res.nextPlanned} klokke={res.klokke.today} siste={res.feed[0] ?? null} todayISO={res.hero.todayISO} />
           <UkensTotaler totals={res.weekTotals} weekNumber={res.hero.weekNumber} />
           {res.competitions.nesteA
             ? <KonkurranseNedtelling comp={res.competitions.nesteA} />

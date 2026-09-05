@@ -90,6 +90,10 @@ interface Props {
   /** Bolk 21: på Oversikt tegnes punktene som IKON uten etikett-tekst
       (tooltip ved hover/trykk) — samme markører som på øktsiden, mindre. */
   punktStil?: 'etikett' | 'ikon'
+  /** HJEM v2 bolk 2: 'visning' = bare GRAF · KURVER · BEGGE-bryteren (Sverre
+      5. sep: den skal stå på alle grafer med pulskurve) — «På grafen»-chipsene
+      skjules i de kompakte kortene. Standard 'alle'. */
+  kontroller?: 'alle' | 'visning'
   heartZones?: HeartZone[]
   /** Opplevd belastning (workouts.rpe) og skriveren — samme felt som
       skjemaet fører lenger nede. Uten onRpe er cellen ren lesing. */
@@ -149,7 +153,7 @@ interface Props {
 export function WorkoutDetailChart({
   sport, workoutId, samples, laps = [], lactate = [], nutrition = [], shooting = [],
   segmenter = [],
-  height = 300, tetthet = 'full', punktStil = 'etikett', heartZones = [], rpe = null, onRpe, np = null,
+  height = 300, tetthet = 'full', punktStil = 'etikett', kontroller = 'alle', heartZones = [], rpe = null, onRpe, np = null,
   planVarighetSek = null, tidspunktNotater = [], handlinger, planBlokkerInn,
   ftp = null, kurveStandard = false, flate: flateInn, distanseKm = null, paceUnit = 'min_per_km', sonerRader = [], rader = [],
 }: Props) {
@@ -411,7 +415,7 @@ export function WorkoutDetailChart({
               </span>
             </Gruppe>
           )}
-          <Gruppe navn="På grafen">
+          {kontroller === 'alle' && <Gruppe navn="På grafen">
             {visKurve && serier.map(s => (
               <Chip key={s.id} farge={s.farge} etikett={s.navn}
                 paa={paaIds.includes(s.id)}
@@ -451,7 +455,7 @@ export function WorkoutDetailChart({
                   <Chip farge="var(--tekst-8-alt)" etikett="Runder" paa={visRunder} fokus={false}
                     onClick={() => setVisRunder(v => !v)} />
                 )}
-          </Gruppe>
+          </Gruppe>}
         </div>
       </div>
 

@@ -28,7 +28,7 @@
 
 import { pulsIVindu, type Segment } from './segmenter'
 import type { PlanBlokkInn, PlanBlokk } from './plan-graf'
-import type { ExtendedZoneName, HeartZone } from './heart-zones'
+import { zoneForHeartRate, type ExtendedZoneName, type HeartZone } from './heart-zones'
 import type { PlanBlokk as SpokelseBlokk } from '@/app/actions/runder'
 
 export interface FaktiskRad {
@@ -99,6 +99,9 @@ export function faktiskeBlokker(
     /** Sonene for en bevegelsesform/underkategori med arv (resolveSoner);
         null = ingen egne på noe nivå → kartet faller til heartZones. */
     sonerFor?: (movementName: string, movementSubcategory: string) => HeartZone[] | null
+    /** Brukerens globale soner — reserve for sonefordelingen når sonerFor
+        ikke gir egne soner (Sverre 5. sep: runder med flere soner stables). */
+    heartZones?: HeartZone[]
   } = {},
 ): PlanBlokkInn[] {
   const radFor = new Map((opts.rader ?? []).map(r => [r.id, r]))
@@ -124,6 +127,10 @@ export function faktiskeBlokker(
     const bevegelsesform = rad?.movement_name ?? (sg.type === 'drag' || sg.type === 'bevform' ? sg.etikett : '')
     const underkategori = rad?.movement_subcategory ?? ''
     const soner = opts.sonerFor ? opts.sonerFor(bevegelsesform, underkategori) : null
+    // Sverre 5. sep: runder med FLERE soner tegnes stablet (som bolk 19 for
+    // planrader) — tid i hver sone fra pulskurven i samme vindu som snittet.
+    // Én sone i vinduet gir samme blokk som før (hovedsonen = snittsonen).
+    const fordeling = puls != null ? soneSekFraPuls(hr, fra, til, soner ?? opts.heartZones ?? []) : {}
     ut.push({
       soner: soner ?? undefined,
       id: sg.aktivitetId,
@@ -132,7 +139,7 @@ export function faktiskeBlokker(
       bevegelsesform,
       underkategori,
       sek, startSek: sg.startSek,
-      soneSek,
+      soneSek: Object.keys(fordeling).length > 0 ? fordeling : soneSek,
       snittpuls: puls ?? rad?.avg_heart_rate ?? null,
       snittwatt, ftp: opts.ftp ?? null,
       gruppeId: sg.gruppeId ?? rad?.gruppe_id ?? null,
@@ -170,4 +177,32 @@ export function fraSpokelser(plan: SpokelseBlokk[]): PlanBlokkInn[] {
 /** Kompakte plan-blokker (oversikten) → spøkelsesformen PlanGraf tegner. */
 export function tilSpokelseBlokker(plan: Array<{ startSek: number; sluttSek: number; sone: string | null; type: string; soner?: Record<string, number> }>): SpokelseBlokk[] {
   return plan.map((p, i) => ({ id: `p${i}`, type: p.type, navn: null, startSek: p.startSek, sluttSek: p.sluttSek, sone: p.sone, soner: p.soner }))
+}
+
+/** Tid i hver sone i vinduet [fra, til] fra pulskurven — grunnlaget for de
+    stablede sonebåndene på klokkesynkede runder. Sekundene regnes fra
+    avstanden mellom prøvene (maks 5 s per prøve); småfliser under 8 % og
+    under 20 s slås av så en runde ikke får hårfine striper i overgangene. */
+export function soneSekFraPuls(
+  hr: Array<{ t: number; hr: number }> | null | undefined,
+  fra: number, til: number, soner: HeartZone[],
+): Partial<Record<ExtendedZoneName, number>> {
+  if (!hr || hr.length === 0 || soner.length === 0 || til <= fra) return {}
+  const ut: Partial<Record<ExtendedZoneName, number>> = {}
+  let forrigeT: number | null = null
+  for (const p of hr) {
+    if (p.t < fra) continue
+    if (p.t > til) break
+    const dt = forrigeT == null ? 1 : Math.min(5, Math.max(0, p.t - forrigeT))
+    forrigeT = p.t
+    const z = (zoneForHeartRate(p.hr, soner) ?? 'I1') as ExtendedZoneName
+    ut[z] = (ut[z] ?? 0) + dt
+  }
+  const total = Object.values(ut).reduce((a, b) => a + (b ?? 0), 0)
+  if (total <= 0) return {}
+  for (const k of Object.keys(ut) as ExtendedZoneName[]) {
+    const v = ut[k] ?? 0
+    if (v < 20 && v / total < 0.08) delete ut[k]
+  }
+  return ut
 }

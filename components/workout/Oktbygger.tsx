@@ -28,7 +28,7 @@ import { PUNKT_SLAG, PunktMerke, PunktKnapp, type PunktSlag } from './Punkt'
 import { visPlanBak, settVisPlanBak, abonnerVisPlan } from '@/lib/vis-plan'
 import { lesVisning, settVisning, abonnerVisning, VISNING_ETIKETT, type GrafVisning } from '@/lib/kurve-valg'
 import { byggPlanBlokker, fraActivityRows, type PlanBlokkInn } from '@/lib/plan-graf'
-import { tilSpokelser, snittVindu } from '@/lib/gjennomfort-kart'
+import { tilSpokelser, snittVindu, soneSekFraPuls } from '@/lib/gjennomfort-kart'
 import { resolveSoner, type SoneDbRad } from '@/lib/terskel-oppslag'
 import { PlanGraf } from './PlanGraf'
 import { fraTidspunktNotater } from './Punkt'
@@ -856,7 +856,8 @@ function KurveMedRader({
     return {
       id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: rad?.movement_subcategory ?? '',
       soner: soner ?? undefined,
-      sek: u.varighetSek, startSek: u.startSek, soneSek: hr.length === 0 ? (soneSekAv.get(u.id) ?? {}) : {},
+      // Sverre 5. sep: med kurve stables sonene i runden (tid i hver sone) — som øktgrafen.
+      sek: u.varighetSek, startSek: u.startSek, soneSek: hr.length === 0 ? (soneSekAv.get(u.id) ?? {}) : (erDrag || u.type === 'oppvarming' || u.type === 'nedjogg' ? soneSekFraPuls(hr, fra, til, soner ?? heartZones) : {}),
       snittpuls: vindu ?? (Number.isFinite(puls) && puls > 0 ? puls : null),
       gruppeId: u.gruppeId,
       proneShots: u.type === 'skyting_liggende' || u.type === 'skyting_kombinert' ? 1 : 0,

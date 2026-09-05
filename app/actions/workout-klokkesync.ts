@@ -617,7 +617,7 @@ async function hentKompakteKurverIndre(workoutIds: string[]): Promise<Record<str
     const akter = (akterRes.data ?? []).filter(a => a.workout_id === rad.workout_id)
     const blokker = byggPlanBlokker(
       faktiskeBlokker(segmenter, hr, (rad.watt_samples ?? null) as Array<{ t: number; w: number }> | null, {
-        rader: akter,
+        rader: akter, heartZones: soner,
         sonerFor: (navn, sub) => resolveSoner(soneRader, navn, sub),
       }),
       soner,

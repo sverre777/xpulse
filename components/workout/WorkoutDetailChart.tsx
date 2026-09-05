@@ -278,10 +278,10 @@ export function WorkoutDetailChart({
   // faktisk sone per vindu — regelen står i lib/gjennomfort-kart.
   const faktiskInn = useMemo(
     () => faktiskeBlokker(segmenter, samples.hr_samples, samples.watt_samples, {
-      ftp, rader,
+      ftp, rader, heartZones,
       sonerFor: sonerRader.length > 0 ? (navn, sub) => resolveSoner(sonerRader, navn, sub) : undefined,
     }),
-    [segmenter, samples.hr_samples, samples.watt_samples, ftp, rader, sonerRader],
+    [segmenter, samples.hr_samples, samples.watt_samples, ftp, rader, sonerRader, heartZones],
   )
   const faktiskBlokker = useMemo(() => byggPlanBlokker(faktiskInn, heartZones), [faktiskInn, heartZones])
   const faktiskSpokelser = useMemo(() => tilSpokelser(faktiskBlokker), [faktiskBlokker])

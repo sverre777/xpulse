@@ -103,5 +103,19 @@ const puls = (fra: number, til: number, hr: number) => Array.from({ length: til 
   ok('én sone: ingen stabling, som før', en.soneAndeler.length === 0 && en.sone === 'I3')
   ok('soneAndelerAv: én sone gir tom liste', soneAndelerAv({ I2: 100 }).length === 0)
 }
+// Sverre 5. sep: runder med flere soner stables — tid i hver sone fra kurven
+{
+  const hr = [...puls(0, 149, 130), ...puls(150, 299, 168)]   // halve I1, halve I3
+  const b = byggPlanBlokker(faktiskeBlokker([seg('a', 'oppvarming', 0, 300, 'Oppv.')], hr, null, { heartZones: soner }), soner)
+  ok('runde med to soner: soneSek har I1 og I3', (b[0].soneAndeler ?? []).length === 2 && b[0].soneAndeler.some(a => a.sone === 'I1') && b[0].soneAndeler.some(a => a.sone === 'I3'))
+  ok('…andelene summerer til 1', Math.abs(b[0].soneAndeler.reduce((s, a) => s + a.andel, 0) - 1) < 0.01)
+  const b2 = byggPlanBlokker(faktiskeBlokker([seg('d', 'drag', 0, 240)], [...puls(0, 29, 200), ...puls(30, 239, 178)], null, { heartZones: soner }), soner)
+  ok('drag: de første 30 s holdes utenfor også i fordelingen (ingen I5-flis)', !(b2[0].soneAndeler ?? []).some(a => a.sone === 'I5') && b2[0].sone === 'I4')
+  const b3 = byggPlanBlokker(faktiskeBlokker([seg('e', 'oppvarming', 0, 300, 'Oppv.')], [...puls(0, 289, 130), ...puls(290, 299, 168)], null, { heartZones: soner }), soner)
+  ok('småflis (10 s, 3 %) slås av', (b3[0].soneAndeler ?? []).length <= 1 && b3[0].sone === 'I1')
+  const b4 = byggPlanBlokker(faktiskeBlokker([seg('f', 'oppvarming', 0, 300, 'Oppv.')], hr, null), soner)
+  ok('uten soner inn: som før (snittsone)', (b4[0].soneAndeler ?? []).length === 0 && b4[0].sone != null)
+}
+
 console.log(feil === 0 ? 'ALLE OK' : `${feil} FEIL`)
 process.exit(feil === 0 ? 0 : 1)

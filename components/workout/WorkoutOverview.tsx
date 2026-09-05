@@ -461,7 +461,8 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
       {!harKlokkeRader && activities.length > 0 && (
         <Card title={isPlannedView ? 'ØKTKARTET' : 'ØKTA SOM BLOKKER'} aux={isPlannedView ? 'planlagt' : 'ført'}>
           <div data-plan-graf-hovedside>
-            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full" punktStil="ikon"
+            {/* Sverre 5. sep: punktene som på øktkartet — pille/etikett med strek, emoji og verdi (ikke bare ikon). */}
+            <PlanGraf blokker={fraActivityRows(activities)} tetthet="full"
               punkter={oversiktPunkter(data.tidspunkt_notater, data.lactate, data.nutrition_entries, data.time_of_day)} />
             <Nokkeltall celler={planNokkeltallCeller(fraActivityRows(activities))}
               rpe={isPlannedView ? forventetVist : rpeVist}
@@ -526,7 +527,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
               <OktbyggerInngang onClick={() => (onOpenOktbygger ?? onEdit)()} />
             </div>
           )}
-          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick} punktStil="ikon"
+          <WorkoutKlokkesyncSection workoutId={workoutId} importedFrom={data.imported_from ?? data.merged_source ?? null} refreshTick={detaljerTick}
             handlinger={canEdit ? {
               onOktbygger: () => (onOpenOktbygger ?? onEdit)(),
               onPlottTreff: () => (onOpenOktbygger ?? onEdit)(),

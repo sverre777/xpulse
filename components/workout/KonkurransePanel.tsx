@@ -14,6 +14,7 @@
 // aldri duplikatfelt).
 
 import { useState } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import {
   CompetitionData, COMPETITION_TYPES, DISTANCE_FORMATS, Sport, SPORTS,
   hasAutoGenerateTemplate, type TestData, emptyTestData,
@@ -86,6 +87,8 @@ export function KonkurransePanel({
   // inne i popupen der man allerede lager en test-mal.
   kanLageNyMal?: boolean
 }) {
+  // Skyting kun for skiskyttere: «Skiskyting» som øktsport bare når personen har det (eller økta alt er det).
+  const harSki = useHarSkiskyting()
   const isPlan = mode === 'plan'
   const erKonk = type === 'competition'
   const erTest = type === 'test'
@@ -194,7 +197,7 @@ export function KonkurransePanel({
               <div>
                 <label style={LBL}>Sport</label>
                 <select value={sport} onChange={e => onSportChange(e.target.value as Sport)} style={FELT}>
-                  {SPORTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {SPORTS.filter(s => s.value !== 'biathlon' || harSki || sport === 'biathlon').map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
             ) : (
@@ -395,7 +398,9 @@ function TestVelger({ sport, testSport, onVelgSkytetest, aktivSkytetestRef, test
   const effektivSport: Sport | null = testSport
     ? (TESTSPORT_TIL_SPORT[testSport] ?? null)
     : sport
-  const erSkiskyting = (testSport ? testSport === 'skiskyting' : sport === 'biathlon')
+  // Skyting kun for skiskyttere: skytefeltene i konkurransepanelet krever skiskyting i profilen.
+  const harSki = useHarSkiskyting()
+  const erSkiskyting = harSki && (testSport ? testSport === 'skiskyting' : sport === 'biathlon')
   const relevanteMaler = testMaler.filter(t =>
     t.erBibliotek || effektivSport === null || t.sport === null || t.sport === effektivSport)
   useEffect(() => {

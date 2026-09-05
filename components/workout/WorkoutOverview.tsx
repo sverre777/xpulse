@@ -13,6 +13,7 @@
 // pause/skyting holdes utenfor treningstid) → tallene matcher dagboken.
 
 import { useEffect, useState, type ReactNode } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { LinkWorkoutActions } from './LinkWorkoutActions'
 import { hentFlettStatus, angreFlett, type FlettStatus } from '@/app/actions/flett'
 import {
@@ -150,6 +151,7 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
   // lagring skriver tilbake de gamle radene/seriene.
   onDataEndret?: () => void
 }) {
+  const harSki = useHarSkiskyting()
   const isPlannedView = status === 'planned'
   // Koblet mot synket økt? Da ER den gjennomført (som klokkesynk-økt) og
   // «Marker som gjennomført» skjules — manuell markering ville gitt dublett.
@@ -824,7 +826,8 @@ export function WorkoutOverview({ data, onEdit, onOpenOktbygger, canEdit, equipm
         const sumL = shootingSummary(allSeries.filter(s => s.position !== 'S'))
         const sumS = shootingSummary(allSeries.filter(s => s.position === 'S'))
         const shots = sum.shots
-        const offerEntry = canEdit && !isPlannedView && (blocks.length > 0 || data.sport === 'biathlon')
+        // Skyting kun for skiskyttere: tilbudet om å FØRE skyting krever skiskyting; eksisterende skudd vises uansett.
+        const offerEntry = canEdit && !isPlannedView && harSki && (blocks.length > 0 || data.sport === 'biathlon')
         if (shots <= 0 && dryBlocks.length === 0 && !offerEntry) return null
         const dots = (h: number, s: number) => s > 0 && s <= 20 ? (
           <div className="flex flex-wrap gap-1 mt-2">

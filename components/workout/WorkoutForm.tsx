@@ -1,6 +1,7 @@
 'use client'
 
 import { StarRating } from '@/components/ui/StarRating'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveWorkout, markCompleted } from '@/app/actions/workouts'
@@ -348,6 +349,8 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // lagring — radene bygges i minnet og lagres sammen med økta. Den åpner
   // seg IKKE av seg selv på Logg/Planlegg (Sverre 5. sep) — bare fra knappen.
   const [visOktbygger, setVisOktbygger] = useState(!!apneOktbygger)
+  // Skyting kun for skiskyttere: mal-linjas «Skyting»-chip bare når personen har skiskyting.
+  const harSkiForm = useHarSkiskyting(userSports)
   // Klokkedata hentes ÉN gang for skjemaet og deles av oppsummeringskortet
   // (grafen, live) og klokkeseksjonen (rundetabell). Bumpes når byggeren
   // har skrevet til basen.
@@ -459,10 +462,12 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   // Fase 97: bibliotekets 58 vises SAMMEN med brukerens egne. Stabile id-er
   // (bib_<ref>) så React-keys ikke flakker; sport følger skjemaet.
   // Biblioteket endres ALDRI på plass — valg fyller kun skjemaet.
+  // Skyting kun for skiskyttere: komb-/skytemalene i biblioteket (mal.skyting)
+  // tilbys bare når personen har skiskyting.
   const bibliotekMaler = useMemo(
-    () => OKT_MAL_BIBLIOTEK.map(m =>
+    () => OKT_MAL_BIBLIOTEK.filter(m => harSkiForm || !m.skyting).map(m =>
       oktMalTilWorkoutTemplate(m, { sport: form.sport }, { id: `bib_${m.ref}` })),
-    [form.sport])
+    [form.sport, harSkiForm])
   const erBibliotekMal = (t: WorkoutTemplate) => t.id.startsWith('bib_')
   const alleMaler = useMemo(() => [...templates, ...bibliotekMaler], [templates, bibliotekMaler])
   const malMovementOptions = useMemo(() => {
@@ -1024,7 +1029,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
               {([
                 { key: 'alle', label: 'Alle' },
                 { key: 'test', label: '🧪 Test' },
-                { key: 'skyting', label: 'Skyting' },
+                ...(harSkiForm ? [{ key: 'skyting' as const, label: 'Skyting' }] : []),
                 { key: 'styrke', label: 'Styrke' },
                 { key: 'standard', label: '⟳ Standardøkt' },
               ] as const).map(c => (
@@ -1761,6 +1766,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
         <OktbyggerPopup
           workoutId={workoutId ?? null}
           sport={form.sport}
+          userSports={userSports}
           rader={form.activities}
           onRader={a => set('activities', a)}
           klokke={klokke.data}
@@ -1984,6 +1990,8 @@ function SaveAsTemplateModal({
   saving: boolean
   error: string | null
 }) {
+  // Skyting kun for skiskyttere: «Skiskyting» som mal-sport bare når brukeren har det (eller malen alt er det).
+  const harSki = useHarSkiskyting()
   // Typen er gitt (test vinner over konkurranse/testløp): kategori, økttype
   // og standardøkt er ikke valg — de settes deterministisk ved lagring.
   const typeGitt = isTest ? 'Test' : malKind === 'konkurranse' ? 'Konkurranse' : malKind === 'testlop' ? 'Testløp' : null
@@ -2048,7 +2056,7 @@ function SaveAsTemplateModal({
               </label>
               <select value={sport} onChange={e => onSport(e.target.value as Sport)}
                 style={iSt} className="w-full px-3 py-2">
-                {SPORTS.map(s => (
+                {SPORTS.filter(s => s.value !== 'biathlon' || harSki || sport === 'biathlon').map(s => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>

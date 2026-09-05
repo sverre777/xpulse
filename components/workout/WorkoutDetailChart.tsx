@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import type { Sport } from '@/lib/types'
 import {
   SEGMENT_FARGER, PUNKT_FARGER, SKYTE_FARGER, erSkytesegment, skyteMarkor, klammeStemmer, segmentBakgrunn, fmtKlokkeSek, pulsIVindu,
@@ -295,7 +296,10 @@ export function WorkoutDetailChart({
   )
   const skytevinduer = segmenter.filter(sg => sg.paaKurven)
   const harPunkter = lactate.length > 0 || nutrition.length > 0 || tidspunktNotater.length > 0 || planPunkter.length > 0 || (visSkyting && segmenter.some(sg => erSkytesegment(sg.type)))
-  const harSkyting = skytevinduer.length > 0 || (sport === 'biathlon' && shooting.length > 0)
+  // Skyting kun for skiskyttere: eksisterende skytedata VISES (lesing); nye
+  // valg (Plott treff) krever skiskyting i profilen.
+  const harSki = useHarSkiskyting()
+  const harSkyting = skytevinduer.length > 0 || shooting.length > 0
   // Aksen strekkes til planens slutt når planen vises og er lengre enn
   // økta (bolk 7): da stikker spøkelset ut forbi der økta stoppet, og
   // avviket leses uten lesepanel. Kortere plan stopper av seg selv.
@@ -640,7 +644,7 @@ export function WorkoutDetailChart({
           handlinger={handlinger && {
             ...handlinger,
             // Plott treff bare for skiskyting og bare når økta har skyting (Sverre 4. sep).
-            onPlottTreff: sport === 'biathlon' && (harSkyting || segmenter.some(sg => erSkytesegment(sg.type))) ? handlinger.onPlottTreff : undefined,
+            onPlottTreff: harSki && (harSkyting || segmenter.some(sg => erSkytesegment(sg.type))) ? handlinger.onPlottTreff : undefined,
           }} />
       )}
 
@@ -674,7 +678,7 @@ export function WorkoutDetailChart({
         <MarkerLegend
           hasLactate={visPunkter && lactate.length > 0}
           hasNutrition={visPunkter && nutrition.length > 0}
-          hasShooting={visSkyting && sport === 'biathlon' && shooting.length > 0}
+          hasShooting={visSkyting && shooting.length > 0}
           hasLaps={visRunder && laps.length > 1}
         />
       )}

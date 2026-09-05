@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import { sporterFraProfil } from '@/lib/har-skiskyting'
+import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { medTid } from '@/lib/ytelse-tid'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
@@ -68,6 +70,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <RoleProvider value={{ activeRole: effectiveRole, hasAthleteRole, hasCoachRole }}>
+    <BrukerSporterProvider sporter={sporterFraProfil(profile)}>
       <div className="min-h-screen flex flex-col">
         <MainNav
           userName={profile?.full_name ?? null}
@@ -85,6 +88,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
         <InstallHint />
         {visProfilvarsel && <ProfilVarselBanner />}
       </div>
+    </BrukerSporterProvider>
     </RoleProvider>
   )
 }

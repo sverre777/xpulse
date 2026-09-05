@@ -1,4 +1,6 @@
 import { getWorkoutStats, getAnalysisOverview } from '@/app/actions/analysis'
+import { createClient } from '@/lib/supabase/server'
+import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
 import { LoadError } from '@/components/ui/LoadError'
 import { getFavoriteCharts } from '@/app/actions/favorites'
 import { getCoachCanSeeHealthDataForAthlete } from '@/app/actions/coach-data-permissions'
@@ -38,12 +40,16 @@ export async function AnalysePageView({ viewContext }: Props) {
       ? getCoachCanSeeHealthDataForAthlete(viewContext.userId)
       : Promise.resolve(true)
 
-    const [stats, overview, favoritesRes, canSeeHealthData] = await Promise.all([
+    const supabase = await createClient()
+    const [stats, overview, favoritesRes, canSeeHealthData, profilRes] = await Promise.all([
       getWorkoutStats(range.from, range.to, targetId),
       getAnalysisOverview(range.from, range.to, null, targetId),
       getFavoriteCharts(),
       canSeeHealthDataPromise,
+      // Skyting kun for skiskyttere: personen vi ser på (utøveren i trenervisning).
+      supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', viewContext.userId).maybeSingle(),
     ])
+    const brukerSporter = sporterFraProfil(profilRes.data)
 
     const statsError = 'error' in stats ? stats.error : null
     const overviewError = 'error' in overview ? overview.error : null
@@ -66,6 +72,7 @@ export async function AnalysePageView({ viewContext }: Props) {
 
     return (
       <AnalysisPage
+        harSkiskyting={harSkiskyting(brukerSporter)}
         initialStats={stats as Exclude<typeof stats, { error: string }>}
         initialOverview={overview as Exclude<typeof overview, { error: string }>}
         initialRange={range}

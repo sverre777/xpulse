@@ -21,6 +21,8 @@ import { useEffect } from 'react'
 type Tab = 'okt' | 'plan' | 'standard'
 
 interface Props {
+  /** Skyting kun for skiskyttere: hurtigfilter «Skyting» og skytemaler bare når brukeren har skiskyting. */
+  harSkiskyting?: boolean
   activeTab: string
   // Brukerens primære sport — sendes til builder-modaler så ny økt-/plan-mal
   // forhåndsutfylles med utøvers sport.
@@ -32,6 +34,7 @@ interface Props {
 export function MalerClient({
   activeTab,
   primarySport,
+  harSkiskyting = false,
   initialWorkoutTemplates,
   initialPlanTemplates,
 }: Props) {
@@ -160,7 +163,7 @@ export function MalerClient({
           {([
             { key: 'alle', label: 'Alle' },
             { key: 'test', label: '🧪 Test' },
-            { key: 'skyting', label: 'Skyting' },
+            ...(harSkiskyting ? [{ key: 'skyting' as const, label: 'Skyting' }] : []),
             { key: 'styrke', label: 'Styrke' },
           ] as const).map(c => (
             <button key={c.key} type="button" onClick={() => setQuick(c.key)}
@@ -191,7 +194,7 @@ export function MalerClient({
         <select value={category} onChange={e => setCategory(e.target.value)}
           style={iSt} className="w-full px-3 py-2">
           <option value="">Alle kategorier</option>
-          {TEMPLATE_CATEGORIES.map(c => (
+          {TEMPLATE_CATEGORIES.filter(c => c !== 'Skyting' || harSkiskyting).map(c => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
@@ -257,7 +260,7 @@ export function MalerClient({
       {tab === 'okt' && (
         <WorkoutList
 movement={movement} sortBy={sortBy}           templates={initialWorkoutTemplates}
-          query={query} category={category} sport={sport} quick={quick}
+          query={query} category={category} sport={sport} quick={quick} harSkiskyting={harSkiskyting}
           pendingId={pendingId}
           onEdit={(t) => setEditingOktmal(t)}
           onUseDate={(t) => setBruktOktmal(t)}
@@ -356,12 +359,14 @@ function isStrengthTemplate(t: WorkoutTemplate): boolean {
 }
 
 function WorkoutList({
+  harSkiskyting,
   templates, query, category, sport, movement, sortBy, quick, pendingId, onEdit, onUseDate, onDelete, onDuplicate,
 }: {
   templates: WorkoutTemplate[]
   query: string; category: string; sport: string
   movement: string
   sortBy: 'sist' | 'nyest' | 'navn' | 'mest'
+  harSkiskyting: boolean
   quick: 'alle' | 'test' | 'skyting' | 'styrke'
   pendingId: string | null
   onEdit: (t: WorkoutTemplate) => void
@@ -374,6 +379,7 @@ function WorkoutList({
     const list = templates.filter(t => {
       if (quick === 'test' && !t.is_test) return false
       if (quick === 'skyting' && !isShootingTemplate(t)) return false
+      if (!harSkiskyting && isShootingTemplate(t)) return false
       if (quick === 'styrke' && !isStrengthTemplate(t)) return false
       if (category && t.category !== category) return false
       if (sport && t.sport !== sport) return false

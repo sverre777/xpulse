@@ -252,8 +252,10 @@ export function ActivitySummary({ laktatRader, ernaeringRader, timeOfDay, activi
   if (activities.length === 0) return null
 
   const totalKm = summary.totalMeters / 1000
+  // Skyting kun for skiskyttere: skytetallene følger DATAENE (lesing) — finnes det skudd, vises de.
   const isBiathlon = sport === 'biathlon'
-  const hasShooting = isBiathlon && summary.shooting.total_shots > 0
+  void isBiathlon
+  const hasShooting = summary.shooting.total_shots > 0
   const pct = (hits: number, shots: number) =>
     shots > 0 ? Math.round((hits / shots) * 100) : null
   const paceUnit: PaceUnit = resolvePaceUnit('', defaultPaceUnit)

@@ -156,8 +156,10 @@ function LoadingStub({ label }: { label: string }) {
 }
 
 export function AnalysisPage({
-  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true,
+  initialStats, initialOverview, initialRange, initialFavorites = [], targetUserId, canSeeHealthData = true, harSkiskyting = false,
 }: {
+  /** Skyting kun for skiskyttere: «Skyting-dybde» og skytefavoritter bare når personen har skiskyting. */
+  harSkiskyting?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
@@ -171,8 +173,9 @@ export function AnalysisPage({
   canSeeHealthData?: boolean
 }) {
   return (
-    <FavoritesProvider initialFavorites={initialFavorites}>
+    <FavoritesProvider initialFavorites={harSkiskyting ? initialFavorites : initialFavorites.filter(k => !k.startsWith('skyting'))}>
       <AnalysisPageInner
+        harSkiskyting={harSkiskyting}
         initialStats={initialStats}
         initialOverview={initialOverview}
         initialRange={initialRange}
@@ -184,8 +187,9 @@ export function AnalysisPage({
 }
 
 function AnalysisPageInner({
-  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData,
+  initialStats, initialOverview, initialRange, targetUserId, canSeeHealthData, harSkiskyting = false,
 }: {
+  harSkiskyting?: boolean
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
@@ -522,7 +526,7 @@ function AnalysisPageInner({
 
         {/* Tabs — horisontal scroll på mobil, flex-wrap på desktop. */}
         <div className="flex gap-1 mb-5 overflow-x-auto" style={{ scrollbarWidth: 'thin' }}>
-          {TABS.filter(([key]) => key !== 'helse' || canSeeHealthData).map(([key, label]) => (
+          {TABS.filter(([key]) => (key !== 'helse' || canSeeHealthData) && (key !== 'skyting' || harSkiskyting)).map(([key, label]) => (
             <button
               key={key}
               type="button"

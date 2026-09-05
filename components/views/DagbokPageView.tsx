@@ -1,4 +1,6 @@
 import { Suspense } from 'react'
+import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
+import { harSkiskyting } from '@/lib/har-skiskyting'
 import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
 import { createClient } from '@/lib/supabase/server'
 import { getCalendarWorkouts, getActivityTypeFavorites } from '@/app/actions/workouts'
@@ -161,6 +163,8 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
 
         <div className="xp-calcard">
           <Suspense fallback={null}>
+            {/* Skyting kun for skiskyttere: personen vi ser på (utøveren i trenervisning) styrer. */}
+            <BrukerSporterProvider sporter={userSports}>
             <Calendar
               mode="dagbok"
               userId={userId}
@@ -188,6 +192,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
               seasonKeyDates={seasonKeyDates}
               seasonMarkings={seasonMarkings}
             />
+          </BrukerSporterProvider>
           </Suspense>
         </div>
 
@@ -210,7 +215,7 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
         {/* Skyting rett etter den fysiske grafen: noekkeltall + skudd per
             periode, med egen periodevelger. Skjuler seg selv for brukere
             uten skytedata. */}
-        <SkytingChartSection targetUserId={targetId} />
+        {harSkiskyting(userSports) && <SkytingChartSection targetUserId={targetId} />}
 
         {/* Helse fra klokka — full oversikt NEDERST (helse-designet):
             under kalenderen og alle grafene. Skjuler seg selv uten

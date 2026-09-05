@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { useRouter } from 'next/navigation'
 import { updateTemplate } from '@/app/actions/templates'
 import { SPORTS, TEMPLATE_CATEGORIES, type Sport, type WorkoutTemplate } from '@/lib/types'
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function OktmalEditModal({ template, onClose }: Props) {
+  // Skyting kun for skiskyttere: «Skyting»-kategorien bare når brukeren har det (eller malen alt er det).
+  const harSki = useHarSkiskyting()
   const router = useRouter()
   const [name, setName] = useState(template.name)
   const [description, setDescription] = useState(template.description ?? '')
@@ -106,7 +109,7 @@ export function OktmalEditModal({ template, onClose }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <Field label="Kategori">
               <select value={category} onChange={e => setCategory(e.target.value)} style={iSt}>
-                {TEMPLATE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {TEMPLATE_CATEGORIES.filter(c => c !== 'Skyting' || harSki || category === 'Skyting').map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </Field>
             <Field label="Sport">

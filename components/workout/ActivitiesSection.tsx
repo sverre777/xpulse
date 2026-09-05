@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useBrukerSporter } from '@/components/sport/BrukerSporter'
 import { AktivitetKnapperad } from './AktivitetKnapperad'
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
@@ -189,7 +190,8 @@ function legacySkytingLabel(row: ActivityRow, meta: ActivityTypeOption): string 
 }
 
 export function ActivitiesSection({ rows, onChange, sport, userSports, activityTypeFavorites, mode = 'dagbok', defaultPaceUnit = null, workoutType, availableEquipment, activityEquipment, onActivityEquipmentChange, targetUserId, onOktbygger, onPlottTreff, workoutId = null, radInfo = {}, erKlokkeokt = false }: Props) {
-  const effectiveUserSports: Sport[] = userSports && userSports.length > 0 ? userSports : [sport]
+  // Skyting kun for skiskyttere: brukerens (eller utøverens) sporter — aldri øktas sport i stedet.
+  const effectiveUserSports: Sport[] = useBrukerSporter(userSports)
   const userHasBiathlon = effectiveUserSports.includes('biathlon')
   const isPlanMode = mode === 'plan'
   // Når formen er initialisert med én default-rad (ny økt) skal den være åpen

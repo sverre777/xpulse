@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { SerieListe } from './SerieListe'
 import { PunktEtiketter } from './WorkoutDetailChart'
 import type { Segment } from '@/lib/segmenter'
@@ -78,8 +79,10 @@ export function OktbyggerInngang({ onClick }: { onClick: () => void }) {
 export function OktbyggerPopup({
   workoutId, sport, rader, onRader, klokke, erPlanlagt, heartZones, rpe, timeOfDay,
   laktat, onLaktat, ernaering, onErnaering, punkter, onPunkter, onRaderFraBasen,
-  onClose, onSerierLagret, onOpprett, onByggTittel, onBolkTittel,
+  onClose, onSerierLagret, onOpprett, onByggTittel, onBolkTittel, userSports,
 }: {
+  /** Skyting kun for skiskyttere: brukerens (eller utøverens) sporter — vinner over konteksten. */
+  userSports?: Sport[]
   /** null = økta er ikke lagret ennå: klokkeverktøyene finnes ikke, bare hurtigoppsettet. */
   workoutId: string | null
   sport?: Sport
@@ -192,7 +195,9 @@ export function OktbyggerPopup({
     return () => { avbrutt = true }
   }, [workoutId])
 
-  const userHasBiathlon = sport === 'biathlon' || rader.some(r => r.activity_type.startsWith('skyting'))
+  // ÉN regel (Sverre 5. sep): skyting tilbys bare når personen har skiskyting i
+  // profilen — øktas sport eller eksisterende skyterader gir det ikke.
+  const userHasBiathlon = useHarSkiskyting(userSports)
   const skytingRader = rader.filter(r => r.activity_type.startsWith('skyting'))
   const hr = useMemo(() => (klokke?.samples?.hr_samples ?? []).map(p => ({ t: p.t, hr: p.hr })), [klokke])
   // Bolk 22 (Sverre 5. sep): «Legg skyting på puls» — en bestemt UPLASSERT
@@ -478,7 +483,7 @@ export function OktbyggerPopup({
                     ))}
                   </span>
                 )}
-                {uplasserteSkytinger.length > 0 && (
+                {userHasBiathlon && uplasserteSkytinger.length > 0 && (
                   <span data-legg-skyting={leggSkyting.radId ? 'valgt' : 'liste'} className="flex items-center gap-1 flex-wrap" style={{ position: 'relative' }}>
                     <button type="button" data-legg-skyting-knapp aria-expanded={leggSkyting.aapen}
                       onClick={() => setLeggSkyting(v => ({ ...v, aapen: !v.aapen }))}
@@ -531,11 +536,11 @@ export function OktbyggerPopup({
                   {([
                     { t: 'laktat', ikon: PUNKT_SLAG.laktat.ikon, navn: PUNKT_SLAG.laktat.navn, farge: PUNKT_SLAG.laktat.farge },
                     { t: 'ernaering', ikon: PUNKT_SLAG.ernaering.ikon, navn: PUNKT_SLAG.ernaering.navn, farge: PUNKT_SLAG.ernaering.farge },
-                    // Skyting velges som ligg eller stå (Sverre 4. sep).
+                    // Skyting velges som ligg eller stå (Sverre 4. sep) — bare for skiskyttere.
                     { t: 'skyting_ligg', ikon: '🎯', navn: 'Ligg', farge: PUNKT_SLAG.skyting.farge },
                     { t: 'skyting_staa', ikon: '🎯', navn: 'Stå', farge: PUNKT_SLAG.skyting.farge },
                     { t: 'notat', ikon: PUNKT_SLAG.notat.ikon, navn: PUNKT_SLAG.notat.navn, farge: PUNKT_SLAG.notat.farge },
-                  ] as const).map(({ t, ikon, navn, farge }) => (
+                  ] as const).filter(v => userHasBiathlon || (v.t !== 'skyting_ligg' && v.t !== 'skyting_staa')).map(({ t, ikon, navn, farge }) => (
                     <button key={t} type="button" data-punkt-valg={t}
                       onClick={() => { setPunktType(t); setPunktModus(true); setKuttModus(false); setStartHerModus(false) }}
                       aria-pressed={punktModus && punktType === t}

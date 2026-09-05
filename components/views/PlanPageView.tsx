@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
 import { createClient } from '@/lib/supabase/server'
 import { getCalendarWorkouts, getActivityTypeFavorites } from '@/app/actions/workouts'
@@ -125,6 +126,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
 
         <div className="xp-calcard" style={{ marginBottom: '32px' }}>
           <Suspense fallback={null}>
+            <BrukerSporterProvider sporter={userSports}>
             <Calendar
               mode="plan"
               userId={userId}
@@ -147,6 +149,7 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
               serverNoteKeys={{ week: weekKey, month: monthKey }}
               targetUserId={targetId}
             />
+          </BrukerSporterProvider>
           </Suspense>
         </div>
 

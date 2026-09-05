@@ -15,6 +15,7 @@
 // aktivitetsrader etterpå, og økta husker ikke at den kom fra en bygger.
 
 import { useEffect, useMemo, useState } from 'react'
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import {
   byggBlokker, genererIntervalløkt,
   type GenerertBlokk, type IntervallKonfig, type SkyteMonster, SKYTETID_STANDARD_SEK, SKYTETID_MAKS_SEK, dragSekFraKm } from '@/lib/intervall-generator'
@@ -162,6 +163,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
   const husket = useMemo(() => (lagerNokkel && !forhandsutfylt ? lesHurtigLager<Rad>(lagerNokkel) : null), [lagerNokkel, forhandsutfylt])
   // Sonespråket (5b): velgeren tilbyr I6–I8 ELLER Hurtighet — aldri begge.
   const utvidetSkala = useUtvidetSkala()
+  const harSki = useHarSkiskyting()
   // Sverre 5. sep: hurtigoppsettet kollapser ALDRI av seg selv — bare
   // «Opprett» gjør det. Et husket oppsett fyller feltene, men steget er
   // alltid «bygg» ved åpning (tom økt i dagbok skal vise oppsettet).
@@ -347,13 +349,14 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
             {subValg.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
-        <div className={skyting ? '' : 'col-span-2'}>
+        {/* Skyting i pausene — bare for skiskyttere (rutenettet tetter seg uten). */}
+        {harSki && <div className={skyting ? '' : 'col-span-2'}>
           <div style={{ ...CAP, marginBottom: 5 }}>Skyting i pausene</div>
           <select value={skyting} onChange={e => setSkyting(e.target.value as '' | SkyteMonster)} style={FELT}>
             {SKYTEVALG.map(v => <option key={v.verdi} value={v.verdi}>{v.etikett}</option>)}
           </select>
-        </div>
-        {skyting && (
+        </div>}
+        {harSki && skyting && (
           <div>
             <div style={{ ...CAP, marginBottom: 5 }}>Skytetid (s, maks 60)</div>
             <input value={skytetid} onChange={e => setSkytetid(e.target.value)} inputMode="numeric" aria-label="Skytetid i sekunder"

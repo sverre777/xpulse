@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { harSkiskyting, sporterFraProfil } from '@/lib/har-skiskyting'
 import { createClient } from '@/lib/supabase/server'
 import { getTemplates } from '@/app/actions/templates'
 import { getPlanTemplates } from '@/app/actions/plan-templates'
@@ -20,7 +21,7 @@ export default async function MalerPage({ searchParams }: Props) {
   const [workoutTemplates, planTemplates, { data: profile }] = await Promise.all([
     getTemplates(),
     getPlanTemplates(),
-    supabase.from('profiles').select('primary_sport').eq('id', user.id).single(),
+    supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', user.id).single(),
   ])
   const primarySport: Sport = (profile?.primary_sport as Sport) ?? 'running'
 
@@ -37,6 +38,7 @@ export default async function MalerPage({ searchParams }: Props) {
         <MalerClient
           activeTab={activeTab}
           primarySport={primarySport}
+          harSkiskyting={harSkiskyting(sporterFraProfil(profile))}
           initialWorkoutTemplates={workoutTemplates}
           initialPlanTemplates={planTemplates}
         />

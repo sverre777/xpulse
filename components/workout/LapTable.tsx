@@ -56,8 +56,8 @@ export function LapTable({ laps, sport, kilde = null }: Props & { kilde?: 'backu
   const showCadence = laps.some(l => l.avg_cadence != null)
   const showMaxHr = laps.some(l => l.max_hr != null)
   const showElev = laps.some(l => (l.elevation_gain_m ?? 0) > 0)
-  const showShooting = sport === 'biathlon' &&
-    laps.some(l => (l.prone_shots ?? 0) > 0 || (l.standing_shots ?? 0) > 0)
+  // Skytekolonnene følger DATAENE (lesing): finnes det skudd i rundene, vises de.
+  const showShooting = laps.some(l => (l.prone_shots ?? 0) > 0 || (l.standing_shots ?? 0) > 0)
   const showRpe = laps.some(l => l.rpe != null)
   const showNotes = laps.some(l => l.lap_notes && l.lap_notes.trim().length > 0)
 

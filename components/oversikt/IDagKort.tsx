@@ -87,17 +87,18 @@ function Meta({ deler }: { deler: Array<React.ReactNode | null | false | ''> }) 
 }
 
 /** Blokkgraf fra radene (uten klokke) — aldri tom flate. */
-function Blokkgraf({ w, hoyde }: { w: OversiktWorkoutCard; hoyde: number }) {
-  const blokker = useMemo(() => fraRaaRader(w.activities.map((a, i) => ({
+function Blokkgraf({ w, hoyde, harSki = true }: { w: OversiktWorkoutCard; hoyde: number; harSki?: boolean }) {
+  // Skyting kun for skiskyttere: skyterader ut av blokkgrafen uten skiskyting.
+  const blokker = useMemo(() => fraRaaRader(w.activities.filter(a => harSki || !a.activity_type.startsWith('skyting')).map((a, i) => ({
     id: `${w.id}-${i}`, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory ?? null,
     lap_notes: a.lap_notes ?? null, duration_seconds: a.duration_seconds, zones: a.zones ?? null, avg_heart_rate: a.avg_heart_rate ?? null,
     gruppe_id: a.gruppe_id ?? null, prone_shots: a.prone_shots ?? null, standing_shots: a.standing_shots ?? null, distance_meters: a.distance_meters,
-  }))), [w])
+  }))), [w, harSki])
   if (blokker.every(b => b.sek <= 0)) return null
   return <div data-idag-blokkgraf><PlanGraf blokker={blokker} tetthet="kompakt" hoyde={hoyde} /></div>
 }
 
-function NesteOektLinje({ w, todayISO, liten = false }: { w: OversiktWorkoutCard; todayISO: string; liten?: boolean }) {
+function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: OversiktWorkoutCard; todayISO: string; liten?: boolean; harSki?: boolean }) {
   const bev = bevForm(w)
   return (
     <Link href={`/app/plan?edit=${w.id}`} data-neste-okt={w.id} className="flex items-center gap-3 no-underline"
@@ -112,7 +113,7 @@ function NesteOektLinje({ w, todayISO, liten = false }: { w: OversiktWorkoutCard
         <Meta deler={[bev, w.effective_duration_minutes != null ? fmtHM(w.effective_duration_minutes * 60) : null, <SoneChip key="s" sone={w.primary_intensity_zone} />]} />
       </div>
       {!liten && w.activities.length > 0 && (
-        <div style={{ width: 120, flexShrink: 0 }}><Blokkgraf w={w} hoyde={34} /></div>
+        <div style={{ width: 120, flexShrink: 0 }}><Blokkgraf w={w} hoyde={34} harSki={harSki} /></div>
       )}
     </Link>
   )
@@ -197,7 +198,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
                 lactate={klokke.lactate}
                 nutrition={klokke.nutrition}
                 shooting={harSki ? klokke.shooting : []}
-                segmenter={klokke.segmenter}
+                segmenter={harSki ? klokke.segmenter : klokke.segmenter.filter(sg => !sg.type.startsWith('skyting'))}
                 heartZones={klokke.heartZones}
                 np={klokke.wattMetrikker?.np ?? null}
                 ftp={klokke.ftp}
@@ -211,7 +212,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
                 punktStil="ikon"
               />
             ) : <div style={{ height: 150 }} aria-hidden />) : harGraf ? (
-              <Blokkgraf w={hoved} hoyde={100} />
+              <Blokkgraf w={hoved} hoyde={100} harSki={harSki} />
             ) : null}
           </div>
 
@@ -254,9 +255,9 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
               Ingen planlagt økt framover. <Link href={`/app/plan?new=${todayISO}`} style={{ color: BLAA }}>+ Planlegg økt</Link>
             </p>
           ) : lite ? (
-            nextPlanned.slice(0, 3).map(w => <NesteOektLinje key={w.id} w={w} todayISO={todayISO} liten />)
+            nextPlanned.slice(0, 3).map(w => <NesteOektLinje key={w.id} w={w} todayISO={todayISO} liten harSki={harSki} />)
           ) : neste ? (
-            <NesteOektLinje w={neste} todayISO={todayISO} />
+            <NesteOektLinje w={neste} todayISO={todayISO} harSki={harSki} />
           ) : null}
         </div>
       </div>

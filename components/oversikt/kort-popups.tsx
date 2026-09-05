@@ -3,6 +3,7 @@
 // De tre popup-innholdene. Alle viser BARE det kortet allerede har lastet —
 // ingen nye kall, samme datasett i to detaljnivåer (notat pkt 1).
 
+import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import type {
   OversiktWorkoutCard, OversiktWeekTotals,
 } from '@/app/actions/oversikt'
@@ -123,6 +124,8 @@ export function UkePopup({ totals, weekNumber, onClose }: {
 }) {
   const c = totals.current
   const p = totals.previous
+  // Skyting kun for skiskyttere (prompt 5. sep).
+  const harSki = useHarSkiskyting()
   // «—» når det ikke finnes en forrige uke å sammenligne med (notat pkt 9):
   // «↑ 100 %» på en uke der forrige var null er ikke en dobling, det er
   // fravær av grunnlag.
@@ -148,7 +151,7 @@ export function UkePopup({ totals, weekNumber, onClose }: {
         <ZoneBar zones={c.zones} />
       </PopupSeksjon>
 
-      {c.shots && (
+      {c.shots && harSki && (
         <PopupSeksjon tittel={`Treff% · ${c.shots.shots} skudd i uka`}>
           <SkyteSplitt shots={c.shots} />
         </PopupSeksjon>

@@ -77,7 +77,8 @@ export function UkensTotaler({
       <ZoneBar zones={totals.current.zones} />
 
       {/* Selvskjulende: uten skudd i uka rendres ingenting her. */}
-      <ShotChip shots={totals.current.shots} />
+      {/* Skyting kun for skiskyttere (prompt 5. sep) — også ukas skytechip. */}
+      {harSki && <ShotChip shots={totals.current.shots} />}
 
       {/* HJEM v2 bolk 5: PLAN VS GJENNOMFØRT — fire barer m/ planstrek + dagsrad man–søn. */}
       {plan && todayISO && <UkePlanVsGjennomfort plan={plan} todayISO={todayISO} harSki={harSki} />}

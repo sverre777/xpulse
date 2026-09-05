@@ -99,11 +99,11 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
     { id: 'sone', etikett: sone ? `${sone}-tid` : 'Hovedsone', verdi: soneSek > 0 ? String(Math.round(soneSek / 60)) : '—', hale: soneSek > 0 ? 'min' : undefined, farge: sone ? ZONE_COLORS_V2[sone as keyof typeof ZONE_COLORS_V2] : undefined },
     { id: 'tss', etikett: 'Belastning', verdi: tss > 0 ? String(tss) : '—', hale: 'TSS' },
   ]
-  const blokker = useMemo(() => fraRaaRader(w.activities.map((a, i) => ({
+  const blokker = useMemo(() => fraRaaRader(w.activities.filter(a => harSki || !a.activity_type.startsWith('skyting')).map((a, i) => ({
     id: a.id ?? `${w.id}-${i}`, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory ?? null,
     lap_notes: a.lap_notes ?? null, duration_seconds: a.duration_seconds, zones: a.zones ?? null, avg_heart_rate: a.avg_heart_rate ?? null,
     gruppe_id: a.gruppe_id ?? null, prone_shots: a.prone_shots ?? null, standing_shots: a.standing_shots ?? null, distance_meters: a.distance_meters,
-  }))), [w])
+  }))), [w, harSki])
 
   // Skyteseriene i rekkefølge: aktivitetens plassering i økta, så serienummer.
   const serier = useMemo(() => {
@@ -141,7 +141,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
               lactate={klokke.lactate}
               nutrition={klokke.nutrition}
               shooting={harSki ? klokke.shooting : []}
-              segmenter={klokke.segmenter}
+              segmenter={harSki ? klokke.segmenter : klokke.segmenter.filter(sg => !sg.type.startsWith('skyting'))}
               heartZones={klokke.heartZones}
               np={klokke.wattMetrikker?.np ?? null}
               ftp={klokke.ftp}

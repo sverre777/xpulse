@@ -57,12 +57,13 @@ function SoneChip({ sone }: { sone: string | null }) {
   )
 }
 
-function Blokkgraf({ w, hoyde }: { w: OversiktWorkoutCard; hoyde: number }) {
-  const blokker = useMemo(() => fraRaaRader(w.activities.map((a, i) => ({
+function Blokkgraf({ w, hoyde, harSki = true }: { w: OversiktWorkoutCard; hoyde: number; harSki?: boolean }) {
+  // Skyting kun for skiskyttere: skyterader ut av blokkgrafen uten skiskyting.
+  const blokker = useMemo(() => fraRaaRader(w.activities.filter(a => harSki || !a.activity_type.startsWith('skyting')).map((a, i) => ({
     id: `${w.id}-${i}`, activity_type: a.activity_type, movement_name: a.movement_name, movement_subcategory: a.movement_subcategory ?? null,
     lap_notes: a.lap_notes ?? null, duration_seconds: a.duration_seconds, zones: a.zones ?? null, avg_heart_rate: a.avg_heart_rate ?? null,
     gruppe_id: a.gruppe_id ?? null, prone_shots: a.prone_shots ?? null, standing_shots: a.standing_shots ?? null, distance_meters: a.distance_meters,
-  }))), [w])
+  }))), [w, harSki])
   if (blokker.every(b => b.sek <= 0)) return null
   return <div data-hardokt-blokkgraf><PlanGraf blokker={blokker} tetthet="full" hoyde={hoyde} /></div>
 }
@@ -137,7 +138,7 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
             lactate={klokke.lactate}
             nutrition={klokke.nutrition}
             shooting={harSki ? klokke.shooting : []}
-            segmenter={klokke.segmenter}
+            segmenter={harSki ? klokke.segmenter : klokke.segmenter.filter(sg => !sg.type.startsWith('skyting'))}
             heartZones={klokke.heartZones}
             np={klokke.wattMetrikker?.np ?? null}
             ftp={klokke.ftp}
@@ -150,7 +151,7 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
             kontroller="visning"
           />
         ) : <div style={{ height: 230 }} aria-hidden />) : (
-          <Blokkgraf w={w} hoyde={110} />
+          <Blokkgraf w={w} hoyde={110} harSki={harSki} />
         )}
       </div>
 

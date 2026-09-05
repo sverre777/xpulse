@@ -54,8 +54,23 @@ const erSkyting = (t: string) => t.startsWith('skyting')
 
 /** Radens varighet i sekunder — vinduet vinner der det finnes. */
 export function radVarighetSek(a: ActivityRow): number {
+  if (erSkyting(a.activity_type)) return skytingVarighetSek(a)
   if (a.window_duration_seconds != null) return Math.max(0, a.window_duration_seconds)
   return parseActivityDuration(a.duration) ?? 0
+}
+
+/** En skyting varer SEKUNDER, aldri kvarter (Sverre 5. sep, skjermbilde:
+    «45» i Varighet-feltet ble 45 minutter og båndet fløt ut av kortet).
+    Tall uten kolon leses som sekunder på skyterader; vinduet begrenses til
+    MAKS_SKYTING_SEK; ellers serie-summen (skytetid) eller mm:ss. */
+export const MAKS_SKYTING_SEK = 600
+export function skytingVarighetSek(a: ActivityRow): number {
+  const raa = String(a.duration ?? '').trim()
+  const fraFelt = /^\d+$/.test(raa) ? parseInt(raa, 10) : (parseActivityDuration(raa) ?? 0)
+  const kandidat = a.window_duration_seconds != null && a.window_duration_seconds > 0
+    ? a.window_duration_seconds
+    : (fraFelt > 0 ? fraFelt : (skytetid(a) ?? 0))
+  return Math.min(MAKS_SKYTING_SEK, Math.max(0, kandidat))
 }
 
 function skytetid(a: ActivityRow): number | null {
@@ -110,7 +125,11 @@ export function plasserRader(
     const p = posisjon.get(a.id)
     const varighet = Math.max(MIN_RAD_SEK, radVarighetSek(a) || MIN_RAD_SEK)
     const start = vindu ? a.window_start_seconds! : p ? p.start : t
-    const dur = vindu ? Math.max(MIN_RAD_SEK, a.window_duration_seconds ?? varighet) : p ? p.varighet : varighet
+    // Skyting: vinduet er også begrenset (MAKS_SKYTING_SEK) — en lagret
+    // «45 min»-feil skal ikke fylle båndet (Sverre 5. sep).
+    const dur = vindu
+      ? Math.max(MIN_RAD_SEK, erSkyting(a.activity_type) ? skytingVarighetSek(a) : (a.window_duration_seconds ?? varighet))
+      : p ? p.varighet : varighet
     if (!vindu && !p) t = start + dur
     else t = Math.max(t, start + dur)
     ut.push({

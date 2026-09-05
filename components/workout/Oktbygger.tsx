@@ -8,7 +8,7 @@ import {
 import {
   plasserRader, kuttRad, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
   slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett,
-  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK } from '@/lib/oktbygger-rader'
+  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK, radVarighetSek } from '@/lib/oktbygger-rader'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
@@ -147,7 +147,11 @@ export function OktbyggerPopup({
   // Rettelse 3 (3. sep): hurtigoppsettet er FØRSTE seksjon og står ÅPENT —
   // i plan og dagbok, med og uten kurve. Det lå her før også, men
   // sammenslått bak en pil så snart økta hadde rader, og ble ikke funnet.
-  const [hurtigAapent, setHurtigAapent] = useState(true)
+  // Sverre 5. sep: på en KLOKKESYNKET økt står hurtigoppsettet kollapset fra
+  // før (man kan åpne det); uten kurve står det åpent som første seksjon.
+  const [hurtigValg, setHurtigValg] = useState<boolean | null>(null)
+  const hurtigAapent = hurtigValg ?? !harKurve
+  const setHurtigAapent = (v: boolean | ((p: boolean) => boolean)) => setHurtigValg(typeof v === 'function' ? v(hurtigAapent) : v)
   const [kurve, setKurve] = useState<'puls' | 'fart' | 'watt'>(() =>
     klokke?.samples?.hr_samples?.length ? 'puls' : (klokke?.samples?.pace_samples ?? klokke?.samples?.speed_samples)?.length ? 'fart' : 'watt')
   // ANGRE: forrige radsett, steg for steg. Lever i byggeren til den lukkes.
@@ -204,7 +208,8 @@ export function OktbyggerPopup({
   /** Plasserer en eksisterende skyterad på tidslinja: starten settes, pulsen
       fylles, og utkastet regner kjeden på nytt rundt den. */
   const plasserSkyterad = (rad: ActivityRow, s: number) => {
-    const sek = Math.max(MIN_RAD_SEK, rad.window_duration_seconds ?? (parseActivityDuration(rad.duration) || 60))
+    // Skyting regnes i sekunder (aldri «45» = 45 min) og begrenses til 10 min.
+    const sek = Math.max(MIN_RAD_SEK, radVarighetSek(rad) || 60)
     const ny = { ...rad, window_start_seconds: s, window_duration_seconds: sek }
     settPulsIVindu(ny, s, sek)
     endre(rader.map(r => (r.id === rad.id ? ny : r)))

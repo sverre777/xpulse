@@ -15,8 +15,10 @@ import Link from 'next/link'
 const FONT = "'Barlow Condensed', sans-serif"
 
 export function KortPopup({
-  kicker, tittel, undertittel, videreHref, videreTekst, onClose, children,
+  kicker, tittel, undertittel, videreHref, videreTekst, onClose, children, bred = false,
 }: {
+  /** HJEM v2 bolk 4: bred popup (graf + to kolonner + serietabell). Mobil: fullskjerm-ark. */
+  bred?: boolean
   kicker: string
   tittel: string
   undertittel?: string
@@ -47,7 +49,7 @@ export function KortPopup({
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={tittel}
         style={{
           // Mobil: full bredde med marg (notat pkt 13).
-          width: '100%', maxWidth: 620,
+          width: '100%', maxWidth: bred ? 1120 : 620,
           background: 'var(--card)', border: '1px solid var(--line2)',
           borderRadius: 16, padding: '20px 22px',
           boxShadow: '0 30px 80px rgba(0,0,0,.6)',

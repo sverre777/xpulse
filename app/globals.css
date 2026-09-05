@@ -1101,3 +1101,14 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 @media (max-width: 1500px) { .xp-hjem-r2 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 1100px) { .xp-hjem-r1 { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 620px) { .xp-hjem-r1, .xp-hjem-r2 { grid-template-columns: 1fr; } }
+
+
+/* HJEM v2 bolk 4: «Vis mer»-popupen — to kolonner og serietabellen. */
+.xp-popup-to { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0 24px; }
+.xp-serier { display: grid; grid-template-columns: 28px 110px 1fr 56px 56px 90px 70px 1.2fr; gap: 6px 10px; align-items: center; }
+@media (max-width: 800px) {
+  .xp-popup-to { grid-template-columns: 1fr; }
+  .xp-serier { grid-template-columns: 28px 100px 1fr 52px 52px 60px; }
+  .xp-serier .xp-serie-skjul { display: none; }
+}
+

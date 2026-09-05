@@ -86,7 +86,29 @@ export interface OversiktShots extends OversiktShotSplit {
 }
 
 /** Aktivitetsrad på et kort — nok til å vise struktur, ikke hele økta. */
+/** HJEM v2 bolk 4: skyteserie (workout_shooting_series) — popupens serierad. */
+export interface OversiktSkyteserie {
+  id: string
+  series_no: number
+  position: 'L' | 'S'
+  shots: number | null
+  hits: number | null
+  time_seconds: number | null
+  avg_heart_rate: number | null
+  max_heart_rate: number | null
+  note: string | null
+  shot_plot: ({ x: number; y: number } | null)[] | null
+  points: number | null
+  vind_retning: 'V' | 'H' | null
+  vind_styrke: number | null
+  sikt: string | null
+}
+
 export interface OversiktActivityRow {
+  /** HJEM v2 bolk 4: radens id + plassering i økta + skyteseriene (popupen). */
+  id?: string
+  window_start_seconds?: number | null
+  serier?: OversiktSkyteserie[]
   activity_type: string
   movement_name: string | null
   duration_seconds: number | null
@@ -140,6 +162,8 @@ export interface OversiktMainGoal {
   season_name: string
   goal_main: string
   season_end: string
+  /** HJEM v2 bolk 7: sesongstart — «plan y %» og t/uke-snittet regnes herfra. */
+  season_start: string | null
   days_until_end: number
   // Optional progress fra planlagt volum vs faktisk.
   planned_hours_total: number | null
@@ -260,6 +284,8 @@ export interface OversiktData {
   periods: OversiktPeriodeRad[]
   camps: OversiktSamling[]
   helse: HelseOversiktData | null
+  /** HJEM v2 bolk 8: datoer m/ hardøkt siste 30 dager — gule merker i HRV-grafen. */
+  hardDager: string[]
   klokke: { today: WorkoutKlokkesyncData | null; lastHard: WorkoutKlokkesyncData | null }
   hero: OversiktHero
   todayState: OversiktTodayState | null
@@ -355,6 +381,15 @@ function dominantZone(zones: OversiktZoneSeconds): string | null {
 }
 
 type ActivityRaw = {
+  id?: string
+  sort_order?: number | null
+  window_start_seconds?: number | null
+  workout_shooting_series?: Array<{
+    id: string; series_no: number; position: string; shots: number | null; hits: number | null; time_seconds: number | null
+    avg_heart_rate: number | null; max_heart_rate: number | null; note: string | null
+    shot_plot: ({ x: number; y: number } | null)[] | null; points?: number | null
+    vind_retning?: string | null; vind_styrke?: number | null; sikt?: string | null
+  }> | null
   activity_type?: string | null
   movement_name?: string | null
   movement_subcategory?: string | null
@@ -424,7 +459,7 @@ function sumShots(acts: ActivityRaw[]): OversiktShots | null {
 }
 
 function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
-  const acts = w.workout_activities ?? []
+  const acts = (w.workout_activities ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   const zones = zeroZones()
   accumulateZonesFromActivities(acts, zones)
 
@@ -471,6 +506,14 @@ function toWorkoutCard(w: WorkoutRow): OversiktWorkoutCard {
       avg_heart_rate: a.avg_heart_rate ?? null,
       prone_shots: a.prone_shots ?? null,
       standing_shots: a.standing_shots ?? null,
+      id: a.id,
+      window_start_seconds: a.window_start_seconds ?? null,
+      serier: (a.workout_shooting_series ?? []).slice().sort((x, y) => x.series_no - y.series_no).map(s => ({
+        id: s.id, series_no: s.series_no, position: s.position === 'S' ? 'S' as const : 'L' as const,
+        shots: s.shots, hits: s.hits, time_seconds: s.time_seconds, avg_heart_rate: s.avg_heart_rate, max_heart_rate: s.max_heart_rate,
+        note: s.note ?? null, shot_plot: s.shot_plot ?? null, points: s.points ?? null,
+        vind_retning: s.vind_retning === 'V' || s.vind_retning === 'H' ? s.vind_retning : null, vind_styrke: s.vind_styrke ?? null, sikt: s.sikt ?? null,
+      })),
     })),
     rpe: w.rpe ?? null,
     forventet_belastning: w.forventet_belastning ?? null,
@@ -517,7 +560,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 3. Dagens økter (planlagt + gjennomført).
     const todayWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('date', todayISO)
@@ -526,7 +569,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 4. Neste planlagt fremover i tid (opp til 30 dager).
     const futurePlannedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .eq('is_planned', true)
@@ -598,7 +641,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    Også utvidet filter for å fange dagbok-input som ikke har is_completed=true.
     const recentCompletedPromise = supabase
       .from('workouts')
-      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id))')
+      .select('id,title,date,sport,workout_type,duration_minutes,distance_km,time_of_day,is_planned,is_completed,avg_heart_rate,max_heart_rate,notes,rpe,forventet_belastning, workout_activities(id,sort_order,window_start_seconds,activity_type,movement_name,movement_subcategory,lap_notes,gruppe_id,duration_seconds,distance_meters,avg_heart_rate,zones,lactate_mmol,prone_shots,prone_hits,standing_shots,standing_hits,workout_activity_exercises(id),workout_shooting_series(id,series_no,position,shots,hits,time_seconds,avg_heart_rate,max_heart_rate,note,shot_plot,points,vind_retning,vind_styrke,sikt))')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -948,6 +991,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
           season_name: seasonRow.name,
           goal_main: seasonRow.goal_main,
           season_end: seasonRow.end_date,
+          season_start: seasonRow.start_date,
           days_until_end: daysBetween(todayISO, seasonRow.end_date),
           planned_hours_total: plannedHours > 0 ? plannedHours : null,
           actual_hours_to_date: plannedHours > 0 ? actualHours : null,
@@ -1041,6 +1085,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       periods: periodsUt,
       camps: campsUt,
       helse: 'error' in helseRes ? null : helseRes,
+      hardDager: [...new Set(recentCompleted.filter(w => w.date >= grense30 && ((w.workout_type != null && HARD_TYPER.has(w.workout_type)) || hardSecondsForWorkout(w.workout_activities ?? []) >= 15 * 60)).map(w => w.date))],
       klokke: { today: klokkeIdag, lastHard: klokkeHard },
       hero,
       todayState,

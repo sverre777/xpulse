@@ -21,7 +21,7 @@ import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { SPORTS, WORKOUT_TYPES_BASE } from '@/lib/types'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { fmtHM, KortFot, VisMer, COLOR_PRONE, COLOR_STANDING } from './kort-deler'
-import { HardoktPopup } from './kort-popups'
+import { HardoktPopupV2 } from './HardoktPopupV2'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ROED = '#E11D48'
@@ -174,7 +174,7 @@ export function SisteHardoktKort({ w, klokke }: { w: OversiktWorkoutCard | null;
           <VisMer onClick={() => setApen(true)} />
         </KortFot>
       </div>
-      {apen && <HardoktPopup w={w} onClose={() => setApen(false)} />}
+      {apen && <HardoktPopupV2 w={w} klokke={klokke} onClose={() => setApen(false)} />}
     </section>
   )
 }

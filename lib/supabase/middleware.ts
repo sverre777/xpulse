@@ -213,10 +213,19 @@ export async function updateSession(request: NextRequest) {
   let user: { id: string; email: string | null } | null
   try {
     const t0 = Date.now()
-    const { data } = await withTimeout(supabase.auth.getClaims(), MW_TIMEOUT_MS)
-    tAuth = Date.now() - t0
+    const { data, error } = await withTimeout(supabase.auth.getClaims(), MW_TIMEOUT_MS)
     const claims = data?.claims
     user = claims?.sub ? { id: claims.sub, email: typeof claims.email === 'string' ? claims.email : null } : null
+    // UTLØPT token (JWT exp passert): getClaims fornyer IKKE sesjonen på
+    // serveren — da faller vi tilbake til getUser(), som fornyer via Auth og
+    // skriver nye cookies (setAll → pendingCookies). Uten dette ble brukeren
+    // sendt til /app, siden fornyet og sendte tilbake — redirect-løkke
+    // (målt i prod 5. sep etter bolk 1). Koster én rundtur per utløp.
+    if (!user && error && request.cookies.getAll().some(c => c.name.startsWith('sb-'))) {
+      const { data: hel } = await withTimeout(supabase.auth.getUser(), MW_TIMEOUT_MS)
+      user = hel.user ? { id: hel.user.id, email: hel.user.email ?? null } : null
+    }
+    tAuth = Date.now() - t0
   } catch {
     // Supabase auth treg/utilgjengelig → IKKE heng edge-funksjonen. Slipp
     // requesten gjennom; sidene self-guarder (egen auth-sjekk) og RLS beskytter

@@ -184,6 +184,43 @@ export function OktbyggerPopup({
   const userHasBiathlon = sport === 'biathlon' || rader.some(r => r.activity_type.startsWith('skyting'))
   const skytingRader = rader.filter(r => r.activity_type.startsWith('skyting'))
   const hr = useMemo(() => (klokke?.samples?.hr_samples ?? []).map(p => ({ t: p.t, hr: p.hr })), [klokke])
+  // Bolk 22 (Sverre 5. sep): «Legg skyting på puls» — en bestemt UPLASSERT
+  // skyterad velges fra lista og plasseres med klikk på kurven eller tid
+  // (mm:ss). Bare synlig når økta har skytinger som ikke ligger på kurven.
+  const [leggSkyting, setLeggSkyting] = useState<{ aapen: boolean; radId: string | null; tid: string }>({ aapen: false, radId: null, tid: '' })
+  const uplasserteSkytinger = skytingRader
+    .map((rad, i) => ({ rad, navn: `Skyting ${i + 1} ${skytePosisjonKort(rad)}` }))
+    .filter(x => x.rad.window_start_seconds == null)
+  const settPulsIVindu = (r: ActivityRow, start: number, sek: number) => {
+    // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på skytingen
+    // automatisk (pulsen i vinduet — samme tall som båndet viser).
+    const puls = pulsIVindu(hr, start, start + sek)
+    if (puls.snitt != null) r.avg_heart_rate = String(puls.snitt)
+    if (puls.maks != null) r.max_heart_rate = String(puls.maks)
+  }
+  /** Plasserer en eksisterende skyterad på tidslinja: starten settes, pulsen
+      fylles, og utkastet regner kjeden på nytt rundt den. */
+  const plasserSkyterad = (rad: ActivityRow, s: number) => {
+    const sek = Math.max(MIN_RAD_SEK, rad.window_duration_seconds ?? (parseActivityDuration(rad.duration) || 60))
+    const ny = { ...rad, window_start_seconds: s, window_duration_seconds: sek }
+    settPulsIVindu(ny, s, sek)
+    endre(rader.map(r => (r.id === rad.id ? ny : r)))
+    setValgtRad(rad.id)
+    setValgtPunkt({ slag: 'skyting', id: rad.id })
+    setLeggSkyting({ aapen: false, radId: null, tid: '' })
+  }
+  const velgSkytingForPlassering = (rad: ActivityRow) => {
+    setLeggSkyting({ aapen: false, radId: rad.id, tid: '' })
+    setPunktType(rad.activity_type === 'skyting_staaende' ? 'skyting_staa' : 'skyting_ligg')
+    setPunktModus(true); setKuttModus(false); setStartHerModus(false)
+  }
+  const plasserFraTid = () => {
+    const rad = leggSkyting.radId ? rader.find(r => r.id === leggSkyting.radId) : undefined
+    const sek = parseActivityDuration(leggSkyting.tid)
+    if (!rad || sek == null || sek < 0) return
+    plasserSkyterad(rad, Math.round(sek))
+    setPunktModus(false)
+  }
   // Fokus-serien avledes hver gang: byggeren kan åpne før klokkedataene
   // kommer, og da må valget falle tilbake på den første serien som finnes.
   const tilgjengeligeKurver = useMemo(() => {
@@ -232,28 +269,18 @@ export function OktbyggerPopup({
       // stilling i lista (lagt til i aktivitetsradene), er det den som
       // plasseres her (Sverre 4. sep) — ellers lages en ny.
       const type = punktType === 'skyting_ligg' ? 'skyting_liggende' : 'skyting_staaende'
-      const varighet = (r: ActivityRow) => r.window_duration_seconds ?? (parseActivityDuration(r.duration) || 60)
-      const eksisterende = rader.find(r => r.activity_type === type && r.window_start_seconds == null)
-      const settPuls = (r: ActivityRow, start: number, sek: number) => {
-        // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på
-        // skytingen automatisk (pulsen i vinduet — samme tall som båndet viser).
-        const puls = pulsIVindu(hr, start, start + sek)
-        if (puls.snitt != null) r.avg_heart_rate = String(puls.snitt)
-        if (puls.maks != null) r.max_heart_rate = String(puls.maks)
-      }
+      // Bolk 22: er en bestemt uplassert skyting valgt («Legg skyting på
+      // puls»), er det den som plasseres — ellers første uplasserte av stillingen.
+      const valgtForPlassering = leggSkyting.radId ? rader.find(r => r.id === leggSkyting.radId) : undefined
+      const eksisterende = valgtForPlassering ?? rader.find(r => r.activity_type === type && r.window_start_seconds == null)
       if (eksisterende) {
-        const sek = Math.max(MIN_RAD_SEK, varighet(eksisterende))
-        const ny = { ...eksisterende, window_start_seconds: s, window_duration_seconds: sek }
-        settPuls(ny, s, sek)
-        endre(rader.map(r => (r.id === eksisterende.id ? ny : r)))
-        setValgtRad(eksisterende.id)
-        setValgtPunkt({ slag: 'skyting', id: eksisterende.id })
+        plasserSkyterad(eksisterende, s)
       } else {
         const rad = nyAktivitetsrad(type, '')
         rad.duration = '1:00'
         rad.window_start_seconds = s
         rad.window_duration_seconds = 60
-        settPuls(rad, s, 60)
+        settPulsIVindu(rad, s, 60)
         endre([...rader, rad])
         setValgtPunkt({ slag: 'skyting', id: rad.id })
       }
@@ -426,6 +453,37 @@ export function OktbyggerPopup({
                         {VISNING_ETIKETT[v]}
                       </button>
                     ))}
+                  </span>
+                )}
+                {uplasserteSkytinger.length > 0 && (
+                  <span data-legg-skyting={leggSkyting.radId ? 'valgt' : 'liste'} className="flex items-center gap-1 flex-wrap" style={{ position: 'relative' }}>
+                    <button type="button" data-legg-skyting-knapp aria-expanded={leggSkyting.aapen}
+                      onClick={() => setLeggSkyting(v => ({ ...v, aapen: !v.aapen }))}
+                      style={pille(leggSkyting.radId ? PUNKT_SLAG.skyting.farge : undefined, !!leggSkyting.radId)}>
+                      🎯 Legg skyting på puls{leggSkyting.radId ? ` · ${uplasserteSkytinger.find(x => x.rad.id === leggSkyting.radId)?.navn ?? ''}` : ` (${uplasserteSkytinger.length})`}
+                    </button>
+                    {leggSkyting.aapen && (
+                      <span data-legg-skyting-liste role="listbox" style={{ position: 'absolute', top: '100%', left: 0, zIndex: 30, marginTop: 4, background: 'var(--flate-3)', border: '1px solid var(--kant-3)', borderRadius: 10, padding: 6, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 190, boxShadow: '0 8px 24px rgba(0,0,0,.25)' }}>
+                        {uplasserteSkytinger.map(({ rad, navn }) => (
+                          <button key={rad.id} type="button" data-legg-skyting-valg={rad.id} role="option" aria-selected={leggSkyting.radId === rad.id}
+                            onClick={() => velgSkytingForPlassering(rad)}
+                            style={{ ...pille(), justifyContent: 'flex-start', textTransform: 'none', letterSpacing: 0 }}>
+                            🎯 {navn}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                    {leggSkyting.radId && (
+                      <>
+                        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 12, color: 'var(--tekst-5-app)' }}>klikk på kurven, eller tid</span>
+                        <input type="text" inputMode="numeric" placeholder="mm:ss" value={leggSkyting.tid} data-legg-skyting-tid aria-label="Tid fra start (mm:ss)"
+                          onChange={e => setLeggSkyting(v => ({ ...v, tid: e.target.value }))}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); plasserFraTid() } }}
+                          style={{ width: 64, minHeight: 32, padding: '4px 8px', borderRadius: 8, border: '1px solid var(--kant-3)', background: 'var(--flate-3)', color: 'var(--tekst-1-app)', fontVariantNumeric: 'tabular-nums' }} />
+                        <button type="button" data-legg-skyting-plasser onClick={plasserFraTid} disabled={parseActivityDuration(leggSkyting.tid) == null} style={pille()}>Plasser</button>
+                        <button type="button" aria-label="Avbryt plassering" onClick={() => { setLeggSkyting({ aapen: false, radId: null, tid: '' }); setPunktModus(false) }} style={{ ...pille(), padding: '4px 8px' }}>×</button>
+                      </>
+                    )}
                   </span>
                 )}
                 <button type="button" onClick={() => { setKuttModus(v => !v); setStartHerModus(false) }}
@@ -952,6 +1010,16 @@ function KurveMedRader({
 }
 
 // ── BOLK 23: panelet for det valgte punktet — rett under grafen ───────
+/** Bolk 22: stillingen slik lista viser den — L / S / L+S, eller «velg L/S». */
+function skytePosisjonKort(r: ActivityRow): string {
+  if (r.activity_type === 'skyting_liggende') return 'L'
+  if (r.activity_type === 'skyting_staaende') return 'S'
+  const serier = r.shooting_series ?? []
+  const L = serier.some(x => x.position === 'L') || !!String(r.prone_shots ?? '').trim()
+  const S = serier.some(x => x.position === 'S') || !!String(r.standing_shots ?? '').trim()
+  return L && S ? 'L+S' : L ? 'L' : S ? 'S' : '· velg L/S'
+}
+
 function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk, onEndrePunkt, onFjernPunkt, onLaktat, settLaktatSek, laktatSek, onErnaering, settErnaeringMin, onEndreRad }: {
   valgt: { slag: 'notat' | 'laktat' | 'ernaering' | 'skyting'; id: string }
   punkter: TidspunktNotat[]

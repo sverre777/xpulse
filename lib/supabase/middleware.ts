@@ -51,7 +51,10 @@ const MW_TIMEOUT_MS = 3000
 // som før). Rollebytte sletter cookien (se app/actions/roles.ts).
 // ---------------------------------------------------------------------------
 export const SUB_CACHE_COOKIE = 'xp-sub-cache'
-const SUB_CACHE_TTL_S = 60
+// YTELSE bolk 1 (Sverre 5. sep): maks 10 min — bare POSITIVE resultater
+// caches, så et kjøp slår gjennom med en gang; en oppsigelse kan i verste
+// fall henge igjen i 10 min (RLS beskytter dataene uansett).
+const SUB_CACHE_TTL_S = 600
 
 let hmacKeyPromise: Promise<CryptoKey> | null = null
 function getHmacKey(): Promise<CryptoKey> | null {
@@ -155,6 +158,20 @@ export async function updateSession(request: NextRequest) {
   // Cookies som settes underveis (token-refresh fra Supabase + sub-cache).
   // Samles opp og legges på SLUTT-responsen — også redirects, så et refreshet
   // token ikke mistes når vi redirecter.
+  // YTELSE bolk 1: betalingsmuren kjøres bare på DOKUMENT-navigasjoner til
+  // /app/* — ikke på server actions, RSC-henting eller _next-requests. De
+  // får identiteten (x-xp-uid) fra claims og self-guarder selv.
+  // Next stripper sine egne RSC-headere (rsc, next-router-state-tree, _rsc)
+  // FØR proxyen kjører (målt 5. sep) — bare next-action overlever. Dokument
+  // vs. RSC-henting leses derfor fra nettleserens sec-fetch-dest (kan ikke
+  // settes av script): «document» = navigasjon, «empty» = fetch/RSC.
+  const erAction = !!request.headers.get('next-action')
+  const fetchDest = request.headers.get('sec-fetch-dest')
+  const erRsc = !erAction && fetchDest != null && fetchDest !== 'document' && fetchDest !== 'iframe'
+  const erNext = pathname.startsWith('/_next')
+  const erDokument = !erAction && !erRsc && !erNext
+  const slag = erAction ? 'action' : erRsc ? 'rsc' : erNext ? 'next' : 'dokument'
+
   const pendingCookies: { name: string; value: string; options?: Parameters<NextResponse['cookies']['set']>[2] }[] = []
 
   const supabase = createServerClient(
@@ -182,19 +199,24 @@ export async function updateSession(request: NextRequest) {
   const withCookies = (res: NextResponse): NextResponse => {
     pendingCookies.forEach(({ name, value, options }) => res.cookies.set(name, value, options))
     const total = Date.now() - tStart
-    res.headers.set('Server-Timing', serverTiming([['mw-auth', tAuth], ['mw-sub', tSub], ['mw', total]]))
-    console.log(`[xp-tid] mw path=${pathname} auth=${tAuth}ms sub=${tSub}ms total=${total}ms`)
+    res.headers.set('Server-Timing', serverTiming([['mw-auth', tAuth], ['mw-sub', tSub], ['mw', total]]) + `, mw-slag;desc=${slag}`)
+    console.log(`[xp-tid] mw path=${pathname} slag=${slag} auth=${tAuth}ms sub=${tSub}ms total=${total}ms`)
     return res
   }
   const passThrough = () => withCookies(NextResponse.next({ request: { headers: requestHeaders } }))
   const redirectTo = (url: URL) => withCookies(NextResponse.redirect(url))
 
-  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']
+  // YTELSE bolk 1: getClaims verifiserer JWT-en LOKALT mot prosjektets
+  // asymmetriske signeringsnøkkel (JWKS hentes én gang og caches) — ingen
+  // Auth-rundtur per request. Mutasjoner beholder auth.getUser() i actions
+  // (defense-in-depth). Utløpt token: getClaims fornyer via sesjonen først.
+  let user: { id: string; email: string | null } | null
   try {
     const t0 = Date.now()
-    const { data } = await withTimeout(supabase.auth.getUser(), MW_TIMEOUT_MS)
+    const { data } = await withTimeout(supabase.auth.getClaims(), MW_TIMEOUT_MS)
     tAuth = Date.now() - t0
-    user = data.user
+    const claims = data?.claims
+    user = claims?.sub ? { id: claims.sub, email: typeof claims.email === 'string' ? claims.email : null } : null
   } catch {
     // Supabase auth treg/utilgjengelig → IKKE heng edge-funksjonen. Slipp
     // requesten gjennom; sidene self-guarder (egen auth-sjekk) og RLS beskytter
@@ -206,6 +228,9 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname === '/app' || pathname === '/app/register'
 
   if (!user) {
+    // Action/RSC uten sesjon: ingen redirect (svaret er ikke et dokument) —
+    // handlingen/siden self-guarder. Dokument: til innlogging som før.
+    if (!erDokument) return passThrough()
     // Unauthenticated: block /app/* except /app and /app/register
     if (isAppRoute && !isAuthPage) {
       const url = request.nextUrl.clone()
@@ -229,13 +254,21 @@ export async function updateSession(request: NextRequest) {
   requestHeaders.set('x-xp-uid', user.id)
   if (user.email) requestHeaders.set('x-xp-email', encodeURIComponent(user.email))
 
+  // YTELSE bolk 1: abonnement-endringer sletter cache-cookien. Stripe-
+  // webhooken kan ikke røre nettleserens cookie, men både kjøp (success_url)
+  // og portal (return_url) lander på /app/abonnement — der nullstilles den,
+  // så neste /app-navigasjon leser basen. Rollebytte sletter den i roles.ts.
+  if (erDokument && (pathname === '/app/abonnement' || pathname.startsWith('/app/abonnement/'))) {
+    pendingCookies.push({ name: SUB_CACHE_COOKIE, value: '', options: { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 0 } })
+  }
+
   // Alle gjenstående Supabase-spørringer (abonnement/profil) er timeout-guardet.
   // Hvis noen henger/feiler slipper vi requesten gjennom i stedet for å henge
   // edge-funksjonen til timeout (= site down). Betalingsmur degraderes da kort-
   // varig; RLS beskytter fortsatt data.
   try {
   // Authenticated: /app root og /app/register bounce HJEM eller til onboarding.
-  if (isAuthPage) {
+  if (isAuthPage && erDokument) {
     // Sjekk subscription først — ny bruker uten sub skal til onboarding.
     const { data: sub } = await withTimeout(supabase
       .from('subscriptions')
@@ -266,7 +299,7 @@ export async function updateSession(request: NextRequest) {
 
   // Betalingsmur: sjekk subscription for /app/* (unntatt SUB_EXEMPT_PREFIXES).
   // Tier-gate /app/trener/*: krever Trener Basic eller Pro.
-  if (isAppRoute && !isSubExempt(pathname)) {
+  if (erDokument && isAppRoute && !isSubExempt(pathname)) {
     // Server-action-POST-er (f.eks. rollebytte) muterer tilstanden cookien
     // cacher. Skriv aldri cache-cookie på ikke-GET — actionens egen
     // Set-Cookie skal være eneste kilde på slike responser. Lesing er OK.

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { medTid } from '@/lib/ytelse-tid'
 import { getAuthUser } from '@/lib/auth'
 
 // To server-actions for topbar-status:
@@ -28,7 +29,7 @@ export interface KlokkesyncStatus extends KlokkesyncBadge {
 
 // Liten payload for badge-ren­dering. Brukes fra (authed)-layout server-
 // side så ikonet vises samtidig med de andre topbar-ikonene.
-export async function getKlokkesyncBadge(): Promise<KlokkesyncBadge> {
+async function getKlokkesyncBadgeIndre(): Promise<KlokkesyncBadge> {
   // Ren lesebane på hver sidelast — header-identitet, ingen Auth-rundtur.
   // Cookies og headere leses parallelt; de avhenger ikke av hverandre.
   const [supabase, user] = await Promise.all([createClient(), getAuthUser()])
@@ -137,4 +138,9 @@ export async function getKlokkesyncStatus(): Promise<KlokkesyncStatus> {
     } : null,
     hasError,
   }
+}
+
+/** YTELSE bolk 0: måler getKlokkesyncBadge. */
+export async function getKlokkesyncBadge(...args: Parameters<typeof getKlokkesyncBadgeIndre>): ReturnType<typeof getKlokkesyncBadgeIndre> {
+  return medTid('getKlokkesyncBadge', () => getKlokkesyncBadgeIndre(...args))
 }

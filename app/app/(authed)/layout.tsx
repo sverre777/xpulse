@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { medTid } from '@/lib/ytelse-tid'
 import { MainNav } from '@/components/layout/MainNav'
 import { RoleProvider } from '@/lib/role-context'
 import { getInboxUnreadCount } from '@/app/actions/inbox'
@@ -21,7 +22,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   // middleware (redirect til abonnement), så bruker havner her på utøver-
   // ruter — UI må matche det de faktisk har tilgang til.
   const supabase = await createClient()
-  const [data, unreadInboxCount, klokkesyncBadge, sub] = await Promise.all([
+  const [data, unreadInboxCount, klokkesyncBadge, sub] = await medTid('layout(authed)', () => Promise.all([
     getCurrentUserAndProfile(),
     getInboxUnreadCount(),
     getKlokkesyncBadge(),
@@ -29,7 +30,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
       const user = await getAuthUser()
       return user ? getActiveSubscription(supabase, user.id) : null
     })(),
-  ])
+  ]))
   if (!data) redirect('/app')
   const { profile } = data
 

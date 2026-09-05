@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { medTid } from '@/lib/ytelse-tid'
 import type { Sport } from '@/lib/types'
 import type {
   WorkoutSamples, LapMarker, LactateMarker, NutritionMarker, ShootingMarker,
@@ -98,7 +99,7 @@ export interface WorkoutKlokkesyncData {
   heartZones: HeartZone[]
 }
 
-export async function getWorkoutKlokkesyncData(
+async function getWorkoutKlokkesyncDataIndre(
   workoutId: string,
 ): Promise<WorkoutKlokkesyncData | null> {
   const supabase = await createClient()
@@ -502,7 +503,7 @@ export interface KompaktKurve {
   blokker: PlanBlokkInn[]
 }
 
-export async function hentKompakteKurver(workoutIds: string[]): Promise<Record<string, KompaktKurve>> {
+async function hentKompakteKurverIndre(workoutIds: string[]): Promise<Record<string, KompaktKurve>> {
   const ut: Record<string, KompaktKurve> = {}
   const ids = [...new Set(workoutIds)].slice(0, 80)
   if (ids.length === 0) return ut
@@ -694,4 +695,14 @@ function varighetSekAv(v: unknown): number {
     return d.length === 3 ? d[0] * 3600 + d[1] * 60 + d[2] : d.length === 2 ? d[0] * 60 + d[1] : d[0] * 60
   }
   return 0
+}
+
+/** YTELSE bolk 0: måler getWorkoutKlokkesyncData. */
+export async function getWorkoutKlokkesyncData(...args: Parameters<typeof getWorkoutKlokkesyncDataIndre>): ReturnType<typeof getWorkoutKlokkesyncDataIndre> {
+  return medTid('getWorkoutKlokkesyncData', () => getWorkoutKlokkesyncDataIndre(...args))
+}
+
+/** YTELSE bolk 0: måler hentKompakteKurver. */
+export async function hentKompakteKurver(...args: Parameters<typeof hentKompakteKurverIndre>): ReturnType<typeof hentKompakteKurverIndre> {
+  return medTid('hentKompakteKurver', () => hentKompakteKurverIndre(...args))
 }

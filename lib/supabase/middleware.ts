@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { hasActiveAccess, hasCoachTier, type ActiveSubscription } from '@/lib/subscriptions'
+import { serverTiming } from '@/lib/ytelse-tid'
 
 // Subscription-unntak: ruter brukeren må kunne nå selv uten aktivt abonnement
 // (administrer, eksporter data, GDPR-handlinger). Disse er også eksempte fra
@@ -122,6 +123,9 @@ async function readSubCache(raw: string | undefined, uid: string, nowS: number):
 
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
+  // YTELSE bolk 0: tid per del av middleware → Server-Timing på svaret + logg.
+  const tStart = Date.now()
+  let tAuth = 0, tSub = 0
 
   // Landing and pricing are fully public — no Supabase call, no auth.
   if (pathname === '/' || pathname === '/pris') {
@@ -177,6 +181,9 @@ export async function updateSession(request: NextRequest) {
 
   const withCookies = (res: NextResponse): NextResponse => {
     pendingCookies.forEach(({ name, value, options }) => res.cookies.set(name, value, options))
+    const total = Date.now() - tStart
+    res.headers.set('Server-Timing', serverTiming([['mw-auth', tAuth], ['mw-sub', tSub], ['mw', total]]))
+    console.log(`[xp-tid] mw path=${pathname} auth=${tAuth}ms sub=${tSub}ms total=${total}ms`)
     return res
   }
   const passThrough = () => withCookies(NextResponse.next({ request: { headers: requestHeaders } }))
@@ -184,7 +191,9 @@ export async function updateSession(request: NextRequest) {
 
   let user: Awaited<ReturnType<typeof supabase.auth.getUser>>['data']['user']
   try {
+    const t0 = Date.now()
     const { data } = await withTimeout(supabase.auth.getUser(), MW_TIMEOUT_MS)
+    tAuth = Date.now() - t0
     user = data.user
   } catch {
     // Supabase auth treg/utilgjengelig → IKKE heng edge-funksjonen. Slipp
@@ -274,11 +283,13 @@ export async function updateSession(request: NextRequest) {
       cachedRole = cached.role
       cacheExp = cached.exp
     } else {
+      const tS0 = Date.now()
       const { data: sub } = await withTimeout(supabase
         .from('subscriptions')
         .select('tier, status, current_period_end, trial_end, cancel_at_period_end, stripe_customer_id, stripe_subscription_id')
         .eq('user_id', user.id)
         .maybeSingle(), MW_TIMEOUT_MS)
+      tSub = Date.now() - tS0
 
       if (!sub) {
         const url = request.nextUrl.clone()

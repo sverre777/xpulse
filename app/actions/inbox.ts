@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { medTid } from '@/lib/ytelse-tid'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthUser } from '@/lib/auth'
 
@@ -791,7 +792,7 @@ export async function createCoachGroup(
 //
 // Brukes av MainNav/CoachNav for å vise badge ved Innboks-lenken.
 // Returnerer 0 ved feil — badge er ikke kritisk for funksjonalitet.
-export async function getInboxUnreadCount(): Promise<number> {
+async function getInboxUnreadCountIndre(): Promise<number> {
   const res = await getViewer('read')
   if (!res.ok) return 0
   const viewer = res.viewer
@@ -859,4 +860,9 @@ export async function getInboxUnreadCount(): Promise<number> {
     (commentRes.count ?? 0) +
     (notifRes.count ?? 0)
   return total
+}
+
+/** YTELSE bolk 0: måler getInboxUnreadCount. */
+export async function getInboxUnreadCount(...args: Parameters<typeof getInboxUnreadCountIndre>): ReturnType<typeof getInboxUnreadCountIndre> {
+  return medTid('getInboxUnreadCount', () => getInboxUnreadCountIndre(...args))
 }

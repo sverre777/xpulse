@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { medTid } from '@/lib/ytelse-tid'
 import { createClient } from '@/lib/supabase/server'
 import type {
   Equipment,
@@ -56,7 +57,7 @@ export async function listEquipment(filter?: {
 // totaler, som før) eller per-aktivitet-overstyringer (radens km/varighet).
 // Selve regnestykket bor i lib/equipment-usage.ts (delt med trenersiden,
 // voktet av scripts/utstyr-usage-selftest.ts).
-export async function listEquipmentWithUsage(filter?: {
+async function listEquipmentWithUsageIndre(filter?: {
   category?: EquipmentCategory | null
   status?: EquipmentStatus | null
 }): Promise<EquipmentWithUsage[]> {
@@ -398,7 +399,7 @@ export async function getWorkoutEquipmentIds(workoutId: string): Promise<string[
 }
 
 // Hele utvalget for redigering: arv + overstyringer keyet på sort_order.
-export async function getWorkoutEquipmentSelection(workoutId: string): Promise<WorkoutEquipmentSelection> {
+async function getWorkoutEquipmentSelectionIndre(workoutId: string): Promise<WorkoutEquipmentSelection> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { heleOkta: [], perAktivitet: [] }
@@ -673,4 +674,14 @@ export async function getEquipmentForWorkout(workoutId: string): Promise<Equipme
     .in('id', ids)
     .eq('user_id', user.id)
   return (data ?? []) as Equipment[]
+}
+
+/** YTELSE bolk 0: måler listEquipmentWithUsage. */
+export async function listEquipmentWithUsage(...args: Parameters<typeof listEquipmentWithUsageIndre>): ReturnType<typeof listEquipmentWithUsageIndre> {
+  return medTid('listEquipmentWithUsage', () => listEquipmentWithUsageIndre(...args))
+}
+
+/** YTELSE bolk 0: måler getWorkoutEquipmentSelection. */
+export async function getWorkoutEquipmentSelection(...args: Parameters<typeof getWorkoutEquipmentSelectionIndre>): ReturnType<typeof getWorkoutEquipmentSelectionIndre> {
+  return medTid('getWorkoutEquipmentSelection', () => getWorkoutEquipmentSelectionIndre(...args))
 }

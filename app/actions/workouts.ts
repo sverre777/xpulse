@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, updateTag } from 'next/cache'
+import { medTid } from '@/lib/ytelse-tid'
 import { lesTidspunktNotater, tilJson } from '@/lib/tidspunkt-notater'
 import { createClient } from '@/lib/supabase/server'
 import { pulsIVindu } from '@/lib/segmenter'
@@ -1330,7 +1331,7 @@ async function attachCoachNames<T extends { created_by_coach_id?: string | null 
   }))
 }
 
-export async function getCalendarWorkouts(userId: string, startDate: string, endDate: string) {
+async function getCalendarWorkoutsIndre(userId: string, startDate: string, endDate: string) {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
@@ -1344,7 +1345,7 @@ export async function getCalendarWorkouts(userId: string, startDate: string, end
   return await attachCoachNames(supabase, data ?? [])
 }
 
-export async function getWorkoutsForMonth(userId: string, year: number, month: number) {
+async function getWorkoutsForMonthIndre(userId: string, year: number, month: number) {
   const supabase = await createClient()
   const resolved = await resolveTargetUser(supabase, userId, 'can_view_dagbok', 'read')
   if ('error' in resolved) return []
@@ -1383,7 +1384,7 @@ export async function getWorkout(id: string) {
   return data
 }
 
-export async function getWorkoutForEdit(id: string, formMode: 'plan' | 'dagbok' = 'dagbok', targetUserId?: string): Promise<Partial<WorkoutFormData> | null> {
+async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 'dagbok', targetUserId?: string): Promise<Partial<WorkoutFormData> | null> {
   const t0 = Date.now()
   const supabase = await createClient()
   // Ren lesebane (åpne økt for redigering) — header-identitet, ingen Auth-rundtur.
@@ -1969,4 +1970,19 @@ export async function searchWorkouts(userId: string, query: string, filters: {
   if (filters.to) req = req.lte('date', filters.to)
   const { data } = await req
   return data ?? []
+}
+
+/** YTELSE bolk 0: måler getCalendarWorkouts. */
+export async function getCalendarWorkouts(...args: Parameters<typeof getCalendarWorkoutsIndre>): ReturnType<typeof getCalendarWorkoutsIndre> {
+  return medTid('getCalendarWorkouts', () => getCalendarWorkoutsIndre(...args))
+}
+
+/** YTELSE bolk 0: måler getWorkoutsForMonth. */
+export async function getWorkoutsForMonth(...args: Parameters<typeof getWorkoutsForMonthIndre>): ReturnType<typeof getWorkoutsForMonthIndre> {
+  return medTid('getWorkoutsForMonth', () => getWorkoutsForMonthIndre(...args))
+}
+
+/** YTELSE bolk 0: måler getWorkoutForEdit. */
+export async function getWorkoutForEdit(...args: Parameters<typeof getWorkoutForEditIndre>): ReturnType<typeof getWorkoutForEditIndre> {
+  return medTid('getWorkoutForEdit', () => getWorkoutForEditIndre(...args))
 }

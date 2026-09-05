@@ -7,7 +7,8 @@ import { OversiktHero } from '@/components/oversikt/OversiktHero'
 import { IDagKort } from '@/components/oversikt/IDagKort'
 import { UkensTotaler } from '@/components/oversikt/UkensTotaler'
 import { KonkurranseNedtelling, IngenAKonkurranse } from '@/components/oversikt/KonkurranseNedtelling'
-import { HardWorkoutCard, MainGoalCard, PhaseCard } from '@/components/oversikt/NoekkelkortGrid'
+import { MainGoalCard, PhaseCard } from '@/components/oversikt/NoekkelkortGrid'
+import { SisteHardoktKort } from '@/components/oversikt/SisteHardoktKort'
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
 import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
@@ -116,7 +117,7 @@ export default async function OversiktPage() {
         </div>
         <div className="xp-hjem-r2 mb-6" data-hjem-rad="2">
           <KompaktHelseKort forhandsdata={res.helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
-          <HardWorkoutCard w={res.lastHardWorkout} />
+          <SisteHardoktKort w={res.lastHardWorkout} klokke={res.klokke.lastHard} />
           <MainGoalCard goal={res.mainGoal} />
           <PhaseCard phase={res.phase} phaseStatus={res.phaseStatus} />
         </div>

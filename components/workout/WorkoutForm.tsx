@@ -318,9 +318,10 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const [showComparison, setShowComparison] = useState<boolean>(() => !!defaultValues?.is_completed)
   // ⚡ Øktbygger fra knapperaden — ALLTID: plan og dagbok, med og uten
   // lagret økt. Hurtigoppsettet skriver radene rett i skjemaet.
-  // Bolk 20: på en NY økt (plan eller dagbok) står byggeren åpen fra start —
-  // radene bygges i minnet og lagres sammen med økta.
-  const [visOktbygger, setVisOktbygger] = useState(!!apneOktbygger || (!workoutId && !templateBuildingMode && !captureOnlyMode))
+  // Bolk 20: på en NY økt (plan eller dagbok) er byggeren brukbar uten
+  // lagring — radene bygges i minnet og lagres sammen med økta. Den åpner
+  // seg IKKE av seg selv på Logg/Planlegg (Sverre 5. sep) — bare fra knappen.
+  const [visOktbygger, setVisOktbygger] = useState(!!apneOktbygger)
   // Klokkedata hentes ÉN gang for skjemaet og deles av oppsummeringskortet
   // (grafen, live) og klokkeseksjonen (rundetabell). Bumpes når byggeren
   // har skrevet til basen.

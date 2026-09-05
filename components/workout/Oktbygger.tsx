@@ -15,7 +15,7 @@ import {
 import {
   plasserRader, kuttRad, radVed, naboEtter, slaaSammenMedNeste, settRadStart, settRadVarighet,
   slettRad, typerForRad, etikettFor, klokkeslettTilSek, sekTilKlokkeslett,
-  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK, radVarighetSek } from '@/lib/oktbygger-rader'
+  leggInnBygg, flyttKjedeTil, snappTilKlokkerunder, overKurven, type Utkast, KURVE_TOLERANSE_SEK, MIN_RAD_SEK, skytingVarighetSek, radVarighetSek } from '@/lib/oktbygger-rader'
 import { xpConfirm } from '@/components/ui/ConfirmDialog'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import { OktKurve, type KurveSerie, type KurveHjelpere } from './OktKurve'
@@ -220,8 +220,15 @@ export function OktbyggerPopup({
     // Sverre 4. sep: snitt- og makspuls for vinduet legges inn på skytingen
     // automatisk (pulsen i vinduet — samme tall som båndet viser).
     const puls = pulsIVindu(hr, start, start + sek)
+    // Forrige vindus tall: serier som fortsatt har DEM er auto-fylte og
+    // følger med når vinduet flyttes; egne tall (≠ forrige) står.
+    const forrige = { snitt: r.avg_heart_rate, maks: r.max_heart_rate }
     if (puls.snitt != null) r.avg_heart_rate = String(puls.snitt)
     if (puls.maks != null) r.max_heart_rate = String(puls.maks)
+    // Sverre 5. sep («pulsen blir auto fyllt når den står på pulsgrafen»):
+    // også SERIENES puls/maks fylles fra vinduet — der de er tomme eller
+    // auto-fylte fra forrige vindu. Ført verdi vinner (manuell vinner-regelen).
+    r.shooting_series = fyllSeriePuls(r.shooting_series ?? [], puls, forrige)
   }
   /** Plasserer en eksisterende skyterad på tidslinja: starten settes, pulsen
       fylles, og utkastet regner kjeden på nytt rundt den. */
@@ -277,9 +284,7 @@ export function OktbyggerPopup({
       const s = Math.max(0, Math.round(sek))
       const sek2 = Math.max(MIN_RAD_SEK, rad.window_duration_seconds ?? (parseActivityDuration(rad.duration) || 60))
       const ny = { ...rad, window_start_seconds: s, window_duration_seconds: sek2 }
-      const puls = pulsIVindu(hr, s, s + sek2)
-      if (puls.snitt != null) ny.avg_heart_rate = String(puls.snitt)
-      if (puls.maks != null) ny.max_heart_rate = String(puls.maks)
+      settPulsIVindu(ny, s, sek2)
       endre(rader.map(r => (r.id === rad.id ? ny : r)))
     } else {
       endre(flyttKjedeTil(rader, plassering, valgtRad, sek))
@@ -656,7 +661,7 @@ export function OktbyggerPopup({
 
               {/* BOLK 23: utfyllingsfeltene for det valgte punktet — rett under grafen. */}
               {valgtPunkt && (
-                <PunktPanel valgt={valgtPunkt} punkter={punkter} laktat={laktat} ernaering={ernaering} rader={rader} totalSek={totalSek} erPlanlagt={erPlanlagt}
+                <PunktPanel hr={hr} valgt={valgtPunkt} punkter={punkter} laktat={laktat} ernaering={ernaering} rader={rader} totalSek={totalSek} erPlanlagt={erPlanlagt}
                   onLukk={() => setValgtPunkt(null)}
                   onEndrePunkt={endrePunkt} onFjernPunkt={fjernPunkt}
                   onLaktat={onLaktat} settLaktatSek={settLaktatSek} laktatSek={laktatSek}
@@ -1141,8 +1146,10 @@ function skytePosisjonKort(r: ActivityRow): string {
   return L && S ? 'L+S' : L ? 'L' : S ? 'S' : '· velg L/S'
 }
 
-function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk, onEndrePunkt, onFjernPunkt, onLaktat, settLaktatSek, laktatSek, onErnaering, settErnaeringMin, onEndreRad, erPlanlagt = false }: {
+function PunktPanel({ hr = [], valgt, punkter, laktat, ernaering, rader, totalSek, onLukk, onEndrePunkt, onFjernPunkt, onLaktat, settLaktatSek, laktatSek, onErnaering, settErnaeringMin, onEndreRad, erPlanlagt = false }: {
   erPlanlagt?: boolean
+  /** Pulskurven — seriens puls/maks fylles fra skytevinduet (Sverre 5. sep). */
+  hr?: Array<{ t: number; hr: number }>
   valgt: { slag: 'notat' | 'laktat' | 'ernaering' | 'skyting'; id: string }
   punkter: TidspunktNotat[]
   laktat: LactateRow[]
@@ -1211,7 +1218,10 @@ function PunktPanel({ valgt, punkter, laktat, ernaering, rader, totalSek, onLukk
       </div></div>
   }
   const rad = rader.find(x => x.id === valgt.id); if (!rad) return null
-  return <SkytingPunktPanel rad={rad} onEndre={patch => onEndreRad(rad.id, patch)} onLukk={onLukk} planMode={erPlanlagt} />
+  const vinduPuls = hr.length > 0 && rad.window_start_seconds != null
+    ? pulsIVindu(hr, rad.window_start_seconds, rad.window_start_seconds + Math.max(MIN_RAD_SEK, rad.window_duration_seconds ?? skytingVarighetSek(rad)))
+    : null
+  return <SkytingPunktPanel rad={rad} onEndre={patch => onEndreRad(rad.id, patch)} onLukk={onLukk} planMode={erPlanlagt} vinduPuls={vinduPuls} />
 }
 
 // ── BOLK 23: skytepunktets felt rett under grafen ───────────────────
@@ -1250,12 +1260,42 @@ function skyteTittel(r: ActivityRow | undefined, type: string): string {
   return String(treff ?? '').trim() ? `${pos} ${treff}/${skudd || '5'}` : `${pos} fyll inn`
 }
 
-function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false }: {
+/** Fyller tomme puls/maks på seriene fra vinduets måling. Returnerer samme
+    array-referanse når ingenting endres (så effekten ikke skriver i ring). */
+function fyllSeriePuls(
+  serier: ShootingSeriesRow[], puls: { snitt: number | null; maks: number | null },
+  forrige: { snitt: string; maks: string } = { snitt: '', maks: '' },
+): ShootingSeriesRow[] {
+  if (puls.snitt == null && puls.maks == null) return serier
+  const auto = (v: string | null | undefined, f: string) => !String(v ?? '').trim() || (!!f.trim() && String(v).trim() === f.trim())
+  let endret = false
+  const ut = serier.map(s => {
+    const a = auto(s.avg_heart_rate, forrige.snitt) && puls.snitt != null ? String(puls.snitt) : s.avg_heart_rate
+    const m = auto(s.max_heart_rate, forrige.maks) && puls.maks != null ? String(puls.maks) : s.max_heart_rate
+    if (a === s.avg_heart_rate && m === s.max_heart_rate) return s
+    endret = true
+    return { ...s, avg_heart_rate: a, max_heart_rate: m }
+  })
+  return endret ? ut : serier
+}
+
+function SkytingPunktPanel({ rad, onEndre, onLukk, planMode = false, vinduPuls = null }: {
   rad: ActivityRow
   onEndre: (patch: Partial<ActivityRow>) => void
   onLukk: () => void
   planMode?: boolean
+  /** Pulsen i skytevinduet (snitt/maks) når skytinga står på kurven. */
+  vinduPuls?: { snitt: number | null; maks: number | null } | null
 }) {
+  // Sverre 5. sep: seriens puls/maks fylles fra vinduet når panelet åpnes
+  // for en skyting som står på pulsgrafen — bare der feltene er tomme.
+  useEffect(() => {
+    if (!vinduPuls || planMode) return
+    const serier = rad.shooting_series ?? []
+    const fylt = fyllSeriePuls(serier, vinduPuls)
+    if (fylt !== serier) onEndre({ shooting_series: fylt })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rad.window_start_seconds, vinduPuls?.snitt, vinduPuls?.maks])
   const ligg = rad.activity_type === 'skyting_liggende' || rad.activity_type === 'skyting_kombinert'
   const staa = rad.activity_type === 'skyting_staaende' || rad.activity_type === 'skyting_kombinert'
   // «fyll inn» til treff er ført — i seriene når de finnes, ellers i radens felt.

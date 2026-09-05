@@ -7,6 +7,12 @@
 // faktisk kan gjøre noe. Ingenting hentes for popupen.
 //
 // Lukkes med ✕, klikk utenfor og Escape — alle tre, ikke bare én av dem.
+//
+// MOBIL (Sverre 5. sep, Hjem v2-fasiten): ≤ 620 px er popupen et FULLSKJERM-
+// ARK — fixed inset 0, full bredde, ingen vannrett scroll, safe-area, lukk-
+// krysset øverst til høyre alltid synlig (sticky hode), body-scroll låst bak.
+// Én felles ramme for alle «Vis mer» på Hjem (Ukens totaler, Siste hardøkt,
+// Helse) — klassene .xp-popup* i globals.css.
 
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -39,23 +45,10 @@ export function KortPopup({
   }, [onClose])
 
   const body = (
-    <div onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        backgroundColor: 'var(--scrim-72)',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-        padding: '6vh 16px', overflowY: 'auto',
-      }}>
+    <div onClick={onClose} className="xp-popup-scrim" data-popup-scrim>
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={tittel}
-        style={{
-          // Mobil: full bredde med marg (notat pkt 13).
-          width: '100%', maxWidth: bred ? 1120 : 620,
-          background: 'var(--card)', border: '1px solid var(--line2)',
-          borderRadius: 16, padding: '20px 22px',
-          boxShadow: '0 30px 80px rgba(0,0,0,.6)',
-        }}>
-        <div className="flex items-start gap-3"
-          style={{ marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--line)' }}>
+        className={`xp-popup${bred ? ' xp-popup-bred' : ''}`} data-kort-popup>
+        <div className="xp-popup-hode flex items-start gap-3">
           <div style={{ minWidth: 0 }}>
             <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--mut)' }}>
               {kicker}
@@ -69,7 +62,7 @@ export function KortPopup({
               </div>
             )}
           </div>
-          <button type="button" onClick={onClose} aria-label="Lukk"
+          <button type="button" onClick={onClose} aria-label="Lukk" data-popup-lukk
             style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mut)', fontSize: 18, lineHeight: 1, minWidth: 44, minHeight: 44 }}>
             ✕
           </button>
@@ -104,15 +97,22 @@ export function PopupSeksjon({ tittel, children }: { tittel: string; children: R
 }
 
 /**
- * Tallrad. Fire kolonner på desktop, to på mobil (notat pkt 13).
- * «—» der noe ikke er ført — dempet, så tomme celler ikke leses som 0.
+ * Tallrad. Fire kolonner på desktop, TRE på mobil (Sverre 5. sep) med
+ * auto-høyde. «—» der noe ikke er ført — dempet, så tomme celler ikke
+ * leses som 0. Mobil: en rad (3 ruter) der ALLE er «—» skjules.
  */
 export function PopupTall({ celler }: { celler: { k: string; v: string | null; enhet?: string }[] }) {
+  // Mobilradene er grupper på tre i rekkefølge — ruter i en rad uten ett
+  // eneste tall merkes og skjules av CSS ved ≤ 620 px.
+  const skjulMobil = new Set<number>()
+  for (let i = 0; i < celler.length; i += 3) {
+    const rad = celler.slice(i, i + 3)
+    if (rad.every(c => !c.v)) for (let j = i; j < i + rad.length; j++) skjulMobil.add(j)
+  }
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4"
-      style={{ gap: 1, background: 'var(--line)', border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden' }}>
-      {celler.map(c => (
-        <div key={c.k} style={{ background: 'var(--card2, var(--card2))', padding: '10px 11px' }}>
+    <div className="xp-popup-tall" data-popup-tall>
+      {celler.map((c, i) => (
+        <div key={c.k} data-tom={c.v ? '0' : '1'} data-skjul-mobil={skjulMobil.has(i) ? '1' : undefined} style={{ background: 'var(--card2, var(--card2))', padding: '10px 11px', minWidth: 0 }}>
           <div style={{ fontFamily: FONT, fontWeight: 600, fontSize: 8.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>
             {c.k}
           </div>

@@ -247,7 +247,7 @@ export function HardoktPopupV2({ w, klokke, onClose }: { w: OversiktWorkoutCard;
               {serier.map((s, i) => (
                 <div key={s.id} style={{ display: 'contents' }} data-serie={s.series_no}>
                   <span style={tall}>{i + 1}</span>
-                  <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-2 flex-wrap" style={{ minWidth: 0 }}>
                     <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, color: 'var(--tekst-1-ren)', background: s.position === 'S' ? COLOR_STANDING : COLOR_PRONE, borderRadius: 5, padding: '1px 7px' }}>{s.position}</span>
                     {s.startSek != null && <span style={tekst}>{fmtKlokke(s.startSek)}</span>}
                   </span>

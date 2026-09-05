@@ -1,7 +1,8 @@
 'use client'
 
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
-import { Fragment, createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { buildWeekDates, toISO, getDateRange, getPrevRange, erSammeOmraade, type ServerOmraade } from '@/lib/kalender-omraade'
+import { Fragment, createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -93,6 +94,10 @@ export interface CalendarProps {
   initialView?: CalendarView
   initialDate?: string
   initialWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
+  /** Bolk 2: området serveren faktisk hentet (visning + start/slutt). Er det
+      lik det klienten vil vise, hoppes mount-hentingen over — ingen dobbel
+      henting av samme data. */
+  serverRange?: ServerOmraade | null
   /** Forrige periode (for analyse-panelets delta) — SSR-hydrert fra page-view. */
   initialPrevWorkoutsByDate?: Record<string, CalendarWorkoutSummary[]>
   initialHealthData?: Record<string, HealthSummary>
@@ -101,6 +106,12 @@ export interface CalendarProps {
   // Valgfrie initial-kommentarer (nøklet på periodeID) for å unngå roundtrip ved mount.
   initialWeekNote?: string
   initialMonthNote?: string
+  /** Bolk 2: plan-notatet for samme periode (dagbok viser det som «Plan»-blokk)
+      og nøklene serveren hentet notater for — matcher de, hoppes første
+      klient-henting over. */
+  initialPlanWeekNote?: string
+  initialPlanMonthNote?: string
+  serverNoteKeys?: { week: string; month: string } | null
   // Periodiseringsoverlay (valgfritt — tom array = ingen overlay).
   seasonPeriods?: import('@/app/actions/seasons').SeasonPeriod[]
   seasonKeyDates?: import('@/app/actions/seasons').SeasonKeyDate[]
@@ -207,15 +218,8 @@ function buildMonthGrid(year: number, month: number): Date[][] {
   return weeks
 }
 
-function buildWeekDates(ref: Date): Date[] {
-  const dow = (ref.getDay() + 6) % 7
-  const mon = new Date(ref); mon.setDate(ref.getDate() - dow)
-  return Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d })
-}
-
-function toISO(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
+// Uke-/ISO-hjelperne og tidsområdene bor i lib/kalender-omraade (bolk 2) —
+// samme kode på serveren (page-view) og her.
 
 function fmtDuration(mins: number | null) {
   if (!mins) return null
@@ -2640,11 +2644,14 @@ function YearView({ year, byDate, prevByDate, mode, onSelectMonth }: {
 export function Calendar({
   mode, userId, primarySport, userSports, activityTypeFavorites, templates,
   initialView = 'måned', initialDate,
-  initialWorkoutsByDate = {}, initialPrevWorkoutsByDate = {}, initialHealthData = {},
+  initialWorkoutsByDate = {}, initialPrevWorkoutsByDate = {}, initialHealthData = {}, serverRange = null,
   initialRecoveryData = {},
   heartZones = [],
   initialWeekNote = '',
   initialMonthNote = '',
+  initialPlanWeekNote = '',
+  initialPlanMonthNote = '',
+  serverNoteKeys = null,
   seasonPeriods = [],
   seasonKeyDates = [],
   seasonMarkings = [],
@@ -2890,7 +2897,10 @@ export function Calendar({
   useEffect(() => {
     if (!mounted) {
       setMounted(true)
-      if (!restoredFromUrl) return
+      // Bolk 2: serveren hentet NØYAKTIG dette området (cv/cd lest på
+      // serveren) → ingen mount-henting. Uten serverRange: som før — fersk
+      // last uten URL-posisjon stemmer, gjenopprettet posisjon må hentes.
+      if (serverRange ? erSammeOmraade(serverRange, view, refDate) : !restoredFromUrl) return
     }
     const { start, end } = getDateRange(view, refDate)
     const pr = getPrevRange(view, refDate)
@@ -2918,11 +2928,18 @@ export function Calendar({
   const [monthNote, setMonthNote] = useState(initialMonthNote)
   // I dagbok-modus henter vi også plan-notatet for samme periode for å vise
   // det som en "Plan"-tagget read-only blokk over utøverens egne dagbok-notat.
-  const [planWeekNote, setPlanWeekNote] = useState('')
-  const [planMonthNote, setPlanMonthNote] = useState('')
+  const [planWeekNote, setPlanWeekNote] = useState(initialPlanWeekNote)
+  const [planMonthNote, setPlanMonthNote] = useState(initialPlanMonthNote)
+  const forsteNotatHenting = useRef(true)
 
   useEffect(() => {
     if (!mounted || !showNotes) return
+    // Bolk 2: serveren leverte notatene for akkurat denne perioden — ingen
+    // ny henting ved mount. Navigasjon henter som før.
+    if (forsteNotatHenting.current) {
+      forsteNotatHenting.current = false
+      if (serverNoteKeys && ((view === 'uke' && serverNoteKeys.week === weekPeriodKey) || (view === 'måned' && serverNoteKeys.month === monthPeriodKey))) return
+    }
     let cancelled = false
     ;(async () => {
       if (view === 'uke') {
@@ -2949,33 +2966,6 @@ export function Calendar({
   }, [mounted, showNotes, view, weekPeriodKey, monthPeriodKey, noteContext, targetUserId])
 
   // Forrige periode for analyse-panelets delta (uke-7d / forrige måned).
-  function getPrevRange(v: CalendarView, ref: Date) {
-    if (v === 'uke') {
-      const p = new Date(ref); p.setDate(ref.getDate() - 7)
-      return getDateRange('uke', p)
-    }
-    if (v === 'måned') {
-      const p = new Date(ref.getFullYear(), ref.getMonth() - 1, 15)
-      return getDateRange('måned', p)
-    }
-    // År: forrige kalenderår — driver årssammendragets delta i YearView.
-    if (v === 'år') {
-      return getDateRange('år', new Date(ref.getFullYear() - 1, 5, 15))
-    }
-    return null
-  }
-
-  function getDateRange(v: CalendarView, ref: Date) {
-    if (v === 'uke') {
-      const wk = buildWeekDates(ref)
-      return { start: wk[0], end: wk[6] }
-    }
-    if (v === 'år') {
-      return { start: new Date(ref.getFullYear(), 0, 1), end: new Date(ref.getFullYear(), 11, 31) }
-    }
-    return { start: new Date(ref.getFullYear(), ref.getMonth(), 1), end: new Date(ref.getFullYear(), ref.getMonth() + 1, 0) }
-  }
-
   function prev() {
     setRefDate(d => {
       const n = new Date(d)

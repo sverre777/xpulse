@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
+import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
+import { getCalendarWorkouts, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { HelseOversikt } from '@/components/helse/HelseOversikt'
 import { getTemplates } from '@/app/actions/health'
 import { getRecoveryEntriesForRange } from '@/app/actions/recovery'
@@ -23,19 +24,23 @@ import { rangeFromPreset } from '@/components/analysis/date-range'
 
 interface Props {
   viewContext: ViewContext
+  /** Bolk 2: kalenderposisjonen fra URL-en (cv/cd) — serveren henter det
+      området klienten vil vise, ikke alltid inneværende måned. */
+  searchParams?: { cv?: string | string[]; cd?: string | string[] }
 }
 
-export async function DagbokPageView({ viewContext }: Props) {
+export async function DagbokPageView({ viewContext, searchParams }: Props) {
   const supabase = await createClient()
   const userId = viewContext.userId
 
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-
-  const monthStart = localISODate(new Date(year, month - 1, 1))
-  const monthEnd = localISODate(new Date(year, month, 0))
+  const today = localISODate(now)
+  const posisjon = lesKalenderPosisjon(searchParams, 'måned', now)
+  const omraade = getDateRange(posisjon.view, posisjon.refDate)
+  const forrige = getPrevRange(posisjon.view, posisjon.refDate)
+  const monthStart = toISO(omraade.start)
+  const monthEnd = toISO(omraade.end)
+  const serverRange = { view: posisjon.view, start: monthStart, end: monthEnd }
 
   // Periodisering-overlay (samme vindu som plan-siden): periodefarger på
   // ukerader + nøkkeldato-ikoner skal også vises i dagboken.
@@ -44,12 +49,8 @@ export async function DagbokPageView({ viewContext }: Props) {
   const overlayFromISO = localISODate(overlayFrom)
   const overlayToISO = localISODate(overlayTo)
 
-  const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-  isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))
-  const isoYearStart = new Date(Date.UTC(isoTmp.getUTCFullYear(), 0, 1))
-  const isoWeekNum = Math.ceil((((isoTmp.getTime() - isoYearStart.getTime()) / 86400000) + 1) / 7)
-  const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`
+  const weekKey = ukeNokkel(posisjon.refDate)
+  const monthKey = maanedNokkel(posisjon.refDate)
 
   const isCoachView = viewContext.mode === 'coach-view'
   const targetId = isCoachView ? userId : undefined
@@ -58,10 +59,10 @@ export async function DagbokPageView({ viewContext }: Props) {
   const [
     rawWorkouts, prevRawWorkouts, healthRows, recoveryRows, templates, heartZones,
     weekNotes, monthNotes, dayStatesRes,
-    profileRes, activityTypeFavorites, periodization,
+    profileRes, activityTypeFavorites, periodization, planWeekNotes, planMonthNotes,
   ] = await Promise.all([
-    getWorkoutsForMonth(userId, year, month),
-    getWorkoutsForMonth(userId, month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1),
+    getCalendarWorkouts(userId, monthStart, monthEnd),
+    forrige ? getCalendarWorkouts(userId, toISO(forrige.start), toISO(forrige.end)) : Promise.resolve([]),
     supabase.from('daily_health').select('date,hrv_ms,resting_hr,sleep_hours,body_weight_kg')
       .eq('user_id', userId)
       .gte('date', monthStart)
@@ -75,6 +76,10 @@ export async function DagbokPageView({ viewContext }: Props) {
     supabase.from('profiles').select('full_name, primary_sport, secondary_sports').eq('id', userId).single(),
     getActivityTypeFavorites(userId),
     getPeriodizationForDateRange(overlayFromISO, overlayToISO, targetId),
+    // Bolk 2: plan-notatet for samme periode (dagbok viser det som «Plan»-
+    // blokk) hentes her — ikke som eget klientkall etter mount.
+    getPeriodNotes('week', [weekKey], 'plan', targetId),
+    getPeriodNotes('month', [monthKey], 'plan', targetId),
   ])
   const profile = profileRes.data
   const seasonPeriods = !('error' in periodization) ? periodization.periods : []
@@ -165,8 +170,9 @@ export async function DagbokPageView({ viewContext }: Props) {
               activityTypeFavorites={activityTypeFavorites}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
-              initialView="måned"
-              initialDate={today}
+              initialView={posisjon.view}
+              initialDate={posisjon.fraUrl ? toISO(posisjon.refDate) : today}
+              serverRange={serverRange}
               initialWorkoutsByDate={workoutsByDate}
               initialPrevWorkoutsByDate={prevWorkoutsByDate}
               initialHealthData={healthData}
@@ -174,6 +180,9 @@ export async function DagbokPageView({ viewContext }: Props) {
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
+              initialPlanWeekNote={planWeekNotes[weekKey] ?? ''}
+              initialPlanMonthNote={planMonthNotes[monthKey] ?? ''}
+              serverNoteKeys={{ week: weekKey, month: monthKey }}
               readOnly={isCoachView}
               targetUserId={targetId}
               seasonPeriods={seasonPeriods}

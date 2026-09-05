@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
+import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
 import { createClient } from '@/lib/supabase/server'
-import { getWorkoutsForMonth, getActivityTypeFavorites } from '@/app/actions/workouts'
+import { getCalendarWorkouts, getActivityTypeFavorites } from '@/app/actions/workouts'
 import { getTemplates } from '@/app/actions/health'
 import { Calendar } from '@/components/calendar/Calendar'
 import { Sport, WorkoutTemplate } from '@/lib/types'
@@ -20,31 +21,30 @@ import { EmptyState } from '@/components/ui/EmptyState'
 
 interface Props {
   viewContext: ViewContext
+  searchParams?: { cv?: string | string[]; cd?: string | string[] }
 }
 
-export async function PlanPageView({ viewContext }: Props) {
+export async function PlanPageView({ viewContext, searchParams }: Props) {
   const supabase = await createClient()
   const userId = viewContext.userId
 
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-
-  const isoTmp = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-  isoTmp.setUTCDate(isoTmp.getUTCDate() + 4 - (isoTmp.getUTCDay() || 7))
-  const isoYearStart = new Date(Date.UTC(isoTmp.getUTCFullYear(), 0, 1))
-  const isoWeekNum = Math.ceil((((isoTmp.getTime() - isoYearStart.getTime()) / 86400000) + 1) / 7)
-  const weekKey = `${isoTmp.getUTCFullYear()}-W${String(isoWeekNum).padStart(2, '0')}`
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`
+  const today = localISODate(now)
+  // Bolk 2: området klienten vil vise (cv/cd) hentes på serveren.
+  const posisjon = lesKalenderPosisjon(searchParams, 'måned', now)
+  const omraade = getDateRange(posisjon.view, posisjon.refDate)
+  const forrige = getPrevRange(posisjon.view, posisjon.refDate)
+  const weekKey = ukeNokkel(posisjon.refDate)
+  const monthKey = maanedNokkel(posisjon.refDate)
 
   const overlayFrom = new Date(now); overlayFrom.setMonth(overlayFrom.getMonth() - 6)
   const overlayTo = new Date(now); overlayTo.setMonth(overlayTo.getMonth() + 6)
   const overlayFromISO = localISODate(overlayFrom)
   const overlayToISO = localISODate(overlayTo)
 
-  const monthStart = localISODate(new Date(year, month - 1, 1))
-  const monthEnd = localISODate(new Date(year, month, 0))
+  const monthStart = toISO(omraade.start)
+  const monthEnd = toISO(omraade.end)
+  const serverRange = { view: posisjon.view, start: monthStart, end: monthEnd }
 
   const dow = now.getDay()
   const mondayOffset = dow === 0 ? -6 : 1 - dow
@@ -57,8 +57,8 @@ export async function PlanPageView({ viewContext }: Props) {
     rawWorkouts, prevRawWorkouts, { data: profile }, templates, heartZones,
     weekNotes, monthNotes, periodization, dayStatesRes, activityTypeFavorites,
   ] = await Promise.all([
-    getWorkoutsForMonth(userId, year, month),
-    getWorkoutsForMonth(userId, month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1),
+    getCalendarWorkouts(userId, monthStart, monthEnd),
+    forrige ? getCalendarWorkouts(userId, toISO(forrige.start), toISO(forrige.end)) : Promise.resolve([]),
     supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', userId).single(),
     getTemplates(targetId),
     getHeartZonesForUserCached(userId),
@@ -96,7 +96,7 @@ export async function PlanPageView({ viewContext }: Props) {
           <div className="flex items-center gap-3">
             <span style={{ width: '24px', height: '2px', backgroundColor: '#FF4500', display: 'inline-block' }} />
             <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--tekst-1-app)', fontSize: '32px', letterSpacing: '0.08em' }}>
-              Plan {year}
+              Plan {now.getFullYear()}
             </h1>
           </div>
           {!isCoachView && (
@@ -133,8 +133,9 @@ export async function PlanPageView({ viewContext }: Props) {
               activityTypeFavorites={activityTypeFavorites}
               templates={templates as WorkoutTemplate[]}
               heartZones={heartZones}
-              initialView="måned"
-              initialDate={today}
+              initialView={posisjon.view}
+              initialDate={posisjon.fraUrl ? toISO(posisjon.refDate) : today}
+              serverRange={serverRange}
               initialWorkoutsByDate={workoutsByDate}
               initialPrevWorkoutsByDate={prevWorkoutsByDate}
               seasonPeriods={seasonPeriods}
@@ -143,6 +144,7 @@ export async function PlanPageView({ viewContext }: Props) {
               initialDayStates={dayStatesByDate}
               initialWeekNote={weekNotes[weekKey] ?? ''}
               initialMonthNote={monthNotes[monthKey] ?? ''}
+              serverNoteKeys={{ week: weekKey, month: monthKey }}
               targetUserId={targetId}
             />
           </Suspense>

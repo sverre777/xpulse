@@ -17,6 +17,7 @@ import { SEGMENT_FARGER, grupperSegmenter, type Segment, type SegmentGruppe } fr
 import { beregnSoneTss } from './belastning'
 import { zoneForHeartRate, type ExtendedZoneName, type HeartZone, type ZoneName } from './heart-zones'
 import { parseDecimal } from './parse-decimal'
+import { spesifikkTekst } from './bevform-felter'
 
 export const STYRKE_FARGE = '#6E6E78'
 
@@ -47,6 +48,10 @@ export interface PlanBlokkInn {
       (gjennomført-kartet, rettelse 12). */
   snittwatt?: number | null
   ftp?: number | null
+  /** BOLK 27: stigning % og fart (s/km) — etiketten tar med det
+      bev.form-spesifikke («10 min · I3 · 6 % · 12 km/t»). */
+  stigning?: number | null
+  fartSekPerKm?: number | null
   /** Gjennomført-kartet: blokka står der raden FAKTISK lå på tidslinja.
       Uten: blokkene legges etter hverandre (planen). */
   startSek?: number
@@ -109,7 +114,11 @@ export function fraActivityRows(rows: ActivityRow[]): PlanBlokkInn[] {
     }
     const hr = parseInt(a.avg_heart_rate)
     const km = parseDecimal(a.distance_km)
+    const watt = parseInt(a.avg_watts), stig = parseDecimal(a.incline_percent), fart = parseInt(a.avg_pace_seconds_per_km)
     return {
+      snittwatt: Number.isFinite(watt) && watt > 0 ? watt : null,
+      stigning: stig != null && stig > 0 ? stig : null,
+      fartSekPerKm: Number.isFinite(fart) && fart > 0 ? fart : null,
       id: a.id, type: a.activity_type, navn: a.lap_notes ?? '',
       bevegelsesform: a.movement_name ?? '', underkategori: a.movement_subcategory ?? '',
       sek: a.window_duration_seconds ?? parseActivityDuration(a.duration) ?? 0,
@@ -135,6 +144,9 @@ export function fraRaaRader(rader: Array<{
   prone_shots?: number | null
   standing_shots?: number | null
   distance_meters?: number | null
+  avg_watts?: number | null
+  incline_percent?: number | null
+  avg_pace_seconds_per_km?: number | null
 }>): PlanBlokkInn[] {
   return rader.map((a, i) => {
     const soneSek: Partial<Record<ExtendedZoneName, number>> = {}
@@ -149,6 +161,9 @@ export function fraRaaRader(rader: Array<{
       gruppeId: a.gruppe_id ?? null,
       proneShots: a.prone_shots ?? 0, standingShots: a.standing_shots ?? 0,
       distanseKm: a.distance_meters ? Number(a.distance_meters) / 1000 : 0,
+      snittwatt: a.avg_watts != null && Number(a.avg_watts) > 0 ? Number(a.avg_watts) : null,
+      stigning: a.incline_percent != null && Number(a.incline_percent) > 0 ? Number(a.incline_percent) : null,
+      fartSekPerKm: a.avg_pace_seconds_per_km != null && Number(a.avg_pace_seconds_per_km) > 0 ? Number(a.avg_pace_seconds_per_km) : null,
     }
   })
 }
@@ -207,6 +222,13 @@ export function fmtMin(sek: number): string {
   return `${Math.floor(m / 60)}t ${String(m % 60).padStart(2, '0')}`
 }
 
+/** BOLK 27: etiketten tar med det bev.form-spesifikke — «Drag 1 · 230 W»,
+    «Løping · 6 % · 12 km/t». Bare der feltene er ført. */
+function medSpesifikk(navn: string, b: PlanBlokkInn): string {
+  const spes = spesifikkTekst({ bev: b.bevegelsesform, sub: b.underkategori, watt: b.snittwatt, stigning: b.stigning, fartSekPerKm: b.fartSekPerKm })
+  return spes ? `${navn} · ${spes}` : navn
+}
+
 /** Blokkene, plassert etter hverandre. Rader uten varighet gir ingen blokk. */
 export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = []): PlanBlokk[] {
   let t = 0
@@ -258,7 +280,7 @@ export function byggPlanBlokker(inn: PlanBlokkInn[], heartZones: HeartZone[] = [
     const topp = andeler.length >= 2 ? andeler[andeler.length - 1].sone : sone
     ut.push({ ...b, startSek: start, slag: 'sone', sone,
       farge: sone ? ZONE_COLORS_V2[sone] : SEGMENT_FARGER.annet,
-      hoyde: topp ? SONE_HOYDE[topp] : 0.3, etikett: navn, soneAndeler: andeler })
+      hoyde: topp ? SONE_HOYDE[topp] : 0.3, etikett: medSpesifikk(navn, b), soneAndeler: andeler })
   }
   return ut
 }

@@ -14,6 +14,7 @@
 // Ingenting låses: radene er helt vanlige og fritt redigerbare etterpå.
 
 import { emptyActivityZones } from './types.ts'
+import { bevFelterFor } from './bevform-felter.ts'
 import {
   blokkerTilSoner,
   sekTilKlokke,
@@ -47,6 +48,13 @@ export interface IntervallRad {
   /** Planlagt fart som tekst («4:00–3:30/km», «14–16 km/t») — følger raden
       som navn sammen med kortintervallet, så kartet viser den. */
   fartTekst?: string | null
+  /** BOLK 27 (Sverre 5. sep): bev.form-spesifikke MÅL på draget
+      (lib/bevform-felter). Lagres i radens egne felt: avg_watts (midtpunkt
+      av spennet), incline_percent, resistance_level, avg_pace_seconds_per_km. */
+  wattMaal?: number | null
+  wattTekst?: string | null
+  stigning?: number | null
+  motstand?: string | null
 }
 
 /** Varighet for et drag i km ved planlagt fart. */
@@ -93,6 +101,11 @@ export interface GenerertBlokk extends Blokk {
   /** Kortintervall inni draget. */
   kort?: { paaSek: number; avSek: number } | null
   fartTekst?: string | null
+  /** BOLK 27: målene fra bev.form-feltene. */
+  wattMaal?: number | null
+  stigning?: number | null
+  motstand?: string | null
+  fartSekPerKm?: number | null
 }
 
 /** 5 skudd per serie. Standard i skiskyting, ikke et valg i byggeren. */
@@ -155,7 +168,8 @@ export function byggBlokker(konfig: IntervallKonfig): GenerertBlokk[] {
     for (let i = 0; i < rad.antall; i++) {
       if (rad.dragSek > 0) {
         blokker.push({ sek: rad.dragSek, sone: rad.sone, rolle: 'arbeid', type: 'aktivitet', posisjon: null,
-          km: rad.dragKm && rad.dragKm > 0 ? rad.dragKm : null, kort: rad.kort && rad.kort.paaSek > 0 ? rad.kort : null, fartTekst: rad.fartTekst ?? null })
+          km: rad.dragKm && rad.dragKm > 0 ? rad.dragKm : null, kort: rad.kort && rad.kort.paaSek > 0 ? rad.kort : null, fartTekst: rad.fartTekst ?? null,
+          wattMaal: rad.wattMaal ?? null, stigning: rad.stigning ?? null, motstand: rad.motstand ?? null, fartSekPerKm: rad.fartSekPerKm ?? null })
       }
       if (erSistePause(ri, i, rad) || rad.pauseSek <= 0) continue
 
@@ -242,6 +256,7 @@ function skyterad(blokker: GenerertBlokk[]): ActivityRow {
 export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
   const blokker = byggBlokker(konfig)
   if (blokker.length === 0) return []
+  const felter = bevFelterFor(konfig.bevegelsesform, konfig.underkategori)
   return blokker.map(b => (
     erSkyting(b)
       ? skyterad([b])
@@ -254,6 +269,14 @@ export function genererIntervalløkt(konfig: IntervallKonfig): ActivityRow[] {
           // Kortintervallet og den planlagte farten bæres av radnavnet
           // («50/10 · 4:00–3:30/km») — kartet striper/viser det, tittelen sier det.
           ...(radNavn(b.kort, b.fartTekst) ? { lap_notes: radNavn(b.kort, b.fartTekst) } : {}),
+          // BOLK 27: bev.form-spesifikke mål i radens EGNE felt (ingen SQL).
+          // Mølle: pace regnes fra fart (km/t); roing: fra split /500 m.
+          ...(b.wattMaal && b.wattMaal > 0 ? { avg_watts: String(b.wattMaal) } : {}),
+          ...(b.stigning != null && b.stigning > 0 ? { incline_percent: String(b.stigning).replace('.', ',') } : {}),
+          ...(b.motstand ? { resistance_level: b.motstand } : {}),
+          ...(b.fartSekPerKm && b.fartSekPerKm > 0 && (felter.fart === 'kmt' || felter.split500)
+            ? { avg_pace_seconds_per_km: String(b.fartSekPerKm), ...(felter.fart === 'kmt' ? { pace_unit_preference: 'km_per_h' as const } : {}) }
+            : {}),
         }
   ))
 }

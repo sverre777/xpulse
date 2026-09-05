@@ -5,6 +5,7 @@ import { KurveBrush } from './KurveBrush'
 import { useHarSkiskyting } from '@/components/sport/BrukerSporter'
 import { SerieListe } from './SerieListe'
 import { PunktEtiketter } from './WorkoutDetailChart'
+import { bevFelterFor, spesifikkTekst, kmtTilSekPerKm, sekPerKmTilKmtTekst, splitTilSekPerKm, sekPerKmTilSplitTekst } from '@/lib/bevform-felter'
 import type { Segment } from '@/lib/segmenter'
 import { shootingSummary } from '@/lib/shooting'
 import { createPortal } from 'react-dom'
@@ -652,6 +653,7 @@ export function OktbyggerPopup({
                 runder={(klokke?.lapMarkers ?? []).slice(1).map(l => l.t_start)}
                 rader={rader}
                 sonerRader={klokke?.sonerRader ?? []}
+                ftp={klokke?.ftp ?? null}
               />
 
               {/* BOLK 23: utfyllingsfeltene for det valgte punktet — rett under grafen. */}
@@ -675,6 +677,9 @@ export function OktbyggerPopup({
                     <Rad key={u.id}
                       onPaaPuls={u.type.startsWith('skyting') ? () => { const r = rader.find(x => x.id === u.id); if (r) velgSkytingForPlassering(r) } : undefined}
                       u={u}
+                      rad={rad}
+                      erPlanlagt={erPlanlagt}
+                      onFelt={patch => endreRad(u.id, patch)}
                       alle={plassering}
                       valgt={valgtRad === u.id}
                       hr={hr}
@@ -811,7 +816,7 @@ export type BaandModus = 'kutt' | 'startHer' | 'punkt' | null
 
 function KurveMedRader({
   workoutId, utkast, valgtRad, onVelgRad, onKlikkSek, modus, onDelHer, onSlaaSammen, erPlanlagt,
-  samples, hr, kurve, paaIds = [], sport, totalSek, punkter, planBlokker, visning, heartZones, runder, rader, sonerRader,
+  samples, hr, kurve, paaIds = [], sport, totalSek, punkter, planBlokker, visning, heartZones, runder, rader, sonerRader, ftp,
 }: {
   workoutId: string
   utkast: Utkast[]
@@ -840,6 +845,8 @@ function KurveMedRader({
   runder: number[]
   rader: ActivityRow[]
   sonerRader: SoneDbRad[]
+  /** BOLK 27: FTP for øktas bev.form (klokkepakka) — watt-sone der puls mangler. */
+  ftp: number | null
 }) {
   const kurveSerier: KurveSerie[] = useMemo(() => {
     const ut: KurveSerie[] = []
@@ -887,8 +894,13 @@ function KurveMedRader({
     const rad = rader.find(r => r.id === u.id)
     const soner = sonerRader.length > 0 ? resolveSoner(sonerRader, u.bevegelsesform, rad?.movement_subcategory ?? '') : null
     const km = parseFloat(String(u.distanseKm).replace(',', '.'))
+    // BOLK 27: ført watt (+ FTP) gir sone når puls mangler; stigning/fart i etiketten.
+    const watt = parseInt(rad?.avg_watts ?? ''), stig = parseFloat(String(rad?.incline_percent ?? '').replace(',', '.')), fart = parseInt(rad?.avg_pace_seconds_per_km ?? '')
     return {
       id: u.id, type: u.type, navn: u.navn, bevegelsesform: u.bevegelsesform, underkategori: rad?.movement_subcategory ?? '',
+      snittwatt: Number.isFinite(watt) && watt > 0 ? watt : null, ftp,
+      stigning: Number.isFinite(stig) && stig > 0 ? stig : null,
+      fartSekPerKm: Number.isFinite(fart) && fart > 0 ? fart : null,
       soner: soner ?? undefined,
       // Sverre 5. sep: med kurve stables sonene i runden (tid i hver sone) — som øktgrafen.
       sek: u.varighetSek, startSek: u.startSek, soneSek: hr.length === 0 ? (soneSekAv.get(u.id) ?? {}) : (erDrag || u.type === 'oppvarming' || u.type === 'nedjogg' ? soneSekFraPuls(hr, fra, til, soner ?? heartZones) : {}),
@@ -898,7 +910,7 @@ function KurveMedRader({
       standingShots: u.type === 'skyting_staaende' || u.type === 'skyting_kombinert' ? 1 : 0,
       distanseKm: Number.isFinite(km) && km > 0 ? km : 0,
     }
-  }), [utkast, hr, rader, sonerRader, soneSekAv])
+  }), [utkast, hr, rader, sonerRader, soneSekAv, ftp])
   const kartSpokelser = useMemo(() => tilSpokelser(byggPlanBlokker(kartInn, heartZones)), [kartInn, heartZones])
   const grafPunkter = useMemo(() => punkter.filter(p => p.sek != null && p.slag !== 'skyting' && p.slag !== 'veksling')
     .map(p => ({ id: p.id, sek: p.sek as number, slag: p.slag, planlagt: p.planlagt, tittel: PUNKT_SLAG[p.slag].navn })), [punkter])
@@ -1438,12 +1450,32 @@ function RadLag({ utkast, valgtId, h, onVelg, tallFor, planTekstFor, klikkbar, k
   )
 }
 
+/** BOLK 27: lite tallfelt i rada — lokal tekst til blur (så «12,» kan tastes). */
+function FeltTekst({ navn, verdi, onVerdi, enhet, data }: { navn: string; verdi: string; onVerdi: (v: string) => void; enhet: string; data: string }) {
+  const [tekst, setTekst] = useState(verdi)
+  const [sist, setSist] = useState(verdi)
+  if (verdi !== sist) { setSist(verdi); setTekst(verdi) }
+  return (
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tekst-8-alt)', fontFamily: "'Barlow Condensed', sans-serif" }}>
+      {navn}
+      <input value={tekst} onChange={e => setTekst(e.target.value)} onBlur={() => { if (tekst !== verdi) onVerdi(tekst) }} inputMode="decimal" placeholder="—"
+        data-bevfelt={data} aria-label={`${navn} (${enhet})`}
+        style={{ width: 64, textAlign: 'center', padding: '6px 4px', borderRadius: 8, border: '1px solid var(--line2)', background: 'var(--card)', color: 'var(--tekst-1-app)', fontSize: 13, fontFamily: 'inherit' }} />
+      {enhet}
+    </label>
+  )
+}
+
 // ── Én rad i lista — tall og knapper ─────────────────────────
 
 function Rad({
-  u, alle, valgt, hr, userHasBiathlon, harNabo,
+  u, rad, erPlanlagt, onFelt, alle, valgt, hr, userHasBiathlon, harNabo,
   onVelg, onStart, onVarighet, onType, onNavn, onDel, onSlaaSammen, onSlett, onPaaPuls,
 }: {
+  /** BOLK 27: radens skjemadata — bev.form-spesifikke felt leses/skrives her. */
+  rad: ActivityRow
+  erPlanlagt: boolean
+  onFelt: (patch: Partial<ActivityRow>) => void
   /** Skyterad: start plassering på pulskurven (Sverre 5. sep). */
   onPaaPuls?: () => void
   u: Utkast
@@ -1463,6 +1495,12 @@ function Rad({
 }) {
   const farge = SEGMENT_FARGER[segmentTypeFor(u.type, u.bevegelsesform)]
   const puls = pulsIVindu(hr, u.startSek, u.startSek + u.varighetSek)
+  // BOLK 27: bev.form-spesifikke felt på raden (lib/bevform-felter) — plan
+  // = mål (watt), dagbok = faktisk (snitt/maks). Skjules, slettes aldri.
+  const felter = bevFelterFor(rad.movement_name, rad.movement_subcategory)
+  const brukerBev = !u.type.startsWith('skyting') && !PAUSE_TYPER.has(u.type) && u.type !== 'veksling'
+  const spes = brukerBev ? spesifikkTekst({ bev: rad.movement_name, sub: rad.movement_subcategory, watt: rad.avg_watts, stigning: rad.incline_percent, fartSekPerKm: parseInt(rad.avg_pace_seconds_per_km) || null }) : ''
+  const harBevFelt = brukerBev && (felter.wattMaal || felter.wattFaktisk || felter.stigning || felter.motstand || felter.fart === 'kmt' || felter.fart === 'valgfri' || felter.split500)
   const knapp: React.CSSProperties = {
     fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 11.5,
     letterSpacing: '0.08em', textTransform: 'uppercase', background: 'none',
@@ -1488,6 +1526,7 @@ function Rad({
         className="flex items-center gap-3 flex-wrap text-left"
         style={{ minHeight: 36, cursor: 'pointer' }}>
         <b style={{ color: 'var(--tekst-1-app)', fontWeight: 600, minWidth: 96 }}>{etikettFor(u, alle)}</b>
+        {spes && <span data-rad-spesifikk style={{ color: 'var(--accent)', fontWeight: 600 }}>{spes}</span>}
         <span>{fmtKlokkeSek(u.startSek)}–{fmtKlokkeSek(u.startSek + u.varighetSek)}</span>
         <span style={{ color: 'var(--tekst-8-alt)', fontSize: 11.5 }}>start</span>
         <TidInput sek={u.startSek} onSek={onStart} />
@@ -1528,6 +1567,34 @@ function Rad({
           <button type="button" style={{ ...knapp, color: '#E23A5A', borderColor: '#E23A5A55' }} onClick={onSlett}>
             Slett
           </button>
+        </div>
+      )}
+      {valgt && harBevFelt && (
+        <div className="flex gap-2 flex-wrap items-center mt-2" data-bevform-felter={rad.movement_name || 'uten'}>
+          {erPlanlagt && felter.wattMaal && <FeltTekst navn="Watt mål" verdi={rad.avg_watts} onVerdi={v => onFelt({ avg_watts: v })} enhet="W" data="watt-maal" />}
+          {!erPlanlagt && felter.wattFaktisk && <>
+            <FeltTekst navn="Snittwatt" verdi={rad.avg_watts} onVerdi={v => onFelt({ avg_watts: v })} enhet="W" data="snittwatt" />
+            <FeltTekst navn="Maks" verdi={rad.max_watts} onVerdi={v => onFelt({ max_watts: v })} enhet="W" data="makswatt" />
+          </>}
+          {felter.stigning && <FeltTekst navn="Stigning" verdi={rad.incline_percent} onVerdi={v => onFelt({ incline_percent: v })} enhet="%" data="stigning" />}
+          {(felter.fart === 'kmt' || felter.fart === 'valgfri') && (
+            <FeltTekst navn="Fart" verdi={sekPerKmTilKmtTekst(parseInt(rad.avg_pace_seconds_per_km) || null)} enhet="km/t" data="fart-kmt"
+              onVerdi={v => { const sek = kmtTilSekPerKm(v); onFelt({ avg_pace_seconds_per_km: sek != null ? String(sek) : '', pace_unit_preference: 'km_per_h' }) }} />
+          )}
+          {felter.split500 && (
+            <FeltTekst navn="Split" verdi={sekPerKmTilSplitTekst(parseInt(rad.avg_pace_seconds_per_km) || null)} enhet="/500 m" data="split-500"
+              onVerdi={v => { const sek = splitTilSekPerKm(v); onFelt({ avg_pace_seconds_per_km: sek != null ? String(sek) : '' }) }} />
+          )}
+          {felter.motstand && (
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: 'var(--tekst-8-alt)' }}>
+              Motstand
+              <select value={rad.resistance_level} onChange={e => onFelt({ resistance_level: e.target.value })} data-motstand
+                style={{ ...knapp, paddingRight: 8 }}>
+                <option value="">—</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={String(n)}>{n}</option>)}
+              </select>
+            </label>
+          )}
         </div>
       )}
     </div>

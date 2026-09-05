@@ -268,7 +268,10 @@ async function getWorkoutKlokkesyncDataIndre(
   let wattMetrikker: WorkoutKlokkesyncData['wattMetrikker'] = null
   let ftpForKart: number | null = null
   const np = beregnNP(samples?.watt_samples ?? null)
-  if (np != null) {
+  // BOLK 27: FTP hentes også når radene har FØRT watt uten watt-kurve —
+  // kartet/byggeren bruker watt-sone der puls mangler.
+  const harRadWatt = (activities ?? []).some(a => a.avg_watts != null && Number(a.avg_watts) > 0)
+  if (np != null || harRadWatt) {
     const { data: terskelRader } = await supabase
       .from('user_thresholds')
       .select('movement_name, movement_subcategory, threshold_hr, threshold_pace_sec_km, ftp_watts, valid_from')
@@ -280,8 +283,8 @@ async function getWorkoutKlokkesyncDataIndre(
     )
     const ftp = rad?.ftp_watts ?? null
     ftpForKart = ftp != null && ftp > 0 ? ftp : null
-    const iff = ftp != null && ftp > 0 ? Math.round((np / ftp) * 100) / 100 : null
-    wattMetrikker = {
+    const iff = np != null && ftp != null && ftp > 0 ? Math.round((np / ftp) * 100) / 100 : null
+    if (np != null) wattMetrikker = {
       np,
       iff,
       merkelapp: iff != null ? ifMerkelapp(iff) : null,

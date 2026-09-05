@@ -26,6 +26,7 @@ import {
 } from '@/lib/types'
 import { parseActivityDuration, formatActivityDuration } from '@/lib/activity-duration'
 import { PaceInput } from '@/components/pace/PaceInput'
+import { bevFelterFor, erInnendors, kmtTilSekPerKm, sekPerKmTilKmtTekst, splitTilSekPerKm, sekPerKmTilSplitTekst } from '@/lib/bevform-felter'
 import { SplitsTable } from '@/components/pace/SplitsTable'
 import { resolvePaceUnit } from '@/components/pace/PaceDisplay'
 import {
@@ -58,24 +59,13 @@ import {
 // høydemeter skjules (gir ikke mening). Tredemølle har egen incline-felt og
 // regnes ikke som motstand-maskin.
 function isResistanceMachineFor(name: string, subcategory: string): boolean {
-  if (name === 'SkiErg') return true
-  if (name === 'Stairmaster') return true
-  if (name === 'Ellipsemaskin') return true
-  if (name === 'Roing' && subcategory === 'Romaskin') return true
-  if (name === 'Sykling' && (
-    subcategory === 'Spinning' ||
-    subcategory === 'Indoors/Ergo' ||
-    subcategory === 'Air bike'
-  )) return true
-  return false
+  return bevFelterFor(name, subcategory).motstand   // BOLK 27: tabellen er kilden
 }
 
 // Alle innendørs-aktiviteter — inkluderer tredemølle (har incline_percent
 // men ingen høydemeter). Brukes for å skjule elevation-feltene.
 function isIndoorActivityFor(name: string, subcategory: string): boolean {
-  if (isResistanceMachineFor(name, subcategory)) return true
-  if (name === 'Løping' && subcategory === 'Tredemølle') return true
-  return false
+  return erInnendors(name, subcategory)   // BOLK 27: tabellen er kilden
 }
 
 interface Props {
@@ -733,8 +723,7 @@ function ActivityRowItem({
   const isEndurance = isEnduranceFor(row.movement_name, userMovementTypes)
   const isTur = isTurFor(row.movement_name, userMovementTypes)
   const isAnnet = kind === 'annet'
-  const isCycling = sport === 'cycling' || row.movement_name === 'Sykling'
-  const isResistanceMachine = isResistanceMachineFor(row.movement_name, row.movement_subcategory)
+  const felter = bevFelterFor(row.movement_name, row.movement_subcategory)
   const isIndoorActivity = isIndoorActivityFor(row.movement_name, row.movement_subcategory)
   const isUserMovement = userMovementTypes.some(u => u.name === row.movement_name)
   const subcatOptions = isStrength && !isUserMovement
@@ -1036,13 +1025,25 @@ function ActivityRowItem({
               </Field>
             )}
 
-            {row.movement_name === 'Løping' && row.movement_subcategory === 'Tredemølle' && (
+            {felter.stigning && !meta?.isShooting && (
               <Field label="Stigning (%)">
                 <input value={row.incline_percent}
                   onChange={e => onUpdate({ incline_percent: e.target.value })}
                   placeholder="0.0"
                   inputMode="decimal"
                   style={iSt} />
+              </Field>
+            )}
+            {/* BOLK 27: mølle fører FART i km/t (pace regnes fra farten);
+                SkiErg har fart som valgfritt felt i stedet for pace. */}
+            {(felter.fart === 'kmt' || felter.fart === 'valgfri') && !meta?.isShooting && !isStrength && !isAnnet && (
+              <Field label={felter.fart === 'kmt' ? 'Fart (km/t)' : 'Fart (km/t, valgfri)'}>
+                <FartKmtInput row={row} onUpdate={onUpdate} style={iSt} />
+              </Field>
+            )}
+            {felter.split500 && !meta?.isShooting && (
+              <Field label="Split /500 m">
+                <SplitInput row={row} onUpdate={onUpdate} style={iSt} />
               </Field>
             )}
 
@@ -1070,6 +1071,22 @@ function ActivityRowItem({
               </>
             )}
 
+            {/* BOLK 27: plan = MÅL — watt og motstand der bev.formen har det
+                (spennet fra–til settes i hurtigoppsettet; her står midtpunktet). */}
+            {isPlanMode && felter.wattMaal && !meta?.isShooting && (
+              <Field label="Watt (mål)">
+                <input value={row.avg_watts} onChange={e => onUpdate({ avg_watts: e.target.value })}
+                  inputMode="numeric" placeholder="230" data-watt-maal style={iSt} />
+              </Field>
+            )}
+            {isPlanMode && felter.motstand && (
+              <Field label="Motstand (1-10)">
+                <select value={row.resistance_level} onChange={e => onUpdate({ resistance_level: e.target.value })} style={iSt}>
+                  <option value="">—</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => <option key={n} value={String(n)}>{n}</option>)}
+                </select>
+              </Field>
+            )}
             {!isPlanMode && (
               <>
                 <Field label="Snittpuls (bpm)">
@@ -1106,7 +1123,7 @@ function ActivityRowItem({
                 {/* Watt (snitt + maks) — sykling, motstands-maskiner OG utholdenhets-
                     former (SkiErg, Ellipsemaskin, Roing osv. har watt-måling).
                     Valgfritt, så det skader ikke å tilby det for løp/ski også. */}
-                {(isCycling || isResistanceMachine || isEndurance) && !meta?.isShooting && !isStrength && !isAnnet && (
+                {felter.wattFaktisk && !meta?.isShooting && !isStrength && !isAnnet && (
                   <>
                     <Field label="Snittwatt">
                       <input value={row.avg_watts}
@@ -1126,7 +1143,7 @@ function ActivityRowItem({
                 {/* Motstand 1-10 — kun for innendørs-maskiner med motstand-skala
                     (SkiErg, Romaskin, Stairmaster, Ellipsemaskin, Spinning,
                     Indoors/Ergo, Air bike). Tredemølle har incline_percent. */}
-                {isResistanceMachine && (
+                {felter.motstand && (
                   <Field label="Motstand (1-10)">
                     <select value={row.resistance_level}
                       onChange={e => onUpdate({ resistance_level: e.target.value })}
@@ -1145,7 +1162,7 @@ function ActivityRowItem({
           {/* Pace per km — utholdenhet + tur. Brukeren ser min/km eller km/t
               (lokal toggle), kanonisk lagring er sekunder per km. Auto-forslag
               fra distanse + varighet vises når feltet er tomt. */}
-          {(isEndurance || isTur) && !meta?.isShooting && !isAnnet && (
+          {(isEndurance || isTur) && felter.fart === 'pace' && !meta?.isShooting && !isAnnet && (
             <PaceField row={row} onUpdate={onUpdate} defaultPaceUnit={defaultPaceUnit} />
           )}
 
@@ -2454,5 +2471,39 @@ function PaceField({
         />
       </div>
     </div>
+  )
+}
+
+// ── BOLK 27: fart i km/t og split /500 m — lagres som s/km ──────────
+// Lokal tekst til blur, så «12,» kan tastes uten at feltet hopper.
+function FartKmtInput({ row, onUpdate, style }: { row: ActivityRow; onUpdate: (p: Partial<ActivityRow>) => void; style: React.CSSProperties }) {
+  const lagret = sekPerKmTilKmtTekst(parseInt(row.avg_pace_seconds_per_km) || null)
+  const [tekst, setTekst] = useState(lagret)
+  const [sist, setSist] = useState(lagret)
+  if (lagret !== sist) { setSist(lagret); setTekst(lagret) }
+  return (
+    <input value={tekst} onChange={e => setTekst(e.target.value)} inputMode="decimal" placeholder="12" data-fart-kmt
+      onBlur={() => {
+        if (tekst === lagret) return
+        const s = kmtTilSekPerKm(tekst)
+        onUpdate({ avg_pace_seconds_per_km: s != null ? String(s) : '', pace_unit_preference: 'km_per_h' })
+      }}
+      style={style} />
+  )
+}
+
+function SplitInput({ row, onUpdate, style }: { row: ActivityRow; onUpdate: (p: Partial<ActivityRow>) => void; style: React.CSSProperties }) {
+  const lagret = sekPerKmTilSplitTekst(parseInt(row.avg_pace_seconds_per_km) || null)
+  const [tekst, setTekst] = useState(lagret)
+  const [sist, setSist] = useState(lagret)
+  if (lagret !== sist) { setSist(lagret); setTekst(lagret) }
+  return (
+    <input value={tekst} onChange={e => setTekst(e.target.value)} inputMode="text" placeholder="1:55" data-split-500
+      onBlur={() => {
+        if (tekst === lagret) return
+        const s = splitTilSekPerKm(tekst)
+        onUpdate({ avg_pace_seconds_per_km: s != null ? String(s) : '' })
+      }}
+      style={style} />
   )
 }

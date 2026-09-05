@@ -12,6 +12,7 @@ import { AktivitetsFeed } from '@/components/oversikt/AktivitetsFeed'
 import { TrenerKort } from '@/components/oversikt/TrenerKort'
 import { KlokkesyncMiniKort } from '@/components/oversikt/KlokkesyncMiniKort'
 import { getKlokkesyncBadge } from '@/app/actions/klokkesync-status'
+import { getCustomBreakdown } from '@/app/actions/analysis'
 import { CustomBreakdownChart } from '@/components/analysis/CustomBreakdownChart'
 import { FeedbackCard } from '@/components/feedback/FeedbackCard'
 import type { DateRange } from '@/components/analysis/date-range'
@@ -64,10 +65,14 @@ function AiCoachTeaser() {
 }
 
 export default async function OversiktPage() {
-  const [res, coachOverviewRaw, klokkesyncBadge] = await Promise.all([
+  // HJEM v2 bolk 0: alt Hjem trenger i ÉN server-Promise.all — også
+  // volumgrafens startdata, så ingen kort/seksjon etterlaster (regel 20).
+  const range = rangeLast12Weeks()
+  const [res, coachOverviewRaw, klokkesyncBadge, breakdownRaw] = await Promise.all([
     getOversiktDashboard(),
     getAthleteCoachOverview(),
     getKlokkesyncBadge(),
+    getCustomBreakdown(range.from, range.to, 'week', undefined, 'completed'),
   ])
 
   if ('error' in res) {
@@ -82,7 +87,7 @@ export default async function OversiktPage() {
     )
   }
 
-  const range = rangeLast12Weeks()
+  const breakdown = 'error' in breakdownRaw ? null : breakdownRaw
   const coachOverview = 'error' in coachOverviewRaw
     ? { hasCoach: false as const, coach: null, lastActivity: null }
     : coachOverviewRaw
@@ -102,6 +107,7 @@ export default async function OversiktPage() {
         </div>
 
         <NoekkelkortGrid
+          helse={res.helse}
           lastHardWorkout={res.lastHardWorkout}
           mainGoal={res.mainGoal}
           phase={res.phase}
@@ -133,7 +139,7 @@ export default async function OversiktPage() {
               Se full analyse →
             </Link>
           </div>
-          <CustomBreakdownChart analysisRange={range} />
+          <CustomBreakdownChart analysisRange={range} initialData={{ completed: breakdown }} />
         </section>
 
         <AktivitetsFeed feed={res.feed} />

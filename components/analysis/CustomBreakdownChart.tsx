@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, LabelList,
@@ -252,11 +252,14 @@ interface Props {
   initialPreset?: PresetKey | 'inherit'
   // Trener-drilldown: hent utøverens data (resolveTargetUser sjekker tilgang).
   targetUserId?: string
+  /** HJEM v2 bolk 0: ferdig hentet data for STARTVALGET (gruppering/periode/
+      visning) — første henting hoppes over, kontrollene henter som før. */
+  initialData?: { completed?: CustomBreakdown | null; planned?: CustomBreakdown | null }
 }
 
 type BreakdownViewMode = 'completed' | 'planned' | 'both'
 
-export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId }: Props) {
+export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId, initialData }: Props) {
   const utvidetSkala = useUtvidetSkala()
   const [grouping, setGrouping] = useState<CustomBreakdownGrouping>(initialGrouping ?? 'week')
   const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>(initialPreset ?? 'inherit')
@@ -266,8 +269,10 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
   // Init fra initialView, ellers mode-propen så eksisterende brukssteder
   // oppfører seg som før.
   const [viewMode, setViewMode] = useState<BreakdownViewMode>(initialView ?? (mode === 'planned' ? 'planned' : 'completed'))
-  const [dataCompleted, setDataCompleted] = useState<CustomBreakdown | null>(null)
-  const [dataPlanned, setDataPlanned] = useState<CustomBreakdown | null>(null)
+  const [dataCompleted, setDataCompleted] = useState<CustomBreakdown | null>(initialData?.completed ?? null)
+  const [dataPlanned, setDataPlanned] = useState<CustomBreakdown | null>(initialData?.planned ?? null)
+  // Startdata dekker første effekt-kjøring — én gang.
+  const hoppOverForste = useRef(!!initialData)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -278,6 +283,11 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
   }, [analysisRange, localPreset])
 
   useEffect(() => {
+    if (hoppOverForste.current) {
+      hoppOverForste.current = false
+      const dekket = (viewMode === 'planned' || initialData?.completed) && (viewMode === 'completed' || initialData?.planned)
+      if (dekket) return
+    }
     startTransition(async () => {
       setError(null)
       const wantCompleted = viewMode !== 'planned'
@@ -295,7 +305,7 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
       setDataCompleted(resC && !('error' in resC) ? resC : null)
       setDataPlanned(resP && !('error' in resP) ? resP : null)
     })
-  }, [effectiveRange.from, effectiveRange.to, grouping, viewMode, targetUserId])
+  }, [effectiveRange.from, effectiveRange.to, grouping, viewMode, targetUserId, initialData?.completed, initialData?.planned])
 
   // Primærdatasett for selektorer/lister (planlagt-visning bruker plan-data).
   const data = viewMode === 'planned' ? dataPlanned : dataCompleted

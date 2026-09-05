@@ -5,6 +5,8 @@ import { getCurrentUserAndProfile } from '@/lib/profile-cache'
 import type { Sport, WorkoutType } from '@/lib/types'
 import { toISO, mondayOf, addDays, isoWeekNum } from '@/lib/season-calendar'
 import { computeActivityTotals, type ActivityLike } from '@/lib/activity-summary'
+import { getHelseOversikt, type HelseOversiktData } from './helse-oversikt'
+import { getWorkoutKlokkesyncData, type WorkoutKlokkesyncData } from './workout-klokkesync'
 
 // ── Typer ────────────────────────────────────────────
 
@@ -177,7 +179,77 @@ export interface OversiktWeeklyReflectionBadge {
 
 export type OversiktPhaseStatus = 'active' | 'no_season' | 'no_periods' | 'gap'
 
+// ── HJEM v2 bolk 0 (Sverre 5. sep): alt Hjem trenger i ÉN henting — ingen
+// kort etterlaster noe selv (regel 20). Kortene (bolk 1–8) leser herfra. ──
+export interface OversiktKonkurranse extends OversiktCompetition {
+  /** A/B/C fra key-datens event_type; null for konkurranse-økter uten key date. */
+  prioritet: 'A' | 'B' | 'C' | null
+  is_peak_target: boolean
+  notes: string | null
+}
+export interface OversiktUkeDag {
+  date: string
+  planlagtSek: number
+  gjennomfortSek: number
+  /** Gjennomført hardøkt (tagg eller ≥ 15 min I3+). */
+  hard: boolean
+  planlagtHard: boolean
+}
+export interface OversiktUkePlan {
+  dager: OversiktUkeDag[]
+  planlagtSek: number
+  gjennomfortSek: number
+  planlagtHardSek: number
+  gjennomfortHardSek: number
+  planlagtSkudd: number
+  skutt: number
+  /** Treff % i uka (kun-førte-regelen) — null uten førte treff. */
+  treffPct: number | null
+  /** Sesongens treffmål i % — null: ingen kolonne holder et prosentmål i dag
+      (annual_shot_goal er antall skudd, kpi_notes er fritekst). */
+  treffMaalPct: number | null
+  /** Snitt treff % siste 30 dager — reserven når målet mangler. */
+  treffSnitt30dPct: number | null
+}
+export interface OversiktPeriodeRad {
+  id: string
+  name: string
+  focus: string | null
+  start_date: string
+  end_date: string
+  intensity: 'rolig' | 'medium' | 'hard'
+  days_until: number
+  weeks: number
+}
+export interface OversiktSamling {
+  id: string
+  name: string
+  location: string | null
+  start_date: string
+  end_date: string
+  is_altitude: boolean
+  days_until: number
+}
+/** Resultatmål 2 og 3 — linjene i seasons.goal_details (fritekst, én per linje). */
+export interface OversiktResultatMaal { nr: number; tekst: string }
+export interface OversiktSkuddHittil {
+  annual_shot_goal: number | null
+  skutt: number
+  treffPct: number | null
+}
+
 export interface OversiktData {
+  /** HJEM v2 bolk 0 — én henting: */
+  today: OversiktWorkoutCard[]
+  nextPlanned: OversiktWorkoutCard[]
+  weekPlan: OversiktUkePlan
+  competitions: { nesteA: OversiktKonkurranse | null; neste: OversiktKonkurranse[] }
+  resultGoals: OversiktResultatMaal[]
+  shotGoal: OversiktSkuddHittil | null
+  periods: OversiktPeriodeRad[]
+  camps: OversiktSamling[]
+  helse: HelseOversiktData | null
+  klokke: { today: WorkoutKlokkesyncData | null; lastHard: WorkoutKlokkesyncData | null }
   hero: OversiktHero
   todayState: OversiktTodayState | null
   nextWorkout: OversiktNextWorkout
@@ -234,6 +306,29 @@ function hardSecondsForWorkout(
   const agg = zeroZones()
   accumulateZonesFromActivities(activities, agg)
   return agg.I3 + agg.I4 + agg.I5 + agg.Hurtighet
+}
+
+/** HJEM v2 bolk 0: skudd/førte/treff over rader — uavhengig av OversiktShots. */
+function skuddSum(acts: ActivityRaw[]): { skudd: number; forte: number; treff: number } {
+  let skudd = 0, forte = 0, treff = 0
+  for (const a of acts) {
+    for (const [s, h] of [[a.prone_shots, a.prone_hits], [a.standing_shots, a.standing_hits]] as const) {
+      const n = s ?? 0
+      if (n <= 0) continue
+      skudd += n
+      if (h != null) { forte += n; treff += h }
+    }
+  }
+  return { skudd, forte, treff }
+}
+function treffPctAv(x: { forte: number; treff: number }): number | null {
+  return x.forte > 0 ? Math.round((x.treff / x.forte) * 100) : null
+}
+const HARD_TYPER = new Set(['interval', 'threshold', 'hard_combo', 'competition', 'testlop'])
+/** Resultatmål fra goal_details: én linje per mål, tomme linjer hopper vi over (maks 2). */
+function resultatMaalFra(tekst: string | null | undefined): OversiktResultatMaal[] {
+  return (tekst ?? '').split(/\r?\n/).map(l => l.replace(/^[\s\-•·\d.)]+/, '').trim()).filter(Boolean).slice(0, 2)
+    .map((t, i) => ({ nr: i + 2, tekst: t }))
 }
 
 function dominantZone(zones: OversiktZoneSeconds): string | null {
@@ -413,7 +508,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .eq('is_completed', false)
       .gt('date', todayISO)
       .order('date', { ascending: true })
-      .limit(1)
+      .limit(3)
 
     // 5. Ukens økter — fanger både dagbok-loggede (is_planned=false) og
     //    planlagte som er markert gjennomført (is_completed=true). Tidligere
@@ -424,7 +519,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     //    computeActivityTotals.
     const weekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .select('id,date,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
@@ -433,20 +528,33 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 6. Forrige ukes økter — samme filter-utvidelse.
     const prevWeekWorkoutsPromise = supabase
       .from('workouts')
-      .select('id,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
+      .select('id,date,workout_type,duration_minutes,distance_km,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
       .eq('user_id', user.id)
       .is('merged_into_workout_id', null)
       .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
       .gte('date', prevWeekStart).lte('date', prevWeekEnd)
 
+    // HJEM v2 bolk 0: ukas PLANLAGTE økter (hele uka, også fram i tid) —
+    // plan vs gjennomført i Ukens totaler (bolk 5).
+    const weekPlannedPromise = supabase
+      .from('workouts')
+      .select('id,date,workout_type,duration_minutes,is_completed,workout_activities(activity_type,duration_seconds,zones,prone_shots,standing_shots)')
+      .eq('user_id', user.id)
+      .is('merged_into_workout_id', null)
+      .eq('is_planned', true)
+      .gte('date', weekStart).lte('date', weekEnd)
+
+    // HJEM v2 bolk 0: helse 30 dager (ikke 7) — helse-kortet henter ikke selv.
+    const helsePromise = getHelseOversikt(addDays(todayISO, -30), todayISO)
+
     // 7. Kommende konkurranse — fra season_key_dates først, fallback til workouts.
     const upcomingKeyDatePromise = supabase
       .from('season_key_dates')
-      .select('id,name,event_date,sport,distance_format,location,linked_workout_id,event_type')
+      .select('id,name,event_date,sport,distance_format,location,linked_workout_id,event_type,notes,is_peak_target')
       .in('event_type', ['competition_a','competition_b','competition_c'])
       .gte('event_date', todayISO)
       .order('event_date', { ascending: true })
-      .limit(1)
+      .limit(6)
 
     const upcomingCompetitionWorkoutPromise = supabase
       .from('workouts')
@@ -457,7 +565,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       .eq('is_planned', true)
       .gte('date', todayISO)
       .order('date', { ascending: true })
-      .limit(1)
+      .limit(5)
 
     // 8. Siste hardøkt — hent siste 30 gjennomførte fortidige økter, filtrer client-side.
     //    .lte('date', todayISO) er kritisk: tidligere ble fremtidige planlagte
@@ -477,7 +585,7 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // 9. Aktiv sesong (dagens dato innenfor).
     const seasonPromise = supabase
       .from('seasons')
-      .select('id,name,goal_main,start_date,end_date')
+      .select('id,name,goal_main,start_date,end_date,goal_details,kpi_notes,annual_shot_goal')
       .eq('user_id', user.id)
       .lte('start_date', todayISO)
       .gte('end_date', todayISO)
@@ -518,11 +626,13 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       weekWorkoutsRes, prevWeekWorkoutsRes, keyDateRes, compWorkoutRes,
       recentCompletedRes, seasonRes,
       dayFocusRes, weekFocusRes, reflectionRes,
+      weekPlannedRes, helseRes,
     ] = await Promise.all([
       dayStatePromise, todayWorkoutsPromise, futurePlannedPromise,
       weekWorkoutsPromise, prevWeekWorkoutsPromise, upcomingKeyDatePromise,
       upcomingCompetitionWorkoutPromise, recentCompletedPromise, seasonPromise,
       dayFocusPromise, weekFocusPromise, reflectionPromise,
+      weekPlannedPromise, helsePromise,
     ])
 
     // Hero — bruk navn fra cache-dedupert profil.
@@ -531,6 +641,8 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
 
     type WeekWorkout = {
       id: string
+      date?: string
+      workout_type?: string | null
       duration_minutes: number | null
       distance_km: number | null
       workout_activities?: ActivityLike[] | null
@@ -680,46 +792,124 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
     // Hovedmål + fase
     const seasonRow = ((seasonRes.data ?? [])[0] as {
       id: string; name: string; goal_main: string | null; start_date: string; end_date: string
+      goal_details?: string | null; kpi_notes?: string | null; annual_shot_goal?: number | null
     } | undefined)
 
+    // HJEM v2 bolk 0: neste A + de neste konkurransene uansett prioritet
+    // (bolk 6). Key dates først; konkurranse-økter uten key date fylles på.
+    type KeyDateRad = {
+      id: string; name: string; event_date: string; sport: Sport | null; distance_format: string | null
+      location: string | null; linked_workout_id: string | null; event_type: string; notes?: string | null; is_peak_target?: boolean | null
+    }
+    const alleKonk: OversiktKonkurranse[] = ((keyDateRes.data ?? []) as KeyDateRad[]).map(k => ({
+      id: k.id, name: k.name, date: k.event_date, sport: k.sport, distance_format: k.distance_format, location: k.location,
+      days_until: daysBetween(todayISO, k.event_date), source: 'season_key_date' as const, linked_workout_id: k.linked_workout_id,
+      prioritet: k.event_type === 'competition_a' ? 'A' : k.event_type === 'competition_b' ? 'B' : k.event_type === 'competition_c' ? 'C' : null,
+      is_peak_target: !!k.is_peak_target, notes: k.notes ?? null,
+    }))
+    const koblet = new Set(alleKonk.map(k => k.linked_workout_id).filter(Boolean))
+    for (const cw of (compWorkoutRes.data ?? []) as { id: string; title: string; date: string; sport: Sport }[]) {
+      if (koblet.has(cw.id)) continue
+      alleKonk.push({ id: cw.id, name: cw.title, date: cw.date, sport: cw.sport, distance_format: null, location: null,
+        days_until: daysBetween(todayISO, cw.date), source: 'workout', linked_workout_id: cw.id, prioritet: null, is_peak_target: false, notes: null })
+    }
+    alleKonk.sort((a, b) => a.date.localeCompare(b.date))
+    const nesteA = alleKonk.find(k => k.prioritet === 'A') ?? null
+    const competitions = { nesteA, neste: alleKonk.filter(k => k.id !== nesteA?.id).slice(0, 4) }
+
+    // HJEM v2 bolk 0: ukas plan vs gjennomført per dag (bolk 5).
+    type PlanRad = { id: string; date: string; workout_type: string | null; duration_minutes: number | null; is_completed: boolean; workout_activities?: ActivityRaw[] | null }
+    const planRader = (weekPlannedRes.data ?? []) as PlanRad[]
+    const sekFor = (acts: ActivityRaw[], min: number | null) => acts.length > 0 ? computeActivityTotals(acts as ActivityLike[], []).totalSeconds : (min ?? 0) * 60
+    const hardSek = (acts: ActivityRaw[]) => hardSecondsForWorkout(acts)
+    const erHard = (type: string | null | undefined, acts: ActivityRaw[]) => (type != null && HARD_TYPER.has(type)) || hardSek(acts) >= 15 * 60
+    const dager: OversiktUkeDag[] = Array.from({ length: 7 }, (_, i) => ({ date: addDays(weekStart, i), planlagtSek: 0, gjennomfortSek: 0, hard: false, planlagtHard: false }))
+    let planlagtHardSek = 0, gjennomfortHardSek = 0, planlagtSkudd = 0
+    for (const p of planRader) {
+      const d = dager.find(x => x.date === p.date); if (!d) continue
+      const acts = (p.workout_activities ?? []) as ActivityRaw[]
+      d.planlagtSek += sekFor(acts, p.duration_minutes)
+      planlagtHardSek += hardSek(acts)
+      if (erHard(p.workout_type, acts)) d.planlagtHard = true
+      planlagtSkudd += skuddSum(acts).skudd
+    }
+    for (const w of weekWorkouts) {
+      const d = w.date ? dager.find(x => x.date === w.date) : undefined; if (!d) continue
+      const acts = (w.workout_activities ?? []) as ActivityRaw[]
+      d.gjennomfortSek += totalsForWorkout(w).sec
+      gjennomfortHardSek += hardSek(acts)
+      if (erHard(w.workout_type, acts)) d.hard = true
+    }
+    const ukeSkudd = skuddSum(weekActs)
+    const grense30 = addDays(todayISO, -30)
+    const skudd30 = skuddSum(((recentCompletedRes.data ?? []) as WorkoutRow[]).filter(w => w.date >= grense30).flatMap(w => (w.workout_activities ?? []) as ActivityRaw[]))
+    const weekPlan: OversiktUkePlan = {
+      dager,
+      planlagtSek: dager.reduce((s, d) => s + d.planlagtSek, 0),
+      gjennomfortSek: dager.reduce((s, d) => s + d.gjennomfortSek, 0),
+      planlagtHardSek, gjennomfortHardSek,
+      planlagtSkudd, skutt: ukeSkudd.skudd,
+      treffPct: treffPctAv(ukeSkudd),
+      treffMaalPct: null,
+      treffSnitt30dPct: treffPctAv(skudd30),
+    }
+
     let mainGoal: OversiktMainGoal | null = null
+    let resultGoals: OversiktResultatMaal[] = []
+    let shotGoal: OversiktSkuddHittil | null = null
+    let periodsUt: OversiktPeriodeRad[] = []
+    let campsUt: OversiktSamling[] = []
     let phase: OversiktPhase | null = null
     let phaseStatus: OversiktPhaseStatus = seasonRow ? 'no_periods' : 'no_season'
 
     if (seasonRow) {
       // Hent perioder + planlagt volum-sum for sesongen.
-      const [periodsRes, volumeRes] = await Promise.all([
+      // HJEM v2 bolk 0: sesongens økter hentes uansett hovedmål — skudd hittil
+      // (annual_shot_goal, bolk 7) trenger dem. Samlinger fra season_markings.
+      const [periodsRes, volumeRes, markingsRes, seasonActualRes] = await Promise.all([
         supabase
           .from('season_periods')
-          .select('id,name,start_date,end_date,intensity')
+          .select('id,name,focus,start_date,end_date,intensity')
           .eq('season_id', seasonRow.id)
           .order('start_date', { ascending: true }),
         supabase
           .from('monthly_volume_plans')
           .select('planned_hours')
           .eq('user_id', user.id),
+        supabase
+          .from('season_markings')
+          .select('id,name,location,start_date,end_date,is_training_camp,is_altitude')
+          .eq('season_id', seasonRow.id)
+          .order('start_date', { ascending: true }),
+        // Faktiske timer siden sesongstart frem til i dag. Hent activities så
+        // skyting ekskluderes via computeActivityTotals. Samme filter-utvidelse
+        // som ukentall (fanger dagbok-loggede uten is_completed=true).
+        supabase
+          .from('workouts')
+          .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones,prone_shots,prone_hits,standing_shots,standing_hits)')
+          .eq('user_id', user.id)
+          .is('merged_into_workout_id', null)
+          .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
+          .gte('date', seasonRow.start_date)
+          .lte('date', todayISO),
       ])
+      type SeasonWorkout = {
+        duration_minutes: number | null
+        workout_activities?: ActivityRaw[] | null
+      }
+      const seasonActual = (seasonActualRes.data ?? []) as SeasonWorkout[]
+      const seasonSkudd = skuddSum(seasonActual.flatMap(w => (w.workout_activities ?? []) as ActivityRaw[]))
+      shotGoal = { annual_shot_goal: seasonRow.annual_shot_goal ?? null, skutt: seasonSkudd.skudd, treffPct: treffPctAv(seasonSkudd) }
+      resultGoals = resultatMaalFra(seasonRow.goal_details)
+      campsUt = ((markingsRes.data ?? []) as { id: string; name: string; location: string | null; start_date: string; end_date: string; is_training_camp: boolean; is_altitude: boolean }[])
+        .filter(m => m.is_training_camp || m.is_altitude)
+        .map(m => ({ id: m.id, name: m.name, location: m.location, start_date: m.start_date, end_date: m.end_date, is_altitude: m.is_altitude, days_until: daysBetween(todayISO, m.start_date) }))
 
       if (seasonRow.goal_main) {
         const plannedHours = (volumeRes.data ?? []).reduce(
           (s: number, r: { planned_hours: number | null }) => s + (Number(r.planned_hours) || 0), 0,
         )
-        // Faktiske timer siden sesongstart frem til i dag. Hent activities så
-        // skyting ekskluderes via computeActivityTotals. Samme filter-utvidelse
-        // som ukentall (fanger dagbok-loggede uten is_completed=true).
-        const { data: seasonActual } = await supabase
-          .from('workouts')
-          .select('duration_minutes,workout_activities(activity_type,duration_seconds,distance_meters,avg_heart_rate,movement_name,zones)')
-          .eq('user_id', user.id)
-          .is('merged_into_workout_id', null)
-          .or('is_completed.eq.true,and(is_planned.eq.false,live_started_at.is.null)')
-          .gte('date', seasonRow.start_date)
-          .lte('date', todayISO)
-        type SeasonWorkout = {
-          duration_minutes: number | null
-          workout_activities?: ActivityLike[] | null
-        }
-        const actualHours = ((seasonActual ?? []) as SeasonWorkout[])
+        const actualHours = seasonActual
           .reduce((s, w) => {
             const acts = (w.workout_activities ?? []) as ActivityLike[]
             if (acts.length > 0) {
@@ -740,8 +930,12 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       }
 
       const periods = (periodsRes.data ?? []) as {
-        id: string; name: string; start_date: string; end_date: string; intensity: 'rolig' | 'medium' | 'hard'
+        id: string; name: string; focus?: string | null; start_date: string; end_date: string; intensity: 'rolig' | 'medium' | 'hard'
       }[]
+      periodsUt = periods.map(p => ({
+        id: p.id, name: p.name, focus: p.focus ?? null, start_date: p.start_date, end_date: p.end_date, intensity: p.intensity,
+        days_until: daysBetween(todayISO, p.start_date), weeks: Math.max(1, Math.ceil((daysBetween(p.start_date, p.end_date) + 1) / 7)),
+      }))
       if (periods.length === 0) {
         phaseStatus = 'no_periods'
       } else {
@@ -804,7 +998,25 @@ export async function getOversiktDashboard(): Promise<OversiktData | { error: st
       stress: reflRow?.stress ?? null,
     }
 
+    // HJEM v2 bolk 0: klokkedata for I dag og Siste hardøkt i samme henting
+    // (samme loader som øktsiden — nedsamplet der).
+    const dagensId = (todayCompleted ?? todayPlanned)?.id ?? null
+    const [klokkeIdag, klokkeHard] = await Promise.all([
+      dagensId ? getWorkoutKlokkesyncData(dagensId).catch(() => null) : Promise.resolve(null),
+      lastHardWorkout && lastHardWorkout.id !== dagensId ? getWorkoutKlokkesyncData(lastHardWorkout.id).catch(() => null) : Promise.resolve(null),
+    ])
+
     return {
+      today: todayRows.map(toWorkoutCard),
+      nextPlanned: ((futurePlannedRes.data ?? []) as WorkoutRow[]).map(toWorkoutCard),
+      weekPlan,
+      competitions,
+      resultGoals,
+      shotGoal,
+      periods: periodsUt,
+      camps: campsUt,
+      helse: 'error' in helseRes ? null : helseRes,
+      klokke: { today: klokkeIdag, lastHard: klokkeHard },
       hero,
       todayState,
       nextWorkout,

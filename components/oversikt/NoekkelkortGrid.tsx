@@ -1,6 +1,7 @@
 'use client'
 
 import { KompaktHelseKort } from '@/components/helse/KompaktHelseKort'
+import type { HelseOversiktData } from '@/app/actions/helse-oversikt'
 import { useState } from 'react'
 import Link from 'next/link'
 import type {
@@ -211,8 +212,10 @@ function PhaseCard({ phase, phaseStatus }: { phase: OversiktPhase | null; phaseS
 // KompaktHelseKort (helse-designet, bolk 2) og er slettet (regel 21).
 
 export function NoekkelkortGrid({
-  lastHardWorkout, mainGoal, phase, phaseStatus,
+  lastHardWorkout, mainGoal, phase, phaseStatus, helse,
 }: {
+  /** HJEM v2 bolk 0: helse 30 dager fra Hjems ene henting — kortet henter ikke selv. */
+  helse?: HelseOversiktData | null
   lastHardWorkout: OversiktWorkoutCard | null
   mainGoal: OversiktMainGoal | null
   phase: OversiktPhase | null
@@ -223,7 +226,7 @@ export function NoekkelkortGrid({
       style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
       {/* Helse HELT til venstre i raden (Sverre 28. aug) — det kompakte
           kortet fra helseflaten; klikk åpner hele oversikten som pop-up. */}
-      <KompaktHelseKort tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
+      <KompaktHelseKort forhandsdata={helse ?? undefined} tomTekst="Logg hvilepuls, HRV og søvn — eller koble klokka — for å følge formen her." />
       <HardWorkoutCard w={lastHardWorkout} />
       <MainGoalCard goal={mainGoal} />
       <PhaseCard phase={phase} phaseStatus={phaseStatus} />

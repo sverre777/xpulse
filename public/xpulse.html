@@ -1605,7 +1605,7 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
 .pan.on{opacity:1;transform:none;pointer-events:auto}
 .pan.gone{opacity:0;transform:translateX(-50px) scale(.98)}
 .pan .app{margin:0;max-height:calc(100vh - 300px);overflow:hidden}
-.pan .ncard{max-height:calc(100vh - 300px);overflow:hidden}
+.pan .ncard{max-height:calc(100vh - 300px);overflow:auto;overscroll-behavior:contain}
 .hv{display:flex;align-items:center;gap:6px;margin:6px 0 4px;font:600 10.5px/1 'Barlow Condensed';letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .hv b{font:700 11px/1 'Barlow Condensed';letter-spacing:.06em;border:1px solid var(--line2);border-radius:999px;padding:5px 9px;color:var(--paper)}
 .hv b.on{border-color:var(--orange);color:var(--orange);background:color-mix(in srgb,var(--orange) 12%,transparent)}
@@ -1946,84 +1946,172 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
   </div>
 </section>
 
-<section id="nytt" style="padding-top:0">
-  <div class="wrap">
-    <div class="label gold">Nytt i V1.3</div>
-    <h2>PLANLEGGING PÅ <span class="g">SEKUNDER.</span></h2>
-    <p class="lead">Verktøyene som gjør planlegging til et par tastetrykk - og som viser deg økta før du har gjort den.</p>
-
-    <div class="newgrid newgrid4">
-
-      <!-- 1 · ØKTBYGGER -->
-      <div class="ncard">
-        <div class="label">Øktbygger <span class="badge-new">NY</span></div>
-        <h3>Bygg økta. Se den før du gjør den.</h3>
-        <p>Antall, dragtid, sone, pause - økta tegner seg som graf mens du bygger. Flere rader stables, så pyramider og progressive økter bygges like lett. Etter klokkesynk kutter du den samme økta opp med klikk og tall.</p>
-        <div class="eks" data-eks="knapperad" style="--eks-h:44px;margin-top:14px"></div>
-        <div class="eks" data-eks="hurtigoppsett" style="--eks-h:420px;margin-top:12px"></div>
-        <div class="pgwrap"><div class="eks" data-eks="oktkart" style="--eks-h:300px"></div></div>
+<section id="nytt" style="padding:0">
+  <!-- FORSIDE v7 bolk 2: de fire kortene er steg 01–04 på bolk 0-motoren — stegliste venstre, kortet som panel høyre.
+       Kortene er de samme eksporterte app-fragmentene (public/forside/*.html) som før; Øktbygger-fragmentet er
+       re-eksportert med kortintervall-raden 8 × 45/15 (regel 11: ekte komponent). -->
+  <div class="flyt-scrolly" data-n="4">
+    <div class="flyt-sticky">
+      <div class="hd">
+        <div class="label gold">Nytt i V1.3</div>
+        <h2>PLANLEGGING PÅ <span class="g">SEKUNDER.</span></h2>
+        <p class="lead">Verktøyene som gjør planlegging til et par tastetrykk - og som viser deg økta før du har gjort den.</p>
       </div>
-
-      <!-- 2 · HELSE & SØVN -->
-      <div class="ncard">
-        <div class="label">Helse &amp; søvn <span class="badge-live">LIVE</span></div>
-        <h3>Søvn og hvilepuls, uten å taste</h3>
-        <p>Kommer inn fra klokka hver natt. Alt kan også føres manuelt - og det du fører selv vinner alltid over det klokka sier.</p>
-        <div class="eks" data-eks="helse" style="--eks-h:900px;margin-top:14px"></div>
-        <p style="margin-top:10px;font-size:12.5px;color:var(--mute)">Samme kort på hjem, i dagboka og under Helse. Manuelt førte verdier merkes <b style="color:var(--paper)">M</b> og vinner alltid. Aldri kalorier, aldri to skalaer i én graf.</p>
+      <div class="stegliste"><button class="sl on" data-i="0"><span class="fnum">01</span><span class="slt"><b>Bygg økta. Se den før du gjør den.</b><small>Antall, dragtid, sone, pause — økta tegner seg som graf mens du bygger.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="1"><span class="fnum">02</span><span class="slt"><b>Søvn og hvilepuls, uten å taste</b><small>Kommer inn fra klokka hver natt.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="2"><span class="fnum">03</span><span class="slt"><b>58 økter ferdig rigget — og dine egne, fulgt over tid</b><small>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart.</small></span><i class="bar"><s></s></i></button>
+<button class="sl" data-i="3"><span class="fnum">04</span><span class="slt"><b>Mal sesongen. Sett konkurransene. Flytt øktene.</b><small>Periodisering males med pensel rett i årskalenderen.</small></span><i class="bar"><s></s></i></button></div>
+      <div class="paneler">
+        <div class="pan on" data-i="0"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+        <div class="ncard">
+                <div class="label">Øktbygger <span class="badge-new">NY</span></div>
+                <h3>Bygg økta. Se den før du gjør den.</h3>
+                <p>Antall, dragtid, sone, pause — eller kortintervall som 45/15 og 30/15 — økta tegner seg som graf mens du bygger. Flere rader stables, så pyramider og progressive økter bygges like lett. Etter klokkesynk kutter du den samme økta opp med klikk og tall.</p>
+                <div class="eks" data-eks="knapperad" style="--eks-h:44px;margin-top:14px"></div>
+                <div class="eks" data-eks="hurtigoppsett" style="--eks-h:470px;margin-top:12px"></div>
+                <div class="pgwrap"><div class="eks" data-eks="oktkart" style="--eks-h:300px"></div></div>
+              </div>
+        </div></div>
+        <div class="pan" data-i="1"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+        <div class="ncard">
+                <div class="label">Helse &amp; søvn <span class="badge-live">LIVE</span></div>
+                <h3>Søvn og hvilepuls, uten å taste</h3>
+                <p>Kommer inn fra klokka hver natt. Alt kan også føres manuelt - og det du fører selv vinner alltid over det klokka sier.</p>
+                <div class="eks" data-eks="helse" style="--eks-h:900px;margin-top:14px"></div>
+                <p style="margin-top:10px;font-size:12.5px;color:var(--mute)">Samme kort på hjem, i dagboka og under Helse. Manuelt førte verdier merkes <b style="color:var(--paper)">M</b> og vinner alltid. Aldri kalorier, aldri to skalaer i én graf.</p>
+              </div>
+        </div></div>
+        <div class="pan" data-i="2"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+        <div class="ncard">
+                <div class="label">Maler &amp; standardøkter <span class="badge-live">LIVE</span></div>
+                <h3>58 økter ferdig rigget - og dine egne, fulgt over tid</h3>
+                <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg - samme økt, åtte ganger, én graf.</p>
+                <div class="chiprow" style="margin-top:14px"><span class="chip on">Terskel</span><span class="chip">I4-intervall</span><span class="chip">Motbakke</span><span class="chip">Komb hard</span><span class="chip">Test</span><span class="chip gold">Mine maler</span></div>
+                <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(232,185,60,.45)">★ Standardøkt</span></div>
+                <div class="pgwrap"><div class="eks" data-eks="standardokt-stripe" style="--eks-h:44px"></div></div>
+                <div class="sglab"><span style="color:#E23A5A">● Snittpuls på draget</span><span style="color:#28A86E">◌ Laktat</span><span style="margin-left:auto;color:var(--mute)">8 gjennomføringer · mai–sep</span></div>
+                <svg class="sg" viewBox="0 0 520 150" width="100%" preserveAspectRatio="none" aria-hidden="true">
+        <line x1="30" y1="110.2" x2="508" y2="110.2" stroke="var(--line)"/>
+        <text x="25" y="113.2" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">160</text>
+        <line x1="30" y1="75.9" x2="508" y2="75.9" stroke="var(--line)"/>
+        <text x="25" y="78.9" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">165</text>
+        <line x1="30" y1="41.5" x2="508" y2="41.5" stroke="var(--line)"/>
+        <text x="25" y="44.5" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">170</text>
+        <path d="M30.0,39.0 L98.3,49.0 L166.6,59.0 L234.9,69.0 L303.1,79.0 L371.4,74.0 L439.7,94.0 L508.0,104.0" fill="none" stroke="#28A86E" stroke-width="1.5" opacity=".5" stroke-dasharray="4 3"/>
+        <path d="M30.0,34.6 L98.3,48.4 L166.6,41.5 L234.9,62.1 L303.1,69.0 L371.4,82.8 L439.7,89.6 L508.0,103.4" fill="none" stroke="#E23A5A" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="30.0" cy="34.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="30.0" y="25.6" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">171</text>
+        <text x="30.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">12. jun</text>
+        <circle cx="98.3" cy="48.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <circle cx="166.6" cy="41.5" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="166.6" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">10. jul</text>
+        <circle cx="234.9" cy="62.1" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="234.9" y="53.1" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">167</text>
+        <circle cx="303.1" cy="69.0" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="303.1" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">7. aug</text>
+        <circle cx="371.4" cy="82.8" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <circle cx="439.7" cy="89.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="439.7" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">4. sep</text>
+        <circle cx="508.0" cy="103.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+        <text x="508.0" y="94.4" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">161</text>
+        <text x="508.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">18. sep</text>
+        </svg>
+                <p style="margin-top:6px;font-size:12.5px;color:var(--mute)">Lavere puls, lavere laktat, samme fart - det er terskelen som flytter seg. Uten å lete i historikken.</p>
+              </div>
+        </div></div>
+        <div class="pan" data-i="3"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+        <div class="ncard">
+                <div class="label">Årsplanlegging <span class="badge-live">LIVE</span></div>
+                <h3>Mal sesongen. Sett konkurransene. Flytt øktene.</h3>
+                <p>Periodisering males med pensel rett i årskalenderen. Mål-konkurranser, samlinger i høyde og varme, og planmaler dras inn uke for uke - og planen står urørt når dagboka fylles.</p>
+                <div class="aars">
+                  <div class="aars-h"><span>2026/27</span><span class="aux">Uke 40 → 14</span></div>
+                  <div class="eks" data-eks="aarsplan" style="--eks-h:420px;margin-top:8px"></div>
+                  <div class="aars-hend"><span class="samling">⛰ Uke 42 · Livigno · høyde</span><span class="konk b">🏁 B · Uke 47 · Beitostølen</span><span class="konk a">🏁 A · Uke 50 · NC Simostranda</span><span class="samling varme">☀ Uke 1 · Oberhof · varme</span><span class="konk a">🏁 A · Uke 3 · NM</span></div>
+                  <div class="aars-foot"><span>Timer/uke</span><span class="chip" style="color:var(--green);border-color:rgba(40,168,110,.45)">🖌 Pensel: Grunnperiode</span><span class="chip">Uke-mal: «Hard uke 3»</span></div>
+                </div>
+              </div>
+        </div></div>
       </div>
-
-      <!-- 3 · MALER & STANDARDØKTER -->
-      <div class="ncard">
-        <div class="label">Maler &amp; standardøkter <span class="badge-live">LIVE</span></div>
-        <h3>58 økter ferdig rigget - og dine egne, fulgt over tid</h3>
-        <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg - samme økt, åtte ganger, én graf.</p>
-        <div class="chiprow" style="margin-top:14px"><span class="chip on">Terskel</span><span class="chip">I4-intervall</span><span class="chip">Motbakke</span><span class="chip">Komb hard</span><span class="chip">Test</span><span class="chip gold">Mine maler</span></div>
-        <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(232,185,60,.45)">★ Standardøkt</span></div>
-        <div class="pgwrap"><div class="eks" data-eks="standardokt-stripe" style="--eks-h:44px"></div></div>
-        <div class="sglab"><span style="color:#E23A5A">● Snittpuls på draget</span><span style="color:#28A86E">◌ Laktat</span><span style="margin-left:auto;color:var(--mute)">8 gjennomføringer · mai–sep</span></div>
-        <svg class="sg" viewBox="0 0 520 150" width="100%" preserveAspectRatio="none" aria-hidden="true">
-<line x1="30" y1="110.2" x2="508" y2="110.2" stroke="var(--line)"/>
-<text x="25" y="113.2" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">160</text>
-<line x1="30" y1="75.9" x2="508" y2="75.9" stroke="var(--line)"/>
-<text x="25" y="78.9" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">165</text>
-<line x1="30" y1="41.5" x2="508" y2="41.5" stroke="var(--line)"/>
-<text x="25" y="44.5" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">170</text>
-<path d="M30.0,39.0 L98.3,49.0 L166.6,59.0 L234.9,69.0 L303.1,79.0 L371.4,74.0 L439.7,94.0 L508.0,104.0" fill="none" stroke="#28A86E" stroke-width="1.5" opacity=".5" stroke-dasharray="4 3"/>
-<path d="M30.0,34.6 L98.3,48.4 L166.6,41.5 L234.9,62.1 L303.1,69.0 L371.4,82.8 L439.7,89.6 L508.0,103.4" fill="none" stroke="#E23A5A" stroke-width="2.2" stroke-linejoin="round"/>
-<circle cx="30.0" cy="34.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="30.0" y="25.6" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">171</text>
-<text x="30.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">12. jun</text>
-<circle cx="98.3" cy="48.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<circle cx="166.6" cy="41.5" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="166.6" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">10. jul</text>
-<circle cx="234.9" cy="62.1" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="234.9" y="53.1" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">167</text>
-<circle cx="303.1" cy="69.0" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="303.1" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">7. aug</text>
-<circle cx="371.4" cy="82.8" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<circle cx="439.7" cy="89.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="439.7" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">4. sep</text>
-<circle cx="508.0" cy="103.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
-<text x="508.0" y="94.4" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">161</text>
-<text x="508.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">18. sep</text>
-</svg>
-        <p style="margin-top:6px;font-size:12.5px;color:var(--mute)">Lavere puls, lavere laktat, samme fart - det er terskelen som flytter seg. Uten å lete i historikken.</p>
-      </div>
-
-      <!-- 4 · ÅRSPLANLEGGING -->
-      <div class="ncard">
-        <div class="label">Årsplanlegging <span class="badge-live">LIVE</span></div>
-        <h3>Mal sesongen. Sett konkurransene. Flytt øktene.</h3>
-        <p>Periodisering males med pensel rett i årskalenderen. Mål-konkurranser, samlinger i høyde og varme, og planmaler dras inn uke for uke - og planen står urørt når dagboka fylles.</p>
-        <div class="aars">
-          <div class="aars-h"><span>2026/27</span><span class="aux">Uke 40 → 14</span></div>
-          <div class="eks" data-eks="aarsplan" style="--eks-h:420px;margin-top:8px"></div>
-          <div class="aars-hend"><span class="samling">⛰ Uke 42 · Livigno · høyde</span><span class="konk b">🏁 B · Uke 47 · Beitostølen</span><span class="konk a">🏁 A · Uke 50 · NC Simostranda</span><span class="samling varme">☀ Uke 1 · Oberhof · varme</span><span class="konk a">🏁 A · Uke 3 · NM</span></div>
-          <div class="aars-foot"><span>Timer/uke</span><span class="chip" style="color:var(--green);border-color:rgba(40,168,110,.45)">🖌 Pensel: Grunnperiode</span><span class="chip">Uke-mal: «Hard uke 3»</span></div>
-        </div>
-      </div>
+      <div class="flyt-hint"><i></i>Bla videre</div>
     </div>
+  </div>
+  <div class="flyt-mobil">
+    <div class="hd" style="padding:40px 0 6px">
+      <div class="label gold">Nytt i V1.3</div>
+      <h2>PLANLEGGING PÅ <span class="g">SEKUNDER.</span></h2>
+      <p class="lead">Verktøyene som gjør planlegging til et par tastetrykk - og som viser deg økta før du har gjort den.</p>
+    </div>
+    <div class="mflyt" data-side="l"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+    <div class="ncard">
+            <div class="label">Øktbygger <span class="badge-new">NY</span></div>
+            <h3>Bygg økta. Se den før du gjør den.</h3>
+            <p>Antall, dragtid, sone, pause — eller kortintervall som 45/15 og 30/15 — økta tegner seg som graf mens du bygger. Flere rader stables, så pyramider og progressive økter bygges like lett. Etter klokkesynk kutter du den samme økta opp med klikk og tall.</p>
+            <div class="eks" data-eks="knapperad" style="--eks-h:44px;margin-top:14px"></div>
+            <div class="eks" data-eks="hurtigoppsett" style="--eks-h:470px;margin-top:12px"></div>
+            <div class="pgwrap"><div class="eks" data-eks="oktkart" style="--eks-h:300px"></div></div>
+          </div>
+    </div></div>
+    <div class="mflyt" data-side="r"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+    <div class="ncard">
+            <div class="label">Helse &amp; søvn <span class="badge-live">LIVE</span></div>
+            <h3>Søvn og hvilepuls, uten å taste</h3>
+            <p>Kommer inn fra klokka hver natt. Alt kan også føres manuelt - og det du fører selv vinner alltid over det klokka sier.</p>
+            <div class="eks" data-eks="helse" style="--eks-h:900px;margin-top:14px"></div>
+            <p style="margin-top:10px;font-size:12.5px;color:var(--mute)">Samme kort på hjem, i dagboka og under Helse. Manuelt førte verdier merkes <b style="color:var(--paper)">M</b> og vinner alltid. Aldri kalorier, aldri to skalaer i én graf.</p>
+          </div>
+    </div></div>
+    <div class="mflyt" data-side="l"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+    <div class="ncard">
+            <div class="label">Maler &amp; standardøkter <span class="badge-live">LIVE</span></div>
+            <h3>58 økter ferdig rigget - og dine egne, fulgt over tid</h3>
+            <p>Terskel, I4/I5, motbakke, fartslek, komb og tester på Olympiatoppens skala, med oppvarming og nedjogg klart. Lag egne økt-, uke- og planmaler. Merk en økt som <b style="color:var(--paper)">standardøkt</b>, så følger appen den for deg - samme økt, åtte ganger, én graf.</p>
+            <div class="chiprow" style="margin-top:14px"><span class="chip on">Terskel</span><span class="chip">I4-intervall</span><span class="chip">Motbakke</span><span class="chip">Komb hard</span><span class="chip">Test</span><span class="chip gold">Mine maler</span></div>
+            <div class="malrad"><b>3 × 20 min / 3 min</b> · 60 min I3 · terskeltest <span class="chip" style="margin-left:auto;color:var(--gold);border-color:rgba(232,185,60,.45)">★ Standardøkt</span></div>
+            <div class="pgwrap"><div class="eks" data-eks="standardokt-stripe" style="--eks-h:44px"></div></div>
+            <div class="sglab"><span style="color:#E23A5A">● Snittpuls på draget</span><span style="color:#28A86E">◌ Laktat</span><span style="margin-left:auto;color:var(--mute)">8 gjennomføringer · mai–sep</span></div>
+            <svg class="sg" viewBox="0 0 520 150" width="100%" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="30" y1="110.2" x2="508" y2="110.2" stroke="var(--line)"/>
+    <text x="25" y="113.2" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">160</text>
+    <line x1="30" y1="75.9" x2="508" y2="75.9" stroke="var(--line)"/>
+    <text x="25" y="78.9" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">165</text>
+    <line x1="30" y1="41.5" x2="508" y2="41.5" stroke="var(--line)"/>
+    <text x="25" y="44.5" text-anchor="end" font-family="Barlow" font-size="9" fill="var(--mute)">170</text>
+    <path d="M30.0,39.0 L98.3,49.0 L166.6,59.0 L234.9,69.0 L303.1,79.0 L371.4,74.0 L439.7,94.0 L508.0,104.0" fill="none" stroke="#28A86E" stroke-width="1.5" opacity=".5" stroke-dasharray="4 3"/>
+    <path d="M30.0,34.6 L98.3,48.4 L166.6,41.5 L234.9,62.1 L303.1,69.0 L371.4,82.8 L439.7,89.6 L508.0,103.4" fill="none" stroke="#E23A5A" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="30.0" cy="34.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="30.0" y="25.6" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">171</text>
+    <text x="30.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">12. jun</text>
+    <circle cx="98.3" cy="48.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <circle cx="166.6" cy="41.5" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="166.6" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">10. jul</text>
+    <circle cx="234.9" cy="62.1" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="234.9" y="53.1" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">167</text>
+    <circle cx="303.1" cy="69.0" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="303.1" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">7. aug</text>
+    <circle cx="371.4" cy="82.8" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <circle cx="439.7" cy="89.6" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="439.7" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">4. sep</text>
+    <circle cx="508.0" cy="103.4" r="4" fill="var(--card)" stroke="#E23A5A" stroke-width="2"/>
+    <text x="508.0" y="94.4" text-anchor="middle" font-family="Barlow Condensed" font-weight="700" font-size="10" fill="var(--paper)">161</text>
+    <text x="508.0" y="142" text-anchor="middle" font-family="Barlow" font-size="9" fill="var(--mute)">18. sep</text>
+    </svg>
+            <p style="margin-top:6px;font-size:12.5px;color:var(--mute)">Lavere puls, lavere laktat, samme fart - det er terskelen som flytter seg. Uten å lete i historikken.</p>
+          </div>
+    </div></div>
+    <div class="mflyt" data-side="r"><div class="newgrid" style="grid-template-columns:1fr;margin:0">
+    <div class="ncard">
+            <div class="label">Årsplanlegging <span class="badge-live">LIVE</span></div>
+            <h3>Mal sesongen. Sett konkurransene. Flytt øktene.</h3>
+            <p>Periodisering males med pensel rett i årskalenderen. Mål-konkurranser, samlinger i høyde og varme, og planmaler dras inn uke for uke - og planen står urørt når dagboka fylles.</p>
+            <div class="aars">
+              <div class="aars-h"><span>2026/27</span><span class="aux">Uke 40 → 14</span></div>
+              <div class="eks" data-eks="aarsplan" style="--eks-h:420px;margin-top:8px"></div>
+              <div class="aars-hend"><span class="samling">⛰ Uke 42 · Livigno · høyde</span><span class="konk b">🏁 B · Uke 47 · Beitostølen</span><span class="konk a">🏁 A · Uke 50 · NC Simostranda</span><span class="samling varme">☀ Uke 1 · Oberhof · varme</span><span class="konk a">🏁 A · Uke 3 · NM</span></div>
+              <div class="aars-foot"><span>Timer/uke</span><span class="chip" style="color:var(--green);border-color:rgba(40,168,110,.45)">🖌 Pensel: Grunnperiode</span><span class="chip">Uke-mal: «Hard uke 3»</span></div>
+            </div>
+          </div>
+    </div></div>
   </div>
 </section>
 
@@ -2514,7 +2602,7 @@ html.js .ishot.vis{opacity:1;transform:scale(1)}
 <script>
   // Scroll-reveal - samme mønster som før, selektorer for v2-seksjonene.
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.08});
-  document.querySelectorAll('.flist li,.ncard,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
+  document.querySelectorAll('.flist li,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
 
   // Scrollspy for desktop-navet.
   window.addEventListener('scroll',()=>{

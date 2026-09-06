@@ -201,7 +201,8 @@ function tittelFor(b: Oppsett): string {
 }
 
 export interface IntervallForhandsutfylling {
-  rader: { antall: number; dragSek: number; sone: BlokkSone; pauseSek: number }[]
+  /** kortPaaSek/kortAvSek: kortintervall inni draget (45/15) — brukes av forsidens eksport (Forside v7 bolk 2). */
+  rader: { antall: number; dragSek: number; sone: BlokkSone; pauseSek: number; kortPaaSek?: number; kortAvSek?: number }[]
   oppvarmingSek: number
   nedjoggSek: number
   skyting: SkyteMonster | null
@@ -282,7 +283,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
     forhandsutfylt
       ? forhandsutfylt.rader.map(r => ({
           antall: String(r.antall), drag: fTid(r.dragSek), sone: r.sone, pause: fTid(r.pauseSek),
-          kortPaa: '', kortAv: '', modus: 'tid' as const, km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '',
+          kortPaa: r.kortPaaSek ? String(r.kortPaaSek) : '', kortAv: r.kortAvSek != null && r.kortPaaSek ? String(r.kortAvSek) : '', modus: 'tid' as const, km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '',
         }))
       // Rettelse 8 (4. sep): ÉN standardrad — 3 × 10 min I3 · 2 min pause.
       : [{ antall: '3', drag: '10:00', sone: 'I3', pause: '2:00', kortPaa: '', kortAv: '', modus: 'tid', km: '', fartFra: '', fartTil: '', wattFra: '', wattTil: '', stigning: '', motstand: '', kadens: '' }])
@@ -614,6 +615,34 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
               </span>
             })()}
           </div>}
+          {/* Forsidens kompakte variant (Forside v7 bolk 2, Sverre 6. sep): kortintervallet
+              vises som én linje når det er forhåndsutfylt — hurtigvalgene + «8 × 45/15». */}
+          {kompakt && Number(r.kortPaa) > 0 && (() => {
+            const m = { paaSek: Number(r.kortPaa) || 0, avSek: Number(r.kortAv) || 0 }
+            const d = r.drag.split(':').map(Number); const dragSek = d.length >= 2 ? d[0] * 60 + d[1] : 0
+            return (
+              <div className="col-span-full flex items-center gap-1.5 flex-wrap" data-kortintervall-linje style={{ marginTop: -2, marginBottom: 4 }}>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--tekst-8-alt)' }}>Kortintervall</span>
+                {KORTINTERVALL_HURTIGVALG.map(h => {
+                  const aktiv = h.verdi.paaSek === m.paaSek && h.verdi.avSek === m.avSek
+                  return (
+                    <button key={h.etikett} type="button" data-kort-hurtigvalg={h.etikett} data-aktiv={aktiv ? '1' : undefined}
+                      onClick={() => { oppdater(i, 'kortPaa', String(h.verdi.paaSek)); oppdater(i, 'kortAv', String(h.verdi.avSek)) }}
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11, fontWeight: 700,
+                        color: aktiv ? 'var(--accent)' : 'var(--tekst-8-alt)', background: aktiv ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : 'none',
+                        border: `1px solid ${aktiv ? 'var(--accent)' : 'var(--line2)'}`, borderRadius: 999, padding: '4px 8px', minHeight: 30, cursor: 'pointer',
+                      }}>
+                      {h.etikett}
+                    </button>
+                  )
+                })}
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 11.5, color: 'var(--tekst-5-app)' }}>
+                  {antallRepetisjoner(dragSek, m) > 0 ? `${kortintervallEtikett(dragSek, m)} · kortintervall` : 'draget er kortere enn én repetisjon'}
+                </span>
+              </div>
+            )
+          })()}
           {/* KORTINTERVALLER inni draget — frie sekundfelter, alltid
               synlige (ikke i forsidens kompakte variant). Hurtigvalgene
               deles med segment-editoren (lib/intervall-monstre, regel 18). */}

@@ -136,7 +136,7 @@ function ForsideEksportInnhold() {
 
       <Kort navn="hurtigoppsett" bredde={500}>
         <IntervallBygger kompakt sport="biathlon" onOpprett={ingen}
-          forhandsutfylt={{ rader: [{ antall: 2, dragSek: 600, sone: 'I3', pauseSek: 180 }, { antall: 3, dragSek: 300, sone: 'I4', pauseSek: 120 }], oppvarmingSek: 1200, nedjoggSek: 900, skyting: 'L-S', tittel: '2 × 10 min I3 / 3 min + 3 × 5 min I4' } as unknown as Parameters<typeof IntervallBygger>[0]['forhandsutfylt']} />
+          forhandsutfylt={{ rader: [{ antall: 2, dragSek: 600, sone: 'I3', pauseSek: 180 }, { antall: 3, dragSek: 300, sone: 'I4', pauseSek: 120 }, { antall: 1, dragSek: 480, sone: 'I4', pauseSek: 120, kortPaaSek: 45, kortAvSek: 15 }], oppvarmingSek: 1200, nedjoggSek: 900, skyting: 'L-S', tittel: '2 × 10 min I3 / 3 min + 3 × 5 min I4 + 8 × 45/15' } as unknown as Parameters<typeof IntervallBygger>[0]['forhandsutfylt']} />
       </Kort>
 
       <Kort navn="helse" bredde={500}>

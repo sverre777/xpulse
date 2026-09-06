@@ -153,7 +153,7 @@ document.documentElement.classList.add('js');</script>
   --tonet-oransje:#F3EDE8;
 }
 /* PÅ FAST MØRK BUNN - fredet i lysmodus.
-   Heroen ligger på et fotografi, sport-flisene (.dtile) har hver sitt foto
+   Heroen ligger på et fotografi, disiplin-panelene (.dp) har hvert sitt foto
    som bakgrunn, og nav-en ligger på sin egen mørke gradient
    (rgba(11,19,21,.75)). Ingen av dem blir lysere i lysmodus, så forgrunnen
    på dem er bundet til BUNNEN og ikke til temaet - samme prinsipp som
@@ -163,7 +163,7 @@ document.documentElement.classList.add('js');</script>
    --bg står med vilje ikke her: .hero-fade må tone ned i sidas EKTE
    bakgrunn, ellers blir det en hard kant mot den lyse siden under. */
 :root[data-tema="lys"] .hero,
-:root[data-tema="lys"] .dtile,
+:root[data-tema="lys"] .dp,
 :root[data-tema="lys"] nav{
   /* color settes EKSPLISITT. Elementer som ikke har egen color arver den
      ferdig utregnede fargen fra body - ikke variabelen - sa det holder ikke
@@ -614,28 +614,11 @@ footer nav2{margin-left:auto;display:flex;gap:20px}
 footer a:hover{color:var(--paper)}
 
 /* velg din disiplin - slått sammen med bildestripa: én rad store bilder */
-.drow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:36px}
-.dtile{position:relative;display:block;aspect-ratio:3/4;background-size:cover;background-position:center;overflow:hidden;filter:saturate(.92);transition:filter .3s}
-.dtile:hover{filter:saturate(1.05) brightness(1.1)}
-.dtile::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,13,17,0) 55%,rgba(13,13,17,.65));z-index:1}
-.dtile::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .3s;z-index:3}
-.dtile:hover::after{transform:scaleX(1)}
-.dcap{position:absolute;left:12px;bottom:12px;z-index:2;display:flex;align-items:center;gap:8px;font:600 13px/1 'Barlow Condensed';letter-spacing:.16em;text-transform:uppercase;color:var(--hvit);text-shadow:0 2px 8px rgba(0,0,0,.7)}
-.dcap img{width:17px;height:17px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
-.d-langrenn{background-image:url('/photos/langrenn.jpg')}
-.d-skiskyting{background-image:url('/photos/skiskyting.jpg')}
-.d-langlop{background-image:url('/photos/langlop.jpg')}
-.d-loping{background-image:url('/photos/loping.jpg')}
-.d-sykling{background-image:url('/photos/sykling.jpg')}
-.d-triatlon{background-image:url('/photos/triatlon.jpg')}
-.d-multisport{background-image:url('/photos/multisport.jpg')}
 .snote{margin-top:18px;padding:16px 22px;background:var(--surface);border-left:3px solid var(--orange)}
 .snote p{font-size:13.5px;line-height:1.65;color:var(--dim);margin:0 0 6px}
 .snote p:last-child{margin-bottom:0}
 .snote b{color:var(--paper)}
 .snote a{color:var(--orange);border-bottom:1px solid rgba(255,69,0,.4)}
-@media(max-width:1100px){.drow{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:700px){.drow{grid-template-columns:repeat(2,minmax(0,1fr))}.dtile{aspect-ratio:16/10}.dtile:last-child{grid-column:1/-1;aspect-ratio:21/9}.dcap{font-size:11px;left:9px;bottom:8px}.dcap img{width:14px;height:14px}}
 
 /* periodemarkering - som i appen: stripe over uka (pc) og periodelinjer i dagboka (mobil) */
 .pbar{height:4px;border-radius:2px;margin-bottom:2px}
@@ -1758,6 +1741,47 @@ html[data-tema="lys"] .rail-linje{background:rgba(0,0,0,.12)}
 @media (max-width:1180px){.mobbar{display:block}}
 /* topplinja dekker 98 px - ankeret skal ikke havne under den */
 section[id],header[id]{scroll-margin-top:108px}
+/* ── VELG DIN DISIPLIN (Sverre 6. sep, fasit design/xpulse-velg-disiplin-design.html) ──
+   Sju paneler i én rad. Navnerad over: klikk åpner panelet. Hover eller fokus utvider
+   panelet (flex-grow 1 -> 2.9) med SEO-linja, tre punkter og «Les mer». Kun flex-grow,
+   opacity og transform animeres - ingen scroll-lytter. Under 900 px byttes raden med en
+   vannrett kort-karusell med scroll-snap, der alt innholdet står åpent. */
+.dnavn{max-width:1500px;margin:0 auto 12px;padding:0 24px;display:flex;gap:6px;flex-wrap:wrap}
+.dn{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line2);border-radius:999px;padding:7px 14px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);transition:color .2s,border-color .2s,background .2s;min-height:34px}
+.dn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.dn:hover{color:var(--paper);border-color:var(--paper)}
+.dn.on{color:#fff;background:#FF4500;border-color:#FF4500}
+.dn:focus-visible{outline:2px solid #FF4500;outline-offset:3px}
+.dprad{display:flex;gap:6px;align-items:stretch;height:clamp(280px,26vw,380px);max-width:1500px;margin:0 auto;padding:0 24px}
+.dp{position:relative;flex:1 1 0;min-width:0;border-radius:16px;overflow:hidden;cursor:pointer;text-decoration:none;color:#fff;
+  border:1px solid transparent;transition:flex-grow .5s cubic-bezier(.2,.7,.2,1),filter .35s ease,border-color .2s}
+.dp-img{position:absolute;inset:0;background-image:var(--bg);background-size:cover;background-position:var(--pos,center);transform:scale(1.04);transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.dp-sk{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,10,.92) 0%,rgba(8,8,10,.55) 34%,rgba(8,8,10,.12) 62%,rgba(8,8,10,.3) 100%)}
+.dp-inn{position:absolute;inset:auto 0 0 0;padding:15px 16px 17px;display:block}
+.dp-navn{display:flex;align-items:center;gap:9px}
+.dp-navn svg{width:19px;height:19px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.9;flex:none}
+.dp-navn b{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+.dp-chips{display:block;margin-top:6px;font-family:'Barlow',sans-serif;font-size:11.5px;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-mer{display:block;max-height:0;opacity:0;overflow:hidden;transition:max-height .55s cubic-bezier(.2,.7,.2,1),opacity .35s ease .1s}
+.dp-seo{display:block;font-family:'Bebas Neue',sans-serif;font-size:23px;letter-spacing:.03em;margin:10px 0 8px;line-height:1.05}
+.dp-mer ul{list-style:none;margin:0 0 12px;padding:0}
+.dp-mer li{font-family:'Barlow',sans-serif;font-size:13px;color:rgba(255,255,255,.88);padding:3px 0 3px 16px;position:relative;white-space:nowrap}
+.dp-mer li::before{content:'';position:absolute;left:0;top:11px;width:7px;height:2px;background:#FF4500;border-radius:1px}
+.dp-cta{display:inline-flex;align-items:center;gap:8px;background:#FF4500;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px;border-radius:999px}
+.dp:hover,.dp:focus,.dp:focus-visible,.dp.on{flex-grow:2.9;filter:none}
+.dp:hover .dp-img,.dp:focus .dp-img,.dp:focus-visible .dp-img,.dp.on .dp-img{transform:scale(1)}
+.dp:hover .dp-mer,.dp:focus .dp-mer,.dp:focus-visible .dp-mer,.dp.on .dp-mer{max-height:260px;opacity:1}
+.dp:hover .dp-chips,.dp:focus .dp-chips,.dp:focus-visible .dp-chips,.dp.on .dp-chips{display:none}
+.dp:focus-visible{border-color:#FF4500;outline:2px solid #FF4500;outline-offset:2px}
+.dprad:hover .dp:not(:hover){filter:saturate(.6) brightness(.62)}
+.dpmob{display:none;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 20px 8px;-webkit-overflow-scrolling:touch}
+.dpmob::-webkit-scrollbar{display:none}
+.dpmob .dp{flex:0 0 78%;scroll-snap-align:center;height:420px;filter:none}
+.dpmob .dp .dp-mer{max-height:260px;opacity:1}
+.dpmob .dp .dp-chips{display:none}
+@media (max-width:900px){ .dprad{display:none} .dpmob{display:flex} }
+@media (prefers-reduced-motion:reduce){ .dp,.dp-img,.dp-mer{transition:none} }
 </style>
 </head>
 <body>
@@ -2322,14 +2346,256 @@ section[id],header[id]{scroll-margin-top:108px}
     <h2>VELG DIN <span class="o">DISIPLIN.</span></h2>
   </div>
 </section>
-<div class="drow">
-  <a class="dtile d-langrenn" href="/funksjoner/langrenn"><span class="dcap"><img alt="" src="/sport-icons/langrenn.png">Langrenn</span></a>
-  <a class="dtile d-skiskyting" href="/funksjoner/skiskyting"><span class="dcap"><img alt="" src="/sport-icons/skiskyting.png">Skiskyting</span></a>
-  <a class="dtile d-langlop" href="/funksjoner/langlop"><span class="dcap"><img alt="" src="/sport-icons/langlop.png">Langløp</span></a>
-  <a class="dtile d-loping" href="/funksjoner/loping"><span class="dcap"><img alt="" src="/sport-icons/loping.png">Løping</span></a>
-  <a class="dtile d-sykling" href="/funksjoner/sykling"><span class="dcap"><img alt="" src="/sport-icons/sykling.png">Sykling</span></a>
-  <a class="dtile d-triatlon" href="/funksjoner/triatlon"><span class="dcap"><img alt="" src="/sport-icons/triatlon.png">Triatlon</span></a>
-  <a class="dtile d-multisport" href="/funksjoner/multisport"><span class="dcap">Multisport</span></a>
+<div class="dnavn" role="group" aria-label="Velg idrett">
+    <button type="button" class="dn on" data-mal="langrenn" aria-controls="dp-langrenn"><svg viewBox="0 0 24 24"><path d="M3 19.5l14-13M6.5 21l14-13"/><circle cx="14.5" cy="4.5" r="1.6"/><path d="M11 9l3 2.5-1.5 3 3 2"/></svg>Langrenn</button>
+    <button type="button" class="dn" data-mal="skiskyting" aria-controls="dp-skiskyting"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Skiskyting</button>
+    <button type="button" class="dn" data-mal="langlop" aria-controls="dp-langlop"><svg viewBox="0 0 24 24"><path d="M4 19.5l14-13M7.5 21l14-13"/><path d="M2 12h4M18 5h4"/></svg>Langløp</button>
+    <button type="button" class="dn" data-mal="loping" aria-controls="dp-loping"><svg viewBox="0 0 24 24"><circle cx="14" cy="4.6" r="1.9"/><path d="M13 8.5l-3.5 4 3 2.5.8 5"/><path d="M9.5 12.5L5 14M12.5 15L8 20"/><path d="M13 8.5l4 1.6 1.6 3.4"/></svg>Løping</button>
+    <button type="button" class="dn" data-mal="sykling" aria-controls="dp-sykling"><svg viewBox="0 0 24 24"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M8 17l3.5-6.5H16M9.5 10.5H14l4.5 6.5"/><circle cx="15.5" cy="4.5" r="1.5"/></svg>Sykling</button>
+    <button type="button" class="dn" data-mal="triatlon" aria-controls="dp-triatlon"><svg viewBox="0 0 24 24"><path d="M2 18c1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.6 0 1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.2 0"/><circle cx="7" cy="6" r="1.8"/><path d="M4 12l4-2.5 3.5 1.5 3-3"/><circle cx="18" cy="7" r="2.6"/></svg>Triatlon</button>
+    <button type="button" class="dn" data-mal="multisport" aria-controls="dp-multisport"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><path d="M17.25 13.5v7.5M13.5 17.25h7.5"/></svg>Multisport</button>
+</div>
+<div class="dprad">
+    <a class="dp on" id="dp-langrenn" data-slug="langrenn" href="/funksjoner/langrenn"
+      aria-expanded="true" style="--bg:url('/photos/langrenn.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19.5l14-13M6.5 21l14-13"/><circle cx="14.5" cy="4.5" r="1.6"/><path d="M11 9l3 2.5-1.5 3 3 2"/></svg><b>Langrenn</b></span>
+        <span class="dp-chips">skipark · ski-tester · teknikk</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for langrenn</span>
+          <ul>
+        <li>Skipark med ski-tester, føre og smøring</li>
+        <li>Teknikk per økt - skøyting, klassisk, staking</li>
+        <li>Rulleski hele sommeren, samme kurver</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-skiskyting" data-slug="skiskyting" href="/funksjoner/skiskyting"
+      aria-expanded="false" style="--bg:url('/photos/skiskyting.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><b>Skiskyting</b></span>
+        <span class="dp-chips">treff % · vind · skuddplott</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for skiskyting</span>
+          <ul>
+        <li>Treff % per posisjon, vind, sikt og skuddplott</li>
+        <li>Skyting rett på pulskurven - L og S</li>
+        <li>Konkurransføring med automatisk struktur</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-langlop" data-slug="langlop" href="/funksjoner/langlop"
+      aria-expanded="false" style="--bg:url('/photos/langlop.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l14-13M7.5 21l14-13"/><path d="M2 12h4M18 5h4"/></svg><b>Langløp</b></span>
+        <span class="dp-chips">birken · pacing · glid</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for langløp</span>
+          <ul>
+        <li>Birken, Vasaloppet og de lange rennene</li>
+        <li>Pacing og langturer med føre og glid</li>
+        <li>Skipark og smøring for hvert renn</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-loping" data-slug="loping" href="/funksjoner/loping"
+      aria-expanded="false" style="--bg:url('/photos/loping.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="14" cy="4.6" r="1.9"/><path d="M13 8.5l-3.5 4 3 2.5.8 5"/><path d="M9.5 12.5L5 14M12.5 15L8 20"/><path d="M13 8.5l4 1.6 1.6 3.4"/></svg><b>Løping</b></span>
+        <span class="dp-chips">soner · terskel · GAP</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for løping</span>
+          <ul>
+        <li>Soner og terskel fra dine egne tester</li>
+        <li>Intervaller med GAP - bakken lyver ikke</li>
+        <li>Bane, terreng, asfalt og mølle hver for seg</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-sykling" data-slug="sykling" href="/funksjoner/sykling"
+      aria-expanded="false" style="--bg:url('/photos/sykling.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M8 17l3.5-6.5H16M9.5 10.5H14l4.5 6.5"/><circle cx="15.5" cy="4.5" r="1.5"/></svg><b>Sykling</b></span>
+        <span class="dp-chips">watt · NP/IF · effektsoner</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for sykling</span>
+          <ul>
+        <li>Watt og effektsoner ved siden av pulsen</li>
+        <li>NP og IF på hver økt</li>
+        <li>Landevei, terreng og ergo som egne former</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-triatlon" data-slug="triatlon" href="/funksjoner/triatlon"
+      aria-expanded="false" style="--bg:url('/photos/triatlon.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 18c1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.6 0 1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.2 0"/><circle cx="7" cy="6" r="1.8"/><path d="M4 12l4-2.5 3.5 1.5 3-3"/><circle cx="18" cy="7" r="2.6"/></svg><b>Triatlon</b></span>
+        <span class="dp-chips">brick · bytte-tider · tre grener</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for triatlon</span>
+          <ul>
+        <li>Tre disipliner i én plan og én dagbok</li>
+        <li>Brick-økter og bytte-tider</li>
+        <li>Svømming per teknikk og bassenglengde</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dp-multisport" data-slug="multisport" href="/funksjoner/multisport"
+      aria-expanded="false" style="--bg:url('/photos/multisport.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><path d="M17.25 13.5v7.5M13.5 17.25h7.5"/></svg><b>Multisport</b></span>
+        <span class="dp-chips">alt i én · egne felt</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for multisport</span>
+          <ul>
+        <li>All trening i én app - uansett form</li>
+        <li>Egne bevegelsesformer med egne felt</li>
+        <li>Fri kombinasjon av idretter i samme uke</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+</div>
+<div class="dpmob">
+    <a class="dp" id="dpm-langrenn" data-slug="langrenn" href="/funksjoner/langrenn"
+      aria-expanded="false" style="--bg:url('/photos/langrenn.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19.5l14-13M6.5 21l14-13"/><circle cx="14.5" cy="4.5" r="1.6"/><path d="M11 9l3 2.5-1.5 3 3 2"/></svg><b>Langrenn</b></span>
+        <span class="dp-chips">skipark · ski-tester · teknikk</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for langrenn</span>
+          <ul>
+        <li>Skipark med ski-tester, føre og smøring</li>
+        <li>Teknikk per økt - skøyting, klassisk, staking</li>
+        <li>Rulleski hele sommeren, samme kurver</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-skiskyting" data-slug="skiskyting" href="/funksjoner/skiskyting"
+      aria-expanded="false" style="--bg:url('/photos/skiskyting.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><b>Skiskyting</b></span>
+        <span class="dp-chips">treff % · vind · skuddplott</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for skiskyting</span>
+          <ul>
+        <li>Treff % per posisjon, vind, sikt og skuddplott</li>
+        <li>Skyting rett på pulskurven - L og S</li>
+        <li>Konkurransføring med automatisk struktur</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-langlop" data-slug="langlop" href="/funksjoner/langlop"
+      aria-expanded="false" style="--bg:url('/photos/langlop.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l14-13M7.5 21l14-13"/><path d="M2 12h4M18 5h4"/></svg><b>Langløp</b></span>
+        <span class="dp-chips">birken · pacing · glid</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for langløp</span>
+          <ul>
+        <li>Birken, Vasaloppet og de lange rennene</li>
+        <li>Pacing og langturer med føre og glid</li>
+        <li>Skipark og smøring for hvert renn</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-loping" data-slug="loping" href="/funksjoner/loping"
+      aria-expanded="false" style="--bg:url('/photos/loping.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="14" cy="4.6" r="1.9"/><path d="M13 8.5l-3.5 4 3 2.5.8 5"/><path d="M9.5 12.5L5 14M12.5 15L8 20"/><path d="M13 8.5l4 1.6 1.6 3.4"/></svg><b>Løping</b></span>
+        <span class="dp-chips">soner · terskel · GAP</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for løping</span>
+          <ul>
+        <li>Soner og terskel fra dine egne tester</li>
+        <li>Intervaller med GAP - bakken lyver ikke</li>
+        <li>Bane, terreng, asfalt og mølle hver for seg</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-sykling" data-slug="sykling" href="/funksjoner/sykling"
+      aria-expanded="false" style="--bg:url('/photos/sykling.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M8 17l3.5-6.5H16M9.5 10.5H14l4.5 6.5"/><circle cx="15.5" cy="4.5" r="1.5"/></svg><b>Sykling</b></span>
+        <span class="dp-chips">watt · NP/IF · effektsoner</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for sykling</span>
+          <ul>
+        <li>Watt og effektsoner ved siden av pulsen</li>
+        <li>NP og IF på hver økt</li>
+        <li>Landevei, terreng og ergo som egne former</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-triatlon" data-slug="triatlon" href="/funksjoner/triatlon"
+      aria-expanded="false" style="--bg:url('/photos/triatlon.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 18c1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.6 0 1.6-1.2 3-1.2 4.6 0 1.6 1.2 3 1.2 4.2 0"/><circle cx="7" cy="6" r="1.8"/><path d="M4 12l4-2.5 3.5 1.5 3-3"/><circle cx="18" cy="7" r="2.6"/></svg><b>Triatlon</b></span>
+        <span class="dp-chips">brick · bytte-tider · tre grener</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for triatlon</span>
+          <ul>
+        <li>Tre disipliner i én plan og én dagbok</li>
+        <li>Brick-økter og bytte-tider</li>
+        <li>Svømming per teknikk og bassenglengde</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
+    <a class="dp" id="dpm-multisport" data-slug="multisport" href="/funksjoner/multisport"
+      aria-expanded="false" style="--bg:url('/photos/multisport.jpg')">
+      <span class="dp-img" aria-hidden="true"></span><span class="dp-sk" aria-hidden="true"></span>
+      <span class="dp-inn">
+        <span class="dp-navn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><path d="M17.25 13.5v7.5M13.5 17.25h7.5"/></svg><b>Multisport</b></span>
+        <span class="dp-chips">alt i én · egne felt</span>
+        <span class="dp-mer">
+          <span class="dp-seo">Treningsdagbok for multisport</span>
+          <ul>
+        <li>All trening i én app - uansett form</li>
+        <li>Egne bevegelsesformer med egne felt</li>
+        <li>Fri kombinasjon av idretter i samme uke</li>
+          </ul>
+          <span class="dp-cta">Les mer →</span>
+        </span>
+      </span>
+    </a>
 </div>
 <div class="wrap dwrap" style="padding-top:34px;padding-bottom:54px">
   <div class="snote">
@@ -2647,7 +2913,7 @@ section[id],header[id]{scroll-margin-top:108px}
 <script>
   // Scroll-reveal - samme mønster som før, selektorer for v2-seksjonene.
   const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});},{threshold:0.08});
-  document.querySelectorAll('.flist li,.dtile,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
+  document.querySelectorAll('.flist li,.tcard,.pcard,.price-coming-row,.faq details').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(20px)';el.style.transition='opacity 0.6s ease,transform 0.6s ease';obs.observe(el);});
 
   // Scrollspy for desktop-navet.
   window.addEventListener('scroll',()=>{
@@ -2910,6 +3176,31 @@ section[id],header[id]{scroll-margin-top:108px}
   addEventListener('scroll', planlegg, {passive:true});
   addEventListener('resize', planlegg);
   tegn();
+})();
+</script>
+<script>
+/* VELG DIN DISIPLIN: navnerad og paneler. Klikk paa et navn aapner panelet (og ruller
+   kortet til midten i karusellen paa mobil). Klikk paa et panel paa PC aapner det uten aa
+   navigere; lenka virker som vanlig med tastatur og i karusellen. Ingen scroll-lytter. */
+(function(){
+  var navn = [].slice.call(document.querySelectorAll('.dnavn .dn'))
+  if(navn.length === 0) return
+  function velg(slug){
+    navn.forEach(function(k){ k.classList.toggle('on', k.dataset.mal === slug) })
+    document.querySelectorAll('.dprad .dp').forEach(function(d){
+      var av = d.dataset.slug === slug
+      d.classList.toggle('on', av); d.setAttribute('aria-expanded', av ? 'true' : 'false')
+    })
+    var m = document.querySelector('.dpmob .dp[data-slug="' + slug + '"]')
+    if(m) m.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'})
+  }
+  navn.forEach(function(k){ k.addEventListener('click', function(){ velg(k.dataset.mal) }) })
+  document.querySelectorAll('.dprad .dp').forEach(function(el){
+    el.addEventListener('click', function(e){
+      if(el.classList.contains('on')) return   /* aapent panel: la lenka gaa */
+      e.preventDefault(); velg(el.dataset.slug)
+    })
+  })
 })();
 </script>
 </body>

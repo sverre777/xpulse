@@ -103,6 +103,8 @@ export function UtovereGrid({ athletes }: Props) {
   }, [periode])
   const gjeldende = tall && tall.periode === periode ? tall.kart : null
   const [apen, setApen] = useState<string | null>(null)
+  // Kort eller tabell (fasit). Tabellen er samme tall, tettere - for lister med mange utøvere.
+  const [visning, setVisning] = useState<'kort' | 'tabell'>('kort')
   const [sortKey, setSortKey] = useState<SortKey>('status')
 
   const filtered = useMemo(() => {
@@ -157,6 +159,15 @@ export function UtovereGrid({ athletes }: Props) {
             minWidth: '160px',
           }}
         />
+        <div data-utovere-visning={visning} role="group" aria-label="Visning"
+          style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
+          {(['kort', 'tabell'] as const).map(v => (
+            <button key={v} type="button" data-utovere-visningsvalg={v} aria-pressed={visning === v} onClick={() => setVisning(v)}
+              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: visning === v ? COACH_BLUE : 'transparent', color: visning === v ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              {v === 'kort' ? 'Kort' : 'Tabell'}
+            </button>
+          ))}
+        </div>
         {/* BOLK B2: Uke · Måned · År styrer kolonnen «valgt periode» på alle kortene. */}
         <div data-utovere-periode={periode} role="group" aria-label="Periode"
           style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
@@ -236,10 +247,12 @@ export function UtovereGrid({ athletes }: Props) {
         )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {filtered.map(a => (
-            <AthleteCard key={a.id} athlete={a} periode={periode} rad={gjeldende?.get(a.id) ?? null} laster={!gjeldende}
-              apen={apen === a.id} onToggle={() => setApen(apen === a.id ? null : a.id)} />
-          ))}
+          {visning === 'tabell'
+            ? <UtovereTabell rader={filtered} tall={gjeldende} laster={!gjeldende} periode={periode} />
+            : filtered.map(a => (
+              <AthleteCard key={a.id} athlete={a} periode={periode} rad={gjeldende?.get(a.id) ?? null} laster={!gjeldende}
+                apen={apen === a.id} onToggle={() => setApen(apen === a.id ? null : a.id)} />
+            ))}
         </div>
       )}
     </section>
@@ -467,6 +480,61 @@ function PeriodStats({ label, stats }: { label: string; stats: { sessions: numbe
         style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-8-app)' }}>
         {stats.sessions} økt{stats.sessions !== 1 ? 'er' : ''}
       </p>
+    </div>
+  )
+}
+
+/** Tabellvisning: samme tall som kortene, tettere. Scroller i sin egen ramme. */
+function UtovereTabell({ rader, tall, laster, periode }: {
+  rader: UtoverCard[]
+  tall: Map<string, TrenerUtoverRad> | null
+  laster: boolean
+  periode: Periode
+}) {
+  const th: React.CSSProperties = { padding: '6px 8px', fontFamily: FONT, fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', textAlign: 'right', whiteSpace: 'nowrap' }
+  const td: React.CSSProperties = { padding: '8px', fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }
+  return (
+    <div style={{ gridColumn: '1 / -1', overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card)' }}>
+      <table data-utovere-tabell style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...th, textAlign: 'left' }}>Utøver</th>
+            <th style={th}>{PERIODE_NAVN[periode]}</th>
+            <th style={th}>Hard I3+</th>
+            <th style={th}>% av plan</th>
+            <th style={th}>CTL</th>
+            <th style={th}>TSB</th>
+            <th style={th}>HRV</th>
+            <th style={th}>Treff</th>
+            <th style={{ ...th, textAlign: 'left' }}>Sist ført</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rader.map(a => {
+            const r = tall?.get(a.id) ?? null
+            return (
+              <tr key={a.id} data-utovere-tabellrad={a.id} style={{ borderTop: '1px solid var(--line)' }}>
+                <td style={{ ...td, textAlign: 'left' }}>
+                  <Link href={`/app/trener/${a.id}`} style={{ color: 'var(--tekst-1-app)', textDecoration: 'none' }}>
+                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[a.status], marginRight: 8 }} />
+                    {a.name}
+                  </Link>
+                </td>
+                <td style={td}>{r ? fmtTid(r.timerSek) : laster ? '…' : '-'}</td>
+                <td style={td}>{r ? fmtTid(r.hardSek) : '-'}</td>
+                <td style={{ ...td, color: r?.planPct != null ? planPctFarge(r.planPct, ORANSJE) : 'var(--tekst-8-app)' }}>
+                  {r?.planPct != null ? `${r.planPct} %` : 'ingen plan'}
+                </td>
+                <td style={td}>{r?.ctl ?? '-'}</td>
+                <td style={td}>{r?.tsb != null ? `${r.tsb > 0 ? '+' : ''}${r.tsb}` : '-'}</td>
+                <td style={td}>{!r?.helseDelt ? <span style={{ color: 'var(--tekst-8-app)' }}>ikke delt</span> : r.hrv ?? '-'}</td>
+                <td style={td}>{r?.harSkiskyting ? (r.treffPct != null ? `${r.treffPct} %` : '-') : '-'}</td>
+                <td style={{ ...td, textAlign: 'left', color: 'var(--tekst-5-app)' }}>{formatLastWorkout(a.lastWorkoutDate, a.lastWorkoutTitle)}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }

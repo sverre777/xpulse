@@ -1,3 +1,4 @@
+import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import { Suspense } from 'react'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { lesKalenderPosisjon, getDateRange, getPrevRange, toISO, ukeNokkel, maanedNokkel } from '@/lib/kalender-omraade'
@@ -110,6 +111,9 @@ export async function PlanPageView({ viewContext, searchParams }: Props) {
         </div>
 
         <SeasonContextStrip periods={seasonPeriods} keyDates={seasonKeyDates} todayISO={today} />
+        {(!isCoachView || viewContext.permissions.can_edit_plan) && (
+          <PlussKnapp side="plan" targetUserId={targetId} basePath={isCoachView ? `/app/trener/${viewContext.userId}` : '/app'} kanForeDagbok={!isCoachView} />
+        )}
 
         {!isCoachView && Object.values(workoutsByDate).every(w => w.length === 0) && (
           <div className="mb-6">

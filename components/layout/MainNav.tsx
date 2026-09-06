@@ -90,6 +90,8 @@ export function MainNav({
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
   })()
   const logHref = onPlan ? `/app/plan?new=${today}` : `/app/dagbok?new=${today}`
+  // ＋-knappen (Sverre 6. sep) dekker Hjem, Plan og Dagbok — der skjules toppens +.
+  const harPlussKnapp = onPlan || pathname === '/app/oversikt' || pathname === '/app/dagbok' || pathname.startsWith('/app/dagbok/')
 
   if (isMobile) {
     return (
@@ -131,7 +133,7 @@ export function MainNav({
             </span>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {activeRole === 'athlete' && (
+            {activeRole === 'athlete' && !harPlussKnapp && (
               <Link
                 href={logHref}
                 aria-label={logLabel}
@@ -268,7 +270,7 @@ export function MainNav({
       </div>
 
       <div className="flex items-center gap-3">
-        {activeRole === 'athlete' && (
+        {activeRole === 'athlete' && !harPlussKnapp && (
           <Link
             href={logHref}
             className="px-4 py-2 text-sm font-semibold tracking-widest uppercase transition-opacity hover:opacity-90"

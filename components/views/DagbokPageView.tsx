@@ -1,3 +1,4 @@
+import { PlussKnapp } from '@/components/ui/PlussKnapp'
 import { Suspense } from 'react'
 import { BrukerSporterProvider } from '@/components/sport/BrukerSporter'
 import { harSkiskyting } from '@/lib/har-skiskyting'
@@ -130,6 +131,10 @@ export async function DagbokPageView({ viewContext, searchParams }: Props) {
             skjules i trener-drilldown (ville vist trenerens egen økt inne
             i utøverens dagbok; live-modus er uansett utøver-only). */}
         {viewContext.mode !== 'coach-view' && <ResumeSessionBanner />}
+        {/* ＋-knappen: flytende, alle bredder. Trener-drilldown: dagbok er lesing → bare Planlegg. */}
+        {(!isCoachView || viewContext.permissions.can_edit_plan) && (
+          <PlussKnapp side="dagbok" targetUserId={targetId} basePath={isCoachView ? `/app/trener/${viewContext.userId}` : '/app'} kanForeDagbok={!isCoachView} />
+        )}
 
         <div className="mb-6">
           <p className="text-sm tracking-widest uppercase mb-0.5"

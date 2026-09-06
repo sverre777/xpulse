@@ -2374,21 +2374,7 @@ function MonthView({ year, month, byDate, healthDates, healthData, recoveryData,
         )
       })}
 
-      {/* Flytende + (kun mobil-listen): dagens dato rett i økt-skjemaet. */}
-      {!readOnly && (
-        <button type="button"
-          className="md:hidden"
-          onClick={() => onCreateWorkout(toISO(new Date()))}
-          aria-label={mode === 'plan' ? 'Planlegg økt i dag' : 'Logg økt i dag'}
-          style={{
-            position: 'fixed', bottom: 18, right: 16, width: 50, height: 50,
-            borderRadius: '50%', background: 'var(--accent)', color: 'var(--tekst-1-ren)',
-            fontSize: 24, lineHeight: 1, border: 'none', cursor: 'pointer',
-            boxShadow: '0 10px 30px rgba(255,69,0,.45)', zIndex: 40,
-          }}>
-          ＋
-        </button>
-      )}
+      {/* Den flytende ＋-en bor nå i PlussKnapp (Hjem/Plan/Dagbok) — ikke i kalenderen. */}
     </div>
 
     {/* Ghost-chip som følger markøren under draging (rendres via portal, så

@@ -22,6 +22,7 @@ import { FavoritesProvider, useFavorites } from './FavoritesContext'
 import { FavoritterTab } from './FavoritterTab'
 import { dataForGraf, losGrafNokkel, type FaneKey } from '@/lib/graf-register'
 import { getHelseOversikt, type HelseOversiktData } from '@/app/actions/helse-oversikt'
+import type { FavoriteChart } from '@/app/actions/favorites'
 import { OverviewTab } from './OverviewTab'
 import { getSkiTestAnalysis, type SkiTestAnalysisData } from '@/app/actions/ski-tests'
 import { getNutritionAnalysis, type NutritionAnalysis } from '@/app/actions/nutrition'
@@ -167,7 +168,8 @@ export function AnalysisPage({
   initialStats: WorkoutStats
   initialOverview: AnalysisOverview
   initialRange: DateRange
-  initialFavorites?: string[]
+  /** Fase 122: nøkkel + lagret oppsett. I trenervisning er dette UTØVERENS favoritter (lesing). */
+  initialFavorites?: Pick<FavoriteChart, 'chart_key' | 'config'>[]
   // Når satt: trener ser/redigerer utøverens analyse. Sendes med til
   // TesterPRTab → PersonalRecordModal slik at trener-PR lagres på utøver.
   targetUserId?: string
@@ -177,7 +179,7 @@ export function AnalysisPage({
   canSeeHealthData?: boolean
 }) {
   return (
-    <FavoritesProvider initialFavorites={harSkiskyting ? initialFavorites : initialFavorites.filter(k => !k.startsWith('skyting'))}>
+    <FavoritesProvider readOnly={!!targetUserId} initialFavorites={harSkiskyting ? initialFavorites : initialFavorites.filter(f => !f.chart_key.startsWith('skyting'))}>
       <AnalysisPageInner
         harSkiskyting={harSkiskyting}
         initialStats={initialStats}
@@ -439,7 +441,6 @@ function AnalysisPageInner({
           <FavoritterTab
             dataFor={k => k === 'oversikt' ? { stats, overview } : cache[k as FaneDataKey]}
             ctx={{ range, targetUserId, canSeeHealthData }}
-            readOnly={!!targetUserId}
             harSkiskyting={harSkiskyting}
             onOpenTab={(f: FaneKey) => { if (TAB_KEYS.has(f) || f === 'mal_analyse' || f === 'periodisering') setTab(f as Tab) }}
           />

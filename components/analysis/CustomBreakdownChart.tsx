@@ -255,20 +255,35 @@ interface Props {
   /** HJEM v2 bolk 0: ferdig hentet data for STARTVALGET (gruppering/periode/
       visning) — første henting hoppes over, kontrollene henter som før. */
   initialData?: { completed?: CustomBreakdown | null; planned?: CustomBreakdown | null }
+  /** Fase 122: lagret favoritt-oppsett (gruppering, periode, visning, bev.former, skjulte serier). */
+  initialConfig?: Record<string, unknown> | null
+}
+
+type BreakdownConfig = { grouping: CustomBreakdownGrouping; preset: PresetKey | 'inherit'; view: BreakdownViewMode; movements: string[] | null; hidden: string[] }
+function lesConfig(c: Record<string, unknown> | null | undefined): Partial<BreakdownConfig> {
+  if (!c) return {}
+  const ut: Partial<BreakdownConfig> = {}
+  if (c.grouping === 'week' || c.grouping === 'month' || c.grouping === 'year') ut.grouping = c.grouping
+  if (typeof c.preset === 'string') ut.preset = c.preset as PresetKey | 'inherit'
+  if (c.view === 'completed' || c.view === 'planned' || c.view === 'both') ut.view = c.view
+  if (Array.isArray(c.movements)) ut.movements = c.movements.filter((m): m is string => typeof m === 'string')
+  if (Array.isArray(c.hidden)) ut.hidden = c.hidden.filter((m): m is string => typeof m === 'string')
+  return ut
 }
 
 type BreakdownViewMode = 'completed' | 'planned' | 'both'
 
-export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId, initialData }: Props) {
+export function CustomBreakdownChart({ analysisRange, mode = 'completed', initialView, initialGrouping, initialPreset, targetUserId, initialData, initialConfig }: Props) {
   const utvidetSkala = useUtvidetSkala()
-  const [grouping, setGrouping] = useState<CustomBreakdownGrouping>(initialGrouping ?? 'week')
-  const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>(initialPreset ?? 'inherit')
-  const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(null)
-  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set())
+  const lagret = lesConfig(initialConfig)
+  const [grouping, setGrouping] = useState<CustomBreakdownGrouping>(lagret.grouping ?? initialGrouping ?? 'week')
+  const [localPreset, setLocalPreset] = useState<PresetKey | 'inherit'>(lagret.preset ?? initialPreset ?? 'inherit')
+  const [selectedMovements, setSelectedMovements] = useState<Set<string> | null>(lagret.movements ? new Set(lagret.movements) : null)
+  const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set(lagret.hidden ?? []))
   // Visning: gjennomført, planlagt eller begge (delte søyler side ved side).
   // Init fra initialView, ellers mode-propen så eksisterende brukssteder
   // oppfører seg som før.
-  const [viewMode, setViewMode] = useState<BreakdownViewMode>(initialView ?? (mode === 'planned' ? 'planned' : 'completed'))
+  const [viewMode, setViewMode] = useState<BreakdownViewMode>(lagret.view ?? initialView ?? (mode === 'planned' ? 'planned' : 'completed'))
   const [dataCompleted, setDataCompleted] = useState<CustomBreakdown | null>(initialData?.completed ?? null)
   const [dataPlanned, setDataPlanned] = useState<CustomBreakdown | null>(initialData?.planned ?? null)
   // Startdata dekker første effekt-kjøring — én gang.
@@ -486,9 +501,15 @@ export function CustomBreakdownChart({ analysisRange, mode = 'completed', initia
 
   const showTickPeriod = grouping === 'week' && chartData.length <= 16
 
+  // Fase 122: oppsettet som lagres med favoritten. «Alle bev.former valgt»
+  // lagres som null, så nye bev.former senere ikke faller utenfor favoritten.
+  const alleBev = data ? [...data.allEnduranceMovements, ...data.allNonEnduranceMovements] : []
+  const alleValgt = !selectedMovements || alleBev.every(m => selectedMovements.has(m))
+  const favorittConfig: BreakdownConfig = { grouping, preset: localPreset, view: viewMode, movements: alleValgt ? null : [...selectedMovements!], hidden: [...hiddenSeries] }
   return (
     <ChartWrapper
       chartKey={CHART_KEY}
+      config={favorittConfig}
       title="Custom graf — fleksibel nedbryting"
       subtitle={`${grouping === 'week' ? 'Uke' : grouping === 'month' ? 'Måned' : 'År'}-gruppering · ${formatRangeLabel(effectiveRange)}`}
       height="auto"

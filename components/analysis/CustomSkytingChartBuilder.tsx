@@ -203,10 +203,19 @@ function rowHits(r: ShootingSeriesRow, position: PositionKey): number {
 
 interface Props {
   data: ShootingDepthAnalysis
+  /** Fase 122: lagret favoritt-oppsett (FilterState). */
+  initialConfig?: Record<string, unknown> | null
 }
 
-export function CustomSkytingChartBuilder({ data }: Props) {
-  const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER)
+export function CustomSkytingChartBuilder({ data, initialConfig }: Props) {
+  const [filter, setFilter] = useState<FilterState>(() => {
+    const c = initialConfig ?? {}
+    const ut: FilterState = { ...DEFAULT_FILTER }
+    for (const k of Object.keys(DEFAULT_FILTER) as (keyof FilterState)[]) {
+      if (k in c && c[k] !== undefined) (ut as unknown as Record<string, unknown>)[k] = c[k]
+    }
+    return ut
+  })
   const set = <K extends keyof FilterState>(k: K, v: FilterState[K]) =>
     setFilter(f => ({ ...f, [k]: v }))
 
@@ -315,6 +324,7 @@ export function CustomSkytingChartBuilder({ data }: Props) {
   return (
     <ChartWrapper
       chartKey="skyting_custom"
+      config={filter as unknown as Record<string, unknown>}
       title="Custom skyting-graf"
       subtitle="Filtrer økt-type, posisjon og per-skyting · velg fritt akser"
       // height="auto": kortet må vokse med kontrollene. Med fast høyde ble

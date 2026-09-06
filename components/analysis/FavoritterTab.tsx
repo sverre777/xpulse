@@ -18,15 +18,14 @@ import { hentRenderer, type FavorittKontekst, type RenderFavoritt } from './favo
 
 const FONT = "'Barlow Condensed', sans-serif"
 
-export function FavoritterTab({ dataFor, ctx, readOnly, harSkiskyting, onOpenTab }: {
+export function FavoritterTab({ dataFor, ctx, harSkiskyting, onOpenTab }: {
   /** Fanens datasett fra AnalysisPage-cachen (undefined = ikke hentet ennå). */
   dataFor: (k: DataKey) => unknown
   ctx: FavorittKontekst
-  readOnly: boolean
   harSkiskyting: boolean
   onOpenTab: (fane: FaneKey) => void
 }) {
-  const { orderedKeys, toggle, reorder } = useFavorites()
+  const { orderedKeys, toggle, reorder, readOnly, configs } = useFavorites()
   const keys = useMemo(() => orderedKeys.filter(k => harSkiskyting || !erSkyteGraf(k)), [orderedKeys, harSkiskyting])
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -46,7 +45,7 @@ export function FavoritterTab({ dataFor, ctx, readOnly, harSkiskyting, onOpenTab
         style={{ backgroundColor: 'var(--flate-12-alt)', border: '1px dashed var(--kant-3)' }}>
         <span aria-hidden="true" style={{ fontSize: 28, color: '#FF4500', lineHeight: 1 }}>★</span>
         <p style={{ fontFamily: FONT, color: 'var(--tekst-1-app)', fontSize: 15 }}>
-          Marker grafer med ★ i fanene — de samles her.
+          {readOnly ? 'Utøveren har ingen favoritter ennå.' : 'Marker grafer med ★ i fanene — de samles her.'}
         </p>
       </div>
     )
@@ -55,14 +54,14 @@ export function FavoritterTab({ dataFor, ctx, readOnly, harSkiskyting, onOpenTab
   return (
     <div data-favoritter>
       <p className="mb-3 text-xs" style={{ fontFamily: FONT, color: 'var(--tekst-8-app)', letterSpacing: '0.06em' }}>
-        {keys.length} {keys.length === 1 ? 'favoritt' : 'favoritter'}{readOnly ? ' · trenervisning (lesing)' : ' · dra i ⋮⋮ for å endre rekkefølgen'}
+        {keys.length} {keys.length === 1 ? 'favoritt' : 'favoritter'}{readOnly ? ' · utøverens favoritter (lesing)' : ' · dra i ⋮⋮ for å endre rekkefølgen'}
       </p>
       {/* id: dnd-kit lager ellers aria-id-er med teller som spriker mellom server og klient (hydreringsfeil). */}
       <DndContext id="favoritt-dnd" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={keys} strategy={rectSortingStrategy} disabled={readOnly}>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4" data-favoritt-liste>
             {keys.map(key => (
-              <FavorittKort key={key} chartKey={key} dataFor={dataFor} ctx={ctx} readOnly={readOnly}
+              <FavorittKort key={key} chartKey={key} dataFor={dataFor} ctx={{ ...ctx, config: configs[key] ?? null }} readOnly={readOnly}
                 onOpenTab={onOpenTab} onFjern={() => void toggle(key)} />
             ))}
           </div>
@@ -84,8 +83,10 @@ function FavorittKort({ chartKey, dataFor, ctx, readOnly, onOpenTab, onFjern }: 
   const key = losGrafNokkel(chartKey)
   const info = grafInfo(key)
   const dataKey = dataForGraf(key)
+  const faneKey = info?.fane ?? null
   // Fanens renderFavoritt lastes lazy; null = fanen har ingen (→ «Åpne i fane»).
-  const laster = useMemo(() => (info ? hentRenderer(info.fane, dataKey) : null), [info, dataKey])
+  // Nøklene (strenger) som deps — grafInfo gir nytt objekt per render.
+  const laster = useMemo(() => (faneKey ? hentRenderer(faneKey, dataKey) : null), [faneKey, dataKey])
   const [render, setRender] = useState<RenderFavoritt | null | undefined>(undefined)
   useEffect(() => {
     if (!laster) return

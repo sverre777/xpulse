@@ -7,21 +7,27 @@ import { createClient } from '@/lib/supabase/server'
 // En rad per (bruker, chart_key) i public.user_favorite_charts. Se
 // supabase/phase18_favorite_charts.sql for skjema.
 
+export type FavorittConfig = Record<string, unknown>
+
 export interface FavoriteChart {
   chart_key: string
   sort_order: number
   created_at: string
+  /** Fase 122: lagret oppsett for custom-grafer (jsonb). null = standardoppsett. */
+  config: FavorittConfig | null
 }
 
-export async function getFavoriteCharts(): Promise<{ favorites: FavoriteChart[] } | { error: string }> {
+/** targetUserId (trenervisning): UTØVERENS favoritter — lesing via policy
+    «Coaches can view athlete favorite charts» (fase 122, aktiv relasjon). */
+export async function getFavoriteCharts(targetUserId?: string): Promise<{ favorites: FavoriteChart[] } | { error: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Ikke innlogget' }
 
   const { data, error } = await supabase
     .from('user_favorite_charts')
-    .select('chart_key, sort_order, created_at')
-    .eq('user_id', user.id)
+    .select('chart_key, sort_order, created_at, config')
+    .eq('user_id', targetUserId ?? user.id)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true })
 
@@ -79,7 +85,7 @@ export async function removeFavoriteChart(chartKey: string): Promise<{ error?: s
   return {}
 }
 
-export async function toggleFavoriteChart(chartKey: string): Promise<{ favorited: boolean } | { error: string }> {
+export async function toggleFavoriteChart(chartKey: string, config?: FavorittConfig | null): Promise<{ favorited: boolean } | { error: string }> {
   const key = chartKey.trim()
   if (key === '') return { error: 'Mangler chart_key' }
 
@@ -117,11 +123,28 @@ export async function toggleFavoriteChart(chartKey: string): Promise<{ favorited
 
   const { error } = await supabase
     .from('user_favorite_charts')
-    .insert({ user_id: user.id, chart_key: key, sort_order: nextOrder })
+    .insert({ user_id: user.id, chart_key: key, sort_order: nextOrder, config: config ?? null })
 
   if (error) return { error: error.message }
   revalidatePath('/app/analyse')
   return { favorited: true }
+}
+
+/** Oppsettet på en custom-favoritt (fase 122) — skrives når brukeren endrer
+    kontrollene på en stjernet graf. Egne rader bare (RLS). */
+export async function saveFavoriteConfig(chartKey: string, config: FavorittConfig | null): Promise<{ error?: string }> {
+  const key = chartKey.trim()
+  if (key === '') return { error: 'Mangler chart_key' }
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Ikke innlogget' }
+  const { error } = await supabase
+    .from('user_favorite_charts')
+    .update({ config })
+    .eq('user_id', user.id)
+    .eq('chart_key', key)
+  if (error) return { error: error.message }
+  return {}
 }
 
 /** Ny rekkefølge for favorittene (Favoritter-fanen, dra-og-slipp). Skriver

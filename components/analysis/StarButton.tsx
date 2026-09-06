@@ -10,16 +10,22 @@ interface StarButtonProps {
   size?: number
   className?: string
   title?: string
+  /** Grafens gjeldende oppsett — lagres med favoritten (fase 122). */
+  config?: Record<string, unknown> | null
 }
 
-export function StarButton({ chartKey, size = 20, className, title }: StarButtonProps) {
-  const { favorites, toggle } = useFavorites()
+export function StarButton({ chartKey, size = 20, className, title, config }: StarButtonProps) {
+  const { favorites, toggle, readOnly } = useFavorites()
   const active = favorites.has(chartKey)
+  // Trenervisning: utøverens favoritter er lesing — vis bare den fylte
+  // stjerna der utøveren har stjernet, ingen knapp ellers.
+  if (readOnly && !active) return null
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    void toggle(chartKey)
+    if (readOnly) return
+    void toggle(chartKey, config ?? null)
   }
 
   return (
@@ -27,14 +33,15 @@ export function StarButton({ chartKey, size = 20, className, title }: StarButton
       type="button"
       onClick={handleClick}
       aria-pressed={active}
-      aria-label={active ? 'Fjern fra favoritter' : 'Legg til i favoritter'}
-      title={title ?? (active ? 'Fjern fra favoritter' : 'Legg til i favoritter')}
+      aria-label={readOnly ? 'Utøverens favoritt' : active ? 'Fjern fra favoritter' : 'Legg til i favoritter'}
+      title={title ?? (readOnly ? 'Utøverens favoritt' : active ? 'Fjern fra favoritter' : 'Legg til i favoritter')}
+      disabled={readOnly}
       className={className}
       style={{
         background: 'transparent',
         border: 'none',
         padding: 4,
-        cursor: 'pointer',
+        cursor: readOnly ? 'default' : 'pointer',
         lineHeight: 0,
         display: 'inline-flex',
         alignItems: 'center',

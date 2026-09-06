@@ -479,12 +479,12 @@ function MethodNote() {
 
 /** Bolk 1: favoritt-rendring for Skyting-nøklene. Skudd per uke trenger
     perioden (range) — resten kommer fra fanens data. */
-export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, ctx: { range: DateRange; targetUserId?: string }): React.ReactNode | null {
+export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, ctx: { range: DateRange; targetUserId?: string; config?: Record<string, unknown> | null }): React.ReactNode | null {
   if (key === 'skyting_skuddmaal') return <ShotGoalCard targetUserId={ctx.targetUserId} />
-  if (key === 'skyting_skuddmengde') return <ShotVolumeChart range={ctx.range} targetUserId={ctx.targetUserId} title="Skudd per uke" />
+  if (key === 'skyting_skuddmengde') return <ShotVolumeChart range={ctx.range} targetUserId={ctx.targetUserId} title="Skudd per uke" initialConfig={ctx.config} />
   if (!data || !data.hasData || data.sportMismatch) return null
   switch (key) {
-    case 'skyting_custom': return <CustomSkytingChartBuilder data={data} />
+    case 'skyting_custom': return <CustomSkytingChartBuilder data={data} initialConfig={ctx.config} />
     case 'skyting_accuracy_over_time': return <AccuracyTrend data={data} />
     case 'skyting_accuracy_hr_zones': return <HrZoneAccuracy data={data} />
     case 'skyting_wind_accuracy': return <SkytingVindSiktCard data={data} />

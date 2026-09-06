@@ -44,7 +44,8 @@ export async function AnalysePageView({ viewContext }: Props) {
     const [stats, overview, favoritesRes, canSeeHealthData, profilRes] = await Promise.all([
       getWorkoutStats(range.from, range.to, targetId),
       getAnalysisOverview(range.from, range.to, null, targetId),
-      getFavoriteCharts(),
+      // Fase 122: i trenervisning er dette utøverens favoritter (lesing).
+      getFavoriteCharts(targetId),
       canSeeHealthDataPromise,
       // Skyting kun for skiskyttere: personen vi ser på (utøveren i trenervisning).
       supabase.from('profiles').select('primary_sport, secondary_sports').eq('id', viewContext.userId).maybeSingle(),
@@ -67,7 +68,7 @@ export async function AnalysePageView({ viewContext }: Props) {
     }
 
     const initialFavorites = 'favorites' in favoritesRes
-      ? favoritesRes.favorites.map(f => f.chart_key)
+      ? favoritesRes.favorites.map(f => ({ chart_key: f.chart_key, config: f.config ?? null }))
       : []
 
     return (

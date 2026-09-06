@@ -13,6 +13,8 @@ export interface FavorittKontekst {
   range: DateRange
   targetUserId?: string
   canSeeHealthData: boolean
+  /** Lagret oppsett for akkurat denne favoritten (fase 122) — custom-grafer starter med det. */
+  config?: Record<string, unknown> | null
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

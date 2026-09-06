@@ -442,16 +442,16 @@ export function OversiktKort({ overview, canSeeHealthData, bare }: { overview: A
 
 /** Bolk 1: favoritt-rendring for Oversikt-nøklene. Custom graf, sesong og
     plan vs faktisk henter selv. */
-export function renderFavoritt(key: string, data: { stats: WorkoutStats; overview: AnalysisOverview }, ctx: { range: DateRange; targetUserId?: string; canSeeHealthData: boolean }): React.ReactNode | null {
+export function renderFavoritt(key: string, data: { stats: WorkoutStats; overview: AnalysisOverview }, ctx: { range: DateRange; targetUserId?: string; canSeeHealthData: boolean; config?: Record<string, unknown> | null }): React.ReactNode | null {
   switch (key) {
     case 'overview_hours_per_week': return <OverviewHoursPerWeek stats={data.stats} />
     case 'overview_zones_per_week': return <OverviewZonesPerWeek stats={data.stats} />
     case 'overview_km_per_movement': return <OverviewKmPerMovement stats={data.stats} />
     case 'overview_intensive_sessions': return <OverviewIntensiveSessions stats={data.stats} />
     case 'overview_training_vs_rest_vs_sickness': return <OverviewTrainingVsRestVsSickness weekly={data.overview.weekly_distribution} />
-    case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={ctx.range} />
+    case 'overview_custom_breakdown': return <CustomBreakdownChart analysisRange={ctx.range} targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
     case 'oversikt_plan_vs_faktisk': return <PlanVsActualCard range={ctx.range} targetUserId={ctx.targetUserId} />
-    case 'oversikt_sesong_mot_sesong': return <SesongSammenligningLazy targetUserId={ctx.targetUserId} />
+    case 'oversikt_sesong_mot_sesong': return <SesongSammenligningLazy targetUserId={ctx.targetUserId} initialConfig={ctx.config} />
     default: return key.startsWith('oversikt_') || key.startsWith('overview_') ? <OversiktKort overview={data.overview} canSeeHealthData={ctx.canSeeHealthData} bare={key} /> : null
   }
 }

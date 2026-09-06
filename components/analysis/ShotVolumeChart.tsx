@@ -86,18 +86,20 @@ function ShotTooltip({ active, label, buckets }: {
   )
 }
 
-export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }: {
+export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke', initialConfig }: {
   range: DateRange
   targetUserId?: string
   title?: string
+  /** Fase 122: lagret favoritt-oppsett { view, types, marking }. */
+  initialConfig?: Record<string, unknown> | null
 }) {
   const [data, setData] = useState<ShotVolume | null>(null)
-  const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set())
-  const [marking, setMarking] = useState<ShotMarkingFilter>('alle')
+  const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set(Array.isArray(initialConfig?.types) ? initialConfig.types.filter((t): t is string => typeof t === 'string') : []))
+  const [marking, setMarking] = useState<ShotMarkingFilter>(typeof initialConfig?.marking === 'string' ? (initialConfig.marking as ShotMarkingFilter) : 'alle')
   // Gjennomført / Planlagt / Begge — samme valg og samme ord som den fysiske
   // «Custom graf». Chipsene står ALLTID: en kontroll som forsvinner når
   // perioden mangler plan, forsvinner under fingeren på deg.
-  const [viewMode, setViewMode] = useState<BreakdownView>('both')
+  const [viewMode, setViewMode] = useState<BreakdownView>(initialConfig?.view === 'completed' || initialConfig?.view === 'planned' || initialConfig?.view === 'both' ? initialConfig.view : 'both')
 
   const grouping = useMemo(() => shotVolumeGrouping(range), [range])
 
@@ -138,6 +140,7 @@ export function ShotVolumeChart({ range, targetUserId, title = 'Skudd per uke' }
   return (
     <ChartWrapper
       chartKey="skyting_skuddmengde"
+      config={{ view: viewMode, types: [...typeFilter], marking }}
       title={title}
       subtitle={`${grouping === 'week' ? 'Per uke' : 'Per måned'} · ${
         viewMode === 'completed' ? 'gjennomført'

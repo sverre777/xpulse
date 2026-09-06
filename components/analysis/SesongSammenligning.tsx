@@ -29,13 +29,17 @@ interface Props {
   // komponenten hente selv.
   initialSeasons?: Season[]
   targetUserId?: string
+  /** Fase 122: lagret favoritt-oppsett { a, b, metrikk }. */
+  initialConfig?: Record<string, unknown> | null
 }
 
-export function SesongSammenligning({ initialSeasons, targetUserId }: Props) {
+export function SesongSammenligning({ initialSeasons, targetUserId, initialConfig }: Props) {
+  const cfgA = typeof initialConfig?.a === 'string' ? initialConfig.a : null
+  const cfgB = typeof initialConfig?.b === 'string' ? initialConfig.b : null
   const [seasons, setSeasons] = useState<Season[] | null>(initialSeasons ?? null)
-  const [valgA, setValgA] = useState<string | null>(initialSeasons?.[0]?.id ?? null)
-  const [valgB, setValgB] = useState<string | null>(initialSeasons?.[1]?.id ?? null)
-  const [metrikk, setMetrikk] = useState<Metrikk>('timer')
+  const [valgA, setValgA] = useState<string | null>(cfgA ?? initialSeasons?.[0]?.id ?? null)
+  const [valgB, setValgB] = useState<string | null>(cfgB ?? initialSeasons?.[1]?.id ?? null)
+  const [metrikk, setMetrikk] = useState<Metrikk>(typeof initialConfig?.metrikk === 'string' ? (initialConfig.metrikk as Metrikk) : 'timer')
   const [dataById, setDataById] = useState<Record<string, SesongData>>({})
 
   useEffect(() => {
@@ -44,8 +48,9 @@ export function SesongSammenligning({ initialSeasons, targetUserId }: Props) {
     getSeasons(targetUserId).then(res => {
       if (cancelled || 'error' in res) { if (!cancelled) setSeasons([]); return }
       setSeasons(res)
-      setValgA(res[0]?.id ?? null)
-      setValgB(res[1]?.id ?? null)
+      // Lagret oppsett vinner når sesongen fortsatt finnes.
+      setValgA(cfgA && res.some(x => x.id === cfgA) ? cfgA : (res[0]?.id ?? null))
+      setValgB(cfgB && res.some(x => x.id === cfgB) ? cfgB : (res[1]?.id ?? null))
     })
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,6 +102,7 @@ export function SesongSammenligning({ initialSeasons, targetUserId }: Props) {
   return (
     <ChartWrapper
       chartKey="oversikt_sesong_mot_sesong"
+      config={{ a: valgA, b: valgB, metrikk }}
       title="Sesong mot sesong"
       subtitle="Per måned fra sesongstart — sesonggrensene følger årsplanen"
       height="auto">

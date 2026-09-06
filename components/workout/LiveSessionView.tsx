@@ -410,7 +410,8 @@ export function LiveSessionView({
       </div>
 
       {/* Bunn: volum + Fullfør */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
+      {/* zIndex 50: bunnlinja lå uten stablingsnivå og ble dekket av profil-påminnelsen (fixed, z-40) — «Fullfør» fikk ikke klikk (funnet i ＋-knapp bolk 3). */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: 'var(--live-topp)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--line)', padding: '10px 14px' }}>
         <div className="flex items-center justify-between mb-2">
           <span style={{ fontFamily: "'Barlow Condensed', sans-serif", color: 'var(--tekst-5-app)', fontSize: 13 }}>
             Volum: <b style={{ color: 'var(--tekst-1-app)' }}>{totalVolume.toLocaleString('nb-NO')} kg</b>

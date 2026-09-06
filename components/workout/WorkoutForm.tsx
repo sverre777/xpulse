@@ -547,11 +547,18 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   }
 
   const startLiveFlow = async () => {
-    if (!workoutId || startingLive) return
+    if (startingLive) return
     setStartingLive(true)
-    const res = await saveWorkout({ ...form, fjernedeAktivitetsIds: beregnFjernedeRadIds() }, workoutId, targetUserId)
-    if (res.error) { setStartingLive(false); void xpAlert(res.error); return }
-    router.push(`/app/okt/${workoutId}`)
+    // Lagre i samme trekk: eksisterende økt som den står (planlagt forblir
+    // planlagt til ferdig); ny økt opprettes som planlagt på skjemaets dato.
+    // Ferdig i live markerer gjennomført (finishLiveSession).
+    const payload = workoutId
+      ? { ...form, fjernedeAktivitetsIds: beregnFjernedeRadIds() }
+      : { ...form, title: form.title.trim() || 'Styrke', is_planned: true, is_completed: false, fjernedeAktivitetsIds: [] as string[] }
+    const res = await saveWorkout(payload, workoutId, targetUserId)
+    const id = workoutId ?? res.id
+    if (res.error || !id) { setStartingLive(false); void xpAlert(res.error ?? 'Kunne ikke lagre økta'); return }
+    router.push(`/app/okt/${id}`)
   }
 
   // Fase 77 + quick fix (Sverre 28. aug): arv av høyde fra årsplan-periode.
@@ -929,10 +936,11 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
   const showExecutionFields = !isPlanMode && !isFutureDate && (isCompleted || markingCompleted || !isPlanned)
   // "Merk som gjennomført"-CTA vises når en planlagt økt åpnes i Dagbok, i dag eller tidligere, og ikke allerede gjennomført
   const showMarkCompletedCTA = !isPlanMode && isPlanned && !isCompleted && !isFutureDate && !markingCompleted
-  // Start live (styrke): samme vilkår som før — utøver, eksisterende planlagt
-  // styrkeøkt som ikke er fullført.
-  const showStartLive = !!workoutId && !targetUserId && !templateBuildingMode && !captureOnlyMode
-    && !readOnly && form.is_planned && !form.is_completed && isStrengthWorkout
+  // ＋-knapp bolk 3: «Start live» ALLTID når økta har Styrke — ny ulagret økt,
+  // eksisterende økt, plan og dagbok — så lenge den ikke er gjennomført.
+  // Utøver-only (!targetUserId), som ellers.
+  const showStartLive = !targetUserId && !templateBuildingMode && !captureOnlyMode
+    && !readOnly && !form.is_completed && isStrengthWorkout
   // Plan-modusens «Marker som fullført» (løftet fra LinkWorkoutActions):
   // samme vilkår som der — planlagt, ikke koblet, ikke fullført, ikke fremtid.
   const showPlanMarkCTA = isPlanMode && !!workoutId && !templateBuildingMode && !captureOnlyMode
@@ -987,7 +995,7 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
       {/* ── TOPP-CTA-RAD: Merk som gjennomført + Start live (styrke) ──
           Side om side øverst når begge gjelder; ellers alene i full bredde.
           Samme handlere/vilkår som før — kun plassering og stil. ── */}
-      {(showMarkCompletedCTA || showStartLive || showPlanMarkCTA) && (
+      {(showMarkCompletedCTA || showPlanMarkCTA) && (
         <div className="mb-4">
           <div className="flex gap-2">
             {showPlanMarkCTA && (
@@ -1019,22 +1027,6 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                   boxShadow: '0 6px 24px rgba(40,168,110,0.18)',
                 }}>
                 ✓ Merk som gjennomført
-              </button>
-            )}
-            {showStartLive && (
-              <button type="button" onClick={startLiveFlow} disabled={startingLive}
-                className="transition-opacity hover:opacity-90"
-                style={{
-                  flex: 1, fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 700, fontSize: 15, letterSpacing: '0.13em',
-                  textTransform: 'uppercase', backgroundColor: 'var(--accent)',
-                  color: 'var(--tekst-1-ren)', border: '1px solid var(--accent)', borderRadius: 12,
-                  padding: '13px 10px',
-                  cursor: startingLive ? 'default' : 'pointer',
-                  opacity: startingLive ? 0.6 : 1,
-                  boxShadow: '0 6px 24px var(--accent-soft)',
-                }}>
-                {startingLive ? 'Starter…' : '▶ Start live'}
               </button>
             )}
           </div>
@@ -1894,6 +1886,14 @@ export function WorkoutForm({ initialSport = 'running', userSports, activityType
                 : isPlanMode
                 ? 'Lagre plan'
                 : 'Lagre økt'}
+            </button>
+          )}
+          {/* ＋-knapp bolk 3: «Start live» ved siden av Lagre — begge alltid når økta har Styrke. */}
+          {showStartLive && (
+            <button type="button" onClick={startLiveFlow} disabled={startingLive || saving} data-start-live
+              className="xp-btn"
+              style={{ backgroundColor: '#28A86E', borderColor: '#28A86E', color: 'var(--tekst-1-ren)', boxShadow: '0 6px 24px rgba(40,168,110,0.25)', opacity: startingLive ? 0.6 : 1 }}>
+              {startingLive ? 'Starter…' : '▶ Start live'}
             </button>
           )}
           {/* Save as template — sekundær CTA; skjules i template-building/capture-modus. */}

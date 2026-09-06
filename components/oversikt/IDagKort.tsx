@@ -49,6 +49,10 @@ function bevForm(w: OversiktWorkoutCard): string | null {
   const first = w.activities.find(a => a.movement_name)
   return first?.movement_name ?? null
 }
+/** ＋-knapp bolk 3: planlagt styrkeøkt → «Start live» rett fra kortet (utøver-only; Hjem er alltid egen bruker). */
+function erPlanlagtStyrke(w: OversiktWorkoutCard): boolean {
+  return w.is_planned && !w.is_completed && (w.workout_type === 'strength' || w.activities.some(a => a.movement_name === 'Styrke'))
+}
 function hovedsone(w: OversiktWorkoutCard): ExtendedZoneName | null {
   return (w.primary_intensity_zone as ExtendedZoneName | null) ?? null
 }
@@ -100,8 +104,10 @@ function Blokkgraf({ w, hoyde, harSki = true }: { w: OversiktWorkoutCard; hoyde:
 
 function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: OversiktWorkoutCard; todayISO: string; liten?: boolean; harSki?: boolean }) {
   const bev = bevForm(w)
+  const live = erPlanlagtStyrke(w)
   return (
-    <Link href={`/app/plan?edit=${w.id}`} data-neste-okt={w.id} className="flex items-center gap-3 no-underline"
+    <div className="flex items-center gap-2">
+    <Link href={`/app/plan?edit=${w.id}`} data-neste-okt={w.id} className="flex items-center gap-3 no-underline flex-1 min-w-0"
       style={{ textDecoration: 'none', color: 'inherit', padding: liten ? '5px 0' : '6px 0' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: BLAA, margin: 0 }}>
@@ -116,6 +122,8 @@ function NesteOektLinje({ w, todayISO, liten = false, harSki = true }: { w: Over
         <div style={{ width: 120, flexShrink: 0 }}><Blokkgraf w={w} hoyde={34} harSki={harSki} /></div>
       )}
     </Link>
+    {live && <Link href={`/app/okt/${w.id}`} data-neste-live={w.id} title="Start live styrke" style={{ fontFamily: FONT, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: GRONN, border: `1px solid ${GRONN}`, borderRadius: 999, padding: '3px 9px', textDecoration: 'none', flexShrink: 0 }}>▶ Live</Link>}
+    </div>
   )
 }
 
@@ -225,6 +233,7 @@ export function IDagKort({ today, nextPlanned, klokke, siste, todayISO }: {
               <>
                 <Link href={`/app/dagbok?edit=${hoved.id}`} className="xp-hbtn" data-idag-knapp="logg" style={{ backgroundColor: BLAA, color: 'var(--tekst-1-ren)' }}>Logg økta</Link>
                 <Link href={`/app/plan?edit=${hoved.id}`} className="xp-hbtn xp-hbtn-outline" data-idag-knapp="plan" style={{ color: BLAA }}>Åpne i plan</Link>
+                {erPlanlagtStyrke(hoved) && <Link href={`/app/okt/${hoved.id}`} className="xp-hbtn" data-idag-knapp="live" style={{ backgroundColor: GRONN, color: 'var(--tekst-1-ren)' }}>▶ Start live</Link>}
               </>
             )}
           </div>

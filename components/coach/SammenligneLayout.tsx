@@ -8,6 +8,8 @@ import {
 import { SPORTS, type Sport } from '@/lib/types'
 import { DateRangePicker, type DateRange } from '@/components/analysis/DateRangePicker'
 import { SammenligneKolonner, type MetrikkNokkel } from './sammenligne/SammenligneKolonner'
+import { getFavoriteCharts, toggleFavoriteChart, saveFavoriteConfig } from '@/app/actions/favorites'
+import { useEffect } from 'react'
 import { rangeFromPreset } from '@/components/analysis/date-range'
 import { SammenligneOverviewTab } from './sammenligne/SammenligneOverviewTab'
 import { SammenligneBelastningTab } from './sammenligne/SammenligneBelastningTab'
@@ -37,6 +39,8 @@ type Tab =
   | 'test'
   | 'periodisering'
 
+const OPPSETT_NOKKEL = 'trener_sammenligne_oppsett'
+
 const TABS: { key: Tab; label: string }[] = [
   { key: 'side_om_side',    label: 'Side om side' },
   { key: 'oversikt',        label: 'Oversikt' },
@@ -59,6 +63,31 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
   const [tests, setTests] = useState<{ athletes: AthleteTestsSnapshot[] } | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // BOLK B3: metrikk- og periodevalget huskes PER TRENER, med samme mekanikk som
+  // favorittene (user_favorite_charts.config). Nøkkelen har trener_-prefiks, og
+  // analysen filtrerer den bort - den skal aldri dukke opp som en graf der.
+  const [lagret, setLagret] = useState<'nei' | 'lagrer' | 'ja'>('nei')
+  useEffect(() => {
+    let live = true
+    getFavoriteCharts().then(r => {
+      if (!live || 'error' in r) return
+      const rad = r.favorites.find(f => f.chart_key === OPPSETT_NOKKEL)
+      if (!rad) return
+      const cfg = (rad.config ?? {}) as { metrikker?: MetrikkNokkel[]; fra?: string; til?: string }
+      if (Array.isArray(cfg.metrikker) && cfg.metrikker.length > 0) setMetrikker(cfg.metrikker)
+      if (cfg.fra && cfg.til) setRange({ from: cfg.fra, to: cfg.til, preset: 'custom' })
+      setLagret('ja')
+    }).catch(() => {})
+    return () => { live = false }
+  }, [])
+  const lagreOppsett = async () => {
+    setLagret('lagrer')
+    const config = { metrikker: metrikker ?? null, fra: range.from, til: range.to }
+    const res = lagret === 'ja'
+      ? await saveFavoriteConfig(OPPSETT_NOKKEL, config)
+      : await toggleFavoriteChart(OPPSETT_NOKKEL, config)
+    setLagret('error' in (res as { error?: string }) && (res as { error?: string }).error ? 'nei' : 'ja')
+  }
 
   const selectedAthletes = useMemo(
     () => selected.map(id => athletes.find(a => a.id === id)).filter(Boolean) as AthleteOption[],
@@ -165,6 +194,16 @@ export function SammenligneLayout({ athletes }: { athletes: AthleteOption[] }) {
               opacity: hasValidSelection ? 1 : 0.4, cursor: hasValidSelection ? 'pointer' : 'not-allowed',
             }}>
             {isPending ? 'Laster…' : 'Oppdater'}
+          </button>
+          <button type="button" onClick={lagreOppsett} data-lagre-oppsett={lagret}
+            className="px-4 py-2 text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              background: 'transparent', color: lagret === 'ja' ? '#D4A017' : COACH_BLUE,
+              border: `1px solid ${lagret === 'ja' ? '#D4A017' : COACH_BLUE}`, borderRadius: 8,
+              minHeight: '44px', cursor: 'pointer',
+            }}>
+            {lagret === 'lagrer' ? 'Lagrer…' : lagret === 'ja' ? '★ Oppsett lagret' : '☆ Lagre oppsett'}
           </button>
         </div>
 

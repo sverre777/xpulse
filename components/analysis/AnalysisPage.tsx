@@ -191,7 +191,7 @@ export function AnalysisPage({
   canSeeHealthData?: boolean
 }) {
   return (
-    <FavoritesProvider readOnly={!!targetUserId} initialFavorites={initialFavorites.filter(f => (harSkiskyting || !f.chart_key.startsWith('skyting')) && (harStyrke || !f.chart_key.startsWith('styrke_')))}>
+    <FavoritesProvider readOnly={!!targetUserId} initialFavorites={initialFavorites.filter(f => !f.chart_key.startsWith('trener_') && (harSkiskyting || !f.chart_key.startsWith('skyting')) && (harStyrke || !f.chart_key.startsWith('styrke_')))}>
       <AnalysisPageInner
         harSkiskyting={harSkiskyting}
         harStyrke={harStyrke}

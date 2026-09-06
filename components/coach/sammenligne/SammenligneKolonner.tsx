@@ -9,6 +9,9 @@
 // var hentet uten å brukes - den bærer nå «timer per uke» (regel 21).
 
 import { useMemo, useState } from 'react'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, Legend } from 'recharts'
+import { XpTooltip, CHART_LINE_WIDTH, MOVEMENT_PALETTE } from '@/components/analysis/chart-theme'
+import { KONKURRANSE_GULL } from '@/lib/status-farger'
 import type { MultipleAthletesAnalysis, AthleteMetricsSnapshot } from '@/app/actions/comparison'
 import { ZONE_COLORS_V2 } from '@/lib/activity-summary'
 import { ALL_ZONE_NAMES } from '@/lib/heart-zones'
@@ -125,6 +128,95 @@ const METRIKKER: Metrikk[] = [
 
 const STANDARD: MetrikkNokkel[] = ['timer', 'hard', 'plan', 'soner', 'ctl', 'tsb', 'treff', 'terskel', 'timerPerUke']
 
+/** Felles CTL-kurve for alle valgte utøvere, med gule merker på konkurransedatoene. */
+function FellesCtlKurve({ data }: { data: MultipleAthletesAnalysis }) {
+  const { rader, konkurranser } = useMemo(() => {
+    const perDato = new Map<string, Record<string, number | string>>()
+    for (const s of data.athletes) {
+      for (const d of s.belastning?.daily ?? []) {
+        const rad = perDato.get(d.date) ?? { date: d.date }
+        rad[s.athlete.id] = Math.round(d.ctl * 10) / 10
+        perDato.set(d.date, rad)
+      }
+    }
+    const k = new Set<string>()
+    for (const s of data.athletes) for (const c of s.overview?.current.competitions ?? []) k.add(c.date)
+    return { rader: [...perDato.values()].sort((a, b) => String(a.date).localeCompare(String(b.date))), konkurranser: [...k] }
+  }, [data])
+  if (rader.length === 0) return null
+  return (
+    <section data-felles-ctl style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px', marginTop: 16 }}>
+      <p style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', marginBottom: 8 }}>
+        Form (CTL) side om side {konkurranser.length > 0 && <span style={{ color: KONKURRANSE_GULL, marginLeft: 8 }}>gule merker = konkurranse</span>}
+      </p>
+      <div style={{ height: 220 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={rader} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
+            <XAxis dataKey="date" hide />
+            <YAxis width={34} tick={{ fontSize: 11, fill: 'var(--tekst-8-app)' }} />
+            <Tooltip content={<XpTooltip />} />
+            <Legend wrapperStyle={{ fontFamily: FONT, fontSize: 12 }} />
+            {konkurranser.map(d => <ReferenceLine key={d} x={d} stroke={KONKURRANSE_GULL} strokeDasharray="3 3" />)}
+            {data.athletes.map((s, i) => (
+              <Line key={s.athlete.id} type="monotone" dataKey={s.athlete.id} name={s.athlete.fullName ?? 'Utøver'}
+                stroke={MOVEMENT_PALETTE[i % MOVEMENT_PALETTE.length]} strokeWidth={CHART_LINE_WIDTH} dot={false} connectNulls isAnimationActive={false} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
+  )
+}
+
+/** Sonefordeling side om side - én stripe per utøver, samme sonefarger. */
+function FellesSoner({ data }: { data: MultipleAthletesAnalysis }) {
+  return (
+    <section data-felles-soner style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '14px 16px', marginTop: 16 }}>
+      <p style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', marginBottom: 8 }}>
+        Sonefordeling side om side
+      </p>
+      {data.athletes.map(s => (
+        <div key={s.athlete.id} style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 12, alignItems: 'center', padding: '6px 0' }}>
+          <span className="truncate" style={{ fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)' }}>{s.athlete.fullName ?? 'Utøver'}</span>
+          <Sonestripe s={s} />
+        </div>
+      ))}
+    </section>
+  )
+}
+
+/** «Alle tall» - hele metrikklista for alle utøverne, uansett hva som er valgt over. */
+function AlleTall({ data }: { data: MultipleAthletesAnalysis }) {
+  const td: React.CSSProperties = { padding: '7px 10px', fontFamily: FONT, fontSize: 13, color: 'var(--tekst-1-app)', textAlign: 'right', whiteSpace: 'nowrap' }
+  return (
+    <section style={{ marginTop: 16 }}>
+      <p style={{ fontFamily: FONT, fontWeight: 700, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--tekst-8-app)', marginBottom: 8 }}>Alle tall</p>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--line)', borderRadius: 12, background: 'var(--card)' }}>
+        <table data-alle-tall style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ ...td, textAlign: 'left', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>Metrikk</th>
+              {data.athletes.map(s => (
+                <th key={s.athlete.id} style={{ ...td, fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--tekst-8-app)' }}>
+                  {s.athlete.fullName ?? 'Utøver'}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {METRIKKER.filter(m => m.nokkel !== 'soner' && m.nokkel !== 'timerPerUke').map(m => (
+              <tr key={m.nokkel} data-alle-tall-rad={m.nokkel} style={{ borderTop: '1px solid var(--line)' }}>
+                <td style={{ ...td, textAlign: 'left', color: 'var(--tekst-5-app)' }}>{m.navn}</td>
+                {data.athletes.map(s => <td key={s.athlete.id} style={td}>{s.permissions.can_view_analysis ? m.verdi(s) : '-'}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
 export function SammenligneKolonner({ data, valgte, onValgte }: {
   data: MultipleAthletesAnalysis
   valgte?: MetrikkNokkel[]
@@ -187,6 +279,10 @@ export function SammenligneKolonner({ data, valgte, onValgte }: {
           Over fire kolonner scroller raden vannrett - kortene beholder bredden.
         </p>
       )}
+
+      <FellesCtlKurve data={data} />
+      <FellesSoner data={data} />
+      <AlleTall data={data} />
     </div>
   )
 }

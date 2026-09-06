@@ -1,19 +1,50 @@
 'use client'
 
+// BOLK B2 (Trenerside v2, Sverre 6. sep): Utøvere-siden får Uke/Måned/År over
+// kortene, en kolonne for valgt periode med hard I3+, % av plan og sonestripe,
+// og «Vis mer» som utvider SAMME kort med detaljpanelet fra trener-hjem.
+// Tallene kommer fra den samme aggregatoren som B1 - én henting for hele siden.
+
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { UtoverCard, UtoverStatus } from '@/app/actions/coach-utovere'
+import { getTrenerOversikt } from '@/app/actions/trener-oversikt'
+import type { TrenerUtoverRad } from '@/lib/trener-oversikt-type'
 import { SPORTS, type Sport } from '@/lib/types'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ZoneBar } from '@/components/oversikt/kort-deler'
+import type { OversiktZoneSeconds } from '@/app/actions/oversikt'
+import { UtoverDetaljer } from './UtoverDetaljer'
+import { STATUS_GRONN, STATUS_GUL, STATUS_ROD, TRENER_BLAA, planPctFarge, PLAN_SKALA_MAKS } from '@/lib/status-farger'
 
-const COACH_BLUE = '#1A6FD4'
+const COACH_BLUE = TRENER_BLAA
+const FONT = "'Barlow Condensed', sans-serif"
+const ORANSJE = '#FF4500'
+
+type Periode = 'uke' | 'maaned' | 'aar'
+const PERIODE_NAVN: Record<Periode, string> = { uke: 'Uke', maaned: 'Måned', aar: 'År' }
+
+/** Periodens start og slutt - uka går mandag-søndag, som ellers i appen. */
+function periodeDatoer(p: Periode): { fra: string; til: string } {
+  const til = new Date().toISOString().slice(0, 10)
+  if (p === 'aar') return { fra: `${til.slice(0, 4)}-01-01`, til }
+  if (p === 'maaned') return { fra: `${til.slice(0, 7)}-01`, til }
+  const d = new Date(til + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  return { fra: d.toISOString().slice(0, 10), til }
+}
+function fmtTid(sek: number): string {
+  if (sek <= 0) return '0t'
+  const t = Math.floor(sek / 3600), m = Math.round((sek % 3600) / 60)
+  return t > 0 ? `${t}t${m > 0 ? ` ${m}m` : ''}` : `${m}m`
+}
 
 type SortKey = 'name' | 'status' | 'last_workout' | 'volume_7d' | 'volume_30d'
 
 const STATUS_COLOR: Record<UtoverStatus, string> = {
-  active: '#28A86E',
-  delayed: '#D4A017',
-  inactive: '#E11D48',
+  active: STATUS_GRONN,
+  delayed: STATUS_GUL,
+  inactive: STATUS_ROD,
 }
 
 const STATUS_LABEL: Record<UtoverStatus, string> = {
@@ -58,6 +89,20 @@ export function UtovereGrid({ athletes }: Props) {
   const [query, setQuery] = useState('')
   const [sportFilter, setSportFilter] = useState<'all' | Sport>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | UtoverStatus>('all')
+  const [periode, setPeriode] = useState<Periode>('uke')
+  // ÉN henting for hele siden - samme aggregator som trener-hjem.
+  const [tall, setTall] = useState<{ periode: Periode; kart: Map<string, TrenerUtoverRad> } | null>(null)
+  useEffect(() => {
+    let live = true
+    const { fra, til } = periodeDatoer(periode)
+    getTrenerOversikt(fra, til).then(r => {
+      if (!live || 'error' in r) return
+      setTall({ periode, kart: new Map(r.rader.map(x => [x.id, x])) })
+    }).catch(() => {})
+    return () => { live = false }
+  }, [periode])
+  const gjeldende = tall && tall.periode === periode ? tall.kart : null
+  const [apen, setApen] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('status')
 
   const filtered = useMemo(() => {
@@ -112,6 +157,16 @@ export function UtovereGrid({ athletes }: Props) {
             minWidth: '160px',
           }}
         />
+        {/* BOLK B2: Uke · Måned · År styrer kolonnen «valgt periode» på alle kortene. */}
+        <div data-utovere-periode={periode} role="group" aria-label="Periode"
+          style={{ display: 'inline-flex', border: '1px solid var(--line2)', borderRadius: 999, overflow: 'hidden' }}>
+          {(['uke', 'maaned', 'aar'] as Periode[]).map(p => (
+            <button key={p} type="button" data-utovere-periodevalg={p} aria-pressed={periode === p} onClick={() => setPeriode(p)}
+              style={{ padding: '5px 12px', fontFamily: FONT, fontWeight: 700, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', background: periode === p ? COACH_BLUE : 'transparent', color: periode === p ? 'var(--tekst-1-ren)' : 'var(--tekst-5-app)' }}>
+              {PERIODE_NAVN[p]}
+            </button>
+          ))}
+        </div>
         <select
           value={sportFilter}
           onChange={e => setSportFilter(e.target.value as 'all' | Sport)}
@@ -181,14 +236,24 @@ export function UtovereGrid({ athletes }: Props) {
         )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {filtered.map(a => <AthleteCard key={a.id} athlete={a} />)}
+          {filtered.map(a => (
+            <AthleteCard key={a.id} athlete={a} periode={periode} rad={gjeldende?.get(a.id) ?? null} laster={!gjeldende}
+              apen={apen === a.id} onToggle={() => setApen(apen === a.id ? null : a.id)} />
+          ))}
         </div>
       )}
     </section>
   )
 }
 
-function AthleteCard({ athlete }: { athlete: UtoverCard }) {
+function AthleteCard({ athlete, periode, rad, laster, apen, onToggle }: {
+  athlete: UtoverCard
+  periode: Periode
+  rad: TrenerUtoverRad | null
+  laster: boolean
+  apen: boolean
+  onToggle: () => void
+}) {
   return (
     <div
       style={{
@@ -257,6 +322,42 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         <PeriodStats label="Siste 30 dager" stats={athlete.stats30d} />
       </div>
 
+      {/* BOLK B2: valgt periode - hard I3+, % av plan og sonestripe. */}
+      <div className="px-4 py-3" data-utover-periodeblokk={athlete.id}
+        style={{ borderTop: '1px solid var(--line)', backgroundColor: 'var(--flate-6-alt)' }}>
+        <p className="text-xs tracking-widest uppercase mb-1.5" style={{ fontFamily: FONT, color: 'var(--tekst-8-app)' }}>
+          {PERIODE_NAVN[periode]} · valgt periode
+        </p>
+        {!rad ? (
+          <p className="text-xs" style={{ fontFamily: FONT, color: 'var(--tekst-8-app)' }}>{laster ? 'Henter tall …' : 'Ingen tall i perioden'}</p>
+        ) : (
+          <>
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span style={{ fontFamily: "'Bebas Neue', sans-serif", color: rad.timerSek > 0 ? COACH_BLUE : 'var(--kant-6)', fontSize: 22, lineHeight: 1, letterSpacing: '0.04em' }}>
+                {fmtTid(rad.timerSek)}
+              </span>
+              <span style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 12 }}>I3+ {fmtTid(rad.hardSek)}</span>
+              <span data-utover-planpct style={{ fontFamily: FONT, color: rad.planPct != null ? planPctFarge(rad.planPct, ORANSJE) : 'var(--tekst-8-app)', fontSize: 12, fontWeight: 700 }}>
+                {rad.planPct != null ? `${rad.planPct} % av plan` : 'Ingen plan'}
+              </span>
+              {rad.helseDelt && rad.hrv != null && (
+                <span style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 12 }}>HRV {rad.hrv}</span>
+              )}
+              {rad.harSkiskyting && rad.treffPct != null && (
+                <span style={{ fontFamily: FONT, color: 'var(--tekst-5-app)', fontSize: 12 }}>{rad.treffPct} % treff</span>
+              )}
+            </div>
+            {rad.planPct != null && (
+              <div style={{ height: 6, background: 'var(--line2)', borderRadius: 3, position: 'relative', overflow: 'hidden', margin: '6px 0' }}>
+                <i style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(rad.planPct, PLAN_SKALA_MAKS) / PLAN_SKALA_MAKS * 100}%`, borderRadius: 3, background: planPctFarge(rad.planPct, ORANSJE) }} />
+                <i style={{ position: 'absolute', left: `${100 / PLAN_SKALA_MAKS * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--tekst-1-app)', opacity: 0.75 }} />
+              </div>
+            )}
+            <div style={{ marginTop: 6 }}><ZoneBar zones={rad.soner as unknown as OversiktZoneSeconds} legend={false} /></div>
+          </>
+        )}
+      </div>
+
       <div className="px-4 py-3 flex items-center gap-2 flex-wrap"
         style={{ borderTop: '1px solid var(--line)' }}>
         <Link
@@ -320,7 +421,17 @@ function AthleteCard({ athlete }: { athlete: UtoverCard }) {
         >
           Profil
         </Link>
+        <button type="button" data-utover-vismer={athlete.id} aria-expanded={apen} onClick={onToggle}
+          className="px-2 py-1 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+          style={{ fontFamily: FONT, backgroundColor: COACH_BLUE, color: 'var(--tekst-1-ren)', border: 'none', borderRadius: 6, cursor: 'pointer', minHeight: 30 }}>
+          {apen ? 'Vis mindre ▴' : 'Vis mer ▾'}
+        </button>
       </div>
+      {apen && (() => {
+        const { fra, til } = periodeDatoer(periode)
+        return <UtoverDetaljer athleteId={athlete.id} navn={athlete.name} fra={fra} til={til}
+          harSkiskyting={rad?.harSkiskyting ?? false} helseDelt={rad?.helseDelt ?? false} />
+      })()}
     </div>
   )
 }

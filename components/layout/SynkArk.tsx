@@ -41,7 +41,7 @@ export function SynkArk({ onClose }: { onClose: () => void }) {
   }
   const tilkoblede = status?.kilder.filter(k => k.tilkoblet) ?? []
   return (
-    <KortPopup kicker="Klokkesynk" tittel="Synk" undertittel={status ? `Sist synket ${relativ(status.lastSyncAt)}` : 'Henter status…'} videreHref="/app/innstillinger/klokkesync" videreTekst="Klokkesynk-innstillinger →" onClose={onClose}>
+    <KortPopup kicker="Klokkesynk" tittel="Synk" undertittel={status ? `Sist synket ${relativ(status.lastSyncAt)}` : 'Henter status…'} videreHref="/app/innstillinger/klokkesync" videreTekst="Klokkesynk-innstillinger" onClose={onClose}>
       <div data-synk-ark className="flex flex-col gap-2">
         {feil && <p style={{ fontFamily: FONT, color: '#E23A5A', fontSize: 13 }}>{feil}</p>}
         {(status?.kilder ?? []).map(k => (

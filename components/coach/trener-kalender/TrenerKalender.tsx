@@ -158,7 +158,7 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 xp-kal-verktoy">
           <button type="button" onClick={prev} aria-label="Forrige periode"
             style={navBtnStyle}>←</button>
           <span style={{
@@ -179,8 +179,8 @@ export function TrenerKalender({ initialEvents, initialNotes }: Props) {
             }}>
             I dag
           </button>
-          <button type="button" onClick={() => setShowAddNote({})}
-            className="ml-2 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80"
+          <button type="button" onClick={() => setShowAddNote({})} data-kal-notat-knapp
+            className="ml-2 px-3 py-2 text-xs tracking-widest uppercase transition-opacity hover:opacity-80 xp-kal-notat"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif", color: COACH_BLUE,
               background: 'none', border: `1px solid ${COACH_BLUE}`,

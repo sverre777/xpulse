@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { useActionState, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { logout } from '@/app/actions/auth'
 import { switchActiveRole } from '@/app/actions/roles'
-import { gjeldendeTema, nesteTema, settTema, type Tema } from '@/lib/tema'
+import { gjeldendeTema, nesteTema, settTema } from '@/lib/tema'
 
 const FONT = "'Barlow Condensed', sans-serif"
 const ORANSJE = '#FF4500'
@@ -80,7 +80,7 @@ export function AvatarMeny({ rolle, userName, hasAthleteRole = true, hasCoachRol
   return (
     <div ref={rot} role="menu" data-avatar-meny style={{
       position: 'absolute', right: 0, top: 'calc(100% + 8px)', width: 'min(320px, calc(100vw - 24px))', zIndex: 120, padding: 10, borderRadius: 18,
-      background: 'color-mix(in srgb, var(--card) 88%, transparent)', WebkitBackdropFilter: 'blur(18px) saturate(160%)', backdropFilter: 'blur(18px) saturate(160%)',
+      background: 'color-mix(in srgb, var(--card) 97%, transparent)', WebkitBackdropFilter: 'blur(18px) saturate(160%)', backdropFilter: 'blur(18px) saturate(160%)',
       border: '1px solid color-mix(in srgb, var(--line2) 80%, transparent)', boxShadow: '0 18px 48px rgba(0,0,0,.4)',
       ...(plassering === 'pc' ? {} : {}),
     }}>

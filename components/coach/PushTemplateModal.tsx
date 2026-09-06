@@ -58,6 +58,8 @@ export function PushTemplateModal({
       role="dialog"
       aria-modal="true"
       onClick={close}
+      className="xp-push-ark"
+      data-push-ark
       style={{
         position: 'fixed', inset: 0, zIndex: 60,
         backgroundColor: 'var(--scrim-60)',

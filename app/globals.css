@@ -1178,3 +1178,25 @@ textarea.xp-input { min-height: 110px; resize: vertical; }
 /* ── Navigasjon v2: innholdet scroller under glass-linja på app-mobil ── */
 html[data-app-nav] .xp-app-innhold { padding-bottom: 130px; }
 
+/* ── Navigasjon v2 bolk 6: trener-Hjem i mobil-rekkefølge på app-mobil ── */
+html[data-app-nav] .xp-trener-hjem { display: flex; flex-direction: column; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="hero"] { order: 1; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="neste"] { order: 2; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="utovere"] { order: 3; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="aktivitet"] { order: 4; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="grupper"] { order: 5; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="plasser"] { order: 6; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="feedback"] { order: 7; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="kalenderkort"] { order: 8; }
+html[data-app-nav] .xp-trener-hjem [data-trener-seksjon="ny-fellestrening"] { display: none; }
+
+/* ── Navigasjon v2 bolk 6: Planlegg-fanene som segment, kalender-verktøylinja på app-mobil ── */
+html[data-app-nav] .xp-planlegg-faner { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; padding: 3px; border: 1px solid var(--line) !important; border-radius: 999px; margin-bottom: 16px; }
+html[data-app-nav] .xp-planlegg-faner button { padding: 8px 2px !important; border-radius: 999px; border-bottom: none !important; margin-bottom: 0 !important; font-size: 11px !important; letter-spacing: .04em !important; }
+html[data-app-nav] .xp-planlegg-faner button[data-aktiv] { background: color-mix(in srgb, #1A6FD4 16%, transparent) !important; }
+html[data-app-nav] .xp-kal-verktoy { flex-wrap: wrap; }
+html[data-app-nav] .xp-kal-verktoy > span { min-width: 0 !important; flex: 1 1 auto; font-size: 16px !important; }
+html[data-app-nav] .xp-kal-notat { display: none; }
+/* «Push til utøver» som bunn-ark på app-mobil (bolk 6) */
+html[data-app-nav] .xp-push-ark { align-items: flex-end !important; padding: 0 !important; }
+html[data-app-nav] .xp-push-ark > div { max-width: none !important; border-radius: 18px 18px 0 0 !important; max-height: 88vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom, 0px); }

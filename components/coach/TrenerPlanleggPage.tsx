@@ -95,11 +95,11 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
     { key: 'test', label: 'Test-maler' },
   ]
   return (
-    <div className="flex gap-0 mb-6" style={{ borderBottom: '1px solid var(--line)' }}>
+    <div className="flex gap-0 mb-6 xp-planlegg-faner" data-planlegg-faner style={{ borderBottom: '1px solid var(--line)' }}>
       {tabs.map(t => {
         const active = t.key === tab
         return (
-          <button key={t.key} type="button" onClick={() => setTab(t.key)}
+          <button key={t.key} type="button" onClick={() => setTab(t.key)} data-planlegg-fane={t.key} data-aktiv={active ? '1' : undefined}
             className="px-4 py-2 text-xs tracking-widest uppercase"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",

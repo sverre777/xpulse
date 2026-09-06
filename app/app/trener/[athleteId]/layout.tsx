@@ -2,6 +2,8 @@ import { getAthleteContext } from '@/app/actions/coach-athlete'
 import { redirect } from 'next/navigation'
 import { LoadError } from '@/components/ui/LoadError'
 import { AthleteHeader } from '@/components/coach/AthleteHeader'
+import { AthleteToppTittel } from '@/components/coach/AthleteToppTittel'
+import { SPORTS } from '@/lib/types'
 import { AthleteTabsNav } from '@/components/coach/AthleteTabsNav'
 
 interface Props {
@@ -26,6 +28,7 @@ export default async function AthleteDetailLayout({ children, params }: Props) {
 
   return (
     <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-6">
+      <AthleteToppTittel navn={ctx.profile.fullName ?? 'Utøver'} undertekst={ctx.profile.primarySport ? (SPORTS.find(s => s.value === ctx.profile.primarySport)?.label ?? ctx.profile.primarySport) : null} />
       <AthleteHeader context={ctx} />
       <AthleteTabsNav athleteId={athleteId} permissions={ctx.permissions} />
       {children}

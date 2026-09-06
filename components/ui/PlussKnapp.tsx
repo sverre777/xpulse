@@ -99,3 +99,42 @@ export function PlussKnapp({ side, targetUserId, basePath = '/app', kanForeDagbo
     </div>
   )
 }
+
+/** Navigasjon v2 bolk 6: ＋ for trener på Hjem/Planlegg/Kalender — Ny fellestrening · Push til utøver. */
+export function PlussKnappTrener({ variant = 'hjem' }: { variant?: 'hjem' | 'kalender' } = {}) {
+  const router = useRouter()
+  const [aapen, setAapen] = useState(false)
+  const rot = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!aapen) return
+    const klikk = (e: MouseEvent) => { if (rot.current && !rot.current.contains(e.target as Node)) setAapen(false) }
+    const tast = (e: KeyboardEvent) => { if (e.key === 'Escape') setAapen(false) }
+    document.addEventListener('mousedown', klikk); document.addEventListener('keydown', tast)
+    return () => { document.removeEventListener('mousedown', klikk); document.removeEventListener('keydown', tast) }
+  }, [aapen])
+  const valg = variant === 'kalender' ? [
+    { id: 'fellestrening', navn: 'Ny fellestrening', ikon: IKON_PLAN, href: '/app/trener/kalender?ny=fellestrening' },
+    { id: 'notat', navn: 'Trener-notat', ikon: IKON_DAGBOK, href: '/app/trener/kalender?ny=notat' },
+  ] : [
+    { id: 'fellestrening', navn: 'Ny fellestrening', ikon: IKON_PLAN, href: '/app/trener/kalender?ny=fellestrening' },
+    { id: 'push', navn: 'Push til utøver', ikon: IKON_LIVE, href: '/app/trener/planlegg' },
+  ]
+  return (
+    <div ref={rot} data-pluss-knapp="trener" style={{ position: 'fixed', right: 16, bottom: 'calc(18px + var(--xp-bunnlinje, 0px) + env(safe-area-inset-bottom, 0px))', zIndex: 45 }}>
+      {aapen && (
+        <div role="menu" data-pluss-meny className="flex flex-col" style={{ position: 'absolute', right: 0, bottom: 64, minWidth: 210, background: 'var(--card)', border: '1px solid var(--line2)', borderRadius: 14, padding: 6, boxShadow: '0 16px 40px rgba(0,0,0,.35)' }}>
+          {valg.map(v => (
+            <button key={v.id} type="button" role="menuitem" data-pluss-valg={v.id} onClick={() => { setAapen(false); router.push(v.href) }} className="flex items-center gap-3 text-left"
+              style={{ fontFamily: FONT, fontSize: 15, fontWeight: 600, color: 'var(--tekst-1-app)', background: 'none', border: 'none', borderRadius: 10, padding: '10px 12px', cursor: 'pointer', minHeight: 44 }}>
+              <span style={{ color: '#1A6FD4', display: 'inline-flex' }}><Ikon d={v.ikon} /></span>{v.navn}
+            </button>
+          ))}
+        </div>
+      )}
+      <button type="button" aria-label={aapen ? 'Lukk' : 'Ny'} aria-expanded={aapen} aria-haspopup="menu" data-pluss-aapne onClick={() => setAapen(v => !v)}
+        style={{ width: 54, height: 54, borderRadius: '50%', background: '#1A6FD4', color: 'var(--tekst-1-ren)', border: 'none', cursor: 'pointer', fontSize: 30, lineHeight: 1, boxShadow: '0 10px 30px rgba(26,111,212,.45)', transform: aapen ? 'rotate(45deg)' : 'none', transition: 'transform .15s' }}>
+        ＋
+      </button>
+    </div>
+  )
+}

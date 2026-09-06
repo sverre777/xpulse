@@ -271,7 +271,8 @@ section{padding:88px 0}
 /* Flyt-stripa i heroen: fem på én rad ≥880 (maks 1000 bred), 3 + 2 mellom 560 og 880, ikoner + titler under 560. */
 .hero-flow{width:100%;max-width:1000px;margin:0 auto}
 .hero-flow .iflow{overflow:visible;padding-bottom:0}
-.hquote{margin:40px auto 0;max-width:62ch;font:italic 400 14px/1.55 'Inter';color:rgba(255,255,255,.9);text-shadow:0 2px 18px rgba(0,0,0,.6)}
+.hstjerner{margin:36px auto 0;text-align:center;font-size:15px;letter-spacing:.34em;color:var(--gold);text-shadow:0 2px 14px rgba(0,0,0,.7)}
+.hquote{margin:10px auto 0;max-width:62ch;font:italic 400 clamp(15px,1.35vw,17px)/1.55 'Inter';color:rgba(255,255,255,.92);text-shadow:0 2px 18px rgba(0,0,0,.6)}
 .hero .hacts{margin-top:38px}
 .htag{font:600 12px/1 'Barlow Condensed';letter-spacing:.2em;text-transform:uppercase;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:8px 15px;background:rgba(13,13,17,.5)}
 .hver{font:700 12px/1 'Barlow Condensed';letter-spacing:.16em;color:var(--gold);border:1px solid rgba(232,185,60,.4);border-radius:999px;padding:8px 13px}
@@ -654,7 +655,8 @@ footer a:hover{color:var(--paper)}
   .hero-in{padding:96px 0 90px}
   .hero-tags{margin-bottom:30px}
   .hero h1{margin-bottom:22px}
-  .hquote{margin-top:34px;font-size:13.5px}
+  .hstjerner{margin-top:30px;font-size:14px}
+  .hquote{margin-top:8px;font-size:15px}
   .hero .hacts{margin-top:32px}
   .hfree{margin-top:20px}
   .proof{margin-top:36px}
@@ -1246,9 +1248,10 @@ html.js .istep.vis{opacity:1}
 /* ═══ KOMPAKT (Sverre 4. sep): forsiden skal VISE grafen, ikke være den.
    Overstyringene bruker !important fordi eksporten fryser utregnede
    stiler inline. Fargede verdier røres ikke (regel 23). ═══ */
-.eks [data-chip-rader]{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none;gap:10px!important;margin-bottom:6px!important}
-.eks [data-chip-rader]::-webkit-scrollbar{display:none}
-.eks [data-chip-rader]>div{flex-wrap:nowrap!important;flex:0 0 auto!important}
+/* Chip-raden brekker (Sverre 6. sep: den saa klippet ut paa hoyre kant - en
+   vannrett scroll uten synlig rullefelt leses som avkuttet innhold). */
+.eks [data-chip-rader]{flex-wrap:wrap!important;overflow:visible!important;min-width:0!important;max-width:100%!important;gap:10px!important;margin-bottom:6px!important}
+.eks [data-chip-rader]>div{flex-wrap:wrap!important;flex:0 1 auto!important;min-width:0!important;max-width:100%!important}
 .eks [data-chip-rader] button{font-size:10px!important;padding:4px 9px!important;min-height:26px!important;white-space:nowrap!important}
 .eks [data-oktgraf]>div:first-child{margin-bottom:4px!important}
 .eks [data-nokkeltall]>div>*{padding:8px 10px!important}
@@ -1290,6 +1293,13 @@ html.js .istep.vis{opacity:1}
 }
 /* Den øverste økt-grafen på sida (B2, rett under heroen): lavere og mindre
    (Sverre 4. sep) - gjelder bare der. */
+/* Eksporten fryser bredde paa elementer som IKKE er static (kurven er relativ for
+   aa kunne legge laktat-/ernaeringsmarkorene oppa), saa fragmentet ble staaende i
+   sin eksportbredde - 506 px inne i en 573 px ramme, med tom luft ut mot 1:20:00.
+   Kurven og svg-ene skal folge rammen, og chip-raden skal brekke i stedet for aa
+   ligge i en vannrett scroll som ser klippet ut (Sverre 6. sep). */
+.eks [data-oktkurve]{width:auto!important;max-width:100%!important}
+.eks [data-oktkurve] svg{width:100%!important}
 #inside .eks[data-eks="oktgraf"] [data-oktkurve]{height:130px!important}
 #inside .eks[data-eks="oktgraf"] [data-chip-rader] button{font-size:9px!important;padding:3px 7px!important;min-height:22px!important}
 #inside .eks[data-eks="oktgraf"] [data-punkt-pille]{font-size:9.5px!important;padding:1px 6px!important}
@@ -2252,7 +2262,8 @@ section[id],header[id]{scroll-margin-top:108px}
       </div>
     </div>
     </div>
-    <p class="hquote">Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.</p>
+    <div class="hstjerner" aria-label="5 av 5 stjerner">★★★★★</div>
+    <p class="hquote">«Plan, dagbok og dyp analyse i ett - med klokkesynk, live styrkeøkt og verktøy for langrenn og skiskyting du ikke finner andre steder.»</p>
     <div class="hacts">
       <a class="btn pri" href="#priser">Start gratis prøve</a>
       <a class="btn sec" href="#inside">Se innsiden ↓</a>

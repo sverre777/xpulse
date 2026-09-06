@@ -19,7 +19,7 @@ export function LandingFooter() {
               fontSize: '16px', letterSpacing: '0.4em', color: 'var(--tekst-1-land)',
               textTransform: 'uppercase', textDecoration: 'none',
             }}>
-            <XPulseIcon size={28} />
+            <XPulseIcon size={28} variant="hvit" />
             <span>PULSE</span>
           </Link>
           <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'rgb(var(--tekst-land-rgb) / 0.55)', maxWidth: 280 }}>

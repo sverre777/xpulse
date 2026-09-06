@@ -152,6 +152,32 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         ],
       },
     ],
+    faq: [
+      {
+        sporsmal: 'Fungerer X-PULSE med klokka mi?',
+        svar: 'Garmin, COROS, Wahoo og Zepp synker direkte (beta), Polar er under utrulling, og Strava-historikken kan importeres. Har du et annet merke, laster du opp .fit-fila - også fra Suunto. Intervals.icu og Whoop er på vei. Vi leser bare data; kobler du fra, slettes det vi har hentet.',
+      },
+      {
+        sporsmal: 'Kan jeg registrere skiparken og ski-testene mine?',
+        svar: 'Ja. Hvert par registreres med modell, lengde, fleks, slip og smøring, og du kan logge tester med snøtype, temperatur og fuktighet slik at du ser hva som var raskest under hvilke forhold.',
+      },
+      {
+        sporsmal: 'Skiller X-PULSE mellom klassisk, skøyting og staking?',
+        svar: 'Ja. Teknikkene er egne underkategorier av bevegelsesformen, og alle grafer og summer kan filtreres på dem - også rulleski og rulleski på mølle.',
+      },
+      {
+        sporsmal: 'Kan treneren min følge meg her?',
+        svar: 'Ja. Treneren ser planen, dagboka og analysen din, kan pushe økter og kommentere i selve økta. Helsedata som HRV og søvn deles kun hvis du selv slår det på, og frakobling fjerner tilgangen umiddelbart.',
+      },
+      {
+        sporsmal: 'Hva koster det?',
+        svar: 'Athlete Pro koster 59 kr i måneden. Trener Basic koster 199 kr og Trener Pro 279 kr. Athlete Pro og Trener Basic har 30 dagers gratis prøve, og det er ingen bindingstid.',
+      },
+      {
+        sporsmal: 'Er X-PULSE laget for eliten eller for mosjonister?',
+        svar: 'Verktøyene er bygget for utøvere som trener målrettet, men de er enkle å bruke uansett nivå. Du velger selv hvor detaljert du vil føre - fra én linje til drag, laktat og skyting.',
+      },
+    ],
   },
 
   skiskyting: {

@@ -146,4 +146,40 @@ export const LANDING_CSS = `
   .lp-us-inn.rev .lp-us-tekst{order:0}
   .lp-us{padding:44px 0}
 }
+
+/* ── FAQ (bolk B5) ───────────────────────────────────────── */
+.lp-faq{max-width:900px;margin:0 auto;padding:66px 24px}
+.lp-faq h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:clamp(28px,3vw,42px);letter-spacing:.02em;margin:8px 0 20px}
+.lp-sp{border-top:1px solid var(--lp-line)}
+.lp-sp:last-of-type{border-bottom:1px solid var(--lp-line)}
+.lp-sp summary{display:flex;align-items:center;justify-content:space-between;gap:14px;list-style:none;cursor:pointer;
+  font-family:'Barlow',sans-serif;font-weight:600;font-size:16.5px;padding:17px 0;color:var(--lp-paper)}
+.lp-sp summary::-webkit-details-marker{display:none}
+.lp-sp summary i{font-style:normal;color:var(--lp-oransje);font-size:19px;flex:none}
+.lp-sp[open] summary i{transform:rotate(45deg)}
+.lp-sp p{font-family:'Barlow',sans-serif;font-size:14.5px;color:var(--lp-dim);line-height:1.65;padding:0 0 17px;max-width:74ch}
+
+/* ── andre idretter ──────────────────────────────────────── */
+.lp-andre{max-width:1400px;margin:0 auto;padding:56px 24px 10px}
+.lp-andre h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:clamp(26px,2.6vw,36px);letter-spacing:.02em;margin:8px 0 18px}
+.lp-idrettsrad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.lp-ip{position:relative;display:block;height:clamp(180px,17vw,240px);border-radius:14px;overflow:hidden;border:1px solid var(--lp-line2);
+  text-decoration:none;transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease}
+.lp-ip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lp-ip::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(8,8,10,.92) 12%,rgba(8,8,10,.35) 60%,transparent)}
+.lp-ip:hover,.lp-ip:focus-visible{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.45);outline:none;border-color:var(--lp-oransje)}
+.lp-ip span{position:absolute;left:12px;right:12px;bottom:12px;z-index:1;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.8)}
+.lp-ip small{display:block;font-family:'Barlow',sans-serif;font-weight:400;font-size:11.5px;letter-spacing:.02em;text-transform:none;
+  color:rgba(255,255,255,.78);margin-top:3px}
+@media(max-width:1000px){.lp-idrettsrad{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.lp-idrettsrad{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ── CTA-bånd ────────────────────────────────────────────── */
+.lp-band{background:linear-gradient(115deg,#F04A10 0%,#9A4A55 35%,#2268BE 78%,#1E5FAF 100%);padding:60px 24px;text-align:center}
+.lp-band h2{font-family:'Bebas Neue','Arial Narrow',system-ui,sans-serif;font-size:clamp(30px,3.6vw,50px);letter-spacing:.02em;color:#fff;margin-bottom:10px}
+.lp-band p{font-family:'Barlow',sans-serif;font-size:16px;color:rgba(255,255,255,.9);margin-bottom:22px}
+.lp-band .lp-kn{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lp-band .lp-pill{background:#fff;color:#111;border-color:#fff;padding:14px 26px;font-size:13px}
+.lp-band .lp-pill.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
 `

@@ -4,7 +4,9 @@ import { LandingShell } from '@/components/landing/LandingShell'
 import { LandingHero } from '@/components/landing/LandingHero'
 import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
 import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
-import { SportPageCTA } from '@/components/landing/SportFeatureSection'
+import { LandingFaq } from '@/components/landing/LandingFaq'
+import { AndreIdretter } from '@/components/landing/AndreIdretter'
+import { LandingBand } from '@/components/landing/LandingBand'
 import { buildFeatureMetadata, FEATURE_SPORTS, findFeatureSport } from '@/lib/landing-meta'
 import { getSportPageContent } from '@/lib/sport-feature-content'
 // Dynamisk rute for alle sport-undersider. Innhold pluk­kes fra
@@ -83,7 +85,11 @@ export default async function SportFeaturePage(
         />
       ))}
 
-      <SportPageCTA />
+      {content.faq && content.faq.length > 0 && <LandingFaq poster={content.faq} />}
+
+      <AndreIdretter utelat={content.slug} />
+
+      <LandingBand />
     </LandingShell>
   )
 }

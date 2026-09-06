@@ -28,7 +28,7 @@ export function AppFooter() {
                 color: 'var(--tekst-1-land)', textTransform: 'uppercase',
               }}
             >
-              <XPulseIcon size={20} />
+              <XPulseIcon size={20} variant="hvit" />
               <span>PULSE</span>
             </span>
             <Dot />

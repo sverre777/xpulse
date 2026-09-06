@@ -72,6 +72,7 @@ export const GRAFER: Record<string, GrafDef> = {
   overview_average_energy: G('oversikt', 'Snitt overskudd 🙂'),
   overview_average_stress: G('oversikt', 'Snitt stress 😰'),
   overview_custom_breakdown: G('oversikt', 'Custom graf — fleksibel nedbryting', { data: 'selv', config: true }),
+  oversikt_hovedtall: G('oversikt', 'Hovedtall (tid · km · økter · konkurranser)'),
   oversikt_total_tid: G('oversikt', 'Total tid'),
   oversikt_total_km: G('oversikt', 'Total km'),
   oversikt_antall_okter: G('oversikt', 'Antall økter'),
@@ -104,6 +105,7 @@ export const GRAFER: Record<string, GrafDef> = {
   belastning_perceived_vs_calculated: G('belastning', 'Opplevd vs. beregnet belastning'),
   belastning_energy_stress_over_time: G('belastning', 'Overskudd og stress over tid'),
   belastning_rest_day_stats: G('belastning', 'Hviledag-statistikk'),
+  belastning_status: G('belastning', 'Belastningsstatus (CTL · ATL · TSB · form)'),
   belastning_ctl: G('belastning', 'Fitness (CTL)'),
   belastning_atl: G('belastning', 'Fatigue (ATL)'),
   belastning_tsb: G('belastning', 'Form (TSB)'),
@@ -117,6 +119,7 @@ export const GRAFER: Record<string, GrafDef> = {
   terskel_lactate_profile: G('terskel', 'Laktatprofil (mmol vs puls)'),
   terskel_lactate_trend: G('terskel', 'Laktat over tid'),
   terskel_laktat_per_mal: G('terskel', 'Laktat-respons per mal'),
+  terskel_estimat: G('terskel', 'Terskel-estimat (LT1 · LT2 · profil · datapunkter)'),
   terskel_lt1: G('terskel', 'LT1 (2 mmol)'),
   terskel_lt2: G('terskel', 'LT2 (4 mmol)'),
   terskel_profil: G('terskel', 'Profil-terskel'),
@@ -129,6 +132,7 @@ export const GRAFER: Record<string, GrafDef> = {
   skyting_wind_accuracy: G('skyting', 'Treff% i vind og sikt'),
   skyting_time_per_series: G('skyting', 'Skytetid-progresjon'),
   skyting_training_vs_comp: G('skyting', 'Trening vs. konkurranse'),
+  skyting_sammendrag: G('skyting', 'Skytesammendrag (totalt · ligg · stå · konkurranse)'),
   skyting_treff_totalt: G('skyting', 'Totalt treff%'),
   skyting_treff_liggende: G('skyting', 'Liggende'),
   skyting_treff_staaende: G('skyting', 'Stående'),
@@ -156,6 +160,7 @@ export const GRAFER: Record<string, GrafDef> = {
   // ── Årsplan-analyse (inne i Sammenligning) ──
   periodisering_tss_per_period: G('periodisering', 'Sum TSS per periode'),
   periodisering_competitions_per_period: G('periodisering', 'Antall konkurranser per periode'),
+  periodisering_sammendrag: G('periodisering', 'Årsplan-sammendrag (perioder · tid · TSS · konkurranser)'),
   periodisering_perioder: G('periodisering', 'Perioder'),
   periodisering_total_tid: G('periodisering', 'Total tid (årsplan)'),
   periodisering_total_tss: G('periodisering', 'Total TSS (årsplan)'),
@@ -181,6 +186,7 @@ export const GRAFER: Record<string, GrafDef> = {
   ski_tester_rating_over_time: G('ski_tester', 'Rating over tid'),
 
   // ── Helse (HelseOversikt henter selv; korrelasjonsgrafene fra getHealthCorrelations) ──
+  helse_oversikt: G('helse', 'Helsekortet (hele)'),
   helse_sovnstadier: G('helse', 'Søvnstadier per natt'),
   helse_hrv: G('helse', 'HRV'),
   helse_resting_hr: G('helse', 'Hvilepuls'),
@@ -199,6 +205,7 @@ export const GRAFER: Record<string, GrafDef> = {
   health_recovery_distribution: G('helse', 'Recovery-fordeling'),
 
   // ── Ernæring ──
+  ernering_sammendrag: G('ernering', 'Ernæringssammendrag'),
   ernering_okter: G('ernering', 'Økter med ernæring'),
   ernering_karbo_per_time: G('ernering', 'Snitt karbo/time'),
   ernering_total_karbo: G('ernering', 'Total karbo'),

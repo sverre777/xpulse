@@ -470,7 +470,7 @@ function AnalysisPageInner({
         )}
         {/* Helse-fanen = den nye helseflaten (HelseOversikt) — erstattet
             HealthTab-trendene/korrelasjonene 27. aug (helse-designet). */}
-        {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} />}
+        {tab === 'helse' && <HelseOversikt targetUserId={targetUserId} chartKey="helse_oversikt" />}
         {tab === 'ernering' && (
           cache.ernering
             ? <ErneringTab data={cache.ernering} />

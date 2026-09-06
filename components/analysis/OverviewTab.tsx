@@ -13,6 +13,7 @@ import {
   CHART_LEGEND_STYLE, CHART_CURSOR, BAR_RADIUS, CHART_LINE_WIDTH,
 } from './chart-theme'
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 import { CustomBreakdownChart } from './CustomBreakdownChart'
 import { VolumeProgressBar } from './VolumeProgressBar'
 import { PlanVsActualCard } from './PlanVsActualCard'
@@ -429,12 +430,16 @@ const KORT_GRID: Record<OversiktKortDef['gruppe'], string> = {
 
 export function OversiktKort({ overview, canSeeHealthData, bare }: { overview: AnalysisOverview; canSeeHealthData: boolean; bare?: string }) {
   const kort = oversiktKortListe(overview, canSeeHealthData)
+  if (bare === 'oversikt_hovedtall') return <div className={KORT_GRID.hoved}>{kort.filter(k => k.gruppe === 'hoved').map(k => <span key={k.key} className="contents">{k.node}</span>)}</div>
   if (bare) return kort.find(k => k.key === bare)?.node ?? null
   return (
     <>
       {(['hoved', 'sone', 'sport', 'tilstand', 'helse'] as const).map(g => {
         const i = kort.filter(k => k.gruppe === g)
-        return i.length > 0 ? <div key={g} className={KORT_GRID[g]}>{i.map(k => <span key={k.key} className="contents">{k.node}</span>)}</div> : null
+        if (i.length === 0) return null
+        const grid = <div className={KORT_GRID[g]}>{i.map(k => <span key={k.key} className="contents">{k.node}</span>)}</div>
+        // Hovedtallene er ett sammensatt kort med egen stjerne (Sverre 6. sep).
+        return g === 'hoved' ? <KortGruppe key={g} chartKey="oversikt_hovedtall" tittel="Hovedtall">{grid}</KortGruppe> : <div key={g}>{grid}</div>
       })}
     </>
   )

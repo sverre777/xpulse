@@ -1,6 +1,7 @@
 'use client'
 
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 import { ChartWrapper } from './ChartWrapper'
 import {
   ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
@@ -102,9 +103,11 @@ export function SummaryCards({ summary, bare }: { summary: NutritionAnalysis['su
   if (vis.length === 0) return null
   if (bare) return <MetricCard chartKey={vis[0].key} label={vis[0].label} value={vis[0].value} sublabel={vis[0].sub} valueSize={28} />
   return (
-    <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-      {cards.map(c => <MetricCard key={c.key} chartKey={c.key} label={c.label} value={c.value} sublabel={c.sub} valueSize={28} />)}
-    </div>
+    <KortGruppe chartKey="ernering_sammendrag" tittel="Ernæringssammendrag">
+      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+        {cards.map(c => <MetricCard key={c.key} chartKey={c.key} label={c.label} value={c.value} sublabel={c.sub} valueSize={28} />)}
+      </div>
+    </KortGruppe>
   )
 }
 
@@ -347,6 +350,7 @@ export function renderFavoritt(key: string, data: NutritionAnalysis): React.Reac
       <ChartWrapper chartKey={key} title="Karbo per time vs snittpuls" height="auto"><CarbsVsHeartRate workouts={data.workouts} /></ChartWrapper>)
     case 'ernering_typefordeling': return (
       <ChartWrapper chartKey={key} title="Type-fordeling" height="auto"><TypeDistribution data={data.type_distribution} /></ChartWrapper>)
+    case 'ernering_sammendrag': return <SummaryCards summary={data.summary} />
     default: return key.startsWith('ernering_') ? <SummaryCards summary={data.summary} bare={key} /> : null
   }
 }

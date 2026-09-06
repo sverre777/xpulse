@@ -491,6 +491,7 @@ export function renderFavoritt(key: string, data: ShootingDepthAnalysis | null, 
     case 'skyting_time_per_series': return <TimeTrend data={data} />
     case 'skyting_training_vs_comp': return <TrainingVsComp data={data} />
     case 'skyting_forste_vs_siste': return <FirstVsLast data={data} />
+    case 'skyting_sammendrag': return <SkytingSummaryCards data={data} />
     case 'skyting_treff_totalt': case 'skyting_treff_liggende': case 'skyting_treff_staaende': case 'skyting_treff_konkurranse':
       return <SkytingSummaryCards data={data} bare={key} />
     default: return null

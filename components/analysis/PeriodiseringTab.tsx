@@ -1,6 +1,7 @@
 'use client'
 
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 import { useMemo } from 'react'
 import {
   ResponsiveContainer, BarChart, Bar,
@@ -149,9 +150,11 @@ export function SummaryCards({ data, bare }: { data: PeriodizationOverview; bare
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {kort}
-    </div>
+    <KortGruppe chartKey="periodisering_sammendrag" tittel="Årsplan-sammendrag">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kort}
+      </div>
+    </KortGruppe>
   )
 }
 
@@ -503,6 +506,7 @@ export function renderFavoritt(key: string, data: PeriodizationOverview): React.
   switch (key) {
     case 'periodisering_tss_per_period': return <LoadPerPeriod data={data} />
     case 'periodisering_competitions_per_period': return <CompetitionsPerPeriod data={data} />
+    case 'periodisering_sammendrag': return <SummaryCards data={data} />
     case 'periodisering_perioder': case 'periodisering_total_tid': case 'periodisering_total_tss': case 'periodisering_konkurranser':
       return <SummaryCards data={data} bare={key} />
     default: return null

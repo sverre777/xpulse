@@ -12,6 +12,7 @@
 
 import type { ShootingDepthAnalysis } from '@/app/actions/analysis'
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 
 /** Liggende — blå. */
 export const COLOR_PRONE = '#38BDF8'
@@ -44,8 +45,10 @@ export function SkytingSummaryCards({ data, bare }: { data: ShootingDepthAnalysi
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {kort}
-    </div>
+    <KortGruppe chartKey="skyting_sammendrag" tittel="Skytesammendrag">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kort}
+      </div>
+    </KortGruppe>
   )
 }

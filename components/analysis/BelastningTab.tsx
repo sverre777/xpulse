@@ -8,6 +8,7 @@ import {
 import type { BelastningAnalysis, FormStatus } from '@/app/actions/analysis'
 import { ChartWrapper } from './ChartWrapper'
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 import type { ReactNode } from 'react'
 import {
   XpTooltip, CHART_GRID, CHART_AXIS_TICK, CHART_AXIS_LINE,
@@ -101,9 +102,11 @@ export function CurrentStatus({ data, bare }: { data: BelastningAnalysis; bare?:
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-      {kort}
-    </div>
+    <KortGruppe chartKey="belastning_status" tittel="Belastningsstatus">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {kort}
+      </div>
+    </KortGruppe>
   )
 }
 export function FitnessFatigueChart({ data }: { data: BelastningAnalysis }) {
@@ -474,6 +477,7 @@ export function renderFavoritt(key: string, data: BelastningAnalysis): ReactNode
     case 'belastning_perceived_vs_calculated': return <PerceivedVsCalculatedChart data={data} />
     case 'belastning_energy_stress_over_time': return <EnergyStressOverTimeChart data={data} />
     case 'belastning_rest_day_stats': return <RestDayStats data={data} />
+    case 'belastning_status': return <CurrentStatus data={data} />
     case 'belastning_ctl': case 'belastning_atl': case 'belastning_tsb': case 'belastning_formstatus':
       return <CurrentStatus data={data} bare={key} />
     default: return null

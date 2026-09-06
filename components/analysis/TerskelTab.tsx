@@ -1,6 +1,7 @@
 'use client'
 
 import { MetricCard } from './MetricCard'
+import { KortGruppe } from './KortGruppe'
 import { useMemo } from 'react'
 import {
   ResponsiveContainer, ScatterChart, Scatter, LineChart, Line,
@@ -80,9 +81,11 @@ export function EstimateCards({ data, bare }: { data: TerskelAnalysis; bare?: st
   ]
   if (bare) return kort.find(k => k.props.chartKey === bare) ?? null
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {kort}
-    </div>
+    <KortGruppe chartKey="terskel_estimat" tittel="Terskel-estimat">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kort}
+      </div>
+    </KortGruppe>
   )
 }
 
@@ -318,6 +321,7 @@ export function renderFavoritt(key: string, data: TerskelAnalysis): React.ReactN
     case 'terskel_lactate_profile': return <LactateProfile data={data} />
     case 'terskel_lactate_trend': return <LactateTrend data={data} />
     case 'terskel_laktat_per_mal': return <TemplateTable data={data} />
+    case 'terskel_estimat': return <EstimateCards data={data} />
     case 'terskel_lt1': case 'terskel_lt2': case 'terskel_profil': case 'terskel_datapunkter':
       return <EstimateCards data={data} bare={key} />
     default: return null

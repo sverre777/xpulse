@@ -48,8 +48,10 @@ const FLIS_V: React.CSSProperties = {
   marginTop: 4, color: 'var(--tekst-1-app)',
 }
 
-export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata, sluttDato, foringsDato, forside = false }: {
+export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdata, sluttDato, foringsDato, forside = false, chartKey }: {
   targetUserId?: string
+  /** Sverre 6. sep: hele helsekortet som favoritt (Analyse › Helse gir 'helse_oversikt'). */
+  chartKey?: string
   /** Pop-up-konteksten (bolk 2) bruker en litt strammere header. */
   kompaktHeader?: boolean
   /** Forsidens eksport (regel 11: samme komponent): bare 7 d · 30 d · 1 år,
@@ -149,6 +151,7 @@ export function HelseOversikt({ targetUserId, kompaktHeader = false, forhandsdat
         <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, letterSpacing: '0.16em', fontSize: 15, color: 'var(--tekst-1-app)' }}>
           <span style={{ display: 'inline-block', width: 26, height: 4, borderRadius: 2, background: '#FF4500', marginRight: 10, verticalAlign: 'middle' }} />
           {visDybde ? 'HELSE — DETALJER' : 'HELSE'}
+          {chartKey && !forside && <span style={{ marginLeft: 8, verticalAlign: 'middle', display: 'inline-flex' }} data-chart-key={chartKey}><StarButton chartKey={chartKey} size={16} title="Hele helsekortet som favoritt" /></span>}
           {kildeNavn && (
             <span style={{ color: 'var(--tekst-8-app)', fontWeight: 500, letterSpacing: '0.06em', marginLeft: 10, fontSize: 12.5, textTransform: 'none' }}>
               ⌚ {kildeNavn}{kildeTid ? ` · synket ${kildeTid}` : ''}

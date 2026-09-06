@@ -1,212 +1,115 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { LandingShell } from '@/components/landing/LandingShell'
-import { SportPageHero } from '@/components/landing/SportPageHero'
-import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
+import { LandingHero } from '@/components/landing/LandingHero'
+import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
+import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { LandingFaq } from '@/components/landing/LandingFaq'
+import { AndreIdretter } from '@/components/landing/AndreIdretter'
+import { LandingBand } from '@/components/landing/LandingBand'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Trenerplattform for utholdenhetsidrett – hele troppen i ett panel',
+  title: 'Trenerverktøy - hele troppen på én skjerm',
   description:
-    'X-PULSE trener-modul: utøveroversikt, plan- og årsplan-maler med push, kommentarer og direktemeldinger, sammenligning av utøvere, skipark-tilsyn og fleksibel pristier (Basic / Pro / Pro AI).',
+    'X-PULSE for trenere: status for hele gruppa, push av plan- og årsplanmaler, kommentarer i selve økta, sammenligning side om side og utøvere som eier sine egne helsedata.',
   path: '/funksjoner/trener',
 })
 
-function TrenerIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width={140} height={140} fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="24" cy="14" r="5" />
-      <path d="M14 38 Q14 28 24 28 Q34 28 34 38" />
-      <path d="M6 24 H12" />
-      <path d="M36 24 H42" />
-      <path d="M9 18 L13 22" />
-      <path d="M39 18 L35 22" />
-    </svg>
-  )
-}
+const SNARVEIER = [
+  { id: 'troppen', navn: 'Troppen' },
+  { id: 'push', navn: 'Push' },
+  { id: 'dialog', navn: 'Dialog' },
+  { id: 'sammenlign', navn: 'Sammenlign' },
+  { id: 'personvern', navn: 'Personvern' },
+  { id: 'faq', navn: 'Spørsmål' },
+]
 
 export default function TrenerPage() {
   return (
-    <LandingShell>
-      <SportPageHero
+    <LandingShell aktiv="trenere">
+      <LandingHero
+        bilde="langrenn-to-utovere-snoskog"
+        alt="To utøvere i snødekt skog"
+        smuler={[{ navn: 'Forsiden', href: '/xpulse.html' }, { navn: 'Funksjoner', href: '/xpulse.html#features' }, { navn: 'For trenere' }]}
         kicker="For trenere"
-        title={<>SPAR TID MED <span style={{ color: '#1A6FD4' }}>X-PULSE TRENER.</span></>}
-        description="Trener-modulen er ikke en utøver-app du må omgå. Den er bygget rundt jobben treneren faktisk gjør - overvåke et helt lag, push planer raskt og holde direkte dialog med hver utøver."
-        icon={<TrenerIcon />}
-        backgroundImage="/photos/holmenkollen-sommer.jpg"
+        overskrift="Trenerverktøy for hele troppen"
+        ingress="Se hvem som har trent, hvem som ligger bak plan og hvem som har lav restitusjon - før samtalen, ikke etter. Push planer, kommentér i økta, og la utøveren beholde eierskapet til dataene sine."
+        bevis={['Status for hele gruppa', 'Push av planmaler', 'Kommentar i økta', 'Side om side', 'Egne terskler per utøver', 'Utøveren eier dataene']}
+        ctaSekHref="#troppen"
       />
+      <LandingSnarvei punkter={SNARVEIER} />
 
-      <SportFeatureSection
-        accent="blue"
-        kicker="Utøveroversikt"
-        title="HELE TROPPEN - ÉN SIDE."
-        intro="Trener-panelet viser alle utøvere du følger: navn, gren, siste økt, ukentlig volum, eventuelle varsler. Klikk på en utøver så åpnes deres dagbok i samme vinkel som deres egen visning - ingen kontekst-bytte."
-        bullets={[
-          { title: 'Status-kolonner', body: 'Siste økt, uke-volum, status (på plan / bak plan / over plan), dagsform.' },
-          { title: 'Varsler', body: 'Røde flagg ved høy belastning, dårlig recovery eller manglende logging.' },
-          { title: 'Utøver-detalj-modal', body: 'Klikk åpner full dagbok-uke for utøveren - du ser hva de ser.' },
+      <LandingSeksjon
+        id="troppen" kicker="Troppen" tittel="HELE GRUPPA PÅ ÉN SKJERM."
+        ingress="Trener-hjem viser utøverne med timer, prosent av plan, sonefordeling og siste økt - og flagger dem som ligger bak eller har lav restitusjon. Klikk deg inn, så ser du det utøveren ser."
+        punkter={[
+          { tittel: 'Status nå', tekst: 'Timer, plan, soner, skudd og helse for perioden du velger - i én henting.' },
+          { tittel: 'Vis mer per utøver', tekst: 'Detaljpanelet åpner uten å laste siden på nytt, og husker det du allerede har hentet.' },
+          { tittel: 'Kort eller tabell', tekst: 'Bytt visning etter hvor mange du følger opp.' },
         ]}
+        media={{ type: 'foto', bilde: 'skiskyting-sh-motbakke', alt: 'Utøver i motbakke', blaa: true }}
+        blaa
       />
 
-      <SportFeatureSection
-        accent="blue"
-        kicker="Maler og push"
-        title="ÉN PLAN - MANGE UTØVERE."
-        intro="Bygg én plan-mal eller årsplan-mal og push den til utvalgte utøvere eller hele grupper. Hver mottaker får sin egen kopi med personlige konkurransedatoer; endringer på malen ramler ikke automatisk inn - du velger om de skal pushes."
-        bullets={[
-          { title: 'Plan-mal', body: 'Uke- eller måned-mal med øktstruktur som kan pushes til mange utøvere samtidig.' },
-          { title: 'Årsplan-mal', body: 'Sesongstruktur med faser, peak-target og konkurransekalender - kopieres med justering på datoer.' },
-          { title: 'Selektiv push', body: 'Velg hvilke utøvere som skal motta og se forhåndsvisning før push.' },
+      <LandingSeksjon
+        id="push" kicker="Push" tittel="ÉN PLAN, MANGE UTØVERE."
+        ingress="Bygg en uke- eller årsplanmal én gang og send den til én utøver eller hele gruppa. Hver mottaker får sin egen kopi, og sonene regnes fra deres egne terskler - ikke dine."
+        punkter={[
+          { tittel: 'Plan- og årsplanmaler', tekst: 'Uker, perioder og hele sesonger kan pushes og justeres etterpå.' },
+          { tittel: 'Velg hvem som får den', tekst: 'Send til utvalgte utøvere eller hele gruppa, med forhåndsvisning før du sender.' },
+          { tittel: 'Personlige soner', tekst: 'Samme økt, ulike soner - hver utøver får sine egne terskler lagt til grunn.' },
         ]}
+        media={{ type: 'app', navn: 'aarsplan', kap: 'Årsplanen med perioder og nøkkeldatoer', hoyde: 420 }}
+        speilvendt blaa
       />
 
-      <SportFeatureSection
-        accent="blue"
-        kicker="Kommunikasjon"
-        title="KOMMENTARER OG DM."
-        intro="Kommentarene ligger på øktnivå - utøveren ser dem ved siden av sin egen logging, ikke i en separat innboks. Ren dialog, ingen e-post-tråder eller WhatsApp-kaos."
-        bullets={[
-          { title: 'Kommentar per økt', body: 'Trener kan kommentere før, under og etter økten; utøver svarer i samme tråd.' },
-          { title: 'Direktemelding', body: 'Privat trådsamtale per utøver for det som ikke hører hjemme på en økt.' },
-          { title: 'Lese-kvittering', body: 'Se når utøveren har lest kommentaren; varsel hvis ingen aktivitet på en uke.' },
+      <LandingSeksjon
+        id="dialog" kicker="Dialog" tittel="KOMMENTAREN LIGGER DER ØKTA LIGGER."
+        ingress="Tilbakemeldingen står ved siden av økta utøveren førte - ikke i en egen innboks eller en meldingstråd som forsvinner. Det som ikke hører til en økt, tar du i en egen samtale."
+        punkter={[
+          { tittel: 'Kommentar per økt', tekst: 'Før, under og etter - og utøveren svarer samme sted.' },
+          { tittel: 'Innboks for resten', tekst: 'Beskjeder som ikke hører til en bestemt økt ligger for seg.' },
+          { tittel: 'Du ser hva de ser', tekst: 'Trenerens visning er utøverens flate, ikke en egen forenklet versjon.' },
         ]}
+        media={{ type: 'app', navn: 'oktkort-gjennomfort', kap: 'Gjennomført økt i dagboka', hoyde: 120 }}
+        blaa
       />
 
-      <SportFeatureSection
-        accent="blue"
-        kicker="Sammenligning"
-        title="2 TIL N UTØVERE - SIDE OM SIDE."
-        intro="Sammenlignings-modulen plotter belastning, sonefordeling, test-utvikling og andre KPI-er for opp til N utøvere i samme graf. Pro-tier; ikke i Basic."
-        bullets={[
-          { title: 'Multi-akse-sammenligning', body: 'CTL/ATL/TSB, sone-tid, distanse, høydemeter - flere akser kan plottes samtidig.' },
-          { title: 'Test-PR-rangering', body: 'Liste-form for hvem som har best/dårligst på en gitt test.' },
-          { title: 'Lagrede oppsett', body: 'Sammenlignings-konfigurasjoner kan lagres og gjenåpnes raskt.' },
+      <LandingSeksjon
+        id="sammenlign" kicker="Sammenlign" tittel="TO ELLER FLERE, SIDE OM SIDE."
+        ingress="Legg utøverne ved siden av hverandre for samme periode: timer, soner, belastning, terskler, tester og skyting. Oppsettet kan lagres, så du åpner det samme bildet neste uke."
+        punkter={[
+          { tittel: 'Én kolonne per utøver', tekst: 'Velg metrikkene du bryr deg om, og se dem i samme rad.' },
+          { tittel: 'Felles kurver', tekst: 'CTL og sonefordeling for flere utøvere i samme graf.' },
+          { tittel: 'Lagret oppsett', tekst: 'Sammenligningen du bruker mest ligger klar neste gang.' },
         ]}
+        media={{ type: 'foto', bilde: 'skiskyting-staaende-vinter', alt: 'Skiskyttere på standplass om vinteren', blaa: true }}
+        speilvendt blaa
       />
 
-      <SportFeatureSection
-        accent="blue"
-        kicker="Skipark-tilsyn"
-        title="FOR LANGRENN-TRENERE."
-        intro="Følg ski-tester per utøver, registrer dagens føre og forhold for hele laget på en konkurransedag. En egen modul som kobler skipark-data til lag-kontekst."
-        bullets={[
-          { title: 'Lag-skipark', body: 'Se ski-merker, slip og smøring per utøver i én tabell.' },
-          { title: 'Konkurranse-dag-logg', body: 'Registrer føre, snøtype, lufttemp én gang for hele laget.' },
-          { title: 'Test-resultat-deling', body: 'Trener kan dele "raskest ski under disse forholdene" med utøvere.' },
+      <LandingSeksjon
+        id="personvern" kicker="Personvern" tittel="UTØVEREN EIER DATAENE SINE."
+        ingress="Tilgangen gis av utøveren, ikke av deg. Helsedata som HRV og søvn deles bare hvis utøveren slår det på, og frakobling fjerner tilgangen umiddelbart - håndhevet i databasen, ikke bare i grensesnittet."
+        punkter={[
+          { tittel: 'Utøveren gir tilgang', tekst: 'Invitasjon og samtykke ligger hos utøveren - alltid.' },
+          { tittel: 'Helsedata er et eget valg', tekst: 'Trening kan deles uten at søvn og HRV følger med.' },
+          { tittel: 'Frakobling virker med én gang', tekst: 'Tilgangen fjernes i det utøveren kobler fra.' },
         ]}
+        media={{ type: 'foto', bilde: 'langrenn-fjell-solnedgang', alt: 'Skiløper i fjellet', blaa: true }}
+        blaa
       />
 
-      <section className="px-6 lg:px-14 py-20 md:py-24"
-        style={{ borderTop: '1px solid var(--kant-2)', background: 'var(--flate-6-alt)' }}>
-        <div className="max-w-[1240px] mx-auto">
-          <div style={{
-            fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-            fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase',
-            color: '#1A6FD4', marginBottom: 18, display: 'flex',
-            alignItems: 'center', gap: 12,
-          }}>
-            <span style={{ width: 28, height: 1, background: '#1A6FD4' }} />
-            Tre tier-er for trenere
-          </div>
-          <h2 style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-            letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 32,
-          }}>
-            VELG NIVÅET SOM PASSER LAGET DITT.
-          </h2>
-          <div className="grid gap-px md:grid-cols-3" style={{ background: 'var(--kant-5)' }}>
-            <TierCard tier="Basic" price="199 kr/mnd"
-              points={['Inkluderer egen utøver-profil', 'Maks 10 utøvere', '0 inkluderte lisenser - kjøp utøverplasser à 29 kr/mnd', 'Plan- og årsplan-maler', 'Kommentarer og DM', 'Grupper']} />
-            <TierCard tier="Pro" price="279 kr/mnd" featured
-              points={['Inkluderer egen utøver-profil', 'Ubegrenset utøvere', '5 Athlete Pro-lisenser til utøvere inkludert - kjøp flere à 29 kr/mnd', 'Alt i Basic (inkl. sammenligning, gruppe-trening, lag-statistikk)']} />
-            <TierCard tier="Pro AI" price="499 kr/mnd" coming
-              points={['Inkluderer egen utøver-profil', '+ 5 Athlete Pro-lisenser til utøvere', 'AI-analyse på utøveres data', 'Auto-ukesoppsummeringer', 'Alt i Pro']} />
-          </div>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/app/registrer?role=coach&amp;tier=pro"
-              style={{
-                background: '#1A6FD4', color: 'var(--tekst-1-land)', padding: '14px 28px',
-                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
-                textDecoration: 'none',
-              }}>
-              Start trener-prøve (Pro)
-            </Link>
-            <Link href="/xpulse.html#priser"
-              style={{
-                color: 'var(--tekst-1-land)', padding: '14px 28px',
-                border: '1px solid var(--kant-5)', textDecoration: 'none',
-                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
-              }}>
-              Se full prissammenligning
-            </Link>
-          </div>
-        </div>
-      </section>
+      <LandingFaq poster={[
+        { sporsmal: 'Hva koster trenerplanene?', svar: 'Trener Basic koster 199 kr i måneden og Trener Pro 279 kr. Begge inkluderer din egen Athlete Pro. Trener Basic har 30 dagers gratis prøve, og utøverplasser kan kjøpes ved behov.' },
+        { sporsmal: 'Hvor mange utøvere kan jeg følge?', svar: 'Trener Basic gir plass til inntil ti tilkoblede utøvere, og du kjøper lisenser etter behov. Trenger du flere, er Trener Pro laget for det.' },
+        { sporsmal: 'Regnes sonene fra mine terskler eller utøverens?', svar: 'Fra utøverens. Pusher du samme økt til hele gruppa, får hver utøver sonene sine regnet fra sine egne terskler.' },
+        { sporsmal: 'Ser jeg helsedataene til utøverne?', svar: 'Bare hvis utøveren slår det på. Trening kan deles uten at HRV og søvn følger med, og frakobling fjerner tilgangen umiddelbart.' },
+        { sporsmal: 'Kan jeg sammenligne utøvere?', svar: 'Ja. Side om side viser én kolonne per utøver for samme periode, med felles kurver for belastning og soner. Oppsettet kan lagres.' },
+        { sporsmal: 'Kan jeg planlegge for utøveren?', svar: 'Ja. Du kan bygge planen i utøverens kalender, pushe maler til grupper, og kommentere i selve økta. Utøveren fører fortsatt dagboka selv.' },
+      ]} />
 
-      <SportPageCTA
-        title="Kom i gang som trener"
-        subtitle="Trener Pro inkluderer egen utøver-profil og 5 Athlete Pro-lisenser til utøverne dine - og du kan kjøpe flere plasser for 29 kr/mnd."
-        href="/app/registrer?role=coach&tier=pro"
-        label="Kom i gang med Trener Pro"
-        accent="blue"
-      />
+      <AndreIdretter />
+      <LandingBand />
     </LandingShell>
-  )
-}
-
-function TierCard({
-  tier, price, points, featured, coming,
-}: {
-  tier: string; price: string; points: string[]; featured?: boolean; coming?: boolean
-}) {
-  return (
-    <div style={{
-      background: featured ? 'var(--tonet-bla-2)' : 'var(--kant-2)',
-      padding: 28, position: 'relative',
-      borderTop: featured ? '2px solid #1A6FD4' : '2px solid transparent',
-      opacity: coming ? 0.78 : 1,
-    }}>
-      <div style={{
-        fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-        fontSize: 13, letterSpacing: '0.22em', textTransform: 'uppercase',
-        color: 'var(--tekst-1-land)', marginBottom: 12,
-      }}>
-        {tier}
-        {coming && (
-          <span style={{
-            marginLeft: 8, padding: '2px 8px',
-            background: 'rgba(245,197,66,0.18)', color: '#F5C542',
-            border: '1px solid rgba(245,197,66,0.4)',
-            fontSize: 9, letterSpacing: '0.18em',
-          }}>
-            Kommer snart
-          </span>
-        )}
-      </div>
-      <div style={{
-        fontFamily: "'Bebas Neue', sans-serif", fontSize: 36,
-        letterSpacing: '0.04em', color: 'var(--tekst-1-land)', marginBottom: 18,
-      }}>
-        {price}
-      </div>
-      <ul className="list-none p-0 flex flex-col gap-2">
-        {points.map(p => (
-          <li key={p} style={{
-            fontSize: 13, lineHeight: 1.6, color: 'rgb(var(--tekst-land-rgb) / 0.62)',
-            paddingLeft: 18, position: 'relative',
-          }}>
-            <span style={{
-              position: 'absolute', left: 0,
-              color: '#1A6FD4', fontWeight: 700,
-            }}>✓</span>
-            {p}
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }

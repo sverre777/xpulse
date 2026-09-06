@@ -131,7 +131,7 @@ export const LANDING_CSS = `
 .lp-skjerm{background:var(--lp-card);border:1px solid var(--lp-line2);border-radius:16px;padding:16px 18px;box-shadow:0 24px 60px rgba(0,0,0,.35);overflow:hidden}
 .lp-sk-topp{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
 .lp-sk-kap{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--lp-dim)}
-.lp-eks{min-height:var(--lp-eks-h,180px);font-family:'Inter',sans-serif;font-size:14px;line-height:1.4;color:var(--tekst-1-app);min-width:0;overflow:hidden}
+.lp-eks{min-height:var(--lp-eks-h,180px);font-family:'Inter',sans-serif;font-size:14px;line-height:1.4;color:var(--tekst-1-app);min-width:0;overflow-x:auto;overflow-y:visible}
 .lp-eks [data-oktkurve]{width:auto!important;max-width:100%!important}
 .lp-eks [data-oktkurve] svg{width:100%!important}
 .lp-eks [data-chip-rader]{flex-wrap:wrap!important;overflow:visible!important;min-width:0!important;max-width:100%!important}

@@ -1,6 +1,8 @@
 import type { FeatureSportSlug } from './landing-meta'
-import type { SportFeatureBullet } from '@/components/landing/SportFeatureSection'
 import type { LandingMedia } from '@/components/landing/LandingSeksjon'
+
+/** Punktboks i en seksjon. Bodde i den gamle SportFeatureSection - nå her. */
+export interface SportFeatureBullet { title: string; body: string }
 import { NYTT_I_VERSJON } from './versjon'
 
 // Innhold per sport-underside. Hold dette ett sted så hver page-fil kun
@@ -102,7 +104,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'KLASSISK VS SKØYTING - SIDE OM SIDE.',
         intro:
           'Alt kan filtreres på bevegelsesform. Se om du faktisk dekker begge stilarter slik planen sier, hvor mange timer som ligger i I3+, og hvordan formen svarer på det du har gjort. Grafene setter du sammen selv og stjernemerker dem du vil se først.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 1140 },
         bullets: [
           { title: 'Filter per teknikk', body: 'Skøyting, klassisk og staking skilles i alle grafer - også de du bygger selv.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på samme kurve som konkurransene dine.' },
@@ -258,7 +260,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'SKYTING OG UTHOLDENHET I SAMME BILDE.',
         intro:
           'Se treff% mot fart inn på standplass, timer i I3+, terskelutvikling og hvordan formen svarer. Grafene setter du sammen selv, og de du stjernemerker ligger først neste gang.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, skyting og laktat', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, skyting og laktat', hoyde: 1140 },
         bullets: [
           { title: 'Skyting mot belastning', body: 'Treffene sett mot hvor hardt du gikk inn - ikke bare mot dagen.' },
           { title: 'Terskel og laktat', body: 'Terskelverdiene styrer sonene overalt; laktatpunktene ligger på kurven der de ble tatt.' },
@@ -400,7 +402,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'LANGE ØKTER SETT OVER TID.',
         intro:
           'Hvor mange timer ligger i I1 og I2, og har mengden faktisk økt? Sett belastningen mot formen og se hvordan kroppen svarer på de lange helgene.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og ernæringspunkter', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og ernæringspunkter', hoyde: 1140 },
         bullets: [
           { title: 'Volum per uke og periode', body: 'Timer og km per bevegelsesform, uke for uke.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på samme kurve som rennene dine.' },
@@ -528,7 +530,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'GAP-TEMPO SIER SANNHETEN OM FORMEN.',
         intro:
           'Tempo justert for stigning gjør at bakkeøkta og flatøkta kan sammenlignes. Se utviklingen i fart ved terskel, timer i I3+, og hvordan formen svarer på det du faktisk har gjort.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, tempo og laktat', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, tempo og laktat', hoyde: 1140 },
         bullets: [
           { title: 'GAP over tid', body: 'Stigningsjustert tempo, så terrenget ikke skjuler framgangen.' },
           { title: 'Fart ved terskel', body: 'Tempoet du holder ved terskel, fulgt gjennom sesongen.' },
@@ -670,7 +672,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'FTP STYRER SONENE - OG NP/IF ØKTA.',
         intro:
           'FTP ligger som terskelverdi med dato, og watt-sonene regnes fra den. Hver økt får normalisert effekt, intensitetsfaktor og belastning, så en hard time og en lang tur kan sammenlignes.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med watt, soner og segmenter', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med watt, soner og segmenter', hoyde: 1140 },
         bullets: [
           { title: 'Watt-soner fra FTP', body: 'Coggan-soner regnet fra din egen FTP, med historikk når du tester på nytt.' },
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per økt - belastningen blir riktig, ikke bare lang.' },
@@ -826,7 +828,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'ÉN DAGBOK, HELE BILDET.',
         intro:
           'Filtrer på bevegelsesform, sett timer i I3+ mot formen, og bygg grafene du selv vil se først. Belastningen samler alt du gjør i én kurve.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og segmenter', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner og segmenter', hoyde: 1140 },
         bullets: [
           { title: 'Filter per bevegelsesform', body: 'Alle grafer og summer kan filtreres - også de du bygger selv.' },
           { title: 'Belastning og form', body: 'CTL, ATL og TSB på tvers av alt du gjør, med konkurransene på samme kurve.' },
@@ -967,7 +969,7 @@ export const SPORT_PAGE_CONTENT: Record<FeatureSportSlug, SportPageContent | nul
         title: 'FTP PÅ SYKKEL, GAP PÅ LØPING.',
         intro:
           'Watt-sonene regnes fra FTP, løpetempoet justeres for stigning, og belastningen fra alle tre grenene samles i én kurve. Da ser du hva uka faktisk kostet.',
-        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, watt og tempo', hoyde: 620 },
+        media: { type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, watt og tempo', hoyde: 1140 },
         bullets: [
           { title: 'NP, IF og TSS', body: 'Normalisert effekt og intensitetsfaktor per sykkeløkt.' },
           { title: 'GAP på løping', body: 'Stigningsjustert tempo, så terrenget ikke skjuler framgangen.' },

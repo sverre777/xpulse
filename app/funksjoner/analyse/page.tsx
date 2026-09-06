@@ -1,122 +1,115 @@
 import type { Metadata } from 'next'
 import { LandingShell } from '@/components/landing/LandingShell'
-import { SportPageHero } from '@/components/landing/SportPageHero'
-import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
+import { LandingHero } from '@/components/landing/LandingHero'
+import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
+import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { LandingFaq } from '@/components/landing/LandingFaq'
+import { AndreIdretter } from '@/components/landing/AndreIdretter'
+import { LandingBand } from '@/components/landing/LandingBand'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
-import { NYTT_I_VERSJON } from '@/lib/versjon'
+
+// UNDERSIDENE v2 bolk B6 - modulsidene arver nøyaktig de samme komponentene som
+// idrettssidene. Teksten står her, i sida, ikke i komponentene.
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Treningsanalyse – belastning, HRV, laktat og soner',
+  title: 'Treningsanalyse - belastning, terskel, laktat og soner',
   description:
-    'X-PULSE analyse-modul: ATL/CTL/TSB belastningsmodell, sonefordeling per sport, korrelasjoner mellom HRV og prestasjon, laktat-profil over tid og custom grafer du kan markere som favoritt.',
+    'X-PULSE analyse: CTL/ATL/TSB, sonefordeling per bevegelsesform, terskelhistorikk og laktatprofil, GAP og watt-soner, korrelasjoner mot HRV og søvn, og grafer du bygger selv.',
   path: '/funksjoner/analyse',
 })
 
-function AnalyseIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width={140} height={140} fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 38 V8" />
-      <path d="M6 38 H42" />
-      <path d="M10 32 L18 22 L26 26 L34 14 L42 18" />
-      <circle cx="18" cy="22" r="2" fill="currentColor" stroke="none" />
-      <circle cx="26" cy="26" r="2" fill="currentColor" stroke="none" />
-      <circle cx="34" cy="14" r="2" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+const SNARVEIER = [
+  { id: 'belastning', navn: 'Belastning' },
+  { id: 'soner', navn: 'Soner' },
+  { id: 'terskel', navn: 'Terskel' },
+  { id: 'helse', navn: 'Helse' },
+  { id: 'egne', navn: 'Egne grafer' },
+  { id: 'faq', navn: 'Spørsmål' },
+]
 
 export default function AnalysePage() {
   return (
-    <LandingShell>
-      <SportPageHero
+    <LandingShell aktiv="funksjoner">
+      <LandingHero
+        bilde="loping-hoved-fjell-gress"
+        alt="Utøver i fjellterreng"
+        smuler={[{ navn: 'Forsiden', href: '/xpulse.html' }, { navn: 'Funksjoner', href: '/xpulse.html#features' }, { navn: 'Analyse' }]}
         kicker="Dyp analyse"
-        title={<>FORSTÅ <span style={{ color: '#FF4500' }}>DIN<br/>EGEN UTVIKLING.</span></>}
-        description="Data uten innsikt er bare tall. Analyse-modulen kobler puls, HRV, laktat og subjektiv følelse i én helhetlig oversikt - slik at du faktisk lærer av hver økt og av sesongen som helhet."
-        icon={<AnalyseIcon />}
-        backgroundImage="/photos/rulleski-oslo-utsikt.jpg"
+        overskrift="Treningsanalyse som vet hva du planla"
+        ingress="Data uten sammenheng er bare tall. Analysen kobler plan, dagbok, klokke og helse - så du ser hva økta faktisk gjorde med deg, og hvordan sesongen har utviklet seg."
+        bevis={['CTL · ATL · TSB', 'Soner per bevegelsesform', 'Terskel og laktat', 'GAP og watt-soner', 'Favoritt-grafer', 'Trenervisning']}
+        ctaSekHref="#belastning"
       />
+      <LandingSnarvei punkter={SNARVEIER} />
 
-      <SportFeatureSection
-        kicker="Belastnings-modell"
-        title="ATL · CTL · TSB."
-        intro="Tre tall som forteller hvor du er i form-syklusen. ATL er trøtthet (siste 7 dager), CTL er fitness (siste 42 dager), TSB er forskjellen - formkurven din. X-PULSE plotter alle tre i samme graf og forklarer dem på norsk."
-        bullets={[
-          { title: 'Daglig oppdatering', body: 'Hver økt påvirker tallene umiddelbart. Sammenlign hvor du var samme uke i fjor.' },
-          { title: 'Forms-prognose', body: 'Ekstrapoler 4 uker frem så du ser når TSB topper hvis treningen fortsetter som nå.' },
-          { title: 'Forklart i klartekst', body: 'Tooltip og hjelp-side med konkrete eksempler - ingen forutsetninger om sportsvitenskap.' },
+      <LandingSeksjon
+        id="belastning" kicker="Belastning" tittel="CTL, ATL OG TSB - FORKLART PÅ NORSK."
+        ingress="Tre kurver som viser hvor du er i form-syklusen: form (CTL), tretthet (ATL) og overskudd (TSB). Konkurransene ligger på samme akse, så du ser hva formen var den dagen det gjaldt."
+        punkter={[
+          { tittel: 'Oppdateres med hver økt', tekst: 'Belastningen regnes fra det du faktisk gjorde - også når klokka ikke var med.' },
+          { tittel: 'Konkurranser på kurven', tekst: 'A-, B- og C-løp vises i belastningsgrafen, så toppformen kan etterprøves.' },
+          { tittel: 'RPE når watt mangler', tekst: 'Har økta hverken puls eller watt, brukes opplevd belastning - ingen hull i kurven.' },
         ]}
+        media={{ type: 'app', navn: 'oktgraf', kap: 'Økt-grafen med soner, laktat og ernæring', hoyde: 1140 }}
       />
 
-      <SportFeatureSection
-        kicker="Sonefordeling"
-        title="HVOR LIGGER VOLUMET?"
-        intro="Sone-statistikk per uke, måned og sesong - og per sport. Polariserende trening krever mye sone 1 og noe sone 5; X-PULSE viser om du faktisk gjør det eller om du driver i no man's land."
-        bullets={[
-          { title: 'Per-sport-soner', body: 'Soner registreres uavhengig per disiplin så svømme-stats ikke forurenser løpe-stats.' },
-          { title: 'Plan vs faktisk', body: 'Sammenlign planlagt sone-fordeling mot det du faktisk gjorde - viktig for trener-kommunikasjon.' },
-          { title: 'Polarisert vs pyramidisk', body: 'Mønster-tag som viser om sesongen din følger en kjent trenings-modell.' },
+      <LandingSeksjon
+        id="soner" kicker="Sonefordeling" tittel="HVOR LIGGER VOLUMET EGENTLIG?"
+        ingress="Sonetid per uke, måned og sesong - og per bevegelsesform. Se om planen om mye I1 og litt I5 faktisk stemmer med det du gjorde, eller om alt havnet i midten."
+        punkter={[
+          { tittel: 'Per bevegelsesform', tekst: 'Løping, sykling, ski og styrke har egne soner, så tallene ikke blander seg.' },
+          { tittel: 'Plan mot gjennomført', tekst: 'Planlagt sonefordeling ved siden av den faktiske - grunnlaget for trenerpraten.' },
+          { tittel: 'I6-I8 teller med', tekst: 'Hurtighet og spenst ligger i sonesummene der de hører hjemme.' },
         ]}
+        media={{ type: 'foto', bilde: 'loping-bane-to-utovere', alt: 'To løpere på bane' }}
+        speilvendt
       />
 
-      <SportFeatureSection
-        kicker={`Helse og søvn · ${NYTT_I_VERSJON}`}
-        title="SØVN OG HVILEPULS - AUTOMATISK."
-        intro="Søvn (leggetid, faser, total), hvilepuls, natt-HRV og skritt kommer inn fra klokka hver natt - i dag fra Polar, flere merker kommer. Alt kan også føres manuelt, og det du fører selv vinner alltid over det klokka sier."
-        bullets={[
-          { title: 'Kilde per verdi', body: 'Hver verdi vet hvor den kom fra - klokke eller manuelt - og manuelt vinner alltid.' },
-          { title: 'Søvn utvidet', body: 'Leggetid, våknetid, faser og avbrudd - ikke bare ett tall per natt.' },
-          { title: 'Restitusjon mot belastning', body: 'Hvilepuls- og HRV-trenden vises ved siden av treningsbelastningen - sammenhengen blir synlig.' },
+      <LandingSeksjon
+        id="terskel" kicker="Terskel og laktat" tittel="TESTENE STYRER SONENE DINE."
+        ingress="Terskelverdiene ligger som data med dato - ikke som en innstilling du glemmer. Legg inn en ny test, og sonene og historikken regnes riktig fra den datoen. Laktatpunktene ligger på kurven der de ble tatt."
+        punkter={[
+          { tittel: 'Terskelhistorikk', tekst: 'Puls, tempo, watt og laktat per test. Estimater foreslås, men skrives aldri automatisk.' },
+          { tittel: 'GAP og watt-soner', tekst: 'Stigningsjustert tempo på løping, Coggan-soner og NP/IF på sykkel.' },
+          { tittel: 'Prestasjon over tid', tekst: 'Fart og watt ved terskel fulgt gjennom sesongen, sesong mot sesong.' },
         ]}
+        media={{ type: 'app', navn: 'oktgraf-skjema', kap: 'Terskel og laktat i økta', hoyde: 740 }}
       />
 
-      <SportFeatureSection
-        kicker="Korrelasjoner"
-        title="HVA HENGER SAMMEN?"
-        intro="HRV mot belastning. Dagsform mot 3-dagers-load. Snittpuls i intervaller mot HRV. Helse-fanen i analyse-modulen plotter alle disse som scatter-grafer med Pearson-korrelasjon - og finner mønstre i dine egne data, ikke generiske råd."
-        bullets={[
-          { title: 'HRV vs treningsvolum', body: 'Hvordan henger din HRV sammen med summen av timer siste 7 dager? Scatter-plot + korrelasjons-koeffisient.' },
-          { title: 'Dagsform vs 3-dagers-belastning', body: 'Subjektiv dagsform-rating mot akkumulert belastning siste 3 dager - ser du fall etter harde uker?' },
-          { title: 'Sykdom vs belastning', body: 'Markering av sykedager mot foregående belastning - finn dine egne overtrenings-grenser.' },
-          { title: 'Skadehistorikk', body: 'Skadeperioder spores mot belastnings-trend så du ser om volum-spikes utløste skadene.' },
+      <LandingSeksjon
+        id="helse" kicker="Helse mot belastning" tittel="HVA HENGER FAKTISK SAMMEN?"
+        ingress="HRV mot belastning. Søvn mot dagsform. Hvilepuls mot uker med mye. Korrelasjonene regnes på dine egne tall, og sier fra når det er for lite data til å konkludere."
+        punkter={[
+          { tittel: 'Søvn, hvilepuls og HRV', tekst: 'Kommer inn fra klokka hver natt, og kan alltid overstyres manuelt.' },
+          { tittel: 'Sykdom og skade som lag', tekst: 'Periodene legges over belastningskurven, så mønsteret blir synlig.' },
+          { tittel: 'Sier fra ved for lite data', tekst: 'Under ti punkter vises ingen korrelasjon - bare at grunnlaget er for tynt.' },
         ]}
+        media={{ type: 'app', navn: 'helse', kap: 'Helse: søvn, hvilepuls og HRV', hoyde: 780 }}
+        speilvendt
       />
 
-      <SportFeatureSection
-        kicker="Laktat over tid"
-        title="TERSKEL-UTVIKLING."
-        intro="Laktat er gull hvis du har målinger. X-PULSE lar deg logge multiple målinger per økt, plotter dem mot puls og pace, og sporer terskel-utviklingen din over måneder."
-        bullets={[
-          { title: 'Multiple per økt', body: 'Steg-test med 4-6 målinger logges hver for seg; X-PULSE bygger laktat-kurven.' },
-          { title: 'Terskel-pace', body: 'Pace ved 4 mmol estimeres automatisk og spores som egen PR.' },
-          { title: 'Terskel-puls-utvikling', body: 'Hvilken puls produserer 4 mmol denne måneden vs forrige? Indikator for aerob fremgang.' },
+      <LandingSeksjon
+        id="egne" kicker="Egne grafer" tittel="DINE EGNE SPØRSMÅL, DINE EGNE GRAFER."
+        ingress="Bygg grafen som svarer på akkurat ditt spørsmål: filtrer på bevegelsesform, teknikk, periode, sone eller økttype. Stjernemerk den, så ligger den først neste gang."
+        punkter={[
+          { tittel: 'Favoritter først', tekst: 'De du stjernemerker møter deg på Oversikt - i den rekkefølgen du selv drar dem.' },
+          { tittel: 'Filter som henger sammen', tekst: 'Periode, bevegelsesform og teknikk kan kombineres fritt, også i egne grafer.' },
+          { tittel: 'Treneren ser det samme', tekst: 'Har du gitt treneren tilgang, ser hen dine favoritter - ikke sine egne.' },
         ]}
+        media={{ type: 'foto', bilde: 'molle-lab', alt: 'Testlab med mølle' }}
       />
 
-      <SportFeatureSection
-        kicker="Tester og PR"
-        title="REGISTRER FRA HVOR SOM HELST."
-        intro="Tester loggføres med standard maler eller egne formater. Cooper, 5K, FTP-test, Vingate - eller en favoritt-runde du tester deg på hvert kvartal. PR-historikk plottes for hver test-type."
-        bullets={[
-          { title: 'Standard-maler', body: '20+ kjente test-formater forhåndskonfigurert med riktig protokoll og felter.' },
-          { title: 'Egne tester', body: 'Lag dine egne hvis du har et signatur-format - trener kan dele med hele laget.' },
-          { title: 'Trend per test', body: 'Hver test får egen graf med årstall-akse - se sesong-til-sesong-fremgang.' },
-          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie - terskeltesten som én kurve gjennom sesongen.' },
-        ]}
-      />
+      <LandingFaq poster={[
+        { sporsmal: 'Hva er CTL, ATL og TSB?', svar: 'CTL er den langsiktige formen din, ATL er den kortsiktige trettheten, og TSB er forskjellen - overskuddet ditt. Alle tre regnes fra belastningen i øktene dine og vises i samme kurve, med konkurransene på samme akse.' },
+        { sporsmal: 'Må jeg ha watt eller puls for å få belastning?', svar: 'Nei. Har økta puls eller watt brukes de; ellers regnes belastningen fra opplevd belastning (RPE) og varighet, så kurven ikke får hull.' },
+        { sporsmal: 'Hvordan settes sonene mine?', svar: 'Fra terskelverdiene dine, som ligger som historikk med dato. Endrer du en terskel, regnes historikken riktig fra den datoen - og hver bevegelsesform har sine egne.' },
+        { sporsmal: 'Kan jeg bygge mine egne grafer?', svar: 'Ja. Du filtrerer på bevegelsesform, teknikk, periode, sone og økttype, og kan stjernemerke grafen så den ligger først på Oversikt.' },
+        { sporsmal: 'Hva vises av helsedata?', svar: 'Søvn, hvilepuls og HRV fra klokka, sammen med belastningen. Alt kan overstyres manuelt, og manuelle verdier vinner alltid over klokkas.' },
+        { sporsmal: 'Ser treneren analysen min?', svar: 'Bare hvis du kobler deg til en trener og gir tilgang. Helsedata deles kun hvis du slår det på, og frakobling fjerner tilgangen umiddelbart.' },
+      ]} />
 
-      <SportFeatureSection
-        kicker="Custom grafer"
-        title="DINE EGNE SPØRSMÅL."
-        intro="Custom-graf-bygger lar deg filtrere på sport, workout-type, periode, sone og bevegelsesform - og bygge en graf som svarer på akkurat ditt spørsmål. Marker som favoritt så vises den i Oversikt."
-        bullets={[
-          { title: 'Filter-kombinasjon', body: '6+ filter-akser kan kombineres fritt; resultatet blir en delbar graf.' },
-          { title: 'Favoritt-marker', body: 'Inntil 6 grafer vises automatisk på Oversikt-siden din.' },
-          { title: 'Trener-tilgang', body: 'Trenere kan se utøverens custom-grafer hvis tilgang er gitt.' },
-        ]}
-      />
-
-      <SportPageCTA />
+      <AndreIdretter />
+      <LandingBand />
     </LandingShell>
   )
 }

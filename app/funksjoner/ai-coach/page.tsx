@@ -1,149 +1,101 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { LandingShell } from '@/components/landing/LandingShell'
-import { SportPageHero } from '@/components/landing/SportPageHero'
-import { SportFeatureSection } from '@/components/landing/SportFeatureSection'
+import { LandingHero } from '@/components/landing/LandingHero'
+import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
+import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { LandingFaq } from '@/components/landing/LandingFaq'
+import { AndreIdretter } from '@/components/landing/AndreIdretter'
+import { LandingBand } from '@/components/landing/LandingBand'
 import { WaitlistSignup } from '@/components/landing/WaitlistSignup'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'AI-Coach',
+  title: 'AI Coach - kommer',
   description:
-    'X-PULSE AI-Coach (kommer snart): personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer engasjement-nivå - fra verktøy til full autopilot. Dagbok via chat, bilde-import, adaptive planer.',
+    'AI Coach i X-PULSE er under arbeid: tolkning av økter, ukesammendrag, chat om egen trening og planforslag. Ingenting av dette er live ennå - meld deg på ventelista.',
   path: '/funksjoner/ai-coach',
 })
 
-function AiCoachIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width={140} height={140} fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {/* Hjerne / krets - abstrakt AI-symbol */}
-      <circle cx="24" cy="24" r="14" />
-      <circle cx="24" cy="24" r="2" fill="currentColor" stroke="none" />
-      <path d="M24 10 V14" />
-      <path d="M24 34 V38" />
-      <path d="M10 24 H14" />
-      <path d="M34 24 H38" />
-      <path d="M14 14 L17 17" />
-      <path d="M31 17 L34 14" />
-      <path d="M14 34 L17 31" />
-      <path d="M31 31 L34 34" />
-      {/* Indre noder */}
-      <circle cx="18" cy="20" r="1.5" fill="currentColor" stroke="none" />
-      <circle cx="30" cy="20" r="1.5" fill="currentColor" stroke="none" />
-      <circle cx="24" cy="30" r="1.5" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+const SNARVEIER = [
+  { id: 'status', navn: 'Status' },
+  { id: 'planen', navn: 'Planen' },
+  { id: 'kontroll', navn: 'Kontroll' },
+  { id: 'venteliste', navn: 'Venteliste' },
+  { id: 'faq', navn: 'Spørsmål' },
+]
 
 export default function AiCoachPage() {
   return (
-    <LandingShell>
-      <SportPageHero
-        kicker="AI-Coach 🟡 Kommer snart"
-        title={<>AI-COACH<br/><span style={{ color: '#FF4500' }}>SOM FORSTÅR DEG.</span></>}
-        description="Få en personlig coach som forstår deg, lærer av deg, og handler etter din vilje. Du bestemmer hvor mye AI-en gjør for deg - fra enkelt verktøy til full autopilot. Du kan skrive en setning og få økten lagt inn i dagboken, eller la AI-en justere planen din automatisk basert på hvordan du føler deg. Personvernet ditt er alltid under din kontroll."
-        icon={<AiCoachIcon />}
-        backgroundImage="/photos/DSC09222_thumb.jpg"
+    <LandingShell aktiv="funksjoner">
+      <LandingHero
+        bilde="loping-grusvei-sommer"
+        alt="Løper på grusvei om sommeren"
+        smuler={[{ navn: 'Forsiden', href: '/xpulse.html' }, { navn: 'Funksjoner', href: '/xpulse.html#features' }, { navn: 'AI Coach' }]}
+        kicker="AI Coach · kommer"
+        overskrift="AI Coach for treningen din"
+        ingress="Dette er ikke live ennå. Her står det vi faktisk bygger, og hva vi ikke lover - så du vet hva du melder deg på."
+        bevis={['Kommer', 'Tolkning av økter', 'Ukesammendrag', 'Chat om egen trening', 'Planforslag', 'Du bestemmer hva den ser']}
+        ctaHref="#venteliste"
+        ctaTekst="Meld deg på ventelista"
+        ctaSekHref="#status"
+        ctaSekTekst="Se hva som kommer"
       />
+      <LandingSnarvei punkter={SNARVEIER} />
 
-      <SportFeatureSection
-        kicker="Athlete Pro AI · 129 kr/mnd 🟡"
-        title="DET DU FÅR MED PRO AI."
-        intro="Claude Haiku gjør auto-tolkning av økter, gir korte innsikter og finner korrelasjoner i dataene dine. Ingen chat eller plangenerering - det får du i Ultimate."
-        bullets={[
-          { title: 'Auto-tagging av lap', body: 'Oppvarming, intervall, pause, nedjogg - AI gjenkjenner mønsteret og merker hver lap.' },
-          { title: 'Ukentlig sammendrag', body: 'Hver søndag: hva du gjorde, hva som skiller seg fra forrige uke, hvilke trender tegner seg.' },
-          { title: 'Korrelasjon-analyse', body: 'HRV vs prestasjon, søvn vs energi, belastning vs sykdom - sammenhenger AI finner i dine egne tall.' },
+      <LandingSeksjon
+        id="status" kicker="Status" tittel="INGENTING AV DETTE ER LIVE."
+        ingress="AI Coach er under arbeid. Vi skriver det her i klartekst fordi det er lett å love for mye om AI - og fordi du skal kunne stole på resten av det som står på disse sidene."
+        punkter={[
+          { tittel: 'Under arbeid', tekst: 'Funksjonene under er det vi bygger mot, ikke noe du får i dag.' },
+          { tittel: 'Priser er ikke satt', tekst: 'AI-planene prises når de faktisk finnes.' },
+          { tittel: 'Ingen data brukes til modelltrening', tekst: 'Dataene dine trener ingen modeller - det gjelder også når AI kommer.' },
         ]}
+        media={{ type: 'foto', bilde: 'loping-asfalt-lofoten', alt: 'Løper på asfaltvei i Lofoten' }}
       />
 
-      <SportFeatureSection
-        kicker="Athlete Ultimate AI · 399 kr/mnd 🟡"
-        title="DET DU FÅR MED ULTIMATE AI."
-        intro="Claude Sonnet/Opus med full long-term memory. Chat 24/7, dagbok via tekst eller bilde, komplett plangenerering, adaptive planer som justerer seg ved sykdom eller dårlige dager."
-        bullets={[
-          { title: 'Chat med AI-coach 24/7', body: 'Kun treningsrelatert - off-topic avvises høflig. AI husker hele treningshistorikken og samtaler.' },
-          { title: 'Dagbok via chat', body: 'Skriv "Var ute en time, kjente meg sliten" - økten kommer rett i dagboken. Hvis klokkesync har en økt samme dag, knyttes de automatisk.' },
-          { title: 'Bilde/PDF/lyd-import', body: 'Ta bilde av håndskrevet dagbok, send konkurransekalender som PDF, eller spill inn lyd-notat - AI tolker og legger inn.' },
-          { title: 'Komplett plangenerering', body: 'Skriv "Lag en 12-ukers plan mot Birken" - AI bygger basert på dine mål, sport, historikk og periodisering.' },
-          { title: 'Adaptiv plan', body: '"Jeg er forkjølet" → AI omorganiserer kommende uke. Justerer seg automatisk ved sykdom, dårlige dager, prestasjon-endring.' },
-          { title: 'Custom-grafer på forespørsel', body: '"Vis meg pace ved 150 bpm siste 3 mnd" - AI bygger grafen direkte. Pluss prestasjon-prediksjon og morgen-brief.' },
+      <LandingSeksjon
+        id="planen" kicker="Planen" tittel="DET VI BYGGER MOT."
+        ingress="Målet er en assistent som kjenner treningshistorikken din og hjelper med det som tar tid: tolke økta, oppsummere uka og foreslå justeringer du selv godkjenner."
+        punkter={[
+          { tittel: 'Tolkning av økta', tekst: 'Kjenne igjen oppvarming, drag, pause og nedjogg i rundene fra klokka.' },
+          { tittel: 'Ukesammendrag', tekst: 'Hva du gjorde, hva som skilte seg fra forrige uke, og hva som peker seg ut.' },
+          { tittel: 'Planforslag du godkjenner', tekst: 'Forslag til justering ved sykdom eller dårlig uke - aldri endringer bak ryggen din.' },
         ]}
+        media={{ type: 'foto', bilde: 'multisport-natur', alt: 'Utøver i natur' }}
+        speilvendt
       />
 
-      <SportFeatureSection
-        kicker="Trener Ultimate AI · 999 kr/mnd 🟡"
-        title="DET TRENERE FÅR MED ULTIMATE."
-        intro="Premium AI bygd for trener-arbeid. Plan-bygging via chat eller bilde, lag-prediksjon, adaptive lag-planer, custom rapporter for sponsorer."
-        bullets={[
-          { title: 'Plan-bygging via chat eller bilde', body: 'Skriv "Lag 4-ukers grunnperiode for utøver X med 3 økter/uke" eller ta bilde av en håndskrevet plan - AI lager den og legger i utøverens plan.' },
-          { title: 'Velg hvem AI pusher til', body: '"Push denne planen til Anna, Per og Lise" - AI pusher kun til de tre, ikke hele laget.' },
-          { title: 'Lag-prediksjon', body: '"Hvem av utøverne mine bør jeg gi en hard intervalløkt i morgen?" - AI svarer basert på belastning, prestasjon, restitusjon.' },
-          { title: 'Adaptive lag-planer', body: 'AI justerer planer for hele laget basert på fellestreninger, konkurranser, sesongfase.' },
-          { title: 'Custom rapporter', body: '"Lag en rapport for sponsor om Annas utvikling siste 6 mnd" - AI genererer PDF.' },
+      <LandingSeksjon
+        id="kontroll" kicker="Kontroll" tittel="DU BESTEMMER HVA DEN SER."
+        ingress="Når AI kommer, kommer den med brytere: hvor mye den gjør, og hvilke data den får se. Standard blir det minst inngripende valget."
+        punkter={[
+          { tittel: 'Nivå du velger', tekst: 'Fra «svarer når du spør» til «foreslår selv» - du setter grensen.' },
+          { tittel: 'Datakategorier hver for seg', tekst: 'Trening, helsedata, notater og konkurranser kan slås av og på hver for seg.' },
+          { tittel: 'Trenerdeling er et eget valg', tekst: 'Om treneren ser AI-svarene dine bestemmer du selv.' },
         ]}
+        media={{ type: 'foto', bilde: 'langlop-solnedgang-spor', alt: 'Spor i solnedgang' }}
       />
 
-      <SportFeatureSection
-        kicker="Du er alltid i kontroll"
-        title="ENGASJEMENT-VELGER + PERSONVERN."
-        intro="Du bestemmer hvor mye AI gjør, og hva den ser. Bytt mellom Verktøy-, Coach- eller Autopilot-modus + granulære toggles per funksjon. Personvern-toggles for hver datakategori."
-        bullets={[
-          { title: 'Verktøy-modus', body: 'AI svarer kun når du spør. Ingen auto-handlinger.' },
-          { title: 'Coach-modus', body: 'AI gir proaktive anbefalinger og kommentarer, men du må bekrefte alle endringer.' },
-          { title: 'Autopilot-modus', body: 'AI fører dagbok, justerer planen og tagger økter automatisk. Du kan overstyre når som helst.' },
-          { title: 'Granulære toggles', body: 'Slå av/på per funksjon: dagbok-skriving, plan-endring, morgen-brief, økt-kommentar, lap-tagging, klokkesync-kobling.' },
-          { title: 'Personvern per datakategori', body: 'Velg hva AI ser: treningsøkter, helsedata (HRV/søvn/vekt), notater, konkurranseresultater, fysiologiske tester.' },
-          { title: 'Trener-tilkobling', body: 'For Ultimate AI med trener: velg om treneren kan se AI-svar og chat-historikken (default: AV).' },
-          { title: 'Lovkrav', body: 'AI-data brukes ALDRI til modelltrening på Strava-data (Strava API Agreement § 2.14.4).' },
-        ]}
-      />
-
-      <section className="px-6 lg:px-14 py-20 md:py-24"
-        style={{ borderTop: '1px solid var(--kant-2)' }}>
-        <div className="max-w-[1240px] mx-auto grid gap-12 md:grid-cols-2 items-start">
-          <div>
-            <div style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-              fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase',
-              color: '#FF4500', marginBottom: 18, display: 'flex',
-              alignItems: 'center', gap: 12,
-            }}>
-              <span style={{ width: 28, height: 1, background: '#FF4500' }} />
-              Bli varslet
-            </div>
-            <h2 style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 0.95,
-              letterSpacing: '0.05em', color: 'var(--tekst-1-land)', marginBottom: 18,
-            }}>
-              GI BESKJED NÅR<br/>AI-COACH ÅPNER.
-            </h2>
-            <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgb(var(--tekst-land-rgb) / 0.62)', maxWidth: 460 }}>
-              Lanseres snart. Modulen kommer for utøvere (Pro AI · 129 og Ultimate AI · 399 kr/mnd)
-              og trenere (Pro AI · 499 og Ultimate AI · 999 kr/mnd). Beta-tilgang prioriteres til de på listen.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/pris"
-                style={{
-                  color: 'var(--tekst-1-land)', padding: '10px 18px',
-                  border: '1px solid var(--kant-5)', textDecoration: 'none',
-                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600,
-                  fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
-                }}>
-                Se alle priser
-              </Link>
-            </div>
-          </div>
-          <WaitlistSignup
-            feature="athlete_pro_ai"
-            label="Din e-postadresse"
-            cta="Bli varslet"
-            intro="Skriv inn e-postadressen så får du beskjed når AI Coach åpner - du blir også prioritert i beta-tilgangen."
-          />
-        </div>
+      <section className="lp-faq" id="venteliste">
+        <div className="lp-kap">Venteliste</div>
+        <h2>SI FRA NÅR DEN ER KLAR.</h2>
+        <p className="lp-ing" style={{ marginBottom: 18 }}>
+          Meld deg på, så sier vi fra når AI Coach er klar til å prøves. Ingen forpliktelse, og du kan melde deg av når som helst.
+        </p>
+        <WaitlistSignup feature="athlete_pro_ai" />
       </section>
+
+      <LandingFaq poster={[
+        { sporsmal: 'Kan jeg bruke AI Coach i dag?', svar: 'Nei. Den er under arbeid, og ingenting av det som står på denne siden er live ennå.' },
+        { sporsmal: 'Hva vil den koste?', svar: 'Prisen settes når funksjonen finnes. Vi vil ikke oppgi et tall for noe du ikke kan bruke.' },
+        { sporsmal: 'Brukes dataene mine til å trene modeller?', svar: 'Nei. Treningsdataene dine trener ingen modeller, og det gjelder også når AI Coach kommer.' },
+        { sporsmal: 'Kan AI endre planen min uten at jeg vet det?', svar: 'Nei. Målet er forslag du godkjenner. Du velger selv hvor mye den skal gjøre.' },
+        { sporsmal: 'Får treneren min se AI-svarene?', svar: 'Bare hvis du velger det. Deling er et eget valg, som helsedata ellers i appen.' },
+        { sporsmal: 'Hva får jeg i dag, uten AI?', svar: 'Hele plattformen: øktbygger, plan mot gjennomført, klokkesynk, analyse med terskel og belastning, årsplan og trenerpanel.' },
+      ]} />
+
+      <AndreIdretter />
+      <LandingBand />
     </LandingShell>
   )
 }

@@ -51,6 +51,12 @@ export default function RootLayout({
             via @font-face i globals.css (self-hostet, samme familienavn). */}
         <link rel="preload" href="/fonts/barlow-condensed-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/bebas-neue-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* Undersidene og appen bruker Barlow Condensed 600/700 i topplinja, i
+            etiketter og i knapper, og Barlow 400 i brødtekst. Uten preload kom de
+            sist, og ombrekkingen flyttet heroen (målt CLS 0,19 på mobil). */}
+        <link rel="preload" href="/fonts/barlow-condensed-normal-600-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/barlow-condensed-normal-700-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/barlow-normal-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
       <body className="min-h-full flex flex-col" style={{ backgroundColor: 'var(--flate-3)' }}>
         {children}

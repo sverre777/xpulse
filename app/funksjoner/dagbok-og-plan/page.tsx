@@ -1,128 +1,113 @@
 import type { Metadata } from 'next'
 import { LandingShell } from '@/components/landing/LandingShell'
-import { SportPageHero } from '@/components/landing/SportPageHero'
-import { SportFeatureSection, SportPageCTA } from '@/components/landing/SportFeatureSection'
+import { LandingHero } from '@/components/landing/LandingHero'
+import { LandingSnarvei } from '@/components/landing/LandingSnarvei'
+import { LandingSeksjon } from '@/components/landing/LandingSeksjon'
+import { LandingFaq } from '@/components/landing/LandingFaq'
+import { AndreIdretter } from '@/components/landing/AndreIdretter'
+import { LandingBand } from '@/components/landing/LandingBand'
 import { buildFeatureMetadata } from '@/lib/landing-meta'
-import { InsideMockups } from '@/components/landing/InsideMockups'
-import { NYTT_I_VERSJON } from '@/lib/versjon'
 
 export const metadata: Metadata = buildFeatureMetadata({
-  title: 'Treningsdagbok og treningsplanlegger – plan og logg i ett',
+  title: 'Treningsdagbok og treningsplan - plan mot gjennomført',
   description:
-    'Slik logger du og planlegger i X-PULSE. Aktivitets-basert dagbok med drag/pause/skyting, plan-modus for fremtid, dagbok-modus for tilbakeblikk, felles notater og trener-kommentarer integrert.',
+    'X-PULSE dagbok og plan: øktbygger med hurtigoppsett, 58 øktmaler, plan mot gjennomført, ukevisning og kalender, notater per uke og trenerkommentarer i selve økta.',
   path: '/funksjoner/dagbok-og-plan',
 })
 
-function DagbokIcon() {
-  return (
-    <svg viewBox="0 0 48 48" width={140} height={140} fill="none" stroke="currentColor"
-      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {/* Bok / kalender */}
-      <rect x="8" y="10" width="32" height="32" rx="2" />
-      <path d="M8 18 H40" />
-      <path d="M14 6 V14" />
-      <path d="M34 6 V14" />
-      {/* Fylte ruter - øktene */}
-      <rect x="14" y="22" width="6" height="4" fill="currentColor" stroke="none" />
-      <rect x="22" y="22" width="6" height="4" fill="currentColor" stroke="none" />
-      <rect x="22" y="30" width="6" height="4" fill="currentColor" stroke="none" />
-      <rect x="30" y="30" width="6" height="4" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+const SNARVEIER = [
+  { id: 'okt', navn: 'Øktbyggeren' },
+  { id: 'plan', navn: 'Plan' },
+  { id: 'dagbok', navn: 'Dagbok' },
+  { id: 'notater', navn: 'Notater' },
+  { id: 'trener', navn: 'Trener' },
+  { id: 'faq', navn: 'Spørsmål' },
+]
 
 export default function DagbokOgPlanPage() {
   return (
-    <LandingShell>
-      <SportPageHero
+    <LandingShell aktiv="funksjoner">
+      <LandingHero
+        bilde="langrenn-rulleski-skogsvei"
+        alt="Rulleskiløper på skogsvei"
+        smuler={[{ navn: 'Forsiden', href: '/xpulse.html' }, { navn: 'Funksjoner', href: '/xpulse.html#features' }, { navn: 'Dagbok og plan' }]}
         kicker="Dagbok og plan"
-        title={<>SLIK LOGGER DU<br/><span style={{ color: '#FF4500' }}>OG PLANLEGGER.</span></>}
-        description="To moduser av samme rammeverk. Bygg planen fremover, logg gjennomføringen tilbake - og se sammenligningen automatisk. Trener-kommentarene følger med på øktnivå."
-        icon={<DagbokIcon />}
-        backgroundImage="/photos/rulleski-skogsvei.jpg"
+        overskrift="Treningsdagbok og plan i samme app"
+        ingress="Planen ligger ved siden av dagboka, ikke i et annet regneark. Du ser hva du skulle gjøre, hva du gjorde, og forskjellen - uke for uke."
+        bevis={['Øktbygger med rader', 'Hurtigoppsett', '58 øktmaler', 'Plan mot gjennomført', 'Ukevisning', 'Trenerkommentarer']}
+        ctaSekHref="#okt"
       />
+      <LandingSnarvei punkter={SNARVEIER} />
 
-      {/* Ekte flater fra appen - samme mockups som forsiden. */}
-      <InsideMockups />
-
-      <SportFeatureSection
-        kicker="Aktivitets-basert logging"
-        title="ØKTEN BRYTES NED I DRAG."
-        intro="Hver økt kan logges som én lang blokk eller deles i drag/intervaller med egne soner, varigheter, høydemeter og terreng. Pause og aktiv pause registreres som egne rader så aktiv tid er korrekt."
-        bullets={[
-          { title: 'Drag og intervall', body: 'Splitt en økt i flere drag med egen sone og varighet. Sum og snitt vises automatisk.' },
-          { title: 'Pause vs aktiv pause', body: 'Stopp er ikke "tid på trening". Aktiv pause vs full pause skilles, så aktivitets-sum blir korrekt.' },
-          { title: 'Skyting som aktivitet', body: 'For skiskyting integreres skyting-blokker som egne rader med treff%, posisjon og tid.' },
+      <LandingSeksjon
+        id="okt" kicker="Øktbyggeren" tittel="BYGG ØKTA SLIK DU TENKER DEN."
+        ingress="Radene er editoren - ingen dra-og-slipp. Skriv 8 × 45/15 i hurtigoppsettet, så ligger hele økta klar med oppvarming, drag, pauser og nedjogg. Bytt sone eller distanse på én rad, og resten regner seg selv."
+        punkter={[
+          { tittel: 'Hurtigoppsett', tekst: 'Antall × dragtid / pause og sone - økta genereres som vanlige rader du kan justere fritt.' },
+          { tittel: '58 ferdige øktmaler', tekst: 'Bygget på Olympiatoppens intensitetsskala. Lagre dine egne som maler.' },
+          { tittel: 'Felt per bevegelsesform', tekst: 'Watt, motstand, stigning, fart og kadens dukker opp der de gir mening.' },
         ]}
+        media={{ type: 'app', navn: 'hurtigoppsett', kap: 'Hurtigoppsett i øktbyggeren', hoyde: 420 }}
       />
 
-      <SportFeatureSection
-        kicker="Spesialformater"
-        title="KONKURRANSE. TEST. REISEDAG."
-        intro="Ikke alle økter er trening. Velg riktig type ved logging og rammeverket tilpasses - egne felter for konkurranse-resultater, test-protokoller og hviledag-årsak."
-        bullets={[
-          { title: 'Konkurranse-modul', body: 'Distanse, posisjon, klasse, deltakerantall - alt strukturert for senere PR-historikk.' },
-          { title: 'Testløp og test-økter', body: 'Cooper, FTP, terskel-test og 20+ andre standard-formater forhåndskonfigurert.' },
-          { title: 'Hviledag, sykdom, skade og reisedag', body: 'Dagmarkeringer med egne felt - reisedag med timer og notat. Forurenser aldri treningsstatistikken.' },
+      <LandingSeksjon
+        id="plan" kicker="Plan" tittel="PLANEN VET HVA SOM BLE GJORT."
+        ingress="Legg økter på framtidige datoer med varighet, sone og struktur - eller hent inn en hel uke fra en mal. Når økta er gjennomført, ligger plan og virkelighet ved siden av hverandre."
+        punkter={[
+          { tittel: 'Plan mot gjennomført', tekst: 'Hver planlagte økt tar vare på seg selv, så avviket kan leses etterpå.' },
+          { tittel: 'Uke- og planmaler', tekst: 'Hele uker og perioder kan lagres og settes inn på nytt, for deg eller for gruppa.' },
+          { tittel: 'Årsplanen over ukene', tekst: 'Periodene fra årsplanen ligger som stripe over ukene i planen.' },
         ]}
+        media={{ type: 'app', navn: 'kalender-uke', kap: 'Plan-kalenderen med uke og periodestripe', hoyde: 420 }}
+        speilvendt
       />
 
-      <SportFeatureSection
-        kicker="Plan-modus"
-        title="BYGG FREMOVER."
-        intro="Plan-kalenderen lar deg legge inn økter på fremtidige datoer med varighet, sone-mål og struktur. Maler kan importeres for hele uker eller hele sesonger."
-        bullets={[
-          { title: 'Planlagt vs gjennomført', body: 'Hver planlagt økt får et snapshot. Når du logger gjennomføring sammenstilles plan vs faktisk automatisk.' },
-          { title: 'Øktmal-bibliotek + egne maler', body: '58 ferdige økter fra OLT-skalaen, pluss dine egne økt-, uke- og planmaler. Søk «6x6» og økta ligger klar.' },
-          { title: 'Sone-mål per drag', body: 'Plan-økter spesifiserer mål-tid per sone (I1-I5, Hurtighet) - avvik flagges ved logging.' },
+      <LandingSeksjon
+        id="dagbok" kicker="Dagbok" tittel="ØKTA, RAD FOR RAD."
+        ingress="Dagboka viser det du faktisk gjorde: drag, pauser, terreng, laktat, ernæring og skyting. Klokkas runder kan flettes inn - samlet eller splittet - og det du fører selv vinner alltid."
+        punkter={[
+          { tittel: 'Drag og pause som egne rader', tekst: 'Aktiv tid blir riktig, også når du sto og ventet.' },
+          { tittel: 'Punkter på kurven', tekst: 'Laktat, ernæring og notat legges der de skjedde - planlagt teller aldri som målt.' },
+          { tittel: 'Uke og dag i samme bilde', tekst: 'Ukevisningen viser sju dager med dagsdetalj under - også på mobil.' },
         ]}
+        media={{ type: 'app', navn: 'oktgraf', kap: 'Økt-grafen i dagboka', hoyde: 1140 }}
       />
 
-      <SportFeatureSection
-        kicker={NYTT_I_VERSJON}
-        title="PLANLEGGING PÅ SEKUNDER."
-        intro="Intervalløkta bygges på fire tastetrykk: antall, dragtid, sone, pause - hele strukturen genereres som aktivitetsrader. Eller velg blant 58 ferdige øktmaler bygget på Olympiatoppens intensitetsskala, med oppvarming og nedjogg klart."
-        bullets={[
-          { title: 'Intervall-byggeren', body: 'Antall × dragtid × sone / pause. Stable rader for pyramider og progressive økter - skiskyttere velger skyting i pausene.' },
-          { title: '58 øktmaler fra OLT-skalaen', body: 'Terskel, I4/I5, motbakke, fartslek, komb og tester - velg, juster, lagre som din egen.' },
-          { title: 'Standardøkter', body: 'Koble gjentakelser av samme økt i en serie og se utviklingen som én graf gjennom sesongen.' },
+      <LandingSeksjon
+        id="notater" kicker="Notater" tittel="TANKENE DINE HØRER MED."
+        ingress="Notat per økt fanger dagen. Notat per uke, måned og periode fanger det som bare kan sees over tid - og planens notat står ved siden av når du fører uka."
+        punkter={[
+          { tittel: 'Uke, måned og periode', tekst: 'Én tekst per nivå, både i plan og i dagbok.' },
+          { tittel: 'Plan-notatet synlig i dagboka', tekst: 'Du ser hva som var meningen mens du skriver hva som skjedde.' },
+          { tittel: 'Opplevd belastning', tekst: 'RPE og følelse ligger på økta og teller inn i belastningen når puls mangler.' },
         ]}
+        media={{ type: 'foto', bilde: 'langrenn-fjell-solnedgang', alt: 'Skiløper i fjellet ved solnedgang' }}
+        speilvendt
       />
 
-      <SportFeatureSection
-        kicker="Dagbok-modus"
-        title="TILBAKEBLIKK OG ANALYSE."
-        intro="Dagbok viser det du faktisk har gjort, sortert på dato med kalender-oversikt. Klikk på en dag for full detalj, søk på tagger, filtrer på sport eller intensitet."
-        bullets={[
-          { title: 'Kalender og dag-modal', body: 'Måneds-, uke- og dags-visning. Klikk en dag → full liste med tider, soner og notater.' },
-          { title: 'Søk og tagger', body: 'F.eks. "alle harde I4-økter på asfalt med dårlig HRV siste 3 måneder" - søkbart.' },
-          { title: 'Aggregater per uke', body: 'Volum, høydemeter, sone-tid og økt-antall vises som banner over hver uke.' },
+      <LandingSeksjon
+        id="trener" kicker="For trenere" tittel="KOMMENTAREN LIGGER DER ØKTA LIGGER."
+        ingress="Treneren kommenterer i selve økta - ikke i en egen innboks. Du ser tilbakemeldingen ved siden av det du førte, og svarer samme sted."
+        punkter={[
+          { tittel: 'Kommentar per økt', tekst: 'Før, under og etter - tråden hører til økta.' },
+          { tittel: 'Push av planer', tekst: 'Treneren kan sende uke- og årsplanmaler til deg eller hele gruppa.' },
+          { tittel: 'Du eier dataene dine', tekst: 'Helsedata deles bare hvis du sier ja, og frakobling fjerner tilgangen umiddelbart.' },
         ]}
+        media={{ type: 'foto', bilde: 'langrenn-to-utovere-snoskog', alt: 'To utøvere i snødekt skog', blaa: true }}
+        blaa
       />
 
-      <SportFeatureSection
-        kicker="Notater"
-        title="TANKER PER UKE OG MÅNED."
-        intro="Per-økt-notater fanger hva som skjedde i én økt; per-periode-notater fanger refleksjon over flere økter. To notat-felt per uke (Plan og Dagbok) lar deg skille mellom hva du tenkte du skulle gjøre og hva du faktisk lærte."
-        bullets={[
-          { title: 'Uke-, måned- og periode-notat', body: 'Én tekst per uke/måned/sesong-periode i både Plan og Dagbok-modus.' },
-          { title: 'Plan-notat synlig i Dagbok', body: 'Når du logger uka ser du planen din ved siden av - som read-only-blokk.' },
-          { title: 'Trener kan kommentere', body: 'Trener får en egen kommentar-tråd per periode hvis de har tilgang.' },
-        ]}
-      />
+      <LandingFaq poster={[
+        { sporsmal: 'Må jeg føre alt manuelt?', svar: 'Nei. Er klokka koblet til, kommer økta inn av seg selv og legges oppå planen din. Du fyller bare på med det klokka ikke vet - følelse, laktat, ernæring og skyting.' },
+        { sporsmal: 'Hva er hurtigoppsettet?', svar: 'Du skriver antall × dragtid / pause og sone, for eksempel 8 × 45/15. Økta genereres som vanlige rader med oppvarming, drag, pauser og nedjogg, som du kan justere fritt etterpå.' },
+        { sporsmal: 'Kan jeg lage mine egne maler?', svar: 'Ja. Både enkeltøkter, hele uker og perioder kan lagres som maler, i tillegg til de 58 ferdige øktmalene.' },
+        { sporsmal: 'Ser jeg plan og gjennomført ved siden av hverandre?', svar: 'Ja. Den planlagte økta tas vare på, så du ser avviket mellom det du skulle gjøre og det du gjorde - både per økt og per uke.' },
+        { sporsmal: 'Virker det på mobil?', svar: 'Ja. Ukevisningen, dagboka og øktbyggeren er bygget for mobil også, med samme data som på PC.' },
+        { sporsmal: 'Kan treneren min skrive i dagboka mi?', svar: 'Treneren kan kommentere i økta og pushe planer, men fører ikke dagboka for deg. Det du fører selv vinner alltid.' },
+      ]} />
 
-      <SportFeatureSection
-        kicker="Trener-dialog"
-        title="KOMMENTARER PÅ ØKTNIVÅ."
-        intro="Trener-kommentarene ligger der øktene ligger - ikke i en separat innboks. Når treneren skriver noe på dagens økt får du varsel; når du svarer får treneren det."
-        bullets={[
-          { title: 'Per-økt-tråd', body: 'Kommentar-bobler vises ved siden av økten i kalenderen.' },
-          { title: 'Lese-kvittering', body: 'Begge sider ser når den andre har lest meldingen.' },
-          { title: 'Direktemelding utenfor økt', body: 'Egen DM-tråd per utøver-trener-relasjon for det som ikke hører til en bestemt økt.' },
-        ]}
-      />
-
-      <SportPageCTA />
+      <AndreIdretter />
+      <LandingBand />
     </LandingShell>
   )
 }

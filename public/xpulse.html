@@ -2069,8 +2069,10 @@ section[id],header[id]{scroll-margin-top:108px}
 .fu-pcskall::-webkit-scrollbar{height:6px}
 .fu-pcskall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
 .fu-livrad{display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:center;margin-top:20px}
-/* Sverre 6. sep: teksten skal staa ved siden av Live styrke i BEGGE visningene. */
-.fu-flater .fu-livekort+.fu-livtekst{margin-top:14px}
+/* Sverre 6. sep: teksten skal staa ved siden av Live styrke i BEGGE visningene -
+   og den skal FOELGE kortet. Kort og tekst er derfor ett rutenettsbarn (.fu-livkol);
+   som to soesken havnet teksten i kolonnen under telefonen. */
+.fu-livkol{display:flex;flex-direction:column;gap:14px;min-width:0}
 .fu-flater{align-items:start}
 .fu-livtekst b{display:block;font-family:'Bebas Neue';font-size:24px;letter-spacing:.03em;margin-bottom:6px}
 .fu-livtekst span{font-family:'Barlow';font-size:14.5px;color:var(--dim);max-width:46ch;display:block;line-height:1.6}
@@ -2526,6 +2528,7 @@ section[id],header[id]{scroll-margin-top:108px}
   </div>
  </div>
 </div>
+  <div class="fu-livkol">
   <div class="fu-livekort">
  <div class="fu-lv-hode"><span class="fu-strek fu-gul"></span><b>Live styrkeøkt</b><span class="fu-d">⏱ 12:47</span></div>
  <div class="fu-lv-ovelse">
@@ -2541,6 +2544,7 @@ section[id],header[id]{scroll-margin-top:108px}
 </div>
   <div class="fu-livtekst"><b>Live styrke ligger i samme app.</b><span>Start økta fra ＋-knappen eller fra en planlagt styrkeøkt - plan og «sist» per øvelse, START per sett, og alt havner i dagboka når du fullfører.</span></div>
  </div>
+  </div>
 </div>
   </div>
 </section>

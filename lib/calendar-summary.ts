@@ -1,3 +1,4 @@
+import { normaliserBevform } from '@/lib/types'
 import { CalendarWorkoutSummary, CompetitionType, ShotStats, PAUSE_TYPER, VEKSLING_TYPER } from './types'
 import { lesTidspunktNotater } from './tidspunkt-notater'
 import { fraRaaRader } from './plan-graf'
@@ -455,7 +456,7 @@ function extractPrimaryMovement(acts: RawCalendarWorkout['workout_activities']):
   if (!acts || acts.length === 0) return null
   const counts = new Map<string, number>()
   for (const a of acts) {
-    const m = a.movement_name?.trim()
+    const m = normaliserBevform(a.movement_name)?.trim()
     if (!m) continue
     counts.set(m, (counts.get(m) ?? 0) + (a.duration_seconds ?? 0))
   }

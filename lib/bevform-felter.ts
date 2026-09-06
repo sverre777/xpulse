@@ -6,7 +6,10 @@
 //
 //   SkiErg                      watt (mål fra–til / snitt) · motstand 1–10 · fart valgfri · pace bort
 //   Sykling / rulle / spinning  watt fra–til / snitt · fart og km som i dag · motstand på innendørs
-//   Roing / romaskin            watt ELLER split /500 m · motstand (romaskin)
+//   Roing · Maskin              watt · split /500 m · tak/min · motstand (som padlemaskin)
+//   Roing · Utendørs            fart/pace · km · tak/min
+//   Padling · Maskin            watt (mål fra–til / snitt+maks) · split /500 m · tak/min · motstand
+//   Padling · Utendørs          fart/pace · km · tak/min (valgfritt)
 //   Løping · Tredemølle         stigning % + fart km/t (obligatorisk for drag) · pace regnes fra fart
 //   Rulleski på mølle           som tredemølle
 //   Stairmaster · Ellipsemaskin watt · motstand · ingen høydemeter
@@ -18,7 +21,7 @@
 // SKJULES, slettes aldri.
 
 import {
-  MOVEMENT_CATEGORIES, DEFAULT_MOVEMENTS_BY_SPORT, isStrengthMovement,
+  MOVEMENT_CATEGORIES, DEFAULT_MOVEMENTS_BY_SPORT, isStrengthMovement, normaliserBevform, normaliserUnderkategori,
   type Sport,
 } from './types.ts'
 import { kmPerHourToSecondsPerKm, secondsPerKmToKmPerHour } from './pace-utils.ts'
@@ -40,9 +43,9 @@ export interface BevFelter {
   split500: boolean
   /** Høydemeter opp/ned — bare utendørs. */
   hoydemeter: boolean
-  /** Kadens (Sverre 5. sep): 'rpm' på sykkel/rulle/spinning, 'spm' på løping (valgfritt), false ellers.
-      Plan = mål (avg_cadence), dagbok = snitt + maks. */
-  kadens: 'rpm' | 'spm' | false
+  /** Kadens (Sverre 5. sep): 'rpm' på sykkel/rulle/spinning, 'spm' på løping (valgfritt),
+      'tak/min' på padling/roing (PADLING pkt 3), false ellers. Plan = mål (avg_cadence), dagbok = snitt + maks. */
+  kadens: 'rpm' | 'spm' | 'tak/min' | false
 }
 
 const INGEN: BevFelter = {
@@ -57,7 +60,8 @@ const SYKLING_INNE = new Set(['Spinning', 'Indoors/Ergo', 'Air bike'])
 
 /** Feltene som hører til bev.formen (+ underkategori). */
 export function bevFelterFor(bev: string | null | undefined, sub: string | null | undefined): BevFelter {
-  const b = (bev ?? '').trim(), s = (sub ?? '').trim()
+  // Alias først: «Kajak/Padling» → Padling, «Romaskin»/«På vann» → Maskin/Utendørs (PADLING, 6. sep).
+  const b = normaliserBevform(bev), s = normaliserUnderkategori(bev, sub)
   if (!b) return UTENDORS
   if (isStrengthMovement(b)) return INGEN
   if (b === 'SkiErg') return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: 'valgfri', split500: false, hoydemeter: false, kadens: false }
@@ -65,9 +69,10 @@ export function bevFelterFor(bev: string | null | undefined, sub: string | null 
     const inne = SYKLING_INNE.has(s)
     return { wattMaal: true, wattFaktisk: true, motstand: inne, stigning: false, fart: 'pace', split500: false, hoydemeter: !inne, kadens: 'rpm' }
   }
-  if (b === 'Roing') {
-    const maskin = s === 'Romaskin'
-    return { wattMaal: true, wattFaktisk: true, motstand: maskin, stigning: false, fart: false, split500: true, hoydemeter: !maskin, kadens: false }
+  if (b === 'Roing' || b === 'Padling') {
+    // PADLING pkt 3: maskinen = watt · split /500 m · tak/min · motstand; utendørs = fart/pace · km · tak/min.
+    if (s === 'Maskin') return { wattMaal: true, wattFaktisk: true, motstand: true, stigning: false, fart: false, split500: true, hoydemeter: false, kadens: 'tak/min' }
+    return { wattMaal: false, wattFaktisk: false, motstand: false, stigning: false, fart: 'pace', split500: false, hoydemeter: false, kadens: 'tak/min' }
   }
   if ((b === 'Løping' && s === 'Tredemølle') || b === 'Rulleski på mølle') {
     return { wattMaal: false, wattFaktisk: false, motstand: false, stigning: true, fart: 'kmt', split500: false, hoydemeter: false, kadens: b === 'Løping' ? 'spm' : false }

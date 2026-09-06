@@ -1184,7 +1184,7 @@ function ActivityRowItem({
             {isPlanMode && felter.kadens && (
               <Field label={`Kadens (mål, ${felter.kadens})`}>
                 <input value={row.avg_cadence} onChange={e => onUpdate({ avg_cadence: e.target.value })}
-                  inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : '180'} data-kadens-maal style={iSt} />
+                  inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : felter.kadens === 'tak/min' ? '60' : '180'} data-kadens-maal style={iSt} />
               </Field>
             )}
             {isPlanMode && felter.motstand && (

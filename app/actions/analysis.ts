@@ -16,7 +16,7 @@ import { resolveTerskel, dominantBevegelse, type TerskelDbRad } from '@/lib/ters
 import { beregnSegmenter, pulsIVindu } from '@/lib/segmenter'
 import { leggTilSoner, hoyIntensitetSek, computeActivityTotals, ActivityLike } from '@/lib/activity-summary'
 import { snapshotActivityToLike } from '@/lib/calendar-summary'
-import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER } from '@/lib/types'
+import { ENDURANCE_ACTIVITY_MOVEMENTS, WEATHER_LABELS, type Sport, type WorkoutType, type CompetitionType, IKKE_TRENINGSTID_TYPER, normaliserBevform } from '@/lib/types'
 import { findStandardTest } from '@/lib/shooting-test-templates'
 import { windShort, sightLabel, type SightKey } from '@/lib/shooting'
 
@@ -3427,7 +3427,7 @@ export async function getTerskelAnalysis(
     const vektPaa = (dato: string): number | null => vektRader.find(r => r.date <= dato)?.kg ?? vektRader[vektRader.length - 1]?.kg ?? null
     const dominantFor = (w: RawTerskelWorkout): [string, string] => {
       const sum = new Map<string, number>(); const sub = new Map<string, string>()
-      for (const a of w.workout_activities ?? []) { const n = (a.movement_name ?? '').trim(); if (!n) continue; sum.set(n, (sum.get(n) ?? 0) + (a.duration_seconds ?? 0)); if (!sub.has(n)) sub.set(n, (a.movement_subcategory ?? '').trim()) }
+      for (const a of w.workout_activities ?? []) { const n = normaliserBevform(a.movement_name); if (!n) continue; sum.set(n, (sum.get(n) ?? 0) + (a.duration_seconds ?? 0)); if (!sub.has(n)) sub.set(n, (a.movement_subcategory ?? '').trim()) }
       let beste = '', mest = -1
       for (const [n, v] of sum) if (v > mest) { beste = n; mest = v }
       return [beste, sub.get(beste) ?? '']

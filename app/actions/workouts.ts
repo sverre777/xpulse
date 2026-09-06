@@ -5,7 +5,7 @@ import { medTid } from '@/lib/ytelse-tid'
 import { lesTidspunktNotater, tilJson } from '@/lib/tidspunkt-notater'
 import { createClient } from '@/lib/supabase/server'
 import { pulsIVindu } from '@/lib/segmenter'
-import { PAUSE_TYPER, VEKSLING_TYPER } from '@/lib/types'
+import { PAUSE_TYPER, VEKSLING_TYPER, normaliserBevform, normaliserUnderkategori } from '@/lib/types'
 import { dbFeilTekst } from '@/lib/db-feil'
 import { resolveTargetUser } from '@/lib/target-user'
 import {
@@ -576,8 +576,8 @@ function normalizeSnapshotActivities(raw: unknown): ActivityRow[] {
     return {
       id: crypto.randomUUID(),
       activity_type: (a.activity_type ?? 'aktivitet') as ActivityType,
-      movement_name: a.movement_name ?? '',
-      movement_subcategory: a.movement_subcategory ?? '',
+      movement_name: normaliserBevform(a.movement_name),
+      movement_subcategory: normaliserUnderkategori(a.movement_name, a.movement_subcategory),
       start_time: a.start_time ?? '',
       duration: a.duration ?? '',
       distance_km: a.distance_km ?? '',
@@ -1585,8 +1585,8 @@ async function getWorkoutForEditIndre(id: string, formMode: 'plan' | 'dagbok' = 
         id: crypto.randomUUID(),
         db_id: a.id,
         activity_type: a.activity_type as ActivityType,
-        movement_name: a.movement_name ?? '',
-        movement_subcategory: a.movement_subcategory ?? '',
+        movement_name: normaliserBevform(a.movement_name),
+        movement_subcategory: normaliserUnderkategori(a.movement_name, a.movement_subcategory),
         start_time: a.start_time ?? '',
         duration: a.duration_seconds ? formatActivityDuration(a.duration_seconds) : '',
         distance_km: a.distance_meters != null ? (a.distance_meters / 1000).toString() : '',

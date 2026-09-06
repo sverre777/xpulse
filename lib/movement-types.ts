@@ -5,7 +5,7 @@
 import {
   isEnduranceMovement as isStdEndurance,
   isStrengthMovement as isStdStrength,
-  ACTIVITY_SUBCATEGORIES, STRENGTH_SUBCATEGORIES,
+  ACTIVITY_SUBCATEGORIES, STRENGTH_SUBCATEGORIES, normaliserBevform,
 } from './types'
 import type { UserMovementType, UserMovementTypeKind } from '@/app/actions/user-movement-types'
 
@@ -48,5 +48,5 @@ export function subcategoriesFor(
   const user = userTypes.find(t => t.name === name)
   if (user && user.subcategories.length > 0) return user.subcategories
   if (isStdStrength(name)) return STRENGTH_SUBCATEGORIES
-  return ACTIVITY_SUBCATEGORIES[name] ?? []
+  return ACTIVITY_SUBCATEGORIES[normaliserBevform(name)] ?? []
 }

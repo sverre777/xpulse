@@ -573,7 +573,7 @@ export function IntervallBygger({ sport, onOpprett, forhandsutfylt, onAvbryt, on
               </>}
               {felter.kadens && <>
                 <span style={LITEN}>Kadens</span>
-                <input value={r.kadens} onChange={e => oppdater(i, 'kadens', e.target.value)} inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : '180'} aria-label={`Kadens mål (${felter.kadens})`} data-kadens style={{ ...SMAL, width: 60 }} />
+                <input value={r.kadens} onChange={e => oppdater(i, 'kadens', e.target.value)} inputMode="numeric" placeholder={felter.kadens === 'rpm' ? '90' : felter.kadens === 'tak/min' ? '60' : '180'} aria-label={`Kadens mål (${felter.kadens})`} data-kadens style={{ ...SMAL, width: 60 }} />
                 <span style={{ color: 'var(--tekst-8-alt)' }}>{felter.kadens}</span>
               </>}
               {felter.motstand && <>

@@ -1181,12 +1181,12 @@ const POLAR_SPORT_MAP: Record<string, PolarMovementMapping> = {
   OPEN_WATER_SWIMMING:      { movement: 'Svømming åpent vann',  subcategory: null },
 
   // ── VANN ──
-  ROWING:                   { movement: 'Roing',    subcategory: 'På vann' },
-  INDOOR_ROWING:            { movement: 'Roing',    subcategory: 'Romaskin' },
-  KAYAKING:                 { movement: 'Kajak/Padling', subcategory: null },
-  CANOEING:                 { movement: 'Kajak/Padling', subcategory: null },
-  PADDLING:                 { movement: 'Kajak/Padling', subcategory: null },
-  STAND_UP_PADDLING:        { movement: 'Kajak/Padling', subcategory: null },
+  ROWING:                   { movement: 'Roing',    subcategory: 'Utendørs' },
+  INDOOR_ROWING:            { movement: 'Roing',    subcategory: 'Maskin' },
+  KAYAKING:                 { movement: 'Padling', subcategory: 'Utendørs' },
+  CANOEING:                 { movement: 'Padling', subcategory: 'Utendørs' },
+  PADDLING:                 { movement: 'Padling', subcategory: 'Utendørs' },
+  STAND_UP_PADDLING:        { movement: 'Padling', subcategory: 'Utendørs' },
 
   // ── GANG / TUR ──
   WALKING:                  { movement: 'Tur',      subcategory: 'Skogstur' },
@@ -1249,7 +1249,7 @@ const POLAR_KEYWORD_RULES: { match: RegExp; mapping: PolarMovementMapping }[] = 
   { match: /(BIKING|CYCLING)/,   mapping: { movement: 'Sykling', subcategory: null } },
   { match: /OPEN_?WATER/,        mapping: { movement: 'Svømming åpent vann', subcategory: null } },
   { match: /SWIM/,               mapping: { movement: 'Svømming basseng 25m', subcategory: null } },
-  { match: /(KAYAK|CANOE|PADDL)/, mapping: { movement: 'Kajak/Padling', subcategory: null } },
+  { match: /(KAYAK|CANOE|PADDL)/, mapping: { movement: 'Padling', subcategory: 'Utendørs' } },
   { match: /ROWING/,             mapping: { movement: 'Roing', subcategory: null } },
   { match: /(HIKING|TREKKING)/,  mapping: { movement: 'Tur', subcategory: 'Fjelltur' } },
   { match: /WALKING/,            mapping: { movement: 'Tur', subcategory: 'Skogstur' } },

@@ -56,9 +56,9 @@ export const ENDURANCE_MOVEMENT_NAMES = [
   'Løping','Langrenn','Rulleski','SkiErg','Sykling',
   'Svømming basseng 25m','Svømming basseng 50m','Svømming åpent vann',
   'Roing','Stairmaster','Ellipsemaskin',
-  'Fjellsport','Kajak/Padling','Orientering','Skøyter',
-  // Legacy: 'Svømming' beholdes så gamle workouts gjenkjennes som utholdenhet.
-  'Svømming',
+  'Fjellsport','Padling','Orientering','Skøyter',
+  // Legacy: 'Svømming' og 'Kajak/Padling' beholdes så gamle workouts gjenkjennes som utholdenhet.
+  'Svømming','Kajak/Padling',
 ]
 
 const SKI_SUBCATEGORIES = [
@@ -97,9 +97,12 @@ const SVOMMING_TECHNIQUES = [
 
 export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   // Topp 6 — vises øverst i dropdown.
-  { name: 'Løping',         subcategories: ['Terreng','Asfalt','Grus','Tredemølle','Bane','Crosscountry'] },
+  // PADLING pkt 2 (6. sep): ÉN kilde for underkategorier — lista er slått sammen med den gamle
+  // ACTIVITY_SUBCATEGORIES (skjemaets liste). Prod-data brukte «Vei» (22 rader), ikke «Asfalt».
+  { name: 'Løping',         subcategories: ['Terreng','Vei','Grus','Bane','Motbakke','Tredemølle','Crosscountry'] },
   { name: 'Langrenn',       subcategories: SKI_SUBCATEGORIES },
-  { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Indoors/Ergo','Spinning','Air bike'] },
+  // Prod-data: «Terreng/MTB» (2) og «Innendørs/rulle» (1) — begge beholdt, synonymene «Terreng»/«Indoors/Ergo» borte.
+  { name: 'Sykling',        subcategories: ['Landevei','Terreng/MTB','Gravel','Innendørs/rulle','Spinning','Air bike','Bane','Tempo'] },
   { name: 'Styrke',         subcategories: ['Maksstyrke','Eksplosiv','Basis','Utholdenstyrke'] },
   { name: 'Rulleski',       subcategories: SKI_SUBCATEGORIES },
   // Egen form for mølle-rulleski (Sverre 20. aug) — samme teknikk-språk.
@@ -109,15 +112,17 @@ export const MOVEMENT_CATEGORIES: MovementCategory[] = [
   { name: 'Svømming basseng 25m', subcategories: SVOMMING_TECHNIQUES },
   { name: 'Svømming basseng 50m', subcategories: SVOMMING_TECHNIQUES },
   { name: 'Svømming åpent vann',  subcategories: SVOMMING_TECHNIQUES },
-  { name: 'Skøyter' },
-  { name: 'Roing',          subcategories: ['Romaskin','På vann'] },
+  { name: 'Skøyter',        subcategories: ['Sprint','Allround','Langdistanse'] },
+  // PADLING pkt 6: Maskin · Utendørs — båttypen kommer fra utstyret. Gamle «Romaskin»/«På vann» leses via UNDERKATEGORI_ALIAS.
+  { name: 'Roing',          subcategories: ['Maskin','Utendørs'] },
   { name: 'Stairmaster' },
   { name: 'Ellipsemaskin' },
-  { name: 'Kajak/Padling' },
-  { name: 'Orientering' },
-  { name: 'Fjellsport',     subcategories: ['Fjellvandring','Rando/Skitour','Topptur','Brevandring'] },
+  // PADLING (Sverre 6. sep): «Padling» erstatter «Kajak/Padling» (alias i BEVFORM_ALIAS — ingen rader i prod hadde det gamle navnet).
+  { name: 'Padling',        subcategories: ['Maskin','Utendørs'] },
+  { name: 'Orientering',    subcategories: ['Skog','Sprint','Nattorientering','Ski-O','MTB-O'] },
+  { name: 'Fjellsport',     subcategories: ['Fjellvandring','Topptur','Rando/Skitour','Brevandring','Klatring','Isklatring','Via ferrata','Fjellløp'] },
   { name: 'Tur',            subcategories: TUR_SUBCATEGORIES },
-  { name: 'Yoga' },
+  { name: 'Yoga',           subcategories: ['Hatha','Vinyasa','Yin','Restorativ','Mobility'] },
   { name: 'Klatring' },
   { name: 'Dans' },
   { name: 'Alpint' },
@@ -137,8 +142,25 @@ export const WEATHER_OPTIONS: string[] = [
   'Sol', 'Delvis skyet', 'Overskyet', 'Snø', 'Regn', 'Vind', 'Tåke',
 ]
 
+// ── Alias (PADLING, 6. sep): gamle navn leses som de nye — aldri SQL for et navnebytte. ──
+// Strava-mappingen (lib/strava.ts, regel 1: røres ikke) skriver fortsatt «Kajak/Padling»; alle
+// lesere går gjennom normaliserBevform/normaliserUnderkategori.
+export const BEVFORM_ALIAS: Record<string, string> = { 'Kajak/Padling': 'Padling', 'Kajakk/Padling': 'Padling' }
+export const UNDERKATEGORI_ALIAS: Record<string, Record<string, string>> = {
+  Roing:   { Romaskin: 'Maskin', 'På vann': 'Utendørs' },
+  Padling: { Kajakk: 'Utendørs', Kano: 'Utendørs', SUP: 'Utendørs', Havkajakk: 'Utendørs', Sprintkajakk: 'Utendørs', Padlemaskin: 'Maskin' },
+}
+export function normaliserBevform(name: string | null | undefined): string {
+  const n = (name ?? '').trim()
+  return BEVFORM_ALIAS[n] ?? n
+}
+export function normaliserUnderkategori(name: string | null | undefined, sub: string | null | undefined): string {
+  const b = normaliserBevform(name), s = (sub ?? '').trim()
+  return UNDERKATEGORI_ALIAS[b]?.[s] ?? s
+}
+
 export function getSubcategories(name: string): string[] {
-  return MOVEMENT_CATEGORIES.find(m => m.name === name)?.subcategories ?? []
+  return MOVEMENT_CATEGORIES.find(m => m.name === normaliserBevform(name))?.subcategories ?? []
 }
 
 export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
@@ -148,7 +170,8 @@ export const DEFAULT_MOVEMENTS_BY_SPORT: Record<Sport, string[]> = {
   triathlon:            ['Svømming basseng 25m', 'Sykling', 'Løping', 'Styrke'],
   cycling:              ['Sykling', 'Løping', 'Styrke'],
   long_distance_skiing: ['Langrenn', 'Rulleski', 'SkiErg', 'Løping', 'Styrke'],
-  endurance:            ['Løping', 'Sykling', 'Svømming basseng 25m', 'Styrke'],
+  // PADLING pkt 4: padling inn for multisport (endurance) — ikke triatlon (svøm/sykkel/løp).
+  endurance:            ['Løping', 'Sykling', 'Svømming basseng 25m', 'Padling', 'Styrke'],
 }
 
 // ── Shooting types ─────────────────────────────────────────
@@ -528,28 +551,13 @@ export function findActivityType(v: ActivityType): ActivityTypeOption | null {
   return ACTIVITY_TYPES.find(t => t.value === v) ?? null
 }
 
-// Sub-kategorier per bevegelsesform (valgfri). Brukes i ActivitiesSection-dropdown.
-// Styrke har egen struktur og håndteres ikke her (se STRENGTH_SUBCATEGORIES).
-export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = {
-  Langrenn:         ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
-  Rulleski:         ['Skøyting', 'Klassisk', 'Skøyting uten staver', 'Klassisk uten staver', 'Staking'],
-  Løping:           ['Terreng', 'Vei', 'Bane', 'Motbakke', 'Tredemølle'],
-  Sykling:          ['Landevei', 'Terreng', 'Gravel', 'Innendørs/rulle', 'Bane', 'Tempo'],
-  // Svømming er nå tre EGNE bevegelsesformer (basseng 25m / 50m / åpent vann)
-  // — alle med samme teknikk-underkat fra MOVEMENT_CATEGORIES.
-  'Svømming basseng 25m': ['Crawl', 'Brystsvømming', 'Ryggsvømming', 'Butterfly', 'Variert/blandet'],
-  'Svømming basseng 50m': ['Crawl', 'Brystsvømming', 'Ryggsvømming', 'Butterfly', 'Variert/blandet'],
-  'Svømming åpent vann':  ['Crawl', 'Brystsvømming', 'Ryggsvømming', 'Butterfly', 'Variert/blandet'],
-  Roing:            ['Romaskin', 'På vann'],
-  Padling:          ['Kajakk', 'Kano', 'SUP', 'Havkajakk', 'Sprintkajakk'],
-  'Kajak/Padling':  ['Kajakk', 'Kano', 'SUP', 'Havkajakk', 'Sprintkajakk'],
-  Fjellsport:       ['Topptur', 'Fjellvandring', 'Randonee', 'Brevandring', 'Klatring', 'Isklatring', 'Via ferrata', 'Fjellløp'],
-  Skøyter:          ['Sprint', 'Allround', 'Langdistanse'],
-  Orientering:      ['Skog', 'Sprint', 'Nattorientering', 'Ski-O', 'MTB-O'],
-  Turgåing:         ['Rolig tur', 'Rask gange', 'Rulleski-tur'],
-  Tur:              TUR_SUBCATEGORIES,
-  Yoga:             ['Hatha', 'Vinyasa', 'Yin', 'Restorativ', 'Mobility'],
-}
+// Sub-kategorier per bevegelsesform — AVLEDET av MOVEMENT_CATEGORIES (PADLING pkt 2, 6. sep):
+// én kilde. Den gamle håndskrevne tabellen hadde sprik mot fasiten (Løping, Sykling, Fjellsport,
+// Skøyter, Orientering, Yoga, Turgåing, Kajak/Padling) — slått sammen i MOVEMENT_CATEGORIES.
+// Styrke har egen struktur (STRENGTH_SUBCATEGORIES). Gamle navn slås opp via alias.
+export const ACTIVITY_SUBCATEGORIES: Record<string, string[]> = Object.fromEntries(
+  MOVEMENT_CATEGORIES.filter(m => (m.subcategories?.length ?? 0) > 0).map(m => [m.name, m.subcategories as string[]]),
+)
 
 export const STRENGTH_SUBCATEGORIES = [
   'Helkropp', 'Overkropp', 'Underkropp', 'Mage/core', 'Sirkel',
@@ -564,7 +572,7 @@ export const ENDURANCE_ACTIVITY_MOVEMENTS = new Set<string>([
   'Løping', 'Langrenn', 'Rulleski', 'SkiErg', 'Sykling',
   'Svømming basseng 25m', 'Svømming basseng 50m', 'Svømming åpent vann',
   'Roing', 'Stairmaster', 'Ellipsemaskin',
-  'Padling', 'Kajak/Padling', 'Fjellsport', 'Skøyter',
+  'Padling', 'Kajak/Padling' /* legacy-alias */, 'Fjellsport', 'Skøyter',
   'Orientering', 'Turgåing', 'Tur',
   'Hyrox', 'HIIT', 'Crossfit',
 ])

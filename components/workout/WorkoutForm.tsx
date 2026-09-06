@@ -22,7 +22,7 @@ import {
   TestData, emptyTestData, findTestPRSport, type TestPRSport,
   ActivityRow, ActivityType, emptyActivityZones, makeActivity,
   NutritionEntryRow, emptyWeatherData,
-  MOVEMENT_CATEGORIES,
+  MOVEMENT_CATEGORIES, normaliserBevform, normaliserUnderkategori,
 } from '@/lib/types'
 import { parseActivityDuration } from '@/lib/activity-duration'
 import type { Equipment } from '@/lib/equipment-types'
@@ -148,8 +148,8 @@ function normalizeActivityRowFromTemplate(a: Partial<ActivityRow>): ActivityRow 
   return {
     id: crypto.randomUUID(),
     activity_type: a.activity_type ?? 'aktivitet',
-    movement_name: a.movement_name ?? '',
-    movement_subcategory: a.movement_subcategory ?? '',
+    movement_name: normaliserBevform(a.movement_name),
+    movement_subcategory: normaliserUnderkategori(a.movement_name, a.movement_subcategory),
     start_time: a.start_time ?? '',
     duration: a.duration ?? '',
     distance_km: a.distance_km ?? '',

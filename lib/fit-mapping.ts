@@ -140,7 +140,7 @@ export function mapFitSportToXpulse(
   }
 
   if (s === 4 /* fitness_equipment */ || s === 'fitness_equipment') {
-    if (ss === 14 || ss === 'indoor_rowing') return { movement: 'Roing', subcategory: 'Romaskin' }
+    if (ss === 14 || ss === 'indoor_rowing') return { movement: 'Roing', subcategory: 'Maskin' }
     if (ss === 15 || ss === 'elliptical') return { movement: 'Ellipsemaskin', subcategory: null }
     if (ss === 16 || ss === 'stair_climbing') return { movement: 'Stairmaster', subcategory: null }
     if (ss === 46 || ss === 'indoor_climbing') return { movement: 'Klatring', subcategory: null }
@@ -166,13 +166,13 @@ export function mapFitSportToXpulse(
   if (s === 11 || s === 'walking') return { movement: 'Tur', subcategory: 'Skogstur' }
   if (s === 13 || s === 'alpine_skiing') return { movement: 'Alpint', subcategory: null }
   if (s === 14 || s === 'snowboarding') return { movement: 'Snowboard', subcategory: null }
-  if (s === 15 || s === 'rowing') return { movement: 'Roing', subcategory: 'På vann' }
+  if (s === 15 || s === 'rowing') return { movement: 'Roing', subcategory: 'Utendørs' }
   if (s === 17 || s === 'hiking') return { movement: 'Tur', subcategory: 'Fjelltur' }
   if (s === 30 || s === 'inline_skating') return { movement: 'Skøyter', subcategory: null }
   if (s === 31 || s === 'rock_climbing') return { movement: 'Klatring', subcategory: null }
   if (s === 35 || s === 'snowshoeing') return { movement: 'Tur', subcategory: 'Snøskotur' }
-  if (s === 37 || s === 'stand_up_paddleboarding') return { movement: 'Kajak/Padling', subcategory: null }
-  if (s === 41 || s === 'kayaking') return { movement: 'Kajak/Padling', subcategory: null }
+  if (s === 37 || s === 'stand_up_paddleboarding') return { movement: 'Padling', subcategory: 'Utendørs' }
+  if (s === 41 || s === 'kayaking') return { movement: 'Padling', subcategory: 'Utendørs' }
   if (s === 62 || s === 'hiit' || s === 'high_intensity_interval_training') return { movement: 'HIIT', subcategory: null }
   if (s === 72 || s === 'yoga') return { movement: 'Yoga', subcategory: null }
   if (s === 91 || s === 'dance') return { movement: 'Dans', subcategory: null }
